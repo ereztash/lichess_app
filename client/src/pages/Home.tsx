@@ -7,6 +7,7 @@ import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { RevealPanel } from "@/components/RevealPanel";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
@@ -19,10 +20,12 @@ import {
 } from "@/lib/game-data";
 import {
   buildCommitEvent,
+  cpLossFromSearches,
   engineMayRun,
   type DraftDecision,
   type SessionStage,
 } from "@/lib/decision-session";
+import type { RevealInputs } from "@/lib/reveal";
 // TYPE-ONLY import: type imports are erased, so this creates no runtime edge to the engine
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
 import type { EngineLine, EngineStatus, StockfishClient } from "@/lib/stockfish";
@@ -58,6 +61,9 @@ export default function Home() {
   const [candidateMove, setCandidateMove] = useState<string | null>(null);
   const [candidatesConsidered, setCandidatesConsidered] = useState<string[]>([]);
   const [commitError, setCommitError] = useState<string>();
+  const [revealInputs, setRevealInputs] = useState<RevealInputs | null>(null);
+  const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
+  const [revealFen, setRevealFen] = useState<string>("");
   const gameId = useRef(`local-${Date.now()}`);
 
   const engineRef = useRef<StockfishClient | null>(null);
@@ -89,6 +95,8 @@ export default function Home() {
   }, [activeGame, selectedSquare]);
 
   const commitDecision = trpc.record.commitDecision.useMutation();
+  const submitReveal = trpc.record.reveal.useMutation();
+  const decisionCount = trpc.record.count.useQuery(undefined, { retry: false });
 
   /**
    * The engine is constructed LAZILY, on first reveal. Loading the wasm is network activity, so
@@ -190,19 +198,72 @@ export default function Home() {
         );
         return;
       }
-      const move = uciToSquares(draft.chosenMove!);
-      if (move) playMove(move.from, move.to);
+      // Only now may the engine run at all.
+      const positionFen = activeFen;
+      setCommittedDraft(draft);
+      setRevealFen(positionFen);
       setCandidateMove(null);
       setCandidatesConsidered([]);
       setStage("revealed");
-      setNotice("ההחלטה נרשמה. עכשיו אפשר לראות מה המנוע אומר.");
+      setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
+
+      const move = uciToSquares(draft.chosenMove!);
+      if (move) playMove(move.from, move.to);
+
+      try {
+        const engine = await ensureEngine();
+        // Two searches: the position as the player faced it, and the position their move
+        // produced. The second is scored from the opponent's side and must be flipped.
+        const best = await engine.analyze(positionFen, 14);
+        const after = new Chess(positionFen);
+        after.move({ from: move!.from, to: move!.to, promotion: "q" });
+        const chosen = await engine.analyze(after.fen(), 14);
+        setAnalysis(best.pv.length ? best : null);
+
+        const cpLoss = cpLossFromSearches(best.scoreCp, chosen.scoreCp);
+        const bestMove = best.bestMove ?? draft.chosenMove!;
+        const inputs: RevealInputs = {
+          depth: Math.min(best.depth, chosen.depth),
+          cpLoss,
+          chosenMove: draft.chosenMove!,
+          bestMove,
+          chosenWasBest: bestMove === draft.chosenMove,
+          confidence: draft.confidence!,
+          statedUnknown: draft.unknown,
+          cloudAvailable: false,
+          repertoireGames: null,
+          decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
+        };
+        setRevealInputs(inputs);
+
+        await submitReveal
+          .mutateAsync({
+            decision_id: decisionId,
+            result: {
+              engine_eval_cp: best.scoreCp,
+              engine_best_move: bestMove,
+              engine_depth: inputs.depth,
+              engine_source: "local_sf18",
+              cp_loss: cpLoss,
+            },
+          })
+          .catch(() => {
+            // The decision itself is on the record; only the engine's verdict failed to store.
+            setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
+          });
+        void decisionCount.refetch();
+      } catch {
+        setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
+      }
     },
-    [activeFen, commitDecision, currentPly, playMove],
+    [activeFen, commitDecision, currentPly, decisionCount, ensureEngine, playMove, submitReveal],
   );
 
   const nextDecision = () => {
     setStage("deciding");
     setAnalysis(null);
+    setRevealInputs(null);
+    setCommittedDraft(null);
     setCandidateMove(null);
     setCandidatesConsidered([]);
     setCommitError(undefined);
@@ -385,6 +446,16 @@ export default function Home() {
             />
           ) : (
             <>
+              {revealInputs && committedDraft ? (
+                <RevealPanel
+                  inputs={revealInputs}
+                  analysis={analysis}
+                  fen={revealFen}
+                  statedKnown={committedDraft.known}
+                />
+              ) : (
+                <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
+              )}
               <AnalysisPanel
                 analysis={analysis}
                 status={engineStatus}

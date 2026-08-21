@@ -127,3 +127,18 @@ export function buildCommitEvent(
 export function centipawnLoss(bestEvalCp: number, chosenEvalCp: number): number {
   return Math.max(0, bestEvalCp - chosenEvalCp);
 }
+
+/**
+ * Centipawn loss computed from two engine searches, handling the perspective flip.
+ *
+ * UCI `score cp` is always from the side-to-move's point of view. The first search runs with the
+ * PLAYER to move, so its score is already theirs. The second runs on the position after their
+ * move, where the OPPONENT is to move -- so that score must be negated before comparing.
+ *
+ * Getting this backwards produces a plausible number with the wrong sign, which is exactly the
+ * kind of error that survives review and then feeds a claim.
+ */
+export function cpLossFromSearches(bestScoreCp: number, afterChosenScoreCp: number): number {
+  const chosenFromPlayersView = -afterChosenScoreCp;
+  return centipawnLoss(bestScoreCp, chosenFromPlayersView);
+}

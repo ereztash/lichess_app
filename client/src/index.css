@@ -805,3 +805,106 @@ button:not(:disabled) {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* --- Reveal (section 4.2) ---------------------------------------------------------------- */
+/* Order is load-bearing. Limits first, then one thing, then the question, then the numbers.
+   The evaluation lives in a collapsed <details> because it is the most attractive element on
+   this screen and the least useful one. */
+.reveal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.reveal-block {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(128, 128, 128, 0.22);
+}
+.reveal-block h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.45rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+}
+.reveal-limits ul {
+  margin: 0;
+  padding-inline-start: 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.reveal-limits li {
+  font-size: 0.73rem;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+.one-thing-text {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  font-weight: 600;
+}
+/* R1: the sentence never appears without the measurement that produced it. */
+.one-thing-basis {
+  margin: 0.35rem 0 0;
+  font-size: 0.64rem;
+  opacity: 0.66;
+}
+/* Section 4.5: an honest nothing is a correct screen, not a failure. */
+.one-thing-none {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+.reveal-question p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+.reveal-echo {
+  margin-top: 0.4rem !important;
+  font-size: 0.68rem !important;
+  opacity: 0.68;
+}
+.reveal-secondary {
+  border: 1px solid rgba(128, 128, 128, 0.22);
+  border-radius: 12px;
+  padding: 0.6rem 0.9rem;
+}
+.reveal-secondary summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  opacity: 0.8;
+}
+.reveal-secondary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.reveal-metric {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+}
+.reveal-pv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+.reveal-waiting {
+  font-size: 0.76rem;
+  opacity: 0.75;
+  padding: 0.85rem 1rem;
+}

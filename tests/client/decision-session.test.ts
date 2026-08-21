@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildCommitEvent,
   centipawnLoss,
+  cpLossFromSearches,
   draftProblems,
   emptyDraft,
   engineMayRun,
@@ -105,5 +106,27 @@ describe("centipawn loss", () => {
 
   it("is never negative -- beating the engine at this depth means the depth was short", () => {
     expect(centipawnLoss(-20, 35)).toBe(0);
+  });
+});
+
+describe("cp loss across two searches handles the perspective flip", () => {
+  it("is zero when the player played the engine's own move", () => {
+    // Player to move: +40. After their (best) move the opponent is to move and sees -40.
+    expect(cpLossFromSearches(40, -40)).toBe(0);
+  });
+
+  it("measures the drop when the player's move was worse", () => {
+    // Player to move: +40. After their move the opponent is to move and sees +60,
+    // i.e. -60 for the player. Loss = 40 - (-60) = 100.
+    expect(cpLossFromSearches(40, 60)).toBe(100);
+  });
+
+  it("works through a losing position without changing sign", () => {
+    // Player is already worse: -150. After their move the opponent sees +400 => -400 for them.
+    expect(cpLossFromSearches(-150, 400)).toBe(250);
+  });
+
+  it("never reports a negative loss", () => {
+    expect(cpLossFromSearches(40, -300)).toBe(0);
   });
 });

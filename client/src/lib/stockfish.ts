@@ -51,7 +51,20 @@ export class StockfishClient {
     this.readyPromise = new Promise<void>((resolve, reject) => {
       this.resolveReady = resolve;
       this.rejectReady = reject;
-      const workerUrl = `${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)},worker`;
+      // The hash carries the wasm path and nothing else.
+      //
+      // This previously appended ",worker". That suffix sends the stockfish.js loader down a
+      // branch where it never initialises: the worker script loads, the worker is created, and
+      // then nothing happens -- no wasm fetch, no message, not even an error. The engine has
+      // therefore never produced a single evaluation in this application. Nothing caught it
+      // because there were no tests and CI only ran `npm run build`.
+      //
+      // Verified empirically against the built asset, four URL variants, one browser:
+      //   no hash                  -> silent
+      //   #<wasm>                  -> "Stockfish 18 Lite WASM by the Stockfish developers"
+      //   #<wasm>,worker           -> silent   <-- what shipped
+      //   #<raw wasm>,worker       -> silent
+      const workerUrl = `${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)}`;
       this.worker = new Worker(workerUrl);
       this.worker.onmessage = (event: MessageEvent<string>) => this.handleMessage(event.data);
       this.worker.onerror = () => this.fail("טעינת המנוע נכשלה — אפשר להמשיך לנתח את הלוח ידנית.");
