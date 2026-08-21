@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import { Clipboard, FileUp, FlipVertical2, Focus, Link2, Plus } from "lucide-react";
+import { Clipboard, FileUp, FlipVertical2, Link2, Plus } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
+import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
@@ -17,11 +17,21 @@ import {
   type Orientation,
   uciToSquares,
 } from "@/lib/game-data";
-import { StockfishClient, type EngineLine, type EngineStatus } from "@/lib/stockfish";
+import {
+  buildCommitEvent,
+  engineMayRun,
+  type DraftDecision,
+  type SessionStage,
+} from "@/lib/decision-session";
+// TYPE-ONLY import: type imports are erased, so this creates no runtime edge to the engine
+// module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
+import type { EngineLine, EngineStatus, StockfishClient } from "@/lib/stockfish";
+import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 
 type AnalysisSource = "imported" | "live";
-const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "מכין מנוע" };
+const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע ידלק אחרי ההחלטה" };
+
 function snapshot(
   game: Chess,
   move: { san: string; from: string; to: string; color: "w" | "b" },
@@ -36,14 +46,20 @@ export default function Home() {
   const [currentPly, setCurrentPly] = useState(12);
   const [orientation, setOrientation] = useState<Orientation>("w");
   const [selectedSquare, setSelectedSquare] = useState<string>();
-  // No initial value. Until the engine has actually spoken about THIS position there is
-  // nothing to show, and an absence must render as an absence (section 4.5).
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [showPgn, setShowPgn] = useState(false);
   const [source, setSource] = useState<AnalysisSource>("imported");
-  const [notice, setNotice] = useState("הדגמה נטענה — בחרו מהלך או נתחו את העמדה.");
+  const [notice, setNotice] = useState("בחרו מהלך וכתבו את הקריאה שלכם.");
+
+  // --- R3 state machine ------------------------------------------------------------------
+  const [stage, setStage] = useState<SessionStage>("deciding");
+  const [candidateMove, setCandidateMove] = useState<string | null>(null);
+  const [candidatesConsidered, setCandidatesConsidered] = useState<string[]>([]);
+  const [commitError, setCommitError] = useState<string>();
+  const gameId = useRef(`local-${Date.now()}`);
+
   const engineRef = useRef<StockfishClient | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const activeMove = currentPly >= 0 ? history[currentPly] : undefined;
@@ -51,6 +67,7 @@ export default function Home() {
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
+
   const material = useMemo(() => {
     const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
     return board.flat().reduce(
@@ -61,6 +78,7 @@ export default function Home() {
       { white: 0, black: 0 },
     );
   }, [board]);
+
   const legalTargets = useMemo(() => {
     if (!selectedSquare) return [];
     try {
@@ -69,28 +87,46 @@ export default function Home() {
       return [];
     }
   }, [activeGame, selectedSquare]);
+
+  const commitDecision = trpc.record.commitDecision.useMutation();
+
+  /**
+   * The engine is constructed LAZILY, on first reveal. Loading the wasm is network activity, so
+   * doing it while the commitment screen is up would put the engine in the network tab before
+   * the player has committed -- which R3 forbids just as much as rendering its output.
+   */
+  const ensureEngine = useCallback(async () => {
+    if (!engineRef.current) {
+      // Dynamic import: a static one puts stockfish.ts, its ?url asset imports, and the 7MB
+      // wasm into the initial module graph, so the engine appears in the network tab while the
+      // commitment screen is still up. Verified in a browser: static import fetched
+      // stockfish-18-lite-single.wasm before any decision was recorded.
+      const { StockfishClient } = await import("@/lib/stockfish");
+      engineRef.current = new StockfishClient(setEngineStatus);
+    }
+    return engineRef.current;
+  }, []);
+
+  useEffect(() => () => engineRef.current?.dispose(), []);
+
   const runAnalysis = useCallback(async () => {
+    if (!engineMayRun(stage)) return;
     try {
-      const line = await engineRef.current?.analyze(activeFen, 14);
-      // Was `if (line?.pv.length)`, which left the PREVIOUS position's evaluation on screen,
-      // unmarked, whenever the engine timed out and resolved with an empty line.
+      const engine = await ensureEngine();
+      const line = await engine.analyze(activeFen, 14);
       setAnalysis(line?.pv.length ? line : null);
     } catch (error) {
       if (error instanceof Error && error.message !== "Analysis superseded")
         setEngineStatus({ mode: "error", detail: "Stockfish לא החזיר קו חדש." });
     }
-  }, [activeFen]);
-  useEffect(() => {
-    const client = new StockfishClient(setEngineStatus);
-    engineRef.current = client;
-    client.start().catch(() => undefined);
-    return () => client.dispose();
-  }, []);
+  }, [activeFen, ensureEngine, stage]);
+
   useEffect(() => {
     setSelectedSquare(undefined);
-    void runAnalysis();
-  }, [activeFen, runAnalysis]);
-  const commitMove = useCallback(
+    if (engineMayRun(stage)) void runAnalysis();
+  }, [activeFen, runAnalysis, stage]);
+
+  const playMove = useCallback(
     (from: string, to: string) => {
       const game = new Chess(activeFen);
       try {
@@ -100,13 +136,79 @@ export default function Home() {
           snapshot(game, move, currentPly + 1),
         ]);
         setCurrentPly(currentPly + 1);
-        setNotice(`${move.san} נרשם.`);
+        return move.san;
       } catch {
-        setNotice("המהלך אינו חוקי בעמדה זו.");
+        return null;
       }
     },
     [activeFen, currentPly],
   );
+
+  /**
+   * While deciding, a board interaction PROPOSES a move; it does not play it. The proposal and
+   * every move looked at on the way to it are the data the record layer exists to capture.
+   */
+  const handleBoardMove = useCallback(
+    (from: string, to: string) => {
+      const uci = `${from}${to}`;
+      if (stage !== "deciding") {
+        if (!playMove(from, to)) setNotice("המהלך אינו חוקי בעמדה זו.");
+        return;
+      }
+      try {
+        new Chess(activeFen).move({ from, to, promotion: "q" });
+      } catch {
+        setNotice("המהלך אינו חוקי בעמדה זו.");
+        return;
+      }
+      setCandidateMove(uci);
+      setCandidatesConsidered((prev) => (prev.includes(uci) ? prev : [...prev, uci]));
+      setNotice(`${uci} נבחר. אפשר עדיין לשנות עד לרישום.`);
+    },
+    [activeFen, playMove, stage],
+  );
+
+  const onCommit = useCallback(
+    async (draft: DraftDecision, secondsTaken: number) => {
+      setCommitError(undefined);
+      setStage("committing");
+      const decisionId = crypto.randomUUID();
+      try {
+        const event = buildCommitEvent(
+          decisionId,
+          { gameId: gameId.current, fen: activeFen, ply: currentPly + 1, clockMsRemaining: null },
+          draft,
+          secondsTaken,
+        );
+        await commitDecision.mutateAsync(event);
+      } catch (error) {
+        // R2: a decision that was not stored must never look like one that was. We do not
+        // advance to reveal, and we say what happened.
+        setStage("deciding");
+        setCommitError(
+          error instanceof Error ? error.message : "ההחלטה לא נרשמה. לא נמשיך לחשיפה.",
+        );
+        return;
+      }
+      const move = uciToSquares(draft.chosenMove!);
+      if (move) playMove(move.from, move.to);
+      setCandidateMove(null);
+      setCandidatesConsidered([]);
+      setStage("revealed");
+      setNotice("ההחלטה נרשמה. עכשיו אפשר לראות מה המנוע אומר.");
+    },
+    [activeFen, commitDecision, currentPly, playMove],
+  );
+
+  const nextDecision = () => {
+    setStage("deciding");
+    setAnalysis(null);
+    setCandidateMove(null);
+    setCandidatesConsidered([]);
+    setCommitError(undefined);
+    setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
+  };
+
   const importPgn = (pgn: string) => {
     try {
       const loaded = buildHistory(pgn);
@@ -116,30 +218,39 @@ export default function Home() {
       setPgnInput(pgn);
       setShowPgn(false);
       setSource("imported");
+      gameId.current = `pgn-${Date.now()}`;
+      nextDecision();
       setNotice(`נטענו ${loaded.length} חצאי־מהלכים.`);
     } catch {
       setNotice("לא הצלחתי לקרוא את ה־PGN.");
     }
   };
+
   const newGame = () => {
     setHistory([]);
     setCurrentPly(-1);
     setPgnInput("");
     setSource("live");
+    gameId.current = `live-${Date.now()}`;
+    nextDecision();
     setNotice("משחק חדש מוכן. לבן מתחיל.");
   };
+
   const openLichess = () => {
     if (!isAuthenticated) startLogin();
     else setNotice("Lichess מחובר — שכבות הניתוח זמינות מימין.");
   };
+
+  const deciding = stage === "deciding" || stage === "committing";
+
   return (
     <main className="studio-shell" dir="rtl">
       <header className="studio-header">
         <div className="brand-lockup">
           <div className="brand-mark">♞</div>
           <div>
-            <p className="brand-name">CHESS STUDIO</p>
-            <span>STOCKFISH · ANALYSIS</span>
+            <p className="brand-name">DECISION LAB</p>
+            <span>COMMIT · THEN REVEAL</span>
           </div>
         </div>
         <div className="header-reading">
@@ -147,13 +258,11 @@ export default function Home() {
           <b>{sideToMove}</b>
         </div>
         <div className="header-actions">
-          <Button
-            className="primary-control"
-            onClick={runAnalysis}
-            disabled={engineStatus.mode === "thinking"}
-          >
-            <Focus size={16} /> נתח עכשיו
-          </Button>
+          {stage === "revealed" && (
+            <button className="primary-control" onClick={nextDecision}>
+              ההחלטה הבאה
+            </button>
+          )}
           <button
             className="icon-control"
             onClick={() => setOrientation((v) => (v === "w" ? "b" : "w"))}
@@ -162,6 +271,7 @@ export default function Home() {
           </button>
         </div>
       </header>
+
       <section className="workbench">
         <aside className="control-rail">
           <div className="rail-label">כלי עבודה</div>
@@ -192,10 +302,11 @@ export default function Home() {
             <span>קובץ</span>
           </button>
         </aside>
+
         <section className="board-workspace">
           <div className="workspace-meta">
             <div>
-              <p>POSITION LAB</p>
+              <p>{deciding ? "DECIDE" : "REVEAL"}</p>
               <h1>
                 {activeMove
                   ? `${Math.ceil((activeMove.ply + 1) / 2)}. ${activeMove.san}`
@@ -207,6 +318,7 @@ export default function Home() {
               <b>{sideToMove}</b>
             </div>
           </div>
+
           {showPgn && (
             <section className="pgn-drawer">
               <div className="drawer-heading">
@@ -224,19 +336,24 @@ export default function Home() {
               </div>
             </section>
           )}
+
           <div className="board-assembly">
-            <EvaluationBar analysis={analysis} />
+            {/* The evaluation bar does not exist while deciding. Not hidden -- absent. */}
+            {stage === "revealed" && <EvaluationBar analysis={analysis} />}
             <ChessBoard
               board={board}
               orientation={orientation}
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}
-              suggestedMove={analysis ? uciToSquares(analysis.bestMove) : undefined}
+              suggestedMove={
+                stage === "revealed" && analysis ? uciToSquares(analysis.bestMove) : undefined
+              }
               onSelect={setSelectedSquare}
-              onMove={commitMove}
+              onMove={handleBoardMove}
             />
           </div>
+
           <div className="board-note">
             <i />
             {notice}
@@ -250,23 +367,43 @@ export default function Home() {
             </button>
           </div>
         </section>
+
         <aside className="analysis-stack">
-          <AnalysisPanel
-            analysis={analysis}
-            status={engineStatus}
-            fen={activeFen}
-            activeMove={activeMove}
-            material={material}
-            onAnalyze={() => void runAnalysis()}
-          />
-          <LichessLayersPanel
-            fen={activeFen}
-            source={source}
-            enabled={isAuthenticated}
-            onConnect={openLichess}
-          />
+          {deciding ? (
+            <CommitmentScreen
+              position={{
+                gameId: gameId.current,
+                fen: activeFen,
+                ply: currentPly + 1,
+                clockMsRemaining: null,
+              }}
+              chosenMove={candidateMove}
+              candidatesConsidered={candidatesConsidered}
+              onCommit={onCommit}
+              pending={stage === "committing"}
+              error={commitError}
+            />
+          ) : (
+            <>
+              <AnalysisPanel
+                analysis={analysis}
+                status={engineStatus}
+                fen={activeFen}
+                activeMove={activeMove}
+                material={material}
+                onAnalyze={() => void runAnalysis()}
+              />
+              <LichessLayersPanel
+                fen={activeFen}
+                source={source}
+                enabled={isAuthenticated}
+                onConnect={openLichess}
+              />
+            </>
+          )}
         </aside>
       </section>
+
       <MoveTimeline moves={history} currentPly={currentPly} onNavigate={setCurrentPly} />
     </main>
   );

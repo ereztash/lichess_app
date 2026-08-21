@@ -653,3 +653,155 @@ button:not(:disabled) {
 .evaluation-track-empty {
   opacity: 0.35;
 }
+
+/* --- Commitment screen (section 4.1) ----------------------------------------------------- */
+/* The decision comes before the answer. This column replaces the analysis column entirely
+   while deciding -- the engine's panel is absent, not hidden. */
+.commitment-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.15rem;
+  border-radius: 14px;
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(128, 128, 128, 0.22);
+}
+.commitment-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.commitment-kicker {
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  opacity: 0.62;
+  margin: 0;
+}
+.commitment-header h2 {
+  font-size: 1.02rem;
+  margin: 0.15rem 0 0;
+}
+.commitment-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.78;
+}
+.commitment-intro {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  opacity: 0.78;
+  margin: 0;
+}
+.commitment-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.commitment-field label,
+.commitment-field legend {
+  font-size: 0.73rem;
+  font-weight: 600;
+  opacity: 0.86;
+  padding: 0;
+}
+.commitment-field textarea {
+  width: 100%;
+  resize: vertical;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 9px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+}
+.commitment-count {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+.commitment-move {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 9px;
+  border: 1px dashed rgba(128, 128, 128, 0.4);
+}
+.commitment-move.unset {
+  opacity: 0.5;
+  font-style: italic;
+}
+.commitment-move.set {
+  border-style: solid;
+  font-weight: 700;
+}
+.confidence-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.3rem;
+}
+.confidence-row button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.4rem 0.2rem;
+  border-radius: 9px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.confidence-row button small {
+  font-size: 0.56rem;
+  opacity: 0.7;
+}
+.confidence-row button.selected {
+  border-color: currentColor;
+  font-weight: 700;
+}
+/* A missing part is named, not merely refused. "Incomplete" and "invalid" are different. */
+.commitment-problem {
+  font-size: 0.68rem;
+  margin: 0;
+  opacity: 0.9;
+}
+.commitment-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  margin: 0;
+}
+.commitment-summary {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin: 0;
+  text-align: center;
+}
+.commitment-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.commitment-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
