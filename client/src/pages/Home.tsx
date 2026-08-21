@@ -21,12 +21,6 @@ import { StockfishClient, type EngineLine, type EngineStatus } from "@/lib/stock
 import { startLogin } from "@/const";
 
 type AnalysisSource = "imported" | "live";
-const FALLBACK: EngineLine = {
-  scoreCp: 42,
-  depth: 14,
-  pv: ["d2d4", "e5d4", "f3d4"],
-  bestMove: "d2d4",
-};
 const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "מכין מנוע" };
 function snapshot(
   game: Chess,
@@ -42,7 +36,9 @@ export default function Home() {
   const [currentPly, setCurrentPly] = useState(12);
   const [orientation, setOrientation] = useState<Orientation>("w");
   const [selectedSquare, setSelectedSquare] = useState<string>();
-  const [analysis, setAnalysis] = useState<EngineLine>(FALLBACK);
+  // No initial value. Until the engine has actually spoken about THIS position there is
+  // nothing to show, and an absence must render as an absence (section 4.5).
+  const [analysis, setAnalysis] = useState<EngineLine | null>(null);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [showPgn, setShowPgn] = useState(false);
@@ -76,7 +72,9 @@ export default function Home() {
   const runAnalysis = useCallback(async () => {
     try {
       const line = await engineRef.current?.analyze(activeFen, 14);
-      if (line?.pv.length) setAnalysis(line);
+      // Was `if (line?.pv.length)`, which left the PREVIOUS position's evaluation on screen,
+      // unmarked, whenever the engine timed out and resolved with an empty line.
+      setAnalysis(line?.pv.length ? line : null);
     } catch (error) {
       if (error instanceof Error && error.message !== "Analysis superseded")
         setEngineStatus({ mode: "error", detail: "Stockfish לא החזיר קו חדש." });
@@ -129,10 +127,6 @@ export default function Home() {
     setPgnInput("");
     setSource("live");
     setNotice("משחק חדש מוכן. לבן מתחיל.");
-  };
-  const applySuggestion = () => {
-    const move = uciToSquares(analysis.bestMove);
-    if (move) commitMove(move.from, move.to);
   };
   const openLichess = () => {
     if (!isAuthenticated) startLogin();
@@ -231,14 +225,14 @@ export default function Home() {
             </section>
           )}
           <div className="board-assembly">
-            <EvaluationBar scoreCp={analysis.scoreCp} mate={analysis.mate} />
+            <EvaluationBar analysis={analysis} />
             <ChessBoard
               board={board}
               orientation={orientation}
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}
-              suggestedMove={uciToSquares(analysis.bestMove)}
+              suggestedMove={analysis ? uciToSquares(analysis.bestMove) : undefined}
               onSelect={setSelectedSquare}
               onMove={commitMove}
             />
@@ -264,7 +258,6 @@ export default function Home() {
             activeMove={activeMove}
             material={material}
             onAnalyze={() => void runAnalysis()}
-            onApplySuggestion={applySuggestion}
           />
           <LichessLayersPanel
             fen={activeFen}

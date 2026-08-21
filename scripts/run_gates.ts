@@ -17,6 +17,12 @@ process.env.JWT_SECRET ||= "gate-runner-secret";
 process.env.OWNER_OPEN_ID ||= "gate-owner";
 
 import { ATOM_FIELDS } from "../shared/decision-atom";
+import {
+  findDenominatorlessPercents,
+  findFakeValues,
+  sourceFiles,
+  type Finding,
+} from "./gate-scan";
 
 export type GateStatus = "PASS" | "FAIL" | "NOT-MEASURED";
 export interface GateResult {
@@ -59,6 +65,15 @@ function isoPredicate(screen: string[], event: string[], report: string[]): Gate
     }
   }
   return pass(`atom intact across screen, event, report (${ATOM_FIELDS.length} fields)`);
+}
+
+function scanPredicate(label: string, findings: Finding[], scanned: number): GateResult {
+  if (findings.length === 0) return pass(`${scanned} render-path files clean of ${label}`);
+  const shown = findings
+    .slice(0, 3)
+    .map((f) => `${f.file}:${f.line}`)
+    .join(", ");
+  return fail(`${findings.length} instance(s) of ${label}: ${shown}`);
 }
 
 const ENGINE_FIELDS = [
@@ -154,15 +169,35 @@ export const GATES: Gate[] = [
     id: "GATE-NO-FAKE",
     rule: "R2",
     description: "No displayed value without provenance; no placeholder value in a render path.",
-    run: () => notMeasured("provenance component not built yet (step 4)"),
-    positiveControl: () => notMeasured("provenance component not built yet (step 4)"),
+    run: () => {
+      const files = sourceFiles("client/src");
+      return scanPredicate("a placeholder evaluation", findFakeValues(files), files.length);
+    },
+    positiveControl: () => {
+      const files = sourceFiles("tests/fixtures/render");
+      return scanPredicate("a placeholder evaluation", findFakeValues(files), files.length);
+    },
   },
   {
     id: "GATE-DENOM",
     rule: "R1",
     description: "No percentage rendered without its denominator.",
-    run: () => notMeasured("provenance component not built yet (step 4)"),
-    positiveControl: () => notMeasured("provenance component not built yet (step 4)"),
+    run: () => {
+      const files = sourceFiles("client/src");
+      return scanPredicate(
+        "a denominatorless percentage",
+        findDenominatorlessPercents(files),
+        files.length,
+      );
+    },
+    positiveControl: () => {
+      const files = sourceFiles("tests/fixtures/render");
+      return scanPredicate(
+        "a denominatorless percentage",
+        findDenominatorlessPercents(files),
+        files.length,
+      );
+    },
   },
   {
     id: "GATE-STALE",

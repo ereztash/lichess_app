@@ -1,8 +1,10 @@
 name: Verify
 
 on:
+  # pull_request covers every branch that has a PR open; push covers the default branch.
+  # Listing "**" under push as well made every run fire twice.
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

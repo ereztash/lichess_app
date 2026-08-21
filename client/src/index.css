@@ -606,3 +606,50 @@ button:not(:disabled) {
     display: none;
   }
 }
+
+/* --- Provenance-carrying values (section 4.4) ------------------------------------------- */
+/* Every displayed value is a triple. The provenance is smaller than the number but never
+   hidden: a value whose measurement is invisible is a value that lies about its width. */
+.value-triple {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  line-height: 1.15;
+}
+.value-triple .value-label {
+  font-size: 0.68rem;
+  opacity: 0.72;
+}
+.value-triple .value-number {
+  font-variant-numeric: tabular-nums;
+}
+.value-triple .value-provenance {
+  font-size: 0.62rem;
+  opacity: 0.66;
+  font-variant-numeric: tabular-nums;
+}
+.value-triple .value-fraction {
+  font-size: 0.72em;
+  opacity: 0.8;
+}
+/* An absence is a legitimate reading, not a failure state (section 4.5). */
+.value-empty .value-number {
+  opacity: 0.5;
+}
+/* R2: a stale value must not render the way a current one does. */
+.value-stale .value-number {
+  opacity: 0.55;
+  text-decoration: line-through solid currentColor 1px;
+}
+.value-stale .value-stale-flag {
+  font-weight: 700;
+}
+.pv-warning {
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-top: 0.35rem;
+}
+.evaluation-track-empty {
+  opacity: 0.35;
+}

@@ -1,45 +1,31 @@
-/** Style: Modernist Control Room — structured, instrument-like analysis column; no generic card stack. */
-import { Activity, ArrowUpRight, Cpu, Sparkles } from "lucide-react";
+/** Style: Modernist Control Room — structured, instrument-like analysis column. */
+import { Activity, Cpu } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation, type GameSnapshot } from "@/lib/game-data";
 import type { EngineLine, EngineStatus } from "@/lib/stockfish";
+import { NotMeasured, Value } from "./Value";
 
 interface AnalysisPanelProps {
-  analysis: EngineLine;
+  analysis: EngineLine | null;
   status: EngineStatus;
   fen: string;
   activeMove?: GameSnapshot;
   material: { white: number; black: number };
   onAnalyze: () => void;
-  onApplySuggestion: () => void;
 }
 
 const modeLabel: Record<EngineStatus["mode"], string> = {
   loading: "מכין מנוע",
   ready: "מנוע זמין",
   thinking: "מחשב קו",
-  error: "ניתוח מקומי",
+  error: "המנוע אינו זמין",
 };
 
-export function AnalysisPanel({
-  analysis,
-  status,
-  fen,
-  activeMove,
-  material,
-  onAnalyze,
-  onApplySuggestion,
-}: AnalysisPanelProps) {
-  const pv = sanPrincipalVariation(fen, analysis.pv);
-  const advantage =
-    analysis.mate !== undefined
-      ? analysis.mate > 0
-        ? "לבן בדרך למט"
-        : "שחור בדרך למט"
-      : analysis.scoreCp > 45
-        ? "יתרון מדוד ללבן"
-        : analysis.scoreCp < -45
-          ? "יתרון מדוד לשחור"
-          : "העמדה כמעט מאוזנת";
+export function AnalysisPanel({ analysis, status, fen, material, onAnalyze }: AnalysisPanelProps) {
+  const pv = analysis ? sanPrincipalVariation(fen, analysis.pv) : [];
+  // The principal variation is replayed against `fen`. If any move is illegal there, the line
+  // did not come from this position and the truncated remainder must not be shown as if it had.
+  const pvTruncated = Boolean(analysis) && pv.length < Math.min(analysis!.pv.length, 8);
+
   return (
     <aside className="analysis-column" aria-label="עמודת ניתוח">
       <section className="analysis-hero">
@@ -50,7 +36,13 @@ export function AnalysisPanel({
           <div>
             <p className="score-label">הערכת עמדה</p>
             <strong className="score-number">
-              {formatEvaluation(analysis.scoreCp, analysis.mate)}
+              {analysis ? (
+                <Value provenance={{ kind: "engine", source: "local_sf18", depth: analysis.depth }}>
+                  {formatEvaluation(analysis.scoreCp, analysis.mate)}
+                </Value>
+              ) : (
+                <NotMeasured reason="טרם נותחה עמדה זו" />
+              )}
             </strong>
           </div>
           <span className={`engine-status ${status.mode}`}>
@@ -58,7 +50,7 @@ export function AnalysisPanel({
             {modeLabel[status.mode]}
           </span>
         </div>
-        <p className="score-caption">{status.mode === "error" ? status.detail : advantage}</p>
+        {status.mode === "error" && <p className="score-caption">{status.detail}</p>}
         <button
           className="analysis-action"
           onClick={onAnalyze}
@@ -67,10 +59,11 @@ export function AnalysisPanel({
           <Activity size={16} /> {status.mode === "thinking" ? "מנתח…" : "נתח עמדה"}
         </button>
       </section>
+
       <section className="analysis-section principal-line">
         <div className="section-heading">
           <span>קו עיקרי</span>
-          <span className="data-chip">D{analysis.depth || "–"}</span>
+          {analysis && <span className="data-chip">D{analysis.depth || "–"}</span>}
         </div>
         <div className="pv-line" dir="ltr">
           {pv.length ? (
@@ -80,19 +73,19 @@ export function AnalysisPanel({
               </span>
             ))
           ) : (
-            <span className="pv-empty">מחכה לשורת מנוע…</span>
+            <NotMeasured reason="אין קו מנוע לעמדה זו" />
           )}
         </div>
-        {analysis.bestMove && analysis.bestMove !== "(none)" && (
-          <button className="suggestion-button" onClick={onApplySuggestion}>
-            <ArrowUpRight size={15} /> החל את המהלך המומלץ
-          </button>
+        {pvTruncated && (
+          <p className="pv-warning">
+            הקו נקטע — חלק ממנו אינו חוקי בעמדה הזו, ולכן אינו מוצג. ייתכן שהוא חושב לעמדה אחרת.
+          </p>
         )}
       </section>
+
       <section className="analysis-section">
         <div className="section-heading">
           <span>מאזן חומרים</span>
-          <span className="data-chip">LIVE</span>
         </div>
         <div className="material-row">
           <span>לבן</span>
@@ -103,7 +96,9 @@ export function AnalysisPanel({
               }}
             />
           </div>
-          <b>{material.white}</b>
+          <b>
+            <Value provenance={{ kind: "player", unit: "נספר מהלוח" }}>{material.white}</Value>
+          </b>
         </div>
         <div className="material-row black">
           <span>שחור</span>
@@ -114,19 +109,10 @@ export function AnalysisPanel({
               }}
             />
           </div>
-          <b>{material.black}</b>
+          <b>
+            <Value provenance={{ kind: "player", unit: "נספר מהלוח" }}>{material.black}</Value>
+          </b>
         </div>
-      </section>
-      <section className="analysis-section observation-section">
-        <div className="section-heading">
-          <span>תצפית</span>
-          <Sparkles size={14} />
-        </div>
-        <p>
-          {activeMove
-            ? `אחרי ${activeMove.san}, ${advantage.toLowerCase()}. בדקו את האיום על המרכז לפני שממשיכים.`
-            : "בחרו מהלך או התחילו משחק חדש כדי לקבל קריאת עמדה."}
-        </p>
       </section>
     </aside>
   );

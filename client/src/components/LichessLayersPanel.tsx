@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { Rate } from "./Value";
 type AnalysisSource = "demo" | "imported" | "finished" | "study" | "live";
 type Props = {
   fen: string;
@@ -16,7 +17,6 @@ type Props = {
   onConnect: () => void;
   debugPersonalError?: string;
 };
-const rate = (v: number, t: number) => (t ? `${Math.round((v / t) * 100)}%` : "—");
 export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPersonalError }: Props) {
   const [requested, setRequested] = useState(false);
   const [requestedPersonal, setRequestedPersonal] = useState(false);
@@ -98,9 +98,9 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
             </div>
             <b className="opening-name">{master?.opening?.name ?? "עמדה ללא שם פתיחה"}</b>
             <div className="outcome-row">
-              <span>לבן {rate(master?.white ?? 0, mt)}</span>
-              <span>תיקו {rate(master?.draws ?? 0, mt)}</span>
-              <span>שחור {rate(master?.black ?? 0, mt)}</span>
+              <Rate label="לבן" value={master?.white ?? 0} of={mt} />
+              <Rate label="תיקו" value={master?.draws ?? 0} of={mt} />
+              <Rate label="שחור" value={master?.black ?? 0} of={mt} />
             </div>
             <div className="reply-strip">
               {master?.moves.slice(0, 3).map((m) => (
@@ -149,9 +149,9 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
               <>
                 <b className="opening-name">{own?.opening?.name ?? "עדיין אין נתונים בעמדה זו"}</b>
                 <div className="outcome-row">
-                  <span>לבן {rate(own?.white ?? 0, pt)}</span>
-                  <span>תיקו {rate(own?.draws ?? 0, pt)}</span>
-                  <span>שחור {rate(own?.black ?? 0, pt)}</span>
+                  <Rate label="לבן" value={own?.white ?? 0} of={pt} />
+                  <Rate label="תיקו" value={own?.draws ?? 0} of={pt} />
+                  <Rate label="שחור" value={own?.black ?? 0} of={pt} />
                 </div>
               </>
             )}
