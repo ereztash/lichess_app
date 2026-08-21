@@ -11,7 +11,9 @@ export function MoveTimeline({ moves, currentPly, onNavigate }: Props) {
     <section className="move-timeline" aria-label="ציר מהלכים">
       <div className="timeline-title">
         <span>מסילת מהלכים</span>
-        <b>
+        {/* dir="ltr": in an RTL container a bare "7 / 9" renders as "9 / 7", which reads as
+            the wrong move number entirely. */}
+        <b dir="ltr">
           {currentPly >= 0
             ? `${Math.ceil((currentPly + 1) / 2)} / ${Math.ceil(moves.length / 2)}`
             : "תחילה"}
