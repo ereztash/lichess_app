@@ -12,12 +12,17 @@
 import { TRPCError } from "@trpc/server";
 import { eq } from "drizzle-orm";
 import {
+  claims,
   decisionFeedback,
   decisionReveals,
   decisions,
+  drillResults,
+  drills,
   type Decision,
   type InsertDecision,
 } from "../drizzle/schema";
+import type { Claim, ProspectiveDrillResult } from "../shared/claim";
+import type { DrillSpec } from "../shared/claim";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom";
 import { getDb } from "./db";
 
@@ -52,6 +57,24 @@ export interface RecordStore {
   /** Decision ids in the SAME ORDER as listAtoms, so a scored row can name its decision. */
   listDecisionIds(gameId?: string): Promise<string[]>;
   countDecisions(): Promise<number>;
+
+  // --- Layer B: claims and drills -------------------------------------------------------
+  /** Store a claim, or update the grade of one that already exists. */
+  saveClaim(claim: Claim): Promise<void>;
+  /** Load a claim with its prospective test results attached. */
+  getClaim(claimId: string): Promise<Claim | null>;
+  /** Record a started drill. R5: written before the drill runs, condition included. */
+  saveDrill(started: StoredDrill): Promise<void>;
+  getDrill(drillId: string): Promise<StoredDrill | null>;
+  /** Record a drill result. Append-only: a drill reports once. */
+  saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
+}
+
+/** A drill as stored: the spec plus what was fixed before it ran. */
+export interface StoredDrill {
+  spec: DrillSpec;
+  predicted: boolean;
+  started_at: string;
 }
 
 const unavailable = () =>
@@ -206,6 +229,95 @@ export class DrizzleRecordStore implements RecordStore {
     const db = await this.db();
     return (await db.select().from(decisions)).length;
   }
+
+  async saveClaim(claim: Claim): Promise<void> {
+    const db = await this.db();
+    const row = {
+      claimId: claim.claim_id,
+      statement: claim.statement,
+      scope: claim.scope,
+      supportingDecisionIds: claim.supporting_decision_ids,
+      n: claim.n,
+      grade: claim.grade,
+      refutationCondition: claim.refutation_condition,
+    };
+    // The grade is the one field that legitimately changes, and only via evaluateClaim.
+    await db
+      .insert(claims)
+      .values(row)
+      .onDuplicateKeyUpdate({ set: { grade: claim.grade } });
+  }
+
+  async getClaim(claimId: string): Promise<Claim | null> {
+    const db = await this.db();
+    const [row] = await db.select().from(claims).where(eq(claims.claimId, claimId)).limit(1);
+    if (!row) return null;
+    const results = await db.select().from(drillResults).where(eq(drillResults.claimId, claimId));
+    return {
+      claim_id: row.claimId,
+      statement: row.statement,
+      scope: row.scope,
+      supporting_decision_ids: row.supportingDecisionIds,
+      n: row.n,
+      grade: row.grade,
+      refutation_condition: row.refutationCondition,
+      prospective_tests: results.map((r) => ({
+        kind: "prospective_drill_result" as const,
+        drill_id: r.drillId,
+        claim_id: r.claimId,
+        decision_ids: r.decisionIds,
+        predicted: r.predicted,
+        observed: r.observed,
+        recorded_at: r.recordedAt.toISOString(),
+      })),
+      created_at: row.createdAt.toISOString(),
+      last_evaluated_at: row.lastEvaluatedAt.toISOString(),
+    };
+  }
+
+  async saveDrill(started: StoredDrill): Promise<void> {
+    const db = await this.db();
+    await db.insert(drills).values({
+      drillId: started.spec.drill_id,
+      claimId: started.spec.claim_id,
+      fens: started.spec.fens,
+      refutationCondition: started.spec.refutation_condition,
+      predicted: started.predicted,
+    });
+  }
+
+  async getDrill(drillId: string): Promise<StoredDrill | null> {
+    const db = await this.db();
+    const [row] = await db.select().from(drills).where(eq(drills.drillId, drillId)).limit(1);
+    if (!row) return null;
+    return {
+      spec: {
+        drill_id: row.drillId,
+        claim_id: row.claimId,
+        fens: row.fens,
+        refutation_condition: row.refutationCondition,
+      },
+      predicted: row.predicted,
+      started_at: row.startedAt.toISOString(),
+    };
+  }
+
+  async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
+    const db = await this.db();
+    const [drill] = await db
+      .select()
+      .from(drills)
+      .where(eq(drills.drillId, result.drill_id))
+      .limit(1);
+    await db.insert(drillResults).values({
+      drillId: result.drill_id,
+      claimId: result.claim_id,
+      decisionIds: result.decision_ids,
+      refutationCondition: drill?.refutationCondition ?? "",
+      predicted: result.predicted,
+      observed: result.observed,
+    });
+  }
 }
 
 /** In-memory store. Used by tests; never wired into a deployment. */
@@ -254,6 +366,41 @@ export class MemoryRecordStore implements RecordStore {
 
   async countDecisions(): Promise<number> {
     return this.rows.size;
+  }
+
+  private readonly claimRows = new Map<string, Claim>();
+  private readonly drillRows = new Map<string, StoredDrill>();
+  private readonly drillResultRows: ProspectiveDrillResult[] = [];
+
+  async saveClaim(claim: Claim): Promise<void> {
+    this.claimRows.set(claim.claim_id, { ...claim });
+  }
+
+  async getClaim(claimId: string): Promise<Claim | null> {
+    const claim = this.claimRows.get(claimId);
+    if (!claim) return null;
+    return {
+      ...claim,
+      prospective_tests: this.drillResultRows.filter((r) => r.claim_id === claimId),
+    };
+  }
+
+  async saveDrill(started: StoredDrill): Promise<void> {
+    if (this.drillRows.has(started.spec.drill_id)) {
+      throw new Error("append-only: drill already started");
+    }
+    this.drillRows.set(started.spec.drill_id, started);
+  }
+
+  async getDrill(drillId: string): Promise<StoredDrill | null> {
+    return this.drillRows.get(drillId) ?? null;
+  }
+
+  async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
+    if (this.drillResultRows.some((r) => r.drill_id === result.drill_id)) {
+      throw new Error("append-only: drill already reported");
+    }
+    this.drillResultRows.push(result);
   }
 
   private assemble(row: CommitDecisionInput): DecisionAtom {

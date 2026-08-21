@@ -123,6 +123,21 @@ not evidence.
 A source it could not consult is **omitted**, never reported as zero: "no master games here" and
 "we could not ask" are different facts.
 
+## The drill's weakest link, stated
+
+A drill is meant to be a FORWARD test, and positions are drawn from plies in the player's own
+loaded games where no decision was recorded. That excludes positions whose engine verdict they
+have already seen, which is the part that matters most -- but it cannot rule out familiarity.
+They played the game. They may remember the position, or the game's outcome, and that memory is
+not measurable from here.
+
+This weakens a drill's result in one direction only: it makes a REPLICATION less trustworthy than
+a refutation. A player who recalls a position is more likely to do well on it, which pushes the
+measured gap DOWN, toward refuting an overconfidence claim. A replication that survives despite
+that pull is the stronger of the two verdicts.
+
+A position bank drawn from games the player has never seen would remove this. There isn't one.
+
 ## What is currently UNVERIFIED
 
 - **Every threshold, against real data.** Synthetic only. Re-run the shuffled-label control on a
@@ -135,6 +150,9 @@ A source it could not consult is **omitted**, never reported as zero: "no master
 - **The record layer against a real database.** All record tests run against an in-memory store.
   `DATABASE_URL` has never been set in any environment this build has run in, so
   `DrizzleRecordStore` has never executed a statement against MySQL.
+- **Any drill run by a real player.** The loop is tested over HTTP in both directions with
+  synthetic decisions, and driven through a browser as far as the first drill position, but no
+  drill has been completed by a person.
 - **Layer C against live Lichess.** Its tests stub `fetch`. It has never made a real request to
   the masters database, and its rate-limit behaviour under repeated use is unmeasured.
 - **Cold start with a real player.** The numbers above assume a planted effect far stronger and

@@ -113,6 +113,23 @@ export const claims = mysqlTable("claims", {
 export type ClaimRow = typeof claims.$inferSelect;
 
 /**
+ * STARTED DRILLS.
+ *
+ * Written BEFORE the drill runs, carrying the refutation condition copied from the claim and the
+ * prediction fixed in advance (R5). A drill row that exists is a drill that could have failed;
+ * there is no way to record one whose condition was decided afterwards.
+ */
+export const drills = mysqlTable("drills", {
+  drillId: varchar("drill_id", { length: 64 }).primaryKey(),
+  claimId: varchar("claim_id", { length: 64 }).notNull(),
+  fens: json("fens").$type<string[]>().notNull(),
+  refutationCondition: text("refutation_condition").notNull(),
+  predicted: boolean("predicted").notNull(),
+  startedAt: timestamp("started_at").defaultNow().notNull(),
+});
+export type DrillRow = typeof drills.$inferSelect;
+
+/**
  * Prospective drill results. Separate table for the same reason the reveal is separate from the
  * decision: a forward test is a distinct event, and folding it into the claim row would make
  * "the claim was formed" and "the claim survived a test" the same fact.

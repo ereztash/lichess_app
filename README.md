@@ -41,6 +41,39 @@ decisions inside it and 30 outside. That is the price of a 0.7% false-positive r
 shuffled labels; the looser thresholds spoke after ~30 decisions and were wrong about half the
 time at that size. The full curve is in [docs/MEASUREMENTS.md](docs/MEASUREMENTS.md).
 
+## The loop
+
+The unit of output is **one claim and one drill**. Not a dashboard, not a list of weaknesses.
+If three candidate patterns exist it shows the one with the most support and tells you the other
+two are being withheld — a page that shows everything is a page after which nothing changes.
+
+```
+record decisions  →  detect a pattern  →  hypothesis, with n and a refutation condition
+                                              ↓
+       graded, either way  ←  run the drill  ←  drill built from positions you have NOT decided
+```
+
+**A drill is the only thing that can change a grade**, because it is the only evidence that
+postdates the claim. More of the data that produced a hypothesis cannot confirm it — that is
+enforced in the type system: the function that raises a grade accepts a prospective drill result
+and has no overload for anything else.
+
+Running one:
+
+- What would **refute** the claim is written to storage before the first position is shown, and
+  stays on screen for the whole drill. You are told what you are being tested for.
+- Positions come from your loaded games at plies you have **not** decided on. Re-showing a
+  position whose verdict you have already seen is not a forward test.
+- Each drill position is captured through the **same** commitment screen as any other decision —
+  move, read, unknown, confidence, then the engine. There is no separate drill protocol.
+- The verdict is measured against the condition the drill **stored**, not a rule invented at the
+  end: the drill's mean calibration gap against the baseline from the rest of your record.
+- The result is reported either way. A refuted claim is kept **forever** and never re-tested —
+  deleting it would let the same wrong pattern be rediscovered.
+
+Fewer than five undecided positions and it refuses to build a drill at all. A two-position drill
+that returns a verdict is worse than no drill, because the verdict looks like evidence.
+
 ## What it does not claim
 
 It does not claim to improve your chess. No such measurement exists. The strongest statement this

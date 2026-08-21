@@ -1001,3 +1001,79 @@ button:not(:disabled) {
   text-decoration: line-through solid currentColor 1px;
   opacity: 0.7;
 }
+
+/* --- Drills (R5, section 3.5) ------------------------------------------------------------ */
+.drill-runner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(128, 128, 128, 0.3);
+}
+.drill-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+/* R5 on screen: what would disprove this, before the first position and throughout. */
+.drill-prereg {
+  border: 1px dashed rgba(128, 128, 128, 0.4);
+  border-radius: 9px;
+  padding: 0.5rem 0.6rem;
+}
+.drill-prereg > span {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+.drill-prereg > p {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.drill-explain {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+.drill-start,
+.drill-finish,
+.claim-run-drill {
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.drill-loading,
+.drill-error {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.73rem;
+}
+.drill-verdict > p {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  font-weight: 600;
+}
+/* A refutation is a result, not a failure. It is shown as plainly as a confirmation. */
+.drill-verdict.refuted {
+  border-top: 2px solid currentColor;
+  padding-top: 0.6rem;
+}
+.drill-verdict.replicated {
+  border-top: 2px solid currentColor;
+  padding-top: 0.6rem;
+}

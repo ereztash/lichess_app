@@ -17,7 +17,17 @@ import { classifyPhase } from "../shared/phase";
 import { MIN_BUCKET_N, detect } from "../shared/detector";
 import { scoreDecisions, silenceReason } from "../shared/scoring";
 import { selectClaim } from "../shared/claim-derivation";
-import type { Claim } from "../shared/claim";
+import { evaluateClaim, type Claim, type ProspectiveDrillResult } from "../shared/claim";
+import {
+  completeDrillAgainstBaseline,
+  createDrill,
+  describeResult,
+  evaluateRefutation,
+  startDrill,
+  type DrillDecision,
+} from "../shared/drill";
+import { selectDrillPositions } from "../shared/drill-positions";
+import { BUCKETINGS, MIN_GAP_DIFFERENCE, summarise } from "../shared/detector";
 import type { RecordStore } from "./record";
 import { protectedProcedure, router } from "./_core/trpc";
 
@@ -120,6 +130,140 @@ export function buildRecordRouter(store: RecordStore) {
       .input(z.object({ decision_id: z.string().uuid() }))
       .query(({ input }) => store.getAtom(input.decision_id)),
 
+    /**
+     * Start a drill for a claim. THIS IS WHERE R5 BINDS.
+     *
+     * The refutation condition is copied from the claim and WRITTEN TO STORAGE before a single
+     * position is shown, together with the prediction. A drill row that exists is a drill that
+     * could have failed. `startDrill` refuses a spec whose condition is missing.
+     *
+     * Positions are drawn from plies the player has NOT decided on. Re-showing a position whose
+     * verdict they have already seen is not a forward test.
+     */
+    startDrill: protectedProcedure
+      .input(
+        z.object({
+          claim_id: z.string().min(1).max(64),
+          /**
+           * Positions the client can offer, from the games it has loaded. The SERVER decides
+           * which are usable, by excluding every position already decided.
+           *
+           * The server holds decisions, not games, so it cannot enumerate candidates itself.
+           * Deriving them from decided positions instead would be circular -- an earlier draft
+           * did exactly that and produced an empty drill every time.
+           */
+          candidate_fens: z.array(z.string().min(8).max(200)).min(1).max(400),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const claim = await store.getClaim(input.claim_id);
+        if (!claim) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "אין טענה עם המזהה הזה." });
+        }
+        if (claim.grade === "refuted") {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "הטענה כבר הופרכה. הפרכה סופית — לא בודקים אותה שוב.",
+          });
+        }
+        const atoms = await store.listAtoms();
+        const decidedFens = atoms.map((atom) => atom.entry_state.fen);
+        const available = input.candidate_fens.map((fen, index) => ({ fen, ply: index }));
+        // Every position the player has already decided is excluded: they have seen the
+        // engine's verdict on it, so re-showing it is not a forward test.
+        const selection = selectDrillPositions(available, decidedFens);
+        if (selection.reason) {
+          return { drill: null, reason: selection.reason } as const;
+        }
+        const spec = createDrill(claim, selection.fens, {
+          // Unique per drill. Deriving this from the record's size collided whenever two drills
+          // started without a decision between them, and the append-only guard rejected the
+          // second -- correctly, but for a reason that looked like a storage fault.
+          drill_id: `drill-${crypto.randomUUID()}`,
+        });
+        const started = startDrill(spec, {
+          // What the claim predicts, fixed now, before any position is shown.
+          predicted: true,
+          started_at: new Date().toISOString(),
+        });
+        await store.saveDrill(started);
+        return { drill: started.spec, reason: null } as const;
+      }),
+
+    /**
+     * Close a drill and grade the claim -- in either direction.
+     *
+     * The verdict is computed from the condition the drill STORED, not from a fresh rule: the
+     * drill's mean calibration gap against the baseline from the rest of the record. A drill
+     * that writes down one condition and tests another has pre-registered nothing.
+     */
+    completeDrill: protectedProcedure
+      .input(
+        z.object({
+          drill_id: z.string().min(1).max(64),
+          decision_ids: z.array(z.string().uuid()).min(1),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const stored = await store.getDrill(input.drill_id);
+        if (!stored) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "אין דריל עם המזהה הזה." });
+        }
+        const claim = await store.getClaim(stored.spec.claim_id);
+        if (!claim) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "הטענה של הדריל אינה קיימת." });
+        }
+
+        // Score the drill's decisions, and the rest of the record as the baseline.
+        const atoms = await store.listAtoms();
+        const ids = await store.listDecisionIds();
+        const summary = scoreDecisions(atoms, ids);
+        const drillSet = new Set(input.decision_ids);
+        const drillDecisions: DrillDecision[] = summary.scored
+          .filter((d) => drillSet.has(d.decision_id))
+          .map((d) => ({
+            decision_id: d.decision_id,
+            confidence: d.confidence,
+            accurate: d.accurate,
+          }));
+        if (drillDecisions.length === 0) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "אף החלטה מהדריל לא נחשפה עדיין, ולכן אין מה למדוד.",
+          });
+        }
+        const bucketing = BUCKETINGS.find((b) => claim.claim_id.endsWith(b.key));
+        const baseline = summarise(
+          summary.scored.filter(
+            (d) => !drillSet.has(d.decision_id) && (!bucketing || !bucketing.predicate(d)),
+          ),
+        );
+
+        const verdict = evaluateRefutation(drillDecisions, {
+          baselineGap: baseline.gap,
+          predictsOverconfidence: true,
+          minGapDifference: MIN_GAP_DIFFERENCE,
+        });
+        const result: ProspectiveDrillResult = completeDrillAgainstBaseline(
+          stored,
+          drillDecisions,
+          verdict,
+          { recorded_at: new Date().toISOString() },
+        );
+        await store.saveDrillResult(result);
+
+        // The ONLY path that changes a grade, and it accepts a prospective result only.
+        const graded = evaluateClaim(claim, result);
+        await store.saveClaim(graded);
+
+        return {
+          claim: graded,
+          verdict,
+          // Section 3.5: report the result even when it refutes -- especially then.
+          description: describeResult(result),
+        };
+      }),
+
     /** Cold-start reporting (section 6): the curve, not a single number. */
     count: protectedProcedure.query(async () => ({ decisions: await store.countDecisions() })),
 
@@ -159,6 +303,21 @@ export function buildRecordRouter(store: RecordStore) {
           claim_id: patterns.length ? `claim-${patterns[0].key}` : "claim-none",
           created_at: new Date().toISOString(),
         });
+        if (selection) {
+          // Persist, then read back: a claim already graded by a past drill must keep that
+          // grade rather than being re-derived as a fresh hypothesis every query.
+          const existing = await store.getClaim(selection.claim.claim_id);
+          if (existing) {
+            return {
+              claim: existing,
+              othersWithheld: selection.othersWithheld,
+              reason: null,
+              recorded: summary.total,
+              scored: summary.scored.length,
+            };
+          }
+          await store.saveClaim(selection.claim);
+        }
         return {
           claim: selection?.claim ?? null,
           othersWithheld: selection?.othersWithheld ?? 0,

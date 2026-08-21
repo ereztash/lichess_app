@@ -9,6 +9,8 @@ import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { RevealPanel } from "@/components/RevealPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
+import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
+import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
@@ -69,10 +71,28 @@ export default function Home() {
   const [revealFen, setRevealFen] = useState<string>("");
   const gameId = useRef(`local-${Date.now()}`);
 
+  // --- Drill state ------------------------------------------------------------------------
+  // A drill overrides where the board's position comes from. The decision protocol is
+  // unchanged: same CommitmentScreen, same commit-before-reveal, same record.
+  const [drill, setDrill] = useState<DrillSpec | null>(null);
+  const [drillIndex, setDrillIndex] = useState(0);
+  const [drillDecisionIds, setDrillDecisionIds] = useState<string[]>([]);
+  const [drillStage, setDrillStage] = useState<DrillStage>("briefing");
+  const [drillVerdict, setDrillVerdict] = useState<{
+    description: string;
+    refuted: boolean;
+  } | null>(null);
+  const [drillError, setDrillError] = useState<string>();
+
   const engineRef = useRef<StockfishClient | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const activeMove = currentPly >= 0 ? history[currentPly] : undefined;
-  const activeFen = activeMove?.fen ?? INITIAL_FEN;
+  const historyMove = currentPly >= 0 ? history[currentPly] : undefined;
+  const inDrill = drill !== null && drillStage === "running";
+  // While a drill runs the board shows the drill's position, not the loaded game's.
+  const activeMove = inDrill ? undefined : historyMove;
+  const activeFen = inDrill
+    ? (drill.fens[drillIndex] ?? INITIAL_FEN)
+    : (historyMove?.fen ?? INITIAL_FEN);
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
@@ -98,6 +118,8 @@ export default function Home() {
   }, [activeGame, selectedSquare]);
 
   const commitDecision = trpc.record.commitDecision.useMutation();
+  const startDrillMutation = trpc.record.startDrill.useMutation();
+  const completeDrillMutation = trpc.record.completeDrill.useMutation();
   const submitReveal = trpc.record.reveal.useMutation();
   const decisionCount = trpc.record.count.useQuery(undefined, { retry: false });
 
@@ -187,6 +209,7 @@ export default function Home() {
       setCommitError(undefined);
       setStage("committing");
       const decisionId = crypto.randomUUID();
+      const isDrillDecision = drill !== null && drillStage === "running";
       try {
         const event = buildCommitEvent(
           decisionId,
@@ -210,6 +233,7 @@ export default function Home() {
       setRevealFen(positionFen);
       setCandidateMove(null);
       setCandidatesConsidered([]);
+      if (isDrillDecision) setDrillDecisionIds((prev) => [...prev, decisionId]);
       setStage("revealed");
       setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
 
@@ -268,7 +292,93 @@ export default function Home() {
     [activeFen, commitDecision, currentPly, decisionCount, ensureEngine, playMove, submitReveal],
   );
 
+  /** Ask the server for a drill. The refutation condition is stored there before it returns. */
+  const beginDrill = useCallback(
+    async (claimId: string) => {
+      setDrillError(undefined);
+      // Offer every position from the loaded game. The server decides which are usable by
+      // excluding the ones already decided -- it holds decisions, not games.
+      const candidates = history.map((snapshot) => snapshot.fen);
+      if (candidates.length === 0) {
+        setDrillError("אין משחק טעון שאפשר לקחת ממנו עמדות. טענו PGN קודם.");
+        return;
+      }
+      try {
+        const response = await startDrillMutation.mutateAsync({
+          claim_id: claimId,
+          candidate_fens: candidates,
+        });
+        if (!response.drill) {
+          setDrillError(response.reason ?? "לא ניתן לבנות דריל כרגע.");
+          return;
+        }
+        setDrill(response.drill);
+        setDrillIndex(0);
+        setDrillDecisionIds([]);
+        setDrillVerdict(null);
+        setDrillStage("briefing");
+      } catch (error) {
+        setDrillError(error instanceof Error ? error.message : "הדריל לא התחיל.");
+      }
+    },
+    [history, startDrillMutation],
+  );
+
+  /** Advance to the next drill position, or close the drill and grade the claim. */
+  const advanceDrill = useCallback(async () => {
+    if (!drill) return;
+    const next = drillIndex + 1;
+    setAnalysis(null);
+    setRevealInputs(null);
+    setCommittedDraft(null);
+    setCandidateMove(null);
+    setCandidatesConsidered([]);
+    setCommitError(undefined);
+
+    if (next < drill.fens.length) {
+      setDrillIndex(next);
+      setStage("deciding");
+      setNotice(`עמדה ${next + 1} מתוך ${drill.fens.length} בדריל.`);
+      return;
+    }
+
+    setDrillStage("reporting");
+    try {
+      const result = await completeDrillMutation.mutateAsync({
+        drill_id: drill.drill_id,
+        decision_ids: drillDecisionIds,
+      });
+      // Reported either way -- a refutation is the result, not a failure to report.
+      setDrillVerdict({
+        description: result.description,
+        refuted: result.claim.grade === "refuted",
+      });
+      setDrillStage("done");
+    } catch (error) {
+      setDrillError(error instanceof Error ? error.message : "לא ניתן היה לסגור את הדריל.");
+      setDrillStage("done");
+    }
+  }, [completeDrillMutation, drill, drillDecisionIds, drillIndex]);
+
+  const closeDrill = () => {
+    setDrill(null);
+    setDrillIndex(0);
+    setDrillDecisionIds([]);
+    setDrillVerdict(null);
+    setDrillStage("briefing");
+    setDrillError(undefined);
+    setStage("deciding");
+    setAnalysis(null);
+    setRevealInputs(null);
+    setCommittedDraft(null);
+    setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
+  };
+
   const nextDecision = () => {
+    if (drill && drillStage === "running") {
+      void advanceDrill();
+      return;
+    }
     // Play the move that was committed, then hand over the next position.
     if (committedDraft?.chosenMove) {
       const move = uciToSquares(committedDraft.chosenMove);
@@ -463,8 +573,22 @@ export default function Home() {
               error={commitError}
             />
           ) : null}
-          {deciding ? (
-            <ClaimPanel />
+          {deciding && drill ? (
+            <DrillRunner
+              drill={drill}
+              progress={{ completed: drillDecisionIds.length, total: drill.fens.length }}
+              stage={drillStage}
+              verdict={drillVerdict}
+              error={drillError}
+              onStart={() => {
+                setDrillStage("running");
+                setStage("deciding");
+                setNotice(`עמדה 1 מתוך ${drill.fens.length} בדריל.`);
+              }}
+              onFinish={closeDrill}
+            />
+          ) : deciding ? (
+            <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
           ) : (
             <>
               {revealInputs && committedDraft ? (
@@ -485,6 +609,17 @@ export default function Home() {
                 material={material}
                 onAnalyze={() => void runAnalysis()}
               />
+              {drill && drillStage === "running" && (
+                <DrillRunner
+                  drill={drill}
+                  progress={{ completed: drillDecisionIds.length, total: drill.fens.length }}
+                  stage={drillStage}
+                  verdict={drillVerdict}
+                  error={drillError}
+                  onStart={() => undefined}
+                  onFinish={closeDrill}
+                />
+              )}
               <LichessLayersPanel
                 fen={activeFen}
                 source={source}

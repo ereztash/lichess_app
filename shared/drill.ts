@@ -113,3 +113,88 @@ export function describeResult(result: ProspectiveDrillResult): string {
     ? `הדריל אישר את ההשערה על ${n} החלטות חדשות. היא עוברת ל"שוחזר" — היא יכלה להיכשל כאן ולא נכשלה.`
     : `הדריל הפריך את ההשערה על ${n} החלטות חדשות. היא עוברת ל"הופרך" ונשמרת לתמיד, כדי שאותו דפוס שגוי לא יתגלה מחדש.`;
 }
+
+/**
+ * The per-decision calibration gap: stated confidence minus realised accuracy.
+ *
+ * Same quantity the detector aggregates, evaluated on one decision. Positive means the player
+ * was more confident than the result justified.
+ */
+export function decisionGap(normalisedConfidence: number, accurate: boolean): number {
+  return normalisedConfidence - (accurate ? 1 : 0);
+}
+
+export interface DrillDecision {
+  decision_id: string;
+  /** Stated confidence, 0..1. */
+  confidence: number;
+  accurate: boolean;
+}
+
+export interface RefutationVerdict {
+  observed: boolean;
+  drillGap: number;
+  baselineGap: number;
+  gapDifference: number;
+  n: number;
+}
+
+/**
+ * Test the claim against the condition it actually stored.
+ *
+ * The refutation condition reads: "if the gap between stated confidence and realised accuracy is
+ * NOT larger than in the rest of your decisions -- refuted". So that is what is measured here:
+ * the drill's mean gap against the baseline, in the predicted direction, by at least
+ * `minGapDifference`.
+ *
+ * This is deliberately NOT completeDrill's majority-of-matches rule. A drill that writes down one
+ * condition and tests another has not pre-registered anything, which is the whole of R5. The
+ * majority rule remains available for claims whose condition really is per-decision; this claim
+ * type's condition is an aggregate comparison, so it gets an aggregate test.
+ */
+export function evaluateRefutation(
+  decisions: DrillDecision[],
+  options: { baselineGap: number; predictsOverconfidence: boolean; minGapDifference: number },
+): RefutationVerdict {
+  if (decisions.length === 0) {
+    throw new Error("cannot evaluate a refutation condition against zero decisions");
+  }
+  const drillGap =
+    decisions.reduce((total, d) => total + decisionGap(d.confidence, d.accurate), 0) /
+    decisions.length;
+  const gapDifference = drillGap - options.baselineGap;
+  const directional = options.predictsOverconfidence ? gapDifference : -gapDifference;
+  return {
+    observed: directional >= options.minGapDifference,
+    drillGap,
+    baselineGap: options.baselineGap,
+    gapDifference,
+    n: decisions.length,
+  };
+}
+
+/**
+ * Close a drill using the stored refutation condition rather than a majority vote.
+ *
+ * Returns the result whether or not it agrees with the prediction. Reporting only confirmations
+ * is how a claim that cannot fail gets manufactured after the fact.
+ */
+export function completeDrillAgainstBaseline(
+  started: StartedDrill,
+  decisions: DrillDecision[],
+  verdict: RefutationVerdict,
+  options: { recorded_at: string },
+): ProspectiveDrillResult {
+  if (decisions.length === 0) {
+    throw new Error(`drill ${started.spec.drill_id} recorded no decisions`);
+  }
+  return {
+    kind: "prospective_drill_result",
+    drill_id: started.spec.drill_id,
+    claim_id: started.spec.claim_id,
+    decision_ids: decisions.map((d) => d.decision_id),
+    predicted: started.predicted,
+    observed: verdict.observed,
+    recorded_at: options.recorded_at,
+  };
+}

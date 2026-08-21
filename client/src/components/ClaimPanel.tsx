@@ -13,7 +13,13 @@ import { trpc } from "@/lib/trpc";
 import { ClaimCard } from "./ClaimCard";
 import { NotMeasured, Value } from "./Value";
 
-export function ClaimPanel() {
+export function ClaimPanel({
+  onRunDrill,
+  drillError,
+}: {
+  onRunDrill: (claimId: string) => void;
+  drillError?: string;
+}) {
   const query = trpc.record.claim.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
@@ -60,7 +66,30 @@ export function ClaimPanel() {
       </div>
 
       {data.claim ? (
-        <ClaimCard claim={data.claim} othersWithheld={data.othersWithheld} />
+        <>
+          <ClaimCard claim={data.claim} othersWithheld={data.othersWithheld} />
+          {/* A hypothesis is the only grade a drill can move. A replicated claim has already
+              survived one; a refuted one is final and is never re-tested. */}
+          {data.claim.grade === "hypothesis" && (
+            <button
+              type="button"
+              className="claim-run-drill"
+              onClick={() => onRunDrill(data.claim!.claim_id)}
+            >
+              הריצו דריל — בדיקה קדימה שיכולה להפריך
+            </button>
+          )}
+          {data.claim.grade === "refuted" && (
+            <p className="claim-silence">
+              הטענה הופרכה ונשמרת. אי אפשר לבדוק אותה שוב — הפרכה היא תוצאה, לא טיוטה.
+            </p>
+          )}
+          {drillError && (
+            <p className="claim-silence" role="alert">
+              {drillError}
+            </p>
+          )}
+        </>
       ) : (
         <p className="claim-silence">{data.reason}</p>
       )}
