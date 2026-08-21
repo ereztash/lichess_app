@@ -11,6 +11,13 @@
  * silently counted as success.
  */
 
+// server/_core/env.ts snapshots process.env at module load, and the gates import server code
+// transitively. These must be set before ANY server import, so they live at the top of the file.
+process.env.JWT_SECRET ||= "gate-runner-secret";
+process.env.OWNER_OPEN_ID ||= "gate-owner";
+
+import { ATOM_FIELDS } from "../shared/decision-atom";
+
 export type GateStatus = "PASS" | "FAIL" | "NOT-MEASURED";
 export interface GateResult {
   status: GateStatus;
@@ -27,14 +34,121 @@ export interface Gate {
 }
 
 const notMeasured = (detail: string): GateResult => ({ status: "NOT-MEASURED", detail });
+const pass = (detail: string): GateResult => ({ status: "PASS", detail });
+const fail = (detail: string): GateResult => ({ status: "FAIL", detail });
+
+/**
+ * Shared predicates. The gate and its positive control run the SAME predicate over DIFFERENT
+ * input -- that is what makes the control meaningful. A control with its own weaker predicate
+ * proves nothing.
+ */
+function isoPredicate(screen: string[], event: string[], report: string[]): GateResult {
+  const canonical = [...ATOM_FIELDS].join(",");
+  const layers: Array<[string, string[]]> = [
+    ["screen", screen],
+    ["event", event],
+    ["report", report],
+  ];
+  for (const [name, fields] of layers) {
+    if (fields.join(",") !== canonical) {
+      const missing = ATOM_FIELDS.filter((f) => !fields.includes(f));
+      return fail(
+        `${name} layer does not carry the atom` +
+          (missing.length ? ` -- missing: ${missing.join(", ")}` : ` -- got: ${fields.join(", ")}`),
+      );
+    }
+  }
+  return pass(`atom intact across screen, event, report (${ATOM_FIELDS.length} fields)`);
+}
+
+const ENGINE_FIELDS = [
+  "engine_eval_cp",
+  "engine_best_move",
+  "engine_depth",
+  "engine_source",
+  "cp_loss",
+];
+
+function noEngineOutputPredicate(label: string, payload: string): GateResult {
+  const leaked = ENGINE_FIELDS.filter((field) => payload.includes(`"${field}"`));
+  return leaked.length
+    ? fail(`${label} leaked engine output before commit: ${leaked.join(", ")}`)
+    : pass(`${label} carries no engine output`);
+}
+
+/** Boot the real app in-process and capture the pre-commit reveal payload. */
+async function precommitRevealPayload(): Promise<string> {
+  const { createApp } = await import("../server/app");
+  const { MemoryRecordStore } = await import("../server/record");
+  const { sdk } = await import("../server/_core/sdk");
+  const token = await sdk.createSessionToken(process.env.OWNER_OPEN_ID!, { name: "Gate" });
+  const app = createApp({ store: new MemoryRecordStore() });
+  const server = app.listen(0, "127.0.0.1");
+  await new Promise((done) => server.once("listening", done));
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("no port");
+  try {
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/trpc/record.reveal`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        json: {
+          decision_id: "99999999-9999-4999-8999-999999999999",
+          result: {
+            engine_eval_cp: 42,
+            engine_best_move: "d2d4",
+            engine_depth: 14,
+            engine_source: "local_sf18",
+            cp_loss: 0,
+          },
+        },
+      }),
+    });
+    return await response.text();
+  } finally {
+    server.close();
+  }
+}
 
 export const GATES: Gate[] = [
   {
     id: "GATE-ISO",
     rule: "3.1",
     description: "Every decision atom present in all three layers under identical field names.",
-    run: () => notMeasured("record layer not built yet (step 3)"),
-    positiveControl: () => notMeasured("record layer not built yet (step 3)"),
+    run: async () => {
+      const { atomFieldNames, decisionAtomSchema } = await import("../shared/decision-atom");
+      const { commitEventSchema } = await import("../server/recordRouter");
+      const { MemoryRecordStore } = await import("../server/record");
+      const store = new MemoryRecordStore();
+      const id = "11111111-1111-4111-8111-111111111111";
+      await store.commitDecision({
+        decisionId: id,
+        gameId: "g",
+        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        ply: 0,
+        phase: "opening",
+        clockMsRemaining: null,
+        secondsTaken: 5,
+        chosenMove: "e2e4",
+        candidateMovesConsidered: ["e2e4"],
+        statedRead: "k",
+        statedUnknown: "u",
+        confidence: 3,
+      });
+      const atom = await store.getAtom(id);
+      return isoPredicate(
+        atomFieldNames(decisionAtomSchema),
+        atomFieldNames(commitEventSchema).filter((f) => f !== "decision_id"),
+        Object.keys(atom!),
+      );
+    },
+    positiveControl: async () => {
+      const { atomFieldNames, decisionAtomSchema } = await import("../shared/decision-atom");
+      const { EVENT_MISSING_UNKNOWN } = await import("../tests/fixtures/broken-atoms");
+      const screen = atomFieldNames(decisionAtomSchema);
+      // Same predicate, broken event layer.
+      return isoPredicate(screen, [...EVENT_MISSING_UNKNOWN], screen);
+    },
   },
   {
     id: "GATE-NO-FAKE",
@@ -82,8 +196,12 @@ export const GATES: Gate[] = [
     id: "GATE-COMMIT",
     rule: "R3",
     description: "No engine output reaches the client before a decision is recorded.",
-    run: () => notMeasured("commitment screen not built yet (step 3)"),
-    positiveControl: () => notMeasured("commitment screen not built yet (step 3)"),
+    run: async () => noEngineOutputPredicate("pre-commit reveal", await precommitRevealPayload()),
+    positiveControl: async () => {
+      const { PRE_COMMIT_LEAK } = await import("../tests/fixtures/broken-atoms");
+      // Same predicate, a payload that answers before the decision was recorded.
+      return noEngineOutputPredicate("pre-commit reveal", JSON.stringify(PRE_COMMIT_LEAK));
+    },
   },
   {
     id: "GATE-SHUFFLE",

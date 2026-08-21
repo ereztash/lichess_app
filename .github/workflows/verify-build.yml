@@ -23,5 +23,7 @@ jobs:
         run: npm test
       - name: Gates
         run: npm run gates
+      - name: Gate positive controls (each must go red)
+        run: npm run gates:controls
       - name: Build
         run: npm run build
