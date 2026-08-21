@@ -263,8 +263,14 @@ export const GATES: Gate[] = [
     id: "GATE-PREREG",
     rule: "R5",
     description: "A drill cannot start without a stored refutation_condition.",
-    run: () => notMeasured("drills not built yet (step 7)"),
-    positiveControl: () => notMeasured("drills not built yet (step 7)"),
+    run: () =>
+      runVitestFile("tests/gates/prereg.test.ts", "drills require a stored refutation condition"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/prereg.control.test.ts",
+        "drill starter with no pre-registration check",
+        "vitest.controls.config.ts",
+      ),
   },
   {
     id: "GATE-EXTERNAL",
