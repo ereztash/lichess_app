@@ -202,6 +202,37 @@ guessed at.
   they label, so they could drift out of alignment; the in-square labels cannot. The strips are
   gone.
 
+## The rank that collapsed twice
+
+Reported once as "the board rendered four ranks" and again, after the layout work, as "this
+broke": the starting position with ranks 3-6 squashed to a few pixels while ranks holding pieces
+kept full height.
+
+- **A CSS fallback the build deleted.** `.board-stage` carried two `max-width` declarations, the
+  `vh` one meant to serve browsers without `svh`. The minifier keeps only the last of two
+  same-property declarations in a block, so the built CSS was
+  `max-width:min(100%,100svh - 268px)` and the fallback did not exist in anything shipped. A
+  fallback the build removes is worse than none, because the source reads as though it is
+  handled. It now lives in `@supports (height: 100svh)`, and the build output was read to confirm
+  both rules are present.
+- **The height came from a chain that can break.** `.board-grid` used `aspect-ratio: 1` to make
+  its height definite so `grid-template-rows: repeat(8, 1fr)` had something to divide. Where that
+  chain does not hold, `1fr` rows fall back to max-content and a rank with no pieces on it becomes
+  zero high. `.board-square` now carries `aspect-ratio: 1`, so a square is square on its own and
+  the failure stops being reachable.
+
+**The mechanism is confirmed; the trigger is not.** An isolated page in Chromium with auto rows
+measures the occupied rank at 42px and the empty rank at **2px** — the reported rendering exactly
+— and with `aspect-ratio: 1` on the square, both at **60px**. That control goes red without the
+fix and green with it.
+
+What is still unexplained is why the reporter's Chromium reaches that state at all. The full app
+lays out correctly here at 1856x790, and keeps doing so with `.board-grid`'s `aspect-ratio` forced
+off and with `.board-square`'s forced off — `grid-template-rows` alone held it. So the app-level
+"control" run first proved nothing: it passed with the fix and without it. It was reported as a
+non-result rather than as evidence, which is the third instance of the pass-for-the-wrong-reason
+class named below.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
