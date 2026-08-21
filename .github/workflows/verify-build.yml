@@ -3,6 +3,8 @@ name: Verify build
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -16,5 +18,14 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: TypeScript check
+        run: npm run check
       - name: Build
         run: npm run build
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-analysis-preview
+          path: dist/public
+          if-no-files-found: error
+          retention-days: 3
