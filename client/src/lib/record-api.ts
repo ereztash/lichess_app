@@ -23,11 +23,29 @@ const LOCAL_KEYS = {
   claim: ["local-record", "claim"] as const,
 };
 
-/** Which backing is in use, and whether the local one can actually hold anything. */
-export function useRecordMode(): { local: boolean; storable: boolean } {
+/**
+ * Which backing is in use, and whether it can actually hold anything.
+ *
+ * A session is NOT sufficient to use the server: the server store throws when DATABASE_URL is
+ * unset, so signing in on a deployment without a database moved a working local record onto a
+ * broken server one and the loop stopped. Having a session and having storage are different
+ * facts. The server is used only when it says it can store; otherwise the record stays local,
+ * signed in or not.
+ */
+export function useRecordMode(): { local: boolean; storable: boolean; serverBroken: boolean } {
   const { isAuthenticated } = useAuth();
-  const local = !isAuthenticated;
-  return { local, storable: local ? localRecordAvailable() : true };
+  const probe = trpc.record.storageAvailable.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  // Until the probe answers, treat the server as unusable. Guessing the other way would send
+  // the first decision of a session into a store that may reject it.
+  const serverUsable = isAuthenticated && probe.data?.available === true;
+  const serverBroken = isAuthenticated && (probe.data?.available === false || probe.isError);
+  const local = !serverUsable;
+  return { local, storable: local ? localRecordAvailable() : true, serverBroken };
 }
 
 function useStore(): LocalRecordStore {

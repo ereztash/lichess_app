@@ -82,6 +82,11 @@ export function localRecordAvailable(): boolean {
 }
 
 export class LocalRecordStore implements RecordStore {
+  /** Whether this browser will actually keep what we write. */
+  async isAvailable(): Promise<boolean> {
+    return localRecordAvailable();
+  }
+
   async commitDecision(input: CommitDecisionInput): Promise<void> {
     const state = read();
     if (state.decisions.some((d) => d.decisionId === input.decisionId)) {

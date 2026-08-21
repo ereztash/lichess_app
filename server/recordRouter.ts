@@ -123,6 +123,18 @@ export function buildRecordRouter(store: RecordStore) {
         guard(() => service.finishDrill(store, input, { recorded_at: new Date().toISOString() })),
       ),
 
+    /**
+     * Whether the SERVER can actually store a decision right now.
+     *
+     * Signing in used to be enough to route the record to the server, and the server store throws
+     * when DATABASE_URL is unset. So a successful sign-in moved a working local record onto a
+     * broken server one and the loop stopped: "I signed in and now I cannot play". Having a
+     * session and having storage are different facts, and the client needs the second one.
+     */
+    storageAvailable: protectedProcedure.query(async () => ({
+      available: await store.isAvailable(),
+    })),
+
     /** Cold-start reporting (section 6): the curve, not a single number. */
     count: protectedProcedure.query(() => guard(() => service.countDecisions(store))),
 
