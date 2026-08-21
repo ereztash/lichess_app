@@ -233,6 +233,28 @@ off and with `.board-square`'s forced off — `grid-template-rows` alone held it
 non-result rather than as evidence, which is the third instance of the pass-for-the-wrong-reason
 class named below.
 
+## The product could not be used at all
+
+Reported as "the Lichess button still doesn't work, and it won't let me play". Those were one
+cause, not two.
+
+Every procedure in the loop — `commitDecision`, `reveal`, `feedback`, `startDrill`,
+`completeDrill`, `count`, `claim` — was `protectedProcedure`. Sign-in needs an OAuth portal at
+`VITE_OAUTH_PORTAL_URL`, which this deployment does not have and may never have. So the board
+accepted a move and then refused to record the decision: not a degraded product, an unusable one.
+Everything built on top of the record — claims, drills, the whole second-order argument — was
+unreachable, and had been for the entire life of the deployment.
+
+The fix is a second `RecordStore` backed by `localStorage`, selected when there is no session. The
+loop itself was extracted from the router into `shared/record-service.ts` first, so both backings
+run the *same* rules rather than two implementations that agree today — the `AnalysisSource`
+lesson, applied before the duplication existed rather than after.
+
+**Verified end to end in a browser**, unauthenticated, against a production build: a decision
+committed (`move=e2e4 conf=3`), the engine then ran and its verdict was stored as a reveal
+(`decisions=1 reveals=1`), Stockfish 18 reported `+0.40` at depth 14, and no page errors. That is
+the first time the full commit-then-reveal loop has been observed working in this product.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed

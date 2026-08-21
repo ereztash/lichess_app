@@ -26,56 +26,22 @@ import type { DrillSpec } from "../shared/claim";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom";
 import { getDb } from "./db";
 
-export interface CommitDecisionInput {
-  decisionId: string;
-  gameId: string;
-  fen: string;
-  ply: number;
-  phase: Decision["phase"];
-  clockMsRemaining: number | null;
-  secondsTaken: number;
-  chosenMove: string;
-  candidateMovesConsidered: string[];
-  statedRead: string;
-  statedUnknown: string;
-  confidence: number;
-}
-
-export interface FeedbackInput {
-  revisedRead: string;
-  wouldChooseAgain: boolean;
-}
-
-/** The narrow surface the router depends on, so tests run without a database. */
-export interface RecordStore {
-  commitDecision(input: CommitDecisionInput): Promise<void>;
-  recordReveal(decisionId: string, result: DecisionResult): Promise<void>;
-  recordFeedback(decisionId: string, feedback: FeedbackInput): Promise<void>;
-  hasReveal(decisionId: string): Promise<boolean>;
-  getAtom(decisionId: string): Promise<DecisionAtom | null>;
-  listAtoms(gameId?: string): Promise<DecisionAtom[]>;
-  /** Decision ids in the SAME ORDER as listAtoms, so a scored row can name its decision. */
-  listDecisionIds(gameId?: string): Promise<string[]>;
-  countDecisions(): Promise<number>;
-
-  // --- Layer B: claims and drills -------------------------------------------------------
-  /** Store a claim, or update the grade of one that already exists. */
-  saveClaim(claim: Claim): Promise<void>;
-  /** Load a claim with its prospective test results attached. */
-  getClaim(claimId: string): Promise<Claim | null>;
-  /** Record a started drill. R5: written before the drill runs, condition included. */
-  saveDrill(started: StoredDrill): Promise<void>;
-  getDrill(drillId: string): Promise<StoredDrill | null>;
-  /** Record a drill result. Append-only: a drill reports once. */
-  saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
-}
-
-/** A drill as stored: the spec plus what was fixed before it ran. */
-export interface StoredDrill {
-  spec: DrillSpec;
-  predicted: boolean;
-  started_at: string;
-}
+/**
+ * The contract now lives in shared/record-store.ts so the browser can implement it too.
+ * Re-exported here because the server and its tests have always imported it from this module.
+ */
+export type {
+  CommitDecisionInput,
+  FeedbackInput,
+  RecordStore,
+  StoredDrill,
+} from "../shared/record-store";
+import type {
+  CommitDecisionInput,
+  FeedbackInput,
+  RecordStore,
+  StoredDrill,
+} from "../shared/record-store";
 
 const unavailable = () =>
   new TRPCError({

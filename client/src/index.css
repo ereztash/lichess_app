@@ -84,6 +84,19 @@ button:not(:disabled) {
 }
 .studio-header,
 .workbench,
+.record-mode {
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.3);
+  background: rgba(var(--cream-rgb), 0.4);
+  font-size: 10px;
+  line-height: 1.6;
+  color: rgba(var(--ink-rgb), 0.8);
+}
+.record-mode.unstorable {
+  border-color: var(--warn);
+  color: var(--warn);
+}
 .move-timeline {
   max-width: 1500px;
   margin: auto;

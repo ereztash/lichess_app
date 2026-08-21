@@ -25,6 +25,14 @@ import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import type { ImportedGame } from "@/lib/lichess-public";
 import type { AnalysisSource } from "@shared/analysis-source";
+import {
+  useCommitDecision,
+  useCompleteDrill,
+  useDecisionCount,
+  useRecordMode,
+  useReveal,
+  useStartDrill,
+} from "@/lib/record-api";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
   buildHistory,
@@ -131,11 +139,15 @@ export default function Home() {
     }
   }, [activeGame, selectedSquare]);
 
-  const commitDecision = trpc.record.commitDecision.useMutation();
-  const startDrillMutation = trpc.record.startDrill.useMutation();
-  const completeDrillMutation = trpc.record.completeDrill.useMutation();
-  const submitReveal = trpc.record.reveal.useMutation();
-  const decisionCount = trpc.record.count.useQuery(undefined, { retry: false });
+  /*
+   * The record runs on the server when signed in and in this browser when not. Both go through
+   * the same shared service, so R3 and append-only hold either way -- see lib/record-api.ts.
+   */
+  const commitDecision = useCommitDecision();
+  const startDrillMutation = useStartDrill();
+  const completeDrillMutation = useCompleteDrill();
+  const submitReveal = useReveal();
+  const decisionCount = useDecisionCount();
 
   /**
    * The engine is constructed LAZILY, on first reveal. Loading the wasm is network activity, so
@@ -474,6 +486,16 @@ export default function Home() {
     }
   };
 
+  /*
+   * Where the record is being kept, said out loud.
+   *
+   * A player writes their reasoning into this thing. They are entitled to know whether it is
+   * going to a server or staying on their machine, and whether it can be kept at all -- a private
+   * window makes localStorage throw, and a decision that was not stored must never look like one
+   * that was.
+   */
+  const recordMode = useRecordMode();
+
   const deciding = stage === "deciding" || stage === "committing";
 
   return (
@@ -618,6 +640,14 @@ export default function Home() {
               onMove={handleBoardMove}
             />
           </div>
+
+          {recordMode.local && (
+            <p className={`record-mode ${recordMode.storable ? "" : "unstorable"}`}>
+              {recordMode.storable
+                ? "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והמידע לא עוזב את המחשב שלך."
+                : "הדפדפן חוסם אחסון מקומי (חלון פרטי או חסימת נתוני אתר), ולכן החלטה שתירשם לא תישמר. אל תסתמכו על הרשומה במצב הזה."}
+            </p>
+          )}
 
           <div className="board-note">
             <i />
