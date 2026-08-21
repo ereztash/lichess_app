@@ -123,6 +123,17 @@ See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md). Single-tenant on purpose: ever
 endpoint is gated to one `OWNER_OPEN_ID`. The decision record contains a player's reasoning in
 their own words and never leaves the deployment.
 
+## The record lives where you are
+
+Signed in, decisions go to the server. Not signed in, they are kept **in your browser** and never
+leave the machine — no account, no OAuth portal, no configuration. The screen says which of the
+two is in effect, and says so loudly if the browser is blocking storage, because a decision that
+was not stored must never look like one that was.
+
+Both paths run the same code: `shared/record-service.ts` against a `RecordStore`. R3 (the engine
+does not speak before the decision is recorded), R5 (the refutation condition is written before
+the drill runs) and append-only are enforced there, once, not re-implemented per backing.
+
 ## Getting your games in
 
 Type a Lichess username. `/api/games/user/{username}` is public and sends

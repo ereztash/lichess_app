@@ -84,6 +84,19 @@ button:not(:disabled) {
 }
 .studio-header,
 .workbench,
+.record-mode {
+  margin-top: 10px;
+  padding: 7px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.3);
+  background: rgba(var(--cream-rgb), 0.4);
+  font-size: 10px;
+  line-height: 1.6;
+  color: rgba(var(--ink-rgb), 0.8);
+}
+.record-mode.unstorable {
+  border-color: var(--warn);
+  color: var(--warn);
+}
 .move-timeline {
   max-width: 1500px;
   margin: auto;
@@ -180,6 +193,18 @@ button:not(:disabled) {
   text-align: center;
   line-height: 1.35;
   text-wrap: balance;
+}
+/*
+ * The label must never spill out of the rail.
+ *
+ * Reported twice with the labels cut mid-word ("טעינת GN", "ייבוא לפי ש"). The rail is a fixed
+ * column, so anything that makes the text wider than it -- a fallback font because the webfont
+ * did not load, a larger system text size, page zoom -- pushes the label past the edge and it is
+ * clipped. Wrapping anywhere is worse-looking than a perfect line and better than a lost letter.
+ */
+.rail-button span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .rail-button.prominent {
   background: var(--blue);
@@ -396,8 +421,18 @@ button:not(:disabled) {
    * viewport, so the first rank -- where most of the pieces are late in a game -- was cut off.
    * The subtrahend is the chrome above and below it: header, meta row, coordinates, note.
    */
-  max-width: min(100%, calc(100svh - 268px));
+  max-width: min(100%, calc(100vh - 268px));
   margin-inline: auto;
+}
+/*
+ * svh accounts for mobile browser chrome, but it is newer than vh. Two max-width declarations in
+ * one block do NOT work as a fallback here: the minifier keeps only the last, so the vh line was
+ * dropped from the build and browsers without svh got no bound at all. @supports survives it.
+ */
+@supports (height: 100svh) {
+  .board-stage {
+    max-width: min(100%, calc(100svh - 268px));
+  }
 }
 .evaluation-instrument {
   display: flex;
@@ -447,6 +482,19 @@ button:not(:disabled) {
   box-shadow: 12px 14px 0 rgba(var(--ink-rgb), 0.18);
 }
 .board-square {
+  /*
+   * THE guarantee that a rank cannot collapse.
+   *
+   * The board used to rely on .board-grid's `aspect-ratio: 1` making the container's height
+   * definite, so that `grid-template-rows: repeat(8, 1fr)` had something to divide. Where that
+   * chain does not hold, `1fr` rows fall back to max-content and every empty rank becomes zero
+   * high -- the starting position renders as four ranks. That was reported twice, from a browser
+   * this project cannot test against.
+   *
+   * A square that is square on its own does not care how the container resolved its height, so
+   * the failure mode stops being reachable rather than being fixed again.
+   */
+  aspect-ratio: 1;
   position: relative;
   display: grid;
   place-items: center;

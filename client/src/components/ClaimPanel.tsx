@@ -9,7 +9,7 @@
  * the record layer being unreachable. There is no state where it invents something to show.
  */
 import { FlaskConical, Loader2 } from "lucide-react";
-import { trpc } from "@/lib/trpc";
+import { useClaimView } from "@/lib/record-api";
 import { ClaimCard } from "./ClaimCard";
 import { NotMeasured, Value } from "./Value";
 
@@ -20,10 +20,7 @@ export function ClaimPanel({
   onRunDrill: (claimId: string) => void;
   drillError?: string;
 }) {
-  const query = trpc.record.claim.useQuery(undefined, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  const query = useClaimView();
 
   if (query.isLoading) {
     return (
@@ -42,7 +39,7 @@ export function ClaimPanel({
         <h3>
           <FlaskConical size={14} /> דפוסים
         </h3>
-        <NotMeasured reason={`לא ניתן לקרוא את רשומת ההחלטות: ${query.error.message}`} />
+        <NotMeasured reason={`לא ניתן לקרוא את רשומת ההחלטות: ${query.errorMessage}`} />
       </section>
     );
   }
