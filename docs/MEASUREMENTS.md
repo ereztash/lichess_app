@@ -110,6 +110,19 @@ No success metric is computed by the component whose success is being measured. 
 grade the claim that generated it: `evaluateClaim` accepts a `ProspectiveDrillResult` and
 nothing else, and the drill's prediction is fixed before any position is shown.
 
+## Layer C
+
+Off by default (`LAYER_C_ENABLED`). It consults the Lichess masters database for at most three of
+a claim's positions and returns counts, sources, and one question with a fixed shape.
+
+It generates **no prose**. Section 7 forbids an LLM narrating engine output, and this is the
+surface where that failure would be least visible and most damaging. Everything it returns is a
+count, a source with its n or depth, or a fixed question that states in its own text that it is
+not evidence.
+
+A source it could not consult is **omitted**, never reported as zero: "no master games here" and
+"we could not ask" are different facts.
+
 ## What is currently UNVERIFIED
 
 - **Every threshold, against real data.** Synthetic only. Re-run the shuffled-label control on a
@@ -122,5 +135,7 @@ nothing else, and the drill's prediction is fixed before any position is shown.
 - **The record layer against a real database.** All record tests run against an in-memory store.
   `DATABASE_URL` has never been set in any environment this build has run in, so
   `DrizzleRecordStore` has never executed a statement against MySQL.
+- **Layer C against live Lichess.** Its tests stub `fetch`. It has never made a real request to
+  the masters database, and its rate-limit behaviour under repeated use is unmeasured.
 - **Cold start with a real player.** The numbers above assume a planted effect far stronger and
   cleaner than a real one is likely to be. Expect the real cold start to be longer.
