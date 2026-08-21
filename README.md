@@ -134,6 +134,25 @@ Both paths run the same code: `shared/record-service.ts` against a `RecordStore`
 does not speak before the decision is recorded), R5 (the refutation condition is written before
 the drill runs) and append-only are enforced there, once, not re-implemented per backing.
 
+## After you decide: two kinds of measurement
+
+Once a decision in a game has been committed and the engine has answered it, two more things
+become available. Neither is offered before that, and neither runs by itself.
+
+**The game, measured.** Stockfish goes over every position and reports what each move cost: an
+evaluation curve, centipawn loss per move, and the moves that cost the most. This works on any
+PGN — the evaluations come from the local engine, not from `[%eval]` comments, so a game nobody
+ever analysed is analysed here.
+
+**The record, measured.** The stated confidence against what actually happened, split by the six
+buckets the detector is allowed to look at: under 45 seconds, over two minutes, opening,
+middlegame, endgame, under a minute on the clock. Every figure carries its n, and a bucket that
+has not reached 30 decisions says so and stays on screen saying so.
+
+The second one is the point. Any engine can tell you a move was bad. Only a record of what you
+believed *before* you saw the answer can tell you that you are reliably certain and wrong under
+time pressure — and that is a different fact, about you rather than about the position.
+
 ## Getting your games in
 
 Type a Lichess username. `/api/games/user/{username}` is public and sends

@@ -87,3 +87,13 @@ describe("the Lichess configuration report", () => {
     expect(response.status).toBe(401);
   });
 });
+
+describe("server storage availability", () => {
+  it("reports the memory store as usable", async () => {
+    const response = await fetch(`${origin}/api/trpc/record.storageAvailable`, {
+      headers: { authorization: `Bearer ${ownerToken}` },
+    });
+    const body = JSON.parse(await response.text());
+    expect(body.result.data.json.available).toBe(true);
+  });
+});

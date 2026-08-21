@@ -255,6 +255,58 @@ committed (`move=e2e4 conf=3`), the engine then ran and its verdict was stored a
 (`decisions=1 reveals=1`), Stockfish 18 reported `+0.40` at depth 14, and no page errors. That is
 the first time the full commit-then-reveal loop has been observed working in this product.
 
+## Merging the two repositories
+
+`chess-mind-patterns` and `lichess_app` were not two attempts at the same thing. Each had almost
+exactly what the other lacked, and the audit is what made the merge worth doing rather than a
+matter of taste.
+
+| | lichess_app | chess-mind-patterns |
+| --- | --- | --- |
+| Engine | Stockfish 18, wasm, depth 14 observed | **none** — the word does not appear |
+| Charts | none | 41 components, 14 driving recharts |
+| Decision record | yes | none |
+| Tests | 195 at audit time | **1**, an example |
+| Lines | — | 18,204 |
+
+**Where the other repo's numbers came from.** Every centipawn figure there — eval curve, accuracy,
+blunder counts, phase breakdown — is parsed out of `[%eval …]` comments inside the PGN. It reads
+Lichess's analysis rather than producing one, so on a game Lichess never analysed `hasEvals` is
+`false` and that half of the dashboard goes dark. The structural half (aggression, centre control,
+castling speed, pawn structure) is real and computed locally by replaying the moves.
+
+**Direction.** `lichess_app` is the base and the other repo is the material, which follows from one
+number: you do not merge a codebase with 195 tests and nine gates into one with a single example
+test. Ported code arrives under coverage instead of replacing it.
+
+### What was ported
+
+- `shared/pgn-parser.ts`, `shared/eval-analysis.ts` — unchanged in behaviour.
+- `shared/game-features.ts` — was `chess-engine.ts`. Renamed because in this codebase "engine"
+  means Stockfish and that module contains none.
+
+The charts were **rebuilt, not copied**. The originals carry shadcn, radix and their own token
+names; this codebase has three UI primitives and 216 hand-written CSS classes with RTL and a dark
+theme. Porting them verbatim would have installed ~30 packages and a second visual language.
+One dependency was added: recharts.
+
+### What was deliberately left behind
+
+`EloGoal`, `TrainingROI`, `ImprovementRoadmap`, `SkillTree`, `MBTICard`, `PersonalityNarrative`,
+`FamousPlayerComparison`, `PersonalPuzzles`. They predict rating gain, type a personality from
+chess moves, or train puzzles. No measurement in either repository supports the first two, and the
+third is a different product. Recorded here rather than silently dropped.
+
+### What the gates caught along the way
+
+GATE-DENOM went red three times on code written during this merge — a progress bar, a percentage
+helper, a bar width. Every time the fix was to change the code: percentages routed through
+`Value.tsx`, which the gate names as the one place allowed to format one, and bars scaled rather
+than sized in percent. `Value.tsx` gained `Proportion` and `SignedProportion` because a mean
+confidence is an average over n rather than k of n, and `Rate` would have invented a numerator.
+The gate itself was not touched. This is the class of moment Section 8 warns about, and it is
+recorded because the tempting move each time was the other one.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed

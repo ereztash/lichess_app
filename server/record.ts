@@ -91,6 +91,11 @@ function toAtom(
 }
 
 export class DrizzleRecordStore implements RecordStore {
+  /** There is no database configured unless DATABASE_URL is set and the driver connected. */
+  async isAvailable(): Promise<boolean> {
+    return Boolean(await getDb());
+  }
+
   private async db() {
     const db = await getDb();
     if (!db) throw unavailable();
@@ -288,6 +293,10 @@ export class DrizzleRecordStore implements RecordStore {
 
 /** In-memory store. Used by tests; never wired into a deployment. */
 export class MemoryRecordStore implements RecordStore {
+  async isAvailable(): Promise<boolean> {
+    return true;
+  }
+
   private readonly rows = new Map<string, CommitDecisionInput>();
   private readonly reveals = new Map<string, DecisionResult>();
   private readonly feedbacks = new Map<string, FeedbackInput>();

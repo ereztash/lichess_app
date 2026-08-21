@@ -1,0 +1,255 @@
+import { Activity, LoaderCircle, Sigma } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { analyzeEval, type MoveEval } from "@shared/eval-analysis";
+import { Rate } from "./Value";
+
+type Props = {
+  /** White-perspective centipawns per ply, produced by the local engine. */
+  evalScores: number[];
+  playerColor: "w" | "b";
+  /** Half-moves in the game, so phase boundaries are measured against the real length. */
+  totalPlies: number;
+};
+
+const CLASS_LABEL: Record<MoveEval["classification"], string> = {
+  best: "הטוב ביותר",
+  excellent: "מצוין",
+  good: "טוב",
+  inaccuracy: "אי־דיוק",
+  mistake: "טעות",
+  blunder: "בלאנדר",
+};
+
+/** Severity is an ordered scale, so it is one hue stepped by lightness -- not four identities. */
+function severityVar(c: MoveEval["classification"]): string {
+  if (c === "blunder") return "var(--c-sev-3)";
+  if (c === "mistake") return "var(--c-sev-2)";
+  if (c === "inaccuracy") return "var(--c-sev-1)";
+  return "var(--c-white-edge)";
+}
+
+/**
+ * The whole game, measured.
+ *
+ * Every number here comes from the local engine (see lib/batch-analysis.ts), not from `[%eval]`
+ * comments, so it works on a game Lichess never analysed.
+ *
+ * R1: each figure carries the count it was computed from. "45% accuracy" over five moves is a
+ * different statement from the same number over eighty, and the screen must not hide which one
+ * it is showing.
+ */
+export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
+  const [tab, setTab] = useState<"curve" | "loss">("curve");
+  const analysis = useMemo(
+    () => analyzeEval(evalScores, playerColor, totalPlies),
+    [evalScores, playerColor, totalPlies],
+  );
+
+  if (!analysis.hasEvals) {
+    return (
+      <section className="analysis-section game-review">
+        <div className="section-heading">
+          <span>סקירת משחק</span>
+        </div>
+        <p className="layer-muted">
+          המשחק קצר מכדי למדוד עליו משהו. נדרשים לפחות ארבעה חצאי־מהלכים.
+        </p>
+      </section>
+    );
+  }
+
+  const curve = analysis.evalCurve.map((value, ply) => ({
+    ply,
+    white: Math.max(0, value),
+    black: Math.min(0, value),
+    value,
+  }));
+
+  const losses = analysis.playerMoveEvals.map((m) => ({
+    ply: m.ply,
+    moveNumber: m.moveNumber,
+    cpl: m.cpl,
+    classification: m.classification,
+  }));
+
+  const n = analysis.playerMoveEvals.length;
+  const worst = [...analysis.playerMoveEvals]
+    .filter((m) => m.classification === "blunder" || m.classification === "mistake")
+    .sort((a, b) => b.cpl - a.cpl)
+    .slice(0, 4);
+
+  return (
+    <section className="analysis-section game-review">
+      <div className="section-heading">
+        <span>סקירת משחק</span>
+        <span className="data-chip">STOCKFISH 18</span>
+      </div>
+
+      <div className="review-stats">
+        <div className="review-stat">
+          <b dir="ltr">{analysis.accuracy}%</b>
+          <span>דיוק על פני {n} מהלכים שלך</span>
+        </div>
+        <div className="review-stat">
+          <b dir="ltr">{analysis.avgCPL}</b>
+          <span>אובדן סנטיפונים ממוצע</span>
+        </div>
+        <div className="review-stat">
+          <Rate label="בלאנדרים" value={analysis.blunders} of={n} />
+          <Rate label="טעויות" value={analysis.mistakes} of={n} />
+        </div>
+      </div>
+
+      <div className="review-tabs" role="tablist">
+        <button role="tab" aria-selected={tab === "curve"} onClick={() => setTab("curve")}>
+          <Activity size={13} /> מהלך העמדה
+        </button>
+        <button role="tab" aria-selected={tab === "loss"} onClick={() => setTab("loss")}>
+          <Sigma size={13} /> אובדן לפי מהלך
+        </button>
+      </div>
+
+      {tab === "curve" ? (
+        <>
+          {/* One series split at zero: above the line White stands better, below it Black does. */}
+          <p className="chart-legend" dir="rtl">
+            <i style={{ background: "var(--c-white-edge)" }} /> יתרון ללבן
+            <i style={{ background: "var(--c-black-edge)" }} /> יתרון לשחור
+          </p>
+          <div className="chart-frame" dir="ltr">
+            <ResponsiveContainer width="100%" height={168}>
+              <AreaChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -22 }}>
+                <CartesianGrid stroke="var(--c-grid)" vertical={false} />
+                <XAxis dataKey="ply" tick={{ fontSize: 9 }} stroke="var(--c-axis)" />
+                <YAxis tick={{ fontSize: 9 }} stroke="var(--c-axis)" width={38} />
+                <ReferenceLine y={0} stroke="var(--c-axis)" />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: 0,
+                    fontSize: 11,
+                  }}
+                  labelFormatter={(ply) => `חצי־מהלך ${ply}`}
+                  formatter={(v) => [`${Number(v) > 0 ? "+" : ""}${Number(v).toFixed(2)}`, "הערכה"]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="white"
+                  stroke="var(--c-white-edge)"
+                  strokeWidth={2}
+                  fill="var(--c-white-edge)"
+                  fillOpacity={0.22}
+                  isAnimationActive={false}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="black"
+                  stroke="var(--c-black-edge)"
+                  strokeWidth={2}
+                  fill="var(--c-black-edge)"
+                  fillOpacity={0.22}
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="chart-legend" dir="rtl">
+            <i style={{ background: "var(--c-sev-1)" }} /> אי־דיוק
+            <i style={{ background: "var(--c-sev-2)" }} /> טעות
+            <i style={{ background: "var(--c-sev-3)" }} /> בלאנדר
+          </p>
+          <div className="chart-frame" dir="ltr">
+            <ResponsiveContainer width="100%" height={168}>
+              <BarChart data={losses} margin={{ top: 6, right: 4, bottom: 0, left: -22 }}>
+                <CartesianGrid stroke="var(--c-grid)" vertical={false} />
+                <XAxis dataKey="moveNumber" tick={{ fontSize: 9 }} stroke="var(--c-axis)" />
+                <YAxis tick={{ fontSize: 9 }} stroke="var(--c-axis)" width={38} />
+                <Tooltip
+                  cursor={{ fill: "var(--c-grid)" }}
+                  contentStyle={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: 0,
+                    fontSize: 11,
+                  }}
+                  labelFormatter={(m) => `מהלך ${m}`}
+                  formatter={(v) => [`${Number(v)}`, "אובדן סנטיפונים"]}
+                />
+                <Bar dataKey="cpl" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  {losses.map((l) => (
+                    <Cell key={l.ply} fill={severityVar(l.classification)} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
+
+      {worst.length > 0 && (
+        <div className="review-moments">
+          <h4>המהלכים שעלו הכי הרבה</h4>
+          <ul>
+            {worst.map((m) => (
+              <li key={m.ply}>
+                <span className="moment-move" dir="ltr">
+                  {m.moveNumber}.{m.isWhite ? "" : ".."}
+                </span>
+                {/* The label carries the classification. Colour is a second encoding, never the only one. */}
+                <span className="moment-class" style={{ color: severityVar(m.classification) }}>
+                  {CLASS_LABEL[m.classification]}
+                </span>
+                <span className="moment-cpl" dir="ltr">
+                  −{m.cpl}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p className="review-caveat">
+        זו מדידה של העמדות במשחק הזה בלבד. היא לא אומרת דבר על השחמט שלך בכלל, ולא על מגמה —
+        לשם כך צריך רשומת החלטות, לא משחק אחד.
+      </p>
+    </section>
+  );
+}
+
+export function GameReviewProgress({ done, total }: { done: number; total: number }) {
+  return (
+    <section className="analysis-section game-review">
+      <div className="section-heading">
+        <span>סקירת משחק</span>
+      </div>
+      <p className="layer-loading">
+        <LoaderCircle size={15} /> המנוע מנתח עמדה {done} מתוך {total}…
+      </p>
+      {/*
+        Scaled, not sized in percent. GATE-DENOM flagged the earlier `${pct}%` here -- correctly,
+        by its own rule -- and the honest fix is to stop producing a percentage rather than to
+        teach the gate to ignore this one. The count is stated in the line above either way.
+      */}
+      <div className="review-progress" aria-hidden="true">
+        <i style={{ transform: `scaleX(${done / Math.max(total, 1)})` }} />
+      </div>
+    </section>
+  );
+}

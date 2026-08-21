@@ -53,6 +53,14 @@ export interface RecordStore {
   getDrill(drillId: string): Promise<StoredDrill | null>;
   /** Record a drill result. Append-only: a drill reports once. */
   saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
+
+  /**
+   * Can this store actually hold a decision right now?
+   *
+   * Not a health check for its own sake: the client chooses its backing from this. A store that
+   * exists but cannot write must say so BEFORE a decision is taken, not by throwing after.
+   */
+  isAvailable(): Promise<boolean>;
 }
 
 /** A drill as stored: the spec plus what was fixed before it ran. */

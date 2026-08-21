@@ -23,6 +23,21 @@
   --piece-dark-shadow: rgba(255, 255, 255, 0.3);
   --piece-light-shadow: rgba(0, 0, 0, 0.45);
   --grain: rgba(var(--ink-rgb), 0.06);
+  /* ---- Chart palette -------------------------------------------------------------------
+   * Two poles, validated rather than eyeballed: normal-vision ΔE 26.1, protan 20.2 against the
+   * cream surface. Blue is White's advantage and a move that held; warm is Black's advantage and
+   * a move that lost ground. The severity steps are one hue with monotonic lightness, because
+   * inaccuracy -> mistake -> blunder is an ordered scale, not four identities.
+   * Move classification ALWAYS ships its label as text: colour never carries it alone.
+   */
+  --c-white-edge: #0077aa;
+  --c-black-edge: #b04a1c;
+  --c-sev-1: #d98b4e;
+  --c-sev-2: #b04a1c;
+  --c-sev-3: #7d3313;
+  --c-axis: rgba(var(--ink-rgb), 0.28);
+  --c-grid: rgba(var(--ink-rgb), 0.1);
+
   --hairline: var(--hairline);
   --hairline-strong: var(--hairline-strong);
 }
@@ -58,6 +73,15 @@
   --accent-soft: #a4c3ca;
   --warn: #e08a7a;
   --last-move: rgba(232, 120, 96, 0.45);
+  /* Same two poles re-stepped for the dark surface, validated there too: ΔE 24.1 / 19.8. */
+  --c-white-edge: #39a0cc;
+  --c-black-edge: #c9743f;
+  --c-sev-1: #e0a878;
+  --c-sev-2: #c9743f;
+  --c-sev-3: #a4522a;
+  --c-axis: rgba(var(--ink-rgb), 0.3);
+  --c-grid: rgba(var(--ink-rgb), 0.12);
+
 }
 * {
   box-sizing: border-box;
@@ -84,6 +108,167 @@ button:not(:disabled) {
 }
 .studio-header,
 .workbench,
+/* ---- Game review ------------------------------------------------------------------------ */
+.game-review .review-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.review-stat {
+  display: grid;
+  gap: 3px;
+  padding: 9px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+  background: rgba(var(--cream-rgb), 0.4);
+}
+.review-stat b {
+  font: 600 19px "DM Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.review-stat span {
+  font-size: 10px;
+  line-height: 1.35;
+  color: rgba(var(--ink-rgb), 0.7);
+}
+.review-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.review-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  background: transparent;
+  color: var(--ink);
+  font-size: 11px;
+}
+.review-tabs button[aria-selected="true"] {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 11px 0 4px;
+  font-size: 10px;
+  color: rgba(var(--ink-rgb), 0.72);
+}
+.chart-legend i {
+  display: inline-block;
+  inline-size: 9px;
+  block-size: 9px;
+  margin-inline-end: 5px;
+  vertical-align: -1px;
+}
+/* Charts are LTR instruments: the ply axis runs left to right whatever the page direction. */
+.chart-frame {
+  margin-top: 2px;
+  overflow-x: auto;
+}
+.review-moments {
+  margin-top: 14px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.2);
+  padding-top: 10px;
+}
+.review-moments h4 {
+  margin: 0 0 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.review-moments li {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
+  font-size: 11.5px;
+}
+.moment-move {
+  font: 11px "DM Mono", monospace;
+  color: rgba(var(--ink-rgb), 0.65);
+}
+.moment-class {
+  font-weight: 600;
+}
+.moment-cpl {
+  font: 11px "DM Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.review-caveat {
+  margin-top: 12px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: rgba(var(--ink-rgb), 0.62);
+}
+.review-progress {
+  margin-top: 9px;
+  block-size: 4px;
+  background: rgba(var(--ink-rgb), 0.14);
+}
+.review-progress i {
+  display: block;
+  block-size: 100%;
+  inline-size: 100%;
+  background: var(--blue);
+  transform-origin: right center;
+  transition: transform 0.25s linear;
+}
+/* ---- Record dashboard ------------------------------------------------------------------- */
+.dash-title {
+  margin: 15px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.bucket-list {
+  margin-top: 8px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.18);
+}
+.bucket-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
+  font-size: 11px;
+}
+.bucket-list li.unmeasurable {
+  grid-template-columns: minmax(0, 1fr) auto;
+  color: rgba(var(--ink-rgb), 0.55);
+}
+.bucket-scope {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bucket-bar {
+  display: block;
+  block-size: 6px;
+  background: rgba(var(--ink-rgb), 0.12);
+}
+.bucket-bar i {
+  display: block;
+  block-size: 100%;
+  inline-size: 100%;
+  transform-origin: right center;
+}
+.bucket-n {
+  font: 10px "DM Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bucket-short {
+  font-size: 10px;
+  white-space: nowrap;
+}
 .record-mode {
   margin-top: 10px;
   padding: 7px 10px;

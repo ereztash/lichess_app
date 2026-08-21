@@ -99,3 +99,16 @@ describe("the browser-side record", () => {
     expect(localRecordAvailable()).toBe(true);
   });
 });
+
+describe("choosing a backing", () => {
+  it("treats a store that cannot write as unavailable", async () => {
+    const store = new LocalRecordStore();
+    expect(await store.isAvailable()).toBe(true);
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("QuotaExceededError");
+    });
+    // The client picks its backing from this, so it must go false BEFORE a decision is taken.
+    expect(await store.isAvailable()).toBe(false);
+    spy.mockRestore();
+  });
+});
