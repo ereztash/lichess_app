@@ -457,15 +457,28 @@ Nothing had ever read the stylesheet before, which is why eight dead tokens ship
 
   Related: `explorer.lichess.ovh` is unreachable from this sandbox too (nginx `401` from the
   proxy, not from Lichess). Layer C's explorer calls have still never run against the live host.
-- **The opponent against a real player.** Verified end to end in a browser — it opens, replies,
-  and the turn comes back — but no human has played a game against it. Nothing here measures
-  whether depth 1, 4 or 8 makes a game worth playing for any particular player, which is exactly
-  why the UI states a depth and claims no rating.
-- **The two fixes in a production deployment.** The serverless entry is confirmed working on the
-  branch preview (`/api/health` → `{"ok":true}`); the opponent and the theme tokens are verified
-  against a local mirror of the deployment — the real emitted server plus the real built client —
-  because Chromium in this sandbox reaches no external HTTPS host. Neither has been observed on
-  `lichessapp.vercel.app` itself.
+- **The two fixes running in a browser at the deployed origin.** Narrowed, not closed. What is
+  now confirmed on the branch preview (`491eca9`):
+
+  - `/api/health` returns `{"ok":true}`. The serverless entry loads.
+  - The deployed assets are **byte-identical** to the local build that was driven to a real game
+    — `index-WtgAe9rM.js` 446,719 bytes and `index-8nD4-uIV.css` 39,745 bytes, sha256 equal on
+    both. Vercel's own build produces exactly the bytes that were tested.
+  - All eight light-theme tokens carry real values in the deployed CSS (`--edge:#7c8b86`,
+    `--warn:#a8412c`, …), and **zero** self-referential declarations survive the minifier.
+  - The opponent is in the deployed JS: `chooseOpponentMove`, its four named failure causes,
+    "היריב חושב", the depth control, the `chosen-from`/`chosen-to` classes and the square labels.
+  - The one occurrence of "דירוג" in the whole bundle is the sentence saying depth is *not* a
+    rating. No rating claim shipped.
+
+  What is still not verified is the last step: those bytes **executing in a browser at that
+  origin**. Chromium in this sandbox reaches no external HTTPS host, so the game was driven
+  against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
+  it is not the same as having watched it play there.
+- **The opponent against a real player.** It opens, replies and hands the turn back — driven end
+  to end — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
+  8 makes a game worth playing for any particular player, which is exactly why the UI states a
+  depth and claims no rating.
 - Every detector threshold **against real data**. All synthetic.
 
 ## Not built
