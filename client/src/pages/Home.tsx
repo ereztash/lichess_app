@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import {
+  Activity,
   Clipboard,
   FileUp,
   FlipVertical2,
@@ -23,6 +24,17 @@ import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
+/*
+ * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
+ * it in the initial graph, which is the same weight mistake the engine import was -- the reason
+ * engine-line.ts exists at all.
+ */
+const GameReview = lazy(() =>
+  import("@/components/GameReview").then((m) => ({ default: m.GameReview })),
+);
+const GameReviewProgress = lazy(() =>
+  import("@/components/GameReview").then((m) => ({ default: m.GameReviewProgress })),
+);
 import type { ImportedGame } from "@/lib/lichess-public";
 import type { AnalysisSource } from "@shared/analysis-source";
 import {
@@ -79,6 +91,9 @@ export default function Home() {
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
   const [showImport, setShowImport] = useState(false);
+  const [reviewScores, setReviewScores] = useState<number[] | null>(null);
+  const [reviewProgress, setReviewProgress] = useState<{ done: number; total: number } | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [showPgn, setShowPgn] = useState(false);
   const [source, setSource] = useState<AnalysisSource>("imported");
   const [notice, setNotice] = useState("בחרו מהלך וכתבו את הקריאה שלכם.");
@@ -444,6 +459,44 @@ export default function Home() {
    * fair-play guard keys off the source. The decision record keeps the real Lichess game id, so
    * a decision can be traced back to the game it was taken in.
    */
+  /**
+   * Review the whole game with the local engine.
+   *
+   * Deliberately NOT automatic. Analysing on load would put the engine's verdict on screen before
+   * the player had committed to anything, which is R3 inverted -- the machine speaking first. It
+   * is offered only once a decision in this game has been revealed, and it is still a button.
+   */
+  const runGameReview = useCallback(async () => {
+    setReviewError(null);
+    setReviewScores(null);
+    /*
+     * history[i].fen is the position AFTER ply i, and evalScores[0] must be the position before
+     * anyone has moved -- that indexing is what makes evalScores[ply] mean what eval-analysis
+     * thinks it means. Getting it wrong shifts every CPL by one move and blames the wrong one.
+     */
+    const positions = history.length ? [INITIAL_FEN, ...history.map((h) => h.fen)] : [];
+    if (positions.length < 5) {
+      setReviewError("המשחק קצר מכדי למדוד עליו משהו.");
+      return;
+    }
+    setReviewProgress({ done: 0, total: positions.length });
+    try {
+      const engine = await ensureEngine();
+      const { analyzePositions } = await import("@/lib/batch-analysis");
+      const scores = await analyzePositions(
+        positions,
+        (fen, depth) => engine.analyze(fen, depth),
+        { onProgress: setReviewProgress },
+      );
+      setReviewScores(scores);
+    } catch (error) {
+      // A review that failed must not render as a review that found nothing.
+      setReviewError(error instanceof Error ? error.message : "הניתוח נכשל.");
+    } finally {
+      setReviewProgress(null);
+    }
+  }, [ensureEngine, history]);
+
   const loadLichessGame = (game: ImportedGame) => {
     try {
       const loaded = buildHistory(game.pgn);
@@ -728,6 +781,44 @@ export default function Home() {
                   onFinish={closeDrill}
                 />
               )}
+              {/*
+                THE GATE. The whole-game review is offered only at reveal -- after a decision in
+                this game has been committed and the engine has already spoken about it. Showing
+                it on import would put the machine first, which is the one thing this product is
+                built not to do.
+              */}
+              {stage === "revealed" && (
+                <>
+                  {reviewProgress ? (
+                    <Suspense fallback={null}>
+                      <GameReviewProgress done={reviewProgress.done} total={reviewProgress.total} />
+                    </Suspense>
+                  ) : reviewScores ? (
+                    <Suspense fallback={null}>
+                      <GameReview
+                        evalScores={reviewScores}
+                        playerColor={orientation}
+                        totalPlies={history.length}
+                      />
+                    </Suspense>
+                  ) : (
+                    <section className="analysis-section game-review">
+                      <div className="section-heading">
+                        <span>סקירת משחק</span>
+                      </div>
+                      <p className="layer-intro">
+                        המנוע יעבור על כל העמדות במשחק וימדוד כמה עלה כל מהלך. זה רץ מקומית ולוקח
+                        זמן — ולכן זה כפתור, לא משהו שקורה מעצמו.
+                      </p>
+                      {reviewError && <p className="layer-error">{reviewError}</p>}
+                      <button className="layer-action" onClick={() => void runGameReview()}>
+                        <Activity size={14} /> נתחו את המשחק כולו
+                      </button>
+                    </section>
+                  )}
+                </>
+              )}
+
               <LichessLayersPanel
                 fen={activeFen}
                 source={source}
