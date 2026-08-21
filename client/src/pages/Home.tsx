@@ -24,6 +24,7 @@ import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
+import { NewGameSetup } from "@/components/NewGameSetup";
 /*
  * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
  * it in the initial graph, which is the same weight mistake the engine import was -- the reason
@@ -71,11 +72,34 @@ import type { RevealInputs } from "@/lib/reveal";
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
 // Values (isStale, EngineLine) come from @/lib/engine-line, which has no asset imports.
 import type { StockfishClient } from "@/lib/stockfish";
+/*
+ * Imported statically, and that is correct here: opponent.ts reaches chess.js and nothing else.
+ * It does NOT import the engine -- it takes the search in as an argument -- so it adds no edge
+ * to stockfish.ts and cannot pull the wasm into the initial graph. (It was briefly behind a
+ * dynamic import as well, which bought nothing: a module imported both ways lands in the static
+ * chunk anyway, so the dynamic form only made the code claim a split the build did not make.)
+ */
+import {
+  chooseOpponentMove,
+  DEFAULT_OPPONENT_DEPTH,
+  OPPONENT_DEPTHS,
+  OPPONENT_FAILURE_TEXT,
+  type OpponentDepth,
+} from "@/lib/opponent";
 import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 
 const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע ידלק אחרי ההחלטה" };
+
+/**
+ * Who is playing the other side, if anyone.
+ *
+ * null is the original behaviour and stays the default for an imported or finished game: there
+ * the other side's moves are already in the PGN and an opponent would be inventing a different
+ * game. It is only a live game that needs someone across the board.
+ */
+type Opponent = { playerColor: "w" | "b"; depth: OpponentDepth };
 
 function snapshot(
   game: Chess,
@@ -112,6 +136,15 @@ export default function Home() {
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
   const gameId = useRef(`local-${Date.now()}`);
+
+  // --- The opponent ------------------------------------------------------------------------
+  const [opponent, setOpponent] = useState<Opponent | null>(null);
+  const [opponentThinking, setOpponentThinking] = useState(false);
+  const [showNewGame, setShowNewGame] = useState(false);
+  const [setupColor, setSetupColor] = useState<"w" | "b">("w");
+  const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
+  /** The position the opponent has already been asked about, so it is asked exactly once. */
+  const answeredFen = useRef<string | null>(null);
 
   // --- Drill state ------------------------------------------------------------------------
   // A drill overrides where the board's position comes from. The decision protocol is
@@ -171,16 +204,29 @@ export default function Home() {
   const recordReading = useRecordReading();
 
   /**
-   * The engine is constructed LAZILY, on first reveal. Loading the wasm is network activity, so
-   * doing it while the commitment screen is up would put the engine in the network tab before
-   * the player has committed -- which R3 forbids just as much as rendering its output.
+   * The engine is constructed LAZILY, at the point it is first needed.
+   *
+   * This comment used to say the engine must never load before a decision is recorded, because
+   * loading the wasm is network activity and R3 forbids the engine appearing in the network tab
+   * while the commitment screen is up. That claim was too wide, and the opponent is what showed
+   * it: someone has to play the other side, and a player who takes black must be answered
+   * before they have decided anything at all.
+   *
+   * The narrower rule, which is the one R3 actually needs: no engine output ABOUT THE PLAYER'S
+   * PENDING DECISION reaches the player before they commit. That still holds, structurally --
+   * chooseOpponentMove is handed the search and returns a move, so nothing downstream is ever
+   * holding a score or a principal variation to render, and `analysis`, which the reveal reads,
+   * is untouched by the opponent. GATE-COMMIT's two conditions are unchanged.
+   *
+   * So the engine can now be in the network tab before the first commit of a game with an
+   * opponent, and that is a deliberate narrowing rather than an oversight.
    */
   const ensureEngine = useCallback(async () => {
     if (!engineRef.current) {
-      // Dynamic import: a static one puts stockfish.ts, its ?url asset imports, and the 7MB
-      // wasm into the initial module graph, so the engine appears in the network tab while the
-      // commitment screen is still up. Verified in a browser: static import fetched
-      // stockfish-18-lite-single.wasm before any decision was recorded.
+      // Dynamic import, still: a static one puts stockfish.ts, its ?url asset imports and the
+      // 7MB wasm into the INITIAL module graph, so the engine loads on page open whether or not
+      // a game is being played. Verified in a browser: a static import fetched
+      // stockfish-18-lite-single.wasm before any decision was recorded. GATE-COMMIT enforces it.
       const { StockfishClient } = await import("@/lib/stockfish");
       engineRef.current = new StockfishClient(setEngineStatus);
     }
@@ -188,6 +234,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => () => engineRef.current?.dispose(), []);
+
 
   const runAnalysis = useCallback(async () => {
     if (!engineMayRun(stage)) return;
@@ -226,6 +273,60 @@ export default function Home() {
     },
     [activeFen, currentPly],
   );
+
+  /**
+   * The opponent replies.
+   *
+   * Keyed on the POSITION, not on the commit, so one rule covers both cases: the reply after the
+   * player's committed move is played, and the opening move of a game the player took as black.
+   *
+   * On R3. This is the one path that loads the engine before a decision has been recorded, and
+   * that is deliberate: an opponent has to move, and a game where nobody moves is what this
+   * whole change exists to fix. What R3 forbids is the machine answering the player's decision
+   * before the player has made it, and that stays enforced structurally -- chooseOpponentMove
+   * returns a move and nothing else, so the search's score, depth and principal variation are
+   * discarded at the boundary and no part of the UI is ever handed them. `analysis`, which is
+   * what the reveal renders, is not touched here. GATE-COMMIT's two conditions are unchanged:
+   * the engine is still absent from the initial module graph, and the pre-commit reveal payload
+   * still carries no engine output.
+   */
+  useEffect(() => {
+    if (!opponent || source !== "live" || inDrill) return;
+    // Never while a reveal is on screen: the opponent moving then would change the position the
+    // reveal is describing, out from under it.
+    if (stage !== "deciding") return;
+    if (activeGame.turn() === opponent.playerColor) return;
+    if (activeGame.isGameOver()) return;
+    if (answeredFen.current === activeFen) return;
+    answeredFen.current = activeFen;
+
+    let cancelled = false;
+    void (async () => {
+      setOpponentThinking(true);
+      try {
+        const engine = await ensureEngine();
+        const move = await chooseOpponentMove(
+          activeFen,
+          (fen, depth) => engine.analyze(fen, depth),
+          opponent.depth,
+        );
+        if (cancelled) return;
+        if (!move.ok) {
+          // Four different causes, four different sentences. "The opponent did not move" would
+          // have said the same thing for a finished game and a broken engine.
+          setNotice(OPPONENT_FAILURE_TEXT[move.reason]);
+          return;
+        }
+        playMove(move.from, move.to);
+        setNotice("היריב שיחק. תורכם: בחרו מהלך וכתבו את הקריאה שלכם.");
+      } finally {
+        if (!cancelled) setOpponentThinking(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [opponent, source, inDrill, stage, activeFen, activeGame, ensureEngine, playMove]);
 
   /**
    * While deciding, a board interaction PROPOSES a move; it does not play it. The proposal and
@@ -421,16 +522,15 @@ export default function Home() {
     setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
   };
 
-  const nextDecision = () => {
-    if (drill && drillStage === "running") {
-      void advanceDrill();
-      return;
-    }
-    // Play the move that was committed, then hand over the next position.
-    if (committedDraft?.chosenMove) {
-      const move = uciToSquares(committedDraft.chosenMove);
-      if (move) playMove(move.from, move.to);
-    }
+  /**
+   * Back to deciding, carrying nothing forward from the decision just finished.
+   *
+   * Loading a game must NOT replay the move committed in the previous one. nextDecision plays
+   * committedDraft.chosenMove, and importPgn / loadLichessGame / newGame all called it while a
+   * committed draft from the old game was still in state -- so the first thing that happened to
+   * a freshly loaded game was a move from a game that had already ended.
+   */
+  const resetDecision = (message: string) => {
     setStage("deciding");
     setAnalysis(null);
     setRevealInputs(null);
@@ -438,7 +538,22 @@ export default function Home() {
     setCandidateMove(null);
     setCandidatesConsidered([]);
     setCommitError(undefined);
-    setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
+    setNotice(message);
+  };
+
+  const nextDecision = () => {
+    if (drill && drillStage === "running") {
+      void advanceDrill();
+      return;
+    }
+    // Play the move that was committed, then hand over the next position. If an opponent is
+    // configured it answers from the effect below, which watches the position rather than this
+    // call -- that way the opening move of a game the player takes as black is covered too.
+    if (committedDraft?.chosenMove) {
+      const move = uciToSquares(committedDraft.chosenMove);
+      if (move) playMove(move.from, move.to);
+    }
+    resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
   };
 
   const importPgn = (pgn: string) => {
@@ -451,8 +566,10 @@ export default function Home() {
       setShowPgn(false);
       setSource("imported");
       gameId.current = `pgn-${Date.now()}`;
-      nextDecision();
-      setNotice(`נטענו ${loaded.length} חצאי־מהלכים.`);
+      // No opponent for a loaded game: the other side's moves are already in the PGN.
+      setOpponent(null);
+      answeredFen.current = null;
+      resetDecision(`נטענו ${loaded.length} חצאי־מהלכים.`);
     } catch {
       setNotice("לא הצלחתי לקרוא את ה־PGN.");
     }
@@ -513,21 +630,36 @@ export default function Home() {
       setShowImport(false);
       setSource("finished");
       gameId.current = `lichess-${game.id}`;
-      nextDecision();
-      setNotice(`נטען ${game.white} מול ${game.black} — ${loaded.length} חצאי־מהלכים.`);
+      setOpponent(null);
+      answeredFen.current = null;
+      resetDecision(`נטען ${game.white} מול ${game.black} — ${loaded.length} חצאי־מהלכים.`);
     } catch {
       setNotice(`לא הצלחתי לקרוא את ה־PGN של המשחק ${game.id}.`);
     }
   };
 
-  const newGame = () => {
+  /**
+   * Start a game that can actually be played.
+   *
+   * Before this took arguments there was no opponent at all: "new game" laid out the starting
+   * position and then asked the player to decide for both colours, one commit-and-reveal cycle
+   * per half-move. Choosing a colour is what makes the other side someone else's.
+   */
+  const newGame = (playerColor: "w" | "b", depth: OpponentDepth) => {
     setHistory([]);
     setCurrentPly(-1);
     setPgnInput("");
     setSource("live");
     gameId.current = `live-${Date.now()}`;
-    nextDecision();
-    setNotice("משחק חדש מוכן. לבן מתחיל.");
+    setOpponent({ playerColor, depth });
+    setOrientation(playerColor);
+    answeredFen.current = null;
+    setShowNewGame(false);
+    resetDecision(
+      playerColor === "w"
+        ? `משחק חדש. אתם משחקים לבן ופותחים. היריב הוא Stockfish בעומק ${depth}.`
+        : `משחק חדש. אתם משחקים שחור; היריב פותח. הוא Stockfish בעומק ${depth}.`,
+    );
   };
 
   const openLichess = () => {
@@ -600,7 +732,15 @@ export default function Home() {
       <section className="workbench">
         <aside className="control-rail">
           <div className="rail-label">כלי עבודה</div>
-          <button className="rail-button prominent" onClick={newGame}>
+          <button
+            className="rail-button prominent"
+            aria-expanded={showNewGame}
+            onClick={() => {
+              setShowNewGame((v) => !v);
+              setShowPgn(false);
+              setShowImport(false);
+            }}
+          >
             <Plus size={18} />
             <span>משחק חדש</span>
           </button>
@@ -657,6 +797,17 @@ export default function Home() {
             </div>
           </div>
 
+          {showNewGame && (
+            <NewGameSetup
+              color={setupColor}
+              depth={setupDepth}
+              onColor={setSetupColor}
+              onDepth={setSetupDepth}
+              onStart={() => newGame(setupColor, setupDepth)}
+              onCancel={() => setShowNewGame(false)}
+            />
+          )}
+
           {showImport && (
             <ImportGames onLoad={loadLichessGame} onClose={() => setShowImport(false)} />
           )}
@@ -695,6 +846,11 @@ export default function Home() {
                   ? uciToSquares(analysis.bestMove)
                   : undefined
               }
+              /* The player's own proposal, while deciding. Not the same mark as the engine's
+                 arrow above: one is a guess, the other is an answer. */
+              chosenMove={
+                stage === "deciding" && candidateMove ? uciToSquares(candidateMove) : undefined
+              }
               onSelect={setSelectedSquare}
               onMove={handleBoardMove}
             />
@@ -707,6 +863,17 @@ export default function Home() {
                 : recordMode.serverBroken
                   ? "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים."
                   : "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והמידע לא עוזב את המחשב שלך."}
+            </p>
+          )}
+
+          {/*
+            * The opponent thinking, said out loud. The whole defect this replaces was a board
+            * that changed nothing while something was happening, so a silent search would put
+            * it straight back.
+            */}
+          {opponentThinking && (
+            <p className="opponent-thinking" role="status">
+              היריב חושב…
             </p>
           )}
 

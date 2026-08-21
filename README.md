@@ -41,6 +41,25 @@ decisions inside it and 30 outside. That is the price of a 0.7% false-positive r
 shuffled labels; the looser thresholds spoke after ~30 decisions and were wrong about half the
 time at that size. The full curve is in [docs/MEASUREMENTS.md](docs/MEASUREMENTS.md).
 
+## Playing a game
+
+**New game** asks two things: which colour you take, and how deep the opponent searches. The
+other side is then played by the local Stockfish. Before this there was no opponent at all —
+"new game" laid out the starting position and asked you to decide for both colours, one
+commit-and-reveal cycle per half-move.
+
+Depth is offered as a **search depth** (1, 4, 8), and that is all it is. Nothing here measures
+what rating a given depth plays at, so the app does not tell you how strong the opponent is. Depth
+1 exists because an opponent that always wins is not a game you can learn anything in.
+
+While you are deciding, the move you have picked is marked on the board in its own colour. That
+mark is deliberately **not** the engine's arrow: one is your guess and the other is the machine's
+answer, and a single mark meaning both would erase the difference. The engine's arrow appears
+only after a reveal — never before, which is the point of the whole product.
+
+Choosing a colour applies to games you play. A game you **import** gets no opponent: the other
+side's moves are already in the PGN, and inventing different ones would be a different game.
+
 ## The loop
 
 The unit of output is **one claim and one drill**. Not a dashboard, not a list of weaknesses.

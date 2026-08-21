@@ -6,7 +6,20 @@ interface ChessBoardProps {
   selectedSquare?: string;
   legalTargets: string[];
   lastMove?: { from: string; to: string };
+  /**
+   * The ENGINE's recommendation, drawn as an arrow. Only ever set after a reveal.
+   */
   suggestedMove?: { from: string; to: string };
+  /**
+   * The PLAYER's own proposed move, while deciding.
+   *
+   * Rendered deliberately unlike suggestedMove. Choosing a move used to change nothing on the
+   * board -- the piece stayed put and a line of text appeared in a side panel -- so the board
+   * read as frozen, which is what "the game does not work" turned out to mean. Marking it with
+   * the engine's arrow instead would be worse than silence: two different causes, your guess and
+   * the machine's answer, would produce one identical mark on the board.
+   */
+  chosenMove?: { from: string; to: string };
   onSelect: (square?: string) => void;
   onMove: (from: string, to: string) => void;
 }
@@ -18,6 +31,7 @@ export function ChessBoard({
   legalTargets,
   lastMove,
   suggestedMove,
+  chosenMove,
   onSelect,
   onMove,
 }: ChessBoardProps) {
@@ -61,11 +75,14 @@ export function ChessBoard({
             const isLast = lastMove?.from === square || lastMove?.to === square;
             const isTarget = legalTargets.includes(square);
             const isSelected = selectedSquare === square;
+            const isChosenFrom = chosenMove?.from === square;
+            const isChosenTo = chosenMove?.to === square;
             return (
               <button
-                className={`board-square ${dark ? "dark-square" : "light-square"} ${isLast ? "last-square" : ""} ${isTarget ? "legal-square" : ""} ${isSelected ? "selected-square" : ""}`}
+                className={`board-square ${dark ? "dark-square" : "light-square"} ${isLast ? "last-square" : ""} ${isTarget ? "legal-square" : ""} ${isSelected ? "selected-square" : ""} ${isChosenFrom ? "chosen-from" : ""} ${isChosenTo ? "chosen-to" : ""}`}
                 key={square}
                 role="gridcell"
+                aria-label={square}
                 onClick={() => selectSquare(square)}
                 draggable={Boolean(piece)}
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", square)}
@@ -84,6 +101,7 @@ export function ChessBoard({
                   </span>
                 )}
                 {isTarget && <span className="legal-dot" aria-hidden="true" />}
+                {isChosenTo && <span className="chosen-marker" aria-hidden="true" />}
               </button>
             );
           }),
