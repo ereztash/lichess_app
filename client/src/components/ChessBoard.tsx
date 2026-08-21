@@ -1,13 +1,122 @@
 import { PIECES, type Orientation } from "@/lib/game-data";
 type BoardPiece = { type: string; color: "w" | "b" } | null;
-interface ChessBoardProps { board: BoardPiece[][]; orientation: Orientation; selectedSquare?: string; legalTargets: string[]; lastMove?: { from: string; to: string }; suggestedMove?: { from: string; to: string }; onSelect: (square?: string) => void; onMove: (from: string, to: string) => void; }
+interface ChessBoardProps {
+  board: BoardPiece[][];
+  orientation: Orientation;
+  selectedSquare?: string;
+  legalTargets: string[];
+  lastMove?: { from: string; to: string };
+  suggestedMove?: { from: string; to: string };
+  onSelect: (square?: string) => void;
+  onMove: (from: string, to: string) => void;
+}
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
-export function ChessBoard({ board, orientation, selectedSquare, legalTargets, lastMove, suggestedMove, onSelect, onMove }: ChessBoardProps) {
+export function ChessBoard({
+  board,
+  orientation,
+  selectedSquare,
+  legalTargets,
+  lastMove,
+  suggestedMove,
+  onSelect,
+  onMove,
+}: ChessBoardProps) {
   const displayFiles = orientation === "w" ? files : [...files].reverse();
-  const displayRanks = orientation === "w" ? [8,7,6,5,4,3,2,1] : [1,2,3,4,5,6,7,8];
-  const getPiece = (square: string) => { const file = files.indexOf(square[0]); const rank = Number(square[1]); return board[8-rank]?.[file] ?? null; };
-  const point = (square: string) => { const file=files.indexOf(square[0]); const rank=Number(square[1]); const x=orientation==="w"?file:7-file; const y=orientation==="w"?8-rank:rank-1; return {x:(x+.5)*12.5,y:(y+.5)*12.5}; };
-  const arrowStart=suggestedMove?point(suggestedMove.from):undefined; const arrowEnd=suggestedMove?point(suggestedMove.to):undefined;
-  const selectSquare=(square:string)=>{ if(selectedSquare&&legalTargets.includes(square)){onMove(selectedSquare,square);return;} onSelect(selectedSquare===square?undefined:square); };
-  return <div className="board-stage" aria-label="לוח שחמט אינטראקטיבי"><div className="board-coordinates board-files top" aria-hidden="true">{displayFiles.map(file=><span key={file}>{file}</span>)}</div><div className="board-grid" role="grid" aria-label="לוח שחמט" dir="ltr">{displayRanks.flatMap((rank,row)=>displayFiles.map((file,col)=>{const square=`${file}${rank}`;const piece=getPiece(square);const dark=(files.indexOf(file)+rank)%2===0;const isLast=lastMove?.from===square||lastMove?.to===square;const isTarget=legalTargets.includes(square);const isSelected=selectedSquare===square;return <button className={`board-square ${dark?"dark-square":"light-square"} ${isLast?"last-square":""} ${isTarget?"legal-square":""} ${isSelected?"selected-square":""}`} key={square} role="gridcell" onClick={()=>selectSquare(square)} draggable={Boolean(piece)} onDragStart={e=>e.dataTransfer.setData("text/plain",square)} onDragOver={e=>e.preventDefault()} onDrop={e=>{e.preventDefault();const from=e.dataTransfer.getData("text/plain");if(from)onMove(from,square);}}>{col===0&&<span className="rank-label">{rank}</span>}{row===7&&<span className="file-label">{file}</span>}{piece&&<span className={`piece piece-${piece.color}`}>{PIECES[piece.color][piece.type]}</span>}{isTarget&&<span className="legal-dot" aria-hidden="true"/>}</button>}))}{arrowStart&&arrowEnd&&<svg className="board-vectors" viewBox="0 0 100 100" aria-hidden="true"><defs><marker id="suggestion-arrow" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#1e5b72"/></marker></defs><line x1={arrowStart.x} y1={arrowStart.y} x2={arrowEnd.x} y2={arrowEnd.y} markerEnd="url(#suggestion-arrow)"/><circle cx={arrowEnd.x} cy={arrowEnd.y} r="5.2"/></svg>}</div><div className="board-coordinates board-files bottom" aria-hidden="true">{displayFiles.map(file=><span key={file}>{file}</span>)}</div></div>;
+  const displayRanks = orientation === "w" ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
+  const getPiece = (square: string) => {
+    const file = files.indexOf(square[0]);
+    const rank = Number(square[1]);
+    return board[8 - rank]?.[file] ?? null;
+  };
+  const point = (square: string) => {
+    const file = files.indexOf(square[0]);
+    const rank = Number(square[1]);
+    const x = orientation === "w" ? file : 7 - file;
+    const y = orientation === "w" ? 8 - rank : rank - 1;
+    return { x: (x + 0.5) * 12.5, y: (y + 0.5) * 12.5 };
+  };
+  const arrowStart = suggestedMove ? point(suggestedMove.from) : undefined;
+  const arrowEnd = suggestedMove ? point(suggestedMove.to) : undefined;
+  const selectSquare = (square: string) => {
+    if (selectedSquare && legalTargets.includes(square)) {
+      onMove(selectedSquare, square);
+      return;
+    }
+    onSelect(selectedSquare === square ? undefined : square);
+  };
+  return (
+    <div className="board-stage" aria-label="לוח שחמט אינטראקטיבי">
+      <div className="board-coordinates board-files top" aria-hidden="true">
+        {displayFiles.map((file) => (
+          <span key={file}>{file}</span>
+        ))}
+      </div>
+      <div className="board-grid" role="grid" aria-label="לוח שחמט" dir="ltr">
+        {displayRanks.flatMap((rank, row) =>
+          displayFiles.map((file, col) => {
+            const square = `${file}${rank}`;
+            const piece = getPiece(square);
+            const dark = (files.indexOf(file) + rank) % 2 === 0;
+            const isLast = lastMove?.from === square || lastMove?.to === square;
+            const isTarget = legalTargets.includes(square);
+            const isSelected = selectedSquare === square;
+            return (
+              <button
+                className={`board-square ${dark ? "dark-square" : "light-square"} ${isLast ? "last-square" : ""} ${isTarget ? "legal-square" : ""} ${isSelected ? "selected-square" : ""}`}
+                key={square}
+                role="gridcell"
+                onClick={() => selectSquare(square)}
+                draggable={Boolean(piece)}
+                onDragStart={(e) => e.dataTransfer.setData("text/plain", square)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const from = e.dataTransfer.getData("text/plain");
+                  if (from) onMove(from, square);
+                }}
+              >
+                {col === 0 && <span className="rank-label">{rank}</span>}
+                {row === 7 && <span className="file-label">{file}</span>}
+                {piece && (
+                  <span className={`piece piece-${piece.color}`}>
+                    {PIECES[piece.color][piece.type]}
+                  </span>
+                )}
+                {isTarget && <span className="legal-dot" aria-hidden="true" />}
+              </button>
+            );
+          }),
+        )}
+        {arrowStart && arrowEnd && (
+          <svg className="board-vectors" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <marker
+                id="suggestion-arrow"
+                markerWidth="5"
+                markerHeight="5"
+                refX="4"
+                refY="2.5"
+                orient="auto"
+              >
+                <path d="M0,0 L5,2.5 L0,5 Z" fill="#1e5b72" />
+              </marker>
+            </defs>
+            <line
+              x1={arrowStart.x}
+              y1={arrowStart.y}
+              x2={arrowEnd.x}
+              y2={arrowEnd.y}
+              markerEnd="url(#suggestion-arrow)"
+            />
+            <circle cx={arrowEnd.x} cy={arrowEnd.y} r="5.2" />
+          </svg>
+        )}
+      </div>
+      <div className="board-coordinates board-files bottom" aria-hidden="true">
+        {displayFiles.map((file) => (
+          <span key={file}>{file}</span>
+        ))}
+      </div>
+    </div>
+  );
 }

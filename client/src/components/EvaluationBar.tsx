@@ -1,1 +1,26 @@
-import { formatEvaluation } from "@/lib/game-data";interface EvaluationBarProps{scoreCp:number;mate?:number}export function EvaluationBar({scoreCp,mate}:EvaluationBarProps){const whiteShare=mate!==undefined?(mate>0?0.92:0.08):Math.max(0.08,Math.min(0.92,0.5+scoreCp/1400));return <div className="evaluation-instrument" aria-label={`הערכת מנוע ${formatEvaluation(scoreCp,mate)}`}><span className="eval-marker top">לבן</span><div className="evaluation-track"><div className="evaluation-white" style={{height:`${whiteShare*100}%`}}/><span className="evaluation-value">{formatEvaluation(scoreCp,mate)}</span></div><span className="eval-marker bottom">שחור</span></div>}
+import { formatEvaluation } from "@/lib/game-data";
+interface EvaluationBarProps {
+  scoreCp: number;
+  mate?: number;
+}
+export function EvaluationBar({ scoreCp, mate }: EvaluationBarProps) {
+  const whiteShare =
+    mate !== undefined
+      ? mate > 0
+        ? 0.92
+        : 0.08
+      : Math.max(0.08, Math.min(0.92, 0.5 + scoreCp / 1400));
+  return (
+    <div
+      className="evaluation-instrument"
+      aria-label={`הערכת מנוע ${formatEvaluation(scoreCp, mate)}`}
+    >
+      <span className="eval-marker top">לבן</span>
+      <div className="evaluation-track">
+        <div className="evaluation-white" style={{ height: `${whiteShare * 100}%` }} />
+        <span className="evaluation-value">{formatEvaluation(scoreCp, mate)}</span>
+      </div>
+      <span className="eval-marker bottom">שחור</span>
+    </div>
+  );
+}

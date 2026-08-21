@@ -39,7 +39,7 @@ function isSecureRequest(req: Request) {
   if (req.protocol === "https") return true;
   const forwarded = req.headers["x-forwarded-proto"];
   const list = Array.isArray(forwarded) ? forwarded : String(forwarded ?? "").split(",");
-  return list.some(v => v.trim().toLowerCase() === "https");
+  return list.some((v) => v.trim().toLowerCase() === "https");
 }
 
 function cookieOptions(req: Request) {
@@ -62,7 +62,12 @@ async function authenticate(req: Request): Promise<User | null> {
     const openId = typeof payload.openId === "string" ? payload.openId : "";
     if (!openId) return null;
     const name = typeof payload.name === "string" ? payload.name : "User";
-    return { openId, name, email: null, role: ENV.ownerOpenId && openId === ENV.ownerOpenId ? "admin" : "user" };
+    return {
+      openId,
+      name,
+      email: null,
+      role: ENV.ownerOpenId && openId === ENV.ownerOpenId ? "admin" : "user",
+    };
   } catch {
     return null;
   }
@@ -98,7 +103,11 @@ type AnalysisSource = "demo" | "imported" | "finished" | "study" | "live";
 
 function lichessToken() {
   const value = process.env.LICHESS_API_TOKEN;
-  if (!value) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "אסימון Lichess אינו מוגדר עדיין." });
+  if (!value)
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message: "אסימון Lichess אינו מוגדר עדיין.",
+    });
   return value;
 }
 
@@ -106,9 +115,21 @@ async function lichessFetch(path: string, accept: string) {
   const response = await fetch(`${LICHESS_ORIGIN}${path}`, {
     headers: { Authorization: `Bearer ${lichessToken()}`, Accept: accept },
   });
-  if (response.status === 429) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Lichess ביקש להמתין לפני הבקשה הבאה." });
-  if (response.status === 401 || response.status === 403) throw new TRPCError({ code: "UNAUTHORIZED", message: "אסימון Lichess אינו מורשה לקריאת חשבון זה." });
-  if (!response.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "לא ניתן היה לקבל נתונים מ־Lichess כרגע." });
+  if (response.status === 429)
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: "Lichess ביקש להמתין לפני הבקשה הבאה.",
+    });
+  if (response.status === 401 || response.status === 403)
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "אסימון Lichess אינו מורשה לקריאת חשבון זה.",
+    });
+  if (!response.ok)
+    throw new TRPCError({
+      code: "BAD_GATEWAY",
+      message: "לא ניתן היה לקבל נתונים מ־Lichess כרגע.",
+    });
   return response;
 }
 
@@ -120,21 +141,32 @@ function ensurePostGame(source: AnalysisSource) {
 
 async function explorer(path: string) {
   const response = await fetch(`${EXPLORER_ORIGIN}${path}`, {
-    headers: { Authorization: `Bearer ${lichessToken()}`, Accept: "application/x-ndjson, application/json" },
+    headers: {
+      Authorization: `Bearer ${lichessToken()}`,
+      Accept: "application/x-ndjson, application/json",
+    },
   });
-  if (response.status === 401 || response.status === 403) throw new TRPCError({ code: "UNAUTHORIZED", message: "האסימון אינו מורשה ל־Opening Explorer." });
-  if (response.status === 429) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Opening Explorer ביקש להמתין." });
-  if (!response.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "לא ניתן לקבל נתוני פתיחות כרגע." });
+  if (response.status === 401 || response.status === 403)
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "האסימון אינו מורשה ל־Opening Explorer.",
+    });
+  if (response.status === 429)
+    throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Opening Explorer ביקש להמתין." });
+  if (!response.ok)
+    throw new TRPCError({ code: "BAD_GATEWAY", message: "לא ניתן לקבל נתוני פתיחות כרגע." });
   const text = await response.text();
-  const line = text.split("\n").find(x => x.trim().startsWith("{"));
-  if (!line) throw new TRPCError({ code: "BAD_GATEWAY", message: "Lichess החזיר נתונים לא תקינים." });
+  const line = text.split("\n").find((x) => x.trim().startsWith("{"));
+  if (!line)
+    throw new TRPCError({ code: "BAD_GATEWAY", message: "Lichess החזיר נתונים לא תקינים." });
   return JSON.parse(line);
 }
 
 async function account() {
   const response = await lichessFetch("/api/account", "application/json");
-  const data = await response.json() as any;
-  if (!data?.id || !data?.username) throw new TRPCError({ code: "BAD_GATEWAY", message: "Lichess החזיר פרופיל חלקי." });
+  const data = (await response.json()) as any;
+  if (!data?.id || !data?.username)
+    throw new TRPCError({ code: "BAD_GATEWAY", message: "Lichess החזיר פרופיל חלקי." });
   return data;
 }
 
@@ -144,7 +176,8 @@ async function cloud(fen: string) {
     headers: { Authorization: `Bearer ${lichessToken()}`, Accept: "application/json" },
   });
   if (response.status === 404) return null;
-  if (!response.ok) throw new TRPCError({ code: "BAD_GATEWAY", message: "לא ניתן לקבל הערכת ענן כרגע." });
+  if (!response.ok)
+    throw new TRPCError({ code: "BAD_GATEWAY", message: "לא ניתן לקבל הערכת ענן כרגע." });
   return response.json();
 }
 
@@ -156,14 +189,19 @@ const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 });
 const ownerProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (!ENV.ownerOpenId || ctx.user.openId !== ENV.ownerOpenId) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "חיבור Lichess זמין רק לבעל החשבון שהגדיר אותו." });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "חיבור Lichess זמין רק לבעל החשבון שהגדיר אותו.",
+    });
   }
   return next({ ctx });
 });
 
 const appRouter = t.router({
   system: t.router({
-    health: publicProcedure.input(z.object({ timestamp: z.number().min(0) })).query(() => ({ ok: true })),
+    health: publicProcedure
+      .input(z.object({ timestamp: z.number().min(0) }))
+      .query(() => ({ ok: true })),
   }),
   auth: t.router({
     me: publicProcedure.query(({ ctx }) => ctx.user),
@@ -174,39 +212,77 @@ const appRouter = t.router({
   }),
   lichess: t.router({
     account: ownerProcedure.query(() => account()),
-    recentGames: ownerProcedure.input(z.object({ max: z.number().int().min(1).max(30).default(12) })).query(async ({ input }) => {
-      const lichessAccount = await account();
-      const query = new URLSearchParams({ max: String(input.max), pgnInJson: "true", opening: "true", finished: "true", sort: "dateDesc" });
-      const response = await lichessFetch(`/api/games/user/${encodeURIComponent(lichessAccount.username)}?${query}`, "application/x-ndjson");
-      return (await response.text()).split("\n").filter(Boolean).map(line => JSON.parse(line));
-    }),
-    gamePgn: ownerProcedure.input(z.object({ gameId: z.string().regex(/^[A-Za-z0-9]{8,16}$/) })).mutation(async ({ input }) =>
-      (await lichessFetch(`/game/export/${input.gameId}?opening=true&clocks=false&evals=false`, "application/x-chess-pgn")).text()
-    ),
-    postGameLayers: ownerProcedure.input(z.object({
-      fen: z.string().min(8).max(200),
-      source: z.enum(["demo", "imported", "finished", "study", "live"]),
-    })).query(async ({ input }) => {
-      ensurePostGame(input.source);
-      return {
-        master: await explorer(`/masters?${new URLSearchParams({ fen: input.fen })}`),
-        cloud: await cloud(input.fen),
-      };
-    }),
-    personalOpening: ownerProcedure.input(z.object({
-      fen: z.string().min(8).max(200),
-      source: z.enum(["demo", "imported", "finished", "study", "live"]),
-      playerColor: z.enum(["white", "black"]),
-    })).query(async ({ input }) => {
-      ensurePostGame(input.source);
-      const lichessAccount = await account();
-      return explorer(`/player?${new URLSearchParams({ player: lichessAccount.username, color: input.playerColor, fen: input.fen, recentGames: "0" })}`);
-    }),
-    studyPgn: ownerProcedure.input(z.object({ studyReference: z.string().min(8).max(250) })).mutation(async ({ input }) => {
-      const id = input.studyReference.match(/(?:lichess\.org\/study\/)?([A-Za-z0-9]{8})/)?.[1];
-      if (!id) throw new TRPCError({ code: "BAD_REQUEST", message: "מזהה Study אינו תקין." });
-      return (await lichessFetch(`/api/study/${id}.pgn?clocks=false&comments=true&variations=true`, "application/x-chess-pgn")).text();
-    }),
+    recentGames: ownerProcedure
+      .input(z.object({ max: z.number().int().min(1).max(30).default(12) }))
+      .query(async ({ input }) => {
+        const lichessAccount = await account();
+        const query = new URLSearchParams({
+          max: String(input.max),
+          pgnInJson: "true",
+          opening: "true",
+          finished: "true",
+          sort: "dateDesc",
+        });
+        const response = await lichessFetch(
+          `/api/games/user/${encodeURIComponent(lichessAccount.username)}?${query}`,
+          "application/x-ndjson",
+        );
+        return (await response.text())
+          .split("\n")
+          .filter(Boolean)
+          .map((line) => JSON.parse(line));
+      }),
+    gamePgn: ownerProcedure
+      .input(z.object({ gameId: z.string().regex(/^[A-Za-z0-9]{8,16}$/) }))
+      .mutation(async ({ input }) =>
+        (
+          await lichessFetch(
+            `/game/export/${input.gameId}?opening=true&clocks=false&evals=false`,
+            "application/x-chess-pgn",
+          )
+        ).text(),
+      ),
+    postGameLayers: ownerProcedure
+      .input(
+        z.object({
+          fen: z.string().min(8).max(200),
+          source: z.enum(["demo", "imported", "finished", "study", "live"]),
+        }),
+      )
+      .query(async ({ input }) => {
+        ensurePostGame(input.source);
+        return {
+          master: await explorer(`/masters?${new URLSearchParams({ fen: input.fen })}`),
+          cloud: await cloud(input.fen),
+        };
+      }),
+    personalOpening: ownerProcedure
+      .input(
+        z.object({
+          fen: z.string().min(8).max(200),
+          source: z.enum(["demo", "imported", "finished", "study", "live"]),
+          playerColor: z.enum(["white", "black"]),
+        }),
+      )
+      .query(async ({ input }) => {
+        ensurePostGame(input.source);
+        const lichessAccount = await account();
+        return explorer(
+          `/player?${new URLSearchParams({ player: lichessAccount.username, color: input.playerColor, fen: input.fen, recentGames: "0" })}`,
+        );
+      }),
+    studyPgn: ownerProcedure
+      .input(z.object({ studyReference: z.string().min(8).max(250) }))
+      .mutation(async ({ input }) => {
+        const id = input.studyReference.match(/(?:lichess\.org\/study\/)?([A-Za-z0-9]{8})/)?.[1];
+        if (!id) throw new TRPCError({ code: "BAD_REQUEST", message: "מזהה Study אינו תקין." });
+        return (
+          await lichessFetch(
+            `/api/study/${id}.pgn?clocks=false&comments=true&variations=true`,
+            "application/x-chess-pgn",
+          )
+        ).text();
+      }),
   }),
 });
 
@@ -220,19 +296,27 @@ app.get("/api/oauth/callback", async (req, res) => {
   if (!code || !state) return void res.status(400).json({ error: "code and state are required" });
   const { nonce, redirectUri } = decodeOAuthState(state);
   const expected = parseCookieHeader(req.headers.cookie ?? "")[OAUTH_STATE_COOKIE];
-  if (!nonce || nonce !== expected) return void res.status(403).json({ error: "invalid oauth state" });
-  if (!ENV.oAuthServerUrl || !ENV.appId) return void res.status(503).json({ error: "OAuth is not configured" });
+  if (!nonce || nonce !== expected)
+    return void res.status(403).json({ error: "invalid oauth state" });
+  if (!ENV.oAuthServerUrl || !ENV.appId)
+    return void res.status(503).json({ error: "OAuth is not configured" });
   try {
     const base = ENV.oAuthServerUrl.replace(/\/$/, "");
-    const token = await postJson<{ accessToken: string }>(`${base}/webdev.v1.WebDevAuthPublicService/ExchangeToken`, {
-      clientId: ENV.appId,
-      grantType: "authorization_code",
-      code,
-      redirectUri,
-    });
-    const user = await postJson<{ openId: string; name?: string }>(`${base}/webdev.v1.WebDevAuthPublicService/GetUserInfo`, {
-      accessToken: token.accessToken,
-    });
+    const token = await postJson<{ accessToken: string }>(
+      `${base}/webdev.v1.WebDevAuthPublicService/ExchangeToken`,
+      {
+        clientId: ENV.appId,
+        grantType: "authorization_code",
+        code,
+        redirectUri,
+      },
+    );
+    const user = await postJson<{ openId: string; name?: string }>(
+      `${base}/webdev.v1.WebDevAuthPublicService/GetUserInfo`,
+      {
+        accessToken: token.accessToken,
+      },
+    );
     const session = await createSession(user.openId, user.name || "User");
     res.clearCookie(OAUTH_STATE_COOKIE, { path: "/", secure: true, sameSite: "none" });
     res.cookie(COOKIE_NAME, session, { ...cookieOptions(req), maxAge: ONE_YEAR_MS });
@@ -242,9 +326,12 @@ app.get("/api/oauth/callback", async (req, res) => {
     res.status(500).json({ error: "OAuth callback failed" });
   }
 });
-app.use("/api/trpc", createExpressMiddleware({
-  router: appRouter,
-  createContext: async ({ req, res }) => ({ req, res, user: await authenticate(req) }),
-}));
+app.use(
+  "/api/trpc",
+  createExpressMiddleware({
+    router: appRouter,
+    createContext: async ({ req, res }) => ({ req, res, user: await authenticate(req) }),
+  }),
+);
 
 export default app;
