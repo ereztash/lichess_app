@@ -224,6 +224,17 @@ guessed at.
   `"sign-in is not configured for this deployment"` warning. Vercel's own build reproduces the
   unconfigured condition exactly, and under it the screen now names the cause. CI `verify` green
   on the same commit.
+- **Browser-side CORS to Lichess.** UNVERIFIED. `fetchUserGames` runs in the browser, and the
+  response headers say it should work: `/api/games/user/{username}` returns
+  `access-control-allow-origin: *`, and `Accept` is a CORS-safelisted request header so it needs
+  no preflight. But it has not been observed in a browser. This sandbox's egress proxy resets
+  Chromium's connection to lichess.org (`net::ERR_CONNECTION_RESET` — a transport failure, not a
+  CORS rejection), so the one test that would settle it cannot run here. The module treats a
+  network-level rejection as a named `blocked` failure that points at the PGN fallback, so the
+  bad case degrades to something a user can act on rather than to silence.
+
+  Related: `explorer.lichess.ovh` is unreachable from this sandbox too (nginx `401` from the
+  proxy, not from Lichess). Layer C's explorer calls have still never run against the live host.
 - Every detector threshold **against real data**. All synthetic.
 
 ## Not built
