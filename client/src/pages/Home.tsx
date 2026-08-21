@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import { Clipboard, FileUp, FlipVertical2, Link2, Plus } from "lucide-react";
+import { Clipboard, FileUp, FlipVertical2, Link2, Moon, Plus, Sun } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
@@ -50,6 +51,7 @@ function snapshot(
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [history, setHistory] = useState<GameSnapshot[]>(() => buildHistory(DEFAULT_PGN));
   const [currentPly, setCurrentPly] = useState(12);
   const [orientation, setOrientation] = useState<Orientation>("w");
@@ -450,10 +452,21 @@ export default function Home() {
           )}
           <button
             className="icon-control"
+            aria-label="הפוך את הלוח"
             onClick={() => setOrientation((v) => (v === "w" ? "b" : "w"))}
           >
             <FlipVertical2 size={17} />
           </button>
+          {toggleTheme && (
+            <button
+              className="icon-control"
+              aria-label={theme === "dark" ? "עברו לתצוגה בהירה" : "עברו לתצוגה כהה"}
+              aria-pressed={theme === "dark"}
+              onClick={toggleTheme}
+            >
+              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+          )}
         </div>
       </header>
 

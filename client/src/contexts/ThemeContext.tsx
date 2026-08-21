@@ -22,18 +22,28 @@ export function ThemeProvider({
   switchable = false,
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
+    if (!switchable) return defaultTheme;
+    try {
       const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
+      return stored === "light" || stored === "dark" ? stored : defaultTheme;
+    } catch {
+      // Private windows and blocked site data make this throw. A theme preference is not
+      // worth taking the app down for.
+      return defaultTheme;
     }
-    return defaultTheme;
   });
 
   useEffect(() => {
     const root = document.documentElement;
     if (theme === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
-    if (switchable) localStorage.setItem("theme", theme);
+    if (switchable) {
+      try {
+        localStorage.setItem("theme", theme);
+      } catch {
+        // Preference simply does not persist. Not worth an error.
+      }
+    }
   }, [theme, switchable]);
 
   const toggleTheme = switchable
