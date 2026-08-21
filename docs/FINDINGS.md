@@ -227,11 +227,19 @@ guessed at.
 - **Browser-side CORS to Lichess.** UNVERIFIED. `fetchUserGames` runs in the browser, and the
   response headers say it should work: `/api/games/user/{username}` returns
   `access-control-allow-origin: *`, and `Accept` is a CORS-safelisted request header so it needs
-  no preflight. But it has not been observed in a browser. This sandbox's egress proxy resets
-  Chromium's connection to lichess.org (`net::ERR_CONNECTION_RESET` — a transport failure, not a
-  CORS rejection), so the one test that would settle it cannot run here. The module treats a
-  network-level rejection as a named `blocked` failure that points at the PGN fallback, so the
-  bad case degrades to something a user can act on rather than to silence.
+  no preflight. But it has not been observed in a browser, and it cannot be from here: Chromium
+  in this sandbox reaches **no** external HTTPS host at all. Navigating it to the deployment's
+  own Vercel preview fails the same way as lichess.org (`net::ERR_CONNECTION_RESET`), and the
+  proxy's `recentRelayFailures` records no entry for either host — the CONNECT never arrives, so
+  Chromium is failing before the proxy rather than being refused by it. Either way it is a
+  transport failure, not a CORS rejection, and no verdict about CORS can be read out of it.
+
+  (An earlier draft of this entry blamed the proxy for resetting the connection to lichess.org
+  specifically. That was wrong in a way worth naming: the same reset happens for every external
+  host, so it says nothing about Lichess.)
+
+  The module treats a network-level rejection as a named `blocked` failure that points at the PGN
+  fallback, so the bad case degrades to something a user can act on rather than to silence.
 
   Related: `explorer.lichess.ovh` is unreachable from this sandbox too (nginx `401` from the
   proxy, not from Lichess). Layer C's explorer calls have still never run against the live host.
