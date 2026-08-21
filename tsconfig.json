@@ -3,17 +3,19 @@
     "client/src/**/*",
     "shared/**/*",
     "server/**/*",
-    "api/**/*"
+    "api/**/*",
+    "tests/**/*",
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules",
     "build",
     "dist",
-    "**/*.test.ts"
+    "tests/fixtures"
   ],
   "compilerOptions": {
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "tsBuildInfoFile": "./.tsbuildinfo",
     "noEmit": true,
     "module": "ESNext",
     "strict": true,
@@ -30,7 +32,8 @@
     "baseUrl": ".",
     "types": [
       "node",
-      "vite/client"
+      "vite/client",
+      "vitest/globals"
     ],
     "paths": {
       "@/*": [
@@ -39,6 +42,7 @@
       "@shared/*": [
         "./shared/*"
       ]
-    }
+    },
+    "target": "ES2022"
   }
 }

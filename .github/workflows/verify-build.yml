@@ -1,14 +1,17 @@
-name: Verify build
+name: Verify
 
 on:
+  # pull_request covers every branch that has a PR open; push covers the default branch.
+  # Listing "**" under push as well made every run fire twice.
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,5 +19,13 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Typecheck
+        run: npm run check
+      - name: Test
+        run: npm test
+      - name: Gates
+        run: npm run gates
+      - name: Gate positive controls (each must go red)
+        run: npm run gates:controls
       - name: Build
         run: npm run build

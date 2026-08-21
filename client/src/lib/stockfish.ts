@@ -1,74 +1,179 @@
+import {
+  emptyLine,
+  type EngineLine,
+  type EngineStatus,
+  type WorkerFactory,
+  type WorkerLike,
+} from "./engine-line";
 import engineJsUrl from "stockfish/bin/stockfish-18-lite-single.js?url";
 import engineWasmUrl from "stockfish/bin/stockfish-18-lite-single.wasm?url";
 
-export type EngineMode = "loading" | "ready" | "thinking" | "error";
-export interface EngineStatus { mode: EngineMode; detail: string; }
-export interface EngineLine { scoreCp: number; mate?: number; depth: number; pv: string[]; bestMove?: string; }
+// Re-exported so existing importers keep working. UI modules should import from
+// ./engine-line directly -- importing VALUES from here pulls the 7MB wasm into the graph.
+export * from "./engine-line";
+
 const ENGINE_JS = engineJsUrl;
 const ENGINE_WASM = engineWasmUrl;
-const INITIAL_LINE: EngineLine = { scoreCp: 0, depth: 0, pv: [] };
 
-function parseInfo(raw: string): EngineLine | undefined {
-  if (!raw.startsWith("info ") || !raw.includes(" score ") || !raw.includes(" pv ")) return undefined;
+const defaultWorkerFactory: WorkerFactory = () => {
+  // The hash carries the wasm path and nothing else.
+  //
+  // This previously appended ",worker". That suffix sends the stockfish.js loader down a branch
+  // where it never initialises: the worker script loads, the worker is created, and then nothing
+  // happens -- no wasm fetch, no message, not even an error. The engine had therefore never
+  // produced a single evaluation in this application. Nothing caught it because there were no
+  // tests and CI only ran `npm run build`.
+  //
+  // Verified empirically against the built asset, four URL variants, one browser:
+  //   no hash            -> silent
+  //   #<wasm>            -> "Stockfish 18 Lite WASM by the Stockfish developers"
+  //   #<wasm>,worker     -> silent   <-- what shipped
+  //   #<raw wasm>,worker -> silent
+  return new Worker(`${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)}`) as unknown as WorkerLike;
+};
+
+function parseInfo(raw: string, fen: string): EngineLine | undefined {
+  if (!raw.startsWith("info ") || !raw.includes(" score ") || !raw.includes(" pv "))
+    return undefined;
   if (/\bmultipv\s+(?!1\b)/.test(raw)) return undefined;
   const score = raw.match(/\bscore\s+(cp|mate)\s+(-?\d+)/);
   const depth = raw.match(/\bdepth\s+(\d+)/);
   const pv = raw.split(" pv ")[1]?.trim().split(/\s+/) ?? [];
   if (!score || !depth || !pv.length) return undefined;
-  return { scoreCp: score[1] === "cp" ? Number(score[2]) : Number(score[2]) * 10000, mate: score[1] === "mate" ? Number(score[2]) : undefined, depth: Number(depth[1]), pv };
+  return {
+    scoreCp: score[1] === "cp" ? Number(score[2]) : Number(score[2]) * 10000,
+    mate: score[1] === "mate" ? Number(score[2]) : undefined,
+    depth: Number(depth[1]),
+    pv,
+    fen,
+  };
 }
 
 export class StockfishClient {
-  private worker: Worker | null = null;
+  private worker: WorkerLike | null = null;
   private readyPromise: Promise<void> | null = null;
   private resolveReady: (() => void) | null = null;
   private rejectReady: ((reason?: unknown) => void) | null = null;
-  private current: { resolve: (line: EngineLine) => void; reject: (reason?: unknown) => void; timer: number } | null = null;
-  private latest: EngineLine = INITIAL_LINE;
-  constructor(private onStatus: (status: EngineStatus) => void) {}
+  private current: {
+    resolve: (line: EngineLine) => void;
+    reject: (reason?: unknown) => void;
+    timer: number;
+    fen: string;
+  } | null = null;
+  private latest: EngineLine | null = null;
+  /**
+   * How many `bestmove` replies still owed by searches we have abandoned.
+   *
+   * UCI tags nothing with a request id, so an aborted search's `bestmove` is indistinguishable
+   * from the current one's. Previously it resolved whichever request happened to be in
+   * `current` -- so superseding a search handed the NEW caller the OLD search's best move
+   * together with a reset `latest`, i.e. { pv: [], depth: 0, bestMove: <previous position> }.
+   * The real result was then discarded, because `current` had already been cleared. Fast
+   * timeline navigation dropped results permanently and stranded a stale number on screen.
+   *
+   * Every abandoned search owes exactly one `bestmove`; we count them and throw them away.
+   */
+  private owedBestMoves = 0;
+  constructor(
+    private onStatus: (status: EngineStatus) => void,
+    private createWorker: WorkerFactory = defaultWorkerFactory,
+  ) {}
   start() {
     if (this.readyPromise) return this.readyPromise;
     this.onStatus({ mode: "loading", detail: "טוען את מנוע Stockfish 18" });
     this.readyPromise = new Promise<void>((resolve, reject) => {
-      this.resolveReady = resolve; this.rejectReady = reject;
-      const workerUrl = `${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)},worker`;
-      this.worker = new Worker(workerUrl);
-      this.worker.onmessage = (event: MessageEvent<string>) => this.handleMessage(event.data);
+      this.resolveReady = resolve;
+      this.rejectReady = reject;
+      this.worker = this.createWorker();
+      this.worker.onmessage = (event: { data: string }) => this.handleMessage(event.data);
       this.worker.onerror = () => this.fail("טעינת המנוע נכשלה — אפשר להמשיך לנתח את הלוח ידנית.");
       this.worker.postMessage("uci");
-      window.setTimeout(() => { if (this.resolveReady) this.fail("המנוע לא הגיב בזמן — בדקו את חיבור הרשת ונסו שוב."); }, 15000);
+      // Plain setTimeout, not window.setTimeout: this class has no reason to require a DOM
+      // global, and depending on one made the superseding logic untestable outside jsdom.
+      setTimeout(() => {
+        if (this.resolveReady) this.fail("המנוע לא הגיב בזמן — בדקו את חיבור הרשת ונסו שוב.");
+      }, 15000);
     });
     return this.readyPromise;
   }
   async analyze(fen: string, depth = 14): Promise<EngineLine> {
     await this.start();
     if (!this.worker) throw new Error("Stockfish worker unavailable");
-    this.stopCurrent(); this.latest = INITIAL_LINE;
+    this.stopCurrent();
+    this.latest = null;
     this.onStatus({ mode: "thinking", detail: `מחשב קו לעומק ${depth}` });
     return new Promise<EngineLine>((resolve, reject) => {
-      const timer = window.setTimeout(() => {
+      const timer = setTimeout(() => {
         if (!this.current) return;
+        // Abandoning this search: it still owes a bestmove that must not resolve a later call.
+        this.owedBestMoves += 1;
         this.worker?.postMessage("stop");
-        const timeoutLine = this.latest.pv.length ? this.latest : INITIAL_LINE;
-        this.current = null; this.onStatus({ mode: "ready", detail: "המנוע מוכן" }); resolve(timeoutLine);
-      }, 12000);
-      this.current = { resolve, reject, timer };
-      this.worker?.postMessage("stop"); this.worker?.postMessage("setoption name MultiPV value 1"); this.worker?.postMessage(`position fen ${fen}`); this.worker?.postMessage(`go depth ${depth}`);
+        const timeoutLine = this.latest?.pv.length ? this.latest : emptyLine(fen);
+        this.current = null;
+        this.onStatus({ mode: "ready", detail: "המנוע מוכן" });
+        resolve(timeoutLine);
+      }, 12000) as unknown as number;
+      this.current = { resolve, reject, timer, fen };
+      this.worker?.postMessage("stop");
+      this.worker?.postMessage("setoption name MultiPV value 1");
+      this.worker?.postMessage(`position fen ${fen}`);
+      this.worker?.postMessage(`go depth ${depth}`);
     });
   }
-  dispose() { this.stopCurrent(); this.worker?.postMessage("quit"); this.worker?.terminate(); this.worker = null; this.readyPromise = null; }
+  dispose() {
+    this.stopCurrent();
+    this.worker?.postMessage("quit");
+    this.worker?.terminate();
+    this.worker = null;
+    this.readyPromise = null;
+  }
   private handleMessage(raw: string) {
-    if (raw === "uciok") { this.worker?.postMessage("isready"); return; }
-    if (raw === "readyok") {
-      if (this.resolveReady) { this.resolveReady(); this.resolveReady = null; this.rejectReady = null; this.onStatus({ mode: "ready", detail: "Stockfish 18 מוכן" }); }
+    if (raw === "uciok") {
+      this.worker?.postMessage("isready");
       return;
     }
-    const line = parseInfo(raw);
-    if (line && (!this.latest.depth || line.depth >= this.latest.depth)) this.latest = line;
-    if (raw.startsWith("bestmove ") && this.current) {
-      const bestMove = raw.split(/\s+/)[1]; const current = this.current; this.current = null; clearTimeout(current.timer); this.onStatus({ mode: "ready", detail: "Stockfish 18 מוכן" }); current.resolve({ ...this.latest, bestMove });
+    if (raw === "readyok") {
+      if (this.resolveReady) {
+        this.resolveReady();
+        this.resolveReady = null;
+        this.rejectReady = null;
+        this.onStatus({ mode: "ready", detail: "Stockfish 18 מוכן" });
+      }
+      return;
     }
+    if (raw.startsWith("bestmove ")) {
+      // Drain replies owed by abandoned searches before considering the live one.
+      if (this.owedBestMoves > 0) {
+        this.owedBestMoves -= 1;
+        return;
+      }
+      if (!this.current) return;
+      const bestMove = raw.split(/\s+/)[1];
+      const current = this.current;
+      this.current = null;
+      clearTimeout(current.timer);
+      this.onStatus({ mode: "ready", detail: "Stockfish 18 מוכן" });
+      current.resolve({ ...(this.latest ?? emptyLine(current.fen)), bestMove, fen: current.fen });
+      return;
+    }
+    // Info lines from an abandoned search must not pollute the live one's best line.
+    if (this.owedBestMoves > 0 || !this.current) return;
+    const line = parseInfo(raw, this.current.fen);
+    if (line && (!this.latest || line.depth >= this.latest.depth)) this.latest = line;
   }
-  private stopCurrent() { if (!this.current) return; clearTimeout(this.current.timer); this.current.reject(new Error("Analysis superseded")); this.current = null; this.worker?.postMessage("stop"); }
-  private fail(message: string) { this.onStatus({ mode: "error", detail: message }); this.rejectReady?.(new Error(message)); this.resolveReady = null; this.rejectReady = null; }
+  private stopCurrent() {
+    if (!this.current) return;
+    clearTimeout(this.current.timer);
+    this.current.reject(new Error("Analysis superseded"));
+    this.current = null;
+    // This search still owes a bestmove. Count it so it cannot resolve the next request.
+    this.owedBestMoves += 1;
+    this.worker?.postMessage("stop");
+  }
+  private fail(message: string) {
+    this.onStatus({ mode: "error", detail: message });
+    this.rejectReady?.(new Error(message));
+    this.resolveReady = null;
+    this.rejectReady = null;
+  }
 }

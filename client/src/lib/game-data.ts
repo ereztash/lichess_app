@@ -35,7 +35,14 @@ export function buildHistory(pgn: string): GameSnapshot[] {
   const replay = new Chess();
   return moves.map((move, index) => {
     const completed = replay.move(move.san);
-    return { ply: index, san: completed.san, from: completed.from, to: completed.to, color: completed.color, fen: replay.fen() };
+    return {
+      ply: index,
+      san: completed.san,
+      from: completed.from,
+      to: completed.to,
+      color: completed.color,
+      fen: replay.fen(),
+    };
   });
 }
 
@@ -50,9 +57,15 @@ export function sanPrincipalVariation(fen: string, moves: string[]) {
   for (const uci of moves.slice(0, 8)) {
     if (uci.length < 4) continue;
     try {
-      const move = replay.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: (uci[4] || "q") as "q" | "r" | "b" | "n" });
+      const move = replay.move({
+        from: uci.slice(0, 2),
+        to: uci.slice(2, 4),
+        promotion: (uci[4] || "q") as "q" | "r" | "b" | "n",
+      });
       sanMoves.push(move.san);
-    } catch { break; }
+    } catch {
+      break;
+    }
   }
   return sanMoves;
 }

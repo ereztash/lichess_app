@@ -36,7 +36,9 @@ export function ThemeProvider({
     if (switchable) localStorage.setItem("theme", theme);
   }, [theme, switchable]);
 
-  const toggleTheme = switchable ? () => setTheme(prev => (prev === "light" ? "dark" : "light")) : undefined;
+  const toggleTheme = switchable
+    ? () => setTheme((prev) => (prev === "light" ? "dark" : "light"))
+    : undefined;
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, switchable }}>
