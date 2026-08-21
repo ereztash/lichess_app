@@ -1,0 +1,162 @@
+import { Gauge, Loader2 } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { MIN_BUCKET_N } from "@shared/detector";
+import type { RecordReading } from "@shared/record-service";
+import { NotMeasured, Proportion, SignedProportion } from "./Value";
+
+/**
+ * The record, laid out.
+ *
+ * This is the screen that measures the PLAYER rather than the position, and it is the reason the
+ * merge is worth doing at all -- chess-mind-patterns can chart a game, but it has no record of
+ * what you believed before you saw the answer, so it cannot draw any of this.
+ *
+ * R1 is the whole design here. Every figure states its n. A bucket that has not reached
+ * MIN_BUCKET_N reports that it cannot be read, and stays on screen saying so, because a row that
+ * simply disappears makes the remaining rows look like the complete picture.
+ */
+export function RecordDashboard({ reading }: { reading: RecordReading }) {
+  const { overall, buckets, confidence, scored } = reading;
+
+  if (scored === 0) {
+    return (
+      <section className="analysis-section record-dashboard">
+        <div className="section-heading">
+          <span>הרשומה שלך</span>
+          <Gauge size={14} />
+        </div>
+        <NotMeasured reason="עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם." />
+      </section>
+    );
+  }
+
+  // Only levels the player actually used. A level with n=0 is absent, not a zero -- plotting it
+  // as 0% would draw a claim about a confidence never stated.
+  const used = confidence.filter((c) => c.n > 0);
+  const curve = used.map((c) => ({
+    stated: c.stated,
+    claimed: Math.round(c.claimed * 100),
+    observed: Math.round((c.observed ?? 0) * 100),
+    n: c.n,
+  }));
+
+  return (
+    <section className="analysis-section record-dashboard">
+      <div className="section-heading">
+        <span>הרשומה שלך</span>
+        <span className="data-chip">n={scored}</span>
+      </div>
+
+      <div className="review-stats">
+        <div className="review-stat">
+          <Proportion value={overall.meanConfidence} n={scored} label="הביטחון שהצהרת" />
+        </div>
+        <div className="review-stat">
+          <Proportion value={overall.accuracyRate} n={scored} label="מה שקרה בפועל" />
+        </div>
+        <div className="review-stat">
+          <SignedProportion
+            value={overall.gap}
+            n={scored}
+            label={overall.gap > 0 ? "ביטחון־יתר" : "ביטחון־חסר"}
+          />
+        </div>
+      </div>
+
+      {curve.length > 0 && (
+        <>
+          <h4 className="dash-title">מה שאמרת מול מה שקרה</h4>
+          <p className="chart-legend" dir="rtl">
+            <i style={{ background: "var(--c-axis)" }} /> הצהרת
+            <i style={{ background: "var(--c-white-edge)" }} /> קרה בפועל
+          </p>
+          <div className="chart-frame" dir="ltr">
+            <ResponsiveContainer width="100%" height={150}>
+              <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -24 }}>
+                <CartesianGrid stroke="var(--c-grid)" vertical={false} />
+                <XAxis dataKey="stated" tick={{ fontSize: 9 }} stroke="var(--c-axis)" />
+                <YAxis tick={{ fontSize: 9 }} stroke="var(--c-axis)" width={40} unit="%" />
+                <Tooltip
+                  cursor={{ fill: "var(--c-grid)" }}
+                  contentStyle={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--hairline-strong)",
+                    borderRadius: 0,
+                    fontSize: 11,
+                  }}
+                  labelFormatter={(s) => `ביטחון ${s}`}
+                  formatter={(v, name, item) => [
+                    `${Number(v)}%  (n=${item?.payload?.n ?? 0})`,
+                    name === "claimed" ? "הצהרת" : "קרה בפועל",
+                  ]}
+                />
+                <Bar dataKey="claimed" fill="var(--c-axis)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                <Bar dataKey="observed" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                  {curve.map((c) => (
+                    // Below the line you claimed is overconfidence; above it is the other way.
+                    <Cell
+                      key={c.stated}
+                      fill={c.observed < c.claimed ? "var(--c-black-edge)" : "var(--c-white-edge)"}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
+
+      <h4 className="dash-title">לפי סוג ההחלטה</h4>
+      <ul className="bucket-list">
+        {buckets.map((b) => (
+          <li key={b.key} className={b.measurable ? "" : "unmeasurable"}>
+            <span className="bucket-scope">{b.scope}</span>
+            {b.measurable ? (
+              <>
+                {/* Scaled, not sized in percent -- the figure beside it is the claim. */}
+                <span className="bucket-bar" aria-hidden="true">
+                  <i
+                    style={{
+                      transform: `scaleX(${Math.min(1, Math.abs(b.inside.gap) * 2)})`,
+                      background:
+                        b.inside.gap > 0 ? "var(--c-black-edge)" : "var(--c-white-edge)",
+                    }}
+                  />
+                </span>
+                <SignedProportion value={b.inside.gap} n={b.inside.n} />
+              </>
+            ) : (
+              <span className="bucket-short">
+                לא ניתן למדוד — {b.inside.n} החלטות בפנים, נדרשות {MIN_BUCKET_N}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <p className="review-caveat">
+        פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא —
+        הוא לא אומר דבר על הדירוג שלך ולא על שיפור.
+      </p>
+    </section>
+  );
+}
+
+export function RecordDashboardLoading() {
+  return (
+    <section className="analysis-section record-dashboard">
+      <p className="claim-loading">
+        <Loader2 size={14} /> קורא את הרשומה…
+      </p>
+    </section>
+  );
+}

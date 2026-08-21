@@ -135,6 +135,8 @@ export function buildRecordRouter(store: RecordStore) {
       available: await store.isAvailable(),
     })),
 
+    reading: protectedProcedure.query(() => guard(() => service.recordReading(store))),
+
     /** Cold-start reporting (section 6): the curve, not a single number. */
     count: protectedProcedure.query(() => guard(() => service.countDecisions(store))),
 

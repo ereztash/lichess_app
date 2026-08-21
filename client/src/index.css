@@ -221,6 +221,54 @@ button:not(:disabled) {
   transform-origin: right center;
   transition: transform 0.25s linear;
 }
+/* ---- Record dashboard ------------------------------------------------------------------- */
+.dash-title {
+  margin: 15px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.bucket-list {
+  margin-top: 8px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.18);
+}
+.bucket-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
+  font-size: 11px;
+}
+.bucket-list li.unmeasurable {
+  grid-template-columns: minmax(0, 1fr) auto;
+  color: rgba(var(--ink-rgb), 0.55);
+}
+.bucket-scope {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bucket-bar {
+  display: block;
+  block-size: 6px;
+  background: rgba(var(--ink-rgb), 0.12);
+}
+.bucket-bar i {
+  display: block;
+  block-size: 100%;
+  inline-size: 100%;
+  transform-origin: right center;
+}
+.bucket-n {
+  font: 10px "DM Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bucket-short {
+  font-size: 10px;
+  white-space: nowrap;
+}
 .record-mode {
   margin-top: 10px;
   padding: 7px 10px;

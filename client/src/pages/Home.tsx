@@ -35,6 +35,10 @@ const GameReview = lazy(() =>
 const GameReviewProgress = lazy(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReviewProgress })),
 );
+/* Same reason: recharts stays out of the initial graph. */
+const RecordDashboard = lazy(() =>
+  import("@/components/RecordDashboard").then((m) => ({ default: m.RecordDashboard })),
+);
 import type { ImportedGame } from "@/lib/lichess-public";
 import type { AnalysisSource } from "@shared/analysis-source";
 import {
@@ -42,6 +46,7 @@ import {
   useCompleteDrill,
   useDecisionCount,
   useRecordMode,
+  useRecordReading,
   useReveal,
   useStartDrill,
 } from "@/lib/record-api";
@@ -163,6 +168,7 @@ export default function Home() {
   const completeDrillMutation = useCompleteDrill();
   const submitReveal = useReveal();
   const decisionCount = useDecisionCount();
+  const recordReading = useRecordReading();
 
   /**
    * The engine is constructed LAZILY, on first reveal. Loading the wasm is network activity, so
@@ -817,6 +823,18 @@ export default function Home() {
                     </section>
                   )}
                 </>
+              )}
+
+              {/*
+                The record dashboard, next to the game review because both are reflection: this
+                one measures the decisions, that one measures the positions. It needs no R3 gate
+                -- it reads decisions already committed and revealed, so by construction it
+                cannot speak before the player has.
+              */}
+              {recordReading.data && (
+                <Suspense fallback={null}>
+                  <RecordDashboard reading={recordReading.data} />
+                </Suspense>
               )}
 
               <LichessLayersPanel

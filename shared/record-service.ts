@@ -26,6 +26,8 @@ import {
 import { selectDrillPositions } from "./drill-positions";
 import { classifyPhase } from "./phase";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store";
+import { readRecord, type RecordReading } from "./record-dashboard";
+export type { RecordReading } from "./record-dashboard";
 import { scoreDecisions, silenceReason } from "./scoring";
 
 /**
@@ -296,4 +298,17 @@ export async function currentClaim(
     recorded: summary.total,
     scored: summary.scored.length,
   };
+}
+
+/**
+ * The record dashboard's numbers.
+ *
+ * Separate from `currentClaim` on purpose: a claim is ONE finding with a grade and a refutation
+ * condition, and this is the whole record laid out. Both read the same scored decisions, so they
+ * cannot drift into disagreeing about the same player.
+ */
+export async function recordReading(store: RecordStore): Promise<RecordReading> {
+  const atoms = await store.listAtoms();
+  const ids = await store.listDecisionIds();
+  return readRecord(scoreDecisions(atoms, ids).scored);
 }

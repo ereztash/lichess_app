@@ -21,6 +21,7 @@ import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
 const LOCAL_KEYS = {
   count: ["local-record", "count"] as const,
   claim: ["local-record", "claim"] as const,
+  reading: ["local-record", "reading"] as const,
 };
 
 /**
@@ -63,6 +64,7 @@ export function useCommitDecision() {
       const out = await service.commitDecision(store, event);
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.count });
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.reading });
       return out;
     },
   };
@@ -78,6 +80,7 @@ export function useReveal() {
       if (!local) return server.mutateAsync(input as never);
       const atom = await service.reveal(store, input.decision_id, input.result);
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.reading });
       return atom;
     },
   };
@@ -160,4 +163,29 @@ export function useClaimView(): ClaimQueryView {
     isError: active.isError,
     errorMessage: active.error?.message ?? "סיבה לא ידועה.",
   };
+}
+
+export type ReadingView = {
+  data: service.RecordReading | undefined;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+/** The record dashboard, from whichever store is in use. */
+export function useRecordReading(): ReadingView {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.reading.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+    enabled: !local,
+  });
+  const localQuery = useQuery({
+    queryKey: LOCAL_KEYS.reading,
+    queryFn: () => service.recordReading(store),
+    enabled: local,
+    refetchOnWindowFocus: false,
+  });
+  const active = local ? localQuery : server;
+  return { data: active.data, isLoading: active.isLoading, isError: active.isError };
 }
