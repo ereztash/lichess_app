@@ -20,11 +20,11 @@ import {
   drills,
   type Decision,
   type InsertDecision,
-} from "../drizzle/schema";
-import type { Claim, ProspectiveDrillResult } from "../shared/claim";
-import type { DrillSpec } from "../shared/claim";
-import type { DecisionAtom, DecisionResult } from "../shared/decision-atom";
-import { getDb } from "./db";
+} from "../drizzle/schema.js";
+import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
+import type { DrillSpec } from "../shared/claim.js";
+import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
+import { getDb } from "./db.js";
 
 /**
  * The contract now lives in shared/record-store.ts so the browser can implement it too.
@@ -35,13 +35,13 @@ export type {
   FeedbackInput,
   RecordStore,
   StoredDrill,
-} from "../shared/record-store";
+} from "../shared/record-store.js";
 import type {
   CommitDecisionInput,
   FeedbackInput,
   RecordStore,
   StoredDrill,
-} from "../shared/record-store";
+} from "../shared/record-store.js";
 
 const unavailable = () =>
   new TRPCError({

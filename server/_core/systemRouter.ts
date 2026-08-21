@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ENV } from "./env";
-import { protectedProcedure, publicProcedure, router } from "./trpc";
+import { ENV } from "./env.js";
+import { protectedProcedure, publicProcedure, router } from "./trpc.js";
 
 export const systemRouter = router({
   health: publicProcedure

@@ -7,8 +7,8 @@
  * "not enough decisions yet" and "not enough revealed decisions yet" are different states and
  * must not read the same (R2).
  */
-import type { DecisionAtom } from "./decision-atom";
-import { ACCURATE_CP_LOSS, normaliseConfidence, type ScoredDecision } from "./detector";
+import type { DecisionAtom } from "./decision-atom.js";
+import { ACCURATE_CP_LOSS, normaliseConfidence, type ScoredDecision } from "./detector.js";
 
 export interface ScoringSummary {
   scored: ScoredDecision[];

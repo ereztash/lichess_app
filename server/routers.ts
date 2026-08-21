@@ -1,12 +1,12 @@
-import { COOKIE_NAME } from "../shared/const";
+import { COOKIE_NAME } from "../shared/const.js";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { recordStore, type RecordStore } from "./record";
-import { buildRecordRouter } from "./recordRouter";
-import { ENV } from "./_core/env";
-import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { recordStore, type RecordStore } from "./record.js";
+import { buildRecordRouter } from "./recordRouter.js";
+import { ENV } from "./_core/env.js";
+import { systemRouter } from "./_core/systemRouter.js";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 import {
   getLichessAccount,
   getLichessGamePgn,
@@ -14,7 +14,7 @@ import {
   getPersonalOpening,
   getPostGameLayers,
   getRecentLichessGames,
-} from "./lichess";
+} from "./lichess.js";
 /**
  * The single-tenant gate.
  *

@@ -11,7 +11,7 @@
  *   3. middlegame  -- everything else
  */
 import { Chess } from "chess.js";
-import type { PHASES } from "./decision-atom";
+import type { PHASES } from "./decision-atom.js";
 
 export type Phase = (typeof PHASES)[number];
 

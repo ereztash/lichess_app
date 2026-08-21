@@ -1,5 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { sdk, type AuthenticatedUser } from "./sdk";
+import { sdk, type AuthenticatedUser } from "./sdk.js";
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];
   res: CreateExpressContextOptions["res"];

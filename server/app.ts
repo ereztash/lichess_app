@@ -8,10 +8,10 @@
  */
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import express from "express";
-import { createContext } from "./_core/context";
-import { registerOAuthRoutes } from "./_core/oauth";
-import { buildAppRouter } from "./routers";
-import { recordStore, type RecordStore } from "./record";
+import { createContext } from "./_core/context.js";
+import { registerOAuthRoutes } from "./_core/oauth.js";
+import { buildAppRouter } from "./routers.js";
+import { recordStore, type RecordStore } from "./record.js";
 
 export function createApp({ store = recordStore }: { store?: RecordStore } = {}) {
   const app = express();

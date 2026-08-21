@@ -7,9 +7,9 @@
  * until an OAuth portal exists -- so the contract has to be reachable from both sides without
  * carrying either side's dependencies. Types only: no runtime imports beyond other shared types.
  */
-import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim";
-import type { DecisionAtom, DecisionResult } from "./decision-atom";
-import type { Phase } from "./phase";
+import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
+import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
+import type { Phase } from "./phase.js";
 
 export interface CommitDecisionInput {
   decisionId: string;
