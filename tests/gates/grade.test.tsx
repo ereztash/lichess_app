@@ -1,0 +1,69 @@
+// @vitest-environment jsdom
+/**
+ * GATE-GRADE (section 3.3): no claim renders above its grade, and the word for a hypothesis is
+ * never the word for a replicated finding.
+ */
+import { render } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { ClaimCard } from "@/components/ClaimCard";
+import { N1_HYPOTHESIS, claimRenderVerdict } from "../fixtures/claim-render-assertions";
+import { evaluateClaim, type ProspectiveDrillResult } from "@shared/claim";
+
+describe("GATE-GRADE: a claim never renders above its grade", () => {
+  it("renders an n=1 hypothesis with its grade and its n", () => {
+    const { container } = render(<ClaimCard claim={N1_HYPOTHESIS} othersWithheld={0} />);
+    const verdict = claimRenderVerdict(container.innerHTML, N1_HYPOTHESIS);
+    expect(verdict.ok, verdict.detail).toBe(true);
+  });
+
+  it("does not borrow the word for a finding when the claim is a hypothesis", () => {
+    const { container } = render(<ClaimCard claim={N1_HYPOTHESIS} othersWithheld={0} />);
+    expect(container.textContent).toContain("השערה");
+    expect(container.textContent).not.toContain("שוחזר");
+  });
+
+  it("says what would refute it, on screen, next to the claim", () => {
+    const { container } = render(<ClaimCard claim={N1_HYPOTHESIS} othersWithheld={0} />);
+    expect(container.textContent).toContain("מה יפריך את זה");
+    expect(container.textContent).toContain(N1_HYPOTHESIS.refutation_condition);
+  });
+
+  it("says how many other patterns were withheld rather than showing them all", () => {
+    const { container } = render(<ClaimCard claim={N1_HYPOTHESIS} othersWithheld={2} />);
+    expect(container.textContent).toContain("עוד 2 דפוסים");
+  });
+
+  it("uses the finding word only once a prospective drill has been survived", () => {
+    const result: ProspectiveDrillResult = {
+      kind: "prospective_drill_result",
+      drill_id: "dr1",
+      claim_id: N1_HYPOTHESIS.claim_id,
+      decision_ids: ["x1", "x2"],
+      predicted: true,
+      observed: true,
+      recorded_at: "2026-08-22T00:00:00Z",
+    };
+    const replicated = evaluateClaim(N1_HYPOTHESIS, result);
+    expect(replicated.grade).toBe("replicated");
+    const { container } = render(<ClaimCard claim={replicated} othersWithheld={0} />);
+    expect(container.textContent).toContain("שוחזר");
+  });
+
+  it("keeps a refuted claim forever rather than deleting it", () => {
+    const failed: ProspectiveDrillResult = {
+      kind: "prospective_drill_result",
+      drill_id: "dr2",
+      claim_id: N1_HYPOTHESIS.claim_id,
+      decision_ids: ["y1"],
+      predicted: true,
+      observed: false,
+      recorded_at: "2026-08-22T00:00:00Z",
+    };
+    const refuted = evaluateClaim(N1_HYPOTHESIS, failed);
+    expect(refuted.grade).toBe("refuted");
+    expect(refuted.prospective_tests).toHaveLength(1);
+    // Refutation is terminal: a later "success" cannot revive it.
+    const revived = evaluateClaim(refuted, { ...failed, observed: true, drill_id: "dr3" });
+    expect(revived.grade, "a refuted claim was revived").toBe("refuted");
+  });
+});

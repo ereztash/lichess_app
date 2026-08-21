@@ -19,6 +19,7 @@ export default defineConfig({
   esbuild: { jsx: "automatic", jsxImportSource: "react" },
   test: {
     environment: "node",
+    setupFiles: [path.resolve(import.meta.dirname, "tests/setup.ts")],
     globals: true,
     include: ["tests/fixtures/controls/**/*.test.ts", "tests/fixtures/controls/**/*.test.tsx"],
     exclude: ["node_modules", "dist"],

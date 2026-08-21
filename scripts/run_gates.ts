@@ -251,8 +251,13 @@ export const GATES: Gate[] = [
     id: "GATE-GRADE",
     rule: "3.3",
     description: "No claim renders above its grade.",
-    run: () => notMeasured("claim layer not built yet (step 6)"),
-    positiveControl: () => notMeasured("claim layer not built yet (step 6)"),
+    run: () => runVitestFile("tests/gates/grade.test.tsx", "claims render at their grade, with n"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/grade.control.test.tsx",
+        "claim rendered without its grade",
+        "vitest.controls.config.ts",
+      ),
   },
   {
     id: "GATE-PREREG",
@@ -265,8 +270,32 @@ export const GATES: Gate[] = [
     id: "GATE-EXTERNAL",
     rule: "R4",
     description: "An external pointer cannot raise a claim's grade.",
-    run: () => notMeasured("Layer C not built yet (step 8)"),
-    positiveControl: () => notMeasured("Layer C not built yet (step 8)"),
+    run: () => {
+      // The gate: attempting the promotion must be a COMPILE error, not a runtime one.
+      // Section 5 is explicit -- if it compiles and returns normally, the type design is wrong.
+      const result = spawnSync("npx", ["tsc", "--noEmit", "-p", "tsconfig.nocompile.json"], {
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+      const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+      if (result.status === 0) {
+        return fail("promoting a claim from an ExternalPointer COMPILED -- the types are wrong");
+      }
+      const errors = output.split("\n").filter((line) => line.includes("error TS")).length;
+      return pass(`promotion from a pointer is a compile error (${errors} rejected)`);
+    },
+    positiveControl: () => {
+      // Invert the same predicate: a file that DOES compile must not be accepted as proof.
+      const result = spawnSync(
+        "npx",
+        ["tsc", "--noEmit", "-p", "tsconfig.nocompile-control.json"],
+        { encoding: "utf8", stdio: "pipe" },
+      );
+      if (result.status === 0) {
+        return fail("a permissive promotion path compiled -- exactly what R4 forbids");
+      }
+      return pass("control did not compile, so it proves nothing");
+    },
   },
   {
     id: "GATE-COMMIT",
@@ -306,8 +335,17 @@ export const GATES: Gate[] = [
     id: "GATE-SHUFFLE",
     rule: "6",
     description: "The pattern detector finds nothing above threshold in shuffled labels.",
-    run: () => notMeasured("detector not built yet (step 6)"),
-    positiveControl: () => notMeasured("detector not built yet (step 6)"),
+    run: async () => {
+      const { shuffleVerdict, noiseRecord } = await import("../tests/fixtures/shuffle-scenario");
+      const { DEFAULT_THRESHOLDS } = await import("../shared/detector");
+      return shuffleVerdict(noiseRecord, DEFAULT_THRESHOLDS, pass, fail);
+    },
+    positiveControl: async () => {
+      const { shuffleVerdict, noiseRecord, PERMISSIVE_THRESHOLDS } =
+        await import("../tests/fixtures/shuffle-scenario");
+      // Same predicate, the thresholds this build started with. They found structure in noise.
+      return shuffleVerdict(noiseRecord, PERMISSIVE_THRESHOLDS, pass, fail);
+    },
   },
 ];
 
