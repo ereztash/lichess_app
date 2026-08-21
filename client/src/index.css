@@ -181,6 +181,18 @@ button:not(:disabled) {
   line-height: 1.35;
   text-wrap: balance;
 }
+/*
+ * The label must never spill out of the rail.
+ *
+ * Reported twice with the labels cut mid-word ("טעינת GN", "ייבוא לפי ש"). The rail is a fixed
+ * column, so anything that makes the text wider than it -- a fallback font because the webfont
+ * did not load, a larger system text size, page zoom -- pushes the label past the edge and it is
+ * clipped. Wrapping anywhere is worse-looking than a perfect line and better than a lost letter.
+ */
+.rail-button span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
 .rail-button.prominent {
   background: var(--blue);
   color: white;
