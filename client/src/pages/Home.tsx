@@ -28,7 +28,9 @@ import {
 import type { RevealInputs } from "@/lib/reveal";
 // TYPE-ONLY import: type imports are erased, so this creates no runtime edge to the engine
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
-import type { EngineLine, EngineStatus, StockfishClient } from "@/lib/stockfish";
+// Values (isStale, EngineLine) come from @/lib/engine-line, which has no asset imports.
+import type { StockfishClient } from "@/lib/stockfish";
+import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 
@@ -131,8 +133,11 @@ export default function Home() {
 
   useEffect(() => {
     setSelectedSquare(undefined);
-    if (engineMayRun(stage)) void runAnalysis();
-  }, [activeFen, runAnalysis, stage]);
+    // Deliberately NO auto-analysis on navigation. Browsing the timeline during a reveal used to
+    // re-run the engine and overwrite the analysis the reveal was about, so the reveal silently
+    // started describing a different position. The engine runs on commit, or when explicitly
+    // asked. Browsing away simply makes the existing result stale, and it is marked as such.
+  }, [activeFen]);
 
   const playMove = useCallback(
     (from: string, to: string) => {
@@ -207,8 +212,11 @@ export default function Home() {
       setStage("revealed");
       setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
 
+      // The board deliberately does NOT advance here. The reveal describes the position the
+      // player decided on, so that is the position that must stay on screen -- otherwise every
+      // number in the reveal refers to something no longer visible and reads as permanently
+      // stale. The move is played when the next decision starts.
       const move = uciToSquares(draft.chosenMove!);
-      if (move) playMove(move.from, move.to);
 
       try {
         const engine = await ensureEngine();
@@ -260,6 +268,11 @@ export default function Home() {
   );
 
   const nextDecision = () => {
+    // Play the move that was committed, then hand over the next position.
+    if (committedDraft?.chosenMove) {
+      const move = uciToSquares(committedDraft.chosenMove);
+      if (move) playMove(move.from, move.to);
+    }
     setStage("deciding");
     setAnalysis(null);
     setRevealInputs(null);
@@ -400,15 +413,19 @@ export default function Home() {
 
           <div className="board-assembly">
             {/* The evaluation bar does not exist while deciding. Not hidden -- absent. */}
-            {stage === "revealed" && <EvaluationBar analysis={analysis} />}
+            {stage === "revealed" && <EvaluationBar analysis={analysis} currentFen={activeFen} />}
             <ChessBoard
               board={board}
               orientation={orientation}
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}
+              /* STALE ARTIFACT (section 4.3): a suggested move computed for another position
+                 must not remain on the board, where drag-and-drop keeps it actionable. */
               suggestedMove={
-                stage === "revealed" && analysis ? uciToSquares(analysis.bestMove) : undefined
+                stage === "revealed" && analysis && !isStale(analysis, activeFen)
+                  ? uciToSquares(analysis.bestMove)
+                  : undefined
               }
               onSelect={setSelectedSquare}
               onMove={handleBoardMove}

@@ -1,7 +1,7 @@
 /** Style: Modernist Control Room — structured, instrument-like analysis column. */
 import { Activity, Cpu } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation, type GameSnapshot } from "@/lib/game-data";
-import type { EngineLine, EngineStatus } from "@/lib/stockfish";
+import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
 import { NotMeasured, Value } from "./Value";
 
 interface AnalysisPanelProps {
@@ -21,10 +21,13 @@ const modeLabel: Record<EngineStatus["mode"], string> = {
 };
 
 export function AnalysisPanel({ analysis, status, fen, material, onAnalyze }: AnalysisPanelProps) {
-  const pv = analysis ? sanPrincipalVariation(fen, analysis.pv) : [];
+  const stale = isStale(analysis, fen);
+  // A line computed for another position is not replayed against this one. Doing so produced a
+  // short, valid-LOOKING variation via `catch { break }` -- defect 2's second half.
+  const pv = analysis && !stale ? sanPrincipalVariation(analysis.fen, analysis.pv) : [];
   // The principal variation is replayed against `fen`. If any move is illegal there, the line
   // did not come from this position and the truncated remainder must not be shown as if it had.
-  const pvTruncated = Boolean(analysis) && pv.length < Math.min(analysis!.pv.length, 8);
+  const pvTruncated = Boolean(analysis) && !stale && pv.length < Math.min(analysis!.pv.length, 8);
 
   return (
     <aside className="analysis-column" aria-label="עמודת ניתוח">
@@ -37,7 +40,14 @@ export function AnalysisPanel({ analysis, status, fen, material, onAnalyze }: An
             <p className="score-label">הערכת עמדה</p>
             <strong className="score-number">
               {analysis ? (
-                <Value provenance={{ kind: "engine", source: "local_sf18", depth: analysis.depth }}>
+                <Value
+                  provenance={{
+                    kind: "engine",
+                    source: "local_sf18",
+                    depth: analysis.depth,
+                    stale,
+                  }}
+                >
                   {formatEvaluation(analysis.scoreCp, analysis.mate)}
                 </Value>
               ) : (
@@ -73,7 +83,9 @@ export function AnalysisPanel({ analysis, status, fen, material, onAnalyze }: An
               </span>
             ))
           ) : (
-            <NotMeasured reason="אין קו מנוע לעמדה זו" />
+            <NotMeasured
+              reason={stale ? "הקו חושב לעמדה אחרת. נתחו מחדש." : "אין קו מנוע לעמדה זו"}
+            />
           )}
         </div>
         {pvTruncated && (

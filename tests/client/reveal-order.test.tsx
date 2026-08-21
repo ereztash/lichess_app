@@ -23,7 +23,13 @@ const INPUTS: RevealInputs = {
   repertoireGames: 40,
   decisionsOnRecord: 120,
 };
-const ANALYSIS: EngineLine = { scoreCp: 180, depth: 20, pv: ["f8c5", "e1g1"], bestMove: "f8c5" };
+const ANALYSIS: EngineLine = {
+  scoreCp: 180,
+  depth: 20,
+  pv: ["f8c5", "e1g1"],
+  bestMove: "f8c5",
+  fen: FEN,
+};
 
 const renderPanel = (inputs = INPUTS, analysis: EngineLine | null = ANALYSIS) =>
   render(<RevealPanel inputs={inputs} analysis={analysis} fen={FEN} statedKnown="מרכז פתוח" />);

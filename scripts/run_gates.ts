@@ -16,10 +16,13 @@
 process.env.JWT_SECRET ||= "gate-runner-secret";
 process.env.OWNER_OPEN_ID ||= "gate-owner";
 
+import { spawnSync } from "node:child_process";
+
 import { ATOM_FIELDS } from "../shared/decision-atom";
 import {
   findDenominatorlessPercents,
   findFakeValues,
+  findStaticEngineImports,
   sourceFiles,
   type Finding,
 } from "./gate-scan";
@@ -65,6 +68,35 @@ function isoPredicate(screen: string[], event: string[], report: string[]): Gate
     }
   }
   return pass(`atom intact across screen, event, report (${ATOM_FIELDS.length} fields)`);
+}
+
+/**
+ * Run one Vitest file and report its exit code as a gate result.
+ *
+ * Some gates must exercise client modules that import Vite-only `?url` assets (the 7MB wasm).
+ * tsx cannot resolve those, so those gates delegate to Vitest, which has the transform pipeline.
+ */
+export const HARNESS_ERROR = "HARNESS ERROR:";
+
+function runVitestFile(file: string, label: string, config?: string): GateResult {
+  const args = ["vitest", "run", file];
+  if (config) args.push("--config", config);
+  const result = spawnSync("npx", args, { encoding: "utf8", stdio: "pipe" });
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+
+  // A control that never ran is not a control. Vitest exits 1 when it collects nothing, which
+  // is indistinguishable from a real failure by exit code alone -- and would let a broken
+  // harness masquerade as a red control, proving nothing.
+  if (output.includes("No test files found")) {
+    return fail(`${HARNESS_ERROR} no tests collected from ${file}`);
+  }
+  if (result.status === 0) return pass(`${label} (vitest: ${file})`);
+
+  const reason = output
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.includes("superseded search") || line.includes("AssertionError"));
+  return fail(reason?.slice(0, 110) ?? `${label} failed (vitest exited ${result.status})`);
 }
 
 function scanPredicate(label: string, findings: Finding[], scanned: number): GateResult {
@@ -203,8 +235,17 @@ export const GATES: Gate[] = [
     id: "GATE-STALE",
     rule: "4.3",
     description: "A result rendered against an input it was not computed for is marked stale.",
-    run: () => notMeasured("guards not built yet (step 5)"),
-    positiveControl: () => notMeasured("guards not built yet (step 5)"),
+    run: () =>
+      runVitestFile(
+        "tests/gates/stale.test.ts",
+        "superseded searches discarded; results carry their FEN",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/stale.control.test.ts",
+        "legacy superseding logic",
+        "vitest.controls.config.ts",
+      ),
   },
   {
     id: "GATE-GRADE",
@@ -231,8 +272,31 @@ export const GATES: Gate[] = [
     id: "GATE-COMMIT",
     rule: "R3",
     description: "No engine output reaches the client before a decision is recorded.",
-    run: async () => noEngineOutputPredicate("pre-commit reveal", await precommitRevealPayload()),
+    run: async () => {
+      // Two ways the engine can reach the client before a decision is recorded: the reveal
+      // payload answering early, and the engine module being pulled into the initial graph.
+      const payload = noEngineOutputPredicate("pre-commit reveal", await precommitRevealPayload());
+      if (payload.status !== "PASS") return payload;
+      const files = sourceFiles("client/src");
+      const staticImports = findStaticEngineImports(files);
+      if (staticImports.length) {
+        return fail(
+          `engine module statically imported into the render path: ${staticImports
+            .map((f) => `${f.file}:${f.line}`)
+            .join(", ")}`,
+        );
+      }
+      return pass(`${payload.detail}; engine module absent from the initial graph`);
+    },
     positiveControl: async () => {
+      const staticImports = findStaticEngineImports(sourceFiles("tests/fixtures/render"));
+      if (staticImports.length) {
+        return fail(
+          `engine module statically imported into the render path: ${staticImports
+            .map((f) => `${f.file}:${f.line}`)
+            .join(", ")}`,
+        );
+      }
       const { PRE_COMMIT_LEAK } = await import("../tests/fixtures/broken-atoms");
       // Same predicate, a payload that answers before the decision was recorded.
       return noEngineOutputPredicate("pre-commit reveal", JSON.stringify(PRE_COMMIT_LEAK));
@@ -271,6 +335,10 @@ async function main() {
     if (controlMode && result.status === "PASS") {
       invalidControls += 1;
       console.log(`      ^^ control did NOT go red -- ${gate.id} is not proven to be a gate`);
+    }
+    if (controlMode && result.detail.startsWith(HARNESS_ERROR)) {
+      invalidControls += 1;
+      console.log(`      ^^ control never ran -- ${gate.id} red for the wrong reason`);
     }
   }
 

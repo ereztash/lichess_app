@@ -20,21 +20,21 @@ const source = readFileSync(
   resolve(dirname(fileURLToPath(import.meta.url)), "../../client/src/lib/stockfish.ts"),
   "utf8",
 );
-const workerUrlLine = source
-  .split("\n")
-  .find((line) => line.includes("const workerUrl"))!;
+const workerConstruction = source.split("\n").find((line) => line.includes("new Worker("));
 
 describe("the Stockfish worker URL", () => {
-  it("exists", () => {
-    expect(workerUrlLine).toBeDefined();
+  it("is constructed somewhere in this module", () => {
+    // If this fails, the construction moved and the assertions below are no longer guarding
+    // anything. A test that cannot find its subject must fail, not quietly pass.
+    expect(workerConstruction, "no `new Worker(` found in stockfish.ts").toBeDefined();
   });
 
   it("does not append ',worker' to the hash", () => {
-    expect(workerUrlLine, "',worker' silences the engine entirely").not.toContain(",worker");
+    expect(workerConstruction!, "',worker' silences the engine entirely").not.toContain(",worker");
   });
 
   it("passes the wasm path as the whole hash, url-encoded", () => {
-    expect(workerUrlLine).toContain("encodeURIComponent(ENGINE_WASM)");
-    expect(workerUrlLine).toMatch(/#\$\{encodeURIComponent\(ENGINE_WASM\)\}`/);
+    expect(workerConstruction!).toContain("encodeURIComponent(ENGINE_WASM)");
+    expect(workerConstruction!).toMatch(/#\$\{encodeURIComponent\(ENGINE_WASM\)\}`/);
   });
 });

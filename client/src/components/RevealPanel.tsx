@@ -13,7 +13,7 @@
 import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import { inferenceLimits, nextQuestion, theOneThing, type RevealInputs } from "@/lib/reveal";
-import type { EngineLine } from "@/lib/stockfish";
+import type { EngineLine } from "@/lib/engine-line";
 import { NotMeasured, Value } from "./Value";
 
 interface RevealPanelProps {

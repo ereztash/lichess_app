@@ -908,3 +908,12 @@ button:not(:disabled) {
   opacity: 0.75;
   padding: 0.85rem 1rem;
 }
+
+/* FRESHNESS (section 4.3): a result shown against a position it does not describe is marked,
+   never silently rendered as current. */
+.evaluation-instrument.is-stale {
+  opacity: 0.55;
+}
+.evaluation-instrument.is-stale .evaluation-white {
+  filter: grayscale(1);
+}

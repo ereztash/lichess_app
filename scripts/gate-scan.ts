@@ -49,15 +49,12 @@ const read = (file: string) => stripComments(readFileSync(file, "utf8"));
  * +0.42 at depth 14, rendered identically to a real evaluation.
  */
 const FAKE_EVAL =
-  /\{[^{}]*\b(?:scoreCp|engine_eval_cp)\s*:\s*-?\d+[^{}]*\bdepth\s*:\s*\d+[^{}]*\}/g;
+  /\{[^{}]*\b(?:scoreCp|engine_eval_cp)\s*:\s*-?\d+[^{}]*\bdepth\s*:\s*[1-9]\d*[^{}]*\}/g;
 
 export function findFakeValues(files: string[]): Finding[] {
   const findings: Finding[] = [];
   for (const file of files) {
     const source = read(file);
-    // The engine client's own INITIAL_LINE is a zeroed sentinel, not a rendered placeholder;
-    // it never reaches a render path without provenance. Everything else is suspect.
-    if (file.endsWith("lib/stockfish.ts")) continue;
     for (const match of source.matchAll(FAKE_EVAL)) {
       const line = source.slice(0, match.index).split("\n").length;
       findings.push({ file, line, text: match[0].replace(/\s+/g, " ").slice(0, 90) });
@@ -84,6 +81,32 @@ export function findDenominatorlessPercents(files: string[]): Finding[] {
       if (/\b(width|height|top|left|right|bottom|transform|translate)\b/i.test(context)) continue;
       const line = before.split("\n").length;
       findings.push({ file, line, text: match[0].replace(/\s+/g, " ").slice(0, 90) });
+    }
+  }
+  return findings;
+}
+
+/**
+ * A static VALUE import of the engine implementation from a render path.
+ *
+ * stockfish.ts imports the engine JS and the 7MB wasm via `?url`, so any value import of it puts
+ * the engine into the initial module graph -- it then appears in the network tab while the
+ * commitment screen is still up, which R3 forbids exactly as much as rendering its output.
+ *
+ * `import type` is fine: type imports are erased. This is a real regression that happened:
+ * importing `isStale` from stockfish.ts silently undid the dynamic-import guarantee, which is
+ * why the pure predicates now live in engine-line.ts.
+ */
+const STATIC_ENGINE_IMPORT = /^\s*import\s+(?!type\s)[^;]*?from\s+["'][^"']*lib\/stockfish["']/gm;
+
+export function findStaticEngineImports(files: string[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const file of files) {
+    if (file.endsWith("lib/stockfish.ts")) continue; // the module itself
+    const source = read(file);
+    for (const match of source.matchAll(STATIC_ENGINE_IMPORT)) {
+      const line = source.slice(0, match.index).split("\n").length;
+      findings.push({ file, line, text: match[0].replace(/\s+/g, " ").trim().slice(0, 90) });
     }
   }
   return findings;
