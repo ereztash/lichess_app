@@ -569,6 +569,17 @@ button:not(:disabled) {
 .layer-error {
   color: var(--warn);
 }
+.config-notice {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.35);
+  background: rgba(var(--cream-rgb), 0.45);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.config-notice b {
+  font-family: "DM Mono", monospace;
+}
 .move-timeline {
   margin-top: 24px;
   display: grid;

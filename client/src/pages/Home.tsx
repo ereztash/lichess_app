@@ -424,8 +424,18 @@ export default function Home() {
   };
 
   const openLichess = () => {
-    if (!isAuthenticated) startLogin();
-    else setNotice("Lichess מחובר — שכבות הניתוח זמינות מימין.");
+    if (isAuthenticated) {
+      setNotice("Lichess מחובר — שכבות הניתוח זמינות מימין.");
+      return;
+    }
+    const result = startLogin();
+    if (!result.started) {
+      // Name what is missing. A button that does nothing teaches the user nothing.
+      setNotice(
+        `ההתחברות אינה מוגדרת בפריסה הזו. חסר: ${result.missing.join(", ")}. ` +
+          `שימו לב: משתני VITE_ נצרבים בזמן הבנייה — הוספה שלהם ב-Vercel בלי בנייה מחדש לא תשנה כלום.`,
+      );
+    }
   };
 
   const deciding = stage === "deciding" || stage === "committing";

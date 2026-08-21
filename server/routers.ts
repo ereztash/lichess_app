@@ -15,11 +15,27 @@ import {
   getPostGameLayers,
   getRecentLichessGames,
 } from "./lichess";
+/**
+ * The single-tenant gate.
+ *
+ * Two different causes used to produce one identical message: a deployment that never set
+ * OWNER_OPEN_ID, and a visitor signed in as somebody else. Identical output erasing different
+ * causes is the thing this product exists to stop, so the two are separated here.
+ */
 const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (!ENV.ownerOpenId || ctx.user.openId !== ENV.ownerOpenId)
+  if (!ENV.ownerOpenId)
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message:
+        "בפריסה הזו לא הוגדר OWNER_OPEN_ID, ולכן אף חשבון אינו יכול לעבור את השער. " +
+        "זו הגדרה חסרה בשרת, לא הרשאה חסרה שלך.",
+    });
+  if (ctx.user.openId !== ENV.ownerOpenId)
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "חיבור Lichess זמין רק לבעל החשבון שהגדיר אותו.",
+      message:
+        "חיבור Lichess זמין רק לבעל החשבון שהגדיר אותו. אתם מחוברים בחשבון אחר מזה " +
+        "ש-OWNER_OPEN_ID מצביע עליו.",
     });
   return next({ ctx });
 });

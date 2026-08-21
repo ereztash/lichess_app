@@ -122,3 +122,10 @@ ran — a control that fails to execute is not a control.
 See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md). Single-tenant on purpose: every Lichess
 endpoint is gated to one `OWNER_OPEN_ID`. The decision record contains a player's reasoning in
 their own words and never leaves the deployment.
+
+**Signing in does not sign in to Lichess.** The button authenticates against the app's own OAuth
+portal; no Lichess login page is ever shown and no visitor's Lichess credentials are held.
+Lichess data is read server-side with a `LICHESS_API_TOKEN` the owner issues from their own
+account. The two build-time variables (`VITE_APP_ID`, `VITE_OAUTH_PORTAL_URL`) are baked into the
+bundle, so setting them without rebuilding changes nothing — the deployment doc says which
+failure looks like what.

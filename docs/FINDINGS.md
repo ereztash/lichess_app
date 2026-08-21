@@ -133,6 +133,56 @@ Section 8 of the brief names five stop conditions. Two fired.
   a refactor moved it between files. The rule was narrowed to require a non-zero depth. This was
   resolved first and flagged afterwards; the correct order was the reverse.
 
+## Sign-in and Lichess: four causes, one silence
+
+Reported as "I cannot connect to Lichess from the app." Reading the path turned up four distinct
+causes that produced the same nothing on screen.
+
+- **The button failed silently, and this is the operative cause on the live deployment.**
+  `startLogin()` called `console.warn` and returned when the build lacked
+  `VITE_OAUTH_PORTAL_URL` or `VITE_APP_ID`, so an unconfigured deployment and a working one were
+  indistinguishable to anyone not holding a devtools console open. This is the product's own
+  thesis failing inside the product. It now returns which variables are missing and the screen
+  names them.
+
+  Verified in the shipped bundle, not inferred. Production deployment
+  `dpl_6rcpUo99hSjKQGG342rZnnDg3RN1` (commit `935d96b`, `lichessapp.vercel.app`) serves
+  `/assets/index-5vDOv11t.js`, 426,282 characters, containing:
+
+  ```js
+  const T0=()=>{{console.warn("Lichess sign-in is not configured for this deployment.");return}}
+  ```
+
+  That is the entire function. Vite inlined both variables as empty strings, which made the guard
+  statically true, and esbuild eliminated everything after it as unreachable — the URL
+  construction, the state cookie, the redirect. The bundle contains **zero** occurrences of
+  `appId`, `redirectUri`, `signIn`, `oauth`, or `app-auth`. Clicking the button could not have
+  done anything; there was nothing left in the build to do.
+
+  The second Vercel project on the same repo (`lichess-app`, `lichess-app-one.vercel.app`) serves
+  a byte-identical bundle — same content hash, same etag — so it is unconfigured in exactly the
+  same way. Since these values are inlined at build time, an identical hash is proof of identical
+  inlined values.
+- **`VITE_*` are inlined at build time.** Setting them in the Vercel dashboard does not change an
+  existing deployment; only a rebuild does. Undocumented, and `VITE_OAUTH_PORTAL_URL` was absent
+  from the deployment doc's variable table entirely — the one variable most likely to be missing
+  was the one nothing told you to set.
+- **The owner gate erased its own causes.** `ownerProcedure` threw one identical `FORBIDDEN` for
+  an unset `OWNER_OPEN_ID` and for a visitor signed in as somebody else. Different fixes, one
+  message. Now `PRECONDITION_FAILED` for the missing setting and `FORBIDDEN` for the wrong
+  account; `tests/server/owner-gate.test.ts` asserts the two do not render identically, and three
+  of its four tests were demonstrated red against the previous code.
+- **The client discarded a correct diagnosis.** The server already answered "אסימון Lichess אינו
+  מוגדר עדיין" for a missing token, and `LichessLayersPanel` replaced it with a generic "could not
+  load Lichess layers right now". It now renders the server's message, and asks
+  `system.lichessConfig` — presence booleans and variable names only, never a value, prefix, or
+  length — at the moment a request fails.
+
+Underneath all four: **signing in does not sign in to Lichess.** The button authenticates against
+the app's own OAuth portal. Lichess data is read server-side with `LICHESS_API_TOKEN`, issued by
+the deployment's owner. A user waiting for a Lichess login page is waiting for something that
+does not exist, and nothing on screen said so.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
@@ -142,13 +192,18 @@ Section 8 of the brief names five stop conditions. Two fired.
 - `DrizzleRecordStore` against **MySQL**. `DATABASE_URL` has never been set in any environment
   this build has run in, so it has never executed a statement.
 - **Layer C against live Lichess.** Its tests stub `fetch`.
+- **Whether the three server-side causes are also live.** UNVERIFIED. The build-time cause is
+  confirmed in the shipped bundle above, and it alone is sufficient to explain the report. Which
+  of `LICHESS_API_TOKEN` and `OWNER_OPEN_ID` are set on the deployment was not observed —
+  reading them is not something this sandbox should do, and once sign-in works the app now
+  reports their presence itself. So the fix is verified; the remaining causes are latent until a
+  configured build exists.
+- **The new code in a deployed build.** UNVERIFIED. Everything in this section is verified
+  against the source, the test suite, and the *previous* bundle. Nothing here has been deployed.
 - Every detector threshold **against real data**. All synthetic.
 
 ## Not built
 
-- **The drill UI.** Drills grade correctly in the domain layer and Layer C proposes them, but
-  nothing runs one from the screen — so no claim can currently reach `replicated` through the
-  interface.
 - **Self-hosted fonts.** `client/src/index.css:1` imports Google Fonts, so every page load
   reaches Google with the visitor's IP and referrer. Pre-existing, not introduced here, but this
   deployment holds a player's reasoning in their own words and the brief is explicit about not
