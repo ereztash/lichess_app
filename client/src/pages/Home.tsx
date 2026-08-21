@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import { Clipboard, FileUp, FlipVertical2, Link2, Moon, Plus, Sun } from "lucide-react";
+import {
+  Clipboard,
+  FileUp,
+  FlipVertical2,
+  Link2,
+  Moon,
+  Plus,
+  Sun,
+  UserSearch,
+} from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +22,9 @@ import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
+import { ImportGames } from "@/components/ImportGames";
+import type { ImportedGame } from "@/lib/lichess-public";
+import type { AnalysisSource } from "@shared/analysis-source";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
   buildHistory,
@@ -38,7 +50,6 @@ import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 
-type AnalysisSource = "imported" | "live";
 const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע ידלק אחרי ההחלטה" };
 
 function snapshot(
@@ -59,6 +70,7 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
+  const [showImport, setShowImport] = useState(false);
   const [showPgn, setShowPgn] = useState(false);
   const [source, setSource] = useState<AnalysisSource>("imported");
   const [notice, setNotice] = useState("בחרו מהלך וכתבו את הקריאה שלכם.");
@@ -413,6 +425,30 @@ export default function Home() {
     }
   };
 
+  /**
+   * Load a game imported from Lichess by username.
+   *
+   * Source is "finished", not "imported": these are known-completed Lichess games, and the
+   * fair-play guard keys off the source. The decision record keeps the real Lichess game id, so
+   * a decision can be traced back to the game it was taken in.
+   */
+  const loadLichessGame = (game: ImportedGame) => {
+    try {
+      const loaded = buildHistory(game.pgn);
+      if (!loaded.length) throw new Error("empty");
+      setHistory(loaded);
+      setCurrentPly(loaded.length - 1);
+      setPgnInput(game.pgn);
+      setShowImport(false);
+      setSource("finished");
+      gameId.current = `lichess-${game.id}`;
+      nextDecision();
+      setNotice(`נטען ${game.white} מול ${game.black} — ${loaded.length} חצאי־מהלכים.`);
+    } catch {
+      setNotice(`לא הצלחתי לקרוא את ה־PGN של המשחק ${game.id}.`);
+    }
+  };
+
   const newGame = () => {
     setHistory([]);
     setCurrentPly(-1);
@@ -491,6 +527,16 @@ export default function Home() {
             <FileUp size={18} />
             <span>טעינת PGN</span>
           </button>
+          <button
+            className="rail-button"
+            onClick={() => {
+              setShowImport((v) => !v);
+              setShowPgn(false);
+            }}
+          >
+            <UserSearch size={18} />
+            <span>ייבוא לפי שם</span>
+          </button>
           <button className="rail-button" onClick={openLichess}>
             <Link2 size={18} />
             <span>Lichess</span>
@@ -515,10 +561,13 @@ export default function Home() {
           <div className="workspace-meta">
             <div>
               <p>{deciding ? "DECIDE" : "REVEAL"}</p>
+              {/* "7. Bb3" is a Latin run: under the page's RTL direction it rendered "Bb3 .7". */}
               <h1>
-                {activeMove
-                  ? `${Math.ceil((activeMove.ply + 1) / 2)}. ${activeMove.san}`
-                  : "עמדת פתיחה"}
+                {activeMove ? (
+                  <span dir="ltr">{`${Math.ceil((activeMove.ply + 1) / 2)}. ${activeMove.san}`}</span>
+                ) : (
+                  "עמדת פתיחה"
+                )}
               </h1>
             </div>
             <div className="turn-reading">
@@ -526,6 +575,10 @@ export default function Home() {
               <b>{sideToMove}</b>
             </div>
           </div>
+
+          {showImport && (
+            <ImportGames onLoad={loadLichessGame} onClose={() => setShowImport(false)} />
+          )}
 
           {showPgn && (
             <section className="pgn-drawer">

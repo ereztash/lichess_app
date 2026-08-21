@@ -183,6 +183,25 @@ the app's own OAuth portal. Lichess data is read server-side with `LICHESS_API_T
 the deployment's owner. A user waiting for a Lichess login page is waiting for something that
 does not exist, and nothing on screen said so.
 
+## What the screen was doing wrong
+
+Reported as "the UI/UX are not precise enough". Measured in a browser at 1440x950 rather than
+guessed at.
+
+- **The board ran off the bottom of the viewport.** `.board-stage` had no height bound, so the
+  square sized itself purely from column width: 868px tall, ending 111px below the fold. The
+  first rank — where most pieces sit late in a game — was not on screen, and opening a drawer
+  pushed a second rank off. Now capped by the height actually available.
+- **`7. Bb3` rendered as `Bb3 .7`.** The heading is a Latin run inside an RTL page and carried no
+  direction of its own. Same defect as the `9 / 7` move counter fixed earlier, in a second place.
+- **The tool rail was ragged.** A horizontal icon+label row in a 120px column left ~69px for
+  text, so Hebrew labels of two or three words wrapped: buttons measured 77px tall when a label
+  wrapped and 53px when it did not. Now one shape, one height, icon above label.
+- **Every file was labelled three times.** An `a–h` strip above the grid, another below, and
+  `file-label` inside the bottom-row squares. The strips are separate elements from the squares
+  they label, so they could drift out of alignment; the in-square labels cannot. The strips are
+  gone.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed

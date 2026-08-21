@@ -123,6 +123,14 @@ See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md). Single-tenant on purpose: ever
 endpoint is gated to one `OWNER_OPEN_ID`. The decision record contains a player's reasoning in
 their own words and never leaves the deployment.
 
+## Getting your games in
+
+Type a Lichess username. `/api/games/user/{username}` is public and sends
+`access-control-allow-origin: *`, so the browser reads it directly: **no API token, no sign-in,
+no configuration**. Only finished games are offered — the fair-play guard depends on a live game
+never reaching the analysis layers. Pasting or uploading a PGN still works and is the fallback if
+the network blocks the request, which the screen says by name rather than as "could not load".
+
 **Signing in does not sign in to Lichess.** The button authenticates against the app's own OAuth
 portal; no Lichess login page is ever shown and no visitor's Lichess credentials are held.
 Lichess data is read server-side with a `LICHESS_API_TOKEN` the owner issues from their own

@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import type { AnalysisSource } from "@shared/analysis-source";
 import { Rate } from "./Value";
-type AnalysisSource = "demo" | "imported" | "finished" | "study" | "live";
 type Props = {
   fen: string;
   source: AnalysisSource;
