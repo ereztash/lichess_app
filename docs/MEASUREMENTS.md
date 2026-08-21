@@ -157,3 +157,47 @@ A position bank drawn from games the player has never seen would remove this. Th
   the masters database, and its rate-limit behaviour under repeated use is unmeasured.
 - **Cold start with a real player.** The numbers above assume a planted effect far stronger and
   cleaner than a real one is likely to be. Expect the real cold start to be longer.
+
+## Engine-scored games (phase 1 of the merge)
+
+The evaluation half of chess-mind-patterns could only read `[%eval]` comments Lichess had already
+written into a PGN. These are the same measurements produced by the local engine instead, on a
+PGN carrying **no annotations at all**.
+
+Position list from `gamePositions`, each scored by Stockfish 18 at depth 12 in a browser, then
+converted to White's perspective:
+
+```
+1. e4 e5 2. Nf3 Nc6 3. Bc4 Nd4 4. Nxe5 Qg5 5. Nxf7 Qxg2
+
+[37, 41, 35, 37, 46, 15, 96, 14, -39, -407, -406]
+```
+
+Fed to the ported `analyzeEval`:
+
+| ply | move | eval | CPL | classification |
+| --- | ---- | ---- | --- | -------------- |
+| 1   | e4    |   41 |   0 | best           |
+| 3   | Nf3   |   37 |   0 | best           |
+| 5   | Bc4   |   15 |  31 | good           |
+| 7   | Nxe5  |   14 |  82 | inaccuracy     |
+| 9   | Nxf7  | -407 | 368 | **blunder**    |
+
+accuracy 45%, avg CPL 96, 1 blunder, 1 inaccuracy, `hasEvals: true`.
+
+The game is the Blackburne Shilling trap, and the analysis names the right move: 5.Nxf7 is the
+losing one, and 4.Nxe5 is the inaccuracy that walks into it. That is a chess-correct result, not
+merely a plausible-looking number.
+
+### The sign convention, verified rather than assumed
+
+UCI reports `score cp` from the side to move, so a White-relative series has to flip every other
+entry. Getting it backwards would not skew the numbers slightly -- it would turn every blunder
+into a best move. Checked against the engine directly on one position, White a queen up:
+
+```
+Black to move:  info depth 10 ... score cp -697
+White to move:  info depth 10 ... score cp  730
+```
+
+Same position, opposite signs. `toWhitePerspective` negates when the FEN says Black is to move.
