@@ -146,7 +146,7 @@ button:not(:disabled) {
 }
 .workbench {
   display: grid;
-  grid-template-columns: 120px minmax(480px, 1fr) 330px;
+  grid-template-columns: 132px minmax(480px, 1fr) 330px;
   gap: 32px;
   padding-top: 24px;
 }
@@ -159,16 +159,27 @@ button:not(:disabled) {
   color: var(--muted);
   font: 10px "DM Mono";
 }
+/*
+ * Icon above label, one fixed height for every button.
+ *
+ * These were a horizontal icon+label row in a 120px column, which left about 69px for the text.
+ * Hebrew labels of two or three words wrapped, so buttons were 77px tall when they wrapped and
+ * 53px when they did not, and the rail read as ragged rather than as a set.
+ */
 .rail-button {
   width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 9px;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 7px;
+  min-height: 74px;
   border: 0;
   border-top: 1px solid rgba(var(--ink-rgb), 0.2);
-  padding: 14px 12px;
+  padding: 12px 8px;
   background: transparent;
-  text-align: right;
+  text-align: center;
+  line-height: 1.35;
+  text-wrap: balance;
 }
 .rail-button.prominent {
   background: var(--blue);
@@ -244,6 +255,124 @@ button:not(:disabled) {
   border-color: var(--blue);
   color: white;
 }
+/*
+ * Import by username.
+ *
+ * Shares the drawer's frame so the two import paths read as siblings rather than as two
+ * unrelated widgets. Latin runs -- usernames, ratings, speeds, dates -- are marked ltr in the
+ * markup; the rules here only have to stop the RTL paragraph from re-ordering the rows.
+ */
+.import-games {
+  margin-bottom: 15px;
+  padding: 13px;
+  border: 1px solid var(--ink);
+  background: rgba(var(--cream-rgb), 0.9);
+  box-shadow: 5px 5px 0 rgba(var(--blue-rgb), 0.18);
+}
+.import-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(var(--ink-rgb), 0.75);
+}
+.import-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 10px;
+}
+.import-input {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--ink);
+  background: var(--cream);
+  color: var(--ink);
+  font: 12px "DM Mono", monospace;
+}
+.import-input::placeholder {
+  color: rgba(var(--ink-rgb), 0.45);
+}
+.import-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: white;
+  white-space: nowrap;
+}
+.import-search:disabled {
+  opacity: 0.6;
+}
+.import-failure {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.import-list {
+  margin-top: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  border-block: 1px solid rgba(var(--ink-rgb), 0.25);
+}
+.import-list li + li {
+  border-top: 1px solid rgba(var(--ink-rgb), 0.18);
+}
+.import-list button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 4px 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: transparent;
+  text-align: start;
+}
+.import-list button:hover {
+  background: rgba(var(--blue-rgb), 0.1);
+}
+.import-players {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 12px "DM Mono", monospace;
+}
+.import-players i {
+  color: rgba(var(--ink-rgb), 0.5);
+  font-style: normal;
+}
+.import-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: rgba(var(--ink-rgb), 0.7);
+}
+.import-meta b {
+  font-weight: 700;
+  color: var(--ink);
+}
+.import-opening {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: rgba(var(--ink-rgb), 0.6);
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .board-assembly {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
@@ -261,6 +390,14 @@ button:not(:disabled) {
 .board-stage {
   grid-column: 2;
   min-width: 0;
+  /*
+   * The board is a square driven by its width, and nothing used to bound that width by the
+   * height available. At 1440x950 it computed to 868px and ran 111px past the bottom of the
+   * viewport, so the first rank -- where most of the pieces are late in a game -- was cut off.
+   * The subtrahend is the chrome above and below it: header, meta row, coordinates, note.
+   */
+  max-width: min(100%, calc(100svh - 268px));
+  margin-inline: auto;
 }
 .evaluation-instrument {
   display: flex;
@@ -568,6 +705,17 @@ button:not(:disabled) {
 }
 .layer-error {
   color: var(--warn);
+}
+.config-notice {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.35);
+  background: rgba(var(--cream-rgb), 0.45);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.config-notice b {
+  font-family: "DM Mono", monospace;
 }
 .move-timeline {
   margin-top: 24px;

@@ -24,7 +24,9 @@ export type LichessGame = {
     black: { user?: { id: string; name: string }; rating?: number; ratingDiff?: number };
   };
 };
-export type AnalysisSource = "demo" | "imported" | "finished" | "study" | "live";
+export type { AnalysisSource } from "../shared/analysis-source";
+import { isPostGame } from "../shared/analysis-source";
+import type { AnalysisSource } from "../shared/analysis-source";
 type ExplorerMove = {
   uci: string;
   san: string;
@@ -78,7 +80,8 @@ async function lichessFetch(path: string, accept: string) {
   return response;
 }
 function ensurePostGame(source: AnalysisSource) {
-  if (source !== "finished" && source !== "imported" && source !== "study")
+  // The allowed list lives in shared/analysis-source.ts so the client cannot drift from it.
+  if (!isPostGame(source))
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "שכבות Lichess זמינות רק לניתוח משחק שהסתיים, Study או PGN מיובא.",

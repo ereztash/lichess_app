@@ -133,6 +133,75 @@ Section 8 of the brief names five stop conditions. Two fired.
   a refactor moved it between files. The rule was narrowed to require a non-zero depth. This was
   resolved first and flagged afterwards; the correct order was the reverse.
 
+## Sign-in and Lichess: four causes, one silence
+
+Reported as "I cannot connect to Lichess from the app." Reading the path turned up four distinct
+causes that produced the same nothing on screen.
+
+- **The button failed silently, and this is the operative cause on the live deployment.**
+  `startLogin()` called `console.warn` and returned when the build lacked
+  `VITE_OAUTH_PORTAL_URL` or `VITE_APP_ID`, so an unconfigured deployment and a working one were
+  indistinguishable to anyone not holding a devtools console open. This is the product's own
+  thesis failing inside the product. It now returns which variables are missing and the screen
+  names them.
+
+  Verified in the shipped bundle, not inferred. Production deployment
+  `dpl_6rcpUo99hSjKQGG342rZnnDg3RN1` (commit `935d96b`, `lichessapp.vercel.app`) serves
+  `/assets/index-5vDOv11t.js`, 426,282 characters, containing:
+
+  ```js
+  const T0=()=>{{console.warn("Lichess sign-in is not configured for this deployment.");return}}
+  ```
+
+  That is the entire function. Vite inlined both variables as empty strings, which made the guard
+  statically true, and esbuild eliminated everything after it as unreachable — the URL
+  construction, the state cookie, the redirect. The bundle contains **zero** occurrences of
+  `appId`, `redirectUri`, `signIn`, `oauth`, or `app-auth`. Clicking the button could not have
+  done anything; there was nothing left in the build to do.
+
+  The second Vercel project on the same repo (`lichess-app`, `lichess-app-one.vercel.app`) serves
+  a byte-identical bundle — same content hash, same etag — so it is unconfigured in exactly the
+  same way. Since these values are inlined at build time, an identical hash is proof of identical
+  inlined values.
+- **`VITE_*` are inlined at build time.** Setting them in the Vercel dashboard does not change an
+  existing deployment; only a rebuild does. Undocumented, and `VITE_OAUTH_PORTAL_URL` was absent
+  from the deployment doc's variable table entirely — the one variable most likely to be missing
+  was the one nothing told you to set.
+- **The owner gate erased its own causes.** `ownerProcedure` threw one identical `FORBIDDEN` for
+  an unset `OWNER_OPEN_ID` and for a visitor signed in as somebody else. Different fixes, one
+  message. Now `PRECONDITION_FAILED` for the missing setting and `FORBIDDEN` for the wrong
+  account; `tests/server/owner-gate.test.ts` asserts the two do not render identically, and three
+  of its four tests were demonstrated red against the previous code.
+- **The client discarded a correct diagnosis.** The server already answered "אסימון Lichess אינו
+  מוגדר עדיין" for a missing token, and `LichessLayersPanel` replaced it with a generic "could not
+  load Lichess layers right now". It now renders the server's message, and asks
+  `system.lichessConfig` — presence booleans and variable names only, never a value, prefix, or
+  length — at the moment a request fails.
+
+Underneath all four: **signing in does not sign in to Lichess.** The button authenticates against
+the app's own OAuth portal. Lichess data is read server-side with `LICHESS_API_TOKEN`, issued by
+the deployment's owner. A user waiting for a Lichess login page is waiting for something that
+does not exist, and nothing on screen said so.
+
+## What the screen was doing wrong
+
+Reported as "the UI/UX are not precise enough". Measured in a browser at 1440x950 rather than
+guessed at.
+
+- **The board ran off the bottom of the viewport.** `.board-stage` had no height bound, so the
+  square sized itself purely from column width: 868px tall, ending 111px below the fold. The
+  first rank — where most pieces sit late in a game — was not on screen, and opening a drawer
+  pushed a second rank off. Now capped by the height actually available.
+- **`7. Bb3` rendered as `Bb3 .7`.** The heading is a Latin run inside an RTL page and carried no
+  direction of its own. Same defect as the `9 / 7` move counter fixed earlier, in a second place.
+- **The tool rail was ragged.** A horizontal icon+label row in a 120px column left ~69px for
+  text, so Hebrew labels of two or three words wrapped: buttons measured 77px tall when a label
+  wrapped and 53px when it did not. Now one shape, one height, icon above label.
+- **Every file was labelled three times.** An `a–h` strip above the grid, another below, and
+  `file-label` inside the bottom-row squares. The strips are separate elements from the squares
+  they label, so they could drift out of alignment; the in-square labels cannot. The strips are
+  gone.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
@@ -142,13 +211,42 @@ Section 8 of the brief names five stop conditions. Two fired.
 - `DrizzleRecordStore` against **MySQL**. `DATABASE_URL` has never been set in any environment
   this build has run in, so it has never executed a statement.
 - **Layer C against live Lichess.** Its tests stub `fetch`.
+- **Whether the three server-side causes are also live.** UNVERIFIED. The build-time cause is
+  confirmed in the shipped bundle above, and it alone is sufficient to explain the report. Which
+  of `LICHESS_API_TOKEN` and `OWNER_OPEN_ID` are set on the deployment was not observed —
+  reading them is not something this sandbox should do, and once sign-in works the app now
+  reports their presence itself. So the fix is verified; the remaining causes are latent until a
+  configured build exists.
+- ~~**The new code in a deployed build.**~~ Now verified. The preview build of this branch
+  (`lichessapp-git-claude-litches-app-mon-d34332`) serves `assets/index-B4d2F5y7.js`, 419,205
+  bytes — byte-identical to the local build. It contains `VITE_OAUTH_PORTAL_URL`, `VITE_APP_ID`
+  and both on-screen messages, and **zero** occurrences of the old
+  `"sign-in is not configured for this deployment"` warning. Vercel's own build reproduces the
+  unconfigured condition exactly, and under it the screen now names the cause. CI `verify` green
+  on the same commit.
+- **Browser-side CORS to Lichess.** UNVERIFIED. `fetchUserGames` runs in the browser, and the
+  response headers say it should work: `/api/games/user/{username}` returns
+  `access-control-allow-origin: *`, and `Accept` is a CORS-safelisted request header so it needs
+  no preflight. But it has not been observed in a browser, and it cannot be from here: Chromium
+  in this sandbox reaches **no** external HTTPS host at all. Navigating it to the deployment's
+  own Vercel preview fails the same way as lichess.org (`net::ERR_CONNECTION_RESET`), and the
+  proxy's `recentRelayFailures` records no entry for either host — the CONNECT never arrives, so
+  Chromium is failing before the proxy rather than being refused by it. Either way it is a
+  transport failure, not a CORS rejection, and no verdict about CORS can be read out of it.
+
+  (An earlier draft of this entry blamed the proxy for resetting the connection to lichess.org
+  specifically. That was wrong in a way worth naming: the same reset happens for every external
+  host, so it says nothing about Lichess.)
+
+  The module treats a network-level rejection as a named `blocked` failure that points at the PGN
+  fallback, so the bad case degrades to something a user can act on rather than to silence.
+
+  Related: `explorer.lichess.ovh` is unreachable from this sandbox too (nginx `401` from the
+  proxy, not from Lichess). Layer C's explorer calls have still never run against the live host.
 - Every detector threshold **against real data**. All synthetic.
 
 ## Not built
 
-- **The drill UI.** Drills grade correctly in the domain layer and Layer C proposes them, but
-  nothing runs one from the screen — so no claim can currently reach `replicated` through the
-  interface.
 - **Self-hosted fonts.** `client/src/index.css:1` imports Google Fonts, so every page load
   reaches Google with the visitor's IP and referrer. Pre-existing, not introduced here, but this
   deployment holds a player's reasoning in their own words and the brief is explicit about not

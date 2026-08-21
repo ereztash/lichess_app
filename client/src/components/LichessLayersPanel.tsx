@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import type { AnalysisSource } from "@shared/analysis-source";
 import { Rate } from "./Value";
-type AnalysisSource = "demo" | "imported" | "finished" | "study" | "live";
 type Props = {
   fen: string;
   source: AnalysisSource;
@@ -40,6 +40,17 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
       refetchOnWindowFocus: false,
     },
   );
+  /**
+   * Only asked for once something has actually failed. A configuration report that runs on every
+   * page load is a background request nobody reads; one that runs at the moment of failure is the
+   * answer to the question the user is holding.
+   */
+  const config = trpc.system.lichessConfig.useQuery(undefined, {
+    enabled: enabled && (layers.isError || personal.isError),
+    retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
   useEffect(() => {
     setRequested(false);
     setRequestedPersonal(false);
@@ -87,7 +98,12 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
           <LoaderCircle size={15} /> מאתר שכבות ניתוח…
         </div>
       )}
-      {layers.isError && <div className="layer-error">לא ניתן לטעון את שכבות Lichess כרגע.</div>}
+      {layers.isError && (
+        <div className="layer-error">
+          {layers.error.message || "לא ניתן לטעון את שכבות Lichess כרגע."}
+        </div>
+      )}
+      <ConfigNotice missing={config.data?.missing} isOwner={config.data?.isOwner} />
       {layers.data && (
         <div className="layer-results">
           <div className="layer-block">
@@ -188,5 +204,34 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Names the deployment-side cause of a failed Lichess request.
+ *
+ * Presence only: the server sends booleans and variable names, never values. "Could not load"
+ * and "this deployment has no token" are different facts, and rendering them identically is the
+ * failure mode this product is about.
+ */
+function ConfigNotice({ missing, isOwner }: { missing?: string[]; isOwner?: boolean }) {
+  if (!missing) return null;
+  const blocking = missing.filter((name) => name === "LICHESS_API_TOKEN" || name === "OWNER_OPEN_ID");
+  if (blocking.length === 0 && isOwner !== false) return null;
+  return (
+    <div className="layer-error config-notice">
+      {blocking.length > 0 && (
+        <p>
+          חסר בשרת: <b dir="ltr">{blocking.join(", ")}</b>. עד שיוגדר, שכבות Lichess לא ייטענו
+          לאף חשבון.
+        </p>
+      )}
+      {blocking.length === 0 && isOwner === false && (
+        <p>
+          אתם מחוברים בחשבון שאינו זה ש-<b dir="ltr">OWNER_OPEN_ID</b> מצביע עליו. הפריסה הזו היא
+          חד־דיירית בכוונה, ולכן חשבון אחר נחסם.
+        </p>
+      )}
+    </div>
   );
 }

@@ -44,13 +44,14 @@ export function ChessBoard({
     }
     onSelect(selectedSquare === square ? undefined : square);
   };
+  /*
+   * Files and ranks are labelled inside the squares (rank-label / file-label). Two further a-h
+   * strips used to sit above and below the grid, so every file was named three times, and the
+   * strips -- being separate elements -- could drift out of alignment with the squares they
+   * labelled. The in-square labels cannot drift, so the strips are gone.
+   */
   return (
     <div className="board-stage" aria-label="לוח שחמט אינטראקטיבי">
-      <div className="board-coordinates board-files top" aria-hidden="true">
-        {displayFiles.map((file) => (
-          <span key={file}>{file}</span>
-        ))}
-      </div>
       <div className="board-grid" role="grid" aria-label="לוח שחמט" dir="ltr">
         {displayRanks.flatMap((rank, row) =>
           displayFiles.map((file, col) => {
@@ -111,11 +112,6 @@ export function ChessBoard({
             <circle cx={arrowEnd.x} cy={arrowEnd.y} r="5.2" />
           </svg>
         )}
-      </div>
-      <div className="board-coordinates board-files bottom" aria-hidden="true">
-        {displayFiles.map((file) => (
-          <span key={file}>{file}</span>
-        ))}
       </div>
     </div>
   );
