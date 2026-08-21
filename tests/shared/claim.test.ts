@@ -4,6 +4,7 @@ import { deriveClaim, selectClaim, statementFor } from "../../shared/claim-deriv
 import type { CandidatePattern } from "../../shared/detector";
 
 const pattern: CandidatePattern = {
+  key: "fast-under-45s",
   scope: "החלטות תחת פחות מ-45 שניות",
   inside: { n: 42, meanConfidence: 0.8, accuracyRate: 0.24, gap: 0.56 },
   outside: { n: 61, meanConfidence: 0.5, accuracyRate: 0.47, gap: 0.03 },

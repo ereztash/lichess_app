@@ -9,6 +9,7 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
+import { CLAIM_GRADES } from "../shared/claim";
 import { ENGINE_SOURCES, PHASES } from "../shared/decision-atom";
 
 export const users = mysqlTable("users", {
@@ -87,3 +88,42 @@ export const decisionFeedback = mysqlTable("decision_feedback", {
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
 export type DecisionFeedback = typeof decisionFeedback.$inferSelect;
+
+/**
+ * LAYER B -- CLAIMS.
+ *
+ * Claims are STORED, not recomputed on demand. A claim that is re-derived on every query is a
+ * fresh hypothesis every time, so a prospective drill result would have nowhere to attach and no
+ * claim could ever reach 'replicated'. The claim_id is derived from the bucketing key, so the
+ * same pattern maps to the same row across sessions.
+ *
+ * A refuted claim is never deleted. Deleting it lets the same wrong pattern be rediscovered.
+ */
+export const claims = mysqlTable("claims", {
+  claimId: varchar("claim_id", { length: 64 }).primaryKey(),
+  statement: text("statement").notNull(),
+  scope: varchar("scope", { length: 200 }).notNull(),
+  supportingDecisionIds: json("supporting_decision_ids").$type<string[]>().notNull(),
+  n: int("n").notNull(),
+  grade: mysqlEnum("grade", CLAIM_GRADES).notNull(),
+  refutationCondition: text("refutation_condition").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastEvaluatedAt: timestamp("last_evaluated_at").defaultNow().onUpdateNow().notNull(),
+});
+export type ClaimRow = typeof claims.$inferSelect;
+
+/**
+ * Prospective drill results. Separate table for the same reason the reveal is separate from the
+ * decision: a forward test is a distinct event, and folding it into the claim row would make
+ * "the claim was formed" and "the claim survived a test" the same fact.
+ */
+export const drillResults = mysqlTable("drill_results", {
+  drillId: varchar("drill_id", { length: 64 }).primaryKey(),
+  claimId: varchar("claim_id", { length: 64 }).notNull(),
+  decisionIds: json("decision_ids").$type<string[]>().notNull(),
+  refutationCondition: text("refutation_condition").notNull(),
+  predicted: boolean("predicted").notNull(),
+  observed: boolean("observed").notNull(),
+  recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+});
+export type DrillResultRow = typeof drillResults.$inferSelect;

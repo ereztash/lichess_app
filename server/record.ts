@@ -49,6 +49,8 @@ export interface RecordStore {
   hasReveal(decisionId: string): Promise<boolean>;
   getAtom(decisionId: string): Promise<DecisionAtom | null>;
   listAtoms(gameId?: string): Promise<DecisionAtom[]>;
+  /** Decision ids in the SAME ORDER as listAtoms, so a scored row can name its decision. */
+  listDecisionIds(gameId?: string): Promise<string[]>;
   countDecisions(): Promise<number>;
 }
 
@@ -187,7 +189,17 @@ export class DrizzleRecordStore implements RecordStore {
     const feedbacks = await db.select().from(decisionFeedback);
     const revealBy = new Map(reveals.map((r) => [r.decisionId, r]));
     const feedbackBy = new Map(feedbacks.map((f) => [f.decisionId, f]));
-    return rows.map((row) => toAtom(row, revealBy.get(row.decisionId), feedbackBy.get(row.decisionId)));
+    return rows.map((row) =>
+      toAtom(row, revealBy.get(row.decisionId), feedbackBy.get(row.decisionId)),
+    );
+  }
+
+  async listDecisionIds(gameId?: string): Promise<string[]> {
+    const db = await this.db();
+    const rows = gameId
+      ? await db.select().from(decisions).where(eq(decisions.gameId, gameId))
+      : await db.select().from(decisions);
+    return rows.map((row) => row.decisionId);
   }
 
   async countDecisions(): Promise<number> {
@@ -232,6 +244,12 @@ export class MemoryRecordStore implements RecordStore {
     return [...this.rows.values()]
       .filter((row) => !gameId || row.gameId === gameId)
       .map((row) => this.assemble(row));
+  }
+
+  async listDecisionIds(gameId?: string): Promise<string[]> {
+    return [...this.rows.values()]
+      .filter((row) => !gameId || row.gameId === gameId)
+      .map((row) => row.decisionId);
   }
 
   async countDecisions(): Promise<number> {

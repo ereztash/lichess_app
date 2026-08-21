@@ -14,6 +14,10 @@ import {
   type DecisionAtom,
 } from "../shared/decision-atom";
 import { classifyPhase } from "../shared/phase";
+import { MIN_BUCKET_N, detect } from "../shared/detector";
+import { scoreDecisions, silenceReason } from "../shared/scoring";
+import { selectClaim } from "../shared/claim-derivation";
+import type { Claim } from "../shared/claim";
 import type { RecordStore } from "./record";
 import { protectedProcedure, router } from "./_core/trpc";
 
@@ -118,5 +122,53 @@ export function buildRecordRouter(store: RecordStore) {
 
     /** Cold-start reporting (section 6): the curve, not a single number. */
     count: protectedProcedure.query(async () => ({ decisions: await store.countDecisions() })),
+
+    /**
+     * The single claim to show, or an honest silence.
+     *
+     * A bucket needs MIN_BUCKET_N decisions inside it AND outside it, so the floor before any
+     * claim is possible is twice that. Below it this returns `null` with a REASON rather than
+     * an empty screen -- and the reason distinguishes "too few decisions" from "too few
+     * revealed decisions", because those are different states.
+     */
+    claim: protectedProcedure.query(
+      async (): Promise<{
+        claim: Claim | null;
+        othersWithheld: number;
+        reason: string | null;
+        recorded: number;
+        scored: number;
+      }> => {
+        const atoms = await store.listAtoms();
+        const ids = await store.listDecisionIds();
+        const summary = scoreDecisions(atoms, ids);
+        const floor = MIN_BUCKET_N * 2;
+        const reason = silenceReason(summary, floor);
+        if (reason) {
+          return {
+            claim: null,
+            othersWithheld: 0,
+            reason,
+            recorded: summary.total,
+            scored: summary.scored.length,
+          };
+        }
+        const patterns = detect(summary.scored);
+        const selection = selectClaim(patterns, {
+          // Stable across queries, so a drill result can attach to the same claim.
+          claim_id: patterns.length ? `claim-${patterns[0].key}` : "claim-none",
+          created_at: new Date().toISOString(),
+        });
+        return {
+          claim: selection?.claim ?? null,
+          othersWithheld: selection?.othersWithheld ?? 0,
+          reason: selection
+            ? null
+            : `נבדקו ${summary.scored.length} החלטות חשופות ולא נמצא דפוס שעובר את הסף. זו תשובה תקינה — הסף קיים כדי שלא נדווח על רעש.`,
+          recorded: summary.total,
+          scored: summary.scored.length,
+        };
+      },
+    ),
   });
 }

@@ -85,6 +85,12 @@ export function summarise(decisions: ScoredDecision[]): CalibrationSummary {
 }
 
 export interface Bucketing {
+  /**
+   * Stable ASCII identifier. A claim's id is derived from this, so the same pattern keeps the
+   * same claim across queries and can accumulate prospective drill results rather than being
+   * rediscovered as a fresh hypothesis every time.
+   */
+  key: string;
   /** What distinguishes this bucket, in the player's terms. Becomes the claim's scope. */
   scope: string;
   predicate: (decision: ScoredDecision) => boolean;
@@ -97,18 +103,33 @@ export interface Bucketing {
  * one that separates any dataset, which is the definition of finding structure in noise.
  */
 export const BUCKETINGS: Bucketing[] = [
-  { scope: "החלטות תחת פחות מ-45 שניות", predicate: (d) => d.secondsTaken < 45 },
-  { scope: "החלטות אחרי יותר משתי דקות", predicate: (d) => d.secondsTaken > 120 },
-  { scope: "החלטות בפתיחה", predicate: (d) => d.phase === "opening" },
-  { scope: "החלטות באמצע המשחק", predicate: (d) => d.phase === "middlegame" },
-  { scope: "החלטות בסיום", predicate: (d) => d.phase === "endgame" },
   {
+    key: "fast-under-45s",
+    scope: "החלטות תחת פחות מ-45 שניות",
+    predicate: (d) => d.secondsTaken < 45,
+  },
+  {
+    key: "slow-over-2m",
+    scope: "החלטות אחרי יותר משתי דקות",
+    predicate: (d) => d.secondsTaken > 120,
+  },
+  { key: "phase-opening", scope: "החלטות בפתיחה", predicate: (d) => d.phase === "opening" },
+  {
+    key: "phase-middlegame",
+    scope: "החלטות באמצע המשחק",
+    predicate: (d) => d.phase === "middlegame",
+  },
+  { key: "phase-endgame", scope: "החלטות בסיום", predicate: (d) => d.phase === "endgame" },
+  {
+    key: "clock-under-1m",
     scope: "החלטות עם פחות מדקה על השעון",
     predicate: (d) => d.clockMsRemaining !== null && d.clockMsRemaining < 60_000,
   },
 ];
 
 export interface CandidatePattern {
+  /** Stable identifier for the bucketing that produced this. */
+  key: string;
   scope: string;
   inside: CalibrationSummary;
   outside: CalibrationSummary;
@@ -149,6 +170,7 @@ export function detect(
     if (Math.abs(gapDifference) < thresholds.minGapDifference) continue;
 
     candidates.push({
+      key: bucketing.key,
       scope: bucketing.scope,
       inside: insideSummary,
       outside: outsideSummary,

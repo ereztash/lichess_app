@@ -1,0 +1,123 @@
+/**
+ * The claim procedure over real HTTP, including the states where it declines to speak.
+ */
+import type { Server } from "node:http";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const OWNER = "owner-open-id";
+process.env.JWT_SECRET = "test-secret-for-claim-route";
+process.env.OWNER_OPEN_ID = OWNER;
+
+const { createApp } = await import("../../server/app");
+const { MemoryRecordStore } = await import("../../server/record");
+const { sdk } = await import("../../server/_core/sdk");
+const { MIN_BUCKET_N } = await import("../../shared/detector");
+
+let server: Server;
+let origin: string;
+let token: string;
+const store = new MemoryRecordStore();
+
+const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+/**
+ * A record with a strong, unambiguous calibration gap under time pressure.
+ * Ids are globally unique: the store is append-only and correctly rejects a repeat.
+ */
+let seeded = 0;
+async function seed(count: number, reveal = true) {
+  for (let i = 0; i < count; i += 1) {
+    const fast = i % 2 === 0;
+    const id = `${fast ? "f" : "s"}-${seeded + i}`;
+    await store.commitDecision({
+      decisionId: id,
+      gameId: "g",
+      fen: FEN,
+      ply: 0,
+      phase: "opening",
+      clockMsRemaining: 120_000,
+      secondsTaken: fast ? 10 : 200,
+      chosenMove: "e2e4",
+      candidateMovesConsidered: ["e2e4"],
+      statedRead: "k",
+      statedUnknown: "u",
+      confidence: fast ? 5 : 3,
+    });
+    if (reveal) {
+      await store.recordReveal(id, {
+        engine_eval_cp: 10,
+        engine_best_move: "e2e4",
+        engine_depth: 18,
+        engine_source: "local_sf18",
+        // Fast decisions are usually wrong; slow ones usually fine.
+        cp_loss: fast ? (i % 4 === 0 ? 200 : 150) : i % 3 === 0 ? 120 : 5,
+      });
+    }
+  }
+  seeded += count;
+}
+
+beforeAll(async () => {
+  token = await sdk.createSessionToken(OWNER, { name: "Owner" });
+  const app = createApp({ store });
+  await new Promise<void>((done) => {
+    server = app.listen(0, "127.0.0.1", done);
+  });
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("no port");
+  origin = `http://127.0.0.1:${address.port}`;
+});
+
+afterAll(async () => {
+  if (!server) return;
+  await new Promise<void>((done, fail) => server.close((e) => (e ? fail(e) : done())));
+});
+
+async function claim() {
+  const response = await fetch(`${origin}/api/trpc/record.claim`, {
+    headers: { authorization: `Bearer ${token}` },
+  });
+  const body = (await response.json()) as { result: { data: { json: Record<string, unknown> } } };
+  return body.result.data.json;
+}
+
+describe("the claim surface declines before it speaks", () => {
+  it("says nothing, with a reason, on an empty record", async () => {
+    const data = await claim();
+    expect(data.claim).toBeNull();
+    expect(String(data.reason)).toContain("צריך");
+    expect(data.recorded).toBe(0);
+  });
+
+  it("distinguishes unrevealed decisions from missing ones", async () => {
+    await seed(10, false);
+    const data = await claim();
+    expect(data.claim).toBeNull();
+    expect(String(data.reason)).toContain("ממתינות לחשיפה");
+    expect(data.scored).toBe(0);
+    expect(data.recorded).toBe(10);
+  });
+
+  it("still declines below the floor of two full buckets", async () => {
+    await seed(MIN_BUCKET_N, true);
+    const data = await claim();
+    expect(data.claim).toBeNull();
+    expect(Number(data.scored)).toBeLessThan(MIN_BUCKET_N * 2);
+  });
+
+  it("produces exactly one claim, graded hypothesis, once the record is deep enough", async () => {
+    await seed(MIN_BUCKET_N * 3, true);
+    const data = await claim();
+    expect(Number(data.scored)).toBeGreaterThanOrEqual(MIN_BUCKET_N * 2);
+    const found = data.claim as { grade: string; n: number; refutation_condition: string } | null;
+    expect(found, String(data.reason)).not.toBeNull();
+    expect(found!.grade).toBe("hypothesis");
+    expect(found!.n).toBeGreaterThanOrEqual(MIN_BUCKET_N);
+    expect(found!.refutation_condition.length).toBeGreaterThan(0);
+  });
+
+  it("never returns a claim above hypothesis from retrospective data alone", async () => {
+    const data = await claim();
+    if (data.claim) expect((data.claim as { grade: string }).grade).toBe("hypothesis");
+  });
+});

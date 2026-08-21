@@ -917,3 +917,87 @@ button:not(:disabled) {
 .evaluation-instrument.is-stale .evaluation-white {
   filter: grayscale(1);
 }
+
+/* --- Claims (Layer B) -------------------------------------------------------------------- */
+/* An honest silence is a correct screen (section 4.5). It is never filled with encouragement. */
+.claim-panel {
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(128, 128, 128, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.claim-panel > h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.76rem;
+}
+.claim-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  opacity: 0.75;
+  margin: 0;
+}
+.claim-progress {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+.claim-silence {
+  font-size: 0.75rem;
+  line-height: 1.55;
+  opacity: 0.82;
+  margin: 0;
+}
+.claim-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.25);
+}
+.claim-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.claim-statement {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.claim-scope,
+.claim-grade-meaning,
+.claim-tests,
+.claim-withheld {
+  margin: 0;
+  font-size: 0.68rem;
+  opacity: 0.72;
+  line-height: 1.5;
+}
+/* R5 on screen: what would disprove this, next to the claim itself. */
+.claim-refutation {
+  border-top: 1px dashed rgba(128, 128, 128, 0.3);
+  padding-top: 0.45rem;
+}
+.claim-refutation > span {
+  font-size: 0.64rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+.claim-refutation > p {
+  margin: 0.2rem 0 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+/* A refuted claim is kept and shown as refuted, never deleted. */
+.claim-card.grade-refuted .claim-statement {
+  text-decoration: line-through solid currentColor 1px;
+  opacity: 0.7;
+}

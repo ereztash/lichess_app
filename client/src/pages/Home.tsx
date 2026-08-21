@@ -8,6 +8,7 @@ import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { RevealPanel } from "@/components/RevealPanel";
+import { ClaimPanel } from "@/components/ClaimPanel";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
@@ -461,6 +462,9 @@ export default function Home() {
               pending={stage === "committing"}
               error={commitError}
             />
+          ) : null}
+          {deciding ? (
+            <ClaimPanel />
           ) : (
             <>
               {revealInputs && committedDraft ? (
