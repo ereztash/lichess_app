@@ -198,8 +198,13 @@ does not exist, and nothing on screen said so.
   reading them is not something this sandbox should do, and once sign-in works the app now
   reports their presence itself. So the fix is verified; the remaining causes are latent until a
   configured build exists.
-- **The new code in a deployed build.** UNVERIFIED. Everything in this section is verified
-  against the source, the test suite, and the *previous* bundle. Nothing here has been deployed.
+- ~~**The new code in a deployed build.**~~ Now verified. The preview build of this branch
+  (`lichessapp-git-claude-litches-app-mon-d34332`) serves `assets/index-B4d2F5y7.js`, 419,205
+  bytes — byte-identical to the local build. It contains `VITE_OAUTH_PORTAL_URL`, `VITE_APP_ID`
+  and both on-screen messages, and **zero** occurrences of the old
+  `"sign-in is not configured for this deployment"` warning. Vercel's own build reproduces the
+  unconfigured condition exactly, and under it the screen now names the cause. CI `verify` green
+  on the same commit.
 - Every detector threshold **against real data**. All synthetic.
 
 ## Not built
