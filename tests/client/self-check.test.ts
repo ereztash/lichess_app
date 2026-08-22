@@ -47,7 +47,12 @@ function healthyEnv(overrides: Partial<CheckEnv> = {}): CheckEnv {
  * script loads, and then nothing happens at all -- no message, no error. A diagnostic that
  * cannot tell that apart from a slow engine is worth nothing.
  */
-function fakeWorker(mode: "healthy" | "silent" | "no-ready" | "no-move"): Worker {
+type WorkerMode = "healthy" | "silent" | "no-ready" | "no-move" | "no-eval" | "garbled-eval";
+
+/** A real depth-8 `info` line, in the shape Stockfish emits it. */
+const INFO = "info depth 8 seldepth 11 multipv 1 score cp 24 nodes 9321 nps 466050 pv e2e4 e7e5 g1f3";
+
+function fakeWorker(mode: WorkerMode): Worker {
   const listeners = new Set<(e: MessageEvent) => void>();
   const say = (text: string) => {
     for (const fn of listeners) fn({ data: text } as MessageEvent);
@@ -61,7 +66,13 @@ function fakeWorker(mode: "healthy" | "silent" | "no-ready" | "no-move"): Worker
       queueMicrotask(() => {
         if (message === "uci") say("uciok");
         if (message === "isready" && mode !== "no-ready") say("readyok");
-        if (message.startsWith("go") && mode !== "no-move") say("bestmove e2e4 ponder e7e5");
+        if (message.startsWith("go")) {
+          // The evaluation arrives on `info` lines DURING the search, before bestmove ends it.
+          if (mode === "healthy") say(INFO);
+          // A move with no evaluation behind it: the failure `bestmove`-only could not see.
+          if (mode === "garbled-eval") say("info depth 8 nodes 9321 nps 466050");
+          if (mode !== "no-move") say("bestmove e2e4 ponder e7e5");
+        }
       });
     },
   } as unknown as Worker;
@@ -79,6 +90,7 @@ describe("a browser where everything works", () => {
     expect(byId(results, "engine-greet").status).toBe("pass");
     expect(byId(results, "engine-ready").status).toBe("pass");
     expect(byId(results, "engine-move").status).toBe("pass");
+    expect(byId(results, "engine-eval").status).toBe("pass");
     expect(byId(results, "storage").status).toBe("pass");
     expect(results.some((r) => r.status === "fail")).toBe(false);
   });
@@ -101,6 +113,7 @@ describe("an engine that loads but never speaks", () => {
     // evidence. Skipped, with the reason.
     expect(byId(results, "engine-ready").status).toBe("skip");
     expect(byId(results, "engine-move").status).toBe("skip");
+    expect(byId(results, "engine-eval").status).toBe("skip");
     expect(byId(results, "engine-ready").detail).toMatch(/לא נבדק/);
   });
 
@@ -120,6 +133,51 @@ describe("an engine that stalls midway", () => {
     expect(byId(results, "engine-greet").status).toBe("pass");
     expect(byId(results, "engine-ready").status).toBe("pass");
     expect(byId(results, "engine-move").status).toBe("fail");
+  });
+});
+
+describe("a move is not an evaluation", () => {
+  /*
+   * This check exists because a code review pointed out that the previous version passed on
+   * `bestmove` alone while the document used it to claim the engine "produces an evaluation".
+   * It does not: an engine can return a move while the `info ... score ... pv ...` line that
+   * carries the evaluation never arrives or never parses -- and the evaluation is what the
+   * reveal renders. The claim was wider than the measurement (R1), so the measurement grew.
+   */
+  it("fails when the search returns a move but no evaluation", async () => {
+    const env = healthyEnv({ createWorker: () => fakeWorker("no-eval") });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 500 });
+    // The move arrived, so that check passes...
+    expect(byId(results, "engine-move").status).toBe("pass");
+    // ...and the thing the application actually renders did not.
+    expect(byId(results, "engine-eval").status).toBe("fail");
+    expect(byId(results, "engine-eval").detail).toMatch(/אף שורת info/);
+  });
+
+  it("fails when info lines arrive but carry no readable score", async () => {
+    const env = healthyEnv({ createWorker: () => fakeWorker("garbled-eval") });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 500 });
+    expect(byId(results, "engine-move").status).toBe("pass");
+    expect(byId(results, "engine-eval").status).toBe("fail");
+    // Says how many arrived, so "none sent" and "none usable" are distinguishable (R2).
+    expect(byId(results, "engine-eval").detail).toMatch(/1 שורות info/);
+  });
+
+  it("reports the parsed numbers, and claims nothing about them", async () => {
+    const results = await runSelfCheck(healthyEnv(), { engineTimeoutMs: 500 });
+    const evaluation = byId(results, "engine-eval");
+    expect(evaluation.detail).toContain("24");
+    expect(evaluation.detail).toContain("8");
+    // R1: the number exists. Whether it is a good number is not something this can say.
+    expect(evaluation.detail).toMatch(/קיום בלבד/);
+  });
+
+  it("does not run the evaluation check when the search never finished", async () => {
+    const env = healthyEnv({ createWorker: () => fakeWorker("no-move") });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
+    expect(byId(results, "engine-move").status).toBe("fail");
+    // Info lines may well have arrived; without a terminated search they are not a result.
+    expect(byId(results, "engine-eval").status).toBe("skip");
   });
 });
 
@@ -215,7 +273,7 @@ describe("the report that gets pasted into a message", () => {
     const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
     const report = formatReport(results, "2026-08-22T00:00:00.000Z");
     expect(report).toContain("1 נכשלו");
-    expect(report).toContain("2 לא רצו");
+    expect(report).toContain("3 לא רצו");
     expect(report).toContain("FAIL");
     expect(report).toContain("SKIP");
   });

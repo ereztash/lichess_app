@@ -633,10 +633,6 @@ The confidence row is still below the fold on both. That is not the same defect:
 
 ## Still unverified
 
-- The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
-  bundle and the wasm is served correctly (`application/wasm`, 7,295,411 bytes, HTTP 200), and
-  the engine was driven successfully against a byte-identical local build — but the development
-  sandbox cannot drive a browser against the deployed origin.
 - `DrizzleRecordStore` against **MySQL**. `DATABASE_URL` has never been set in any environment
   this build has run in, so it has never executed a statement.
 - **Layer C against live Lichess.** Its tests stub `fetch`.
@@ -690,7 +686,7 @@ The confidence row is still below the fold on both. That is not the same defect:
   origin**. Chromium in this sandbox reaches no external HTTPS host, so the game was driven
   against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
   it is not the same as having watched it play there.
-- ~~**The engine producing an evaluation at a deployed origin.**~~ **CLOSED.** Reported for the
+- ~~**The engine loading and answering at a deployed origin.**~~ **CLOSED.** Reported for the
   entire project as never observed. The in-app self-check was built for exactly this, and it
   answered on the first run — from the owner's own machine, Chrome 151 on Windows, 2026-08-22
   16:15:02Z, ten checks and ten passes:
@@ -724,6 +720,24 @@ The confidence row is still below the fold on both. That is not the same defect:
   A caution worth keeping: a `lichess-<hash>-` URL is pinned to one deployment forever. Testing
   on one reports on a build that may be several merges old, which is a way to chase a fixed bug.
 
+  **This entry was narrowed after a code review, and the narrowing is the point.** It was first
+  written as "the engine producing an evaluation", which the run does not support: at the time,
+  `checkEngine` waited for `bestmove` and ignored every `info ... score ... pv ...` line, so it
+  never exercised the parser that turns a search into the `EngineLine` the reveal renders. An
+  engine can return a move while that line never arrives or never parses. The claim was wider
+  than its measurement — R1, in the document whose subject is R1 — and the review was right.
+
+  Two things followed. The claim is now "loading and answering", which is what ten passes
+  actually showed. And the instrument grew a check rather than the claim shrinking alone:
+  `parseInfo` moved from `stockfish.ts` (unimportable for values without pulling the 7MB wasm
+  into the initial graph) to `engine-line.ts`, and the self-check now collects the `info` lines
+  emitted during its depth-8 search and runs **the application's own parser** over them, as an
+  eleventh result. A move with no evaluation behind it now fails, and says so. The next run at a
+  deployed origin can close what this one could not.
+
+- **An evaluation parsed at a deployed origin.** The self-check now measures it — the eleventh
+  check runs `parseInfo` over the `info` lines of its own search — but that check did not exist
+  when the run above was made, so no report has carried it yet.
 - **The chip commitment screen and the sticky submit at a deployed origin.** Both are verified
   against the built asset in this sandbox, at the owner's own window size (1280x551: submit
   visible at y=498, board square and fully on screen, a move recorded and revealed) — but the

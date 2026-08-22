@@ -24,6 +24,10 @@
 /** A check that could not run is its own outcome. It is not a pass and it is not a failure. */
 export type CheckStatus = "pass" | "fail" | "skip";
 
+// The application's own parser, not a second copy. A private reimplementation here could pass
+// while the real one fails, which would make this check worse than useless.
+import { parseInfo } from "./engine-line";
+
 export type CheckResult = {
   id: string;
   label: string;
@@ -71,6 +75,9 @@ function reason(error: unknown): string {
   if (error instanceof Error) return `${error.name}: ${error.message}`;
   return String(error);
 }
+
+/** The position every engine check searches, so a parsed line has a FEN to belong to. */
+const STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 /** The smallest valid WebAssembly module: header plus version, nothing else. */
 const EMPTY_WASM = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
@@ -175,6 +182,7 @@ async function checkEngine(env: CheckEnv, timeoutMs: number): Promise<CheckResul
     ["engine-greet", "המנוע עונה (uciok)"],
     ["engine-ready", "המנוע מוכן (readyok)"],
     ["engine-move", "המנוע מחזיר מהלך (bestmove)"],
+    ["engine-eval", "המנוע מחזיר הערכה (info score)"],
   ] as const;
   const notRun = (from: number, why: string) =>
     ids.slice(from).map(([id, label]) => skip(id, label, why));
@@ -238,6 +246,21 @@ async function checkEngine(env: CheckEnv, timeoutMs: number): Promise<CheckResul
       return [...results, ...notRun(2, "לא נבדק: המנוע לא דיווח מוכנות.")];
     }
 
+    /*
+     * The search, and what the application actually needs OUT of the search.
+     *
+     * `bestmove` alone used to be the whole of this check, and it was too narrow to support the
+     * claim it was being used for. An engine can return a move while the line that carries the
+     * evaluation -- `info ... score cp ... pv ...` -- never arrives or never parses, and the
+     * evaluation is what the reveal renders. So every `info` line is collected during the search
+     * and run through the application's own parseInfo, reported as its own result.
+     */
+    const infoLines: string[] = [];
+    const collect = (event: MessageEvent) => {
+      const line = typeof event.data === "string" ? event.data : "";
+      if (line.startsWith("info ")) infoLines.push(line);
+    };
+    worker.addEventListener("message", collect);
     try {
       worker.postMessage("position startpos");
       const line = await waitFor("bestmove", "go depth 8", timeoutMs);
@@ -249,7 +272,30 @@ async function checkEngine(env: CheckEnv, timeoutMs: number): Promise<CheckResul
       );
     } catch (error) {
       results.push(bad("engine-move", ids[2][1], reason(error)));
+      worker.removeEventListener("message", collect);
+      return [...results, ...notRun(3, "לא נבדק: החיפוש לא הסתיים.")];
+    } finally {
+      worker.removeEventListener("message", collect);
     }
+
+    const parsed = infoLines.map((raw) => parseInfo(raw, STARTPOS)).filter((l) => l !== undefined);
+    const best = parsed[parsed.length - 1];
+    results.push(
+      best
+        ? // R1 again: a number that exists, not a number that is right.
+          ok(
+            "engine-eval",
+            ids[3][1],
+            `נקראה הערכה: ${best.scoreCp} סנטי-פונים בעומק ${best.depth}, קו באורך ${best.pv.length} (קיום בלבד, לא איכות).`,
+          )
+        : bad(
+            "engine-eval",
+            ids[3][1],
+            infoLines.length === 0
+              ? "החיפוש הסתיים אבל לא הגיעה אף שורת info — אין מאיפה לקרוא הערכה."
+              : `הגיעו ${infoLines.length} שורות info, ואף אחת לא נקראה כהערכה תקפה.`,
+          ),
+    );
     return results;
   } finally {
     worker.terminate();
