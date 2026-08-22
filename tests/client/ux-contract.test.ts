@@ -35,6 +35,36 @@ function tokens(selector: string): Map<string, string> {
   for (const [, k, v] of block(selector).matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)) found.set(k, v.trim());
   return found;
 }
+/**
+ * Every innermost rule in the stylesheet, as (selector list, declarations).
+ *
+ * `block()` above finds one selector's first block by string search, which cannot see a selector
+ * that appears in a comma-separated list -- and the tap floor below is deliberately written as
+ * one such list, so that the contract is in one readable place. `[^{}]` on both sides matches
+ * innermost rules only, so a rule nested in an @media is found while the @media prelude is not.
+ */
+function rules(): Array<{ selectors: string[]; body: string }> {
+  return [...bare.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+    selectors: m[1].split(",").map((sel) => sel.trim()).filter(Boolean),
+    body: m[2],
+  }));
+}
+
+/** The smallest px value any of these size properties is set to, across one selector's rules. */
+function smallestDeclaredSize(selector: string): number | null {
+  let smallest: number | null = null;
+  for (const rule of rules()) {
+    if (!rule.selectors.includes(selector)) continue;
+    for (const [, px] of rule.body.matchAll(
+      /(?:min-)?(?:height|width|block-size|inline-size):\s*(\d+(?:\.\d+)?)px/g,
+    )) {
+      const value = Number(px);
+      if (smallest === null || value < smallest) smallest = value;
+    }
+  }
+  return smallest;
+}
+
 const luminance = (rgb: number[]) => {
   const s = rgb.map((v) => {
     const x = v / 255;
@@ -269,5 +299,132 @@ describe("the control that records a decision is always reachable", () => {
     // `background: transparent` was the shipped value, which over a scrolling panel would put
     // option chips through the middle of the button.
     expect(block(".commitment-submit")).toMatch(/background:\s*var\(--surface\)/);
+  });
+});
+
+/**
+ * THE TAP FLOOR.
+ *
+ * Control height in this stylesheet used to be emergent -- whatever font-size plus padding
+ * happened to add up to -- and three of the controls the decision loop runs through came out
+ * under the 44px AAA target (WCAG 2.5.5) with the number written down in the source: the read
+ * chips at `min-height: 32px`, the header's icon buttons at 38px square, and the timeline's step
+ * buttons at `width: 32px`. `.depth-row button` already carried `min-width: 44px`, so the number
+ * was in the codebase; it was simply not applied anywhere else.
+ *
+ * This file cannot measure a painted box, and does not claim to. What it can do is hold the
+ * floor to being DECLARED -- which is the change: a size that is stated can be checked, and a
+ * size that emerges from padding cannot.
+ */
+describe("controls a finger lands on have a declared minimum", () => {
+  /** The controls the decision loop and its panels are driven through. */
+  const GUARDED = [
+    ".read-chip",
+    ".confidence-row button",
+    ".commitment-submit",
+    ".read-write-toggle",
+    ".primary-control",
+    ".icon-control",
+    ".ghost-control",
+    ".layer-action",
+    ".board-note button",
+    ".drawer-actions button",
+    ".timeline-controls button",
+    ".depth-row button",
+  ];
+
+  it("names the floor once, at 44px or more", () => {
+    const floor = tokens(":root").get("--tap-floor");
+    expect(floor, "no --tap-floor token").toBeTruthy();
+    expect(Number(floor!.replace("px", ""))).toBeGreaterThanOrEqual(44);
+  });
+
+  it("applies it to every control in the decision loop", () => {
+    const covered = new Set(
+      rules()
+        .filter((rule) => /min-height:\s*var\(--tap-floor\)/.test(rule.body))
+        .flatMap((rule) => rule.selectors),
+    );
+    for (const selector of GUARDED) {
+      expect(covered.has(selector), `${selector} is not held to the tap floor`).toBe(true);
+    }
+  });
+
+  it("lets none of them declare a size under the floor", () => {
+    // The regression itself: 32px chips, a 38px square icon button, a 32px-wide step button.
+    for (const selector of GUARDED) {
+      const smallest = smallestDeclaredSize(selector);
+      if (smallest === null) continue;
+      expect(smallest, `${selector} declares ${smallest}px, under the 44px floor`)
+        .toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  it("leaves the board squares out of it", () => {
+    /*
+     * A square is sized by the board and the board by the viewport, and the grid contract above
+     * requires `min-height: 0` on it so a square can shrink below its glyph. A floor here would
+     * fight that rule and spill the squares out of the board -- the 332x493 failure again.
+     *
+     * Checked against the floor rule's own selector list, not against `.board-square`'s block:
+     * the first version of this assertion read the block, so adding `.board-square` to the list
+     * left it green. That is the failure this control was written to catch.
+     */
+    const covered = new Set(
+      rules()
+        .filter((rule) => /min-height:\s*var\(--tap-floor\)/.test(rule.body))
+        .flatMap((rule) => rule.selectors),
+    );
+    expect(covered.has(".board-square"), "the tap floor was applied to a board square").toBe(false);
+    expect(block(".board-square")).toMatch(/min-height:\s*0/);
+  });
+});
+
+/**
+ * REDUCED MOTION.
+ *
+ * There was no `prefers-reduced-motion` block in the stylesheet at all. Small surface -- one
+ * transition and one spinner -- but a stylesheet that never asks cannot honour the answer.
+ */
+describe("the reduced-motion setting is read", () => {
+  const query = "@media (prefers-reduced-motion: reduce)";
+  const reduced = () => {
+    const at = bare.indexOf(query);
+    expect(at, "no prefers-reduced-motion block in index.css").toBeGreaterThan(-1);
+    // To the closing brace of the @media, which is the first `\n}` at column zero after it.
+    return bare.slice(at, bare.indexOf("\n}", bare.lastIndexOf("}", bare.indexOf(query, at) + 1)) + 2);
+  };
+
+  it("neutralises transitions and animations", () => {
+    const b = bare.slice(bare.indexOf(query));
+    expect(b).toMatch(/transition-duration:\s*0[^;]*!important/);
+    expect(b).toMatch(/animation-duration:\s*0[^;]*!important/);
+  });
+
+  it("does not leave the loading spinner frozen mid-turn", () => {
+    /*
+     * The copy-paste reduced-motion rule sets `animation-iteration-count: 1`, which stops a
+     * spinner after one rotation and leaves a static glyph on screen -- indistinguishable from a
+     * hang, on the one indicator whose entire job is to say the opposite. The blanket rule is
+     * kept; the spinner is exempted from it by name.
+     */
+    const b = bare.slice(bare.indexOf(query));
+    const spin = b.slice(b.indexOf(".spin"));
+    expect(b).toContain(".spin");
+    expect(spin).toMatch(/animation-iteration-count:\s*infinite/);
+  });
+
+  it("does not hard-code a smooth scroll past the setting", () => {
+    /*
+     * `scroll-behavior: auto` in CSS does NOT reach this: the CSSOM spec gives the `behavior`
+     * option of scrollIntoView precedence over the property, so a literal `behavior: "smooth"`
+     * in a call stays smooth however the user has their system configured.
+     */
+    const commitment = readFileSync(
+      resolve(root, "client/src/components/CommitmentScreen.tsx"),
+      "utf8",
+    ).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(commitment).not.toMatch(/behavior:\s*["']smooth["']/);
+    expect(commitment).toMatch(/scrollIntoViewRespectingMotion/);
   });
 });

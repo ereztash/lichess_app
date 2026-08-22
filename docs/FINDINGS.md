@@ -202,6 +202,43 @@ guessed at.
   they label, so they could drift out of alignment; the in-square labels cannot. The strips are
   gone.
 
+## Touch targets and reduced motion
+
+Found by reading the stylesheet against the two UX contracts in the MATI repository, which
+enforce a 44px touch floor and a `prefers-reduced-motion` block in CI. Both checks were run here
+and both were red.
+
+**Read from the source, not measured in a browser.** The numbers below are declared values in
+`client/src/index.css`; nothing here was laid out and measured, and the painted box of a control
+whose height comes from padding is not knowable from the text. That is exactly why the fix
+converts the floor from emergent to declared -- a stated size can be checked by the cheap suite,
+which is where `tests/client/ux-contract.test.ts` now checks it.
+
+- **Three controls declared a size under 44px**, all of them in the decision loop: `.read-chip`
+  at `min-height: 32px` -- the control the whole loop runs through since the reads became
+  selectable -- the header's `.icon-control` at 38px square, and `.timeline-controls button` at
+  `width: 32px`. `.depth-row button` already carried `min-width: 44px`, so the number was in the
+  codebase; it had simply never been applied anywhere else.
+- **`.primary-control` carried no padding at all.** Tailwind's preflight zeroes button padding,
+  and the rule sets only two colours, so the label sat flush against its blue ground.
+- **`.board-note button` was held at 24px**, citing WCAG 2.2 AA (2.5.8), which is the correct AA
+  floor and below the 44px AAA target the rest of this now uses. One number replaces it.
+- **There was no `prefers-reduced-motion` block in the stylesheet.** Small surface -- one
+  transition on the review progress bar and one spinner -- but the setting was never read.
+- **The commitment screen's scroll would have ignored it anyway.** `scrollIntoView({ behavior:
+  "smooth" })` is not governed by the `scroll-behavior` property: CSSOM gives the option
+  precedence, so the CSS rule that looks like it covers this does not. It is read in JS now, in
+  `client/src/lib/motion.ts`.
+
+The spinner is deliberately exempt from the blanket rule. `animation-iteration-count: 1` stops it
+after one turn and leaves a static glyph on screen, indistinguishable from a hang, on the one
+indicator whose entire job is to say the opposite.
+
+**Not verified:** that any of these controls now measures 44px when painted. The contract asserts
+what the stylesheet declares. Whether a wrapped label or an ancestor's `height` beats the floor in
+a real layout still needs a browser, and is the same class of gap named at the top of
+`tests/client/ux-contract.test.ts`.
+
 ## The rank that collapsed twice
 
 Reported once as "the board rendered four ranks" and again, after the layout work, as "this
