@@ -1,16 +1,28 @@
 /**
  * THE COMMITMENT SCREEN (section 4.1).
  *
- * The player enters a move, a one-line read of what the position needs, what they cannot
- * evaluate here, and a confidence 1-5. NOTHING from the engine is on screen, in the DOM, or in
- * the network tab while this is mounted.
+ * The player states a move, what they can read in the position, what they cannot evaluate, and a
+ * confidence 1-5. NOTHING from the engine is on screen, in the DOM, or in the network tab while
+ * this is mounted.
  *
  * This is not a training gimmick. An engine knows what the position needed; it has no idea what
  * the player was choosing between, or why, or under what constraint. This screen is the only
  * moment that variable is observable, which is why R3 is the whole product.
+ *
+ * The two reads used to be free-text fields, both mandatory. Reported as "the move is blocked,
+ * it asks me to fill in forms -- these should be options, not forced writing", and that is
+ * right: it is roughly forty written sentences per game, which is why a game does not get
+ * finished. They are selectable now, with writing kept as an addition rather than the price of
+ * entry. What the requirement is FOR is the ordering -- a stated read before the engine speaks
+ * -- and one tap states a read. Nothing measures the words: shared/detector.ts buckets on time,
+ * phase and clock and never reads `known` or `unknown` at all, so this weakens no gate.
+ *
+ * Still required, though, and still with nothing preselected. A commitment with nothing stated
+ * would make R3 decorative, and a default option would be the machine putting a read in the
+ * player's mouth and then measuring them against it.
  */
 import { useEffect, useRef, useState } from "react";
-import { Check, CircleAlert, Timer } from "lucide-react";
+import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
 import {
   draftProblems,
   emptyDraft,
@@ -18,6 +30,7 @@ import {
   type DraftDecision,
   type PositionUnderDecision,
 } from "@/lib/decision-session";
+import { KNOWN_OPTIONS, UNKNOWN_OPTIONS, type ReadOption } from "@/lib/read-options";
 
 interface CommitmentScreenProps {
   position: PositionUnderDecision;
@@ -90,7 +103,7 @@ export function CommitmentScreen({
       window.requestAnimationFrame(() => {
         const target = firstProblem.current;
         target?.scrollIntoView({ block: "center", behavior: "smooth" });
-        target?.querySelector<HTMLElement>("textarea, button")?.focus();
+        target?.querySelector<HTMLElement>("button, textarea")?.focus();
       });
       return;
     }
@@ -101,8 +114,8 @@ export function CommitmentScreen({
   const missing = problems[0];
   const MISSING_LABEL: Record<string, string> = {
     chosenMove: "בחרו מהלך על הלוח",
-    known: "כתבו מה אתם קוראים בעמדה",
-    unknown: "כתבו מה אי אפשר להעריך",
+    known: "סמנו מה אתם קוראים בעמדה",
+    unknown: "סמנו מה אי אפשר להעריך",
     confidence: "בחרו רמת ביטחון",
   };
 
@@ -122,7 +135,7 @@ export function CommitmentScreen({
       </header>
 
       <p className="commitment-intro">
-        בחרו מהלך על הלוח וכתבו את הקריאה שלכם. המנוע לא ידבר לפני שההחלטה נרשמה — זו כל הנקודה.
+        בחרו מהלך על הלוח וסמנו את הקריאה שלכם. המנוע לא ידבר לפני שההחלטה נרשמה — זו כל הנקודה.
       </p>
 
       <div className="commitment-field">
@@ -135,45 +148,39 @@ export function CommitmentScreen({
         )}
       </div>
 
-      <div
-        className={`commitment-field ${problemFor("known") ? "has-problem" : ""}`}
-        ref={missing?.field === "known" ? firstProblem : undefined}
-      >
-        <label htmlFor="commit-known">
-          מה אתם כן יכולים לקרוא כאן <span className="required-mark">חובה</span>
-        </label>
-        <textarea
-          id="commit-known"
-          maxLength={200}
-          rows={2}
-          value={draft.known}
-          disabled={pending}
-          placeholder="למשל: המרכז סגור, היתרון שלי הוא בכנף המלכה"
-          onChange={(e) => setDraft((d) => ({ ...d, known: e.target.value }))}
-        />
-        <span className="commitment-count">{draft.known.length}/200</span>
-        {problemFor("known") && <p className="commitment-problem">{problemFor("known")}</p>}
-      </div>
+      <ReadField
+        legend="מה אתם קוראים בעמדה"
+        hint="בחרו כמה שרוצים"
+        options={KNOWN_OPTIONS}
+        selected={draft.knownTags}
+        onToggle={(label) =>
+          setDraft((d) => ({ ...d, knownTags: toggle(d.knownTags, label) }))
+        }
+        text={draft.known}
+        onText={(known) => setDraft((d) => ({ ...d, known }))}
+        textPlaceholder="למשל: היתרון שלי הוא בכנף המלכה"
+        problem={problemFor("known")}
+        containerRef={missing?.field === "known" ? firstProblem : undefined}
+        pending={pending}
+        id="known"
+      />
 
-      <div
-        className={`commitment-field ${problemFor("unknown") ? "has-problem" : ""}`}
-        ref={missing?.field === "unknown" ? firstProblem : undefined}
-      >
-        <label htmlFor="commit-unknown">
-          מה אתם לא יכולים להעריך כאן <span className="required-mark">חובה</span>
-        </label>
-        <textarea
-          id="commit-unknown"
-          maxLength={200}
-          rows={2}
-          value={draft.unknown}
-          disabled={pending}
-          placeholder="למשל: לא יודע אם הקורבן על f7 עובד"
-          onChange={(e) => setDraft((d) => ({ ...d, unknown: e.target.value }))}
-        />
-        <span className="commitment-count">{draft.unknown.length}/200</span>
-        {problemFor("unknown") && <p className="commitment-problem">{problemFor("unknown")}</p>}
-      </div>
+      <ReadField
+        legend="מה אתם לא יכולים להעריך"
+        hint="בחרו כמה שרוצים"
+        options={UNKNOWN_OPTIONS}
+        selected={draft.unknownTags}
+        onToggle={(label) =>
+          setDraft((d) => ({ ...d, unknownTags: toggle(d.unknownTags, label) }))
+        }
+        text={draft.unknown}
+        onText={(unknown) => setDraft((d) => ({ ...d, unknown }))}
+        textPlaceholder="למשל: לא יודע אם הקורבן על f7 עובד"
+        problem={problemFor("unknown")}
+        containerRef={missing?.field === "unknown" ? firstProblem : undefined}
+        pending={pending}
+        id="unknown"
+      />
 
       <fieldset className="commitment-field commitment-confidence" disabled={pending}>
         <legend>
@@ -234,5 +241,100 @@ export function CommitmentScreen({
         </p>
       )}
     </section>
+  );
+}
+
+/** Add or remove one label, preserving the order they were chosen in. */
+function toggle(current: string[], label: string): string[] {
+  return current.includes(label) ? current.filter((l) => l !== label) : [...current, label];
+}
+
+interface ReadFieldProps {
+  legend: string;
+  hint: string;
+  options: ReadOption[];
+  selected: string[];
+  onToggle: (label: string) => void;
+  text: string;
+  onText: (value: string) => void;
+  textPlaceholder: string;
+  problem?: string;
+  containerRef?: React.Ref<HTMLDivElement>;
+  pending: boolean;
+  id: string;
+}
+
+/**
+ * One read: options to tap, and a box to write in if the options do not cover it.
+ *
+ * The writing box starts collapsed. Open by default it would read as the real field with the
+ * chips as a shortcut, which is the arrangement that made a game unfinishable; collapsed, it is
+ * what it should be -- available for the position the menu cannot describe.
+ */
+function ReadField({
+  legend,
+  hint,
+  options,
+  selected,
+  onToggle,
+  text,
+  onText,
+  textPlaceholder,
+  problem,
+  containerRef,
+  pending,
+  id,
+}: ReadFieldProps) {
+  // Stays open once opened, and once something is typed it cannot hide the text it holds.
+  const [writing, setWriting] = useState(false);
+  const open = writing || text.length > 0;
+
+  return (
+    <div className={`commitment-field ${problem ? "has-problem" : ""}`} ref={containerRef}>
+      <fieldset className="read-field" disabled={pending}>
+        <legend>
+          {legend} <span className="required-mark">חובה</span>
+          <small>{hint}</small>
+        </legend>
+        <div className="read-options">
+          {options.map((option) => {
+            const on = selected.includes(option.label);
+            return (
+              <button
+                key={option.id}
+                type="button"
+                className={`read-chip ${on ? "selected" : ""}`}
+                aria-pressed={on}
+                onClick={() => onToggle(option.label)}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {open ? (
+          <>
+            <label className="read-write-label" htmlFor={`commit-${id}`}>
+              במילים שלכם
+            </label>
+            <textarea
+              id={`commit-${id}`}
+              maxLength={200}
+              rows={2}
+              value={text}
+              placeholder={textPlaceholder}
+              onChange={(e) => onText(e.target.value)}
+            />
+            <span className="commitment-count">{text.length}/200</span>
+          </>
+        ) : (
+          <button type="button" className="read-write-toggle" onClick={() => setWriting(true)}>
+            <Pencil size={12} /> להוסיף במילים שלכם
+          </button>
+        )}
+      </fieldset>
+      {problem && <p className="commitment-problem">{problem}</p>}
+    </div>
   );
 }

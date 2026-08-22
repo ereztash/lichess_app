@@ -58,9 +58,7 @@ describe("the button becomes the real thing only when the decision is whole", ()
   it("still refuses with one field left empty", () => {
     const onCommit = vi.fn();
     setup({ onCommit });
-    fireEvent.change(screen.getByLabelText(/מה אתם כן יכולים לקרוא כאן/), {
-      target: { value: "תחילת משחק" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
     fireEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
     fireEvent.click(screen.getByRole("button", { name: /חסר/ }));
     expect(onCommit).not.toHaveBeenCalled();
@@ -71,19 +69,15 @@ describe("the button becomes the real thing only when the decision is whole", ()
   it("commits once every required field is answered", () => {
     const onCommit = vi.fn();
     setup({ onCommit });
-    fireEvent.change(screen.getByLabelText(/מה אתם כן יכולים לקרוא כאן/), {
-      target: { value: "תחילת משחק" },
-    });
-    fireEvent.change(screen.getByLabelText(/מה אתם לא יכולים להעריך כאן/), {
-      target: { value: "לא יודע איך שחור יגיב." },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    fireEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
     fireEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
     const button = screen.getByRole("button", { name: /רשמו את ההחלטה/ });
     fireEvent.click(button);
     expect(onCommit).toHaveBeenCalledTimes(1);
     const [draft] = onCommit.mock.calls[0];
-    expect(draft.known).toBe("תחילת משחק");
-    expect(draft.unknown).toBe("לא יודע איך שחור יגיב.");
+    expect(draft.knownTags).toEqual(["המרכז פתוח"]);
+    expect(draft.unknownTags).toEqual(["לא יודע איך הוא יענה"]);
     expect(draft.confidence).toBe(3);
   });
 
@@ -98,9 +92,7 @@ describe("the button becomes the real thing only when the decision is whole", ()
 describe("the refused click takes you to the field", () => {
   it("flags the offending field so it is findable", () => {
     setup();
-    fireEvent.change(screen.getByLabelText(/מה אתם כן יכולים לקרוא כאן/), {
-      target: { value: "תחילת משחק" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
     fireEvent.click(screen.getByRole("button", { name: /חסר/ }));
     const flagged = document.querySelectorAll(".commitment-field.has-problem");
     expect(flagged.length).toBeGreaterThan(0);

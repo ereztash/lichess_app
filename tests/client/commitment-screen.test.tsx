@@ -60,11 +60,13 @@ describe("an incomplete decision cannot be recorded", () => {
   it("still refuses when only `unknown` is blank", async () => {
     const onCommit = vi.fn();
     renderScreen({ onCommit, chosenMove: "g8f6" });
-    await userEvent.type(screen.getByLabelText(/מה אתם כן יכולים לקרוא/), "מרכז פתוח");
+    // The read is stated by tapping now, not by typing. What is asserted is unchanged: a
+    // decision missing one of its four parts is still not recorded.
+    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
     await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
     await userEvent.click(screen.getByRole("button", { name: /חסר:|רשמו את ההחלטה/ }));
     expect(onCommit).not.toHaveBeenCalled();
-    expect(screen.getByText(/לא נכתב מה אי אפשר להעריך/)).toBeInTheDocument();
+    expect(screen.getByText(/לא נאמר מה אי אפשר להעריך/)).toBeInTheDocument();
     // The label names the one thing standing in the way, rather than a count to go hunting for.
     expect(screen.getByRole("button", { name: /חסר:/ }).textContent).toMatch(/אי אפשר להעריך/);
   });
@@ -74,8 +76,8 @@ describe("a complete decision is recorded with its timing", () => {
   it("passes the draft and a measured seconds_taken to onCommit", async () => {
     const onCommit = vi.fn();
     renderScreen({ onCommit, chosenMove: "g8f6", candidatesConsidered: ["g8f6", "f8e7"] });
-    await userEvent.type(screen.getByLabelText(/מה אתם כן יכולים לקרוא/), "מרכז פתוח");
-    await userEvent.type(screen.getByLabelText(/מה אתם לא יכולים להעריך/), "לא יודע אם d5 עובד");
+    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
     await userEvent.click(screen.getByRole("button", { name: /ביטחון 4/ }));
     await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
 
@@ -83,8 +85,8 @@ describe("a complete decision is recorded with its timing", () => {
     const [draft, seconds] = onCommit.mock.calls[0];
     expect(draft).toMatchObject({
       chosenMove: "g8f6",
-      known: "מרכז פתוח",
-      unknown: "לא יודע אם d5 עובד",
+      knownTags: ["המרכז פתוח"],
+      unknownTags: ["לא יודע איך הוא יענה"],
       confidence: 4,
       candidatesConsidered: ["g8f6", "f8e7"],
     });

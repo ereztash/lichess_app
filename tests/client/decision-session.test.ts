@@ -22,7 +22,9 @@ const POSITION: PositionUnderDecision = {
 
 const complete = (): DraftDecision => ({
   chosenMove: "g8f6",
-  known: "המרכז פתוח והפיתוח שלי מפגר",
+  knownTags: ["המרכז פתוח"],
+  known: "והפיתוח שלי מפגר",
+  unknownTags: [],
   unknown: "לא יודע אם d5 עובד מיד",
   confidence: 3,
   candidatesConsidered: ["g8f6", "f8e7"],
@@ -54,9 +56,50 @@ describe("an incomplete decision is not recordable", () => {
   });
 
   it("requires `unknown` explicitly -- blank is not an answer", () => {
-    const draft = { ...complete(), unknown: "   " };
+    const draft = { ...complete(), unknown: "   ", unknownTags: [] };
     expect(isCommittable(draft)).toBe(false);
     expect(draftProblems(draft)[0].field).toBe("unknown");
+  });
+
+  /*
+   * The read is stated by tapping now, because two mandatory free-text fields is roughly forty
+   * written sentences a game and that is why a game did not get finished. These four pin the
+   * part that did NOT change: something must still be stated, in each field, before the engine
+   * is allowed to speak. One tap is enough; nothing is enough for nothing.
+   */
+  it("accepts a selection with nothing typed", () => {
+    const draft = { ...complete(), known: "", unknown: "", unknownTags: ["לא יודע איך הוא יענה"] };
+    expect(isCommittable(draft)).toBe(true);
+  });
+
+  it("accepts typing with nothing selected", () => {
+    const draft = { ...complete(), knownTags: [], unknownTags: [], known: "מרכז", unknown: "לא" };
+    expect(isCommittable(draft)).toBe(true);
+  });
+
+  it("still refuses a field that is neither tapped nor typed", () => {
+    const draft = { ...complete(), knownTags: [], known: "" };
+    expect(isCommittable(draft)).toBe(false);
+    expect(draftProblems(draft)[0].field).toBe("known");
+  });
+
+  it("puts both the tapped and the typed part on the record", () => {
+    const draft = {
+      ...complete(),
+      knownTags: ["המרכז פתוח", "מלך חשוף"],
+      known: "וגם יש לי טור פתוח",
+    };
+    const event = buildCommitEvent("d-2", POSITION, draft, 9);
+    // A player who taps two options and adds a sentence stated all three things.
+    expect(event.known).toBe("המרכז פתוח · מלך חשוף · וגם יש לי טור פתוח");
+  });
+
+  it("keeps a long selection inside the atom's 200-character bound", () => {
+    // The schema enforces max 200. Truncating here rather than letting the write fail keeps a
+    // long read from becoming a rejection the player cannot act on.
+    const draft = { ...complete(), knownTags: Array.from({ length: 40 }, () => "המרכז פתוח") };
+    const event = buildCommitEvent("d-3", POSITION, draft, 9);
+    expect(event.known.length).toBeLessThanOrEqual(200);
   });
 
   it("refuses to build an event from an incomplete draft", () => {

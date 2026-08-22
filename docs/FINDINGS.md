@@ -554,6 +554,83 @@ The surface moved onto `.panel-shell`, so being opaque is now a property of bein
 rather than something each new panel has to remember. Two assertions in `ux-contract`, both
 demonstrated red.
 
+## The commitment screen asked for an essay per move
+
+Reported while playing: *the move is blocked, it asks me to fill in forms — these should be
+options, not forced writing.* Accurate. Two mandatory free-text fields per decision is roughly
+forty written sentences per game, which is a reason a game does not get finished rather than a
+reason it gets recorded well.
+
+**What the requirement is actually for.** The ordering: a read stated before the engine speaks
+(R3). Not the prose. `shared/detector.ts` buckets on time, phase and clock and scores confidence
+against centipawn loss — it never reads `known` or `unknown` at all, and neither does
+`scoring.ts`. So making the read selectable changes what the player must type and nothing that
+is measured. No gate moves.
+
+Both fields are now option chips with an optional writing box, collapsed by default. What did
+NOT change, and is asserted with controls:
+
+- something must still be stated in each field, or the decision is refused;
+- nothing is preselected — a default read is the machine stating one on the player's behalf and
+  then measuring them against it;
+- writing stays available, additively: a player who taps two options and adds a sentence has
+  stated all three, and all three go on the record;
+- the options are positional features, never verdicts. An option like "העמדה שלי טובה יותר"
+  would have the player pre-committing to the engine's own output, which is what R3 exists to
+  prevent.
+
+Driven in a browser on the built asset — three moves, zero characters typed:
+
+```
+option chips: 18   textareas visible: 0   chips preselected: 0
+e2e4: submit-label="רשמו את ההחלטה" reveal=true timeline=2
+g1f3: submit-label="רשמו את ההחלטה" reveal=true timeline=4
+f1c4: submit-label="רשמו את ההחלטה" reveal=true timeline=6
+7 interactions per move, zero typed characters
+```
+
+**A known limit, recorded rather than hidden.** The atom stores `known` and `unknown` as plain
+strings, so a selected option and the same words typed by hand are indistinguishable in the
+record. Judged acceptable — a selection is an assertion the player made, and no measurement
+reads the text — but it is real, and a later analysis of the text would have to know it.
+
+## The submit button was below the fold, and I made it worse before fixing it
+
+Adding the chips pushed the record-decision button off a 1393x681 laptop screen. Measured before
+committing anything, which is the only reason it did not ship:
+
+```
+                        confidence row   submit button   viewport
+shipped main, laptop         y=560           y=644          681   visible
+with chips,   laptop         y=774           y=859          681   BELOW THE FOLD
+```
+
+Measuring the shipped build to size my own regression turned up a bigger one. On a phone the
+button had **already** been unreachable, before any of this:
+
+```
+shipped main, phone          y=1217          y=1302         844   BELOW THE FOLD
+```
+
+So on a phone the player chose a move, nothing moved, and the control that would have recorded
+it was ~500px below the fold in a document that scrolls. That is a second, independent cause of
+"I cannot complete the move", present the whole time, and it would have survived the opening-screen
+fix untouched.
+
+Fixed by pinning the submit to the bottom of the viewport (`position: sticky`) with an opaque
+ground, rather than by keeping the panel short — the panel's height depends on how many options
+a field offers and how much the player has written, so any fix that works by making it small is
+one option away from breaking again. The button already names what is missing and scrolls to it
+when clicked, so pinned it doubles as a permanent status line.
+
+```
+after,        laptop         y=758           y=628          681   submit visible
+after,        phone          y=1377          y=813          844   submit visible
+```
+
+The confidence row is still below the fold on both. That is not the same defect: the button says
+`חסר: בחרו רמת ביטחון` and scrolls there on click, which is tested.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
@@ -613,6 +690,28 @@ demonstrated red.
   origin**. Chromium in this sandbox reaches no external HTTPS host, so the game was driven
   against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
   it is not the same as having watched it play there.
+- **The playable opening screen at the deployed origin.** Narrowed as far as this sandbox allows,
+  and the narrowing is worth stating precisely because it is the closest this gap has come to
+  closing.
+
+  Measured against `https://lichessapp.vercel.app` after the merge of `71b01ad`:
+
+  ```
+  /api/health            -> 200 {"ok":true}
+  /assets/index-Cc0KNIH1.js   sha256 4531ee8f…7e6d127   IDENTICAL to the local build of main
+  /assets/index-BfqYvo0A.css  sha256 6f3ca3b8…2d3b1a74  IDENTICAL to the local build of main
+  ```
+
+  So production is serving *the same bytes* that were driven through three complete moves with
+  Stockfish replying, the self-check panel, and the blocked-storage path in Chromium. What is
+  still not observed is those bytes **executing in a browser at that origin**. Chromium here
+  fails with `net::ERR_CONNECTION_RESET` even through the agent proxy, and the proxy's
+  `recentRelayFailures` records no entry for the host — the CONNECT never arrives, so the browser
+  is failing before the proxy rather than being refused by it. curl reaches the same origin fine,
+  which is why the byte comparison above is possible at all.
+
+  The in-app self-check exists precisely for this gap: it is the only instrument that can report
+  from the deployed origin, because it runs in the player's browser rather than in this one.
 - **The opponent against a real player.** It opens, replies and hands the turn back — driven end
   to end, now including three consecutive moves from the opening position of a freshly loaded
   page — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
