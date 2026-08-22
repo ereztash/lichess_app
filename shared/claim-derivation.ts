@@ -9,9 +9,9 @@
  * The statement is assembled from measured quantities. It carries its n, it names its scope, and
  * it states in advance what would refute it. A sentence that cannot do all four is not written.
  */
-import type { Claim, RetrospectiveEvidence } from "./claim";
-import { formHypothesis } from "./claim";
-import type { CandidatePattern } from "./detector";
+import type { Claim, RetrospectiveEvidence } from "./claim.js";
+import { formHypothesis } from "./claim.js";
+import type { CandidatePattern } from "./detector.js";
 
 /**
  * The unit of output is ONE claim (section 3.5). If the system has three candidates it shows the

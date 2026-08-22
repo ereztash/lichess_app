@@ -24,9 +24,9 @@ export type LichessGame = {
     black: { user?: { id: string; name: string }; rating?: number; ratingDiff?: number };
   };
 };
-export type { AnalysisSource } from "../shared/analysis-source";
-import { isPostGame } from "../shared/analysis-source";
-import type { AnalysisSource } from "../shared/analysis-source";
+export type { AnalysisSource } from "../shared/analysis-source.js";
+import { isPostGame } from "../shared/analysis-source.js";
+import type { AnalysisSource } from "../shared/analysis-source.js";
 type ExplorerMove = {
   uci: string;
   san: string;

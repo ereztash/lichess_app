@@ -11,10 +11,10 @@
  * `completeDrill` is the only path that changes a grade. Moving them behind the transport would
  * make them bypassable by whichever caller skipped the router.
  */
-import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult } from "./claim";
-import { selectClaim } from "./claim-derivation";
-import type { DecisionAtom, DecisionResult } from "./decision-atom";
-import { BUCKETINGS, MIN_BUCKET_N, MIN_GAP_DIFFERENCE, detect, summarise } from "./detector";
+import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult } from "./claim.js";
+import { selectClaim } from "./claim-derivation.js";
+import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
+import { BUCKETINGS, MIN_BUCKET_N, MIN_GAP_DIFFERENCE, detect, summarise } from "./detector.js";
 import {
   completeDrillAgainstBaseline,
   createDrill,
@@ -22,13 +22,13 @@ import {
   evaluateRefutation,
   startDrill,
   type DrillDecision,
-} from "./drill";
-import { selectDrillPositions } from "./drill-positions";
-import { classifyPhase } from "./phase";
-import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store";
-import { readRecord, type RecordReading } from "./record-dashboard";
-export type { RecordReading } from "./record-dashboard";
-import { scoreDecisions, silenceReason } from "./scoring";
+} from "./drill.js";
+import { selectDrillPositions } from "./drill-positions.js";
+import { classifyPhase } from "./phase.js";
+import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
+import { readRecord, type RecordReading } from "./record-dashboard.js";
+export type { RecordReading } from "./record-dashboard.js";
+import { scoreDecisions, silenceReason } from "./scoring.js";
 
 /**
  * A refusal with a transport-neutral code.

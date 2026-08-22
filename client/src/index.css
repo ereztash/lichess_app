@@ -12,10 +12,20 @@
   --blue-rgb: 30, 91, 114;
   --cream: #f7f3e9;
   --cream-rgb: 247, 243, 233;
+  /* The move the PLAYER proposed. Deliberately not --blue: blue is the engine's arrow, and one
+     mark meaning both "your guess" and "the machine's answer" would erase the difference. */
+  --chosen: #8a5a12;
+  --chosen-rgb: 138, 90, 18;
   --muted: #60706c;
   --surface: #f7f3e9;
-  --edge: var(--edge);
-  --edge-soft: var(--edge-soft);
+  /* Real values, not var(--edge). These four tokens used to be declared as var() references to
+     THEMSELVES, which is a cycle: the declaration is invalid at computed-value time and the
+     property resolves to nothing. Only .dark gave them values, so in the light theme every
+     border and hairline drawn from them had no colour at all -- measured in a browser as
+     "(EMPTY)" for --edge, --edge-soft, --hairline, --hairline-strong and --last-move. That is
+     what "the light presentation is depressing" was: twenty declarations rendering colourless. */
+  --edge: #7c8b86;
+  --edge-soft: #cfc7b6;
   --light-square: #e9d5af;
   --dark-square: #765039;
   --piece-dark: #17221f;
@@ -38,8 +48,16 @@
   --c-axis: rgba(var(--ink-rgb), 0.28);
   --c-grid: rgba(var(--ink-rgb), 0.1);
 
-  --hairline: var(--hairline);
-  --hairline-strong: var(--hairline-strong);
+  --hairline: rgba(23, 34, 31, 0.14);
+  --hairline-strong: rgba(23, 34, 31, 0.26);
+  /* Never declared outside .dark, so the light theme highlighted no last move at all. */
+  --last-move: rgba(196, 92, 68, 0.42);
+  /* Three more the light palette never declared. --warn carries five declarations on its own,
+     including the border and text of every failure notice, so in the light theme a warning was
+     drawn with no warning colour. */
+  --raise: #efe9dc;
+  --accent-soft: #2f6072;
+  --warn: #a8412c;
 }
 
 /*
@@ -56,6 +74,8 @@
   --blue-rgb: 95, 179, 212;
   --cream: #1d2326;
   --cream-rgb: 29, 35, 38;
+  --chosen: #e0a458;
+  --chosen-rgb: 224, 164, 88;
   --muted: #9aa8a4;
   --surface: #1b2124;
   --edge: #7d938e;
@@ -697,6 +717,26 @@ button:not(:disabled) {
 }
 .selected-square {
   box-shadow: inset 0 0 0 5px var(--blue);
+}
+/*
+ * The player's proposed move, while deciding. A ring on both squares plus a marker on the
+ * destination -- readable without relying on the colour alone, and visibly not the engine's
+ * arrow, which is blue and only ever appears after a reveal.
+ */
+.chosen-from {
+  box-shadow: inset 0 0 0 5px rgba(var(--chosen-rgb), 0.55);
+}
+.chosen-to {
+  box-shadow: inset 0 0 0 5px var(--chosen);
+}
+.chosen-marker {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 3px solid var(--chosen);
+  border-radius: 50%;
+  margin: 12%;
+  pointer-events: none;
 }
 .legal-square::before {
   content: "";
@@ -1524,4 +1564,67 @@ button:not(:disabled) {
 .drill-verdict.replicated {
   border-top: 2px solid currentColor;
   padding-top: 0.6rem;
+}
+
+/* ---- New game: pick a side, pick a depth ---------------------------------------------- */
+.new-game-setup {
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+.new-game-setup h3 {
+  font: 700 12px/1 "DM Mono";
+  letter-spacing: 0.08em;
+}
+.setup-field {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.setup-field legend {
+  font: 10px "DM Mono";
+  color: var(--muted);
+  padding: 0;
+}
+.new-game-setup .color-toggle,
+.depth-row {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+}
+.depth-row button {
+  min-width: 44px;
+  padding: 8px 12px;
+  border: 1px solid rgba(var(--ink-rgb), 0.2);
+  background: transparent;
+  font: 700 13px "DM Mono";
+}
+.depth-row .selected {
+  background: var(--blue);
+  color: white;
+}
+.new-game-setup .color-toggle button {
+  padding: 8px 16px;
+}
+.setup-note {
+  font: 10px/1.5 "Noto Sans Hebrew";
+  color: var(--muted);
+}
+.setup-actions {
+  display: flex;
+  gap: 8px;
+}
+.ghost-control {
+  border: 1px solid var(--hairline-strong);
+  background: transparent;
+  padding: 8px 14px;
+}
+.opponent-thinking {
+  font: 11px "DM Mono";
+  color: var(--blue);
+  padding: 6px 0;
 }

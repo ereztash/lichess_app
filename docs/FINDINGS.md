@@ -307,6 +307,115 @@ confidence is an average over n rather than k of n, and `Rate` would have invent
 The gate itself was not touched. This is the class of moment Section 8 warns about, and it is
 recorded because the tempting move each time was the other one.
 
+## The outage, and the game that was not a game
+
+Reported as: *"the game still doesn't work / check CI."* CI was green — `verify` had passed on
+every one of the eight runs on `main`. Two separate things were wrong, and the loud one was not
+the one being reported.
+
+### Every API request had been failing since PR #2
+
+```
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/var/task/server/app'
+imported from /var/task/api/[...path].js
+```
+
+`package.json` declares `"type": "module"`, so Vercel runs the emitted server as ESM, and ESM
+does not resolve extensionless relative specifiers. The function crashed on load; every request
+returned `FUNCTION_INVOCATION_FAILED`. Confirmed live against `lichessapp.vercel.app` — HTTP 500
+on `/api/health` and on tRPC alike — and confirmed fixed on the branch preview, where
+`/api/health` returns `{"ok":true}` and tRPC answers with a real application-level 401 instead of
+a crash.
+
+This had been fixed once already. `50df190` — *"Make Vercel API self-contained"* — worked around
+it by inlining ~250 lines into the entry. PR #2 reduced that to a three-line re-export, which
+read as a cleanup and silently restored the crash.
+
+**Why nothing caught it, in either direction:** `npm run test` mounts the Express app in-process
+through vitest and never touches `api/[...path].ts`; `tsc --noEmit` accepts extensionless
+imports under `moduleResolution: "bundler"`; `vite build` only builds the client. No check ever
+asked whether the file Vercel runs can be imported by Node.
+
+`tests/server/serverless-entry.test.ts` now asks exactly that, from a spawned `node` process.
+Both shortcuts fail silently and were avoided deliberately: importing the emitted file from
+inside vitest proves nothing, because Vite's loader intercepts `import()` and resolves with the
+bundler algorithm — the one that does not run in production; and emitting to `/tmp` breaks the
+bare imports on missing `node_modules`, a failure that looks like the bug but is not. A third
+trap is recorded in the test itself: the base tsconfig is `incremental` with an up-to-date
+`.tsbuildinfo`, so an emit config inheriting it emits **nothing**, and a test importing a file
+that was never written fails for the wrong reason.
+
+Demonstrated red twice — reverting the entry's own import reproduces the production error
+verbatim, and reverting a specifier three hops in (`recordRouter` → `shared/record-service`) is
+caught too, so the guard covers the graph rather than the entry.
+
+### The API outage did not explain the report
+
+This is worth stating plainly, because it would have been easy to ship the fix above and call the
+report closed. The whole decide → commit → reveal loop was driven in a browser against a mirror
+of the deployment with the API **deliberately returning 500 on every request**, and it completed
+*identically* to the healthy build. The record is local and the engine is local; nothing in the
+loop needs the server. The outage was real and worth fixing, and it was not what "the game
+doesn't work" meant.
+
+### There was no opponent
+
+Driven in a browser against the deployed build: **"משחק חדש" laid out the starting position, and
+nothing ever played the other side.** Picking a move changed nothing on the board — all sixty-four
+squares byte-identical, the piece did not travel, and the only feedback was a sentence in a panel
+off to the side. Completing the full ritual (two free-text fields, a stated confidence, a commit,
+the engine's reveal, then *next decision*) played the player's own move and passed the turn to
+the other colour — where the app asked the player to decide for that side too. Twelve seconds of
+waiting, and nothing replied. A game meant playing both colours yourself at one commit-and-reveal
+cycle per half-move.
+
+`client/src/lib/opponent.ts` is the other side of the board. Verified end to end: playing black,
+the opponent opened `1.d4` unprompted; the player's `h5` was committed and played; the opponent
+answered `2.e4`; the turn came back. Three moves in the rail, and a game in progress.
+
+**On R3.** This is the one path that loads the engine before a decision is recorded, and the
+comment in `ensureEngine` that forbade it has been narrowed rather than quietly left standing. It
+used to say the engine appearing in the network tab pre-commit violates R3. That claim was wider
+than the rule needs: what R3 forbids is the machine answering the player's decision before the
+player makes it. An opponent has to move, and a player who takes black has to be answered before
+they have decided anything.
+
+The narrower rule is enforced structurally rather than by discipline. `chooseOpponentMove` is
+handed the search and returns **a move** — the score, the depth and the principal variation are
+discarded at the boundary, so no caller is ever holding an evaluation it could render by mistake.
+That matters specifically because the search that picks the opponent's move also contains the
+engine's opinion of the reply the player is about to be asked for. `analysis`, which the reveal
+reads, is untouched. GATE-COMMIT's two conditions are unchanged and still green: no static engine
+import, and no engine output in the pre-commit reveal payload. Verified in a browser: while
+deciding, the board carries the player's own two marks and **zero** engine arrows.
+
+Search depth is offered as a search depth (1, 4, 8) and the UI says so in as many words. Nothing
+here measures what rating a depth plays at, and R1 does not allow a claim wider than its
+measurement, so the app does not tell you how strong the opponent is.
+
+### The light theme was running with eight tokens that had no value
+
+The earlier report *"the light presentation is depressing"* had a cause, and it was not taste.
+Four tokens were declared in `:root` as `var()` references to **themselves** —
+
+```css
+--edge: var(--edge);
+```
+
+— which is a cycle: invalid at computed-value time, so the declaration is discarded and the
+property resolves to nothing. Four more (`--last-move`, `--raise`, `--accent-soft`, `--warn`)
+were never declared outside `.dark` at all. Only the dark palette had values, so in the light
+theme every border, hairline, last-move highlight and warning colour drawn from them rendered
+colourless — `--warn` alone carries five declarations, including the border and text of every
+failure notice.
+
+Measured in Chromium: `getPropertyValue` returned the empty string for all eight with `.dark`
+removed, and real colours with it. Now real colours in both. `tests/client/theme-tokens.test.ts`
+reads the stylesheet and fails on a self-referential declaration, on a token the dark palette
+overrides but light never declares, and on any `var()` with no declaration anywhere.
+
+Nothing had ever read the stylesheet before, which is why eight dead tokens shipped.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
@@ -348,6 +457,28 @@ recorded because the tempting move each time was the other one.
 
   Related: `explorer.lichess.ovh` is unreachable from this sandbox too (nginx `401` from the
   proxy, not from Lichess). Layer C's explorer calls have still never run against the live host.
+- **The two fixes running in a browser at the deployed origin.** Narrowed, not closed. What is
+  now confirmed on the branch preview (`491eca9`):
+
+  - `/api/health` returns `{"ok":true}`. The serverless entry loads.
+  - The deployed assets are **byte-identical** to the local build that was driven to a real game
+    — `index-WtgAe9rM.js` 446,719 bytes and `index-8nD4-uIV.css` 39,745 bytes, sha256 equal on
+    both. Vercel's own build produces exactly the bytes that were tested.
+  - All eight light-theme tokens carry real values in the deployed CSS (`--edge:#7c8b86`,
+    `--warn:#a8412c`, …), and **zero** self-referential declarations survive the minifier.
+  - The opponent is in the deployed JS: `chooseOpponentMove`, its four named failure causes,
+    "היריב חושב", the depth control, the `chosen-from`/`chosen-to` classes and the square labels.
+  - The one occurrence of "דירוג" in the whole bundle is the sentence saying depth is *not* a
+    rating. No rating claim shipped.
+
+  What is still not verified is the last step: those bytes **executing in a browser at that
+  origin**. Chromium in this sandbox reaches no external HTTPS host, so the game was driven
+  against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
+  it is not the same as having watched it play there.
+- **The opponent against a real player.** It opens, replies and hands the turn back — driven end
+  to end — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
+  8 makes a game worth playing for any particular player, which is exactly why the UI states a
+  depth and claims no rating.
 - Every detector threshold **against real data**. All synthetic.
 
 ## Not built

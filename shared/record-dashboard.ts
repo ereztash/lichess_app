@@ -13,7 +13,7 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
-import { BUCKETINGS, MIN_BUCKET_N, summarise, type CalibrationSummary, type ScoredDecision } from "./detector";
+import { BUCKETINGS, MIN_BUCKET_N, summarise, type CalibrationSummary, type ScoredDecision } from "./detector.js";
 
 export type BucketReading = {
   key: string;

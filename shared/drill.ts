@@ -9,7 +9,7 @@
  * condition" unreachable: the type requires it, and the runtime guard catches a value that
  * arrived from storage empty or null.
  */
-import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim";
+import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
 
 export class MissingRefutationCondition extends Error {
   constructor(drillId: string) {

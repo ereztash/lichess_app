@@ -12,11 +12,11 @@ import {
   entryStateSchema,
   resultSchema,
   type DecisionAtom,
-} from "../shared/decision-atom";
-import * as service from "../shared/record-service";
-import { RecordError } from "../shared/record-service";
-import type { RecordStore } from "./record";
-import { protectedProcedure, router } from "./_core/trpc";
+} from "../shared/decision-atom.js";
+import * as service from "../shared/record-service.js";
+import { RecordError } from "../shared/record-service.js";
+import type { RecordStore } from "./record.js";
+import { protectedProcedure, router } from "./_core/trpc.js";
 
 /**
  * The API event. Carries every atom field (section 3.1). `result` and `feedback` are present and

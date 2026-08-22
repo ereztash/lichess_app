@@ -17,9 +17,9 @@
  * count, a source, or a question with a fixed shape. An LLM narrating engine output would be the
  * exact failure this layer is most at risk of, and section 7 forbids it outright.
  */
-import type { Claim, DrillSpec, ExternalPointer } from "../shared/claim";
-import { createDrill } from "../shared/drill";
-import { getPostGameLayers } from "./lichess";
+import type { Claim, DrillSpec, ExternalPointer } from "../shared/claim.js";
+import { createDrill } from "../shared/drill.js";
+import { getPostGameLayers } from "./lichess.js";
 
 export const layerCEnabled = () => process.env.LAYER_C_ENABLED === "true";
 

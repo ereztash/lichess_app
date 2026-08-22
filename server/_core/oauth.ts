@@ -1,8 +1,8 @@
-import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "../../shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS, OAUTH_STATE_COOKIE, decodeOAuthState } from "../../shared/const.js";
 import { parse as parseCookieHeader } from "cookie";
 import type { Express, Request, Response } from "express";
-import { getSessionCookieOptions } from "./cookies";
-import { sdk } from "./sdk";
+import { getSessionCookieOptions } from "./cookies.js";
+import { sdk } from "./sdk.js";
 const qp = (req: Request, key: string) =>
   typeof req.query[key] === "string" ? (req.query[key] as string) : undefined;
 export function registerOAuthRoutes(app: Express) {

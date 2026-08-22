@@ -7,3 +7,6 @@ dist/
 .vercel
 .DS_Store
 *.tsbuildinfo
+
+# emitted by tests/server/serverless-entry.test.ts
+.entry-check/

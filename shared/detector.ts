@@ -14,7 +14,7 @@
  * more than MIN_GAP_DIFFERENCE, with at least MIN_BUCKET_N decisions on each side. Those
  * thresholds are not taste: they are set so that SHUFFLED labels produce nothing (GATE-SHUFFLE).
  */
-import type { DecisionAtom } from "./decision-atom";
+import type { DecisionAtom } from "./decision-atom.js";
 
 /** A decision counts as accurate when it cost no more than this. Engine noise, not skill. */
 export const ACCURATE_CP_LOSS = 30;

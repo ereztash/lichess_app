@@ -9,8 +9,8 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
-import { CLAIM_GRADES } from "../shared/claim";
-import { ENGINE_SOURCES, PHASES } from "../shared/decision-atom";
+import { CLAIM_GRADES } from "../shared/claim.js";
+import { ENGINE_SOURCES, PHASES } from "../shared/decision-atom.js";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
