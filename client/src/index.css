@@ -16,7 +16,19 @@
      mark meaning both "your guess" and "the machine's answer" would erase the difference. */
   --chosen: #8a5a12;
   --chosen-rgb: 138, 90, 18;
-  --muted: #60706c;
+  /* Foreground for anything painted ON --blue. White works over the light theme's deep blue and
+     fails over the dark theme's pale one, so the pair has to flip together: measured 2.36:1 for
+     white on the dark theme's #5fb3d4, against the 4.5:1 a 16px label needs. */
+  --on-blue: #ffffff;
+  /* Shadows are cast, not emitted. This used to be --ink-rgb, which the dark theme redefines to
+     a NEAR-WHITE, so the board's drop shadow rendered 87x brighter than the page behind it -- a
+     pale slab offset down and right, which reads as a rendering fault rather than depth. */
+  --shadow-rgb: 23, 34, 31;
+  /* Board coordinates, coloured by the square they sit on rather than inheriting the page ink
+     (which is light in the dark theme, so a rank number on a light square measured 1.70:1). */
+  --coord-on-light: rgba(23, 34, 31, 0.78);
+  --coord-on-dark: rgba(247, 243, 233, 0.82);
+  --muted: #50605c;
   --surface: #f7f3e9;
   /* Real values, not var(--edge). These four tokens used to be declared as var() references to
      THEMSELVES, which is a cycle: the declaration is invalid at computed-value time and the
@@ -76,6 +88,8 @@
   --cream-rgb: 29, 35, 38;
   --chosen: #e0a458;
   --chosen-rgb: 224, 164, 88;
+  --on-blue: #0d1416;
+  --shadow-rgb: 0, 0, 0;
   --muted: #9aa8a4;
   --surface: #1b2124;
   --edge: #7d938e;
@@ -264,10 +278,21 @@ button:not(:disabled) {
   grid-template-columns: minmax(0, 1fr) auto;
   color: rgba(var(--ink-rgb), 0.55);
 }
+/*
+ * The scope wraps rather than truncating.
+ *
+ * It used to be nowrap + ellipsis, which cut every bucket label that ran long -- measured at
+ * both 390px and 1440px, so this was not a small-screen problem: "החלטות תחת פחות מ-45 שניות"
+ * arrived as "החלטות תחת פחות מ-45 ש…". The scope is what the number is ABOUT. A reading whose
+ * subject is elided is a number with no denominator in the sense that matters here, and this
+ * panel exists specifically to say what a figure can and cannot be read to mean.
+ */
 .bucket-scope {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+.bucket-list li {
+  align-items: start;
 }
 .bucket-bar {
   display: block;
@@ -352,7 +377,7 @@ button:not(:disabled) {
 }
 .primary-control {
   background: var(--blue) !important;
-  color: white !important;
+  color: var(--on-blue) !important;
 }
 .icon-control {
   width: 38px;
@@ -413,7 +438,7 @@ button:not(:disabled) {
 }
 .rail-button.prominent {
   background: var(--blue);
-  color: white;
+  color: var(--on-blue);
 }
 .workspace-meta {
   display: flex;
@@ -626,6 +651,15 @@ button:not(:disabled) {
    * viewport, so the first rank -- where most of the pieces are late in a game -- was cut off.
    * The subtrahend is the chrome above and below it: header, meta row, coordinates, note.
    */
+  /*
+   * width:100% is load-bearing, not decorative. .board-stage is a GRID ITEM, and an auto inline
+   * margin cancels the default `stretch`, so without an explicit width the box shrink-to-fits
+   * its content -- which for a chess board means it is sized by the PIECE FONT. Measured: 263px
+   * of an available 342px on a 390px phone, and 504px of an available 826px on a desktop where
+   * the height bound below would have allowed 632px. Proved by bisection: setting the piece font
+   * to 12px collapsed the board to 96px, which a container-sized board could not do.
+   */
+  width: 100%;
   max-width: min(100%, calc(100vh - 268px));
   margin-inline: auto;
 }
@@ -684,7 +718,7 @@ button:not(:disabled) {
   grid-template-rows: repeat(8, 1fr);
   position: relative;
   border: 7px solid var(--ink);
-  box-shadow: 12px 14px 0 rgba(var(--ink-rgb), 0.18);
+  box-shadow: 12px 14px 0 rgba(var(--shadow-rgb), 0.22);
 }
 .board-square {
   /*
@@ -746,21 +780,46 @@ button:not(:disabled) {
   border-radius: 50%;
   background: rgba(var(--blue-rgb), 0.65);
 }
+/*
+ * A ring, not a drop shadow. A single offset shadow leaves three sides of the glyph touching the
+ * square directly, and a white piece on a light square measured 1.37:1 that way -- the outline
+ * is what makes the shape readable, so it has to go all the way round.
+ */
 .piece {
   z-index: 2;
   font: clamp(29px, 5.2vw, 68px)/0.9 Georgia;
   color: var(--piece-dark);
-  text-shadow: 0 1px 0 var(--piece-dark-shadow);
+  text-shadow:
+    0 0 2px var(--piece-dark-shadow),
+    1px 1px 0 var(--piece-dark-shadow),
+    -1px 1px 0 var(--piece-dark-shadow),
+    1px -1px 0 var(--piece-dark-shadow),
+    -1px -1px 0 var(--piece-dark-shadow);
 }
 .piece-w {
   color: var(--piece-light);
-  text-shadow: 0 2px 1px var(--piece-light-shadow);
+  text-shadow:
+    0 0 2px var(--piece-light-shadow),
+    1px 1px 0 var(--piece-light-shadow),
+    -1px 1px 0 var(--piece-light-shadow),
+    1px -1px 0 var(--piece-light-shadow),
+    -1px -1px 0 var(--piece-light-shadow);
 }
 .rank-label,
 .file-label {
   position: absolute;
   z-index: 3;
-  font: 9px "DM Mono";
+  font: 10px "DM Mono";
+}
+/* Coloured by the square, not by the page. Inheriting the page ink put a light label on a light
+   square in the dark theme (1.70:1) and a dark one on a dark square in the light theme (2.32:1). */
+.light-square .rank-label,
+.light-square .file-label {
+  color: var(--coord-on-light);
+}
+.dark-square .rank-label,
+.dark-square .file-label {
+  color: var(--coord-on-dark);
 }
 .rank-label {
   top: 3px;
@@ -819,7 +878,11 @@ button:not(:disabled) {
   background: transparent;
   color: var(--blue);
   display: flex;
+  align-items: center;
   gap: 5px;
+  /* Measured 70x17. WCAG 2.2 AA (2.5.8) wants 24x24 as the floor for a pointer target. */
+  min-height: 24px;
+  padding-block: 4px;
 }
 .analysis-stack {
   min-width: 0;
@@ -1030,11 +1093,17 @@ button:not(:disabled) {
 }
 .move-cell.active {
   background: var(--blue);
-  color: white;
+  color: var(--on-blue);
+}
+.move-cell.active .move-number {
+  color: var(--on-blue);
+  opacity: 0.85;
 }
 .move-number {
-  color: var(--muted);
-  font-size: 9px;
+  /* --muted against the rail background measured 1.04:1 -- the move number was on screen and
+     unreadable, which is worse than absent because the layout claims it is telling you something. */
+  color: rgba(var(--ink-rgb), 0.72);
+  font-size: 10px;
 }
 @media (max-width: 1050px) {
   .workbench {
@@ -1063,7 +1132,9 @@ button:not(:disabled) {
   .control-rail {
     min-height: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    /* There are five tools. Four columns orphaned the fifth onto a row of its own, which read as
+       a layout fault rather than a tool. */
+    grid-template-columns: repeat(5, 1fr);
     border-left: 0;
     margin-bottom: 16px;
   }
@@ -1627,4 +1698,20 @@ button:not(:disabled) {
   font: 11px "DM Mono";
   color: var(--blue);
   padding: 6px 0;
+}
+
+/* ---- Keyboard focus -------------------------------------------------------------------- */
+/*
+ * The browser default here was a 1px auto outline, which on this palette is nearly invisible --
+ * and every control in the decision loop is reachable by keyboard. :focus-visible so a mouse
+ * click does not leave a ring behind.
+ */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 1px;
+}
+.board-square:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: -3px;
 }
