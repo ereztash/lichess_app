@@ -13,7 +13,10 @@ import { describe, expect, it } from "vitest";
 import {
   decisionsFromGame,
   diagnoseImportedGames,
+  worstBucketVerdict,
   worstMeasurableBucket,
+  type ImportDiagnostic,
+  type ImportedBucketReading,
   type ImportedGameInput,
 } from "../../shared/import-diagnostic";
 import { ACCURATE_CP_LOSS, MIN_BUCKET_N } from "../../shared/detector";
@@ -192,5 +195,67 @@ describe("silence has a reason, and every reading has its n", () => {
         expect(worst!.accurateRate).toBeLessThanOrEqual(b.accurateRate);
       }
     }
+  });
+});
+
+describe("the lowest number is not automatically a finding", () => {
+  /** A diagnostic assembled directly, so the rates and n are exactly what the test means. */
+  const withRates = (rates: Array<[number, number]>): ImportDiagnostic => ({
+    buckets: rates.map(([accurateRate, n], i): ImportedBucketReading => ({
+      key: `b${i}`,
+      scope: `bucket ${i}`,
+      n,
+      accurateRate,
+      measurable: true,
+      unmeasurableReason: null,
+    })),
+    scored: rates.reduce((sum, [, n]) => sum + n, 0),
+    missingClockData: false,
+  });
+
+  it("refuses to name a weakest bucket when the rates are all within noise", () => {
+    /*
+     * Six rates spread over two points, each read over 40 decisions. There is a minimum -- there
+     * is always a minimum -- and calling it the player's weakness is calling the sampling error a
+     * finding. This is the state Section 4.5 separates from "not enough decisions": the decisions
+     * are there, and they say nothing.
+     */
+    const verdict = worstBucketVerdict(
+      withRates([[0.62, 40], [0.61, 40], [0.63, 40], [0.62, 40], [0.61, 40], [0.62, 40]]),
+    )!;
+    expect(verdict.separable).toBe(false);
+    expect(verdict.separation).toBeLessThan(verdict.threshold);
+  });
+
+  it("names it when the gap is large enough to clear two standard errors", () => {
+    const verdict = worstBucketVerdict(withRates([[0.30, 120], [0.75, 120], [0.78, 120]]))!;
+    expect(verdict.separable).toBe(true);
+    expect(verdict.worst.accurateRate).toBe(0.30);
+    expect(verdict.runnerUp?.accurateRate).toBe(0.75);
+  });
+
+  it("gets stricter as the sample gets smaller, not looser", () => {
+    // The same eight-point spread: unreadable at n=30, a finding at n=600. If this inverted, the
+    // screen would be most confident exactly where it knows least.
+    const spread: Array<[number, number]> = [[0.55, 30], [0.63, 30]];
+    const wide: Array<[number, number]> = [[0.55, 600], [0.63, 600]];
+    expect(worstBucketVerdict(withRates(spread))!.separable).toBe(false);
+    expect(worstBucketVerdict(withRates(wide))!.separable).toBe(true);
+  });
+
+  it("will not call a lone bucket the worst, having nothing to compare it to", () => {
+    const verdict = worstBucketVerdict(withRates([[0.4, 100]]))!;
+    expect(verdict.runnerUp).toBeNull();
+    expect(verdict.separable).toBe(false);
+  });
+
+  it("returns null when nothing is measurable at all", () => {
+    expect(worstBucketVerdict(diagnoseImportedGames([]))).toBeNull();
+  });
+
+  it("agrees with worstMeasurableBucket about which one is lowest", () => {
+    // Two functions, one ordering. If they drift the screen names one bucket and explains another.
+    const d = withRates([[0.7, 50], [0.3, 50], [0.5, 50]]);
+    expect(worstBucketVerdict(d)!.worst.key).toBe(worstMeasurableBucket(d)!.key);
   });
 });

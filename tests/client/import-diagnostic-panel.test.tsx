@@ -1,0 +1,165 @@
+// @vitest-environment jsdom
+/**
+ * The screen that reads a player's past games, and the sentence it refuses to write.
+ *
+ * The failure this guards is not a crash. It is a screen that looks like a diagnosis: six rows of
+ * percentages with a confident sentence underneath naming the player's weakness. Every number on
+ * it can be correct and the screen can still be dishonest, in three separate ways:
+ *
+ *   1. by dropping the calibration column, so an accuracy table reads as a calibration report;
+ *   2. by omitting the buckets it could not measure, so a partial reading looks complete;
+ *   3. by naming the lowest of six numbers as a weakness when the six are within their own
+ *      sampling error.
+ *
+ * The third is the one that needed a new rule rather than a new sentence, and most of this file
+ * is about it.
+ */
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { ImportDiagnosticPanel } from "../../client/src/components/ImportDiagnostic";
+import { BUCKETINGS, MIN_BUCKET_N } from "../../shared/detector";
+import type { ImportDiagnostic, ImportedBucketReading } from "../../shared/import-diagnostic";
+
+/** A reading assembled directly, so what the screen is given is exactly what the test means. */
+function reading(
+  rows: Array<Partial<ImportedBucketReading>>,
+  over: Partial<ImportDiagnostic> = {},
+): ImportDiagnostic {
+  const buckets = rows.map((r, i): ImportedBucketReading => ({
+    key: BUCKETINGS[i]?.key ?? `b${i}`,
+    scope: BUCKETINGS[i]?.scope ?? `bucket ${i}`,
+    n: 60,
+    accurateRate: 0.6,
+    measurable: true,
+    unmeasurableReason: null,
+    ...r,
+  }));
+  return {
+    buckets,
+    scored: buckets.reduce((sum, b) => sum + b.n, 0),
+    missingClockData: false,
+    ...over,
+  };
+}
+
+/** Six rows whose rates sit within a couple of points of each other. */
+const FLAT = reading([
+  { accurateRate: 0.62 }, { accurateRate: 0.61 }, { accurateRate: 0.63 },
+  { accurateRate: 0.62 }, { accurateRate: 0.61 }, { accurateRate: 0.62 },
+]);
+
+/** One bucket genuinely far below the rest, read over enough decisions to say so. */
+const SEPARATED = reading([
+  { accurateRate: 0.3, n: 150 }, { accurateRate: 0.78, n: 150 }, { accurateRate: 0.8, n: 150 },
+  { accurateRate: 0.79, n: 150 }, { accurateRate: 0.81, n: 150 }, { accurateRate: 0.77, n: 150 },
+]);
+
+describe("the column that stays empty", () => {
+  it("shows an unmeasured calibration cell on every row, measurable rows included", () => {
+    /*
+     * On every row, not only the unreadable ones. A gap missing from the thin rows reads as
+     * "not yet"; a gap missing from all six is the actual state -- nobody was ever asked for a
+     * confidence in a game already played, so there is no gap to compute from this data at all.
+     */
+    render(<ImportDiagnosticPanel diagnostic={SEPARATED} />);
+    expect(screen.getAllByText(/פער כיול — לא נמדד/)).toHaveLength(6);
+  });
+
+  it("says why the column is empty, and that importing more will not fill it", () => {
+    render(<ImportDiagnosticPanel diagnostic={SEPARATED} />);
+    const caveat = screen.getByText(/דיוק מהלכים מול המנוע/);
+    expect(caveat.textContent).toMatch(/לפני/);
+    expect(caveat.textContent).toMatch(/עד שתרשמו החלטות/);
+  });
+});
+
+describe("every bucket is shown, including the ones it could not read", () => {
+  it("renders all six rows when half of them are unmeasurable", () => {
+    // A screen that omits what it could not measure looks like a screen that measured everything.
+    const half = reading([
+      {}, {}, {},
+      { measurable: false, accurateRate: null, n: 4, unmeasurableReason: "too-few" },
+      { measurable: false, accurateRate: null, n: 0, unmeasurableReason: "no-clock-data" },
+      { measurable: false, accurateRate: null, n: 0, unmeasurableReason: "no-clock-data" },
+    ]);
+    const { container } = render(<ImportDiagnosticPanel diagnostic={half} />);
+    expect(container.querySelectorAll(".bucket-list li")).toHaveLength(6);
+  });
+
+  it("distinguishes a wait from a source that can never supply the field", () => {
+    const half = reading([
+      { measurable: false, accurateRate: null, n: 4, unmeasurableReason: "too-few" },
+      { measurable: false, accurateRate: null, n: 0, unmeasurableReason: "no-clock-data" },
+    ]);
+    render(<ImportDiagnosticPanel diagnostic={half} />);
+    // The wait names the number still needed; the other names the reason and the real fix.
+    expect(screen.getByText(new RegExp(`4 החלטות בדלי, נדרשות ${MIN_BUCKET_N}`))).toBeTruthy();
+    const noClock = screen.getByText(/אין נתוני שעון/);
+    expect(noClock.textContent).toMatch(/לא יעזור/);
+  });
+});
+
+describe("the observation, and when there is none", () => {
+  it("names the weakest bucket, and the one it beat, both with their n", () => {
+    // Scoped to the sentence: the scope also appears in its own row, and an unscoped query would
+    // pass on the row alone -- that is, on a screen whose sentence named nothing.
+    const { container } = render(<ImportDiagnosticPanel diagnostic={SEPARATED} />);
+    const sentence = container.querySelector(".import-observation")!;
+    expect(sentence.textContent).toMatch(/הדיוק הנמוך ביותר שנמדד/);
+    expect(sentence.querySelector("strong")?.textContent).toBe(BUCKETINGS[0].scope);
+    // Both figures, both denominators: the comparison is the claim, so neither half may go bare.
+    expect(sentence.querySelectorAll("[data-provenance]")).toHaveLength(2);
+    expect(sentence.textContent).toMatch(/n=150/);
+  });
+
+  it("names no weakest bucket when the rates are within their own noise", () => {
+    /*
+     * The load-bearing assertion of the file. FLAT has a minimum -- six measurements always do --
+     * and a screen built to fill its slot would print it. This one prints why it will not.
+     */
+    render(<ImportDiagnosticPanel diagnostic={FLAT} />);
+    expect(screen.queryByText(/הדיוק הנמוך ביותר שנמדד/)).toBeNull();
+    expect(screen.getByText(/לא נבדל מהשאר/)).toBeTruthy();
+  });
+
+  it("separates 'nothing to say' from 'not enough to say it'", () => {
+    // Section 4.5: these are different states and must not render the same.
+    const thin = reading([{ measurable: false, accurateRate: null, n: 7, unmeasurableReason: "too-few" }]);
+    render(<ImportDiagnosticPanel diagnostic={thin} />);
+    expect(screen.getByText(new RegExp(`אף דלי לא הגיע ל-${MIN_BUCKET_N}`))).toBeTruthy();
+    expect(screen.queryByText(/לא נבדל מהשאר/)).toBeNull();
+  });
+
+  it("says nothing was read at all when nothing was", () => {
+    render(<ImportDiagnosticPanel diagnostic={{ buckets: [], scored: 0, missingClockData: true }} />);
+    expect(screen.getByText(/לא נקראה אף החלטה/)).toBeTruthy();
+  });
+
+  it("will not call a single readable bucket the worst one", () => {
+    const lone = reading([
+      { accurateRate: 0.4, n: 90 },
+      { measurable: false, accurateRate: null, n: 3, unmeasurableReason: "too-few" },
+    ]);
+    render(<ImportDiagnosticPanel diagnostic={lone} />);
+    expect(screen.getByText(/אין לו למה להשוות/)).toBeTruthy();
+  });
+});
+
+describe("what this screen must never grow", () => {
+  it("renders no target, no baseline and no verdict on the player", async () => {
+    /*
+     * Asserted against the source, because the failure is a future addition rather than today's
+     * output. These are the three shapes that turn a reading into a scorecard, and the brief this
+     * screen was built under names them as things not to build.
+     */
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const source = readFileSync(
+      resolve(process.cwd(), "client/src/components/ImportDiagnostic.tsx"),
+      "utf8",
+    ).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    for (const forbidden of ["יעד", "בסיס", "ציון כולל", "רמה", "דירוג"]) {
+      expect(source, `the diagnostic screen reaches for "${forbidden}"`).not.toContain(forbidden);
+    }
+  });
+});

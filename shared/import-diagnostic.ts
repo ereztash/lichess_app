@@ -176,10 +176,89 @@ function usesTime(key: string): boolean {
 export function worstMeasurableBucket(
   diagnostic: ImportDiagnostic,
 ): ImportedBucketReading | null {
-  const measurable = diagnostic.buckets.filter(
-    (b): b is ImportedBucketReading & { accurateRate: number } =>
-      b.measurable && b.accurateRate !== null,
+  const readable = measurableBuckets(diagnostic);
+  if (!readable.length) return null;
+  return readable.reduce((worst, b) => (b.accurateRate < worst.accurateRate ? b : worst));
+}
+
+/**
+ * A bucket that actually has a rate.
+ *
+ * Named and exported so a caller does not have to assert it. The screen renders `accurateRate`
+ * into a component that requires a number, and a `!` there would be the component promising
+ * something the type did not -- exactly the shape of claim this module exists to prevent.
+ */
+export type ReadableBucket = ImportedBucketReading & { accurateRate: number };
+
+function measurableBuckets(diagnostic: ImportDiagnostic): ReadableBucket[] {
+  return diagnostic.buckets.filter(
+    (b): b is ReadableBucket => b.measurable && b.accurateRate !== null,
   );
-  if (!measurable.length) return null;
-  return measurable.reduce((worst, b) => (b.accurateRate < worst.accurateRate ? b : worst));
+}
+
+interface VerdictFigures {
+  worst: ReadableBucket;
+  /** How far apart the two lowest are, as a difference of rates. Zero with no runner-up. */
+  separation: number;
+  /** Two standard errors of that difference. */
+  threshold: number;
+}
+
+/**
+ * A union rather than a boolean field, so that `separable` carries the runner-up with it.
+ *
+ * The screen's sentence names both buckets -- "lowest here, against this next to it" -- and a
+ * nullable runnerUp beside a boolean would leave the component asserting the connection between
+ * them with a `!`. There is no `!` to write if the type says it.
+ *
+ * When `separable` is false the screen must NOT name a weakest bucket. Six rates of 62, 61, 63,
+ * 62, 61 and 62 have a minimum, and naming it is naming the noise. That is a different state
+ * from "not enough decisions" and has to read differently.
+ */
+export type WorstBucketVerdict =
+  | (VerdictFigures & { separable: true; runnerUp: ReadableBucket })
+  | (VerdictFigures & { separable: false; runnerUp: ReadableBucket | null });
+
+/**
+ * Whether the worst bucket is distinguishable from the next-worst, or merely the lowest number.
+ *
+ * MIN_BUCKET_N makes each rate readable on its own. It says nothing about whether two readable
+ * rates differ, and "your weakest area" is a claim about a difference, not about a rate.
+ *
+ * The test is the ordinary one for two proportions: the standard error of a difference is
+ *
+ *     sqrt( p1(1-p1)/n1 + p2(1-p2)/n2 )
+ *
+ * and the separation has to clear two of them. Two rather than one because one is a coin flip
+ * dressed as a finding; this is the same reasoning that put MIN_BUCKET_N at 30 rather than at
+ * whatever number made the screen fill up soonest.
+ *
+ * At n = 30 in both buckets and rates near 60%, that threshold is roughly 25 percentage points --
+ * deliberately hard to clear. A bucket that clears it is a real difference in the player's games.
+ * A bucket that does not is a screen that should say nothing, and the caller must let it.
+ */
+export function worstBucketVerdict(diagnostic: ImportDiagnostic): WorstBucketVerdict | null {
+  const readable = measurableBuckets(diagnostic);
+  if (!readable.length) return null;
+
+  const sorted = [...readable].sort((a, b) => a.accurateRate - b.accurateRate);
+  const worst = sorted[0];
+  const runnerUp = sorted[1] ?? null;
+
+  if (!runnerUp) {
+    /*
+     * One readable bucket is a rate, not a comparison. There is nothing for it to be worse than,
+     * so it cannot be called the worst -- and the screen has to say the rate without the word.
+     */
+    return { worst, runnerUp: null, separation: 0, threshold: 0, separable: false };
+  }
+
+  const variance = (p: number, n: number) => (p * (1 - p)) / n;
+  const threshold =
+    2 * Math.sqrt(variance(worst.accurateRate, worst.n) + variance(runnerUp.accurateRate, runnerUp.n));
+  const separation = runnerUp.accurateRate - worst.accurateRate;
+
+  return separation > threshold
+    ? { worst, runnerUp, separation, threshold, separable: true }
+    : { worst, runnerUp, separation, threshold, separable: false };
 }

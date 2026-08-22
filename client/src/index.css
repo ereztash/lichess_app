@@ -405,9 +405,40 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/*
+ * Wraps. It used to be `white-space: nowrap`, which suits "12 decisions, 30 needed" and breaks
+ * the moment the reason is a sentence -- and the no-clock reason is a sentence, because it has to
+ * name a fix that actually exists. Measured at 390px: the text laid out 628px wide inside a 340px
+ * column and pushed the document to 679px, so the page scrolled sideways. That is the common path
+ * rather than an edge case: a local game against Stockfish has no clock at all.
+ */
 .bucket-short {
   font-size: 10px;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+/*
+ * The import diagnostic is the record's table with one column replaced. Three columns on every
+ * row including the unmeasurable ones, because the third column -- the gap that was never stated
+ * -- is the point of the screen and must not vanish on the rows that have least to say.
+ */
+.import-diagnostic .bucket-list li,
+.import-diagnostic .bucket-list li.unmeasurable {
+  grid-template-columns: minmax(0, 1fr) auto;
+  row-gap: 4px;
+}
+.import-diagnostic .bucket-absent {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  line-height: 1.35;
+  color: rgba(var(--ink-rgb), 0.45);
+  font-variant-numeric: tabular-nums;
+}
+.import-observation {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .record-mode {
   margin-top: 10px;
