@@ -181,6 +181,29 @@ A position bank drawn from games the player has never seen would remove this. Th
   not mounted: no router imports it, so nothing in the deployed API can reach it at all.
 - **Cold start with a real player.** The numbers above assume a planted effect far stronger and
   cleaner than a real one is likely to be. Expect the real cold start to be longer.
+- **The import diagnostic against a real Lichess account.** Every part of the path is tested with
+  synthetic games and a stub engine -- PGN clock extraction, colour matching, batch scoring,
+  bucketing, the screen. No real username has been searched, no real PGN scored, and the
+  end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
+  the logic; what nobody has watched is the run.
+- **Anything on a phone.** No measurement in this document was taken on a handset. The import is
+  the case where that matters most, because it is the only screen that asks the user to wait, and
+  its cost scales with a device speed nobody here has measured.
+
+### What stopped being unverified
+
+- **Fonts are served from the deployment.** The build ships nine `@font-face` files under
+  `dist/public/fonts/`, and all nine `src` URLs resolve to files that exist. Counted in the built
+  output: zero references to `googleapis` or `gstatic`, zero external `<link>` elements, zero
+  external `@import` rules. The only host the built JavaScript can call is `lichess.org`
+  (`json-schema.org` and `react.dev` appear only inside library error strings).
+- **User-reachable strings are in the app's language.** 117 Hebrew strings against three
+  deliberate Latin masthead labels (`DECISION LAB`, `COMMIT · THEN REVEAL`, `STOCKFISH 18`). The
+  store's English invariant messages -- `append-only: …` -- no longer reach any screen
+  unmediated; ten call sites rendered them raw before this pass.
+
+Both of those were checked against the built output rather than the source, which is the only
+place the question can actually be settled.
 
 ## Engine-scored games (phase 1 of the merge)
 
