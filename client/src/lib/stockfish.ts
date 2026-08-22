@@ -1,5 +1,8 @@
 import {
   emptyLine,
+  // Moved to engine-line.ts, which has no asset imports, so the self-check can run the same
+  // parser the application runs instead of keeping a second copy of it.
+  parseInfo,
   type EngineLine,
   type EngineStatus,
   type WorkerFactory,
@@ -31,23 +34,6 @@ const defaultWorkerFactory: WorkerFactory = () => {
   //   #<raw wasm>,worker -> silent
   return new Worker(`${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)}`) as unknown as WorkerLike;
 };
-
-function parseInfo(raw: string, fen: string): EngineLine | undefined {
-  if (!raw.startsWith("info ") || !raw.includes(" score ") || !raw.includes(" pv "))
-    return undefined;
-  if (/\bmultipv\s+(?!1\b)/.test(raw)) return undefined;
-  const score = raw.match(/\bscore\s+(cp|mate)\s+(-?\d+)/);
-  const depth = raw.match(/\bdepth\s+(\d+)/);
-  const pv = raw.split(" pv ")[1]?.trim().split(/\s+/) ?? [];
-  if (!score || !depth || !pv.length) return undefined;
-  return {
-    scoreCp: score[1] === "cp" ? Number(score[2]) : Number(score[2]) * 10000,
-    mate: score[1] === "mate" ? Number(score[2]) : undefined,
-    depth: Number(depth[1]),
-    pv,
-    fen,
-  };
-}
 
 export class StockfishClient {
   private worker: WorkerLike | null = null;

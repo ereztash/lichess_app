@@ -633,10 +633,6 @@ The confidence row is still below the fold on both. That is not the same defect:
 
 ## Still unverified
 
-- The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
-  bundle and the wasm is served correctly (`application/wasm`, 7,295,411 bytes, HTTP 200), and
-  the engine was driven successfully against a byte-identical local build — but the development
-  sandbox cannot drive a browser against the deployed origin.
 - `DrizzleRecordStore` against **MySQL**. `DATABASE_URL` has never been set in any environment
   this build has run in, so it has never executed a statement.
 - **Layer C against live Lichess.** Its tests stub `fetch`.
@@ -690,28 +686,62 @@ The confidence row is still below the fold on both. That is not the same defect:
   origin**. Chromium in this sandbox reaches no external HTTPS host, so the game was driven
   against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
   it is not the same as having watched it play there.
-- **The playable opening screen at the deployed origin.** Narrowed as far as this sandbox allows,
-  and the narrowing is worth stating precisely because it is the closest this gap has come to
-  closing.
-
-  Measured against `https://lichessapp.vercel.app` after the merge of `71b01ad`:
+- ~~**The engine loading and answering at a deployed origin.**~~ **CLOSED.** Reported for the
+  entire project as never observed. The in-app self-check was built for exactly this, and it
+  answered on the first run — from the owner's own machine, Chrome 151 on Windows, 2026-08-22
+  16:15:02Z, ten checks and ten passes:
 
   ```
-  /api/health            -> 200 {"ok":true}
-  /assets/index-Cc0KNIH1.js   sha256 4531ee8f…7e6d127   IDENTICAL to the local build of main
-  /assets/index-BfqYvo0A.css  sha256 6f3ca3b8…2d3b1a74  IDENTICAL to the local build of main
+  שרת האפליקציה:            סטטוס 401 — הנתיב חי
+  WebAssembly:              נתמך, ומודול בדיקה נטען בהצלחה
+  Web Worker:               אפשר ליצור Worker
+  קובץ המנוע (JS):          200, 21429 בתים
+  קובץ המנוע (wasm):        7295411 בתים, application/wasm, חתימה תקינה
+  המנוע עונה (uciok):       ענה תוך 0.3 שניות
+  המנוע מוכן (readyok):     דיווח מוכנות
+  המנוע מחזיר מהלך:         החזיר e2e4 בעומק 8 מעמדת הפתיחה
+  שמירת הרשומה:             ההחלטות נשמרות בדפדפן הזה וישרדו סגירת כרטיסייה
   ```
 
-  So production is serving *the same bytes* that were driven through three complete moves with
-  Stockfish replying, the self-check panel, and the blocked-storage path in Chromium. What is
-  still not observed is those bytes **executing in a browser at that origin**. Chromium here
-  fails with `net::ERR_CONNECTION_RESET` even through the agent proxy, and the proxy's
-  `recentRelayFailures` records no entry for the host — the CONNECT never arrives, so the browser
-  is failing before the proxy rather than being refused by it. curl reaches the same origin fine,
-  which is why the byte comparison above is possible at all.
+  So: WebAssembly instantiates, a Worker is constructible, both engine files are fetched intact
+  over HTTPS from the deployment, and Stockfish greets, reports ready and returns a move — at a
+  deployed origin, in a browser that is not this sandbox's. `crossOriginIsolated=false` there, as
+  expected: this build ships the single-threaded engine and needs no COOP/COEP.
 
-  The in-app self-check exists precisely for this gap: it is the only instrument that can report
-  from the deployed origin, because it runs in the player's browser rather than in this one.
+  The scope, stated precisely. The report's `origin` was
+  `lichess-dx5fu7ele-ereztashs-projects.vercel.app`, a **pinned preview deployment**
+  (`dpl_G9mUkVAuj76NesvWP9XA9t8MKudj`) serving `index-Cc0KNIH1.js` — the bundle from before the
+  read options landed, not what `lichessapp.vercel.app` serves. That does not weaken the finding:
+  every file those ten checks exercise (`stockfish.ts`, `self-check.ts`, `local-record-store.ts`,
+  `engine-line.ts`, `recordRouter.ts`) is byte-identical between that commit and current main —
+  the diff is four files, all of them the commitment screen and its stylesheet. What the run does
+  NOT cover is the chip commitment screen and the sticky submit at a deployed origin.
+
+  A caution worth keeping: a `lichess-<hash>-` URL is pinned to one deployment forever. Testing
+  on one reports on a build that may be several merges old, which is a way to chase a fixed bug.
+
+  **This entry was narrowed after a code review, and the narrowing is the point.** It was first
+  written as "the engine producing an evaluation", which the run does not support: at the time,
+  `checkEngine` waited for `bestmove` and ignored every `info ... score ... pv ...` line, so it
+  never exercised the parser that turns a search into the `EngineLine` the reveal renders. An
+  engine can return a move while that line never arrives or never parses. The claim was wider
+  than its measurement — R1, in the document whose subject is R1 — and the review was right.
+
+  Two things followed. The claim is now "loading and answering", which is what ten passes
+  actually showed. And the instrument grew a check rather than the claim shrinking alone:
+  `parseInfo` moved from `stockfish.ts` (unimportable for values without pulling the 7MB wasm
+  into the initial graph) to `engine-line.ts`, and the self-check now collects the `info` lines
+  emitted during its depth-8 search and runs **the application's own parser** over them, as an
+  eleventh result. A move with no evaluation behind it now fails, and says so. The next run at a
+  deployed origin can close what this one could not.
+
+- **An evaluation parsed at a deployed origin.** The self-check now measures it — the eleventh
+  check runs `parseInfo` over the `info` lines of its own search — but that check did not exist
+  when the run above was made, so no report has carried it yet.
+- **The chip commitment screen and the sticky submit at a deployed origin.** Both are verified
+  against the built asset in this sandbox, at the owner's own window size (1280x551: submit
+  visible at y=498, board square and fully on screen, a move recorded and revealed) — but the
+  self-check run above predates them, so neither has been observed at a deployed origin.
 - **The opponent against a real player.** It opens, replies and hands the turn back — driven end
   to end, now including three consecutive moves from the opening position of a freshly loaded
   page — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
