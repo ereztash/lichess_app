@@ -1,4 +1,90 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;700&family=Noto+Sans+Hebrew:wght@400;600;700;800&display=swap");
+/*
+ * Fonts, self-hosted.
+ *
+ * This was an @import from fonts.googleapis.com, which handed Google every visitor's IP and
+ * referrer on every page load -- in a product whose whole premise is holding a player's own
+ * reasoning. docs/FINDINGS.md had it filed under "Not built" for exactly that reason.
+ *
+ * Only the hebrew and latin subsets are shipped. cyrillic-ext, greek-ext and latin-ext are
+ * dropped: nothing in this app renders them, and they were two thirds of the bytes.
+ *
+ * DM Mono 700 is absent because it does not exist. The old @import requested `wght@400;700`
+ * and Google served 400 only -- the family has no bold. Every `font: 700 ... "DM Mono", ui-monospace, Menlo, Consolas, monospace` in this
+ * stylesheet was already being synthesised by the browser, before this change and after it.
+ */
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-mono-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-400-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-600-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-700-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-800-hebrew.woff2') format('woff2');
+  unicode-range: U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: 'Noto Sans Hebrew';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/noto-sans-hebrew-800-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 :root {
@@ -367,13 +453,13 @@ button:not(:disabled) {
 }
 .brand-name {
   margin: 0;
-  font: 700 15px "DM Mono";
+  font: 700 15px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.12em;
 }
 .brand-lockup span,
 .header-reading span {
   color: var(--muted);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .header-reading {
   display: flex;
@@ -414,7 +500,7 @@ button:not(:disabled) {
 .rail-label {
   padding: 10px 12px;
   color: var(--muted);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 /*
  * Icon above label, one fixed height for every button.
@@ -465,7 +551,7 @@ button:not(:disabled) {
 .workspace-meta p {
   margin: 0;
   color: var(--blue);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .workspace-meta h1 {
   margin: 4px 0 0;
@@ -499,7 +585,7 @@ button:not(:disabled) {
 .drawer-heading b {
   display: block;
   color: var(--blue);
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-heading button,
 .drawer-actions button {
@@ -512,7 +598,7 @@ button:not(:disabled) {
   margin-top: 10px;
   border-radius: 0;
   background: var(--cream);
-  font: 11px/1.5 "DM Mono";
+  font: 11px/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-actions {
   display: flex;
@@ -718,12 +804,12 @@ button:not(:disabled) {
   left: 2px;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: white;
   mix-blend-mode: difference;
 }
 .eval-marker {
-  font: 8px "DM Mono";
+  font: 8px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 .board-grid {
@@ -851,7 +937,7 @@ button:not(:disabled) {
 .file-label {
   position: absolute;
   z-index: 3;
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 /* Coloured by the square, not by the page. Inheriting the page ink put a light label on a light
    square in the dark theme (1.70:1) and a dark one on a dark square in the light theme (2.32:1). */
@@ -893,7 +979,7 @@ button:not(:disabled) {
   grid-template-columns: repeat(8, 1fr);
   padding: 0 8px;
   color: var(--muted);
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   direction: ltr;
 }
 .board-coordinates span {
@@ -942,7 +1028,7 @@ button:not(:disabled) {
   display: flex;
   gap: 6px;
   color: var(--accent-soft);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-row {
   display: flex;
@@ -956,10 +1042,10 @@ button:not(:disabled) {
   font-size: 11px;
 }
 .score-number {
-  font: 700 40px "DM Mono";
+  font: 700 40px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .engine-status {
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-caption {
   color: var(--edge-soft);
@@ -981,14 +1067,14 @@ button:not(:disabled) {
   display: flex;
   justify-content: space-between;
   color: var(--edge);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-line {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   padding-top: 10px;
-  font: 13px "DM Mono";
+  font: 13px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-first,
 .data-chip,
@@ -1010,7 +1096,7 @@ button:not(:disabled) {
   gap: 8px;
   align-items: center;
   padding-top: 10px;
-  font: 11px "DM Mono";
+  font: 11px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .material-track {
   height: 7px;
@@ -1040,7 +1126,7 @@ button:not(:disabled) {
   align-items: center;
   gap: 5px;
   color: var(--edge);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .layer-title small,
 .color-toggle {
@@ -1055,7 +1141,7 @@ button:not(:disabled) {
   display: flex;
   gap: 6px;
   padding-top: 8px;
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .reply-strip span {
   padding: 5px;
@@ -1076,10 +1162,10 @@ button:not(:disabled) {
 .cloud-score {
   display: block;
   color: var(--blue);
-  font: 700 20px "DM Mono";
+  font: 700 20px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .cloud-pv {
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .layer-error {
   color: var(--warn);
@@ -1110,7 +1196,7 @@ button:not(:disabled) {
 }
 .timeline-title span {
   color: var(--muted);
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .timeline-controls {
   display: flex;
@@ -1131,7 +1217,7 @@ button:not(:disabled) {
   border: 0;
   border-left: 1px solid rgba(var(--ink-rgb), 0.15);
   background: transparent;
-  font: 12px "DM Mono";
+  font: 12px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .move-cell.active {
   background: var(--blue);
@@ -1411,7 +1497,7 @@ button:not(:disabled) {
 }
 .commitment-tension-basis {
   margin: 0;
-  font: 0.62rem "DM Mono";
+  font: 0.62rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   opacity: 0.72;
 }
 /*
@@ -1962,7 +2048,7 @@ button:not(:disabled) {
   gap: 14px;
 }
 .new-game-setup h3 {
-  font: 700 12px/1 "DM Mono";
+  font: 700 12px/1 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.08em;
 }
 .setup-field {
@@ -1973,7 +2059,7 @@ button:not(:disabled) {
   gap: 8px;
 }
 .setup-field legend {
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
   padding: 0;
 }
@@ -1988,7 +2074,7 @@ button:not(:disabled) {
   padding: 8px 12px;
   border: 1px solid rgba(var(--ink-rgb), 0.2);
   background: transparent;
-  font: 700 13px "DM Mono";
+  font: 700 13px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .depth-row .selected {
   background: var(--blue);
@@ -1998,7 +2084,7 @@ button:not(:disabled) {
   padding: 8px 16px;
 }
 .setup-note {
-  font: 10px/1.5 "Noto Sans Hebrew";
+  font: 10px/1.5 "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--muted);
 }
 .setup-actions {
@@ -2011,7 +2097,7 @@ button:not(:disabled) {
   padding: 8px 14px;
 }
 .opponent-thinking {
-  font: 11px "DM Mono";
+  font: 11px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
   padding: 6px 0;
 }
@@ -2058,7 +2144,7 @@ button:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 /* The step's own bar. Colour never carries the state alone -- "כאן" is text. */
@@ -2079,7 +2165,7 @@ button:not(:disabled) {
   font-weight: 700;
 }
 .loop-here {
-  font: 8px "DM Mono";
+  font: 8px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
 }
 .loop-headline {
@@ -2089,7 +2175,7 @@ button:not(:disabled) {
 }
 .loop-basis {
   margin: 0;
-  font: 0.62rem "DM Mono";
+  font: 0.62rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   opacity: 0.7;
 }
 
@@ -2119,7 +2205,7 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font: 0.68rem "DM Mono";
+  font: 0.68rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
 }
 .context-why ul {
@@ -2139,7 +2225,7 @@ button:not(:disabled) {
   padding-inline: 12px;
   border: 1px solid var(--hairline-strong);
   background: transparent;
-  font: 0.7rem "DM Mono";
+  font: 0.7rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: inherit;
 }
 
@@ -2169,6 +2255,137 @@ button:not(:disabled) {
   }
 }
 
+/* ---- The 404 and the error boundary ------------------------------------------------------ */
+/*
+ * Both shipped in English on a hard-coded light slate palette, inside a Hebrew RTL themed app.
+ * Every colour below is a token, so both screens follow the theme rather than pinning one.
+ */
+.not-found,
+.boundary {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.not-found-card,
+.boundary-card {
+  width: 100%;
+  max-width: 34rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: clamp(20px, 5vw, 32px);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface);
+}
+.not-found-mark,
+.boundary-card > svg {
+  color: var(--warn);
+}
+.not-found-code {
+  margin: 0;
+  font: 700 2.5rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.not-found h1,
+.boundary h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.not-found-body,
+.boundary-body {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.not-found-home,
+.boundary-reload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding-inline: 14px;
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: var(--on-blue);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+/* The trace is kept and demoted, not removed: a report without it cannot be acted on. */
+.boundary-trace {
+  width: 100%;
+  margin-top: 4px;
+}
+.boundary-trace summary {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font: 0.7rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--blue);
+}
+.boundary-trace pre {
+  margin-top: 8px;
+  max-height: 40vh;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--cream);
+  font: 0.66rem/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---- When the reveal fails --------------------------------------------------------------- */
+/*
+ * Drawn in --warn, not in --blue: blue is the engine's colour and this is the screen that says
+ * the engine did not answer. Sits under the reveal on a write failure, alone on an engine one.
+ */
+.reveal-failure {
+  margin: 12px 17px;
+  padding: 11px 13px;
+  border: 1px solid var(--warn);
+  border-inline-start-width: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.reveal-failure-what {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.reveal-failure-safe {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+.reveal-failure-detail {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.reveal-failure-next {
+  align-self: flex-start;
+  padding-inline: 14px;
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: var(--on-blue);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ---- Tap floor -------------------------------------------------------------------------- */
 /*
  * One declared minimum for every control a finger lands on, in one place, so the contract can be
@@ -2186,6 +2403,10 @@ button:not(:disabled) {
 .read-chip,
 .confidence-row button,
 .commitment-submit,
+.not-found-home,
+.boundary-reload,
+.reveal-failure-next,
+.boundary-trace summary,
 .context-dismiss,
 .context-why summary,
 .read-write-toggle,
@@ -2254,7 +2475,7 @@ button:not(:disabled) {
  * a partial decision is not recorded, and that is the product. The silence was.
  */
 .required-mark {
-  font: 9px "DM Mono";
+  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   color: var(--warn);
   border: 1px solid var(--warn);
@@ -2273,7 +2494,7 @@ button:not(:disabled) {
   border: 1px dashed var(--warn);
 }
 .commitment-summary {
-  font: 10px/1.5 "Noto Sans Hebrew";
+  font: 10px/1.5 "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--warn);
   padding-top: 6px;
 }
@@ -2364,13 +2585,13 @@ button:not(:disabled) {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  font: 700 11px/1.4 "DM Mono";
+  font: 700 11px/1.4 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   padding: 0;
   margin-bottom: 6px;
 }
 .read-field legend small {
-  font: 10px/1.4 "Noto Sans Hebrew";
+  font: 10px/1.4 "Noto Sans Hebrew", Arial, sans-serif;
   font-weight: 400;
   color: var(--muted);
 }
@@ -2383,7 +2604,7 @@ button:not(:disabled) {
   padding: 6px 9px;
   border: 1px solid rgba(var(--ink-rgb), 0.28);
   background: transparent;
-  font: 11px/1.25 "Noto Sans Hebrew";
+  font: 11px/1.25 "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--ink);
   cursor: pointer;
   /* Height comes from the tap floor above -- this is the control the whole loop runs through,
@@ -2407,7 +2628,7 @@ button:not(:disabled) {
   padding: 5px 2px;
   border: 0;
   background: none;
-  font: 11px "Noto Sans Hebrew";
+  font: 11px "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -2417,6 +2638,6 @@ button:not(:disabled) {
   color: var(--ink);
 }
 .read-write-label {
-  font: 10px "DM Mono";
+  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }

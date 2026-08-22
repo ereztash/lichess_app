@@ -173,7 +173,7 @@ export async function createLearningRule(
   if (!atom?.result) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      "A learning rule can only be authored after reveal.",
+      "אפשר לנסח כלל למידה רק אחרי החשיפה.",
     );
   }
 
@@ -187,7 +187,7 @@ export async function createLearningRule(
     atom.feedback.revised_read !== reflection.revised_read ||
     atom.feedback.would_choose_again !== reflection.would_choose_again
   ) {
-    throw new RecordError("CONFLICT", "The reflection for this decision is append-only.");
+    throw new RecordError("CONFLICT", "הרפלקציה על ההחלטה הזו היא append-only ואי אפשר לשנות אותה.");
   }
 
   const rule = formLearningRule(input.rule, now);
@@ -205,11 +205,11 @@ export async function beginLearningTransfer(
   now: { transfer_id: string; started_at: string },
 ) {
   const rule = await store.getLearningRule(input.rule_id);
-  if (!rule) throw new RecordError("NOT_FOUND", "Learning rule not found.");
+  if (!rule) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
   if (rule.next_due_at && new Date(now.started_at) < new Date(rule.next_due_at)) {
     return {
       transfer: null,
-      reason: `This rule is scheduled for delayed retrieval on ${rule.next_due_at}.`,
+      reason: `הכלל הזה מתוזמן לחזרה מרווחת בתאריך ${rule.next_due_at}.`,
     };
   }
   const source = await store.getAtom(rule.source_decision_id);
@@ -219,7 +219,7 @@ export async function beginLearningTransfer(
   if (unseen.length < TRANSFER_POSITION_COUNT) {
     return {
       transfer: null,
-      reason: `Need ${TRANSFER_POSITION_COUNT} unseen positions; only ${unseen.length} are available.`,
+      reason: `נדרשות ${TRANSFER_POSITION_COUNT} עמדות שלא נראו; זמינות רק ${unseen.length}.`,
     };
   }
   const transfer = preregisterLearningTransfer(rule, unseen.slice(0, TRANSFER_POSITION_COUNT), now);
@@ -234,11 +234,11 @@ export async function finishLearningTransfer(
   now: { completed_at: string },
 ) {
   const transfer = await store.getLearningTransfer(input.transfer_id);
-  if (!transfer) throw new RecordError("NOT_FOUND", "Learning transfer not found.");
+  if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
   if (input.observations.length !== transfer.fens.length) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      "Every transfer position requires one observation.",
+      "לכל עמדה בבדיקת ההעברה נדרשת תצפית אחת.",
     );
   }
   const atoms = await Promise.all(input.observations.map((o) => store.getAtom(o.decision_id)));
@@ -247,13 +247,13 @@ export async function finishLearningTransfer(
     if (!atom?.result) {
       throw new RecordError(
         "PRECONDITION_FAILED",
-        "Every transfer decision must be committed and revealed.",
+        "כל החלטה בבדיקת ההעברה חייבת להירשם ולהיחשף.",
       );
     }
     if (atom.entry_state.fen !== transfer.fens[index]) {
       throw new RecordError(
         "PRECONDITION_FAILED",
-        "A transfer decision was recorded for another position.",
+        "החלטה בבדיקת ההעברה נרשמה לעמדה אחרת.",
       );
     }
   }
@@ -280,7 +280,7 @@ export async function finishLearningTransfer(
   await store.saveLearningTransferResult(result);
 
   const rule = await store.getLearningRule(transfer.rule_id);
-  if (!rule) throw new RecordError("NOT_FOUND", "Learning rule disappeared before grading.");
+  if (!rule) throw new RecordError("NOT_FOUND", "כלל הלמידה נעלם לפני הדירוג.");
   const prior = (await store.listLearningTransferResults(rule.rule_id)).filter(
     (candidate) => candidate.transfer_id !== result.transfer_id,
   );
@@ -295,7 +295,7 @@ export async function retireLearningRule(
   now: { retired_at: string },
 ) {
   const rule = await store.getLearningRule(input.rule_id);
-  if (!rule) throw new RecordError("NOT_FOUND", "Learning rule not found.");
+  if (!rule) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
   const retired = retireRule(rule, now.retired_at);
   await store.saveLearningRule(retired);
   return retired;

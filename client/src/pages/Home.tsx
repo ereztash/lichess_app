@@ -22,6 +22,7 @@ import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { RevealPanel } from "@/components/RevealPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
+import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { LoopStrip } from "@/components/LoopStrip";
 import { LearningQueue } from "@/components/LearningQueue";
@@ -172,6 +173,12 @@ export default function Home() {
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
   const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
+  /*
+   * Which of the two reveal failures happened, or null. Both used to leave the session in
+   * `stage === "revealed"` with no control that advances -- a soft lock whose only escape
+   * was abandoning the game.
+   */
+  const [revealFailure, setRevealFailure] = useState<RevealFailureKind | null>(null);
   const [learningRuleSaved, setLearningRuleSaved] = useState(false);
   const gameId = useRef(`live-${Date.now()}`);
 
@@ -465,6 +472,7 @@ export default function Home() {
       setRevealFen(positionFen);
       setCandidateMove(null);
       setCandidatesConsidered([]);
+      setRevealFailure(null);
       if (isDrillDecision) setDrillDecisionIds((prev) => [...prev, decisionId]);
       setStage("revealed");
       setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
@@ -525,6 +533,8 @@ export default function Home() {
           }
         } catch {
           // The decision itself is on the record; only the engine's verdict failed to store.
+          // The reveal above is valid and stays: `revealInputs` was set before this write.
+          setRevealFailure("write");
           setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
           if (isLearningTransferDecision) {
             setLearningTransferError("תוצאת המנוע לא נשמרה ולכן אי אפשר למדוד את העמדה הזו.");
@@ -532,6 +542,9 @@ export default function Home() {
         }
         void decisionCount.refetch();
       } catch {
+        // No evaluation exists, so there is no reveal to render. Without this the screen
+        // sat on "המנוע מחשב…" forever, with no control that advances.
+        setRevealFailure("engine");
         setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
       }
     },
@@ -765,6 +778,7 @@ export default function Home() {
     setCandidatesConsidered([]);
     setCommitError(undefined);
     setRevealedDecisionId(undefined);
+    setRevealFailure(null);
     setLearningRuleSaved(false);
     setNotice(message);
   };
@@ -1249,9 +1263,15 @@ export default function Home() {
                   fen={revealFen}
                   statedKnown={committedDraft.known}
                 />
-              ) : (
+              ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
-              )}
+              ) : null}
+              {/*
+                * Rendered under the reveal on a write failure -- that reveal is valid -- and
+                * on its own when the engine never answered. Either way it carries the only
+                * control that advances: the header's is gated on a reveal that was stored.
+                */}
+              {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
               <AnalysisPanel
                 analysis={analysis}
                 status={engineStatus}
