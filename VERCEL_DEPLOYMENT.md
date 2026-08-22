@@ -70,7 +70,18 @@ Vercel SSO protection is enabled for this project on all non-custom domains, so 
 preview or production URL asks for a Vercel login before the app loads at all. That is a
 deployment setting, not an application one; a custom domain bypasses it.
 
-## Layer C is off by default
+## Layer C is not mounted
+
+**`LAYER_C_ENABLED` currently changes nothing.** `server/layerC.ts` is imported by no router --
+only by its own test -- so the running API has no path that reaches it. Setting the variable to
+`"true"` on a deployment has no effect, and this section previously read as though it did.
+
+Two things are true at once and both matter: the flag is honoured by the code that reads it
+(`layerCEnabled()` accepts only the exact string), and nothing calls the code that reads it. It is
+documented here rather than quietly mounted because mounting it would ship a live dependency on
+`explorer.lichess.ovh` that this codebase has never once reached -- see docs/FINDINGS.md.
+
+The rest of this section describes the layer as designed, for whoever mounts it.
 
 The external-pointer layer (`server/layerC.ts`) is disabled unless `LAYER_C_ENABLED` is exactly
 `"true"`. Layers A and B are a complete product without it.

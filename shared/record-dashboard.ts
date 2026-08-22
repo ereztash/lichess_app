@@ -13,7 +13,13 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
-import { BUCKETINGS, MIN_BUCKET_N, summarise, type CalibrationSummary, type ScoredDecision } from "./detector.js";
+import {
+  BUCKETINGS,
+  MIN_BUCKET_N,
+  summarise,
+  type CalibrationSummary,
+  type ScoredDecision,
+} from "./detector.js";
 
 export type BucketReading = {
   key: string;
@@ -24,6 +30,15 @@ export type BucketReading = {
   measurable: boolean;
   /** How many more decisions inside the bucket are needed before it can be read. */
   shortBy: number;
+  /**
+   * Why it cannot be read, when it cannot.
+   *
+   * "too-few" is a wait. "no-clock-data" is not: the record holds no clock at all, so the bucket
+   * can never fill, and telling that player to record more decisions is advice that cannot work.
+   * A local game against Stockfish has no clock, and a Lichess export carries none unless the
+   * user ticked the option -- so this is the common case, not the edge case.
+   */
+  unmeasurableReason: "too-few" | "no-clock-data" | null;
 };
 
 export type ConfidenceReading = {
@@ -52,16 +67,23 @@ export type RecordReading = {
  * a screen that measured everything.
  */
 export function readRecord(decisions: ScoredDecision[]): RecordReading {
+  // One pass, not one per bucket: whether any decision carries a clock is a property of the
+  // record, and it decides which of the two silences the clock bucket reports.
+  const anyClock = decisions.some((d) => d.clockMsRemaining !== null);
+
   const buckets: BucketReading[] = BUCKETINGS.map((bucketing) => {
     const inside = summarise(decisions.filter(bucketing.predicate));
     const outside = summarise(decisions.filter((d) => !bucketing.predicate(d)));
+    const measurable = inside.n >= MIN_BUCKET_N && outside.n >= MIN_BUCKET_N;
+    const noClock = bucketing.requiresClock === true && !anyClock;
     return {
       key: bucketing.key,
       scope: bucketing.scope,
       inside,
       outside,
-      measurable: inside.n >= MIN_BUCKET_N && outside.n >= MIN_BUCKET_N,
+      measurable,
       shortBy: Math.max(0, MIN_BUCKET_N - inside.n),
+      unmeasurableReason: measurable ? null : noClock ? "no-clock-data" : "too-few",
     };
   });
 

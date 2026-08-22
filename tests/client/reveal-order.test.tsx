@@ -19,8 +19,6 @@ const INPUTS: RevealInputs = {
   chosenWasBest: false,
   confidence: 5,
   statedUnknown: "לא יודע אם d5 עובד",
-  cloudAvailable: true,
-  repertoireGames: 40,
   decisionsOnRecord: 120,
 };
 const ANALYSIS: EngineLine = {

@@ -503,8 +503,6 @@ export default function Home() {
           chosenWasBest: bestMove === draft.chosenMove,
           confidence: draft.confidence!,
           statedUnknown: draft.unknown,
-          cloudAvailable: false,
-          repertoireGames: null,
           decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
         };
         setRevealInputs(inputs);

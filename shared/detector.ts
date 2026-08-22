@@ -51,11 +51,26 @@ export const MIN_GAP_DIFFERENCE = 0.45;
  */
 export const MAX_SHUFFLED_FALSE_POSITIVE_RATE = 0.02;
 
-export interface ScoredDecision {
+export interface ScoredDecision extends BucketableDecision {
   decision_id: string;
   /** Stated confidence mapped to 0..1, so it is comparable with an accuracy rate. */
   confidence: number;
   accurate: boolean;
+}
+
+/**
+ * The part of a decision a bucket is allowed to look at.
+ *
+ * Split out of ScoredDecision because no predicate below reads `confidence` or `accurate` -- they
+ * read time, phase and clock, all three of which a finished imported game already carries. The
+ * one thing an imported game cannot carry is the stated confidence, which is exactly the thing
+ * this product exists to measure.
+ *
+ * So the same six buckets can be applied to imported games without inventing a second list. A
+ * second list would drift, and then two screens in one product would disagree about what "under
+ * 45 seconds" means.
+ */
+export interface BucketableDecision {
   phase: DecisionAtom["entry_state"]["phase"];
   secondsTaken: number;
   clockMsRemaining: number | null;
@@ -93,7 +108,13 @@ export interface Bucketing {
   key: string;
   /** What distinguishes this bucket, in the player's terms. Becomes the claim's scope. */
   scope: string;
-  predicate: (decision: ScoredDecision) => boolean;
+  predicate: (decision: BucketableDecision) => boolean;
+  /**
+   * True when the bucket cannot be filled at all without clock data. A record with no clocks
+   * makes this bucket structurally unreadable, which is a different fact from "not enough
+   * decisions yet" and must not render as the same sentence.
+   */
+  requiresClock?: true;
 }
 
 /**
@@ -124,6 +145,7 @@ export const BUCKETINGS: Bucketing[] = [
     key: "clock-under-1m",
     scope: "החלטות עם פחות מדקה על השעון",
     predicate: (d) => d.clockMsRemaining !== null && d.clockMsRemaining < 60_000,
+    requiresClock: true,
   },
 ];
 

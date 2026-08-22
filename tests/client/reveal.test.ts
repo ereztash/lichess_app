@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  BUILD_LIMIT,
   ENGINE_NOISE_CP,
   inferenceLimits,
   nextQuestion,
@@ -15,8 +16,6 @@ const base: RevealInputs = {
   chosenWasBest: true,
   confidence: 3,
   statedUnknown: "לא יודע אם d5 עובד",
-  cloudAvailable: true,
-  repertoireGames: 40,
   decisionsOnRecord: 120,
 };
 const from = (o: Partial<RevealInputs>): RevealInputs => ({ ...base, ...o });
@@ -35,16 +34,22 @@ describe("what cannot be inferred comes first, and is never empty", () => {
     expect(inferenceLimits(from({ depth: 12 })).join(" ")).toContain("עומק 12");
   });
 
-  it("names a missing cloud evaluation as a missing cross-check", () => {
-    expect(inferenceLimits(from({ cloudAvailable: false })).join(" ")).toContain("אין הערכת ענן");
+  /*
+   * Three tests used to live here, covering `cloudAvailable` and `repertoireGames`. Both fields
+   * were hardcoded at the only call site -- false and null -- so one branch fired on EVERY
+   * reveal and the other could never fire at all. The first printed "אין הערכת ענן לעמדה הזו",
+   * phrased as a finding about that position when it was a constant; the second was dead.
+   *
+   * The tests passed the whole time, because they supplied values production never did.
+   */
+  it("states no per-position limit that is really a property of the build", () => {
+    // The single-engine fact is true of every position, so it must not be inside this list.
+    expect(inferenceLimits(base).join(" ")).not.toContain("אין הערכת ענן");
+    expect(BUILD_LIMIT).toContain("מנוע מקומי אחד");
   });
 
-  it("says a thin repertoire says nothing, instead of quoting it", () => {
-    expect(inferenceLimits(from({ repertoireGames: 2 })).join(" ")).toContain("לא אומר כאן כלום");
-  });
-
-  it("stays silent about the repertoire when it was never queried", () => {
-    expect(inferenceLimits(from({ repertoireGames: null })).join(" ")).not.toContain("רפרטואר");
+  it("says nothing about a repertoire it never queried", () => {
+    expect(inferenceLimits(base).join(" ")).not.toContain("רפרטואר");
   });
 
   it("calls a within-noise difference what it is, rather than a mistake", () => {

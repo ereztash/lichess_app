@@ -8,15 +8,20 @@
  * -- and does not care who produced them. In the source repository they could only come from
  * [%eval] comments Lichess had already written. Here they can also come from the local engine,
  * which is the whole point of phase 1.
+ *
+ * One thing DID change: it used to carry its own phase rule -- `ply / total` ratio bands -- which
+ * disagreed with `classifyPhase` in shared/phase.ts, the rule the record actually uses. Both were
+ * exported from shared/ under the same word. That is unified now; see `accuracyByPhase`.
  */
+import { classifyPhase } from "./phase.js";
 
 export interface MoveEval {
   moveNumber: number;
   ply: number;
-  eval: number;          // centipawns from white's perspective
-  evalPawns: number;     // eval in pawns (for display)
-  cpl: number;           // centipawn loss for this move
-  accuracy: number;      // 0-100 accuracy for this move
+  eval: number; // centipawns from white's perspective
+  evalPawns: number; // eval in pawns (for display)
+  cpl: number; // centipawn loss for this move
+  accuracy: number; // 0-100 accuracy for this move
   classification: "best" | "excellent" | "good" | "inaccuracy" | "mistake" | "blunder";
   isWhite: boolean;
   moveSan?: string;
@@ -25,20 +30,28 @@ export interface MoveEval {
 export interface EvalAnalysis {
   hasEvals: boolean;
   moveEvals: MoveEval[];
-  evalCurve: number[];         // raw eval per ply (in pawns, capped)
+  evalCurve: number[]; // raw eval per ply (in pawns, capped)
   playerMoveEvals: MoveEval[]; // only for the analyzed player
   avgCPL: number;
-  accuracy: number;            // 0-100 overall accuracy
+  accuracy: number; // 0-100 overall accuracy
   blunders: number;
   mistakes: number;
   inaccuracies: number;
   bestMoves: number;
-  phaseAccuracy: {
-    opening: number;
-    middlegame: number;
-    endgame: number;
-  };
-  insights: { en: string; he: string }[];
+  /**
+   * Accuracy per phase, or null when the phase of each move is not knowable here.
+   *
+   * Null rather than zeroes: a zero is a measurement and this is an absence. It is null whenever
+   * `fens` is not supplied, because the only correct phase rule needs a position and this
+   * function is otherwise given nothing but numbers.
+   */
+  phaseAccuracy: PhaseAccuracy | null;
+}
+
+export interface PhaseAccuracy {
+  opening: number;
+  middlegame: number;
+  endgame: number;
 }
 
 export interface AggregateEvalAnalysis {
@@ -46,16 +59,12 @@ export interface AggregateEvalAnalysis {
   gamesWithEvals: number;
   avgAccuracy: number;
   avgCPL: number;
-  accuracyOverTime: number[];   // per-game accuracy
+  accuracyOverTime: number[]; // per-game accuracy
   totalBlunders: number;
   totalMistakes: number;
   totalInaccuracies: number;
-  phaseAccuracy: {
-    opening: number;
-    middlegame: number;
-    endgame: number;
-  };
-  insights: { en: string; he: string }[];
+  /** Null when no analysed game carried positions; see EvalAnalysis.phaseAccuracy. */
+  phaseAccuracy: PhaseAccuracy | null;
 }
 
 function classifyMove(cpl: number): MoveEval["classification"] {
@@ -80,7 +89,12 @@ function capEval(cp: number): number {
 export function analyzeEval(
   evalScores: number[],
   playerColor: "w" | "b" = "w",
-  totalPlies?: number
+  totalPlies?: number,
+  /**
+   * One FEN per ply, as `gamePositions()` produces them: index 0 is the starting position and
+   * index i is the position after ply i. Required for `phaseAccuracy`, and only for that.
+   */
+  fens?: string[],
 ): EvalAnalysis {
   if (evalScores.length < 4) {
     return emptyAnalysis();
@@ -132,63 +146,34 @@ export function analyzeEval(
   const blunders = playerMoves.filter((m) => m.classification === "blunder").length;
   const mistakes = playerMoves.filter((m) => m.classification === "mistake").length;
   const inaccuracies = playerMoves.filter((m) => m.classification === "inaccuracy").length;
-  const bestMoves = playerMoves.filter((m) => m.classification === "best" || m.classification === "excellent").length;
+  const bestMoves = playerMoves.filter(
+    (m) => m.classification === "best" || m.classification === "excellent",
+  ).length;
 
-  // Phase accuracy
-  const getPhase = (ply: number): "opening" | "middlegame" | "endgame" => {
-    const ratio = ply / total;
-    if (ratio < 0.25 || ply <= 20) return "opening";
-    if (ratio < 0.7) return "middlegame";
-    return "endgame";
-  };
+  /*
+   * Phase accuracy, by the ONE phase rule this repository has.
+   *
+   * There used to be a second one here: `ply / total` ratio bands, which disagreed with
+   * `classifyPhase` -- the rule the record itself uses, documented in docs/MEASUREMENTS.md and
+   * applied at decision-session.ts. Two definitions under one label is a disagreement waiting to
+   * surface, and it was latent only because nothing rendered this field.
+   *
+   * The ratio rule also cannot be repaired in place: it needs the game's total length, so the
+   * same move changes phase depending on how the game later ended. `classifyPhase` reads the
+   * position, so a move's phase is a fact about that move.
+   */
+  const phaseAccuracy = fens ? accuracyByPhase(playerMoves, fens) : null;
 
-  const phaseGroups: Record<string, number[]> = { opening: [], middlegame: [], endgame: [] };
-  for (const m of playerMoves) {
-    phaseGroups[getPhase(m.ply)].push(m.accuracy);
-  }
-
-  const phaseAccuracy = {
-    opening: phaseGroups.opening.length > 0 ? Math.round(phaseGroups.opening.reduce((a, b) => a + b, 0) / phaseGroups.opening.length) : 0,
-    middlegame: phaseGroups.middlegame.length > 0 ? Math.round(phaseGroups.middlegame.reduce((a, b) => a + b, 0) / phaseGroups.middlegame.length) : 0,
-    endgame: phaseGroups.endgame.length > 0 ? Math.round(phaseGroups.endgame.reduce((a, b) => a + b, 0) / phaseGroups.endgame.length) : 0,
-  };
-
-  // Insights
-  const insights: { en: string; he: string }[] = [];
-  insights.push({
-    en: `Overall accuracy: ${accuracy}% with average CPL of ${avgCPL}`,
-    he: `דיוק כללי: ${accuracy}% עם CPL ממוצע של ${avgCPL}`,
-  });
-
-  if (blunders > 0) {
-    insights.push({
-      en: `${blunders} blunder${blunders > 1 ? "s" : ""} detected — positions where ${blunders > 1 ? "significant" : "a significant"} advantage was lost`,
-      he: `${blunders} טעות${blunders > 1 ? "ות" : ""} חמורה — עמדות שבהן אבד יתרון משמעותי`,
-    });
-  }
-
-  const worstPhase = Object.entries(phaseAccuracy)
-    .filter(([, v]) => v > 0)
-    .sort((a, b) => a[1] - b[1])[0];
-  if (worstPhase) {
-    const phaseNames = {
-      opening: { en: "opening", he: "פתיחה" },
-      middlegame: { en: "middlegame", he: "אמצע המשחק" },
-      endgame: { en: "endgame", he: "סיום" },
-    };
-    const p = phaseNames[worstPhase[0] as keyof typeof phaseNames];
-    insights.push({
-      en: `Weakest phase: ${p.en} (${worstPhase[1]}% accuracy)`,
-      he: `שלב חלש: ${p.he} (${worstPhase[1]}% דיוק)`,
-    });
-  }
-
-  if (bestMoves > playerMoves.length * 0.6) {
-    insights.push({
-      en: "Excellent play — over 60% of moves were best or excellent quality",
-      he: "משחק מצוין — מעל 60% מהמהלכים היו באיכות מעולה או מיטבית",
-    });
-  }
+  /*
+   * An `insights` array lived here, and in the aggregate below, holding bilingual sentences like
+   * "דיוק כללי: 78%" and "שלב חלש: סיום (62% דיוק)".
+   *
+   * Nothing rendered them -- ported with the file and never wired -- and each was a percentage
+   * with no n and no threshold, which is what GATE-DENOM exists to stop. They survived because
+   * the gate scanned client/src and this file is in shared/. Widening the scan surfaced six at
+   * once. Deleted rather than exempted: dead code that manufactures claims still manufactures
+   * claims, and leaving it makes the next reader think the feature exists.
+   */
 
   return {
     hasEvals: true,
@@ -202,13 +187,12 @@ export function analyzeEval(
     inaccuracies,
     bestMoves,
     phaseAccuracy,
-    insights,
   };
 }
 
 export function analyzeAggregateEval(
   allEvalScores: number[][],
-  playerColor: "w" | "b" = "w"
+  playerColor: "w" | "b" = "w",
 ): AggregateEvalAnalysis {
   const analyses = allEvalScores
     .map((scores) => analyzeEval(scores, playerColor))
@@ -225,38 +209,43 @@ export function analyzeAggregateEval(
       totalMistakes: 0,
       totalInaccuracies: 0,
       phaseAccuracy: { opening: 0, middlegame: 0, endgame: 0 },
-      insights: [],
     };
   }
 
   const accuracyOverTime = analyses.map((a) => a.accuracy);
-  const avgAccuracy = Math.round(accuracyOverTime.reduce((a, b) => a + b, 0) / accuracyOverTime.length);
+  const avgAccuracy = Math.round(
+    accuracyOverTime.reduce((a, b) => a + b, 0) / accuracyOverTime.length,
+  );
   const avgCPL = Math.round(analyses.reduce((s, a) => s + a.avgCPL, 0) / analyses.length);
 
-  const phaseAccuracy = {
-    opening: Math.round(analyses.reduce((s, a) => s + a.phaseAccuracy.opening, 0) / analyses.length),
-    middlegame: Math.round(analyses.reduce((s, a) => s + a.phaseAccuracy.middlegame, 0) / analyses.length),
-    endgame: Math.round(analyses.reduce((s, a) => s + a.phaseAccuracy.endgame, 0) / analyses.length),
-  };
+  /*
+   * Averaged over the games that HAVE a phase reading, not over all of them. Treating a null as
+   * a zero would drag the mean down by however many games were analysed without positions, and
+   * report the result as though every game had been measured.
+   */
+  const withPhase = analyses
+    .map((a) => a.phaseAccuracy)
+    .filter((p): p is PhaseAccuracy => p !== null);
+  const meanOver = (pick: (p: PhaseAccuracy) => number) =>
+    Math.round(withPhase.reduce((s, p) => s + pick(p), 0) / withPhase.length);
+  const phaseAccuracy: PhaseAccuracy | null = withPhase.length
+    ? {
+        opening: meanOver((p) => p.opening),
+        middlegame: meanOver((p) => p.middlegame),
+        endgame: meanOver((p) => p.endgame),
+      }
+    : null;
 
-  const insights: { en: string; he: string }[] = [];
-  insights.push({
-    en: `Average accuracy: ${avgAccuracy}% across ${analyses.length} analyzed games`,
-    he: `דיוק ממוצע: ${avgAccuracy}% לאורך ${analyses.length} משחקים מנותחים`,
-  });
-
-  // Trend
-  if (accuracyOverTime.length >= 3) {
-    const firstHalf = accuracyOverTime.slice(0, Math.floor(accuracyOverTime.length / 2));
-    const secondHalf = accuracyOverTime.slice(Math.floor(accuracyOverTime.length / 2));
-    const avg1 = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-    const avg2 = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-    if (avg2 > avg1 + 3) {
-      insights.push({ en: "Your accuracy is trending upward — good progress!", he: "הדיוק שלך במגמת עלייה — התקדמות טובה!" });
-    } else if (avg2 < avg1 - 3) {
-      insights.push({ en: "Your accuracy has been declining — focus on reducing blunders", he: "הדיוק שלך במגמת ירידה — התמקד בהפחתת טעויות" });
-    }
-  }
+  /*
+   * An `insights` array lived here, and in the aggregate below, holding bilingual sentences like
+   * "דיוק כללי: 78%" and "שלב חלש: סיום (62% דיוק)".
+   *
+   * Nothing rendered them -- ported with the file and never wired -- and each was a percentage
+   * with no n and no threshold, which is what GATE-DENOM exists to stop. They survived because
+   * the gate scanned client/src and this file is in shared/. Widening the scan surfaced six at
+   * once. Deleted rather than exempted: dead code that manufactures claims still manufactures
+   * claims, and leaving it makes the next reader think the feature exists.
+   */
 
   return {
     hasEvals: true,
@@ -268,7 +257,34 @@ export function analyzeAggregateEval(
     totalMistakes: analyses.reduce((s, a) => s + a.mistakes, 0),
     totalInaccuracies: analyses.reduce((s, a) => s + a.inaccuracies, 0),
     phaseAccuracy,
-    insights,
+  };
+}
+
+/**
+ * Group the player's move accuracies by the phase of the position each move was made in.
+ *
+ * `fens[m.ply]` is the position AFTER the move, which is the same indexing `gamePositions()`
+ * produces and the same one `evalScores` uses. A move whose FEN is missing is skipped rather
+ * than defaulted into a phase: a wrong bucket is worse than a smaller n.
+ */
+function accuracyByPhase(playerMoves: MoveEval[], fens: string[]): PhaseAccuracy | null {
+  const groups: Record<keyof PhaseAccuracy, number[]> = {
+    opening: [],
+    middlegame: [],
+    endgame: [],
+  };
+  for (const m of playerMoves) {
+    const fen = fens[m.ply];
+    if (!fen) continue;
+    groups[classifyPhase(fen, m.ply)].push(m.accuracy);
+  }
+  const mean = (xs: number[]) =>
+    xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : 0;
+  if (!groups.opening.length && !groups.middlegame.length && !groups.endgame.length) return null;
+  return {
+    opening: mean(groups.opening),
+    middlegame: mean(groups.middlegame),
+    endgame: mean(groups.endgame),
   };
 }
 
@@ -284,7 +300,6 @@ function emptyAnalysis(): EvalAnalysis {
     mistakes: 0,
     inaccuracies: 0,
     bestMoves: 0,
-    phaseAccuracy: { opening: 0, middlegame: 0, endgame: 0 },
-    insights: [],
+    phaseAccuracy: null,
   };
 }

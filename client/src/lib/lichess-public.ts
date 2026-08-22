@@ -92,7 +92,10 @@ export async function fetchUserGames(
     max: String(Math.min(Math.max(max, 1), 50)),
     pgnInJson: "true",
     opening: "true",
-    clocks: "false",
+    // "true" so the PGN carries [%clk], which is the only source of secondsTaken and
+    // clockMsRemaining for an imported game. With "false" the three time-based buckets could
+    // never be filled from an import, and one of the six was structurally dead.
+    clocks: "true",
     evals: "false",
   });
   const url = `${LICHESS_ORIGIN}/api/games/user/${encodeURIComponent(name)}?${query}`;

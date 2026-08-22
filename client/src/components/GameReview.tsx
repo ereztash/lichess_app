@@ -14,7 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import { analyzeEval, type MoveEval } from "@shared/eval-analysis";
-import { Rate } from "./Value";
+import { Rate, Score } from "./Value";
 
 type Props = {
   /** White-perspective centipawns per ply, produced by the local engine. */
@@ -99,9 +99,18 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
       </div>
 
       <div className="review-stats">
+        {/*
+         * "ציון דיוק", not "דיוק". Two different things were both called דיוק: this, the
+         * Lichess-style exponential 0-100 score for one game, and the detector's accuracy RATE
+         * -- the share of decisions under 30 centipawns of loss, which is what every bucket,
+         * claim and calibration gap is built from. Same word, different quantities, both on
+         * screen. The detector's keeps "דיוק"; this one is labelled as a score.
+         *
+         * Rendered through Score rather than by hand: the n used to sit on the next line, which
+         * is honest by adjacency and enforceable by nothing.
+         */}
         <div className="review-stat">
-          <b dir="ltr">{analysis.accuracy}%</b>
-          <span>דיוק על פני {n} מהלכים שלך</span>
+          <Score label="ציון דיוק למשחק הזה" value={analysis.accuracy} n={n} />
         </div>
         <div className="review-stat">
           <b dir="ltr">{analysis.avgCPL}</b>
@@ -226,8 +235,8 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
       )}
 
       <p className="review-caveat">
-        זו מדידה של העמדות במשחק הזה בלבד. היא לא אומרת דבר על השחמט שלך בכלל, ולא על מגמה —
-        לשם כך צריך רשומת החלטות, לא משחק אחד.
+        זו מדידה של העמדות במשחק הזה בלבד. היא לא אומרת דבר על השחמט שלך בכלל, ולא על מגמה — לשם כך
+        צריך רשומת החלטות, לא משחק אחד.
       </p>
     </section>
   );

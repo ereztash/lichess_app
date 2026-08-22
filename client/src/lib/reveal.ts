@@ -19,9 +19,6 @@ export const SHALLOW_DEPTH = 16;
 export const ENGINE_NOISE_CP = 30;
 /** A move this far from the engine's line is worth a sentence. */
 export const MATERIAL_LOSS_CP = 100;
-/** Fewer own games than this in a position means the repertoire says nothing. */
-export const THIN_REPERTOIRE = 5;
-
 export interface RevealInputs {
   depth: number;
   cpLoss: number;
@@ -30,12 +27,28 @@ export interface RevealInputs {
   chosenWasBest: boolean;
   confidence: number;
   statedUnknown: string;
-  cloudAvailable: boolean;
-  /** Own games in this exact position, or null if the repertoire was never queried. */
-  repertoireGames: number | null;
   /** Recorded decisions so far, including this one. */
   decisionsOnRecord: number;
 }
+
+/**
+ * What is true of this BUILD rather than of any one position.
+ *
+ * `cloudAvailable` was hardcoded false at the call site, so the reveal printed "אין הערכת ענן
+ * לעמדה הזו" on every single reveal -- phrased as a finding about that position, when it was a
+ * constant. A sentence that always fires carries no information, and one that always fires while
+ * claiming to be about the position in front of you is worse than none.
+ *
+ * The honest version is not per-position and does not pretend to be: this build has one local
+ * engine, always, and that is a property of the build. Rendered once, above the per-position
+ * limits, in the same register.
+ *
+ * The alternative was querying Lichess for a cloud evaluation and setting the flag from the
+ * answer. Rejected: it puts a network call carrying the player's position on the reveal path of
+ * a product whose whole posture is that the record never leaves the deployment.
+ */
+export const BUILD_LIMIT =
+  "הבילד הזה מריץ מנוע מקומי אחד. אין מקור הערכה שני, ולכן אין למנוע במה להיבדק — בשום עמדה.";
 
 /**
  * SECTION 4.2 STEP 1: what cannot be inferred here. Rendered before any number, always.
@@ -58,14 +71,6 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
   if (inputs.cpLoss <= ENGINE_NOISE_CP && !inputs.chosenWasBest) {
     limits.push(
       `המהלך שלך והמהלך של המנוע רחוקים ${inputs.cpLoss} ס״פ — בתוך רעש ההערכה. זו אינה טעות.`,
-    );
-  }
-  if (!inputs.cloudAvailable) {
-    limits.push("אין הערכת ענן לעמדה הזו, כך שיש מקור מנוע אחד בלבד ואין לו במה להיבדק.");
-  }
-  if (inputs.repertoireGames !== null && inputs.repertoireGames < THIN_REPERTOIRE) {
-    limits.push(
-      `יש ${inputs.repertoireGames} משחקים שלך בעמדה הזו. הרפרטואר האישי לא אומר כאן כלום.`,
     );
   }
   return limits;

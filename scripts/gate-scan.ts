@@ -66,14 +66,27 @@ export function findFakeValues(files: string[]): Finding[] {
 /**
  * A percentage built by hand. Any template literal or concatenation producing "%" from a
  * computed number, outside the Rate component that is required to render a denominator.
+ *
+ * The fourth alternative is JSX interpolation -- `<b>{analysis.accuracy}%</b>` -- which the first
+ * three do not match. GameReview.tsx renders exactly that shape. It is honest there (its n is on
+ * the next line), but the gate could not see it either way, so a regression on that line was
+ * invisible to the check that exists to catch it.
  */
-const HAND_ROLLED_PERCENT = /`\$\{[^`]*\}%`|\)\s*\*\s*100\s*\)\s*\}%|toFixed\([^)]*\)\s*\}?%/g;
+const HAND_ROLLED_PERCENT =
+  /`\$\{[^`]*\}%`|\)\s*\*\s*100\s*\)\s*\}%|toFixed\([^)]*\)\s*\}?%|\{[A-Za-z_$][\w.$?![\]]*\}\s*%/g;
 
 export function findDenominatorlessPercents(files: string[]): Finding[] {
   const findings: Finding[] = [];
   for (const file of files) {
     const portableFile = file.replaceAll("\\", "/");
     if (portableFile.endsWith("components/Value.tsx")) continue; // the one place allowed to format a %
+    /*
+     * Exempt for a stated reason, not for convenience. `pct()` here formats numbers that
+     * `statementFor` prints in the same sentence as `inside.n` and `outside.n`, and that pairing
+     * is itself gated -- GATE-GRADE fails if a claim renders without its n. Two gates asserting
+     * the same thing on the same lines would make this one fire on honest code forever.
+     */
+    if (portableFile.endsWith("shared/claim-derivation.ts")) continue;
     const source = read(file);
     for (const match of source.matchAll(HAND_ROLLED_PERCENT)) {
       const before = source.slice(0, match.index);

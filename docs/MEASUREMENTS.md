@@ -110,7 +110,30 @@ No success metric is computed by the component whose success is being measured. 
 grade the claim that generated it: `evaluateClaim` accepts a `ProspectiveDrillResult` and
 nothing else, and the drill's prediction is fixed before any position is shown.
 
+## Two things were called "accuracy"; one of them is canonical
+
+Both existed, both were defensible, and both were on screen under the word **דיוק**.
+
+| | definition | where |
+| --- | --- | --- |
+| **accuracy rate** (canonical) | share of decisions with `cpLoss <= ACCURATE_CP_LOSS` (30) | `shared/detector.ts` |
+| accuracy score | Lichess-style exponential 0-100 per move, averaged | `shared/eval-analysis.ts` |
+
+The **rate** is canonical for anything feeding a bucket, a claim, or a calibration gap. It is a
+proportion, so it is comparable with a stated confidence on the same 0..1 scale -- which is the
+entire calibration measurement, and the exponential score cannot do it.
+
+The **score** survives only inside GameReview, as a per-game display number, and is labelled
+"ציון דיוק" rather than "דיוק" so the two are not read as the same quantity. It is rendered
+through `Score` in Value.tsx, which cannot be called without its n.
+
+Nothing outside GameReview may use the exponential score. It never enters a bucket.
+
 ## Layer C
+
+**Not mounted.** `server/layerC.ts` is imported by no router, so no request can reach it and
+`LAYER_C_ENABLED` changes nothing at runtime. Everything below describes the module as written and
+unit-tested, not as something the deployed API can do.
 
 Off by default (`LAYER_C_ENABLED`). It consults the Lichess masters database for at most three of
 a claim's positions and returns counts, sources, and one question with a fixed shape.
@@ -154,7 +177,8 @@ A position bank drawn from games the player has never seen would remove this. Th
   synthetic decisions, and driven through a browser as far as the first drill position, but no
   drill has been completed by a person.
 - **Layer C against live Lichess.** Its tests stub `fetch`. It has never made a real request to
-  the masters database, and its rate-limit behaviour under repeated use is unmeasured.
+  the masters database, and its rate-limit behaviour under repeated use is unmeasured. It is also
+  not mounted: no router imports it, so nothing in the deployed API can reach it at all.
 - **Cold start with a real player.** The numbers above assume a planted effect far stronger and
   cleaner than a real one is likely to be. Expect the real cold start to be longer.
 

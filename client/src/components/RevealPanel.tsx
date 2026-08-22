@@ -12,7 +12,13 @@
  */
 import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
-import { inferenceLimits, nextQuestion, theOneThing, type RevealInputs } from "@/lib/reveal";
+import {
+  BUILD_LIMIT,
+  inferenceLimits,
+  nextQuestion,
+  theOneThing,
+  type RevealInputs,
+} from "@/lib/reveal";
 import type { EngineLine } from "@/lib/engine-line";
 import { NotMeasured, Value } from "./Value";
 
@@ -42,6 +48,12 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
             <li key={limit}>{limit}</li>
           ))}
         </ul>
+        {/*
+         * Separated from the list above on purpose. Everything in that list is derived from
+         * this position; this one is a property of the build and is true of every position, so
+         * rendering it as a sibling of the others would put a constant among measurements.
+         */}
+        <p className="reveal-build-limit">{BUILD_LIMIT}</p>
       </section>
 
       {/* 2 -- one thing */}

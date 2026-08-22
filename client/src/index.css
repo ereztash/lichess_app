@@ -1584,6 +1584,15 @@ button:not(:disabled) {
   font-size: 0.64rem;
   opacity: 0.66;
 }
+/* A property of the build, not of the position. Set apart from the per-position limits. */
+.reveal-build-limit {
+  margin: 0.5rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--hairline);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
 /* Section 4.5: an honest nothing is a correct screen, not a failure. */
 .one-thing-none {
   margin: 0;
