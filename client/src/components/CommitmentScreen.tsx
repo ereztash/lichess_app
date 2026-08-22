@@ -71,12 +71,39 @@ export function CommitmentScreen({
   const problems = draftProblems(live);
   const ready = isCommittable(live);
 
+  /*
+   * The refusal has to arrive somewhere the player is looking.
+   *
+   * Reported as "I still cannot complete the move", with a screenshot showing a chosen move, one
+   * field filled, the second empty, and 34 seconds on the clock. The rule is right -- a partial
+   * decision is not recorded, and that IS the product -- but the enforcement was invisible: the
+   * button stayed enabled, clicking it only set a flag, and both the per-field messages and the
+   * summary render BELOW the button, which on a laptop window is below the fold. The click looked
+   * like nothing happened at all.
+   */
+  const firstProblem = useRef<HTMLDivElement>(null);
   const submit = () => {
     if (!ready) {
       setShowProblems(true);
+      // Deliberate, and unlike the move-rail case this scroll is what the player asked for by
+      // clicking: it happens on an explicit action, never on load.
+      window.requestAnimationFrame(() => {
+        const target = firstProblem.current;
+        target?.scrollIntoView({ block: "center", behavior: "smooth" });
+        target?.querySelector<HTMLElement>("textarea, button")?.focus();
+      });
       return;
     }
     onCommit(live, (Date.now() - startedAt.current) / 1000);
+  };
+
+  /** Which field the refusal should take you to, and what the button should say instead. */
+  const missing = problems[0];
+  const MISSING_LABEL: Record<string, string> = {
+    chosenMove: "בחרו מהלך על הלוח",
+    known: "כתבו מה אתם קוראים בעמדה",
+    unknown: "כתבו מה אי אפשר להעריך",
+    confidence: "בחרו רמת ביטחון",
   };
 
   const problemFor = (field: keyof DraftDecision) =>
@@ -108,8 +135,13 @@ export function CommitmentScreen({
         )}
       </div>
 
-      <div className="commitment-field">
-        <label htmlFor="commit-known">מה אתם כן יכולים לקרוא כאן</label>
+      <div
+        className={`commitment-field ${problemFor("known") ? "has-problem" : ""}`}
+        ref={missing?.field === "known" ? firstProblem : undefined}
+      >
+        <label htmlFor="commit-known">
+          מה אתם כן יכולים לקרוא כאן <span className="required-mark">חובה</span>
+        </label>
         <textarea
           id="commit-known"
           maxLength={200}
@@ -123,8 +155,13 @@ export function CommitmentScreen({
         {problemFor("known") && <p className="commitment-problem">{problemFor("known")}</p>}
       </div>
 
-      <div className="commitment-field">
-        <label htmlFor="commit-unknown">מה אתם לא יכולים להעריך כאן</label>
+      <div
+        className={`commitment-field ${problemFor("unknown") ? "has-problem" : ""}`}
+        ref={missing?.field === "unknown" ? firstProblem : undefined}
+      >
+        <label htmlFor="commit-unknown">
+          מה אתם לא יכולים להעריך כאן <span className="required-mark">חובה</span>
+        </label>
         <textarea
           id="commit-unknown"
           maxLength={200}
@@ -139,7 +176,9 @@ export function CommitmentScreen({
       </div>
 
       <fieldset className="commitment-field commitment-confidence" disabled={pending}>
-        <legend>כמה אתם בטוחים</legend>
+        <legend>
+          כמה אתם בטוחים <span className="required-mark">חובה</span>
+        </legend>
         <div className="confidence-row" dir="ltr">
           {[1, 2, 3, 4, 5].map((level) => (
             <button
@@ -166,18 +205,33 @@ export function CommitmentScreen({
         </p>
       )}
 
+      {/*
+        * Not `disabled`. A disabled button explains nothing, cannot be focused, and gives a
+        * screen reader nothing to read -- so the label carries the reason instead, and it is
+        * there BEFORE the first click rather than only after one.
+        */}
       <button
         type="button"
-        className="commitment-submit"
+        className={`commitment-submit ${ready ? "" : "not-ready"}`}
         onClick={submit}
         /* PENDING ACTION LOCK (section 4.3): disabled while the write is in flight. */
         disabled={pending}
+        aria-describedby={ready ? undefined : "commit-blocked"}
       >
-        <Check size={16} /> {pending ? "רושם החלטה…" : "רשמו את ההחלטה"}
+        <Check size={16} />{" "}
+        {pending
+          ? "רושם החלטה…"
+          : ready
+            ? "רשמו את ההחלטה"
+            : `חסר: ${MISSING_LABEL[missing.field] ?? "פרט"}`}
       </button>
 
-      {showProblems && problems.length > 0 && (
-        <p className="commitment-summary">חסרים {problems.length} פרטים. החלטה חלקית לא נרשמת.</p>
+      {!ready && !pending && (
+        <p className="commitment-summary" id="commit-blocked">
+          {problems.length === 1
+            ? "חסר פרט אחד. החלטה חלקית לא נרשמת — זה הכלל, לא תקלה."
+            : `חסרים ${problems.length} פרטים. החלטה חלקית לא נרשמת — זה הכלל, לא תקלה.`}
+        </p>
       )}
     </section>
   );

@@ -46,7 +46,13 @@ describe("an incomplete decision cannot be recorded", () => {
   it("does not call onCommit and names what is missing", async () => {
     const onCommit = vi.fn();
     renderScreen({ onCommit });
-    await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
+    /*
+     * The submit button no longer carries one fixed label. While the decision is incomplete it
+     * reads "חסר: <the missing thing>", so that the requirement is visible BEFORE a click rather
+     * than only after one -- the silence was what "I cannot complete the move" turned out to
+     * mean. The assertion below is unchanged: an incomplete decision is still not recorded.
+     */
+    await userEvent.click(screen.getByRole("button", { name: /חסר:|רשמו את ההחלטה/ }));
     expect(onCommit).not.toHaveBeenCalled();
     expect(screen.getByText(/חסרים 4 פרטים/)).toBeInTheDocument();
   });
@@ -56,9 +62,11 @@ describe("an incomplete decision cannot be recorded", () => {
     renderScreen({ onCommit, chosenMove: "g8f6" });
     await userEvent.type(screen.getByLabelText(/מה אתם כן יכולים לקרוא/), "מרכז פתוח");
     await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
-    await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
+    await userEvent.click(screen.getByRole("button", { name: /חסר:|רשמו את ההחלטה/ }));
     expect(onCommit).not.toHaveBeenCalled();
     expect(screen.getByText(/לא נכתב מה אי אפשר להעריך/)).toBeInTheDocument();
+    // The label names the one thing standing in the way, rather than a count to go hunting for.
+    expect(screen.getByRole("button", { name: /חסר:/ }).textContent).toMatch(/אי אפשר להעריך/);
   });
 });
 
