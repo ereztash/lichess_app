@@ -11,6 +11,7 @@
  */
 import type { DecisionAtom } from "@shared/decision-atom";
 import { classifyPhase } from "@shared/phase";
+import { composeStatement } from "./read-options";
 
 export type SessionStage = "deciding" | "committing" | "committed" | "revealed" | "blocked";
 
@@ -23,7 +24,14 @@ export interface PositionUnderDecision {
 
 export interface DraftDecision {
   chosenMove: string | null;
+  /**
+   * The read, tapped. Labels rather than ids: the label is what goes on the record, in the
+   * player's own language, and an id would make the record unreadable without this table.
+   */
+  knownTags: string[];
+  /** The read, typed. Optional, and additive to the tags -- not an alternative to them. */
   known: string;
+  unknownTags: string[];
   unknown: string;
   confidence: number | null;
   candidatesConsidered: string[];
@@ -31,11 +39,20 @@ export interface DraftDecision {
 
 export const emptyDraft = (): DraftDecision => ({
   chosenMove: null,
+  // Nothing preselected, deliberately. A default read is the machine stating one on the player's
+  // behalf and then measuring them against it.
+  knownTags: [],
   known: "",
+  unknownTags: [],
   unknown: "",
   confidence: null,
   candidatesConsidered: [],
 });
+
+/** What this draft actually asserts for one field: what was tapped plus what was typed. */
+export const statedKnown = (draft: DraftDecision) => composeStatement(draft.knownTags, draft.known);
+export const statedUnknown = (draft: DraftDecision) =>
+  composeStatement(draft.unknownTags, draft.unknown);
 
 export interface DraftProblem {
   field: keyof DraftDecision;
@@ -52,12 +69,13 @@ export function draftProblems(draft: DraftDecision): DraftProblem[] {
   if (!draft.chosenMove) {
     problems.push({ field: "chosenMove", message: "לא נבחר מהלך." });
   }
-  if (draft.known.trim().length === 0) {
-    problems.push({ field: "known", message: "לא נכתב מה העמדה דורשת." });
+  // Still required, and still with no default -- an unanswered field and an empty one must not
+  // look the same (R2). What changed is the cost of answering: one tap satisfies it.
+  if (statedKnown(draft).length === 0) {
+    problems.push({ field: "known", message: "לא נאמר מה אתם קוראים בעמדה." });
   }
-  if (draft.unknown.trim().length === 0) {
-    // Required, with no default. An empty answer and an unanswered one must not look the same.
-    problems.push({ field: "unknown", message: "לא נכתב מה אי אפשר להעריך כאן." });
+  if (statedUnknown(draft).length === 0) {
+    problems.push({ field: "unknown", message: "לא נאמר מה אי אפשר להעריך כאן." });
   }
   if (draft.confidence === null) {
     problems.push({ field: "confidence", message: "לא נבחרה רמת ביטחון." });
@@ -106,8 +124,8 @@ export function buildCommitEvent(
       phase: classifyPhase(position.fen, position.ply),
       clock_ms_remaining: position.clockMsRemaining,
     },
-    known: draft.known.trim(),
-    unknown: draft.unknown.trim(),
+    known: statedKnown(draft),
+    unknown: statedUnknown(draft),
     decision: draft.chosenMove!,
     bounded_action: {
       seconds_taken: secondsTaken,

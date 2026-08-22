@@ -1369,7 +1369,25 @@ button:not(:disabled) {
   margin: 0;
   text-align: center;
 }
+/*
+ * The control that records the decision is always on screen.
+ *
+ * Measured on the shipped build, before the read options existed: on a 390x844 phone the submit
+ * sat at y=1302 and the confidence row at y=1217 -- both roughly 500px below the fold, in a
+ * document that scrolls. So the player chose a move, saw nothing happen, and had no way to know
+ * the button existed. That is a second, independent cause of "I cannot complete the move", and
+ * it was there before this change. Adding the option chips then pushed the same button below
+ * the fold on a 1393x681 laptop too (y=859), where it had previously been visible at y=644.
+ *
+ * Sticky rather than shorter content: the panel's height depends on how many options a field
+ * offers and how much the player has written, so any fix that works by keeping it small is one
+ * option away from breaking again. The button already names what is missing and scrolls to it
+ * when clicked, so pinned to the bottom it doubles as a permanent status line.
+ */
 .commitment-submit {
+  position: sticky;
+  bottom: 8px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1377,7 +1395,8 @@ button:not(:disabled) {
   padding: 0.6rem 0.9rem;
   border-radius: 10px;
   border: 1px solid currentColor;
-  background: transparent;
+  /* Opaque: it sits over the panel's own content while the panel scrolls under it. */
+  background: var(--surface);
   color: inherit;
   font: inherit;
   font-weight: 600;
@@ -1872,4 +1891,74 @@ button:not(:disabled) {
 }
 .self-check-row.skip {
   border-style: dashed;
+}
+
+/* --- Stating a read: options first, writing optional ------------------------------------- */
+.read-field {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.read-field legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font: 700 11px/1.4 "DM Mono";
+  letter-spacing: 0.04em;
+  padding: 0;
+  margin-bottom: 6px;
+}
+.read-field legend small {
+  font: 10px/1.4 "Noto Sans Hebrew";
+  font-weight: 400;
+  color: var(--muted);
+}
+.read-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.read-chip {
+  padding: 6px 9px;
+  border: 1px solid rgba(var(--ink-rgb), 0.28);
+  background: transparent;
+  font: 11px/1.25 "Noto Sans Hebrew";
+  color: var(--ink);
+  cursor: pointer;
+  /* Still a comfortable target on a phone: this is the control the whole loop now runs through. */
+  min-height: 32px;
+}
+.read-chip:hover {
+  border-color: rgba(var(--ink-rgb), 0.55);
+}
+/* Selected is carried by weight and a filled ground, not by hue alone. */
+.read-chip.selected {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: var(--on-blue);
+  font-weight: 700;
+}
+.read-write-toggle {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 2px;
+  border: 0;
+  background: none;
+  font: 11px "Noto Sans Hebrew";
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.read-write-toggle:hover {
+  color: var(--ink);
+}
+.read-write-label {
+  font: 10px "DM Mono";
+  color: var(--muted);
 }

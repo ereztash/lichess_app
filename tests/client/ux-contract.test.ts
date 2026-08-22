@@ -247,3 +247,27 @@ describe("a dialog has to be opaque", () => {
     expect(block(".panel-backdrop")).toMatch(/background:\s*rgba\(0,\s*0,\s*0,\s*0\.\d+\)/);
   });
 });
+
+describe("the control that records a decision is always reachable", () => {
+  /*
+   * Measured on the shipped build: on a 390x844 phone the submit button sat at y=1302 and the
+   * confidence row at y=1217, both far below the fold in a document that scrolls. The player
+   * chose a move and had no way to know a button existed. Adding the read options pushed the
+   * same button off a 1393x681 laptop too (y=644 -> y=859).
+   *
+   * After: y=628 on the laptop and y=813 on the phone, both above the fold, and independent of
+   * how many options a field offers -- which is why this is asserted as `sticky` rather than as
+   * a height.
+   */
+  it("pins the submit button to the bottom rather than relying on the panel being short", () => {
+    const submit = block(".commitment-submit");
+    expect(submit).toMatch(/position:\s*sticky/);
+    expect(submit).toMatch(/bottom:\s*\d/);
+  });
+
+  it("gives it an opaque ground, because the panel scrolls underneath it", () => {
+    // `background: transparent` was the shipped value, which over a scrolling panel would put
+    // option chips through the middle of the button.
+    expect(block(".commitment-submit")).toMatch(/background:\s*var\(--surface\)/);
+  });
+});
