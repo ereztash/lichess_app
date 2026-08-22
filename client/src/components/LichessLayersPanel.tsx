@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import type { AnalysisSource } from "@shared/analysis-source";
 import { Rate } from "./Value";
+import { readableFailureText } from "@/lib/commit-error";
 type Props = {
   fen: string;
   source: AnalysisSource;
@@ -75,7 +76,9 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
   const cloud = layers.data?.cloud?.pvs[0];
   const personalError =
     debugPersonalError ||
-    (personal.isError ? personal.error.message || "לא ניתן לטעון רפרטואר אישי כעת." : undefined);
+    (personal.isError
+      ? readableFailureText(personal.error, "לא ניתן לטעון רפרטואר אישי כעת.")
+      : undefined);
   return (
     <section className="analysis-section lichess-layers">
       <div className="section-heading">
@@ -100,7 +103,7 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
       )}
       {layers.isError && (
         <div className="layer-error">
-          {layers.error.message || "לא ניתן לטעון את שכבות Lichess כרגע."}
+          {readableFailureText(layers.error, "לא ניתן לטעון את שכבות Lichess כרגע.")}
         </div>
       )}
       <ConfigNotice missing={config.data?.missing} isOwner={config.data?.isOwner} />

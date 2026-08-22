@@ -84,6 +84,11 @@ import {
   type SessionStage,
 } from "@/lib/decision-session";
 import type { RevealInputs } from "@/lib/reveal";
+import {
+  commitFailureText,
+  readableFailureText,
+  type CommitFailureText,
+} from "@/lib/commit-error";
 // TYPE-ONLY import: type imports are erased, so this creates no runtime edge to the engine
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
 // Values (isStale, EngineLine) come from @/lib/engine-line, which has no asset imports.
@@ -168,7 +173,7 @@ export default function Home() {
   const [stage, setStage] = useState<SessionStage>("deciding");
   const [candidateMove, setCandidateMove] = useState<string | null>(null);
   const [candidatesConsidered, setCandidatesConsidered] = useState<string[]>([]);
-  const [commitError, setCommitError] = useState<string>();
+  const [commitError, setCommitError] = useState<CommitFailureText>();
   const [revealInputs, setRevealInputs] = useState<RevealInputs | null>(null);
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
@@ -461,9 +466,10 @@ export default function Home() {
         // R2: a decision that was not stored must never look like one that was. We do not
         // advance to reveal, and we say what happened.
         setStage("deciding");
-        setCommitError(
-          error instanceof Error ? error.message : "ההחלטה לא נרשמה. לא נמשיך לחשיפה.",
-        );
+        // Never the raw message: on the default unauthenticated path this is LocalRecordStore's
+        // English invariant text, and it lands on the screen that has to say the decision was not
+        // recorded. The original is kept and demoted, not dropped.
+        setCommitError(commitFailureText(error));
         return;
       }
       // Only now may the engine run at all.
@@ -596,7 +602,7 @@ export default function Home() {
         setDrillVerdict(null);
         setDrillStage("briefing");
       } catch (error) {
-        setDrillError(error instanceof Error ? error.message : "הדריל לא התחיל.");
+        setDrillError(readableFailureText(error, "הדריל לא התחיל."));
       }
     },
     [history, startDrillMutation],
@@ -633,7 +639,7 @@ export default function Home() {
       });
       setDrillStage("done");
     } catch (error) {
-      setDrillError(error instanceof Error ? error.message : "לא ניתן היה לסגור את הדריל.");
+      setDrillError(readableFailureText(error, "לא ניתן היה לסגור את הדריל."));
       setDrillStage("done");
     }
   }, [completeDrillMutation, drill, drillDecisionIds, drillIndex]);
@@ -680,7 +686,7 @@ export default function Home() {
         setLearningTransferVerdict(null);
       } catch (cause) {
         setLearningTransferError(
-          cause instanceof Error ? cause.message : "בדיקת ההעברה לא התחילה.",
+          readableFailureText(cause, "בדיקת ההעברה לא התחילה."),
         );
       }
     },
@@ -735,7 +741,7 @@ export default function Home() {
       setLearningTransferStage("done");
     } catch (cause) {
       setLearningTransferError(
-        cause instanceof Error ? cause.message : "לא ניתן היה למדוד את הבדיקה.",
+        readableFailureText(cause, "לא ניתן היה למדוד את הבדיקה."),
       );
       // Preserve the completed observations so reporting can be retried. A `done` state without
       // a verdict has no valid next action and would strand the workflow.
@@ -864,7 +870,7 @@ export default function Home() {
       setReviewScores(scores);
     } catch (error) {
       // A review that failed must not render as a review that found nothing.
-      setReviewError(error instanceof Error ? error.message : "הניתוח נכשל.");
+      setReviewError(readableFailureText(error, "הניתוח נכשל."));
     } finally {
       setReviewProgress(null);
     }

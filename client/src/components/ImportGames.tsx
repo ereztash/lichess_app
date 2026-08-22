@@ -5,6 +5,7 @@ import type { EngineLine } from "@/lib/engine-line";
 import { runImportDiagnostic, type ImportRunProgress } from "@/lib/import-run";
 import { ImportDiagnosticPanel } from "./ImportDiagnostic";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
+import { readableFailureText } from "@/lib/commit-error";
 
 type Props = {
   onLoad: (game: ImportedGame) => void;
@@ -77,9 +78,7 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
     } catch (error) {
       // R2: a scan that did not finish must not leave a reading on screen that looks finished.
       setDiagnostic(null);
-      setScanFailure(
-        error instanceof Error ? error.message : "הסריקה נעצרה לפני שהספיקה למדוד משהו.",
-      );
+      setScanFailure(readableFailureText(error, "הסריקה נעצרה לפני שהספיקה למדוד משהו."));
     } finally {
       setProgress(null);
       abort.current = null;
