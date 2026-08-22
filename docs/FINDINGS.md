@@ -613,6 +613,28 @@ demonstrated red.
   origin**. Chromium in this sandbox reaches no external HTTPS host, so the game was driven
   against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
   it is not the same as having watched it play there.
+- **The playable opening screen at the deployed origin.** Narrowed as far as this sandbox allows,
+  and the narrowing is worth stating precisely because it is the closest this gap has come to
+  closing.
+
+  Measured against `https://lichessapp.vercel.app` after the merge of `71b01ad`:
+
+  ```
+  /api/health            -> 200 {"ok":true}
+  /assets/index-Cc0KNIH1.js   sha256 4531ee8f…7e6d127   IDENTICAL to the local build of main
+  /assets/index-BfqYvo0A.css  sha256 6f3ca3b8…2d3b1a74  IDENTICAL to the local build of main
+  ```
+
+  So production is serving *the same bytes* that were driven through three complete moves with
+  Stockfish replying, the self-check panel, and the blocked-storage path in Chromium. What is
+  still not observed is those bytes **executing in a browser at that origin**. Chromium here
+  fails with `net::ERR_CONNECTION_RESET` even through the agent proxy, and the proxy's
+  `recentRelayFailures` records no entry for the host — the CONNECT never arrives, so the browser
+  is failing before the proxy rather than being refused by it. curl reaches the same origin fine,
+  which is why the byte comparison above is possible at all.
+
+  The in-app self-check exists precisely for this gap: it is the only instrument that can report
+  from the deployed origin, because it runs in the player's browser rather than in this one.
 - **The opponent against a real player.** It opens, replies and hands the turn back — driven end
   to end, now including three consecutive moves from the opening position of a freshly loaded
   page — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
