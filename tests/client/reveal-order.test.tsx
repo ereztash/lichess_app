@@ -20,6 +20,7 @@ const INPUTS: RevealInputs = {
   confidence: 5,
   statedUnknown: "לא יודע אם d5 עובד",
   decisionsOnRecord: 120,
+  candidatesConsidered: [],
 };
 const ANALYSIS: EngineLine = {
   scoreCp: 180,

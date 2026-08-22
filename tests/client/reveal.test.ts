@@ -17,6 +17,7 @@ const base: RevealInputs = {
   confidence: 3,
   statedUnknown: "לא יודע אם d5 עובד",
   decisionsOnRecord: 120,
+  candidatesConsidered: [],
 };
 const from = (o: Partial<RevealInputs>): RevealInputs => ({ ...base, ...o });
 

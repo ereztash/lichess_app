@@ -29,6 +29,18 @@ export interface RevealInputs {
   statedUnknown: string;
   /** Recorded decisions so far, including this one. */
   decisionsOnRecord: number;
+  /**
+   * The moves the player actually put on the board before committing, in UCI, including the one
+   * they chose.
+   *
+   * READ THIS AS WHAT IT IS. It is a record of board interaction, not of thought. A player who
+   * weighed four moves in their head and touched one leaves a list of length one. So the only
+   * sound inference runs in one direction: a move that IS in this list was demonstrably in front
+   * of the player, and a move that is not may still have been considered. Every sentence derived
+   * from it below is phrased in that direction, and the limit that fires on a list of one says
+   * the other direction out loud.
+   */
+  candidatesConsidered: string[];
 }
 
 /**
@@ -73,6 +85,23 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
       `המהלך שלך והמהלך של המנוע רחוקים ${inputs.cpLoss} ס״פ — בתוך רעש ההערכה. זו אינה טעות.`,
     );
   }
+  /*
+   * The distinction this build cannot make on one recorded candidate.
+   *
+   * "You did not see it" and "you saw it and rejected it" call for opposite work -- one is
+   * vision, the other is the rule that chose between what was seen -- and with a single move on
+   * the board the record cannot tell them apart. Saying so is the honest move, and it also tells
+   * the player how to make the next reveal say more.
+   *
+   * Only when the engine preferred something else: with nothing to have missed, there is no
+   * distinction to be unable to make.
+   */
+  if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
+    limits.push(
+      "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת כאן אם לא ראית את המהלך של המנוע או שראית ודחית. " +
+        "מהלכים שנשקלו בלי להניח אותם על הלוח אינם נרשמים.",
+    );
+  }
   return limits;
 }
 
@@ -88,6 +117,27 @@ export interface OneThing {
  */
 export function theOneThing(inputs: RevealInputs): OneThing | null {
   const noisy = inputs.cpLoss <= ENGINE_NOISE_CP;
+  const rejectedTheBest = inputs.candidatesConsidered.includes(inputs.bestMove);
+
+  /*
+   * The choice rule, and it comes first.
+   *
+   * It outranks the calibration sentence below, which is the primary measure everywhere else in
+   * this product -- so the reason has to be stated. A calibration gap read off ONE decision is
+   * the aggregate claim at n=1; the detector needs MIN_BUCKET_N before it will say anything of
+   * the kind, and this sentence is standing in for it locally. "The best move was on your board
+   * and you played another" needs no aggregation at all. It is a fact about this decision, it
+   * uses strictly more of the record than the branches below, and it points at different work:
+   * not seeing further, but choosing better between things already seen.
+   *
+   * Phrased as "you recorded it" rather than "you saw it", per the field's own caveat.
+   */
+  if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && rejectedTheBest) {
+    return {
+      text: `${inputs.bestMove} היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ. ראית את המהלך; מה שהכריע ביניהם הוא מה שכדאי להסתכל עליו, לא הראייה.`,
+      basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+    };
+  }
 
   // The calibration gap is the primary measure (section 6): stated confidence against realised
   // accuracy. It outranks the move itself, because it is a property of the decision policy.

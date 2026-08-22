@@ -504,6 +504,14 @@ export default function Home() {
           confidence: draft.confidence!,
           statedUnknown: draft.unknown,
           decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
+          /*
+           * From the draft, not from React state. `setCandidatesConsidered([])` runs above, at
+           * the start of the reveal, and the state variable is cleared for the NEXT decision --
+           * so anything reading it here gets an empty array and the choice-rule sentence can
+           * never fire. The draft is the value CommitmentScreen committed with, captured in this
+           * closure, and it is the one that describes the decision being revealed.
+           */
+          candidatesConsidered: draft.candidatesConsidered,
         };
         setRevealInputs(inputs);
 
