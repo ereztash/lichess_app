@@ -22,6 +22,8 @@ import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { RevealPanel } from "@/components/RevealPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
+import { ContextRibbon } from "@/components/ContextRibbon";
+import { LoopStrip } from "@/components/LoopStrip";
 import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
@@ -772,6 +774,8 @@ export default function Home() {
         </div>
       </header>
 
+      <ContextRibbon />
+
       <section className="workbench">
         <aside className="control-rail">
           <div className="rail-label">כלי עבודה</div>
@@ -963,6 +967,9 @@ export default function Home() {
         </section>
 
         <aside className="analysis-stack">
+          <LoopStrip
+            drill={inDrill ? { completed: drillDecisionIds.length, total: drill!.fens.length } : null}
+          />
           {deciding ? (
             <CommitmentScreen
               position={{

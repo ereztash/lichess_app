@@ -263,6 +263,58 @@ the reveal and drill states were not opened and not measured. Fonts also failed 
 environment (`fonts.googleapis.com` is unreachable from here), so text ran in a fallback face and
 the *widths* above are not the shipped ones. Heights are `min-height`-driven and unaffected.
 
+## Two more from MATI, and the one that had to be refused
+
+### The card that would have been a fourth copy
+
+MATI's home screen derives one ranked next action and demotes everything else. Ported literally,
+that card would have been this app's **third or fourth** place saying the same sentence: the
+commitment submit already names what is missing, the header already offers the next decision once
+one is revealed, the claim panel already offers the drill and already states the distance to one,
+and the drill runner already counts its own positions.
+
+What is genuinely absent is not the card but the **ranking** it embodies. Five tool-rail buttons,
+a commitment screen and a claim panel render at the same weight, and during a reveal nothing on
+screen says where in the loop you are at all. So `lib/loop-position.ts` carries no action: it
+answers record / detect / drill / grade -- which is live, and what stands between here and the
+next one -- and leaves the doing to the surface that owns it.
+
+The distinction it must not lose is the one section 4.5 is about: **"enough decisions, no
+pattern" is an answer; "not enough decisions" is not**, and a third state -- the record could not
+be read -- must not render as distance zero. All three are separate branches and separately
+tested.
+
+### The context layer, and what it is forbidden to see
+
+MATI adapts to pace: short answers, a long session and a late hour make it go compact. That
+adaptation is free there and is **not** free here.
+
+`shared/detector.ts` buckets on time-to-decide, phase and clock. An interface that reacted to any
+of those would put the intervention inside the measurement -- the "under 45 seconds" bucket would
+stop being a fact about the player and become a fact about the player plus whatever the interface
+did to them at second forty. The whole product is that one measurement.
+
+So `lib/context-engine.ts` draws only on things the detector never reads: the device, whether it
+reports touch, and days since the last visit. `tests/client/context-engine.test.ts` asserts this
+against the **source** rather than against behaviour, because the failure it guards is someone
+adding a signal later and a behavioural test only sees the signals that exist today. Both halves
+of that assertion were demonstrated red by adding a `seconds_taken` field to the module.
+
+The refusal is also stated to the player, inside the ribbon's own "למה?" disclosure, rather than
+only in this file.
+
+### A floor on one axis is not a floor
+
+The tap floor shipped in the commit before this one set `min-height` only. Adding the ribbon
+proved that insufficient within the hour: its "למה?" disclosure measured **44 tall and 22.6
+wide** in Chromium. WCAG 2.5.5 is 44x44, and every short label is a way to pass a height-only
+check while failing the guideline.
+
+The source-level contract could not have caught it -- the width was never declared, it came from
+three characters of text -- which is the second time in this work that the browser found what
+reading the stylesheet could not. The floor sets both axes now, and the contract test requires
+both.
+
 ## The rank that collapsed twice
 
 Reported once as "the board rendered four ranks" and again, after the layout work, as "this

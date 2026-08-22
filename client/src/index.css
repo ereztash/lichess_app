@@ -1823,6 +1823,143 @@ button:not(:disabled) {
   outline-offset: -3px;
 }
 
+/* ---- The loop, and where in it you are --------------------------------------------------- */
+/*
+ * Actionless on purpose. Every action it could carry is already owned by a surface closer to it;
+ * this ranks those rather than repeating them. Drawn quieter than anything it sits above --
+ * orientation is not a call to act, and styling it like one would make it compete with the
+ * control that IS the next thing to do.
+ */
+.loop-strip {
+  padding: 11px 17px 13px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.loop-rail {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.loop-step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 9px "DM Mono";
+  color: var(--muted);
+}
+/* The step's own bar. Colour never carries the state alone -- "כאן" is text. */
+.loop-step > span[aria-hidden] {
+  block-size: 3px;
+  background: rgba(var(--ink-rgb), 0.16);
+}
+.loop-step.done > span[aria-hidden] {
+  background: rgba(var(--ink-rgb), 0.42);
+}
+.loop-step.live > span[aria-hidden] {
+  background: var(--blue);
+}
+.loop-step.live {
+  color: var(--ink);
+}
+.loop-step.live b {
+  font-weight: 700;
+}
+.loop-here {
+  font: 8px "DM Mono";
+  color: var(--blue);
+}
+.loop-headline {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.loop-basis {
+  margin: 0;
+  font: 0.62rem "DM Mono";
+  opacity: 0.7;
+}
+
+/* ---- Coming back after a gap ------------------------------------------------------------- */
+/*
+ * Shown on a return after RETURN_GAP_DAYS and never otherwise, which is almost every visit. It
+ * is the record's own colour rather than the engine's blue: what it reports is counts from the
+ * record, and the engine had no part in it.
+ */
+.context-ribbon {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline-strong);
+  border-inline-start: 3px solid var(--edge);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.context-reorientation {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.context-why summary {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font: 0.68rem "DM Mono";
+  color: var(--blue);
+}
+.context-why ul {
+  margin: 6px 0 0;
+  padding-inline-start: 1.1rem;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+.context-why small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.64rem;
+  line-height: 1.55;
+  opacity: 0.75;
+}
+.context-dismiss {
+  padding-inline: 12px;
+  border: 1px solid var(--hairline-strong);
+  background: transparent;
+  font: 0.7rem "DM Mono";
+  color: inherit;
+}
+
+/* ---- Pointer-only affordances ------------------------------------------------------------ */
+/*
+ * `data-input` comes from lib/context-engine.ts. A touch device reports no hover, but a browser
+ * will still apply :hover to the last thing tapped and leave it stuck in the hovered state --
+ * which on a read chip is indistinguishable from selected, on the one control the whole loop
+ * runs through.
+ *
+ * `@media (hover: none)` covers most of this on its own. The attribute is here for the case the
+ * media query gets wrong: a touchscreen laptop reports `hover: hover` because it also has a
+ * trackpad, and a narrow desktop window is not a phone. Both are checked, so neither has to be
+ * right alone.
+ */
+:root[data-input="touch"] .read-chip:hover:not(.selected) {
+  border-color: rgba(var(--ink-rgb), 0.28);
+}
+/* Base is --muted; the hover takes it to --ink. Neutralised back to the base, not to some
+   third colour. `.board-note button` is not here: it has no hover rule to neutralise. */
+:root[data-input="touch"] .read-write-toggle:hover {
+  color: var(--muted);
+}
+@media (hover: none) {
+  .read-chip:hover:not(.selected) {
+    border-color: rgba(var(--ink-rgb), 0.28);
+  }
+}
+
 /* ---- Tap floor -------------------------------------------------------------------------- */
 /*
  * One declared minimum for every control a finger lands on, in one place, so the contract can be
@@ -1840,6 +1977,8 @@ button:not(:disabled) {
 .read-chip,
 .confidence-row button,
 .commitment-submit,
+.context-dismiss,
+.context-why summary,
 .read-write-toggle,
 .primary-control,
 .icon-control,
@@ -1858,6 +1997,13 @@ button:not(:disabled) {
 .review-tabs button,
 .import-list button {
   min-height: var(--tap-floor);
+  /*
+   * Both axes. WCAG 2.5.5 is 44x44, not 44-by-whatever-the-label-happens-to-be, and a
+   * height-only floor misses every short label: the "למה?" disclosure measured 44 tall and
+   * **22.6 wide** in Chromium, which the source-level contract cannot see because the width was
+   * never declared -- it came from three characters of text.
+   */
+  min-width: var(--tap-floor);
 }
 
 /* ---- Reduced motion --------------------------------------------------------------------- */

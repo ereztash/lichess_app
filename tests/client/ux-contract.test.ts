@@ -331,6 +331,8 @@ describe("controls a finger lands on have a declared minimum", () => {
     ".drawer-actions button",
     ".timeline-controls button",
     ".depth-row button",
+    ".context-dismiss",
+    ".context-why summary",
   ];
 
   it("names the floor once, at 44px or more", () => {
@@ -339,10 +341,15 @@ describe("controls a finger lands on have a declared minimum", () => {
     expect(Number(floor!.replace("px", ""))).toBeGreaterThanOrEqual(44);
   });
 
-  it("applies it to every control in the decision loop", () => {
+  it("applies it to every control in the decision loop, on both axes", () => {
+    // Both, because 2.5.5 is 44x44. A height-only floor passed a 44x22.6 disclosure control.
     const covered = new Set(
       rules()
-        .filter((rule) => /min-height:\s*var\(--tap-floor\)/.test(rule.body))
+        .filter(
+          (rule) =>
+            /min-height:\s*var\(--tap-floor\)/.test(rule.body) &&
+            /min-width:\s*var\(--tap-floor\)/.test(rule.body),
+        )
         .flatMap((rule) => rule.selectors),
     );
     for (const selector of GUARDED) {
