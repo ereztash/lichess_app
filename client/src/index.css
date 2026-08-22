@@ -1758,3 +1758,34 @@ button:not(:disabled) {
   outline: 3px solid var(--blue);
   outline-offset: -3px;
 }
+
+/* ---- The commitment screen says what it needs, before you click ------------------------ */
+/*
+ * Reported as "I still cannot complete the move": a chosen move, one field filled, the other
+ * empty, and a button that looked ready and did nothing visible. The rule is not the problem --
+ * a partial decision is not recorded, and that is the product. The silence was.
+ */
+.required-mark {
+  font: 9px "DM Mono";
+  letter-spacing: 0.04em;
+  color: var(--warn);
+  border: 1px solid var(--warn);
+  padding: 1px 5px;
+  margin-inline-start: 6px;
+  vertical-align: middle;
+}
+.commitment-field.has-problem textarea {
+  border-color: var(--warn);
+  outline: 1px solid var(--warn);
+}
+.commitment-submit.not-ready {
+  /* Still pressable: pressing it is how you find out what is missing and get taken there. */
+  background: transparent;
+  color: var(--warn);
+  border: 1px dashed var(--warn);
+}
+.commitment-summary {
+  font: 10px/1.5 "Noto Sans Hebrew";
+  color: var(--warn);
+  padding-top: 6px;
+}
