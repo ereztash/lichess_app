@@ -24,7 +24,7 @@ export function NewGameSetup({
   onCancel,
 }: NewGameSetupProps) {
   return (
-    <section className="new-game-setup" aria-label="משחק חדש">
+    <section className="new-game-setup">
       <h3>משחק חדש</h3>
 
       <fieldset className="setup-field">

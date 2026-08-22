@@ -27,8 +27,23 @@ describe("the board cannot collapse a rank", () => {
     expect(block(".board-square")).toMatch(/aspect-ratio:\s*1/);
   });
 
-  it("still declares the rows, which is correct whenever the height IS definite", () => {
-    expect(block(".board-grid")).toMatch(/grid-template-rows:\s*repeat\(8,\s*1fr\)/);
+  it("still declares eight explicit rows, so no rank can collapse", () => {
+    /*
+     * This used to pin the exact track function -- `repeat(8, 1fr)` -- and that turned out to
+     * be the wrong thing to hold onto. `1fr` means `minmax(auto, 1fr)`, whose `auto` MINIMUM is
+     * min-content: the glyph. On a short viewport the tracks then refused to shrink and the
+     * squares overflowed the board's own box (measured 154px of spill at 1280x600, with the
+     * board 332x493 instead of square). The rows are now minmax(0, 1fr).
+     *
+     * What this test actually cares about is unchanged and still enforced: EIGHT rows, declared
+     * explicitly. Implicit rows size to their content, so a rank with no pieces on it collapses
+     * to zero height -- the starting position once rendered as four ranks stacked at the top.
+     * The track function is free to change; the count and the explicitness are not.
+     */
+    const rows = block(".board-grid").match(/grid-template-rows:\s*repeat\(\s*8\s*,[^;]+;/);
+    expect(rows, "the board grid no longer declares its rows explicitly").toBeTruthy();
+    // And it must not be the bare `1fr` that caused the overflow.
+    expect(rows![0]).not.toMatch(/repeat\(\s*8\s*,\s*1fr\s*\)/);
   });
 
   it("bounds the board's width with vh, not only with the newer svh", () => {

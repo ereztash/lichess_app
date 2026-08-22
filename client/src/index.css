@@ -711,16 +711,36 @@ button:not(:disabled) {
 .board-grid {
   aspect-ratio: 1;
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  /* Rows MUST be declared. Without this the implicit rows size to their content, so any rank
-     with no pieces on it collapses to zero height -- the starting position rendered as four
-     ranks stacked at the top of a square board. */
-  grid-template-rows: repeat(8, 1fr);
+  /*
+   * minmax(0, 1fr), NOT 1fr.
+   *
+   * `1fr` means `minmax(auto, 1fr)`, and `auto` as a track MINIMUM resolves to min-content --
+   * which for a square holding a 68px glyph is 68px. So on any viewport too short to give the
+   * board 8x68px, the tracks refused to shrink and the squares overflowed the board's own box:
+   * measured at 1280x600 a grid 332px wide whose squares were 60px each, spilling 154px past
+   * its own right edge, with the border and shadow no longer around anything. The board also
+   * stopped being square -- 332x493, out by 161px -- because the same floor applied to rows.
+   *
+   * This is the piece font deciding layout again, one level in from the .board-stage fix: that
+   * one stopped the font sizing the BOX, this one stops it sizing the TRACKS.
+   *
+   * Rows must still be declared explicitly. Without them the implicit rows size to their content
+   * and any rank with no pieces collapses to zero height -- the starting position once rendered
+   * as four ranks stacked at the top of a square board.
+   */
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
   position: relative;
   border: 7px solid var(--ink);
   box-shadow: 12px 14px 0 rgba(var(--shadow-rgb), 0.22);
 }
 .board-square {
+  /* A square is sized by the board, never by what stands on it. container-type: size also makes
+     the square a query container, so the piece below can be sized from the square instead of
+     from the viewport. */
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
   /*
    * THE guarantee that a rank cannot collapse.
    *
@@ -787,7 +807,11 @@ button:not(:disabled) {
  */
 .piece {
   z-index: 2;
-  font: clamp(29px, 5.2vw, 68px)/0.9 Georgia;
+  /*
+   * 74% of the square's smaller side. This was clamp(29px, 5.2vw, 68px) -- sized from the
+   * VIEWPORT, so a wide-but-short window asked for a 68px glyph inside a 40px square.
+   */
+  font: 74cqmin/0.9 Georgia;
   color: var(--piece-dark);
   text-shadow:
     0 0 2px var(--piece-dark-shadow),
@@ -1152,9 +1176,8 @@ button:not(:disabled) {
   .board-grid {
     border-width: 5px;
   }
-  .piece {
-    font-size: clamp(27px, 9vw, 51px);
-  }
+  /* The mobile override is gone: .piece is sized from its square now, so a viewport-derived
+     font here would put the old bug back on phones only. */
   .analysis-stack {
     margin-top: 18px;
   }
@@ -1638,6 +1661,26 @@ button:not(:disabled) {
 }
 
 /* ---- New game: pick a side, pick a depth ---------------------------------------------- */
+/*
+ * Fixed, not in the flow. Inline it was 251px of block above the board, which on a 1393x681
+ * laptop window pushed 52% of the board below the fold at the moment you opened it.
+ */
+.panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+.panel-shell {
+  width: min(560px, 100%);
+  /* The panel scrolls itself rather than being clipped by a short window. */
+  max-height: min(90svh, 90vh);
+  overflow: auto;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
 .new-game-setup {
   background: var(--surface);
   border: 1px solid var(--hairline-strong);

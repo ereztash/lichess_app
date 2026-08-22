@@ -25,6 +25,7 @@ import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import { NewGameSetup } from "@/components/NewGameSetup";
+import { Overlay } from "@/components/Overlay";
 /*
  * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
  * it in the initial graph, which is the same weight mistake the engine import was -- the reason
@@ -797,22 +798,32 @@ export default function Home() {
             </div>
           </div>
 
+          {/*
+            * All three of these are transient panels, and all three used to render as a block
+            * above the board -- which pushed the board below the fold by their own height. See
+            * components/Overlay.tsx for the measurements.
+            */}
           {showNewGame && (
-            <NewGameSetup
-              color={setupColor}
-              depth={setupDepth}
-              onColor={setSetupColor}
-              onDepth={setSetupDepth}
-              onStart={() => newGame(setupColor, setupDepth)}
-              onCancel={() => setShowNewGame(false)}
-            />
+            <Overlay label="משחק חדש" onClose={() => setShowNewGame(false)}>
+              <NewGameSetup
+                color={setupColor}
+                depth={setupDepth}
+                onColor={setSetupColor}
+                onDepth={setSetupDepth}
+                onStart={() => newGame(setupColor, setupDepth)}
+                onCancel={() => setShowNewGame(false)}
+              />
+            </Overlay>
           )}
 
           {showImport && (
-            <ImportGames onLoad={loadLichessGame} onClose={() => setShowImport(false)} />
+            <Overlay label="ייבוא לפי שם משתמש" onClose={() => setShowImport(false)}>
+              <ImportGames onLoad={loadLichessGame} onClose={() => setShowImport(false)} />
+            </Overlay>
           )}
 
           {showPgn && (
+            <Overlay label="טעינת PGN" onClose={() => setShowPgn(false)}>
             <section className="pgn-drawer">
               <div className="drawer-heading">
                 <div>
@@ -828,6 +839,7 @@ export default function Home() {
                 </button>
               </div>
             </section>
+            </Overlay>
           )}
 
           <div className="board-assembly">

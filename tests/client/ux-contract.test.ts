@@ -18,6 +18,7 @@ const root = resolve(__dirname, "../..");
 const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
 const html = readFileSync(resolve(root, "client/index.html"), "utf8");
 const timeline = readFileSync(resolve(root, "client/src/components/MoveTimeline.tsx"), "utf8");
+const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
 /* Comments stripped: this file explains in prose why scrollIntoView is wrong here, and a raw
    grep matches that explanation as though it were the call. */
 const timelineCode = timeline.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
@@ -58,6 +59,58 @@ describe("the board is sized by its container, not by its glyphs", () => {
 
   it("keeps the height bound that stops the board running off the bottom", () => {
     expect(block(".board-stage")).toMatch(/max-width:\s*min\(100%,\s*calc\(100vh - \d+px\)\)/);
+  });
+});
+
+describe("the board grid cannot be pushed out of shape by its pieces", () => {
+  it("sizes both axes with minmax(0, 1fr), never bare 1fr", () => {
+    // `1fr` is `minmax(auto, 1fr)`, and `auto` as a track MINIMUM is min-content -- the glyph.
+    // On a viewport too short to give the board 8 glyph-heights the tracks refused to shrink and
+    // the squares overflowed the board's own box: at 1280x600, a 332px-wide grid whose squares
+    // were 60px each, spilling 154px past its own right edge, and a board measuring 332x493
+    // instead of square. The border and the shadow were no longer around anything.
+    const b = block(".board-grid");
+    expect(b).toMatch(/grid-template-columns:\s*repeat\(8,\s*minmax\(0,\s*1fr\)\)/);
+    expect(b).toMatch(/grid-template-rows:\s*repeat\(8,\s*minmax\(0,\s*1fr\)\)/);
+    expect(b).not.toMatch(/grid-template-(columns|rows):\s*repeat\(8,\s*1fr\)/);
+  });
+
+  it("lets a square shrink below its content", () => {
+    const b = block(".board-square");
+    expect(b).toMatch(/min-width:\s*0/);
+    expect(b).toMatch(/min-height:\s*0/);
+  });
+
+  it("sizes the piece from its square, not from the viewport", () => {
+    // clamp(29px, 5.2vw, 68px) asked for a 68px glyph inside a 40px square on a wide-but-short
+    // window. Every viewport-derived piece size is the same bug waiting to come back.
+    expect(block(".piece")).toMatch(/\d+cqmin/);
+    expect(bare.match(/\.piece\s*\{[^}]*\}/g)?.join(" ") ?? "").not.toMatch(/\dvw|\dvh/);
+  });
+});
+
+describe("transient panels do not push the board off the screen", () => {
+  it("renders every one of them inside an Overlay", () => {
+    // Each panel used to be a block above the board and shoved it down by its own height. On a
+    // 1393x681 laptop window that left 52% of the board visible for "new game", 47% for the PGN
+    // drawer and 74% for import-by-name. Three buttons, one "the screen is cut".
+    // The JSX usage, not the import line.
+    for (const panel of ["<NewGameSetup", "<ImportGames", 'className="pgn-drawer"']) {
+      const at = home.indexOf(panel);
+      expect(at, `${panel} is not rendered any more`).toBeGreaterThan(-1);
+      const before = home.slice(Math.max(0, at - 400), at);
+      expect(before, `${panel} is not wrapped in an Overlay`).toMatch(/<Overlay\b/);
+    }
+  });
+
+  it("takes the overlay out of flow entirely", () => {
+    expect(block(".panel-backdrop")).toMatch(/position:\s*fixed/);
+  });
+
+  it("lets a short window scroll the panel instead of clipping it", () => {
+    const shell = block(".panel-shell");
+    expect(shell).toMatch(/max-height:/);
+    expect(shell).toMatch(/overflow:\s*auto/);
   });
 });
 
