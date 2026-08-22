@@ -1112,7 +1112,11 @@ export default function Home() {
 
           {showImport && (
             <Overlay label="ייבוא לפי שם משתמש" onClose={() => setShowImport(false)}>
-              <ImportGames onLoad={loadLichessGame} onClose={() => setShowImport(false)} />
+              <ImportGames
+                onLoad={loadLichessGame}
+                onClose={() => setShowImport(false)}
+                analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+              />
             </Overlay>
           )}
 

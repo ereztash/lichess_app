@@ -259,3 +259,38 @@ describe("the lowest number is not automatically a finding", () => {
     expect(worstBucketVerdict(d)!.worst.key).toBe(worstMeasurableBucket(d)!.key);
   });
 });
+
+describe("pulling the clocks out of a real PGN", () => {
+  it("indexes the readings so that index 0 is the starting clock", async () => {
+    const { clockSecondsFromPgn } = await import("../../shared/pgn-clock");
+    const pgn =
+      '[TimeControl "300+3"]\n\n1. e4 { [%clk 0:04:58] } e5 { [%clk 0:04:57] } 2. Nf3 { [%clk 0:04:50] } *';
+    // secondsSpentAt reads clockTimes[ply - 2], so index 0 has to be the clock before ply 2.
+    expect(clockSecondsFromPgn(pgn)).toEqual([300, 298, 297, 290]);
+  });
+
+  it("reads h:mm:ss and m:ss alike", async () => {
+    const { clockSecondsFromPgn } = await import("../../shared/pgn-clock");
+    expect(clockSecondsFromPgn('[TimeControl "60"]\n\n1. e4 { [%clk 1:00:30] } *')[1]).toBe(3630);
+    expect(clockSecondsFromPgn('[TimeControl "60"]\n\n1. e4 { [%clk 0:30] } *')[1]).toBe(30);
+  });
+
+  it("leaves the starting clock unknown rather than guessing it", async () => {
+    /*
+     * The tempting fill is the first [%clk] value, which is wrong by exactly one move's thinking
+     * time -- and in a bucket named "under 45 seconds", one move's thinking time is the entire
+     * measurement. NaN costs the readings for plies 2 and 3 and nothing else.
+     */
+    const { clockSecondsFromPgn, secondsSpentAt } = await import("../../shared/pgn-clock");
+    const times = clockSecondsFromPgn("1. e4 { [%clk 0:04:58] } e5 { [%clk 0:04:57] } *");
+    expect(Number.isNaN(times[0])).toBe(true);
+    expect(secondsSpentAt(times, 2, 0)).toBeNull();
+  });
+
+  it("returns nothing at all for a PGN with no clock comments", async () => {
+    const { clockSecondsFromPgn, hasClockData } = await import("../../shared/pgn-clock");
+    const times = clockSecondsFromPgn('[TimeControl "300+3"]\n\n1. e4 e5 2. Nf3 *');
+    expect(times).toEqual([]);
+    expect(hasClockData(times)).toBe(false);
+  });
+});

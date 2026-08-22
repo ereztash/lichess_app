@@ -339,6 +339,11 @@ describe("controls a finger lands on have a declared minimum", () => {
     ".mechanism-picker button",
     ".learning-rule-actions button",
     ".learning-save",
+    // The import scan and its stop button. Measured in Chromium at 390px before they were added
+    // to the floor rule: 312x36 and 37.1x22.5 -- the stop button under it on both axes, and it is
+    // the only way out of a scan that takes tens of seconds.
+    ".import-scan",
+    ".import-progress button",
   ];
 
   it("names the floor once, at 44px or more", () => {

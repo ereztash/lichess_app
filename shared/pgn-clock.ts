@@ -65,7 +65,9 @@ export function secondsSpentAt(
   if (ply < 2) return null;
   const previous = clockTimes[ply - 2];
   const current = clockTimes[ply];
-  if (previous === undefined || current === undefined) return null;
+  // Non-finite as well as absent: index 0 is NaN when the PGN carried no parseable TimeControl,
+  // so the starting clock is genuinely unknown. NaN must become "no reading", never a number.
+  if (!Number.isFinite(previous) || !Number.isFinite(current)) return null;
   // Clamped: a clock that appears to go backwards is a malformed PGN, not negative thinking.
   return Math.max(0, previous - current + incrementSeconds);
 }
@@ -88,10 +90,51 @@ export function secondsSpentAt(
 export function clockMsRemainingAt(clockTimes: number[], ply: number): number | null {
   if (ply < 2) return null;
   const facing = clockTimes[ply - 2];
-  return facing === undefined ? null : facing * 1000;
+  return Number.isFinite(facing) ? facing * 1000 : null;
 }
 
 /** True when this PGN carries no usable clock data at all. */
 export function hasClockData(clockTimes: number[]): boolean {
   return clockTimes.length >= 2;
+}
+
+/** `[TimeControl "300+3"]`, or undefined when the header is absent. */
+export function timeControlHeader(pgn: string): string | undefined {
+  return /\[TimeControl\s+"([^"]*)"\]/.exec(pgn)?.[1];
+}
+
+/** `0:03:00` or `3:00` or `180` -> seconds. Null when it is none of those. */
+function clockToSeconds(text: string): number | null {
+  const parts = text.trim().split(":").map(Number);
+  if (parts.some((n) => !Number.isFinite(n))) return null;
+  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2) return parts[0] * 60 + parts[1];
+  if (parts.length === 1) return parts[0];
+  return null;
+}
+
+/**
+ * The `[%clk]` readings in a PGN, indexed the way `secondsSpentAt` expects.
+ *
+ * `[%clk]` is written AFTER each move, so the comments alone give indices 1..N and say nothing
+ * about the clock at the start. Index 0 is the initial clock, taken from the TimeControl header.
+ *
+ * WHEN THAT HEADER IS MISSING OR UNPARSEABLE, index 0 is NaN rather than a guess. The tempting
+ * fill is the first `[%clk]` value, and it is wrong by exactly one move's thinking time -- in the
+ * bucket named "under 45 seconds", one move's thinking time is the whole measurement. NaN costs
+ * the readings for plies 2 and 3 and nothing else; the two functions above turn it into "no
+ * reading" rather than into a number.
+ *
+ * Returns an empty array when the PGN carries no clock comments at all, which is the common case:
+ * Lichess omits them unless the exporter asks.
+ */
+export function clockSecondsFromPgn(pgn: string): number[] {
+  const readings: number[] = [];
+  for (const match of pgn.matchAll(/\[%clk\s+([^\]]+)\]/g)) {
+    const seconds = clockToSeconds(match[1]);
+    if (seconds === null) return [];
+    readings.push(seconds);
+  }
+  if (!readings.length) return [];
+  return [parseTimeControl(timeControlHeader(pgn))?.baseSeconds ?? Number.NaN, ...readings];
 }

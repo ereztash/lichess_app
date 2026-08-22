@@ -690,6 +690,49 @@ button:not(:disabled) {
   color: white;
   white-space: nowrap;
 }
+/*
+ * Running the engine over every imported game. The wait is the honest part of this control: it is
+ * tens of seconds on a laptop and unmeasured on a phone, so the note beside the bar says both
+ * rather than implying a number nobody has.
+ */
+.import-scan {
+  display: block;
+  inline-size: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(var(--ink-rgb), 0.35);
+  background: transparent;
+  color: rgb(var(--ink-rgb));
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.import-progress {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.import-progress-track {
+  display: block;
+  block-size: 6px;
+  margin: 6px 0;
+  background: rgba(var(--ink-rgb), 0.12);
+}
+.import-progress-track i {
+  display: block;
+  block-size: 100%;
+  inline-size: 100%;
+  background: rgb(var(--ink-rgb));
+  transform-origin: right center;
+  transition: transform 120ms linear;
+}
+.import-progress-note {
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(var(--ink-rgb), 0.6);
+}
+
 .import-search:disabled {
   opacity: 0.6;
 }
@@ -2466,6 +2509,8 @@ button:not(:disabled) {
 .color-toggle button,
 .review-tabs button,
 .import-list button,
+.import-scan,
+.import-progress button,
 .learning-choice button,
 .mechanism-picker button,
 .transfer-applied button,
