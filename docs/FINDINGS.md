@@ -416,6 +416,144 @@ overrides but light never declares, and on any `var()` with no declaration anywh
 
 Nothing had ever read the stylesheet before, which is why eight dead tokens shipped.
 
+## The screen the application opened on was not a game
+
+Reported for a day, in four different messages, always the same words: *I still cannot play*,
+*I cannot complete the move*, *we have been standing on this problem since morning*. Every fix
+shipped in between was a real fix — the ESM outage, the board geometry, the invisible commit
+refusal — and none of them was this one, because none of them was about the screen the player
+actually landed on.
+
+**What it was.** The application initialised with `history = buildHistory(DEFAULT_PGN)`,
+`currentPly = 12`, `source = "imported"` and `opponent = null`. Three consequences, all by
+design and all wrong together:
+
+- while deciding, a board interaction only PROPOSES a move — the piece does not move until the
+  decision is committed and the next one starts. Correct behaviour; devastating as a first
+  impression, because nothing on screen moved when clicked.
+- the opponent effect returns early unless `source === "live"`, so nobody ever answered.
+- the position was ply 12 of a demo game, so the player was looking at a middlegame they had not
+  played, with no way to reach a game they had.
+
+**Measured**, driving the production build in Chromium at 1393x681 before the fix:
+
+```
+pieces on board: 32
+timeline entries: 18            <- eighteen half-moves of somebody else's game
+e1=♖  e2=<empty>  e4=♙          <- ply 12, not the starting position
+legal targets after selecting e2: 0
+opponent thinking: never
+```
+
+Then the same script against the live path, reached through the buried "new game" button:
+
+```
+legal squares highlighted: 2
+chosen marker shown: 1
+reveal appeared: true after 1.0s
+engine status: מנוע זמין
+opponent replied: true | timeline entries: 2
+```
+
+The game was never broken. It was behind a button, and the screen in front of that button looked
+like the product.
+
+**Fixed** by making the opening state the live one: empty history, ply -1, `source: "live"`, and
+an opponent present from the first render. Three complete moves driven end to end afterwards, on
+the built asset:
+
+```
+e2e4: legal-highlights=2 reveal=true played=true timeline=2
+g1f3: legal-highlights=3 reveal=true played=true timeline=4
+f1c4: legal-highlights=5 reveal=true played=true timeline=6
+board after 3 moves — e4: ♙  f3: ♘  c4: ♗
+```
+
+No level claim came with it. The opening game seeds the record like any other game; nothing here
+measures which rating a search depth plays at, so nothing says one (R1).
+`tests/client/opening-screen.test.tsx` renders the page and asserts the board, and pins the two
+initial values the opponent depends on; all eight assertions were demonstrated red against the
+pre-fix state.
+
+**Why no test caught it.** Every test in the suite checked a component in isolation or grepped a
+source file. The defect was in *which state the page starts in*, which is neither. 296 tests and
+9 gates passed on every build of the unplayable app.
+
+## Blocked storage ended the loop instead of degrading it
+
+`local-record-store.ts` wrote to localStorage through a deliberately unguarded call, so that a
+decision which was not stored could never be mistaken for one that was. Right about R2 and wrong
+about everything else: in a private window, behind a privacy extension, under an enterprise
+policy or on a full quota, the commit threw, the reveal never happened, and the application could
+not be used at all — in a browser configuration the player often cannot change.
+
+Reproduced in Chromium with `setItem`/`getItem` throwing `SecurityError`, which is exactly what
+those four cases do:
+
+```
+warning on screen: true
+commit -> reveal succeeded: false      <- permanently
+```
+
+**Fixed** by falling back to an in-memory record shared across store instances, and moving the
+honesty from the failure to the label: the decision IS kept, and `localRecordDurability()`
+reports `session-only` so the screen says the record dies with the tab. The rule that survives is
+the one that matters — a session-only record must never be indistinguishable from a persistent
+one. Same scenario after the fix:
+
+```
+warning shown: הדפדפן חוסם אחסון קבוע … לכרטיסייה הזו בלבד: סגירה או רענון ימחקו אותן.
+warning marked session-only: true
+commit -> reveal succeeded: true
+the move was played: true
+opponent answered: true (timeline 2)
+```
+
+The downgrade also carries the write that triggered it, so a quota filling mid-session does not
+lose the decision that filled it.
+
+## A diagnostic, because guessing was the actual failure mode
+
+Every fix in this project was verified in a browser that was not the player's, and every report
+back named a symptom rather than a step. Several plausible causes could not be told apart from
+here at all: a wasm blocked by a filtering proxy, Workers refused by policy, storage refused by
+an extension, a serverless route that 500s only in production. Each needs a different fix and
+all of them read as "it does not work".
+
+`client/src/lib/self-check.ts` runs ten checks in the player's own browser, reachable from the
+header, with a copyable report. Two rules it keeps:
+
+- **R2** — a check that could not run reports `skip` with what it was waiting on. When the
+  engine never greets, `readyok` and `bestmove` did not happen; calling them passes would send
+  the next person looking anywhere but at the engine, and calling them failures would invent
+  evidence.
+- **R1** — `bestmove` proves the engine answered once at depth 8 from the starting position. It
+  is not evidence about analysis quality and the report does not imply it is.
+
+It carries no part of what the player wrote; that is asserted, with a control.
+
+Run against the built asset in a browser, everything green except the deliberately broken API in
+the local mirror — which is the FUNCTION_INVOCATION_FAILED signature it exists to catch:
+
+```
+שרת האפליקציה — נכשל — סטטוס 500. הפונקציה בשרת נופלת.
+קובץ המנוע (wasm) — עבר — 7295411 בתים, application/wasm, חתימה תקינה.
+המנוע עונה (uciok) — עבר — ענה תוך 0.2 שניות.
+המנוע מחזיר מהלך (bestmove) — עבר — החזיר e2e4 בעומק 8 מעמדת הפתיחה (בדיקת תקינות בלבד).
+```
+
+## The dialog that was not opaque
+
+The self-check panel shipped transparent on its first build: it declared no background, and
+neither did `.panel-shell`, so the chessboard showed straight through the dialog and every row
+of the report was unreadable over the pieces. Caught by looking at a screenshot of it, not by a
+test — every panel before it happened to declare its own surface, which is precisely why the
+omission was invisible.
+
+The surface moved onto `.panel-shell`, so being opaque is now a property of being in an Overlay
+rather than something each new panel has to remember. Two assertions in `ux-contract`, both
+demonstrated red.
+
 ## Still unverified
 
 - The deployed engine **producing an evaluation**. The fix is confirmed present in the deployed
@@ -476,7 +614,8 @@ Nothing had ever read the stylesheet before, which is why eight dead tokens ship
   against a local mirror serving the same bytes instead. The gap is narrow but it is real, and
   it is not the same as having watched it play there.
 - **The opponent against a real player.** It opens, replies and hands the turn back — driven end
-  to end — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
+  to end, now including three consecutive moves from the opening position of a freshly loaded
+  page — but no human has played a game against it. Nothing here measures whether depth 1, 4 or
   8 makes a game worth playing for any particular player, which is exactly why the UI states a
   depth and claims no rating.
 - Every detector threshold **against real data**. All synthetic.

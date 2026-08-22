@@ -8,6 +8,7 @@ import {
   Link2,
   Moon,
   Plus,
+  Stethoscope,
   Sun,
   UserSearch,
 } from "lucide-react";
@@ -25,6 +26,7 @@ import type { DrillSpec } from "@shared/claim";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import { NewGameSetup } from "@/components/NewGameSetup";
+import { SelfCheck } from "@/components/SelfCheck";
 import { Overlay } from "@/components/Overlay";
 /*
  * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
@@ -113,20 +115,39 @@ function snapshot(
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [history, setHistory] = useState<GameSnapshot[]>(() => buildHistory(DEFAULT_PGN));
-  const [currentPly, setCurrentPly] = useState(12);
+  /*
+   * The app opens on a GAME, not on someone else's position.
+   *
+   * It used to open on ply 12 of a canned demo PGN with `source: "imported"` and no opponent.
+   * In that state a board click cannot play a move by design -- while deciding, an interaction
+   * only PROPOSES -- and the opponent effect is gated on `source === "live"`, which was never
+   * true at startup. So the opening screen offered a mid-game position from a game the player
+   * had not played, in which nothing they clicked ever moved and nobody ever answered. Measured
+   * in a browser against the production build: 32 pieces, 18 half-moves already in the timeline,
+   * e2 empty and a pawn already on e4, zero legal-move highlights, no opponent. "I cannot play
+   * there" was a literal and accurate description, and it survived every other fix because
+   * every other fix was to a screen the player could not reach the game from.
+   *
+   * The live path itself was never broken -- driving it in a browser plays a move, records the
+   * decision, reveals in ~1s and gets an answer from Stockfish. It was only ever behind a
+   * button. So it is the default now.
+   */
+  const [history, setHistory] = useState<GameSnapshot[]>([]);
+  const [currentPly, setCurrentPly] = useState(-1);
   const [orientation, setOrientation] = useState<Orientation>("w");
   const [selectedSquare, setSelectedSquare] = useState<string>();
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
-  const [pgnInput, setPgnInput] = useState(DEFAULT_PGN);
+  const [pgnInput, setPgnInput] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [reviewScores, setReviewScores] = useState<number[] | null>(null);
   const [reviewProgress, setReviewProgress] = useState<{ done: number; total: number } | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [showPgn, setShowPgn] = useState(false);
-  const [source, setSource] = useState<AnalysisSource>("imported");
-  const [notice, setNotice] = useState("בחרו מהלך וכתבו את הקריאה שלכם.");
+  const [source, setSource] = useState<AnalysisSource>("live");
+  const [notice, setNotice] = useState(
+    `אתם לבן, ופותחים. היריב הוא Stockfish בעומק ${DEFAULT_OPPONENT_DEPTH}. בחרו מהלך וכתבו את הקריאה שלכם.`,
+  );
 
   // --- R3 state machine ------------------------------------------------------------------
   const [stage, setStage] = useState<SessionStage>("deciding");
@@ -136,12 +157,21 @@ export default function Home() {
   const [revealInputs, setRevealInputs] = useState<RevealInputs | null>(null);
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
-  const gameId = useRef(`local-${Date.now()}`);
+  const gameId = useRef(`live-${Date.now()}`);
 
   // --- The opponent ------------------------------------------------------------------------
-  const [opponent, setOpponent] = useState<Opponent | null>(null);
+  /*
+   * Present from the first render, so the opening screen is a game. A depth is stated as a
+   * depth here and everywhere else: nothing in this build measures which rating a given search
+   * depth plays at, so nothing says what level the opponent -- or the player -- is at (R1).
+   */
+  const [opponent, setOpponent] = useState<Opponent | null>({
+    playerColor: "w",
+    depth: DEFAULT_OPPONENT_DEPTH,
+  });
   const [opponentThinking, setOpponentThinking] = useState(false);
   const [showNewGame, setShowNewGame] = useState(false);
+  const [showSelfCheck, setShowSelfCheck] = useState(false);
   const [setupColor, setSetupColor] = useState<"w" | "b">("w");
   const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
   /** The position the opponent has already been asked about, so it is asked exactly once. */
@@ -710,6 +740,18 @@ export default function Home() {
               ההחלטה הבאה
             </button>
           )}
+          {/*
+            * Reachable from the header on purpose. A diagnostic behind a menu is a diagnostic
+            * nobody runs when the thing is broken.
+            */}
+          <button
+            className="icon-control"
+            aria-label="בדיקה עצמית של הדפדפן"
+            aria-expanded={showSelfCheck}
+            onClick={() => setShowSelfCheck((v) => !v)}
+          >
+            <Stethoscope size={17} />
+          </button>
           <button
             className="icon-control"
             aria-label="הפוך את הלוח"
@@ -803,6 +845,12 @@ export default function Home() {
             * above the board -- which pushed the board below the fold by their own height. See
             * components/Overlay.tsx for the measurements.
             */}
+          {showSelfCheck && (
+            <Overlay label="בדיקה עצמית" onClose={() => setShowSelfCheck(false)}>
+              <SelfCheck onClose={() => setShowSelfCheck(false)} />
+            </Overlay>
+          )}
+
           {showNewGame && (
             <Overlay label="משחק חדש" onClose={() => setShowNewGame(false)}>
               <NewGameSetup
@@ -837,6 +885,15 @@ export default function Home() {
                 <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
                   טען למשחק
                 </button>
+                {/*
+                  * The demo game used to BE the opening screen, which is what made the app
+                  * unplayable. It is still worth having -- it is the shortest way to see the
+                  * review and timeline against a finished game -- so it moved here, where
+                  * loading it is something the player chooses.
+                  */}
+                <button className="ghost-control" onClick={() => setPgnInput(DEFAULT_PGN)}>
+                  הדביקו משחק לדוגמה
+                </button>
               </div>
             </section>
             </Overlay>
@@ -869,9 +926,11 @@ export default function Home() {
           </div>
 
           {recordMode.local && (
-            <p className={`record-mode ${recordMode.storable ? "" : "unstorable"}`}>
-              {!recordMode.storable
-                ? "הדפדפן חוסם אחסון מקומי (חלון פרטי או חסימת נתוני אתר), ולכן החלטה שתירשם לא תישמר. אל תסתמכו על הרשומה במצב הזה."
+            <p
+              className={`record-mode ${recordMode.durability === "session-only" ? "session-only" : ""}`}
+            >
+              {recordMode.durability === "session-only"
+                ? "הדפדפן חוסם אחסון קבוע (חלון פרטי, חסימת נתוני אתר, תוסף פרטיות או מכסה מלאה). הלולאה עובדת וההחלטות נרשמות — אבל לכרטיסייה הזו בלבד: סגירה או רענון ימחקו אותן."
                 : recordMode.serverBroken
                   ? "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים."
                   : "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והמידע לא עוזב את המחשב שלך."}

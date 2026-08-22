@@ -323,7 +323,7 @@ button:not(:disabled) {
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.8);
 }
-.record-mode.unstorable {
+.record-mode.session-only {
   border-color: var(--warn);
   color: var(--warn);
 }
@@ -1680,6 +1680,17 @@ button:not(:disabled) {
   max-height: min(90svh, 90vh);
   overflow: auto;
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  /*
+   * The surface belongs HERE, not on each panel.
+   *
+   * It used to be declared by every panel separately, so a new one -- the self-check -- came out
+   * transparent: the board showed straight through the dialog and every row of the report was
+   * unreadable over the pieces. Measured in a browser on the built asset. Putting the background
+   * on the shell makes an opaque panel a property of being in an Overlay at all, so the next
+   * panel cannot get this wrong by omission.
+   */
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
 }
 .new-game-setup {
   background: var(--surface);
@@ -1788,4 +1799,77 @@ button:not(:disabled) {
   font: 10px/1.5 "Noto Sans Hebrew";
   color: var(--warn);
   padding-top: 6px;
+}
+
+/* --- Self-check ------------------------------------------------------------------------- */
+.self-check {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  /* No width of its own: .panel-shell sizes the dialog, and a min-width here fought it. */
+}
+.self-check-intro {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.self-check-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.self-check-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+.self-check-verdict {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.3);
+  background: rgba(var(--cream-rgb), 0.4);
+}
+.self-check-verdict.has-failure {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.self-check-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  /* The engine rows can be long. The panel scrolls rather than growing past the viewport. */
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.self-check-row {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 9px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+}
+.self-check-row b {
+  display: block;
+  font-size: 12px;
+}
+.self-check-row span {
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  /* Long URLs and byte counts must wrap instead of widening the dialog. */
+  overflow-wrap: anywhere;
+}
+/* Status is carried by the word ("עבר"/"נכשל"/"לא רץ") and the icon as well as the colour, so a
+   row does not depend on colour vision to be read. */
+.self-check-row.fail {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.self-check-row.skip {
+  border-style: dashed;
 }
