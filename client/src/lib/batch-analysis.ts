@@ -11,6 +11,7 @@
  */
 import { Chess } from "chess.js";
 import type { EngineLine } from "@/lib/engine-line";
+import { PROGRESS_INTERVAL_MS, throttleProgress } from "@/lib/progress-throttle";
 
 /** What `%eval #3` means in the ported analysis: a forced mate, clamped far outside any cp range. */
 export const MATE_SCORE = 10000;
@@ -21,6 +22,21 @@ export type BatchOptions = {
   /** Depth per position. Lower than the single-position default: this runs dozens of times. */
   depth?: number;
   onProgress?: (progress: BatchProgress) => void;
+  /**
+   * How often `onProgress` may fire, in milliseconds. Defaults to PROGRESS_INTERVAL_MS.
+   *
+   * Throttled here rather than left to the caller because the caller is a React component and the
+   * failure is invisible from its side: 971 truthful callbacks become 971 renders competing with
+   * the search for the same thread. The first report and the last one always arrive whatever this
+   * is set to. Pass 0 to receive every position.
+   */
+  progressIntervalMs?: number;
+  /**
+   * The clock the throttle reads, injected for the same reason `analyze` is: so the default rate
+   * can be asserted without the assertion depending on how fast the machine running it is.
+   * Production passes nothing.
+   */
+  now?: () => number;
   /** Aborting leaves the positions already evaluated intact; the caller gets a short array. */
   signal?: AbortSignal;
 };
@@ -73,12 +89,26 @@ export async function analyzePositions(
 ): Promise<number[]> {
   const depth = options.depth ?? 12;
   const scores: number[] = [];
+  const onProgress = options.onProgress;
+  const progress = throttleProgress<BatchProgress>(
+    (p) => onProgress?.(p),
+    options.progressIntervalMs ?? PROGRESS_INTERVAL_MS,
+    options.now,
+  );
+
   for (let i = 0; i < fens.length; i++) {
     if (options.signal?.aborted) break;
     const line = await analyze(fens[i], depth);
     scores.push(toWhitePerspective(line, fens[i]));
-    options.onProgress?.({ done: i + 1, total: fens.length });
+    progress.report({ done: i + 1, total: fens.length });
   }
+
+  /*
+   * Also on abort, and that is the case worth stating: the caller keeps the positions it did
+   * measure, so the final count has to be the one it actually reached, not the last one that
+   * happened to fall outside the throttle window.
+   */
+  progress.flush();
   return scores;
 }
 

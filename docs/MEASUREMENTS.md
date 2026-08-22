@@ -213,6 +213,51 @@ The game is the Blackburne Shilling trap, and the analysis names the right move:
 losing one, and 4.Nxe5 is the inaccuracy that walks into it. That is a chess-correct result, not
 merely a plausible-looking number.
 
+### What a full import costs, and who pays it
+
+Scoring one position is cheap. Scoring a player's history is not, and the import path exists
+precisely to score a history: the cold start needs roughly 60-90 recorded decisions before the
+detector can read anything, and the fastest way to reach that is games the player already played.
+
+Measured on a batch import, Stockfish 18 at depth 12 in a browser:
+
+| positions | wall clock | mean per position |
+| --------- | ---------- | ----------------- |
+| 971       | 43.4 s     | 45 ms             |
+
+**Provenance, stated because it changes how much weight this carries.** These figures were
+measured before this session and handed to it; this session did not reproduce them. What it did
+check is that they are mutually consistent -- 43.4 s over 971 positions is 44.7 ms, which rounds
+to the stated 45 ms, so the total and the mean are not two independent guesses. An instrument
+check was reported alongside them. Treat the numbers as an order of magnitude that has been
+observed once, not as a benchmark with a variance.
+
+Two caveats travel with them, and the second is larger than the first:
+
+- **Browser host.** Measured in one browser on one development machine. Stockfish's WASM build is
+  sensitive to the host's threading support; a browser without `SharedArrayBuffer`, or a page
+  served without the COOP/COEP headers that enable it, runs the single-threaded fallback and is
+  materially slower.
+- **Mobile.** Not measured on a phone at all. This is an extrapolation, labelled as one: a phone
+  is several times slower than a laptop at sustained WASM work and will throttle further as it
+  heats. A 43-second import on a laptop is plausibly minutes on a handset, and the app has no
+  measurement to say how many. Anything that promises the user a duration is promising something
+  nobody has measured.
+
+**The design consequence, which is the reason this is written down.** `analyzePositions` reported
+progress after every position -- 971 callbacks. Each one is truthful and each one is cheap; the
+cost is on the receiving side, because the natural caller is a React component and the natural
+thing to do with a progress value is set state. That is 971 renders on the main thread, and at
+45 ms per position that thread is not idle between them: it is running the search. The progress
+bar would compete with the measurement it is reporting on.
+
+So progress is throttled at the producer (`client/src/lib/progress-throttle.ts`,
+PROGRESS_INTERVAL_MS = 200) rather than left to each caller to remember, with two guarantees that
+make throttling safe to default on: the first report goes out immediately, so the bar starts
+moving on the first position rather than 200 ms into a 43-second wait; and the last value is
+always flushed, including on abort, so the bar ends on the count the run actually reached instead
+of freezing three short of the end.
+
 ### The sign convention, verified rather than assumed
 
 UCI reports `score cp` from the side to move, so a White-relative series has to flip every other
