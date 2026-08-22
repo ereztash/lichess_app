@@ -102,7 +102,7 @@ export function CommitmentScreen({
       // clicking: it happens on an explicit action, never on load.
       window.requestAnimationFrame(() => {
         const target = firstProblem.current;
-        target?.scrollIntoView({ block: "center", behavior: "smooth" });
+        target?.scrollIntoView?.({ block: "center", behavior: "smooth" });
         target?.querySelector<HTMLElement>("button, textarea")?.focus();
       });
       return;

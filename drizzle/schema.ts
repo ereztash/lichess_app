@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { ENGINE_SOURCES, PHASES } from "../shared/decision-atom.js";
+import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -144,3 +145,60 @@ export const drillResults = mysqlTable("drill_results", {
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
 export type DrillResultRow = typeof drillResults.$inferSelect;
+
+/**
+ * A rule is language authored by the player after a reveal. The descriptive fields are
+ * immutable; only its prospective-test grade and retrieval schedule may change.
+ */
+export const learningRules = mysqlTable("learning_rules", {
+  ruleId: varchar("rule_id", { length: 64 }).primaryKey(),
+  sourceDecisionId: varchar("source_decision_id", { length: 36 }).notNull(),
+  trigger: varchar("trigger", { length: 200 }).notNull(),
+  mechanismClass: mysqlEnum("mechanism_class", MECHANISM_CLASSES).notNull(),
+  missedSignal: varchar("missed_signal", { length: 200 }).notNull(),
+  actionRule: varchar("action_rule", { length: 300 }).notNull(),
+  exceptionRule: varchar("exception_rule", { length: 200 }),
+  predictedOutcome: varchar("predicted_outcome", { length: 300 }).notNull(),
+  refutationCondition: text("refutation_condition").notNull(),
+  authoredBy: mysqlEnum("authored_by", ["player"]).notNull(),
+  grade: mysqlEnum("grade", LEARNING_RULE_GRADES).notNull(),
+  retrievalStep: int("retrieval_step").notNull(),
+  nextDueAt: timestamp("next_due_at"),
+  createdAt: timestamp("created_at").notNull(),
+  lastEvaluatedAt: timestamp("last_evaluated_at").notNull(),
+});
+export type LearningRuleRow = typeof learningRules.$inferSelect;
+
+/** Pre-registered transfer test, written before any of its positions are shown. */
+export const learningTransfers = mysqlTable("learning_transfers", {
+  transferId: varchar("transfer_id", { length: 64 }).primaryKey(),
+  ruleId: varchar("rule_id", { length: 64 }).notNull(),
+  fens: json("fens").$type<string[]>().notNull(),
+  ruleSnapshot: json("rule_snapshot")
+    .$type<{
+      trigger: string;
+      mechanism_class: (typeof MECHANISM_CLASSES)[number];
+      action_rule: string;
+      predicted_outcome: string;
+    }>()
+    .notNull(),
+  refutationCondition: text("refutation_condition").notNull(),
+  minimumSuccesses: int("minimum_successes").notNull(),
+  retrievalStep: int("retrieval_step").notNull(),
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  startedAt: timestamp("started_at").notNull(),
+});
+export type LearningTransferRow = typeof learningTransfers.$inferSelect;
+
+/** Observed transfer result. Append-only and separate from both rule and preregistration. */
+export const learningTransferResults = mysqlTable("learning_transfer_results", {
+  transferId: varchar("transfer_id", { length: 64 }).primaryKey(),
+  ruleId: varchar("rule_id", { length: 64 }).notNull(),
+  decisionIds: json("decision_ids").$type<string[]>().notNull(),
+  recalledRules: json("recalled_rules").$type<string[]>().notNull(),
+  appliedRule: json("applied_rule").$type<boolean[]>().notNull(),
+  successes: int("successes").notNull(),
+  observed: boolean("observed").notNull(),
+  completedAt: timestamp("completed_at").notNull(),
+});
+export type LearningTransferResultRow = typeof learningTransferResults.$inferSelect;

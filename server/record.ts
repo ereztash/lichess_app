@@ -18,12 +18,20 @@ import {
   decisions,
   drillResults,
   drills,
+  learningRules,
+  learningTransferResults,
+  learningTransfers,
   type Decision,
   type InsertDecision,
 } from "../drizzle/schema.js";
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
+import type {
+  LearningRule,
+  LearningTransfer,
+  LearningTransferResult,
+} from "../shared/learning-record.js";
 import { getDb } from "./db.js";
 
 /**
@@ -289,6 +297,149 @@ export class DrizzleRecordStore implements RecordStore {
       observed: result.observed,
     });
   }
+
+  async saveLearningRule(rule: LearningRule): Promise<void> {
+    const db = await this.db();
+    const [existingRow] = await db
+      .select()
+      .from(learningRules)
+      .where(eq(learningRules.ruleId, rule.rule_id))
+      .limit(1);
+    if (existingRow && !sameLearningRuleAuthorship(toLearningRule(existingRow), rule)) {
+      throw new Error("append-only: authored learning rule cannot change");
+    }
+    await db
+      .insert(learningRules)
+      .values({
+        ruleId: rule.rule_id,
+        sourceDecisionId: rule.source_decision_id,
+        trigger: rule.trigger,
+        mechanismClass: rule.mechanism_class,
+        missedSignal: rule.missed_signal,
+        actionRule: rule.action_rule,
+        exceptionRule: rule.exception_rule,
+        predictedOutcome: rule.predicted_outcome,
+        refutationCondition: rule.refutation_condition,
+        authoredBy: rule.authored_by,
+        grade: rule.grade,
+        retrievalStep: rule.retrieval_step,
+        nextDueAt: rule.next_due_at ? new Date(rule.next_due_at) : null,
+        createdAt: new Date(rule.created_at),
+        lastEvaluatedAt: new Date(rule.last_evaluated_at),
+      })
+      .onDuplicateKeyUpdate({
+        set: {
+          grade: rule.grade,
+          retrievalStep: rule.retrieval_step,
+          nextDueAt: rule.next_due_at ? new Date(rule.next_due_at) : null,
+          lastEvaluatedAt: new Date(rule.last_evaluated_at),
+        },
+      });
+  }
+
+  async getLearningRule(ruleId: string): Promise<LearningRule | null> {
+    const db = await this.db();
+    const [row] = await db
+      .select()
+      .from(learningRules)
+      .where(eq(learningRules.ruleId, ruleId))
+      .limit(1);
+    return row ? toLearningRule(row) : null;
+  }
+
+  async listLearningRules(): Promise<LearningRule[]> {
+    const db = await this.db();
+    return (await db.select().from(learningRules)).map(toLearningRule);
+  }
+
+  async saveLearningTransfer(transfer: LearningTransfer): Promise<void> {
+    const db = await this.db();
+    await db.insert(learningTransfers).values({
+      transferId: transfer.transfer_id,
+      ruleId: transfer.rule_id,
+      fens: transfer.fens,
+      ruleSnapshot: transfer.rule_snapshot,
+      refutationCondition: transfer.refutation_condition,
+      minimumSuccesses: transfer.minimum_successes,
+      retrievalStep: transfer.retrieval_step,
+      scheduledFor: new Date(transfer.scheduled_for),
+      startedAt: new Date(transfer.started_at),
+    });
+  }
+
+  async getLearningTransfer(transferId: string): Promise<LearningTransfer | null> {
+    const db = await this.db();
+    const [row] = await db
+      .select()
+      .from(learningTransfers)
+      .where(eq(learningTransfers.transferId, transferId))
+      .limit(1);
+    if (!row) return null;
+    return {
+      transfer_id: row.transferId,
+      rule_id: row.ruleId,
+      fens: row.fens,
+      rule_snapshot: row.ruleSnapshot,
+      refutation_condition: row.refutationCondition,
+      minimum_successes: row.minimumSuccesses,
+      retrieval_step: row.retrievalStep,
+      scheduled_for: row.scheduledFor.toISOString(),
+      started_at: row.startedAt.toISOString(),
+    };
+  }
+
+  async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
+    const db = await this.db();
+    await db.insert(learningTransferResults).values({
+      transferId: result.transfer_id,
+      ruleId: result.rule_id,
+      decisionIds: result.decision_ids,
+      recalledRules: result.recalled_rules,
+      appliedRule: result.applied_rule,
+      successes: result.successes,
+      observed: result.observed,
+      completedAt: new Date(result.completed_at),
+    });
+  }
+
+  async listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(learningTransferResults)
+      .where(eq(learningTransferResults.ruleId, ruleId));
+    return rows.map((row) => ({
+      kind: "learning_transfer_result" as const,
+      transfer_id: row.transferId,
+      rule_id: row.ruleId,
+      decision_ids: row.decisionIds,
+      recalled_rules: row.recalledRules,
+      applied_rule: row.appliedRule,
+      successes: row.successes,
+      observed: row.observed,
+      completed_at: row.completedAt.toISOString(),
+    }));
+  }
+}
+
+function toLearningRule(row: typeof learningRules.$inferSelect): LearningRule {
+  return {
+    rule_id: row.ruleId,
+    source_decision_id: row.sourceDecisionId,
+    trigger: row.trigger,
+    mechanism_class: row.mechanismClass,
+    missed_signal: row.missedSignal,
+    action_rule: row.actionRule,
+    exception_rule: row.exceptionRule,
+    predicted_outcome: row.predictedOutcome,
+    refutation_condition: row.refutationCondition,
+    authored_by: row.authoredBy,
+    grade: row.grade,
+    retrieval_step: row.retrievalStep,
+    next_due_at: row.nextDueAt?.toISOString() ?? null,
+    created_at: row.createdAt.toISOString(),
+    last_evaluated_at: row.lastEvaluatedAt.toISOString(),
+  };
 }
 
 /** In-memory store. Used by tests; never wired into a deployment. */
@@ -314,6 +465,7 @@ export class MemoryRecordStore implements RecordStore {
 
   async recordFeedback(decisionId: string, feedback: FeedbackInput): Promise<void> {
     if (!this.rows.has(decisionId)) throw new Error("no such decision");
+    if (this.feedbacks.has(decisionId)) throw new Error("append-only: feedback already exists");
     this.feedbacks.set(decisionId, feedback);
   }
 
@@ -346,6 +498,9 @@ export class MemoryRecordStore implements RecordStore {
   private readonly claimRows = new Map<string, Claim>();
   private readonly drillRows = new Map<string, StoredDrill>();
   private readonly drillResultRows: ProspectiveDrillResult[] = [];
+  private readonly learningRuleRows = new Map<string, LearningRule>();
+  private readonly learningTransferRows = new Map<string, LearningTransfer>();
+  private readonly learningTransferResultRows: LearningTransferResult[] = [];
 
   async saveClaim(claim: Claim): Promise<void> {
     this.claimRows.set(claim.claim_id, { ...claim });
@@ -378,6 +533,48 @@ export class MemoryRecordStore implements RecordStore {
     this.drillResultRows.push(result);
   }
 
+  async saveLearningRule(rule: LearningRule): Promise<void> {
+    const existing = this.learningRuleRows.get(rule.rule_id);
+    if (existing && !sameLearningRuleAuthorship(existing, rule)) {
+      throw new Error("append-only: authored learning rule cannot change");
+    }
+    this.learningRuleRows.set(rule.rule_id, structuredClone(rule));
+  }
+
+  async getLearningRule(ruleId: string): Promise<LearningRule | null> {
+    const rule = this.learningRuleRows.get(ruleId);
+    return rule ? structuredClone(rule) : null;
+  }
+
+  async listLearningRules(): Promise<LearningRule[]> {
+    return [...this.learningRuleRows.values()].map((rule) => structuredClone(rule));
+  }
+
+  async saveLearningTransfer(transfer: LearningTransfer): Promise<void> {
+    if (this.learningTransferRows.has(transfer.transfer_id)) {
+      throw new Error("append-only: learning transfer already started");
+    }
+    this.learningTransferRows.set(transfer.transfer_id, structuredClone(transfer));
+  }
+
+  async getLearningTransfer(transferId: string): Promise<LearningTransfer | null> {
+    const transfer = this.learningTransferRows.get(transferId);
+    return transfer ? structuredClone(transfer) : null;
+  }
+
+  async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
+    if (this.learningTransferResultRows.some((row) => row.transfer_id === result.transfer_id)) {
+      throw new Error("append-only: learning transfer already reported");
+    }
+    this.learningTransferResultRows.push(structuredClone(result));
+  }
+
+  async listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]> {
+    return this.learningTransferResultRows
+      .filter((result) => result.rule_id === ruleId)
+      .map((result) => structuredClone(result));
+  }
+
   private assemble(row: CommitDecisionInput): DecisionAtom {
     const result = this.reveals.get(row.decisionId) ?? null;
     const feedback = this.feedbacks.get(row.decisionId);
@@ -403,6 +600,15 @@ export class MemoryRecordStore implements RecordStore {
         : null,
     };
   }
+}
+
+function sameLearningRuleAuthorship(left: LearningRule, right: LearningRule): boolean {
+  const mutable = new Set(["grade", "retrieval_step", "next_due_at", "last_evaluated_at"]);
+  return Object.entries(left).every(
+    ([key, value]) =>
+      mutable.has(key) ||
+      JSON.stringify(value) === JSON.stringify(right[key as keyof LearningRule]),
+  );
 }
 
 export const recordStore: RecordStore = new DrizzleRecordStore();

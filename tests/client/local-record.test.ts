@@ -55,7 +55,10 @@ describe("the browser-side record", () => {
   });
 
   it("survives a reload, because that is the entire point of storing it", async () => {
-    await service.commitDecision(new LocalRecordStore(), event("22222222-2222-4222-8222-222222222222"));
+    await service.commitDecision(
+      new LocalRecordStore(),
+      event("22222222-2222-4222-8222-222222222222"),
+    );
     // A different instance, as after a page load.
     expect(await new LocalRecordStore().countDecisions()).toBe(1);
   });
@@ -82,6 +85,31 @@ describe("the browser-side record", () => {
     const id = "55555555-5555-4555-8555-555555555555";
     await service.commitDecision(store, event(id));
     await expect(service.commitDecision(store, event(id))).rejects.toThrow(/append-only/);
+  });
+
+  it("keeps reflection feedback append-only, like the MySQL store", async () => {
+    const store = new LocalRecordStore();
+    const id = "12121212-1212-4212-8212-121212121212";
+    await service.commitDecision(store, event(id));
+    await service.reveal(store, id, RESULT);
+    await service.feedback(store, id, { revisedRead: "first revision", wouldChooseAgain: false });
+    await expect(
+      service.feedback(store, id, { revisedRead: "rewritten later", wouldChooseAgain: true }),
+    ).rejects.toThrow(/append-only/);
+    expect((await store.getAtom(id))?.feedback?.revised_read).toBe("first revision");
+  });
+
+  it("adds empty learning collections to an existing v1 record without losing decisions", async () => {
+    const store = new LocalRecordStore();
+    await service.commitDecision(store, event("13131313-1313-4313-8313-131313131313"));
+    const legacy = JSON.parse(localStorage.getItem("decision-lab.record.v1")!);
+    delete legacy.learningRules;
+    delete legacy.learningTransfers;
+    delete legacy.learningTransferResults;
+    localStorage.setItem("decision-lab.record.v1", JSON.stringify(legacy));
+
+    expect(await new LocalRecordStore().countDecisions()).toBe(1);
+    expect(await new LocalRecordStore().listLearningRules()).toEqual([]);
   });
 
   it("stays silent about claims until there are enough decisions, with a reason", async () => {

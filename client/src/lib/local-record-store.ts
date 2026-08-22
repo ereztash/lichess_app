@@ -13,11 +13,13 @@
  * The record holds a player's reasoning in their own words. Here it does not merely stay inside
  * the deployment -- it never leaves the machine.
  */
-import type {
-  Claim,
-  ProspectiveDrillResult,
-} from "@shared/claim";
+import type { Claim, ProspectiveDrillResult } from "@shared/claim";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
+import type {
+  LearningRule,
+  LearningTransfer,
+  LearningTransferResult,
+} from "@shared/learning-record";
 import type {
   CommitDecisionInput,
   FeedbackInput,
@@ -34,6 +36,9 @@ type Persisted = {
   claims: Record<string, Claim>;
   drills: Record<string, StoredDrill>;
   drillResults: ProspectiveDrillResult[];
+  learningRules: Record<string, LearningRule>;
+  learningTransfers: Record<string, LearningTransfer>;
+  learningTransferResults: LearningTransferResult[];
 };
 
 const empty = (): Persisted => ({
@@ -43,6 +48,9 @@ const empty = (): Persisted => ({
   claims: {},
   drills: {},
   drillResults: [],
+  learningRules: {},
+  learningTransfers: {},
+  learningTransferResults: [],
 });
 
 /**
@@ -164,6 +172,7 @@ export class LocalRecordStore implements RecordStore {
     if (!state.decisions.some((d) => d.decisionId === decisionId)) {
       throw new Error("no such decision");
     }
+    if (state.feedbacks[decisionId]) throw new Error("append-only: feedback already exists");
     state.feedbacks[decisionId] = input;
     write(state);
   }
@@ -229,6 +238,63 @@ export class LocalRecordStore implements RecordStore {
     state.drillResults.push(result);
     write(state);
   }
+
+  async saveLearningRule(rule: LearningRule): Promise<void> {
+    const state = read();
+    const existing = state.learningRules[rule.rule_id];
+    if (existing && !sameLearningRuleAuthorship(existing, rule)) {
+      throw new Error("append-only: authored learning rule cannot change");
+    }
+    state.learningRules[rule.rule_id] = structuredClone(rule);
+    write(state);
+  }
+
+  async getLearningRule(ruleId: string): Promise<LearningRule | null> {
+    const rule = read().learningRules[ruleId];
+    return rule ? structuredClone(rule) : null;
+  }
+
+  async listLearningRules(): Promise<LearningRule[]> {
+    return Object.values(read().learningRules).map((rule) => structuredClone(rule));
+  }
+
+  async saveLearningTransfer(transfer: LearningTransfer): Promise<void> {
+    const state = read();
+    if (state.learningTransfers[transfer.transfer_id]) {
+      throw new Error("append-only: learning transfer already started");
+    }
+    state.learningTransfers[transfer.transfer_id] = structuredClone(transfer);
+    write(state);
+  }
+
+  async getLearningTransfer(transferId: string): Promise<LearningTransfer | null> {
+    const transfer = read().learningTransfers[transferId];
+    return transfer ? structuredClone(transfer) : null;
+  }
+
+  async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
+    const state = read();
+    if (state.learningTransferResults.some((row) => row.transfer_id === result.transfer_id)) {
+      throw new Error("append-only: learning transfer already reported");
+    }
+    state.learningTransferResults.push(structuredClone(result));
+    write(state);
+  }
+
+  async listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]> {
+    return read()
+      .learningTransferResults.filter((result) => result.rule_id === ruleId)
+      .map((result) => structuredClone(result));
+  }
+}
+
+function sameLearningRuleAuthorship(left: LearningRule, right: LearningRule): boolean {
+  const mutable = new Set(["grade", "retrieval_step", "next_due_at", "last_evaluated_at"]);
+  return Object.entries(left).every(
+    ([key, value]) =>
+      mutable.has(key) ||
+      JSON.stringify(value) === JSON.stringify(right[key as keyof LearningRule]),
+  );
 }
 
 function rowsFor(state: Persisted, gameId?: string): CommitDecisionInput[] {

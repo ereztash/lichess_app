@@ -115,7 +115,6 @@
   --c-sev-3: #a4522a;
   --c-axis: rgba(var(--ink-rgb), 0.3);
   --c-grid: rgba(var(--ink-rgb), 0.12);
-
 }
 * {
   box-sizing: border-box;
@@ -157,7 +156,9 @@ button:not(:disabled) {
   background: rgba(var(--cream-rgb), 0.4);
 }
 .review-stat b {
-  font: 600 19px "DM Mono", monospace;
+  font:
+    600 19px "DM Mono",
+    monospace;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
@@ -226,14 +227,18 @@ button:not(:disabled) {
   font-size: 11.5px;
 }
 .moment-move {
-  font: 11px "DM Mono", monospace;
+  font:
+    11px "DM Mono",
+    monospace;
   color: rgba(var(--ink-rgb), 0.65);
 }
 .moment-class {
   font-weight: 600;
 }
 .moment-cpl {
-  font: 11px "DM Mono", monospace;
+  font:
+    11px "DM Mono",
+    monospace;
   font-variant-numeric: tabular-nums;
 }
 .review-caveat {
@@ -306,7 +311,9 @@ button:not(:disabled) {
   transform-origin: right center;
 }
 .bucket-n {
-  font: 10px "DM Mono", monospace;
+  font:
+    10px "DM Mono",
+    monospace;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -542,7 +549,9 @@ button:not(:disabled) {
   border: 1px solid var(--ink);
   background: var(--cream);
   color: var(--ink);
-  font: 12px "DM Mono", monospace;
+  font:
+    12px "DM Mono",
+    monospace;
 }
 .import-input::placeholder {
   color: rgba(var(--ink-rgb), 0.45);
@@ -595,7 +604,9 @@ button:not(:disabled) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 12px "DM Mono", monospace;
+  font:
+    12px "DM Mono",
+    monospace;
 }
 .import-players i {
   color: rgba(var(--ink-rgb), 0.5);
@@ -1677,6 +1688,204 @@ button:not(:disabled) {
 .drill-verdict.replicated {
   border-top: 2px solid currentColor;
   padding-top: 0.6rem;
+}
+
+/* --- Verified learning ------------------------------------------------------------------ */
+.learning-composer,
+.learning-queue,
+.learning-transfer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 8px;
+}
+.learning-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.learning-heading span {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  opacity: 0.68;
+}
+.learning-heading h3 {
+  margin: 0.08rem 0 0;
+  font-size: 0.82rem;
+}
+.learning-composer label,
+.learning-transfer label {
+  display: grid;
+  gap: 0.28rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.learning-composer input,
+.learning-composer textarea,
+.learning-transfer textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  padding: 0.5rem 0.55rem;
+  font: inherit;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  resize: vertical;
+}
+.learning-composer textarea,
+.learning-transfer textarea {
+  min-height: 62px;
+}
+.learning-choice,
+.mechanism-picker,
+.transfer-applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+.learning-choice > span,
+.transfer-applied > span {
+  width: 100%;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.mechanism-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.mechanism-picker legend {
+  width: 100%;
+  margin-bottom: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.learning-choice button,
+.mechanism-picker button,
+.transfer-applied button,
+.learning-rule-actions button,
+.transfer-verdict button {
+  min-height: 32px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+.learning-choice button,
+.mechanism-picker button,
+.transfer-applied button {
+  padding: 0.35rem 0.55rem;
+}
+.learning-choice button[aria-pressed="true"],
+.mechanism-picker button[aria-pressed="true"],
+.transfer-applied button[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+.learning-save {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.learning-save:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.learning-error,
+.learning-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+.learning-rule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  padding-block: 0.65rem;
+  border-top: 1px solid var(--hairline);
+}
+.learning-rule-row p,
+.learning-rule-row strong,
+.learning-rule-row small {
+  display: block;
+  margin: 0.2rem 0 0;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.learning-rule-row small {
+  opacity: 0.68;
+}
+.learning-grade {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.learning-grade.refuted {
+  text-decoration: line-through;
+}
+.learning-rule-actions {
+  display: flex;
+  align-items: start;
+  gap: 0.3rem;
+}
+.learning-rule-actions button,
+.transfer-verdict button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+}
+.transfer-prereg {
+  padding: 0.55rem 0.6rem;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: 6px;
+}
+.transfer-prereg span,
+.transfer-prereg small,
+.transfer-progress {
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+.transfer-prereg p,
+.learning-transfer > p,
+.transfer-verdict p,
+.transfer-verdict strong {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.transfer-verdict {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.55rem;
+  border-top: 2px solid currentColor;
 }
 
 /* ---- New game: pick a side, pick a depth ---------------------------------------------- */

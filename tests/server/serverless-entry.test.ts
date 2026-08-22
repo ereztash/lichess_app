@@ -98,7 +98,8 @@ beforeAll(() => {
   );
   // Type errors are `npm run check`'s job. Emit regardless; the import below is the assertion.
   try {
-    execFileSync("npx", ["tsc", "-p", config], { cwd: projectRoot, stdio: "pipe" });
+    const tsc = resolve(projectRoot, "node_modules", "typescript", "bin", "tsc");
+    execFileSync(process.execPath, [tsc, "-p", config], { cwd: projectRoot, stdio: "pipe" });
   } catch {
     /* ignored on purpose -- see above */
   }
