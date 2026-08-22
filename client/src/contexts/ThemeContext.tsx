@@ -37,6 +37,15 @@ export function ThemeProvider({
     const root = document.documentElement;
     if (theme === "dark") root.classList.add("dark");
     else root.classList.remove("dark");
+    /*
+     * theme-color paints the browser chrome around the page (address bar on mobile, title bar on
+     * some desktops). It was a static light value in index.html while the app renders dark by
+     * default, so the chrome and the page disagreed. The theme is a stored choice rather than a
+     * media query, so no static tag can be right -- it has to follow the choice.
+     */
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme === "dark" ? "#14181a" : "#e9e4d8");
     if (switchable) {
       try {
         localStorage.setItem("theme", theme);
