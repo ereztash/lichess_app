@@ -202,6 +202,67 @@ guessed at.
   they label, so they could drift out of alignment; the in-square labels cannot. The strips are
   gone.
 
+## Touch targets and reduced motion
+
+Found by reading this stylesheet against the two UX contracts in the MATI repository, which
+enforce a 44px touch floor and a `prefers-reduced-motion` block in CI. Both checks were run here
+and both were red.
+
+Then **confirmed in Chromium**, against the production build served locally, at 390x844 and
+1440x950. Reading the source found three controls under the floor. Two more only showed up once
+they were painted, and one of them was the smallest control on the screen.
+
+| Control | Painted, before | After |
+| --- | --- | --- |
+| `.read-write-toggle` "להוסיף במילים שלכם" | **110x22** | 110x44 |
+| `.board-note button` "העתק FEN" | **70x24.5** desktop, 52x41 phone | 70x44 / 52x44 |
+| `.read-chip` | **68x32** | 68x44 |
+| `.icon-control` | **38x38** | 44x44 |
+| `.timeline-controls button` | **32x66** | 44x66 |
+
+The two the source did not show: `.read-write-toggle` declared no height at all -- 5px of padding
+around an 11px font -- so nothing in the text said 22px, and it is the control that opens the
+free-text box. `.board-note button` declared the 24px AA floor and painted at 41px on a phone,
+because it stretches in a flex row, and at 24.5px on desktop where it does not; one declared
+number, two painted sizes, and only one of them passing.
+
+Two controls in the floor list were **already above it** and did not need the change:
+`.confidence-row button` painted at 53.8px and `.commitment-submit` at 45.2px. They stay in the
+list because the point is that the floor is declared rather than emergent -- both of those sizes
+are accidents of padding, and neither is protected by anything without it.
+
+- **Control size was emergent**, not declared: whatever font-size plus padding added up to.
+  `.read-chip` was the only one of the five that named its own too-small number (`min-height:
+  32px`). `.depth-row button` already carried `min-width: 44px`, so the number was in the
+  codebase; it had simply never been applied anywhere else.
+- **`.primary-control` carried no padding at all.** Tailwind's preflight zeroes button padding,
+  and the rule sets only two colours, so the label sat flush against its blue ground.
+- **`.board-note button` was held at 24px**, citing WCAG 2.2 AA (2.5.8), which is the correct AA
+  floor and below the 44px AAA target the rest of this now uses. One number replaces it.
+- **There was no `prefers-reduced-motion` block in the stylesheet.** Small surface -- one
+  transition on the review progress bar and one spinner -- but the setting was never read.
+- **The commitment screen's scroll would have ignored it anyway.** `scrollIntoView({ behavior:
+  "smooth" })` is not governed by the `scroll-behavior` property: CSSOM gives the option
+  precedence, so the CSS rule that looks like it covers this does not. It is read in JS now, in
+  `client/src/lib/motion.ts`.
+
+The spinner is deliberately exempt from the blanket rule. `animation-iteration-count: 1` stops it
+after one turn and leaves a static glyph on screen, indistinguishable from a hang, on the one
+indicator whose entire job is to say the opposite.
+
+**The control goes red.** The same script against the build from the commit before this one
+reports ten failing measurements across the two viewports; against this one, none, and neither
+viewport scrolls sideways -- which is what the widened header and timeline buttons had to be
+checked for. Playwright is not a dependency of this repository and was not added: the browser run
+is a deliberate act, as the header of `tests/client/ux-contract.test.ts` says, and the cheap suite
+holds the declarations.
+
+**Still not verified:** every control, in every state. The run covers the opening view at two
+viewport sizes; panels reached through the tool rail -- new game, import, the PGN drawer -- and
+the reveal and drill states were not opened and not measured. Fonts also failed to load in that
+environment (`fonts.googleapis.com` is unreachable from here), so text ran in a fallback face and
+the *widths* above are not the shipped ones. Heights are `min-height`-driven and unaffected.
+
 ## The rank that collapsed twice
 
 Reported once as "the board rendered four ranks" and again, after the layout work, as "this

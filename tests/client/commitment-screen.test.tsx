@@ -107,3 +107,69 @@ describe("a failed write is visible", () => {
     expect(screen.getByRole("alert").textContent).toContain("אין חיבור למאגר ההחלטות");
   });
 });
+
+/**
+ * The tension layer, on the screen.
+ *
+ * `tests/client/declared-tensions.test.ts` covers which drafts state a tension. What matters
+ * here is the two properties that let it live on this screen at all: it does not block, and it
+ * does not bring the engine with it.
+ */
+describe("a question about the player's own declarations", () => {
+  /** Two reads that cannot both describe one position, then a confidence. */
+  const stateAContradiction = async () => {
+    await userEvent.click(screen.getByRole("button", { name: "המרכז סגור" }));
+    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
+    await userEvent.click(screen.getByRole("button", { name: /ביטחון 5/ }));
+  };
+
+  it("asks about it, with the selections that produced the question", async () => {
+    renderScreen({ chosenMove: "g8f6" });
+    await stateAContradiction();
+    const aside = screen.getByRole("status", { name: "שאלה על ההצהרה שלך" });
+    expect(aside).toHaveTextContent("המרכז סגור");
+    expect(aside).toHaveTextContent("המרכז פתוח");
+    // R1's shape: never the sentence without what produced it.
+    expect(aside).toHaveTextContent(/שתי קריאות/);
+  });
+
+  it("records the decision anyway", async () => {
+    // The tension is a question, not a fifth `draftProblem`. A decision that states one is a
+    // complete decision, and the record wants it as it stands rather than tidied up first.
+    const onCommit = vi.fn();
+    renderScreen({ chosenMove: "g8f6", onCommit });
+    await stateAContradiction();
+    expect(screen.getByRole("status", { name: "שאלה על ההצהרה שלך" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows one question, never a list of them", async () => {
+    // Three of these can be true at once. A panel of all three is the dashboard the product
+    // exists to not be.
+    renderScreen({ chosenMove: "g8f6" });
+    await stateAContradiction();
+    await userEvent.click(screen.getByRole("button", { name: "לא מכיר את העמדה הזו" }));
+    await userEvent.click(screen.getByRole("button", { name: "לא יודע מה התוכנית הנכונה" }));
+    expect(screen.getAllByRole("status", { name: "שאלה על ההצהרה שלך" })).toHaveLength(1);
+  });
+
+  it("brings nothing from the engine with it", async () => {
+    const { container } = renderScreen({ chosenMove: "g8f6" });
+    await stateAContradiction();
+    for (const forbidden of ["Stockfish", "עומק", "scoreCp", "bestMove", "ס״פ", "+0."]) {
+      expect(container.innerHTML, `the tension layer leaked "${forbidden}"`).not.toContain(
+        forbidden,
+      );
+    }
+  });
+
+  it("stays quiet on an ordinary decision", async () => {
+    renderScreen({ chosenMove: "g8f6" });
+    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
+    await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
+    expect(screen.queryByRole("status", { name: "שאלה על ההצהרה שלך" })).toBeNull();
+  });
+});
