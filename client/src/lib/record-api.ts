@@ -21,11 +21,17 @@ import {
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
+import type {
+  LearningRuleDraft,
+  LearningTransferObservation,
+  ReflectionDraft,
+} from "@shared/learning-record";
 
 const LOCAL_KEYS = {
   count: ["local-record", "count"] as const,
   claim: ["local-record", "claim"] as const,
   reading: ["local-record", "reading"] as const,
+  learningRules: ["local-record", "learning-rules"] as const,
 };
 
 /**
@@ -85,7 +91,10 @@ export function useReveal() {
   const queryClient = useQueryClient();
   const server = trpc.record.reveal.useMutation();
   return {
-    mutateAsync: async (input: { decision_id: string; result: DecisionResult }): Promise<DecisionAtom> => {
+    mutateAsync: async (input: {
+      decision_id: string;
+      result: DecisionResult;
+    }): Promise<DecisionAtom> => {
       if (!local) return server.mutateAsync(input as never);
       const atom = await service.reveal(store, input.decision_id, input.result);
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
@@ -122,6 +131,102 @@ export function useCompleteDrill() {
         recorded_at: new Date().toISOString(),
       });
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
+      return out;
+    },
+  };
+}
+
+export function useCreateLearningRule() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const server = trpc.record.createLearningRule.useMutation();
+  return {
+    mutateAsync: async (input: { reflection: ReflectionDraft; rule: LearningRuleDraft }) => {
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.createLearningRule(store, input, {
+            rule_id: `rule-${crypto.randomUUID()}`,
+            created_at: new Date().toISOString(),
+          });
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.learningRules });
+      return out;
+    },
+  };
+}
+
+export function useLearningRules() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.learningRules.useQuery(undefined, {
+    retry: false,
+    refetchOnWindowFocus: false,
+    enabled: !local,
+  });
+  const localQuery = useQuery({
+    queryKey: LOCAL_KEYS.learningRules,
+    queryFn: () => service.learningRules(store),
+    enabled: local,
+    refetchOnWindowFocus: false,
+  });
+  const active = local ? localQuery : server;
+  return {
+    data: active.data,
+    isLoading: active.isLoading,
+    isError: active.isError,
+    refetch: () => void active.refetch(),
+  };
+}
+
+export function useStartLearningTransfer() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.startLearningTransfer.useMutation();
+  return {
+    mutateAsync: async (input: { rule_id: string; candidate_fens: string[] }) => {
+      if (!local) return server.mutateAsync(input);
+      return service.beginLearningTransfer(store, input, {
+        transfer_id: `transfer-${crypto.randomUUID()}`,
+        started_at: new Date().toISOString(),
+      });
+    },
+  };
+}
+
+export function useCompleteLearningTransfer() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const server = trpc.record.completeLearningTransfer.useMutation();
+  return {
+    mutateAsync: async (input: {
+      transfer_id: string;
+      observations: LearningTransferObservation[];
+    }) => {
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.finishLearningTransfer(store, input, {
+            completed_at: new Date().toISOString(),
+          });
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.learningRules });
+      return out;
+    },
+  };
+}
+
+export function useRetireLearningRule() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const server = trpc.record.retireLearningRule.useMutation();
+  return {
+    mutateAsync: async (input: { rule_id: string }) => {
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.retireLearningRule(store, input, {
+            retired_at: new Date().toISOString(),
+          });
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.learningRules });
       return out;
     },
   };

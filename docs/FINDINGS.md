@@ -315,6 +315,17 @@ three characters of text -- which is the second time in this work that the brows
 reading the stylesheet could not. The floor sets both axes now, and the contract test requires
 both.
 
+### A floor is decorative if the newest code sits under it
+
+Merging `main` brought in the verified-learning transfer loop, written on a branch that predates
+the floor and shipping five control classes at `min-height: 32px` and one at 38px -- the exact
+defect the floor exists to prevent, newer than the floor itself.
+
+They are in the rule now and their own declarations are gone rather than left for the cascade to
+override silently. This is the argument for one declared floor over per-control judgement: a
+rule in one place gets extended when a feature lands next to it, and thirty scattered padding
+values do not.
+
 ## The rank that collapsed twice
 
 Reported once as "the board rendered four ranks" and again, after the layout work, as "this

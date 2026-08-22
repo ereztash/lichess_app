@@ -9,6 +9,7 @@
  */
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
 import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
+import type { LearningRule, LearningTransfer, LearningTransferResult } from "./learning-record.js";
 import type { Phase } from "./phase.js";
 
 export interface CommitDecisionInput {
@@ -53,6 +54,15 @@ export interface RecordStore {
   getDrill(drillId: string): Promise<StoredDrill | null>;
   /** Record a drill result. Append-only: a drill reports once. */
   saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
+
+  // --- Verified learning ---------------------------------------------------------------
+  saveLearningRule(rule: LearningRule): Promise<void>;
+  getLearningRule(ruleId: string): Promise<LearningRule | null>;
+  listLearningRules(): Promise<LearningRule[]>;
+  saveLearningTransfer(transfer: LearningTransfer): Promise<void>;
+  getLearningTransfer(transferId: string): Promise<LearningTransfer | null>;
+  saveLearningTransferResult(result: LearningTransferResult): Promise<void>;
+  listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]>;
 
   /**
    * Can this store actually hold a decision right now?

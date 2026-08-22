@@ -6,13 +6,18 @@ import { defineConfig, type Plugin } from "vite";
 /**
  * `npm run dev` was `vite` alone, so nothing mounted the Express app and every tRPC call 404ed
  * locally -- the API only existed once deployed. This mounts the same app the serverless entry
- * uses, so dev and production run identical server code.
+ * uses in both the dev server and `vite preview`, so every local server runs the production API
+ * contract rather than silently serving index.html for /api routes.
  */
 function apiDevServer(): Plugin {
   return {
     name: "api-dev-server",
     apply: "serve",
     async configureServer(server) {
+      const { createApp } = await import("./server/app");
+      server.middlewares.use(createApp());
+    },
+    async configurePreviewServer(server) {
       const { createApp } = await import("./server/app");
       server.middlewares.use(createApp());
     },

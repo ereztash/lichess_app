@@ -72,7 +72,8 @@ const HAND_ROLLED_PERCENT = /`\$\{[^`]*\}%`|\)\s*\*\s*100\s*\)\s*\}%|toFixed\([^
 export function findDenominatorlessPercents(files: string[]): Finding[] {
   const findings: Finding[] = [];
   for (const file of files) {
-    if (file.endsWith("components/Value.tsx")) continue; // the one place allowed to format a %
+    const portableFile = file.replaceAll("\\", "/");
+    if (portableFile.endsWith("components/Value.tsx")) continue; // the one place allowed to format a %
     const source = read(file);
     for (const match of source.matchAll(HAND_ROLLED_PERCENT)) {
       const before = source.slice(0, match.index);
@@ -102,7 +103,8 @@ const STATIC_ENGINE_IMPORT = /^\s*import\s+(?!type\s)[^;]*?from\s+["'][^"']*lib\
 export function findStaticEngineImports(files: string[]): Finding[] {
   const findings: Finding[] = [];
   for (const file of files) {
-    if (file.endsWith("lib/stockfish.ts")) continue; // the module itself
+    const portableFile = file.replaceAll("\\", "/");
+    if (portableFile.endsWith("lib/stockfish.ts")) continue; // the module itself
     const source = read(file);
     for (const match of source.matchAll(STATIC_ENGINE_IMPORT)) {
       const line = source.slice(0, match.index).split("\n").length;

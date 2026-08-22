@@ -116,7 +116,9 @@ export function CommitmentScreen({
       window.requestAnimationFrame(() => {
         const target = firstProblem.current;
         // Smooth unless the player asked their system for less motion; the CSS property does not
-        // reach an explicit `behavior` argument, so the setting is read in lib/motion.ts.
+        // reach an explicit `behavior` argument, so the setting is read in lib/motion.ts. The
+        // helper keeps main's optional call: jsdom has no scrollIntoView, and this path runs in
+        // the commit-blocked tests.
         if (target) scrollIntoViewRespectingMotion(target, { block: "center" });
         target?.querySelector<HTMLElement>("button, textarea")?.focus();
       });

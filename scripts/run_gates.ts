@@ -17,6 +17,7 @@ process.env.JWT_SECRET ||= "gate-runner-secret";
 process.env.OWNER_OPEN_ID ||= "gate-owner";
 
 import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
 
 import { ATOM_FIELDS } from "../shared/decision-atom";
 import {
@@ -79,10 +80,15 @@ function isoPredicate(screen: string[], event: string[], report: string[]): Gate
 export const HARNESS_ERROR = "HARNESS ERROR:";
 
 function runVitestFile(file: string, label: string, config?: string): GateResult {
-  const args = ["vitest", "run", file];
+  const vitest = resolve("node_modules", "vitest", "vitest.mjs");
+  const args = [vitest, "run", file];
   if (config) args.push("--config", config);
-  const result = spawnSync("npx", args, { encoding: "utf8", stdio: "pipe" });
+  const result = spawnSync(process.execPath, args, { encoding: "utf8", stdio: "pipe" });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+
+  if (result.error || result.status === null) {
+    return fail(`${HARNESS_ERROR} ${result.error?.message ?? `no exit status from ${file}`}`);
+  }
 
   // A control that never ran is not a control. Vitest exits 1 when it collects nothing, which
   // is indistinguishable from a real failure by exit code alone -- and would let a broken
@@ -115,6 +121,14 @@ const ENGINE_FIELDS = [
   "engine_source",
   "cp_loss",
 ];
+
+function runTypeScript(config: string) {
+  const tsc = resolve("node_modules", "typescript", "bin", "tsc");
+  return spawnSync(process.execPath, [tsc, "--noEmit", "-p", config], {
+    encoding: "utf8",
+    stdio: "pipe",
+  });
+}
 
 function noEngineOutputPredicate(label: string, payload: string): GateResult {
   const leaked = ENGINE_FIELDS.filter((field) => payload.includes(`"${field}"`));
@@ -279,11 +293,11 @@ export const GATES: Gate[] = [
     run: () => {
       // The gate: attempting the promotion must be a COMPILE error, not a runtime one.
       // Section 5 is explicit -- if it compiles and returns normally, the type design is wrong.
-      const result = spawnSync("npx", ["tsc", "--noEmit", "-p", "tsconfig.nocompile.json"], {
-        encoding: "utf8",
-        stdio: "pipe",
-      });
+      const result = runTypeScript("tsconfig.nocompile.json");
       const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+      if (result.error || result.status === null) {
+        return fail(`${HARNESS_ERROR} ${result.error?.message ?? "TypeScript returned no status"}`);
+      }
       if (result.status === 0) {
         return fail("promoting a claim from an ExternalPointer COMPILED -- the types are wrong");
       }
@@ -292,11 +306,10 @@ export const GATES: Gate[] = [
     },
     positiveControl: () => {
       // Invert the same predicate: a file that DOES compile must not be accepted as proof.
-      const result = spawnSync(
-        "npx",
-        ["tsc", "--noEmit", "-p", "tsconfig.nocompile-control.json"],
-        { encoding: "utf8", stdio: "pipe" },
-      );
+      const result = runTypeScript("tsconfig.nocompile-control.json");
+      if (result.error || result.status === null) {
+        return fail(`${HARNESS_ERROR} ${result.error?.message ?? "TypeScript returned no status"}`);
+      }
       if (result.status === 0) {
         return fail("a permissive promotion path compiled -- exactly what R4 forbids");
       }

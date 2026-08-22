@@ -19,7 +19,9 @@ export function scrollIntoViewRespectingMotion(
   element: Element,
   options: Omit<ScrollIntoViewOptions, "behavior"> = {},
 ): void {
-  element.scrollIntoView({
+  // Optional call: jsdom does not implement scrollIntoView, and the commit-blocked tests drive
+  // this exact path. Guarding here rather than at each call site keeps the callers to one line.
+  element.scrollIntoView?.({
     ...options,
     behavior: prefersReducedMotion() ? "auto" : "smooth",
   });

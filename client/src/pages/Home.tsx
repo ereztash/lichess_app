@@ -24,7 +24,14 @@ import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { LoopStrip } from "@/components/LoopStrip";
+import { LearningQueue } from "@/components/LearningQueue";
+import { LearningRuleComposer } from "@/components/LearningRuleComposer";
+import {
+  LearningTransferRunner,
+  type LearningTransferStage,
+} from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
+import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import { NewGameSetup } from "@/components/NewGameSetup";
@@ -50,12 +57,15 @@ import type { AnalysisSource } from "@shared/analysis-source";
 import {
   useCommitDecision,
   useCompleteDrill,
+  useCompleteLearningTransfer,
   useDecisionCount,
   useRecordMode,
   useRecordReading,
   useReveal,
   useStartDrill,
+  useStartLearningTransfer,
 } from "@/lib/record-api";
+import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
   buildHistory,
@@ -143,7 +153,9 @@ export default function Home() {
   const [pgnInput, setPgnInput] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [reviewScores, setReviewScores] = useState<number[] | null>(null);
-  const [reviewProgress, setReviewProgress] = useState<{ done: number; total: number } | null>(null);
+  const [reviewProgress, setReviewProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [showPgn, setShowPgn] = useState(false);
   const [source, setSource] = useState<AnalysisSource>("live");
@@ -159,6 +171,8 @@ export default function Home() {
   const [revealInputs, setRevealInputs] = useState<RevealInputs | null>(null);
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
+  const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
+  const [learningRuleSaved, setLearningRuleSaved] = useState(false);
   const gameId = useRef(`live-${Date.now()}`);
 
   // --- The opponent ------------------------------------------------------------------------
@@ -192,15 +206,34 @@ export default function Home() {
   } | null>(null);
   const [drillError, setDrillError] = useState<string>();
 
+  // --- Player-authored learning and delayed transfer --------------------------------------
+  const [learningTransfer, setLearningTransfer] = useState<LearningTransfer | null>(null);
+  const [learningTransferIndex, setLearningTransferIndex] = useState(0);
+  const [learningTransferStage, setLearningTransferStage] =
+    useState<LearningTransferStage>("briefing");
+  const [learningTransferRecall, setLearningTransferRecall] = useState("");
+  const [learningTransferApplied, setLearningTransferApplied] = useState<boolean | null>(null);
+  const [learningTransferObservations, setLearningTransferObservations] = useState<
+    LearningTransferObservation[]
+  >([]);
+  const [learningTransferVerdict, setLearningTransferVerdict] = useState<{
+    observed: boolean;
+    successes: number;
+  } | null>(null);
+  const [learningTransferError, setLearningTransferError] = useState<string>();
+
   const engineRef = useRef<StockfishClient | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const historyMove = currentPly >= 0 ? history[currentPly] : undefined;
   const inDrill = drill !== null && drillStage === "running";
+  const inLearningTransfer = learningTransfer !== null && learningTransferStage === "running";
   // While a drill runs the board shows the drill's position, not the loaded game's.
-  const activeMove = inDrill ? undefined : historyMove;
-  const activeFen = inDrill
-    ? (drill.fens[drillIndex] ?? INITIAL_FEN)
-    : (historyMove?.fen ?? INITIAL_FEN);
+  const activeMove = inDrill || inLearningTransfer ? undefined : historyMove;
+  const activeFen = inLearningTransfer
+    ? (learningTransfer.fens[learningTransferIndex] ?? INITIAL_FEN)
+    : inDrill
+      ? (drill.fens[drillIndex] ?? INITIAL_FEN)
+      : (historyMove?.fen ?? INITIAL_FEN);
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
@@ -232,6 +265,8 @@ export default function Home() {
   const commitDecision = useCommitDecision();
   const startDrillMutation = useStartDrill();
   const completeDrillMutation = useCompleteDrill();
+  const startLearningTransferMutation = useStartLearningTransfer();
+  const completeLearningTransferMutation = useCompleteLearningTransfer();
   const submitReveal = useReveal();
   const decisionCount = useDecisionCount();
   const recordReading = useRecordReading();
@@ -267,7 +302,6 @@ export default function Home() {
   }, []);
 
   useEffect(() => () => engineRef.current?.dispose(), []);
-
 
   const runAnalysis = useCallback(async () => {
     if (!engineMayRun(stage)) return;
@@ -324,7 +358,7 @@ export default function Home() {
    * still carries no engine output.
    */
   useEffect(() => {
-    if (!opponent || source !== "live" || inDrill) return;
+    if (!opponent || source !== "live" || inDrill || inLearningTransfer) return;
     // Never while a reveal is on screen: the opponent moving then would change the position the
     // reveal is describing, out from under it.
     if (stage !== "deciding") return;
@@ -359,7 +393,17 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [opponent, source, inDrill, stage, activeFen, activeGame, ensureEngine, playMove]);
+  }, [
+    opponent,
+    source,
+    inDrill,
+    inLearningTransfer,
+    stage,
+    activeFen,
+    activeGame,
+    ensureEngine,
+    playMove,
+  ]);
 
   /**
    * While deciding, a board interaction PROPOSES a move; it does not play it. The proposal and
@@ -391,10 +435,17 @@ export default function Home() {
       setStage("committing");
       const decisionId = crypto.randomUUID();
       const isDrillDecision = drill !== null && drillStage === "running";
+      const isLearningTransferDecision =
+        learningTransfer !== null && learningTransferStage === "running";
       try {
         const event = buildCommitEvent(
           decisionId,
-          { gameId: gameId.current, fen: activeFen, ply: currentPly + 1, clockMsRemaining: null },
+          {
+            gameId: isLearningTransferDecision ? learningTransfer.transfer_id : gameId.current,
+            fen: activeFen,
+            ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
+            clockMsRemaining: null,
+          },
           draft,
           secondsTaken,
         );
@@ -450,8 +501,8 @@ export default function Home() {
         };
         setRevealInputs(inputs);
 
-        await submitReveal
-          .mutateAsync({
+        try {
+          await submitReveal.mutateAsync({
             decision_id: decisionId,
             result: {
               engine_eval_cp: best.scoreCp,
@@ -460,17 +511,44 @@ export default function Home() {
               engine_source: "local_sf18",
               cp_loss: cpLoss,
             },
-          })
-          .catch(() => {
-            // The decision itself is on the record; only the engine's verdict failed to store.
-            setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
           });
+          setRevealedDecisionId(decisionId);
+          if (isLearningTransferDecision) {
+            setLearningTransferObservations((current) => [
+              ...current,
+              {
+                decision_id: decisionId,
+                recalled_rule: learningTransferRecall,
+                applied_rule: false,
+              },
+            ]);
+          }
+        } catch {
+          // The decision itself is on the record; only the engine's verdict failed to store.
+          setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
+          if (isLearningTransferDecision) {
+            setLearningTransferError("תוצאת המנוע לא נשמרה ולכן אי אפשר למדוד את העמדה הזו.");
+          }
+        }
         void decisionCount.refetch();
       } catch {
         setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
       }
     },
-    [activeFen, commitDecision, currentPly, decisionCount, ensureEngine, playMove, submitReveal],
+    [
+      activeFen,
+      commitDecision,
+      currentPly,
+      decisionCount,
+      drill,
+      drillStage,
+      ensureEngine,
+      learningTransfer,
+      learningTransferIndex,
+      learningTransferRecall,
+      learningTransferStage,
+      submitReveal,
+    ],
   );
 
   /** Ask the server for a drill. The refutation condition is stored there before it returns. */
@@ -555,6 +633,121 @@ export default function Home() {
     setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
   };
 
+  const beginLearningTransfer = useCallback(
+    async (ruleId: string) => {
+      setLearningTransferError(undefined);
+      const candidates = [INITIAL_FEN, ...history.map((item) => item.fen)];
+      if (candidates.length < 3) {
+        setLearningTransferError(
+          "כדי לבנות בדיקת העברה צריך לטעון משחק עם לפחות שלוש עמדות חדשות.",
+        );
+        return;
+      }
+      try {
+        const response = await startLearningTransferMutation.mutateAsync({
+          rule_id: ruleId,
+          candidate_fens: candidates,
+        });
+        if (!response.transfer) {
+          setLearningTransferError(response.reason ?? "אין כרגע שלוש עמדות חדשות לבדיקה.");
+          return;
+        }
+        setLearningTransfer(response.transfer);
+        setLearningTransferIndex(0);
+        setLearningTransferStage("briefing");
+        setLearningTransferRecall("");
+        setLearningTransferApplied(null);
+        setLearningTransferObservations([]);
+        setLearningTransferVerdict(null);
+      } catch (cause) {
+        setLearningTransferError(
+          cause instanceof Error ? cause.message : "בדיקת ההעברה לא התחילה.",
+        );
+      }
+    },
+    [history, startLearningTransferMutation],
+  );
+
+  const advanceLearningTransfer = useCallback(async () => {
+    if (!learningTransfer || learningTransferStage !== "running") return;
+    if (learningTransferApplied === null) {
+      setLearningTransferError("לפני המעבר לעמדה הבאה, סמנו אם יישמתם את הכלל.");
+      return;
+    }
+    if (learningTransferObservations.length !== learningTransferIndex + 1) {
+      setLearningTransferError("החשיפה לא נשמרה ולכן אי אפשר להתקדם בבדיקה.");
+      return;
+    }
+
+    const observations = learningTransferObservations.map((observation, index) =>
+      index === learningTransferIndex
+        ? { ...observation, applied_rule: learningTransferApplied }
+        : observation,
+    );
+    setLearningTransferObservations(observations);
+    setLearningTransferError(undefined);
+
+    const next = learningTransferIndex + 1;
+    if (next < learningTransfer.fens.length) {
+      setLearningTransferIndex(next);
+      setLearningTransferRecall("");
+      setLearningTransferApplied(null);
+      setStage("deciding");
+      setAnalysis(null);
+      setRevealInputs(null);
+      setCommittedDraft(null);
+      setCandidateMove(null);
+      setCandidatesConsidered([]);
+      setRevealedDecisionId(undefined);
+      setNotice(`עמדה ${next + 1} מתוך ${learningTransfer.fens.length} בבדיקת ההעברה.`);
+      return;
+    }
+
+    setLearningTransferStage("reporting");
+    try {
+      const outcome = await completeLearningTransferMutation.mutateAsync({
+        transfer_id: learningTransfer.transfer_id,
+        observations,
+      });
+      setLearningTransferVerdict({
+        observed: outcome.result.observed,
+        successes: outcome.result.successes,
+      });
+      setLearningTransferStage("done");
+    } catch (cause) {
+      setLearningTransferError(
+        cause instanceof Error ? cause.message : "לא ניתן היה למדוד את הבדיקה.",
+      );
+      // Preserve the completed observations so reporting can be retried. A `done` state without
+      // a verdict has no valid next action and would strand the workflow.
+      setLearningTransferStage("running");
+    }
+  }, [
+    completeLearningTransferMutation,
+    learningTransfer,
+    learningTransferApplied,
+    learningTransferIndex,
+    learningTransferObservations,
+    learningTransferStage,
+  ]);
+
+  const closeLearningTransfer = () => {
+    setLearningTransfer(null);
+    setLearningTransferIndex(0);
+    setLearningTransferStage("briefing");
+    setLearningTransferRecall("");
+    setLearningTransferApplied(null);
+    setLearningTransferObservations([]);
+    setLearningTransferVerdict(null);
+    setLearningTransferError(undefined);
+    setStage("deciding");
+    setAnalysis(null);
+    setRevealInputs(null);
+    setCommittedDraft(null);
+    setRevealedDecisionId(undefined);
+    setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
+  };
+
   /**
    * Back to deciding, carrying nothing forward from the decision just finished.
    *
@@ -571,10 +764,16 @@ export default function Home() {
     setCandidateMove(null);
     setCandidatesConsidered([]);
     setCommitError(undefined);
+    setRevealedDecisionId(undefined);
+    setLearningRuleSaved(false);
     setNotice(message);
   };
 
   const nextDecision = () => {
+    if (learningTransfer && learningTransferStage === "running") {
+      void advanceLearningTransfer();
+      return;
+    }
     if (drill && drillStage === "running") {
       void advanceDrill();
       return;
@@ -639,11 +838,9 @@ export default function Home() {
     try {
       const engine = await ensureEngine();
       const { analyzePositions } = await import("@/lib/batch-analysis");
-      const scores = await analyzePositions(
-        positions,
-        (fen, depth) => engine.analyze(fen, depth),
-        { onProgress: setReviewProgress },
-      );
+      const scores = await analyzePositions(positions, (fen, depth) => engine.analyze(fen, depth), {
+        onProgress: setReviewProgress,
+      });
       setReviewScores(scores);
     } catch (error) {
       // A review that failed must not render as a review that found nothing.
@@ -721,6 +918,29 @@ export default function Home() {
   const recordMode = useRecordMode();
 
   const deciding = stage === "deciding" || stage === "committing";
+  const learningTransferPanel = learningTransfer ? (
+    <LearningTransferRunner
+      transfer={learningTransfer}
+      stage={learningTransferStage}
+      index={learningTransferIndex}
+      revealed={stage === "revealed"}
+      recall={learningTransferRecall}
+      applied={learningTransferApplied}
+      verdict={learningTransferVerdict}
+      error={learningTransferError}
+      onRecall={setLearningTransferRecall}
+      onApplied={setLearningTransferApplied}
+      onStart={() => {
+        setLearningTransferStage("running");
+        setStage("deciding");
+        setAnalysis(null);
+        setRevealInputs(null);
+        setCommittedDraft(null);
+        setNotice(`עמדה 1 מתוך ${learningTransfer.fens.length} בבדיקת ההעברה.`);
+      }}
+      onFinish={closeLearningTransfer}
+    />
+  ) : null;
 
   return (
     <main className="studio-shell" dir="rtl">
@@ -737,15 +957,17 @@ export default function Home() {
           <b>{sideToMove}</b>
         </div>
         <div className="header-actions">
-          {stage === "revealed" && (
-            <button className="primary-control" onClick={nextDecision}>
-              ההחלטה הבאה
-            </button>
-          )}
+          {stage === "revealed" &&
+            revealedDecisionId &&
+            (!learningTransfer || learningTransferStage === "running") && (
+              <button className="primary-control" onClick={nextDecision}>
+                {learningTransfer ? "העמדה הבאה" : "ההחלטה הבאה"}
+              </button>
+            )}
           {/*
-            * Reachable from the header on purpose. A diagnostic behind a menu is a diagnostic
-            * nobody runs when the thing is broken.
-            */}
+           * Reachable from the header on purpose. A diagnostic behind a menu is a diagnostic
+           * nobody runs when the thing is broken.
+           */}
           <button
             className="icon-control"
             aria-label="בדיקה עצמית של הדפדפן"
@@ -845,10 +1067,10 @@ export default function Home() {
           </div>
 
           {/*
-            * All three of these are transient panels, and all three used to render as a block
-            * above the board -- which pushed the board below the fold by their own height. See
-            * components/Overlay.tsx for the measurements.
-            */}
+           * All three of these are transient panels, and all three used to render as a block
+           * above the board -- which pushed the board below the fold by their own height. See
+           * components/Overlay.tsx for the measurements.
+           */}
           {showSelfCheck && (
             <Overlay label="בדיקה עצמית" onClose={() => setShowSelfCheck(false)}>
               <SelfCheck onClose={() => setShowSelfCheck(false)} />
@@ -876,30 +1098,34 @@ export default function Home() {
 
           {showPgn && (
             <Overlay label="טעינת PGN" onClose={() => setShowPgn(false)}>
-            <section className="pgn-drawer">
-              <div className="drawer-heading">
-                <div>
-                  <span>טעינת PGN</span>
-                  <b>IMPORT</b>
+              <section className="pgn-drawer">
+                <div className="drawer-heading">
+                  <div>
+                    <span>טעינת PGN</span>
+                    <b>IMPORT</b>
+                  </div>
+                  <button onClick={() => setShowPgn(false)}>סגור</button>
                 </div>
-                <button onClick={() => setShowPgn(false)}>סגור</button>
-              </div>
-              <Textarea value={pgnInput} onChange={(e) => setPgnInput(e.target.value)} dir="ltr" />
-              <div className="drawer-actions">
-                <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
-                  טען למשחק
-                </button>
-                {/*
-                  * The demo game used to BE the opening screen, which is what made the app
-                  * unplayable. It is still worth having -- it is the shortest way to see the
-                  * review and timeline against a finished game -- so it moved here, where
-                  * loading it is something the player chooses.
-                  */}
-                <button className="ghost-control" onClick={() => setPgnInput(DEFAULT_PGN)}>
-                  הדביקו משחק לדוגמה
-                </button>
-              </div>
-            </section>
+                <Textarea
+                  value={pgnInput}
+                  onChange={(e) => setPgnInput(e.target.value)}
+                  dir="ltr"
+                />
+                <div className="drawer-actions">
+                  <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
+                    טען למשחק
+                  </button>
+                  {/*
+                   * The demo game used to BE the opening screen, which is what made the app
+                   * unplayable. It is still worth having -- it is the shortest way to see the
+                   * review and timeline against a finished game -- so it moved here, where
+                   * loading it is something the player chooses.
+                   */}
+                  <button className="ghost-control" onClick={() => setPgnInput(DEFAULT_PGN)}>
+                    הדביקו משחק לדוגמה
+                  </button>
+                </div>
+              </section>
             </Overlay>
           )}
 
@@ -942,10 +1168,10 @@ export default function Home() {
           )}
 
           {/*
-            * The opponent thinking, said out loud. The whole defect this replaces was a board
-            * that changed nothing while something was happening, so a silent search would put
-            * it straight back.
-            */}
+           * The opponent thinking, said out loud. The whole defect this replaces was a board
+           * that changed nothing while something was happening, so a silent search would put
+           * it straight back.
+           */}
           {opponentThinking && (
             <p className="opponent-thinking" role="status">
               היריב חושב…
@@ -968,14 +1194,16 @@ export default function Home() {
 
         <aside className="analysis-stack">
           <LoopStrip
-            drill={inDrill ? { completed: drillDecisionIds.length, total: drill!.fens.length } : null}
+            drill={
+              inDrill ? { completed: drillDecisionIds.length, total: drill!.fens.length } : null
+            }
           />
-          {deciding ? (
+          {deciding && (!learningTransfer || learningTransferStage === "running") ? (
             <CommitmentScreen
               position={{
-                gameId: gameId.current,
+                gameId: learningTransfer?.transfer_id ?? gameId.current,
                 fen: activeFen,
-                ply: currentPly + 1,
+                ply: learningTransfer ? learningTransferIndex : currentPly + 1,
                 clockMsRemaining: null,
               }}
               chosenMove={candidateMove}
@@ -985,7 +1213,9 @@ export default function Home() {
               error={commitError}
             />
           ) : null}
-          {deciding && drill ? (
+          {deciding && learningTransfer ? (
+            learningTransferPanel
+          ) : deciding && drill ? (
             <DrillRunner
               drill={drill}
               progress={{ completed: drillDecisionIds.length, total: drill.fens.length }}
@@ -1000,7 +1230,16 @@ export default function Home() {
               onFinish={closeDrill}
             />
           ) : deciding ? (
-            <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
+            <>
+              <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
+              {VERIFIED_LEARNING_ENABLED && (
+                <LearningQueue
+                  onStart={(ruleId) => void beginLearningTransfer(ruleId)}
+                  busy={learningTransfer !== null}
+                  error={learningTransferError}
+                />
+              )}
+            </>
           ) : (
             <>
               {revealInputs && committedDraft ? (
@@ -1021,6 +1260,18 @@ export default function Home() {
                 material={material}
                 onAnalyze={() => void runAnalysis()}
               />
+              {learningTransfer && learningTransferPanel}
+              {VERIFIED_LEARNING_ENABLED &&
+                !learningTransfer &&
+                revealedDecisionId &&
+                (!learningRuleSaved ? (
+                  <LearningRuleComposer
+                    sourceDecisionId={revealedDecisionId}
+                    onSaved={() => setLearningRuleSaved(true)}
+                  />
+                ) : (
+                  <p className="learning-loading">הכלל נשמר כהשערה ונוסף לתור הלמידה.</p>
+                ))}
               {drill && drillStage === "running" && (
                 <DrillRunner
                   drill={drill}

@@ -13,6 +13,11 @@ import {
   resultSchema,
   type DecisionAtom,
 } from "../shared/decision-atom.js";
+import {
+  learningRuleDraftSchema,
+  reflectionDraftSchema,
+  TRANSFER_POSITION_COUNT,
+} from "../shared/learning-record.js";
 import * as service from "../shared/record-service.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
@@ -34,6 +39,13 @@ export const commitEventSchema = z.object({
   feedback: z.null(),
 });
 
+export const learningRuleEventSchema = z
+  .object({
+    reflection: reflectionDraftSchema.strict(),
+    rule: learningRuleDraftSchema.strict(),
+  })
+  .strict();
+
 /**
  * Map a transport-neutral refusal onto the wire.
  *
@@ -41,7 +53,8 @@ export const commitEventSchema = z.object({
  * router is now only the HTTP boundary: validate, delegate, translate the error.
  */
 function toTrpc(error: unknown): never {
-  if (error instanceof RecordError) throw new TRPCError({ code: error.code, message: error.message });
+  if (error instanceof RecordError)
+    throw new TRPCError({ code: error.code, message: error.message });
   throw error;
 }
 
@@ -81,6 +94,70 @@ export function buildRecordRouter(store: RecordStore) {
             revisedRead: input.revised_read,
             wouldChooseAgain: input.would_choose_again,
           }),
+        ),
+      ),
+
+    createLearningRule: protectedProcedure.input(learningRuleEventSchema).mutation(({ input }) =>
+      guard(() =>
+        service.createLearningRule(store, input, {
+          rule_id: `rule-${crypto.randomUUID()}`,
+          created_at: new Date().toISOString(),
+        }),
+      ),
+    ),
+
+    learningRules: protectedProcedure.query(() => guard(() => service.learningRules(store))),
+
+    startLearningTransfer: protectedProcedure
+      .input(
+        z
+          .object({
+            rule_id: z.string().min(1).max(64),
+            candidate_fens: z.array(z.string().min(8).max(200)).min(1).max(400),
+          })
+          .strict(),
+      )
+      .mutation(({ input }) =>
+        guard(() =>
+          service.beginLearningTransfer(store, input, {
+            transfer_id: `transfer-${crypto.randomUUID()}`,
+            started_at: new Date().toISOString(),
+          }),
+        ),
+      ),
+
+    completeLearningTransfer: protectedProcedure
+      .input(
+        z
+          .object({
+            transfer_id: z.string().min(1).max(64),
+            observations: z
+              .array(
+                z
+                  .object({
+                    decision_id: z.string().uuid(),
+                    recalled_rule: z.string().max(300),
+                    applied_rule: z.boolean(),
+                  })
+                  .strict(),
+              )
+              .length(TRANSFER_POSITION_COUNT),
+          })
+          .strict(),
+      )
+      .mutation(({ input }) =>
+        guard(() =>
+          service.finishLearningTransfer(store, input, {
+            completed_at: new Date().toISOString(),
+          }),
+        ),
+      ),
+
+    retireLearningRule: protectedProcedure
+      .input(z.object({ rule_id: z.string().min(1).max(64) }).strict())
+      .mutation(({ input }) =>
+        guard(() =>
+          service.retireLearningRule(store, input, { retired_at: new Date().toISOString() }),
         ),
       ),
 

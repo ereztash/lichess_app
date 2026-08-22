@@ -14,7 +14,26 @@
 import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult } from "./claim.js";
 import { selectClaim } from "./claim-derivation.js";
 import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
-import { BUCKETINGS, MIN_BUCKET_N, MIN_GAP_DIFFERENCE, detect, summarise } from "./detector.js";
+import {
+  ACCURATE_CP_LOSS,
+  BUCKETINGS,
+  MIN_BUCKET_N,
+  MIN_GAP_DIFFERENCE,
+  detect,
+  summarise,
+} from "./detector.js";
+import {
+  formLearningRule,
+  gradeLearningRule,
+  preregisterLearningTransfer,
+  reflectionDraftSchema,
+  retireLearningRule as retireRule,
+  TRANSFER_POSITION_COUNT,
+  type LearningRuleDraft,
+  type LearningTransferObservation,
+  type LearningTransferResult,
+  type ReflectionDraft,
+} from "./learning-record.js";
 import {
   completeDrillAgainstBaseline,
   createDrill,
@@ -143,6 +162,143 @@ export async function feedback(
   }
   await store.recordFeedback(decisionId, input);
   return { decision_id: decisionId };
+}
+
+export async function createLearningRule(
+  store: RecordStore,
+  input: { reflection: ReflectionDraft; rule: LearningRuleDraft },
+  now: { rule_id: string; created_at: string },
+) {
+  const atom = await store.getAtom(input.rule.source_decision_id);
+  if (!atom?.result) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      "A learning rule can only be authored after reveal.",
+    );
+  }
+
+  const reflection = reflectionDraftSchema.parse(input.reflection);
+  if (!atom.feedback) {
+    await store.recordFeedback(input.rule.source_decision_id, {
+      revisedRead: reflection.revised_read,
+      wouldChooseAgain: reflection.would_choose_again,
+    });
+  } else if (
+    atom.feedback.revised_read !== reflection.revised_read ||
+    atom.feedback.would_choose_again !== reflection.would_choose_again
+  ) {
+    throw new RecordError("CONFLICT", "The reflection for this decision is append-only.");
+  }
+
+  const rule = formLearningRule(input.rule, now);
+  await store.saveLearningRule(rule);
+  return rule;
+}
+
+export async function learningRules(store: RecordStore) {
+  return { rules: await store.listLearningRules() };
+}
+
+export async function beginLearningTransfer(
+  store: RecordStore,
+  input: { rule_id: string; candidate_fens: string[] },
+  now: { transfer_id: string; started_at: string },
+) {
+  const rule = await store.getLearningRule(input.rule_id);
+  if (!rule) throw new RecordError("NOT_FOUND", "Learning rule not found.");
+  if (rule.next_due_at && new Date(now.started_at) < new Date(rule.next_due_at)) {
+    return {
+      transfer: null,
+      reason: `This rule is scheduled for delayed retrieval on ${rule.next_due_at}.`,
+    };
+  }
+  const source = await store.getAtom(rule.source_decision_id);
+  const decided = new Set((await store.listAtoms()).map((atom) => atom.entry_state.fen));
+  if (source) decided.add(source.entry_state.fen);
+  const unseen = [...new Set(input.candidate_fens)].filter((fen) => !decided.has(fen));
+  if (unseen.length < TRANSFER_POSITION_COUNT) {
+    return {
+      transfer: null,
+      reason: `Need ${TRANSFER_POSITION_COUNT} unseen positions; only ${unseen.length} are available.`,
+    };
+  }
+  const transfer = preregisterLearningTransfer(rule, unseen.slice(0, TRANSFER_POSITION_COUNT), now);
+  // R5 for learning: persist the snapshot and refutation condition before returning any FEN.
+  await store.saveLearningTransfer(transfer);
+  return { transfer, reason: null };
+}
+
+export async function finishLearningTransfer(
+  store: RecordStore,
+  input: { transfer_id: string; observations: LearningTransferObservation[] },
+  now: { completed_at: string },
+) {
+  const transfer = await store.getLearningTransfer(input.transfer_id);
+  if (!transfer) throw new RecordError("NOT_FOUND", "Learning transfer not found.");
+  if (input.observations.length !== transfer.fens.length) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      "Every transfer position requires one observation.",
+    );
+  }
+  const atoms = await Promise.all(input.observations.map((o) => store.getAtom(o.decision_id)));
+  for (let index = 0; index < atoms.length; index += 1) {
+    const atom = atoms[index];
+    if (!atom?.result) {
+      throw new RecordError(
+        "PRECONDITION_FAILED",
+        "Every transfer decision must be committed and revealed.",
+      );
+    }
+    if (atom.entry_state.fen !== transfer.fens[index]) {
+      throw new RecordError(
+        "PRECONDITION_FAILED",
+        "A transfer decision was recorded for another position.",
+      );
+    }
+  }
+
+  const successes = atoms.filter((atom, index) => {
+    const observation = input.observations[index];
+    return (
+      observation.recalled_rule.trim().length > 0 &&
+      observation.applied_rule &&
+      atom!.result!.cp_loss <= ACCURATE_CP_LOSS
+    );
+  }).length;
+  const result: LearningTransferResult = {
+    kind: "learning_transfer_result",
+    transfer_id: transfer.transfer_id,
+    rule_id: transfer.rule_id,
+    decision_ids: input.observations.map((o) => o.decision_id),
+    recalled_rules: input.observations.map((o) => o.recalled_rule.trim()),
+    applied_rule: input.observations.map((o) => o.applied_rule),
+    successes,
+    observed: successes >= transfer.minimum_successes,
+    completed_at: now.completed_at,
+  };
+  await store.saveLearningTransferResult(result);
+
+  const rule = await store.getLearningRule(transfer.rule_id);
+  if (!rule) throw new RecordError("NOT_FOUND", "Learning rule disappeared before grading.");
+  const prior = (await store.listLearningTransferResults(rule.rule_id)).filter(
+    (candidate) => candidate.transfer_id !== result.transfer_id,
+  );
+  const graded = gradeLearningRule(rule, prior, result);
+  await store.saveLearningRule(graded);
+  return { rule: graded, result };
+}
+
+export async function retireLearningRule(
+  store: RecordStore,
+  input: { rule_id: string },
+  now: { retired_at: string },
+) {
+  const rule = await store.getLearningRule(input.rule_id);
+  if (!rule) throw new RecordError("NOT_FOUND", "Learning rule not found.");
+  const retired = retireRule(rule, now.retired_at);
+  await store.saveLearningRule(retired);
+  return retired;
 }
 
 export async function countDecisions(store: RecordStore): Promise<{ decisions: number }> {

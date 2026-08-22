@@ -333,6 +333,12 @@ describe("controls a finger lands on have a declared minimum", () => {
     ".depth-row button",
     ".context-dismiss",
     ".context-why summary",
+    // The verified-learning controls, which landed from a branch that predated the floor and
+    // shipped at 32px and 38px. A floor the app's newest code sits under is decorative.
+    ".learning-choice button",
+    ".mechanism-picker button",
+    ".learning-rule-actions button",
+    ".learning-save",
   ];
 
   it("names the floor once, at 44px or more", () => {
