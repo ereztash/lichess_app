@@ -204,20 +204,36 @@ guessed at.
 
 ## Touch targets and reduced motion
 
-Found by reading the stylesheet against the two UX contracts in the MATI repository, which
+Found by reading this stylesheet against the two UX contracts in the MATI repository, which
 enforce a 44px touch floor and a `prefers-reduced-motion` block in CI. Both checks were run here
 and both were red.
 
-**Read from the source, not measured in a browser.** The numbers below are declared values in
-`client/src/index.css`; nothing here was laid out and measured, and the painted box of a control
-whose height comes from padding is not knowable from the text. That is exactly why the fix
-converts the floor from emergent to declared -- a stated size can be checked by the cheap suite,
-which is where `tests/client/ux-contract.test.ts` now checks it.
+Then **confirmed in Chromium**, against the production build served locally, at 390x844 and
+1440x950. Reading the source found three controls under the floor. Two more only showed up once
+they were painted, and one of them was the smallest control on the screen.
 
-- **Three controls declared a size under 44px**, all of them in the decision loop: `.read-chip`
-  at `min-height: 32px` -- the control the whole loop runs through since the reads became
-  selectable -- the header's `.icon-control` at 38px square, and `.timeline-controls button` at
-  `width: 32px`. `.depth-row button` already carried `min-width: 44px`, so the number was in the
+| Control | Painted, before | After |
+| --- | --- | --- |
+| `.read-write-toggle` "להוסיף במילים שלכם" | **110x22** | 110x44 |
+| `.board-note button` "העתק FEN" | **70x24.5** desktop, 52x41 phone | 70x44 / 52x44 |
+| `.read-chip` | **68x32** | 68x44 |
+| `.icon-control` | **38x38** | 44x44 |
+| `.timeline-controls button` | **32x66** | 44x66 |
+
+The two the source did not show: `.read-write-toggle` declared no height at all -- 5px of padding
+around an 11px font -- so nothing in the text said 22px, and it is the control that opens the
+free-text box. `.board-note button` declared the 24px AA floor and painted at 41px on a phone,
+because it stretches in a flex row, and at 24.5px on desktop where it does not; one declared
+number, two painted sizes, and only one of them passing.
+
+Two controls in the floor list were **already above it** and did not need the change:
+`.confidence-row button` painted at 53.8px and `.commitment-submit` at 45.2px. They stay in the
+list because the point is that the floor is declared rather than emergent -- both of those sizes
+are accidents of padding, and neither is protected by anything without it.
+
+- **Control size was emergent**, not declared: whatever font-size plus padding added up to.
+  `.read-chip` was the only one of the five that named its own too-small number (`min-height:
+  32px`). `.depth-row button` already carried `min-width: 44px`, so the number was in the
   codebase; it had simply never been applied anywhere else.
 - **`.primary-control` carried no padding at all.** Tailwind's preflight zeroes button padding,
   and the rule sets only two colours, so the label sat flush against its blue ground.
@@ -234,10 +250,18 @@ The spinner is deliberately exempt from the blanket rule. `animation-iteration-c
 after one turn and leaves a static glyph on screen, indistinguishable from a hang, on the one
 indicator whose entire job is to say the opposite.
 
-**Not verified:** that any of these controls now measures 44px when painted. The contract asserts
-what the stylesheet declares. Whether a wrapped label or an ancestor's `height` beats the floor in
-a real layout still needs a browser, and is the same class of gap named at the top of
-`tests/client/ux-contract.test.ts`.
+**The control goes red.** The same script against the build from the commit before this one
+reports ten failing measurements across the two viewports; against this one, none, and neither
+viewport scrolls sideways -- which is what the widened header and timeline buttons had to be
+checked for. Playwright is not a dependency of this repository and was not added: the browser run
+is a deliberate act, as the header of `tests/client/ux-contract.test.ts` says, and the cheap suite
+holds the declarations.
+
+**Still not verified:** every control, in every state. The run covers the opening view at two
+viewport sizes; panels reached through the tool rail -- new game, import, the PGN drawer -- and
+the reveal and drill states were not opened and not measured. Fonts also failed to load in that
+environment (`fonts.googleapis.com` is unreachable from here), so text ran in a fallback face and
+the *widths* above are not the shipped ones. Heights are `min-height`-driven and unaffected.
 
 ## The rank that collapsed twice
 
