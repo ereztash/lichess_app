@@ -1,188 +1,187 @@
 # Decision Lab
 
-A chess tool that answers a **process**, not a position.
+כלי שחמט שעונה על **תהליך**, לא על עמדה.
 
-Every analysis tool on the market models positions. The painful part of improving is not "I don't
-know the best move" — engines solved that and gave it away free. The pain is losing the same way
-twice without noticing, because a mistake in a Sicilian on move 19 and a mistake in a Caro-Kann
-on move 24 look like two unrelated events.
+כל כלי ניתוח בשוק מדגמן עמדות. אבל החלק הכואב בהשתפרות הוא לא "אני לא יודע מה המהלך הכי טוב" —
+את זה מנועים פתרו ונתנו בחינם. הכאב הוא להפסיד באותה צורה פעמיים בלי לשים לב, כי טעות בסיציליאני
+במהלך 19 וטעות בקארו-קאן במהלך 24 נראות כמו שני אירועים לא קשורים.
 
-A position error is first-order: this allocation was wrong. A **policy** error is second-order:
-the standing rule that produced the allocation is miscalibrated. Existing tools give exhaustive
-first-order correction and zero second-order correction.
+טעות בעמדה היא מסדר ראשון: ההקצאה הזו הייתה שגויה. טעות ב**מדיניות** היא מסדר שני: הכלל הקבוע
+שהוליד את ההקצאה מכויל לא נכון. הכלים הקיימים נותנים תיקון ממצה מסדר ראשון, ואפס תיקון מסדר שני.
 
-## The rule the whole thing rests on
+## הכלל שהכול נשען עליו
 
-**The player decides before the machine speaks.** You enter a move, what you _can_ read in the
-position, what you _cannot_ evaluate, and a confidence. Only then does the engine talk.
+**השחקן מחליט לפני שהמכונה מדברת.** אתם מזינים מהלך, מה אתם כן יכולים לקרוא בעמדה, מה אתם לא
+יכולים להעריך, ורמת ביטחון. רק אז המנוע מדבר.
 
-That is not a training gimmick. An engine knows what the position needed; it has no idea what you
-were choosing between, or why, or under what constraint. The commitment step is the only moment
-that variable is observable, and it does not exist in any other tool.
+זה לא גימיק אימון. מנוע יודע מה העמדה דרשה; אין לו מושג בין מה בחרתם, למה, ותחת איזו מגבלה. שלב
+המחויבות הוא הרגע היחיד שבו המשתנה הזה ניתן לצפייה, והוא לא קיים באף כלי אחר.
 
-It is enforced three ways rather than by discipline: a state machine where the engine may run in
-exactly one stage, a type that makes an evaluation-carrying commit event unconstructible, and a
-dynamic import that keeps the engine out of the initial module graph so it cannot even appear in
-the network tab before you commit.
+הוא נאכף בשלוש דרכים ולא במשמעת: מכונת מצבים שבה המנוע רשאי לרוץ בשלב אחד בדיוק, טיפוס שהופך
+אירוע מחויבות שנושא הערכה ללא-ניתן-לבנייה, וייבוא דינמי ששומר את המנוע מחוץ לגרף המודולים
+ההתחלתי — כך שהוא לא יכול אפילו להופיע בלשונית הרשת לפני שרשמתם החלטה.
 
-## What it will and will not tell you
+## מה הוא יגיד לכם, ומה לא
 
-It will say things like: _across 42 decisions taken under 45 seconds your stated confidence was
-80% against 24% accuracy, while across the other 61 the gap was near zero._ It will call that a
-**hypothesis**, show you its n, and state in advance what would refute it. It only becomes a
-finding after a drill it could have failed.
+הוא יגיד דברים כמו: _לאורך 42 החלטות שנלקחו תחת 45 שניות הביטחון המוצהר שלכם היה 80% מול 24%
+דיוק, בעוד שלאורך 61 האחרות הפער היה קרוב לאפס._ הוא יקרא לזה **השערה**, יראה לכם את ה-n שלה,
+ויאמר מראש מה יפריך אותה. היא הופכת לממצא רק אחרי דריל שהיה יכול להיכשל בו.
 
-It will frequently tell you **nothing**, and say so. That is the design. The product's
-credibility is built entirely out of the moments it declines to claim something.
+לעיתים קרובות הוא יגיד לכם **כלום**, ויאמר זאת במפורש. זו התכנון. האמינות של המוצר בנויה כולה
+מהרגעים שבהם הוא מסרב לטעון משהו.
 
-**You will wait weeks before it says anything at all.** At the shipped detector thresholds a
-strong pattern first appears at roughly 60–90 recorded decisions, and a bucket needs 30
-decisions inside it and 30 outside. That is the price of a 0.7% false-positive rate against
-shuffled labels; the looser thresholds spoke after ~30 decisions and were wrong about half the
-time at that size. The full curve is in [docs/MEASUREMENTS.md](docs/MEASUREMENTS.md).
+**תחכו שבועות לפני שהוא יגיד משהו בכלל.** בספי הגלאי שנשלחו, דפוס חזק מופיע לראשונה סביב 60–90
+החלטות רשומות, ודלי צריך 30 החלטות בתוכו ו-30 מחוצה לו. זה המחיר של שיעור חיוביים-כוזבים של 0.7%
+מול תוויות מעורבבות; הספים הרופפים דיברו כבר אחרי ~30 החלטות וטעו בכמחצית המקרים בגודל הזה.
+העקומה המלאה נמצאת ב-[docs/MEASUREMENTS.md](docs/MEASUREMENTS.md).
 
-## Playing a game
+## לשחק משחק
 
-**New game** asks two things: which colour you take, and how deep the opponent searches. The
-other side is then played by the local Stockfish. Before this there was no opponent at all —
-"new game" laid out the starting position and asked you to decide for both colours, one
-commit-and-reveal cycle per half-move.
+**משחק חדש** שואל שני דברים: באיזה צבע אתם משחקים, ובאיזה עומק היריב מחפש. את הצד השני משחק
+ה-Stockfish המקומי.
 
-Depth is offered as a **search depth** (1, 4, 8), and that is all it is. Nothing here measures
-what rating a given depth plays at, so the app does not tell you how strong the opponent is. Depth
-1 exists because an opponent that always wins is not a game you can learn anything in.
+עומק מוצע כ**עומק חיפוש** (1, 4, 8), וזה כל מה שהוא. שום דבר כאן לא מודד באיזה דירוג עומק מסוים
+משחק, ולכן האפליקציה לא אומרת לכם כמה חזק היריב. עומק 1 קיים כי יריב שתמיד מנצח הוא לא משחק
+שאפשר ללמוד בו משהו.
 
-While you are deciding, the move you have picked is marked on the board in its own colour. That
-mark is deliberately **not** the engine's arrow: one is your guess and the other is the machine's
-answer, and a single mark meaning both would erase the difference. The engine's arrow appears
-only after a reveal — never before, which is the point of the whole product.
+בזמן שאתם מחליטים, המהלך שבחרתם מסומן על הלוח בצבע משלו. הסימון הזה **בכוונה אינו** החץ של המנוע:
+אחד הוא הניחוש שלכם והשני הוא התשובה של המכונה, וסימון אחד שמשמעותו שניהם היה מוחק את ההבדל. החץ
+של המנוע מופיע רק אחרי חשיפה — לעולם לא לפני, וזו כל הנקודה של המוצר.
 
-Choosing a colour applies to games you play. A game you **import** gets no opponent: the other
-side's moves are already in the PGN, and inventing different ones would be a different game.
+בחירת צבע חלה על משחקים שאתם משחקים. משחק ש**מייבאים** לא מקבל יריב: המהלכים של הצד השני כבר
+נמצאים ב-PGN, והמצאת מהלכים אחרים הייתה משחק אחר.
 
-## The loop
+## הלולאה
 
-The unit of output is **one claim and one drill**. Not a dashboard, not a list of weaknesses.
-If three candidate patterns exist it shows the one with the most support and tells you the other
-two are being withheld — a page that shows everything is a page after which nothing changes.
+יחידת התפוקה היא **טענה אחת ודריל אחד**. לא דשבורד, ולא רשימת חולשות. אם קיימים שלושה דפוסים
+מועמדים, הוא מציג את זה עם הכי הרבה תמיכה ואומר לכם ששניים נוספים מוסתרים — עמוד שמציג הכול הוא
+עמוד שאחריו כלום לא משתנה.
 
 ```
-record decisions  →  detect a pattern  →  hypothesis, with n and a refutation condition
-                                              ↓
-       graded, either way  ←  run the drill  ←  drill built from positions you have NOT decided
+רישום החלטות  →  זיהוי דפוס  →  השערה, עם n ועם תנאי הפרכה
+                                        ↓
+        מדורגת, כך או כך  ←  הרצת דריל  ←  דריל מעמדות שלא החלטתם עליהן
 ```
 
-**A drill is the only thing that can change a grade**, because it is the only evidence that
-postdates the claim. More of the data that produced a hypothesis cannot confirm it — that is
-enforced in the type system: the function that raises a grade accepts a prospective drill result
-and has no overload for anything else.
+**דריל הוא הדבר היחיד שיכול לשנות דירוג**, כי הוא הראיה היחידה שמאוחרת לטענה. עוד מהנתונים שהולידו
+השערה לא יכולים לאשש אותה — וזה נאכף במערכת הטיפוסים: הפונקציה שמעלה דירוג מקבלת תוצאת דריל
+פרוספקטיבית ואין לה עומס-יתר לשום דבר אחר.
 
-Running one:
+איך זה רץ:
 
-- What would **refute** the claim is written to storage before the first position is shown, and
-  stays on screen for the whole drill. You are told what you are being tested for.
-- Positions come from your loaded games at plies you have **not** decided on. Re-showing a
-  position whose verdict you have already seen is not a forward test.
-- Each drill position is captured through the **same** commitment screen as any other decision —
-  move, read, unknown, confidence, then the engine. There is no separate drill protocol.
-- The verdict is measured against the condition the drill **stored**, not a rule invented at the
-  end: the drill's mean calibration gap against the baseline from the rest of your record.
-- The result is reported either way. A refuted claim is kept **forever** and never re-tested —
-  deleting it would let the same wrong pattern be rediscovered.
+- מה ש**יפריך** את הטענה נכתב לאחסון לפני שמוצגת העמדה הראשונה, ונשאר על המסך לאורך כל הדריל.
+  אומרים לכם על מה אתם נבדקים.
+- העמדות מגיעות מהמשחקים שטענתם, בחצאי-מהלכים שעליהם **לא** החלטתם. הצגה חוזרת של עמדה שכבר
+  ראיתם את הפסק שלה אינה מבחן קדימה.
+- כל עמדת דריל נלכדת דרך **אותו** מסך מחויבות כמו כל החלטה אחרת — מהלך, קריאה, מה שלא ידוע,
+  ביטחון, ואז המנוע. אין פרוטוקול דריל נפרד.
+- הפסק נמדד מול התנאי ש**נשמר** בדריל, ולא מול כלל שהומצא בסוף: פער הכיול הממוצע של הדריל מול
+  קו הבסיס משאר הרשומה שלכם.
+- התוצאה מדווחת כך או כך. טענה שהופרכה נשמרת **לנצח** ולא נבדקת שוב — מחיקה שלה הייתה מאפשרת
+  לאותו דפוס שגוי להתגלות מחדש.
 
-Fewer than five undecided positions and it refuses to build a drill at all. A two-position drill
-that returns a verdict is worse than no drill, because the verdict looks like evidence.
+פחות מחמש עמדות שלא הוחלט עליהן, והוא מסרב לבנות דריל בכלל. דריל של שתי עמדות שמחזיר פסק גרוע
+מאין דריל, כי הפסק נראה כמו ראיה.
 
-## What it does not claim
+## מה הוא לא טוען
 
-It does not claim to improve your chess. No such measurement exists. The strongest statement this
-build supports is about calibration gap on recorded decisions, and nothing wider. It has never
-been run against a real player's record.
+הוא לא טוען שהוא משפר את השחמט שלכם. אין מדידה כזו. האמירה החזקה ביותר שהבילד הזה תומך בה היא על
+פער כיול בהחלטות רשומות, ולא רחבה מזה. הוא מעולם לא רץ מול רשומה של שחקן אמיתי.
 
-## Development
+## פיתוח
 
 ```bash
 npm install
-npm run dev      # SPA + API on one port
+npm run dev      # SPA + API על פורט אחד
 npm run verify   # typecheck, tests, gates, gate controls, build
 ```
 
-`npm run dev` mounts the same Express app the serverless entry uses, so dev and production run
-identical server code. **The engine does not run in dev**: Vite rewrites the wasm asset URL with
-a query string the Stockfish loader cannot parse. Use a production build to exercise it.
+`npm run dev` מרכיב את אותה אפליקציית Express שנקודת הכניסה הסרוורלסית משתמשת בה, כך שפיתוח
+וייצור מריצים קוד שרת זהה. **המנוע לא רץ ב-dev**: Vite כותב מחדש את כתובת נכס ה-wasm עם מחרוזת
+שאילתה שהטוען של Stockfish לא יודע לפרסר. השתמשו בבילד ייצור כדי להפעיל אותו.
 
-## Gates
+## שערים
 
-Nine gates, each shipping with a positive control that must be demonstrated **red**. A gate that
-has never failed has not been shown to be a gate.
+תשעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח
+כשער.
 
 ```bash
-npm run gates            # must be green on real code
-npm run gates:controls   # must be RED on deliberately-broken fixtures
+npm run gates            # חייב להיות ירוק על הקוד האמיתי
+npm run gates:controls   # חייב להיות אדום על פיקסצ'רים שבורים בכוונה
 ```
 
-`gates:controls` exits non-zero if any control stays green, and also if a control never actually
-ran — a control that fails to execute is not a control.
+`gates:controls` יוצא עם קוד שגיאה אם בקרה כלשהי נשארת ירוקה, וגם אם בקרה מעולם לא רצה בפועל —
+בקרה שלא מצליחה להתבצע איננה בקרה.
 
-| Gate          | Rule | Positive control                                                                        |
-| ------------- | ---- | --------------------------------------------------------------------------------------- |
-| GATE-ISO      | 3.1  | an API event with the `unknown` atom dropped                                            |
-| GATE-NO-FAKE  | R2   | the fabricated `+0.42 @ depth 14` opening evaluation, restored                          |
-| GATE-DENOM    | R1   | `rate(1,1)` rendered as a bare "100%"                                                   |
-| GATE-STALE    | 4.3  | the shipped superseding logic, which resolved a request with an abandoned search's move |
-| GATE-GRADE    | 3.3  | a claim rendered without its grade or its n                                             |
-| GATE-PREREG   | R5   | a drill starter with no pre-registration check                                          |
-| GATE-EXTERNAL | R4   | a permissive promote path that lets external evidence raise a grade                     |
-| GATE-COMMIT   | R3   | a reveal payload served before the decision was recorded                                |
-| GATE-SHUFFLE  | 6    | the first-draft detector thresholds, which found structure in pure noise                |
+| שער           | כלל | בקרה חיובית                                                          |
+| ------------- | --- | -------------------------------------------------------------------- |
+| GATE-ISO      | 3.1 | אירוע API שהאטום `unknown` הושמט ממנו                                 |
+| GATE-NO-FAKE  | R2  | הערכת הפתיחה המומצאת `+0.42 @ depth 14`, מוחזרת                       |
+| GATE-DENOM    | R1  | `rate(1,1)` שמוצג כ-"100%" חשוף                                       |
+| GATE-STALE    | 4.3 | לוגיקת ההחלפה שנשלחה, שפתרה בקשה עם מהלך מחיפוש נטוש                   |
+| GATE-GRADE    | 3.3 | טענה שמוצגת בלי הדירוג שלה או בלי ה-n שלה                              |
+| GATE-PREREG   | R5  | מפעיל דריל בלי בדיקת רישום מוקדם                                      |
+| GATE-EXTERNAL | R4  | מסלול קידום מתירני שמאפשר לראיה חיצונית להעלות דירוג                   |
+| GATE-COMMIT   | R3  | מטען חשיפה שהוגש לפני שההחלטה נרשמה                                    |
+| GATE-SHUFFLE  | 6   | ספי הגלאי מהטיוטה הראשונה, שמצאו מבנה ברעש טהור                        |
 
-## Deployment
+בנוסף, `tests/client/ux-contract.test.ts` מחזיק את חוזה ה-UX — 20 טענות עם 13 בקרות חיוביות, כל
+אחת הודגמה אדומה מול הקוד כפי שנשלח. הוא לא רואה פריסה מחושבת, ניגודיות מול מה שנצבע בפועל, או
+האם מיכל גלילה באמת גולל; המספרים האלה נמדדו בדפדפן ומתועדים ב-[docs/FINDINGS.md](docs/FINDINGS.md).
 
-See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md). Single-tenant on purpose: every Lichess
-endpoint is gated to one `OWNER_OPEN_ID`. The decision record contains a player's reasoning in
-their own words and never leaves the deployment.
+## פריסה
 
-## The record lives where you are
+ראו [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md). דייר יחיד בכוונה: כל נקודת קצה של ליצ'ס חסומה
+ל-`OWNER_OPEN_ID` אחד. רשומת ההחלטות מכילה את הנימוקים של השחקן במילים שלו ולעולם לא עוזבת את
+הפריסה.
 
-Signed in, decisions go to the server. Not signed in, they are kept **in your browser** and never
-leave the machine — no account, no OAuth portal, no configuration. The screen says which of the
-two is in effect, and says so loudly if the browser is blocking storage, because a decision that
-was not stored must never look like one that was.
+**אזהרה שנלמדה בדרך הקשה:** `package.json` מכריז `"type": "module"`, ולכן Vercel מריצה את השרת
+כ-ESM — ו-ESM לא פותרת מזהי ייבוא יחסיים בלי סיומת. כל ייבוא יחסי ב-`api/`, `server/`, `shared/`
+ו-`drizzle/` חייב לשאת `.js`. זה הפיל את כל ה-API פעם אחת, ו-`tests/server/serverless-entry.test.ts`
+בודק את זה עכשיו מתוך תהליך `node` אמיתי.
 
-Both paths run the same code: `shared/record-service.ts` against a `RecordStore`. R3 (the engine
-does not speak before the decision is recorded), R5 (the refutation condition is written before
-the drill runs) and append-only are enforced there, once, not re-implemented per backing.
+## הרשומה חיה איפה שאתם
 
-## After you decide: two kinds of measurement
+מחוברים — ההחלטות הולכות לשרת. לא מחוברים — הן נשמרות **בדפדפן שלכם** ולא עוזבות את המחשב: בלי
+חשבון, בלי פורטל OAuth, בלי הגדרות. המסך אומר מי משני המצבים בתוקף, ואומר את זה בקול אם הדפדפן
+חוסם אחסון, כי החלטה שלא נשמרה אסור שתיראה כמו אחת שכן.
 
-Once a decision in a game has been committed and the engine has answered it, two more things
-become available. Neither is offered before that, and neither runs by itself.
+שני המסלולים מריצים את אותו קוד: `shared/record-service.ts` מול `RecordStore`. R3 (המנוע לא מדבר
+לפני שההחלטה נרשמה), R5 (תנאי ההפרכה נכתב לפני שהדריל רץ) ו-append-only נאכפים שם, פעם אחת, ולא
+ממומשים מחדש לכל אחסון.
 
-**The game, measured.** Stockfish goes over every position and reports what each move cost: an
-evaluation curve, centipawn loss per move, and the moves that cost the most. This works on any
-PGN — the evaluations come from the local engine, not from `[%eval]` comments, so a game nobody
-ever analysed is analysed here.
+## אחרי שהחלטתם: שני סוגי מדידה
 
-**The record, measured.** The stated confidence against what actually happened, split by the six
-buckets the detector is allowed to look at: under 45 seconds, over two minutes, opening,
-middlegame, endgame, under a minute on the clock. Every figure carries its n, and a bucket that
-has not reached 30 decisions says so and stays on screen saying so.
+ברגע שהחלטה במשחק נרשמה והמנוע ענה עליה, שני דברים נוספים הופכים לזמינים. אף אחד מהם לא מוצע לפני
+כן, ואף אחד מהם לא רץ מעצמו.
 
-The second one is the point. Any engine can tell you a move was bad. Only a record of what you
-believed *before* you saw the answer can tell you that you are reliably certain and wrong under
-time pressure — and that is a different fact, about you rather than about the position.
+**המשחק, נמדד.** Stockfish עובר על כל עמדה ומדווח כמה כל מהלך עלה: עקומת הערכה, אובדן סנטי-פונים
+למהלך, והמהלכים שעלו הכי הרבה. זה עובד על כל PGN — ההערכות מגיעות מהמנוע המקומי ולא מהערות
+`[%eval]`, כך שמשחק שאף אחד מעולם לא ניתח מנותח כאן.
 
-## Getting your games in
+**הרשומה, נמדדת.** הביטחון המוצהר מול מה שקרה בפועל, מפוצל לשישה הדליים שהגלאי רשאי להסתכל עליהם:
+תחת 45 שניות, מעל שתי דקות, פתיחה, אמצע משחק, סיום, פחות מדקה על השעון. כל נתון נושא את ה-n שלו,
+ודלי שלא הגיע ל-30 החלטות אומר זאת ונשאר על המסך אומר זאת.
 
-Type a Lichess username. `/api/games/user/{username}` is public and sends
-`access-control-allow-origin: *`, so the browser reads it directly: **no API token, no sign-in,
-no configuration**. Only finished games are offered — the fair-play guard depends on a live game
-never reaching the analysis layers. Pasting or uploading a PGN still works and is the fallback if
-the network blocks the request, which the screen says by name rather than as "could not load".
+השני הוא הנקודה. כל מנוע יכול להגיד לכם שמהלך היה גרוע. רק רשומה של מה שהאמנתם *לפני* שראיתם את
+התשובה יכולה להגיד לכם שאתם באופן עקבי בטוחים וטועים תחת לחץ זמן — וזו עובדה אחרת, עליכם ולא על
+העמדה.
 
-**Signing in does not sign in to Lichess.** The button authenticates against the app's own OAuth
-portal; no Lichess login page is ever shown and no visitor's Lichess credentials are held.
-Lichess data is read server-side with a `LICHESS_API_TOKEN` the owner issues from their own
-account. The two build-time variables (`VITE_APP_ID`, `VITE_OAUTH_PORTAL_URL`) are baked into the
-bundle, so setting them without rebuilding changes nothing — the deployment doc says which
-failure looks like what.
+## איך מכניסים משחקים
+
+הקלידו שם משתמש בליצ'ס. `/api/games/user/{username}` היא ציבורית ושולחת
+`access-control-allow-origin: *`, ולכן הדפדפן קורא אותה ישירות: **בלי טוקן API, בלי התחברות, בלי
+הגדרות**. רק משחקים שהסתיימו מוצעים — שומר ההגינות תלוי בכך שמשחק חי לעולם לא מגיע לשכבות הניתוח.
+הדבקה או העלאה של PGN עדיין עובדות, והן הגיבוי אם הרשת חוסמת את הבקשה — מה שהמסך אומר בשם ולא
+כ"לא ניתן לטעון".
+
+**התחברות אינה התחברות לליצ'ס.** הכפתור מאמת מול פורטל ה-OAuth של האפליקציה עצמה; שום מסך התחברות
+של ליצ'ס לא מוצג ואף פרט התחברות של מבקר לליצ'ס לא מוחזק. נתוני ליצ'ס נקראים בצד השרת עם
+`LICHESS_API_TOKEN` שהבעלים מנפיק מהחשבון שלו. שני משתני זמן-הבנייה (`VITE_APP_ID`,
+`VITE_OAUTH_PORTAL_URL`) נצרבים לתוך הבאנדל, ולכן הגדרתם בלי בנייה מחדש לא משנה כלום — מסמך
+הפריסה אומר איזו תקלה נראית איך.
+
+---
+
+התיעוד הטכני המלא — הממצאים, המדידות ומה שעדיין לא אומת — נמצא ב-[docs/FINDINGS.md](docs/FINDINGS.md)
+וב-[docs/MEASUREMENTS.md](docs/MEASUREMENTS.md), והוא באנגלית.
