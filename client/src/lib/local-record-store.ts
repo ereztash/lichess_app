@@ -46,31 +46,37 @@ const empty = (): Persisted => ({
 });
 
 /**
- * Storage that is present but unusable must not look like storage that is empty.
+ * How long what we write survives.
  *
- * A private window, disabled site data, or a full quota all make localStorage throw. Returning an
- * empty record there would silently discard decisions, which is the R2 failure one layer down: a
- * decision that was not stored must never look like one that was. So reads fall back to empty,
- * but WRITES rethrow, and the caller surfaces it.
+ * "persistent" means localStorage took it and it is still there after the tab closes.
+ * "session-only" means localStorage refused and the record lives in this page's memory until
+ * the tab is closed or reloaded.
  */
-function read(): Persisted {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return empty();
-    return { ...empty(), ...(JSON.parse(raw) as Partial<Persisted>) };
-  } catch {
-    return empty();
-  }
-}
+export type RecordDurability = "persistent" | "session-only";
 
-function write(state: Persisted): void {
-  // Deliberately unguarded. If this throws, the decision was not recorded and the caller has to
-  // hear about it.
-  localStorage.setItem(KEY, JSON.stringify(state));
-}
+/**
+ * Storage that is present but unusable must not look like storage that is empty, and it must
+ * not end the loop either.
+ *
+ * A private window, disabled site data, a privacy extension, an enterprise policy or a full
+ * quota all make localStorage throw. This file used to let that throw escape: `write` was
+ * deliberately unguarded so a lost decision could not be mistaken for a stored one. That was
+ * right about R2 and wrong about everything else -- the commit failed, the reveal never
+ * happened, and the product was not degraded but unusable, in a browser configuration the
+ * player may not be able to change.
+ *
+ * So the fallback is memory, and the honest part is moved to the label rather than the failure:
+ * the decision IS kept, for this session, and `durability()` says so out loud so the screen can
+ * too. R2 is satisfied by naming the scope, not by refusing to store. What must never happen is
+ * a session-only record rendering exactly like a persistent one, and that is now a difference
+ * the UI can see.
+ *
+ * `session` is module-level on purpose: record-api.ts constructs a LocalRecordStore per hook, so
+ * a per-instance fallback would give each hook its own private record.
+ */
+let session: Persisted | null = null;
 
-/** Whether a record can be kept here at all, so the screen can say so before a decision is lost. */
-export function localRecordAvailable(): boolean {
+function probeWritable(): boolean {
   try {
     const probe = `${KEY}.probe`;
     localStorage.setItem(probe, "1");
@@ -81,8 +87,55 @@ export function localRecordAvailable(): boolean {
   }
 }
 
+/** Where the record is being kept right now. */
+export function localRecordDurability(): RecordDurability {
+  if (session !== null) return "session-only";
+  return probeWritable() ? "persistent" : "session-only";
+}
+
+function read(): Persisted {
+  if (session !== null) return session;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return empty();
+    return { ...empty(), ...(JSON.parse(raw) as Partial<Persisted>) };
+  } catch {
+    return empty();
+  }
+}
+
+function write(state: Persisted): void {
+  if (session !== null) {
+    session = state;
+    return;
+  }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+  } catch {
+    // Downgrade in place, carrying this write. A quota that fills mid-session must not lose the
+    // decision that filled it, and from here on every read comes from memory -- so what the
+    // player sees stays consistent with what was actually kept.
+    session = state;
+  }
+}
+
+/**
+ * Whether a record can be kept here at all.
+ *
+ * Always true now: memory is a backing. The question the screen has to ask is not whether the
+ * decision will be kept but for how long, and that is `localRecordDurability`.
+ */
+export function localRecordAvailable(): boolean {
+  return true;
+}
+
+/** Test seam. Clears the in-memory fallback so a case can start from a known backing. */
+export function resetSessionFallbackForTests(): void {
+  session = null;
+}
+
 export class LocalRecordStore implements RecordStore {
-  /** Whether this browser will actually keep what we write. */
+  /** Whether this browser will keep what we write at all. See localRecordDurability for how long. */
   async isAvailable(): Promise<boolean> {
     return localRecordAvailable();
   }

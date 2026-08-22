@@ -7,7 +7,12 @@
  * shared/record-service.ts runs against both and those rules are the product.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { LocalRecordStore, localRecordAvailable } from "../../client/src/lib/local-record-store";
+import {
+  LocalRecordStore,
+  localRecordAvailable,
+  localRecordDurability,
+  resetSessionFallbackForTests,
+} from "../../client/src/lib/local-record-store";
 import * as service from "../../shared/record-service";
 
 const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -33,7 +38,10 @@ const RESULT = {
   cp_loss: 10,
 } as const;
 
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  resetSessionFallbackForTests();
+});
 
 describe("the browser-side record", () => {
   it("commits a decision and reads it back as an atom", async () => {
@@ -85,30 +93,93 @@ describe("the browser-side record", () => {
     expect(view.recorded).toBe(0);
   });
 
-  it("reports storage being blocked instead of pretending the write worked", async () => {
+  /*
+   * Blocked storage used to end the loop.
+   *
+   * `write` was deliberately unguarded so a decision that was not stored could never be mistaken
+   * for one that was. That was right about R2 and wrong about the product: in a private window,
+   * behind a privacy extension, or under an enterprise policy, the commit threw, the reveal
+   * never happened, and the application could not be used at all -- in a browser configuration
+   * the player often cannot change.
+   *
+   * The rule it was protecting is kept, and moved: the decision IS stored, in memory, and the
+   * store says out loud that it will not survive the tab. What must never happen is a
+   * session-only record being indistinguishable from a persistent one -- so these two cases
+   * assert the storing AND the label, together. Either one alone would be the bug.
+   */
+  it("keeps the decision in memory when localStorage refuses, and says the record is session-only", async () => {
     const store = new LocalRecordStore();
     const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new DOMException("QuotaExceededError");
     });
-    // The write must surface. A silent no-op would make an unrecorded decision look recorded.
-    await expect(
-      service.commitDecision(store, event("66666666-6666-4666-8666-666666666666")),
-    ).rejects.toThrow();
-    expect(localRecordAvailable()).toBe(false);
+
+    await service.commitDecision(store, event("66666666-6666-4666-8666-666666666666"));
+    // Kept: the loop can continue to the reveal, which is the whole point of the fallback.
+    expect(await store.countDecisions()).toBe(1);
+    await service.reveal(store, "66666666-6666-4666-8666-666666666666", RESULT);
+    expect(await store.hasReveal("66666666-6666-4666-8666-666666666666")).toBe(true);
+
+    // ...and labelled. A record that vanishes with the tab must not read like one that does not.
+    expect(localRecordDurability()).toBe("session-only");
+    expect(await store.isAvailable()).toBe(true);
     spy.mockRestore();
-    expect(localRecordAvailable()).toBe(true);
+  });
+
+  it("does not fall back to memory while localStorage still works", async () => {
+    // The fallback is a downgrade, not a default: a working browser must still persist, or the
+    // record would silently stop surviving reloads for everyone.
+    const store = new LocalRecordStore();
+    await service.commitDecision(store, event("77777777-7777-4777-8777-777777777777"));
+    expect(localRecordDurability()).toBe("persistent");
+    expect(localStorage.getItem("decision-lab.record.v1")).toContain(
+      "77777777-7777-4777-8777-777777777777",
+    );
+  });
+
+  it("carries the write that triggered the downgrade, and every write after it", async () => {
+    // A quota that fills mid-session must not lose the decision that filled it.
+    const store = new LocalRecordStore();
+    await service.commitDecision(store, event("88888888-8888-4888-8888-888888888888"));
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("QuotaExceededError");
+    });
+    await service.commitDecision(store, event("99999999-9999-4999-8999-999999999999"));
+    await service.commitDecision(store, event("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"));
+    // The one already on disk plus both that only memory took.
+    expect(await store.countDecisions()).toBe(3);
+    spy.mockRestore();
   });
 });
 
 describe("choosing a backing", () => {
-  it("treats a store that cannot write as unavailable", async () => {
+  it("reports a browser that cannot persist as session-only, not as having no store", async () => {
     const store = new LocalRecordStore();
     expect(await store.isAvailable()).toBe(true);
+    expect(localRecordDurability()).toBe("persistent");
+
     const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new DOMException("QuotaExceededError");
     });
-    // The client picks its backing from this, so it must go false BEFORE a decision is taken.
-    expect(await store.isAvailable()).toBe(false);
+    // The client picks its WARNING from this, so it must go session-only before a decision is
+    // taken -- the player is told what they are relying on before they rely on it.
+    expect(localRecordDurability()).toBe("session-only");
+    // ...and the store stays usable, because memory is a backing.
+    expect(localRecordAvailable()).toBe(true);
+    spy.mockRestore();
+  });
+
+  it("shares one memory record across store instances", async () => {
+    // record-api.ts constructs a LocalRecordStore per hook. A per-instance fallback would give
+    // each hook its own private record, so a committed decision would be invisible to the
+    // reveal that follows it.
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("QuotaExceededError");
+    });
+    await service.commitDecision(
+      new LocalRecordStore(),
+      event("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"),
+    );
+    expect(await new LocalRecordStore().countDecisions()).toBe(1);
     spy.mockRestore();
   });
 });

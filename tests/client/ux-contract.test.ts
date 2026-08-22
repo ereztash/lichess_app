@@ -225,3 +225,25 @@ describe("keyboard focus is visible", () => {
     expect(bare).toMatch(/:focus-visible\s*\{[^}]*outline:\s*\d+px solid/);
   });
 });
+
+describe("a dialog has to be opaque", () => {
+  /*
+   * The self-check panel shipped transparent: it declared no background, and .panel-shell did
+   * not either, so the chessboard showed through the dialog and the report was unreadable over
+   * the pieces. Every panel before it happened to declare its own surface, which is why nothing
+   * caught the omission.
+   *
+   * The fix moved the surface onto the shell, so this asserts it there -- that is the one place
+   * that covers panels not yet written.
+   */
+  it("gives .panel-shell an opaque surface, so no panel can forget one", () => {
+    const shell = block(".panel-shell");
+    expect(shell).toMatch(/background:\s*var\(--surface\)/);
+  });
+
+  it("keeps the backdrop's own dimming, which is not a substitute for it", () => {
+    // A translucent scrim over the board is not a surface: it dims what shows through without
+    // hiding it, which is exactly what the unreadable rows looked like.
+    expect(block(".panel-backdrop")).toMatch(/background:\s*rgba\(0,\s*0,\s*0,\s*0\.\d+\)/);
+  });
+});

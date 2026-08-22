@@ -13,7 +13,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { LocalRecordStore, localRecordAvailable } from "@/lib/local-record-store";
+import {
+  LocalRecordStore,
+  localRecordDurability,
+  type RecordDurability,
+} from "@/lib/local-record-store";
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
@@ -33,7 +37,12 @@ const LOCAL_KEYS = {
  * facts. The server is used only when it says it can store; otherwise the record stays local,
  * signed in or not.
  */
-export function useRecordMode(): { local: boolean; storable: boolean; serverBroken: boolean } {
+export function useRecordMode(): {
+  local: boolean;
+  /** How long a locally-kept decision survives. Always "persistent" on the server path. */
+  durability: RecordDurability;
+  serverBroken: boolean;
+} {
   const { isAuthenticated } = useAuth();
   const probe = trpc.record.storageAvailable.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -46,7 +55,7 @@ export function useRecordMode(): { local: boolean; storable: boolean; serverBrok
   const serverUsable = isAuthenticated && probe.data?.available === true;
   const serverBroken = isAuthenticated && (probe.data?.available === false || probe.isError);
   const local = !serverUsable;
-  return { local, storable: local ? localRecordAvailable() : true, serverBroken };
+  return { local, durability: local ? localRecordDurability() : "persistent", serverBroken };
 }
 
 function useStore(): LocalRecordStore {
