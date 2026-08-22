@@ -45,6 +45,8 @@
   --piece-dark-shadow: rgba(255, 255, 255, 0.3);
   --piece-light-shadow: rgba(0, 0, 0, 0.45);
   --grain: rgba(var(--ink-rgb), 0.06);
+  /* The smallest a control in the decision loop is allowed to be. See "Tap floor" below. */
+  --tap-floor: 44px;
   /* ---- Chart palette -------------------------------------------------------------------
    * Two poles, validated rather than eyeballed: normal-vision ΔE 26.1, protan 20.2 against the
    * cream surface. Blue is White's advantage and a move that held; warm is Black's advantage and
@@ -380,15 +382,20 @@ button:not(:disabled) {
 .header-actions {
   justify-self: end;
   display: flex;
+  /* The icon buttons are 44px square now, and after a reveal a fifth control joins them. Wrap
+     rather than push the brand off the row on a narrow phone. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 .primary-control {
+  padding: 0 14px;
   background: var(--blue) !important;
   color: var(--on-blue) !important;
 }
 .icon-control {
-  width: 38px;
-  height: 38px;
+  width: var(--tap-floor);
+  height: var(--tap-floor);
   border: 1px solid var(--ink);
   background: transparent;
   display: grid;
@@ -915,8 +922,8 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 5px;
-  /* Measured 70x17. WCAG 2.2 AA (2.5.8) wants 24x24 as the floor for a pointer target. */
-  min-height: 24px;
+  /* Measured 70x17, then held at 24px for WCAG 2.2 AA (2.5.8). The tap floor below supersedes
+     that: same intent, one number, applied to every control instead of this one. */
   padding-block: 4px;
 }
 .analysis-stack {
@@ -1109,7 +1116,7 @@ button:not(:disabled) {
   display: flex;
 }
 .timeline-controls button {
-  width: 32px;
+  width: var(--tap-floor);
   border: 0;
   border-left: 1px solid rgba(var(--ink-rgb), 0.15);
   background: transparent;
@@ -1379,6 +1386,33 @@ button:not(:disabled) {
   opacity: 0.8;
   margin: 0;
   text-align: center;
+}
+/*
+ * A question about what the player just declared.
+ *
+ * Drawn in --chosen, the player's own colour, and deliberately not in --blue or in the error
+ * red: blue is the engine's, and this layer has heard nothing from the engine; red would make a
+ * question look like a refusal, on a screen whose one real refusal is three lines below it. The
+ * left rule and the muted basis line are the reveal layer's shapes, because this is the same
+ * promise -- no sentence without the thing that produced it.
+ */
+.commitment-tension {
+  border-inline-start: 3px solid var(--chosen);
+  padding: 0.5rem 0.7rem;
+  background: rgba(var(--chosen-rgb), 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.commitment-tension-question {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.commitment-tension-basis {
+  margin: 0;
+  font: 0.62rem "DM Mono";
+  opacity: 0.72;
 }
 /*
  * The control that records the decision is always on screen.
@@ -1772,7 +1806,7 @@ button:not(:disabled) {
 .transfer-applied button,
 .learning-rule-actions button,
 .transfer-verdict button {
-  min-height: 32px;
+  /* Size comes from the tap floor. These shipped at 32px from a branch that predates it. */
   border: 1px solid var(--hairline-strong);
   border-radius: 6px;
   background: transparent;
@@ -1798,7 +1832,7 @@ button:not(:disabled) {
   justify-content: center;
   align-items: center;
   gap: 0.35rem;
-  min-height: 38px;
+  /* Was 38px, for the same reason. */
   padding: 0.5rem 0.7rem;
   border: 0;
   border-radius: 6px;
@@ -1998,6 +2032,221 @@ button:not(:disabled) {
   outline-offset: -3px;
 }
 
+/* ---- The loop, and where in it you are --------------------------------------------------- */
+/*
+ * Actionless on purpose. Every action it could carry is already owned by a surface closer to it;
+ * this ranks those rather than repeating them. Drawn quieter than anything it sits above --
+ * orientation is not a call to act, and styling it like one would make it compete with the
+ * control that IS the next thing to do.
+ */
+.loop-strip {
+  padding: 11px 17px 13px;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.loop-rail {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.loop-step {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 9px "DM Mono";
+  color: var(--muted);
+}
+/* The step's own bar. Colour never carries the state alone -- "כאן" is text. */
+.loop-step > span[aria-hidden] {
+  block-size: 3px;
+  background: rgba(var(--ink-rgb), 0.16);
+}
+.loop-step.done > span[aria-hidden] {
+  background: rgba(var(--ink-rgb), 0.42);
+}
+.loop-step.live > span[aria-hidden] {
+  background: var(--blue);
+}
+.loop-step.live {
+  color: var(--ink);
+}
+.loop-step.live b {
+  font-weight: 700;
+}
+.loop-here {
+  font: 8px "DM Mono";
+  color: var(--blue);
+}
+.loop-headline {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.loop-basis {
+  margin: 0;
+  font: 0.62rem "DM Mono";
+  opacity: 0.7;
+}
+
+/* ---- Coming back after a gap ------------------------------------------------------------- */
+/*
+ * Shown on a return after RETURN_GAP_DAYS and never otherwise, which is almost every visit. It
+ * is the record's own colour rather than the engine's blue: what it reports is counts from the
+ * record, and the engine had no part in it.
+ */
+.context-ribbon {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline-strong);
+  border-inline-start: 3px solid var(--edge);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.context-reorientation {
+  margin: 0;
+  flex: 1 1 16rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.context-why summary {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font: 0.68rem "DM Mono";
+  color: var(--blue);
+}
+.context-why ul {
+  margin: 6px 0 0;
+  padding-inline-start: 1.1rem;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+.context-why small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.64rem;
+  line-height: 1.55;
+  opacity: 0.75;
+}
+.context-dismiss {
+  padding-inline: 12px;
+  border: 1px solid var(--hairline-strong);
+  background: transparent;
+  font: 0.7rem "DM Mono";
+  color: inherit;
+}
+
+/* ---- Pointer-only affordances ------------------------------------------------------------ */
+/*
+ * `data-input` comes from lib/context-engine.ts. A touch device reports no hover, but a browser
+ * will still apply :hover to the last thing tapped and leave it stuck in the hovered state --
+ * which on a read chip is indistinguishable from selected, on the one control the whole loop
+ * runs through.
+ *
+ * `@media (hover: none)` covers most of this on its own. The attribute is here for the case the
+ * media query gets wrong: a touchscreen laptop reports `hover: hover` because it also has a
+ * trackpad, and a narrow desktop window is not a phone. Both are checked, so neither has to be
+ * right alone.
+ */
+:root[data-input="touch"] .read-chip:hover:not(.selected) {
+  border-color: rgba(var(--ink-rgb), 0.28);
+}
+/* Base is --muted; the hover takes it to --ink. Neutralised back to the base, not to some
+   third colour. `.board-note button` is not here: it has no hover rule to neutralise. */
+:root[data-input="touch"] .read-write-toggle:hover {
+  color: var(--muted);
+}
+@media (hover: none) {
+  .read-chip:hover:not(.selected) {
+    border-color: rgba(var(--ink-rgb), 0.28);
+  }
+}
+
+/* ---- Tap floor -------------------------------------------------------------------------- */
+/*
+ * One declared minimum for every control a finger lands on, in one place, so the contract can be
+ * read and tested rather than inferred from a dozen padding values.
+ *
+ * Before this, control height was EMERGENT: whatever font-size plus padding happened to add up
+ * to. The chips came out at 32px declared, the header's icon buttons at 38px square, and the
+ * timeline's step buttons at 32px wide -- all under the 44px AAA target (WCAG 2.5.5), on the
+ * controls the decision loop runs through. `.depth-row button` already carried `min-width: 44px`,
+ * so the number was in the codebase; it just was not applied anywhere else.
+ *
+ * The board squares are deliberately NOT here. A square is sized by the board, the board is
+ * sized by the viewport, and a floor on a square would break the grid before it helped anyone.
+ */
+.read-chip,
+.confidence-row button,
+.commitment-submit,
+.context-dismiss,
+.context-why summary,
+.read-write-toggle,
+.primary-control,
+.icon-control,
+.ghost-control,
+.analysis-action,
+.layer-action,
+.suggestion-button,
+.layer-refresh,
+.personal-load,
+.board-note button,
+.drawer-heading button,
+.drawer-actions button,
+.timeline-controls button,
+.depth-row button,
+.color-toggle button,
+.review-tabs button,
+.import-list button,
+.learning-choice button,
+.mechanism-picker button,
+.transfer-applied button,
+.learning-rule-actions button,
+.transfer-verdict button,
+.learning-save {
+  min-height: var(--tap-floor);
+  /*
+   * Both axes. WCAG 2.5.5 is 44x44, not 44-by-whatever-the-label-happens-to-be, and a
+   * height-only floor misses every short label: the "למה?" disclosure measured 44 tall and
+   * **22.6 wide** in Chromium, which the source-level contract cannot see because the width was
+   * never declared -- it came from three characters of text.
+   */
+  min-width: var(--tap-floor);
+}
+
+/* ---- Reduced motion --------------------------------------------------------------------- */
+/*
+ * There was no `prefers-reduced-motion` block at all. Small surface -- one transition on the
+ * review progress bar and one spinner -- but the setting was simply not read, and a stylesheet
+ * that never asks cannot honour the answer.
+ *
+ * The spinner is exempt on purpose. The usual blanket rule sets `animation-iteration-count: 1`,
+ * which stops a spinner after one turn and leaves a frozen glyph on screen -- indistinguishable
+ * from a hang, on the indicator whose entire job is to say the opposite. It keeps turning here,
+ * slowly enough not to be the thing the setting is about.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .spin {
+    animation-duration: 2.4s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
 /* ---- The commitment screen says what it needs, before you click ------------------------ */
 /*
  * Reported as "I still cannot complete the move": a chosen move, one field filled, the other
@@ -2137,8 +2386,8 @@ button:not(:disabled) {
   font: 11px/1.25 "Noto Sans Hebrew";
   color: var(--ink);
   cursor: pointer;
-  /* Still a comfortable target on a phone: this is the control the whole loop now runs through. */
-  min-height: 32px;
+  /* Height comes from the tap floor above -- this is the control the whole loop runs through,
+     and 32px was under it. */
 }
 .read-chip:hover {
   border-color: rgba(var(--ink-rgb), 0.55);

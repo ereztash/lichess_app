@@ -31,6 +31,8 @@ import {
   type PositionUnderDecision,
 } from "@/lib/decision-session";
 import { KNOWN_OPTIONS, UNKNOWN_OPTIONS, type ReadOption } from "@/lib/read-options";
+import { scrollIntoViewRespectingMotion } from "@/lib/motion";
+import { foremostTension } from "@/lib/declared-tensions";
 
 interface CommitmentScreenProps {
   position: PositionUnderDecision;
@@ -61,6 +63,14 @@ export function CommitmentScreen({
 }: CommitmentScreenProps) {
   const [draft, setDraft] = useState<DraftDecision>(emptyDraft);
   const [showProblems, setShowProblems] = useState(false);
+  /*
+   * The clock reading at the moment confidence was STATED, not the live one.
+   *
+   * A tension that says "you said 5/5 after six seconds" is about the moment they said it. Read
+   * off the ticking counter instead, the sentence rewrites itself every second and then deletes
+   * itself at ten -- a question that vanishes while it is being read.
+   */
+  const [confidenceStatedAt, setConfidenceStatedAt] = useState<number | null>(null);
   // Time-to-decide starts when the position is presented, not when typing starts.
   const startedAt = useRef<number>(Date.now());
   const [elapsed, setElapsed] = useState(0);
@@ -69,6 +79,7 @@ export function CommitmentScreen({
     startedAt.current = Date.now();
     setDraft(emptyDraft());
     setShowProblems(false);
+    setConfidenceStatedAt(null);
     setElapsed(0);
   }, [position.fen, position.ply]);
 
@@ -83,6 +94,8 @@ export function CommitmentScreen({
   const live: DraftDecision = { ...draft, chosenMove, candidatesConsidered };
   const problems = draftProblems(live);
   const ready = isCommittable(live);
+  /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
+  const tension = foremostTension(live, confidenceStatedAt ?? elapsed);
 
   /*
    * The refusal has to arrive somewhere the player is looking.
@@ -102,7 +115,11 @@ export function CommitmentScreen({
       // clicking: it happens on an explicit action, never on load.
       window.requestAnimationFrame(() => {
         const target = firstProblem.current;
-        target?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+        // Smooth unless the player asked their system for less motion; the CSS property does not
+        // reach an explicit `behavior` argument, so the setting is read in lib/motion.ts. The
+        // helper keeps main's optional call: jsdom has no scrollIntoView, and this path runs in
+        // the commit-blocked tests.
+        if (target) scrollIntoViewRespectingMotion(target, { block: "center" });
         target?.querySelector<HTMLElement>("button, textarea")?.focus();
       });
       return;
@@ -194,7 +211,10 @@ export function CommitmentScreen({
               className={draft.confidence === level ? "selected" : ""}
               aria-label={`ביטחון ${level} — ${CONFIDENCE_LABELS[level]}`}
               aria-pressed={draft.confidence === level}
-              onClick={() => setDraft((d) => ({ ...d, confidence: level }))}
+              onClick={() => {
+                setConfidenceStatedAt((Date.now() - startedAt.current) / 1000);
+                setDraft((d) => ({ ...d, confidence: level }));
+              }}
             >
               <b>{level}</b>
               <small>{CONFIDENCE_LABELS[level]}</small>
@@ -205,6 +225,20 @@ export function CommitmentScreen({
           <p className="commitment-problem">{problemFor("confidence")}</p>
         )}
       </fieldset>
+
+      {/*
+        * A question about what the player just said, not a verdict and not a blocker: the submit
+        * control below is unaffected, and a decision that states a tension records exactly as it
+        * stands. `role="status"` rather than `alert` for the same reason -- nothing is wrong.
+        */}
+      {tension && (
+        <aside className="commitment-tension" role="status" aria-label="שאלה על ההצהרה שלך">
+          <p className="commitment-tension-question">{tension.question}</p>
+          <p className="commitment-tension-basis">
+            {tension.basis} · לא חוסם רישום
+          </p>
+        </aside>
+      )}
 
       {error && (
         <p className="commitment-error" role="alert">

@@ -202,6 +202,130 @@ guessed at.
   they label, so they could drift out of alignment; the in-square labels cannot. The strips are
   gone.
 
+## Touch targets and reduced motion
+
+Found by reading this stylesheet against the two UX contracts in the MATI repository, which
+enforce a 44px touch floor and a `prefers-reduced-motion` block in CI. Both checks were run here
+and both were red.
+
+Then **confirmed in Chromium**, against the production build served locally, at 390x844 and
+1440x950. Reading the source found three controls under the floor. Two more only showed up once
+they were painted, and one of them was the smallest control on the screen.
+
+| Control | Painted, before | After |
+| --- | --- | --- |
+| `.read-write-toggle` "להוסיף במילים שלכם" | **110x22** | 110x44 |
+| `.board-note button` "העתק FEN" | **70x24.5** desktop, 52x41 phone | 70x44 / 52x44 |
+| `.read-chip` | **68x32** | 68x44 |
+| `.icon-control` | **38x38** | 44x44 |
+| `.timeline-controls button` | **32x66** | 44x66 |
+
+The two the source did not show: `.read-write-toggle` declared no height at all -- 5px of padding
+around an 11px font -- so nothing in the text said 22px, and it is the control that opens the
+free-text box. `.board-note button` declared the 24px AA floor and painted at 41px on a phone,
+because it stretches in a flex row, and at 24.5px on desktop where it does not; one declared
+number, two painted sizes, and only one of them passing.
+
+Two controls in the floor list were **already above it** and did not need the change:
+`.confidence-row button` painted at 53.8px and `.commitment-submit` at 45.2px. They stay in the
+list because the point is that the floor is declared rather than emergent -- both of those sizes
+are accidents of padding, and neither is protected by anything without it.
+
+- **Control size was emergent**, not declared: whatever font-size plus padding added up to.
+  `.read-chip` was the only one of the five that named its own too-small number (`min-height:
+  32px`). `.depth-row button` already carried `min-width: 44px`, so the number was in the
+  codebase; it had simply never been applied anywhere else.
+- **`.primary-control` carried no padding at all.** Tailwind's preflight zeroes button padding,
+  and the rule sets only two colours, so the label sat flush against its blue ground.
+- **`.board-note button` was held at 24px**, citing WCAG 2.2 AA (2.5.8), which is the correct AA
+  floor and below the 44px AAA target the rest of this now uses. One number replaces it.
+- **There was no `prefers-reduced-motion` block in the stylesheet.** Small surface -- one
+  transition on the review progress bar and one spinner -- but the setting was never read.
+- **The commitment screen's scroll would have ignored it anyway.** `scrollIntoView({ behavior:
+  "smooth" })` is not governed by the `scroll-behavior` property: CSSOM gives the option
+  precedence, so the CSS rule that looks like it covers this does not. It is read in JS now, in
+  `client/src/lib/motion.ts`.
+
+The spinner is deliberately exempt from the blanket rule. `animation-iteration-count: 1` stops it
+after one turn and leaves a static glyph on screen, indistinguishable from a hang, on the one
+indicator whose entire job is to say the opposite.
+
+**The control goes red.** The same script against the build from the commit before this one
+reports ten failing measurements across the two viewports; against this one, none, and neither
+viewport scrolls sideways -- which is what the widened header and timeline buttons had to be
+checked for. Playwright is not a dependency of this repository and was not added: the browser run
+is a deliberate act, as the header of `tests/client/ux-contract.test.ts` says, and the cheap suite
+holds the declarations.
+
+**Still not verified:** every control, in every state. The run covers the opening view at two
+viewport sizes; panels reached through the tool rail -- new game, import, the PGN drawer -- and
+the reveal and drill states were not opened and not measured. Fonts also failed to load in that
+environment (`fonts.googleapis.com` is unreachable from here), so text ran in a fallback face and
+the *widths* above are not the shipped ones. Heights are `min-height`-driven and unaffected.
+
+## Two more from MATI, and the one that had to be refused
+
+### The card that would have been a fourth copy
+
+MATI's home screen derives one ranked next action and demotes everything else. Ported literally,
+that card would have been this app's **third or fourth** place saying the same sentence: the
+commitment submit already names what is missing, the header already offers the next decision once
+one is revealed, the claim panel already offers the drill and already states the distance to one,
+and the drill runner already counts its own positions.
+
+What is genuinely absent is not the card but the **ranking** it embodies. Five tool-rail buttons,
+a commitment screen and a claim panel render at the same weight, and during a reveal nothing on
+screen says where in the loop you are at all. So `lib/loop-position.ts` carries no action: it
+answers record / detect / drill / grade -- which is live, and what stands between here and the
+next one -- and leaves the doing to the surface that owns it.
+
+The distinction it must not lose is the one section 4.5 is about: **"enough decisions, no
+pattern" is an answer; "not enough decisions" is not**, and a third state -- the record could not
+be read -- must not render as distance zero. All three are separate branches and separately
+tested.
+
+### The context layer, and what it is forbidden to see
+
+MATI adapts to pace: short answers, a long session and a late hour make it go compact. That
+adaptation is free there and is **not** free here.
+
+`shared/detector.ts` buckets on time-to-decide, phase and clock. An interface that reacted to any
+of those would put the intervention inside the measurement -- the "under 45 seconds" bucket would
+stop being a fact about the player and become a fact about the player plus whatever the interface
+did to them at second forty. The whole product is that one measurement.
+
+So `lib/context-engine.ts` draws only on things the detector never reads: the device, whether it
+reports touch, and days since the last visit. `tests/client/context-engine.test.ts` asserts this
+against the **source** rather than against behaviour, because the failure it guards is someone
+adding a signal later and a behavioural test only sees the signals that exist today. Both halves
+of that assertion were demonstrated red by adding a `seconds_taken` field to the module.
+
+The refusal is also stated to the player, inside the ribbon's own "למה?" disclosure, rather than
+only in this file.
+
+### A floor on one axis is not a floor
+
+The tap floor shipped in the commit before this one set `min-height` only. Adding the ribbon
+proved that insufficient within the hour: its "למה?" disclosure measured **44 tall and 22.6
+wide** in Chromium. WCAG 2.5.5 is 44x44, and every short label is a way to pass a height-only
+check while failing the guideline.
+
+The source-level contract could not have caught it -- the width was never declared, it came from
+three characters of text -- which is the second time in this work that the browser found what
+reading the stylesheet could not. The floor sets both axes now, and the contract test requires
+both.
+
+### A floor is decorative if the newest code sits under it
+
+Merging `main` brought in the verified-learning transfer loop, written on a branch that predates
+the floor and shipping five control classes at `min-height: 32px` and one at 38px -- the exact
+defect the floor exists to prevent, newer than the floor itself.
+
+They are in the rule now and their own declarations are gone rather than left for the cascade to
+override silently. This is the argument for one declared floor over per-control judgement: a
+rule in one place gets extended when a feature lands next to it, and thirty scattered padding
+values do not.
+
 ## The rank that collapsed twice
 
 Reported once as "the board rendered four ranks" and again, after the layout work, as "this
