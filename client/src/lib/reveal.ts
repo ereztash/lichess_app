@@ -19,9 +19,6 @@ export const SHALLOW_DEPTH = 16;
 export const ENGINE_NOISE_CP = 30;
 /** A move this far from the engine's line is worth a sentence. */
 export const MATERIAL_LOSS_CP = 100;
-/** Fewer own games than this in a position means the repertoire says nothing. */
-export const THIN_REPERTOIRE = 5;
-
 export interface RevealInputs {
   depth: number;
   cpLoss: number;
@@ -30,12 +27,40 @@ export interface RevealInputs {
   chosenWasBest: boolean;
   confidence: number;
   statedUnknown: string;
-  cloudAvailable: boolean;
-  /** Own games in this exact position, or null if the repertoire was never queried. */
-  repertoireGames: number | null;
   /** Recorded decisions so far, including this one. */
   decisionsOnRecord: number;
+  /**
+   * The moves the player actually put on the board before committing, in UCI, including the one
+   * they chose.
+   *
+   * READ THIS AS WHAT IT IS. It is a record of board interaction, not of thought. A player who
+   * weighed four moves in their head and touched one leaves a list of length one. So the only
+   * sound inference runs in one direction: a move that IS in this list was demonstrably in front
+   * of the player, and a move that is not may still have been considered. Every sentence derived
+   * from it below is phrased in that direction, and the limit that fires on a list of one says
+   * the other direction out loud.
+   */
+  candidatesConsidered: string[];
 }
+
+/**
+ * What is true of this BUILD rather than of any one position.
+ *
+ * `cloudAvailable` was hardcoded false at the call site, so the reveal printed "אין הערכת ענן
+ * לעמדה הזו" on every single reveal -- phrased as a finding about that position, when it was a
+ * constant. A sentence that always fires carries no information, and one that always fires while
+ * claiming to be about the position in front of you is worse than none.
+ *
+ * The honest version is not per-position and does not pretend to be: this build has one local
+ * engine, always, and that is a property of the build. Rendered once, above the per-position
+ * limits, in the same register.
+ *
+ * The alternative was querying Lichess for a cloud evaluation and setting the flag from the
+ * answer. Rejected: it puts a network call carrying the player's position on the reveal path of
+ * a product whose whole posture is that the record never leaves the deployment.
+ */
+export const BUILD_LIMIT =
+  "הבילד הזה מריץ מנוע מקומי אחד. אין מקור הערכה שני, ולכן אין למנוע במה להיבדק — בשום עמדה.";
 
 /**
  * SECTION 4.2 STEP 1: what cannot be inferred here. Rendered before any number, always.
@@ -60,12 +85,21 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
       `המהלך שלך והמהלך של המנוע רחוקים ${inputs.cpLoss} ס״פ — בתוך רעש ההערכה. זו אינה טעות.`,
     );
   }
-  if (!inputs.cloudAvailable) {
-    limits.push("אין הערכת ענן לעמדה הזו, כך שיש מקור מנוע אחד בלבד ואין לו במה להיבדק.");
-  }
-  if (inputs.repertoireGames !== null && inputs.repertoireGames < THIN_REPERTOIRE) {
+  /*
+   * The distinction this build cannot make on one recorded candidate.
+   *
+   * "You did not see it" and "you saw it and rejected it" call for opposite work -- one is
+   * vision, the other is the rule that chose between what was seen -- and with a single move on
+   * the board the record cannot tell them apart. Saying so is the honest move, and it also tells
+   * the player how to make the next reveal say more.
+   *
+   * Only when the engine preferred something else: with nothing to have missed, there is no
+   * distinction to be unable to make.
+   */
+  if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
     limits.push(
-      `יש ${inputs.repertoireGames} משחקים שלך בעמדה הזו. הרפרטואר האישי לא אומר כאן כלום.`,
+      "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת כאן אם לא ראית את המהלך של המנוע או שראית ודחית. " +
+        "מהלכים שנשקלו בלי להניח אותם על הלוח אינם נרשמים.",
     );
   }
   return limits;
@@ -83,6 +117,27 @@ export interface OneThing {
  */
 export function theOneThing(inputs: RevealInputs): OneThing | null {
   const noisy = inputs.cpLoss <= ENGINE_NOISE_CP;
+  const rejectedTheBest = inputs.candidatesConsidered.includes(inputs.bestMove);
+
+  /*
+   * The choice rule, and it comes first.
+   *
+   * It outranks the calibration sentence below, which is the primary measure everywhere else in
+   * this product -- so the reason has to be stated. A calibration gap read off ONE decision is
+   * the aggregate claim at n=1; the detector needs MIN_BUCKET_N before it will say anything of
+   * the kind, and this sentence is standing in for it locally. "The best move was on your board
+   * and you played another" needs no aggregation at all. It is a fact about this decision, it
+   * uses strictly more of the record than the branches below, and it points at different work:
+   * not seeing further, but choosing better between things already seen.
+   *
+   * Phrased as "you recorded it" rather than "you saw it", per the field's own caveat.
+   */
+  if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && rejectedTheBest) {
+    return {
+      text: `${inputs.bestMove} היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ. ראית את המהלך; מה שהכריע ביניהם הוא מה שכדאי להסתכל עליו, לא הראייה.`,
+      basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+    };
+  }
 
   // The calibration gap is the primary measure (section 6): stated confidence against realised
   // accuracy. It outranks the move itself, because it is a property of the decision policy.

@@ -105,6 +105,18 @@ function runVitestFile(file: string, label: string, config?: string): GateResult
   return fail(reason?.slice(0, 110) ?? `${label} failed (vitest exited ${result.status})`);
 }
 
+/**
+ * Everything that can put a sentence in front of a player.
+ *
+ * These scanners ran over client/src only, which is narrower than the gate descriptions claim.
+ * `shared/` is bundled into the client and builds rendered text directly -- claim-derivation.ts
+ * writes the sentence of every claim -- and `server/` produces the messages that surface through
+ * tRPC. A gate that cannot see two thirds of the render path is not measuring what it says.
+ */
+function renderPathFiles(): string[] {
+  return [...sourceFiles("client/src"), ...sourceFiles("shared"), ...sourceFiles("server")];
+}
+
 function scanPredicate(label: string, findings: Finding[], scanned: number): GateResult {
   if (findings.length === 0) return pass(`${scanned} render-path files clean of ${label}`);
   const shown = findings
@@ -216,7 +228,7 @@ export const GATES: Gate[] = [
     rule: "R2",
     description: "No displayed value without provenance; no placeholder value in a render path.",
     run: () => {
-      const files = sourceFiles("client/src");
+      const files = renderPathFiles();
       return scanPredicate("a placeholder evaluation", findFakeValues(files), files.length);
     },
     positiveControl: () => {
@@ -229,7 +241,7 @@ export const GATES: Gate[] = [
     rule: "R1",
     description: "No percentage rendered without its denominator.",
     run: () => {
-      const files = sourceFiles("client/src");
+      const files = renderPathFiles();
       return scanPredicate(
         "a denominatorless percentage",
         findDenominatorlessPercents(files),
@@ -325,7 +337,7 @@ export const GATES: Gate[] = [
       // payload answering early, and the engine module being pulled into the initial graph.
       const payload = noEngineOutputPredicate("pre-commit reveal", await precommitRevealPayload());
       if (payload.status !== "PASS") return payload;
-      const files = sourceFiles("client/src");
+      const files = renderPathFiles();
       const staticImports = findStaticEngineImports(files);
       if (staticImports.length) {
         return fail(

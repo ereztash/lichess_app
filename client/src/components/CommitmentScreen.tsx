@@ -33,6 +33,7 @@ import {
 import { KNOWN_OPTIONS, UNKNOWN_OPTIONS, type ReadOption } from "@/lib/read-options";
 import { scrollIntoViewRespectingMotion } from "@/lib/motion";
 import { foremostTension } from "@/lib/declared-tensions";
+import type { CommitFailureText } from "@/lib/commit-error";
 
 interface CommitmentScreenProps {
   position: PositionUnderDecision;
@@ -42,7 +43,7 @@ interface CommitmentScreenProps {
   candidatesConsidered: string[];
   onCommit: (draft: DraftDecision, secondsTaken: number) => void;
   pending: boolean;
-  error?: string;
+  error?: CommitFailureText;
 }
 
 const CONFIDENCE_LABELS: Record<number, string> = {
@@ -242,7 +243,18 @@ export function CommitmentScreen({
 
       {error && (
         <p className="commitment-error" role="alert">
-          <CircleAlert size={14} /> {error}
+          <CircleAlert size={14} /> {error.message}
+          {/*
+            * Kept and demoted, as ErrorBoundary does with a stack. Removing it would leave a
+            * failure nobody can report; leading with it puts English technical text at the top
+            * of a Hebrew screen.
+            */}
+          {error.detail && (
+            <details>
+              <summary>פרטים טכניים</summary>
+              <code dir="ltr">{error.detail}</code>
+            </details>
+          )}
         </p>
       )}
 

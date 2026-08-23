@@ -110,7 +110,30 @@ No success metric is computed by the component whose success is being measured. 
 grade the claim that generated it: `evaluateClaim` accepts a `ProspectiveDrillResult` and
 nothing else, and the drill's prediction is fixed before any position is shown.
 
+## Two things were called "accuracy"; one of them is canonical
+
+Both existed, both were defensible, and both were on screen under the word **דיוק**.
+
+| | definition | where |
+| --- | --- | --- |
+| **accuracy rate** (canonical) | share of decisions with `cpLoss <= ACCURATE_CP_LOSS` (30) | `shared/detector.ts` |
+| accuracy score | Lichess-style exponential 0-100 per move, averaged | `shared/eval-analysis.ts` |
+
+The **rate** is canonical for anything feeding a bucket, a claim, or a calibration gap. It is a
+proportion, so it is comparable with a stated confidence on the same 0..1 scale -- which is the
+entire calibration measurement, and the exponential score cannot do it.
+
+The **score** survives only inside GameReview, as a per-game display number, and is labelled
+"ציון דיוק" rather than "דיוק" so the two are not read as the same quantity. It is rendered
+through `Score` in Value.tsx, which cannot be called without its n.
+
+Nothing outside GameReview may use the exponential score. It never enters a bucket.
+
 ## Layer C
+
+**Not mounted.** `server/layerC.ts` is imported by no router, so no request can reach it and
+`LAYER_C_ENABLED` changes nothing at runtime. Everything below describes the module as written and
+unit-tested, not as something the deployed API can do.
 
 Off by default (`LAYER_C_ENABLED`). It consults the Lichess masters database for at most three of
 a claim's positions and returns counts, sources, and one question with a fixed shape.
@@ -142,11 +165,10 @@ A position bank drawn from games the player has never seen would remove this. Th
 
 - **Every threshold, against real data.** Synthetic only. Re-run the shuffled-label control on a
   real record before trusting any claim the detector makes.
-- **The engine's runtime behaviour in the deployed environment.** The fix is confirmed present
-  in the deployed bundle and the `.wasm` is served correctly (`application/wasm`, 7,295,411
-  bytes, HTTP 200), and the engine was driven successfully against a byte-identical local build
-  — but the sandbox used for development cannot drive a browser against the deployed origin, so
-  the deployed engine has not been observed producing an evaluation.
+- **This branch's own screens at a deployed origin.** The engine itself is no longer in question
+  — see "What stopped being unverified" below — but that run predates everything here. The import
+  scan, its progress bar and stop button, and the diagnostic table have never been rendered
+  anywhere but a test environment and a headless Chromium measuring CSS boxes.
 - **The record layer against a real database.** All record tests run against an in-memory store.
   `DATABASE_URL` has never been set in any environment this build has run in, so
   `DrizzleRecordStore` has never executed a statement against MySQL.
@@ -154,9 +176,43 @@ A position bank drawn from games the player has never seen would remove this. Th
   synthetic decisions, and driven through a browser as far as the first drill position, but no
   drill has been completed by a person.
 - **Layer C against live Lichess.** Its tests stub `fetch`. It has never made a real request to
-  the masters database, and its rate-limit behaviour under repeated use is unmeasured.
+  the masters database, and its rate-limit behaviour under repeated use is unmeasured. It is also
+  not mounted: no router imports it, so nothing in the deployed API can reach it at all.
 - **Cold start with a real player.** The numbers above assume a planted effect far stronger and
   cleaner than a real one is likely to be. Expect the real cold start to be longer.
+- **The import diagnostic against a real Lichess account.** Every part of the path is tested with
+  synthetic games and a stub engine -- PGN clock extraction, colour matching, batch scoring,
+  bucketing, the screen. No real username has been searched, no real PGN scored, and the
+  end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
+  the logic; what nobody has watched is the run.
+- **Anything on a phone.** No measurement in this document was taken on a handset. The import is
+  the case where that matters most, because it is the only screen that asks the user to wait, and
+  its cost scales with a device speed nobody here has measured.
+
+### What stopped being unverified
+
+- **The engine runs at a deployed origin.** The oldest open finding in this project, and it was
+  closed on main while this branch was in flight rather than by anything here. The in-app
+  self-check answered on its first real run — Chrome 151 on Windows, ten checks, ten passes:
+  WebAssembly instantiates, a Worker is constructible, both engine files arrive intact over HTTPS
+  from the deployment, and Stockfish greets, reports ready and returns `bestmove e2e4` at depth 8.
+  Scope, as that commit states it: the origin was a PINNED PREVIEW serving a bundle from before
+  the read options landed. Every file those ten checks exercise was byte-identical at that commit,
+  so the finding holds — but the argument is about those files, and it does not extend to the
+  screens this branch adds.
+
+- **Fonts are served from the deployment.** The build ships nine `@font-face` files under
+  `dist/public/fonts/`, and all nine `src` URLs resolve to files that exist. Counted in the built
+  output: zero references to `googleapis` or `gstatic`, zero external `<link>` elements, zero
+  external `@import` rules. The only host the built JavaScript can call is `lichess.org`
+  (`json-schema.org` and `react.dev` appear only inside library error strings).
+- **User-reachable strings are in the app's language.** 117 Hebrew strings against three
+  deliberate Latin masthead labels (`DECISION LAB`, `COMMIT · THEN REVEAL`, `STOCKFISH 18`). The
+  store's English invariant messages -- `append-only: …` -- no longer reach any screen
+  unmediated; ten call sites rendered them raw before this pass.
+
+Both of those were checked against the built output rather than the source, which is the only
+place the question can actually be settled.
 
 ## Engine-scored games (phase 1 of the merge)
 
@@ -188,6 +244,51 @@ accuracy 45%, avg CPL 96, 1 blunder, 1 inaccuracy, `hasEvals: true`.
 The game is the Blackburne Shilling trap, and the analysis names the right move: 5.Nxf7 is the
 losing one, and 4.Nxe5 is the inaccuracy that walks into it. That is a chess-correct result, not
 merely a plausible-looking number.
+
+### What a full import costs, and who pays it
+
+Scoring one position is cheap. Scoring a player's history is not, and the import path exists
+precisely to score a history: the cold start needs roughly 60-90 recorded decisions before the
+detector can read anything, and the fastest way to reach that is games the player already played.
+
+Measured on a batch import, Stockfish 18 at depth 12 in a browser:
+
+| positions | wall clock | mean per position |
+| --------- | ---------- | ----------------- |
+| 971       | 43.4 s     | 45 ms             |
+
+**Provenance, stated because it changes how much weight this carries.** These figures were
+measured before this session and handed to it; this session did not reproduce them. What it did
+check is that they are mutually consistent -- 43.4 s over 971 positions is 44.7 ms, which rounds
+to the stated 45 ms, so the total and the mean are not two independent guesses. An instrument
+check was reported alongside them. Treat the numbers as an order of magnitude that has been
+observed once, not as a benchmark with a variance.
+
+Two caveats travel with them, and the second is larger than the first:
+
+- **Browser host.** Measured in one browser on one development machine. Stockfish's WASM build is
+  sensitive to the host's threading support; a browser without `SharedArrayBuffer`, or a page
+  served without the COOP/COEP headers that enable it, runs the single-threaded fallback and is
+  materially slower.
+- **Mobile.** Not measured on a phone at all. This is an extrapolation, labelled as one: a phone
+  is several times slower than a laptop at sustained WASM work and will throttle further as it
+  heats. A 43-second import on a laptop is plausibly minutes on a handset, and the app has no
+  measurement to say how many. Anything that promises the user a duration is promising something
+  nobody has measured.
+
+**The design consequence, which is the reason this is written down.** `analyzePositions` reported
+progress after every position -- 971 callbacks. Each one is truthful and each one is cheap; the
+cost is on the receiving side, because the natural caller is a React component and the natural
+thing to do with a progress value is set state. That is 971 renders on the main thread, and at
+45 ms per position that thread is not idle between them: it is running the search. The progress
+bar would compete with the measurement it is reporting on.
+
+So progress is throttled at the producer (`client/src/lib/progress-throttle.ts`,
+PROGRESS_INTERVAL_MS = 200) rather than left to each caller to remember, with two guarantees that
+make throttling safe to default on: the first report goes out immediately, so the bar starts
+moving on the first position rather than 200 ms into a 43-second wait; and the last value is
+always flushed, including on abort, so the bar ends on the count the run actually reached instead
+of freezing three short of the end.
 
 ### The sign convention, verified rather than assumed
 

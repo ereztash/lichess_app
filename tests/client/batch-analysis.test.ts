@@ -16,6 +16,7 @@ import {
 } from "../../client/src/lib/batch-analysis";
 import { analyzeEval } from "../../shared/eval-analysis";
 import type { EngineLine } from "../../client/src/lib/engine-line";
+import { PROGRESS_INTERVAL_MS } from "../../client/src/lib/progress-throttle";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const AFTER_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
@@ -58,10 +59,11 @@ describe("positions", () => {
 });
 
 describe("running the engine over a game", () => {
-  it("produces one score per position and reports progress", async () => {
+  it("produces one score per position, and every position when asked for every position", async () => {
     const seen: number[] = [];
     const scores = await analyzeGame("1. e4 e5 2. Nf3 Nc6 *", async () => line({ scoreCp: 20 }), {
       onProgress: (p) => seen.push(p.done),
+      progressIntervalMs: 0,
     });
     expect(scores).toHaveLength(5);
     expect(seen).toEqual([1, 2, 3, 4, 5]);
@@ -73,11 +75,92 @@ describe("running the engine over a game", () => {
     const scores = await analyzePositions(
       gamePositions("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 *"),
       analyze,
-      { signal: controller.signal, onProgress: (p) => { if (p.done === 2) controller.abort(); } },
+      {
+        signal: controller.signal,
+        // Every callback: this test aborts FROM the progress callback, so a throttle that held
+        // `done === 2` would swallow the abort and quietly measure the whole game instead.
+        progressIntervalMs: 0,
+        onProgress: (p) => { if (p.done === 2) controller.abort(); },
+      },
     );
     // Aborted work is short, not empty and not fabricated.
     expect(scores).toHaveLength(2);
     expect(analyze).toHaveBeenCalledTimes(2);
+  });
+
+  it("announces far fewer times than it measures, by default", async () => {
+    /*
+     * The reason the default exists. A 971-position import at 45ms a position is 43 seconds of
+     * engine time, and one React render per callback puts 971 renders on the same thread the
+     * search is running on. The interval is set high here so the assertion does not depend on how
+     * fast the machine running it happens to be.
+     */
+    const seen: number[] = [];
+    const fens = gamePositions("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 *");
+    await analyzePositions(fens, async () => line({ scoreCp: 5 }), {
+      onProgress: (p) => seen.push(p.done),
+      progressIntervalMs: 60_000,
+    });
+    expect(fens.length).toBeGreaterThan(5);
+    expect(seen.length).toBeLessThan(fens.length);
+  });
+
+  it("throttles by default, not only when a caller remembers to ask", async () => {
+    /*
+     * The control that matters. Every other throttle assertion here passes an explicit interval,
+     * so a default quietly reset to 0 would ship 971 renders with the whole suite still green.
+     * The clock is injected so this measures the default rather than the test machine.
+     */
+    const seen: number[] = [];
+    let t = 0;
+    const fens = gamePositions("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 *");
+    await analyzePositions(
+      fens,
+      async () => { t += 45; return line({ scoreCp: 5 }); }, // the measured 45ms per position
+      { onProgress: (p) => seen.push(p.done), now: () => t },
+    );
+    // 9 positions x 45ms is 405ms of engine time: at 200ms that is a handful of updates, not nine.
+    expect(seen.length).toBeLessThan(fens.length);
+    expect(seen.length).toBeLessThanOrEqual(Math.ceil((fens.length * 45) / PROGRESS_INTERVAL_MS) + 1);
+  });
+
+  it("still ends on the true final count", async () => {
+    // A bar that stops at 968 of 971 looks broken. The last value always arrives.
+    const seen: number[] = [];
+    const fens = gamePositions("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 *");
+    await analyzePositions(fens, async () => line({ scoreCp: 5 }), {
+      onProgress: (p) => seen.push(p.done),
+      progressIntervalMs: 60_000,
+    });
+    expect(seen.at(-1)).toBe(fens.length);
+  });
+
+  it("starts the bar on the first position rather than an interval later", async () => {
+    const seen: number[] = [];
+    await analyzePositions(
+      gamePositions("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 *"),
+      async () => line({ scoreCp: 5 }),
+      { onProgress: (p) => seen.push(p.done), progressIntervalMs: 60_000 },
+    );
+    expect(seen[0]).toBe(1);
+  });
+
+  it("reports where an aborted run actually stopped", async () => {
+    // Throttled AND aborted: the flush has to report 2, not the last value that got through.
+    const controller = new AbortController();
+    const seen: number[] = [];
+    let done = 0;
+    const scores = await analyzePositions(
+      gamePositions("1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 *"),
+      async () => {
+        done += 1;
+        if (done === 2) controller.abort();
+        return line({ scoreCp: 5 });
+      },
+      { signal: controller.signal, onProgress: (p) => seen.push(p.done), progressIntervalMs: 60_000 },
+    );
+    expect(scores).toHaveLength(2);
+    expect(seen.at(-1)).toBe(2);
   });
 
   it("uses a lower depth than a single position, and passes it through", async () => {

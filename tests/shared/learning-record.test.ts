@@ -131,7 +131,8 @@ describe("verified learning record", () => {
       { transfer_id: "too-early", started_at: "2026-01-01T12:00:00.000Z" },
     );
     expect(early.transfer).toBeNull();
-    expect(early.reason).toContain("delayed retrieval");
+    // The reason is user-facing and now Hebrew; the assertion follows the message it guards.
+    expect(early.reason).toContain("חזרה מרווחת");
 
     const outcome = await service.beginLearningTransfer(
       store,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BookOpenCheck, Loader2 } from "lucide-react";
 import { MECHANISM_CLASSES, type MechanismClass } from "@shared/learning-record";
 import { useCreateLearningRule } from "@/lib/record-api";
+import { readableFailureText } from "@/lib/commit-error";
 
 const MECHANISM_LABELS: Record<MechanismClass, string> = {
   threat_scan: "סריקת איומים",
@@ -66,7 +67,7 @@ export function LearningRuleComposer({
       });
       onSaved();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "הכלל לא נשמר.");
+      setError(readableFailureText(cause, "הכלל לא נשמר."));
     } finally {
       setSaving(false);
     }

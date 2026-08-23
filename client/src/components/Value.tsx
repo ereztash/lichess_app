@@ -138,6 +138,34 @@ export function Proportion({ value, n, label }: { value: number; n: number; labe
 }
 
 /**
+ * A 0-100 score that is already a percentage, with the count it was averaged over.
+ *
+ * Distinct from `Proportion`, which takes a 0..1 rate. This exists because GameReview rendered
+ * `<b>{analysis.accuracy}%</b>` with its n on the next line -- honest by adjacency, which is not
+ * a property anything can enforce. Moving the formatting in here makes the denominator
+ * structural: there is no way to render the number without passing the n.
+ *
+ * It also keeps the last hand-rolled percentage out of the render path, so GATE-DENOM can scan
+ * for the JSX shape without firing on honest code.
+ */
+export function Score({ value, n, label }: { value: number; n: number; label?: string }) {
+  if (n <= 0) {
+    return (
+      <span className="value-triple value-empty" data-provenance="sample">
+        {label && <span className="value-label">{label}</span>}
+        <span className="value-number">—</span>
+        <span className="value-provenance">אין נתונים</span>
+      </span>
+    );
+  }
+  return (
+    <Value label={label} provenance={{ kind: "sample", n }}>
+      {Math.round(value)}%
+    </Value>
+  );
+}
+
+/**
  * A signed difference between two proportions -- a calibration gap.
  *
  * Carries its sign because the direction is the finding: +18% is overconfidence and -18% is the

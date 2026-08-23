@@ -23,8 +23,17 @@ const SCORES = [37, 41, 35, 37, 46, 15, 96, 14, -39, -407, -406];
 describe("the review as rendered", () => {
   it("states the count behind every rate (R1)", () => {
     render(<GameReview evalScores={SCORES} playerColor="w" totalPlies={10} />);
-    // Five White moves were scored; the accuracy figure has to say so.
-    expect(screen.getByText(/5 מהלכים שלך/)).toBeTruthy();
+    /*
+     * Five White moves were scored, and the accuracy figure has to say so. It used to say it in
+     * a sibling <span> -- honest by adjacency, enforceable by nothing -- and now goes through
+     * `Score`, which renders the provenance as "n=5" and cannot be called without the count.
+     * Same R1 property, structurally instead of by convention.
+     */
+    const score = screen.getByText(/ציון דיוק/).closest(".value-triple");
+    expect(score, "the score is not rendered through Value").toBeTruthy();
+    expect(score!.textContent, "the score does not carry its n").toContain("n=5");
+    // Several figures on this screen carry n=5; that is R1 working, not a duplicate.
+    expect(screen.getAllByText("n=5").length).toBeGreaterThan(1);
   });
 
   it("names the classification in text, not only in colour", () => {

@@ -89,3 +89,26 @@ describe("theme tokens", () => {
     expect(dark.get("--chosen")).not.toBe(dark.get("--blue"));
   });
 });
+
+/**
+ * A reason that is a sentence must be allowed to be a sentence.
+ *
+ * `.bucket-short` carries two kinds of text: "12 decisions, 30 needed", and the no-clock reason,
+ * which has to name a fix that actually exists and so runs to a full sentence. It shipped as
+ * `white-space: nowrap`, which suits the first and breaks the second.
+ *
+ * Measured in Chromium at a 390px viewport with the record dashboard's own no-clock copy: the
+ * text laid out 628px wide inside a 340px column and pushed the document to 679px, so the page
+ * scrolled sideways. Not an edge case -- a local game against Stockfish carries no clock at all,
+ * and a Lichess export carries none unless the exporter ticked the box.
+ */
+describe("a reason long enough to be useful still fits", () => {
+  it("lets .bucket-short wrap", () => {
+    const css = readFileSync(resolve(__dirname, "../../client/src/index.css"), "utf8");
+    const at = css.indexOf(".bucket-short {");
+    expect(at, "no .bucket-short rule in index.css").toBeGreaterThan(-1);
+    const block = css.slice(at, css.indexOf("}", at));
+    expect(block, ".bucket-short is nowrap again").not.toMatch(/white-space\s*:\s*nowrap/);
+    expect(block, ".bucket-short has no wrapping rule").toMatch(/overflow-wrap\s*:\s*anywhere/);
+  });
+});

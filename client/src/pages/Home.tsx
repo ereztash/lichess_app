@@ -22,6 +22,7 @@ import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { RevealPanel } from "@/components/RevealPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
+import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { LoopStrip } from "@/components/LoopStrip";
 import { LearningQueue } from "@/components/LearningQueue";
@@ -83,6 +84,11 @@ import {
   type SessionStage,
 } from "@/lib/decision-session";
 import type { RevealInputs } from "@/lib/reveal";
+import {
+  commitFailureText,
+  readableFailureText,
+  type CommitFailureText,
+} from "@/lib/commit-error";
 // TYPE-ONLY import: type imports are erased, so this creates no runtime edge to the engine
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
 // Values (isStale, EngineLine) come from @/lib/engine-line, which has no asset imports.
@@ -167,11 +173,17 @@ export default function Home() {
   const [stage, setStage] = useState<SessionStage>("deciding");
   const [candidateMove, setCandidateMove] = useState<string | null>(null);
   const [candidatesConsidered, setCandidatesConsidered] = useState<string[]>([]);
-  const [commitError, setCommitError] = useState<string>();
+  const [commitError, setCommitError] = useState<CommitFailureText>();
   const [revealInputs, setRevealInputs] = useState<RevealInputs | null>(null);
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
   const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
+  /*
+   * Which of the two reveal failures happened, or null. Both used to leave the session in
+   * `stage === "revealed"` with no control that advances -- a soft lock whose only escape
+   * was abandoning the game.
+   */
+  const [revealFailure, setRevealFailure] = useState<RevealFailureKind | null>(null);
   const [learningRuleSaved, setLearningRuleSaved] = useState(false);
   const gameId = useRef(`live-${Date.now()}`);
 
@@ -454,9 +466,10 @@ export default function Home() {
         // R2: a decision that was not stored must never look like one that was. We do not
         // advance to reveal, and we say what happened.
         setStage("deciding");
-        setCommitError(
-          error instanceof Error ? error.message : "ההחלטה לא נרשמה. לא נמשיך לחשיפה.",
-        );
+        // Never the raw message: on the default unauthenticated path this is LocalRecordStore's
+        // English invariant text, and it lands on the screen that has to say the decision was not
+        // recorded. The original is kept and demoted, not dropped.
+        setCommitError(commitFailureText(error));
         return;
       }
       // Only now may the engine run at all.
@@ -465,6 +478,7 @@ export default function Home() {
       setRevealFen(positionFen);
       setCandidateMove(null);
       setCandidatesConsidered([]);
+      setRevealFailure(null);
       if (isDrillDecision) setDrillDecisionIds((prev) => [...prev, decisionId]);
       setStage("revealed");
       setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
@@ -495,9 +509,15 @@ export default function Home() {
           chosenWasBest: bestMove === draft.chosenMove,
           confidence: draft.confidence!,
           statedUnknown: draft.unknown,
-          cloudAvailable: false,
-          repertoireGames: null,
           decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
+          /*
+           * From the draft, not from React state. `setCandidatesConsidered([])` runs above, at
+           * the start of the reveal, and the state variable is cleared for the NEXT decision --
+           * so anything reading it here gets an empty array and the choice-rule sentence can
+           * never fire. The draft is the value CommitmentScreen committed with, captured in this
+           * closure, and it is the one that describes the decision being revealed.
+           */
+          candidatesConsidered: draft.candidatesConsidered,
         };
         setRevealInputs(inputs);
 
@@ -525,6 +545,8 @@ export default function Home() {
           }
         } catch {
           // The decision itself is on the record; only the engine's verdict failed to store.
+          // The reveal above is valid and stays: `revealInputs` was set before this write.
+          setRevealFailure("write");
           setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
           if (isLearningTransferDecision) {
             setLearningTransferError("תוצאת המנוע לא נשמרה ולכן אי אפשר למדוד את העמדה הזו.");
@@ -532,6 +554,9 @@ export default function Home() {
         }
         void decisionCount.refetch();
       } catch {
+        // No evaluation exists, so there is no reveal to render. Without this the screen
+        // sat on "המנוע מחשב…" forever, with no control that advances.
+        setRevealFailure("engine");
         setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
       }
     },
@@ -577,7 +602,7 @@ export default function Home() {
         setDrillVerdict(null);
         setDrillStage("briefing");
       } catch (error) {
-        setDrillError(error instanceof Error ? error.message : "הדריל לא התחיל.");
+        setDrillError(readableFailureText(error, "הדריל לא התחיל."));
       }
     },
     [history, startDrillMutation],
@@ -614,7 +639,7 @@ export default function Home() {
       });
       setDrillStage("done");
     } catch (error) {
-      setDrillError(error instanceof Error ? error.message : "לא ניתן היה לסגור את הדריל.");
+      setDrillError(readableFailureText(error, "לא ניתן היה לסגור את הדריל."));
       setDrillStage("done");
     }
   }, [completeDrillMutation, drill, drillDecisionIds, drillIndex]);
@@ -661,7 +686,7 @@ export default function Home() {
         setLearningTransferVerdict(null);
       } catch (cause) {
         setLearningTransferError(
-          cause instanceof Error ? cause.message : "בדיקת ההעברה לא התחילה.",
+          readableFailureText(cause, "בדיקת ההעברה לא התחילה."),
         );
       }
     },
@@ -716,7 +741,7 @@ export default function Home() {
       setLearningTransferStage("done");
     } catch (cause) {
       setLearningTransferError(
-        cause instanceof Error ? cause.message : "לא ניתן היה למדוד את הבדיקה.",
+        readableFailureText(cause, "לא ניתן היה למדוד את הבדיקה."),
       );
       // Preserve the completed observations so reporting can be retried. A `done` state without
       // a verdict has no valid next action and would strand the workflow.
@@ -765,6 +790,7 @@ export default function Home() {
     setCandidatesConsidered([]);
     setCommitError(undefined);
     setRevealedDecisionId(undefined);
+    setRevealFailure(null);
     setLearningRuleSaved(false);
     setNotice(message);
   };
@@ -844,7 +870,7 @@ export default function Home() {
       setReviewScores(scores);
     } catch (error) {
       // A review that failed must not render as a review that found nothing.
-      setReviewError(error instanceof Error ? error.message : "הניתוח נכשל.");
+      setReviewError(readableFailureText(error, "הניתוח נכשל."));
     } finally {
       setReviewProgress(null);
     }
@@ -1092,7 +1118,11 @@ export default function Home() {
 
           {showImport && (
             <Overlay label="ייבוא לפי שם משתמש" onClose={() => setShowImport(false)}>
-              <ImportGames onLoad={loadLichessGame} onClose={() => setShowImport(false)} />
+              <ImportGames
+                onLoad={loadLichessGame}
+                onClose={() => setShowImport(false)}
+                analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+              />
             </Overlay>
           )}
 
@@ -1249,9 +1279,15 @@ export default function Home() {
                   fen={revealFen}
                   statedKnown={committedDraft.known}
                 />
-              ) : (
+              ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
-              )}
+              ) : null}
+              {/*
+                * Rendered under the reveal on a write failure -- that reveal is valid -- and
+                * on its own when the engine never answered. Either way it carries the only
+                * control that advances: the header's is gated on a reveal that was stored.
+                */}
+              {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
               <AnalysisPanel
                 analysis={analysis}
                 status={engineStatus}

@@ -99,7 +99,12 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                     name === "claimed" ? "הצהרת" : "קרה בפועל",
                   ]}
                 />
-                <Bar dataKey="claimed" fill="var(--c-axis)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+                <Bar
+                  dataKey="claimed"
+                  fill="var(--c-axis)"
+                  radius={[4, 4, 0, 0]}
+                  isAnimationActive={false}
+                />
                 <Bar dataKey="observed" radius={[4, 4, 0, 0]} isAnimationActive={false}>
                   {curve.map((c) => (
                     // Below the line you claimed is overconfidence; above it is the other way.
@@ -127,13 +132,23 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                   <i
                     style={{
                       transform: `scaleX(${Math.min(1, Math.abs(b.inside.gap) * 2)})`,
-                      background:
-                        b.inside.gap > 0 ? "var(--c-black-edge)" : "var(--c-white-edge)",
+                      background: b.inside.gap > 0 ? "var(--c-black-edge)" : "var(--c-white-edge)",
                     }}
                   />
                 </span>
                 <SignedProportion value={b.inside.gap} n={b.inside.n} />
               </>
+            ) : b.unmeasurableReason === "no-clock-data" ? (
+              /*
+               * Not a wait. This record carries no clock at all, so the bucket can never fill,
+               * and "record more decisions" is advice that cannot work. A local game against
+               * Stockfish has no clock, and a Lichess export carries none unless the user
+               * ticked the option -- so the message names the fix that actually exists.
+               */
+              <span className="bucket-short">
+                לא ניתן למדוד במצב הזה — אין נתוני שעון ברשומה. משחק מקומי מול Stockfish הוא בלי
+                שעון, וייצוא מליצ׳ס נושא שעונים רק אם ביקשתם אותם בייצוא.
+              </span>
             ) : (
               <span className="bucket-short">
                 לא ניתן למדוד — {b.inside.n} החלטות בפנים, נדרשות {MIN_BUCKET_N}
@@ -144,8 +159,8 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
       </ul>
 
       <p className="review-caveat">
-        פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא —
-        הוא לא אומר דבר על הדירוג שלך ולא על שיפור.
+        פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
+        לא אומר דבר על הדירוג שלך ולא על שיפור.
       </p>
     </section>
   );

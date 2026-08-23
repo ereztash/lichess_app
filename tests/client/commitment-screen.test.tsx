@@ -103,8 +103,34 @@ describe("PENDING ACTION LOCK (section 4.3)", () => {
 
 describe("a failed write is visible", () => {
   it("shows the error rather than appearing to have succeeded", () => {
-    renderScreen({ error: "אין חיבור למאגר ההחלטות" });
+    renderScreen({ error: { message: "אין חיבור למאגר ההחלטות" } });
     expect(screen.getByRole("alert").textContent).toContain("אין חיבור למאגר ההחלטות");
+  });
+
+  it("keeps a technical detail, behind a disclosure that ships closed", () => {
+    /*
+     * LocalRecordStore's invariant messages are English -- "append-only: already revealed" --
+     * and this screen is the one that has to say a decision was NOT recorded. Leading with that
+     * text puts English at the top of a Hebrew screen; deleting it leaves a failure nobody can
+     * report. Same resolution as ErrorBoundary's stack trace.
+     */
+    const { container } = renderScreen({
+      error: { message: "ההחלטה לא נרשמה", detail: "append-only: already revealed" },
+    });
+    const alert = screen.getByRole("alert");
+    expect(alert.textContent).toContain("append-only: already revealed");
+    const details = container.querySelector("details");
+    expect(details, "the detail is not inside a <details>").toBeTruthy();
+    expect(details!.hasAttribute("open"), "the disclosure ships open").toBe(false);
+    // Hebrew first: the summary and the message precede the raw text in the alert.
+    expect(alert.textContent!.indexOf("ההחלטה לא נרשמה")).toBeLessThan(
+      alert.textContent!.indexOf("append-only"),
+    );
+  });
+
+  it("renders no disclosure when the record layer wrote for the player", () => {
+    const { container } = renderScreen({ error: { message: "אין חיבור למאגר ההחלטות" } });
+    expect(container.querySelector("details")).toBeNull();
   });
 });
 
