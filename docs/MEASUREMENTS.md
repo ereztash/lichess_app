@@ -165,11 +165,10 @@ A position bank drawn from games the player has never seen would remove this. Th
 
 - **Every threshold, against real data.** Synthetic only. Re-run the shuffled-label control on a
   real record before trusting any claim the detector makes.
-- **The engine's runtime behaviour in the deployed environment.** The fix is confirmed present
-  in the deployed bundle and the `.wasm` is served correctly (`application/wasm`, 7,295,411
-  bytes, HTTP 200), and the engine was driven successfully against a byte-identical local build
-  — but the sandbox used for development cannot drive a browser against the deployed origin, so
-  the deployed engine has not been observed producing an evaluation.
+- **This branch's own screens at a deployed origin.** The engine itself is no longer in question
+  — see "What stopped being unverified" below — but that run predates everything here. The import
+  scan, its progress bar and stop button, and the diagnostic table have never been rendered
+  anywhere but a test environment and a headless Chromium measuring CSS boxes.
 - **The record layer against a real database.** All record tests run against an in-memory store.
   `DATABASE_URL` has never been set in any environment this build has run in, so
   `DrizzleRecordStore` has never executed a statement against MySQL.
@@ -191,6 +190,16 @@ A position bank drawn from games the player has never seen would remove this. Th
   its cost scales with a device speed nobody here has measured.
 
 ### What stopped being unverified
+
+- **The engine runs at a deployed origin.** The oldest open finding in this project, and it was
+  closed on main while this branch was in flight rather than by anything here. The in-app
+  self-check answered on its first real run — Chrome 151 on Windows, ten checks, ten passes:
+  WebAssembly instantiates, a Worker is constructible, both engine files arrive intact over HTTPS
+  from the deployment, and Stockfish greets, reports ready and returns `bestmove e2e4` at depth 8.
+  Scope, as that commit states it: the origin was a PINNED PREVIEW serving a bundle from before
+  the read options landed. Every file those ten checks exercise was byte-identical at that commit,
+  so the finding holds — but the argument is about those files, and it does not extend to the
+  screens this branch adds.
 
 - **Fonts are served from the deployment.** The build ships nine `@font-face` files under
   `dist/public/fonts/`, and all nine `src` URLs resolve to files that exist. Counted in the built
