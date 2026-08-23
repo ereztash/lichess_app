@@ -185,6 +185,12 @@ A position bank drawn from games the player has never seen would remove this. Th
   bucketing, the screen. No real username has been searched, no real PGN scored, and the
   end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
   the logic; what nobody has watched is the run.
+- **What a second engine line costs.** The reveal now asks for two lines from one search
+  (MultiPV 2) so it can say what the engine's choice is actually worth. The two lines share a
+  search tree, so the cost is somewhere between 1x and 2x a single-line search and probably
+  nearer the bottom; nothing here has measured it. The design does not depend on the number --
+  it is asked for on the reveal, where one position is searched, and refused in the import path,
+  where 971 are, and that holds under the 2x upper bound.
 - **Anything on a phone.** No measurement in this document was taken on a handset. The import is
   the case where that matters most, because it is the only screen that asks the user to wait, and
   its cost scales with a device speed nobody here has measured.
@@ -244,6 +250,32 @@ accuracy 45%, avg CPL 96, 1 blunder, 1 inaccuracy, `hasEvals: true`.
 The game is the Blackburne Shilling trap, and the analysis names the right move: 5.Nxf7 is the
 losing one, and 4.Nxe5 is the inaccuracy that walks into it. That is a chess-correct result, not
 merely a plausible-looking number.
+
+### What a principal variation does and does not support
+
+`D14` on the analysis panel is the depth of the ROOT. The move at PV index `i` was chosen by a
+subtree search of `14 - i` plies, so an eight-move line ends on seven. The panel rendered all
+eight in one typeface, which states the opposite.
+
+The cut applied is `remainingDepth <= 0` -- the point where the line has outrun the search that
+produced it, which happens routinely because search extensions and the transposition table both
+return PV moves the depth counter never paid for. No quality threshold is applied below that,
+because none has been measured here: the fall-off is shown per move instead of being flattened at
+a cutoff nobody can justify.
+
+**What a PV cannot say, stated because a plausible design depended on it.** An earlier plan for
+this work proposed finding "the node where the evaluation moves off the root value". That cannot
+be derived from one search. The principal variation is by construction the line along which the
+evaluation IS the root score -- that is what makes it principal. Locating a change would require
+a fresh search at every node of the line, at the per-position cost measured above.
+
+So the reason a move is preferred is not in its own line at all. It is in the comparison against
+the move that was not played, which is why the reveal now asks for two.
+
+**The third state that was missing.** With two lines, a difference at or under `ENGINE_NOISE_CP`
+(30) is reported as a preference rather than a reason: the engine broke a tie between two moves
+it does not really distinguish. The panel already said differences under 30 cp say nothing here;
+it had never applied that to the move it was itself recommending.
 
 ### What a full import costs, and who pays it
 

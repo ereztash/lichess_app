@@ -51,10 +51,17 @@ export function uciToSquares(move?: string) {
   return { from: move.slice(0, 2), to: move.slice(2, 4) };
 }
 
-export function sanPrincipalVariation(fen: string, moves: string[]) {
+/**
+ * A UCI line replayed into SAN, stopping at the first move that is illegal here.
+ *
+ * `limit` used to be a hard-coded 8 inside the loop, which meant a longer line was silently cut
+ * and the screen could not tell a line that ENDED from a line that was trimmed to fit. Callers
+ * now state their own cap, and the one that cares reports what it dropped.
+ */
+export function sanPrincipalVariation(fen: string, moves: string[], limit = 8) {
   const replay = new Chess(fen);
   const sanMoves: string[] = [];
-  for (const uci of moves.slice(0, 8)) {
+  for (const uci of moves.slice(0, limit)) {
     if (uci.length < 4) continue;
     try {
       const move = replay.move({
