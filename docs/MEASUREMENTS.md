@@ -185,6 +185,13 @@ A position bank drawn from games the player has never seen would remove this. Th
   bucketing, the screen. No real username has been searched, no real PGN scored, and the
   end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
   the logic; what nobody has watched is the run.
+- **What the accuracy rate over an import actually counts.** Every one of the player's moves,
+  including forced recaptures and book. In a 40-move game that is roughly a third of the
+  denominator arriving pre-scored as accurate, so the imported `accurateRate` is inflated and
+  `phase-opening` -- which is `ply <= 20`, mostly book -- is close to measuring recall rather
+  than decisions. Separating a real choice from a forced one needs either an opening book or a
+  second engine line per position, and the cost of the second is the entry below. **This is a
+  known defect in a number currently on screen, not a missing feature.**
 - **What a second engine line costs.** The reveal now asks for two lines from one search
   (MultiPV 2) so it can say what the engine's choice is actually worth. The two lines share a
   search tree, so the cost is somewhere between 1x and 2x a single-line search and probably
@@ -250,6 +257,33 @@ accuracy 45%, avg CPL 96, 1 blunder, 1 inaccuracy, `hasEvals: true`.
 The game is the Blackburne Shilling trap, and the analysis names the right move: 5.Nxf7 is the
 losing one, and 4.Nxe5 is the inaccuracy that walks into it. That is a chess-correct result, not
 merely a plausible-looking number.
+
+### The import reads two things the live record cannot
+
+**Where the player stood.** `evalScores[ply - 1]` is the engine's verdict on the position the
+player FACED, and it is already in the array the import is handed -- no extra search. The live
+record has no equivalent and cannot: R3 forbids the engine speaking before a decision is
+recorded, so at the moment a live decision is made there is no such number. The boundary is one
+pawn in either direction, which is the unit the game is denominated in rather than a threshold
+invented here; inside it the position is not clearly anyone's.
+
+These are import-only buckets in `IMPORT_BUCKETINGS`, deliberately separate from the six shared
+`BUCKETINGS` and deliberately unable to produce a claim. They ask a different question: the six
+ask *when* the player decides badly, these ask *what the board looked like* when they did.
+"Accurate when level, inaccurate when winning" is a finding about a decision policy that nothing
+in the six could surface.
+
+**Which time class a decision came from.** "Under 45 seconds" is not one thing across time
+classes: in a 3+0 game it is most of the game, in a 30+0 game it is a move played without
+thinking. An import mixing blitz and rapid put both in one bucket and reported the average of two
+different questions. The clock-derived buckets now read only the dominant class, and the screen
+names the class and the count it left out -- narrowing silently would drop the n and read as
+"not enough games yet". Phase and standing buckets still read every game, because neither means
+anything different in blitz.
+
+The dominant class rather than a split per class, for the reason the whole document keeps
+returning to: `MIN_BUCKET_N` is 30 inside AND 30 outside, and every extra dimension empties the
+cells.
 
 ### What a principal variation does and does not support
 

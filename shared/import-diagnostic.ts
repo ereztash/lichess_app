@@ -18,19 +18,56 @@
  *   - Every reading carries its n (GATE-DENOM), and a bucket that cannot be read says which kind
  *     of cannot it is.
  *
- * The buckets come from BUCKETINGS, not from a list of this module's own. A second list would
- * drift, and then two screens in one product would disagree about what "under 45 seconds" means.
+ * The six shared BUCKETINGS come from detector.ts, not from a list of this module's own. A second
+ * definition of "under 45 seconds" would drift, and then two screens in one product would
+ * disagree about the same words.
+ *
+ * There IS a second list here, IMPORT_BUCKETINGS, and it is not a redefinition of anything. It
+ * splits on a field the live record structurally cannot have: the engine's evaluation of the
+ * position BEFORE the decision. R3 forbids the engine speaking before a decision is recorded, so
+ * a live decision has no such number at the moment it is made. An imported game is already over,
+ * and the whole eval curve is sitting in the array this module is handed.
+ *
+ * Those buckets are import-only and DELIBERATELY cannot produce a claim -- claims come from the
+ * detector running over the record, and nothing here reaches it.
  */
 import { ACCURATE_CP_LOSS, BUCKETINGS, MIN_BUCKET_N, type BucketableDecision } from "./detector.js";
 import { classifyPhase } from "./phase.js";
 import { clockMsRemainingAt, hasClockData, secondsSpentAt, parseTimeControl } from "./pgn-clock.js";
 
 /** One of the player's past moves, reduced to what a bucket may look at, plus whether it held. */
+/**
+ * Where the player stood when they decided, from THEIR side of the board.
+ *
+ * A pawn is the boundary in both directions. It is the unit the game itself is denominated in,
+ * not a threshold invented here: under a pawn the position is not clearly anyone's, and calling
+ * it "winning" would be naming evaluation noise a state.
+ */
+export type Standing = "winning" | "level" | "losing";
+
+/** One pawn, in centipawns. The line between an edge and a position that is merely uneven. */
+export const CLEAR_EDGE_CP = 100;
+
+export function standingFrom(evalBeforeCp: number): Standing {
+  if (evalBeforeCp >= CLEAR_EDGE_CP) return "winning";
+  if (evalBeforeCp <= -CLEAR_EDGE_CP) return "losing";
+  return "level";
+}
+
 export interface ImportedDecision extends BucketableDecision {
   ply: number;
   /** Centipawns lost against the engine's line, from the mover's side. Never negative. */
   cpLoss: number;
   accurate: boolean;
+  /**
+   * The engine's verdict on the position the player FACED, from the player's side.
+   *
+   * Free: it is `evalScores[ply - 1]`, already in the array this module is handed. Nothing extra
+   * is searched for it. The live record has no equivalent, and cannot -- see the module note.
+   */
+  standing: Standing;
+  /** Lichess's time class for the game this came from: bullet, blitz, rapid, classical. */
+  speed: string | null;
 }
 
 export interface ImportedBucketReading {
@@ -59,6 +96,21 @@ export interface ImportDiagnostic {
   scored: number;
   /** True when no imported PGN carried a single clock annotation. */
   missingClockData: boolean;
+  /**
+   * The time class the clock-derived buckets were restricted to, or null when the import carried
+   * no speed at all.
+   *
+   * WHY THE RESTRICTION EXISTS. "Under 45 seconds" is not one thing across time classes: in a
+   * 3+0 game it is most of the game, in a 30+0 game it is a move played without thinking. An
+   * import mixing blitz and rapid puts both in the same bucket and reports the average of two
+   * different questions. The dominant class is used rather than blanket silence because the
+   * point of the bucket is to have an n, and splitting six ways empties every cell.
+   */
+  timeBucketSpeed: string | null;
+  /** Decisions left out of the clock-derived buckets for coming from another time class. */
+  excludedForSpeed: number;
+  /** Every time class in the import, with its decision count. Largest first. */
+  speedMix: Array<{ speed: string; n: number }>;
 }
 
 export interface ImportedGameInput {
@@ -71,6 +123,8 @@ export interface ImportedGameInput {
   /** The `[TimeControl]` header verbatim, or undefined. */
   timeControl?: string;
   playerColor: "w" | "b";
+  /** Lichess's time class: bullet, blitz, rapid, classical. Undefined for a PGN with no source. */
+  speed?: string;
 }
 
 /**
@@ -110,6 +164,14 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
      */
     const seconds = clocks ? secondsSpentAt(game.clockTimes, ply, increment) : null;
 
+    /*
+     * The evaluation of the position the player faced, flipped to their side. evalScores is
+     * White-relative throughout, so Black's +200 is a two-pawn deficit and must not be read as
+     * an edge -- the same sign convention, and the same trap, as cpLossAt above.
+     */
+    const evalBefore = game.evalScores[ply - 1];
+    const facing = isWhiteMove ? evalBefore : -evalBefore;
+
     out.push({
       ply,
       phase: classifyPhase(fen, ply),
@@ -117,9 +179,49 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
       clockMsRemaining: clocks ? clockMsRemainingAt(game.clockTimes, ply) : null,
       cpLoss,
       accurate: cpLoss <= ACCURATE_CP_LOSS,
+      standing: standingFrom(facing),
+      speed: game.speed ?? null,
     });
   }
   return out;
+}
+
+/**
+ * Buckets that split on the POSITION rather than on how the player decided.
+ *
+ * Import-only, for the reason given at the top of this file: they read the engine's verdict on
+ * the position before the move, which a live decision cannot have without breaking R3.
+ *
+ * They are here because they ask a different question from the six. The shared buckets ask when
+ * the player decides badly -- fast, late, short of clock. These ask what the board looked like
+ * when they did. "Accurate when level, inaccurate when winning" is a finding about a decision
+ * policy, and nothing in the six could ever surface it.
+ *
+ * Three, not more. The n has to go somewhere, and every split empties the cells.
+ */
+export const IMPORT_BUCKETINGS: Array<{
+  key: string;
+  scope: string;
+  standing: Standing;
+}> = [
+  { key: "standing-winning", scope: "החלטות מתוך עמדה מנצחת", standing: "winning" },
+  { key: "standing-level", scope: "החלטות מתוך עמדה שקולה", standing: "level" },
+  { key: "standing-losing", scope: "החלטות מתוך עמדה מפסידה", standing: "losing" },
+];
+
+/** The time class most of the player's decisions came from, or null when none is recorded. */
+function dominantSpeed(decisions: ImportedDecision[]): {
+  speed: string | null;
+  mix: Array<{ speed: string; n: number }>;
+} {
+  const counts = new Map<string, number>();
+  for (const d of decisions) {
+    if (d.speed) counts.set(d.speed, (counts.get(d.speed) ?? 0) + 1);
+  }
+  const mix = [...counts.entries()]
+    .map(([speed, n]) => ({ speed, n }))
+    .sort((a, b) => b.n - a.n);
+  return { speed: mix[0]?.speed ?? null, mix };
 }
 
 /**
@@ -130,6 +232,15 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
 export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnostic {
   const anyClock = games.some((g) => hasClockData(g.clockTimes));
   const decisions = games.flatMap(decisionsFromGame);
+  const { speed: timeBucketSpeed, mix: speedMix } = dominantSpeed(decisions);
+
+  /*
+   * The clock-derived buckets read only the dominant time class. Everything else -- the phase
+   * buckets, the standing buckets -- reads every game, because neither phase nor the engine's
+   * verdict on a position means anything different in blitz than in rapid.
+   */
+  const sameSpeed = (d: ImportedDecision) => timeBucketSpeed === null || d.speed === timeBucketSpeed;
+  const excludedForSpeed = decisions.filter((d) => !sameSpeed(d)).length;
 
   const buckets: ImportedBucketReading[] = BUCKETINGS.map((bucketing) => {
     /*
@@ -139,7 +250,8 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
      */
     const timeDerived = bucketing.requiresClock === true || usesTime(bucketing.key);
     const unfillable = timeDerived && !anyClock;
-    const inside = unfillable ? [] : decisions.filter(bucketing.predicate);
+    const pool = timeDerived ? decisions.filter(sameSpeed) : decisions;
+    const inside = unfillable ? [] : pool.filter(bucketing.predicate);
     const measurable = !unfillable && inside.length >= MIN_BUCKET_N;
 
     return {
@@ -152,7 +264,28 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
     };
   });
 
-  return { buckets, scored: decisions.length, missingClockData: !anyClock };
+  /* The position buckets. Appended after the six so the shared table keeps its order. */
+  for (const bucketing of IMPORT_BUCKETINGS) {
+    const inside = decisions.filter((d) => d.standing === bucketing.standing);
+    const measurable = inside.length >= MIN_BUCKET_N;
+    buckets.push({
+      key: bucketing.key,
+      scope: bucketing.scope,
+      n: inside.length,
+      accurateRate: measurable ? inside.filter((d) => d.accurate).length / inside.length : null,
+      measurable,
+      unmeasurableReason: measurable ? null : "too-few",
+    });
+  }
+
+  return {
+    buckets,
+    scored: decisions.length,
+    missingClockData: !anyClock,
+    timeBucketSpeed,
+    excludedForSpeed,
+    speedMix,
+  };
 }
 
 /**

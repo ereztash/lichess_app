@@ -28,6 +28,14 @@ export interface AnalysableGame {
   white: string;
   black: string;
   pgn: string;
+  /**
+   * Lichess's time class: bullet, blitz, rapid, classical.
+   *
+   * Already fetched for the game list and previously dropped here. It is what stops the
+   * clock-derived buckets averaging a 45-second move in a 3+0 game together with one in 30+0 --
+   * the same number meaning opposite things.
+   */
+  speed?: string;
 }
 
 export interface ImportRunProgress {
@@ -74,6 +82,7 @@ interface Prepared {
   clockTimes: number[];
   timeControl?: string;
   playerColor: "w" | "b";
+  speed?: string;
 }
 
 function prepare(game: AnalysableGame, username: string): Prepared | null {
@@ -92,6 +101,7 @@ function prepare(game: AnalysableGame, username: string): Prepared | null {
     clockTimes: clockSecondsFromPgn(game.pgn),
     timeControl: timeControlHeader(game.pgn),
     playerColor: colour,
+    speed: game.speed,
   };
 }
 
@@ -130,6 +140,7 @@ export async function runImportDiagnostic(
       clockTimes: p.clockTimes,
       timeControl: p.timeControl,
       playerColor: p.playerColor,
+      speed: p.speed,
     });
     gamesDone += 1;
     options.onProgress?.({ done, total, gamesDone, games: readable.length });

@@ -38,6 +38,9 @@ function reading(
     buckets,
     scored: buckets.reduce((sum, b) => sum + b.n, 0),
     missingClockData: false,
+    timeBucketSpeed: null,
+    excludedForSpeed: 0,
+    speedMix: [],
     ...over,
   };
 }
@@ -83,7 +86,8 @@ describe("every bucket is shown, including the ones it could not read", () => {
       { measurable: false, accurateRate: null, n: 0, unmeasurableReason: "no-clock-data" },
     ]);
     const { container } = render(<ImportDiagnosticPanel diagnostic={half} />);
-    expect(container.querySelectorAll(".bucket-list li")).toHaveLength(6);
+    // One row per reading it was handed -- the panel omits nothing it was given.
+    expect(container.querySelectorAll(".bucket-list li")).toHaveLength(half.buckets.length);
   });
 
   it("distinguishes a wait from a source that can never supply the field", () => {
@@ -131,7 +135,18 @@ describe("the observation, and when there is none", () => {
   });
 
   it("says nothing was read at all when nothing was", () => {
-    render(<ImportDiagnosticPanel diagnostic={{ buckets: [], scored: 0, missingClockData: true }} />);
+    render(
+      <ImportDiagnosticPanel
+        diagnostic={{
+          buckets: [],
+          scored: 0,
+          missingClockData: true,
+          timeBucketSpeed: null,
+          excludedForSpeed: 0,
+          speedMix: [],
+        }}
+      />,
+    );
     expect(screen.getByText(/לא נקראה אף החלטה/)).toBeTruthy();
   });
 
@@ -142,6 +157,32 @@ describe("the observation, and when there is none", () => {
     ]);
     render(<ImportDiagnosticPanel diagnostic={lone} />);
     expect(screen.getByText(/אין לו למה להשוות/)).toBeTruthy();
+  });
+});
+
+describe("the clock buckets were narrowed, and it says so", () => {
+  it("names the class it read and the count it left out", () => {
+    /*
+     * Narrowing without saying so is the quiet failure: the n drops and the reader takes it for
+     * "not enough games yet" rather than "this bucket only counted your blitz".
+     */
+    render(
+      <ImportDiagnosticPanel
+        diagnostic={reading([{}], { timeBucketSpeed: "blitz", excludedForSpeed: 34 })}
+      />,
+    );
+    const note = screen.getByText(/\u05d3\u05dc\u05d9\u05d9 \u05d4\u05d6\u05de\u05df \u05e0\u05e7\u05e8\u05d0\u05d5 \u05e8\u05e7 \u05e2\u05dc \u05de\u05e9\u05d7\u05e7\u05d9/);
+    expect(note.textContent).toContain("blitz");
+    expect(note.textContent).toContain("34");
+  });
+
+  it("says nothing when nothing was left out", () => {
+    const { container } = render(
+      <ImportDiagnosticPanel
+        diagnostic={reading([{}], { timeBucketSpeed: "blitz", excludedForSpeed: 0 })}
+      />,
+    );
+    expect(container.textContent).not.toMatch(/\u05d3\u05dc\u05d9\u05d9 \u05d4\u05d6\u05de\u05df \u05e0\u05e7\u05e8\u05d0\u05d5 \u05e8\u05e7/);
   });
 });
 

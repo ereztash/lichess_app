@@ -19,7 +19,7 @@ import {
   type ImportedBucketReading,
   type ImportedGameInput,
 } from "../../shared/import-diagnostic";
-import { ACCURATE_CP_LOSS, MIN_BUCKET_N } from "../../shared/detector";
+import { ACCURATE_CP_LOSS, BUCKETINGS, MIN_BUCKET_N } from "../../shared/detector";
 
 const FULL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -174,9 +174,20 @@ describe("silence has a reason, and every reading has its n", () => {
     expect(opening.unmeasurableReason).toBe("too-few");
   });
 
-  it("reports all six buckets whether or not they can be read", () => {
+  it("reports every shared bucket whether or not it can be read", () => {
+    // By key, not by count: the count now also carries the import-only standing buckets, and a
+    // bare number would pass while a shared bucket had quietly gone missing.
     const d = diagnoseImportedGames([game({ plies: 20, withClocks: true })]);
-    expect(d.buckets).toHaveLength(6);
+    for (const bucketing of BUCKETINGS) {
+      expect(d.buckets.some((b) => b.key === bucketing.key), `${bucketing.key} missing`).toBe(true);
+    }
+  });
+
+  it("adds the position buckets the live record cannot have", () => {
+    const d = diagnoseImportedGames([game({ plies: 20, withClocks: true })]);
+    for (const key of ["standing-winning", "standing-level", "standing-losing"]) {
+      expect(d.buckets.some((b) => b.key === key), `${key} missing`).toBe(true);
+    }
   });
 
   it("names no worst bucket when none is measurable", () => {
@@ -211,6 +222,9 @@ describe("the lowest number is not automatically a finding", () => {
     })),
     scored: rates.reduce((sum, [, n]) => sum + n, 0),
     missingClockData: false,
+    timeBucketSpeed: null,
+    excludedForSpeed: 0,
+    speedMix: [],
   });
 
   it("refuses to name a weakest bucket when the rates are all within noise", () => {
@@ -292,5 +306,107 @@ describe("pulling the clocks out of a real PGN", () => {
     const times = clockSecondsFromPgn('[TimeControl "300+3"]\n\n1. e4 e5 2. Nf3 *');
     expect(times).toEqual([]);
     expect(hasClockData(times)).toBe(false);
+  });
+});
+
+describe("what the position looked like when the player decided", () => {
+  /** A game where White is a rook up throughout, so every White decision is from a win. */
+  function lopsided(cp: number, plies = 200): ImportedGameInput {
+    return {
+      fens: Array.from({ length: plies + 1 }, () => FULL),
+      evalScores: Array.from({ length: plies + 1 }, () => cp),
+      clockTimes: [],
+      playerColor: "w",
+    };
+  }
+
+  it("reads the eval the player faced, flipped to their side", async () => {
+    const { standingFrom, decisionsFromGame: from } = await import("../../shared/import-diagnostic");
+    // White-relative +200 is a win for White and a loss for Black. Reading it unflipped would
+    // report Black as winning while two pawns down -- the same sign trap as cpLoss.
+    expect(standingFrom(200)).toBe("winning");
+    const asBlack = from({ ...lopsided(200, 10), playerColor: "b" });
+    expect(asBlack.every((d) => d.standing === "losing")).toBe(true);
+  });
+
+  it("calls anything inside a pawn level rather than an edge", async () => {
+    const { standingFrom, CLEAR_EDGE_CP } = await import("../../shared/import-diagnostic");
+    expect(standingFrom(CLEAR_EDGE_CP - 1)).toBe("level");
+    expect(standingFrom(-(CLEAR_EDGE_CP - 1))).toBe("level");
+    expect(standingFrom(CLEAR_EDGE_CP)).toBe("winning");
+    expect(standingFrom(-CLEAR_EDGE_CP)).toBe("losing");
+  });
+
+  it("costs no extra search: it reads a number already in the array", async () => {
+    /*
+     * Asserted against the source. The value is evalScores[ply - 1], which analyzePositions
+     * already produced; anything that started searching for it would have turned a free reading
+     * into a second pass over every position.
+     */
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const src = readFileSync(resolve(process.cwd(), "shared/import-diagnostic.ts"), "utf8");
+    expect(src).toMatch(/const evalBefore = game\.evalScores\[ply - 1\]/);
+  });
+
+  it("separates the buckets, so a policy difference can show up at all", () => {
+    const winning = diagnoseImportedGames([lopsided(500)]);
+    const w = winning.buckets.find((b) => b.key === "standing-winning")!;
+    const l = winning.buckets.find((b) => b.key === "standing-losing")!;
+    expect(w.n).toBeGreaterThan(0);
+    expect(l.n).toBe(0);
+  });
+});
+
+describe("a 45-second move is not one thing across time classes", () => {
+  const withSpeed = (speed: string, plies: number): ImportedGameInput => ({
+    fens: Array.from({ length: plies + 1 }, () => FULL),
+    evalScores: Array.from({ length: plies + 1 }, () => 0),
+    clockTimes: Array.from({ length: plies + 1 }, (_, i) => 600 - Math.floor(i / 2) * 20),
+    playerColor: "w",
+    speed,
+  });
+
+  it("reads the clock buckets on the dominant class only, and says how many it left out", () => {
+    const d = diagnoseImportedGames([withSpeed("blitz", 200), withSpeed("rapid", 40)]);
+    expect(d.timeBucketSpeed).toBe("blitz");
+    expect(d.excludedForSpeed).toBe(20);
+  });
+
+  it("actually shrinks the clock bucket, not just the sentence about it", () => {
+    /*
+     * The control that caught this: asserting timeBucketSpeed and excludedForSpeed only checks
+     * what the reading SAYS. Removing the filter left both fields correct while the bucket
+     * quietly went on averaging blitz and rapid together -- a screen announcing a restriction it
+     * had not applied.
+     *
+     * 200 blitz plies is 100 White decisions; the 40 rapid plies add 20 more. Every move here
+     * takes 20 seconds, so all of them land in "under 45 seconds".
+     */
+    const d = diagnoseImportedGames([withSpeed("blitz", 200), withSpeed("rapid", 40)]);
+    const fast = d.buckets.find((b) => b.key === "fast-under-45s")!;
+    expect(fast.n).toBe(100);
+    expect(d.scored).toBe(120);
+  });
+
+  it("leaves the phase and position buckets reading every game", () => {
+    // Neither a phase nor the engine's verdict on a position means anything different in blitz.
+    const d = diagnoseImportedGames([withSpeed("blitz", 200), withSpeed("rapid", 40)]);
+    const opening = d.buckets.find((b) => b.key === "phase-opening")!;
+    const level = d.buckets.find((b) => b.key === "standing-level")!;
+    expect(level.n).toBe(d.scored);
+    expect(opening.n).toBeGreaterThan(0);
+  });
+
+  it("reports the whole mix, largest first, rather than only the winner", () => {
+    const d = diagnoseImportedGames([withSpeed("blitz", 200), withSpeed("rapid", 40)]);
+    expect(d.speedMix.map((m) => m.speed)).toEqual(["blitz", "rapid"]);
+    expect(d.speedMix[0].n).toBeGreaterThan(d.speedMix[1].n);
+  });
+
+  it("restricts nothing when the import carries no time class", () => {
+    const d = diagnoseImportedGames([game({ plies: 100, withClocks: true })]);
+    expect(d.timeBucketSpeed).toBeNull();
+    expect(d.excludedForSpeed).toBe(0);
   });
 });
