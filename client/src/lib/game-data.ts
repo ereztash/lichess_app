@@ -21,8 +21,31 @@ export const DEFAULT_PGN = `[Event "Studio demo"]
 
 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 *`;
 
+/**
+ * ONE SILHOUETTE PER PIECE TYPE, both colours. Colour is carried by fill, never by shape.
+ *
+ * This used to be the Unicode pair the code points were designed for: hollow glyphs for White
+ * (♙♘♗) and solid for Black (♟♞♝). Reported as costing attention -- "it takes longer to
+ * notice them" -- and that is right, because a hollow rook and a solid rook are two shapes to
+ * learn for one piece. Every physical set and every board on lichess or chess.com uses one shape
+ * per type and distinguishes the sides by fill alone; the pairing here was a property of the
+ * font, not a decision anyone made.
+ *
+ * WHY THIS DOES NOT COST CONTRAST. A hollow glyph's interior is the square showing through, so
+ * what the eye traced was already the outline, not a fill. Measured against the squares these sit
+ * on: white fill on a light square is 1.37:1, black fill on a dark square 2.32:1 -- both far under
+ * anything readable, in the OLD rendering as much as this one. The ring in `.piece` / `.piece-w`
+ * is what has always carried the shape, and going solid does not touch it. What it removes is an
+ * asymmetry: the hollow shape was the one sitting on its worst-contrast square.
+ *
+ * THE SIDE-EFFECT TO BE HONEST ABOUT. With a shared silhouette, colour is now the only visual
+ * channel separating the sides. That is a LIGHTNESS difference (15.55:1 between the two fills),
+ * not a hue one, so it survives every form of colour blindness and greyscale -- which is why
+ * chess sets have always been allowed to do it. It does NOT survive a screen reader, but that was
+ * already true: the square's `aria-label` is the coordinate, and never named the piece.
+ */
 export const PIECES: Record<"w" | "b", Record<string, string>> = {
-  w: { p: "♙", n: "♘", b: "♗", r: "♖", q: "♕", k: "♔" },
+  w: { p: "♟", n: "♞", b: "♝", r: "♜", q: "♛", k: "♚" },
   b: { p: "♟", n: "♞", b: "♝", r: "♜", q: "♛", k: "♚" },
 };
 

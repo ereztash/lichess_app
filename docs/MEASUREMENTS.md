@@ -789,3 +789,93 @@ removed.
 
 `:focus-visible` was listed as unexamined in the review and turned out to be implemented, including
 a distinct treatment for `.board-square`. The gap was in the review, not the product.
+
+## Two reports about attention, and what measuring them found
+
+Both were about weight rather than content, and neither was fixed by removing anything. The board
+still shows thirty-two pieces; the panel still offers all eighteen reads, in the player's own
+words, at the full tap floor.
+
+### "The black pieces are filled and the white ones hollow"
+
+Reported as taking longer to notice, and as possibly costing attention. It does: a hollow rook and
+a solid rook are two shapes to learn for one piece. The Unicode chess block pairs an outlined glyph
+with a filled one, and the shipped table used the pairing as the font intended it — it was a
+property of the font, not a decision anyone made here. No physical set and no major board does it
+that way.
+
+Both colours now use the filled glyph. Measured, all eight (piece, square, theme) cells, from the
+declared tokens:
+
+| | white on light | white on dark | black on light | black on dark |
+|---|---|---|---|---|
+| light theme | **1.37** | 6.71 | 11.36 | **2.32** |
+| dark theme | **1.86** | 7.03 | 8.18 | **2.16** |
+
+The two bold columns are effectively invisible as fills, and always were — on a matching square the
+eye traces the outline ring, in the old hollow rendering as much as this one. Going solid changes
+none of those eight numbers. What it removes is an asymmetry where the hollow shape was the one
+sitting on its worst-contrast square.
+
+**A defect this measurement found, unrelated to the report.** The black piece on a dark square is
+the weakest cell on the board and had *both* channels weak at once: fill 2.32 with a ring at 2.04
+(light theme), fill 2.16 with a ring at 2.17 (dark). Nothing had ever measured it. The two ring
+alphas are now set from the measurement — `--piece-dark-shadow` 0.3 → 0.5 and 0.18 → 0.45, putting
+the ring at 3.07 and 3.05 — and the rule is asserted as *fill **or** ring above 3:1, per cell*,
+because demanding a strong ring where the fill already measures 6.71 would draw a halo round a
+piece nobody was struggling to see.
+
+**The side-effect, stated plainly.** With a shared silhouette, colour is the only visual channel
+separating the sides. That is a lightness difference (15.55:1 between the fills), not a hue one, so
+it survives colour blindness and greyscale — which is why chess sets have always been allowed to do
+it. It does not survive a screen reader, but that was already true: a square's `aria-label` is its
+coordinate and never named the piece.
+
+### "The side you mark the decision on is too flooded with information"
+
+Measured on the built panel in Chromium at 1440×950 — it is a 330px column:
+
+| | before | after |
+|---|---|---|
+| distinct font sizes | **10** | **5** |
+| `opacity` values dimming text | **9** | **0** |
+| elements carrying a border or fill | 28 | 25 |
+| read chips / rows they wrap into | 18 / 9 | 18 / 8 |
+| panel height (desktop / phone) | 1021px / 947px | 976px / 935px |
+| text nodes / words | 39 / 154 | 39 / 154 |
+
+Nothing was hidden and nothing was reworded — the last row is the point. Ten font sizes across
+330px (8.96, 9, 10, 10.24, 11, 11.68, 12.16, 14.72, 16, 16.32) is not a hierarchy; it is ten things
+each claiming to be slightly more important than the last, and the eye ranks none of them. Nine
+opacities is the same disease in colour: nine greys nobody chose. The replacements are five sizes,
+each with a job, and three declared colours — `--ink` is what the player reads, `--muted` is
+context, `--warn` is a problem.
+
+**The chips.** The border was the worst of both things: at `rgba(var(--ink-rgb), 0.28)` it measured
+1.78:1 against the panel in the light theme and 2.24:1 in the dark — already *under* the 3:1 WCAG
+1.4.11 asks of a control boundary, while still being numerous enough to read as a wall. It bought
+no conformance and cost all the clutter. Raising it to 0.50 would have conformed by drawing
+eighteen stronger boxes. A declared ground carries the chip instead, and what conforms is the thing
+1.4.11 actually asks of a toggle — that its two states separate: `--blue` against `--chip` measures
+5.21:1 light and 5.02:1 dark.
+
+**What was NOT done.** Half the options behind a "more" control, and shorter labels. Both trade a
+real cost — what a player can say about a position, and what the record then holds — for a visual
+one. Weight was the only thing free to change, and a test asserts the chips are neither sliced nor
+gated.
+
+**Seven contrast failures this found, all pre-existing.** axe-core 4 at 1350×940 with the panel
+open, light theme: the kicker at 4.47, the character counter at 3.63, the blocked-summary at 3.79,
+and the required mark and field hint at 4.24 and 4.37 — those last two because a legend at
+`opacity: 0.86` dimmed children that were already dimmed once. All seven were live before this work
+and none had ever been seen, because every earlier axe run in this repo was **dark-theme only**,
+where the same nine alphas happen to land above the line. Re-measured after: zero violations, both
+themes.
+
+**A design decision reversed by a test.** The type scale was scoped to `.commitment-screen` first,
+which reads better and is wrong: `PreregisterBridge` renders `.commitment-error` outside that panel,
+where a scoped token resolves to nothing and the paragraph would have lost its size silently — the
+`--edge: var(--edge)` failure in a new shape. `theme-tokens.test.ts` caught it. The scale is a
+`:root` token, and the reason is asserted rather than left in a comment.
+
+Twenty-two positive controls, each confirmed red.

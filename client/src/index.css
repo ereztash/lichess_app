@@ -128,11 +128,45 @@
   --dark-square: #765039;
   --piece-dark: #17221f;
   --piece-light: #fff9e9;
-  --piece-dark-shadow: rgba(255, 255, 255, 0.3);
+  /* Ring alphas, chosen from a measurement rather than by eye -- see the note above `.piece`.
+     The dark piece on a DARK square is the weakest cell on the board: its fill measures 2.32:1
+     there, so the ring is the only thing separating it from the square, and at 0.3 the ring
+     measured 2.04:1 -- weak on both channels at once. 0.5 puts the ring at 3.07:1. */
+  --piece-dark-shadow: rgba(255, 255, 255, 0.5);
   --piece-light-shadow: rgba(0, 0, 0, 0.45);
   --grain: rgba(var(--ink-rgb), 0.06);
+  /* The ground under an UNSELECTED read chip. Declared colours, not an alpha, for the reason
+     recorded at `--edge`: an alpha composites into whatever is behind it and stops being a
+     number anyone can check. Measured against --surface: 1.30:1, which is a token the eye can
+     see without it reading as a box; --ink on it is 11.32:1, and --blue (the selected ground)
+     is 5.21:1 away from it, so the two states are separated far above the 3:1 that 1.4.11 asks
+     for. See the note above `.read-chip` for why the border these replace had to go. */
+  --chip: #e0d6c0;
+  --chip-hover: #d5c7ac;
   /* The smallest a control in the decision loop is allowed to be. See "Tap floor" below. */
   --tap-floor: 44px;
+  /*
+   * THE TYPE SCALE, and why it is here rather than on the panel that needed it.
+   *
+   * Measured on the built commitment panel at 1440x950: TEN distinct font sizes inside one 330px
+   * column -- 8.96, 9, 10, 10.24, 11, 11.68, 12.16, 14.72, 16 and 16.32px. Ten steps across
+   * 330px is not a hierarchy, it is ten things each claiming to be slightly more important than
+   * the last, and the eye ranks none of them. That is the larger half of "too flooded with
+   * information"; the read chips were only the visible half.
+   *
+   * These were scoped to `.commitment-screen` first, which was wrong for a reason worth keeping:
+   * `.commitment-error` is rendered by PreregisterBridge too, OUTSIDE that panel, where a scoped
+   * token resolves to nothing and the paragraph would have lost its size silently. Exactly the
+   * failure mode of the `--edge: var(--edge)` cycle recorded above, in a new shape. A type scale
+   * is a document-level fact; only colours here vary by theme.
+   *
+   * The rule: a size is a JOB, not a nudge. Anything in the decision panel picks one of these.
+   */
+  --panel-title: 16px; /* the one heading */
+  --panel-data: 14px;  /* things that are readings: the move, the confidence digit */
+  --panel-body: 12px;  /* prose the player is meant to read */
+  --panel-label: 11px; /* every label, legend, chip and toggle */
+  --panel-fine: 10px;  /* kickers, hints, counters, the required mark */
   /* ---- Chart palette -------------------------------------------------------------------
    * Two poles, validated rather than eyeballed: normal-vision ΔE 26.1, protan 20.2 against the
    * cream surface. Blue is White's advantage and a move that held; warm is Black's advantage and
@@ -186,9 +220,15 @@
   --dark-square: #6b4630;
   --piece-dark: #14181a;
   --piece-light: #f4ecdc;
-  --piece-dark-shadow: rgba(255, 255, 255, 0.18);
+  /* Same measurement on the dark theme's squares: 0.18 put the ring at 2.17:1 against #6b4630,
+     under a fill of 2.16:1. 0.45 measures 3.05:1. */
+  --piece-dark-shadow: rgba(255, 255, 255, 0.45);
   --piece-light-shadow: rgba(0, 0, 0, 0.6);
   --grain: rgba(231, 227, 216, 0.05);
+  /* Same two measured against the dark surface: 1.37:1 for the ground, 9.25:1 for --ink on it,
+     5.02:1 between it and the selected --blue. */
+  --chip: #2e393e;
+  --chip-hover: #394649;
   --hairline: rgba(160, 175, 170, 0.22);
   --hairline-strong: rgba(160, 175, 170, 0.38);
   --raise: #222a2d;
@@ -1007,6 +1047,12 @@ button:not(:disabled) {
  * A ring, not a drop shadow. A single offset shadow leaves three sides of the glyph touching the
  * square directly, and a white piece on a light square measured 1.37:1 that way -- the outline
  * is what makes the shape readable, so it has to go all the way round.
+ *
+ * It is load-bearing in a way it was not before. Both colours now use the SOLID glyph (see
+ * `PIECES` in lib/game-data.ts), so on the two matching-lightness cells -- white on light, black
+ * on dark -- there is no interior detail left to fall back on and the ring is the whole outline.
+ * All four fill measurements, per theme, are recorded in docs/MEASUREMENTS.md; the two ring
+ * alphas were then set so that the weakest ring clears 3:1 against the square under it.
  */
 .piece {
   z-index: 2;
@@ -1478,6 +1524,7 @@ button:not(:disabled) {
 /* --- Commitment screen (section 4.1) ----------------------------------------------------- */
 /* The decision comes before the answer. This column replaces the analysis column entirely
    while deciding -- the engine's panel is absent, not hidden. */
+/* Every size in here comes from the five-step scale declared in :root. */
 .commitment-screen {
   display: flex;
   flex-direction: column;
@@ -1493,28 +1540,46 @@ button:not(:disabled) {
   justify-content: space-between;
   gap: 0.75rem;
 }
+/*
+ * FIVE TYPE SIZES ABOVE, AND FROM HERE ON THREE TEXT COLOURS. Same disease, same cure.
+ *
+ * This panel dimmed nine different pieces of text with nine different `opacity` values -- 0.55,
+ * 0.62, 0.7, 0.72, 0.78, 0.78, 0.8, 0.86, 0.9 -- which is nine greys nobody chose, on top of the
+ * ten font sizes nobody chose. An alpha is also not a colour: it composites into whatever is
+ * behind it and stops being a number anyone can check, which is the rule already written above
+ * `.commitment-move.unset` and again above `.import-progress-note`.
+ *
+ * MEASURED with axe-core 4 in Chromium at 1350x940, light theme, panel open: seven nodes failing
+ * 1.4.3 -- this kicker at 4.47, `.commitment-count` at 3.63, `.commitment-summary` at 3.79, and
+ * the required mark and the field hint at 4.24 and 4.37 because a legend at 0.86 dimmed them a
+ * second time. All seven were live before this change and none had ever been seen: every earlier
+ * axe run was dark-theme only, where the same nine alphas happen to land above the line.
+ *
+ * From here: --ink is what the player reads, --muted is context, --warn is a problem. Three
+ * declared colours, each measured in both themes, and no opacity on text at all.
+ */
 .commitment-kicker {
-  font-size: 0.64rem;
+  font-size: var(--panel-fine);
   letter-spacing: 0.14em;
-  opacity: 0.62;
+  color: var(--muted);
   margin: 0;
 }
 .commitment-header h2 {
-  font-size: 1.02rem;
+  font-size: var(--panel-title);
   margin: 0.15rem 0 0;
 }
 .commitment-timer {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   font-variant-numeric: tabular-nums;
-  opacity: 0.78;
+  color: var(--muted);
 }
 .commitment-intro {
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
-  opacity: 0.78;
+  color: var(--muted);
   margin: 0;
 }
 .commitment-field {
@@ -1525,18 +1590,20 @@ button:not(:disabled) {
   padding: 0;
   margin: 0;
 }
+/* No opacity here at all: a legend dimmed its own children a SECOND time, which is how the
+   required mark and the field hint came out at 4.24 and 4.37 while both of their own colours
+   measure over 5.4 on this surface. */
 .commitment-field label,
 .commitment-field legend {
-  font-size: 0.73rem;
+  font-size: var(--panel-label);
   font-weight: 600;
-  opacity: 0.86;
   padding: 0;
 }
 .commitment-field textarea {
   width: 100%;
   resize: vertical;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--panel-body);
   padding: 0.5rem 0.6rem;
   border-radius: 9px;
   border: 1px solid var(--hairline-strong);
@@ -1545,13 +1612,13 @@ button:not(:disabled) {
 }
 .commitment-count {
   align-self: flex-start;
-  font-size: 0.62rem;
-  opacity: 0.55;
+  font-size: var(--panel-fine);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 .commitment-move {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.92rem;
+  font-size: var(--panel-data);
   padding: 0.45rem 0.6rem;
   border-radius: 9px;
   border: 1px dashed var(--hairline-strong);
@@ -1586,6 +1653,7 @@ button:not(:disabled) {
   flex-direction: column;
   align-items: center;
   gap: 0.1rem;
+  font-size: var(--panel-data);
   padding: 0.4rem 0.2rem;
   border-radius: 9px;
   border: 1px solid var(--hairline-strong);
@@ -1593,9 +1661,11 @@ button:not(:disabled) {
   color: inherit;
   cursor: pointer;
 }
+/* Was 0.56rem -- 8.96px, the smallest text in the product, on the label that says what the
+   number MEANS. The digit is the terse half; the word is the half a new player reads. */
 .confidence-row button small {
-  font-size: 0.56rem;
-  opacity: 0.7;
+  font-size: var(--panel-fine);
+  color: var(--muted);
 }
 .confidence-row button.selected {
   border-color: currentColor;
@@ -1603,20 +1673,20 @@ button:not(:disabled) {
 }
 /* A missing part is named, not merely refused. "Incomplete" and "invalid" are different. */
 .commitment-problem {
-  font-size: 0.68rem;
+  font-size: var(--panel-body);
   margin: 0;
-  opacity: 0.9;
+  color: var(--warn);
 }
 .commitment-error {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.74rem;
+  font-size: var(--panel-body);
   margin: 0;
 }
 .commitment-summary {
-  font-size: 0.7rem;
-  opacity: 0.8;
+  font-size: var(--panel-label);
+  color: var(--warn);
   margin: 0;
   text-align: center;
 }
@@ -1639,13 +1709,13 @@ button:not(:disabled) {
 }
 .commitment-tension-question {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
 }
 .commitment-tension-basis {
   margin: 0;
-  font: 0.62rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  opacity: 0.72;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
 }
 /*
  * The control that records the decision is always on screen.
@@ -2429,7 +2499,7 @@ button:not(:disabled) {
  * right alone.
  */
 :root[data-input="touch"] .read-chip:hover:not(.selected) {
-  border-color: rgba(var(--ink-rgb), 0.28);
+  background: var(--chip);
 }
 /* Base is --muted; the hover takes it to --ink. Neutralised back to the base, not to some
    third colour. `.board-note button` is not here: it has no hover rule to neutralise. */
@@ -2438,7 +2508,7 @@ button:not(:disabled) {
 }
 @media (hover: none) {
   .read-chip:hover:not(.selected) {
-    border-color: rgba(var(--ink-rgb), 0.28);
+    background: var(--chip);
   }
 }
 
@@ -2663,12 +2733,17 @@ button:not(:disabled) {
  * empty, and a button that looked ready and did nothing visible. The rule is not the problem --
  * a partial decision is not recorded, and that is the product. The silence was.
  */
+/*
+ * The word, not the box. This shipped as bordered warn-coloured text, which put two small red
+ * rectangles at the top of a panel on which nothing has gone wrong yet -- and the panel already
+ * has a real refusal in the same red, three fields below. Two alarms of different severity drawn
+ * identically is section 4.5. The word still says "required" and still carries --warn; what goes
+ * is the frame, and with it two of the twenty-eight boxes the panel was counted to hold.
+ */
 .required-mark {
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   color: var(--warn);
-  border: 1px solid var(--warn);
-  padding: 1px 5px;
   margin-inline-start: 6px;
   vertical-align: middle;
 }
@@ -2683,7 +2758,7 @@ button:not(:disabled) {
   border: 1px dashed var(--warn);
 }
 .commitment-summary {
-  font: 10px/1.5 "Noto Sans Hebrew", Arial, sans-serif;
+  font: var(--panel-label) / 1.5 "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--warn);
   padding-top: 6px;
 }
@@ -2774,37 +2849,65 @@ button:not(:disabled) {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  font: 700 11px/1.4 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-label) / 1.4 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   padding: 0;
   margin-bottom: 6px;
 }
 .read-field legend small {
-  font: 10px/1.4 "Noto Sans Hebrew", Arial, sans-serif;
+  font: var(--panel-fine) / 1.4 "Noto Sans Hebrew", Arial, sans-serif;
   font-weight: 400;
   color: var(--muted);
 }
 .read-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  /* 5px, not 6. Measured: the pills wrap into eight rows at this gap and nine at the old one,
+     on the 330px column, which is 45px of a panel that does not fit the viewport as it is. */
+  gap: 5px;
 }
+/*
+ * A GROUND, NOT A BORDER, and the measurement that forced the swap.
+ *
+ * Reported as "the side you mark the decision on looks bad, too flooded with information". It is,
+ * and the count says why: measured on the built panel at 1440x950, the commitment screen is a
+ * 330px column holding 39 text nodes, 154 words, TEN distinct font sizes and 28 elements carrying
+ * a border or a fill -- eighteen of them these chips, in nine ragged rows. Eighteen hard-edged
+ * rectangles at identical weight is a wall, and a wall has no entry point.
+ *
+ * The border was the worst of both things. At `rgba(var(--ink-rgb), 0.28)` it measured 1.78:1
+ * against the panel in the light theme and 2.24:1 in the dark -- so it was already UNDER the 3:1
+ * that WCAG 1.4.11 asks of a control boundary, while still being numerous enough to read as
+ * noise. It was buying no conformance and costing all the clutter. Raising it to 0.50 would have
+ * conformed and made eighteen stronger boxes; removing it and letting a declared ground carry the
+ * chip conforms differently and better, because what 1.4.11 actually requires of a toggle is that
+ * its two STATES separate -- and --blue against --chip measures 5.21:1 light, 5.02:1 dark.
+ *
+ * What is deliberately NOT done here: no option is hidden behind a "more" control, and none is
+ * reworded to fit. Both would trade a real cost -- what a player is able to say about a position,
+ * and what the record then holds -- for a visual one. The chips stay eighteen, in the player's
+ * words, at the full tap floor. Only their weight changes.
+ */
 .read-chip {
+  /* Inline padding stays at the 9px it shipped with: 11px looked better on one chip and cost a
+     whole extra row of them. */
   padding: 6px 9px;
-  border: 1px solid rgba(var(--ink-rgb), 0.28);
-  background: transparent;
-  font: 11px/1.25 "Noto Sans Hebrew", Arial, sans-serif;
+  border: 0;
+  /* A pill, where the panel's inputs are 9px rectangles. The difference is the point -- a chip is
+     a token you pick, not a field you fill, and the two should not be the same shape. */
+  border-radius: 999px;
+  background: var(--chip);
+  font: var(--panel-label) / 1.25 "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--ink);
   cursor: pointer;
   /* Height comes from the tap floor above -- this is the control the whole loop runs through,
      and 32px was under it. */
 }
 .read-chip:hover {
-  border-color: rgba(var(--ink-rgb), 0.55);
+  background: var(--chip-hover);
 }
 /* Selected is carried by weight and a filled ground, not by hue alone. */
 .read-chip.selected {
-  border-color: var(--blue);
   background: var(--blue);
   color: var(--on-blue);
   font-weight: 700;
@@ -2817,7 +2920,7 @@ button:not(:disabled) {
   padding: 5px 2px;
   border: 0;
   background: none;
-  font: 11px "Noto Sans Hebrew", Arial, sans-serif;
+  font: var(--panel-label) "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -2827,7 +2930,7 @@ button:not(:disabled) {
   color: var(--ink);
 }
 .read-write-label {
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 
