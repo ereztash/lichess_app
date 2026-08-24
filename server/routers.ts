@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies.js";
 import { recordStore, type RecordStore } from "./record.js";
+import { layerCEnabled, MAX_POSITIONS_CONSULTED, pointerForClaim } from "./layerC.js";
 import { buildRecordRouter } from "./recordRouter.js";
 import { ENV } from "./_core/env.js";
 import { systemRouter } from "./_core/systemRouter.js";
@@ -43,6 +44,45 @@ export function buildAppRouter(store: RecordStore = recordStore) {
   return router({
     system: systemRouter,
     record: buildRecordRouter(store),
+    /**
+     * LAYER C, MOUNTED (section 3.4).
+     *
+     * The module has existed since early on and no router imported it, so nothing deployed could
+     * reach it at any price -- the "external, not self-graded" layer was, in the running product,
+     * absent. It is reachable now and STILL OFF by default: `layerCEnabled` reads
+     * LAYER_C_ENABLED, and with the flag unset every call returns `{ kind: "disabled" }` with a
+     * reason. Mounting it does not turn it on; it makes the off state observable instead of
+     * indistinguishable from a missing feature.
+     *
+     * A query, not a mutation: it writes nothing. It cannot -- ExternalPointer.promotes_grade is
+     * the literal type `false` and GATE-EXTERNAL compiles a file that tries to promote and
+     * requires the compile to fail.
+     */
+    external: router({
+      pointer: ownerProcedure
+        .input(
+          z.object({
+            claimId: z.string().min(1).max(64),
+            fens: z.array(z.string().min(1).max(200)).max(MAX_POSITIONS_CONSULTED),
+          }),
+        )
+        .query(async ({ input }) => {
+          if (!layerCEnabled()) {
+            // Ask the module itself rather than reproducing its sentence here: one disabled
+            // message, in one place, so the two cannot drift apart.
+            return pointerForClaim({ claim: null as never, fens: [] });
+          }
+          const claim = await store.getClaim(input.claimId);
+          if (!claim) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "אין טענה עם המזהה הזה, ולכן אין על מה לחפש מצביע חיצוני.",
+            });
+          }
+          return pointerForClaim({ claim, fens: input.fens });
+        }),
+    }),
+
     auth: router({
       me: publicProcedure.query((o) => o.ctx.user),
       logout: publicProcedure.mutation(({ ctx }) => {

@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "gates": "tsx scripts/run_gates.ts",
+    "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
     "verify": "npm run check && npm test && npm run gates && npm run gates:controls && npm run build"
   },
@@ -50,6 +51,7 @@
     "@types/node": "^24.7.0",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
+    "drizzle-kit": "^0.31.10",
     "jsdom": "^25.0.1",
     "prettier": "^3.9.6",
     "tsx": "^4.23.12",

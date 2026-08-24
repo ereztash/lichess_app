@@ -46,6 +46,37 @@ export const MIN_BUCKET_N = 30;
 export const MIN_GAP_DIFFERENCE = 0.45;
 
 /**
+ * The floor for a bucket that was NAMED IN ADVANCE, and the measurement that set it.
+ *
+ * A hypothesis registered before the decisions were recorded is tested with `detect`'s
+ * `onlyBucketKey`, so the run gets one bucket instead of six. That restriction is what makes a
+ * lower n legal, and the number came from the shuffled-label control rather than from wanting
+ * the product to speak sooner. Worst case over all six possible pre-named buckets, gap held at
+ * MIN_GAP_DIFFERENCE:
+ *
+ *     n = 30    pre-named 0.7%    six-bucket scan 0.7%
+ *     n = 25    pre-named 1.3%    six-bucket scan 2.0%
+ *     n = 20    pre-named 1.3%    six-bucket scan 2.7%   <- shipped here
+ *     n = 15    pre-named 5.3%    six-bucket scan 6.0%
+ *
+ * At n = 20 the six-bucket scan is over the 2% ceiling and the pre-named bucket is under it. So
+ * the restriction is not a formality attached to a threshold someone wanted anyway -- it is the
+ * only reason this row is allowed to exist.
+ *
+ * WHAT THE MEASUREMENT REFUTED, recorded because the design was proposed on the opposite
+ * assumption: the expectation was that naming a bucket in advance would buy a lower GAP, on the
+ * usual multiple-comparisons argument that six chances to clear should need a higher bar than
+ * one. It does not. At n = 30 the two columns are identical, and at every gap tested they are
+ * within a point of each other. The six bucketings are not six independent tests -- the three
+ * phase buckets partition the same decisions and the two clock buckets overlap heavily -- so
+ * there was never much multiplicity to correct for. Pre-registration buys n, not gap.
+ *
+ * Measured cold start on a planted pattern, 20 seeds: median first claim moves from 65 decisions
+ * to 45. Both detected it in 20 of 20.
+ */
+export const PREREGISTERED_MIN_BUCKET_N = 20;
+
+/**
  * The most false positives on shuffled labels this build tolerates. GATE-SHUFFLE fails above it.
  * Measured worst case at the shipped thresholds is 0.7%.
  */
@@ -176,12 +207,41 @@ export const DEFAULT_THRESHOLDS: DetectorThresholds = {
   minGapDifference: MIN_GAP_DIFFERENCE,
 };
 
+/**
+ * Thresholds for a bucket named in advance. Legal ONLY together with `detect`'s `onlyBucketKey`
+ * -- see PREREGISTERED_MIN_BUCKET_N for the measurement, and note that the gap is unchanged.
+ */
+export const PREREGISTERED_THRESHOLDS: DetectorThresholds = {
+  minBucketN: PREREGISTERED_MIN_BUCKET_N,
+  minGapDifference: MIN_GAP_DIFFERENCE,
+};
+
 export function detect(
   decisions: ScoredDecision[],
   thresholds: DetectorThresholds = DEFAULT_THRESHOLDS,
+  /**
+   * Search ONE named bucket instead of all six.
+   *
+   * This is not a filter applied to the results -- it is a narrower search, and the difference
+   * is the whole point. Scanning six buckets and reporting the one that cleared is six chances
+   * to clear; testing a bucket named in advance is one. That is why the thresholds this is run
+   * with can be lower than DEFAULT_THRESHOLDS without the false-positive rate rising, and why
+   * `PREREGISTERED_THRESHOLDS` is a measurement rather than a preference.
+   *
+   * A key that names no bucketing throws. A hypothesis pointing at a bucket that no longer
+   * exists is a bug in whatever stored it, and returning "no patterns" would hide it behind the
+   * most ordinary result this function has.
+   */
+  onlyBucketKey?: string | null,
 ): CandidatePattern[] {
+  const searched = onlyBucketKey
+    ? BUCKETINGS.filter((bucketing) => bucketing.key === onlyBucketKey)
+    : BUCKETINGS;
+  if (onlyBucketKey && !searched.length) {
+    throw new Error(`detect: no bucketing named "${onlyBucketKey}"`);
+  }
   const candidates: CandidatePattern[] = [];
-  for (const bucketing of BUCKETINGS) {
+  for (const bucketing of searched) {
     const inside = decisions.filter(bucketing.predicate);
     const outside = decisions.filter((d) => !bucketing.predicate(d));
     if (inside.length < thresholds.minBucketN || outside.length < thresholds.minBucketN) continue;
@@ -253,11 +313,15 @@ export function shuffleControl(
   runs = 200,
   seed = 20260821,
   thresholds: DetectorThresholds = DEFAULT_THRESHOLDS,
+  /** Measure a single pre-named bucket rather than the six-bucket scan. See `detect`. */
+  onlyBucketKey?: string | null,
 ): ShuffleReport {
   const random = seededRandom(seed);
   let runsWithPatterns = 0;
   for (let run = 0; run < runs; run += 1) {
-    if (detect(shuffleLabels(decisions, random), thresholds).length > 0) runsWithPatterns += 1;
+    if (detect(shuffleLabels(decisions, random), thresholds, onlyBucketKey).length > 0) {
+      runsWithPatterns += 1;
+    }
   }
   return { runs, runsWithPatterns, falsePositiveRate: runsWithPatterns / runs };
 }

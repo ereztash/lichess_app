@@ -169,17 +169,26 @@ A position bank drawn from games the player has never seen would remove this. Th
   — see "What stopped being unverified" below — but that run predates everything here. The import
   scan, its progress bar and stop button, and the diagnostic table have never been rendered
   anywhere but a test environment and a headless Chromium measuring CSS boxes.
-- **The record layer against a real database.** All record tests run against an in-memory store.
-  `DATABASE_URL` has never been set in any environment this build has run in, so
-  `DrizzleRecordStore` has never executed a statement against MySQL.
+- **The record layer against the database it will actually meet in production.** It is exercised
+  against MariaDB 10.11 locally and MySQL 8 in CI, which is two engines and neither of them a
+  Vercel-hosted managed MySQL. Connection pooling, TLS, and a cold serverless invocation reaching
+  a remote host are all unmeasured; what is measured is that the SQL and the schema are right.
 - **Any drill run by a real player.** The loop is tested over HTTP in both directions with
   synthetic decisions, and driven through a browser as far as the first drill position, but no
   drill has been completed by a person.
 - **Layer C against live Lichess.** Its tests stub `fetch`. It has never made a real request to
-  the masters database, and its rate-limit behaviour under repeated use is unmeasured. It is also
-  not mounted: no router imports it, so nothing in the deployed API can reach it at all.
-- **Cold start with a real player.** The numbers above assume a planted effect far stronger and
-  cleaner than a real one is likely to be. Expect the real cold start to be longer.
+  the masters database, and its rate-limit behaviour under repeated use is unmeasured. It IS now
+  mounted (`external.pointer`), so the deployed API can reach it -- but it stays off by default,
+  and what an enabled call actually returns from lichess.org remains unmeasured.
+- **Cold start with a real player**, by either path. The numbers above and the pre-registered
+  numbers below both assume a planted effect far stronger and cleaner than a real one is likely to
+  be. Expect both to be longer in practice.
+- **Whether a bucket an import names is the bucket the live loop would have found.** The bridge
+  narrows the search on the strength of accuracy over played games. Accuracy and calibration are
+  different quantities, and nothing here has checked that a player whose accuracy is worst in one
+  bucket is also worst calibrated there. If they routinely are not, the bridge shortens the wait
+  and points at the wrong place, and the refutation condition on every registration is what would
+  eventually say so -- on a real record, which does not exist yet.
 - **The import diagnostic against a real Lichess account.** Every part of the path is tested with
   synthetic games and a stub engine -- PGN clock extraction, colour matching, batch scoring,
   bucketing, the screen. No real username has been searched, no real PGN scored, and the
@@ -204,6 +213,47 @@ A position bank drawn from games the player has never seen would remove this. Th
   its cost scales with a device speed nobody here has measured.
 
 ### What stopped being unverified
+
+- **The record layer executes against MySQL.** MariaDB 10.11.14, schema built from
+  `drizzle/migrations/`, `DrizzleRecordStore` writing and reading real rows: five assertions,
+  all passing. Hebrew survives the round trip, a repeated `decision_id` is refused by the primary
+  key rather than by a JavaScript check, and a pre-registered hypothesis round-trips including its
+  per-mille rates. Before this the class had never executed a single statement.
+
+  **It also found a defect, which is the point of running it.** Neither `listAtoms` nor
+  `listDecisionIds` had an `ORDER BY`, and both are documented as returning rows "in the SAME
+  ORDER". The in-memory store keeps that promise for free because a Map iterates in insertion
+  order; MySQL promises nothing without an ORDER BY. `scoreDecisions` pairs the two listings by
+  index, so a mismatch labels one decision's statistics with another decision's id.
+
+  **It runs in CI too**, against a MySQL 8 service container, with the schema loaded from the
+  generated SQL. The whole suite is 569 tests with a database and 564 without: the difference is
+  the five that used to skip on every automated run. Two engines rather than one also says the
+  store is not quietly depending on either.
+
+  **And the first test I wrote for it did not catch that.** It compared the two listings to each
+  other, and its positive control came back green: InnoDB happens to return rows in primary-key
+  order, so both listings agreed anyway. The test now asserts INSERTION order against rows whose
+  ids deliberately sort the other way, which is the property `prereg`'s prefix slice actually
+  depends on. Both controls red, baseline green.
+
+- **The repository can build its own schema.** There was `drizzle/schema.ts`, one hand-written
+  migration for the verified-learning tables, and nothing that created the base tables --
+  decisions, reveals, feedback, claims, drills. A deployment with `DATABASE_URL` set had no way to
+  create what the record layer writes into, which is a large part of why nothing had ever run
+  against MySQL. `npm run db:generate` now writes SQL from the schema, and all 11 tables are in
+  `drizzle/migrations/`.
+
+- **Layer C is reachable.** `server/layerC.ts` had existed for most of this project's life with no
+  router importing it: nothing deployed could call it at any price, while the document you are
+  reading described it as a layer of the product. Its own unit tests passed the whole time, which
+  is exactly what a module's tests can be worth. It is mounted at `external.pointer` and tested
+  over real HTTP, and its control -- deleting the router block -- turns all four tests red.
+
+  Mounting it does NOT turn it on. `LAYER_C_ENABLED` is still unset everywhere, and a call
+  returns `{ kind: "disabled" }` with a reason. What changed is that "off" is now distinguishable
+  from "never built", which is the same distinction R2 is about.
+
 
 - **The engine runs at a deployed origin.** The oldest open finding in this project, and it was
   closed on main while this branch was in flight rather than by anything here. The in-app
@@ -391,3 +441,157 @@ White to move:  info depth 10 ... score cp  730
 ```
 
 Same position, opposite signs. `toWhitePerspective` negates when the FEN says Black is to move.
+
+## A neutral audit, and the one finding that did not close
+
+The scores in this repository are all self-defined: gates I wrote, thresholds I chose, controls I
+designed to fail. That is the right way to hold a claim, but it cannot tell you whether the thing
+is any good by a standard nobody here set. So the built bundle was handed to an external tool with
+its own opinions -- Lighthouse 13.4.1, whose accessibility category is axe-core 4 -- and run
+against the same artifact Vercel serves.
+
+Measured on the built bundle at `127.0.0.1:4174`, before and after the fixes, on both form factors
+Lighthouse ships. Nothing here is asserted by a test; every cell is a run.
+
+| category | mobile before | mobile after | desktop before | desktop after |
+| --- | --- | --- | --- | --- |
+| Performance | 82 | 84 | 100 | 100 |
+| Accessibility | **85** | **100** | **81** | **96** |
+| Best Practices | 100 | 100 | 100 | 100 |
+| SEO | **91** | **100** | **91** | **100** |
+
+The Performance column moved by 2 on mobile and that is not a result -- it is run-to-run variance
+on a shared machine, on metrics (LCP, total blocking time) that are timing-sensitive. Nothing in
+this work touched the bundle's size or its critical path. It is in the table because leaving it
+out would have made the table look like it was only carrying wins.
+
+Five findings, four closed:
+
+- **The board was a grid with no rows** (`aria-required-children`, weight 10, plus
+  `aria-required-parent` on all 64 squares -- one defect reported from both sides). `role="grid"`
+  requires rows between it and its cells, and a screen reader in grid mode navigates by row, so
+  there was nothing to navigate. Fixed with a `role="row"` per rank at `display: contents`, which
+  generates no boxes and leaves the eight-column layout byte-for-byte as it was.
+- **A placeholder that was not a colour** (`color-contrast`, weight 7). `.commitment-move.unset`
+  was `opacity: 0.5`, which composites ink into surface and lands wherever the two average to:
+  #e7e3d8 over #1b2124 gives #81827e, 4.21:1, under the 4.5:1 WCAG 1.4.3 asks. Replaced with
+  `--muted`, a declared colour at 6.60:1. The contrast was never carrying "not chosen yet" -- the
+  italic and the dashed border already do -- it was only making the text harder to read.
+- **Names that did not contain their labels** (`label-content-name-mismatch`, 6 nodes). The
+  confidence buttons read "1 ניחוש" but were named with an em dash between the two, and square a1
+  showed "1a" while being named "a1". Both break WCAG 2.5.3 for anyone driving the UI by voice:
+  they say what they see and are not understood. Fixed by removing the dash and by emitting the
+  file label before the rank label -- both are absolutely positioned, so the order costs nothing
+  visually.
+- **`/robots.txt` was the app** (`robots-txt`, weight 1). There was no such file, and
+  `vercel.json` rewrites every unmatched path to `index.html`, so the URL answered 200 with the
+  SPA's markup and a crawler parsed three lines of HTML as three malformed directives. A file that
+  parses as nothing is worse than none: an absent file already means "no rules". Now a real file,
+  with no `Sitemap:` line, because there is no sitemap and pointing at a 404 would be the same
+  defect one line further down.
+
+**One finding did not close: `target-size` (weight 7).** It is the whole gap between 96 and 100 on
+desktop, and it is written up in `client/src/index.css` above `.commitment-submit` and asserted by
+`tests/client/accessibility-audit.test.ts` so that a reader who deletes the sticky to clear the
+audit meets the measurements first. Two of them collide:
+
+- Without the sticky, the submit sat at y=1302 on a 390x844 phone -- below the fold, invisible to
+  a player who had just chosen a move. That is a contract in `ux-contract.test.ts`, measured on a
+  shipped build. Removing it during this work measured y=1750.
+- Capping the card and scrolling its fields cleared axe, and measured the submit at y=921 in an
+  844 viewport, because on a phone the card starts below the board. It trades a covered control
+  for an invisible one.
+
+Nothing pinned to a viewport can avoid covering what sits at that viewport's edge, and this form
+is taller than the viewport at every size measured. The finding is also wide-layout only: the same
+build passes `target-size` with zero nodes at 412x823, which is why mobile reads 100 and desktop
+96. What keeps it from being a trap is that the button moves against the content as the page
+scrolls, so a chip it covers at one scroll position is clear at another. The real fix is a shorter
+form, or a layout where the panel owns its own scrollport with the board beside it rather than
+above it. Both are larger than an audit fix, and neither is done.
+
+**What this audit does not say.** It is an automated pass, and automated accessibility checking
+catches a minority of what a person using assistive technology would hit. 42 of the 66
+accessibility audits came back `notApplicable` -- no video, no iframes, no data tables -- so the
+category score is computed over a small surface. 100 on mobile means "nothing axe knows how to
+detect", not "usable". Nobody has driven this board with a screen reader, and until somebody has,
+that remains unmeasured.
+
+## The bridge from an import to the live loop, and what measuring it refuted
+
+The two halves of this product did not touch. The import scores hundreds of real moves and can say
+where accuracy falls off; the live loop measures a calibration gap and needs roughly 65 decisions
+before it may speak. The import's reading was a terminal screen that led nowhere, and the live loop
+started from zero every time with six buckets to search and no idea which one mattered.
+
+A hypothesis registered from an import is the connection. It is worth exactly one thing: the
+detector may search ONE bucket instead of six.
+
+### The proposal was wrong, and the sweep is what said so
+
+The design was argued from multiple comparisons: six chances to clear a threshold should need a
+higher bar than one, so naming a bucket in advance should buy a lower **gap**. Measured against
+shuffled labels, worst case over all six possible pre-named buckets:
+
+| thresholds | one pre-named bucket | six-bucket scan |
+| --- | --- | --- |
+| n=30, gap 0.45 | 0.7% | 0.7% |
+| n=30, gap 0.40 | 2.7% | 2.7% |
+| n=30, gap 0.35 | 3.3% | 3.3% |
+| n=30, gap 0.30 | 8.7% | 9.3% |
+
+The two columns are the same. The six bucketings are **not** six independent tests: the three
+phase buckets partition the same decisions and the two clock buckets overlap heavily, so there was
+never much multiplicity to correct for. Pre-registration buys nothing on the gap axis.
+
+### What it does buy, holding the gap fixed at 0.45
+
+| minBucketN | one pre-named bucket | six-bucket scan |
+| --- | --- | --- |
+| 30 | 0.7% | 0.7% |
+| 25 | 1.3% | 2.0% |
+| **20 — shipped** | **1.3%** | **2.7%** |
+| 15 | 5.3% | 6.0% |
+
+At n=20 the six-bucket scan is **over** the 2% ceiling and the pre-named bucket is under it. So the
+restriction is not a formality attached to a threshold someone wanted anyway — it is the only
+reason that row is allowed to exist. Both halves are asserted in `tests/shared/prereg.test.ts`,
+including the half that says the wide scan fails there.
+
+Measured cold start on a planted pattern, 20 seeds: **median first claim moves from 65 decisions to
+45**, detected in 20 of 20 under both.
+
+### The constraints, each of which is load-bearing
+
+- **It never predicts a direction.** The import has no confidence data — nobody was asked during a
+  game already played — so it cannot know whether the player is over- or under-confident anywhere.
+  It names WHERE to look. The refutation condition says so in as many words, and a test asserts the
+  text contains "not what will be found there" and contains no directional claim.
+- **`decisions_before` comes from the store, never from the caller.** A caller that could choose
+  the boundary could choose zero, and the hypothesis would be tested on the decisions that
+  suggested it. The service reads the count itself; the field is not validated on the way in, it is
+  discarded.
+- **Only the six shared buckets can be registered.** The import's three standing buckets read the
+  engine's verdict on the position the player faced, which the live record structurally cannot have
+  — R3 forbids the engine speaking before a decision is recorded.
+- **A bucket that is merely the lowest of six is not registrable.** The bar is the existing
+  two-standard-error separation test. Registering a coin flip would be worse than having no bridge,
+  because it would carry the authority of a pre-registration.
+- **Exactly one search runs at any record size.** The narrowing applies only while the record is too
+  small for the ordinary scan; past `MIN_BUCKET_N * 2` revealed decisions the six-bucket scan runs
+  over the whole record and the hypothesis stops filtering anything. Running the narrowed search and
+  then falling back to the wide one would be two chances to clear, and the 1.3% and 0.7% above are
+  each for one search. It also means a hypothesis cannot suppress a finding forever.
+
+Five positive controls, each red: lowering the pre-registered gap, making `detect` ignore the
+bucket restriction, letting the caller set the boundary, never handing back to the wide scan, and
+making import-only buckets registrable.
+
+### What this does not fix
+
+The imported accuracy rate still counts opening book and every recapture with a legal alternative,
+so the bucket an import names is named on a partly inflated number. That defect is unchanged and is
+recorded above. And nothing has checked that the bucket where a player's accuracy is worst is the
+bucket where their calibration is worst — those are different quantities, and the bridge assumes a
+relationship between them that no measurement here supports. Every registration states the condition
+that would refute it, which is the mechanism by which a real record would eventually say so.

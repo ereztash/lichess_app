@@ -1,0 +1,11 @@
+# Decision Lab. A decision record, not a content site.
+#
+# There was no robots.txt at all, and vercel.json rewrites every unmatched path to index.html --
+# so /robots.txt answered 200 with the SPA's HTML, and a crawler read three lines of markup as
+# three malformed directives. A file that parses as nothing is worse than none: an absent file
+# already means "no rules", while a broken one is a rule nobody can read.
+#
+# No Sitemap line: there is no sitemap. Pointing at one that 404s would be the same defect in a
+# different place.
+User-agent: *
+Allow: /

@@ -22,6 +22,7 @@ import {
   worstBucketVerdict,
   type ImportDiagnostic as Diagnostic,
 } from "@shared/import-diagnostic";
+import type { ReactNode } from "react";
 import { NotMeasured, Proportion } from "./Value";
 
 /** Why a bucket shows no rate. Two kinds, and only one of them is a wait. */
@@ -88,7 +89,21 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
   );
 }
 
-export function ImportDiagnosticPanel({ diagnostic }: { diagnostic: Diagnostic }) {
+export function ImportDiagnosticPanel({
+  diagnostic,
+  bridge,
+}: {
+  diagnostic: Diagnostic;
+  /**
+   * The registration offer, passed in rather than constructed here.
+   *
+   * This panel is pure: given a diagnostic it renders the same thing every time, and its tests
+   * mount it with no providers at all. `PreregisterBridge` needs the record -- a tRPC context or
+   * the local store -- and building it inside would have made every test of this table depend on
+   * a provider it has nothing to do with. The slot keeps the placement without the coupling.
+   */
+  bridge?: ReactNode;
+}) {
   return (
     <section className="import-diagnostic">
       <h4 className="dash-title">מה שנמדד במשחקים שייבאתם</h4>
@@ -143,6 +158,12 @@ export function ImportDiagnosticPanel({ diagnostic }: { diagnostic: Diagnostic }
       )}
 
       <Observation diagnostic={diagnostic} />
+
+      {/*
+        * The one action this screen offers, and the reason it is no longer terminal. See
+        * PreregisterBridge for what it may and may not claim.
+        */}
+      {bridge}
 
       <p className="review-caveat">
         זהו דיוק מהלכים מול המנוע, ולא פער כיול. פער כיול דורש ביטחון שהצהרתם <em>לפני</em> שהמנוע

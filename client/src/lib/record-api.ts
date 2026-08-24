@@ -20,6 +20,7 @@ import {
 } from "@/lib/local-record-store";
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
+import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
 import type {
   LearningRuleDraft,
@@ -32,6 +33,7 @@ const LOCAL_KEYS = {
   claim: ["local-record", "claim"] as const,
   reading: ["local-record", "reading"] as const,
   learningRules: ["local-record", "learning-rules"] as const,
+  hypothesis: ["local-record", "hypothesis"] as const,
 };
 
 /**
@@ -234,6 +236,33 @@ export function useRetireLearningRule() {
 
 /** Only what the callers read. Exposing the query object would drag in two error types. */
 export type CountView = { data: { decisions: number } | undefined; refetch: () => void };
+
+/**
+ * Register the bucket an import named, before the live loop records anything (shared/prereg.ts).
+ *
+ * `decisions_before` is NOT sent. The service reads it from the store, because a caller that
+ * could choose the boundary could choose zero and have the hypothesis tested on the very
+ * decisions that suggested it. Same rule on both paths, which is the point of routing the local
+ * store through the same service function the server calls.
+ */
+export function useRegisterHypothesis() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const server = trpc.record.registerHypothesis.useMutation();
+  return {
+    mutateAsync: async (input: Omit<PreregisteredHypothesis, "decisions_before">) => {
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.registerHypothesis(store, input);
+      // The claim view changes shape once a hypothesis exists -- it narrows the search -- so the
+      // cached answer from before the import is now the wrong answer, not a stale one.
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.hypothesis });
+      return out;
+    },
+  };
+}
 
 export function useDecisionCount(): CountView {
   const { local } = useRecordMode();

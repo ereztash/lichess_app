@@ -886,6 +886,14 @@ button:not(:disabled) {
   font: 8px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
+/*
+ * The rank rows generate no boxes, so the 64 squares stay direct children of the eight-column
+ * grid and the layout is byte-for-byte what it was. The rows exist for `role="row"`, which
+ * `role="grid"` requires between itself and its cells.
+ */
+.board-row {
+  display: contents;
+}
 .board-grid {
   aspect-ratio: 1;
   display: grid;
@@ -1531,8 +1539,20 @@ button:not(:disabled) {
   border-radius: 9px;
   border: 1px dashed var(--hairline-strong);
 }
+/*
+ * The placeholder before a move is chosen.
+ *
+ * This was `opacity: 0.5`, which is not a colour -- it composites the ink INTO the surface, and
+ * the result is whatever the two happen to average to. Measured: #e7e3d8 at 0.5 over #1b2124
+ * lands on #81827e, 4.21:1, under the 4.5:1 that WCAG 1.4.3 asks of body text. The light theme
+ * was worse at 3.13:1, and no automated run had caught that one because the audit ran in dark.
+ *
+ * `--muted` is a declared colour rather than an averaged one: 6.60:1 dark, 5.98:1 light. The
+ * italic and the dashed border already carry "not chosen yet"; the contrast was never doing that
+ * work, it was only making the text harder to read.
+ */
 .commitment-move.unset {
-  opacity: 0.5;
+  color: var(--muted);
   font-style: italic;
 }
 .commitment-move.set {
@@ -1624,6 +1644,37 @@ button:not(:disabled) {
  * offers and how much the player has written, so any fix that works by keeping it small is one
  * option away from breaking again. The button already names what is missing and scrolls to it
  * when clicked, so pinned to the bottom it doubles as a permanent status line.
+ */
+/*
+ * A KNOWN, UNRESOLVED CONFLICT between two measured requirements. Read before changing it.
+ *
+ * axe reports target-size on the last read chip: at 1350x940 this button, pinned to the page
+ * viewport, covers 40px of a 44px control and leaves 4.4px of clickable space where WCAG 2.5.8
+ * asks for 24px.
+ *
+ * It is a WIDE-LAYOUT finding, and that was measured rather than assumed: the same build audited
+ * at 412x823 passes target-size with zero nodes. On a phone the panel is a single column and the
+ * chips do not sit under the pinned button. So the control this covers is covered only on the
+ * layout where a pointer is most precise, which is the least bad place for it to happen -- not a
+ * reason to leave it, but the reason it is not urgent.
+ *
+ * Removing the sticky was tried and is worse. tests/client/ux-contract.test.ts holds the other
+ * side, measured on a shipped build: without it the submit sat at y=1302 on a 390x844 phone,
+ * below the fold, and a player who had chosen a move could not tell a button existed. Measured
+ * again during this work: y=1750.
+ *
+ * Capping the card and scrolling the fields inside it was also tried. It clears axe, but on a
+ * phone the card STARTS below the board, so a capped card still ends off-screen -- the submit
+ * measured y=921 in an 844 viewport. It trades a covered control for an invisible one.
+ *
+ * Nothing pinned to a viewport can avoid covering what sits at that viewport's edge, and this
+ * form is taller than the viewport on every size measured. So the overlap stands, with one thing
+ * that keeps it from being a trap: the button moves relative to the content as the page scrolls,
+ * so any chip it covers is uncovered a little further up or down. It is a control that is
+ * awkward at one scroll position, not one that cannot be reached.
+ *
+ * The real fix is a shorter form or a layout where the panel owns its own scrollport with the
+ * board beside it rather than above it. Both are larger than an audit fix.
  */
 .commitment-submit {
   position: sticky;

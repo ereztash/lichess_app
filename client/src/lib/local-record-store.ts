@@ -13,6 +13,7 @@
  * The record holds a player's reasoning in their own words. Here it does not merely stay inside
  * the deployment -- it never leaves the machine.
  */
+import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
 import type {
@@ -39,6 +40,8 @@ type Persisted = {
   learningRules: Record<string, LearningRule>;
   learningTransfers: Record<string, LearningTransfer>;
   learningTransferResults: LearningTransferResult[];
+  /** Append-only, newest last. See shared/prereg.ts. */
+  preregs: PreregisteredHypothesis[];
 };
 
 const empty = (): Persisted => ({
@@ -51,6 +54,7 @@ const empty = (): Persisted => ({
   learningRules: {},
   learningTransfers: {},
   learningTransferResults: [],
+  preregs: [],
 });
 
 /**
@@ -285,6 +289,23 @@ export class LocalRecordStore implements RecordStore {
     return read()
       .learningTransferResults.filter((result) => result.rule_id === ruleId)
       .map((result) => structuredClone(result));
+  }
+
+  /*
+   * The bridge from an import to the live loop, kept in the same store as the decisions it will
+   * narrow the search over. A hypothesis registered in one browser is not portable, which is the
+   * same limit the record itself has -- see the durability note at the top of this file.
+   */
+  async savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void> {
+    const state = read();
+    state.preregs = [...state.preregs, structuredClone(hypothesis)];
+    write(state);
+  }
+
+  async getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null> {
+    const rows = read().preregs;
+    const newest = rows[rows.length - 1];
+    return newest ? structuredClone(newest) : null;
   }
 }
 

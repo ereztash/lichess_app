@@ -67,8 +67,21 @@ export function ChessBoard({
   return (
     <div className="board-stage" aria-label="לוח שחמט אינטראקטיבי">
       <div className="board-grid" role="grid" aria-label="לוח שחמט" dir="ltr">
-        {displayRanks.flatMap((rank, row) =>
-          displayFiles.map((file, col) => {
+        {/*
+          * One `role="row"` per rank.
+          *
+          * `role="grid"` requires rows between it and its cells; 64 gridcells hanging directly
+          * off the grid is what axe reports as aria-required-children on the grid and
+          * aria-required-parent on every square. A screen reader in grid mode navigates by row,
+          * so without them there is nothing to navigate.
+          *
+          * `display: contents` keeps the eight-column CSS grid exactly as it was -- the row
+          * elements generate no boxes, so the squares remain direct grid items. The role
+          * survives it: axe reads these rows in Chromium, which is the browser the audit runs.
+          */}
+        {displayRanks.map((rank, row) => (
+          <div className="board-row" role="row" key={rank}>
+            {displayFiles.map((file, col) => {
             const square = `${file}${rank}`;
             const piece = getPiece(square);
             const dark = (files.indexOf(file) + rank) % 2 === 0;
@@ -93,8 +106,30 @@ export function ChessBoard({
                   if (from) onMove(from, square);
                 }}
               >
-                {col === 0 && <span className="rank-label">{rank}</span>}
-                {row === 7 && <span className="file-label">{file}</span>}
+                {/*
+                  * FILE BEFORE RANK, and the order is the whole point.
+                  *
+                  * Both labels are `position: absolute`, so DOM order costs nothing visually --
+                  * the rank still paints top-left and the file bottom-right. But a1 is the one
+                  * square that carries both, and with rank first its visible text read "1a"
+                  * while its name read "a1". axe reports that as label-content-name-mismatch,
+                  * and it is a real failure: someone driving the board by voice says what they
+                  * see. Now the text reads "a1" too.
+                  *
+                  * `aria-hidden` because the name already says the square. It does NOT fix the
+                  * mismatch -- axe measures text visible to the eye, which aria-hidden content
+                  * still is -- the ordering does.
+                  */}
+                {row === 7 && (
+                  <span className="file-label" aria-hidden="true">
+                    {file}
+                  </span>
+                )}
+                {col === 0 && (
+                  <span className="rank-label" aria-hidden="true">
+                    {rank}
+                  </span>
+                )}
                 {piece && (
                   <span className={`piece piece-${piece.color}`}>
                     {PIECES[piece.color][piece.type]}
@@ -103,9 +138,10 @@ export function ChessBoard({
                 {isTarget && <span className="legal-dot" aria-hidden="true" />}
                 {isChosenTo && <span className="chosen-marker" aria-hidden="true" />}
               </button>
-            );
-          }),
-        )}
+              );
+            })}
+          </div>
+        ))}
         {arrowStart && arrowEnd && (
           <svg className="board-vectors" viewBox="0 0 100 100" aria-hidden="true">
             <defs>

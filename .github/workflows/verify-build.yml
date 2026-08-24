@@ -12,6 +12,32 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    # A REAL DATABASE, because the record layer's own tests cannot prove it works without one.
+    #
+    # `tests/server/drizzle-store.test.ts` skips when DATABASE_URL is unset, and for most of this
+    # project's life that was every run anywhere -- DrizzleRecordStore had never executed a
+    # statement. Running it locally once proved the class works; it does not stop the next change
+    # from breaking it. That is the same shape as Layer C, whose unit tests passed for months
+    # while no router imported it.
+    #
+    # MySQL 8 rather than MariaDB: the deployment target is MySQL, and the point of this service
+    # is to be the thing the code will actually meet. The local run that first exercised this used
+    # MariaDB 10.11, so the two together also say the store is not depending on either one.
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: decision_lab
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +47,18 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Typecheck
         run: npm run check
+      # Schema from the generated SQL, not from a hand-written file that can drift from schema.ts.
+      # `--> statement-breakpoint` is drizzle-kit's separator and is not SQL.
+      - name: Build the database schema
+        run: |
+          sed 's/--> statement-breakpoint//' drizzle/migrations/0000_*.sql \
+            | mysql -h 127.0.0.1 -P 3306 -u root decision_lab
       - name: Test
+        # With DATABASE_URL set, the database suite RUNS instead of skipping. If the service is
+        # missing or the schema failed to load, those tests fail rather than quietly skipping --
+        # a suite that passes because it did not run is the exact R2 failure this repo is about.
+        env:
+          DATABASE_URL: mysql://root@127.0.0.1:3306/decision_lab
         run: npm test
       - name: Gates
         run: npm run gates

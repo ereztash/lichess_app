@@ -8,6 +8,7 @@
  * carrying either side's dependencies. Types only: no runtime imports beyond other shared types.
  */
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
+import type { PreregisteredHypothesis } from "./prereg.js";
 import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
 import type { LearningRule, LearningTransfer, LearningTransferResult } from "./learning-record.js";
 import type { Phase } from "./phase.js";
@@ -63,6 +64,15 @@ export interface RecordStore {
   getLearningTransfer(transferId: string): Promise<LearningTransfer | null>;
   saveLearningTransferResult(result: LearningTransferResult): Promise<void>;
   listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]>;
+
+  // --- The import -> live-loop bridge (shared/prereg.ts) --------------------------------
+  /**
+   * Store a bucket named in advance. Append-only: a new import registers a NEW hypothesis rather
+   * than editing the old one, so what was believed and when stays auditable.
+   */
+  savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void>;
+  /** The newest registered hypothesis, or null when the record has never had one. */
+  getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null>;
 
   /**
    * Can this store actually hold a decision right now?
