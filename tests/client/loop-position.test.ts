@@ -6,7 +6,14 @@
  * decisions" -- those are different answers and section 4.5 is about exactly that difference.
  */
 import { describe, expect, it } from "vitest";
-import { LOOP_STEPS, loopPosition, stepStates, type LoopInputs } from "@/lib/loop-position";
+import {
+  LOOP_STEPS,
+  loopPosition,
+  remainingBeforeClaim,
+  stepStates,
+  type LoopInputs,
+} from "@/lib/loop-position";
+import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
 
 const inputs = (overrides: Partial<LoopInputs> = {}): LoopInputs => ({
   drill: null,
@@ -14,6 +21,7 @@ const inputs = (overrides: Partial<LoopInputs> = {}): LoopInputs => ({
   scored: 0,
   claimGrade: null,
   scoredStillNeeded: 60,
+  narrowedTo: null,
   ...overrides,
 });
 
@@ -120,5 +128,83 @@ describe("the rail draws the whole loop", () => {
   it("marks everything before the live step as done and everything after as ahead", () => {
     const states = stepStates("drill");
     expect(states.map((s) => s.state)).toEqual(["done", "done", "live", "ahead"]);
+  });
+});
+
+describe("the wait names the shortcut that shortens it", () => {
+  /*
+   * THE FUNNEL BREAK THIS CLOSES.
+   *
+   * The strip announced "another 60 revealed decisions" and the import that cuts that floor to 40
+   * sat in the tool rail with nothing anywhere connecting the two. The measurement that justifies
+   * the shortcut had been built and shipped; the sentence that tells anyone it exists had not.
+   */
+  it("offers the import while the ordinary scan is what is waiting", () => {
+    const { headline } = loopPosition(inputs({ scoredStillNeeded: 47, scored: 13, recorded: 13 }));
+    expect(headline).toContain("47");
+    expect(headline, "nothing points at the import at the moment the wait is announced").toContain(
+      "ייבוא",
+    );
+  });
+
+  it("offers it as a CONDITION, never as a promise", () => {
+    /*
+     * An import narrows the search only when one of its buckets separates from the next by two
+     * standard errors, and most will not. "can shorten, if" is what shared/prereg.ts does. A
+     * sentence promising the outcome would be the product claiming to know what a scan will find
+     * before it runs it.
+     */
+    const { headline } = loopPosition(inputs({ scoredStillNeeded: 47 }));
+    expect(headline).toMatch(/יכול לקצר/);
+    expect(headline).toMatch(/אם יימצא/);
+    expect(headline).not.toMatch(/יקצר את זה\.|יוריד ל-40/);
+  });
+
+  it("stops offering it once a hypothesis is already narrowing the search", () => {
+    // The offer is only honest while there is nothing registered. Repeating it afterwards would
+    // ask the player to solve a problem they already solved.
+    const { headline } = loopPosition(
+      inputs({ scoredStillNeeded: 12, narrowedTo: "החלטות בסיום" }),
+    );
+    expect(headline).not.toContain("ייבוא משחקים");
+    // And it says WHICH decisions count, because a narrowed wait is measured from the import on.
+    expect(headline).toContain("אחרי הייבוא");
+    expect(headline).toContain("החלטות בסיום");
+  });
+});
+
+describe("the distance is measured against the search that is running", () => {
+  /*
+   * A DEFECT INTRODUCED BY THE BRIDGE ITSELF, and caught by re-reading it rather than by a test.
+   *
+   * `currentClaim` was taught to narrow the search — one bucket, floor 20*2, counted from the
+   * import onward — and the strip that reports the distance was not. It went on subtracting the
+   * whole record from 30*2, so it would have announced a 60-decision wait while the detector ran
+   * a 40-decision one over a different set of decisions. Two surfaces disagreeing about the same
+   * record is the failure this codebase spends its gates on.
+   */
+  it("uses the ordinary floor and the whole record when nothing is narrowing", () => {
+    expect(remainingBeforeClaim({ scored: 10, preregScored: null, unreadable: false })).toBe(
+      MIN_BUCKET_N * 2 - 10,
+    );
+  });
+
+  it("uses the NARROWED floor and the post-import count when a hypothesis is narrowing", () => {
+    // Both halves change together. Taking the narrowed floor while still counting the whole
+    // record would understate the wait; the opposite would overstate it.
+    expect(remainingBeforeClaim({ scored: 55, preregScored: 6, unreadable: false })).toBe(
+      PREREGISTERED_THRESHOLDS.minBucketN * 2 - 6,
+    );
+  });
+
+  it("never reports a negative distance", () => {
+    expect(remainingBeforeClaim({ scored: 500, preregScored: null, unreadable: false })).toBe(0);
+    expect(remainingBeforeClaim({ scored: 0, preregScored: 500, unreadable: false })).toBe(0);
+  });
+
+  it("reports UNKNOWN rather than zero when the record could not be read", () => {
+    // Zero would render as "the floor is met and nothing cleared the threshold", which is a
+    // finding. An unreadable record has produced no finding at all (R2).
+    expect(remainingBeforeClaim({ scored: 10, preregScored: null, unreadable: true })).toBeNull();
   });
 });

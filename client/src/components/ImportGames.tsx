@@ -6,6 +6,7 @@ import { runImportDiagnostic, type ImportRunProgress } from "@/lib/import-run";
 import { ImportDiagnosticPanel } from "./ImportDiagnostic";
 import { PreregisterBridge } from "./PreregisterBridge";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
+import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
 import { readableFailureText } from "@/lib/commit-error";
 
 type Props = {
@@ -122,9 +123,36 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
       {failure && <p className="import-failure">{failure}</p>}
 
       {games && !progress && !diagnostic && (
-        <button className="import-scan" onClick={() => void scan()}>
-          נתחו את {games.length} המשחקים ומדדו את הדליים
-        </button>
+        <>
+          {/*
+            * WHAT IT COSTS AND WHAT IT BUYS, BEFORE THE BUTTON.
+            *
+            * Both facts existed and both arrived too late to inform the decision: the duration
+            * note rendered only inside the progress block -- after the wait had already started --
+            * and what a scan buys was never stated here at all, only on the diagnostic screen at
+            * the end. Someone deciding whether to spend the time had neither number.
+            *
+            * The duration is the one measurement in docs/MEASUREMENTS.md, quoted rather than
+            * extrapolated into a per-game estimate for THIS run: 971 positions in 43.4 seconds on
+            * one laptop. A phone is slower and by how much is not measured, so it says that
+            * instead of guessing a multiplier.
+            *
+            * The benefit is stated as a condition. An import narrows the live search only when one
+            * of its buckets separates from the next by two standard errors, and most will not.
+            */}
+          <p className="import-cost">
+            הסריקה מריצה מנוע על כל עמדה בכל משחק. במדידה על מחשב נייד: 971 עמדות ב-43 שניות. בטלפון
+            זה איטי יותר, ולא נמדד כמה. אפשר לעצור באמצע.
+          </p>
+          <p className="import-buys">
+            מה זה קונה: אם יימצא דלי אחד שנבדל מהשאר, אפשר לרשום אותו מראש — ואז הגלאי בודק אותו
+            לבדו במקום שישה דליים, וצריך {PREREGISTERED_THRESHOLDS.minBucketN * 2} החלטות חשופות
+            במקום {MIN_BUCKET_N * 2}. אם שום דלי לא נבדל, נשארת עם קריאה על המשחקים שלך ובלי קיצור.
+          </p>
+          <button className="import-scan" onClick={() => void scan()}>
+            נתחו את {games.length} המשחקים ומדדו את הדליים
+          </button>
+        </>
       )}
 
       {progress && (

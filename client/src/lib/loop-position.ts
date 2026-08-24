@@ -1,3 +1,4 @@
+import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
 /**
  * Where you are in the loop, and the one thing that moves you along it.
  *
@@ -43,8 +44,20 @@ export interface LoopInputs {
   /**
    * Revealed decisions still needed before a claim is possible, or null when the record layer
    * could not be read. Zero means the floor is met and no pattern cleared the threshold.
+   *
+   * Under a narrowed search this must be counted from the REGISTRATION, against the narrowed
+   * floor -- see `narrowedTo`. The caller computes it because only the caller knows which search
+   * is running.
    */
   scoredStillNeeded: number | null;
+  /**
+   * The bucket a registered hypothesis narrowed the search to, or null for the ordinary scan.
+   *
+   * Present changes what the wait MEANS, not just its size: it is counted from the import
+   * onward and it is about one named bucket. Absent means an import has not narrowed anything,
+   * and that is the only state where offering one is honest.
+   */
+  narrowedTo: string | null;
 }
 
 export interface LoopPosition {
@@ -62,8 +75,36 @@ export interface LoopPosition {
  * progress outranks everything, because it is the only evidence that postdates a claim and the
  * only thing that can change a grade.
  */
+/**
+ * How many revealed decisions are still needed, measured against the search that is ACTUALLY
+ * running.
+ *
+ * This lived inline in LoopStrip as `MIN_BUCKET_N * 2 - scored`, and that is wrong in two ways at
+ * once once a registered hypothesis narrows the search: the floor is PREREGISTERED_MIN_BUCKET_N*2
+ * rather than MIN_BUCKET_N*2, and the count is decisions recorded AFTER the import rather than the
+ * whole record. The strip would have announced a 60-decision wait while `currentClaim` ran a
+ * 40-decision one over a different set -- the screen contradicting the engine behind it, which is
+ * the failure this codebase spends its gates on.
+ *
+ * `preregScored` is null exactly when the ordinary scan is running, and that is what selects the
+ * pair. Both numbers must come from the same side of the boundary or the subtraction is meaningless.
+ */
+export function remainingBeforeClaim(input: {
+  /** Whole-record revealed decisions. */
+  scored: number;
+  /** Revealed decisions recorded after the registration, or null when not narrowing. */
+  preregScored: number | null;
+  /** The record could not be read. Distance is unknown, not zero. */
+  unreadable: boolean;
+}): number | null {
+  if (input.unreadable) return null;
+  return input.preregScored !== null
+    ? Math.max(0, PREREGISTERED_THRESHOLDS.minBucketN * 2 - input.preregScored)
+    : Math.max(0, MIN_BUCKET_N * 2 - input.scored);
+}
+
 export function loopPosition(inputs: LoopInputs): LoopPosition {
-  const { drill, recorded, scored, claimGrade, scoredStillNeeded } = inputs;
+  const { drill, recorded, scored, claimGrade, scoredStillNeeded, narrowedTo } = inputs;
   const awaiting = Math.max(0, recorded - scored);
 
   if (drill) {
@@ -107,12 +148,38 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   }
 
   if (scoredStillNeeded > 0) {
+    const waiting = awaiting > 0 ? ` ${awaiting} כבר רשומות וממתינות לחשיפה.` : "";
+
+    if (narrowedTo) {
+      /*
+       * A narrowed search is a DIFFERENT wait, not a shorter number in the same sentence: it is
+       * counted from the import onward and it is about one bucket. Saying "another 12 decisions"
+       * without saying which 12 count would leave the player measuring against the whole record.
+       */
+      return {
+        step: "record",
+        headline: `עוד ${scoredStillNeeded} החלטות חשופות שנרשמו אחרי הייבוא, בדלי אחד — ${narrowedTo}.${waiting}`,
+        basis: `${scored} חשופות ברשומה · החיפוש מצומצם`,
+      };
+    }
+
+    /*
+     * THE SHORTCUT, NAMED WHERE THE WAIT IS ANNOUNCED.
+     *
+     * The import can cut this floor from 60 to 40 by naming a bucket in advance, and until this
+     * line existed nothing anywhere connected the two: the strip announced a 60-decision wait and
+     * the button that shortens it sat in the tool rail with no reason to press it.
+     *
+     * Stated as a CONDITION, not a promise. An import only narrows anything when one of its
+     * buckets is separable from the next by two standard errors, and most will not be. "can
+     * shorten, if" is what shared/prereg.ts actually does; "will shorten" would be the product
+     * promising an outcome it cannot know before the scan runs.
+     */
     return {
       step: "record",
       headline:
-        awaiting > 0
-          ? `עוד ${scoredStillNeeded} החלטות חשופות עד שאפשר לומר משהו. ${awaiting} כבר רשומות וממתינות לחשיפה.`
-          : `עוד ${scoredStillNeeded} החלטות חשופות עד שאפשר לומר משהו.`,
+        `עוד ${scoredStillNeeded} החלטות חשופות עד שאפשר לומר משהו.${waiting} ` +
+        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם דלי אחד שנבדל מהשאר.`,
       basis: `${scored} חשופות מתוך ${recorded} רשומות`,
     };
   }

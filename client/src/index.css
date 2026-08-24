@@ -726,11 +726,28 @@ button:not(:disabled) {
   transform-origin: right center;
   transition: transform 120ms linear;
 }
-.import-progress-note {
+/*
+ * MEASURED, and it was failing. This was `rgba(var(--ink-rgb), 0.6)`, which is the same defect
+ * the audit fixed on `.commitment-move.unset`: an alpha is not a colour, it composites into
+ * whatever sits behind it. Measured light theme #717670 over #f7f3e9 = 4.19:1, under the 4.5:1
+ * WCAG 1.4.3 asks of normal text. Dark passes at 5.41:1, which is why the Lighthouse run never
+ * saw it -- that audit ran in dark.
+ *
+ * `--muted` is declared rather than averaged: 5.98:1 light, 6.60:1 dark.
+ *
+ * The three notes share a rule because they are the same thing -- a small aside under a control --
+ * and one of them drifting to a different colour is how the first defect got in.
+ */
+.import-progress-note,
+.import-cost,
+.import-buys {
   margin-top: 6px;
   font-size: 10px;
   line-height: 1.4;
-  color: rgba(var(--ink-rgb), 0.6);
+  color: var(--muted);
+}
+.import-buys {
+  margin-bottom: 8px;
 }
 
 .import-search:disabled {

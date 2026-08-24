@@ -595,3 +595,67 @@ recorded above. And nothing has checked that the bucket where a player's accurac
 bucket where their calibration is worst — those are different quantities, and the bridge assumes a
 relationship between them that no measurement here supports. Every registration states the condition
 that would refute it, which is the mechanism by which a real record would eventually say so.
+
+## The funnel, measured by driving the built app
+
+The three fixes below came from running the shipped bundle in a browser and counting, not from
+reading the source. What was measured, on the build at the time:
+
+- **6 interactions from a cold open to a recorded decision** on a 390x844 phone: two board taps,
+  one read chip, one unknown chip, one confidence, one submit. No account, no sign-in, and the
+  screen says so. Nothing about the activation path needed fixing.
+- **The loop strip opened on "another 60 revealed decisions"** and the import that cuts that floor
+  to 40 sat in the tool rail with nothing anywhere connecting the two.
+- **The page is 2104px on a phone**, 2.5x the viewport.
+- **The deployment is behind Vercel SSO** (`ssoProtection: enabled, all_except_custom_domains`),
+  so the first stage of any funnel is closed to everyone outside the Vercel team. Unchanged: that
+  is the owner's decision, not a defect.
+
+### One proposed fix was refuted by the repository
+
+The first reveal after a player's first-ever decision leads with the heading "what cannot be
+inferred from this". That reads as a disclaimer at the moment of first success, and the proposal
+was to reorder it.
+
+`tests/client/reveal-order.test.tsx` already forbids exactly that, and says why: section 4.2's
+ordering is load-bearing, and **the spec names inverting it as the single most likely thing to do
+quietly while making the screen look better.** Six assertions pin the order. The observation may
+still be right; the remedy is prohibited, for a reason written down before it was proposed. Not
+built.
+
+### What was built
+
+- **The wait names the shortcut.** The strip now says an import *can* shorten the wait, *if* one of
+  its buckets separates from the next. Stated as a condition because most imports will not produce
+  one, and the offer disappears once a hypothesis is registered -- repeating it would ask the
+  player to solve a problem they already solved.
+- **The scan states its cost and its payoff before the button.** Both facts existed and both
+  arrived too late to inform the decision: the duration rendered only inside the progress block,
+  after the wait had started, and what a scan buys was never on that screen at all. The duration is
+  quoted from the one measurement here (971 positions, 43 seconds, one laptop) rather than
+  extrapolated per game, and it says the phone is unmeasured instead of inventing a multiplier.
+  Both floors come from the constants, so the sentence cannot drift from the detector.
+
+### A defect the bridge introduced, found by re-reading it
+
+`currentClaim` was taught to narrow the search -- one bucket, floor 20x2, counted from the import
+onward -- and the strip that reports the distance was not. It went on subtracting the whole record
+from 30x2, so it would have announced a 60-decision wait while the detector ran a 40-decision one
+over a different set of decisions. Two surfaces disagreeing about the same record.
+
+`ClaimView` now carries `preregScored`, and the arithmetic moved next to the thresholds it uses
+(`remainingBeforeClaim`). Both halves change together: taking the narrowed floor while still
+counting the whole record would understate the wait, and the opposite would overstate it.
+
+### A second contrast defect, in the same class as the audit's
+
+`.import-progress-note` was `rgba(var(--ink-rgb), 0.6)` -- the same "an alpha is not a colour"
+pattern the audit fixed on `.commitment-move.unset`. Measured: **light theme #717670 over #f7f3e9,
+4.19:1**, under the 4.5:1 WCAG 1.4.3 asks. Dark passes at 5.41:1, which is why the Lighthouse run
+never reported it -- that audit ran in dark. An automated pass in one theme is not a pass.
+
+Nine positive controls, each confirmed red: the import unnamed in the wait; the offer turned into a
+promise; the offer repeated after registration; the alpha restored on the import notes; the old
+whole-record floor restored; an unreadable record reporting zero instead of unknown; the cost note
+moved below its button; the failure case dropped from the payoff; and the floors hardcoded instead
+of read from the constants.
