@@ -7,6 +7,10 @@
  *
  * This component has three states and no fourth: a claim, an honest silence with a reason, or
  * the record layer being unreachable. There is no state where it invents something to show.
+ *
+ * A fourth thing is DISCLOSED across all of them rather than being a state of its own: whether a
+ * pre-registered bucket narrowed the search. That is a fact about how the answer was reached, and
+ * it applies equally to a claim and to a silence.
  */
 import { FlaskConical, Loader2 } from "lucide-react";
 import { useClaimView } from "@/lib/record-api";
@@ -61,6 +65,23 @@ export function ClaimPanel({
           {data.scored}
         </Value>
       </div>
+
+      {/*
+        * HOW this answer was reached, whenever it was not the ordinary scan.
+        *
+        * A claim found in one bucket named in advance at n = 20 and a claim found by the full
+        * six-bucket scan at n = 30 are not the same kind of finding, and a screen that rendered
+        * them identically would be the product overstating one of them. Shown on both the claim
+        * and the silence, because the narrowing changes what the silence means too: it is a
+        * shorter wait, counted only from the import onward.
+        */}
+      {data.prereg && (
+        <p className="claim-prereg">
+          החיפוש מצומצם ל<strong>{data.prereg.scope}</strong> — הדלי שהמשחקים המיובאים הצביעו עליו,
+          שנרשם לפני שנרשמה כאן החלטה. נבדקות רק החלטות שנרשמו אחרי הרישום. משיישמרו מספיק החלטות
+          לסריקה המלאה, החיפוש חוזר לשישה הדליים והרישום מפסיק לצמצם דבר.
+        </p>
+      )}
 
       {data.claim ? (
         <>

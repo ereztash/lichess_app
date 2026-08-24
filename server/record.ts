@@ -10,7 +10,7 @@
  * stored must never look like one that was.
  */
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import {
   claims,
   decisionFeedback,
@@ -21,12 +21,14 @@ import {
   learningRules,
   learningTransferResults,
   learningTransfers,
+  preregisteredHypotheses,
   type Decision,
   type InsertDecision,
 } from "../drizzle/schema.js";
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
+import type { PreregisteredHypothesis } from "../shared/prereg.js";
 import type {
   LearningRule,
   LearningTransfer,
@@ -182,11 +184,27 @@ export class DrizzleRecordStore implements RecordStore {
     return toAtom(decision, reveal, feedback);
   }
 
+  /**
+   * ORDER BY is not decoration here, and its absence was a real defect.
+   *
+   * `listDecisionIds` promises ids "in the SAME ORDER as listAtoms", and the in-memory store
+   * keeps that promise for free because a Map iterates in insertion order. MySQL promises no
+   * order at all without an ORDER BY, so against a real database these two methods could return
+   * the same rows in different orders and a scored decision would be labelled with another
+   * decision's id. Nothing caught it because nothing had ever run this class against a database.
+   *
+   * `createdAt` first, `decisionId` to break ties: two decisions committed inside the same
+   * second must still come back in one stable order, or the same record reads differently twice.
+   */
   async listAtoms(gameId?: string): Promise<DecisionAtom[]> {
     const db = await this.db();
     const rows = gameId
-      ? await db.select().from(decisions).where(eq(decisions.gameId, gameId))
-      : await db.select().from(decisions);
+      ? await db
+          .select()
+          .from(decisions)
+          .where(eq(decisions.gameId, gameId))
+          .orderBy(decisions.createdAt, decisions.decisionId)
+      : await db.select().from(decisions).orderBy(decisions.createdAt, decisions.decisionId);
     const reveals = await db.select().from(decisionReveals);
     const feedbacks = await db.select().from(decisionFeedback);
     const revealBy = new Map(reveals.map((r) => [r.decisionId, r]));
@@ -196,11 +214,16 @@ export class DrizzleRecordStore implements RecordStore {
     );
   }
 
+  /** Same ordering as `listAtoms`, for the reason stated there. */
   async listDecisionIds(gameId?: string): Promise<string[]> {
     const db = await this.db();
     const rows = gameId
-      ? await db.select().from(decisions).where(eq(decisions.gameId, gameId))
-      : await db.select().from(decisions);
+      ? await db
+          .select()
+          .from(decisions)
+          .where(eq(decisions.gameId, gameId))
+          .orderBy(decisions.createdAt, decisions.decisionId)
+      : await db.select().from(decisions).orderBy(decisions.createdAt, decisions.decisionId);
     return rows.map((row) => row.decisionId);
   }
 
@@ -420,6 +443,59 @@ export class DrizzleRecordStore implements RecordStore {
       completed_at: row.completedAt.toISOString(),
     }));
   }
+
+  /*
+   * Rates are stored as PER-MILLE INTEGERS, not floats.
+   *
+   * A calibration rate is a ratio of small counts, and MySQL's float columns would round it to
+   * something that no longer reproduces the comparison it came from. Three digits is finer than
+   * any n this product will ever have, and an integer round-trips exactly.
+   */
+  async savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void> {
+    const db = await this.db();
+    const registeredAt = new Date(hypothesis.registered_at);
+    await db.insert(preregisteredHypotheses).values({
+      hypothesisId: `prereg-${hypothesis.bucket_key}-${hypothesis.registered_at}`,
+      bucketKey: hypothesis.bucket_key,
+      scope: hypothesis.scope,
+      decisionsBefore: hypothesis.decisions_before,
+      evidenceAccurateRate: Math.round(hypothesis.evidence.accurate_rate * 1000),
+      evidenceN: hypothesis.evidence.n,
+      evidenceRunnerUpKey: hypothesis.evidence.runner_up_key,
+      evidenceSeparation: Math.round(hypothesis.evidence.separation * 1000),
+      evidenceThreshold: Math.round(hypothesis.evidence.threshold * 1000),
+      evidenceGames: hypothesis.evidence.games,
+      refutationCondition: hypothesis.refutation_condition,
+      registeredAt,
+    });
+  }
+
+  async getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(preregisteredHypotheses)
+      .orderBy(desc(preregisteredHypotheses.registeredAt), desc(preregisteredHypotheses.hypothesisId))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      bucket_key: row.bucketKey,
+      scope: row.scope,
+      registered_at: row.registeredAt.toISOString(),
+      decisions_before: row.decisionsBefore,
+      evidence: {
+        accurate_rate: row.evidenceAccurateRate / 1000,
+        n: row.evidenceN,
+        runner_up_key: row.evidenceRunnerUpKey,
+        separation: row.evidenceSeparation / 1000,
+        threshold: row.evidenceThreshold / 1000,
+        games: row.evidenceGames,
+      },
+      refutation_condition: row.refutationCondition,
+    };
+  }
+
 }
 
 function toLearningRule(row: typeof learningRules.$inferSelect): LearningRule {
@@ -440,6 +516,8 @@ function toLearningRule(row: typeof learningRules.$inferSelect): LearningRule {
     created_at: row.createdAt.toISOString(),
     last_evaluated_at: row.lastEvaluatedAt.toISOString(),
   };
+
+
 }
 
 /** In-memory store. Used by tests; never wired into a deployment. */
@@ -451,6 +529,7 @@ export class MemoryRecordStore implements RecordStore {
   private readonly rows = new Map<string, CommitDecisionInput>();
   private readonly reveals = new Map<string, DecisionResult>();
   private readonly feedbacks = new Map<string, FeedbackInput>();
+  private readonly preregRows: PreregisteredHypothesis[] = [];
 
   async commitDecision(input: CommitDecisionInput): Promise<void> {
     if (this.rows.has(input.decisionId)) throw new Error("append-only: decision_id already exists");
@@ -573,6 +652,17 @@ export class MemoryRecordStore implements RecordStore {
     return this.learningTransferResultRows
       .filter((result) => result.rule_id === ruleId)
       .map((result) => structuredClone(result));
+  }
+
+
+  async savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void> {
+    // Append-only, same as the table: the newest wins, the older ones stay readable.
+    this.preregRows.push(structuredClone(hypothesis));
+  }
+
+  async getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null> {
+    const newest = this.preregRows[this.preregRows.length - 1];
+    return newest ? structuredClone(newest) : null;
   }
 
   private assemble(row: CommitDecisionInput): DecisionAtom {

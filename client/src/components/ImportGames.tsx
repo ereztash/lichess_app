@@ -4,6 +4,7 @@ import { fetchUserGames, type ImportedGame } from "@/lib/lichess-public";
 import type { EngineLine } from "@/lib/engine-line";
 import { runImportDiagnostic, type ImportRunProgress } from "@/lib/import-run";
 import { ImportDiagnosticPanel } from "./ImportDiagnostic";
+import { PreregisterBridge } from "./PreregisterBridge";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
 import { readableFailureText } from "@/lib/commit-error";
 
@@ -149,7 +150,12 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
 
       {scanFailure && <p className="import-failure">{scanFailure}</p>}
 
-      {diagnostic && <ImportDiagnosticPanel diagnostic={diagnostic} />}
+      {diagnostic && (
+        <ImportDiagnosticPanel
+          diagnostic={diagnostic}
+          bridge={<PreregisterBridge diagnostic={diagnostic} games={games?.length ?? 0} />}
+        />
+      )}
 
       {games && (
         <ul className="import-list">

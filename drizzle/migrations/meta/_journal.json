@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787561763009,
+      "tag": "0000_cold_titanium_man",
+      "breakpoints": true
+    }
+  ]
+}

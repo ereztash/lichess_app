@@ -202,3 +202,27 @@ export const learningTransferResults = mysqlTable("learning_transfer_results", {
   completedAt: timestamp("completed_at").notNull(),
 });
 export type LearningTransferResultRow = typeof learningTransferResults.$inferSelect;
+
+/**
+ * A bucket the imported games named BEFORE the live loop recorded anything (shared/prereg.ts).
+ *
+ * Append-only like every other table here, and one row is active at a time: the newest by
+ * `registeredAt`. Re-importing writes a new row rather than editing the old one, so the record
+ * keeps what was believed and when, which is the only way a pre-registration can be audited
+ * afterwards instead of taken on trust.
+ */
+export const preregisteredHypotheses = mysqlTable("preregistered_hypotheses", {
+  hypothesisId: varchar("hypothesis_id", { length: 64 }).primaryKey(),
+  bucketKey: varchar("bucket_key", { length: 40 }).notNull(),
+  scope: varchar("scope", { length: 200 }).notNull(),
+  /** Decisions already in the record. Only decisions after this index are ever tested. */
+  decisionsBefore: int("decisions_before").notNull(),
+  evidenceAccurateRate: int("evidence_accurate_rate_permille").notNull(),
+  evidenceN: int("evidence_n").notNull(),
+  evidenceRunnerUpKey: varchar("evidence_runner_up_key", { length: 40 }).notNull(),
+  evidenceSeparation: int("evidence_separation_permille").notNull(),
+  evidenceThreshold: int("evidence_threshold_permille").notNull(),
+  evidenceGames: int("evidence_games").notNull(),
+  refutationCondition: text("refutation_condition").notNull(),
+  registeredAt: timestamp("registered_at").notNull(),
+});

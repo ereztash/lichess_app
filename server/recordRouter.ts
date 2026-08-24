@@ -220,5 +220,32 @@ export function buildRecordRouter(store: RecordStore) {
     claim: protectedProcedure.query((): Promise<service.ClaimView> =>
       guard(() => service.currentClaim(store, { created_at: new Date().toISOString() })),
     ),
+
+    /**
+     * The import -> live-loop bridge (shared/prereg.ts).
+     *
+     * `decisions_before` is absent from the input on purpose, not merely optional: the service
+     * reads it from the store. See registerHypothesis for why a caller must not get to choose it.
+     */
+    registerHypothesis: protectedProcedure
+      .input(
+        z.object({
+          bucket_key: z.string().min(1).max(40),
+          scope: z.string().min(1).max(200),
+          registered_at: z.string().min(1),
+          evidence: z.object({
+            accurate_rate: z.number().min(0).max(1),
+            n: z.number().int().nonnegative(),
+            runner_up_key: z.string().min(1).max(40),
+            separation: z.number(),
+            threshold: z.number(),
+            games: z.number().int().nonnegative(),
+          }),
+          refutation_condition: z.string().min(1),
+        }),
+      )
+      .mutation(({ input }) => guard(() => service.registerHypothesis(store, input))),
+
+    hypothesis: protectedProcedure.query(() => guard(() => store.getPreregisteredHypothesis())),
   });
 }

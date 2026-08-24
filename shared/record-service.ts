@@ -17,8 +17,10 @@ import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
 import {
   ACCURATE_CP_LOSS,
   BUCKETINGS,
+  DEFAULT_THRESHOLDS,
   MIN_BUCKET_N,
   MIN_GAP_DIFFERENCE,
+  PREREGISTERED_THRESHOLDS,
   detect,
   summarise,
 } from "./detector.js";
@@ -47,7 +49,8 @@ import { classifyPhase } from "./phase.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 export type { RecordReading } from "./record-dashboard.js";
-import { scoreDecisions, silenceReason } from "./scoring.js";
+import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
+import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
 
 /**
  * A refusal with a transport-neutral code.
@@ -396,8 +399,17 @@ export type ClaimView = {
   claim: Claim | null;
   othersWithheld: number;
   reason: string | null;
+  /** Always the WHOLE record, even when the claim was searched over a slice of it. */
   recorded: number;
   scored: number;
+  /**
+   * The hypothesis that narrowed this search, or null when the ordinary six-bucket scan ran.
+   *
+   * Non-null is a statement about HOW the answer was reached, and the screen has to say so: a
+   * claim from one pre-named bucket at n = 20 and a claim from the full scan at n = 30 are not
+   * the same kind of finding, and must not render as though they were.
+   */
+  prereg: PreregisteredHypothesis | null;
 };
 
 /**
@@ -413,18 +425,54 @@ export async function currentClaim(
 ): Promise<ClaimView> {
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
-  const summary = scoreDecisions(atoms, ids);
-  const reason = silenceReason(summary, MIN_BUCKET_N * 2);
+  const full = scoreDecisions(atoms, ids);
+
+  /*
+   * THE BRIDGE, AND THE RULE THAT KEEPS IT FROM COMPOUNDING (shared/prereg.ts).
+   *
+   * A registered hypothesis narrows the search to one bucket, which is what makes n = 20 legal
+   * instead of 30. It does that ONLY while the record is still too small for the ordinary
+   * six-bucket scan. The moment there are enough scored decisions for the default thresholds,
+   * the ordinary scan runs over the whole record and the hypothesis stops filtering anything.
+   *
+   * Exactly one search runs at any record size, and that is the point. Running the narrowed
+   * search AND falling back to the wide one would be two chances to clear -- the multiplicity
+   * this whole mechanism exists to avoid -- and their false-positive rates would add. The
+   * measured 1.3% and 0.7% are each for one search, not for a procedure that tries both.
+   *
+   * It also means a hypothesis cannot suppress a finding forever. It shortens the silence and
+   * then gets out of the way.
+   */
+  const hypothesis = await store.getPreregisteredHypothesis();
+  const wideEnough = full.scored.length >= MIN_BUCKET_N * 2;
+  const narrowing =
+    hypothesis && !wideEnough && isTestable(hypothesis, atoms.length) ? hypothesis : null;
+
+  /*
+   * Under the narrowed search, only decisions recorded AFTER registration count. A hypothesis
+   * tested on the decisions that suggested it is not a hypothesis. `listAtoms` and
+   * `listDecisionIds` are ordered and append-only, so the prefix is exactly what existed then.
+   */
+  const summary = narrowing
+    ? scoreDecisions(atoms.slice(narrowing.decisions_before), ids.slice(narrowing.decisions_before))
+    : full;
+  const thresholds = narrowing ? PREREGISTERED_THRESHOLDS : DEFAULT_THRESHOLDS;
+
+  const reason = narrowing
+    ? preregSilenceReason(narrowing, summary)
+    : silenceReason(full, MIN_BUCKET_N * 2);
   if (reason) {
     return {
       claim: null,
       othersWithheld: 0,
       reason,
-      recorded: summary.total,
-      scored: summary.scored.length,
+      recorded: full.total,
+      scored: full.scored.length,
+      prereg: narrowing,
     };
   }
-  const patterns = detect(summary.scored);
+
+  const patterns = detect(summary.scored, thresholds, narrowing?.bucket_key ?? null);
   const selection = selectClaim(patterns, {
     // Stable across queries, so a drill result can attach to the same claim.
     claim_id: patterns.length ? `claim-${patterns[0].key}` : "claim-none",
@@ -439,8 +487,9 @@ export async function currentClaim(
         claim: existing,
         othersWithheld: selection.othersWithheld,
         reason: null,
-        recorded: summary.total,
-        scored: summary.scored.length,
+        recorded: full.total,
+        scored: full.scored.length,
+        prereg: narrowing,
       };
     }
     await store.saveClaim(selection.claim);
@@ -448,12 +497,74 @@ export async function currentClaim(
   return {
     claim: selection?.claim ?? null,
     othersWithheld: selection?.othersWithheld ?? 0,
-    reason: selection
-      ? null
-      : `נבדקו ${summary.scored.length} החלטות חשופות ולא נמצא דפוס שעובר את הסף. זו תשובה תקינה — הסף קיים כדי שלא נדווח על רעש.`,
-    recorded: summary.total,
-    scored: summary.scored.length,
+    reason: selection ? null : emptySearchReason(narrowing, summary),
+    recorded: full.total,
+    scored: full.scored.length,
+    prereg: narrowing,
   };
+}
+
+/**
+ * Register a bucket named by an import, before the live loop tests it.
+ *
+ * THE BOUNDARY IS THE STORE'S COUNT, NEVER THE CALLER'S. `decisions_before` is what makes the
+ * word "pre-registered" true: only decisions after it are ever tested. A caller that could
+ * choose it could choose zero, and then the hypothesis would be tested on the decisions that
+ * suggested it -- which is the one thing this mechanism exists to prevent. So whatever arrives
+ * is discarded and the count is read here.
+ */
+export async function registerHypothesis(
+  store: RecordStore,
+  input: Omit<PreregisteredHypothesis, "decisions_before">,
+): Promise<PreregisteredHypothesis> {
+  if (!isRegistrableBucket(input.bucket_key)) {
+    throw new RecordError(
+      "BAD_REQUEST",
+      `הדלי "${input.bucket_key}" אינו אחד מהדליים שהגלאי החי יודע לבדוק, ולכן אי אפשר לרשום אותו מראש.`,
+    );
+  }
+  const hypothesis: PreregisteredHypothesis = {
+    ...input,
+    decisions_before: await store.countDecisions(),
+  };
+  await store.savePreregisteredHypothesis(hypothesis);
+  return hypothesis;
+}
+
+/**
+ * Why the narrowed search cannot speak yet. A DIFFERENT sentence from the ordinary one, because
+ * it is a different fact: the wait is shorter, it is counted only from the import onward, and it
+ * is about one named bucket rather than about the record in general (section 4.5).
+ */
+function preregSilenceReason(
+  hypothesis: PreregisteredHypothesis,
+  since: ScoringSummary,
+): string | null {
+  const required = PREREGISTERED_THRESHOLDS.minBucketN * 2;
+  if (since.scored.length >= required) return null;
+  const short = required - since.scored.length;
+  const waiting = since.awaitingReveal > 0 ? ` ${since.awaitingReveal} ממתינות לחשיפה.` : "";
+  return (
+    `המשחקים שייבאת הצביעו על ${hypothesis.scope} כמקום לבדוק בו, וזה נרשם מראש — ` +
+    `לפני שהוקלטה החלטה חיה אחת. לכן מספיק לבדוק דלי אחד במקום שישה, ודרושות ${required} ` +
+    `החלטות חשופות במקום ${MIN_BUCKET_N * 2}. מאז הייבוא נחשפו ${since.scored.length}, חסרות ` +
+    `עוד ${short}.${waiting}`
+  );
+}
+
+/** Nothing cleared the threshold. Which search came up empty is part of the answer. */
+function emptySearchReason(
+  hypothesis: PreregisteredHypothesis | null,
+  summary: ScoringSummary,
+): string {
+  if (hypothesis) {
+    return (
+      `נבדקו ${summary.scored.length} החלטות שנרשמו אחרי הייבוא, בדלי ש-${"המשחקים המיובאים"} ` +
+      `הצביעו עליו — ${hypothesis.scope} — ולא נמצא בו פער כיול שעובר את הסף. ` +
+      `זו תשובה תקינה: הייבוא אמר איפה לחפש, לא מה יימצא.`
+    );
+  }
+  return `נבדקו ${summary.scored.length} החלטות חשופות ולא נמצא דפוס שעובר את הסף. זו תשובה תקינה — הסף קיים כדי שלא נדווח על רעש.`;
 }
 
 /**
