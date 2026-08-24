@@ -979,3 +979,61 @@ Six positive controls, each confirmed red: save made a no-op; append replaced by
 service made to honour a caller-supplied `scanned_at`; the provenance line removed; the not-kept
 warning removed; and `ImportGames` reaching the record hook directly again. Two more for the rail:
 back to a fixed column count, and `grid-auto-flow` removed.
+
+## Counting which of its four sentences the product actually produces
+
+`chose-past-it` is the only sentence here no other chess tool can write. Every engine knows the
+best move; none knows it was already on your board, because none makes you commit first. It fires
+on decision one and needs no aggregation. **None of which matters if it fires three times in a
+hundred, and that number has never been measured.**
+
+`OneThingKind` labels the four branches and `oneThingMix` counts them over the record. It calls
+`theOneThing` rather than restating its conditions -- a copy would drift the first time a threshold
+moved, and then the measurement OF the product would disagree with the product, silently, in
+whichever direction flattered the thing edited last.
+
+`reveal.ts` moved from `client/src/lib/` to `shared/`. It had **no imports at all**, so the move
+was mechanical; it is there so `recordReading` can assemble the mix server-side too. The mix is
+assembled in `record-service` and not inside `readRecord`, because it needs fields `ScoredDecision`
+deliberately does not carry -- the moves that were on the board, the chosen move, the engine's move
+and the loss. That separation is the reason the two types exist.
+
+**The ceiling is reported beside the count.** `eligible` counts decisions above the engine noise
+and at or over the material line -- the only ones where "did you see it?" applies at all. Without
+it the first row reads as "how often I see it and choose past it", and it is not that: the record
+holds moves physically put on the board, so a player who calculated four moves and touched one
+leaves a list of length one. **The count is a floor, never an estimate.**
+
+It cannot be taken from the 554 already scanned. An imported PGN carries no record of what was on
+the board before the move, so `candidate_moves_considered` is empty for every imported decision and
+this branch can never fire for one. Asserted.
+
+**A control that went green, and what it found.** The anti-drift assertion compares the counter
+against `theOneThing` over a fixture set. Swapping the counter for a hand-copied branch set with
+the material line moved 20cp **passed** -- every fixture sat 40cp clear of that line, so both
+classified them identically. The fixtures now sit ON the thresholds (100, 101, 110, 119, 30, 31)
+and the control goes red. The test was real; its data could not see the defect it was written for.
+
+### A defect in the product's most reliable output
+
+`theOneThing` returns null on two disjoint bands and the panel printed one sentence for both:
+
+```
+cpLoss <= 30, confidence >= 3      -> inside the noise. The sentence was right.
+31 <= cpLoss <= 99, ANY confidence -> NOT inside the noise, and nothing was measured
+                                      about confidence -- silent at 5/5 as much as 3/5.
+```
+
+The sentence was *"בחרת בתוך רעש ההערכה והביטחון שלך תאם"*. On the whole 31-99 band that states a
+basis the file's own constants contradict, and section 4.5 was broken at the same time: two
+different situations rendering as one sentence. The band was untested -- every fixture in
+`reveal.test.ts` and `reveal-order.test.tsx` sits at 4 or 20 centipawns.
+
+`silenceBasis` splits them. The second sentence names the loss and both thresholds it sits between,
+so the refusal now carries its own basis. **The refusal is this product's most reliable output and
+it was over-claiming about itself**, which is worse than any of the four sentences over-claiming.
+
+Found by an external review pass reading the code, not by a test. Four positive controls, each red:
+the counter's denominator taking unrevealed decisions; silence dropped from the denominator; the
+eligibility ceiling computed without the material line; the branch priority inverted. Plus two for
+the silence split: the single sentence restored, and the basis computed from the wrong threshold.

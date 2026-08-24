@@ -105,7 +105,28 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
   return limits;
 }
 
+/**
+ * Which branch produced the sentence.
+ *
+ * Added so the branches can be COUNTED, not to change what any of them says. The product leads on
+ * the calibration gap, which is weeks away and statistical; `chose-past-it` is the one finding
+ * here that no other chess tool can produce -- it needs R3's silence to exist, because it depends
+ * on knowing what was on the board before the engine spoke -- and it needs no aggregation at all.
+ * Whether it can carry more weight than it does depends entirely on how often it actually fires,
+ * and nobody has ever measured that. `oneThingMix` below is that measurement.
+ */
+export type OneThingKind =
+  /** The engine's move was among the ones the player put on the board, and they played another. */
+  | "chose-past-it"
+  /** Said 4 or 5 out of 5, and the move cost material. */
+  | "confident-and-wrong"
+  /** Cost material, with nothing else the measurement can add. */
+  | "outplayed"
+  /** Chose well inside the noise, and said 1 or 2 out of 5. */
+  | "trusted-it-too-little";
+
 export interface OneThing {
+  kind: OneThingKind;
   text: string;
   /** What measurement produced this sentence. Rendered with it, never without. */
   basis: string;
@@ -134,6 +155,7 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
    */
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && rejectedTheBest) {
     return {
+      kind: "chose-past-it",
       text: `${inputs.bestMove} היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ. ראית את המהלך; מה שהכריע ביניהם הוא מה שכדאי להסתכל עליו, לא הראייה.`,
       basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
@@ -143,24 +165,141 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   // accuracy. It outranks the move itself, because it is a property of the decision policy.
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && inputs.confidence >= 4) {
     return {
+      kind: "confident-and-wrong",
       text: `אמרת ביטחון ${inputs.confidence} מתוך 5, וההחלטה עלתה ${inputs.cpLoss} ס״פ. הפער בין הביטחון לתוצאה הוא מה שכדאי להסתכל עליו, לא המהלך.`,
       basis: `ביטחון ${inputs.confidence}/5 מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
     return {
+      kind: "outplayed",
       text: `המהלך ${inputs.chosenMove} עלה ${inputs.cpLoss} ס״פ מול ${inputs.bestMove}. שווה להבין מה ${inputs.bestMove} רואה שהוא לא.`,
       basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   if (noisy && inputs.confidence <= 2) {
     return {
+      kind: "trusted-it-too-little",
       text: `בחרת נכון בתוך רעש ההערכה, אבל אמרת ביטחון ${inputs.confidence} מתוך 5. ייתכן שאתה יודע כאן יותר ממה שאתה סומך על עצמו.`,
       basis: `ביטחון ${inputs.confidence}/5 מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   // Nothing measured here supports a sentence. Say nothing rather than fill the space.
   return null;
+}
+
+/**
+ * WHY there was nothing to say -- and there are two reasons, not one.
+ *
+ * The defect this exists to fix. `theOneThing` returns null on two disjoint bands, and the panel
+ * printed the SAME sentence for both: *"you chose within the evaluation noise and your confidence
+ * matched"*. That is true on the first band and false on the second. Enumerated:
+ *
+ *     cpLoss <= 30, confidence >= 3   -> inside the noise. The sentence was right.
+ *     31 <= cpLoss <= 99, ANY confidence -> NOT inside the noise, and nothing was asserted about
+ *                                        confidence either -- it is silent at 5/5 as much as 3/5.
+ *
+ * So on the whole 31-99 band the product's most reliable output was stating a basis its own
+ * constants contradict, and section 4.5 was broken at the same time: two different situations
+ * rendering as one sentence. The band was untested; every fixture sat at 4 or 20 centipawns.
+ *
+ * Only meaningful when `theOneThing` returned null. Calling it otherwise asks a question about a
+ * decision that already had an answer.
+ */
+export type SilenceBasis = "inside-noise" | "below-the-line";
+
+export function silenceBasis(inputs: RevealInputs): SilenceBasis {
+  return inputs.cpLoss <= ENGINE_NOISE_CP ? "inside-noise" : "below-the-line";
+}
+
+/**
+ * HOW OFTEN EACH BRANCH ACTUALLY FIRES, over the record.
+ *
+ * WHY THIS EXISTS. `chose-past-it` is the only sentence in this product that no other chess tool
+ * can write. Every engine knows the best move; none knows it was already on your board, because
+ * none of them makes you commit first. It arrives on decision one, it needs no aggregation, and
+ * it separates two failures that look identical everywhere else -- not seeing far enough, versus
+ * seeing and choosing wrong. Those point at different work.
+ *
+ * None of which matters if it fires on three decisions in a hundred. That number has never been
+ * measured, and it cannot be taken from imported games: an imported PGN carries no record of what
+ * was on the board before the move, so `candidate_moves_considered` is empty for every one of
+ * them and this branch can never fire. It needs live decisions, which is what this counts.
+ *
+ * WHAT THIS IS NOT. Not a finding about the player. It is a reading of the instrument -- which of
+ * its four sentences the record actually produces -- and it is reported with its denominator and
+ * below the same floor as everything else here.
+ *
+ * THE DIRECTION OF THE INFERENCE, carried from `candidate_moves_considered`. A move IS in that
+ * list only if it was physically put on the board. A player who weighed four moves in their head
+ * and touched one leaves a list of length one. So `chose-past-it` is a LOWER bound on "saw it and
+ * chose past it", never an estimate, and the same asymmetry it already states per decision.
+ */
+export interface OneThingMix {
+  /** Decisions the engine has answered. Nothing here can be computed before a reveal. */
+  n: number;
+  counts: Record<OneThingKind, number>;
+  /** Decisions where the measurement supported no sentence. A valid outcome, counted as one. */
+  silent: number;
+  /**
+   * Of `n`, how many were even eligible for `chose-past-it` -- above the engine noise and at or
+   * over the material threshold. It is the ceiling that branch could ever reach, and the gap
+   * between it and the branch's own count is the share where the move was NOT on the board.
+   */
+  eligible: number;
+}
+
+/** The atom fields this reads. Kept structural so the record's own type does not leak in here. */
+export interface MixableDecision {
+  confidence: number;
+  candidatesConsidered: string[];
+  chosenMove: string;
+  cpLoss: number | null;
+  bestMove: string | null;
+}
+
+export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
+  const counts: Record<OneThingKind, number> = {
+    "chose-past-it": 0,
+    "confident-and-wrong": 0,
+    outplayed: 0,
+    "trusted-it-too-little": 0,
+  };
+  let n = 0;
+  let silent = 0;
+  let eligible = 0;
+
+  for (const d of decisions) {
+    // No reveal, nothing to classify. R3 again: before the engine answers there is no cp loss.
+    if (d.cpLoss === null || d.bestMove === null) continue;
+    n += 1;
+    if (d.cpLoss > ENGINE_NOISE_CP && d.cpLoss >= MATERIAL_LOSS_CP) eligible += 1;
+    /*
+     * The real function, not a restatement of its conditions.
+     *
+     * Copying the four `if`s into this loop would be the obvious way to write it and would drift
+     * the first time a threshold moves -- and then the product and the measurement OF the product
+     * would disagree about what the product does, which is the worst version of this bug.
+     *
+     * The fields `theOneThing` does not read for its branching are filled with values that cannot
+     * change the outcome; only `statedUnknown` and `decisionsOnRecord` are unused by it, and both
+     * feed other sentences.
+     */
+    const one = theOneThing({
+      depth: 0,
+      cpLoss: d.cpLoss,
+      chosenMove: d.chosenMove,
+      bestMove: d.bestMove,
+      chosenWasBest: d.chosenMove === d.bestMove,
+      confidence: d.confidence,
+      statedUnknown: "",
+      decisionsOnRecord: decisions.length,
+      candidatesConsidered: d.candidatesConsidered,
+    });
+    if (one === null) silent += 1;
+    else counts[one.kind] += 1;
+  }
+  return { n, counts, silent, eligible };
 }
 
 /**

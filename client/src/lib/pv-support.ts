@@ -23,7 +23,7 @@
  *
  * So the two things below are the two that a single search plus one alternative can honestly say.
  */
-import { ENGINE_NOISE_CP } from "@/lib/reveal";
+import { ENGINE_NOISE_CP } from "@shared/reveal";
 
 /** One move of the line, with the depth that stands behind it. */
 export interface PvPly {

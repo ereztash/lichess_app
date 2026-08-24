@@ -18,7 +18,7 @@ import {
   inferenceLimits,
   theOneThing,
   type RevealInputs,
-} from "../../client/src/lib/reveal";
+} from "../../shared/reveal";
 
 const base: RevealInputs = {
   depth: 18,

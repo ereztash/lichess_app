@@ -14,11 +14,14 @@ import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
   BUILD_LIMIT,
+  ENGINE_NOISE_CP,
+  MATERIAL_LOSS_CP,
   inferenceLimits,
   nextQuestion,
+  silenceBasis,
   theOneThing,
   type RevealInputs,
-} from "@/lib/reveal";
+} from "@shared/reveal";
 import type { EngineLine } from "@/lib/engine-line";
 import { NotMeasured, Value } from "./Value";
 
@@ -67,9 +70,26 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
             <p className="one-thing-basis">מבוסס על: {oneThing.basis}</p>
           </>
         ) : (
+          /*
+           * Two reasons for silence, two sentences. The old single sentence claimed "you chose
+           * inside the evaluation noise" on a band where the loss was 31-99cp -- above the noise
+           * by the file's own constant -- and asserted the confidence matched even at 5/5, which
+           * nothing had measured. Section 4.5: distinct states, distinct rendering.
+           */
           <p className="one-thing-none">
-            אין כאן דבר שהמדידה תומכת באמירתו. בחרת בתוך רעש ההערכה והביטחון שלך תאם. זו תוצאה
-            תקינה, לא מסך ריק.
+            {silenceBasis(inputs) === "inside-noise" ? (
+              <>
+                אין כאן דבר שהמדידה תומכת באמירתו. בחרת בתוך רעש ההערכה, והביטחון שלך לא היה נמוך
+                ממנו. זו תוצאה תקינה, לא מסך ריק.
+              </>
+            ) : (
+              <>
+                אין כאן דבר שהמדידה תומכת באמירתו. המהלך עלה {inputs.cpLoss} ס״פ — יותר מרעש
+                ההערכה ({ENGINE_NOISE_CP}) ופחות מהסף שממנו הכלי הזה אומר משהו ({MATERIAL_LOSS_CP}).
+                בטווח הזה החלטה בודדת לא נבדלת מהחלטה מוצלחת, ולכן אין כאן משפט. זו תוצאה תקינה,
+                לא מסך ריק.
+              </>
+            )}
           </p>
         )}
       </section>

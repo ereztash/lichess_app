@@ -87,7 +87,7 @@ import {
   type DraftDecision,
   type SessionStage,
 } from "@/lib/decision-session";
-import type { RevealInputs } from "@/lib/reveal";
+import type { RevealInputs } from "@shared/reveal";
 import {
   commitFailureText,
   readableFailureText,

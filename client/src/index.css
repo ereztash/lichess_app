@@ -498,6 +498,23 @@ button:not(:disabled) {
   line-height: 1.45;
   color: var(--warn);
 }
+/*
+ * The instrument's own reading. Same list mechanics as the buckets above it, because it IS the
+ * same kind of table -- a scope and a proportion per row, each carrying its n.
+ */
+.mix-block {
+  margin-top: 14px;
+}
+.mix-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.mix-note strong {
+  color: var(--ink);
+  font-weight: 700;
+}
 .bucket-absent-note {
   margin: 8px 0 0;
   font-size: 11px;

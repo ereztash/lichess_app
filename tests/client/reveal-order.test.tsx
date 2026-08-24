@@ -7,7 +7,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { RevealPanel } from "@/components/RevealPanel";
-import type { RevealInputs } from "@/lib/reveal";
+import type { RevealInputs } from "@shared/reveal";
 import type { EngineLine } from "@/lib/stockfish";
 
 const FEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4";

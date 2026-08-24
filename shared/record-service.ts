@@ -48,6 +48,7 @@ import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
+import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
@@ -617,5 +618,20 @@ function emptySearchReason(
 export async function recordReading(store: RecordStore): Promise<RecordReading> {
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
-  return readRecord(scoreDecisions(atoms, ids).scored);
+  /*
+   * The branch mix is assembled HERE and not inside `readRecord`, because it needs fields that
+   * `ScoredDecision` deliberately does not carry: the moves that were on the board, the chosen
+   * move, the engine's move and the centipawn loss. `readRecord` sees only what a bucket may look
+   * at, which is the reason the two are separate types in the first place.
+   */
+  const mix = oneThingMix(
+    atoms.map((atom) => ({
+      confidence: atom.bounded_action.confidence,
+      candidatesConsidered: atom.bounded_action.candidate_moves_considered,
+      chosenMove: atom.decision,
+      cpLoss: atom.result?.cp_loss ?? null,
+      bestMove: atom.result?.engine_best_move ?? null,
+    })),
+  );
+  return readRecord(scoreDecisions(atoms, ids).scored, mix);
 }
