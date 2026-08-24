@@ -169,10 +169,10 @@ A position bank drawn from games the player has never seen would remove this. Th
   — see "What stopped being unverified" below — but that run predates everything here. The import
   scan, its progress bar and stop button, and the diagnostic table have never been rendered
   anywhere but a test environment and a headless Chromium measuring CSS boxes.
-- **The record layer against a real database, IN CI.** `DrizzleRecordStore` has now executed
-  statements against MariaDB 10.11 (see "What stopped being unverified"), but that run was local
-  and manual. No CI job starts a database, so `tests/server/drizzle-store.test.ts` skips on every
-  automated run and the class is unguarded against a future change.
+- **The record layer against the database it will actually meet in production.** It is exercised
+  against MariaDB 10.11 locally and MySQL 8 in CI, which is two engines and neither of them a
+  Vercel-hosted managed MySQL. Connection pooling, TLS, and a cold serverless invocation reaching
+  a remote host are all unmeasured; what is measured is that the SQL and the schema are right.
 - **Any drill run by a real player.** The loop is tested over HTTP in both directions with
   synthetic decisions, and driven through a browser as far as the first drill position, but no
   drill has been completed by a person.
@@ -225,6 +225,11 @@ A position bank drawn from games the player has never seen would remove this. Th
   ORDER". The in-memory store keeps that promise for free because a Map iterates in insertion
   order; MySQL promises nothing without an ORDER BY. `scoreDecisions` pairs the two listings by
   index, so a mismatch labels one decision's statistics with another decision's id.
+
+  **It runs in CI too**, against a MySQL 8 service container, with the schema loaded from the
+  generated SQL. The whole suite is 569 tests with a database and 564 without: the difference is
+  the five that used to skip on every automated run. Two engines rather than one also says the
+  store is not quietly depending on either.
 
   **And the first test I wrote for it did not catch that.** It compared the two listings to each
   other, and its positive control came back green: InnoDB happens to return rows in primary-key

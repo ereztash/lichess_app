@@ -46,18 +46,32 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
 }
 
 describeDb("DrizzleRecordStore against MySQL", () => {
+  /**
+   * Clean BEFORE as well as after, so the suite is idempotent.
+   *
+   * Cleaning only afterwards works exactly once: a run that crashes, or a developer re-running
+   * this file locally, meets rows from last time -- and "the newest hypothesis wins" is an
+   * assertion about ordering that a leftover row can flip. A test whose result depends on whether
+   * the previous run finished is not measuring the code.
+   */
+  const wipe = async () => {
+    const { getDb } = await import("../../server/db");
+    const db = await getDb();
+    if (!db) return;
+    await db.execute("DELETE FROM decision_reveals");
+    await db.execute("DELETE FROM decision_feedback");
+    await db.execute("DELETE FROM decisions");
+    await db.execute("DELETE FROM preregistered_hypotheses");
+  };
+
   beforeAll(async () => {
     expect(await store.isAvailable(), "DATABASE_URL is set but the driver did not connect").toBe(
       true,
     );
+    await wipe();
   });
 
-  afterAll(async () => {
-    // Leave the schema, drop the rows: the next run must start from a known state.
-    const { getDb } = await import("../../server/db");
-    const db = await getDb();
-    if (db) await db.execute("DELETE FROM decisions");
-  });
+  afterAll(wipe);
 
   it("writes a decision and reads the same atom back", async () => {
     await store.commitDecision(decision(1));
