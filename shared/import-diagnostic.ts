@@ -32,6 +32,7 @@
  * detector running over the record, and nothing here reaches it.
  */
 import { ACCURATE_CP_LOSS, BUCKETINGS, MIN_BUCKET_N, type BucketableDecision } from "./detector.js";
+import { Chess } from "chess.js";
 import { classifyPhase } from "./phase.js";
 import { clockMsRemainingAt, hasClockData, secondsSpentAt, parseTimeControl } from "./pgn-clock.js";
 
@@ -68,6 +69,33 @@ export interface ImportedDecision extends BucketableDecision {
   standing: Standing;
   /** Lichess's time class for the game this came from: bullet, blitz, rapid, classical. */
   speed: string | null;
+  /**
+   * The position offered exactly one legal move, so the player chose nothing.
+   *
+   * Scored as accurate by every rule in this file -- cpLoss on a move with no alternative is
+   * whatever the engine's line was -- and counting it inflates the rate with something the
+   * player did not do. Excluded from every bucket, and counted so the exclusion is visible.
+   *
+   * THE LIMIT OF THIS, stated because the number it fixes is still wrong: it removes a handful
+   * of moves a game. It does NOT touch opening book or the recaptures that are forced in every
+   * sense except the legal one, which are the bulk of the inflation. See docs/MEASUREMENTS.md.
+   */
+  forced: boolean;
+}
+
+/**
+ * Did the player have a choice at all?
+ *
+ * chess.js rather than the engine: legality is a fact about the position and needs no search.
+ * It is the only part of "was this a decision" that can be answered for free.
+ */
+function onlyLegalMove(fenBefore: string): boolean {
+  try {
+    return new Chess(fenBefore).moves().length === 1;
+  } catch {
+    // A FEN chess.js will not load cannot be shown to have been forced, so it is not claimed to be.
+    return false;
+  }
 }
 
 export interface ImportedBucketReading {
@@ -92,8 +120,15 @@ export interface ImportedBucketReading {
 
 export interface ImportDiagnostic {
   buckets: ImportedBucketReading[];
-  /** Player moves that could be scored at all. The denominator behind the whole table. */
+  /** Player moves that could be scored at all, forced ones included. */
   scored: number;
+  /**
+   * Of those, how many offered exactly one legal move.
+   *
+   * Reported rather than quietly netted off, because excluding them lowers every n and a
+   * reader with no explanation takes a smaller n for "not enough games yet".
+   */
+  forced: number;
   /** True when no imported PGN carried a single clock annotation. */
   missingClockData: boolean;
   /**
@@ -171,6 +206,8 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
      */
     const evalBefore = game.evalScores[ply - 1];
     const facing = isWhiteMove ? evalBefore : -evalBefore;
+    // The position as the player found it is the one BEFORE their move.
+    const fenBefore = game.fens[ply - 1];
 
     out.push({
       ply,
@@ -181,6 +218,7 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
       accurate: cpLoss <= ACCURATE_CP_LOSS,
       standing: standingFrom(facing),
       speed: game.speed ?? null,
+      forced: fenBefore !== undefined && onlyLegalMove(fenBefore),
     });
   }
   return out;
@@ -235,12 +273,19 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
   const { speed: timeBucketSpeed, mix: speedMix } = dominantSpeed(decisions);
 
   /*
+   * Every bucket reads only positions where the player actually chose something. A move with one
+   * legal reply is scored accurate by the rules in this file, and counting it credits the player
+   * for something they did not do.
+   */
+  const chosen = decisions.filter((d) => !d.forced);
+
+  /*
    * The clock-derived buckets read only the dominant time class. Everything else -- the phase
    * buckets, the standing buckets -- reads every game, because neither phase nor the engine's
    * verdict on a position means anything different in blitz than in rapid.
    */
   const sameSpeed = (d: ImportedDecision) => timeBucketSpeed === null || d.speed === timeBucketSpeed;
-  const excludedForSpeed = decisions.filter((d) => !sameSpeed(d)).length;
+  const excludedForSpeed = chosen.filter((d) => !sameSpeed(d)).length;
 
   const buckets: ImportedBucketReading[] = BUCKETINGS.map((bucketing) => {
     /*
@@ -250,7 +295,7 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
      */
     const timeDerived = bucketing.requiresClock === true || usesTime(bucketing.key);
     const unfillable = timeDerived && !anyClock;
-    const pool = timeDerived ? decisions.filter(sameSpeed) : decisions;
+    const pool = timeDerived ? chosen.filter(sameSpeed) : chosen;
     const inside = unfillable ? [] : pool.filter(bucketing.predicate);
     const measurable = !unfillable && inside.length >= MIN_BUCKET_N;
 
@@ -266,7 +311,7 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
 
   /* The position buckets. Appended after the six so the shared table keeps its order. */
   for (const bucketing of IMPORT_BUCKETINGS) {
-    const inside = decisions.filter((d) => d.standing === bucketing.standing);
+    const inside = chosen.filter((d) => d.standing === bucketing.standing);
     const measurable = inside.length >= MIN_BUCKET_N;
     buckets.push({
       key: bucketing.key,
@@ -281,6 +326,7 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
   return {
     buckets,
     scored: decisions.length,
+    forced: decisions.length - chosen.length,
     missingClockData: !anyClock,
     timeBucketSpeed,
     excludedForSpeed,

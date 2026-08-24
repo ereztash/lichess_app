@@ -221,6 +221,7 @@ describe("the lowest number is not automatically a finding", () => {
       unmeasurableReason: null,
     })),
     scored: rates.reduce((sum, [, n]) => sum + n, 0),
+    forced: 0,
     missingClockData: false,
     timeBucketSpeed: null,
     excludedForSpeed: 0,
@@ -408,5 +409,56 @@ describe("a 45-second move is not one thing across time classes", () => {
     const d = diagnoseImportedGames([game({ plies: 100, withClocks: true })]);
     expect(d.timeBucketSpeed).toBeNull();
     expect(d.excludedForSpeed).toBe(0);
+  });
+});
+
+describe("a position with one legal move is not a decision", () => {
+  /** Black to move, king on h8, White queen h7 giving check: Kxh7 is the only legal reply. */
+  const ONLY_MOVE = "7k/6Q1/8/8/8/8/8/K7 b - - 0 1";
+  const FREE = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+  const twoPly = (fenBefore: string, playerColor: "w" | "b"): ImportedGameInput => ({
+    // One player decision at the ply whose preceding position is fenBefore.
+    fens: playerColor === "w" ? [fenBefore, FREE] : [FREE, fenBefore, FREE],
+    evalScores: playerColor === "w" ? [0, 0] : [0, 0, 0],
+    clockTimes: [],
+    playerColor,
+  });
+
+  it("marks the move as forced when only one is legal", () => {
+    const [decision] = decisionsFromGame(twoPly(ONLY_MOVE, "b"));
+    expect(decision.forced).toBe(true);
+  });
+
+  it("marks an ordinary position as a real choice", () => {
+    const [decision] = decisionsFromGame(twoPly(FREE, "w"));
+    expect(decision.forced).toBe(false);
+  });
+
+  it("keeps a forced move out of every bucket, and counts it", () => {
+    /*
+     * The whole point. cpLoss on a move with no alternative is whatever the engine's line was,
+     * so it scores as accurate and credits the player for something they did not do.
+     */
+    const d = diagnoseImportedGames([twoPly(ONLY_MOVE, "b")]);
+    expect(d.scored).toBe(1);
+    expect(d.forced).toBe(1);
+    for (const bucket of d.buckets) expect(bucket.n, `${bucket.key} counted a forced move`).toBe(0);
+  });
+
+  it("leaves `scored` as everything read, so the exclusion stays visible", () => {
+    // Netting them off silently would drop every n with nothing on screen explaining why.
+    const d = diagnoseImportedGames([twoPly(ONLY_MOVE, "b")]);
+    expect(d.scored).toBeGreaterThan(d.scored - d.forced);
+  });
+
+  it("claims nothing about a position it cannot load", () => {
+    const broken: ImportedGameInput = {
+      fens: ["not a fen at all", FREE],
+      evalScores: [0, 0],
+      clockTimes: [],
+      playerColor: "w",
+    };
+    expect(decisionsFromGame(broken)[0].forced).toBe(false);
   });
 });

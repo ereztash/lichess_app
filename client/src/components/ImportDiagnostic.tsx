@@ -113,6 +113,23 @@ export function ImportDiagnosticPanel({ diagnostic }: { diagnostic: Diagnostic }
       </ul>
 
       {/*
+        * Said out loud for the same reason as the speed restriction below: excluding these
+        * lowers every n, and a smaller n with no explanation reads as "not enough games yet".
+        *
+        * The second sentence is the honest half. This removes a handful of moves a game and
+        * leaves opening book and every recapture that is forced in practice but not in law --
+        * which is most of the inflation. Saying only the first half would let the reader take
+        * the rate for corrected.
+        */}
+      {diagnostic.forced > 0 && (
+        <p className="pv-note">
+          {diagnostic.forced} מתוך {diagnostic.scored} ההחלטות היו עמדות עם מהלך חוקי אחד בלבד, ולכן
+          לא נספרו באף דלי — לא בחרתם בהן דבר. זה לא מנקה מהלכי ספר בפתיחה ולא לקיחות-חזרה שיש
+          להן חלופה חוקית, והם עדיין מעלים את שיעורי הדיוק.
+        </p>
+      )}
+
+      {/*
         * The restriction, said out loud. Narrowing the clock buckets to one time class without
         * saying so would be the quiet kind of dishonesty this screen exists to avoid: the n
         * would drop and the reader would read it as "not enough games yet".
