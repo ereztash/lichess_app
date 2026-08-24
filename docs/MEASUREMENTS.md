@@ -879,3 +879,46 @@ where a scoped token resolves to nothing and the paragraph would have lost its s
 `:root` token, and the reason is asserted rather than left in a comment.
 
 Twenty-two positive controls, each confirmed red.
+
+## A constant rendered nine times as though it were data
+
+The first real reading this app has produced came from its owner scanning 20 of his own Lichess
+games: **554 decisions, 9 buckets, 3 excluded as forced.** No bucket separated from the next by
+more than its own sampling error, so the screen correctly declined to name a weakest one. That part
+worked. What the reading exposed was the table around it.
+
+`ImportDiagnostic` rendered `פער כיול — לא נמדד` inside **every** `li`, and
+`.import-diagnostic .bucket-absent` gave it `grid-column: 1 / -1`. So the "column" was not a column:
+each bucket occupied two visual rows, and the second one carried the identical five words as the
+eight above it. The CSS comment directly above the rule said *"Three columns on every row"* — a
+comment describing a layout the rule below it collapsed.
+
+Measured by rendering the panel against the nine buckets of that actual reading:
+
+```
+                          before   after
+full-width "absent" rows       9       0
+text nodes                    66      60
+words                        227     195
+most-repeated string     9x "פער כיול — לא נמדד"   (gone)
+```
+
+**Nothing was hidden.** The fact is still stated — once, above the table, and with the scope made
+explicit rather than left to be inferred from nine sightings: *"פער כיול — לא נמדד באף שורה, גם
+באלה שיש בהן דיוק."* The per-row version was protecting something real, that a reader must not
+conclude the rows carrying an accuracy also carry a gap, and saying "in every row" in as many words
+protects it more directly than repetition does.
+
+**Why this is not the record dashboard's problem too.** Both render `.bucket-list` and the
+correspondence is deliberate, so the list markup is untouched. The dashboard's third column holds a
+per-bucket signed gap — real data that differs per row. Only the import's third column is invariant,
+and an invariant is not a column.
+
+**What is still repeated, and why it was left.** `דיוק` renders 8 times, once per measurable row,
+because a grid with no header row has nowhere else to name the column; removing the label would
+leave bare percentages. Fixing it properly means converting to a real `<table>`, which would break
+the deliberate correspondence with `RecordDashboard` unless both move together. Recorded rather than
+half-done.
+
+Four positive controls, each confirmed red: the note deleted entirely; `באף שורה` removed; the
+clause naming the rows that do carry an accuracy removed; and the constant re-added into the rows.

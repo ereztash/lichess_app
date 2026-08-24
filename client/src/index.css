@@ -459,21 +459,29 @@ button:not(:disabled) {
 }
 
 /*
- * The import diagnostic is the record's table with one column replaced. Three columns on every
- * row including the unmeasurable ones, because the third column -- the gap that was never stated
- * -- is the point of the screen and must not vanish on the rows that have least to say.
+ * The import diagnostic is the record's table with one column replaced. Two columns on every
+ * row including the unmeasurable ones; the third column -- the gap that was never stated -- is
+ * the point of the screen, and it is named once above the list rather than repeated into it.
+ *
+ * The previous rule gave `.bucket-absent` `grid-column: 1 / -1`, which is the opposite of a
+ * column: it made every bucket two visual rows, the second one identical to the last eight.
+ * Stating an invariant once is not the same as hiding it -- the note is the first thing above
+ * the table and it says "in every row" in as many words.
  */
 .import-diagnostic .bucket-list li,
 .import-diagnostic .bucket-list li.unmeasurable {
   grid-template-columns: minmax(0, 1fr) auto;
   row-gap: 4px;
 }
-.import-diagnostic .bucket-absent {
-  grid-column: 1 / -1;
-  font-size: 10px;
-  line-height: 1.35;
-  color: rgba(var(--ink-rgb), 0.45);
-  font-variant-numeric: tabular-nums;
+.bucket-absent-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.bucket-absent-note strong {
+  color: var(--ink);
+  font-weight: 700;
 }
 .import-observation {
   margin-top: 10px;
