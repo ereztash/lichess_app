@@ -2,7 +2,7 @@ import {
   emptyLine,
   // Moved to engine-line.ts, which has no asset imports, so the self-check can run the same
   // parser the application runs instead of keeping a second copy of it.
-  parseInfo,
+  parseAnyInfo,
   type EngineLine,
   type EngineStatus,
   type WorkerFactory,
@@ -41,12 +41,22 @@ export class StockfishClient {
   private resolveReady: (() => void) | null = null;
   private rejectReady: ((reason?: unknown) => void) | null = null;
   private current: {
-    resolve: (line: EngineLine) => void;
+    /**
+     * Always an array, even for a single-line search, which `analyze` unwraps.
+     *
+     * One shape rather than two: the alternative was a second resolve field beside this one, and
+     * then every early-return in handleMessage would have had to pick the right one.
+     */
+    resolve: (lines: EngineLine[]) => void;
     reject: (reason?: unknown) => void;
     timer: number;
     fen: string;
   } | null = null;
-  private latest: EngineLine | null = null;
+  /**
+   * The deepest line seen so far per MultiPV index. Index 1 is the best line and is the only one
+   * present on a single-line search, which is every search outside the reveal.
+   */
+  private lines = new Map<number, EngineLine>();
   /**
    * How many `bestmove` replies still owed by searches we have abandoned.
    *
@@ -83,28 +93,66 @@ export class StockfishClient {
     return this.readyPromise;
   }
   async analyze(fen: string, depth = 14): Promise<EngineLine> {
+    const [best] = await this.search(fen, depth, 1);
+    return best ?? emptyLine(fen);
+  }
+
+  /**
+   * The best line and the next-best, from ONE search.
+   *
+   * This is what answers "why this move and not that one". A single-line search cannot: it
+   * reports what happens after the engine's choice and never evaluates the move the player was
+   * actually weighing against it. Two separate `analyze` calls cannot either -- the second would
+   * have to be told which alternative to force, and nothing in the app knows that.
+   *
+   * MultiPV costs more than a single-line search and NOBODY HERE HAS MEASURED HOW MUCH. The two
+   * lines share one search tree, so the true figure is somewhere between 1x and 2x and is
+   * probably nearer the bottom of that range; 2x is an upper bound, not an estimate. It is asked
+   * for on the reveal, where one position is searched, and deliberately not in the import path,
+   * where 971 are -- that decision holds under the upper bound, which is why it can be made
+   * without the measurement. See docs/MEASUREMENTS.md.
+   */
+  async analyzeAlternatives(fen: string, depth = 14, count = 2): Promise<EngineLine[]> {
+    return this.search(fen, depth, count);
+  }
+
+  private async search(fen: string, depth: number, multipv: number): Promise<EngineLine[]> {
     await this.start();
     if (!this.worker) throw new Error("Stockfish worker unavailable");
     this.stopCurrent();
-    this.latest = null;
+    this.lines.clear();
     this.onStatus({ mode: "thinking", detail: `מחשב קו לעומק ${depth}` });
-    return new Promise<EngineLine>((resolve, reject) => {
+    return new Promise<EngineLine[]>((resolve, reject) => {
       const timer = setTimeout(() => {
         if (!this.current) return;
         // Abandoning this search: it still owes a bestmove that must not resolve a later call.
         this.owedBestMoves += 1;
         this.worker?.postMessage("stop");
-        const timeoutLine = this.latest?.pv.length ? this.latest : emptyLine(fen);
+        const partial = this.collected(fen);
         this.current = null;
         this.onStatus({ mode: "ready", detail: "המנוע מוכן" });
-        resolve(timeoutLine);
+        // A timeout keeps whatever depth it reached, and keeps it in order.
+        resolve(partial.length ? partial : [emptyLine(fen)]);
       }, 12000) as unknown as number;
       this.current = { resolve, reject, timer, fen };
       this.worker?.postMessage("stop");
-      this.worker?.postMessage("setoption name MultiPV value 1");
+      /*
+       * Set every time, including back down to 1. The option is sticky on the worker, so a
+       * reveal that asked for two lines would otherwise leave every later single-line search
+       * -- the eval bar, batch analysis -- quietly running MultiPV 2 and paying for it.
+       */
+      this.worker?.postMessage(`setoption name MultiPV value ${multipv}`);
       this.worker?.postMessage(`position fen ${fen}`);
       this.worker?.postMessage(`go depth ${depth}`);
     });
+  }
+
+  /** The lines collected so far, best first, gaps closed. */
+  private collected(fen: string): EngineLine[] {
+    return [...this.lines.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([, line]) => line)
+      .filter((line) => line.pv.length > 0 && line.fen === fen);
   }
   dispose() {
     this.stopCurrent();
@@ -139,13 +187,25 @@ export class StockfishClient {
       this.current = null;
       clearTimeout(current.timer);
       this.onStatus({ mode: "ready", detail: "Stockfish 18 מוכן" });
-      current.resolve({ ...(this.latest ?? emptyLine(current.fen)), bestMove, fen: current.fen });
+      const collected = this.collected(current.fen);
+      /*
+       * `bestmove` names one move, so it belongs to the best line only. Stamping it onto the
+       * runner-up would label the alternative with the move the engine chose instead of it --
+       * the one field on that object a reader would trust without checking.
+       */
+      const lines = collected.length
+        ? collected.map((line, i) => (i === 0 ? { ...line, bestMove } : line))
+        : [{ ...emptyLine(current.fen), bestMove }];
+      current.resolve(lines);
       return;
     }
     // Info lines from an abandoned search must not pollute the live one's best line.
     if (this.owedBestMoves > 0 || !this.current) return;
-    const line = parseInfo(raw, this.current.fen);
-    if (line && (!this.latest || line.depth >= this.latest.depth)) this.latest = line;
+    const line = parseAnyInfo(raw, this.current.fen);
+    if (!line) return;
+    const index = line.multipv ?? 1;
+    const held = this.lines.get(index);
+    if (!held || line.depth >= held.depth) this.lines.set(index, line);
   }
   private stopCurrent() {
     if (!this.current) return;

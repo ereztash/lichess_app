@@ -175,6 +175,8 @@ export default function Home() {
   const [candidatesConsidered, setCandidatesConsidered] = useState<string[]>([]);
   const [commitError, setCommitError] = useState<CommitFailureText>();
   const [revealInputs, setRevealInputs] = useState<RevealInputs | null>(null);
+  /** The engine's second-best line at the analysed position, when one was computed. */
+  const [alternative, setAlternative] = useState<EngineLine | null>(null);
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
   const [revealFen, setRevealFen] = useState<string>("");
   const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
@@ -319,8 +321,16 @@ export default function Home() {
     if (!engineMayRun(stage)) return;
     try {
       const engine = await ensureEngine();
-      const line = await engine.analyze(activeFen, 14);
-      setAnalysis(line?.pv.length ? line : null);
+      /*
+       * Two lines, not one. The panel's job here is to say why the engine's move beats the one
+       * the player was weighing against it, and a single-line search cannot: it only describes
+       * what happens AFTER the engine's choice. `engineMayRun` still gates it, so this stays
+       * behind the commit -- R3 is unaffected, and the extra cost is paid once, on the reveal,
+       * never in the import path.
+       */
+      const [best, runnerUp] = await engine.analyzeAlternatives(activeFen, 14, 2);
+      setAnalysis(best?.pv.length ? best : null);
+      setAlternative(runnerUp?.pv.length ? runnerUp : null);
     } catch (error) {
       if (error instanceof Error && error.message !== "Analysis superseded")
         setEngineStatus({ mode: "error", detail: "Stockfish לא החזיר קו חדש." });
@@ -1290,6 +1300,7 @@ export default function Home() {
               {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
               <AnalysisPanel
                 analysis={analysis}
+                alternative={alternative}
                 status={engineStatus}
                 fen={activeFen}
                 activeMove={activeMove}

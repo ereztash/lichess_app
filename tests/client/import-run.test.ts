@@ -106,7 +106,11 @@ describe("stopping early", () => {
     expect(result.aborted).toBe(true);
     // Short, not empty and not fabricated: the positions that were scored really were scored.
     expect(result.diagnostic.scored).toBeGreaterThan(0);
-    expect(result.diagnostic.buckets).toHaveLength(6);
+    // Every bucket still reported, by key rather than count: the count also carries the
+    // import-only standing buckets now, and a bare number would pass with one silently gone.
+    for (const key of ["phase-opening", "standing-level"]) {
+      expect(result.diagnostic.buckets.some((b) => b.key === key), `${key} missing`).toBe(true);
+    }
   });
 });
 
@@ -128,6 +132,21 @@ describe("what reaches the reading", () => {
     expect(result.diagnostic.missingClockData).toBe(false);
     const fast = result.diagnostic.buckets.find((b) => b.key === "fast-under-45s")!;
     expect(fast.unmeasurableReason).toBe("too-few");
+  });
+
+  it("carries the game's time class through to the reading", async () => {
+    /*
+     * `speed` is fetched with the game list and was dropped at this join. Without it the clock
+     * buckets average a 45-second move in a 3+0 game together with one in 30+0 -- the same
+     * number meaning opposite things.
+     */
+    const result = await runImportDiagnostic(
+      [game({ speed: "blitz" }), game({ id: "b2", speed: "blitz" })],
+      "erez",
+      flat,
+    );
+    expect(result.diagnostic.timeBucketSpeed).toBe("blitz");
+    expect(result.diagnostic.speedMix).toEqual([{ speed: "blitz", n: result.diagnostic.scored }]);
   });
 
   it("says no-clock-data when the PGN carried none", async () => {

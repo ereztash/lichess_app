@@ -1410,6 +1410,42 @@ button:not(:disabled) {
   opacity: 0.8;
   margin-top: 0.35rem;
 }
+/*
+ * The depth standing behind each move of the line.
+ *
+ * Subscript rather than a column: the point is that the number FALLS as the line runs on, and
+ * the eye reads that off a trailing digit beside each move. Deliberately quiet -- the moves are
+ * the content and this is the qualifier on them, and a `D14` chip up top used to be the only
+ * depth on screen while visually applying to all eight.
+ */
+.pv-depth {
+  font-size: 0.6rem;
+  font-style: normal;
+  vertical-align: super;
+  margin-inline-start: 2px;
+  opacity: 0.55;
+}
+.pv-note {
+  font-size: 0.7rem;
+  line-height: 1.45;
+  opacity: 0.75;
+  margin-top: 0.35rem;
+}
+/*
+ * The sentence that says what the engine's choice is worth. Given room, because on most
+ * positions it is the only thing on this panel that answers "why this move".
+ */
+.pv-choice {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.15);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+/* A tie the engine broke is not a finding, and must not read like one. */
+.pv-choice-tie {
+  opacity: 0.8;
+}
 .evaluation-track-empty {
   opacity: 0.35;
 }

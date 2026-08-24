@@ -28,6 +28,14 @@ export interface EngineLine {
    * discipline -- see isStale() and GATE-STALE.
    */
   fen: string;
+  /**
+   * Which line this is when the engine was asked for more than one: 1 is the best, 2 the next.
+   *
+   * Undefined on a single-line search, which is every search this app made until the reveal
+   * started asking "why this move and not that one" -- a question MultiPV 1 cannot answer,
+   * because the alternative it would be compared against was never computed.
+   */
+  multipv?: number;
 }
 
 /**
@@ -60,11 +68,26 @@ export const emptyLine = (fen: string): EngineLine => ({ scoreCp: 0, depth: 0, p
  * second copy that could pass while the real one fails.
  */
 export function parseInfo(raw: string, fen: string): EngineLine | undefined {
+  const line = parseAnyInfo(raw, fen);
+  // Single-line callers must keep seeing only the best line. Everything downstream of them --
+  // the eval bar, the stale check, batch analysis -- assumes one line per position.
+  return line && (line.multipv ?? 1) === 1 ? line : undefined;
+}
+
+/**
+ * The same parser, without the MultiPV filter.
+ *
+ * Split out rather than parameterised so the filtering rule stays in exactly one place. The
+ * discarding version above was the only parser in the app, which meant an alternative line could
+ * not reach the UI even if the engine were asked for one -- the option and the parser had to
+ * change together, and only one of them was obvious.
+ */
+export function parseAnyInfo(raw: string, fen: string): EngineLine | undefined {
   if (!raw.startsWith("info ") || !raw.includes(" score ") || !raw.includes(" pv "))
     return undefined;
-  if (/\bmultipv\s+(?!1\b)/.test(raw)) return undefined;
   const score = raw.match(/\bscore\s+(cp|mate)\s+(-?\d+)/);
   const depth = raw.match(/\bdepth\s+(\d+)/);
+  const multipv = raw.match(/\bmultipv\s+(\d+)/);
   const pv = raw.split(" pv ")[1]?.trim().split(/\s+/) ?? [];
   if (!score || !depth || !pv.length) return undefined;
   return {
@@ -73,5 +96,6 @@ export function parseInfo(raw: string, fen: string): EngineLine | undefined {
     depth: Number(depth[1]),
     pv,
     fen,
+    multipv: multipv ? Number(multipv[1]) : undefined,
   };
 }
