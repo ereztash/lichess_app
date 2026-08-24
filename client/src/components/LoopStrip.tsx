@@ -10,9 +10,14 @@
  * It renders in every state, including during a reveal, which is the state where nothing on
  * screen currently says where in the loop you are.
  */
-import { MIN_BUCKET_N } from "@shared/detector";
 import { useClaimView } from "@/lib/record-api";
-import { LOOP_STEPS, STEP_LABELS, loopPosition, stepStates } from "@/lib/loop-position";
+import {
+  LOOP_STEPS,
+  STEP_LABELS,
+  loopPosition,
+  remainingBeforeClaim,
+  stepStates,
+} from "@/lib/loop-position";
 
 export function LoopStrip({
   drill,
@@ -25,15 +30,22 @@ export function LoopStrip({
   // Until the record answers, show the rail without a reading rather than a guessed one.
   const data = query.data;
   const scored = data?.scored ?? 0;
+  // The floor and the count must come from the same side of the registration boundary; the
+  // arithmetic lives beside the thresholds it uses. See `remainingBeforeClaim`.
+  const narrowing = data?.prereg ?? null;
+  const stillNeeded = remainingBeforeClaim({
+    scored,
+    preregScored: data?.preregScored ?? null,
+    unreadable: query.isError || !data,
+  });
+
   const position = loopPosition({
     drill,
     recorded: data?.recorded ?? 0,
     scored,
     claimGrade: data?.claim?.grade ?? null,
-    // The floor is MIN_BUCKET_N inside a bucket and MIN_BUCKET_N outside it, which is where
-    // `currentClaim` gets its own threshold. Null while unreadable -- an unreadable record must
-    // not render as a record at distance zero.
-    scoredStillNeeded: query.isError || !data ? null : Math.max(0, MIN_BUCKET_N * 2 - scored),
+    scoredStillNeeded: stillNeeded,
+    narrowedTo: narrowing?.scope ?? null,
   });
 
   if (query.isLoading) return null;

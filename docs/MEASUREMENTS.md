@@ -595,3 +595,287 @@ recorded above. And nothing has checked that the bucket where a player's accurac
 bucket where their calibration is worst — those are different quantities, and the bridge assumes a
 relationship between them that no measurement here supports. Every registration states the condition
 that would refute it, which is the mechanism by which a real record would eventually say so.
+
+## The funnel, measured by driving the built app
+
+The three fixes below came from running the shipped bundle in a browser and counting, not from
+reading the source. What was measured, on the build at the time:
+
+- **6 interactions from a cold open to a recorded decision** on a 390x844 phone: two board taps,
+  one read chip, one unknown chip, one confidence, one submit. No account, no sign-in, and the
+  screen says so. Nothing about the activation path needed fixing.
+- **The loop strip opened on "another 60 revealed decisions"** and the import that cuts that floor
+  to 40 sat in the tool rail with nothing anywhere connecting the two.
+- **The page is 2104px on a phone**, 2.5x the viewport.
+- **The deployment is behind Vercel SSO** (`ssoProtection: enabled, all_except_custom_domains`),
+  so the first stage of any funnel is closed to everyone outside the Vercel team. Unchanged: that
+  is the owner's decision, not a defect.
+
+### One proposed fix was refuted by the repository
+
+The first reveal after a player's first-ever decision leads with the heading "what cannot be
+inferred from this". That reads as a disclaimer at the moment of first success, and the proposal
+was to reorder it.
+
+`tests/client/reveal-order.test.tsx` already forbids exactly that, and says why: section 4.2's
+ordering is load-bearing, and **the spec names inverting it as the single most likely thing to do
+quietly while making the screen look better.** Six assertions pin the order. The observation may
+still be right; the remedy is prohibited, for a reason written down before it was proposed. Not
+built.
+
+### What was built
+
+- **The wait names the shortcut.** The strip now says an import *can* shorten the wait, *if* one of
+  its buckets separates from the next. Stated as a condition because most imports will not produce
+  one, and the offer disappears once a hypothesis is registered -- repeating it would ask the
+  player to solve a problem they already solved.
+- **The scan states its cost and its payoff before the button.** Both facts existed and both
+  arrived too late to inform the decision: the duration rendered only inside the progress block,
+  after the wait had started, and what a scan buys was never on that screen at all. The duration is
+  quoted from the one measurement here (971 positions, 43 seconds, one laptop) rather than
+  extrapolated per game, and it says the phone is unmeasured instead of inventing a multiplier.
+  Both floors come from the constants, so the sentence cannot drift from the detector.
+
+### A defect the bridge introduced, found by re-reading it
+
+`currentClaim` was taught to narrow the search -- one bucket, floor 20x2, counted from the import
+onward -- and the strip that reports the distance was not. It went on subtracting the whole record
+from 30x2, so it would have announced a 60-decision wait while the detector ran a 40-decision one
+over a different set of decisions. Two surfaces disagreeing about the same record.
+
+`ClaimView` now carries `preregScored`, and the arithmetic moved next to the thresholds it uses
+(`remainingBeforeClaim`). Both halves change together: taking the narrowed floor while still
+counting the whole record would understate the wait, and the opposite would overstate it.
+
+### A second contrast defect, in the same class as the audit's
+
+`.import-progress-note` was `rgba(var(--ink-rgb), 0.6)` -- the same "an alpha is not a colour"
+pattern the audit fixed on `.commitment-move.unset`. Measured: **light theme #717670 over #f7f3e9,
+4.19:1**, under the 4.5:1 WCAG 1.4.3 asks. Dark passes at 5.41:1, which is why the Lighthouse run
+never reported it -- that audit ran in dark. An automated pass in one theme is not a pass.
+
+Nine positive controls, each confirmed red: the import unnamed in the wait; the offer turned into a
+promise; the offer repeated after registration; the alpha restored on the import notes; the old
+whole-record floor restored; an unreadable record reporting zero instead of unknown; the cost note
+moved below its button; the failure case dropped from the payoff; and the floors hardcoded instead
+of read from the constants.
+
+## The cold start's real cost, and the number that turned out not to matter
+
+The last audit named "roughly 360 interactions before the first claim" as the highest-return thing
+to reduce: 60 decisions at six taps each. Both halves were then measured in a browser, and the
+conclusion did not survive.
+
+**Six taps cost 326 ms.** Two board taps, a read chip, an unknown chip, a confidence, a submit —
+timed on a 1440x950 build. Across a whole 40-decision cold start that is about thirteen seconds of
+mechanical tapping. Cutting it by a third would save four seconds spread over weeks.
+
+**The engine is not the bottleneck either.** Six consecutive decisions, submit to reveal:
+
+| decision | submit → reveal |
+| --- | --- |
+| 1 | 1951 ms |
+| 2 | 502 ms |
+| 3 | 320 ms |
+| 4 | 301 ms |
+| 5 | 277 ms |
+| 6 | 214 ms |
+
+Steady-state median 301 ms. Over 40 decisions that is roughly twelve seconds of engine wait in
+total. **The whole 1.65-second difference is the first decision**, and it is the worker booting:
+7 MB of wasm fetched and instantiated plus the UCI handshake, previously done lazily inside the
+first `analyze` call — which is to say, after the player's first ever commit.
+
+So the cost of the cold start is neither the taps nor the engine. It is 40 decisions' worth of
+concentrated thinking, and that is the product rather than a defect. **The 360 was the wrong number
+to optimise, and naming it was a mistake made by counting interactions without timing them.**
+
+### What the measurement did support
+
+Warming the worker when a move is put on the board, so the boot overlaps the read and the
+confidence instead of following the commit. Measured on one build, four runs each, first decision:
+
+| thinking window after the move is chosen | first submit → reveal |
+| --- | --- |
+| none | 939, 920, 1098, 923 ms — median ~931 |
+| two seconds | 518, 522, 562, 549 ms — median ~536 |
+
+The 395 ms between those two rows is the warm's window effect and is a controlled comparison: same
+build, same script, only the pause differs. Against the 1951 ms measured before the change the
+total gain is roughly 1.0–1.4 s, but **that comparison spans a rebuild and is not a controlled
+A/B** — it is quoted as an order of magnitude, not as a result.
+
+**R3 is untouched, and the distinction is the entire point.** `start()` posts exactly one message,
+`uci`. `go` — the command that begins a search — is posted only from `search()`, which the warm
+path never calls. No position is sent, so there is nothing the worker could have searched, and no
+evaluation exists that could reach a screen or a record before the decision is written.
+`tests/client/engine-warm.test.ts` asserts all three on the messages that actually cross to the
+worker, because "warm the engine early" is precisely the shape of change that erodes R3 and a
+comment would not hold it. Three controls, each confirmed red: a `go` added to the boot path, a
+`position` added to it, and the boot made non-idempotent.
+
+### What was refused
+
+Pre-filling the two read chips from the previous decision would have cut six taps to four.
+`emptyDraft` forbids it in as many words: *"Nothing preselected, deliberately. A default read is
+the machine stating one on the player's behalf and then measuring them against it."*
+
+The detector never reads `known` or `unknown`, so no claim could have moved — the argument for
+doing it anyway was available. It was refused on the stronger ground: Layer A is the only thing in
+this product that is ever true, and carrying a read forward makes the record say the player stated
+something at a ply where they only failed to change it. Two taps are not worth that, and the taps
+were measured at 326 ms for all six.
+
+## The two heuristics this product scored zero on
+
+A UX review against Nielsen's ten usability heuristics found eight in reasonable shape and two at
+zero. Both are the kind a product omits when it is built by someone who already knows how it works:
+an exit is only obviously necessary to a person who wanted one, and an explanation is only
+obviously missing to a person who did not have it.
+
+### 3 — user control and freedom
+
+`DrillRunner` rendered its only exit at `stage === "done"`. A drill is a fixed set of positions, so
+starting one — by accident, or on a phone about to run out of battery — committed the player to
+finishing every position or abandoning the tab. It was the one control in this product a player
+could not leave.
+
+The exit now renders during `briefing` and `running`, and carries two sentences because leaving is
+worthless if the player is guessing what it costs:
+
+- **It does not grade the claim.** `ProspectiveDrillResult` has `predicted` and `observed` and no
+  third state. Seven positions of twenty is not the bounded set R5 registered in advance, and
+  inventing an "abandoned" verdict would let a partial drill move a grade.
+- **The decisions already recorded are kept.** They were taken under the same commit-before-reveal
+  protocol as any other and the record is append-only. A player who believes leaving erases their
+  work will sit through a drill they wanted to leave.
+
+Zero and non-zero say different sentences: telling someone their 0 decisions are safe is noise.
+
+**What was NOT built, and why.** Undo on a committed decision. The record is append-only and that
+is the foundation, but the real objection is sharper: the reveal follows the commit by about 300 ms
+(measured), so any correction window opens *after* the engine has spoken. A player who could
+disown a decision at that point would be disowning the ones that turned out badly, and the
+calibration gap — the product's only claim — would be computed over a set the player curated after
+seeing the answer. The forced-move exclusion is safe because the position decides it; a self-declared
+mis-tap is not. Not built, and the reason is recorded here rather than left as an absence.
+
+### 10 — help and documentation
+
+There was none. "Calibration gap" was defined in exactly one place, `RecordDashboard`, reached only
+once there is a record worth looking at — the explanation arrived after the thing it explains.
+
+`WhatThisIs` is reachable from the header at any time. Not a tour, not a dismissable coach-mark, no
+"got it" that records progress: it renders identically every time it opens, because a help screen
+that changes with how far along you are is managing the reader rather than informing them. It
+explains what is measured, why the engine stays silent, and why the wait is what it is — quoting
+both floors from the constants so the page cannot drift from the detector.
+
+Two sections a help page normally omits:
+
+- **What this will never say** — no score, no rating, no streak, no recommendation, no self-grading.
+  Each line is a refusal enforced somewhere in the code, published to the person it protects.
+- **What is still unverified** — that nobody has completed the loop, that the thresholds were tested
+  against synthetic records, and that the imported accuracy rate is inflated by book moves and
+  recaptures. That last is a known defect in a number currently on screen, and the page that
+  introduces the product is the right place to say so.
+
+Five positive controls, each confirmed red: the exit restricted to `done` again; the note claiming
+decisions are deleted; the zero and non-zero sentences collapsed into one; the help floors
+hardcoded instead of read from the constants; and the "nobody has completed the loop" admission
+removed.
+
+### Checked and found already present
+
+`:focus-visible` was listed as unexamined in the review and turned out to be implemented, including
+a distinct treatment for `.board-square`. The gap was in the review, not the product.
+
+## Two reports about attention, and what measuring them found
+
+Both were about weight rather than content, and neither was fixed by removing anything. The board
+still shows thirty-two pieces; the panel still offers all eighteen reads, in the player's own
+words, at the full tap floor.
+
+### "The black pieces are filled and the white ones hollow"
+
+Reported as taking longer to notice, and as possibly costing attention. It does: a hollow rook and
+a solid rook are two shapes to learn for one piece. The Unicode chess block pairs an outlined glyph
+with a filled one, and the shipped table used the pairing as the font intended it — it was a
+property of the font, not a decision anyone made here. No physical set and no major board does it
+that way.
+
+Both colours now use the filled glyph. Measured, all eight (piece, square, theme) cells, from the
+declared tokens:
+
+| | white on light | white on dark | black on light | black on dark |
+|---|---|---|---|---|
+| light theme | **1.37** | 6.71 | 11.36 | **2.32** |
+| dark theme | **1.86** | 7.03 | 8.18 | **2.16** |
+
+The two bold columns are effectively invisible as fills, and always were — on a matching square the
+eye traces the outline ring, in the old hollow rendering as much as this one. Going solid changes
+none of those eight numbers. What it removes is an asymmetry where the hollow shape was the one
+sitting on its worst-contrast square.
+
+**A defect this measurement found, unrelated to the report.** The black piece on a dark square is
+the weakest cell on the board and had *both* channels weak at once: fill 2.32 with a ring at 2.04
+(light theme), fill 2.16 with a ring at 2.17 (dark). Nothing had ever measured it. The two ring
+alphas are now set from the measurement — `--piece-dark-shadow` 0.3 → 0.5 and 0.18 → 0.45, putting
+the ring at 3.07 and 3.05 — and the rule is asserted as *fill **or** ring above 3:1, per cell*,
+because demanding a strong ring where the fill already measures 6.71 would draw a halo round a
+piece nobody was struggling to see.
+
+**The side-effect, stated plainly.** With a shared silhouette, colour is the only visual channel
+separating the sides. That is a lightness difference (15.55:1 between the fills), not a hue one, so
+it survives colour blindness and greyscale — which is why chess sets have always been allowed to do
+it. It does not survive a screen reader, but that was already true: a square's `aria-label` is its
+coordinate and never named the piece.
+
+### "The side you mark the decision on is too flooded with information"
+
+Measured on the built panel in Chromium at 1440×950 — it is a 330px column:
+
+| | before | after |
+|---|---|---|
+| distinct font sizes | **10** | **5** |
+| `opacity` values dimming text | **9** | **0** |
+| elements carrying a border or fill | 28 | 25 |
+| read chips / rows they wrap into | 18 / 9 | 18 / 8 |
+| panel height (desktop / phone) | 1021px / 947px | 976px / 935px |
+| text nodes / words | 39 / 154 | 39 / 154 |
+
+Nothing was hidden and nothing was reworded — the last row is the point. Ten font sizes across
+330px (8.96, 9, 10, 10.24, 11, 11.68, 12.16, 14.72, 16, 16.32) is not a hierarchy; it is ten things
+each claiming to be slightly more important than the last, and the eye ranks none of them. Nine
+opacities is the same disease in colour: nine greys nobody chose. The replacements are five sizes,
+each with a job, and three declared colours — `--ink` is what the player reads, `--muted` is
+context, `--warn` is a problem.
+
+**The chips.** The border was the worst of both things: at `rgba(var(--ink-rgb), 0.28)` it measured
+1.78:1 against the panel in the light theme and 2.24:1 in the dark — already *under* the 3:1 WCAG
+1.4.11 asks of a control boundary, while still being numerous enough to read as a wall. It bought
+no conformance and cost all the clutter. Raising it to 0.50 would have conformed by drawing
+eighteen stronger boxes. A declared ground carries the chip instead, and what conforms is the thing
+1.4.11 actually asks of a toggle — that its two states separate: `--blue` against `--chip` measures
+5.21:1 light and 5.02:1 dark.
+
+**What was NOT done.** Half the options behind a "more" control, and shorter labels. Both trade a
+real cost — what a player can say about a position, and what the record then holds — for a visual
+one. Weight was the only thing free to change, and a test asserts the chips are neither sliced nor
+gated.
+
+**Seven contrast failures this found, all pre-existing.** axe-core 4 at 1350×940 with the panel
+open, light theme: the kicker at 4.47, the character counter at 3.63, the blocked-summary at 3.79,
+and the required mark and field hint at 4.24 and 4.37 — those last two because a legend at
+`opacity: 0.86` dimmed children that were already dimmed once. All seven were live before this work
+and none had ever been seen, because every earlier axe run in this repo was **dark-theme only**,
+where the same nine alphas happen to land above the line. Re-measured after: zero violations, both
+themes.
+
+**A design decision reversed by a test.** The type scale was scoped to `.commitment-screen` first,
+which reads better and is wrong: `PreregisterBridge` renders `.commitment-error` outside that panel,
+where a scoped token resolves to nothing and the paragraph would have lost its size silently — the
+`--edge: var(--edge)` failure in a new shape. `theme-tokens.test.ts` caught it. The scale is a
+`:root` token, and the reason is asserted rather than left in a comment.
+
+Twenty-two positive controls, each confirmed red.

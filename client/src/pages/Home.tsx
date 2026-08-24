@@ -10,8 +10,7 @@ import {
   Plus,
   Stethoscope,
   Sun,
-  UserSearch,
-} from "lucide-react";
+  UserSearch,  HelpCircle } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +36,7 @@ import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import { SelfCheck } from "@/components/SelfCheck";
+import { WhatThisIs } from "@/components/WhatThisIs";
 import { Overlay } from "@/components/Overlay";
 /*
  * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
@@ -202,6 +202,7 @@ export default function Home() {
   const [opponentThinking, setOpponentThinking] = useState(false);
   const [showNewGame, setShowNewGame] = useState(false);
   const [showSelfCheck, setShowSelfCheck] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [setupColor, setSetupColor] = useState<"w" | "b">("w");
   const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
   /** The position the opponent has already been asked about, so it is asked exactly once. */
@@ -316,6 +317,40 @@ export default function Home() {
   }, []);
 
   useEffect(() => () => engineRef.current?.dispose(), []);
+
+  /*
+   * WARM THE WORKER WHILE THE PLAYER IS STILL DECIDING. It does not analyse anything.
+   *
+   * MEASURED, which is the only reason this exists. Six consecutive decisions in a browser,
+   * submit -> reveal: 1951ms on the first and a 301ms median on the rest. The whole 1.65s
+   * difference is the worker booting -- fetching and instantiating 7MB of wasm and completing the
+   * UCI handshake -- and it lands on the FIRST decision a new player ever records, which is the
+   * worst moment the product has to spend it.
+   *
+   * R3 IS UNTOUCHED, and the distinction is the whole point. `start()` posts exactly one message,
+   * `uci`, and waits for the engine to say it is ready. `go` is posted only from `search()`, which
+   * nothing here calls. No position is sent, no evaluation is computed, and there is therefore no
+   * engine output that could reach a screen or a record before the decision is written.
+   * GATE-COMMIT still holds on both counts: the pre-commit payload carries no engine output, and
+   * this is a dynamic import triggered by a click, so the module stays out of the initial graph.
+   *
+   * Triggered on the CHOSEN MOVE rather than on page load: a visitor who opens the page and reads
+   * it should not pay for 7MB they may never use, and a player who has put a move on the board is
+   * seconds from committing. For a person the read chips and the confidence take long enough to
+   * cover most of the boot; a script that submits in 90ms will still see it.
+   *
+   * Failures are swallowed on purpose. This is an optimisation, not a step: if the worker cannot
+   * boot here, `analyze` will try again after the commit and report the failure through the path
+   * that already handles it.
+   */
+  useEffect(() => {
+    if (!candidateMove || stage !== "deciding") return;
+    void ensureEngine()
+      .then((engine) => engine.start())
+      .catch(() => {
+        /* Reported later by the reveal path, which owns engine failure. */
+      });
+  }, [candidateMove, stage, ensureEngine]);
 
   const runAnalysis = useCallback(async () => {
     if (!engineMayRun(stage)) return;
@@ -1004,6 +1039,19 @@ export default function Home() {
            * Reachable from the header on purpose. A diagnostic behind a menu is a diagnostic
            * nobody runs when the thing is broken.
            */}
+          {/*
+           * Help lives in the header, not behind a menu, and not as a first-run tour.
+           * Nielsen 10: it has to be findable at the moment of confusion, which is not
+           * necessarily the first moment.
+           */}
+          <button
+            className="icon-control"
+            aria-label="מה נמדד כאן"
+            aria-expanded={showHelp}
+            onClick={() => setShowHelp((v) => !v)}
+          >
+            <HelpCircle size={17} />
+          </button>
           <button
             className="icon-control"
             aria-label="בדיקה עצמית של הדפדפן"
@@ -1107,6 +1155,11 @@ export default function Home() {
            * above the board -- which pushed the board below the fold by their own height. See
            * components/Overlay.tsx for the measurements.
            */}
+          {showHelp && (
+            <Overlay label="מה נמדד כאן" onClose={() => setShowHelp(false)}>
+              <WhatThisIs onClose={() => setShowHelp(false)} />
+            </Overlay>
+          )}
           {showSelfCheck && (
             <Overlay label="בדיקה עצמית" onClose={() => setShowSelfCheck(false)}>
               <SelfCheck onClose={() => setShowSelfCheck(false)} />

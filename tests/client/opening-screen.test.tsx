@@ -27,6 +27,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import superjson from "superjson";
 import { ThemeProvider } from "../../client/src/contexts/ThemeContext";
 import Home from "../../client/src/pages/Home";
+import { PIECES } from "@/lib/game-data";
 import { trpc } from "../../client/src/lib/trpc";
 
 /*
@@ -58,15 +59,30 @@ function renderHome() {
 }
 
 const square = (name: string) => screen.getByRole("gridcell", { name });
-const pieceOn = (name: string) => square(name).querySelector(".piece")?.textContent ?? null;
+/*
+ * "white pawn" and "black pawn", not a glyph.
+ *
+ * These assertions used to compare the rendered character against "\u2659" and "\u265F", which
+ * was a legitimate way to say "a WHITE pawn is on e2" only while the two colours used different
+ * code points. They share one silhouette now (lib/game-data.ts), so the character no longer
+ * carries the side and comparing it would quietly weaken the test into "some pawn is on e2".
+ * The colour class is where that fact lives, so the helper reports both halves.
+ */
+const pieceOn = (name: string) => {
+  const piece = square(name).querySelector(".piece");
+  if (!piece) return null;
+  const colour = piece.classList.contains("piece-w") ? "white" : "black";
+  const type = Object.entries(PIECES.w).find(([, glyph]) => glyph === piece.textContent)?.[0];
+  return `${colour} ${type ?? piece.textContent}`;
+};
 
 describe("the board the application opens on", () => {
   it("is the starting position, not the middlegame of somebody else's demo", () => {
     renderHome();
-    // ♙ on e2 and an empty e4 is the whole difference between move 1 and ply 12.
-    expect(pieceOn("e2")).toBe("♙");
+    // A white pawn on e2 and an empty e4 is the whole difference between move 1 and ply 12.
+    expect(pieceOn("e2")).toBe("white p");
     expect(pieceOn("e4")).toBeNull();
-    expect(pieceOn("d7")).toBe("♟");
+    expect(pieceOn("d7")).toBe("black p");
     expect(document.querySelectorAll(".piece")).toHaveLength(32);
   });
 
@@ -91,7 +107,7 @@ describe("the board the application opens on", () => {
     // The pawn deliberately does NOT move yet -- that is the commit-then-reveal protocol, and it
     // is the one thing here that was never broken. What matters is that the click registered.
     await waitFor(() => expect(document.querySelector(".chosen-marker")).toBeTruthy());
-    expect(pieceOn("e2")).toBe("♙");
+    expect(pieceOn("e2")).toBe("white p");
     expect(screen.getByText(/e2e4 נבחר/)).toBeTruthy();
   });
 

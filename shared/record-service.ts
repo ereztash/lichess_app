@@ -410,6 +410,16 @@ export type ClaimView = {
    * the same kind of finding, and must not render as though they were.
    */
   prereg: PreregisteredHypothesis | null;
+  /**
+   * Revealed decisions the NARROWED search is measuring over -- those recorded after the
+   * registration -- or null when the ordinary scan is running.
+   *
+   * `scored` above is the whole record and is the wrong number under a narrowed search: it counts
+   * decisions the hypothesis is forbidden to be tested on. A caller reporting the distance to a
+   * claim needs the count in the same units as the floor it is comparing against, or it will
+   * announce a wait the detector is not actually running.
+   */
+  preregScored: number | null;
 };
 
 /**
@@ -469,6 +479,7 @@ export async function currentClaim(
       recorded: full.total,
       scored: full.scored.length,
       prereg: narrowing,
+      preregScored: narrowing ? summary.scored.length : null,
     };
   }
 
@@ -490,6 +501,7 @@ export async function currentClaim(
         recorded: full.total,
         scored: full.scored.length,
         prereg: narrowing,
+        preregScored: narrowing ? summary.scored.length : null,
       };
     }
     await store.saveClaim(selection.claim);
@@ -501,6 +513,7 @@ export async function currentClaim(
     recorded: full.total,
     scored: full.scored.length,
     prereg: narrowing,
+    preregScored: narrowing ? summary.scored.length : null,
   };
 }
 

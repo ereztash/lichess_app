@@ -186,3 +186,36 @@ describe("robots.txt is a file, not the app", () => {
     expect(read("client/public/robots.txt")).not.toMatch(/^Sitemap:/m);
   });
 });
+
+describe("an alpha is not a colour, and the second place it was one", () => {
+  /*
+   * The audit fixed `.commitment-move.unset`, which was `opacity: 0.5`. The same pattern was
+   * still in the stylesheet one rule away -- `.import-progress-note` at `rgba(var(--ink-rgb), 0.6)`
+   * -- and Lighthouse never reported it because that audit ran in DARK, where it passes at 5.41:1.
+   * Measured light theme: #717670 over #f7f3e9, 4.19:1, under the 4.5:1 WCAG 1.4.3 asks.
+   *
+   * So this asserts the rule the fix generalised to, not just the one selector: the small notes
+   * under the import controls carry a DECLARED colour. A future note that reaches for an alpha
+   * again fails here rather than shipping and waiting for an audit that runs in the right theme.
+   */
+  it("gives the import notes a declared colour rather than a composited one", () => {
+    const rule = block(".import-progress-note,\n.import-cost,\n.import-buys");
+    expect(rule, "the import notes lost their shared rule").toBeTruthy();
+    expect(rule).toMatch(/color:\s*var\(--muted\)/);
+    expect(rule, "an alpha over the surface is not a colour -- see the note above the rule").not.toMatch(
+      /rgba\(var\(--ink-rgb\)/,
+    );
+  });
+
+  it("shows the alpha it replaced really was failing, and only in the light theme", () => {
+    /*
+     * Why this one survived the audit: at 0.6 over the dark surface it is 5.41:1 and passes, and
+     * the Lighthouse run was in dark. The light theme is 4.19:1. An automated pass in one theme
+     * is not a pass, and this asserts both halves so the reason cannot be lost.
+     */
+    const [lightSurface, darkSurface] = themed("--surface");
+    const [lightInk, darkInk] = ["#17221f", "#e7e3d8"];
+    expect(contrast(composite(darkInk, darkSurface, 0.6), darkSurface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(composite(lightInk, lightSurface, 0.6), lightSurface)).toBeLessThan(4.5);
+  });
+});
