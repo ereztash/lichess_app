@@ -391,3 +391,78 @@ White to move:  info depth 10 ... score cp  730
 ```
 
 Same position, opposite signs. `toWhitePerspective` negates when the FEN says Black is to move.
+
+## A neutral audit, and the one finding that did not close
+
+The scores in this repository are all self-defined: gates I wrote, thresholds I chose, controls I
+designed to fail. That is the right way to hold a claim, but it cannot tell you whether the thing
+is any good by a standard nobody here set. So the built bundle was handed to an external tool with
+its own opinions -- Lighthouse 13.4.1, whose accessibility category is axe-core 4 -- and run
+against the same artifact Vercel serves.
+
+Measured on the built bundle at `127.0.0.1:4174`, before and after the fixes, on both form factors
+Lighthouse ships. Nothing here is asserted by a test; every cell is a run.
+
+| category | mobile before | mobile after | desktop before | desktop after |
+| --- | --- | --- | --- | --- |
+| Performance | 82 | 84 | 100 | 100 |
+| Accessibility | **85** | **100** | **81** | **96** |
+| Best Practices | 100 | 100 | 100 | 100 |
+| SEO | **91** | **100** | **91** | **100** |
+
+The Performance column moved by 2 on mobile and that is not a result -- it is run-to-run variance
+on a shared machine, on metrics (LCP, total blocking time) that are timing-sensitive. Nothing in
+this work touched the bundle's size or its critical path. It is in the table because leaving it
+out would have made the table look like it was only carrying wins.
+
+Five findings, four closed:
+
+- **The board was a grid with no rows** (`aria-required-children`, weight 10, plus
+  `aria-required-parent` on all 64 squares -- one defect reported from both sides). `role="grid"`
+  requires rows between it and its cells, and a screen reader in grid mode navigates by row, so
+  there was nothing to navigate. Fixed with a `role="row"` per rank at `display: contents`, which
+  generates no boxes and leaves the eight-column layout byte-for-byte as it was.
+- **A placeholder that was not a colour** (`color-contrast`, weight 7). `.commitment-move.unset`
+  was `opacity: 0.5`, which composites ink into surface and lands wherever the two average to:
+  #e7e3d8 over #1b2124 gives #81827e, 4.21:1, under the 4.5:1 WCAG 1.4.3 asks. Replaced with
+  `--muted`, a declared colour at 6.60:1. The contrast was never carrying "not chosen yet" -- the
+  italic and the dashed border already do -- it was only making the text harder to read.
+- **Names that did not contain their labels** (`label-content-name-mismatch`, 6 nodes). The
+  confidence buttons read "1 ניחוש" but were named with an em dash between the two, and square a1
+  showed "1a" while being named "a1". Both break WCAG 2.5.3 for anyone driving the UI by voice:
+  they say what they see and are not understood. Fixed by removing the dash and by emitting the
+  file label before the rank label -- both are absolutely positioned, so the order costs nothing
+  visually.
+- **`/robots.txt` was the app** (`robots-txt`, weight 1). There was no such file, and
+  `vercel.json` rewrites every unmatched path to `index.html`, so the URL answered 200 with the
+  SPA's markup and a crawler parsed three lines of HTML as three malformed directives. A file that
+  parses as nothing is worse than none: an absent file already means "no rules". Now a real file,
+  with no `Sitemap:` line, because there is no sitemap and pointing at a 404 would be the same
+  defect one line further down.
+
+**One finding did not close: `target-size` (weight 7).** It is the whole gap between 96 and 100 on
+desktop, and it is written up in `client/src/index.css` above `.commitment-submit` and asserted by
+`tests/client/accessibility-audit.test.ts` so that a reader who deletes the sticky to clear the
+audit meets the measurements first. Two of them collide:
+
+- Without the sticky, the submit sat at y=1302 on a 390x844 phone -- below the fold, invisible to
+  a player who had just chosen a move. That is a contract in `ux-contract.test.ts`, measured on a
+  shipped build. Removing it during this work measured y=1750.
+- Capping the card and scrolling its fields cleared axe, and measured the submit at y=921 in an
+  844 viewport, because on a phone the card starts below the board. It trades a covered control
+  for an invisible one.
+
+Nothing pinned to a viewport can avoid covering what sits at that viewport's edge, and this form
+is taller than the viewport at every size measured. The finding is also wide-layout only: the same
+build passes `target-size` with zero nodes at 412x823, which is why mobile reads 100 and desktop
+96. What keeps it from being a trap is that the button moves against the content as the page
+scrolls, so a chip it covers at one scroll position is clear at another. The real fix is a shorter
+form, or a layout where the panel owns its own scrollport with the board beside it rather than
+above it. Both are larger than an audit fix, and neither is done.
+
+**What this audit does not say.** It is an automated pass, and automated accessibility checking
+catches a minority of what a person using assistive technology would hit. 42 of the 66
+accessibility audits came back `notApplicable` -- no video, no iframes, no data tables -- so the
+category score is computed over a small surface. 100 on mobile means "nothing axe knows how to
+detect", not "usable". Nobody has driven this board with a screen reader, and until somebody has,
+that remains unmeasured.

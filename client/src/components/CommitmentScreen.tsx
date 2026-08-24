@@ -210,14 +210,21 @@ export function CommitmentScreen({
               key={level}
               type="button"
               className={draft.confidence === level ? "selected" : ""}
-              aria-label={`ביטחון ${level} — ${CONFIDENCE_LABELS[level]}`}
+              /*
+               * The name CONTAINS the visible text, which is what WCAG 2.5.3 asks and what axe
+               * reports as label-content-name-mismatch when it fails. The button reads "1" over
+               * "ניחוש"; the name has to have that pair in it, in that order, spelled the same.
+               * The em dash used to sit between them and broke the match, so someone using voice
+               * control could say what they saw and not be understood.
+               */
+              aria-label={`ביטחון ${level} ${CONFIDENCE_LABELS[level]}`}
               aria-pressed={draft.confidence === level}
               onClick={() => {
                 setConfidenceStatedAt((Date.now() - startedAt.current) / 1000);
                 setDraft((d) => ({ ...d, confidence: level }));
               }}
             >
-              <b>{level}</b>
+              <b>{level}</b>{" "}
               <small>{CONFIDENCE_LABELS[level]}</small>
             </button>
           ))}
