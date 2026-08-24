@@ -659,3 +659,69 @@ promise; the offer repeated after registration; the alpha restored on the import
 whole-record floor restored; an unreadable record reporting zero instead of unknown; the cost note
 moved below its button; the failure case dropped from the payoff; and the floors hardcoded instead
 of read from the constants.
+
+## The cold start's real cost, and the number that turned out not to matter
+
+The last audit named "roughly 360 interactions before the first claim" as the highest-return thing
+to reduce: 60 decisions at six taps each. Both halves were then measured in a browser, and the
+conclusion did not survive.
+
+**Six taps cost 326 ms.** Two board taps, a read chip, an unknown chip, a confidence, a submit —
+timed on a 1440x950 build. Across a whole 40-decision cold start that is about thirteen seconds of
+mechanical tapping. Cutting it by a third would save four seconds spread over weeks.
+
+**The engine is not the bottleneck either.** Six consecutive decisions, submit to reveal:
+
+| decision | submit → reveal |
+| --- | --- |
+| 1 | 1951 ms |
+| 2 | 502 ms |
+| 3 | 320 ms |
+| 4 | 301 ms |
+| 5 | 277 ms |
+| 6 | 214 ms |
+
+Steady-state median 301 ms. Over 40 decisions that is roughly twelve seconds of engine wait in
+total. **The whole 1.65-second difference is the first decision**, and it is the worker booting:
+7 MB of wasm fetched and instantiated plus the UCI handshake, previously done lazily inside the
+first `analyze` call — which is to say, after the player's first ever commit.
+
+So the cost of the cold start is neither the taps nor the engine. It is 40 decisions' worth of
+concentrated thinking, and that is the product rather than a defect. **The 360 was the wrong number
+to optimise, and naming it was a mistake made by counting interactions without timing them.**
+
+### What the measurement did support
+
+Warming the worker when a move is put on the board, so the boot overlaps the read and the
+confidence instead of following the commit. Measured on one build, four runs each, first decision:
+
+| thinking window after the move is chosen | first submit → reveal |
+| --- | --- |
+| none | 939, 920, 1098, 923 ms — median ~931 |
+| two seconds | 518, 522, 562, 549 ms — median ~536 |
+
+The 395 ms between those two rows is the warm's window effect and is a controlled comparison: same
+build, same script, only the pause differs. Against the 1951 ms measured before the change the
+total gain is roughly 1.0–1.4 s, but **that comparison spans a rebuild and is not a controlled
+A/B** — it is quoted as an order of magnitude, not as a result.
+
+**R3 is untouched, and the distinction is the entire point.** `start()` posts exactly one message,
+`uci`. `go` — the command that begins a search — is posted only from `search()`, which the warm
+path never calls. No position is sent, so there is nothing the worker could have searched, and no
+evaluation exists that could reach a screen or a record before the decision is written.
+`tests/client/engine-warm.test.ts` asserts all three on the messages that actually cross to the
+worker, because "warm the engine early" is precisely the shape of change that erodes R3 and a
+comment would not hold it. Three controls, each confirmed red: a `go` added to the boot path, a
+`position` added to it, and the boot made non-idempotent.
+
+### What was refused
+
+Pre-filling the two read chips from the previous decision would have cut six taps to four.
+`emptyDraft` forbids it in as many words: *"Nothing preselected, deliberately. A default read is
+the machine stating one on the player's behalf and then measuring them against it."*
+
+The detector never reads `known` or `unknown`, so no claim could have moved — the argument for
+doing it anyway was available. It was refused on the stronger ground: Layer A is the only thing in
+this product that is ever true, and carrying a read forward makes the record say the player stated
+something at a ply where they only failed to change it. Two taps are not worth that, and the taps
+were measured at 326 ms for all six.
