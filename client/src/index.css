@@ -502,6 +502,47 @@ button:not(:disabled) {
  * The instrument's own reading. Same list mechanics as the buckets above it, because it IS the
  * same kind of table -- a scope and a proportion per row, each carrying its n.
  */
+/*
+ * What the board is recording. Deliberately quiet: no count, no target, no progress. It is a
+ * disclosure of what the record now holds, and anything that reads as encouragement would turn
+ * `candidate_moves_considered` into an artifact of this panel rather than a record of the player.
+ */
+.commitment-candidates {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+.candidates-label {
+  display: block;
+  font-size: var(--panel-label);
+  color: var(--muted);
+}
+.candidates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 5px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.candidates-list li {
+  padding: 3px 7px;
+  background: var(--raise);
+  font-family: inherit;
+  font-size: var(--panel-data);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.candidates-note {
+  margin: 6px 0 0;
+  font-size: var(--panel-label);
+  line-height: 1.45;
+  color: var(--muted);
+}
+.candidates-note strong {
+  color: var(--ink);
+  font-weight: 700;
+}
 .mix-block {
   margin-top: 14px;
 }

@@ -1037,3 +1037,66 @@ Found by an external review pass reading the code, not by a test. Four positive 
 the counter's denominator taking unrevealed decisions; silence dropped from the denominator; the
 eligibility ceiling computed without the material line; the branch priority inverted. Plus two for
 the silence split: the single sentence restored, and the basis computed from the wrong threshold.
+
+## The differentiator was collecting its input silently
+
+Three independent expert reviews -- product marketing, product strategy, value-proposition design
+-- were run against this codebase, and all three arrived at the same finding from different
+directions: **`candidate_moves_considered` is the only reason this product can ever say "the
+engine's move was already on your board", and nothing on screen told the player it was being
+recorded.** `CommitmentScreen` received the array as a prop (line 95, building `live`) and rendered
+it nowhere.
+
+The strategy review pushed it further: during `stage === "deciding"` a dragged move is marked, not
+played, and the player is shown nothing of the resulting position. So there is no reason to put a
+second move on the board **except to change which move you intend to play** -- meaning the array
+records *abandonment*, not comparison, and its expected length is 1. If that is right, the fire
+rate of the product's one unique finding is near zero **by construction of the interface**, not by
+anything about the players.
+
+The panel now discloses what it holds. Disclosure, not instruction, and the distinction is the
+whole design:
+
+- **No count.** A number beside a list is a score, and a score invites raising it.
+- **No target, no progress, no praise.** Asserted by tests against imperatives and celebration.
+- **The wording is byte-identical at one move and at four.** If it warmed up as the list grew, the
+  panel would be grading board behaviour, which is the inducement this refuses. Asserted.
+- **It renders from the FIRST move, not the second.** Appearing at two would make two a threshold,
+  and a threshold that appears on reaching it is a reward.
+- **It states the asymmetry in the direction the array actually runs**: a move here WAS in front of
+  the player; a move absent may still have been considered and never touched. So the record can
+  show a move was there, never that it was not.
+
+**Why the mix had to ship visible in the same change, and not after.** Making the input visible can
+induce performative candidate-adding -- players dragging moves they did not consider. That would
+turn the array into an artifact of the interface, the same contamination that got pre-filled read
+chips refused. It also contaminates the denominator of `oneThingMix`, which is the instrument built
+to measure the fire rate. Shipping the affordance without the reading visible would have removed
+the ability to detect a contamination this change itself introduced.
+
+Driven on the built asset, 1440x1500:
+
+```
+after 1 move   list: [e2e4]           note rendered
+after 2 moves  list: [e2e4, g1f3]     note byte-identical to the 1-move version
+```
+
+**A CSS defect caught before it shipped.** The first version of these rules used `--fs-label` and
+`--fs-body`, which do not exist -- the panel's scale is `--panel-title/data/body/label/fine`. Three
+`font-size` declarations would have silently resolved to nothing: the `--edge: var(--edge)` failure
+in a third shape, found by grepping for the token definitions rather than by trusting the names.
+
+**A control that never ran, and looked green.** The control removing the one-way clause from the
+asymmetry note reported all tests passing. The perl pattern spanned a JSX line break and matched
+nothing, so no mutation was applied -- a no-op reported as a survived assertion. Re-run against the
+actual line, it goes red. **A control that cannot be shown to have changed the file is not a
+control**, and diffing the mutated file against the original is the cheap way to prove it did.
+
+Eight positive controls, each confirmed red: the disclosure removed; appearing only at two moves; a
+count added; wording that warms as the list grows; the one-way clause dropped; the mix dropped from
+the dashboard; the ceiling removed from the mix; shares reported below the floor.
+
+**Not built, and named rather than assumed away.** The strategy review also proposed a sixth
+`declaredTension` firing when exactly one move was put down at confidence >= 4. Refused: a question
+that appears *because* you recorded one candidate is a nudge to record more, whatever its wording,
+and it would contaminate the measurement in the same direction as a count.

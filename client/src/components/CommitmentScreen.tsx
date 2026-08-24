@@ -164,6 +164,45 @@ export function CommitmentScreen({
         {problemFor("chosenMove") && (
           <p className="commitment-problem">{problemFor("chosenMove")}</p>
         )}
+
+        {/*
+          * WHAT IS BEING RECORDED, said out loud. Disclosure, not instruction.
+          *
+          * Every distinct move put on the board while deciding is appended to
+          * `candidate_moves_considered`, and that array is the only reason this product can ever
+          * say "the engine's move was already on your board" -- the one sentence no other chess
+          * tool can write, because no other tool makes you commit first. The component received
+          * the array and rendered nothing. So the product's single differentiator was collecting
+          * its input silently, and a player had no way to know that trying a move left a trace.
+          *
+          * A product that records something and never says so is the defect here. Fixing it is
+          * disclosure. What it must NOT become is a prompt: there is no count, no target, no
+          * progress, no praise, and nothing that reads as "put more moves down". Inducing the
+          * behaviour would make the array an artifact of the interface rather than a record of
+          * what happened -- the same contamination that got pre-filled read chips refused.
+          *
+          * It renders from the first move rather than from the second, deliberately. Appearing at
+          * two would make two a threshold, and a threshold that appears is a reward.
+          *
+          * The sentence states the asymmetry the array actually has, in the direction it runs: a
+          * move here WAS in front of the player; a move absent may still have been considered.
+          */}
+        {candidatesConsidered.length > 0 && (
+          <div className="commitment-candidates">
+            <span className="candidates-label">מהלכים שהנחתם על הלוח</span>
+            <ul className="candidates-list">
+              {candidatesConsidered.map((move) => (
+                <li key={move} dir="ltr">
+                  {move}
+                </li>
+              ))}
+            </ul>
+            <p className="candidates-note">
+              נרשמים כחלק מההחלטה. מהלך ששקלתם בראש ולא הנחתם על הלוח <strong>אינו נרשם</strong> —
+              ולכן הרשומה יכולה להראות שמהלך היה מולכם, אף פעם לא שהוא לא היה.
+            </p>
+          </div>
+        )}
       </div>
 
       <ReadField
