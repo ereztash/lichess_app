@@ -21,6 +21,7 @@ import {
   learningRules,
   learningTransferResults,
   learningTransfers,
+  importReadings,
   preregisteredHypotheses,
   type Decision,
   type InsertDecision,
@@ -29,6 +30,7 @@ import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
 import type { PreregisteredHypothesis } from "../shared/prereg.js";
+import type { StoredImportDiagnostic } from "../shared/import-diagnostic.js";
 import type {
   LearningRule,
   LearningTransfer,
@@ -470,6 +472,42 @@ export class DrizzleRecordStore implements RecordStore {
     });
   }
 
+  /*
+   * The scan's reading, kept whole.
+   *
+   * `readingId` is derived from the username and the scan timestamp rather than generated, so a
+   * retried write of the SAME scan collides instead of silently producing two rows that differ
+   * only by id -- which would make "the newest reading" ambiguous at exactly the moment a reader
+   * is trusting it.
+   */
+  async saveImportDiagnostic(reading: StoredImportDiagnostic): Promise<void> {
+    const db = await this.db();
+    await db.insert(importReadings).values({
+      readingId: `import-${reading.username}-${reading.scanned_at}`,
+      username: reading.username,
+      games: reading.games,
+      diagnostic: reading.diagnostic,
+      scannedAt: new Date(reading.scanned_at),
+    });
+  }
+
+  async getImportDiagnostic(): Promise<StoredImportDiagnostic | null> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(importReadings)
+      .orderBy(desc(importReadings.scannedAt), desc(importReadings.readingId))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      diagnostic: row.diagnostic,
+      username: row.username,
+      games: row.games,
+      scanned_at: row.scannedAt.toISOString(),
+    };
+  }
+
   async getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null> {
     const db = await this.db();
     const rows = await db
@@ -658,6 +696,18 @@ export class MemoryRecordStore implements RecordStore {
   async savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void> {
     // Append-only, same as the table: the newest wins, the older ones stay readable.
     this.preregRows.push(structuredClone(hypothesis));
+  }
+
+  private readonly importReadingRows: StoredImportDiagnostic[] = [];
+
+  async saveImportDiagnostic(reading: StoredImportDiagnostic): Promise<void> {
+    // Append-only, same as the table: the newest wins, the older ones stay readable.
+    this.importReadingRows.push(structuredClone(reading));
+  }
+
+  async getImportDiagnostic(): Promise<StoredImportDiagnostic | null> {
+    const newest = this.importReadingRows[this.importReadingRows.length - 1];
+    return newest ? structuredClone(newest) : null;
   }
 
   async getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null> {

@@ -51,6 +51,7 @@ import { readRecord, type RecordReading } from "./record-dashboard.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
+import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 
 /**
  * A refusal with a transport-neutral code.
@@ -542,6 +543,32 @@ export async function registerHypothesis(
   };
   await store.savePreregisteredHypothesis(hypothesis);
   return hypothesis;
+}
+
+/**
+ * Keep a scan's reading, so that closing the overlay stops throwing it away.
+ *
+ * `scanned_at` is stamped HERE and whatever the caller sent is discarded, for the same reason
+ * `registerHypothesis` refuses the caller's `decisions_before`: the scan date is the one field
+ * that decides whether a rate on screen reads as a measurement or as a standing claim about the
+ * player, and a caller that could choose it could keep a months-old reading looking current.
+ *
+ * No validation of the diagnostic itself. It is produced by `diagnoseImportedGames` and never by
+ * a user, so a schema check here would assert against this codebase rather than against input.
+ */
+export async function saveImportReading(
+  store: RecordStore,
+  input: Omit<StoredImportDiagnostic, "scanned_at">,
+  now: () => Date = () => new Date(),
+): Promise<StoredImportDiagnostic> {
+  const reading: StoredImportDiagnostic = { ...input, scanned_at: now().toISOString() };
+  await store.saveImportDiagnostic(reading);
+  return reading;
+}
+
+/** The newest kept reading, or null when no scan has ever run against this record. */
+export async function getImportReading(store: RecordStore): Promise<StoredImportDiagnostic | null> {
+  return store.getImportDiagnostic();
 }
 
 /**

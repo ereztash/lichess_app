@@ -183,13 +183,26 @@ describe("colour tokens that flip together", () => {
 });
 
 describe("the mobile tool rail", () => {
-  it("has one column per tool, so none is orphaned onto its own row", () => {
+  it("puts every tool on one row, whatever number of them render", () => {
+    /*
+     * This used to assert a hard-coded column count against the number of `rail-button` strings
+     * in Home.tsx, and it was right until a tool started rendering conditionally: the saved-reading
+     * entry appears only once a scan has been kept, so the rail holds five OR six. No fixed number
+     * satisfies both -- five orphans the sixth onto its own row, six leave a dead cell when there
+     * is no reading. What the original assertion protected is the intent kept here.
+     */
     const railButtons = (readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8")
       .match(/className="rail-button[^"]*"/g) || []).length;
+    expect(railButtons, "no rail buttons found at all").toBeGreaterThan(1);
     const mobile = bare.slice(bare.indexOf("@media (max-width: 680px)"));
-    const cols = mobile.match(/\.control-rail \{[\s\S]*?grid-template-columns:\s*repeat\((\d+),/);
-    expect(cols, "no column count found for the mobile rail").toBeTruthy();
-    expect(Number(cols![1])).toBe(railButtons);
+    const block = mobile.match(/\.control-rail \{[\s\S]*?\}/)?.[0] ?? "";
+    expect(block, "no mobile rail block found").toBeTruthy();
+    // A track per child that exists, sized from the container -- so one row at any count.
+    expect(
+      block,
+      "the mobile rail is back on a hand-maintained column count, which one of the two rail states will get wrong",
+    ).toMatch(/grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(0,\s*1fr\)\)/);
+    expect(block, "columns may wrap to a second row").toMatch(/grid-auto-flow:\s*column/);
   });
 });
 

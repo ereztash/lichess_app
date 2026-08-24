@@ -12,6 +12,7 @@ import {
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { ENGINE_SOURCES, PHASES } from "../shared/decision-atom.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
+import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -202,6 +203,25 @@ export const learningTransferResults = mysqlTable("learning_transfer_results", {
   completedAt: timestamp("completed_at").notNull(),
 });
 export type LearningTransferResultRow = typeof learningTransferResults.$inferSelect;
+
+/**
+ * A scan's reading, kept so that closing the import overlay stops discarding it.
+ *
+ * The buckets go in one `json` column rather than a row per bucket. Nothing queries into them --
+ * a reading is always read whole, for one display -- and a bucket table would invite exactly the
+ * query this product must never run: comparing one player's bucket against another's.
+ *
+ * The three scalar columns beside it are provenance, not decoration. A rate with no scan date is
+ * a claim about a person; the same rate with "20 games, read 24 August" is a measurement. See
+ * shared/import-diagnostic.ts.
+ */
+export const importReadings = mysqlTable("import_readings", {
+  readingId: varchar("reading_id", { length: 64 }).primaryKey(),
+  username: varchar("username", { length: 60 }).notNull(),
+  games: int("games").notNull(),
+  diagnostic: json("diagnostic").$type<ImportDiagnostic>().notNull(),
+  scannedAt: timestamp("scanned_at").notNull(),
+});
 
 /**
  * A bucket the imported games named BEFORE the live loop recorded anything (shared/prereg.ts).

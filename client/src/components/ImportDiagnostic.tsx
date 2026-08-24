@@ -95,8 +95,27 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
 export function ImportDiagnosticPanel({
   diagnostic,
   bridge,
+  kept = true,
+  provenance,
 }: {
   diagnostic: Diagnostic;
+  /**
+   * Whether the reading on screen was persisted (R2).
+   *
+   * False for a scan the player stopped partway. Such a reading is honest to show right now --
+   * the stop just happened -- and dishonest to keep, because reopened later it would be
+   * indistinguishable from a complete reading of the same games. When it is false the panel says
+   * so, rather than letting the absence of an entry in the rail be the only clue.
+   */
+  kept?: boolean;
+  /**
+   * Whose games, how many, and when — present only when this reading came back FROM storage.
+   *
+   * Omitted at the moment of the scan, where the origin is obvious from the screen the player is
+   * standing on. Required afterwards: the same rates reopened days later with no date attached
+   * stop being a measurement and become a standing claim about the person (section 4.4).
+   */
+  provenance?: { username: string; games: number; scannedAt: string };
   /**
    * The registration offer, passed in rather than constructed here.
    *
@@ -110,6 +129,41 @@ export function ImportDiagnosticPanel({
   return (
     <section className="import-diagnostic">
       <h4 className="dash-title">מה שנמדד במשחקים שייבאתם</h4>
+
+      {/*
+        * The provenance line, and the reason it exists only on the way back.
+        *
+        * At the moment of the scan the player is standing on the screen that ran it, so naming
+        * the account and the date would restate what they just did. Reopened from the rail a week
+        * later it is the whole difference between a measurement and a verdict: "57% accuracy" is
+        * a claim about a person, "57% across 20 games of erez281 read on 24 August" is an
+        * observation with an edge. Section 4.4 asks for the triple; this is the source half.
+        */}
+      {provenance && (
+        <p className="import-provenance">
+          <span dir="ltr">{provenance.username}</span> · {provenance.games} משחקים · נסרק{" "}
+          <time dateTime={provenance.scannedAt}>
+            {new Date(provenance.scannedAt).toLocaleDateString("he-IL", {
+              day: "numeric",
+              month: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </time>
+        </p>
+      )}
+
+      {/*
+        * R2. A scan the player stopped is shown but not kept, and the difference has to be on the
+        * screen rather than only in the rail: a reader who is not told will assume this reading
+        * will be here tomorrow, and it will not.
+        */}
+      {!kept && (
+        <p className="import-not-kept">
+          הסריקה נעצרה באמצע, ולכן הקריאה הזו לא נשמרת. היא מתארת רק את המשחקים שהספיקו להיסרק.
+          סריקה שתרוץ עד הסוף תישמר ותהיה זמינה שוב מהתפריט.
+        </p>
+      )}
 
       {/*
        * The empty column, stated ONCE for the whole table instead of once per row.

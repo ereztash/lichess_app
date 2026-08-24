@@ -922,3 +922,60 @@ half-done.
 
 Four positive controls, each confirmed red: the note deleted entirely; `באף שורה` removed; the
 clause naming the rows that do carry an accuracy removed; and the constant re-added into the rows.
+
+## The reading now outlives the overlay that produced it
+
+The scan cost 971 positions and 43 seconds on the one machine it was measured on, and its result
+lived in `useState` inside `ImportGames`. Closing the overlay discarded it, and the only way back
+was to pay again. The most expensive artefact this app produces was the one it did not keep.
+
+`saveImportDiagnostic` / `getImportDiagnostic` mirror the pre-registration pattern exactly: the
+interface, the local store, the Drizzle store, the memory store, and one additive migration
+(`0001_damp_magneto.sql`, CREATE TABLE only, no ALTER). Append-only, newest displayed, so which
+rates were on screen when a hypothesis was registered stays recoverable after the next scan.
+
+**What is stored is not the diagnostic.** A diagnostic alone is a set of rates with no origin. At
+the moment of the scan the origin is on screen; reopened a week later the same rates with no date
+attached stop being a measurement and become a standing claim about the person. So the stored
+object carries the account, the game count, and `scanned_at` -- stamped by the service and NOT by
+the caller, for the same reason `registerHypothesis` refuses the caller's `decisions_before`.
+
+**A partial scan is shown and not kept (R2).** `aborted` means the player stopped it, and the
+diagnostic then covers only what got scored. Honest to render right now, dishonest to persist:
+reopened later it would be indistinguishable from a complete reading of the same games. The panel
+says so on screen rather than letting the missing rail entry be the only clue.
+
+**Not promoted.** Same `rail-button`, same rail, below the scan. The reading is a set of accuracy
+rates, and accuracy is what this product argues is not the thing worth measuring -- a front-page
+placement would have the app contradict its own empty calibration column. What was broken was that
+a 43-second scan could not be reopened at all. The entry renders only once something is behind it.
+
+### Two regressions this caused, both caught by existing tests
+
+**The tRPC coupling.** The first version called `useSaveImportReading()` inside `ImportGames`, and
+`import-cost.test.tsx` -- which mounts that component with no providers, deliberately -- went red on
+six assertions about text with no connection to storage. The dependency is now injected as
+`keepReading`, for the same reason `analyze` is a prop and the panel takes `bridge` as a slot.
+
+**The mobile rail's hand-maintained column count.** `ux-contract.test.ts` asserts one column per
+tool so none is orphaned onto its own row, and the CSS carried `repeat(5, 1fr)` under a comment
+reading *"there are five tools"*. The saved-reading entry renders conditionally, so the rail now
+holds five OR six and no fixed number is right for both. `repeat(auto-fit, minmax(0, 1fr))` plus
+`grid-auto-flow: column` puts however many exist on one row. Measured in Chromium at 390x844:
+
+```
+                       buttons   rows   tap box    h-overflow
+no reading kept              5      1    74x87px        false
+reading kept                 6      1    62x87px        false
+```
+
+Both stay above the 44px floor WCAG 2.5.8 asks for.
+
+Driven end-to-end on the built asset with a seeded reading: the rail entry appears, the panel
+reopens with `erez281 - 20 games - scanned 24 August 16:00`, nine rows, zero per-row repeated
+constant, and no "not kept" warning on a reading that was kept.
+
+Six positive controls, each confirmed red: save made a no-op; append replaced by overwrite; the
+service made to honour a caller-supplied `scanned_at`; the provenance line removed; the not-kept
+warning removed; and `ImportGames` reaching the record hook directly again. Two more for the rail:
+back to a fixed column count, and `grid-auto-flow` removed.

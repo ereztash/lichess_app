@@ -10,7 +10,8 @@ import {
   Plus,
   Stethoscope,
   Sun,
-  UserSearch,  HelpCircle } from "lucide-react";
+  UserSearch,  HelpCircle,
+  History } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +35,7 @@ import type { DrillSpec } from "@shared/claim";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
+import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import { SelfCheck } from "@/components/SelfCheck";
 import { WhatThisIs } from "@/components/WhatThisIs";
@@ -65,6 +67,8 @@ import {
   useReveal,
   useStartDrill,
   useStartLearningTransfer,
+  useImportReading,
+  useSaveImportReading,
 } from "@/lib/record-api";
 import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
 import { MoveTimeline } from "@/components/MoveTimeline";
@@ -158,6 +162,9 @@ export default function Home() {
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [showReading, setShowReading] = useState(false);
+  const importReading = useImportReading();
+  const saveImportReading = useSaveImportReading();
   const [reviewScores, setReviewScores] = useState<number[] | null>(null);
   const [reviewProgress, setReviewProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -1111,6 +1118,32 @@ export default function Home() {
             <UserSearch size={18} />
             <span>ייבוא לפי שם</span>
           </button>
+          {/*
+            * The way back to a reading that has already been paid for.
+            *
+            * Deliberately NOT promoted: same `rail-button`, same rail, below the scan that
+            * produces it. The reading is a set of accuracy rates, and accuracy is precisely what
+            * this product argues is not the thing worth measuring -- putting it on the front page
+            * would make the app say the opposite of what its own empty calibration column says.
+            * What was broken was that a 43-second scan could not be reopened at all; that is a
+            * reachability defect, not an argument for a headline.
+            *
+            * The entry renders only once something is behind it. A button that opens an empty
+            * panel is a button that lies about what the record holds.
+            */}
+          {importReading.reading && (
+            <button
+              className="rail-button"
+              onClick={() => {
+                setShowReading((v) => !v);
+                setShowImport(false);
+                setShowPgn(false);
+              }}
+            >
+              <History size={18} />
+              <span>קריאה שמורה</span>
+            </button>
+          )}
           <button className="rail-button" onClick={openLichess}>
             <Link2 size={18} />
             <span>Lichess</span>
@@ -1179,9 +1212,30 @@ export default function Home() {
             </Overlay>
           )}
 
+          {showReading && importReading.reading && (
+            <Overlay label="הקריאה השמורה" onClose={() => setShowReading(false)}>
+              {/*
+                * The same panel, reopened. Not a summary of it and not a second rendering of the
+                * same numbers in a smaller font: section 4.5 says two states must not render
+                * alike, and the converse holds too -- the same reading in two places must not
+                * render as two different findings. What is added is the provenance, because a
+                * rate reopened later with no scan date behind it stops being a measurement.
+                */}
+              <ImportDiagnosticPanel
+                diagnostic={importReading.reading.diagnostic}
+                provenance={{
+                  username: importReading.reading.username,
+                  games: importReading.reading.games,
+                  scannedAt: importReading.reading.scanned_at,
+                }}
+              />
+            </Overlay>
+          )}
+
           {showImport && (
             <Overlay label="ייבוא לפי שם משתמש" onClose={() => setShowImport(false)}>
               <ImportGames
+                keepReading={saveImportReading.mutateAsync}
                 onLoad={loadLichessGame}
                 onClose={() => setShowImport(false)}
                 analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}

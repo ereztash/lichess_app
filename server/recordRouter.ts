@@ -21,6 +21,7 @@ import {
 import * as service from "../shared/record-service.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
+import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
 import { protectedProcedure, router } from "./_core/trpc.js";
 
 /**
@@ -247,5 +248,29 @@ export function buildRecordRouter(store: RecordStore) {
       .mutation(({ input }) => guard(() => service.registerHypothesis(store, input))),
 
     hypothesis: protectedProcedure.query(() => guard(() => store.getPreregisteredHypothesis())),
+
+    /**
+     * The kept reading (shared/import-diagnostic.ts).
+     *
+     * `scanned_at` is absent from the input on purpose, exactly as `decisions_before` is above:
+     * the service stamps it. A caller that could choose the scan date could keep an old reading
+     * looking current, which is the one way this object can become dishonest.
+     *
+     * The diagnostic passes through as an opaque object. It is produced by the client's own
+     * `diagnoseImportedGames` from PGNs it fetched, never typed by a user, so a field-by-field
+     * schema here would restate this codebase rather than validate input -- and it would have to
+     * be edited in lockstep every time a bucket is added.
+     */
+    saveImportReading: protectedProcedure
+      .input(
+        z.object({
+          username: z.string().min(1).max(60),
+          games: z.number().int().nonnegative(),
+          diagnostic: z.custom<ImportDiagnostic>((value) => typeof value === "object" && value !== null),
+        }),
+      )
+      .mutation(({ input }) => guard(() => service.saveImportReading(store, input))),
+
+    importReading: protectedProcedure.query(() => guard(() => store.getImportDiagnostic())),
   });
 }
