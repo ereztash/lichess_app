@@ -80,6 +80,44 @@ export function DrillRunner({
         </div>
       )}
 
+      {/*
+        * THE EMERGENCY EXIT (Nielsen heuristic 3, "user control and freedom").
+        *
+        * A drill is a fixed set of positions and there was no way out of one. Starting it -- by
+        * accident, or on a phone about to run out of battery -- committed the player to finishing
+        * every position or abandoning the tab. That is the definition of a trap, and it is the one
+        * place in this product where a control the player cannot leave sits between them and the
+        * rest of the app.
+        *
+        * WHAT LEAVING MUST NOT DO, and this is why the button carries a sentence rather than an
+        * icon. An abandoned drill produces NO result: `ProspectiveDrillResult` has `predicted` and
+        * `observed` and no third state, and inventing one would let a partial drill grade a claim
+        * on the positions the player happened to reach. R5 is about evidence that postdates the
+        * claim AND was bounded in advance; seven of twenty positions is neither.
+        *
+        * WHAT IT MUST NOT UNDO EITHER. The decisions already recorded stay. They were real
+        * decisions, taken under the same commit-before-reveal protocol as any other, and the
+        * record is append-only. Deleting them to "clean up" an abandoned drill would be the one
+        * thing this codebase never does. The button says both halves, because a player who
+        * believes leaving erases their work will finish a drill they wanted to leave.
+        */}
+      {(stage === "briefing" || stage === "running") && (
+        <button type="button" className="drill-abandon" onClick={onFinish}>
+          {stage === "briefing"
+            ? "לא עכשיו — חזרה בלי להתחיל"
+            : `לצאת מהדריל (${progress.completed} מתוך ${progress.total})`}
+        </button>
+      )}
+
+      {stage === "running" && (
+        <p className="drill-abandon-note">
+          יציאה עכשיו לא תדרג את הטענה — דריל חלקי אינו ראיה, וזה בדיוק מה שנרשם מראש בא למנוע.
+          {progress.completed > 0
+            ? ` ${progress.completed} ההחלטות שכבר רשמת נשארות ברשומה; הן החלטות אמיתיות ונספרות ככל האחרות.`
+            : " שום החלטה עוד לא נרשמה בדריל הזה."}
+        </p>
+      )}
+
       {stage === "reporting" && (
         <p className="drill-loading">
           <Loader2 size={14} /> מודד מול התנאי שנרשם מראש…

@@ -2830,3 +2830,100 @@ button:not(:disabled) {
   font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
+
+/*
+ * THE DRILL'S EMERGENCY EXIT (Nielsen 3) and the note that keeps it honest.
+ *
+ * Deliberately NOT a primary control: leaving is a legitimate act, not the recommended one, so it
+ * reads as a link rather than a button. It still clears the 44px tap floor, because a control you
+ * reach for when you want out is the worst one to make people aim at.
+ *
+ * `--muted` rather than an alpha, for the reason recorded above `.import-progress-note`: an alpha
+ * composites into whatever is behind it and the result was measured failing 4.5:1 in the light
+ * theme. Declared colours only.
+ */
+.drill-abandon {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 4px;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.drill-abandon:hover {
+  color: var(--ink);
+}
+.drill-abandon-note {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/*
+ * HELP (Nielsen 10). Rendered inside the existing Overlay, so it inherits the panel's own
+ * scrollport and dismissal; this rule set is only the prose inside it.
+ *
+ * Reading measure is capped: this is the one screen in the product that is genuinely a page of
+ * text, and an unconstrained line length on a 1440px viewport is the difference between text
+ * someone reads and text someone scrolls past.
+ */
+.what-this-is {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 62ch;
+}
+.what-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.what-heading h3 {
+  margin: 0;
+  font-size: 15px;
+}
+.what-heading button {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.what-heading button:hover {
+  color: var(--ink);
+}
+.what-this-is h4 {
+  margin: 6px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.what-this-is p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.what-never {
+  margin: 0;
+  padding-inline-start: 18px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+/* The limits and the unverified note are the two paragraphs a reader must not skim past. */
+.what-unverified {
+  padding: 8px 10px;
+  border-inline-start: 2px solid var(--hairline-strong);
+  color: var(--muted);
+}

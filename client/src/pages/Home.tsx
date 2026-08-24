@@ -10,8 +10,7 @@ import {
   Plus,
   Stethoscope,
   Sun,
-  UserSearch,
-} from "lucide-react";
+  UserSearch,  HelpCircle } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,6 +36,7 @@ import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import { SelfCheck } from "@/components/SelfCheck";
+import { WhatThisIs } from "@/components/WhatThisIs";
 import { Overlay } from "@/components/Overlay";
 /*
  * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
@@ -202,6 +202,7 @@ export default function Home() {
   const [opponentThinking, setOpponentThinking] = useState(false);
   const [showNewGame, setShowNewGame] = useState(false);
   const [showSelfCheck, setShowSelfCheck] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [setupColor, setSetupColor] = useState<"w" | "b">("w");
   const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
   /** The position the opponent has already been asked about, so it is asked exactly once. */
@@ -1038,6 +1039,19 @@ export default function Home() {
            * Reachable from the header on purpose. A diagnostic behind a menu is a diagnostic
            * nobody runs when the thing is broken.
            */}
+          {/*
+           * Help lives in the header, not behind a menu, and not as a first-run tour.
+           * Nielsen 10: it has to be findable at the moment of confusion, which is not
+           * necessarily the first moment.
+           */}
+          <button
+            className="icon-control"
+            aria-label="מה נמדד כאן"
+            aria-expanded={showHelp}
+            onClick={() => setShowHelp((v) => !v)}
+          >
+            <HelpCircle size={17} />
+          </button>
           <button
             className="icon-control"
             aria-label="בדיקה עצמית של הדפדפן"
@@ -1141,6 +1155,11 @@ export default function Home() {
            * above the board -- which pushed the board below the fold by their own height. See
            * components/Overlay.tsx for the measurements.
            */}
+          {showHelp && (
+            <Overlay label="מה נמדד כאן" onClose={() => setShowHelp(false)}>
+              <WhatThisIs onClose={() => setShowHelp(false)} />
+            </Overlay>
+          )}
           {showSelfCheck && (
             <Overlay label="בדיקה עצמית" onClose={() => setShowSelfCheck(false)}>
               <SelfCheck onClose={() => setShowSelfCheck(false)} />

@@ -725,3 +725,67 @@ doing it anyway was available. It was refused on the stronger ground: Layer A is
 this product that is ever true, and carrying a read forward makes the record say the player stated
 something at a ply where they only failed to change it. Two taps are not worth that, and the taps
 were measured at 326 ms for all six.
+
+## The two heuristics this product scored zero on
+
+A UX review against Nielsen's ten usability heuristics found eight in reasonable shape and two at
+zero. Both are the kind a product omits when it is built by someone who already knows how it works:
+an exit is only obviously necessary to a person who wanted one, and an explanation is only
+obviously missing to a person who did not have it.
+
+### 3 — user control and freedom
+
+`DrillRunner` rendered its only exit at `stage === "done"`. A drill is a fixed set of positions, so
+starting one — by accident, or on a phone about to run out of battery — committed the player to
+finishing every position or abandoning the tab. It was the one control in this product a player
+could not leave.
+
+The exit now renders during `briefing` and `running`, and carries two sentences because leaving is
+worthless if the player is guessing what it costs:
+
+- **It does not grade the claim.** `ProspectiveDrillResult` has `predicted` and `observed` and no
+  third state. Seven positions of twenty is not the bounded set R5 registered in advance, and
+  inventing an "abandoned" verdict would let a partial drill move a grade.
+- **The decisions already recorded are kept.** They were taken under the same commit-before-reveal
+  protocol as any other and the record is append-only. A player who believes leaving erases their
+  work will sit through a drill they wanted to leave.
+
+Zero and non-zero say different sentences: telling someone their 0 decisions are safe is noise.
+
+**What was NOT built, and why.** Undo on a committed decision. The record is append-only and that
+is the foundation, but the real objection is sharper: the reveal follows the commit by about 300 ms
+(measured), so any correction window opens *after* the engine has spoken. A player who could
+disown a decision at that point would be disowning the ones that turned out badly, and the
+calibration gap — the product's only claim — would be computed over a set the player curated after
+seeing the answer. The forced-move exclusion is safe because the position decides it; a self-declared
+mis-tap is not. Not built, and the reason is recorded here rather than left as an absence.
+
+### 10 — help and documentation
+
+There was none. "Calibration gap" was defined in exactly one place, `RecordDashboard`, reached only
+once there is a record worth looking at — the explanation arrived after the thing it explains.
+
+`WhatThisIs` is reachable from the header at any time. Not a tour, not a dismissable coach-mark, no
+"got it" that records progress: it renders identically every time it opens, because a help screen
+that changes with how far along you are is managing the reader rather than informing them. It
+explains what is measured, why the engine stays silent, and why the wait is what it is — quoting
+both floors from the constants so the page cannot drift from the detector.
+
+Two sections a help page normally omits:
+
+- **What this will never say** — no score, no rating, no streak, no recommendation, no self-grading.
+  Each line is a refusal enforced somewhere in the code, published to the person it protects.
+- **What is still unverified** — that nobody has completed the loop, that the thresholds were tested
+  against synthetic records, and that the imported accuracy rate is inflated by book moves and
+  recaptures. That last is a known defect in a number currently on screen, and the page that
+  introduces the product is the right place to say so.
+
+Five positive controls, each confirmed red: the exit restricted to `done` again; the note claiming
+decisions are deleted; the zero and non-zero sentences collapsed into one; the help floors
+hardcoded instead of read from the constants; and the "nobody has completed the loop" admission
+removed.
+
+### Checked and found already present
+
+`:focus-visible` was listed as unexamined in the review and turned out to be implemented, including
+a distinct treatment for `.board-square`. The gap was in the review, not the product.
