@@ -1175,9 +1175,8 @@ leads on, is not, and does not use it.
 nothing was not bad luck or a small sample. Under a fixed floor of 0.45 on a scale where one full
 point of stated confidence is 0.25, that is what the detector returns for a human being.
 
-NOT FIXED HERE. Two further review passes (calibration measurement, psychometrics) were running
-against this same scoring path when this was found, and one planned change beats two conflicting
-ones in the same file.
+**FIXED.** The fixed floor is gone; see *"Separability, and the multiplier the shuffled-label
+control chose"* below for what replaced it and what it cost.
 
 ## A forced mate is not a centipawn quantity, and the live reveal read it as one
 
@@ -1273,3 +1272,146 @@ already established above: one planned fix beats two conflicting ones in the sam
 Size on the one real reading: 20 games, 554 decisions. Every game that ended in checkmate
 contributes exactly one such decision, so the affected share is at most 20/554 = 3.6% and lands
 only on the player's best move of that game.
+
+## Separability, and the multiplier the shuffled-label control chose
+
+The fix for the section above. `MIN_GAP_DIFFERENCE` is gone; a bucket is now reported when its
+calibration gap sits further from the rest of the record than the **sampling error of the
+difference**, by a multiplier the control set.
+
+### What the test is built on, and why not the obvious thing
+
+`gap` is `meanConfidence − accuracyRate`. The obvious standard error adds the two marginal
+variances — and that assumes confidence and accuracy are independent *within* a bucket, which is
+the exact opposite of this product's premise: an overconfident player is one whose confidence and
+accuracy move apart there.
+
+So the test is built on **one quantity per decision**, `confidence − (accurate ? 1 : 0)`. Its mean
+over a bucket is identically `gap`, so the sampling variance of `gap` is `variance(that) / n`,
+exactly, with no independence assumption anywhere. The two samples (inside a bucket, outside it)
+are disjoint by construction, so their variances add.
+
+This is the same shape as `worstBucketVerdict` in `shared/import-diagnostic.ts`, computed on the
+right quantity for this measure. **The import screen has always been statistically sound. The
+detector the product leads on was not, and did not use it.**
+
+### The harness decided the number, and it is not the easy one
+
+GATE-SHUFFLE takes **one record** and permutes its labels hundreds of times — the spec's
+requirement, *"the player's decisions with clock and phase randomly permuted."* That is a harder
+null than drawing a fresh record per run, because a single record can be systematically unlucky
+and the gate reports the **worst** cell.
+
+Calibrated the easy way, k = 3.25 looked clear at 1.1%. On the gate's own harness it touches
+2.0% — the ceiling exactly, passing only on a strict inequality. Ten independent base records per
+size, 300 shuffles each, worst cell of the ten:
+
+```
+k       n=120   n=300   n=600  n=1200
+3.25     2.0%    1.7%    2.0%    1.0%    <- at the ceiling
+3.50     1.7%    0.7%    0.7%    0.7%
+3.75     1.0%    0.3%    0.3%    0.3%    <- shipped
+4.00     0.3%    0.0%    0.3%    0.0%
+```
+
+**`SEPARABILITY_K = 3.75`** — the smallest multiplier measured that leaves half the ceiling as
+margin. A gate that passes at exactly its limit is one unlucky draw from red and teaches people to
+re-run it. The shipped gate now reports **0.7% worst case**.
+
+`noiseRecord` was extended from `[40 … 300]` to `[40 … 1200]` in the same change. A fixed floor is
+*hardest* to clear on noise at large n, so the gate had been testing the region where the old rule
+looked best and never the region where it went silent on real effects.
+
+### Head to head, on identical records
+
+2000 fresh records per cell. True gap difference in brackets; one whole point of stated confidence
+is 0.25, so a coaching-scale finding — 13 accuracy points plus half a point of confidence — is
+0.255, barely half the floor it had to clear.
+
+```
+scenario                        rule           n=120   n=300   n=600  n=1200  n=2400
+null            (true 0.000)    fixed 0.45      0.0%    0.0%    0.0%    0.0%    0.0%
+null            (true 0.000)    k=3.75 SE       0.4%    0.1%    0.1%    0.1%    0.0%
+
+coach scale     (true 0.255)    fixed 0.45      0.9%    0.2%    0.0%    0.0%    0.0%
+coach scale     (true 0.255)    k=3.75 SE       4.6%   42.9%   91.0%   99.9%  100.0%
+
+on the old line (true 0.450)    fixed 0.45     15.3%   49.4%   49.7%   49.9%   50.3%
+on the old line (true 0.450)    k=3.75 SE      22.9%   99.6%  100.0%  100.0%  100.0%
+
+strong          (true 0.675)    fixed 0.45     24.4%   93.6%   99.0%   99.9%  100.0%
+strong          (true 0.675)    k=3.75 SE      30.4%  100.0%  100.0%  100.0%  100.0%
+```
+
+Row 3 is the defect: **power falling to zero as the record grows.** Row 5 is the same defect from
+the other side — an effect sitting exactly on the floor was a permanent coin flip that no amount of
+play resolved, because a point estimate against a line never accumulates. Both now converge.
+
+### Pre-registration now buys the bar as well as n, reversing a recorded finding
+
+`shared/detector.ts` used to state, from measurement: *"Pre-registration buys n, not gap."* That
+was correct about the detector it was measured on, and correct for a reason nobody wrote down — **a
+fixed effect-size floor does no multiplicity work at all**, so removing five of the six chances to
+clear could not lower it. A separability multiplier *is* the multiplicity control, so the same
+experiment comes out the other way. Gate harness, one pre-named bucket at `minBucketN` 20:
+
+```
+k       n=120   n=300   n=600  n=1200  n=2400
+2.50     3.3%    3.0%    2.3%    2.3%    2.7%   <- over the 2% ceiling
+2.75     1.7%    2.3%    1.3%    1.3%    1.3%   <- over it at n=300
+3.00     1.0%    1.0%    1.0%    0.7%    0.7%   <- shipped
+```
+
+**3.00 named in advance against 3.75 for the scan.** The margin is smaller than "six tests instead
+of one" suggests, for the reason the old comment gave and which still holds: the six bucketings are
+not independent — three phase buckets partition the same decisions and the clock buckets overlap.
+The earlier finding is left in the file rather than deleted.
+
+## The same defect in the drill, where it cost a grade
+
+Found while removing the constant, because `evaluateRefutation` was the other thing reading it.
+
+**The stored refutation condition and the test it was graded by did not agree.** The text written
+down before the drill runs says *"if the gap … is not larger than in the rest of your decisions —
+refuted."* The code required larger **by 0.45**. That is the exact failure `evaluateRefutation`'s
+own doc comment says it exists to prevent: *"A drill that writes down one condition and tests
+another has not pre-registered anything, which is the whole of R5."*
+
+Against a baseline of 200 decisions, 2000 runs per cell:
+
+```
+claim TRUE, confirmed        n=5     n=8    n=12    n=20    n=40    n=80
+  fixed 0.45               22.1%   14.8%    9.3%    4.5%    1.0%    0.1%
+  separable k=3.00          7.6%   10.8%   13.0%   23.1%   46.9%   78.1%
+
+claim FALSE, confirmed       n=5     n=8    n=12    n=20    n=40    n=80
+  fixed 0.45                2.1%    0.4%    0.1%    0.0%    0.0%    0.0%
+  separable k=3.00          2.1%    1.6%    0.8%    0.4%    0.3%    0.7%
+```
+
+**Said plainly, because the first row does not read the way the change wants it to:** at five
+positions the fixed bar really is more sensitive, at the same false-confirmation rate. The two
+cross at about twelve, and past that the old rule collapses — at eighty positions it confirms a
+true claim one time in a thousand. *A longer drill made the product less likely to believe a claim
+that was true.*
+
+`evaluateRefutation` also took `baselineGap: number`, which forced it to treat the rest of the
+record as exactly known. It is an estimate from a finite sample; it now takes the whole summary and
+the baseline's error enters the comparison.
+
+### NOT FIXED: a drill of 5–8 positions cannot decide anything
+
+`MIN_DRILL_POSITIONS = 5`, `MAX_DRILL_POSITIONS = 8`. At that length **neither rule has usable
+power** — 7.6% to 22.1% on a claim that is true. So `observed: false` conflates *"the drill refuted
+this"* with *"the drill could not have confirmed it"*, and the second is far more common.
+
+The verdict now carries `standardError` so a caller can tell them apart. Distinguishing them in the
+**stored grade** needs a third state in `observed`, which is a persisted column in
+`drizzle/schema.ts` and four read/write sites in `server/record.ts` — a migration, not an edit. And
+making a drill long enough to decide anything is a question about how many positions a player is
+asked to play, which is not a statistical decision.
+
+**19 assertions, 12 positive controls**, each confirmed red and each diffed against the original to
+prove the mutation reached the file. One survived on the first pass — the assertion that the
+baseline's own error enters the comparison was a loose inequality the mutation sat comfortably
+inside; it is an exact identity now.

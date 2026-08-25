@@ -29,13 +29,30 @@ export function makeNoise(n: number, seed: number): ScoredDecision[] {
   }));
 }
 
-/** Record sizes spanning cold start through a mature record. */
-export const noiseRecord = [40, 60, 80, 120, 200, 300].map((n) => makeNoise(n, 7 + n));
+/**
+ * Record sizes spanning cold start through a mature record.
+ *
+ * IT USED TO STOP AT 300, and that is where the detector's worst behaviour was hiding. A fixed
+ * effect-size floor is hardest to clear on noise at LARGE n -- the estimate converges on zero --
+ * so the gate was testing the region where the old rule looked best and never the region where
+ * it went silent on real effects. The separability test has the opposite profile: its false
+ * positive rate is roughly flat in n, so the large sizes are exactly where a multiplier set too
+ * low would show. They are in the gate now because the rule changed.
+ */
+export const noiseRecord = [40, 60, 80, 120, 200, 300, 600, 1200].map((n) => makeNoise(n, 7 + n));
 
-/** The thresholds this build started with. Measured at up to 53% false positives. */
+/**
+ * A multiplier low enough to find structure in noise, for the positive control.
+ *
+ * The first draft's 12 / 0.25 cannot be written in this shape any more -- there is no fixed gap
+ * floor to set -- so the control is the same idea expressed in the new parameter: two standard
+ * errors, which is the textbook bar and is far too permissive for a six-bucket scan. Measured on
+ * these records it reports structure in roughly a quarter of shuffled records at every size past
+ * cold start, against 2% allowed.
+ */
 export const PERMISSIVE_THRESHOLDS: DetectorThresholds = {
   minBucketN: 12,
-  minGapDifference: 0.25,
+  separabilityK: 2.0,
 };
 
 /** Generic in the result type so the gate runner's own GateResult flows through unwidened. */

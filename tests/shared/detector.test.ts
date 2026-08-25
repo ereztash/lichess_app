@@ -3,7 +3,7 @@ import {
   ACCURATE_CP_LOSS,
   DEFAULT_THRESHOLDS,
   MIN_BUCKET_N,
-  MIN_GAP_DIFFERENCE,
+  SEPARABILITY_K,
   detect,
   normaliseConfidence,
   seededRandom,
@@ -38,7 +38,15 @@ describe("calibration", () => {
   });
 
   it("returns a zeroed summary for an empty record rather than dividing by zero", () => {
-    expect(summarise([])).toEqual({ n: 0, meanConfidence: 0, accuracyRate: 0, gap: 0 });
+    expect(summarise([])).toEqual({
+      n: 0,
+      meanConfidence: 0,
+      accuracyRate: 0,
+      gap: 0,
+      // Zero because there is no variance to estimate, which is not the same as no variation --
+      // `gapDifferenceStandardError` refuses this summary rather than reading the zero as a fact.
+      gapVariance: 0,
+    });
   });
 });
 
@@ -63,12 +71,21 @@ describe("the detector declines on thin evidence", () => {
     expect(detect(lopsided)).toEqual([]);
   });
 
-  it("ignores a difference smaller than the minimum gap", () => {
+  it("reports nothing that is not separable from its own sampling error", () => {
+    /*
+     * Rewritten with the rule it guards. It used to assert the gap difference cleared a CONSTANT,
+     * which is exactly the test that was wrong: a constant compared against a point estimate has
+     * no dependence on n, so it went silent on real effects as the record grew. What must hold
+     * now is the relation, and it has to hold for the pattern's own reported error.
+     */
     const flat = Array.from({ length: 80 }, (_, i) =>
       decision({ decision_id: `d${i}`, secondsTaken: i % 2 ? 10 : 200, accurate: i % 3 === 0 }),
     );
     for (const pattern of detect(flat)) {
-      expect(Math.abs(pattern.gapDifference)).toBeGreaterThanOrEqual(MIN_GAP_DIFFERENCE);
+      expect(pattern.standardError).toBeGreaterThan(0);
+      expect(Math.abs(pattern.gapDifference)).toBeGreaterThanOrEqual(
+        SEPARABILITY_K * pattern.standardError,
+      );
     }
   });
 });
@@ -99,8 +116,8 @@ describe("shuffling preserves the marginals and destroys the relationship", () =
 });
 
 describe("the shipped thresholds are the ones the control chose", () => {
-  it("uses 30 / 0.45, not the first draft that found structure in noise", () => {
-    expect(DEFAULT_THRESHOLDS).toEqual({ minBucketN: 30, minGapDifference: 0.45 });
+  it("uses 30 decisions and 3.75 standard errors, both set by the shuffled-label control", () => {
+    expect(DEFAULT_THRESHOLDS).toEqual({ minBucketN: 30, separabilityK: 3.75 });
   });
 
   it("treats a loss inside engine noise as accurate", () => {

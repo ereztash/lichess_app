@@ -6,9 +6,10 @@ import type { CandidatePattern } from "../../shared/detector";
 const pattern: CandidatePattern = {
   key: "fast-under-45s",
   scope: "החלטות תחת פחות מ-45 שניות",
-  inside: { n: 42, meanConfidence: 0.8, accuracyRate: 0.24, gap: 0.56 },
-  outside: { n: 61, meanConfidence: 0.5, accuracyRate: 0.47, gap: 0.03 },
+  inside: { n: 42, meanConfidence: 0.8, accuracyRate: 0.24, gap: 0.56, gapVariance: 0.18 },
+  outside: { n: 61, meanConfidence: 0.5, accuracyRate: 0.47, gap: 0.03, gapVariance: 0.21 },
   gapDifference: 0.53,
+  standardError: 0.0973,
   supporting_decision_ids: Array.from({ length: 42 }, (_, i) => `d${i}`),
   predicts_overconfidence: true,
 };
