@@ -14,6 +14,7 @@
  * fires. So most of this file asserts the ABSENCE of things: no count, no target, no praise.
  */
 import { calibrationScore } from "@shared/calibration-score";
+import { splitHalfStability } from "@shared/stability";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
@@ -151,6 +152,7 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
   anchorAnswered: [],
+  stability: splitHalfStability([]),
   buckets: [],
   confidence: [],
   scored: 40,

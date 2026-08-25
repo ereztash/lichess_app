@@ -24,6 +24,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { calibrationScore } from "@shared/calibration-score";
+import { splitHalfStability } from "@shared/stability";
 import type { RecordReading } from "@shared/record-service";
 
 const root = resolve(__dirname, "../..");
@@ -64,6 +65,7 @@ const withRecord = (scored: number): RecordReading => ({
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
   anchorAnswered: [],
+  stability: splitHalfStability([]),
   buckets: [],
   confidence: [],
   mix: {

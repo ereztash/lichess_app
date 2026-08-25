@@ -14,6 +14,7 @@
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
 import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
+import { splitHalfStability, type Stability } from "./stability.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
@@ -94,6 +95,15 @@ export type RecordReading = {
    * that serves them loads the move lists lazily and needs nothing else from here.
    */
   anchorAnswered: readonly string[];
+  /**
+   * Whether the anchor reading said the same thing twice.
+   *
+   * Over the ANCHOR subset specifically, because that is the only split that compares like with
+   * like: two halves of a free-play record are two different sets of positions, and a difference
+   * between them says as much about the positions as about the player. Necessary, not sufficient
+   * -- a record that fails this is noise, and one that passes is merely not obviously noise.
+   */
+  stability: Stability;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
@@ -178,6 +188,7 @@ export function readRecord(
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(decisions.filter((decision) => isAnchorFen(decision.fen))),
     anchorAnswered: anchorIdsIn(decisions),
+    stability: splitHalfStability(decisions.filter((decision) => isAnchorFen(decision.fen))),
     buckets,
     confidence,
     scored: decisions.length,

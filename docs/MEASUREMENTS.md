@@ -1783,10 +1783,19 @@ Stated here because a specification that lists only its strengths is advertising
 - **No reference class exists.** No published distribution of stated-confidence-minus-realised-
   accuracy for chess exists at any sample size. A gap of −14 points cannot be called large,
   small, typical or unusual, because there is nothing to call it relative to.
-- **Trait status is unproven.** Test–retest reliability has never been measured. Cross-task
+- **Trait status is unproven.** Test–retest reliability has never been measured, and cannot be
+  from a single sitting: retest separates the two measurements in TIME, which is what
+  distinguishes a trait from a mood, a warm-up or a run of good positions. Cross-task
   correlations for ordinary calibration measures run .08–.39; the one instrument with
   demonstrated trait reliability reaches r ≈ .53–.77 by making performance uninformative. Until
   this clears something like r ≈ .5 across sessions, it measures the session, not the person.
+
+  What IS measured is weaker and is labelled as such: a **split-half stability check** on the
+  anchor decisions, alternating rather than down the middle so a steady drift over a sitting is
+  not reported as instability. It answers "did this record say the same thing twice", in standard
+  errors, and produces no coefficient — a correlation between halves needs many people, and one
+  player yields one pair of numbers. Failing it means the number is noise; passing it means the
+  number is not obviously noise, and nothing more. See `shared/stability.ts`.
 - **Nothing external has checked it.** No independent replication, no published protocol, no
   second implementation.
 - **The time buckets are confounded and known to be.** On 380,310 real Lichess moves the blunder
