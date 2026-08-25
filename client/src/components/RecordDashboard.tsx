@@ -74,51 +74,46 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
       </div>
 
       {/*
-        * THE SPLIT, and why it sits directly under the gap rather than somewhere else.
+        * THE SPLIT, and three things it had to get right that the first version did not.
         *
-        * The three figures above are one number wearing three hats: the gap moves when the
-        * POSITIONS get harder just as readily as when the player's judgement changes, and it
-        * cannot say which happened. Murphy's decomposition can. `uncertainty` is a property of
-        * the positions and nothing else -- it is printed here precisely so it stops being
-        * silently charged to the player.
+        * THE UNIT. These are squared-error quantities, not rates. Rendering them through
+        * `Proportion` printed a reliability of 0.016 as "2%" -- a percentage of nothing, in a
+        * product whose whole discipline is that a number carries what produced it. They are
+        * printed as the literature prints them, to three places.
         *
-        * Mandel & Barnes (2014) publish VI = 0.240, DI = 0.182, CI = 0.016 for professional
-        * intelligence analysts: almost all of their score is the environment, and their
-        * calibration error is tiny. A product leading on their raw gap would have called the
-        * best-calibrated professionals on record mediocre.
+        * THE WEIGHT. Three more bordered cells directly under the headline row read as three more
+        * headline figures, and these are a BREAKDOWN of the row above rather than a rival to it.
+        * One quiet panel of rows, no borders per cell.
+        *
+        * THE SEPARATION. `uncertainty` is a property of the positions and says nothing about the
+        * player; a rule above it and a dimmed treatment do that structurally, so the reader sees
+        * it before reading the sentence underneath.
         */}
-      <h4 className="dash-title">מה מתוך המספר הזה הוא אתם</h4>
+      <h4 className="dash-title">ממה מורכב הפער</h4>
       {calibration.reliable ? (
-        <div className="review-stats calibration-split">
-          <div className="review-stat">
-            <Proportion
-              value={calibration.reliability}
-              n={scored}
-              label="שגיאת הכיול שלכם"
-            />
-          </div>
-          <div className="review-stat">
-            <Proportion
-              value={calibration.resolution}
-              n={scored}
-              label="ההפרדה שאתם עושים"
-            />
-          </div>
-          <div className="review-stat">
-            <Proportion
-              value={calibration.uncertainty}
-              n={scored}
-              label="הקושי של העמדות"
-            />
-          </div>
-        </div>
+        <>
+          <dl className="calibration-split">
+            <div className="split-row split-mine">
+              <dt>שגיאת הכיול</dt>
+              <dd>{calibration.reliability.toFixed(3)}</dd>
+            </div>
+            <div className="split-row">
+              <dt>כוח ההבחנה</dt>
+              <dd>{calibration.resolution.toFixed(3)}</dd>
+            </div>
+            <div className="split-row split-theirs">
+              <dt>קושי העמדות</dt>
+              <dd>{calibration.uncertainty.toFixed(3)}</dd>
+            </div>
+          </dl>
+          <p className="dash-note" dir="rtl">
+            רק שגיאת הכיול מדברת עליכם. קושי העמדות הוא תכונה של מה שפגשתם — עמדות קשות מגדילות
+            את הפער בלי שנעשיתם שופטים גרועים יותר של עצמכם.
+          </p>
+        </>
       ) : (
-        <NotMeasured reason="אף רמת ביטחון לא נאמרה מספיק פעמים כדי לפרק את המספר. הפירוק קיים, אבל בגודל הזה הוא רעש ולא ממצא." />
+        <NotMeasured reason="עוד לא נאמרה אף רמת ביטחון מספיק פעמים כדי לפרק את הפער. בגודל כזה הפירוק הוא רעש, לא ממצא." />
       )}
-      <p className="dash-note" dir="rtl">
-        רק הראשון הוא אמירה עליכם. השלישי הוא תכונה של העמדות שקיבלתם, ולא של מי שאתם —
-        שחקן שקיבל עמדות קשות יותר מקבל פער גדול יותר בלי להיות שופט גרוע יותר של עצמו.
-      </p>
 
       {curve.length > 0 && (
         <>

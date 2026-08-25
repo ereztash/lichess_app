@@ -2004,22 +2004,66 @@ button:not(:disabled) {
   font-weight: 700;
 }
 /*
- * The Murphy split. Three figures that are NOT three of a kind: the first is the player, the
- * third is the item bank, and rendering them identically would undo the whole point of splitting
- * them. The last cell is dimmed and rule-separated so the eye reads "this one is not about you"
- * before it reads the number.
+ * The Murphy split -- a BREAKDOWN of the row above it, not a second row of headlines.
+ *
+ * The first version repeated `.review-stats`: three more bordered cells, same size and weight as
+ * the three figures directly above them, which read as six headline numbers rather than three and
+ * their explanation. One quiet panel of rows instead, no border per cell, numbers in a tabular
+ * column so the eye can compare them down the page.
+ *
+ * Section 4.5, applied to a case it was not written for: the two distinct states here are "this
+ * number is you" and "this number is the item bank". They sit in one list, so the separation has
+ * to be structural -- a rule above the last row and a dimmed treatment on it, doing the work
+ * before the sentence underneath is read.
  */
-.calibration-split .review-stat:last-child {
-  opacity: 0.72;
-  border-right: 1px solid var(--hairline);
-  padding-right: 0.55rem;
+.calibration-split {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 1px;
+  background: rgba(var(--ink-rgb), 0.12);
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+}
+.split-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 7px 10px;
+  background: rgba(var(--cream-rgb), 0.4);
+}
+.split-row dt {
+  font-size: var(--panel-label);
+  color: var(--muted);
+}
+.split-row dd {
+  margin: 0;
+  font-size: var(--panel-data);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* The one term that is a statement about the player. */
+.split-mine dt,
+.split-mine dd {
+  color: var(--ink);
+}
+.split-mine dd {
+  font-size: var(--panel-title);
+}
+/* And the one that is a property of the positions. Ruled off and stepped back. */
+.split-theirs {
+  border-top: 1px solid rgba(var(--ink-rgb), 0.22);
+}
+.split-theirs dt,
+.split-theirs dd {
+  opacity: 0.62;
+  font-weight: 400;
 }
 .dash-note {
   font-size: var(--panel-label);
-  line-height: 1.55;
+  line-height: 1.6;
   color: var(--muted);
-  margin: 0.35rem 0 0.9rem;
-  max-width: 46ch;
+  margin: 7px 0 4px;
+  max-width: 42ch;
 }
 
 .confidence-row {
