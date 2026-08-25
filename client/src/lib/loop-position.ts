@@ -60,12 +60,42 @@ export interface LoopInputs {
   narrowedTo: string | null;
 }
 
+/**
+ * A surface that already owns something the headline names.
+ *
+ * The headline says "ייבוא משחקים שכבר שיחקת יכול לקצר את זה" and, until this existed, there was
+ * no way to act on that from where it was read: the import lived in the tool rail, four controls
+ * down, with nothing connecting the sentence to it. The rule the strip was built on -- "it carries
+ * no action of its own, and leaves the doing to the surface that already owns it" -- was being
+ * read as "and does not say where that surface is", which is a different and worse thing.
+ *
+ * So this is an ADDRESS, not an action. It opens the surface named in the sentence and stops
+ * there; nothing is imported, no drill is started, and nothing here decides that this step is
+ * worth more than another. `target` is a closed union precisely so a future headline cannot
+ * invent a destination that no surface owns.
+ */
+export type LoopTarget = "import" | "claim";
+
+export interface LoopAction {
+  target: LoopTarget;
+  /** Names the SURFACE, not the outcome: "ייבוא לפי שם משתמש", never "קצרו את ההמתנה". */
+  label: string;
+}
+
 export interface LoopPosition {
   step: LoopStep;
   /** The one thing that advances the loop from here. Never an instruction to a control. */
   headline: string;
   /** What that is derived from. Rendered with it, never without (R1). */
   basis: string;
+  /**
+   * Where the sentence points, or null when it points at the board.
+   *
+   * Null is the common case and it is not a gap. "עוד 12 החלטות בדלי אחד" and "אין דפוס מעל הסף"
+   * are both answered by deciding on the position already in front of you, and a link to the
+   * board you are looking at would be furniture.
+   */
+  action: LoopAction | null;
 }
 
 /**
@@ -115,6 +145,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
           ? "הדריל הושלם. הפסק נמדד מול התנאי שנשמר לפניו."
           : `דריל בעיצומו — ${drill.completed} מתוך ${drill.total} עמדות.`,
       basis: `${drill.completed}/${drill.total} עמדות דריל`,
+      // No address: the drill runner is the surface, and it is what you are looking at.
+      action: null,
     };
   }
 
@@ -123,6 +155,13 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
       step: "drill",
       headline: "יש השערה. דריל הוא הדבר היחיד שיכול לדרג אותה.",
       basis: `${scored} החלטות חשופות · השערה אחת פתוחה`,
+      /*
+       * `ClaimPanel` renders the only control that can start a drill, and it needs the claim_id
+       * to do it -- which is why this is an address and not a button that runs one. On a phone
+       * the panel is below the board; on a wide screen it is in the right column and may still
+       * be scrolled past. Either way the sentence now says where it is.
+       */
+      action: { target: "claim", label: "לוח הדפוסים" },
     };
   }
 
@@ -134,6 +173,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
           ? "הטענה הופרכה ונשמרת. היא לא נבדקת שוב."
           : "הטענה שרדה דריל. עוד החלטות יכולות להוליד את הבאה.",
       basis: `${scored} החלטות חשופות · טענה מדורגת`,
+      // A grade is an outcome. There is no surface that changes it, so there is no address.
+      action: null,
     };
   }
 
@@ -144,6 +185,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
       step: "record",
       headline: "לא ניתן לקרוא את הרשומה, ולכן לא ידוע מה המרחק לדפוס.",
       basis: "שכבת הרשומה לא נענתה",
+      // Sending the player somewhere would imply the destination can fix this. It cannot.
+      action: null,
     };
   }
 
@@ -160,6 +203,12 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
         step: "record",
         headline: `עוד ${scoredStillNeeded} החלטות חשופות שנרשמו אחרי הייבוא, בדלי אחד — ${narrowedTo}.${waiting}`,
         basis: `${scored} חשופות ברשומה · החיפוש מצומצם`,
+        /*
+         * Nowhere to send anyone. An import has already narrowed the search, so the one thing
+         * that closes this gap is deciding on the position on screen -- and a second import
+         * cannot narrow what is already narrowed.
+         */
+        action: null,
       };
     }
 
@@ -181,6 +230,12 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
         `עוד ${scoredStillNeeded} החלטות חשופות עד שאפשר לומר משהו.${waiting} ` +
         `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם דלי אחד שנבדל מהשאר.`,
       basis: `${scored} חשופות מתוך ${recorded} רשומות`,
+      /*
+       * The only headline that names a surface out loud, and the reason this field exists: it
+       * said an import can shorten the wait while the import sat four controls away in the tool
+       * rail with nothing linking the two.
+       */
+      action: { target: "import", label: "ייבוא לפי שם משתמש" },
     };
   }
 
@@ -188,6 +243,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     step: "detect",
     headline: "יש מספיק החלטות, ואף דפוס לא עבר את הסף. זו תשובה ולא שתיקה.",
     basis: `${scored} החלטות חשופות · אין דפוס מעל הסף`,
+    // An answer, not a queue. More decisions may change it, and those are taken on the board.
+    action: null,
   };
 }
 

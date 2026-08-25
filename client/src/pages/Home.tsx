@@ -2,16 +2,17 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Chess } from "chess.js";
 import {
   Activity,
+  ArrowRight,
   Clipboard,
-  FileUp,
   FlipVertical2,
+  HelpCircle,
+  History,
   Link2,
   Moon,
   Plus,
   Stethoscope,
   Sun,
-  UserSearch,  HelpCircle,
-  History } from "lucide-react";
+} from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +39,11 @@ import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
 import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
 import { NewGameSetup } from "@/components/NewGameSetup";
+import {
+  POSITION_SOURCES,
+  PositionSourceMenu,
+  type PositionSourceId,
+} from "@/components/PositionSource";
 import { SelfCheck } from "@/components/SelfCheck";
 import { WhatThisIs } from "@/components/WhatThisIs";
 import { Overlay } from "@/components/Overlay";
@@ -169,7 +175,6 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState("");
-  const [showImport, setShowImport] = useState(false);
   const [showReading, setShowReading] = useState(false);
   const importReading = useImportReading();
   const saveImportReading = useSaveImportReading();
@@ -178,7 +183,7 @@ export default function Home() {
     null,
   );
   const [reviewError, setReviewError] = useState<string | null>(null);
-  const [showPgn, setShowPgn] = useState(false);
+
   const [source, setSource] = useState<AnalysisSource>("live");
   const [notice, setNotice] = useState(
     `אתם לבן, ופותחים. היריב הוא Stockfish בעומק ${DEFAULT_OPPONENT_DEPTH}. בחרו מהלך וכתבו את הקריאה שלכם.`,
@@ -215,7 +220,16 @@ export default function Home() {
     depth: DEFAULT_OPPONENT_DEPTH,
   });
   const [opponentThinking, setOpponentThinking] = useState(false);
-  const [showNewGame, setShowNewGame] = useState(false);
+  /*
+   * ONE DOOR, and which room is open behind it.
+   *
+   * These were `showNewGame`, `showPgn` and `showImport` -- three independent booleans for three
+   * overlays reached from three permanent rail buttons, each of which had to remember to close
+   * the other two (and one of them forgot). They answer one question, so they are one piece of
+   * state: is the door open, and which of `POSITION_SOURCES` is showing. `null` is the menu.
+   */
+  const [showPositionSource, setShowPositionSource] = useState(false);
+  const [positionChoice, setPositionChoice] = useState<PositionSourceId | null>(null);
   const [showSelfCheck, setShowSelfCheck] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [setupColor, setSetupColor] = useState<"w" | "b">("w");
@@ -974,7 +988,7 @@ export default function Home() {
       setHistory(loaded);
       setCurrentPly(loaded.length - 1);
       setPgnInput(pgn);
-      setShowPgn(false);
+      closePositionSource();
       setSource("imported");
       gameId.current = `pgn-${Date.now()}`;
       // No opponent for a loaded game: the other side's moves are already in the PGN.
@@ -1036,7 +1050,7 @@ export default function Home() {
       setHistory(loaded);
       setCurrentPly(loaded.length - 1);
       setPgnInput(game.pgn);
-      setShowImport(false);
+      closePositionSource();
       setSource("finished");
       gameId.current = `lichess-${game.id}`;
       setOpponent(null);
@@ -1045,6 +1059,35 @@ export default function Home() {
     } catch {
       setNotice(`לא הצלחתי לקרוא את ה־PGN של המשחק ${game.id}.`);
     }
+  };
+
+  /*
+   * Opening and closing the one door.
+   *
+   * `openPositionSource` takes the room to show, so a caller that already knows which source it
+   * wants -- the ribbon's link, which names one out loud -- lands on it rather than on a menu it
+   * would have to click past. Closing always clears the room, so the door never reopens on the
+   * panel someone abandoned three games ago.
+   */
+  const openPositionSource = (choice: PositionSourceId | null = null) => {
+    setShowPositionSource(true);
+    setPositionChoice(choice);
+  };
+  const closePositionSource = () => {
+    setShowPositionSource(false);
+    setPositionChoice(null);
+  };
+  /*
+   * "קובץ" has no panel: it is an OS file dialog, and rendering a room whose only content is a
+   * button that opens one would be a second click for nothing. The menu stays put underneath, so
+   * cancelling the dialog leaves the player where they were rather than on a blank overlay.
+   */
+  const choosePositionSource = (choice: PositionSourceId) => {
+    if (choice === "file") {
+      fileRef.current?.click();
+      return;
+    }
+    setPositionChoice(choice);
   };
 
   /**
@@ -1063,7 +1106,7 @@ export default function Home() {
     setOpponent({ playerColor, depth });
     setOrientation(playerColor);
     answeredFen.current = null;
-    setShowNewGame(false);
+    closePositionSource();
     resetDecision(
       playerColor === "w"
         ? `משחק חדש. אתם משחקים לבן ופותחים. היריב הוא Stockfish בעומק ${depth}.`
@@ -1195,46 +1238,62 @@ export default function Home() {
         */}
       <ContextRibbon
         drill={inDrill ? { completed: drillDecisionIds.length, total: drill!.fens.length } : null}
+        /*
+         * The ribbon names a surface; this page is the one that owns both of them, so this is
+         * where the name is turned into an address. It OPENS and stops -- no import is run and
+         * no drill is started, because starting one from a sentence would be the ribbon acting
+         * on the record it is describing.
+         */
+        onGoTo={(target) => {
+          if (target === "import") {
+            openPositionSource("username");
+            return;
+          }
+          /*
+           * The claim panel is a section of this same page -- right column on a wide screen,
+           * below the board on a phone -- so the address is a scroll, not a navigation. Focus
+           * lands on the drill button when there is one, because a scroll alone leaves a
+           * keyboard user exactly where they were.
+           */
+          const panel = document.getElementById("claim-panel");
+          panel?.scrollIntoView({ behavior: "smooth", block: "center" });
+          panel?.querySelector<HTMLButtonElement>(".claim-run-drill")?.focus();
+        }}
       />
 
       <section className="workbench">
+        {/*
+          * THREE QUESTIONS, THREE ENTRIES -- not six controls at one weight.
+          *
+          * The rail held משחק חדש / טעינת PGN / ייבוא לפי שם / קריאה שמורה / Lichess / קובץ, and
+          * the first, second, third and sixth of those all answer "give me a different position".
+          * They are one door now; see components/PositionSource.tsx. The other two are NOT the
+          * same question -- one connects an account, one reopens a measurement already paid for --
+          * so collapsing them into the same door would have been a label that lies.
+          *
+          * NOTHING HERE IS `prominent` ANY MORE. `משחק חדש` was a filled blue button, permanently
+          * the loudest thing on the page, and what it offers is discarding the position the
+          * product exists to measure. The blue belongs to the commitment panel's submit.
+          */}
         <aside className="control-rail">
           <div className="rail-label">כלי עבודה</div>
           <button
-            className="rail-button prominent"
-            aria-expanded={showNewGame}
-            onClick={() => {
-              setShowNewGame((v) => !v);
-              setShowPgn(false);
-              setShowImport(false);
-            }}
+            className="rail-button"
+            aria-expanded={showPositionSource}
+            onClick={() => (showPositionSource ? closePositionSource() : openPositionSource())}
           >
             <Plus size={18} />
-            <span>משחק חדש</span>
-          </button>
-          <button className="rail-button" onClick={() => setShowPgn((v) => !v)}>
-            <FileUp size={18} />
-            <span>טעינת PGN</span>
-          </button>
-          <button
-            className="rail-button"
-            onClick={() => {
-              setShowImport((v) => !v);
-              setShowPgn(false);
-            }}
-          >
-            <UserSearch size={18} />
-            <span>ייבוא לפי שם</span>
+            <span>עמדה אחרת</span>
           </button>
           {/*
             * The way back to a reading that has already been paid for.
             *
-            * Deliberately NOT promoted: same `rail-button`, same rail, below the scan that
-            * produces it. The reading is a set of accuracy rates, and accuracy is precisely what
-            * this product argues is not the thing worth measuring -- putting it on the front page
-            * would make the app say the opposite of what its own empty calibration column says.
-            * What was broken was that a 43-second scan could not be reopened at all; that is a
-            * reachability defect, not an argument for a headline.
+            * Deliberately NOT promoted: same `rail-button`, same rail. The reading is a set of
+            * accuracy rates, and accuracy is precisely what this product argues is not the thing
+            * worth measuring -- putting it on the front page would make the app say the opposite
+            * of what its own empty calibration column says. What was broken was that a 43-second
+            * scan could not be reopened at all; that is a reachability defect, not an argument
+            * for a headline.
             *
             * The entry renders only once something is behind it. A button that opens an empty
             * panel is a button that lies about what the record holds.
@@ -1244,14 +1303,14 @@ export default function Home() {
               className="rail-button"
               onClick={() => {
                 setShowReading((v) => !v);
-                setShowImport(false);
-                setShowPgn(false);
+                closePositionSource();
               }}
             >
               <History size={18} />
               <span>קריאה שמורה</span>
             </button>
           )}
+          {/* Not a position source: this connects an account and enables the analysis layers. */}
           <button className="rail-button" onClick={openLichess}>
             <Link2 size={18} />
             <span>Lichess</span>
@@ -1266,10 +1325,6 @@ export default function Home() {
               if (f) importPgn(await f.text());
             }}
           />
-          <button className="rail-button" onClick={() => fileRef.current?.click()}>
-            <FileUp size={18} />
-            <span>קובץ</span>
-          </button>
         </aside>
 
         <section className="board-workspace">
@@ -1307,16 +1362,93 @@ export default function Home() {
             </Overlay>
           )}
 
-          {showNewGame && (
-            <Overlay label="משחק חדש" onClose={() => setShowNewGame(false)}>
-              <NewGameSetup
-                color={setupColor}
-                depth={setupDepth}
-                onColor={setSetupColor}
-                onDepth={setSetupDepth}
-                onStart={() => newGame(setupColor, setupDepth)}
-                onCancel={() => setShowNewGame(false)}
-              />
+          {/*
+            * ONE OVERLAY, FOUR ROOMS -- not one overlay per source stacked on the last.
+            *
+            * `showNewGame`, `showPgn` and `showImport` were three sibling overlays, and reaching
+            * a second one meant closing the first from a rail button that had to remember to.
+            * This is a single surface whose body is either the menu or the chosen source, with a
+            * way back that does not close the door. Nothing nests, so nothing has to be unstacked.
+            */}
+          {showPositionSource && (
+            <Overlay
+              label={
+                POSITION_SOURCES.find((entry) => entry.id === positionChoice)?.label ?? "עמדה אחרת"
+              }
+              onClose={closePositionSource}
+            >
+              {positionChoice === null ? (
+                <PositionSourceMenu
+                  onChoose={choosePositionSource}
+                  onClose={closePositionSource}
+                />
+              ) : (
+                <>
+                  {/* ArrowRight, not Left: back is towards the start of the line, and the line
+                      runs right-to-left. */}
+                  <button
+                    type="button"
+                    className="position-source-back"
+                    onClick={() => setPositionChoice(null)}
+                  >
+                    <ArrowRight size={16} aria-hidden="true" />
+                    <span>כל המקורות</span>
+                  </button>
+                  {positionChoice === "new" && (
+                    <NewGameSetup
+                      color={setupColor}
+                      depth={setupDepth}
+                      onColor={setSetupColor}
+                      onDepth={setSetupDepth}
+                      onStart={() => newGame(setupColor, setupDepth)}
+                      onCancel={closePositionSource}
+                    />
+                  )}
+                  {positionChoice === "username" && (
+                    <ImportGames
+                      keepReading={saveImportReading.mutateAsync}
+                      onLoad={loadLichessGame}
+                      onClose={closePositionSource}
+                      analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+                      /* The account the record already knows about, so it is not asked for twice. */
+                      lastUsername={importReading.reading?.username}
+                    />
+                  )}
+                  {positionChoice === "pgn" && (
+                    <section className="pgn-drawer">
+                      <div className="drawer-heading">
+                        <div>
+                          <span>הדבקת PGN</span>
+                          <b>IMPORT</b>
+                        </div>
+                        <button onClick={closePositionSource}>סגור</button>
+                      </div>
+                      <Textarea
+                        value={pgnInput}
+                        onChange={(e) => setPgnInput(e.target.value)}
+                        dir="ltr"
+                      />
+                      <div className="drawer-actions">
+                        <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
+                          טען למשחק
+                        </button>
+                        {/*
+                         * The demo game used to BE the opening screen, which is what made the app
+                         * unplayable. It is still worth having -- it is the shortest way to see
+                         * the review and timeline against a finished game -- so it lives here,
+                         * where loading it is something the player chooses.
+                         */}
+                        <button
+                          className="ghost-control"
+                          onClick={() => setPgnInput(DEFAULT_PGN)}
+                        >
+                          הדביקו משחק לדוגמה
+                        </button>
+                      </div>
+                    </section>
+                  )}
+                </>
+              )}
             </Overlay>
           )}
 
@@ -1337,52 +1469,6 @@ export default function Home() {
                   scannedAt: importReading.reading.scanned_at,
                 }}
               />
-            </Overlay>
-          )}
-
-          {showImport && (
-            <Overlay label="ייבוא לפי שם משתמש" onClose={() => setShowImport(false)}>
-              <ImportGames
-                keepReading={saveImportReading.mutateAsync}
-                onLoad={loadLichessGame}
-                onClose={() => setShowImport(false)}
-                analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
-                /* The account the record already knows about, so it is not asked for twice. */
-                lastUsername={importReading.reading?.username}
-              />
-            </Overlay>
-          )}
-
-          {showPgn && (
-            <Overlay label="טעינת PGN" onClose={() => setShowPgn(false)}>
-              <section className="pgn-drawer">
-                <div className="drawer-heading">
-                  <div>
-                    <span>טעינת PGN</span>
-                    <b>IMPORT</b>
-                  </div>
-                  <button onClick={() => setShowPgn(false)}>סגור</button>
-                </div>
-                <Textarea
-                  value={pgnInput}
-                  onChange={(e) => setPgnInput(e.target.value)}
-                  dir="ltr"
-                />
-                <div className="drawer-actions">
-                  <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
-                    טען למשחק
-                  </button>
-                  {/*
-                   * The demo game used to BE the opening screen, which is what made the app
-                   * unplayable. It is still worth having -- it is the shortest way to see the
-                   * review and timeline against a finished game -- so it moved here, where
-                   * loading it is something the player chooses.
-                   */}
-                  <button className="ghost-control" onClick={() => setPgnInput(DEFAULT_PGN)}>
-                    הדביקו משחק לדוגמה
-                  </button>
-                </div>
-              </section>
             </Overlay>
           )}
 
