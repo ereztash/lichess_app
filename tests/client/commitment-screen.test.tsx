@@ -11,6 +11,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { answerEveryStep, openStep } from "../fixtures/commitment-steps";
 import type { PositionUnderDecision } from "@/lib/decision-session";
 
 const POSITION: PositionUnderDecision = {
@@ -62,7 +63,9 @@ describe("an incomplete decision cannot be recorded", () => {
     renderScreen({ onCommit, chosenMove: "g8f6" });
     // The read is stated by tapping now, not by typing. What is asserted is unchanged: a
     // decision missing one of its four parts is still not recorded.
+    openStep("known");
     await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    openStep("confidence");
     await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
     await userEvent.click(screen.getByRole("button", { name: /חסר:|רשמו את ההחלטה/ }));
     expect(onCommit).not.toHaveBeenCalled();
@@ -76,9 +79,7 @@ describe("a complete decision is recorded with its timing", () => {
   it("passes the draft and a measured seconds_taken to onCommit", async () => {
     const onCommit = vi.fn();
     renderScreen({ onCommit, chosenMove: "g8f6", candidatesConsidered: ["g8f6", "f8e7"] });
-    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
-    await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
-    await userEvent.click(screen.getByRole("button", { name: /ביטחון 4/ }));
+    answerEveryStep({ known: "המרכז פתוח", unknown: "לא יודע איך הוא יענה", confidence: 4 });
     await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
 
     expect(onCommit).toHaveBeenCalledTimes(1);
@@ -144,9 +145,12 @@ describe("a failed write is visible", () => {
 describe("a question about the player's own declarations", () => {
   /** Two reads that cannot both describe one position, then a confidence. */
   const stateAContradiction = async () => {
+    openStep("known");
     await userEvent.click(screen.getByRole("button", { name: "המרכז סגור" }));
     await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    openStep("unknown");
     await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
+    openStep("confidence");
     await userEvent.click(screen.getByRole("button", { name: /ביטחון 5/ }));
   };
 
@@ -176,6 +180,7 @@ describe("a question about the player's own declarations", () => {
     // exists to not be.
     renderScreen({ chosenMove: "g8f6" });
     await stateAContradiction();
+    openStep("unknown");
     await userEvent.click(screen.getByRole("button", { name: "לא מכיר את העמדה הזו" }));
     await userEvent.click(screen.getByRole("button", { name: "לא יודע מה התוכנית הנכונה" }));
     expect(screen.getAllByRole("status", { name: "שאלה על ההצהרה שלך" })).toHaveLength(1);
@@ -193,9 +198,7 @@ describe("a question about the player's own declarations", () => {
 
   it("stays quiet on an ordinary decision", async () => {
     renderScreen({ chosenMove: "g8f6" });
-    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
-    await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
-    await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
+    answerEveryStep({ known: "המרכז פתוח", unknown: "לא יודע איך הוא יענה", confidence: 3 });
     expect(screen.queryByRole("status", { name: "שאלה על ההצהרה שלך" })).toBeNull();
   });
 });

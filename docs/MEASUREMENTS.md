@@ -1481,3 +1481,77 @@ means the default applies. Verified in a browser: `localStorage.theme` is `null`
 load, and the page opens light.
 
 **8 positive controls, each confirmed red and each diffed against the original.**
+
+## What the first action is, and where it used to be
+
+The panel asks for four things — a move, a read, an unknown, a confidence — and `draftProblems`
+refuses the record until all four are answered. **All four opened at once.** Driven in a browser on
+the built app:
+
+| | 1440×900 | 390×844 |
+| --- | --- | --- |
+| panel height | **952px**, in a 900px window | 935px |
+| record button | y=847; the strip under it naming what is missing is **clipped at every standard laptop height** | needs **113px of scroll** |
+| move field | — | needs **264px of scroll** |
+| board begins | y=136 | y=240 |
+| panel begins | y=276 | y=937 |
+| whole page | 1.7 screens | **2.5 screens** |
+
+On a phone the first 223px were a wordmark that wrapped onto two lines and a rail of five tools
+nobody needs before their first decision. **A screen that shows a board and hides the question
+reads as a board.**
+
+### One question open, four headers visible
+
+The four are an accordion: one open, the rest collapsed to a header carrying the step's name, its
+required mark, and its answer once there is one.
+
+**Not a wizard, and the difference is the point.** A player who cannot see how many questions are
+left is in the same position as one scrolling a 952px panel. Every step is a button; every option
+is one tap away.
+
+**The constraint two earlier attempts were refused for still holds.** Neither a "more" control nor
+a shorter list: that is what a player is able to say about a position, and what the record then
+holds. What is bounded instead is the open step's **body** — with the second step open it measured
+421px (ten chips wrapping into five rows), which put steps 3 and 4 at y=898 and y=958 in a 900px
+window. Capping the body keeps every option and every header.
+
+### What advances by itself, and what deliberately does not
+
+The move step advances on its own: choosing a move is one act, it cannot be added to, and it
+arrives from the board rather than from the panel.
+
+The two read steps do **not**. Both are multi-select and their own hint says *"choose as many as
+you like"*; advancing on the first tap would make one tap the normal amount — the interface shaping
+the record rather than holding it, which is exactly what got a count beside the candidate moves
+refused. They advance on an explicit "next", or on tapping any header.
+
+### Order: act first, then see where you are
+
+`LoopStrip` — recorded → pattern → drill → graded, and how many revealed decisions are still
+needed — was the first child of the decision column. That is orientation about **weeks**, sitting
+between the board and the decision being made **now**, and it cost 143px: exactly the amount by
+which the fourth step missed the fold.
+
+On a phone the same argument applied one level up: the tool rail (new game, load PGN, import) is
+used once a session at most and sat above the board.
+
+| after | 1440×900 | 390×844 |
+| --- | --- | --- |
+| panel begins | y=136 | y=706 |
+| all four steps visible together | **yes** (260–775) | after one scroll |
+| record button | y=788, on screen | y=791, **on screen** |
+| board begins | y=136 | y=153 |
+| whole page | 1.2 screens | 2.1 screens |
+
+**A 370px board on a 390px screen cannot be smaller**: eight squares across 370px is 46px each,
+against a 44px tap floor. So the board fills a phone's first screen by arithmetic, and it should —
+the move is made on it. What was wrong was being left there afterwards, so choosing a move now
+carries the player to the question. That scroll follows the rule the refused-commit scroll already
+followed: never on load, only on something the player just did, and skipped entirely when the panel
+is already on screen.
+
+**17 assertions, 9 positive controls**, each confirmed red and each diffed against the original.
+One survived the first pass and was a no-op wearing a mutation's clothes — it inserted a comment
+into a component rather than changing a behaviour. The third time this repository has recorded that
+failure, and the reason every control here reports its byte delta.

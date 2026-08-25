@@ -25,6 +25,10 @@ import { Chess } from "chess.js";
 import { describe, expect, it } from "vitest";
 import { ChessBoard } from "@/components/ChessBoard";
 import { PIECES } from "@/lib/game-data";
+import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { KNOWN_OPTIONS, UNKNOWN_OPTIONS } from "@/lib/read-options";
+
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 const root = resolve(__dirname, "../..");
 const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
@@ -449,13 +453,45 @@ describe("the read chips are a ground, not eighteen boxes", () => {
 
   it("states no option on the player's behalf and hides none of them", () => {
     /*
-     * The constraint the fix had to respect. Two obvious ways to make the panel shorter -- put
-     * half the chips behind a "more" control, or shorten the labels -- both cost something real:
-     * what a player is able to say about a position, and what the record then holds. Weight was
-     * the only thing free to change.
+     * The constraint every attempt at a shorter panel has had to respect. Two obvious ways to
+     * shrink it -- put half the chips behind a "more" control, or shorten the labels -- both cost
+     * something real: what a player is able to say about a position, and what the record then
+     * holds. Weight was the only thing free to change, and later the four steps became an
+     * accordion, which changes when an option is on screen and not whether it exists.
+     *
+     * NARROWED, and the reason is a false positive worth recording. This read
+     * `not.toMatch(/\.slice\(/)` over the whole file, and went red on `STEPS.slice(from)` --
+     * ordering the four steps, nowhere near an option list. A guard that fails on the wrong
+     * `.slice` teaches its next reader to delete it. It names the arrays it is actually about
+     * now, and the assertion below checks the thing itself rather than the spelling of it.
      */
     const commitment = readFileSync(resolve(root, "client/src/components/CommitmentScreen.tsx"), "utf8");
-    expect(commitment).not.toMatch(/slice\(0,|\.slice\(|showAll|showMore/);
+    expect(commitment).not.toMatch(
+      /KNOWN_OPTIONS\.slice|UNKNOWN_OPTIONS\.slice|options\.slice|options\.filter|showAll|showMore/,
+    );
+  });
+
+  it("renders every option that exists, in both fields", () => {
+    /*
+     * The behavioural half, which no rewording of the source can fool: both read steps are
+     * opened the way a player opens them, and every label in both lists has to be there. A
+     * collapsed step is `hidden`, so this counts what is in the DOM -- what a step holds when it
+     * is open is exactly the whole list.
+     */
+    render(
+      <CommitmentScreen
+        position={{ gameId: "g", fen: START, ply: 0, clockMsRemaining: null } as never}
+        chosenMove="e2e4"
+        candidatesConsidered={["e2e4"]}
+        onCommit={() => {}}
+        pending={false}
+      />,
+    );
+    const labels = [...document.querySelectorAll(".read-chip")].map((c) => c.textContent);
+    for (const option of [...KNOWN_OPTIONS, ...UNKNOWN_OPTIONS]) {
+      expect(labels, `"${option.label}" is not on the panel`).toContain(option.label);
+    }
+    expect(labels).toHaveLength(KNOWN_OPTIONS.length + UNKNOWN_OPTIONS.length);
   });
 });
 

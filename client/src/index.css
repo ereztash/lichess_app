@@ -1270,8 +1270,26 @@ button:not(:disabled) {
      that: same intent, one number, applied to every control instead of this one. */
   padding-block: 4px;
 }
+/*
+ * ACT FIRST, THEN SEE WHERE YOU ARE -- at every width, not only on a phone.
+ *
+ * `LoopStrip` is the record's arc: recorded, pattern, drill, graded, and how many revealed
+ * decisions are still needed before the product will say anything. That is orientation about
+ * WEEKS, and it was the first child of this column, so it sat between the board and the decision
+ * the player is making right now: 143px of "60 more decisions" ahead of the question.
+ *
+ * Measured at 1440x900 with the second step open, before: the panel began at y=279 and its fourth
+ * step ended at y=918 -- eighteen pixels under the fold, so a player could not see how much of
+ * the decision was left. Moving the strip under the panel costs it nothing (it says the same
+ * thing either way) and buys exactly the 143px that were missing.
+ */
 .analysis-stack {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.analysis-stack > .loop-strip {
+  order: 2;
 }
 .analysis-column {
   background: rgba(var(--cream-rgb), 0.5);
@@ -1508,14 +1526,55 @@ button:not(:disabled) {
   }
   .studio-header {
     grid-template-columns: 1fr auto;
+    /* 88px of guaranteed height for a wordmark and four icons, on the screen with the least of
+       it to spare. The content decides now. */
+    min-height: 0;
+    padding-block: 10px;
+  }
+  .brand-lockup {
+    align-items: center;
+  }
+  /* "DECISION LAB" wrapped to two lines at 390px and the tagline under it wrapped to two more,
+     which is four lines of chrome above the first thing anyone came for. */
+  .brand-name {
+    white-space: nowrap;
+  }
+  .brand-lockup span {
+    display: none;
   }
   .header-reading {
     display: none;
   }
+  /*
+   * BOARD, THEN THE QUESTION, THEN THE TOOLS.
+   *
+   * On a phone the workbench stacks in DOM order, which put the five-tool rail above the board:
+   * measured at 390x844, the board began at y=240 and the decision panel at y=937 -- so the
+   * thing a player is asked to do was 93px below the fold and the move field 264px below it,
+   * on a screen that had already spent 136px on a wordmark and 87px on tools nobody needs
+   * before their first decision.
+   *
+   * The rail is chrome -- new game, load a PGN, import an account -- and it is used once a
+   * session at most. The board and the open step are the loop, so they go first and the rail
+   * follows them. `order` needs a flex or grid formatting context, which is why `display: block`
+   * could not express this.
+   */
   .workbench {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 12px;
+  }
+  .board-workspace {
+    order: 1;
+  }
+  .analysis-stack {
+    order: 2;
+    margin-top: 0;
   }
   .control-rail {
+    /* Last, behind the board and the question: see the note on `.workbench` above. */
+    order: 3;
     min-height: 0;
     display: grid;
     /*
@@ -1548,9 +1607,7 @@ button:not(:disabled) {
   }
   /* The mobile override is gone: .piece is sized from its square now, so a viewport-derived
      font here would put the old bug back on phones only. */
-  .analysis-stack {
-    margin-top: 18px;
-  }
+
   .move-timeline {
     grid-template-columns: auto 1fr auto;
   }
@@ -1736,6 +1793,159 @@ button:not(:disabled) {
   font-size: var(--panel-fine);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+/* --- One question at a time ---------------------------------------------------------------
+ *
+ * MEASURED, before: the panel was 952px tall inside a 900px window, so the record button sat at
+ * the very edge on a laptop and the strip under it naming what was missing was clipped at every
+ * standard height. On a 390x844 phone the board began at y=240 and the move field at y=1085 --
+ * the first thing the player is asked to do needed 241px of scrolling to reach.
+ *
+ * A collapsed step is a BUTTON carrying its own name and its own answer, not a hidden field. The
+ * body is `hidden`, so it leaves the accessible tree with the visual layout rather than being
+ * announced from somewhere off screen -- and one tap on the header brings all of it back.
+ */
+.commitment-step {
+  gap: 0;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+/* Section 4.5: answered, open and not-yet-reached are three states and must not render alike.
+   The ground carries it, and so does the index mark, and so does the answer text -- never
+   colour alone. */
+.commitment-step[data-state="open"] {
+  border-color: var(--hairline-strong);
+  background: var(--raise);
+}
+.step-heading {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+.step-head {
+  inline-size: 100%;
+  min-block-size: var(--tap-floor);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  text-align: start;
+  cursor: pointer;
+}
+.step-index {
+  inline-size: 20px;
+  block-size: 20px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: var(--panel-fine);
+  font-weight: 700;
+  background: var(--chip);
+  color: var(--muted);
+}
+.commitment-step[data-state="open"] .step-index {
+  background: var(--blue);
+  color: var(--on-blue);
+}
+.commitment-step[data-state="done"] .step-index {
+  background: transparent;
+  border: 1px solid var(--edge);
+  color: var(--ink);
+}
+.step-legend {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-inline-size: 0;
+}
+/* The answer a collapsed step shows. It is the only thing on the row that is a reading rather
+   than a label, so it is the only thing that gets the data step. */
+.step-answer {
+  font-size: var(--panel-body);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-inline-size: 14ch;
+  justify-self: end;
+}
+.commitment-step[data-state="done"] .step-answer {
+  color: var(--ink);
+}
+/*
+ * THE OPEN STEP IS BOUNDED, which is what makes the panel a fixed shape rather than a variable
+ * one.
+ *
+ * Measured with the second step open: its body is 421px -- ten chips wrapping into five rows,
+ * plus the hint, the write toggle and the next control -- which put steps 3 and 4 at y=898 and
+ * y=958 in a 900px window. Four steps that cannot be seen together are not a stepper; the player
+ * is back to not knowing how much is left, which is the thing this replaced.
+ *
+ * Capping the BODY rather than the panel is the difference between the two options that were
+ * refused before: nothing is removed from the list and nothing goes behind a "more" control, so
+ * what a player is able to say about a position is unchanged. The four headers always fit
+ * together, and the tallest step scrolls inside itself.
+ */
+.step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.1rem 0.5rem 0.55rem;
+  max-block-size: min(38vh, 290px);
+  overflow-y: auto;
+  /* The next control must not be scrolled to underneath the sticky record button below it. */
+  overscroll-behavior: contain;
+}
+/* The move step holds one reading and a disclosure, never a list: a scrollbar there would be a
+   scrollbar around two lines of text. */
+.commitment-step[data-state] .step-body:has(> output) {
+  max-block-size: none;
+  overflow: visible;
+}
+.read-field-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+.step-next {
+  min-block-size: var(--tap-floor);
+  padding: 0.35rem 0.9rem;
+  border-radius: 9px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  cursor: pointer;
+}
+.step-next:hover {
+  background: var(--chip);
+}
+/* The hint is a legend now that the step name has moved to the header, so it must not inherit
+   the legend weight the old one had -- it is context, not a label. */
+.read-hint {
+  padding: 0;
+  font-size: var(--panel-label);
+  font-weight: 400;
+  color: var(--muted);
+}
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .commitment-move {
   font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
