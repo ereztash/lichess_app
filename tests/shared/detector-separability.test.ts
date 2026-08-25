@@ -152,16 +152,117 @@ describe("the standard error refuses what it cannot compute", () => {
     expect(seSmall / seLarge).toBeCloseTo(Math.sqrt(100), 6);
   });
 
-  it("returns null rather than zero when both sides are degenerate", () => {
+  it("returns null when EITHER side is degenerate, not only when both are", () => {
     /*
-     * A zero standard error makes ANY difference infinitely significant. That is a degenerate
-     * sample, not overwhelming evidence, and returning 0 would have made the detector loudest
-     * exactly where it knows least.
+     * THIS TEST USED TO ASSERT THE DEFECT, in as many words: "One degenerate side is fine: the
+     * other still carries error." It is not fine, and the sentence is wrong about what the other
+     * side's error is for.
+     *
+     * A bucket where every decision carries the same stated confidence and the same outcome has
+     * a sample variance of exactly 0. The pooled error then reduces to `sqrt(varOut / nOut)` --
+     * the OUTSIDE bucket's error alone -- and the inside gap is treated as though it were known
+     * exactly. Almost any difference clears the threshold after that. Measured by simulation
+     * against a true null, with both gaps identical: an opening bucket at book-move accuracy,
+     * played by someone who anchors on one confidence value there, fires on up to 13% of records
+     * against this product's own 2% ceiling, and the rate tracks the degeneracy rate one-for-one.
+     *
+     * A zero sample variance is not precision. It is a sample that cannot estimate its own error,
+     * and the honest response is the same as to a sample of one: say so and stop.
      */
     expect(gapDifferenceStandardError({ n: 50, gapVariance: 0 }, { n: 50, gapVariance: 0 })).toBeNull();
     expect(gapDifferenceStandardError({ n: 1, gapVariance: 0.2 }, { n: 50, gapVariance: 0.2 })).toBeNull();
-    // One degenerate side is fine: the other still carries error.
-    expect(gapDifferenceStandardError({ n: 50, gapVariance: 0 }, { n: 50, gapVariance: 0.2 })).toBeGreaterThan(0);
+    // The pair the old assertion blessed, in both orders.
+    expect(
+      gapDifferenceStandardError({ n: 50, gapVariance: 0 }, { n: 50, gapVariance: 0.2 }),
+      "a degenerate INSIDE bucket is still being read",
+    ).toBeNull();
+    expect(
+      gapDifferenceStandardError({ n: 50, gapVariance: 0.2 }, { n: 50, gapVariance: 0 }),
+      "a degenerate OUTSIDE bucket is still being read",
+    ).toBeNull();
+    // And a pair that genuinely varies on both sides is still computed.
+    expect(
+      gapDifferenceStandardError({ n: 50, gapVariance: 0.2 }, { n: 50, gapVariance: 0.3 }),
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe("a bucket that cannot estimate its own error does not get to be certain", () => {
+  /*
+   * MEASURED, on a TRUE NULL where the bucket and the rest have the same EXPECTED gap. The bucket
+   * is 32 decisions at one confidence and 95-97% accuracy, so it comes out perfectly flat by
+   * chance about one record in five (or two in five at 97%) -- an ordinary shape for a clock or
+   * slow-move bucket, not a contrived one.
+   *
+   * Under the old guard the false-positive rate converged EXACTLY on the flat rate as the record
+   * grew: 18.22% fires against 18.45% flat at 3,000 outside decisions; 37.80% against 37.92% at
+   * 10,000. One fire per flat bucket, every time. And it RISES with the record, because the
+   * threshold collapses to `3.75 * sqrt(varOut / nOut)` and that shrinks -- so the more evidence
+   * the player accumulated, the more certain the false claim became.
+   *
+   * After the guard: 0.00% in every cell.
+   */
+  const SCALE = [0.25, 0.5, 0.75, 1] as const;
+
+  function nullRecordWithFlatBucket(nOut: number, seed: number): ScoredDecision[] {
+    const rnd = seededRandom(seed);
+    // Flat by construction here rather than by chance, so the test is deterministic.
+    const inside: ScoredDecision[] = Array.from({ length: MIN_BUCKET_N + 2 }, (_, i) => ({
+      decision_id: `i-${i}`,
+      confidence: 0.75,
+      accurate: true,
+      phase: "opening" as const,
+      secondsTaken: 10,
+      clockMsRemaining: 1000,
+    }));
+    const outside: ScoredDecision[] = Array.from({ length: nOut }, (_, i) => ({
+      decision_id: `o-${i}`,
+      confidence: SCALE[Math.floor(rnd() * 4)],
+      // Matched so the two expected gaps are equal: 0.625 - 0.425 = 0.75 - 0.55... the point is
+      // only that there is no real difference to find, and the assertion is about the guard.
+      accurate: rnd() < 0.425,
+      phase: (rnd() < 0.5 ? "middlegame" : "endgame") as "middlegame" | "endgame",
+      secondsTaken: 100,
+      clockMsRemaining: 200_000,
+    }));
+    return [...inside, ...outside];
+  }
+
+  it("refuses the flat bucket however large the rest of the record gets", () => {
+    for (const nOut of [300, 1000, 3000]) {
+      const found = detect(nullRecordWithFlatBucket(nOut, nOut * 7919), DEFAULT_THRESHOLDS, null);
+      const opening = found.find((p) => p.key === "phase-opening");
+      expect(
+        opening,
+        `a flat opening bucket cleared the threshold against ${nOut} outside decisions`,
+      ).toBeUndefined();
+    }
+  });
+
+  it("does not go quiet about buckets that DO vary", () => {
+    /*
+     * The mirror. A guard that refused everything would pass the assertion above and destroy the
+     * detector, so the same shape with a bucket that varies must still be readable.
+     */
+    const rnd = seededRandom(4242);
+    const inside: ScoredDecision[] = Array.from({ length: MIN_BUCKET_N + 2 }, (_, i) => ({
+      decision_id: `i-${i}`,
+      confidence: 1,
+      accurate: rnd() < 0.1,
+      phase: "opening" as const,
+      secondsTaken: 10,
+      clockMsRemaining: 1000,
+    }));
+    const outside: ScoredDecision[] = Array.from({ length: 300 }, (_, i) => ({
+      decision_id: `o-${i}`,
+      confidence: SCALE[Math.floor(rnd() * 4)],
+      accurate: rnd() < 0.8,
+      phase: "middlegame" as const,
+      secondsTaken: 100,
+      clockMsRemaining: 200_000,
+    }));
+    const found = detect([...inside, ...outside], DEFAULT_THRESHOLDS, null);
+    expect(found.find((p) => p.key === "phase-opening"), "the guard silenced a real effect").toBeDefined();
   });
 });
 

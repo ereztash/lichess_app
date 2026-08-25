@@ -213,17 +213,31 @@ export function summarise(decisions: ScoredDecision[]): CalibrationSummary {
  * The two samples are disjoint by construction -- a decision is inside a bucket or outside it, and
  * a drill's decisions are excluded from its own baseline -- so the variances add.
  *
- * Returns null when it cannot be computed: fewer than two decisions on a side, or a sample with
- * no variation at all on BOTH sides. A zero standard error would make any difference infinitely
- * significant, which is a degenerate sample rather than overwhelming evidence.
+ * EITHER SIDE DEGENERATE IS ENOUGH TO REFUSE, and this used to require BOTH.
+ *
+ * The old guard was `se > 0`, which only rejects when the sum is zero -- that is, when neither
+ * side varies. A bucket where every decision carries the same stated confidence and the same
+ * outcome has a sample variance of exactly 0, and if the OTHER side varies normally the sum is
+ * comfortably positive. The pooled error then reduces to `sqrt(varOut / nOut)` and the degenerate
+ * bucket is treated as though its gap were known exactly, which makes almost any difference clear
+ * the threshold.
+ *
+ * MEASURED, by simulation against a TRUE NULL where both sides have identical gaps: an opening
+ * bucket at book-move accuracy, played by someone who anchors on one confidence value there,
+ * fires on up to 13% of records -- against this product's own 2% ceiling, and tracking the
+ * degeneracy rate one-for-one. The triggering configuration is the most likely real one rather
+ * than an exotic corner, which is why the guard is here and not in a caller.
+ *
+ * A zero sample variance is not certainty about the gap. It is a sample that cannot estimate its
+ * own error, and the honest response to that is the same as to a sample of one: say so and stop.
  */
 export function gapDifferenceStandardError(
   a: Pick<CalibrationSummary, "n" | "gapVariance">,
   b: Pick<CalibrationSummary, "n" | "gapVariance">,
 ): number | null {
   if (a.n < 2 || b.n < 2) return null;
-  const se = Math.sqrt(a.gapVariance / a.n + b.gapVariance / b.n);
-  return se > 0 ? se : null;
+  if (a.gapVariance <= 0 || b.gapVariance <= 0) return null;
+  return Math.sqrt(a.gapVariance / a.n + b.gapVariance / b.n);
 }
 
 export interface Bucketing {

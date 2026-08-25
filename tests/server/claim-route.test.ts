@@ -23,6 +23,16 @@ const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 /**
  * A record with a strong, unambiguous calibration gap under time pressure.
  * Ids are globally unique: the store is append-only and correctly rejects a repeat.
+ *
+ * IT VARIES ON BOTH AXES, and it did not used to. Every fast decision carried `confidence: 5`
+ * and a cp_loss above the accuracy threshold, so every fast gap was exactly 1.0 and the bucket's
+ * sample variance was exactly 0 -- the configuration `gapDifferenceStandardError` now refuses,
+ * measured at up to 13% false positives against this product's own 2% ceiling. The "strong,
+ * unambiguous" gap was clearing the threshold on a zero denominator rather than on its size.
+ *
+ * This was the third fixture in the repo with the same defect, which is the part worth writing
+ * down: every fixture that produced a pattern strong enough to test the loop on was producing it
+ * degenerately. A real player is very confident MOSTLY, and wrong under time pressure MOSTLY.
  */
 let seeded = 0;
 async function seed(count: number, reveal = true) {
@@ -41,7 +51,7 @@ async function seed(count: number, reveal = true) {
       candidateMovesConsidered: ["e2e4"],
       statedRead: "k",
       statedUnknown: "u",
-      confidence: fast ? 5 : 3,
+      confidence: fast ? (i % 10 === 4 ? 4 : 5) : 3,
     });
     if (reveal) {
       await store.recordReveal(id, {
@@ -49,8 +59,9 @@ async function seed(count: number, reveal = true) {
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
-        // Fast decisions are usually wrong; slow ones usually fine.
-        cp_loss: fast ? (i % 4 === 0 ? 200 : 150) : i % 3 === 0 ? 120 : 5,
+        // Fast decisions are usually wrong; slow ones usually fine. "Usually" on both sides:
+        // an always-wrong bucket has no variance and cannot estimate its own error.
+        cp_loss: fast ? (i % 8 === 0 ? 5 : i % 4 === 0 ? 200 : 150) : i % 3 === 0 ? 120 : 5,
       });
     }
   }
