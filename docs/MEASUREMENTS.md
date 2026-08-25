@@ -1415,3 +1415,69 @@ asked to play, which is not a statistical decision.
 prove the mutation reached the file. One survived on the first pass — the assertion that the
 baseline's own error enters the comparison was a loose inequality the mutation sat comfortably
 inside; it is an exact identity now.
+
+## The type scale governed one component out of forty
+
+`docs/MEASUREMENTS.md` already records collapsing the commitment panel from ten font sizes to
+five, and `:root` carries the scale with a comment reading *"a size is a JOB, not a nudge."* A
+test holds the panel to it. **Nothing held the other thirty-nine components.**
+
+Measured across `client/src/index.css`:
+
+```
+141  size declarations that do not read a scale token
+ 23  distinct sizes inside the 8-18px band
+ 16  of those declared as rem fractions: 0.60 0.62 0.64 0.65 0.66 0.68 0.70 0.72
+     0.73 0.74 0.75 0.76 0.78 0.80 0.82 0.86
+```
+
+**Sixteen steps inside four and a fifth pixels.** Two systems were running at once — px in the
+older components, rem fractions in the reveal, claim, drill and learning panels — and neither knew
+about the scale.
+
+On the first screen, driven in a browser at 1440×900:
+
+| | before | after |
+| --- | --- | --- |
+| distinct font sizes | **14** | **7** |
+| of which fractional | 5 (9.92, 10.88, 12.16, 30.71, 57.165) | 1, and it is a chess piece |
+| font families | 4 | 3 |
+| smallest text | **8px**, on `כאן` — the one word that says where you are in the product | 10px |
+
+The 8px case is the same defect the panel already has a test for (*"does not put the smallest text
+in the product on a label that explains a number"*), one component over.
+
+**Two steps were added, not removed.** Five ranks describe one 330px panel; a document has a page
+title and a section heading above anything that panel owns, and forcing both down to
+`--panel-title` flattens the page instead of ordering it. `--panel-heading: 20px` and
+`--panel-display: 26px` exist for those two jobs, and the count assertion moved with them — an
+eighth still needs a reason.
+
+**Two sizes are deliberately off the scale, and both are drawings.** `.brand-mark` is the knight
+glyph sized to the mark it draws; `.piece` is sized in `cqmin` so it tracks the square under it. A
+type scale ranks text.
+
+**One monospace family, not two.** `.commitment-move` rendered a UCI move in `ui-monospace` while
+every other coordinate in the product rendered in DM Mono — two typefaces for one job, on one
+screen, differing by whatever the operating system supplied.
+
+The assertion that would have caught all 141 now runs over the whole stylesheet rather than over
+the panel's own selectors.
+
+## The default theme could not be changed, whatever it was set to
+
+Every colour token in `index.css` was written for a paper-and-ink notebook, and so was every
+measurement beside it. The app shipped `defaultTheme="dark"`, where the wooden board is the only
+saturated object on a near-black page.
+
+**The effect that applies the theme also wrote it to `localStorage`, on every mount.** So the
+first visit persisted whatever the default happened to be that day, and from then on the stored
+value was indistinguishable from a choice the player had made. Changing the default reached nobody
+who had ever loaded the page — which is everyone.
+
+Section 4.5 in storage: an unanswered question and an answered one must not look the same. The
+preference is written on the toggle now and nowhere else; no entry means no choice, and no choice
+means the default applies. Verified in a browser: `localStorage.theme` is `null` after a first
+load, and the page opens light.
+
+**8 positive controls, each confirmed red and each diffed against the original.**

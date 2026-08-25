@@ -167,6 +167,21 @@
   --panel-body: 12px;  /* prose the player is meant to read */
   --panel-label: 11px; /* every label, legend, chip and toggle */
   --panel-fine: 10px;  /* kickers, hints, counters, the required mark */
+  /*
+   * TWO STEPS ABOVE THE PANEL'S OWN, because the scale turned out to be the document's.
+   *
+   * The five below were written for the commitment panel and a test holds that panel to them.
+   * Nothing held the other forty components, and they went their own way: measured across this
+   * file, TWENTY-THREE distinct sizes inside the 8-18px band, sixteen of them rem fractions
+   * between 0.60 and 0.86 -- sixteen steps inside four and a fifth pixels. Nobody can rank
+   * sixteen things, which is what "it looks bad" is when you measure it.
+   *
+   * The `panel-` prefix is where the scale was born, not where it applies. It is renamed
+   * nowhere because the tests that enforce it name these tokens, and a rename that touches a
+   * hundred call sites to change nothing is churn.
+   */
+  --panel-heading: 20px;  /* a heading that owns a region of the page */
+  --panel-display: 26px;  /* the one largest thing on a screen, and there is one */
   /* ---- Chart palette -------------------------------------------------------------------
    * Two poles, validated rather than eyeballed: normal-vision ΔE 26.1, protan 20.2 against the
    * cream surface. Blue is White's advantage and a move that held; warm is Black's advantage and
@@ -285,13 +300,13 @@ button:not(:disabled) {
 }
 .review-stat b {
   font:
-    600 19px "DM Mono",
+    600 var(--panel-heading) "DM Mono",
     monospace;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 .review-stat span {
-  font-size: 10px;
+  font-size: var(--panel-fine);
   line-height: 1.35;
   color: rgba(var(--ink-rgb), 0.7);
 }
@@ -308,7 +323,7 @@ button:not(:disabled) {
   border: 1px solid rgba(var(--ink-rgb), 0.25);
   background: transparent;
   color: var(--ink);
-  font-size: 11px;
+  font-size: var(--panel-label);
 }
 .review-tabs button[aria-selected="true"] {
   background: var(--blue);
@@ -320,7 +335,7 @@ button:not(:disabled) {
   align-items: center;
   gap: 12px;
   margin: 11px 0 4px;
-  font-size: 10px;
+  font-size: var(--panel-fine);
   color: rgba(var(--ink-rgb), 0.72);
 }
 .chart-legend i {
@@ -342,7 +357,7 @@ button:not(:disabled) {
 }
 .review-moments h4 {
   margin: 0 0 7px;
-  font-size: 11px;
+  font-size: var(--panel-label);
   font-weight: 700;
 }
 .review-moments li {
@@ -352,11 +367,11 @@ button:not(:disabled) {
   align-items: baseline;
   padding: 5px 0;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
-  font-size: 11.5px;
+  font-size: var(--panel-body);
 }
 .moment-move {
   font:
-    11px "DM Mono",
+    var(--panel-label) "DM Mono",
     monospace;
   color: rgba(var(--ink-rgb), 0.65);
 }
@@ -365,13 +380,13 @@ button:not(:disabled) {
 }
 .moment-cpl {
   font:
-    11px "DM Mono",
+    var(--panel-label) "DM Mono",
     monospace;
   font-variant-numeric: tabular-nums;
 }
 .review-caveat {
   margin-top: 12px;
-  font-size: 10px;
+  font-size: var(--panel-fine);
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.62);
 }
@@ -391,7 +406,7 @@ button:not(:disabled) {
 /* ---- Record dashboard ------------------------------------------------------------------- */
 .dash-title {
   margin: 15px 0 0;
-  font-size: 11px;
+  font-size: var(--panel-label);
   font-weight: 700;
 }
 .bucket-list {
@@ -405,7 +420,7 @@ button:not(:disabled) {
   align-items: center;
   padding: 7px 0;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
-  font-size: 11px;
+  font-size: var(--panel-label);
 }
 .bucket-list li.unmeasurable {
   grid-template-columns: minmax(0, 1fr) auto;
@@ -440,7 +455,7 @@ button:not(:disabled) {
 }
 .bucket-n {
   font:
-    10px "DM Mono",
+    var(--panel-fine) "DM Mono",
     monospace;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -453,7 +468,7 @@ button:not(:disabled) {
  * rather than an edge case: a local game against Stockfish has no clock at all.
  */
 .bucket-short {
-  font-size: 10px;
+  font-size: var(--panel-fine);
   overflow-wrap: anywhere;
   line-height: 1.35;
 }
@@ -479,7 +494,7 @@ button:not(:disabled) {
  */
 .import-provenance {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.4;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -494,7 +509,7 @@ button:not(:disabled) {
   margin: 6px 0 0;
   padding: 7px 9px;
   border-inline-start: 2px solid var(--warn);
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.45;
   color: var(--warn);
 }
@@ -548,7 +563,7 @@ button:not(:disabled) {
 }
 .mix-note {
   margin: 8px 0 0;
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.5;
   color: var(--muted);
 }
@@ -558,7 +573,7 @@ button:not(:disabled) {
 }
 .bucket-absent-note {
   margin: 8px 0 0;
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.4;
   color: var(--muted);
 }
@@ -568,7 +583,7 @@ button:not(:disabled) {
 }
 .import-observation {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: var(--panel-body);
   line-height: 1.5;
 }
 .record-mode {
@@ -576,7 +591,7 @@ button:not(:disabled) {
   padding: 7px 10px;
   border: 1px solid rgba(var(--ink-rgb), 0.3);
   background: rgba(var(--cream-rgb), 0.4);
-  font-size: 10px;
+  font-size: var(--panel-fine);
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.8);
 }
@@ -602,6 +617,13 @@ button:not(:disabled) {
   align-items: center;
   gap: 12px;
 }
+/*
+ * The one size in this file that is NOT on the scale, and it is not text.
+ *
+ * This is the knight GLYPH, sized to the mark it draws, the same way `.piece` is sized to the
+ * square it sits on. Georgia is here for the figurine, not for reading -- putting either on the
+ * type scale would be applying a rule about text hierarchy to a drawing.
+ */
 .brand-mark {
   width: 46px;
   height: 46px;
@@ -615,13 +637,13 @@ button:not(:disabled) {
 }
 .brand-name {
   margin: 0;
-  font: 700 15px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.12em;
 }
 .brand-lockup span,
 .header-reading span {
   color: var(--muted);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .header-reading {
   display: flex;
@@ -662,7 +684,7 @@ button:not(:disabled) {
 .rail-label {
   padding: 10px 12px;
   color: var(--muted);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 /*
  * Icon above label, one fixed height for every button.
@@ -713,11 +735,11 @@ button:not(:disabled) {
 .workspace-meta p {
   margin: 0;
   color: var(--blue);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .workspace-meta h1 {
   margin: 4px 0 0;
-  font-size: 23px;
+  font-size: var(--panel-heading);
 }
 .turn-reading {
   display: grid;
@@ -725,7 +747,7 @@ button:not(:disabled) {
 }
 .turn-reading span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--panel-fine);
 }
 .turn-reading b {
   color: var(--blue);
@@ -747,7 +769,7 @@ button:not(:disabled) {
 .drawer-heading b {
   display: block;
   color: var(--blue);
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-heading button,
 .drawer-actions button {
@@ -760,7 +782,7 @@ button:not(:disabled) {
   margin-top: 10px;
   border-radius: 0;
   background: var(--cream);
-  font: 11px/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label)/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-actions {
   display: flex;
@@ -788,7 +810,7 @@ button:not(:disabled) {
 }
 .import-hint {
   margin-top: 8px;
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.75);
 }
@@ -805,7 +827,7 @@ button:not(:disabled) {
   background: var(--cream);
   color: var(--ink);
   font:
-    12px "DM Mono",
+    var(--panel-body) "DM Mono",
     monospace;
 }
 .import-input::placeholder {
@@ -835,12 +857,12 @@ button:not(:disabled) {
   background: transparent;
   color: rgb(var(--ink-rgb));
   font: inherit;
-  font-size: 12px;
+  font-size: var(--panel-body);
   cursor: pointer;
 }
 .import-progress {
   margin-top: 10px;
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.5;
 }
 .import-progress-track {
@@ -873,7 +895,7 @@ button:not(:disabled) {
 .import-cost,
 .import-buys {
   margin-top: 6px;
-  font-size: 10px;
+  font-size: var(--panel-fine);
   line-height: 1.4;
   color: var(--muted);
 }
@@ -889,7 +911,7 @@ button:not(:disabled) {
   padding: 8px 10px;
   border: 1px solid var(--warn);
   color: var(--warn);
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.6;
 }
 .import-list {
@@ -920,7 +942,7 @@ button:not(:disabled) {
   text-overflow: ellipsis;
   white-space: nowrap;
   font:
-    12px "DM Mono",
+    var(--panel-body) "DM Mono",
     monospace;
 }
 .import-players i {
@@ -931,7 +953,7 @@ button:not(:disabled) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 10px;
+  font-size: var(--panel-fine);
   color: rgba(var(--ink-rgb), 0.7);
 }
 .import-meta b {
@@ -943,7 +965,7 @@ button:not(:disabled) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
+  font-size: var(--panel-fine);
   color: rgba(var(--ink-rgb), 0.6);
 }
 .spin {
@@ -1026,12 +1048,12 @@ button:not(:disabled) {
   left: 2px;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: white;
   mix-blend-mode: difference;
 }
 .eval-marker {
-  font: 8px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 /*
@@ -1173,7 +1195,7 @@ button:not(:disabled) {
 .file-label {
   position: absolute;
   z-index: 3;
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 /* Coloured by the square, not by the page. Inheriting the page ink put a light label on a light
    square in the dark theme (1.70:1) and a dark one on a dark square in the light theme (2.32:1). */
@@ -1215,7 +1237,7 @@ button:not(:disabled) {
   grid-template-columns: repeat(8, 1fr);
   padding: 0 8px;
   color: var(--muted);
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   direction: ltr;
 }
 .board-coordinates span {
@@ -1228,7 +1250,7 @@ button:not(:disabled) {
   align-items: center;
   gap: 7px;
   color: var(--edge);
-  font-size: 11px;
+  font-size: var(--panel-label);
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.25);
 }
 .board-note > i {
@@ -1264,7 +1286,7 @@ button:not(:disabled) {
   display: flex;
   gap: 6px;
   color: var(--accent-soft);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-row {
   display: flex;
@@ -1275,17 +1297,17 @@ button:not(:disabled) {
 .score-label {
   margin: 0;
   color: var(--edge-soft);
-  font-size: 11px;
+  font-size: var(--panel-label);
 }
 .score-number {
-  font: 700 40px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .engine-status {
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-caption {
   color: var(--edge-soft);
-  font-size: 11px;
+  font-size: var(--panel-label);
 }
 .analysis-action,
 .layer-action {
@@ -1303,14 +1325,14 @@ button:not(:disabled) {
   display: flex;
   justify-content: space-between;
   color: var(--edge);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-line {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   padding-top: 10px;
-  font: 13px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-first,
 .data-chip,
@@ -1332,7 +1354,7 @@ button:not(:disabled) {
   gap: 8px;
   align-items: center;
   padding-top: 10px;
-  font: 11px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .material-track {
   height: 7px;
@@ -1346,7 +1368,7 @@ button:not(:disabled) {
 .layer-intro,
 .layer-muted {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--panel-label);
 }
 .layer-action {
   border: 1px solid var(--blue);
@@ -1362,7 +1384,7 @@ button:not(:disabled) {
   align-items: center;
   gap: 5px;
   color: var(--edge);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .layer-title small,
 .color-toggle {
@@ -1377,7 +1399,7 @@ button:not(:disabled) {
   display: flex;
   gap: 6px;
   padding-top: 8px;
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .reply-strip span {
   padding: 5px;
@@ -1398,10 +1420,10 @@ button:not(:disabled) {
 .cloud-score {
   display: block;
   color: var(--blue);
-  font: 700 20px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-heading) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .cloud-pv {
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .layer-error {
   color: var(--warn);
@@ -1411,7 +1433,7 @@ button:not(:disabled) {
   padding: 8px 10px;
   border: 1px solid rgba(var(--ink-rgb), 0.35);
   background: rgba(var(--cream-rgb), 0.45);
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.5;
 }
 .config-notice b {
@@ -1432,7 +1454,7 @@ button:not(:disabled) {
 }
 .timeline-title span {
   color: var(--muted);
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .timeline-controls {
   display: flex;
@@ -1453,7 +1475,7 @@ button:not(:disabled) {
   border: 0;
   border-left: 1px solid rgba(var(--ink-rgb), 0.15);
   background: transparent;
-  font: 12px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .move-cell.active {
   background: var(--blue);
@@ -1467,7 +1489,7 @@ button:not(:disabled) {
   /* --muted against the rail background measured 1.04:1 -- the move number was on screen and
      unreadable, which is worse than absent because the layout claims it is telling you something. */
   color: rgba(var(--ink-rgb), 0.72);
-  font-size: 10px;
+  font-size: var(--panel-fine);
 }
 @media (max-width: 1050px) {
   .workbench {
@@ -1548,14 +1570,14 @@ button:not(:disabled) {
   line-height: 1.15;
 }
 .value-triple .value-label {
-  font-size: 0.68rem;
+  font-size: var(--panel-label);
   opacity: 0.72;
 }
 .value-triple .value-number {
   font-variant-numeric: tabular-nums;
 }
 .value-triple .value-provenance {
-  font-size: 0.62rem;
+  font-size: var(--panel-fine);
   opacity: 0.66;
   font-variant-numeric: tabular-nums;
 }
@@ -1576,7 +1598,7 @@ button:not(:disabled) {
   font-weight: 700;
 }
 .pv-warning {
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   opacity: 0.8;
   margin-top: 0.35rem;
 }
@@ -1589,14 +1611,14 @@ button:not(:disabled) {
  * depth on screen while visually applying to all eight.
  */
 .pv-depth {
-  font-size: 0.6rem;
+  font-size: var(--panel-fine);
   font-style: normal;
   vertical-align: super;
   margin-inline-start: 2px;
   opacity: 0.55;
 }
 .pv-note {
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   line-height: 1.45;
   opacity: 0.75;
   margin-top: 0.35rem;
@@ -1609,7 +1631,7 @@ button:not(:disabled) {
   margin-top: 0.6rem;
   padding-top: 0.6rem;
   border-top: 1px solid rgba(var(--ink-rgb), 0.15);
-  font-size: 0.78rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
 }
 /* A tie the engine broke is not a finding, and must not read like one. */
@@ -1716,7 +1738,7 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 .commitment-move {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--panel-data);
   padding: 0.45rem 0.6rem;
   border-radius: 9px;
@@ -1904,7 +1926,7 @@ button:not(:disabled) {
   align-items: center;
   gap: 0.35rem;
   margin: 0 0 0.45rem;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   letter-spacing: 0.02em;
 }
 .reveal-limits ul {
@@ -1915,20 +1937,20 @@ button:not(:disabled) {
   gap: 0.3rem;
 }
 .reveal-limits li {
-  font-size: 0.73rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
   opacity: 0.88;
 }
 .one-thing-text {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: var(--panel-data);
   line-height: 1.55;
   font-weight: 600;
 }
 /* R1: the sentence never appears without the measurement that produced it. */
 .one-thing-basis {
   margin: 0.35rem 0 0;
-  font-size: 0.64rem;
+  font-size: var(--panel-fine);
   opacity: 0.66;
 }
 /* A property of the build, not of the position. Set apart from the per-position limits. */
@@ -1936,25 +1958,25 @@ button:not(:disabled) {
   margin: 0.5rem 0 0;
   padding-top: 0.45rem;
   border-top: 1px solid var(--hairline);
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   line-height: 1.5;
   opacity: 0.8;
 }
 /* Section 4.5: an honest nothing is a correct screen, not a failure. */
 .one-thing-none {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
   opacity: 0.82;
 }
 .reveal-question p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
 }
 .reveal-echo {
   margin-top: 0.4rem !important;
-  font-size: 0.68rem !important;
+  font-size: var(--panel-label) !important;
   opacity: 0.68;
 }
 .reveal-secondary {
@@ -1964,7 +1986,7 @@ button:not(:disabled) {
 }
 .reveal-secondary summary {
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: var(--panel-body);
   display: flex;
   align-items: center;
   gap: 0.3rem;
@@ -1981,18 +2003,18 @@ button:not(:disabled) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.6rem;
-  font-size: 0.72rem;
+  font-size: var(--panel-body);
 }
 .reveal-pv {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
+  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--panel-body);
   opacity: 0.85;
 }
 .reveal-waiting {
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   opacity: 0.75;
   padding: 0.85rem 1rem;
 }
@@ -2021,13 +2043,13 @@ button:not(:disabled) {
   align-items: center;
   gap: 0.35rem;
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
 }
 .claim-loading {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.74rem;
+  font-size: var(--panel-body);
   opacity: 0.75;
   margin: 0;
 }
@@ -2037,7 +2059,7 @@ button:not(:disabled) {
   flex-wrap: wrap;
 }
 .claim-silence {
-  font-size: 0.75rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
   opacity: 0.82;
   margin: 0;
@@ -2057,7 +2079,7 @@ button:not(:disabled) {
 }
 .claim-statement {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--panel-data);
   line-height: 1.55;
 }
 .claim-scope,
@@ -2065,7 +2087,7 @@ button:not(:disabled) {
 .claim-tests,
 .claim-withheld {
   margin: 0;
-  font-size: 0.68rem;
+  font-size: var(--panel-label);
   opacity: 0.72;
   line-height: 1.5;
 }
@@ -2075,13 +2097,13 @@ button:not(:disabled) {
   padding-top: 0.45rem;
 }
 .claim-refutation > span {
-  font-size: 0.64rem;
+  font-size: var(--panel-fine);
   font-weight: 700;
   opacity: 0.8;
 }
 .claim-refutation > p {
   margin: 0.2rem 0 0;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   line-height: 1.5;
 }
 /* A refuted claim is kept and shown as refuted, never deleted. */
@@ -2103,7 +2125,7 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   font-weight: 600;
 }
 /* R5 on screen: what would disprove this, before the first position and throughout. */
@@ -2113,19 +2135,19 @@ button:not(:disabled) {
   padding: 0.5rem 0.6rem;
 }
 .drill-prereg > span {
-  font-size: 0.6rem;
+  font-size: var(--panel-fine);
   font-weight: 700;
   letter-spacing: 0.04em;
   opacity: 0.75;
 }
 .drill-prereg > p {
   margin: 0.25rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
 }
 .drill-explain {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
   opacity: 0.8;
 }
@@ -2138,7 +2160,7 @@ button:not(:disabled) {
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   font-weight: 600;
   cursor: pointer;
 }
@@ -2148,11 +2170,11 @@ button:not(:disabled) {
   align-items: center;
   gap: 0.35rem;
   margin: 0;
-  font-size: 0.73rem;
+  font-size: var(--panel-body);
 }
 .drill-verdict > p {
   margin: 0 0 0.5rem;
-  font-size: 0.8rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
   font-weight: 600;
 }
@@ -2184,19 +2206,19 @@ button:not(:disabled) {
 }
 .learning-heading span {
   display: block;
-  font-size: 0.6rem;
+  font-size: var(--panel-fine);
   font-weight: 700;
   opacity: 0.68;
 }
 .learning-heading h3 {
   margin: 0.08rem 0 0;
-  font-size: 0.82rem;
+  font-size: var(--panel-data);
 }
 .learning-composer label,
 .learning-transfer label {
   display: grid;
   gap: 0.28rem;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   font-weight: 600;
 }
 .learning-composer input,
@@ -2210,7 +2232,7 @@ button:not(:disabled) {
   color: inherit;
   padding: 0.5rem 0.55rem;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   line-height: 1.45;
   resize: vertical;
 }
@@ -2229,7 +2251,7 @@ button:not(:disabled) {
 .learning-choice > span,
 .transfer-applied > span {
   width: 100%;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   font-weight: 600;
 }
 .mechanism-picker {
@@ -2240,7 +2262,7 @@ button:not(:disabled) {
 .mechanism-picker legend {
   width: 100%;
   margin-bottom: 0.3rem;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   font-weight: 600;
 }
 .learning-choice button,
@@ -2254,7 +2276,7 @@ button:not(:disabled) {
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   cursor: pointer;
 }
 .learning-choice button,
@@ -2281,7 +2303,7 @@ button:not(:disabled) {
   background: var(--ink);
   color: var(--paper);
   font: inherit;
-  font-size: 0.74rem;
+  font-size: var(--panel-body);
   font-weight: 700;
   cursor: pointer;
 }
@@ -2295,7 +2317,7 @@ button:not(:disabled) {
   align-items: center;
   gap: 0.35rem;
   margin: 0;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   line-height: 1.45;
 }
 .learning-rule-row {
@@ -2310,7 +2332,7 @@ button:not(:disabled) {
 .learning-rule-row small {
   display: block;
   margin: 0.2rem 0 0;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
@@ -2318,7 +2340,7 @@ button:not(:disabled) {
   opacity: 0.68;
 }
 .learning-grade {
-  font-size: 0.6rem;
+  font-size: var(--panel-fine);
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -2346,7 +2368,7 @@ button:not(:disabled) {
 .transfer-prereg span,
 .transfer-prereg small,
 .transfer-progress {
-  font-size: 0.65rem;
+  font-size: var(--panel-fine);
   font-weight: 700;
 }
 .transfer-prereg p,
@@ -2354,7 +2376,7 @@ button:not(:disabled) {
 .transfer-verdict p,
 .transfer-verdict strong {
   margin: 0.25rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
 }
 .transfer-verdict {
@@ -2404,7 +2426,7 @@ button:not(:disabled) {
   gap: 14px;
 }
 .new-game-setup h3 {
-  font: 700 12px/1 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-body)/1 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.08em;
 }
 .setup-field {
@@ -2415,7 +2437,7 @@ button:not(:disabled) {
   gap: 8px;
 }
 .setup-field legend {
-  font: 10px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
   padding: 0;
 }
@@ -2430,7 +2452,7 @@ button:not(:disabled) {
   padding: 8px 12px;
   border: 1px solid rgba(var(--ink-rgb), 0.2);
   background: transparent;
-  font: 700 13px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .depth-row .selected {
   background: var(--blue);
@@ -2440,7 +2462,7 @@ button:not(:disabled) {
   padding: 8px 16px;
 }
 .setup-note {
-  font: 10px/1.5 "Noto Sans Hebrew", Arial, sans-serif;
+  font: var(--panel-fine)/1.5 "Noto Sans Hebrew", Arial, sans-serif;
   color: var(--muted);
 }
 .setup-actions {
@@ -2453,7 +2475,7 @@ button:not(:disabled) {
   padding: 8px 14px;
 }
 .opponent-thinking {
-  font: 11px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
   padding: 6px 0;
 }
@@ -2500,7 +2522,7 @@ button:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font: 9px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 /* The step's own bar. Colour never carries the state alone -- "כאן" is text. */
@@ -2521,17 +2543,17 @@ button:not(:disabled) {
   font-weight: 700;
 }
 .loop-here {
-  font: 8px "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
 }
 .loop-headline {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
 }
 .loop-basis {
   margin: 0;
-  font: 0.62rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   opacity: 0.7;
 }
 
@@ -2554,26 +2576,26 @@ button:not(:disabled) {
 .context-reorientation {
   margin: 0;
   flex: 1 1 16rem;
-  font-size: 0.78rem;
+  font-size: var(--panel-body);
   line-height: 1.5;
 }
 .context-why summary {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font: 0.68rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
 }
 .context-why ul {
   margin: 6px 0 0;
   padding-inline-start: 1.1rem;
-  font-size: 0.7rem;
+  font-size: var(--panel-label);
   line-height: 1.55;
 }
 .context-why small {
   display: block;
   margin-top: 6px;
-  font-size: 0.64rem;
+  font-size: var(--panel-fine);
   line-height: 1.55;
   opacity: 0.75;
 }
@@ -2581,7 +2603,7 @@ button:not(:disabled) {
   padding-inline: 12px;
   border: 1px solid var(--hairline-strong);
   background: transparent;
-  font: 0.7rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: inherit;
 }
 
@@ -2643,19 +2665,19 @@ button:not(:disabled) {
 }
 .not-found-code {
   margin: 0;
-  font: 700 2.5rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 .not-found h1,
 .boundary h1 {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: var(--panel-heading);
   font-weight: 700;
 }
 .not-found-body,
 .boundary-body {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--panel-data);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -2669,7 +2691,7 @@ button:not(:disabled) {
   background: var(--blue);
   color: var(--on-blue);
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--panel-body);
   font-weight: 700;
   cursor: pointer;
 }
@@ -2682,7 +2704,7 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font: 0.7rem "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
 }
 .boundary-trace pre {
@@ -2692,7 +2714,7 @@ button:not(:disabled) {
   padding: 10px;
   border: 1px solid var(--hairline);
   background: var(--cream);
-  font: 0.66rem/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label)/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -2716,17 +2738,17 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.8rem;
+  font-size: var(--panel-body);
   font-weight: 700;
 }
 .reveal-failure-safe {
   margin: 0;
-  font-size: 0.76rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
 }
 .reveal-failure-detail {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--panel-body);
   line-height: 1.55;
   color: var(--muted);
 }
@@ -2737,7 +2759,7 @@ button:not(:disabled) {
   background: var(--blue);
   color: var(--on-blue);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--panel-body);
   font-weight: 700;
   cursor: pointer;
 }
@@ -2870,7 +2892,7 @@ button:not(:disabled) {
   /* No width of its own: .panel-shell sizes the dialog, and a min-width here fought it. */
 }
 .self-check-intro {
-  font-size: 12px;
+  font-size: var(--panel-body);
   line-height: 1.7;
   color: var(--muted);
 }
@@ -2881,11 +2903,11 @@ button:not(:disabled) {
   flex-wrap: wrap;
 }
 .self-check-note {
-  font-size: 11px;
+  font-size: var(--panel-label);
   color: var(--muted);
 }
 .self-check-verdict {
-  font-size: 12px;
+  font-size: var(--panel-body);
   font-weight: 700;
   padding: 8px 10px;
   border: 1px solid rgba(var(--ink-rgb), 0.3);
@@ -2915,11 +2937,11 @@ button:not(:disabled) {
 }
 .self-check-row b {
   display: block;
-  font-size: 12px;
+  font-size: var(--panel-body);
 }
 .self-check-row span {
   display: block;
-  font-size: 11px;
+  font-size: var(--panel-label);
   line-height: 1.6;
   color: var(--muted);
   /* Long URLs and byte counts must wrap instead of widening the dialog. */
@@ -3051,7 +3073,7 @@ button:not(:disabled) {
   background: none;
   border: none;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--panel-body);
   color: var(--muted);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -3062,7 +3084,7 @@ button:not(:disabled) {
 }
 .drill-abandon-note {
   margin-top: 2px;
-  font-size: 10px;
+  font-size: var(--panel-fine);
   line-height: 1.5;
   color: var(--muted);
 }
@@ -3089,7 +3111,7 @@ button:not(:disabled) {
 }
 .what-heading h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: var(--panel-data);
 }
 .what-heading button {
   min-width: 44px;
@@ -3107,20 +3129,20 @@ button:not(:disabled) {
 }
 .what-this-is h4 {
   margin: 6px 0 0;
-  font-size: 12px;
+  font-size: var(--panel-body);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .what-this-is p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--panel-body);
   line-height: 1.65;
 }
 .what-never {
   margin: 0;
   padding-inline-start: 18px;
-  font-size: 13px;
+  font-size: var(--panel-body);
   line-height: 1.7;
 }
 /* The limits and the unverified note are the two paragraphs a reader must not skim past. */
