@@ -20,6 +20,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { answerEveryStep, openStep } from "../fixtures/commitment-steps";
 import { KNOWN_OPTIONS, UNKNOWN_OPTIONS, composeStatement } from "@/lib/read-options";
 import type { PositionUnderDecision } from "@/lib/decision-session";
 
@@ -46,10 +47,14 @@ describe("a decision can be made without typing anything", () => {
   it("records a move from four taps", async () => {
     const onCommit = vi.fn();
     renderScreen({ onCommit });
-    // The move is already chosen on the board; three taps finish the decision.
-    await userEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
-    await userEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
-    await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
+    /*
+     * The move is already chosen on the board; three taps still finish the decision. The steps
+     * are an accordion now, so reaching each one costs a header tap -- but a player who works
+     * straight through never pays it: the panel opens the first unanswered step by itself, the
+     * move step advances on its own when a move arrives, and "הבא" moves between the two read
+     * steps. `answerEveryStep` taps the headers because a test cannot rely on that ordering.
+     */
+    answerEveryStep({ known: "המרכז פתוח", unknown: "לא יודע איך הוא יענה", confidence: 3 });
     await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
     expect(onCommit).toHaveBeenCalledTimes(1);
   });
@@ -59,11 +64,14 @@ describe("a decision can be made without typing anything", () => {
     // Open by default, the box reads as the real field and the chips as a shortcut -- which is
     // the arrangement that made a game unfinishable.
     expect(document.querySelectorAll("textarea")).toHaveLength(0);
-    expect(screen.getAllByRole("button", { name: /להוסיף במילים שלכם/ })).toHaveLength(2);
+    // Both read steps carry one, collapsed or not: `hidden` takes a step out of the accessible
+    // tree, so this counts what is in the DOM rather than what is currently reachable.
+    expect(document.querySelectorAll(".read-write-toggle")).toHaveLength(2);
   });
 
   it("opens a box when one is asked for, and keeps it open", async () => {
     renderScreen();
+    openStep("known");
     await userEvent.click(screen.getAllByRole("button", { name: /להוסיף במילים שלכם/ })[0]);
     const boxes = document.querySelectorAll("textarea");
     expect(boxes).toHaveLength(1);
@@ -77,16 +85,25 @@ describe("a decision can be made without typing anything", () => {
 describe("nothing is stated on the player's behalf", () => {
   it("preselects no option in either field", () => {
     renderScreen();
-    for (const option of [...KNOWN_OPTIONS, ...UNKNOWN_OPTIONS]) {
-      const chip = screen.getByRole("button", { name: option.label });
-      // A default read would be the machine stating one and then measuring the player against it.
-      expect(chip.getAttribute("aria-pressed")).toBe("false");
+    /*
+     * Every option, in both fields, checked through the header a player would tap. The panel
+     * collapses the steps it is not on; it does not remove an option from any of them, and this
+     * walks the whole list to say so.
+     */
+    for (const [step, options] of [["known", KNOWN_OPTIONS], ["unknown", UNKNOWN_OPTIONS]] as const) {
+      openStep(step);
+      for (const option of options) {
+        const chip = screen.getByRole("button", { name: option.label });
+        // A default read would be the machine stating one and then measuring the player against it.
+        expect(chip.getAttribute("aria-pressed")).toBe("false");
+      }
     }
   });
 
   it("still refuses a decision with neither field answered", async () => {
     const onCommit = vi.fn();
     renderScreen({ onCommit });
+    openStep("confidence");
     await userEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
     await userEvent.click(screen.getByRole("button", { name: /חסר:/ }));
     expect(onCommit).not.toHaveBeenCalled();
@@ -95,6 +112,7 @@ describe("nothing is stated on the player's behalf", () => {
 
   it("lets a selection be taken back", async () => {
     renderScreen();
+    openStep("known");
     const chip = screen.getByRole("button", { name: "מלך חשוף" });
     await userEvent.click(chip);
     expect(chip.getAttribute("aria-pressed")).toBe("true");

@@ -45,15 +45,22 @@ function noise(n: number, seed: number): ScoredDecision[] {
 }
 
 describe("the threshold the narrowing buys, and the measurement behind it", () => {
-  it("is a lower n, and NOT a lower gap", () => {
+  it("is a lower n AND a lower bar -- which reverses what this test used to assert", () => {
     /*
-     * The design was proposed on the opposite assumption -- that six chances to clear should need
-     * a higher bar than one, so naming a bucket in advance should buy a lower gap. The sweep
-     * refuted it: the six bucketings are not six independent tests, because the three phase
-     * buckets partition the same decisions and the clock buckets overlap. This asserts what the
-     * measurement actually supports, so a future reader cannot reintroduce the assumption.
+     * THIS ASSERTION WAS INVERTED, and the inversion is the interesting part.
+     *
+     * It used to hold that pre-registration bought n and NOT a lower bar, and that was correctly
+     * measured on the detector it was measured on: a fixed effect-size floor does no multiplicity
+     * work at all, so removing five of the six chances to clear could not lower it. A
+     * separability multiplier IS the multiplicity control, so the same experiment now comes out
+     * the other way -- 3.00 named in advance against 3.75 for the scan, both set by the
+     * shuffled-label control at the 2% ceiling.
+     *
+     * The margin is smaller than "six tests instead of one" suggests, for the reason the old
+     * comment gave and which still holds: the six bucketings are not independent. Three phase
+     * buckets partition the same decisions and the clock buckets overlap.
      */
-    expect(PREREGISTERED_THRESHOLDS.minGapDifference).toBe(DEFAULT_THRESHOLDS.minGapDifference);
+    expect(PREREGISTERED_THRESHOLDS.separabilityK).toBeLessThan(DEFAULT_THRESHOLDS.separabilityK);
     expect(PREREGISTERED_THRESHOLDS.minBucketN).toBeLessThan(DEFAULT_THRESHOLDS.minBucketN);
   });
 

@@ -1175,9 +1175,8 @@ leads on, is not, and does not use it.
 nothing was not bad luck or a small sample. Under a fixed floor of 0.45 on a scale where one full
 point of stated confidence is 0.25, that is what the detector returns for a human being.
 
-NOT FIXED HERE. Two further review passes (calibration measurement, psychometrics) were running
-against this same scoring path when this was found, and one planned change beats two conflicting
-ones in the same file.
+**FIXED.** The fixed floor is gone; see *"Separability, and the multiplier the shuffled-label
+control chose"* below for what replaced it and what it cost.
 
 ## A forced mate is not a centipawn quantity, and the live reveal read it as one
 
@@ -1273,3 +1272,389 @@ already established above: one planned fix beats two conflicting ones in the sam
 Size on the one real reading: 20 games, 554 decisions. Every game that ended in checkmate
 contributes exactly one such decision, so the affected share is at most 20/554 = 3.6% and lands
 only on the player's best move of that game.
+
+## Separability, and the multiplier the shuffled-label control chose
+
+The fix for the section above. `MIN_GAP_DIFFERENCE` is gone; a bucket is now reported when its
+calibration gap sits further from the rest of the record than the **sampling error of the
+difference**, by a multiplier the control set.
+
+### What the test is built on, and why not the obvious thing
+
+`gap` is `meanConfidence − accuracyRate`. The obvious standard error adds the two marginal
+variances — and that assumes confidence and accuracy are independent *within* a bucket, which is
+the exact opposite of this product's premise: an overconfident player is one whose confidence and
+accuracy move apart there.
+
+So the test is built on **one quantity per decision**, `confidence − (accurate ? 1 : 0)`. Its mean
+over a bucket is identically `gap`, so the sampling variance of `gap` is `variance(that) / n`,
+exactly, with no independence assumption anywhere. The two samples (inside a bucket, outside it)
+are disjoint by construction, so their variances add.
+
+This is the same shape as `worstBucketVerdict` in `shared/import-diagnostic.ts`, computed on the
+right quantity for this measure. **The import screen has always been statistically sound. The
+detector the product leads on was not, and did not use it.**
+
+### The harness decided the number, and it is not the easy one
+
+GATE-SHUFFLE takes **one record** and permutes its labels hundreds of times — the spec's
+requirement, *"the player's decisions with clock and phase randomly permuted."* That is a harder
+null than drawing a fresh record per run, because a single record can be systematically unlucky
+and the gate reports the **worst** cell.
+
+Calibrated the easy way, k = 3.25 looked clear at 1.1%. On the gate's own harness it touches
+2.0% — the ceiling exactly, passing only on a strict inequality. Ten independent base records per
+size, 300 shuffles each, worst cell of the ten:
+
+```
+k       n=120   n=300   n=600  n=1200
+3.25     2.0%    1.7%    2.0%    1.0%    <- at the ceiling
+3.50     1.7%    0.7%    0.7%    0.7%
+3.75     1.0%    0.3%    0.3%    0.3%    <- shipped
+4.00     0.3%    0.0%    0.3%    0.0%
+```
+
+**`SEPARABILITY_K = 3.75`** — the smallest multiplier measured that leaves half the ceiling as
+margin. A gate that passes at exactly its limit is one unlucky draw from red and teaches people to
+re-run it. The shipped gate now reports **0.7% worst case**.
+
+`noiseRecord` was extended from `[40 … 300]` to `[40 … 1200]` in the same change. A fixed floor is
+*hardest* to clear on noise at large n, so the gate had been testing the region where the old rule
+looked best and never the region where it went silent on real effects.
+
+### Head to head, on identical records
+
+2000 fresh records per cell. True gap difference in brackets; one whole point of stated confidence
+is 0.25, so a coaching-scale finding — 13 accuracy points plus half a point of confidence — is
+0.255, barely half the floor it had to clear.
+
+```
+scenario                        rule           n=120   n=300   n=600  n=1200  n=2400
+null            (true 0.000)    fixed 0.45      0.0%    0.0%    0.0%    0.0%    0.0%
+null            (true 0.000)    k=3.75 SE       0.4%    0.1%    0.1%    0.1%    0.0%
+
+coach scale     (true 0.255)    fixed 0.45      0.9%    0.2%    0.0%    0.0%    0.0%
+coach scale     (true 0.255)    k=3.75 SE       4.6%   42.9%   91.0%   99.9%  100.0%
+
+on the old line (true 0.450)    fixed 0.45     15.3%   49.4%   49.7%   49.9%   50.3%
+on the old line (true 0.450)    k=3.75 SE      22.9%   99.6%  100.0%  100.0%  100.0%
+
+strong          (true 0.675)    fixed 0.45     24.4%   93.6%   99.0%   99.9%  100.0%
+strong          (true 0.675)    k=3.75 SE      30.4%  100.0%  100.0%  100.0%  100.0%
+```
+
+Row 3 is the defect: **power falling to zero as the record grows.** Row 5 is the same defect from
+the other side — an effect sitting exactly on the floor was a permanent coin flip that no amount of
+play resolved, because a point estimate against a line never accumulates. Both now converge.
+
+### Pre-registration now buys the bar as well as n, reversing a recorded finding
+
+`shared/detector.ts` used to state, from measurement: *"Pre-registration buys n, not gap."* That
+was correct about the detector it was measured on, and correct for a reason nobody wrote down — **a
+fixed effect-size floor does no multiplicity work at all**, so removing five of the six chances to
+clear could not lower it. A separability multiplier *is* the multiplicity control, so the same
+experiment comes out the other way. Gate harness, one pre-named bucket at `minBucketN` 20:
+
+```
+k       n=120   n=300   n=600  n=1200  n=2400
+2.50     3.3%    3.0%    2.3%    2.3%    2.7%   <- over the 2% ceiling
+2.75     1.7%    2.3%    1.3%    1.3%    1.3%   <- over it at n=300
+3.00     1.0%    1.0%    1.0%    0.7%    0.7%   <- shipped
+```
+
+**3.00 named in advance against 3.75 for the scan.** The margin is smaller than "six tests instead
+of one" suggests, for the reason the old comment gave and which still holds: the six bucketings are
+not independent — three phase buckets partition the same decisions and the clock buckets overlap.
+The earlier finding is left in the file rather than deleted.
+
+## The same defect in the drill, where it cost a grade
+
+Found while removing the constant, because `evaluateRefutation` was the other thing reading it.
+
+**The stored refutation condition and the test it was graded by did not agree.** The text written
+down before the drill runs says *"if the gap … is not larger than in the rest of your decisions —
+refuted."* The code required larger **by 0.45**. That is the exact failure `evaluateRefutation`'s
+own doc comment says it exists to prevent: *"A drill that writes down one condition and tests
+another has not pre-registered anything, which is the whole of R5."*
+
+Against a baseline of 200 decisions, 2000 runs per cell:
+
+```
+claim TRUE, confirmed        n=5     n=8    n=12    n=20    n=40    n=80
+  fixed 0.45               22.1%   14.8%    9.3%    4.5%    1.0%    0.1%
+  separable k=3.00          7.6%   10.8%   13.0%   23.1%   46.9%   78.1%
+
+claim FALSE, confirmed       n=5     n=8    n=12    n=20    n=40    n=80
+  fixed 0.45                2.1%    0.4%    0.1%    0.0%    0.0%    0.0%
+  separable k=3.00          2.1%    1.6%    0.8%    0.4%    0.3%    0.7%
+```
+
+**Said plainly, because the first row does not read the way the change wants it to:** at five
+positions the fixed bar really is more sensitive, at the same false-confirmation rate. The two
+cross at about twelve, and past that the old rule collapses — at eighty positions it confirms a
+true claim one time in a thousand. *A longer drill made the product less likely to believe a claim
+that was true.*
+
+`evaluateRefutation` also took `baselineGap: number`, which forced it to treat the rest of the
+record as exactly known. It is an estimate from a finite sample; it now takes the whole summary and
+the baseline's error enters the comparison.
+
+### NOT FIXED: a drill of 5–8 positions cannot decide anything
+
+`MIN_DRILL_POSITIONS = 5`, `MAX_DRILL_POSITIONS = 8`. At that length **neither rule has usable
+power** — 7.6% to 22.1% on a claim that is true. So `observed: false` conflates *"the drill refuted
+this"* with *"the drill could not have confirmed it"*, and the second is far more common.
+
+The verdict now carries `standardError` so a caller can tell them apart. Distinguishing them in the
+**stored grade** needs a third state in `observed`, which is a persisted column in
+`drizzle/schema.ts` and four read/write sites in `server/record.ts` — a migration, not an edit. And
+making a drill long enough to decide anything is a question about how many positions a player is
+asked to play, which is not a statistical decision.
+
+**19 assertions, 12 positive controls**, each confirmed red and each diffed against the original to
+prove the mutation reached the file. One survived on the first pass — the assertion that the
+baseline's own error enters the comparison was a loose inequality the mutation sat comfortably
+inside; it is an exact identity now.
+
+## The type scale governed one component out of forty
+
+`docs/MEASUREMENTS.md` already records collapsing the commitment panel from ten font sizes to
+five, and `:root` carries the scale with a comment reading *"a size is a JOB, not a nudge."* A
+test holds the panel to it. **Nothing held the other thirty-nine components.**
+
+Measured across `client/src/index.css`:
+
+```
+141  size declarations that do not read a scale token
+ 23  distinct sizes inside the 8-18px band
+ 16  of those declared as rem fractions: 0.60 0.62 0.64 0.65 0.66 0.68 0.70 0.72
+     0.73 0.74 0.75 0.76 0.78 0.80 0.82 0.86
+```
+
+**Sixteen steps inside four and a fifth pixels.** Two systems were running at once — px in the
+older components, rem fractions in the reveal, claim, drill and learning panels — and neither knew
+about the scale.
+
+On the first screen, driven in a browser at 1440×900:
+
+| | before | after |
+| --- | --- | --- |
+| distinct font sizes | **14** | **7** |
+| of which fractional | 5 (9.92, 10.88, 12.16, 30.71, 57.165) | 1, and it is a chess piece |
+| font families | 4 | 3 |
+| smallest text | **8px**, on `כאן` — the one word that says where you are in the product | 10px |
+
+The 8px case is the same defect the panel already has a test for (*"does not put the smallest text
+in the product on a label that explains a number"*), one component over.
+
+**Two steps were added, not removed.** Five ranks describe one 330px panel; a document has a page
+title and a section heading above anything that panel owns, and forcing both down to
+`--panel-title` flattens the page instead of ordering it. `--panel-heading: 20px` and
+`--panel-display: 26px` exist for those two jobs, and the count assertion moved with them — an
+eighth still needs a reason.
+
+**Two sizes are deliberately off the scale, and both are drawings.** `.brand-mark` is the knight
+glyph sized to the mark it draws; `.piece` is sized in `cqmin` so it tracks the square under it. A
+type scale ranks text.
+
+**One monospace family, not two.** `.commitment-move` rendered a UCI move in `ui-monospace` while
+every other coordinate in the product rendered in DM Mono — two typefaces for one job, on one
+screen, differing by whatever the operating system supplied.
+
+The assertion that would have caught all 141 now runs over the whole stylesheet rather than over
+the panel's own selectors.
+
+## The default theme could not be changed, whatever it was set to
+
+Every colour token in `index.css` was written for a paper-and-ink notebook, and so was every
+measurement beside it. The app shipped `defaultTheme="dark"`, where the wooden board is the only
+saturated object on a near-black page.
+
+**The effect that applies the theme also wrote it to `localStorage`, on every mount.** So the
+first visit persisted whatever the default happened to be that day, and from then on the stored
+value was indistinguishable from a choice the player had made. Changing the default reached nobody
+who had ever loaded the page — which is everyone.
+
+Section 4.5 in storage: an unanswered question and an answered one must not look the same. The
+preference is written on the toggle now and nowhere else; no entry means no choice, and no choice
+means the default applies. Verified in a browser: `localStorage.theme` is `null` after a first
+load, and the page opens light.
+
+**8 positive controls, each confirmed red and each diffed against the original.**
+
+## What the first action is, and where it used to be
+
+The panel asks for four things — a move, a read, an unknown, a confidence — and `draftProblems`
+refuses the record until all four are answered. **All four opened at once.** Driven in a browser on
+the built app:
+
+| | 1440×900 | 390×844 |
+| --- | --- | --- |
+| panel height | **952px**, in a 900px window | 935px |
+| record button | y=847; the strip under it naming what is missing is **clipped at every standard laptop height** | needs **113px of scroll** |
+| move field | — | needs **264px of scroll** |
+| board begins | y=136 | y=240 |
+| panel begins | y=276 | y=937 |
+| whole page | 1.7 screens | **2.5 screens** |
+
+On a phone the first 223px were a wordmark that wrapped onto two lines and a rail of five tools
+nobody needs before their first decision. **A screen that shows a board and hides the question
+reads as a board.**
+
+### One question open, four headers visible
+
+The four are an accordion: one open, the rest collapsed to a header carrying the step's name, its
+required mark, and its answer once there is one.
+
+**Not a wizard, and the difference is the point.** A player who cannot see how many questions are
+left is in the same position as one scrolling a 952px panel. Every step is a button; every option
+is one tap away.
+
+**The constraint two earlier attempts were refused for still holds.** Neither a "more" control nor
+a shorter list: that is what a player is able to say about a position, and what the record then
+holds. What is bounded instead is the open step's **body** — with the second step open it measured
+421px (ten chips wrapping into five rows), which put steps 3 and 4 at y=898 and y=958 in a 900px
+window. Capping the body keeps every option and every header.
+
+### What advances by itself, and what deliberately does not
+
+The move step advances on its own: choosing a move is one act, it cannot be added to, and it
+arrives from the board rather than from the panel.
+
+The two read steps do **not**. Both are multi-select and their own hint says *"choose as many as
+you like"*; advancing on the first tap would make one tap the normal amount — the interface shaping
+the record rather than holding it, which is exactly what got a count beside the candidate moves
+refused. They advance on an explicit "next", or on tapping any header.
+
+### Order: act first, then see where you are
+
+`LoopStrip` — recorded → pattern → drill → graded, and how many revealed decisions are still
+needed — was the first child of the decision column. That is orientation about **weeks**, sitting
+between the board and the decision being made **now**, and it cost 143px: exactly the amount by
+which the fourth step missed the fold.
+
+On a phone the same argument applied one level up: the tool rail (new game, load PGN, import) is
+used once a session at most and sat above the board.
+
+| after | 1440×900 | 390×844 |
+| --- | --- | --- |
+| panel begins | y=136 | y=706 |
+| all four steps visible together | **yes** (260–775) | after one scroll |
+| record button | y=788, on screen | y=791, **on screen** |
+| board begins | y=136 | y=153 |
+| whole page | 1.2 screens | 2.1 screens |
+
+**A 370px board on a 390px screen cannot be smaller**: eight squares across 370px is 46px each,
+against a 44px tap floor. So the board fills a phone's first screen by arithmetic, and it should —
+the move is made on it. What was wrong was being left there afterwards, so choosing a move now
+carries the player to the question. That scroll follows the rule the refused-commit scroll already
+followed: never on load, only on something the player just did, and skipped entirely when the panel
+is already on screen.
+
+**17 assertions, 9 positive controls**, each confirmed red and each diffed against the original.
+One survived the first pass and was a no-op wearing a mutation's clothes — it inserted a comment
+into a component rather than changing a behaviour. The third time this repository has recorded that
+failure, and the reason every control here reports its byte delta.
+
+## The slot that was empty, and the two things the app forgot
+
+Friction, measured on the first screen at 1440×900: **83 controls, 64 of them board squares, 14
+non-board controls above the fold** — and nine of those fourteen are ways to load a game or app
+chrome. Only five belong to the decision loop.
+
+### The app already computed the answer and put it below the fold
+
+`loopPosition()` returns, on every render, one sentence naming which of record → detect → drill →
+grade is live and what stands between here and the next one, plus the basis it came from. It
+rendered inside `LoopStrip`, beside the record — and once the decision panel took that column,
+that is **y=1368 on a 390×844 phone**: five hundred pixels below the fold.
+
+Meanwhile `ContextRibbon` is a reserved slot at the top of the page for telling a player something
+before they ask, and its own comment described what it actually did:
+
+> *"It renders nothing at all on an ordinary visit, which is almost every visit."*
+
+It fired only after `RETURN_GAP_DAYS = 3`. Measured on a fresh load: **not rendered**, both
+viewports.
+
+So the sentence moved into the slot. **Relocation, not duplication** — `LoopStrip` keeps the rail,
+which is a picture of four steps and means something beside the record; the ribbon takes the
+sentence, which means something before anything. Both read one hook (`useLoopPosition`), because
+two components deriving the same position from the same query is where `LoopStrip`'s own refusal
+of *"a fourth copy of any of those"* starts.
+
+**Routing, not ranking.** `loopPosition` is a pure function of counts: the same record gives the
+same sentence every time, from numbers that are on screen elsewhere anyway. It reads nothing the
+detector buckets on — no time, no phase, no clock — and the ribbon's own disclosure says so. A
+layer that ranked options by predicted value would be measuring the player and then changing what
+they see, which changes what is being measured.
+
+The gap notice stays dismissible; the loop position does not. `הבנתי` used to close the whole
+ribbon, which was right when the ribbon was only ever a notice.
+
+### The ribbon cost the panel its fold, and then paid it back
+
+| 390×844 | before | ribbon added | after trimming |
+| --- | --- | --- | --- |
+| the anticipation slot | not rendered | y=143 | **y=89** |
+| the decision panel | y=706 | y=871 (**27px below the fold**) | **y=790** |
+| ribbon height | — | 151px | 124px |
+| header height | 117px | 117px | **67px** |
+
+A slot that orients you by costing you the thing it orients you towards is not worth its space.
+The sentence keeps its own row; the basis and the collapsed `למה?` share the row under it. The
+disclosure stays 44px because `summary` carries `min-height: var(--tap-floor)` — that is the tap
+target, and not mine to trim.
+
+**And a regression from the previous commit, found by looking.** Making `.brand-name` nowrap so
+"DECISION LAB" stopped breaking across two lines widened the brand block to 179px of a 350px
+header, squeezing the actions column to 171 — four 44px tap targets plus gaps need 200 — so **the
+fourth icon dropped to a second row**. The brand is chrome and yields; the tap targets do not.
+
+### Memory, not prediction
+
+**The account.** `StoredImportDiagnostic` holds the Lichess username of the last kept reading, and
+`ImportGames` opened with `useState("")` every time. It is prefilled now, and it loses every
+argument with an actual keystroke: a player who has started typing owns the field.
+
+*One mechanism, and a positive control is why.* It was prefilled twice — a `useState` initialiser
+for the synchronous case and an effect for the late one. A control that removed the initialiser
+**stayed green**, because the effect covers that timing too. That is the definition of a redundant
+second mechanism, and two ways to set one field is where they drift. The effect is the only one now.
+
+**The game.** Closing the tab lost it: the record survived, a usage timestamp survived, the
+position in front of you did not — so every return started at the opening position with five
+buttons offering to fetch one. `session-position.ts` stores the **moves**, not the snapshots
+(chess.js derives the position from the moves; storing both would be two sources of truth for one
+board), replays them through the same `buildHistory` a pasted PGN goes through, and restores once.
+
+**The draft decision is deliberately NOT restored.** The seconds-taken clock starts when a position
+is presented, so a half-answered commitment resumed an hour later would carry an hour of thinking
+time into the record as a measured number (R2). A drill and a learning transfer are not written
+either: neither is a game to come back to.
+
+### A test that passed for the wrong reason
+
+The guard test for stored shapes built its bad cases by spreading the **write** shape, which
+carries no `savedAt` — so all seven were rejected on a missing timestamp and **not one of them ever
+reached the guard it was named after**. A control that coerced the `ply` guard away survived
+because of it. Every case is one field wrong now, against a complete stored object, and a positive
+case proves the valid shape really does parse.
+
+Three source assertions also went red against the components' **own doc comments** — `LoopStrip`'s
+note explaining that `position.headline` moved out matched the pattern asserting it no longer
+renders it. A source test that a paragraph of prose can fail is not testing code; they strip
+comments first now, as the stylesheet assertions already did.
+
+### Found, not fixed
+
+The ribbon's sentence and `ClaimPanel`'s `silenceReason` both say the record needs more decisions,
+in different words, on the same screen. That predates this change — `LoopStrip`'s headline and the
+claim panel were already adjacent — so the count of places saying it is unchanged, but moving one
+to the top makes the pair more visible. Which of the two should keep the sentence is a product
+call, not a refactor.
+
+**22 assertions, 12 positive controls**, each confirmed red and each diffed against the original.
+**Four survived the first pass** and each named something real: two because the ribbon was only
+asserted through its source and never rendered, one because of the `savedAt` flaw above, and one
+because the prefill genuinely had two mechanisms.

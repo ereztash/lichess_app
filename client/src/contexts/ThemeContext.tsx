@@ -46,17 +46,33 @@ export function ThemeProvider({
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute("content", theme === "dark" ? "#14181a" : "#e9e4d8");
-    if (switchable) {
-      try {
-        localStorage.setItem("theme", theme);
-      } catch {
-        // Preference simply does not persist. Not worth an error.
-      }
-    }
-  }, [theme, switchable]);
+  }, [theme]);
 
+  /*
+   * THE PREFERENCE IS WRITTEN HERE, ON THE CHOICE, AND NOWHERE ELSE.
+   *
+   * It used to be written by the effect above, on every mount -- so the first visit persisted
+   * whatever the default happened to be, and from then on "the stored preference" meant "the
+   * default that shipped the day you first opened this", indistinguishable from a choice the
+   * player actually made. Changing the default could then never reach anyone who had loaded the
+   * page once, which is everyone.
+   *
+   * Section 4.5 in storage: an unanswered question and an answered one must not look the same.
+   * No entry means no choice, and no choice means the default applies -- today, tomorrow, and
+   * after the default changes.
+   */
   const toggleTheme = switchable
-    ? () => setTheme((prev) => (prev === "light" ? "dark" : "light"))
+    ? () =>
+        setTheme((prev) => {
+          const next = prev === "light" ? "dark" : "light";
+          try {
+            localStorage.setItem("theme", next);
+          } catch {
+            // Private windows and blocked site data make this throw. The theme still switches
+            // for this session; it simply does not persist.
+          }
+          return next;
+        })
     : undefined;
 
   return (

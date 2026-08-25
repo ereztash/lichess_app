@@ -10,6 +10,7 @@
  * arrived from storage empty or null.
  */
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
+import { gapDifferenceStandardError } from "./detector.js";
 
 export class MissingRefutationCondition extends Error {
   constructor(drillId: string) {
@@ -136,6 +137,13 @@ export interface RefutationVerdict {
   drillGap: number;
   baselineGap: number;
   gapDifference: number;
+  /**
+   * The sampling error of `gapDifference`, or null when it could not be computed -- fewer than
+   * two decisions on a side, or no variation on either. See the note on drill length below: at
+   * the shipped 5-8 positions this number is large, and it is the honest reason most drills
+   * cannot confirm anything.
+   */
+  standardError: number | null;
   n: number;
 }
 
@@ -144,8 +152,36 @@ export interface RefutationVerdict {
  *
  * The refutation condition reads: "if the gap between stated confidence and realised accuracy is
  * NOT larger than in the rest of your decisions -- refuted". So that is what is measured here:
- * the drill's mean gap against the baseline, in the predicted direction, by at least
- * `minGapDifference`.
+ * the drill's mean gap against the baseline, in the predicted direction.
+ *
+ * SEPARABLY LARGER, not larger by a fixed amount, and that is the fix. This used to require the
+ * drill's gap to exceed the baseline by `minGapDifference` -- 0.45, the detector's old floor --
+ * which carries the detector's own defect into the arm that decides a GRADE. Measured against a
+ * baseline of 200 decisions, 2000 runs per cell, on a claim that is TRUE with the effect
+ * reproduced exactly in the drill, and on a TRUE null where the drill matches the baseline:
+ *
+ *     claim TRUE, confirmed      n=5     n=8    n=12    n=20    n=40    n=80
+ *       fixed 0.45             22.1%   14.8%    9.3%    4.5%    1.0%    0.1%
+ *       separable k=3.00        7.6%   10.8%   13.0%   23.1%   46.9%   78.1%
+ *
+ *     claim FALSE, confirmed     n=5     n=8    n=12    n=20    n=40    n=80
+ *       fixed 0.45              2.1%    0.4%    0.1%    0.0%    0.0%    0.0%
+ *       separable k=3.00        2.1%    1.6%    0.8%    0.4%    0.3%    0.7%
+ *
+ * SAID PLAINLY, because the first row does not read the way the change wants it to: at five
+ * positions the fixed bar really is more sensitive, at the same false-confirmation rate. The two
+ * cross at about twelve, and past that the old rule collapses -- at eighty positions it confirms
+ * a true claim one time in a thousand. A LONGER DRILL MADE THE PRODUCT LESS LIKELY TO BELIEVE A
+ * CLAIM THAT WAS TRUE, which is the detector's defect in the arm where it costs a grade.
+ *
+ * WHAT THIS DOES NOT FIX, and it is measured rather than argued: at the shipped drill length of
+ * MIN/MAX_DRILL_POSITIONS = 5..8, NEITHER rule has usable power -- 7.6% to 22.1% on a claim that
+ * is true. A drill that short cannot separate a coaching-scale effect from its own sampling
+ * error, so `observed: false` conflates "the drill refuted this" with "the drill could not have
+ * confirmed it". The verdict now carries `standardError` so a caller can tell those apart;
+ * distinguishing them in the stored GRADE needs a third state in a persisted field, and making a
+ * drill long enough to decide anything is a question about how many positions a player is asked
+ * to play. Both are recorded in docs/MEASUREMENTS.md rather than decided here.
  *
  * This is deliberately NOT completeDrill's majority-of-matches rule. A drill that writes down one
  * condition and tests another has not pre-registered anything, which is the whole of R5. The
@@ -154,21 +190,43 @@ export interface RefutationVerdict {
  */
 export function evaluateRefutation(
   decisions: DrillDecision[],
-  options: { baselineGap: number; predictsOverconfidence: boolean; minGapDifference: number },
+  options: {
+    /**
+     * The rest of the record, as a summary rather than a bare number.
+     *
+     * It used to be `baselineGap: number`, which forced the comparison to treat the baseline as
+     * exactly known. It is not -- it is an estimate from a finite sample, with its own error, and
+     * a test that ignores it is too permissive by exactly that much.
+     */
+    baseline: { gap: number; gapVariance: number; n: number };
+    predictsOverconfidence: boolean;
+    /** How many standard errors of the difference the drill must clear. One pre-named test. */
+    separabilityK: number;
+  },
 ): RefutationVerdict {
   if (decisions.length === 0) {
     throw new Error("cannot evaluate a refutation condition against zero decisions");
   }
-  const drillGap =
-    decisions.reduce((total, d) => total + decisionGap(d.confidence, d.accurate), 0) /
-    decisions.length;
-  const gapDifference = drillGap - options.baselineGap;
+  const gaps = decisions.map((d) => decisionGap(d.confidence, d.accurate));
+  const drillGap = gaps.reduce((total, g) => total + g, 0) / gaps.length;
+  const gapVariance =
+    gaps.length < 2
+      ? 0
+      : gaps.reduce((total, g) => total + (g - drillGap) ** 2, 0) / (gaps.length - 1);
+  const standardError = gapDifferenceStandardError(
+    { n: gaps.length, gapVariance },
+    options.baseline,
+  );
+  const gapDifference = drillGap - options.baseline.gap;
   const directional = options.predictsOverconfidence ? gapDifference : -gapDifference;
   return {
-    observed: directional >= options.minGapDifference,
+    // A drill that cannot produce a standard error has not observed anything, in either
+    // direction. It must not read as a confirmation.
+    observed: standardError !== null && directional >= options.separabilityK * standardError,
     drillGap,
-    baselineGap: options.baselineGap,
+    baselineGap: options.baseline.gap,
     gapDifference,
+    standardError,
     n: decisions.length,
   };
 }

@@ -24,6 +24,7 @@ import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
 import { ContextRibbon } from "@/components/ContextRibbon";
+import { readPosition, writePosition } from "@/lib/session-position";
 import { LoopStrip } from "@/components/LoopStrip";
 import { LearningQueue } from "@/components/LearningQueue";
 import { LearningRuleComposer } from "@/components/LearningRuleComposer";
@@ -357,6 +358,67 @@ export default function Home() {
    * boot here, `analyze` will try again after the commit and report the failure through the path
    * that already handles it.
    */
+  /*
+   * THE GAME YOU WERE ON, PUT BACK.
+   *
+   * Closing the tab used to lose it. The record survived and a usage timestamp survived, but the
+   * position did not, so every return started at the opening position with five buttons offering
+   * to fetch one -- the app forgetting something it had, which is different from not knowing it.
+   *
+   * Restored ONCE, on mount, and never again: `restored` is a ref rather than state because a
+   * second run would fight whatever the player has done since. A stored game that will not replay
+   * is dropped silently and the opening position stands -- there is nothing a player could do
+   * about a corrupt entry, and a failure notice about a convenience is worse than the convenience.
+   *
+   * The draft decision is NOT restored. See session-position.ts: the seconds-taken clock starts
+   * when a position is presented, so a half-answered commitment resumed an hour later would carry
+   * an hour of thinking time into the record (R2).
+   */
+  const restored = useRef(false);
+  useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+    const saved = readPosition();
+    if (!saved) return;
+    try {
+      const loaded = saved.sans.length ? buildHistory(saved.sans.join(" ")) : [];
+      // A ply past the end of what replayed is a stored value this build cannot honour.
+      const ply = Math.min(saved.ply, loaded.length - 1);
+      setHistory(loaded);
+      setCurrentPly(ply);
+      setSource(saved.source);
+      setOrientation(saved.orientation);
+      setOpponent(saved.opponent);
+      gameId.current = saved.gameId;
+      setNotice(
+        loaded.length
+          ? `חזרתם למשחק שהייתם בו — ${loaded.length} חצאי־מהלכים.`
+          : "חזרתם למשחק שהייתם בו.",
+      );
+    } catch {
+      /* Unreplayable. The opening position stands, which is where a fresh visit starts anyway. */
+    }
+  }, []);
+
+  /*
+   * And written back whenever it changes. `sans` rather than the snapshots: chess.js derives the
+   * position from the moves, so storing both would create two sources of truth for one board.
+   */
+  useEffect(() => {
+    if (!restored.current) return;
+    // A drill and a learning transfer own the board while they run, and neither is a game to
+    // come back to -- restoring one from storage would resume a test the record has moved past.
+    if (drill || learningTransfer) return;
+    writePosition({
+      sans: history.map((snapshot) => snapshot.san),
+      ply: currentPly,
+      source,
+      orientation,
+      opponent,
+      gameId: gameId.current,
+    });
+  }, [history, currentPly, source, orientation, opponent, drill, learningTransfer]);
+
   useEffect(() => {
     if (!candidateMove || stage !== "deciding") return;
     void ensureEngine()
@@ -1126,7 +1188,14 @@ export default function Home() {
         </div>
       </header>
 
-      <ContextRibbon />
+      {/*
+        * The drill's progress travels up here for the same reason it travels to `LoopStrip`: a
+        * running drill outranks everything else in the loop, and the state lives in this
+        * component. Both surfaces read one hook, so they cannot disagree about the position.
+        */}
+      <ContextRibbon
+        drill={inDrill ? { completed: drillDecisionIds.length, total: drill!.fens.length } : null}
+      />
 
       <section className="workbench">
         <aside className="control-rail">
@@ -1278,6 +1347,8 @@ export default function Home() {
                 onLoad={loadLichessGame}
                 onClose={() => setShowImport(false)}
                 analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+                /* The account the record already knows about, so it is not asked for twice. */
+                lastUsername={importReading.reading?.username}
               />
             </Overlay>
           )}

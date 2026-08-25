@@ -1,12 +1,28 @@
 /**
- * The context layer, on screen.
+ * The context layer, on screen -- and the slot that was empty on almost every visit.
  *
- * Two jobs, and no third. It writes `data-input` on the document element so the stylesheet can
- * stop offering hover affordances to a device that cannot hover, and it shows one re-orientation
- * line when you come back after a real gap. Both are explainable, and the "למה?" disclosure is
- * where they are explained -- including what this layer deliberately does not look at.
+ * IT USED TO RENDER NOTHING unless you had been away for RETURN_GAP_DAYS, and its own comment
+ * said so: "It renders nothing at all on an ordinary visit, which is almost every visit." So the
+ * app had a place at the top of the page reserved for telling you something before you asked, and
+ * it was blank essentially always -- while `loopPosition()` was computing, on every render, the
+ * one sentence that says which of record/detect/drill/grade is live and what stands between here
+ * and the next one. That sentence rendered inside `LoopStrip`, beside the record, which on a
+ * 390x844 phone is y=1368: five hundred pixels below the fold.
  *
- * It renders nothing at all on an ordinary visit, which is almost every visit.
+ * So the slot carries it now. Three jobs:
+ *
+ *   1. `data-input` on the document element, so the stylesheet stops offering hover affordances
+ *      to a device that cannot hover;
+ *   2. THE LOOP POSITION, always, with the basis it was derived from;
+ *   3. one re-orientation line when you come back after a real gap, which is a different fact and
+ *      sits beside the first rather than replacing it.
+ *
+ * WHAT THIS IS NOT, and the line is worth writing down because the shape is close to it. This
+ * ROUTES to a state the record already holds: the same record produces the same sentence, every
+ * time, from counts that are on screen elsewhere anyway. It does not rank options by predicted
+ * value, it does not say what to work on, and it does not read anything the detector measures --
+ * the "למה?" disclosure says that out loud. A layer that recommended would be measuring the
+ * player and then changing what they see, which changes what is being measured.
  */
 import { useEffect, useMemo, useState } from "react";
 import { useDecisionCount, useRecordReading } from "@/lib/record-api";
@@ -16,8 +32,9 @@ import {
   readUsage,
   type UsageContext,
 } from "@/lib/context-engine";
+import { useLoopPosition, type DrillProgress } from "@/lib/use-loop-position";
 
-export function ContextRibbon() {
+export function ContextRibbon({ drill = null }: { drill?: DrillProgress }) {
   const [usage, setUsage] = useState<UsageContext | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const count = useDecisionCount();
@@ -54,15 +71,29 @@ export function ContextRibbon() {
     );
   }, [usage, count.data?.decisions, reading.data?.scored]);
 
-  if (!presentation?.reorientation || dismissed) return null;
+  const loop = useLoopPosition(drill);
+  /*
+   * The gap line is dismissible and the loop position is not, which is the difference between a
+   * notice and standing orientation. "הבנתי" used to close the whole ribbon; closing the one line
+   * that says what the record is waiting for would be closing the thing this slot is now for.
+   */
+  const reorientation = dismissed ? null : (presentation?.reorientation ?? null);
+  if (!loop.position && !reorientation) return null;
 
   return (
-    <aside className="context-ribbon" role="status" aria-label="חזרה לרשומה">
-      <p className="context-reorientation">{presentation.reorientation}</p>
+    <aside className="context-ribbon" role="status" aria-label="איפה הרשומה עומדת">
+      {loop.position && (
+        <>
+          <p className="context-loop">{loop.position.headline}</p>
+          {/* R1: never the sentence without what produced it. */}
+          <p className="context-loop-basis">{loop.position.basis}</p>
+        </>
+      )}
+      {reorientation && <p className="context-reorientation">{reorientation}</p>}
       <details className="context-why">
         <summary>למה?</summary>
         <ul>
-          {presentation.why.map((fact) => (
+          {(presentation?.why ?? []).map((fact) => (
             <li key={fact}>{fact}</li>
           ))}
         </ul>
@@ -76,9 +107,11 @@ export function ContextRibbon() {
           שמגיב עליהם היה משנה את מה שנמדד.
         </small>
       </details>
-      <button type="button" className="context-dismiss" onClick={() => setDismissed(true)}>
-        הבנתי
-      </button>
+      {reorientation && (
+        <button type="button" className="context-dismiss" onClick={() => setDismissed(true)}>
+          הבנתי
+        </button>
+      )}
     </aside>
   );
 }

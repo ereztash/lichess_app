@@ -25,6 +25,10 @@ import { Chess } from "chess.js";
 import { describe, expect, it } from "vitest";
 import { ChessBoard } from "@/components/ChessBoard";
 import { PIECES } from "@/lib/game-data";
+import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { KNOWN_OPTIONS, UNKNOWN_OPTIONS } from "@/lib/read-options";
+
+const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 const root = resolve(__dirname, "../..");
 const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
@@ -204,7 +208,7 @@ describe("the ring is what separates a piece from the square under it", () => {
 const owned = (s: string) =>
   s.startsWith(".commitment") || s.startsWith(".confidence-row") || s.includes(".read-");
 
-describe("the commitment panel has a type scale, not ten sizes", () => {
+describe("the type scale is the document's, not one panel's", () => {
   /*
    * MEASURED on the built panel at 1440x950, before: a 330px column holding 39 text nodes, 154
    * words, 28 elements carrying a border or a fill, and TEN distinct font sizes -- 8.96, 9, 10,
@@ -212,17 +216,76 @@ describe("the commitment panel has a type scale, not ten sizes", () => {
    * it is ten things each claiming to be slightly more important than the last, and the eye
    * ranks none of them. After: five sizes, 25 boxed elements, the same 39 text nodes and the
    * same 154 words. Nothing was hidden or reworded -- only weighted.
+   *
+   * THAT FIX GOVERNED ONE COMPONENT OUT OF FORTY, and the rest of the stylesheet went its own
+   * way. Measured across index.css afterwards: 141 size declarations off the scale, TWENTY-THREE
+   * distinct sizes inside the 8-18px band, sixteen of them rem fractions between 0.60 and 0.86 --
+   * sixteen steps inside four and a fifth pixels. On the first screen that rendered as fourteen
+   * sizes and four font families. After the sweep: seven sizes, three families, and the only two
+   * off the scale are glyphs rather than text (the brand knight, and a piece sized to its square).
    */
-  const SCALE = ["--panel-title", "--panel-data", "--panel-body", "--panel-label", "--panel-fine"];
+  const SCALE = [
+    "--panel-display",
+    "--panel-heading",
+    "--panel-title",
+    "--panel-data",
+    "--panel-body",
+    "--panel-label",
+    "--panel-fine",
+  ];
 
   it("declares the scale once, at document level", () => {
     const rootBlock = block(":root");
     for (const step of SCALE) expect(rootBlock, `${step} is not declared`).toContain(`${step}:`);
-    // Five steps, each with a job. A sixth is how ten happened the first time.
+    /*
+     * Seven steps, each with a job, and the count is the guard.
+     *
+     * It used to be five, with the note "a sixth is how ten happened the first time" -- which was
+     * right about the risk and wrong about the scope. Five ranks describe one 330px panel; a
+     * document has a page title and a section heading above anything the panel owns, and forcing
+     * both down to --panel-title flattens the page rather than ordering it. Two were added FOR
+     * those two jobs and the assertion moved with them. An eighth still needs a reason, and
+     * "this element wants to be slightly bigger" is not one.
+     */
     expect([...rootBlock.matchAll(/--panel-[a-z]+:/g)]).toHaveLength(SCALE.length);
     // In :root and NOT in .dark: these are sizes. Only colour varies by theme, and a scale that
     // could be redefined per theme is a scale that will be.
     expect(block(".dark")).not.toContain("--panel-");
+  });
+
+  it("sets no font size ANYWHERE in the stylesheet that does not come from it", () => {
+    /*
+     * The assertion that would have caught the 141. Its predecessor below checks only rules whose
+     * selectors belong to the commitment panel, which is exactly why the discipline stopped at
+     * the panel's edge: nothing was watching the other thirty-nine components, and they drifted
+     * to twenty-three sizes without a single test going red.
+     *
+     * Two exemptions, both drawings rather than text, both documented at their declaration:
+     * `.brand-mark` is the knight glyph sized to the mark it draws, and `.piece` is sized in
+     * `cqmin` so it tracks the square under it. A type scale ranks text; neither is text.
+     */
+    const offScale: string[] = [];
+    for (const rule of rules()) {
+      if (rule.selectors.some((s) => s.startsWith(".brand-mark") || s.includes(".piece"))) continue;
+      for (const [, prop, value] of rule.body.matchAll(/(?:^|;)\s*(font-size|font)\s*:\s*([^;]+)/g)) {
+        if (value.includes("var(--panel-")) continue;
+        if (/\d+(\.\d+)?(px|rem|pt)(?![a-z])/.test(value))
+          offScale.push(`${rule.selectors.join(", ")} { ${prop}: ${value.trim()} }`);
+      }
+    }
+    expect(
+      offScale,
+      `a size outside the scale, and the scale is the document's:\n${offScale.join("\n")}`,
+    ).toEqual([]);
+  });
+
+  it("uses one monospace family, not two doing the same job", () => {
+    /*
+     * `.commitment-move` rendered a UCI move in ui-monospace while every other coordinate and
+     * number in the product rendered in DM Mono -- two typefaces for one job, on one screen,
+     * differing by whatever the operating system happened to supply.
+     */
+    expect(bare).not.toMatch(/font-family:\s*ui-monospace/);
   });
 
   it("declares it there rather than on the panel, because one of its classes escapes", () => {
@@ -390,13 +453,45 @@ describe("the read chips are a ground, not eighteen boxes", () => {
 
   it("states no option on the player's behalf and hides none of them", () => {
     /*
-     * The constraint the fix had to respect. Two obvious ways to make the panel shorter -- put
-     * half the chips behind a "more" control, or shorten the labels -- both cost something real:
-     * what a player is able to say about a position, and what the record then holds. Weight was
-     * the only thing free to change.
+     * The constraint every attempt at a shorter panel has had to respect. Two obvious ways to
+     * shrink it -- put half the chips behind a "more" control, or shorten the labels -- both cost
+     * something real: what a player is able to say about a position, and what the record then
+     * holds. Weight was the only thing free to change, and later the four steps became an
+     * accordion, which changes when an option is on screen and not whether it exists.
+     *
+     * NARROWED, and the reason is a false positive worth recording. This read
+     * `not.toMatch(/\.slice\(/)` over the whole file, and went red on `STEPS.slice(from)` --
+     * ordering the four steps, nowhere near an option list. A guard that fails on the wrong
+     * `.slice` teaches its next reader to delete it. It names the arrays it is actually about
+     * now, and the assertion below checks the thing itself rather than the spelling of it.
      */
     const commitment = readFileSync(resolve(root, "client/src/components/CommitmentScreen.tsx"), "utf8");
-    expect(commitment).not.toMatch(/slice\(0,|\.slice\(|showAll|showMore/);
+    expect(commitment).not.toMatch(
+      /KNOWN_OPTIONS\.slice|UNKNOWN_OPTIONS\.slice|options\.slice|options\.filter|showAll|showMore/,
+    );
+  });
+
+  it("renders every option that exists, in both fields", () => {
+    /*
+     * The behavioural half, which no rewording of the source can fool: both read steps are
+     * opened the way a player opens them, and every label in both lists has to be there. A
+     * collapsed step is `hidden`, so this counts what is in the DOM -- what a step holds when it
+     * is open is exactly the whole list.
+     */
+    render(
+      <CommitmentScreen
+        position={{ gameId: "g", fen: START, ply: 0, clockMsRemaining: null } as never}
+        chosenMove="e2e4"
+        candidatesConsidered={["e2e4"]}
+        onCommit={() => {}}
+        pending={false}
+      />,
+    );
+    const labels = [...document.querySelectorAll(".read-chip")].map((c) => c.textContent);
+    for (const option of [...KNOWN_OPTIONS, ...UNKNOWN_OPTIONS]) {
+      expect(labels, `"${option.label}" is not on the panel`).toContain(option.label);
+    }
+    expect(labels).toHaveLength(KNOWN_OPTIONS.length + UNKNOWN_OPTIONS.length);
   });
 });
 

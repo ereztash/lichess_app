@@ -20,6 +20,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "../../client/src/components/CommitmentScreen";
+import { answerEveryStep, openStep } from "../fixtures/commitment-steps";
 
 const position = { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", ply: 0 };
 const setup = (props: Partial<Parameters<typeof CommitmentScreen>[0]> = {}) =>
@@ -58,7 +59,9 @@ describe("the button becomes the real thing only when the decision is whole", ()
   it("still refuses with one field left empty", () => {
     const onCommit = vi.fn();
     setup({ onCommit });
+    openStep("known");
     fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
+    openStep("confidence");
     fireEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
     fireEvent.click(screen.getByRole("button", { name: /חסר/ }));
     expect(onCommit).not.toHaveBeenCalled();
@@ -69,9 +72,7 @@ describe("the button becomes the real thing only when the decision is whole", ()
   it("commits once every required field is answered", () => {
     const onCommit = vi.fn();
     setup({ onCommit });
-    fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
-    fireEvent.click(screen.getByRole("button", { name: "לא יודע איך הוא יענה" }));
-    fireEvent.click(screen.getByRole("button", { name: /ביטחון 3/ }));
+    answerEveryStep({ known: "המרכז פתוח", unknown: "לא יודע איך הוא יענה", confidence: 3 });
     const button = screen.getByRole("button", { name: /רשמו את ההחלטה/ });
     fireEvent.click(button);
     expect(onCommit).toHaveBeenCalledTimes(1);
@@ -92,6 +93,7 @@ describe("the button becomes the real thing only when the decision is whole", ()
 describe("the refused click takes you to the field", () => {
   it("flags the offending field so it is findable", () => {
     setup();
+    openStep("known");
     fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
     fireEvent.click(screen.getByRole("button", { name: /חסר/ }));
     const flagged = document.querySelectorAll(".commitment-field.has-problem");

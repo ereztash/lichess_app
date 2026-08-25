@@ -20,6 +20,27 @@
  * Still required, though, and still with nothing preselected. A commitment with nothing stated
  * would make R3 decorative, and a default option would be the machine putting a read in the
  * player's mouth and then measuring them against it.
+ *
+ * ONE QUESTION AT A TIME, and that is the second report this panel has answered.
+ *
+ * All four requirements used to open at once, which measured, in a browser, as a 952px panel
+ * inside a 900px window -- so the button was at the very edge on a laptop and the strip under it
+ * naming what was missing was clipped at every standard height. On a phone it was worse: the
+ * board began at y=240 and the move field at y=1085, so the FIRST thing the player is asked to do
+ * needed 241px of scrolling to see. A screen that shows a board and hides the question reads as a
+ * board.
+ *
+ * So the four are an accordion: one open, the rest collapsed to a line that names the step and
+ * shows the answer once there is one. Nothing is removed and nothing is hidden -- every step is a
+ * button, every option is one tap away, and the whole shape of the ask is visible from the first
+ * frame, which a wizard that reveals steps one by one would not be.
+ *
+ * WHAT DOES NOT AUTO-ADVANCE, and why the inconsistency is deliberate. Choosing a move is one
+ * act, so the move step advances by itself. The two read steps are multi-select -- their own hint
+ * says "choose as many as you like" -- and advancing on the first tap would make one tap the
+ * normal amount. That is the same inducement that got a count next to the candidate moves
+ * refused: the interface would be shaping the record rather than holding it. They advance on an
+ * explicit "next", or on tapping any other step's header.
  */
 import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
@@ -27,6 +48,8 @@ import {
   draftProblems,
   emptyDraft,
   isCommittable,
+  statedKnown,
+  statedUnknown,
   type DraftDecision,
   type PositionUnderDecision,
 } from "@/lib/decision-session";
@@ -54,6 +77,25 @@ const CONFIDENCE_LABELS: Record<number, string> = {
   5: "ודאי",
 };
 
+/** The four requirements, in the order the decision actually happens. */
+type StepId = "chosenMove" | "known" | "unknown" | "confidence";
+const STEPS: StepId[] = ["chosenMove", "known", "unknown", "confidence"];
+
+const STEP_LEGEND: Record<StepId, string> = {
+  chosenMove: "המהלך שבחרתם",
+  known: "מה אתם קוראים בעמדה",
+  unknown: "מה אתם לא יכולים להעריך",
+  confidence: "כמה אתם בטוחים",
+};
+
+/** What the button says instead of "record" while something is missing. */
+const MISSING_LABEL: Record<StepId, string> = {
+  chosenMove: "בחרו מהלך על הלוח",
+  known: "סמנו מה אתם קוראים בעמדה",
+  unknown: "סמנו מה אי אפשר להעריך",
+  confidence: "בחרו רמת ביטחון",
+};
+
 export function CommitmentScreen({
   position,
   chosenMove,
@@ -64,6 +106,7 @@ export function CommitmentScreen({
 }: CommitmentScreenProps) {
   const [draft, setDraft] = useState<DraftDecision>(emptyDraft);
   const [showProblems, setShowProblems] = useState(false);
+  const [openStep, setOpenStep] = useState<StepId | null>("chosenMove");
   /*
    * The clock reading at the moment confidence was STATED, not the live one.
    *
@@ -81,6 +124,7 @@ export function CommitmentScreen({
     setDraft(emptyDraft());
     setShowProblems(false);
     setConfidenceStatedAt(null);
+    setOpenStep("chosenMove");
     setElapsed(0);
   }, [position.fen, position.ply]);
 
@@ -98,6 +142,49 @@ export function CommitmentScreen({
   /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
   const tension = foremostTension(live, confidenceStatedAt ?? elapsed);
 
+  const done: Record<StepId, boolean> = {
+    chosenMove: Boolean(chosenMove),
+    known: statedKnown(live).length > 0,
+    unknown: statedUnknown(live).length > 0,
+    confidence: draft.confidence !== null,
+  };
+  const nextIncomplete = (after?: StepId) => {
+    const from = after ? STEPS.indexOf(after) + 1 : 0;
+    return STEPS.slice(from).find((s) => !done[s]) ?? STEPS.find((s) => !done[s]) ?? null;
+  };
+
+  /*
+   * The move arrives from the BOARD, not from this panel, so the step it satisfies has to notice.
+   * Choosing a move is one act and cannot be added to, which is why this one advances by itself
+   * and the two multi-select steps below do not.
+   */
+  const panel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!chosenMove || openStep !== "chosenMove") return;
+    setOpenStep(nextIncomplete("chosenMove"));
+    /*
+     * AND ON A PHONE, TAKE THE PLAYER TO THE QUESTION.
+     *
+     * A 370px board on a 390x844 screen is 537px tall and cannot be made smaller: eight squares
+     * across 370px is 46px each, and the tap floor is 44. So the board fills the first screen by
+     * arithmetic, and the panel begins at y=706 -- correct, because the move is made ON the board
+     * and it has to be visible while you choose. What is wrong is being left there afterwards.
+     *
+     * This is a scroll caused by an action the player just took, which is the same rule the
+     * refused-commit scroll follows: never on load, only on something they did. It is skipped
+     * when the panel is already on screen, so nothing moves on a desktop.
+     */
+    const node = panel.current;
+    if (!node) return;
+    window.requestAnimationFrame(() => {
+      const box = node.getBoundingClientRect();
+      const offScreen = box.top > window.innerHeight * 0.7;
+      if (offScreen) scrollIntoViewRespectingMotion(node, { block: "start" });
+    });
+    // Only on the arrival of a move; re-running on every keystroke would fight the player.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chosenMove]);
+
   /*
    * The refusal has to arrive somewhere the player is looking.
    *
@@ -105,21 +192,21 @@ export function CommitmentScreen({
    * field filled, the second empty, and 34 seconds on the clock. The rule is right -- a partial
    * decision is not recorded, and that IS the product -- but the enforcement was invisible: the
    * button stayed enabled, clicking it only set a flag, and both the per-field messages and the
-   * summary render BELOW the button, which on a laptop window is below the fold. The click looked
-   * like nothing happened at all.
+   * summary render BELOW the button, which on a laptop window is below the fold.
+   *
+   * With one step open the answer is no longer a scroll: the refused click OPENS the step that is
+   * missing. The scroll is kept for the case where the panel itself is off screen.
    */
-  const firstProblem = useRef<HTMLDivElement>(null);
+  const openBody = useRef<HTMLDivElement>(null);
   const submit = () => {
     if (!ready) {
       setShowProblems(true);
-      // Deliberate, and unlike the move-rail case this scroll is what the player asked for by
-      // clicking: it happens on an explicit action, never on load.
+      const missingStep = problems[0].field as StepId;
+      setOpenStep(missingStep);
       window.requestAnimationFrame(() => {
-        const target = firstProblem.current;
+        const target = openBody.current;
         // Smooth unless the player asked their system for less motion; the CSS property does not
-        // reach an explicit `behavior` argument, so the setting is read in lib/motion.ts. The
-        // helper keeps main's optional call: jsdom has no scrollIntoView, and this path runs in
-        // the commit-blocked tests.
+        // reach an explicit `behavior` argument, so the setting is read in lib/motion.ts.
         if (target) scrollIntoViewRespectingMotion(target, { block: "center" });
         target?.querySelector<HTMLElement>("button, textarea")?.focus();
       });
@@ -128,20 +215,84 @@ export function CommitmentScreen({
     onCommit(live, (Date.now() - startedAt.current) / 1000);
   };
 
-  /** Which field the refusal should take you to, and what the button should say instead. */
   const missing = problems[0];
-  const MISSING_LABEL: Record<string, string> = {
-    chosenMove: "בחרו מהלך על הלוח",
-    known: "סמנו מה אתם קוראים בעמדה",
-    unknown: "סמנו מה אי אפשר להעריך",
-    confidence: "בחרו רמת ביטחון",
-  };
-
-  const problemFor = (field: keyof DraftDecision) =>
+  const problemFor = (field: StepId) =>
     showProblems ? problems.find((p) => p.field === field)?.message : undefined;
 
+  /** The one line a collapsed step shows: what was answered, or nothing yet. */
+  const answerFor = (step: StepId): string | null => {
+    switch (step) {
+      case "chosenMove":
+        return chosenMove;
+      case "known":
+        return statedKnown(live) || null;
+      case "unknown":
+        return statedUnknown(live) || null;
+      case "confidence":
+        return draft.confidence === null
+          ? null
+          : `${draft.confidence} · ${CONFIDENCE_LABELS[draft.confidence]}`;
+    }
+  };
+
+  const step = (id: StepId, index: number, body: React.ReactNode) => {
+    const open = openStep === id;
+    const answer = answerFor(id);
+    const problem = problemFor(id);
+    return (
+      <div
+        key={id}
+        className={`commitment-field commitment-step ${problem ? "has-problem" : ""}`}
+        data-state={done[id] ? "done" : open ? "open" : "todo"}
+      >
+        <h3 className="step-heading">
+          <button
+            type="button"
+            className="step-head"
+            aria-expanded={open}
+            aria-controls={`step-body-${id}`}
+            onClick={() => setOpenStep(open ? null : id)}
+          >
+            <span className="step-index" aria-hidden="true">
+              {done[id] ? <Check size={12} /> : index + 1}
+            </span>
+            <span className="step-legend">
+              {STEP_LEGEND[id]}
+              {/*
+                * The required mark stays on every step and stays visible when the step is
+                * collapsed. What is required has to be knowable before the click, which is the
+                * whole finding this panel already carries a test for.
+                */}
+              {id !== "chosenMove" && <span className="required-mark">חובה</span>}
+            </span>
+            {/* dir=auto: a UCI move is Latin, a read is Hebrew, and they share this slot. */}
+            <span className="step-answer" dir="auto">
+              {answer ?? ""}
+            </span>
+          </button>
+        </h3>
+        <div
+          className="step-body"
+          id={`step-body-${id}`}
+          hidden={!open}
+          ref={open ? openBody : undefined}
+        >
+          {body}
+        </div>
+        {problem && <p className="commitment-problem">{problem}</p>}
+      </div>
+    );
+  };
+
+  /** Move on. Not a gate -- every step header is also a button. */
+  const NextStep = ({ from }: { from: StepId }) => (
+    <button type="button" className="step-next" onClick={() => setOpenStep(nextIncomplete(from))}>
+      הבא
+    </button>
+  );
+
   return (
-    <section className="commitment-screen" aria-label="מסך התחייבות">
+    <section className="commitment-screen" aria-label="מסך התחייבות" ref={panel}>
       <header className="commitment-header">
         <div>
           <p className="commitment-kicker">החלטה</p>
@@ -156,122 +307,130 @@ export function CommitmentScreen({
         בחרו מהלך על הלוח וסמנו את הקריאה שלכם. המנוע לא ידבר לפני שההחלטה נרשמה — זו כל הנקודה.
       </p>
 
-      <div className="commitment-field">
-        <label htmlFor="commit-move">המהלך שבחרתם</label>
-        <output id="commit-move" className={`commitment-move ${chosenMove ? "set" : "unset"}`}>
-          {chosenMove ?? "בחרו מהלך על הלוח"}
-        </output>
-        {problemFor("chosenMove") && (
-          <p className="commitment-problem">{problemFor("chosenMove")}</p>
-        )}
+      {step(
+        "chosenMove",
+        0,
+        <>
+          <output id="commit-move" className={`commitment-move ${chosenMove ? "set" : "unset"}`}>
+            {chosenMove ?? "בחרו מהלך על הלוח"}
+          </output>
 
-        {/*
-          * WHAT IS BEING RECORDED, said out loud. Disclosure, not instruction.
-          *
-          * Every distinct move put on the board while deciding is appended to
-          * `candidate_moves_considered`, and that array is the only reason this product can ever
-          * say "the engine's move was already on your board" -- the one sentence no other chess
-          * tool can write, because no other tool makes you commit first. The component received
-          * the array and rendered nothing. So the product's single differentiator was collecting
-          * its input silently, and a player had no way to know that trying a move left a trace.
-          *
-          * A product that records something and never says so is the defect here. Fixing it is
-          * disclosure. What it must NOT become is a prompt: there is no count, no target, no
-          * progress, no praise, and nothing that reads as "put more moves down". Inducing the
-          * behaviour would make the array an artifact of the interface rather than a record of
-          * what happened -- the same contamination that got pre-filled read chips refused.
-          *
-          * It renders from the first move rather than from the second, deliberately. Appearing at
-          * two would make two a threshold, and a threshold that appears is a reward.
-          *
-          * The sentence states the asymmetry the array actually has, in the direction it runs: a
-          * move here WAS in front of the player; a move absent may still have been considered.
-          */}
-        {candidatesConsidered.length > 0 && (
-          <div className="commitment-candidates">
-            <span className="candidates-label">מהלכים שהנחתם על הלוח</span>
-            <ul className="candidates-list">
-              {candidatesConsidered.map((move) => (
-                <li key={move} dir="ltr">
-                  {move}
-                </li>
-              ))}
-            </ul>
-            <p className="candidates-note">
-              נרשמים כחלק מההחלטה. מהלך ששקלתם בראש ולא הנחתם על הלוח <strong>אינו נרשם</strong> —
-              ולכן הרשומה יכולה להראות שמהלך היה מולכם, אף פעם לא שהוא לא היה.
-            </p>
+          {/*
+            * WHAT IS BEING RECORDED, said out loud. Disclosure, not instruction.
+            *
+            * Every distinct move put on the board while deciding is appended to
+            * `candidate_moves_considered`, and that array is the only reason this product can
+            * ever say "the engine's move was already on your board" -- the one sentence no other
+            * chess tool can write, because no other tool makes you commit first. The component
+            * received the array and rendered nothing. So the product's single differentiator was
+            * collecting its input silently, and a player had no way to know that trying a move
+            * left a trace.
+            *
+            * A product that records something and never says so is the defect here. Fixing it is
+            * disclosure. What it must NOT become is a prompt: there is no count, no target, no
+            * progress, no praise, and nothing that reads as "put more moves down". Inducing the
+            * behaviour would make the array an artifact of the interface rather than a record of
+            * what happened -- the same contamination that got pre-filled read chips refused.
+            *
+            * It renders from the first move rather than from the second, deliberately. Appearing
+            * at two would make two a threshold, and a threshold that appears is a reward.
+            *
+            * The sentence states the asymmetry the array actually has, in the direction it runs:
+            * a move here WAS in front of the player; a move absent may still have been considered.
+            */}
+          {candidatesConsidered.length > 0 && (
+            <div className="commitment-candidates">
+              <span className="candidates-label">מהלכים שהנחתם על הלוח</span>
+              <ul className="candidates-list">
+                {candidatesConsidered.map((move) => (
+                  <li key={move} dir="ltr">
+                    {move}
+                  </li>
+                ))}
+              </ul>
+              <p className="candidates-note">
+                נרשמים כחלק מההחלטה. מהלך ששקלתם בראש ולא הנחתם על הלוח <strong>אינו נרשם</strong> —
+                ולכן הרשומה יכולה להראות שמהלך היה מולכם, אף פעם לא שהוא לא היה.
+              </p>
+            </div>
+          )}
+        </>,
+      )}
+
+      {step(
+        "known",
+        1,
+        <ReadField
+          hint="בחרו כמה שרוצים"
+          options={KNOWN_OPTIONS}
+          selected={draft.knownTags}
+          onToggle={(label) => setDraft((d) => ({ ...d, knownTags: toggle(d.knownTags, label) }))}
+          text={draft.known}
+          onText={(known) => setDraft((d) => ({ ...d, known }))}
+          textPlaceholder="למשל: היתרון שלי הוא בכנף המלכה"
+          pending={pending}
+          id="known"
+          next={<NextStep from="known" />}
+        />,
+      )}
+
+      {step(
+        "unknown",
+        2,
+        <ReadField
+          hint="בחרו כמה שרוצים"
+          options={UNKNOWN_OPTIONS}
+          selected={draft.unknownTags}
+          onToggle={(label) =>
+            setDraft((d) => ({ ...d, unknownTags: toggle(d.unknownTags, label) }))
+          }
+          text={draft.unknown}
+          onText={(unknown) => setDraft((d) => ({ ...d, unknown }))}
+          textPlaceholder="למשל: לא יודע אם הקורבן על f7 עובד"
+          pending={pending}
+          id="unknown"
+          next={<NextStep from="unknown" />}
+        />,
+      )}
+
+      {step(
+        "confidence",
+        3,
+        <fieldset className="commitment-confidence" disabled={pending}>
+          <legend className="sr-only">כמה אתם בטוחים</legend>
+          <div className="confidence-row" dir="ltr">
+            {[1, 2, 3, 4, 5].map((level) => (
+              <button
+                key={level}
+                type="button"
+                className={draft.confidence === level ? "selected" : ""}
+                /*
+                 * The name CONTAINS the visible text, which is what WCAG 2.5.3 asks and what axe
+                 * reports as label-content-name-mismatch when it fails. The button reads "1" over
+                 * "ניחוש"; the name has to have that pair in it, in that order, spelled the same.
+                 * The em dash used to sit between them and broke the match, so someone using
+                 * voice control could say what they saw and not be understood.
+                 */
+                aria-label={`ביטחון ${level} ${CONFIDENCE_LABELS[level]}`}
+                aria-pressed={draft.confidence === level}
+                onClick={() => {
+                  setConfidenceStatedAt((Date.now() - startedAt.current) / 1000);
+                  setDraft((d) => ({ ...d, confidence: level }));
+                  /*
+                   * Closes rather than advancing: this is the last requirement, so what comes
+                   * next is the record button and nothing should sit between the player and it.
+                   * A single choice, so nothing is cut short by moving on.
+                   */
+                  setOpenStep(null);
+                }}
+              >
+                <b>{level}</b>{" "}
+                <small>{CONFIDENCE_LABELS[level]}</small>
+              </button>
+            ))}
           </div>
-        )}
-      </div>
-
-      <ReadField
-        legend="מה אתם קוראים בעמדה"
-        hint="בחרו כמה שרוצים"
-        options={KNOWN_OPTIONS}
-        selected={draft.knownTags}
-        onToggle={(label) =>
-          setDraft((d) => ({ ...d, knownTags: toggle(d.knownTags, label) }))
-        }
-        text={draft.known}
-        onText={(known) => setDraft((d) => ({ ...d, known }))}
-        textPlaceholder="למשל: היתרון שלי הוא בכנף המלכה"
-        problem={problemFor("known")}
-        containerRef={missing?.field === "known" ? firstProblem : undefined}
-        pending={pending}
-        id="known"
-      />
-
-      <ReadField
-        legend="מה אתם לא יכולים להעריך"
-        hint="בחרו כמה שרוצים"
-        options={UNKNOWN_OPTIONS}
-        selected={draft.unknownTags}
-        onToggle={(label) =>
-          setDraft((d) => ({ ...d, unknownTags: toggle(d.unknownTags, label) }))
-        }
-        text={draft.unknown}
-        onText={(unknown) => setDraft((d) => ({ ...d, unknown }))}
-        textPlaceholder="למשל: לא יודע אם הקורבן על f7 עובד"
-        problem={problemFor("unknown")}
-        containerRef={missing?.field === "unknown" ? firstProblem : undefined}
-        pending={pending}
-        id="unknown"
-      />
-
-      <fieldset className="commitment-field commitment-confidence" disabled={pending}>
-        <legend>
-          כמה אתם בטוחים <span className="required-mark">חובה</span>
-        </legend>
-        <div className="confidence-row" dir="ltr">
-          {[1, 2, 3, 4, 5].map((level) => (
-            <button
-              key={level}
-              type="button"
-              className={draft.confidence === level ? "selected" : ""}
-              /*
-               * The name CONTAINS the visible text, which is what WCAG 2.5.3 asks and what axe
-               * reports as label-content-name-mismatch when it fails. The button reads "1" over
-               * "ניחוש"; the name has to have that pair in it, in that order, spelled the same.
-               * The em dash used to sit between them and broke the match, so someone using voice
-               * control could say what they saw and not be understood.
-               */
-              aria-label={`ביטחון ${level} ${CONFIDENCE_LABELS[level]}`}
-              aria-pressed={draft.confidence === level}
-              onClick={() => {
-                setConfidenceStatedAt((Date.now() - startedAt.current) / 1000);
-                setDraft((d) => ({ ...d, confidence: level }));
-              }}
-            >
-              <b>{level}</b>{" "}
-              <small>{CONFIDENCE_LABELS[level]}</small>
-            </button>
-          ))}
-        </div>
-        {problemFor("confidence") && (
-          <p className="commitment-problem">{problemFor("confidence")}</p>
-        )}
-      </fieldset>
+        </fieldset>,
+      )}
 
       {/*
         * A question about what the player just said, not a verdict and not a blocker: the submit
@@ -281,9 +440,7 @@ export function CommitmentScreen({
       {tension && (
         <aside className="commitment-tension" role="status" aria-label="שאלה על ההצהרה שלך">
           <p className="commitment-tension-question">{tension.question}</p>
-          <p className="commitment-tension-basis">
-            {tension.basis} · לא חוסם רישום
-          </p>
+          <p className="commitment-tension-basis">{tension.basis} · לא חוסם רישום</p>
         </aside>
       )}
 
@@ -322,7 +479,7 @@ export function CommitmentScreen({
           ? "רושם החלטה…"
           : ready
             ? "רשמו את ההחלטה"
-            : `חסר: ${MISSING_LABEL[missing.field] ?? "פרט"}`}
+            : `חסר: ${MISSING_LABEL[missing.field as StepId] ?? "פרט"}`}
       </button>
 
       {!ready && !pending && (
@@ -342,7 +499,6 @@ function toggle(current: string[], label: string): string[] {
 }
 
 interface ReadFieldProps {
-  legend: string;
   hint: string;
   options: ReadOption[];
   selected: string[];
@@ -350,10 +506,9 @@ interface ReadFieldProps {
   text: string;
   onText: (value: string) => void;
   textPlaceholder: string;
-  problem?: string;
-  containerRef?: React.Ref<HTMLDivElement>;
   pending: boolean;
   id: string;
+  next: React.ReactNode;
 }
 
 /**
@@ -362,9 +517,12 @@ interface ReadFieldProps {
  * The writing box starts collapsed. Open by default it would read as the real field with the
  * chips as a shortcut, which is the arrangement that made a game unfinishable; collapsed, it is
  * what it should be -- available for the position the menu cannot describe.
+ *
+ * The legend moved out to the step header, which is where the name of the step now lives. Every
+ * option is still here and none is behind a "more" control: a shorter list is a shorter thing the
+ * player is able to say, and the record then holds less.
  */
 function ReadField({
-  legend,
   hint,
   options,
   selected,
@@ -372,61 +530,56 @@ function ReadField({
   text,
   onText,
   textPlaceholder,
-  problem,
-  containerRef,
   pending,
   id,
+  next,
 }: ReadFieldProps) {
   // Stays open once opened, and once something is typed it cannot hide the text it holds.
   const [writing, setWriting] = useState(false);
   const open = writing || text.length > 0;
 
   return (
-    <div className={`commitment-field ${problem ? "has-problem" : ""}`} ref={containerRef}>
-      <fieldset className="read-field" disabled={pending}>
-        <legend>
-          {legend} <span className="required-mark">חובה</span>
-          <small>{hint}</small>
-        </legend>
-        <div className="read-options">
-          {options.map((option) => {
-            const on = selected.includes(option.label);
-            return (
-              <button
-                key={option.id}
-                type="button"
-                className={`read-chip ${on ? "selected" : ""}`}
-                aria-pressed={on}
-                onClick={() => onToggle(option.label)}
-              >
-                {option.label}
-              </button>
-            );
-          })}
-        </div>
+    <fieldset className="read-field" disabled={pending}>
+      <legend className="read-hint">{hint}</legend>
+      <div className="read-options">
+        {options.map((option) => {
+          const on = selected.includes(option.label);
+          return (
+            <button
+              key={option.id}
+              type="button"
+              className={`read-chip ${on ? "selected" : ""}`}
+              aria-pressed={on}
+              onClick={() => onToggle(option.label)}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
 
-        {open ? (
-          <>
-            <label className="read-write-label" htmlFor={`commit-${id}`}>
-              במילים שלכם
-            </label>
-            <textarea
-              id={`commit-${id}`}
-              maxLength={200}
-              rows={2}
-              value={text}
-              placeholder={textPlaceholder}
-              onChange={(e) => onText(e.target.value)}
-            />
-            <span className="commitment-count">{text.length}/200</span>
-          </>
-        ) : (
-          <button type="button" className="read-write-toggle" onClick={() => setWriting(true)}>
-            <Pencil size={12} /> להוסיף במילים שלכם
-          </button>
-        )}
-      </fieldset>
-      {problem && <p className="commitment-problem">{problem}</p>}
-    </div>
+      {open ? (
+        <>
+          <label className="read-write-label" htmlFor={`commit-${id}`}>
+            במילים שלכם
+          </label>
+          <textarea
+            id={`commit-${id}`}
+            maxLength={200}
+            rows={2}
+            value={text}
+            placeholder={textPlaceholder}
+            onChange={(e) => onText(e.target.value)}
+          />
+          <span className="commitment-count">{text.length}/200</span>
+        </>
+      ) : (
+        <button type="button" className="read-write-toggle" onClick={() => setWriting(true)}>
+          <Pencil size={12} /> להוסיף במילים שלכם
+        </button>
+      )}
+
+      <div className="read-field-foot">{next}</div>
+    </fieldset>
   );
 }

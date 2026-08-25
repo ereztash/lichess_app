@@ -10,40 +10,74 @@
  * because both halves come from outside the product's own opinion -- confidence is the player's,
  * accuracy is the engine's.
  *
- * A candidate pattern is a bucket whose calibration gap differs from the rest of the record by
- * more than MIN_GAP_DIFFERENCE, with at least MIN_BUCKET_N decisions on each side. Those
- * thresholds are not taste: they are set so that SHUFFLED labels produce nothing (GATE-SHUFFLE).
+ * A candidate pattern is a bucket whose calibration gap is SEPARABLE from the rest of the
+ * record -- further from it than the sampling error of the difference, by a multiplier set so
+ * that SHUFFLED labels produce nothing (GATE-SHUFFLE) -- with at least MIN_BUCKET_N decisions on
+ * each side.
+ *
+ * IT USED TO BE A FIXED EFFECT-SIZE FLOOR, and that is the defect this file was rebuilt around.
+ * A constant compared against a point estimate has no dependence on n, so as the record grows and
+ * the estimate converges the test stops firing on any real effect below the constant. Measured on
+ * identical records, a true effect of 0.255 (13 accuracy points plus half a point of stated
+ * confidence -- coaching scale):
+ *
+ *                        n=120   n=300   n=600  n=1200  n=2400
+ *     fixed floor 0.45    0.9%    0.2%    0.0%    0.0%    0.0%
+ *     separable           4.6%   42.9%   91.0%   99.9%  100.0%
+ *
+ * The old row is the finding: **the only times the shipped detector fired on a sub-threshold real
+ * effect were the times it was wrong**, and it got quieter about the truth the longer you played.
  */
 import type { DecisionAtom } from "./decision-atom.js";
 
 /** A decision counts as accurate when it cost no more than this. Engine noise, not skill. */
 export const ACCURATE_CP_LOSS = 30;
 /**
- * THESE TWO NUMBERS WERE SET BY THE SHUFFLED-LABEL CONTROL, NOT BY TASTE.
+ * The smallest bucket, and the smallest remainder, this detector will read at all.
  *
- * The first draft used 12 / 0.25. Run against SHUFFLED labels -- the same decisions with clock,
- * phase and time-taken randomly permuted, which destroys any real relationship while preserving
- * every marginal distribution -- that detector reported a pattern on pure noise:
+ * Kept at 30 through the change from a fixed floor to a separability test. It is doing different
+ * work now: it is not controlling false positives -- the multiplier below does that at every size
+ * -- it is refusing to compute a standard error from a handful of decisions, where the sample
+ * variance is itself too noisy for the test built on it to mean anything.
  *
- *     thresholds        shuffled false-positive rate, by record size
- *                       n=40    n=80   n=120   n=200   n=300
- *     12 / 0.25         53.3%   50.9%   23.6%    9.6%    0.9%     <- first draft
- *     20 / 0.35         28.9%   14.9%    4.2%    0.4%    0.0%
- *     30 / 0.45          0.0%    0.2%    0.2%    0.2%    0.0%     <- shipped
- *     40 / 0.45          0.0%    0.0%    0.0%    0.0%    0.0%
- *
- * A planted, unambiguous pattern is still detected at every setting above, so the stricter
- * thresholds cost sensitivity to a real effect only in how long they take to see it.
- *
- * COLD START, the price paid (section 6): with 30 / 0.45 a strong real pattern is first
- * reported at roughly 60-90 recorded decisions, against roughly 30 with the first draft. For a
- * casual player that is weeks, not days. That is a product finding, and it belongs in the README
- * rather than buried -- see docs/MEASUREMENTS.md.
- *
- * Raising these makes the product quieter. LOWERING THEM MAKES IT A NOISE GENERATOR.
+ * It is also what governs cold start now. A bucket like `fast-under-45s` holds roughly a fifth of
+ * a record, so 30 inside means well over a hundred decisions before the bucket can be read at all.
  */
 export const MIN_BUCKET_N = 30;
-export const MIN_GAP_DIFFERENCE = 0.45;
+
+/**
+ * HOW MANY STANDARD ERRORS A BUCKET MUST SIT FROM THE REST BEFORE IT IS REPORTED.
+ *
+ * SET BY THE SHUFFLED-LABEL CONTROL, NOT BY TASTE -- the same control that set the number it
+ * replaced. Shuffling permutes clock, phase and time-taken across decisions, destroying any real
+ * relationship while preserving every marginal distribution, so anything the detector reports
+ * afterwards is noise by construction.
+ *
+ * MEASURED ON THE CONTROL'S OWN HARNESS, which is the part that decided this number. GATE-SHUFFLE
+ * takes ONE record and permutes it hundreds of times -- the spec's requirement, "the player's
+ * decisions with clock and phase randomly permuted" -- and that is a harder null than drawing a
+ * fresh record per run, because a single record can be systematically unlucky and the gate reports
+ * the WORST cell. Calibrated the easy way first, 3.25 looked clear at 1.1%; on the gate's harness
+ * across ten independent base records it touches 2.0%, which is the ceiling exactly. Ten base
+ * records per size, 300 shuffles each, worst cell of the ten:
+ *
+ *     k       n=120   n=300   n=600  n=1200
+ *     3.25     2.0%    1.7%    2.0%    1.0%   <- at the ceiling; passes on a strict inequality
+ *     3.50     1.7%    0.7%    0.7%    0.7%
+ *     3.75     1.0%    0.3%    0.3%    0.3%   <- shipped
+ *     4.00     0.3%    0.0%    0.3%    0.0%
+ *
+ * The ceiling is MAX_SHUFFLED_FALSE_POSITIVE_RATE, 2%. 3.75 is the smallest multiplier measured
+ * that leaves half the ceiling as margin; a gate that passes at exactly its limit is one unlucky
+ * draw from red and teaches people to re-run it.
+ *
+ * WHAT IT COSTS, on a planted coach-scale effect, 2000 fresh records per cell: 4.6% at n=120,
+ * 42.9% at n=300, 91.0% at n=600, 99.9% at n=1200. The DIRECTION is the point. The number it
+ * replaced went 0.9% -> 0.0% over the same range, and on an effect sitting exactly ON the old
+ * floor it was a permanent coin flip that no amount of play resolved -- 49.4% at n=300 and 50.3%
+ * at n=2400 -- because a point estimate against a line is not a test.
+ */
+export const SEPARABILITY_K = 3.75;
 
 /**
  * The floor for a bucket that was NAMED IN ADVANCE, and the measurement that set it.
@@ -63,18 +97,37 @@ export const MIN_GAP_DIFFERENCE = 0.45;
  * the restriction is not a formality attached to a threshold someone wanted anyway -- it is the
  * only reason this row is allowed to exist.
  *
- * WHAT THE MEASUREMENT REFUTED, recorded because the design was proposed on the opposite
- * assumption: the expectation was that naming a bucket in advance would buy a lower GAP, on the
- * usual multiple-comparisons argument that six chances to clear should need a higher bar than
- * one. It does not. At n = 30 the two columns are identical, and at every gap tested they are
- * within a point of each other. The six bucketings are not six independent tests -- the three
- * phase buckets partition the same decisions and the two clock buckets overlap heavily -- so
- * there was never much multiplicity to correct for. Pre-registration buys n, not gap.
- *
  * Measured cold start on a planted pattern, 20 seeds: median first claim moves from 65 decisions
  * to 45. Both detected it in 20 of 20.
  */
 export const PREREGISTERED_MIN_BUCKET_N = 20;
+
+/**
+ * The multiplier for a bucket NAMED IN ADVANCE -- and it overturns what this file used to record.
+ *
+ * Under the fixed floor, pre-registration bought a lower n and nothing else, and the comment here
+ * said so in as many words: "Pre-registration buys n, not gap." That was measured and it was
+ * true, and it was true for a reason nobody wrote down -- a fixed effect-size floor does no
+ * multiplicity work at all, so removing five of the six chances to clear could not lower it.
+ *
+ * A separability multiplier IS the multiplicity control, so the same experiment now comes out the
+ * other way. Gate harness, ten independent base records per size, 300 shuffles each, one
+ * pre-named bucket at minBucketN 20, worst cell of the ten:
+ *
+ *     k       n=120   n=300   n=600  n=1200  n=2400
+ *     2.50     3.3%    3.0%    2.3%    2.3%    2.7%   <- over the 2% ceiling
+ *     2.75     1.7%    2.3%    1.3%    1.3%    1.3%   <- over it at n=300
+ *     3.00     1.0%    1.0%    1.0%    0.7%    0.7%   <- shipped
+ *
+ * 3.00 against 3.75 for the scan. Naming the bucket first now buys n AND the bar, which is what
+ * the design assumed before the first measurement said otherwise. The earlier finding is left
+ * above rather than deleted: it was correct about the detector it was measured on.
+ *
+ * The margin is real but smaller than the arithmetic of "six tests instead of one" suggests, and
+ * the reason is the one already recorded above: the six bucketings are not six independent tests.
+ * Three phase buckets partition the same decisions and the two clock buckets overlap heavily.
+ */
+export const PREREGISTERED_SEPARABILITY_K = 3.0;
 
 /**
  * The most false positives on shuffled labels this build tolerates. GATE-SHUFFLE fails above it.
@@ -110,24 +163,67 @@ export interface BucketableDecision {
 /** Confidence 1..5 -> 0..1. A 3 means "even odds", which is 0.5. */
 export const normaliseConfidence = (confidence: number) => (confidence - 1) / 4;
 
+/**
+ * The gap of a SINGLE decision: what the player said, minus what happened.
+ *
+ * The whole separability test is built on this one quantity rather than on confidence and
+ * accuracy separately, and the reason is not tidiness. `gap` is the mean of this over a bucket,
+ * so its sampling variance is exactly `variance(this) / n` -- no independence assumption
+ * anywhere. Treating the gap as "mean confidence minus accuracy rate" and adding their two
+ * variances would assume confidence and accuracy are independent WITHIN a bucket, and the entire
+ * premise of this product is that they are not: a player who is overconfident in a position class
+ * is one whose confidence and accuracy move apart there.
+ */
+export const decisionGap = (decision: ScoredDecision): number =>
+  decision.confidence - (decision.accurate ? 1 : 0);
+
 export interface CalibrationSummary {
   n: number;
   meanConfidence: number;
   accuracyRate: number;
   /** Positive = overconfident. Negative = underconfident. */
   gap: number;
+  /**
+   * Sample variance of the per-decision gap, so a caller can compute the standard error of `gap`
+   * as `sqrt(gapVariance / n)`. Zero for fewer than two decisions, where there is no variance to
+   * estimate rather than no variation.
+   */
+  gapVariance: number;
 }
 
 export function summarise(decisions: ScoredDecision[]): CalibrationSummary {
-  if (decisions.length === 0) return { n: 0, meanConfidence: 0, accuracyRate: 0, gap: 0 };
+  if (decisions.length === 0)
+    return { n: 0, meanConfidence: 0, accuracyRate: 0, gap: 0, gapVariance: 0 };
   const meanConfidence = decisions.reduce((total, d) => total + d.confidence, 0) / decisions.length;
   const accuracyRate = decisions.filter((d) => d.accurate).length / decisions.length;
-  return {
-    n: decisions.length,
-    meanConfidence,
-    accuracyRate,
-    gap: meanConfidence - accuracyRate,
-  };
+  const gap = meanConfidence - accuracyRate;
+  // Bessel-corrected: this is an estimate of the population variance from a sample, and at
+  // n = MIN_BUCKET_N the difference between /n and /(n-1) is not decorative.
+  const gapVariance =
+    decisions.length < 2
+      ? 0
+      : decisions.reduce((total, d) => total + (decisionGap(d) - gap) ** 2, 0) /
+        (decisions.length - 1);
+  return { n: decisions.length, meanConfidence, accuracyRate, gap, gapVariance };
+}
+
+/**
+ * The standard error of the DIFFERENCE between two calibration gaps.
+ *
+ * The two samples are disjoint by construction -- a decision is inside a bucket or outside it, and
+ * a drill's decisions are excluded from its own baseline -- so the variances add.
+ *
+ * Returns null when it cannot be computed: fewer than two decisions on a side, or a sample with
+ * no variation at all on BOTH sides. A zero standard error would make any difference infinitely
+ * significant, which is a degenerate sample rather than overwhelming evidence.
+ */
+export function gapDifferenceStandardError(
+  a: Pick<CalibrationSummary, "n" | "gapVariance">,
+  b: Pick<CalibrationSummary, "n" | "gapVariance">,
+): number | null {
+  if (a.n < 2 || b.n < 2) return null;
+  const se = Math.sqrt(a.gapVariance / a.n + b.gapVariance / b.n);
+  return se > 0 ? se : null;
 }
 
 export interface Bucketing {
@@ -188,6 +284,13 @@ export interface CandidatePattern {
   outside: CalibrationSummary;
   /** How far the bucket's gap sits from the rest of the record. */
   gapDifference: number;
+  /**
+   * The sampling error of `gapDifference`, carried with it because the difference alone is not a
+   * finding. `gapDifference / standardError` is how many standard errors this bucket sits from
+   * the rest, and it is the quantity that had to clear the multiplier -- section 4.4 asks a value
+   * to arrive with what makes it readable, and for this one that is its own error.
+   */
+  standardError: number;
   supporting_decision_ids: string[];
   /** What the claim predicts, and therefore what would refute it (R5). */
   predicts_overconfidence: boolean;
@@ -199,21 +302,22 @@ export interface CandidatePattern {
  */
 export interface DetectorThresholds {
   minBucketN: number;
-  minGapDifference: number;
+  /** How many standard errors of the difference a bucket must sit from the rest. */
+  separabilityK: number;
 }
 
 export const DEFAULT_THRESHOLDS: DetectorThresholds = {
   minBucketN: MIN_BUCKET_N,
-  minGapDifference: MIN_GAP_DIFFERENCE,
+  separabilityK: SEPARABILITY_K,
 };
 
 /**
  * Thresholds for a bucket named in advance. Legal ONLY together with `detect`'s `onlyBucketKey`
- * -- see PREREGISTERED_MIN_BUCKET_N for the measurement, and note that the gap is unchanged.
+ * -- see PREREGISTERED_MIN_BUCKET_N and PREREGISTERED_SEPARABILITY_K for the two measurements.
  */
 export const PREREGISTERED_THRESHOLDS: DetectorThresholds = {
   minBucketN: PREREGISTERED_MIN_BUCKET_N,
-  minGapDifference: MIN_GAP_DIFFERENCE,
+  separabilityK: PREREGISTERED_SEPARABILITY_K,
 };
 
 export function detect(
@@ -249,7 +353,17 @@ export function detect(
     const insideSummary = summarise(inside);
     const outsideSummary = summarise(outside);
     const gapDifference = insideSummary.gap - outsideSummary.gap;
-    if (Math.abs(gapDifference) < thresholds.minGapDifference) continue;
+    /*
+     * SEPARABLE, not merely different. Six measurements always differ; the question is whether
+     * this one differs by more than the sampling error of the difference itself -- the same test
+     * `worstBucketVerdict` has always applied on the import screen, which was statistically sound
+     * while the detector the product LEADS on was not.
+     *
+     * A null standard error is a degenerate sample, not overwhelming evidence, and is skipped.
+     */
+    const standardError = gapDifferenceStandardError(insideSummary, outsideSummary);
+    if (standardError === null) continue;
+    if (Math.abs(gapDifference) < thresholds.separabilityK * standardError) continue;
 
     candidates.push({
       key: bucketing.key,
@@ -257,6 +371,7 @@ export function detect(
       inside: insideSummary,
       outside: outsideSummary,
       gapDifference,
+      standardError,
       supporting_decision_ids: inside.map((d) => d.decision_id),
       predicts_overconfidence: gapDifference > 0,
     });

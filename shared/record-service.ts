@@ -19,7 +19,7 @@ import {
   BUCKETINGS,
   DEFAULT_THRESHOLDS,
   MIN_BUCKET_N,
-  MIN_GAP_DIFFERENCE,
+  PREREGISTERED_SEPARABILITY_K,
   PREREGISTERED_THRESHOLDS,
   detect,
   summarise,
@@ -378,9 +378,12 @@ export async function finishDrill(
     ),
   );
   const verdict = evaluateRefutation(drillDecisions, {
-    baselineGap: baseline.gap,
+    // The whole summary, not just its gap: the baseline is an estimate with its own sampling
+    // error, and a comparison that treats it as exactly known is too permissive by that much.
+    baseline: baseline,
     predictsOverconfidence: true,
-    minGapDifference: MIN_GAP_DIFFERENCE,
+    // One bucket, named in advance, tested once -- the pre-registered multiplier, not the scan's.
+    separabilityK: PREREGISTERED_SEPARABILITY_K,
   });
   const result: ProspectiveDrillResult = completeDrillAgainstBaseline(
     stored,
