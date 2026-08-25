@@ -33,13 +33,32 @@ decision _policy_ rather than their opening knowledge — a second-order quantit
 improvement actually lives. And both halves come from outside the product's own opinion:
 confidence is the player's, accuracy is the engine's. The product grades neither.
 
-    confidence 1..5, mapped to 0..1        (the player's)
-    accuracy   = share of decisions costing <= 30 centipawns   (the engine's)
+    confidence 1..7, mapped to .05 .20 .35 .50 .65 .80 .95   (the player's)
+    accuracy   = share of decisions costing <= 2.76 points of
+                 the player's winning chances                  (the engine's)
     gap        = mean confidence - accuracy rate
 
-Positive gap is overconfidence, negative is underconfidence. A decision costing 30 cp or less is
-counted accurate because that is inside evaluation noise at the depths this product searches;
-calling it a mistake would be the product inventing a finding.
+Positive gap is overconfidence, negative is underconfidence.
+
+**Both halves of that changed, and the reasons are measured rather than stylistic.**
+
+The scale ran 1..5 onto 0..1 and now runs 1..7 inset at .05/.95. A perfectly calibrated player —
+one who knows their own probability of being accurate exactly, and whose only constraint is
+having to answer on these levels — is read by the old scale at up to 1.50 points of gap and by
+this one at 0.35, and the spread between two such players facing different difficulty streams
+fell from 2.98 points to 0.60. The coarseness was the defect, not the endpoints: pulling the ends
+in while staying at five levels made it *worse*. No level asserts 0 or 1, which is what makes a
+logarithmic score computable at all — one stated certainty that turned out wrong made it infinite,
+and infinite permanently.
+
+Accuracy was `cp_loss <= 30`. Thirty centipawns is not one event: it costs 2.76 points of winning
+chances at a level position and 0.28 at +10.00, so "accurate" meant something different depending
+on how the game stood, and calibration against an event that is not one event is undefined. The
+threshold is now that same 30 cp expressed as what it costs, anchored at the evaluation where the
+cost peaks, so that no decision the old rule called accurate is called inaccurate by this one.
+
+See `shared/confidence.ts`, `shared/win-probability.ts`, and the section
+"The instrument, as specified" below.
 
 ## Secondary
 
@@ -116,7 +135,7 @@ Both existed, both were defensible, and both were on screen under the word **ד�
 
 | | definition | where |
 | --- | --- | --- |
-| **accuracy rate** (canonical) | share of decisions with `cpLoss <= ACCURATE_CP_LOSS` (30) | `shared/detector.ts` |
+| **accuracy rate** (canonical) | share of decisions with `winProbabilityLoss(eval, cpLoss) <= ACCURATE_WIN_PROBABILITY_LOSS` (2.76 points of winning chances, derived from the old 30 cp) | `shared/detector.ts`, `shared/win-probability.ts` |
 | accuracy score | Lichess-style exponential 0-100 per move, averaged | `shared/eval-analysis.ts` |
 
 The **rate** is canonical for anything feeding a bucket, a claim, or a calibration gap. It is a
@@ -1181,7 +1200,8 @@ control chose"* below for what replaced it and what it cost.
 ## A forced mate is not a centipawn quantity, and the live reveal read it as one
 
 Found while sizing the detector fix above, because everything the detector reads is derived from
-`accurate`, and `accurate` is `cp_loss <= 30`.
+`accurate`, which at the time was `cp_loss <= 30`. (It is now a win-probability cost; the defect
+below is unchanged by that, because a mate distance read as centipawns is wrong on either scale.)
 
 `parseAnyInfo` stores a `score mate N` line as `scoreCp = N * 10000`. That is an ordering, not a
 magnitude — it makes *mate in nine* score higher than *mate in eight* — and `cpLossFromSearches`
@@ -1658,3 +1678,120 @@ call, not a refactor.
 **Four survived the first pass** and each named something real: two because the ribbon was only
 asserted through its source and never rendered, one because of the `savedAt` flaw above, and one
 because the prefill genuinely had two mechanisms.
+
+---
+
+# The instrument, as specified
+
+Everything a reader needs to say what this measures, reproduce it, or disagree with it. Written
+as a specification rather than a description: each row names the choice, the value, and **what
+set it** — because a constant whose provenance is "it seemed right" is not a measurement.
+
+**Instrument version 1.** Readings taken under different versions are not comparable and nothing
+pools them.
+
+## 1. What is elicited
+
+| | |
+| --- | --- |
+| Judgment | One move, plus a confidence that it is accurate |
+| When | **Before any engine output exists on the client.** Enforced by GATE-COMMIT, which fails if the engine module is in the initial module graph or if a pre-commit reveal carries engine output |
+| Scale | Seven ordinal levels: ניחוש · ספק · נוטה · שקול · סביר · בטוח · ודאי |
+| Mapped to | `.05 .20 .35 .50 .65 .80 .95` |
+| Recorded with | The scale it was stated on, so a stored level cannot be re-read on a scale the player never saw |
+
+**Why seven, and why inset.** A perfectly calibrated agent — zero self-knowledge error, its only
+constraint being these levels — is run through the scale and the gap it prints is the
+instrument's zero point. Computed as an integral, not simulated:
+
+| scale | worst reading | spread across difficulty streams |
+| --- | --- | --- |
+| 3 levels `.25 .50 .75` | −12.07 | 14.55 |
+| 5 levels `0 .25 .50 .75 1` | −1.50 | 2.98 |
+| 5 levels `.10 … .90` | −2.08 | 3.83 |
+| 7 levels `0 .167 … 1` | −0.99 | 1.67 |
+| **7 levels `.05 … .95`** | **−0.35** | **0.60** |
+| 9 levels `.05 … .95` | −0.52 | 0.55 |
+
+Nine levels buy nothing over seven, which is where Cox (1980) put the usable band from an
+unrelated direction. Reproduce: `tests/shared/confidence-scale.test.ts`.
+
+## 2. What counts as the outcome
+
+| | |
+| --- | --- |
+| Ground truth | Stockfish 18, depth 14, MultiPV 8 |
+| Cost of a move | `winProbability(eval) − winProbability(eval − cpLoss)` |
+| Accurate when | That cost ≤ `ACCURATE_WIN_PROBABILITY_LOSS` = 2.76 points |
+| Threshold set by | `ACCURATE_CP_LOSS` (30 cp) at the evaluation where its cost peaks — so no decision the centipawn rule called accurate is called inaccurate by this one |
+| Logistic constant | `k = 0.00368208`, Lichess's published fit **on 2300-rated games**. GM estimates are roughly twice as steep; any product inheriting it for another population misstates what moves cost, including this one |
+
+**The oracle charges nothing for its own best move.** Centipawn loss is read out of a single
+MultiPV root search, so the comparison is `best − chosen` within one tree, one window, one
+iteration. Measured against Stockfish 18 on 110 real positions, feeding it the engine's own best
+move: root-minus-child scored 7.3% of them "inaccurate", a second root search restricted with
+`searchmoves` scored 12.7%, and one MultiPV search scores 0 on 110 of 110.
+
+## 3. Which positions
+
+| | |
+| --- | --- |
+| Comparable reading | The **anchor set**: 60 positions, fixed, answered by everyone in one order |
+| Corpus | Lichess open database (CC0), games with `[%eval]`, terminating normally, base time ≥ 180 s |
+| Position filter | Past `OPENING_MAX_PLY`; not the final ply; `\|eval\| ≤ 300 cp` (Regan's exclusion) |
+| Sampling | Fixed stride through the eligible stream, at most one position per source game |
+| Generator | `scripts/build_anchor_set.ts` — the bank is regenerable, not hand-written |
+| Free-play reading | Also reported, and **comparable to nobody**: the player met their own positions |
+
+Sampled rather than curated because overconfidence is substantial on **selected** items and near
+zero on **representative** ones (Gigerenzer, Hoffrage & Kleinbölting 1991; Juslin 1994) — a bank
+chosen for instructive positions manufactures the finding it exists to measure.
+
+## 4. What is reported
+
+`BRIER = RELIABILITY − RESOLUTION + UNCERTAINTY` (Murphy 1973), exactly — the scale is discrete,
+so grouping is by level and there is no binning parameter to choose. This is the problem CORP
+(Dimitriadis, Gneiting & Jordan, *PNAS* 2021) exists to solve for continuous forecasts, and it
+does not arise here.
+
+| term | belongs to |
+| --- | --- |
+| `UNCERTAINTY` = `o(1−o)` | **the positions**, entirely |
+| `RESOLUTION` | the player's discrimination |
+| `RELIABILITY` | the player's calibration error — the only term that is a statement about them |
+
+Also reported: Brier, Brier skill score against the base rate, and a logarithmic score, which is
+finite only because no level asserts certainty.
+
+**Nothing is reported below `MIN_BUCKET_N` per level.** Reliability is biased upward in small
+samples — at one decision per level it is at its maximum by construction — so the figures stay
+arithmetically correct and are marked unreadable rather than shown.
+
+## 5. What protects the finding
+
+| control | what it does | where |
+| --- | --- | --- |
+| GATE-SHUFFLE | Permutes clock, phase and time-taken hundreds of times over one record; the worst cell must stay under a 2% false-positive ceiling. **This sets `SEPARABILITY_K = 3.75`** | `scripts/run_gates.ts` |
+| Pre-registration | A bucket named in advance buys `n = 20` and `k = 3.25`, both measured on the same harness, not asserted | `shared/prereg.ts` |
+| Positive controls | Every gate must go RED under a deliberate defect, and every new assertion is shown red by a mutation diffed against the original | `npm run gates:controls` |
+| GATE-NO-FAKE, GATE-DENOM | No placeholder evaluation and no denominatorless percentage on any render-path file | `scripts/run_gates.ts` |
+
+## 6. What this instrument cannot do
+
+Stated here because a specification that lists only its strengths is advertising.
+
+- **No reference class exists.** No published distribution of stated-confidence-minus-realised-
+  accuracy for chess exists at any sample size. A gap of −14 points cannot be called large,
+  small, typical or unusual, because there is nothing to call it relative to.
+- **Trait status is unproven.** Test–retest reliability has never been measured. Cross-task
+  correlations for ordinary calibration measures run .08–.39; the one instrument with
+  demonstrated trait reliability reaches r ≈ .53–.77 by making performance uninformative. Until
+  this clears something like r ≈ .5 across sessions, it measures the session, not the person.
+- **Nothing external has checked it.** No independent replication, no published protocol, no
+  second implementation.
+- **The time buckets are confounded and known to be.** On 380,310 real Lichess moves the blunder
+  rate rises monotonically with think time (1.55% → 7.92%) — reverse causation through position
+  difficulty. Any bucket-level claim needs a population baseline for that bucket, which does not
+  exist yet.
+- **The elicitation is a move plus a level.** A stronger design elicits an interval on the cost
+  itself; this one does not.
