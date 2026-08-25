@@ -1,6 +1,7 @@
 /**
  * The claim procedure over real HTTP, including the states where it declines to speak.
  */
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -52,6 +53,7 @@ async function seed(count: number, reveal = true) {
       statedRead: "k",
       statedUnknown: "u",
       confidence: fast ? (i % 10 === 4 ? 4 : 5) : 3,
+      confidenceScale: CONFIDENCE_LEVELS,
     });
     if (reveal) {
       await store.recordReveal(id, {

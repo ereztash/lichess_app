@@ -29,6 +29,7 @@
  * Which makes the contract falsifiable in a way rewording cannot satisfy: THE PANEL'S LINE MUST
  * NOT VARY WITH THE RECORD, and the ribbon's must. One surviving count would break the first.
  */
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import { currentClaim, registerHypothesis, type ClaimView } from "../../shared/record-service";
@@ -51,6 +52,7 @@ async function commit(store: MemoryRecordStore, id: string, index: number, revea
     statedRead: "r",
     statedUnknown: "u",
     confidence: 4,
+    confidenceScale: CONFIDENCE_LEVELS,
   });
   if (reveal) {
     await store.recordReveal(id, {

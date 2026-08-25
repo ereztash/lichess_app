@@ -14,6 +14,7 @@
  * is how a product ends up unable to explain its own output six weeks later.
  */
 import { z } from "zod";
+import { CONFIDENCE_LEVELS } from "./confidence.js";
 
 export const ATOM_FIELDS = [
   "entry_state",
@@ -45,7 +46,19 @@ export const entryStateSchema = z.object({
  */
 export const boundedActionSchema = z.object({
   seconds_taken: z.number().min(0),
-  confidence: z.number().int().min(1).max(5),
+  confidence: z.number().int().min(1).max(CONFIDENCE_LEVELS),
+  /*
+   * WHICH SCALE THAT CONFIDENCE WAS STATED ON, and why a bare number is not enough.
+   *
+   * The scale moved from five levels to seven, and the words moved with it: "בטוח" was 4 of 5 and
+   * is 6 of 7. A stored `4` therefore asserts 0.75 or 0.50 depending only on when it was written,
+   * and nothing in the row itself says which. Recording the scale is what keeps a decision a
+   * statement the player actually made rather than one this build inferred on their behalf.
+   *
+   * Optional because rows written before this field existed do not have it. Absent means five --
+   * a fact about that row's age, resolved once where stored rows are read, never defaulted here.
+   */
+  confidence_scale: z.number().int().min(2).max(CONFIDENCE_LEVELS).optional(),
   candidate_moves_considered: z.array(z.string().min(4).max(6)).max(8),
 });
 

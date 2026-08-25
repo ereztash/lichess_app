@@ -9,6 +9,7 @@
  *
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
+import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import type { DecisionAtom } from "@shared/decision-atom";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
@@ -131,6 +132,12 @@ export function buildCommitEvent(
     bounded_action: {
       seconds_taken: secondsTaken,
       confidence: draft.confidence!,
+      /*
+       * Sent with every commit, never inferred server-side. A stated level is meaningless without
+       * the scale it was stated on: "בטוח" was 4 of 5 and is 6 of 7, so the same integer asserts
+       * two different probabilities depending only on which build a player was using.
+       */
+      confidence_scale: CONFIDENCE_LEVELS,
       /*
        * TOUCH ORDER IS THE DATA, and this line used to destroy it.
        *

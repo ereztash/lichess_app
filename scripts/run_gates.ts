@@ -189,6 +189,7 @@ export const GATES: Gate[] = [
     rule: "3.1",
     description: "Every decision atom present in all three layers under identical field names.",
     run: async () => {
+      const { CONFIDENCE_LEVELS } = await import("../shared/confidence");
       const { atomFieldNames, decisionAtomSchema } = await import("../shared/decision-atom");
       const { commitEventSchema } = await import("../server/recordRouter");
       const { MemoryRecordStore } = await import("../server/record");
@@ -207,6 +208,7 @@ export const GATES: Gate[] = [
         statedRead: "k",
         statedUnknown: "u",
         confidence: 3,
+        confidenceScale: CONFIDENCE_LEVELS,
       });
       const atom = await store.getAtom(id);
       return isoPredicate(

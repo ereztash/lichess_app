@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -34,7 +35,7 @@ beforeEach(async () => {
     known: "The center is open",
     unknown: "A forcing move may exist",
     decision: "e2e4",
-    bounded_action: { seconds_taken: 10, confidence: 3, candidate_moves_considered: ["e2e4"] },
+    bounded_action: { seconds_taken: 10, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
     result: null,
     feedback: null,
   });

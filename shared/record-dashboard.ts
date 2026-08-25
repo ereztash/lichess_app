@@ -13,6 +13,7 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
+import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
   BUCKETINGS,
   MIN_BUCKET_N,
@@ -43,7 +44,13 @@ export type BucketReading = {
 };
 
 export type ConfidenceReading = {
-  /** The 1..5 the player chose, as stated. */
+  /**
+   * The claim as a percentage -- 5, 20, 35, 50, 65, 80, 95 on the current scale.
+   *
+   * NOT the button number, which does not survive a scale change: 4 asserted 0.75 on the old
+   * five-level scale and asserts 0.50 on this one, so a record holding both would put two
+   * different claims on one label.
+   */
   stated: number;
   /** What that confidence claims, 0..1. */
   claimed: number;
@@ -100,17 +107,38 @@ export function readRecord(
     };
   });
 
-  const confidence: ConfidenceReading[] = [1, 2, 3, 4, 5].map((stated) => {
-    // normaliseConfidence maps 1..5 onto 0..1; compare against it rather than against the raw 1..5.
-    const claimed = (stated - 1) / 4;
-    const at = decisions.filter((d) => Math.abs(d.confidence - claimed) < 1e-9);
-    return {
-      stated,
-      claimed,
-      observed: at.length ? at.filter((d) => d.accurate).length / at.length : null,
-      n: at.length,
-    };
-  });
+  /*
+   * THE LEVELS COME FROM THE SCALE AND FROM THE RECORD, and both halves are load-bearing.
+   *
+   * From the scale, so every level shows even when nobody stated it -- an unstated level with
+   * n = 0 and a null observation is information, and dropping the row would let the chart imply
+   * the scale is narrower than it is.
+   *
+   * From the record, because a record can hold decisions stated on MORE THAN ONE SCALE. The five
+   * -level grid ran 0/.25/.5/.75/1 and the seven-level grid is inset at .05/.95; they share only
+   * even odds. Plotting the current grid alone would have silently dropped every older decision
+   * except that one -- a chart quietly computed over a subset of its own denominator, which is
+   * the exact failure GATE-DENOM exists for.
+   *
+   * `stated` is therefore the claim itself as a percentage, not the button number. A button
+   * number is meaningless across scales: 4 asserted 0.75 then and asserts 0.50 now, so two rows
+   * would collide on one label and mean different things.
+   */
+  const claims = new Set<number>(
+    CONFIDENCE_CHOICES.map((level) => normaliseConfidence(level, CONFIDENCE_LEVELS)),
+  );
+  for (const decision of decisions) claims.add(decision.confidence);
+  const confidence: ConfidenceReading[] = [...claims]
+    .sort((a, b) => a - b)
+    .map((claimed) => {
+      const at = decisions.filter((d) => Math.abs(d.confidence - claimed) < 1e-9);
+      return {
+        stated: Math.round(claimed * 100),
+        claimed,
+        observed: at.length ? at.filter((d) => d.accurate).length / at.length : null,
+        n: at.length,
+      };
+    });
 
   return { overall: summarise(decisions), buckets, confidence, scored: decisions.length, mix };
 }

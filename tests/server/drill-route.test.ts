@@ -4,6 +4,7 @@
  * Section 3.5: "Report the result even when it refutes the pattern -- especially then." The
  * refutation path is tested first here, for that reason.
  */
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "../../shared/confidence";
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -80,7 +81,8 @@ async function seedPattern(count: number) {
       statedRead: "k",
       statedUnknown: "u",
       // Varies within the bucket: a player who says "certain" four times in five, not five.
-      confidence: fast ? (i % 10 === 4 ? 4 : 5) : 3,
+      confidence: fast ? (i % 10 === 4 ? CONFIDENCE_LEVELS - 1 : CONFIDENCE_LEVELS) : EVEN_ODDS_LEVEL,
+      confidenceScale: CONFIDENCE_LEVELS,
     });
     await store.recordReveal(id, {
       engine_eval_cp: 10,
@@ -129,7 +131,14 @@ async function recordDrillDecisions(
       statedRead: "k",
       statedUnknown: "u",
       // Nudged toward the middle of the scale, so the profile stays what it says it is.
-      confidence: index === 1 ? Math.min(5, Math.max(1, profile.confidence + (profile.confidence >= 3 ? -1 : 1))) : profile.confidence,
+      confidence:
+        index === 1
+          ? Math.min(
+              CONFIDENCE_LEVELS,
+              Math.max(1, profile.confidence + (profile.confidence >= EVEN_ODDS_LEVEL ? -1 : 1)),
+            )
+          : profile.confidence,
+        confidenceScale: CONFIDENCE_LEVELS,
     });
     await store.recordReveal(id, {
       engine_eval_cp: 0,
@@ -265,7 +274,7 @@ describe("the confirming direction", () => {
         })
       ).result.data.json;
       // Maximum confidence, badly wrong: exactly the predicted overconfidence.
-      const ids = await recordDrillDecisions(started.drill.fens, { confidence: 5, cpLoss: 400 });
+      const ids = await recordDrillDecisions(started.drill.fens, { confidence: CONFIDENCE_LEVELS, cpLoss: 400 });
       const done = (
         await post("record.completeDrill", {
           drill_id: started.drill.drill_id,

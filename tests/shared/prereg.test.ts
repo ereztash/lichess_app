@@ -7,6 +7,7 @@
  * and only if it never claims to know what will be found there. Drop any one of those and this
  * stops being pre-registration and becomes a lower threshold with a story attached.
  */
+import { CONFIDENCE_LEVELS, CONFIDENCE_STEP, normaliseConfidence } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import {
   BUCKETINGS,
@@ -14,7 +15,6 @@ import {
   MIN_BUCKET_N,
   PREREGISTERED_THRESHOLDS,
   detect,
-  normaliseConfidence,
   seededRandom,
   shuffleControl,
   MAX_SHUFFLED_FALSE_POSITIVE_RATE,
@@ -36,7 +36,7 @@ function noise(n: number, seed: number): ScoredDecision[] {
   const random = seededRandom(seed);
   return Array.from({ length: n }, (_, index) => ({
     decision_id: `n-${index}`,
-    confidence: normaliseConfidence(1 + Math.floor(random() * 5)),
+    confidence: normaliseConfidence(1 + Math.floor(random() * CONFIDENCE_LEVELS), CONFIDENCE_LEVELS),
     accurate: random() < 0.5,
     phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],
     secondsTaken: Math.floor(random() * 200),
@@ -69,11 +69,16 @@ describe("the threshold the narrowing buys, and the measurement behind it", () =
      * The whole justification for n = 20, re-measured here rather than cited. It has to hold for
      * every bucket, not on average: the player does not choose which bucket their import names,
      * so the worst one is the one that matters.
+     *
+     * TWELVE SEEDS, NOT THREE, and the count is load-bearing. When the confidence scale moved to
+     * seven levels this ceiling started breaching, and the three-seed null could not see how far:
+     * it cleared k = 3.10, which the twelve-seed null shows at 2.50% against a 2% ceiling. A
+     * control that a wrong constant passes is not a control.
      */
     for (const bucketing of BUCKETINGS) {
       let worst = 0;
       for (const size of [40, 60, 80, 120, 200]) {
-        for (let seedOffset = 1; seedOffset <= 3; seedOffset += 1) {
+        for (let seedOffset = 1; seedOffset <= 12; seedOffset += 1) {
           const report = shuffleControl(
             noise(size, 7 + size),
             120,
@@ -94,10 +99,23 @@ describe("the threshold the narrowing buys, and the measurement behind it", () =
      * The other half, and the one that makes the first half mean something. If the six-bucket
      * scan also cleared the ceiling at n = 20, the restriction would be a formality attached to a
      * threshold someone wanted anyway. It does not clear it.
+     *
+     * SAME NULL AS THE HALF ABOVE, which it did not used to be, and the asymmetry was hiding the
+     * answer. Measured at n = 20 on the seven-level scale, worst rate over five sizes:
+     *
+     *                     k=3.00   k=3.25   k=3.50
+     *     3 seeds          3.33%    1.67%    0.83%
+     *     12 seeds         5.00%    4.17%    1.67%
+     *
+     * At three seeds the scan looked safe at the shipped k = 3.25 and the narrowing looked
+     * worthless; at twelve it is 4.17% against a 2% ceiling while the registered bucket sits at
+     * 1.67%. Two halves measured against different nulls are not a comparison, and the weaker one
+     * was reporting the wrong sign. Note also that k = 3.50 would make the scan itself safe --
+     * 3.25 is inside the window where naming the bucket first is what buys the lower bar.
      */
     let worst = 0;
     for (const size of [40, 60, 80, 120, 200]) {
-      for (let seedOffset = 1; seedOffset <= 3; seedOffset += 1) {
+      for (let seedOffset = 1; seedOffset <= 12; seedOffset += 1) {
         const report = shuffleControl(
           noise(size, 7 + size),
           120,
@@ -199,6 +217,7 @@ describe("pre-registration is only pre-registration if it precedes the decisions
         statedRead: "r",
         statedUnknown: "u",
         confidence: 3,
+        confidenceScale: CONFIDENCE_LEVELS,
       });
     }
     const saved = await registerHypothesis(store, {
@@ -282,6 +301,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
         statedRead: "r",
         statedUnknown: "u",
         confidence: 3,
+        confidenceScale: CONFIDENCE_LEVELS,
       });
       await store.recordReveal(id, {
         engine_eval_cp: 0,
@@ -328,6 +348,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
       statedRead: "r",
       statedUnknown: "u",
       confidence: 3,
+      confidenceScale: CONFIDENCE_LEVELS,
     });
 
     const view = await currentClaim(store, { created_at: "2026-08-24T11:00:00.000Z" });
@@ -423,6 +444,7 @@ describe("the whole bridge, end to end", () => {
       statedRead: "r",
       statedUnknown: "u",
       confidence: 4,
+      confidenceScale: CONFIDENCE_LEVELS,
     });
   }
 });

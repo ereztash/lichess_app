@@ -85,6 +85,7 @@ function toAtom(
     bounded_action: {
       seconds_taken: decision.secondsTaken,
       confidence: decision.confidence,
+      ...(decision.confidenceScale === null ? {} : { confidence_scale: decision.confidenceScale }),
       candidate_moves_considered: decision.candidateMovesConsidered,
     },
     result: reveal
@@ -129,6 +130,7 @@ export class DrizzleRecordStore implements RecordStore {
       statedRead: input.statedRead,
       statedUnknown: input.statedUnknown,
       confidence: input.confidence,
+      confidenceScale: input.confidenceScale,
     };
     // Append-only: no onDuplicateKeyUpdate. A repeated decision_id is a bug, not an update.
     await db.insert(decisions).values(row);
@@ -732,6 +734,7 @@ export class MemoryRecordStore implements RecordStore {
       bounded_action: {
         seconds_taken: row.secondsTaken,
         confidence: row.confidence,
+        ...(row.confidenceScale === null ? {} : { confidence_scale: row.confidenceScale }),
         candidate_moves_considered: row.candidateMovesConsidered,
       },
       result,

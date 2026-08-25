@@ -126,8 +126,27 @@ export const PREREGISTERED_MIN_BUCKET_N = 20;
  * The margin is real but smaller than the arithmetic of "six tests instead of one" suggests, and
  * the reason is the one already recorded above: the six bucketings are not six independent tests.
  * Three phase buckets partition the same decisions and the two clock buckets overlap heavily.
+ *
+ * RAISED FROM 3.00 TO 3.25 WHEN THE CONFIDENCE SCALE WENT FROM FIVE LEVELS TO SEVEN, and the
+ * reason is worth writing down because it is not obvious: a FINER scale made the detector LESS
+ * safe. Confidence drawn uniformly over the levels has variance 0.125 on five and 0.090 on seven
+ * -- 72% of what it was -- because the seven-level grid is inset at .05/.95 and no longer reaches
+ * the ends. Less variance in the stated half means a smaller standard error of the gap
+ * difference, and the separability threshold IS a multiple of that standard error. So the same k
+ * became a lower bar, and noise started clearing it.
+ *
+ * RE-MEASURED ON THE SAME HARNESS THAT SET IT, worst false-positive rate over every bucketing,
+ * five record sizes and twelve seeds:
+ *
+ *     k       3.00    3.05    3.10    3.15    3.20    3.25    3.50    3.75
+ *     rate   2.50%   2.50%   2.50%   2.50%   2.50%   1.67%   1.67%   1.67%
+ *
+ * 3.25 is where it stops breaching the 2% ceiling, and nothing above it measures any better --
+ * the rate is 2 fires in 120 shuffles from there all the way up, so a larger k would cost power
+ * and buy nothing. THE OLD THREE-SEED NULL WAS TOO WEAK TO SEE THIS: at three seeds 3.10 already
+ * looked clean, and it is not. The seed count in the control moved with the constant.
  */
-export const PREREGISTERED_SEPARABILITY_K = 3.0;
+export const PREREGISTERED_SEPARABILITY_K = 3.25;
 
 /**
  * The most false positives on shuffled labels this build tolerates. GATE-SHUFFLE fails above it.
@@ -159,9 +178,6 @@ export interface BucketableDecision {
   secondsTaken: number;
   clockMsRemaining: number | null;
 }
-
-/** Confidence 1..5 -> 0..1. A 3 means "even odds", which is 0.5. */
-export const normaliseConfidence = (confidence: number) => (confidence - 1) / 4;
 
 /**
  * The gap of a SINGLE decision: what the player said, minus what happened.

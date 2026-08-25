@@ -7,8 +7,9 @@
  * "not enough decisions yet" and "not enough revealed decisions yet" are different states and
  * must not read the same (R2).
  */
+import { LEGACY_CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import type { DecisionAtom } from "./decision-atom.js";
-import { ACCURATE_CP_LOSS, normaliseConfidence, type ScoredDecision } from "./detector.js";
+import { ACCURATE_CP_LOSS, type ScoredDecision } from "./detector.js";
 
 export interface ScoringSummary {
   scored: ScoredDecision[];
@@ -28,7 +29,16 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
     }
     scored.push({
       decision_id: decisionIds[index] ?? `decision-${index}`,
-      confidence: normaliseConfidence(atom.bounded_action.confidence),
+      /*
+       * THE ONE PLACE THAT RESOLVES A MISSING SCALE, and it resolves it to a fact rather than a
+       * default: `confidence_scale` was added when the scale moved to seven, so a row without one
+       * was written while the scale had five levels. `normaliseConfidence` takes both arguments
+       * required precisely so this decision cannot be made anywhere else by accident.
+       */
+      confidence: normaliseConfidence(
+        atom.bounded_action.confidence,
+        atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
+      ),
       accurate: atom.result.cp_loss <= ACCURATE_CP_LOSS,
       phase: atom.entry_state.phase,
       secondsTaken: atom.bounded_action.seconds_taken,

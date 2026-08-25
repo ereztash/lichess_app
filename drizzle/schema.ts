@@ -50,6 +50,15 @@ export const decisions = mysqlTable(
     /** Atom `unknown`. See the deviation note in shared/decision-atom.ts. */
     statedUnknown: varchar("stated_unknown", { length: 200 }).notNull(),
     confidence: int("confidence").notNull(),
+    /**
+     * How many levels the scale had when that confidence was stated.
+     *
+     * NULLABLE ON PURPOSE, and it is not a missing value. Rows written before the scale moved to
+     * seven have no scale to record; NULL is the honest representation of "stated on the
+     * five-level scale", which is what a row of that age means. Backfilling it with a 5 would
+     * assert that someone recorded it, and nobody did.
+     */
+    confidenceScale: int("confidence_scale"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("decisions_game_idx").on(table.gameId)],

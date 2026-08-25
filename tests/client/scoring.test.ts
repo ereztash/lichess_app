@@ -1,3 +1,4 @@
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { scoreDecisions, silenceReason } from "@shared/scoring";
 import { loopPosition } from "@/lib/loop-position";
@@ -14,7 +15,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   known: "k",
   unknown: "u",
   decision: "e2e4",
-  bounded_action: { seconds_taken: 30, confidence: 4, candidate_moves_considered: ["e2e4"] },
+  bounded_action: { seconds_taken: 30, confidence: 4, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
   result: {
     engine_eval_cp: 20,
     engine_best_move: "e2e4",

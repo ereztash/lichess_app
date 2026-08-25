@@ -2005,7 +2005,17 @@ button:not(:disabled) {
 }
 .confidence-row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /*
+   * DERIVED, NOT COUNTED. This used to be `repeat(5, 1fr)`, which meant the number of levels was
+   * written down in two places -- once in shared/confidence.ts and once here -- and a scale that
+   * changed in one would silently render wrong in the other. `auto-fit` reads the count off the
+   * children, so the stylesheet no longer knows it.
+   *
+   * The minimum is the tap floor rather than a fraction, so seven targets stay 44px wide instead
+   * of splitting the row into seven unreachable slivers; where they will not fit, the row wraps,
+   * which is legible. Seven at 44 plus six gaps is 337px, so it holds on any panel this app has.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(var(--tap-floor), 1fr));
   gap: 0.3rem;
 }
 .confidence-row button {

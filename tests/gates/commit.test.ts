@@ -8,6 +8,7 @@
  * middleware and never reaches the commit gate at all -- it would make this suite pass for the
  * wrong reason, which is indistinguishable from not having the gate.
  */
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -89,7 +90,7 @@ const commit = (decisionId: string) =>
     known: "needs central space",
     unknown: "cannot judge the resulting pawn structure",
     decision: "e2e4",
-    bounded_action: { seconds_taken: 8, confidence: 3, candidate_moves_considered: ["e2e4"] },
+    bounded_action: { seconds_taken: 8, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
     result: null,
     feedback: null,
   });
@@ -138,7 +139,7 @@ describe("GATE-COMMIT: the engine does not speak before the decision is recorded
       known: "k",
       unknown: "u",
       decision: "e2e4",
-      bounded_action: { seconds_taken: 3, confidence: 2, candidate_moves_considered: [] },
+      bounded_action: { seconds_taken: 3, confidence: 2, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: [] },
       result: null,
       feedback: null,
     });

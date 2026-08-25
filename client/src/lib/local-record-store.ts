@@ -32,7 +32,7 @@ import type {
 const KEY = "decision-lab.record.v1";
 
 type Persisted = {
-  decisions: CommitDecisionInput[];
+  decisions: StoredDecision[];
   reveals: Record<string, DecisionResult>;
   feedbacks: Record<string, FeedbackInput>;
   claims: Record<string, Claim>;
@@ -339,11 +339,11 @@ function sameLearningRuleAuthorship(left: LearningRule, right: LearningRule): bo
   );
 }
 
-function rowsFor(state: Persisted, gameId?: string): CommitDecisionInput[] {
+function rowsFor(state: Persisted, gameId?: string): StoredDecision[] {
   return gameId ? state.decisions.filter((d) => d.gameId === gameId) : state.decisions;
 }
 
-function assemble(state: Persisted, row: CommitDecisionInput): DecisionAtom {
+function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
   const feedback = state.feedbacks[row.decisionId];
   return {
     entry_state: {
@@ -359,6 +359,7 @@ function assemble(state: Persisted, row: CommitDecisionInput): DecisionAtom {
     bounded_action: {
       seconds_taken: row.secondsTaken,
       confidence: row.confidence,
+      ...(row.confidenceScale === undefined ? {} : { confidence_scale: row.confidenceScale }),
       candidate_moves_considered: row.candidateMovesConsidered,
     },
     result: state.reveals[row.decisionId] ?? null,
@@ -366,4 +367,14 @@ function assemble(state: Persisted, row: CommitDecisionInput): DecisionAtom {
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
       : null,
   };
-}
+}/**
+ * A decision as it comes back OUT of storage, which is not the same shape as one going in.
+ *
+ * `confidenceScale` is required on the wire -- a live client always knows which scale its player
+ * answered on. But this store reads JSON that an EARLIER BUILD wrote, and those rows predate the
+ * field entirely. Typing them as if the field were always there would make the absence
+ * unrepresentable and the `?? LEGACY` below dead code that no test could reach.
+ */
+type StoredDecision = Omit<CommitDecisionInput, "confidenceScale"> & { confidenceScale?: number };
+
+

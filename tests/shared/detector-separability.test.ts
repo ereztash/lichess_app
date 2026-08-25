@@ -8,9 +8,12 @@
  * times sampling noise pushed it over, which is to say: the only times it fired were the times it
  * was wrong, and it got quieter about the truth the longer you played.
  *
- * That matters because 0.45 is enormous on this scale. `normaliseConfidence` maps 1..5 onto 0..1,
- * so one whole point of stated confidence is 0.25. A coaching-scale finding -- thirteen points of
- * accuracy plus half a point of confidence -- is 0.255, barely half the floor.
+ * That matters because 0.45 is enormous on this scale. When this was measured the scale had five
+ * levels running 0..1, so one whole point of stated confidence was 0.25, and a coaching-scale
+ * finding -- thirteen points of accuracy plus half a point of confidence -- came to 0.255, barely
+ * half the floor. The scale has since moved to seven inset levels and a point is `CONFIDENCE_STEP`
+ * = 0.15, which makes the same finding SMALLER against a fixed floor rather than larger. The
+ * figures above are left as they were measured; the argument they support only got stronger.
  *
  * THE CORRECT PATTERN WAS ALREADY IN THIS REPOSITORY, one file away. `worstBucketVerdict` in
  * shared/import-diagnostic.ts compares a separation against `2 * sqrt(var_a + var_b)` -- a
@@ -22,6 +25,7 @@
  * control, measured on the control's own harness, and the assertions below re-derive rather than
  * cite the properties that decision rests on.
  */
+import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, CONFIDENCE_STEP, normaliseConfidence } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_THRESHOLDS,
@@ -33,7 +37,6 @@ import {
   decisionGap,
   detect,
   gapDifferenceStandardError,
-  normaliseConfidence,
   seededRandom,
   shuffleControl,
   summarise,
@@ -45,19 +48,22 @@ import { makeNoise, noiseRecord } from "../fixtures/shuffle-scenario";
 /**
  * A record with a real effect planted in `fast-under-45s`.
  *
- * The true gap difference is exactly `accDrop + confLift`. `confLift` is delivered the only way a
- * 1..5 scale can deliver a fractional mean -- a share of the bucket's decisions state one point
- * higher -- because a player cannot state 3.5.
+ * The true gap difference is exactly `accDrop + confLift`. `confLift` is delivered the only way an
+ * ordinal scale can deliver a fractional mean -- a share of the bucket's decisions state one point
+ * higher -- because a player picks a button and cannot state a value between two of them. The
+ * share is `confLift / CONFIDENCE_STEP`, so the planted effect stays the size the caller asked
+ * for when the number of levels changes; it used to be `/ 0.25`, which silently rescaled every
+ * planted effect in this file the moment the scale moved.
  */
 function planted(n: number, seed: number, accDrop: number, confLift: number): ScoredDecision[] {
   const random = seededRandom(seed);
-  const stepChance = confLift / 0.25;
+  const stepChance = confLift / CONFIDENCE_STEP;
   return Array.from({ length: n }, (_, index) => {
     const secondsTaken = Math.floor(random() * 200);
     const fast = secondsTaken < 45;
     return {
       decision_id: `planted-${index}`,
-      confidence: normaliseConfidence(3 + (fast && random() < stepChance ? 1 : 0)),
+      confidence: normaliseConfidence(3 + (fast && random() < stepChance ? 1 : 0), CONFIDENCE_LEVELS),
       accurate: random() < (fast ? 0.55 - accDrop : 0.55),
       phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],
       secondsTaken,
@@ -202,7 +208,15 @@ describe("a bucket that cannot estimate its own error does not get to be certain
    *
    * After the guard: 0.00% in every cell.
    */
-  const SCALE = [0.25, 0.5, 0.75, 1] as const;
+  /*
+   * Any four levels off the real grid. What this null needs is a bucket with ZERO variance beside
+   * a bucket with some, so the values only have to be distinct and reachable -- but they are taken
+   * from the scale rather than written by hand, because a literal list here would go on claiming
+   * to be "the scale" after the scale changed.
+   */
+  const SCALE = CONFIDENCE_CHOICES.slice(-4).map((level) =>
+    normaliseConfidence(level, CONFIDENCE_LEVELS),
+  );
 
   function nullRecordWithFlatBucket(nOut: number, seed: number): ScoredDecision[] {
     const rnd = seededRandom(seed);
@@ -375,7 +389,7 @@ describe("the drill arm carried the same defect, where it cost a grade", () => {
   const baseline = summarise(
     Array.from({ length: 200 }, (_, i) => ({
       decision_id: `b${i}`,
-      confidence: normaliseConfidence(3),
+      confidence: normaliseConfidence(3, CONFIDENCE_LEVELS),
       accurate: i % 100 < 55,
       phase: "middlegame" as const,
       secondsTaken: 60,
@@ -387,7 +401,7 @@ describe("the drill arm carried the same defect, where it cost a grade", () => {
     const random = seededRandom(seed);
     return Array.from({ length: n }, (_, i) => ({
       decision_id: `d${i}`,
-      confidence: normaliseConfidence(3 + (random() < lift / 0.25 ? 1 : 0)),
+      confidence: normaliseConfidence(3 + (random() < lift / CONFIDENCE_STEP ? 1 : 0), CONFIDENCE_LEVELS),
       accurate: random() < 0.55 - 0.13,
     }));
   };

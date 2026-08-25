@@ -1,3 +1,4 @@
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { ATOM_FIELDS, atomFieldNames, decisionAtomSchema } from "../../shared/decision-atom";
 import { commitEventSchema } from "../../server/recordRouter";
@@ -20,6 +21,7 @@ async function reportFields(): Promise<string[]> {
     statedRead: "needs central space",
     statedUnknown: "cannot judge the resulting pawn structure",
     confidence: 3,
+    confidenceScale: CONFIDENCE_LEVELS,
   });
   const atom = await store.getAtom(decisionId);
   return Object.keys(atom!);

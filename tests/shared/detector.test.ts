@@ -5,7 +5,6 @@ import {
   MIN_BUCKET_N,
   SEPARABILITY_K,
   detect,
-  normaliseConfidence,
   seededRandom,
   shuffleLabels,
   summarise,
@@ -24,11 +23,12 @@ const decision = (over: Partial<ScoredDecision> = {}): ScoredDecision => ({
 });
 
 describe("calibration", () => {
-  it("maps confidence 1..5 onto 0..1 with 3 as even odds", () => {
-    expect(normaliseConfidence(1)).toBe(0);
-    expect(normaliseConfidence(3)).toBe(0.5);
-    expect(normaliseConfidence(5)).toBe(1);
-  });
+  /*
+   * The scale's own contract moved to tests/shared/confidence-scale.test.ts when it moved out of
+   * this module. It is not a detector concern: the detector only ever sees a probability, and
+   * which button produced it is the scale's business. Asserting it here as well would leave two
+   * files to update on a scale change and no rule about which one is right.
+   */
 
   it("reports a positive gap for overconfidence and negative for under", () => {
     const over = [decision({ confidence: 1, accurate: false })];

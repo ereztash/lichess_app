@@ -95,6 +95,8 @@ export type CommitEvent = {
   bounded_action: {
     seconds_taken: number;
     confidence: number;
+    /** Which scale that confidence was stated on. Optional in the type, refused below if absent. */
+    confidence_scale?: number;
     candidate_moves_considered: string[];
   };
   result: null;
@@ -113,6 +115,21 @@ export async function commitDecision(
       `שלב המשחק שנשלח (${input.entry_state.phase}) אינו תואם את העמדה (${phase}).`,
     );
   }
+  /*
+   * A DECISION ARRIVING WITHOUT ITS SCALE IS REFUSED, and the asymmetry with stored rows is
+   * deliberate. An old row's missing scale is resolved by its age -- it was written when there
+   * were five levels, and that is a fact. An incoming one has no age to appeal to: it is a live
+   * client that did not say which scale its player answered on, and reading a `4` as 0.75 or 0.50
+   * would be a coin toss over what someone actually said. Refusing is the only honest option, and
+   * it fails loudly at the boundary rather than quietly in the record.
+   */
+  const confidenceScale = input.bounded_action.confidence_scale;
+  if (confidenceScale === undefined) {
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה נשלחה בלי לציין על איזה סולם ביטחון היא נאמרה, ולכן אי אפשר לקרוא אותה.",
+    );
+  }
   const row: CommitDecisionInput = {
     decisionId: input.decision_id,
     gameId: input.entry_state.game_id,
@@ -126,6 +143,7 @@ export async function commitDecision(
     statedRead: input.known,
     statedUnknown: input.unknown,
     confidence: input.bounded_action.confidence,
+    confidenceScale,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.

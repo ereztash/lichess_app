@@ -2,7 +2,7 @@
  * THE COMMITMENT SCREEN (section 4.1).
  *
  * The player states a move, what they can read in the position, what they cannot evaluate, and a
- * confidence 1-5. NOTHING from the engine is on screen, in the DOM, or in the network tab while
+ * confidence on the seven-level scale. NOTHING from the engine is on screen, in the DOM, or in the network tab while
  * this is mounted.
  *
  * This is not a training gimmick. An engine knows what the position needed; it has no idea what
@@ -42,6 +42,7 @@
  * refused: the interface would be shaping the record rather than holding it. They advance on an
  * explicit "next", or on tapping any other step's header.
  */
+import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
 import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
 import {
@@ -68,14 +69,6 @@ interface CommitmentScreenProps {
   pending: boolean;
   error?: CommitFailureText;
 }
-
-const CONFIDENCE_LABELS: Record<number, string> = {
-  1: "ניחוש",
-  2: "נוטה",
-  3: "סביר",
-  4: "בטוח",
-  5: "ודאי",
-};
 
 /** The four requirements, in the order the decision actually happens. */
 type StepId = "chosenMove" | "known" | "unknown" | "confidence";
@@ -231,7 +224,7 @@ export function CommitmentScreen({
       case "confidence":
         return draft.confidence === null
           ? null
-          : `${draft.confidence} · ${CONFIDENCE_LABELS[draft.confidence]}`;
+          : `${draft.confidence} · ${CONFIDENCE_LABELS[draft.confidence - 1]}`;
     }
   };
 
@@ -399,7 +392,7 @@ export function CommitmentScreen({
         <fieldset className="commitment-confidence" disabled={pending}>
           <legend className="sr-only">כמה אתם בטוחים</legend>
           <div className="confidence-row" dir="ltr">
-            {[1, 2, 3, 4, 5].map((level) => (
+            {CONFIDENCE_CHOICES.map((level) => (
               <button
                 key={level}
                 type="button"
@@ -411,7 +404,7 @@ export function CommitmentScreen({
                  * The em dash used to sit between them and broke the match, so someone using
                  * voice control could say what they saw and not be understood.
                  */
-                aria-label={`ביטחון ${level} ${CONFIDENCE_LABELS[level]}`}
+                aria-label={`ביטחון ${level} ${CONFIDENCE_LABELS[level - 1]}`}
                 aria-pressed={draft.confidence === level}
                 onClick={() => {
                   setConfidenceStatedAt((Date.now() - startedAt.current) / 1000);
@@ -425,7 +418,7 @@ export function CommitmentScreen({
                 }}
               >
                 <b>{level}</b>{" "}
-                <small>{CONFIDENCE_LABELS[level]}</small>
+                <small>{CONFIDENCE_LABELS[level - 1]}</small>
               </button>
             ))}
           </div>
