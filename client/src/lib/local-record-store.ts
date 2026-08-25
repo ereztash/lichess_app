@@ -14,6 +14,7 @@
  * the deployment -- it never leaves the machine.
  */
 import type { PreregisteredHypothesis } from "@shared/prereg";
+import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
 import type {
@@ -42,6 +43,8 @@ type Persisted = {
   learningTransferResults: LearningTransferResult[];
   /** Append-only, newest last. See shared/prereg.ts. */
   preregs: PreregisteredHypothesis[];
+  /** Append-only, newest last. See shared/import-diagnostic.ts. */
+  importReadings: StoredImportDiagnostic[];
 };
 
 const empty = (): Persisted => ({
@@ -55,6 +58,7 @@ const empty = (): Persisted => ({
   learningTransfers: {},
   learningTransferResults: [],
   preregs: [],
+  importReadings: [],
 });
 
 /**
@@ -300,6 +304,23 @@ export class LocalRecordStore implements RecordStore {
     const state = read();
     state.preregs = [...state.preregs, structuredClone(hypothesis)];
     write(state);
+  }
+
+  /*
+   * The scan's reading, kept so that closing the overlay stops discarding it. Same append-only
+   * shape as the hypothesis above and for the same reason: a second import must not erase which
+   * rates were on screen when the first one was registered.
+   */
+  async saveImportDiagnostic(reading: StoredImportDiagnostic): Promise<void> {
+    const state = read();
+    state.importReadings = [...state.importReadings, structuredClone(reading)];
+    write(state);
+  }
+
+  async getImportDiagnostic(): Promise<StoredImportDiagnostic | null> {
+    const rows = read().importReadings;
+    const newest = rows[rows.length - 1];
+    return newest ? structuredClone(newest) : null;
   }
 
   async getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null> {

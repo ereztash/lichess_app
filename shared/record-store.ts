@@ -9,6 +9,7 @@
  */
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
 import type { PreregisteredHypothesis } from "./prereg.js";
+import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
 import type { LearningRule, LearningTransfer, LearningTransferResult } from "./learning-record.js";
 import type { Phase } from "./phase.js";
@@ -73,6 +74,16 @@ export interface RecordStore {
   savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void>;
   /** The newest registered hypothesis, or null when the record has never had one. */
   getPreregisteredHypothesis(): Promise<PreregisteredHypothesis | null>;
+
+  // --- The imported reading, kept (shared/import-diagnostic.ts) -------------------------
+  /**
+   * Keep a scan's reading. Append-only for the same reason as the hypothesis above: a second
+   * import writes a new row, so which rates were on screen when a hypothesis was registered
+   * stays recoverable instead of being overwritten by the next scan.
+   */
+  saveImportDiagnostic(reading: StoredImportDiagnostic): Promise<void>;
+  /** The newest kept reading, or null when no scan has ever been run on this record. */
+  getImportDiagnostic(): Promise<StoredImportDiagnostic | null>;
 
   /**
    * Can this store actually hold a decision right now?

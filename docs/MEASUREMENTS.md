@@ -879,3 +879,397 @@ where a scoped token resolves to nothing and the paragraph would have lost its s
 `:root` token, and the reason is asserted rather than left in a comment.
 
 Twenty-two positive controls, each confirmed red.
+
+## A constant rendered nine times as though it were data
+
+The first real reading this app has produced came from its owner scanning 20 of his own Lichess
+games: **554 decisions, 9 buckets, 3 excluded as forced.** No bucket separated from the next by
+more than its own sampling error, so the screen correctly declined to name a weakest one. That part
+worked. What the reading exposed was the table around it.
+
+`ImportDiagnostic` rendered `פער כיול — לא נמדד` inside **every** `li`, and
+`.import-diagnostic .bucket-absent` gave it `grid-column: 1 / -1`. So the "column" was not a column:
+each bucket occupied two visual rows, and the second one carried the identical five words as the
+eight above it. The CSS comment directly above the rule said *"Three columns on every row"* — a
+comment describing a layout the rule below it collapsed.
+
+Measured by rendering the panel against the nine buckets of that actual reading:
+
+```
+                          before   after
+full-width "absent" rows       9       0
+text nodes                    66      60
+words                        227     195
+most-repeated string     9x "פער כיול — לא נמדד"   (gone)
+```
+
+**Nothing was hidden.** The fact is still stated — once, above the table, and with the scope made
+explicit rather than left to be inferred from nine sightings: *"פער כיול — לא נמדד באף שורה, גם
+באלה שיש בהן דיוק."* The per-row version was protecting something real, that a reader must not
+conclude the rows carrying an accuracy also carry a gap, and saying "in every row" in as many words
+protects it more directly than repetition does.
+
+**Why this is not the record dashboard's problem too.** Both render `.bucket-list` and the
+correspondence is deliberate, so the list markup is untouched. The dashboard's third column holds a
+per-bucket signed gap — real data that differs per row. Only the import's third column is invariant,
+and an invariant is not a column.
+
+**What is still repeated, and why it was left.** `דיוק` renders 8 times, once per measurable row,
+because a grid with no header row has nowhere else to name the column; removing the label would
+leave bare percentages. Fixing it properly means converting to a real `<table>`, which would break
+the deliberate correspondence with `RecordDashboard` unless both move together. Recorded rather than
+half-done.
+
+Four positive controls, each confirmed red: the note deleted entirely; `באף שורה` removed; the
+clause naming the rows that do carry an accuracy removed; and the constant re-added into the rows.
+
+## The reading now outlives the overlay that produced it
+
+The scan cost 971 positions and 43 seconds on the one machine it was measured on, and its result
+lived in `useState` inside `ImportGames`. Closing the overlay discarded it, and the only way back
+was to pay again. The most expensive artefact this app produces was the one it did not keep.
+
+`saveImportDiagnostic` / `getImportDiagnostic` mirror the pre-registration pattern exactly: the
+interface, the local store, the Drizzle store, the memory store, and one additive migration
+(`0001_damp_magneto.sql`, CREATE TABLE only, no ALTER). Append-only, newest displayed, so which
+rates were on screen when a hypothesis was registered stays recoverable after the next scan.
+
+**What is stored is not the diagnostic.** A diagnostic alone is a set of rates with no origin. At
+the moment of the scan the origin is on screen; reopened a week later the same rates with no date
+attached stop being a measurement and become a standing claim about the person. So the stored
+object carries the account, the game count, and `scanned_at` -- stamped by the service and NOT by
+the caller, for the same reason `registerHypothesis` refuses the caller's `decisions_before`.
+
+**A partial scan is shown and not kept (R2).** `aborted` means the player stopped it, and the
+diagnostic then covers only what got scored. Honest to render right now, dishonest to persist:
+reopened later it would be indistinguishable from a complete reading of the same games. The panel
+says so on screen rather than letting the missing rail entry be the only clue.
+
+**Not promoted.** Same `rail-button`, same rail, below the scan. The reading is a set of accuracy
+rates, and accuracy is what this product argues is not the thing worth measuring -- a front-page
+placement would have the app contradict its own empty calibration column. What was broken was that
+a 43-second scan could not be reopened at all. The entry renders only once something is behind it.
+
+### Two regressions this caused, both caught by existing tests
+
+**The tRPC coupling.** The first version called `useSaveImportReading()` inside `ImportGames`, and
+`import-cost.test.tsx` -- which mounts that component with no providers, deliberately -- went red on
+six assertions about text with no connection to storage. The dependency is now injected as
+`keepReading`, for the same reason `analyze` is a prop and the panel takes `bridge` as a slot.
+
+**The mobile rail's hand-maintained column count.** `ux-contract.test.ts` asserts one column per
+tool so none is orphaned onto its own row, and the CSS carried `repeat(5, 1fr)` under a comment
+reading *"there are five tools"*. The saved-reading entry renders conditionally, so the rail now
+holds five OR six and no fixed number is right for both. `repeat(auto-fit, minmax(0, 1fr))` plus
+`grid-auto-flow: column` puts however many exist on one row. Measured in Chromium at 390x844:
+
+```
+                       buttons   rows   tap box    h-overflow
+no reading kept              5      1    74x87px        false
+reading kept                 6      1    62x87px        false
+```
+
+Both stay above the 44px floor WCAG 2.5.8 asks for.
+
+Driven end-to-end on the built asset with a seeded reading: the rail entry appears, the panel
+reopens with `erez281 - 20 games - scanned 24 August 16:00`, nine rows, zero per-row repeated
+constant, and no "not kept" warning on a reading that was kept.
+
+Six positive controls, each confirmed red: save made a no-op; append replaced by overwrite; the
+service made to honour a caller-supplied `scanned_at`; the provenance line removed; the not-kept
+warning removed; and `ImportGames` reaching the record hook directly again. Two more for the rail:
+back to a fixed column count, and `grid-auto-flow` removed.
+
+## Counting which of its four sentences the product actually produces
+
+`chose-past-it` is the only sentence here no other chess tool can write. Every engine knows the
+best move; none knows it was already on your board, because none makes you commit first. It fires
+on decision one and needs no aggregation. **None of which matters if it fires three times in a
+hundred, and that number has never been measured.**
+
+`OneThingKind` labels the four branches and `oneThingMix` counts them over the record. It calls
+`theOneThing` rather than restating its conditions -- a copy would drift the first time a threshold
+moved, and then the measurement OF the product would disagree with the product, silently, in
+whichever direction flattered the thing edited last.
+
+`reveal.ts` moved from `client/src/lib/` to `shared/`. It had **no imports at all**, so the move
+was mechanical; it is there so `recordReading` can assemble the mix server-side too. The mix is
+assembled in `record-service` and not inside `readRecord`, because it needs fields `ScoredDecision`
+deliberately does not carry -- the moves that were on the board, the chosen move, the engine's move
+and the loss. That separation is the reason the two types exist.
+
+**The ceiling is reported beside the count.** `eligible` counts decisions above the engine noise
+and at or over the material line -- the only ones where "did you see it?" applies at all. Without
+it the first row reads as "how often I see it and choose past it", and it is not that: the record
+holds moves physically put on the board, so a player who calculated four moves and touched one
+leaves a list of length one. **The count is a floor, never an estimate.**
+
+It cannot be taken from the 554 already scanned. An imported PGN carries no record of what was on
+the board before the move, so `candidate_moves_considered` is empty for every imported decision and
+this branch can never fire for one. Asserted.
+
+**A control that went green, and what it found.** The anti-drift assertion compares the counter
+against `theOneThing` over a fixture set. Swapping the counter for a hand-copied branch set with
+the material line moved 20cp **passed** -- every fixture sat 40cp clear of that line, so both
+classified them identically. The fixtures now sit ON the thresholds (100, 101, 110, 119, 30, 31)
+and the control goes red. The test was real; its data could not see the defect it was written for.
+
+### A defect in the product's most reliable output
+
+`theOneThing` returns null on two disjoint bands and the panel printed one sentence for both:
+
+```
+cpLoss <= 30, confidence >= 3      -> inside the noise. The sentence was right.
+31 <= cpLoss <= 99, ANY confidence -> NOT inside the noise, and nothing was measured
+                                      about confidence -- silent at 5/5 as much as 3/5.
+```
+
+The sentence was *"בחרת בתוך רעש ההערכה והביטחון שלך תאם"*. On the whole 31-99 band that states a
+basis the file's own constants contradict, and section 4.5 was broken at the same time: two
+different situations rendering as one sentence. The band was untested -- every fixture in
+`reveal.test.ts` and `reveal-order.test.tsx` sits at 4 or 20 centipawns.
+
+`silenceBasis` splits them. The second sentence names the loss and both thresholds it sits between,
+so the refusal now carries its own basis. **The refusal is this product's most reliable output and
+it was over-claiming about itself**, which is worse than any of the four sentences over-claiming.
+
+Found by an external review pass reading the code, not by a test. Four positive controls, each red:
+the counter's denominator taking unrevealed decisions; silence dropped from the denominator; the
+eligibility ceiling computed without the material line; the branch priority inverted. Plus two for
+the silence split: the single sentence restored, and the basis computed from the wrong threshold.
+
+## The differentiator was collecting its input silently
+
+Three independent expert reviews -- product marketing, product strategy, value-proposition design
+-- were run against this codebase, and all three arrived at the same finding from different
+directions: **`candidate_moves_considered` is the only reason this product can ever say "the
+engine's move was already on your board", and nothing on screen told the player it was being
+recorded.** `CommitmentScreen` received the array as a prop (line 95, building `live`) and rendered
+it nowhere.
+
+The strategy review pushed it further: during `stage === "deciding"` a dragged move is marked, not
+played, and the player is shown nothing of the resulting position. So there is no reason to put a
+second move on the board **except to change which move you intend to play** -- meaning the array
+records *abandonment*, not comparison, and its expected length is 1. If that is right, the fire
+rate of the product's one unique finding is near zero **by construction of the interface**, not by
+anything about the players.
+
+The panel now discloses what it holds. Disclosure, not instruction, and the distinction is the
+whole design:
+
+- **No count.** A number beside a list is a score, and a score invites raising it.
+- **No target, no progress, no praise.** Asserted by tests against imperatives and celebration.
+- **The wording is byte-identical at one move and at four.** If it warmed up as the list grew, the
+  panel would be grading board behaviour, which is the inducement this refuses. Asserted.
+- **It renders from the FIRST move, not the second.** Appearing at two would make two a threshold,
+  and a threshold that appears on reaching it is a reward.
+- **It states the asymmetry in the direction the array actually runs**: a move here WAS in front of
+  the player; a move absent may still have been considered and never touched. So the record can
+  show a move was there, never that it was not.
+
+**Why the mix had to ship visible in the same change, and not after.** Making the input visible can
+induce performative candidate-adding -- players dragging moves they did not consider. That would
+turn the array into an artifact of the interface, the same contamination that got pre-filled read
+chips refused. It also contaminates the denominator of `oneThingMix`, which is the instrument built
+to measure the fire rate. Shipping the affordance without the reading visible would have removed
+the ability to detect a contamination this change itself introduced.
+
+Driven on the built asset, 1440x1500:
+
+```
+after 1 move   list: [e2e4]           note rendered
+after 2 moves  list: [e2e4, g1f3]     note byte-identical to the 1-move version
+```
+
+**A CSS defect caught before it shipped.** The first version of these rules used `--fs-label` and
+`--fs-body`, which do not exist -- the panel's scale is `--panel-title/data/body/label/fine`. Three
+`font-size` declarations would have silently resolved to nothing: the `--edge: var(--edge)` failure
+in a third shape, found by grepping for the token definitions rather than by trusting the names.
+
+**A control that never ran, and looked green.** The control removing the one-way clause from the
+asymmetry note reported all tests passing. The perl pattern spanned a JSX line break and matched
+nothing, so no mutation was applied -- a no-op reported as a survived assertion. Re-run against the
+actual line, it goes red. **A control that cannot be shown to have changed the file is not a
+control**, and diffing the mutated file against the original is the cheap way to prove it did.
+
+Eight positive controls, each confirmed red: the disclosure removed; appearing only at two moves; a
+count added; wording that warms as the list grows; the one-way clause dropped; the mix dropped from
+the dashboard; the ceiling removed from the mix; shares reported below the floor.
+
+**Not built, and named rather than assumed away.** The strategy review also proposed a sixth
+`declaredTension` firing when exactly one move was put down at confidence >= 4. Refused: a question
+that appears *because* you recorded one candidate is a nudge to record more, whatever its wording,
+and it would contaminate the measurement in the same direction as a count.
+
+## The touch order was being thrown away at write time
+
+Found by an external review pass in chess-expertise research, reading the code.
+
+`handleBoardMove` (Home.tsx) appends each distinct move in the order it was put on the board, and
+the chosen move is in there at its own position -- choosing is touching. The write then did:
+
+```ts
+candidate_moves_considered: [...new Set([draft.chosenMove!, ...draft.candidatesConsidered])]
+```
+
+`Set` keeps the FIRST occurrence, so prepending the chosen move forced it to index 0 and discarded
+where it actually fell. The comment above it -- *"the chosen move is always among the candidates
+considered"* -- names a guarantee the array already satisfied, and bought it at the cost of order.
+
+**What that erased.** Whether the engine's move was touched FIRST and then abandoned, or touched
+LAST and rejected. Those are opposite events. One is *"you had it and talked yourself out of it"*;
+the other is *"you weighed it and decided against it"* -- and the two bodies of literature on move
+choice prescribe opposite remedies for them. The product asserts the second reading in as many
+words (`chose-past-it`: *"what decided between them is what to look at, not the seeing"*) and could
+not tell which one it was looking at.
+
+`keepTouchOrder` appends instead of prepending. It costs the player nothing: no new field, no new
+interaction, same array type, same cap.
+
+**The regression the naive fix introduces, and the reason this is not one expression.** Appending
+puts the chosen move last when it is absent from the list, so a player who touched nine distinct
+moves would have it sliced off by the cap -- leaving an atom whose `decision` is not among its own
+`candidate_moves_considered`, which is incoherent and would silently break the one branch that
+reads the field. The first eight are kept in touch order, and if the chosen move fell outside that
+window it takes the last slot: the record then says "this was touched, late" rather than losing it.
+
+Three positive controls, each confirmed red **and confirmed to have actually mutated the file**:
+prepending restored; the truncation guard removed; the cap removed. The file-diff check is there
+because a control earlier in this branch reported green without ever running -- its pattern spanned
+a JSX line break and changed nothing.
+
+## The detector's threshold makes it worse with more data
+
+Reported by an external review pass in chess coaching, which ran the shipped `detect()` against
+simulated records. **Reproduced independently here with a different simulation**, 300 records per
+cell, planting a real effect in the `fast-under-45s` bucket:
+
+```
+scenario                              n=120    n=300    n=600   n=1200   n=2400
+A  no real effect (null)               0.0%     0.0%     0.0%     0.0%     0.0%
+B  coach-scale: 13pt acc, +0.5 conf   26.7%    10.0%     3.7%     0.7%     0.0%
+C  large: sits exactly on the line    52.7%    50.7%    50.7%    48.3%    48.3%
+```
+
+**Row B is the finding: the detector's power FALLS monotonically as the record grows.**
+
+The mechanism. `MIN_GAP_DIFFERENCE = 0.45` is a fixed effect-size floor applied to a point
+estimate, with no dependence on `n`. As decisions accumulate the estimate converges onto its true
+value (0.25 in scenario B) and stops randomly exceeding 0.45. Early on, sampling noise sometimes
+pushes it over. **So the only times it fires on a sub-threshold real effect are the times it is
+wrong.** Row C is the same defect from the other side: an effect sitting on the line is a permanent
+coin flip that no amount of play resolves, because nothing accumulates -- it is a point against a
+line, not a test.
+
+**Row A is the part that works.** The false-positive control is clean at every size, and
+GATE-SHUFFLE genuinely validated it. What the gate never tested is a *sub-threshold real* effect,
+which is the region every actual human occupies.
+
+**The correct pattern is already in this repository, one file away.** `worstBucketVerdict` in
+`shared/import-diagnostic.ts` computes `2 * sqrt(var_a + var_b)` and compares separation against
+it -- an n-dependent separability test whose threshold shrinks as the sample grows, which is how a
+test behaves. The import screen is statistically sound. The detector, which is what the product
+leads on, is not, and does not use it.
+
+**This re-reads the one real result the product has.** The 554-decision import that separated
+nothing was not bad luck or a small sample. Under a fixed floor of 0.45 on a scale where one full
+point of stated confidence is 0.25, that is what the detector returns for a human being.
+
+NOT FIXED HERE. Two further review passes (calibration measurement, psychometrics) were running
+against this same scoring path when this was found, and one planned change beats two conflicting
+ones in the same file.
+
+## A forced mate is not a centipawn quantity, and the live reveal read it as one
+
+Found while sizing the detector fix above, because everything the detector reads is derived from
+`accurate`, and `accurate` is `cp_loss <= 30`.
+
+`parseAnyInfo` stores a `score mate N` line as `scoreCp = N * 10000`. That is an ordering, not a
+magnitude — it makes *mate in nine* score higher than *mate in eight* — and `cpLossFromSearches`
+consumed it as centipawns. Driven through the shipped functions, not a copy of them:
+
+```
+delivering mate in 9, play the BEST move   cp_loss= 10000  ->  inaccurate
+delivering mate in 2, play the BEST move   cp_loss= 10000  ->  inaccurate
+mate in 9 available, throw it away (+11)   cp_loss= 88899  ->  inaccurate
+quiet position, blunder INTO being mated   cp_loss= 50040  ->  inaccurate
+being mated in 4, ACCELERATE to mate 1     cp_loss=     0  ->  ACCURATE
+ordinary: best +0.40, chosen -0.60         cp_loss=   100  ->  inaccurate
+```
+
+**Both errors are directional and they point the same way.** Row 1 and row 2 land on moves that
+force mate — typically stated at high confidence — and mark them wrong. Row 5 lands on a hopeless
+position, typically stated at low confidence, and marks it right. Both widen the measured gap
+between stated confidence and realised accuracy, and both concentrate in the endgame, which the
+detector has a phase bucket for.
+
+**GATE-SHUFFLE could not have caught it.** `shuffleLabels` permutes the bucket labels while
+leaving `accurate` attached to its decision, so a phase-correlated corruption survives in the
+observed statistic and is destroyed in the null — the gate would have certified this as signal.
+
+### The two paths disagreed about the same move
+
+The import scan clamps mate to a fixed `MATE_SCORE = 10000`; the live reveal multiplied the mate
+distance by 10000. Same engine output, same move, opposite verdicts:
+
+```
+White to move, can force mate in 9, plays the fastest mate
+  UCI before (White to move): score mate 9      after (Black to move): score mate -8
+  live path    cp_loss = 10000  -> inaccurate
+  import path  cp_loss =     0  -> ACCURATE
+```
+
+One constant now, in `shared/reveal.ts`, read by both — `shared/` cannot import from `client/`,
+which is why it lives beside `ENGINE_NOISE_CP` rather than beside the parser. `comparableCp` is
+the only thing allowed to turn a line into a number, and `cpLossFromSearches` takes `EngineLine`s
+rather than numbers so a caller cannot hand it the wrong field again.
+
+**The clamp is disclosed, not hidden.** A mate reveal now carries a limit sentence naming the
+ceiling and the discarded quantity (the distance to mate), and the cost renders as
+`0 ס״פ מול תקרת מט` rather than a bare `0 ס״פ` — because on a mating move zero means *nothing was
+better than this*, and unclamped zero means *this move changed nothing*, and those are opposite
+readings of identical glyphs (4.5).
+
+### `mate 0` was worth nothing at all
+
+`Math.sign(0)` is `0`, so the import path's clamp scored a position where the side to move is
+**already checkmated** as dead level — in the direction that flatters whoever just got mated.
+Now `mate > 0 ? +MATE_SCORE : -MATE_SCORE`.
+
+### The engine saying nothing, read as the engine saying zero
+
+A terminal position has no legal reply, so no `info` line carries a principal variation, so
+`analyze` **resolves** with `emptyLine` — `scoreCp: 0` — rather than rejecting. A search that
+times out resolves the same way. Driven end to end through the real `analyzePositions`, a game
+where White is +5.00 throughout and delivers mate:
+
+```
+White-relative evals per position: [ 500, 500, 500, 500, 500, 0 ]
+the MATING move (ply 5, White): before=500 after=0
+  cp_loss = 500  ->  inaccurate
+```
+
+**The best move of the game, scored as a 500-centipawn blunder, on the winner.**
+
+Live, this is now answered from the rules rather than from the engine: `after.isCheckmate()` →
+loss 0 (nothing outscores mate), `after.isGameOver()` → the position really is 0.00, so the
+ordinary comparison holds. It also saves one search per game-ending decision. A search that comes
+back empty for any *other* reason now throws into the existing engine-failure screen rather than
+producing a reveal built on zeroes that is indistinguishable from one built on an evaluation.
+
+**23 assertions, 12 positive controls, each confirmed red and each diffed against the original to
+prove the mutation reached the file.**
+
+### NOT FIXED HERE: the same defect on the import path
+
+`analyzePositions` still returns `0` for a position the engine did not evaluate, so the mating
+move of every imported game that ended in mate is still scored as a blunder — the measurement
+above was taken against the shipped import path and still reproduces. Fixing it means
+`evalScores` becomes `(number | null)[]`, which is the input type of `shared/eval-analysis.ts`,
+`shared/import-diagnostic.ts`, `GameReview` and the game-review screen in `Home.tsx`. That is a
+different change in four modules, and the reason it is recorded rather than bundled is the one
+already established above: one planned fix beats two conflicting ones in the same path.
+
+Size on the one real reading: 20 games, 554 decisions. Every game that ended in checkmate
+contributes exactly one such decision, so the affected share is at most 20/554 = 3.6% and lands
+only on the player's best move of that game.

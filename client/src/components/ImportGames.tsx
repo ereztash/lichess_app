@@ -17,6 +17,24 @@ type Props = {
    * import of stockfish.ts puts 7MB of wasm into the initial module graph and GATE-COMMIT fails.
    */
   analyze: (fen: string, depth: number) => Promise<EngineLine>;
+  /**
+   * Where a finished reading goes so that closing this overlay stops discarding it.
+   *
+   * Injected for the same reason `analyze` is, and for the same reason `ImportDiagnosticPanel`
+   * takes `bridge` as a slot rather than building it: reaching the record needs a tRPC context or
+   * the local store, and calling that hook in here made every test of this screen depend on a
+   * provider it has nothing to do with. That regression is what put this prop here -- the first
+   * attempt did call the hook, and `import-cost.test.tsx`, which mounts this component with no
+   * providers at all, went red on six assertions about text that has no connection to storage.
+   *
+   * Optional, and its absence means exactly what it says: nowhere to keep the reading, so the
+   * reading is not kept and the panel says so rather than implying it will be there tomorrow.
+   */
+  keepReading?: (input: {
+    username: string;
+    games: number;
+    diagnostic: ImportDiagnostic;
+  }) => Promise<unknown>;
 };
 
 const RESULT_LABEL: Record<string, string> = {
@@ -38,7 +56,7 @@ const RESULT_LABEL: Record<string, string> = {
  * Usernames, ratings and dates are Latin/numeric inside an RTL page, so each is marked ltr
  * individually rather than letting the paragraph direction reorder them.
  */
-export function ImportGames({ onLoad, onClose, analyze }: Props) {
+export function ImportGames({ onLoad, onClose, analyze, keepReading }: Props) {
   const [username, setUsername] = useState("");
   const [games, setGames] = useState<ImportedGame[] | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
@@ -46,6 +64,8 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
   const [progress, setProgress] = useState<ImportRunProgress | null>(null);
   const [diagnostic, setDiagnostic] = useState<ImportDiagnostic | null>(null);
   const [scanFailure, setScanFailure] = useState<string | null>(null);
+  /** Whether the reading on screen was persisted. False for a scan the player stopped. */
+  const [kept, setKept] = useState(true);
   const abort = useRef<AbortController | null>(null);
 
   const search = async () => {
@@ -54,6 +74,7 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
     setGames(null);
     setDiagnostic(null);
     setScanFailure(null);
+    setKept(true);
     const result = await fetchUserGames(username, 20);
     setLoading(false);
     if (result.ok) setGames(result.games);
@@ -77,6 +98,27 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
         onProgress: setProgress,
       });
       setDiagnostic(result.diagnostic);
+      /*
+       * KEPT ONLY IF IT FINISHED (R2).
+       *
+       * `aborted` means the player stopped the scan partway, and the diagnostic then covers only
+       * the games that got scored. Showing that in the overlay is honest -- the stop just
+       * happened and the reader knows why the numbers are thin. Persisting it is not: reopened
+       * next week from the rail it would be indistinguishable from a complete reading of the same
+       * games, and its rates would be a sample of whatever the scan happened to reach before the
+       * click. So a partial scan renders and is not kept, and the panel says as much.
+       *
+       * The save is deliberately not awaited into the render path and its failure is swallowed:
+       * a full localStorage must not turn a finished scan into an error screen. The reading is on
+       * screen either way; what is lost is only the ability to reopen it, and the rail simply
+       * will not offer an entry that has nothing behind it.
+       */
+      const keeping = !result.aborted && keepReading !== undefined;
+      if (keeping) {
+        void keepReading({ username, games: games.length, diagnostic: result.diagnostic })
+          .catch(() => {});
+      }
+      setKept(keeping);
     } catch (error) {
       // R2: a scan that did not finish must not leave a reading on screen that looks finished.
       setDiagnostic(null);
@@ -181,6 +223,7 @@ export function ImportGames({ onLoad, onClose, analyze }: Props) {
       {diagnostic && (
         <ImportDiagnosticPanel
           diagnostic={diagnostic}
+          kept={kept}
           bridge={<PreregisterBridge diagnostic={diagnostic} games={games?.length ?? 0} />}
         />
       )}

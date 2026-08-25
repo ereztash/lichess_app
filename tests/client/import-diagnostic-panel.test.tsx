@@ -59,14 +59,41 @@ const SEPARATED = reading([
 ]);
 
 describe("the column that stays empty", () => {
-  it("shows an unmeasured calibration cell on every row, measurable rows included", () => {
+  it("says the gap is unmeasured for EVERY row, measurable rows included", () => {
     /*
-     * On every row, not only the unreadable ones. A gap missing from the thin rows reads as
-     * "not yet"; a gap missing from all six is the actual state -- nobody was ever asked for a
-     * confidence in a game already played, so there is no gap to compute from this data at all.
+     * The fact this protects, unchanged: a gap missing only from the thin rows would read as
+     * "not yet", and a reader must not conclude that the rows carrying an accuracy carry a gap
+     * too. Nobody was asked for a confidence in a game already played, so no gap exists to be
+     * computed from this data at all -- for any row.
+     *
+     * What changed is where it is said. It used to be five words repeated into every `li`; it is
+     * now one sentence above the table that names the scope out loud.
      */
     render(<ImportDiagnosticPanel diagnostic={SEPARATED} />);
-    expect(screen.getAllByText(/פער כיול — לא נמדד/)).toHaveLength(6);
+    const note = document.querySelector(".bucket-absent-note");
+    expect(note, "the panel no longer states that the gap column is empty at all").not.toBeNull();
+    expect(note!.textContent).toMatch(/פער כיול/);
+    // "in every row" has to be explicit, because it is no longer demonstrated by repetition.
+    expect(note!.textContent).toMatch(/באף שורה/);
+    // And it has to reach the rows that DO carry a number, which are the ones at risk of
+    // being read as a finished diagnosis.
+    expect(note!.textContent).toMatch(/שיש בהן דיוק/);
+  });
+
+  it("does not repeat that constant into the rows", () => {
+    /*
+     * The defect this replaced. `.bucket-absent` rendered inside every `li` at
+     * `grid-column: 1 / -1`, so each bucket took two visual rows and the second was identical
+     * across all of them -- nine repetitions on the reading that prompted the change. A value
+     * that is the same on every row is not data.
+     */
+    const { container } = render(<ImportDiagnosticPanel diagnostic={SEPARATED} />);
+    expect(
+      container.querySelectorAll(".bucket-list li .bucket-absent"),
+      "the constant is being rendered per row again",
+    ).toHaveLength(0);
+    // Stated once for the table, not once per bucket.
+    expect(container.querySelectorAll(".bucket-absent-note")).toHaveLength(1);
   });
 
   it("says why the column is empty, and that importing more will not fill it", () => {

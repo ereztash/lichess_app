@@ -12,6 +12,7 @@ import {
 import { MIN_BUCKET_N } from "@shared/detector";
 import type { RecordReading } from "@shared/record-service";
 import { NotMeasured, Proportion, SignedProportion } from "./Value";
+import type { OneThingKind, OneThingMix } from "@shared/reveal";
 
 /**
  * The record, laid out.
@@ -158,6 +159,8 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         ))}
       </ul>
 
+      <MixBlock mix={reading.mix} />
+
       <p className="review-caveat">
         פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
         לא אומר דבר על הדירוג שלך ולא על שיפור.
@@ -173,5 +176,65 @@ export function RecordDashboardLoading() {
         <Loader2 size={14} /> קורא את הרשומה…
       </p>
     </section>
+  );
+}
+
+const MIX_LABEL: Record<OneThingKind, string> = {
+  "chose-past-it": "המהלך של המנוע היה על הלוח שלכם ובחרתם אחר",
+  "confident-and-wrong": "ביטחון גבוה, והמהלך עלה חומר",
+  outplayed: "המהלך עלה חומר",
+  "trusted-it-too-little": "בחרתם נכון בתוך הרעש, ואמרתם ביטחון נמוך",
+};
+
+/**
+ * WHICH OF ITS FOUR SENTENCES THE RECORD ACTUALLY PRODUCED.
+ *
+ * Not a finding about the player -- a reading of the instrument. `chose-past-it` is the only
+ * sentence in this product that no other chess tool can write, it arrives on decision one, and
+ * whether it can carry any weight depends entirely on how often it fires. Nobody has ever
+ * measured that, and it cannot be taken from imported games: a PGN carries no record of what was
+ * on the board before the move, so the branch can never fire for one.
+ *
+ * The floor is MIN_BUCKET_N, reused rather than invented. A fresh threshold here would be exactly
+ * the unjustified number this product spends its whole time refusing -- and a mix over nine
+ * decisions is noise wearing four percentage signs.
+ */
+function MixBlock({ mix }: { mix: OneThingMix }) {
+  if (mix.n < MIN_BUCKET_N) {
+    return (
+      <div className="mix-block">
+        <h4 className="dash-title">מה הכלי אמר לכם עד כה</h4>
+        <NotMeasured
+          reason={`נחשפו ${mix.n} החלטות, ונדרשות ${MIN_BUCKET_N} כדי לדווח על ההתפלגות. עד אז כל אחוז כאן היה רעש.`}
+        />
+      </div>
+    );
+  }
+  return (
+    <div className="mix-block">
+      <h4 className="dash-title">מה הכלי אמר לכם עד כה</h4>
+      <ul className="bucket-list">
+        {(Object.keys(MIX_LABEL) as OneThingKind[]).map((kind) => (
+          <li key={kind}>
+            <span className="bucket-scope">{MIX_LABEL[kind]}</span>
+            <Proportion value={mix.counts[kind] / mix.n} n={mix.n} />
+          </li>
+        ))}
+        <li>
+          <span className="bucket-scope">לא היה מה לומר — בחרתם בתוך הרעש והביטחון תאם</span>
+          <Proportion value={mix.silent / mix.n} n={mix.n} />
+        </li>
+      </ul>
+      {/*
+        * The ceiling, and the reason the first row can never reach it. Without this the reader
+        * takes the first row for "how often I see it and choose past it", and it is not that.
+        */}
+      <p className="mix-note">
+        מתוך {mix.n} ההחלטות, ב-{mix.eligible} ההפסד עבר את רעש המנוע והגיע לכדי חומר — רק בהן
+        השאלה "ראיתם את המהלך?" בכלל חלה. <strong>השורה הראשונה היא רצפה, לא הערכה:</strong> היא
+        סופרת רק מהלכים שהנחתם פיזית על הלוח. מהלך ששקלתם בראש ולא נגעתם בו אינו נרשם, ולכן מספר
+        האמיתי של "ראיתי ובחרתי אחרת" גבוה ממנו ולא ידוע כמה.
+      </p>
+    </div>
   );
 }

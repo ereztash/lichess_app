@@ -10,7 +10,8 @@ import {
   Plus,
   Stethoscope,
   Sun,
-  UserSearch,  HelpCircle } from "lucide-react";
+  UserSearch,  HelpCircle,
+  History } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +35,7 @@ import type { DrillSpec } from "@shared/claim";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
+import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import { SelfCheck } from "@/components/SelfCheck";
 import { WhatThisIs } from "@/components/WhatThisIs";
@@ -65,6 +67,8 @@ import {
   useReveal,
   useStartDrill,
   useStartLearningTransfer,
+  useImportReading,
+  useSaveImportReading,
 } from "@/lib/record-api";
 import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
 import { MoveTimeline } from "@/components/MoveTimeline";
@@ -79,11 +83,12 @@ import {
 import {
   buildCommitEvent,
   cpLossFromSearches,
+  cpLossOfFinalMove,
   engineMayRun,
   type DraftDecision,
   type SessionStage,
 } from "@/lib/decision-session";
-import type { RevealInputs } from "@/lib/reveal";
+import type { RevealInputs } from "@shared/reveal";
 import {
   commitFailureText,
   readableFailureText,
@@ -107,7 +112,13 @@ import {
   OPPONENT_FAILURE_TEXT,
   type OpponentDepth,
 } from "@/lib/opponent";
-import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
+import {
+  comparableCp,
+  hasEvaluation,
+  isStale,
+  type EngineLine,
+  type EngineStatus,
+} from "@/lib/engine-line";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 
@@ -158,6 +169,9 @@ export default function Home() {
   const [engineStatus, setEngineStatus] = useState<EngineStatus>(INITIAL_STATUS);
   const [pgnInput, setPgnInput] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [showReading, setShowReading] = useState(false);
+  const importReading = useImportReading();
+  const saveImportReading = useSaveImportReading();
   const [reviewScores, setReviewScores] = useState<number[] | null>(null);
   const [reviewProgress, setReviewProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -541,13 +555,36 @@ export default function Home() {
         const best = await engine.analyze(positionFen, 14);
         const after = new Chess(positionFen);
         after.move({ from: move!.from, to: move!.to, promotion: "q" });
-        const chosen = await engine.analyze(after.fen(), 14);
-        setAnalysis(best.pv.length ? best : null);
+        /*
+         * WHETHER THERE IS A SECOND POSITION TO SEARCH AT ALL.
+         *
+         * A move that ends the game leaves nothing to search: no legal reply means no principal
+         * variation, so the parser rejects every `info` line and `analyze` RESOLVES -- it does
+         * not reject -- with `emptyLine`, whose `scoreCp` is 0. The comparison then read that as
+         * a dead-level evaluation and charged the player their whole advantage for winning: mate
+         * delivered from +5.00 was scored as a 500-centipawn blunder, on the best move of the
+         * game. Asking the rules instead of the engine is both correct and one search cheaper.
+         */
+        const ended = after.isCheckmate() ? "checkmate" : after.isGameOver() ? "draw" : null;
+        const chosen = ended === null ? await engine.analyze(after.fen(), 14) : null;
 
-        const cpLoss = cpLossFromSearches(best.scoreCp, chosen.scoreCp);
+        /*
+         * R2, and the reason this is a throw rather than a fallback. A search can also come back
+         * empty because it TIMED OUT -- `analyze` resolves with the same sentinel on its timer --
+         * and that is a position nothing measured. The outer catch already owns this case and
+         * renders the engine-failure screen; the alternative is a reveal built on zeroes that is
+         * indistinguishable from one built on an evaluation.
+         */
+        if (!hasEvaluation(best) || (chosen !== null && !hasEvaluation(chosen))) {
+          throw new Error("engine returned no evaluation for this decision");
+        }
+        setAnalysis(best);
+
+        const cpLoss =
+          ended === null ? cpLossFromSearches(best, chosen!) : cpLossOfFinalMove(best, ended);
         const bestMove = best.bestMove ?? draft.chosenMove!;
         const inputs: RevealInputs = {
-          depth: Math.min(best.depth, chosen.depth),
+          depth: chosen === null ? best.depth : Math.min(best.depth, chosen.depth),
           cpLoss,
           chosenMove: draft.chosenMove!,
           bestMove,
@@ -563,6 +600,13 @@ export default function Home() {
            * closure, and it is the one that describes the decision being revealed.
            */
           candidatesConsidered: draft.candidatesConsidered,
+          /*
+           * Carried so the reveal can say which distance the number threw away. A mate on either
+           * search means `cpLoss` was measured against MATE_SCORE, a ceiling, and the sentence
+           * that says so is the difference between "nothing was better than this" and "this move
+           * changed nothing" -- which read identically as "0 ס״פ".
+           */
+          clampedMate: best.mate !== undefined || chosen?.mate !== undefined,
         };
         setRevealInputs(inputs);
 
@@ -570,7 +614,9 @@ export default function Home() {
           await submitReveal.mutateAsync({
             decision_id: decisionId,
             result: {
-              engine_eval_cp: best.scoreCp,
+              // The clamp, not the mate distance: `scoreCp` on a mate line is distance x 10000,
+              // and the record is read back as centipawns by anything that reads it at all.
+              engine_eval_cp: comparableCp(best),
               engine_best_move: bestMove,
               engine_depth: inputs.depth,
               engine_source: "local_sf18",
@@ -1111,6 +1157,32 @@ export default function Home() {
             <UserSearch size={18} />
             <span>ייבוא לפי שם</span>
           </button>
+          {/*
+            * The way back to a reading that has already been paid for.
+            *
+            * Deliberately NOT promoted: same `rail-button`, same rail, below the scan that
+            * produces it. The reading is a set of accuracy rates, and accuracy is precisely what
+            * this product argues is not the thing worth measuring -- putting it on the front page
+            * would make the app say the opposite of what its own empty calibration column says.
+            * What was broken was that a 43-second scan could not be reopened at all; that is a
+            * reachability defect, not an argument for a headline.
+            *
+            * The entry renders only once something is behind it. A button that opens an empty
+            * panel is a button that lies about what the record holds.
+            */}
+          {importReading.reading && (
+            <button
+              className="rail-button"
+              onClick={() => {
+                setShowReading((v) => !v);
+                setShowImport(false);
+                setShowPgn(false);
+              }}
+            >
+              <History size={18} />
+              <span>קריאה שמורה</span>
+            </button>
+          )}
           <button className="rail-button" onClick={openLichess}>
             <Link2 size={18} />
             <span>Lichess</span>
@@ -1179,9 +1251,30 @@ export default function Home() {
             </Overlay>
           )}
 
+          {showReading && importReading.reading && (
+            <Overlay label="הקריאה השמורה" onClose={() => setShowReading(false)}>
+              {/*
+                * The same panel, reopened. Not a summary of it and not a second rendering of the
+                * same numbers in a smaller font: section 4.5 says two states must not render
+                * alike, and the converse holds too -- the same reading in two places must not
+                * render as two different findings. What is added is the provenance, because a
+                * rate reopened later with no scan date behind it stops being a measurement.
+                */}
+              <ImportDiagnosticPanel
+                diagnostic={importReading.reading.diagnostic}
+                provenance={{
+                  username: importReading.reading.username,
+                  games: importReading.reading.games,
+                  scannedAt: importReading.reading.scanned_at,
+                }}
+              />
+            </Overlay>
+          )}
+
           {showImport && (
             <Overlay label="ייבוא לפי שם משתמש" onClose={() => setShowImport(false)}>
               <ImportGames
+                keepReading={saveImportReading.mutateAsync}
                 onLoad={loadLichessGame}
                 onClose={() => setShowImport(false)}
                 analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}

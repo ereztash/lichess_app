@@ -8,7 +8,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { pvBacking, rootChoice, type RootLine } from "../../client/src/lib/pv-support";
-import { ENGINE_NOISE_CP } from "../../client/src/lib/reveal";
+import { ENGINE_NOISE_CP } from "../../shared/reveal";
 
 /** The line from the panel the player was looking at. */
 const REAL_PV = ["h5", "Qh4", "Ng6", "Bxe5", "Nxh4", "Bxc7", "Rh6", "Bg3"];

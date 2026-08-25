@@ -10,6 +10,7 @@
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
 import type { DecisionAtom } from "@shared/decision-atom";
+import { comparableCp, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
 
@@ -130,14 +131,49 @@ export function buildCommitEvent(
     bounded_action: {
       seconds_taken: secondsTaken,
       confidence: draft.confidence!,
-      // The chosen move is always among the candidates considered.
-      candidate_moves_considered: [
-        ...new Set([draft.chosenMove!, ...draft.candidatesConsidered]),
-      ].slice(0, 8),
+      /*
+       * TOUCH ORDER IS THE DATA, and this line used to destroy it.
+       *
+       * `handleBoardMove` appends each distinct move in the order it was put on the board, and
+       * the chosen move is in there at its own position -- choosing is touching. The old write
+       * was `new Set([chosenMove, ...touched])`, which prepends; `Set` keeps the FIRST
+       * occurrence, so the chosen move was forced to index 0 and its real position was lost.
+       *
+       * What that erased: whether the engine's move was touched FIRST and then abandoned, or
+       * touched LAST and rejected. Those are opposite events. One is "you had it and talked
+       * yourself out of it"; the other is "you weighed it and decided against it" -- and the two
+       * bodies of literature on move choice prescribe opposite remedies for them. The product
+       * currently asserts the second reading in as many words. It cannot tell which it has.
+       *
+       * Appending instead of prepending keeps the guarantee (the chosen move is always present)
+       * and costs the player nothing: no new field, no new interaction, same array type.
+       */
+      candidate_moves_considered: keepTouchOrder(
+        draft.candidatesConsidered,
+        draft.chosenMove!,
+      ),
     },
     result: null,
     feedback: null,
   };
+}
+
+/**
+ * The moves that were on the board, in the order they got there, capped at what the atom holds.
+ *
+ * The cap is the reason this is not one expression. Truncation must never drop the move actually
+ * played -- an atom whose `decision` is absent from its own candidate list is incoherent, and it
+ * would silently break the one branch that reads this field. So the first `MAX` are kept in touch
+ * order, and if the chosen move fell outside that window it takes the last slot: the record then
+ * says "this was touched, late" rather than losing it, which is true and is the least it can say.
+ */
+const MAX_CANDIDATES = 8;
+
+export function keepTouchOrder(touched: string[], chosenMove: string): string[] {
+  const ordered = [...new Set([...touched, chosenMove])];
+  const kept = ordered.slice(0, MAX_CANDIDATES);
+  if (!kept.includes(chosenMove)) kept[kept.length - 1] = chosenMove;
+  return kept;
 }
 
 /** Centipawn loss from the mover's perspective. Never negative: choosing better than the
@@ -155,8 +191,44 @@ export function centipawnLoss(bestEvalCp: number, chosenEvalCp: number): number 
  *
  * Getting this backwards produces a plausible number with the wrong sign, which is exactly the
  * kind of error that survives review and then feeds a claim.
+ *
+ * IT TAKES LINES AND NOT NUMBERS, and that is the fix rather than a tidying. It used to take two
+ * `scoreCp` values, and `scoreCp` on a mate line is the mate distance times ten thousand -- so
+ * the caller handed it a quantity that is not centipawns and it had no way to know. Measured
+ * against the shipped code, on positions the engine reports as mate:
+ *
+ *     delivering mate in 9, playing the FASTEST mate   -> cp_loss 10000 -> "inaccurate"
+ *     delivering mate in 2, playing the FASTEST mate   -> cp_loss 10000 -> "inaccurate"
+ *     being mated in 4, ACCELERATING it to mate in 1   -> cp_loss     0 -> "ACCURATE"
+ *
+ * Both errors push the calibration gap the same way -- the first lands on decisions stated at
+ * full confidence and marks them wrong, the second lands on hopeless positions and marks them
+ * right -- and both concentrate in the endgame, where the detector has a phase bucket. Taking
+ * the line means `comparableCp` is unavoidable and a caller cannot reintroduce this by passing
+ * the wrong field.
  */
-export function cpLossFromSearches(bestScoreCp: number, afterChosenScoreCp: number): number {
-  const chosenFromPlayersView = -afterChosenScoreCp;
-  return centipawnLoss(bestScoreCp, chosenFromPlayersView);
+export function cpLossFromSearches(best: EngineLine, afterChosen: EngineLine): number {
+  const chosenFromPlayersView = -comparableCp(afterChosen);
+  return centipawnLoss(comparableCp(best), chosenFromPlayersView);
+}
+
+/**
+ * The cost of a move that ENDED the game, where there is no second search to compare against.
+ *
+ * A terminal position has no legal reply, so the engine emits no principal variation and
+ * `analyze` resolves with `emptyLine` -- `scoreCp: 0`. Fed to the comparison above, that reads as
+ * a dead-level evaluation, and the arithmetic then charges the player their entire advantage for
+ * winning: a mate delivered from a +5.00 position scored as a 500-centipawn blunder, on the best
+ * move of the game.
+ *
+ * Neither outcome needs the engine, because both are facts of the rules rather than evaluations:
+ *
+ *   - Checkmate is the best available move by definition. Nothing scores higher, so the loss is
+ *     zero. This is not the clamp and not a convention; there is no better move to have played.
+ *   - A draw by stalemate, repetition, the fifty-move rule or insufficient material really is
+ *     0.00, so the loss is whatever the player was giving up by drawing -- which is the ordinary
+ *     comparison against a genuine zero.
+ */
+export function cpLossOfFinalMove(best: EngineLine, outcome: "checkmate" | "draw"): number {
+  return outcome === "checkmate" ? 0 : centipawnLoss(comparableCp(best), 0);
 }

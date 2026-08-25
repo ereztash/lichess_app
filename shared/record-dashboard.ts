@@ -20,6 +20,7 @@ import {
   type CalibrationSummary,
   type ScoredDecision,
 } from "./detector.js";
+import type { OneThingMix } from "./reveal.js";
 
 export type BucketReading = {
   key: string;
@@ -57,6 +58,15 @@ export type RecordReading = {
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
   scored: number;
+  /**
+   * Which of the reveal's four sentences the record actually produced.
+   *
+   * A reading of the INSTRUMENT, not of the player: `chose-past-it` is the one finding here that
+   * no other chess tool can make, and whether it can carry any weight depends on how often it
+   * fires -- which nobody has ever measured. Assembled in `recordReading` rather than here,
+   * because it needs the atoms and `readRecord` only ever sees scored decisions.
+   */
+  mix: OneThingMix;
 };
 
 /**
@@ -66,7 +76,10 @@ export type RecordReading = {
  * reason, not an absent row. A screen that simply omits the buckets it cannot measure looks like
  * a screen that measured everything.
  */
-export function readRecord(decisions: ScoredDecision[]): RecordReading {
+export function readRecord(
+  decisions: ScoredDecision[],
+  mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0 },
+): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
   const anyClock = decisions.some((d) => d.clockMsRemaining !== null);
@@ -99,5 +112,5 @@ export function readRecord(decisions: ScoredDecision[]): RecordReading {
     };
   });
 
-  return { overall: summarise(decisions), buckets, confidence, scored: decisions.length };
+  return { overall: summarise(decisions), buckets, confidence, scored: decisions.length, mix };
 }

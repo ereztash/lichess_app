@@ -459,21 +459,112 @@ button:not(:disabled) {
 }
 
 /*
- * The import diagnostic is the record's table with one column replaced. Three columns on every
- * row including the unmeasurable ones, because the third column -- the gap that was never stated
- * -- is the point of the screen and must not vanish on the rows that have least to say.
+ * The import diagnostic is the record's table with one column replaced. Two columns on every
+ * row including the unmeasurable ones; the third column -- the gap that was never stated -- is
+ * the point of the screen, and it is named once above the list rather than repeated into it.
+ *
+ * The previous rule gave `.bucket-absent` `grid-column: 1 / -1`, which is the opposite of a
+ * column: it made every bucket two visual rows, the second one identical to the last eight.
+ * Stating an invariant once is not the same as hiding it -- the note is the first thing above
+ * the table and it says "in every row" in as many words.
  */
 .import-diagnostic .bucket-list li,
 .import-diagnostic .bucket-list li.unmeasurable {
   grid-template-columns: minmax(0, 1fr) auto;
   row-gap: 4px;
 }
-.import-diagnostic .bucket-absent {
-  grid-column: 1 / -1;
-  font-size: 10px;
-  line-height: 1.35;
-  color: rgba(var(--ink-rgb), 0.45);
+/*
+ * Provenance, shown only on a reading reopened from storage. Quiet by design: it is the source
+ * line for the numbers below it, not a finding of its own.
+ */
+.import-provenance {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+/*
+ * A reading that will not survive the session (R2). Warn-coloured because it is a limit on what
+ * is on screen, not a neutral aside -- and distinct from `.import-provenance`, since "kept, from
+ * August 24" and "not kept at all" are different states and section 4.5 forbids rendering them
+ * alike.
+ */
+.import-not-kept {
+  margin: 6px 0 0;
+  padding: 7px 9px;
+  border-inline-start: 2px solid var(--warn);
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--warn);
+}
+/*
+ * The instrument's own reading. Same list mechanics as the buckets above it, because it IS the
+ * same kind of table -- a scope and a proportion per row, each carrying its n.
+ */
+/*
+ * What the board is recording. Deliberately quiet: no count, no target, no progress. It is a
+ * disclosure of what the record now holds, and anything that reads as encouragement would turn
+ * `candidate_moves_considered` into an artifact of this panel rather than a record of the player.
+ */
+.commitment-candidates {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--hairline);
+}
+.candidates-label {
+  display: block;
+  font-size: var(--panel-label);
+  color: var(--muted);
+}
+.candidates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 5px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.candidates-list li {
+  padding: 3px 7px;
+  background: var(--raise);
+  font-family: inherit;
+  font-size: var(--panel-data);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.candidates-note {
+  margin: 6px 0 0;
+  font-size: var(--panel-label);
+  line-height: 1.45;
+  color: var(--muted);
+}
+.candidates-note strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.mix-block {
+  margin-top: 14px;
+}
+.mix-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.mix-note strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+.bucket-absent-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.bucket-absent-note strong {
+  color: var(--ink);
+  font-weight: 700;
 }
 .import-observation {
   margin-top: 10px;
@@ -1405,9 +1496,17 @@ button:not(:disabled) {
   .control-rail {
     min-height: 0;
     display: grid;
-    /* There are five tools. Four columns orphaned the fifth onto a row of its own, which read as
-       a layout fault rather than a tool. */
-    grid-template-columns: repeat(5, 1fr);
+    /*
+     * One column per tool that actually renders, not a count maintained by hand.
+     *
+     * It was `repeat(5, 1fr)` with a comment saying "there are five tools", and that was true
+     * until the saved-reading entry appeared -- which renders only once a scan has been kept, so
+     * the rail now holds five OR six depending on the record. A hard-coded number cannot be right
+     * for both: five columns orphan the sixth onto its own row, six leave a dead cell when there
+     * is no reading. `auto-fit` puts however many exist on one row and collapses the empty track.
+     */
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    grid-auto-flow: column;
     border-left: 0;
     margin-bottom: 16px;
   }

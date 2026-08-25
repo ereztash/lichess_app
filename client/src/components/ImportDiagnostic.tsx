@@ -9,6 +9,9 @@
  * That empty column is the product's argument, and it is made by showing it rather than by
  * claiming it. A screen that quietly dropped the column would read as a complete diagnosis.
  *
+ * It is stated once for the table rather than once per row -- see the note above the list for
+ * what that changed and what it deliberately did not.
+ *
  * WHAT THIS DELIBERATELY DOES NOT RENDER, because each would be a claim nothing here measured:
  *
  *   - A baseline, a target, or a verdict on the player.
@@ -92,8 +95,27 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
 export function ImportDiagnosticPanel({
   diagnostic,
   bridge,
+  kept = true,
+  provenance,
 }: {
   diagnostic: Diagnostic;
+  /**
+   * Whether the reading on screen was persisted (R2).
+   *
+   * False for a scan the player stopped partway. Such a reading is honest to show right now --
+   * the stop just happened -- and dishonest to keep, because reopened later it would be
+   * indistinguishable from a complete reading of the same games. When it is false the panel says
+   * so, rather than letting the absence of an entry in the rail be the only clue.
+   */
+  kept?: boolean;
+  /**
+   * Whose games, how many, and when — present only when this reading came back FROM storage.
+   *
+   * Omitted at the moment of the scan, where the origin is obvious from the screen the player is
+   * standing on. Required afterwards: the same rates reopened days later with no date attached
+   * stop being a measurement and become a standing claim about the person (section 4.4).
+   */
+  provenance?: { username: string; games: number; scannedAt: string };
   /**
    * The registration offer, passed in rather than constructed here.
    *
@@ -108,6 +130,60 @@ export function ImportDiagnosticPanel({
     <section className="import-diagnostic">
       <h4 className="dash-title">מה שנמדד במשחקים שייבאתם</h4>
 
+      {/*
+        * The provenance line, and the reason it exists only on the way back.
+        *
+        * At the moment of the scan the player is standing on the screen that ran it, so naming
+        * the account and the date would restate what they just did. Reopened from the rail a week
+        * later it is the whole difference between a measurement and a verdict: "57% accuracy" is
+        * a claim about a person, "57% across 20 games of erez281 read on 24 August" is an
+        * observation with an edge. Section 4.4 asks for the triple; this is the source half.
+        */}
+      {provenance && (
+        <p className="import-provenance">
+          <span dir="ltr">{provenance.username}</span> · {provenance.games} משחקים · נסרק{" "}
+          <time dateTime={provenance.scannedAt}>
+            {new Date(provenance.scannedAt).toLocaleDateString("he-IL", {
+              day: "numeric",
+              month: "long",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </time>
+        </p>
+      )}
+
+      {/*
+        * R2. A scan the player stopped is shown but not kept, and the difference has to be on the
+        * screen rather than only in the rail: a reader who is not told will assume this reading
+        * will be here tomorrow, and it will not.
+        */}
+      {!kept && (
+        <p className="import-not-kept">
+          הסריקה נעצרה באמצע, ולכן הקריאה הזו לא נשמרת. היא מתארת רק את המשחקים שהספיקו להיסרק.
+          סריקה שתרוץ עד הסוף תישמר ותהיה זמינה שוב מהתפריט.
+        </p>
+      )}
+
+      {/*
+       * The empty column, stated ONCE for the whole table instead of once per row.
+       *
+       * It used to render inside every `li`, and `.import-diagnostic .bucket-absent` gave it
+       * `grid-column: 1 / -1` -- so it was never a column at all. Each bucket occupied two visual
+       * rows and the second one carried the identical five words. On the reading that prompted
+       * this change, nine buckets, that is nine repetitions of a constant.
+       *
+       * A value that is the same on every row is not data, and rendering it per row is the
+       * redundancy effect with the volume turned up: repeated information competes for attention
+       * with the information that differs. What the per-row version protected is real and is kept
+       * -- a reader must not conclude that the rows carrying an accuracy also carry a gap -- so
+       * the sentence says "in every row" explicitly rather than leaving it to be inferred from
+       * nine sightings.
+       */}
+      <p className="bucket-absent-note">
+        פער כיול — <strong>לא נמדד באף שורה</strong>, גם באלה שיש בהן דיוק.
+      </p>
+
       <ul className="bucket-list">
         {diagnostic.buckets.map((b) => (
           <li key={b.key} className={b.measurable ? "" : "unmeasurable"}>
@@ -117,12 +193,6 @@ export function ImportDiagnosticPanel({
             ) : (
               <Unmeasurable reason={b.unmeasurableReason} n={b.n} />
             )}
-            {/*
-             * The empty column, on every row including the measurable ones. It is not an error
-             * state and it does not fill in later from this data: no confidence was ever stated,
-             * so no gap exists to be measured.
-             */}
-            <span className="bucket-absent">פער כיול — לא נמדד</span>
           </li>
         ))}
       </ul>

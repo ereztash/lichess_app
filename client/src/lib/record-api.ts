@@ -21,6 +21,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
 import type { PreregisteredHypothesis } from "@shared/prereg";
+import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
 import type {
   LearningRuleDraft,
@@ -34,6 +35,7 @@ const LOCAL_KEYS = {
   reading: ["local-record", "reading"] as const,
   learningRules: ["local-record", "learning-rules"] as const,
   hypothesis: ["local-record", "hypothesis"] as const,
+  importReading: ["local-record", "import-reading"] as const,
 };
 
 /**
@@ -262,6 +264,46 @@ export function useRegisterHypothesis() {
       return out;
     },
   };
+}
+
+/**
+ * Keep a scan's reading, and read the kept one back.
+ *
+ * The reading used to live in a `useState` inside the import overlay, so closing it discarded a
+ * 43-second scan and the only way back was to run it again. These two hooks are the whole reason
+ * the panel can be reopened.
+ *
+ * `scanned_at` is not sent: the service stamps it, for the same reason it owns `decisions_before`
+ * on the hypothesis above.
+ */
+export function useSaveImportReading() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const queryClient = useQueryClient();
+  const server = trpc.record.saveImportReading.useMutation();
+  return {
+    mutateAsync: async (input: Omit<StoredImportDiagnostic, "scanned_at">) => {
+      const out = !local
+        ? await server.mutateAsync(input)
+        : await service.saveImportReading(store, input);
+      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.importReading });
+      return out;
+    },
+  };
+}
+
+/** The newest kept reading, or null. `null` and "still loading" are different states (4.5). */
+export function useImportReading(): { reading: StoredImportDiagnostic | null; loading: boolean } {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.importReading.useQuery(undefined, { retry: false, enabled: !local });
+  const localQuery = useQuery({
+    queryKey: LOCAL_KEYS.importReading,
+    queryFn: () => service.getImportReading(store),
+    enabled: local,
+  });
+  const active = local ? localQuery : server;
+  return { reading: active.data ?? null, loading: active.isLoading };
 }
 
 export function useDecisionCount(): CountView {

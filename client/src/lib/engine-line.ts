@@ -9,6 +9,10 @@
  * Anything the UI needs at module scope lives here. The implementation stays behind a dynamic
  * import (see Home's ensureEngine).
  */
+import { MATE_SCORE } from "@shared/reveal";
+
+export { MATE_SCORE };
+
 export type EngineMode = "loading" | "ready" | "thinking" | "error";
 
 export interface EngineStatus {
@@ -57,6 +61,41 @@ export function isStale(line: EngineLine | null, currentFen: string): boolean {
 }
 
 export const emptyLine = (fen: string): EngineLine => ({ scoreCp: 0, depth: 0, pv: [], fen });
+
+/**
+ * Whether the engine actually evaluated this position, or whether this is the sentinel.
+ *
+ * `emptyLine` carries `scoreCp: 0`, and a caller that does arithmetic on it gets a number that
+ * reads exactly like a dead-level evaluation. That is not a hypothetical: a search that times
+ * out RESOLVES with `emptyLine` rather than rejecting, and every terminal position resolves that
+ * way too -- checkmate and stalemate produce no `info ... pv ...` line for the parser to read.
+ * So "the engine said nothing" and "the engine said 0.00" were the same value, and the
+ * difference is the difference between a measurement and a blank.
+ *
+ * The parser is what makes `pv` sound as the witness: `parseAnyInfo` refuses any line without a
+ * principal variation, so a non-empty `pv` cannot come from anywhere but a real evaluation.
+ */
+export function hasEvaluation(line: EngineLine): boolean {
+  return line.pv.length > 0;
+}
+
+/**
+ * The one place that decides what a forced mate is worth on the centipawn scale.
+ *
+ * `scoreCp` on a mate line is NOT a centipawn quantity -- the parser fills it with the mate
+ * distance times ten thousand, which makes "mate in nine" score higher than "mate in eight" and
+ * therefore makes every step TOWARD mate look like a ten-thousand-centipawn blunder. Reading it
+ * as centipawns is the bug this function exists to make impossible; `pv-support.ts` already
+ * refuses the same comparison, and the live reveal was the path that did not.
+ *
+ * `mate 0` is why this is not `Math.sign`. UCI emits it when the side to move is ALREADY
+ * checkmated, and `Math.sign(0)` is 0 -- a delivered mate scored as dead level, in the direction
+ * that flatters whoever just got mated.
+ */
+export function comparableCp(line: Pick<EngineLine, "scoreCp" | "mate">): number {
+  if (typeof line.mate !== "number") return line.scoreCp;
+  return line.mate > 0 ? MATE_SCORE : -MATE_SCORE;
+}
 
 /**
  * One UCI `info` line, turned into an EngineLine. Returns undefined for a line that is not a

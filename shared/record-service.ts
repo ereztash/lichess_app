@@ -48,9 +48,11 @@ import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
+import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
+import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 
 /**
  * A refusal with a transport-neutral code.
@@ -545,6 +547,32 @@ export async function registerHypothesis(
 }
 
 /**
+ * Keep a scan's reading, so that closing the overlay stops throwing it away.
+ *
+ * `scanned_at` is stamped HERE and whatever the caller sent is discarded, for the same reason
+ * `registerHypothesis` refuses the caller's `decisions_before`: the scan date is the one field
+ * that decides whether a rate on screen reads as a measurement or as a standing claim about the
+ * player, and a caller that could choose it could keep a months-old reading looking current.
+ *
+ * No validation of the diagnostic itself. It is produced by `diagnoseImportedGames` and never by
+ * a user, so a schema check here would assert against this codebase rather than against input.
+ */
+export async function saveImportReading(
+  store: RecordStore,
+  input: Omit<StoredImportDiagnostic, "scanned_at">,
+  now: () => Date = () => new Date(),
+): Promise<StoredImportDiagnostic> {
+  const reading: StoredImportDiagnostic = { ...input, scanned_at: now().toISOString() };
+  await store.saveImportDiagnostic(reading);
+  return reading;
+}
+
+/** The newest kept reading, or null when no scan has ever run against this record. */
+export async function getImportReading(store: RecordStore): Promise<StoredImportDiagnostic | null> {
+  return store.getImportDiagnostic();
+}
+
+/**
  * Why the narrowed search cannot speak yet. A DIFFERENT sentence from the ordinary one, because
  * it is a different fact: the wait is shorter, it is counted only from the import onward, and it
  * is about one named bucket rather than about the record in general (section 4.5).
@@ -590,5 +618,20 @@ function emptySearchReason(
 export async function recordReading(store: RecordStore): Promise<RecordReading> {
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
-  return readRecord(scoreDecisions(atoms, ids).scored);
+  /*
+   * The branch mix is assembled HERE and not inside `readRecord`, because it needs fields that
+   * `ScoredDecision` deliberately does not carry: the moves that were on the board, the chosen
+   * move, the engine's move and the centipawn loss. `readRecord` sees only what a bucket may look
+   * at, which is the reason the two are separate types in the first place.
+   */
+  const mix = oneThingMix(
+    atoms.map((atom) => ({
+      confidence: atom.bounded_action.confidence,
+      candidatesConsidered: atom.bounded_action.candidate_moves_considered,
+      chosenMove: atom.decision,
+      cpLoss: atom.result?.cp_loss ?? null,
+      bestMove: atom.result?.engine_best_move ?? null,
+    })),
+  );
+  return readRecord(scoreDecisions(atoms, ids).scored, mix);
 }

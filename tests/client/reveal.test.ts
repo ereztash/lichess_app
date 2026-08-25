@@ -6,7 +6,7 @@ import {
   nextQuestion,
   theOneThing,
   type RevealInputs,
-} from "@/lib/reveal";
+} from "@shared/reveal";
 
 const base: RevealInputs = {
   depth: 20,

@@ -148,6 +148,36 @@ export interface ImportDiagnostic {
   speedMix: Array<{ speed: string; n: number }>;
 }
 
+/**
+ * A reading as KEPT, which is not the same object as a reading as computed.
+ *
+ * The diagnostic used to live in a `useState` inside the import overlay: closing it discarded the
+ * whole thing, and the only way back was to re-run the scan -- 971 positions and 43 seconds on the
+ * one machine it was measured on. The most expensive artefact this app produces was the one it
+ * did not keep.
+ *
+ * WHY THE EXTRA FIELDS. A diagnostic on its own is a set of rates with no origin. Shown at the
+ * moment of the scan the origin is obvious and the object can get away with omitting it; shown
+ * three days later from storage it is a number with no source, which is exactly what section 4.4
+ * forbids. So what is stored is the reading plus the three facts a reader needs to judge it: whose
+ * games, how many, and when. `scanned_at` in particular is the difference between "your accuracy"
+ * and "your accuracy across 20 games read on 24 August" -- the second is a measurement and the
+ * first is a claim about a person.
+ *
+ * Append-only, like everything else in this record. A second import writes a NEW row; the newest
+ * is the one displayed. Nothing edits a reading after the fact, so a rate on screen can always be
+ * traced to the scan that produced it.
+ */
+export interface StoredImportDiagnostic {
+  diagnostic: ImportDiagnostic;
+  /** The Lichess account the games were read from. Rendered with the reading, never inferred. */
+  username: string;
+  /** How many games the scan covered. Not the same as `diagnostic.scored`, which counts moves. */
+  games: number;
+  /** When the scan finished. ISO 8601. */
+  scanned_at: string;
+}
+
 export interface ImportedGameInput {
   /** One FEN per ply as `gamePositions()` produces them: index 0 is the starting position. */
   fens: string[];
