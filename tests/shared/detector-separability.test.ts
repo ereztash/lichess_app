@@ -45,6 +45,9 @@ import {
 import { evaluateRefutation } from "../../shared/drill";
 import { makeNoise, noiseRecord } from "../fixtures/shuffle-scenario";
 
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 /**
  * A record with a real effect planted in `fast-under-45s`.
  *
@@ -63,6 +66,7 @@ function planted(n: number, seed: number, accDrop: number, confLift: number): Sc
     const fast = secondsTaken < 45;
     return {
       decision_id: `planted-${index}`,
+      fen: NON_ANCHOR_FEN,
       confidence: normaliseConfidence(3 + (fast && random() < stepChance ? 1 : 0), CONFIDENCE_LEVELS),
       accurate: random() < (fast ? 0.55 - accDrop : 0.55),
       phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],
@@ -114,9 +118,9 @@ describe("the gap is one quantity per decision, not two averages subtracted", ()
      * divided by (3 - 1).
      */
     const three: ScoredDecision[] = [
-      { decision_id: "a", confidence: 1, accurate: false, phase: "middlegame", secondsTaken: 1, clockMsRemaining: null },
-      { decision_id: "b", confidence: 1, accurate: true, phase: "middlegame", secondsTaken: 1, clockMsRemaining: null },
-      { decision_id: "c", confidence: 0, accurate: true, phase: "middlegame", secondsTaken: 1, clockMsRemaining: null },
+      { decision_id: "a", fen: NON_ANCHOR_FEN, confidence: 1, accurate: false, phase: "middlegame", secondsTaken: 1, clockMsRemaining: null },
+      { decision_id: "b", fen: NON_ANCHOR_FEN, confidence: 1, accurate: true, phase: "middlegame", secondsTaken: 1, clockMsRemaining: null },
+      { decision_id: "c", fen: NON_ANCHOR_FEN, confidence: 0, accurate: true, phase: "middlegame", secondsTaken: 1, clockMsRemaining: null },
     ];
     expect(summarise(three).gap).toBeCloseTo(0, 12);
     expect(summarise(three).gapVariance).toBeCloseTo(2 / 2, 12);
@@ -132,6 +136,7 @@ describe("the gap is one quantity per decision, not two averages subtracted", ()
      */
     const locked: ScoredDecision[] = Array.from({ length: 40 }, (_, i) => ({
       decision_id: `l${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: i % 2 ? 1 : 0,
       accurate: i % 2 === 1,
       phase: "middlegame",
@@ -223,6 +228,7 @@ describe("a bucket that cannot estimate its own error does not get to be certain
     // Flat by construction here rather than by chance, so the test is deterministic.
     const inside: ScoredDecision[] = Array.from({ length: MIN_BUCKET_N + 2 }, (_, i) => ({
       decision_id: `i-${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: 0.75,
       accurate: true,
       phase: "opening" as const,
@@ -231,6 +237,7 @@ describe("a bucket that cannot estimate its own error does not get to be certain
     }));
     const outside: ScoredDecision[] = Array.from({ length: nOut }, (_, i) => ({
       decision_id: `o-${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: SCALE[Math.floor(rnd() * 4)],
       // Matched so the two expected gaps are equal: 0.625 - 0.425 = 0.75 - 0.55... the point is
       // only that there is no real difference to find, and the assertion is about the guard.
@@ -261,6 +268,7 @@ describe("a bucket that cannot estimate its own error does not get to be certain
     const rnd = seededRandom(4242);
     const inside: ScoredDecision[] = Array.from({ length: MIN_BUCKET_N + 2 }, (_, i) => ({
       decision_id: `i-${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: 1,
       accurate: rnd() < 0.1,
       phase: "opening" as const,
@@ -269,6 +277,7 @@ describe("a bucket that cannot estimate its own error does not get to be certain
     }));
     const outside: ScoredDecision[] = Array.from({ length: 300 }, (_, i) => ({
       decision_id: `o-${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: SCALE[Math.floor(rnd() * 4)],
       accurate: rnd() < 0.8,
       phase: "middlegame" as const,
@@ -389,6 +398,7 @@ describe("the drill arm carried the same defect, where it cost a grade", () => {
   const baseline = summarise(
     Array.from({ length: 200 }, (_, i) => ({
       decision_id: `b${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: normaliseConfidence(3, CONFIDENCE_LEVELS),
       accurate: i % 100 < 55,
       phase: "middlegame" as const,
@@ -401,6 +411,7 @@ describe("the drill arm carried the same defect, where it cost a grade", () => {
     const random = seededRandom(seed);
     return Array.from({ length: n }, (_, i) => ({
       decision_id: `d${i}`,
+      fen: NON_ANCHOR_FEN,
       confidence: normaliseConfidence(3 + (random() < lift / CONFIDENCE_STEP ? 1 : 0), CONFIDENCE_LEVELS),
       accurate: random() < 0.55 - 0.13,
     }));

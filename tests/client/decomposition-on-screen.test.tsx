@@ -23,6 +23,9 @@ import { readRecord } from "@shared/record-dashboard";
 import type { ScoredDecision } from "@shared/detector";
 import { RecordDashboard } from "@/components/RecordDashboard";
 
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 /*
  * Only the responsive wrapper is stubbed, not the whole library. A blanket Proxy mock over
  * `recharts` hangs the run: React probes every export for `$$typeof` and friends, and a Proxy
@@ -42,6 +45,7 @@ const at = (level: number) => normaliseConfidence(level, CONFIDENCE_LEVELS);
 const run = (level: number, count: number, hits: number, seed: number): ScoredDecision[] =>
   Array.from({ length: count }, (_, i) => ({
     decision_id: `d-${seed + i}`,
+    fen: NON_ANCHOR_FEN,
     confidence: at(level),
     accurate: i < hits,
     phase: "middlegame" as const,

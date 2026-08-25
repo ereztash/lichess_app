@@ -29,6 +29,7 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
     }
     scored.push({
       decision_id: decisionIds[index] ?? `decision-${index}`,
+      fen: atom.entry_state.fen,
       /*
        * THE ONE PLACE THAT RESOLVES A MISSING SCALE, and it resolves it to a fact rather than a
        * default: `confidence_scale` was added when the scale moved to seven, so a row without one

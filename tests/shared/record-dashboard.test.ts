@@ -6,6 +6,7 @@
  * is the honesty of the reading: a bucket under the threshold must SAY it cannot be read, and a
  * confidence level nobody used must be absent rather than plotted as zero.
  */
+import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
 import {
   CONFIDENCE_CHOICES,
   CONFIDENCE_LEVELS,
@@ -17,9 +18,13 @@ import { describe, expect, it } from "vitest";
 import { MIN_BUCKET_N, type ScoredDecision } from "../../shared/detector";
 import { readRecord } from "../../shared/record-dashboard";
 
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 function decision(over: Partial<ScoredDecision> & { id?: string }): ScoredDecision {
   return {
     decision_id: over.id ?? `d-${Math.round(over.secondsTaken ?? 0)}-${over.confidence}`,
+    fen: NON_ANCHOR_FEN,
     confidence: over.confidence ?? normaliseConfidence(3, CONFIDENCE_LEVELS),
     accurate: over.accurate ?? true,
     phase: over.phase ?? "middlegame",
@@ -162,5 +167,55 @@ describe("the gap is reported split, not only whole", () => {
     expect(easy.calibration.reliability).toBeCloseTo(0, 2);
     expect(hard.calibration.reliability).toBeCloseTo(0, 2);
     expect(hard.calibration.uncertainty).toBeGreaterThan(easy.calibration.uncertainty);
+  });
+});
+
+describe("the anchor reading is the one that is comparable between players", () => {
+  const anchored = (index: number, confidence: number, accurate: boolean) => ({
+    decision_id: `a-${index}`,
+    fen: ANCHOR_POSITIONS[index % ANCHOR_POSITIONS.length].fen,
+    confidence,
+    accurate,
+    phase: "middlegame" as const,
+    secondsTaken: 30,
+    clockMsRemaining: 120_000,
+  });
+
+  it("counts only decisions taken on the bank, and says so with its own n", () => {
+    const record = [
+      ...Array.from({ length: 20 }, (_, i) => anchored(i, 0.8, i < 16)),
+      ...many(35, { confidence: 0.65, accurate: true }),
+    ];
+    const reading = readRecord(record);
+    expect(reading.calibration.n, "the whole record").toBe(55);
+    expect(reading.anchor.n, "the anchor subset").toBe(20);
+  });
+
+  it("gives two players who answered the same positions the same uncertainty", () => {
+    /*
+     * THE WHOLE POINT, as arithmetic. `uncertainty` is a property of the items, so two players on
+     * the same items cannot differ on it -- which is what makes the rest of their scores
+     * comparable. It is asserted here on records that differ in every OTHER way: different
+     * confidences, different people, same positions, same outcomes.
+     */
+    const bold = Array.from({ length: 30 }, (_, i) => anchored(i, 0.95, i < 21));
+    const timid = Array.from({ length: 30 }, (_, i) => anchored(i, 0.5, i < 21));
+    const a = readRecord(bold).anchor;
+    const b = readRecord(timid).anchor;
+    expect(a.uncertainty).toBeCloseTo(b.uncertainty, 12);
+    expect(a.reliability, "the two judges came out identical").not.toBeCloseTo(b.reliability, 3);
+  });
+
+  it("stays empty rather than borrowing from the rest of the record", () => {
+    /*
+     * A player who has answered no bank positions has no comparable reading, and the honest
+     * representation of that is nothing. Filling it in from their free-play decisions would
+     * produce exactly the number the anchor set exists to stop being produced.
+     */
+    const reading = readRecord(many(40, { confidence: 0.8, accurate: true }));
+    expect(reading.calibration.n).toBe(40);
+    expect(reading.anchor.n).toBe(0);
+    expect(reading.anchor.levels).toEqual([]);
+    expect(reading.anchor.reliable).toBe(false);
   });
 });

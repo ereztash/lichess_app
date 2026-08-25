@@ -13,6 +13,7 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
+import { isAnchorFen } from "./anchor-set.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
@@ -72,6 +73,19 @@ export type RecordReading = {
    * about the player. See shared/calibration-score.ts.
    */
   calibration: CalibrationScore;
+  /**
+   * The same decomposition over the ANCHOR SET alone -- the positions every player answers.
+   *
+   * THIS IS THE ONE THAT IS COMPARABLE BETWEEN PLAYERS, and the reason is not statistical
+   * sophistication, it is arithmetic: two players who answered the same positions have the same
+   * item difficulty, so `uncertainty` is identical for both and whatever separates their scores
+   * is the thing this product claims to measure. The reading above it is over whatever positions
+   * a player happened to reach, and is comparable to nobody.
+   *
+   * Empty until a player has taken anchor decisions, and empty is the correct answer there: a
+   * comparable reading that nobody has earned yet must not be filled in from the rest.
+   */
+  anchor: CalibrationScore;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
@@ -154,6 +168,7 @@ export function readRecord(
   return {
     overall: summarise(decisions),
     calibration: calibrationScore(decisions),
+    anchor: calibrationScore(decisions.filter((decision) => isAnchorFen(decision.fen))),
     buckets,
     confidence,
     scored: decisions.length,

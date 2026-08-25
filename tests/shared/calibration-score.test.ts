@@ -17,10 +17,14 @@ import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL, normaliseConfidence } from "@shared
 import { MIN_BUCKET_N, type ScoredDecision } from "@shared/detector";
 import { calibrationScore } from "@shared/calibration-score";
 
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 const at = (level: number) => normaliseConfidence(level, CONFIDENCE_LEVELS);
 
 const decision = (confidence: number, accurate: boolean, index: number): ScoredDecision => ({
   decision_id: `d-${index}`,
+  fen: NON_ANCHOR_FEN,
   confidence,
   accurate,
   phase: "middlegame",

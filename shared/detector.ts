@@ -156,6 +156,15 @@ export const MAX_SHUFFLED_FALSE_POSITIVE_RATE = 0.02;
 
 export interface ScoredDecision extends BucketableDecision {
   decision_id: string;
+  /**
+   * The position the decision was taken on.
+   *
+   * Carried so anchor-set membership can be DERIVED rather than stored: a flag written at commit
+   * time would go stale the moment the bank changed, and would need a column and a migration to
+   * say something the position already says. The detector itself never reads it -- it is here for
+   * `readRecord` to split the record on.
+   */
+  fen: string;
   /** Stated confidence mapped to 0..1, so it is comparable with an accuracy rate. */
   confidence: number;
   accurate: boolean;

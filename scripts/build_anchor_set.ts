@@ -26,17 +26,25 @@
  *                 and NOT ALREADY DECIDED: |eval| <= 300cp. That last one is Regan's exclusion and
  *                 it is not cosmetic -- in a +9 position every legal move "loses" almost nothing,
  *                 so an accuracy measurement there is measuring the position, not the player.
- *   sampling   -- a fixed stride through the eligible stream in order. Not random, so the bank is
- *                 reproducible; not scored, so nothing is selected for.
+ *   sampling   -- a fixed stride through the eligible stream in order, at most ONE position per
+ *                 source game. Not random, so the bank is reproducible; not scored, so nothing is
+ *                 selected for; one per game, because two positions from one game share an
+ *                 opening, an opponent and a player and are not independent items.
  *
  * WHAT THE BANK MAY NOT CARRY. The engine evaluation is used to EXCLUDE decided positions here,
  * at build time, and is then thrown away. R3 forbids engine output reaching the client before a
  * decision is recorded, and a position that arrived with its own centipawn score attached would
  * be exactly that. The shipped entry is a FEN and its provenance.
  *
- * Run: npx tsx scripts/build_anchor_set.ts <slice.pgn> > shared/anchor-set.ts
+ * Run: npx tsx scripts/build_anchor_set.ts <slice.pgn>
+ *
+ * Writes TWO files, and the split is a bundle decision rather than a taxonomy. `isAnchorFen` needs
+ * only the positions and is reached from shared code that every arrival loads; the move lists are
+ * needed only when a position is actually served, and shipping 15kB of them to every visitor for a
+ * membership test is 15kB nobody asked for. They are generated together so they cannot drift, and
+ * a test holds them in lockstep.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { Chess } from "chess.js";
 import { OPENING_MAX_PLY } from "../shared/phase.js";
 
@@ -49,6 +57,8 @@ const MIN_BASE_SECONDS = 180;
 
 interface Candidate {
   fen: string;
+  /** The moves leading here, so the board can be handed the game as it was actually played. */
+  sans: string[];
   game: string;
   ply: number;
   cp: number;
@@ -79,7 +89,7 @@ function candidates(pgn: string): Candidate[] {
      * move numbers -- a stream sliced mid-file can start anywhere and a truncated tail is normal.
      */
     const step = /([A-Za-z][\w+#=-]{1,6})\s*\{([^}]*)\}/g;
-    const plies: { fen: string; cp: number | null }[] = [];
+    const plies: { fen: string; cp: number | null; san: string }[] = [];
     let match: RegExpExecArray | null;
     while ((match = step.exec(body))) {
       const before = board.fen();
@@ -97,7 +107,7 @@ function candidates(pgn: string): Candidate[] {
               ? 10_000
               : -10_000
             : Math.round(Number(evaluation) * 100);
-      plies.push({ fen: before, cp });
+      plies.push({ fen: before, cp, san: match[1] });
     }
 
     for (let index = 0; index < plies.length - 1; index += 1) {
@@ -105,22 +115,58 @@ function candidates(pgn: string): Candidate[] {
       if (ply <= OPENING_MAX_PLY) continue;
       const { fen, cp } = plies[index];
       if (cp === null || Math.abs(cp) > DECIDED_CP) continue;
-      found.push({ fen, game: site.split("/").pop() ?? site, ply, cp });
+      /*
+       * Trimmed to BEFORE the move under decision. The board renders every move it is given, so
+       * one ply too many puts the answer on screen beside the question -- the same rule the
+       * first-decision picker follows, for the same reason.
+       */
+      const sans = plies.slice(0, index).map((entry) => entry.san);
+      found.push({ fen, sans, game: site.split("/").pop() ?? site, ply, cp });
     }
   }
   return found;
 }
 
 const pool = candidates(readFileSync(process.argv[2], "utf8"));
+
+/*
+ * ONE POSITION PER GAME, and the first version did not do this. A fixed stride through the
+ * eligible stream took 60 positions from 45 games -- so a quarter of the bank was pairs sharing
+ * an opening, an opponent and a player, which are not independent items whatever the sampling
+ * rule says. The stride still spreads the draw across the whole stream; the game filter is what
+ * makes each draw its own.
+ */
 const stride = Math.max(1, Math.floor(pool.length / TARGET));
 const chosen: Candidate[] = [];
-for (let i = 0; chosen.length < TARGET && i < pool.length; i += stride) chosen.push(pool[i]);
+const seenGames = new Set<string>();
+for (let offset = 0; offset < stride && chosen.length < TARGET; offset += 1) {
+  for (let i = offset; i < pool.length && chosen.length < TARGET; i += stride) {
+    const candidate = pool[i];
+    if (seenGames.has(candidate.game)) continue;
+    seenGames.add(candidate.game);
+    chosen.push(candidate);
+  }
+}
+
+const identity = chosen
+  .map(
+    (c) =>
+      `  { id: ${JSON.stringify(`${c.game}-${c.ply}`)}, fen: ${JSON.stringify(c.fen)} },`,
+  )
+  .join("\n");
+
+const payload = chosen
+  .map((c) => {
+    const sans = c.sans.map((san) => JSON.stringify(san)).join(", ");
+    return `  { id: ${JSON.stringify(`${c.game}-${c.ply}`)}, ply: ${c.ply - 1}, sans: [${sans}] },`;
+  })
+  .join("\n");
 
 const absolute = chosen.map((c) => Math.abs(c.cp)).sort((a, b) => a - b);
 const median = absolute[Math.floor(absolute.length / 2)] ?? 0;
 const balanced = chosen.filter((c) => Math.abs(c.cp) <= 50).length;
 
-process.stdout.write(`/**
+writeFileSync("shared/anchor-set.ts", `/**
  * The anchor set -- the positions every player answers.
  *
  * GENERATED by scripts/build_anchor_set.ts, which carries the sampling rule and the reasoning.
@@ -160,7 +206,7 @@ export interface AnchorPosition {
 }
 
 export const ANCHOR_POSITIONS: readonly AnchorPosition[] = [
-${chosen.map((c) => `  { id: "${c.game}-${c.ply}", fen: "${c.fen}" },`).join("\n")}
+${identity}
 ];
 
 const BY_FEN = new Set(ANCHOR_POSITIONS.map((position) => position.fen));
@@ -176,3 +222,40 @@ export function isAnchorFen(fen: string): boolean {
   return BY_FEN.has(fen);
 }
 `);
+
+writeFileSync(
+  "shared/anchor-moves.ts",
+  `/**
+ * The moves that lead to each anchor position.
+ *
+ * GENERATED by scripts/build_anchor_set.ts alongside shared/anchor-set.ts. Separate from it for
+ * one reason: \`isAnchorFen\` is reached from code every arrival loads, and these move lists are
+ * needed only when a position is actually SERVED. Fifteen kilobytes of movetext in the entry
+ * bundle to answer a membership test is fifteen kilobytes nobody asked for.
+ *
+ * Import this lazily. The two files are generated together and tests/shared/anchor-set.test.ts
+ * holds them in lockstep, so the split cannot become a drift.
+ */
+
+export interface AnchorMoves {
+  id: string;
+  /**
+   * The half-move the board shows -- the position BEFORE the decision.
+   *
+   * The board renders currentPly as "the last move played", so the decision is taken on the
+   * position that follows it.
+   */
+  ply: number;
+  /**
+   * The moves leading to it, in SAN, so the position arrives with the game that produced it
+   * rather than as a bare diagram. Trimmed to before the move under decision: one ply more and
+   * the answer would be on screen beside the question.
+   */
+  sans: readonly string[];
+}
+
+export const ANCHOR_MOVES: readonly AnchorMoves[] = [
+${payload}
+];
+`,
+);
