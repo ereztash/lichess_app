@@ -1100,3 +1100,81 @@ the dashboard; the ceiling removed from the mix; shares reported below the floor
 `declaredTension` firing when exactly one move was put down at confidence >= 4. Refused: a question
 that appears *because* you recorded one candidate is a nudge to record more, whatever its wording,
 and it would contaminate the measurement in the same direction as a count.
+
+## The touch order was being thrown away at write time
+
+Found by an external review pass in chess-expertise research, reading the code.
+
+`handleBoardMove` (Home.tsx) appends each distinct move in the order it was put on the board, and
+the chosen move is in there at its own position -- choosing is touching. The write then did:
+
+```ts
+candidate_moves_considered: [...new Set([draft.chosenMove!, ...draft.candidatesConsidered])]
+```
+
+`Set` keeps the FIRST occurrence, so prepending the chosen move forced it to index 0 and discarded
+where it actually fell. The comment above it -- *"the chosen move is always among the candidates
+considered"* -- names a guarantee the array already satisfied, and bought it at the cost of order.
+
+**What that erased.** Whether the engine's move was touched FIRST and then abandoned, or touched
+LAST and rejected. Those are opposite events. One is *"you had it and talked yourself out of it"*;
+the other is *"you weighed it and decided against it"* -- and the two bodies of literature on move
+choice prescribe opposite remedies for them. The product asserts the second reading in as many
+words (`chose-past-it`: *"what decided between them is what to look at, not the seeing"*) and could
+not tell which one it was looking at.
+
+`keepTouchOrder` appends instead of prepending. It costs the player nothing: no new field, no new
+interaction, same array type, same cap.
+
+**The regression the naive fix introduces, and the reason this is not one expression.** Appending
+puts the chosen move last when it is absent from the list, so a player who touched nine distinct
+moves would have it sliced off by the cap -- leaving an atom whose `decision` is not among its own
+`candidate_moves_considered`, which is incoherent and would silently break the one branch that
+reads the field. The first eight are kept in touch order, and if the chosen move fell outside that
+window it takes the last slot: the record then says "this was touched, late" rather than losing it.
+
+Three positive controls, each confirmed red **and confirmed to have actually mutated the file**:
+prepending restored; the truncation guard removed; the cap removed. The file-diff check is there
+because a control earlier in this branch reported green without ever running -- its pattern spanned
+a JSX line break and changed nothing.
+
+## The detector's threshold makes it worse with more data
+
+Reported by an external review pass in chess coaching, which ran the shipped `detect()` against
+simulated records. **Reproduced independently here with a different simulation**, 300 records per
+cell, planting a real effect in the `fast-under-45s` bucket:
+
+```
+scenario                              n=120    n=300    n=600   n=1200   n=2400
+A  no real effect (null)               0.0%     0.0%     0.0%     0.0%     0.0%
+B  coach-scale: 13pt acc, +0.5 conf   26.7%    10.0%     3.7%     0.7%     0.0%
+C  large: sits exactly on the line    52.7%    50.7%    50.7%    48.3%    48.3%
+```
+
+**Row B is the finding: the detector's power FALLS monotonically as the record grows.**
+
+The mechanism. `MIN_GAP_DIFFERENCE = 0.45` is a fixed effect-size floor applied to a point
+estimate, with no dependence on `n`. As decisions accumulate the estimate converges onto its true
+value (0.25 in scenario B) and stops randomly exceeding 0.45. Early on, sampling noise sometimes
+pushes it over. **So the only times it fires on a sub-threshold real effect are the times it is
+wrong.** Row C is the same defect from the other side: an effect sitting on the line is a permanent
+coin flip that no amount of play resolves, because nothing accumulates -- it is a point against a
+line, not a test.
+
+**Row A is the part that works.** The false-positive control is clean at every size, and
+GATE-SHUFFLE genuinely validated it. What the gate never tested is a *sub-threshold real* effect,
+which is the region every actual human occupies.
+
+**The correct pattern is already in this repository, one file away.** `worstBucketVerdict` in
+`shared/import-diagnostic.ts` computes `2 * sqrt(var_a + var_b)` and compares separation against
+it -- an n-dependent separability test whose threshold shrinks as the sample grows, which is how a
+test behaves. The import screen is statistically sound. The detector, which is what the product
+leads on, is not, and does not use it.
+
+**This re-reads the one real result the product has.** The 554-decision import that separated
+nothing was not bad luck or a small sample. Under a fixed floor of 0.45 on a scale where one full
+point of stated confidence is 0.25, that is what the detector returns for a human being.
+
+NOT FIXED HERE. Two further review passes (calibration measurement, psychometrics) were running
+against this same scoring path when this was found, and one planned change beats two conflicting
+ones in the same file.

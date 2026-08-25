@@ -130,14 +130,49 @@ export function buildCommitEvent(
     bounded_action: {
       seconds_taken: secondsTaken,
       confidence: draft.confidence!,
-      // The chosen move is always among the candidates considered.
-      candidate_moves_considered: [
-        ...new Set([draft.chosenMove!, ...draft.candidatesConsidered]),
-      ].slice(0, 8),
+      /*
+       * TOUCH ORDER IS THE DATA, and this line used to destroy it.
+       *
+       * `handleBoardMove` appends each distinct move in the order it was put on the board, and
+       * the chosen move is in there at its own position -- choosing is touching. The old write
+       * was `new Set([chosenMove, ...touched])`, which prepends; `Set` keeps the FIRST
+       * occurrence, so the chosen move was forced to index 0 and its real position was lost.
+       *
+       * What that erased: whether the engine's move was touched FIRST and then abandoned, or
+       * touched LAST and rejected. Those are opposite events. One is "you had it and talked
+       * yourself out of it"; the other is "you weighed it and decided against it" -- and the two
+       * bodies of literature on move choice prescribe opposite remedies for them. The product
+       * currently asserts the second reading in as many words. It cannot tell which it has.
+       *
+       * Appending instead of prepending keeps the guarantee (the chosen move is always present)
+       * and costs the player nothing: no new field, no new interaction, same array type.
+       */
+      candidate_moves_considered: keepTouchOrder(
+        draft.candidatesConsidered,
+        draft.chosenMove!,
+      ),
     },
     result: null,
     feedback: null,
   };
+}
+
+/**
+ * The moves that were on the board, in the order they got there, capped at what the atom holds.
+ *
+ * The cap is the reason this is not one expression. Truncation must never drop the move actually
+ * played -- an atom whose `decision` is absent from its own candidate list is incoherent, and it
+ * would silently break the one branch that reads this field. So the first `MAX` are kept in touch
+ * order, and if the chosen move fell outside that window it takes the last slot: the record then
+ * says "this was touched, late" rather than losing it, which is true and is the least it can say.
+ */
+const MAX_CANDIDATES = 8;
+
+export function keepTouchOrder(touched: string[], chosenMove: string): string[] {
+  const ordered = [...new Set([...touched, chosenMove])];
+  const kept = ordered.slice(0, MAX_CANDIDATES);
+  if (!kept.includes(chosenMove)) kept[kept.length - 1] = chosenMove;
+  return kept;
 }
 
 /** Centipawn loss from the mover's perspective. Never negative: choosing better than the
