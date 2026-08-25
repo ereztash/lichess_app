@@ -43,9 +43,33 @@ describe("only revealed decisions can be scored", () => {
 
   it("treats a loss inside engine noise as accurate, and beyond it as not", () => {
     const near = scoreDecisions([atom({ result: { ...atom().result!, cp_loss: 30 } })], ["a"]);
-    const far = scoreDecisions([atom({ result: { ...atom().result!, cp_loss: 31 } })], ["a"]);
+    const far = scoreDecisions([atom({ result: { ...atom().result!, cp_loss: 400 } })], ["a"]);
     expect(near.scored[0].accurate).toBe(true);
     expect(far.scored[0].accurate).toBe(false);
+  });
+
+  it("judges what the move COST, not how many centipawns it shed", () => {
+    /*
+     * A POSITIVE CONTROL SURVIVED WITHOUT THIS. Reverting the scoring path to the raw centipawn
+     * threshold left every test in this file green, because they were all written at a roughly
+     * level position -- and the two rules agree there by construction. Nothing asserted that the
+     * new rule was the one being used.
+     *
+     * This is the case they differ on, and it is the case the change exists for. A hundred and
+     * fifty centipawns in a game already won costs under half a point of winning chances; the
+     * same hundred and fifty at level costs more than eight. The old rule called both a mistake,
+     * which is how "accurate" came to mean something different depending on how the game stood.
+     */
+    const decided = scoreDecisions(
+      [atom({ result: { ...atom().result!, engine_eval_cp: 1000, cp_loss: 150 } })],
+      ["a"],
+    );
+    const level = scoreDecisions(
+      [atom({ result: { ...atom().result!, engine_eval_cp: 0, cp_loss: 150 } })],
+      ["a"],
+    );
+    expect(decided.scored[0].accurate, "a slip in a won game was charged as a mistake").toBe(true);
+    expect(level.scored[0].accurate, "the same slip at level was forgiven").toBe(false);
   });
 });
 
