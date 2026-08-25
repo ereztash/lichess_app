@@ -474,7 +474,7 @@ export async function currentClaim(
   const thresholds = narrowing ? PREREGISTERED_THRESHOLDS : DEFAULT_THRESHOLDS;
 
   const reason = narrowing
-    ? preregSilenceReason(narrowing, summary)
+    ? preregSilenceReason(summary)
     : silenceReason(full, MIN_BUCKET_N * 2);
   if (reason) {
     return {
@@ -514,7 +514,7 @@ export async function currentClaim(
   return {
     claim: selection?.claim ?? null,
     othersWithheld: selection?.othersWithheld ?? 0,
-    reason: selection ? null : emptySearchReason(narrowing, summary),
+    reason: selection ? null : emptySearchReason(narrowing),
     recorded: full.total,
     scored: full.scored.length,
     prereg: narrowing,
@@ -580,35 +580,45 @@ export async function getImportReading(store: RecordStore): Promise<StoredImport
  * it is a different fact: the wait is shorter, it is counted only from the import onward, and it
  * is about one named bucket rather than about the record in general (section 4.5).
  */
-function preregSilenceReason(
-  hypothesis: PreregisteredHypothesis,
-  since: ScoringSummary,
-): string | null {
+/**
+ * Why the narrowed search is still silent -- the RULE, and only the part nothing else says.
+ *
+ * This used to open with "המשחקים שייבאת הצביעו על X כמקום לבדוק בו, וזה נרשם מראש", which is
+ * word for word what `ClaimPanel` already renders one paragraph above it in `.claim-prereg`:
+ * "החיפוש מצומצם לX — הדלי שהמשחקים המיובאים הצביעו עליו, שנרשם לפני שנרשמה כאן החלטה". The same
+ * fact, twice, inside one panel. It then closed with "מאז הייבוא נחשפו N, חסרות עוד M", which is
+ * the distance the context ribbon carries at the top of the page.
+ *
+ * What is left is the only thing neither of those says: that the registration bought a SMALLER
+ * FLOOR, and how much smaller. That number is the whole point of the mechanism and appears
+ * nowhere else on the screen.
+ */
+function preregSilenceReason(since: ScoringSummary): string | null {
   const required = PREREGISTERED_THRESHOLDS.minBucketN * 2;
   if (since.scored.length >= required) return null;
-  const short = required - since.scored.length;
-  const waiting = since.awaitingReveal > 0 ? ` ${since.awaitingReveal} ממתינות לחשיפה.` : "";
   return (
-    `המשחקים שייבאת הצביעו על ${hypothesis.scope} כמקום לבדוק בו, וזה נרשם מראש — ` +
-    `לפני שהוקלטה החלטה חיה אחת. לכן מספיק לבדוק דלי אחד במקום שישה, ודרושות ${required} ` +
-    `החלטות חשופות במקום ${MIN_BUCKET_N * 2}. מאז הייבוא נחשפו ${since.scored.length}, חסרות ` +
-    `עוד ${short}.${waiting}`
+    `מפני שהדלי נרשם מראש, נבדק דלי אחד במקום שישה — ולכן דרושות ${required} החלטות חשופות ` +
+    `במקום ${MIN_BUCKET_N * 2}. הרישום מקצר את ההמתנה, הוא לא מבטיח שיימצא בה משהו.`
   );
 }
 
-/** Nothing cleared the threshold. Which search came up empty is part of the answer. */
-function emptySearchReason(
-  hypothesis: PreregisteredHypothesis | null,
-  summary: ScoringSummary,
-): string {
+/**
+ * Nothing cleared the threshold. Which search came up empty is part of the answer.
+ *
+ * Trimmed for the same reason as the two above. `loopPosition()` already says, at the top of the
+ * page, "יש מספיק החלטות, ואף דפוס לא עבר את הסף. זו תשובה ולא שתיקה", with "{scored} החלטות
+ * חשופות · אין דפוס מעל הסף" as its basis -- so the count and the it-is-an-answer line were both
+ * second copies. What is kept is why the threshold is there at all, which the ribbon does not say
+ * and which is the difference between a silence a player trusts and one they work around.
+ */
+function emptySearchReason(hypothesis: PreregisteredHypothesis | null): string {
   if (hypothesis) {
-    return (
-      `נבדקו ${summary.scored.length} החלטות שנרשמו אחרי הייבוא, בדלי ש-${"המשחקים המיובאים"} ` +
-      `הצביעו עליו — ${hypothesis.scope} — ולא נמצא בו פער כיול שעובר את הסף. ` +
-      `זו תשובה תקינה: הייבוא אמר איפה לחפש, לא מה יימצא.`
-    );
+    return `הייבוא אמר איפה לחפש, לא מה יימצא. בדלי הזה לא נמצא פער כיול שעובר את הסף.`;
   }
-  return `נבדקו ${summary.scored.length} החלטות חשופות ולא נמצא דפוס שעובר את הסף. זו תשובה תקינה — הסף קיים כדי שלא נדווח על רעש.`;
+  return (
+    `הסף קיים כדי שלא נדווח על רעש: פער שנראה גדול בדלי קטן מצטמצם לאפס ככל שנוספות אליו ` +
+    `החלטות, והסף הוא בדיוק הגודל שרעש כזה לא עובר.`
+  );
 }
 
 /**

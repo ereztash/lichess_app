@@ -90,12 +90,25 @@ describe("the claim surface declines before it speaks", () => {
   });
 
   it("distinguishes unrevealed decisions from missing ones", async () => {
+    /*
+     * ASSERTED ON THE FIELDS, NOT ON THE PROSE.
+     *
+     * This used to require "ממתינות לחשיפה" inside `reason`, which made a route contract depend
+     * on the wording of one renderer's copy -- and that copy has since moved to the context
+     * ribbon, where the counts are read, so the panel's line would not repeat them. What the
+     * ROUTE owes a caller is the distinction itself, and it always answered it here: ten
+     * recorded against zero scored is exactly "recorded but not yet revealed", and no wording
+     * can make those two numbers agree with "nothing has been recorded".
+     */
     await seed(10, false);
     const data = await claim();
     expect(data.claim).toBeNull();
-    expect(String(data.reason)).toContain("ממתינות לחשיפה");
-    expect(data.scored).toBe(0);
     expect(data.recorded).toBe(10);
+    expect(data.scored).toBe(0);
+    expect(Number(data.recorded) - Number(data.scored), "no decision is awaiting reveal").toBe(10);
+    // An empty record is the other case, and it must not arrive looking like this one.
+    expect(data.recorded).not.toBe(data.scored);
+    expect(String(data.reason), "the route declined without saying why").toBeTruthy();
   });
 
   it("still declines below the floor of two full buckets", async () => {

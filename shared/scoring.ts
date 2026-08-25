@@ -43,13 +43,33 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
  *
  * Section 4.5: "Not enough decisions yet to say anything about your play" is a correct and
  * useful screen. It must not be filled with encouragement, a generic tip, or a pattern derived
- * from four data points. It should, however, say WHICH kind of not-enough this is.
+ * from four data points.
+ *
+ * IT USED TO CARRY THE COUNTS, and that made it the second copy of a sentence already on screen.
+ * The context ribbon at the top of the page renders `loopPosition()`, which says "עוד N החלטות
+ * חשופות עד שאפשר לומר משהו", how many are awaiting reveal, and "{scored} חשופות מתוך {recorded}
+ * רשומות" as its basis. This returned the same four numbers in different words, five hundred
+ * pixels lower. Two surfaces disagreeing would be a bug; two surfaces agreeing at length is a
+ * dashboard, which is the thing this product exists not to be.
+ *
+ * SO THE SPLIT IS DISTANCE VERSUS RULE. The ribbon owns how far THIS record is from a claim --
+ * it changes every time a decision is revealed, and it belongs above the fold where it is read.
+ * This owns why the floor is where it is, which is the same for every player and every record,
+ * and belongs beside the panel whose silence it explains. Nothing was lost from the screen: every
+ * number removed here is rendered by the ribbon, and the test for that is that this string no
+ * longer varies with the record at all.
  */
 export function silenceReason(summary: ScoringSummary, minimumRequired: number): string | null {
   if (summary.scored.length >= minimumRequired) return null;
-  const short = minimumRequired - summary.scored.length;
-  if (summary.awaitingReveal > 0) {
-    return `נרשמו ${summary.total} החלטות, מתוכן ${summary.scored.length} נחשפו. צריך עוד ${short} החלטות חשופות לפני שאפשר לומר משהו — ו-${summary.awaitingReveal} ממתינות לחשיפה.`;
-  }
-  return `נרשמו ${summary.scored.length} החלטות. צריך לפחות ${minimumRequired} לפני שאפשר לומר משהו על הדפוסים שלך, ואפילו אז זו תהיה השערה.`;
+  /*
+   * `minimumRequired / 2` rather than an imported MIN_BUCKET_N: the floor is twice the per-side
+   * minimum by construction, and the caller decides which minimum applies. Deriving it from the
+   * argument keeps the sentence true under the pre-registered thresholds as well as the default
+   * ones, where an imported constant would quietly describe the wrong search.
+   */
+  const perSide = minimumRequired / 2;
+  return (
+    `דפוס הוא הפרש בין דלי אחד לשאר הרשומה, ולכן צריך ${perSide} החלטות חשופות בתוך הדלי ` +
+    `ו-${perSide} מחוצה לו — ${minimumRequired} בסך הכול. ואפילו אז זו תהיה השערה, לא ממצא.`
+  );
 }
