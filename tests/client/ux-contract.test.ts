@@ -50,6 +50,27 @@ function rules(): Array<{ selectors: string[]; body: string }> {
   }));
 }
 
+/**
+ * Character ranges of every `<Overlay>…</Overlay>` in a source file.
+ *
+ * Tags are matched into a stack rather than searched for near a target, so nesting is handled and
+ * a closed overlay cannot be mistaken for an enclosing one. `<Overlay` is never self-closing in
+ * this codebase -- it takes children by definition -- so open and close always pair.
+ */
+function overlaySpans(src: string): Array<[number, number]> {
+  const spans: Array<[number, number]> = [];
+  const open: number[] = [];
+  for (const m of src.matchAll(/<Overlay\b|<\/Overlay>/g)) {
+    if (m[0] === "</Overlay>") {
+      const start = open.pop();
+      if (start !== undefined) spans.push([start, m.index]);
+    } else {
+      open.push(m.index);
+    }
+  }
+  return spans;
+}
+
 /** The smallest px value any of these size properties is set to, across one selector's rules. */
 function smallestDeclaredSize(selector: string): number | null {
   let smallest: number | null = null;
@@ -124,12 +145,23 @@ describe("transient panels do not push the board off the screen", () => {
     // Each panel used to be a block above the board and shoved it down by its own height. On a
     // 1393x681 laptop window that left 52% of the board visible for "new game", 47% for the PGN
     // drawer and 74% for import-by-name. Three buttons, one "the screen is cut".
-    // The JSX usage, not the import line.
+    /*
+     * CONTAINMENT, not proximity. This read the 400 characters before each panel and looked for
+     * an `<Overlay` in them, which is a different claim: a panel 399 characters after an Overlay
+     * that had already CLOSED passed it. That was survivable while each panel had its own
+     * overlay directly above it, and stopped being survivable when the three collapsed into one
+     * surface whose rooms sit deeper inside it than the window could see. Matching the tags into
+     * spans asserts what the name of the test says.
+     */
+    const spans = overlaySpans(home);
+    expect(spans.length, "no <Overlay>…</Overlay> pairs found in Home").toBeGreaterThan(0);
     for (const panel of ["<NewGameSetup", "<ImportGames", 'className="pgn-drawer"']) {
       const at = home.indexOf(panel);
       expect(at, `${panel} is not rendered any more`).toBeGreaterThan(-1);
-      const before = home.slice(Math.max(0, at - 400), at);
-      expect(before, `${panel} is not wrapped in an Overlay`).toMatch(/<Overlay\b/);
+      expect(
+        spans.some(([open, close]) => at > open && at < close),
+        `${panel} is not inside an Overlay`,
+      ).toBe(true);
     }
   });
 
@@ -156,10 +188,32 @@ describe("colour tokens that flip together", () => {
   });
 
   it("paints every blue-backed control with --on-blue rather than a literal white", () => {
-    for (const sel of [".primary-control", ".rail-button.prominent", ".move-cell.active"]) {
-      const b = block(sel);
-      expect(b, `${sel} still hard-codes a foreground`).toMatch(/color:\s*var\(--on-blue\)/);
-      expect(b, `${sel} still hard-codes white`).not.toMatch(/color:\s*white/);
+    /*
+     * DERIVED FROM THE STYLESHEET, because the hand-written list was wrong.
+     *
+     * It named `.primary-control`, `.rail-button.prominent` and `.move-cell.active`, and those
+     * three were indeed correct -- while `.review-tabs button[aria-selected="true"]`,
+     * `.drawer-actions .drawer-confirm`, `.import-search` and `.color-toggle .selected` were all
+     * painting text on the same --blue with a literal `white`, unwatched, at the measured 2.36:1
+     * in the dark palette. A list of selectors maintained by hand only ever protects the
+     * selectors someone remembered to add. Asking the stylesheet which rules paint themselves
+     * blue cannot miss one, and it goes red the first time a new control does it.
+     *
+     * Rules with no text are exempt by construction: the requirement is a foreground, and a
+     * progress fill or a 6px dot never sets one.
+     */
+    const painted = rules().filter((rule) => /background(-color)?:[^;]*var\(--blue\)/.test(rule.body));
+    expect(painted.length, "no rules paint themselves --blue any more").toBeGreaterThan(3);
+    const carriesText = painted.filter((rule) => /(^|[\s;{])color:/.test(rule.body));
+    expect(carriesText.length, "no blue-backed rule sets a foreground at all").toBeGreaterThan(3);
+    for (const rule of carriesText) {
+      const where = rule.selectors.join(", ");
+      expect(rule.body, `${where} hard-codes a literal foreground over --blue`).not.toMatch(
+        /color:\s*(white|#fff(f{3})?\b|rgb)/i,
+      );
+      expect(rule.body, `${where} paints on --blue without --on-blue`).toMatch(
+        /color:\s*var\(--on-blue\)/,
+      );
     }
   });
 

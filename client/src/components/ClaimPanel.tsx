@@ -17,6 +17,15 @@ import { useClaimView } from "@/lib/record-api";
 import { ClaimCard } from "./ClaimCard";
 import { NotMeasured, Value } from "./Value";
 
+/*
+ * `id="claim-panel"` on all three branches, because the ribbon addresses this panel.
+ *
+ * `loopPosition` returns `{target: "claim"}` for the one state whose sentence names this surface
+ * -- "יש השערה. דריל הוא הדבר היחיד שיכול לדרג אותה" -- and the drill button below is the only
+ * control that can act on it. The id is on the loading and error branches too: a player who
+ * follows the link while the record is still answering must land on the panel that is going to
+ * hold the answer, not on nothing.
+ */
 export function ClaimPanel({
   onRunDrill,
   drillError,
@@ -28,7 +37,7 @@ export function ClaimPanel({
 
   if (query.isLoading) {
     return (
-      <section className="claim-panel" aria-label="דפוסים">
+      <section id="claim-panel" className="claim-panel" aria-label="דפוסים">
         <p className="claim-loading">
           <Loader2 size={14} /> קורא את הרשומה…
         </p>
@@ -39,7 +48,7 @@ export function ClaimPanel({
   if (query.isError) {
     // R2: a record we could not read must not look like a record with nothing in it.
     return (
-      <section className="claim-panel" aria-label="דפוסים">
+      <section id="claim-panel" className="claim-panel" aria-label="דפוסים">
         <h3>
           <FlaskConical size={14} /> דפוסים
         </h3>
@@ -52,7 +61,7 @@ export function ClaimPanel({
   if (!data) return null;
 
   return (
-    <section className="claim-panel" aria-label="דפוסים">
+    <section id="claim-panel" className="claim-panel" aria-label="דפוסים">
       <h3>
         <FlaskConical size={14} /> דפוסים
       </h3>

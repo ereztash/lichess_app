@@ -14,13 +14,20 @@
  *   1. `data-input` on the document element, so the stylesheet stops offering hover affordances
  *      to a device that cannot hover;
  *   2. THE LOOP POSITION, always, with the basis it was derived from;
- *   3. one re-orientation line when you come back after a real gap, which is a different fact and
+ *   3. THE ADDRESS OF THE SURFACE THAT SENTENCE NAMES, when it names one. The headline said an
+ *      import can shorten the wait while the import sat four controls down the tool rail with
+ *      nothing connecting them; two of the seven positions name a surface, and the other five
+ *      point at the board, which needs no link;
+ *   4. one re-orientation line when you come back after a real gap, which is a different fact and
  *      sits beside the first rather than replacing it.
  *
  * WHAT THIS IS NOT, and the line is worth writing down because the shape is close to it. This
  * ROUTES to a state the record already holds: the same record produces the same sentence, every
- * time, from counts that are on screen elsewhere anyway. It does not rank options by predicted
- * value, it does not say what to work on, and it does not read anything the detector measures --
+ * time, from counts that are on screen elsewhere anyway. The link added in (3) is the closest
+ * this comes to the line and stays on the near side of it -- it opens the surface the sentence
+ * already named, in the same words, and performs nothing on arrival. It does not rank options by
+ * predicted value, it does not say what to work on, and it does not read anything the detector
+ * measures --
  * the "למה?" disclosure says that out loud. A layer that recommended would be measuring the
  * player and then changing what they see, which changes what is being measured.
  */
@@ -33,8 +40,22 @@ import {
   type UsageContext,
 } from "@/lib/context-engine";
 import { useLoopPosition, type DrillProgress } from "@/lib/use-loop-position";
+import type { LoopTarget } from "@/lib/loop-position";
 
-export function ContextRibbon({ drill = null }: { drill?: DrillProgress }) {
+export function ContextRibbon({
+  drill = null,
+  onGoTo,
+}: {
+  drill?: DrillProgress;
+  /**
+   * Open the surface the sentence names, or undefined when the host owns none of them.
+   *
+   * Optional on purpose. The ribbon must render its sentence whether or not anyone can act on
+   * it -- the sentence is the point -- so a host that cannot route simply gets no link, rather
+   * than the ribbon growing a control that goes nowhere.
+   */
+  onGoTo?: (target: LoopTarget) => void;
+}) {
   const [usage, setUsage] = useState<UsageContext | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const count = useDecisionCount();
@@ -87,6 +108,23 @@ export function ContextRibbon({ drill = null }: { drill?: DrillProgress }) {
           <p className="context-loop">{loop.position.headline}</p>
           {/* R1: never the sentence without what produced it. */}
           <p className="context-loop-basis">{loop.position.basis}</p>
+          {/*
+            * The address, rendered only when something can receive it.
+            *
+            * `action` is null for most positions and that is the intended common case -- see the
+            * note on `LoopPosition.action`. What this must never become is a control that appears
+            * on every visit because a link looks more finished than a full stop.
+            */}
+          {loop.position.action && onGoTo && (
+            <button
+              type="button"
+              className="context-loop-goto"
+              aria-controls={loop.position.action.target === "claim" ? "claim-panel" : undefined}
+              onClick={() => onGoTo(loop.position!.action!.target)}
+            >
+              {loop.position.action.label}
+            </button>
+          )}
         </>
       )}
       {reorientation && <p className="context-reorientation">{reorientation}</p>}
