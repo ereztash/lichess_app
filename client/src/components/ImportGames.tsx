@@ -1,5 +1,5 @@
 import { Download, LoaderCircle, Search } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchUserGames, type ImportedGame } from "@/lib/lichess-public";
 import type { EngineLine } from "@/lib/engine-line";
 import { runImportDiagnostic, type ImportRunProgress } from "@/lib/import-run";
@@ -35,6 +35,18 @@ type Props = {
     games: number;
     diagnostic: ImportDiagnostic;
   }) => Promise<unknown>;
+  /**
+   * The account the last kept reading was scanned from, or undefined.
+   *
+   * The record already holds this -- `StoredImportDiagnostic.username` -- and this field still
+   * opened empty every time, so a returning player retyped an account the app could name. That is
+   * memory, not prediction: it fills in what was, and it is an ordinary editable field, so a
+   * player scanning a second account types over it exactly as before.
+   *
+   * Injected rather than read from the record here, for the same reason `analyze` and
+   * `keepReading` are: `import-cost.test.tsx` mounts this component with no providers at all.
+   */
+  lastUsername?: string;
 };
 
 const RESULT_LABEL: Record<string, string> = {
@@ -56,8 +68,25 @@ const RESULT_LABEL: Record<string, string> = {
  * Usernames, ratings and dates are Latin/numeric inside an RTL page, so each is marked ltr
  * individually rather than letting the paragraph direction reorder them.
  */
-export function ImportGames({ onLoad, onClose, analyze, keepReading }: Props) {
+export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsername }: Props) {
   const [username, setUsername] = useState("");
+  /*
+   * ONE MECHANISM, and it is this effect rather than the `useState` initialiser.
+   *
+   * It was both: `useState(lastUsername ?? "")` for the synchronous case and this for the late
+   * one. A positive control that removed the initialiser stayed green -- the effect covers that
+   * timing too -- which is the definition of the second mechanism being redundant, and two ways
+   * to set one field is where they drift apart. The reading is fetched asynchronously, so the
+   * late case is the one that must work, and it subsumes the other.
+   *
+   * It fills in only while the field is UNTOUCHED. A player who has started typing owns the
+   * field; having it rewritten under them mid-word would be the interface overriding a person,
+   * which is worse than an empty field.
+   */
+  const edited = useRef(false);
+  useEffect(() => {
+    if (!edited.current && lastUsername) setUsername(lastUsername);
+  }, [lastUsername]);
   const [games, setGames] = useState<ImportedGame[] | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -151,7 +180,10 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading }: Props) {
           value={username}
           spellCheck={false}
           autoComplete="off"
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => {
+            edited.current = true;
+            setUsername(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") void search();
           }}

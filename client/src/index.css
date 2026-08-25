@@ -1542,6 +1542,30 @@ button:not(:disabled) {
   .brand-lockup span {
     display: none;
   }
+  /*
+   * FOUR ICONS, ONE ROW -- a regression this file introduced and then measured.
+   *
+   * `.header-actions` is allowed to wrap so a narrow phone does not push the brand off the row.
+   * Making `.brand-name` nowrap (so "DECISION LAB" stopped breaking across two lines) widened the
+   * brand block to 179px of a 350px header, which squeezed the actions column to 171 -- four 44px
+   * tap targets plus their gaps need 200 -- and the fourth icon dropped to a second row. The
+   * header went to 117px on a screen already short of them.
+   *
+   * The brand is chrome and yields; the tap targets are not negotiable, so they stop wrapping and
+   * the wordmark truncates instead. 4x44 + 3x6 = 194, leaving 156 for a wordmark that measures
+   * about 100.
+   */
+  .header-actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .brand-lockup {
+    min-inline-size: 0;
+  }
+  .brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .header-reading {
     display: none;
   }
@@ -2774,14 +2798,52 @@ button:not(:disabled) {
  * record, and the engine had no part in it.
  */
 .context-ribbon {
-  margin-top: 14px;
-  padding: 10px 14px;
+  gap: 4px 12px;
+  /*
+   * MEASURED AND TRIMMED. Carrying the loop position made this the first block on the page, and
+   * at 151px on a 390x844 phone it pushed the decision panel from y=706 to y=871 -- back below
+   * the fold, undoing the change that had just put it above one. A slot that orients you by
+   * costing you the thing it orients you towards is not worth its space.
+   *
+   * The sentence keeps its own row because it is the content. The basis and the "why" share the
+   * row under it: one is a citation and the other is a single collapsed word, and neither earns
+   * a row of its own.
+   */
+  margin-top: 10px;
+  padding: 8px 12px;
   border: 1px solid var(--hairline-strong);
   border-inline-start: 3px solid var(--edge);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 14px;
+}
+/*
+ * The loop position, at the top of the page.
+ *
+ * It takes the whole first row and the gap line follows it, because they are two different facts
+ * and the reader should not have to work out which is which: this one is about the record right
+ * now, the other is about having been away. The basis under it is R1 -- never the sentence
+ * without what produced it -- and it is the smallest step on the scale because it is a citation,
+ * not a reading.
+ */
+.context-loop {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: var(--panel-body);
+  line-height: 1.5;
+}
+.context-loop-basis {
+  margin: 0;
+  flex: 0 1 auto;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Shares the basis row rather than taking one. */
+.context-ribbon > .context-why {
+  flex: 0 0 auto;
+  margin: 0;
 }
 .context-reorientation {
   margin: 0;

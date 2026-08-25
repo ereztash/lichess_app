@@ -1555,3 +1555,106 @@ is already on screen.
 One survived the first pass and was a no-op wearing a mutation's clothes — it inserted a comment
 into a component rather than changing a behaviour. The third time this repository has recorded that
 failure, and the reason every control here reports its byte delta.
+
+## The slot that was empty, and the two things the app forgot
+
+Friction, measured on the first screen at 1440×900: **83 controls, 64 of them board squares, 14
+non-board controls above the fold** — and nine of those fourteen are ways to load a game or app
+chrome. Only five belong to the decision loop.
+
+### The app already computed the answer and put it below the fold
+
+`loopPosition()` returns, on every render, one sentence naming which of record → detect → drill →
+grade is live and what stands between here and the next one, plus the basis it came from. It
+rendered inside `LoopStrip`, beside the record — and once the decision panel took that column,
+that is **y=1368 on a 390×844 phone**: five hundred pixels below the fold.
+
+Meanwhile `ContextRibbon` is a reserved slot at the top of the page for telling a player something
+before they ask, and its own comment described what it actually did:
+
+> *"It renders nothing at all on an ordinary visit, which is almost every visit."*
+
+It fired only after `RETURN_GAP_DAYS = 3`. Measured on a fresh load: **not rendered**, both
+viewports.
+
+So the sentence moved into the slot. **Relocation, not duplication** — `LoopStrip` keeps the rail,
+which is a picture of four steps and means something beside the record; the ribbon takes the
+sentence, which means something before anything. Both read one hook (`useLoopPosition`), because
+two components deriving the same position from the same query is where `LoopStrip`'s own refusal
+of *"a fourth copy of any of those"* starts.
+
+**Routing, not ranking.** `loopPosition` is a pure function of counts: the same record gives the
+same sentence every time, from numbers that are on screen elsewhere anyway. It reads nothing the
+detector buckets on — no time, no phase, no clock — and the ribbon's own disclosure says so. A
+layer that ranked options by predicted value would be measuring the player and then changing what
+they see, which changes what is being measured.
+
+The gap notice stays dismissible; the loop position does not. `הבנתי` used to close the whole
+ribbon, which was right when the ribbon was only ever a notice.
+
+### The ribbon cost the panel its fold, and then paid it back
+
+| 390×844 | before | ribbon added | after trimming |
+| --- | --- | --- | --- |
+| the anticipation slot | not rendered | y=143 | **y=89** |
+| the decision panel | y=706 | y=871 (**27px below the fold**) | **y=790** |
+| ribbon height | — | 151px | 124px |
+| header height | 117px | 117px | **67px** |
+
+A slot that orients you by costing you the thing it orients you towards is not worth its space.
+The sentence keeps its own row; the basis and the collapsed `למה?` share the row under it. The
+disclosure stays 44px because `summary` carries `min-height: var(--tap-floor)` — that is the tap
+target, and not mine to trim.
+
+**And a regression from the previous commit, found by looking.** Making `.brand-name` nowrap so
+"DECISION LAB" stopped breaking across two lines widened the brand block to 179px of a 350px
+header, squeezing the actions column to 171 — four 44px tap targets plus gaps need 200 — so **the
+fourth icon dropped to a second row**. The brand is chrome and yields; the tap targets do not.
+
+### Memory, not prediction
+
+**The account.** `StoredImportDiagnostic` holds the Lichess username of the last kept reading, and
+`ImportGames` opened with `useState("")` every time. It is prefilled now, and it loses every
+argument with an actual keystroke: a player who has started typing owns the field.
+
+*One mechanism, and a positive control is why.* It was prefilled twice — a `useState` initialiser
+for the synchronous case and an effect for the late one. A control that removed the initialiser
+**stayed green**, because the effect covers that timing too. That is the definition of a redundant
+second mechanism, and two ways to set one field is where they drift. The effect is the only one now.
+
+**The game.** Closing the tab lost it: the record survived, a usage timestamp survived, the
+position in front of you did not — so every return started at the opening position with five
+buttons offering to fetch one. `session-position.ts` stores the **moves**, not the snapshots
+(chess.js derives the position from the moves; storing both would be two sources of truth for one
+board), replays them through the same `buildHistory` a pasted PGN goes through, and restores once.
+
+**The draft decision is deliberately NOT restored.** The seconds-taken clock starts when a position
+is presented, so a half-answered commitment resumed an hour later would carry an hour of thinking
+time into the record as a measured number (R2). A drill and a learning transfer are not written
+either: neither is a game to come back to.
+
+### A test that passed for the wrong reason
+
+The guard test for stored shapes built its bad cases by spreading the **write** shape, which
+carries no `savedAt` — so all seven were rejected on a missing timestamp and **not one of them ever
+reached the guard it was named after**. A control that coerced the `ply` guard away survived
+because of it. Every case is one field wrong now, against a complete stored object, and a positive
+case proves the valid shape really does parse.
+
+Three source assertions also went red against the components' **own doc comments** — `LoopStrip`'s
+note explaining that `position.headline` moved out matched the pattern asserting it no longer
+renders it. A source test that a paragraph of prose can fail is not testing code; they strip
+comments first now, as the stylesheet assertions already did.
+
+### Found, not fixed
+
+The ribbon's sentence and `ClaimPanel`'s `silenceReason` both say the record needs more decisions,
+in different words, on the same screen. That predates this change — `LoopStrip`'s headline and the
+claim panel were already adjacent — so the count of places saying it is unchanged, but moving one
+to the top makes the pair more visible. Which of the two should keep the sentence is a product
+call, not a refactor.
+
+**22 assertions, 12 positive controls**, each confirmed red and each diffed against the original.
+**Four survived the first pass** and each named something real: two because the ribbon was only
+asserted through its source and never rendered, one because of the `savedAt` flaw above, and one
+because the prefill genuinely had two mechanisms.

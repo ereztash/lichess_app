@@ -1,5 +1,5 @@
 /**
- * The loop, and where in it you are.
+ * The loop, and where in it you are -- the PICTURE half.
  *
  * Deliberately actionless. Every action it could offer is already owned by a surface that sits
  * closer to it -- the commitment submit, the header's next-decision control, the claim panel's
@@ -9,46 +9,28 @@
  *
  * It renders in every state, including during a reveal, which is the state where nothing on
  * screen currently says where in the loop you are.
+ *
+ * THE SENTENCE MOVED OUT, and the rail stayed. `position.headline` -- the one line naming what
+ * stands between here and the next step -- used to render here, under the four steps. This strip
+ * sits beside the record it describes, which was the first child of the decision column and is
+ * now below the panel, and on a 390x844 phone that put the line at y=1368: five hundred pixels
+ * below the fold, on the thing a player most needs BEFORE they act. It is in `ContextRibbon` now,
+ * at the top of the page, computed from the same hook so the two cannot drift.
+ *
+ * The rail did not move with it, on purpose. It is a picture of four steps and it means something
+ * next to the record; the sentence means something before anything.
  */
-import { useClaimView } from "@/lib/record-api";
-import {
-  LOOP_STEPS,
-  STEP_LABELS,
-  loopPosition,
-  remainingBeforeClaim,
-  stepStates,
-} from "@/lib/loop-position";
+import { LOOP_STEPS, STEP_LABELS, stepStates } from "@/lib/loop-position";
+import { useLoopPosition, type DrillProgress } from "@/lib/use-loop-position";
 
 export function LoopStrip({
   drill,
 }: {
   /** Progress of a running drill, or null. Passed in: the drill lives in Home's state. */
-  drill: { completed: number; total: number } | null;
+  drill: DrillProgress;
 }) {
-  const query = useClaimView();
-
-  // Until the record answers, show the rail without a reading rather than a guessed one.
-  const data = query.data;
-  const scored = data?.scored ?? 0;
-  // The floor and the count must come from the same side of the registration boundary; the
-  // arithmetic lives beside the thresholds it uses. See `remainingBeforeClaim`.
-  const narrowing = data?.prereg ?? null;
-  const stillNeeded = remainingBeforeClaim({
-    scored,
-    preregScored: data?.preregScored ?? null,
-    unreadable: query.isError || !data,
-  });
-
-  const position = loopPosition({
-    drill,
-    recorded: data?.recorded ?? 0,
-    scored,
-    claimGrade: data?.claim?.grade ?? null,
-    scoredStillNeeded: stillNeeded,
-    narrowedTo: narrowing?.scope ?? null,
-  });
-
-  if (query.isLoading) return null;
+  const { position, loading } = useLoopPosition(drill);
+  if (loading || !position) return null;
 
   return (
     <section className="loop-strip" aria-label="מיקום בלולאה">
@@ -61,8 +43,6 @@ export function LoopStrip({
           </li>
         ))}
       </ol>
-      <p className="loop-headline">{position.headline}</p>
-      <p className="loop-basis">{position.basis}</p>
     </section>
   );
 }
