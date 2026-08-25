@@ -13,6 +13,7 @@ import {
   Stethoscope,
   Sun,
 } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -168,6 +169,7 @@ export default function Home() {
    * decision, reveals in ~1s and gets an answer from Stockfish. It was only ever behind a
    * button. So it is the default now.
    */
+  const [, navigate] = useLocation();
   const [history, setHistory] = useState<GameSnapshot[]>([]);
   const [currentPly, setCurrentPly] = useState(-1);
   const [orientation, setOrientation] = useState<Orientation>("w");
@@ -1167,13 +1169,18 @@ export default function Home() {
   return (
     <main className="studio-shell" dir="rtl">
       <header className="studio-header">
-        <div className="brand-lockup">
+        {/*
+          * The lockup is the way back to the record, because that is where a brand mark in a
+          * header already points on every other site -- and because the alternative was a
+          * fifth unlabelled icon in a row that has already been trimmed once for overflowing.
+          */}
+        <button type="button" className="brand-lockup" onClick={() => navigate("/")}>
           <div className="brand-mark">♞</div>
           <div>
             <p className="brand-name">DECISION LAB</p>
             <span>COMMIT · THEN REVEAL</span>
           </div>
-        </div>
+        </button>
         <div className="header-reading">
           <span>תור</span>
           <b>{sideToMove}</b>

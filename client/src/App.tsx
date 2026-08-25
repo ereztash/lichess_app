@@ -3,10 +3,21 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Record from "./pages/Record";
+/*
+ * THE RECORD IS THE FRONT DOOR; the board is a room in the house.
+ *
+ * `/` opened straight onto a live game, which was the right call while the app was only a board:
+ * the demo game used to BE the opening screen and that is what made it unplayable. What changed
+ * is that there is now something to arrive AT -- a record with its own state, its own silence,
+ * and a first decision to set up. A board is where a decision is taken; it is not where a player
+ * finds out what is being measured about them.
+ */
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Record} />
+      <Route path="/play" component={Home} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

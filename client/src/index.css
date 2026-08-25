@@ -2884,6 +2884,176 @@ button:not(:disabled) {
   color: inherit;
 }
 
+/* ---- The record page, which is now the front door ------------------------------------------ */
+/*
+ * Read on the same paper as the board, at the same scale, so arriving here does not feel like a
+ * different application. Everything sizes from the document type scale in `:root`; nothing here
+ * introduces a size of its own.
+ */
+.record-page {
+  max-inline-size: 62rem;
+  margin: 0 auto;
+  padding: 18px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.record-page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block-end: 14px;
+  border-block-end: 1px solid var(--hairline-strong);
+}
+.record-page-head h1 {
+  margin: 0 0 6px;
+  font-size: var(--panel-display);
+  line-height: 1.15;
+}
+/*
+ * The differentiation, stated once, at the top, in the player's terms. It is a claim about the
+ * INSTRUMENT -- what it measures that others do not -- and never a claim about the player, so it
+ * is the one sentence on this page that does not need an n beside it.
+ */
+.record-page-claim {
+  margin: 0;
+  max-inline-size: 46rem;
+  font-size: var(--panel-body);
+  line-height: 1.55;
+  color: var(--muted);
+}
+.record-page-loading {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--muted);
+}
+
+/*
+ * TWO LAYERS, TWO CONTAINERS, and the border is the argument.
+ *
+ * Decisions with a stated confidence can carry a calibration gap. Imported games cannot, ever,
+ * however many of them there are. Rendering them as sibling rows in one panel would let the
+ * larger pile of numbers borrow the smaller one's meaning; the wall is what stops that.
+ */
+.record-layer {
+  border: 1px solid var(--hairline-strong);
+  border-inline-start: 3px solid var(--blue);
+  padding: 14px;
+}
+.record-layer.secondary {
+  /* Deliberately not blue: this layer is a different measurement, not a lesser one. */
+  border-inline-start-color: var(--hairline-strong);
+}
+.record-layer-head {
+  margin-block-end: 12px;
+}
+.record-layer-head h2 {
+  margin: 0 0 4px;
+  font-size: var(--panel-heading);
+  line-height: 1.25;
+}
+.record-layer-head p {
+  margin: 0;
+  max-inline-size: 46rem;
+  font-size: var(--panel-label);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/*
+ * The first decision, which is the whole of the page when nothing has been measured.
+ *
+ * It is not a reading and must not look like one: no figures, no rows, no bar at 0/60. What a
+ * player meets on an empty record is one sentence about what this measures and one control that
+ * starts measuring it.
+ */
+.first-decision {
+  border: 1px solid var(--hairline-strong);
+  border-inline-start: 3px solid var(--blue);
+  padding: 16px;
+}
+.first-decision h2 {
+  margin: 0 0 8px;
+  font-size: var(--panel-heading);
+}
+.first-decision-lead {
+  margin: 0 0 14px;
+  max-inline-size: 42rem;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+}
+.first-decision-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.first-decision-form label {
+  flex: 1 1 100%;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.first-decision-form input {
+  flex: 1 1 14rem;
+  min-block-size: var(--tap-floor);
+  padding-inline: 10px;
+  border: 1px solid var(--hairline-strong);
+  background: transparent;
+  color: inherit;
+  font-size: var(--panel-data);
+}
+.first-decision-form .primary-control {
+  min-block-size: var(--tap-floor);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+/*
+ * A disabled control has to look disabled.
+ *
+ * Without this the button is fully blue with an empty username field, so the one thing on an
+ * otherwise empty page that looks ready to press is the thing that will not respond. Section 4.5
+ * again: two distinct states must not render alike.
+ */
+.first-decision-form .primary-control:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.first-decision-error {
+  margin: 10px 0 0;
+  font-size: var(--panel-label);
+  line-height: 1.5;
+  color: var(--warn);
+}
+.first-decision-note {
+  margin: 14px 0 0;
+  max-inline-size: 42rem;
+  font-size: var(--panel-fine);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* The lockup is a button now, and must not look like one. */
+.brand-lockup {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: start;
+  cursor: pointer;
+}
+
+@media (max-width: 680px) {
+  .record-page {
+    padding: 12px 12px 32px;
+  }
+  .record-page-head {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
 /* ---- One door to the position ------------------------------------------------------------- */
 /*
  * The menu behind `עמדה אחרת`, and the way back out of a room.
