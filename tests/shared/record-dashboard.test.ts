@@ -125,3 +125,42 @@ describe("reading the record", () => {
     expect(reading.overall.gap).toBeCloseTo(top - 0.5, 5);
   });
 });
+
+describe("the gap is reported split, not only whole", () => {
+  it("carries the decomposition on the reading so a surface can lead with the player's term", () => {
+    /*
+     * Computing the split and not shipping it would leave the raw gap as the only thing anyone
+     * sees, which is the state this replaced. The reading has to carry it for a surface to be
+     * able to lead with `reliability` instead.
+     */
+    const reading = readRecord([
+      ...many(40, { confidence: normaliseConfidence(CONFIDENCE_LEVELS, CONFIDENCE_LEVELS), accurate: true }),
+      ...many(40, { confidence: normaliseConfidence(2, CONFIDENCE_LEVELS), accurate: false }),
+    ]);
+    expect(reading.calibration.n).toBe(80);
+    expect(
+      reading.calibration.reliability - reading.calibration.resolution + reading.calibration.uncertainty,
+    ).toBeCloseTo(reading.calibration.brier, 12);
+  });
+
+  it("separates the player's error from the difficulty of what they were served", () => {
+    /*
+     * Two records from the SAME judge -- each says a thing and is right exactly that often -- on
+     * item banks of different difficulty. `reliability` must not move; `uncertainty` must.
+     */
+    const calibrated = (level: number, count: number) =>
+      many(count, {
+        confidence: normaliseConfidence(level, CONFIDENCE_LEVELS),
+      }).map((d, i) => ({
+        ...d,
+        accurate: i < Math.round(normaliseConfidence(level, CONFIDENCE_LEVELS) * count),
+      }));
+
+    const easy = readRecord([...calibrated(CONFIDENCE_LEVELS, 100), ...calibrated(6, 100)]);
+    const hard = readRecord([...calibrated(EVEN_ODDS_LEVEL, 100), ...calibrated(2, 100)]);
+
+    expect(easy.calibration.reliability).toBeCloseTo(0, 2);
+    expect(hard.calibration.reliability).toBeCloseTo(0, 2);
+    expect(hard.calibration.uncertainty).toBeGreaterThan(easy.calibration.uncertainty);
+  });
+});

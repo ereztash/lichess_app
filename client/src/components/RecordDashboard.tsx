@@ -26,7 +26,7 @@ import type { OneThingKind, OneThingMix } from "@shared/reveal";
  * simply disappears makes the remaining rows look like the complete picture.
  */
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
-  const { overall, buckets, confidence, scored } = reading;
+  const { overall, buckets, confidence, scored, calibration } = reading;
 
   if (scored === 0) {
     return (
@@ -72,6 +72,53 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           />
         </div>
       </div>
+
+      {/*
+        * THE SPLIT, and why it sits directly under the gap rather than somewhere else.
+        *
+        * The three figures above are one number wearing three hats: the gap moves when the
+        * POSITIONS get harder just as readily as when the player's judgement changes, and it
+        * cannot say which happened. Murphy's decomposition can. `uncertainty` is a property of
+        * the positions and nothing else -- it is printed here precisely so it stops being
+        * silently charged to the player.
+        *
+        * Mandel & Barnes (2014) publish VI = 0.240, DI = 0.182, CI = 0.016 for professional
+        * intelligence analysts: almost all of their score is the environment, and their
+        * calibration error is tiny. A product leading on their raw gap would have called the
+        * best-calibrated professionals on record mediocre.
+        */}
+      <h4 className="dash-title">מה מתוך המספר הזה הוא אתם</h4>
+      {calibration.reliable ? (
+        <div className="review-stats calibration-split">
+          <div className="review-stat">
+            <Proportion
+              value={calibration.reliability}
+              n={scored}
+              label="שגיאת הכיול שלכם"
+            />
+          </div>
+          <div className="review-stat">
+            <Proportion
+              value={calibration.resolution}
+              n={scored}
+              label="ההפרדה שאתם עושים"
+            />
+          </div>
+          <div className="review-stat">
+            <Proportion
+              value={calibration.uncertainty}
+              n={scored}
+              label="הקושי של העמדות"
+            />
+          </div>
+        </div>
+      ) : (
+        <NotMeasured reason="אף רמת ביטחון לא נאמרה מספיק פעמים כדי לפרק את המספר. הפירוק קיים, אבל בגודל הזה הוא רעש ולא ממצא." />
+      )}
+      <p className="dash-note" dir="rtl">
+        רק הראשון הוא אמירה עליכם. השלישי הוא תכונה של העמדות שקיבלתם, ולא של מי שאתם —
+        שחקן שקיבל עמדות קשות יותר מקבל פער גדול יותר בלי להיות שופט גרוע יותר של עצמו.
+      </p>
 
       {curve.length > 0 && (
         <>

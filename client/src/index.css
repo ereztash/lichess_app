@@ -2003,6 +2003,25 @@ button:not(:disabled) {
   border-style: solid;
   font-weight: 700;
 }
+/*
+ * The Murphy split. Three figures that are NOT three of a kind: the first is the player, the
+ * third is the item bank, and rendering them identically would undo the whole point of splitting
+ * them. The last cell is dimmed and rule-separated so the eye reads "this one is not about you"
+ * before it reads the number.
+ */
+.calibration-split .review-stat:last-child {
+  opacity: 0.72;
+  border-right: 1px solid var(--hairline);
+  padding-right: 0.55rem;
+}
+.dash-note {
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0.35rem 0 0.9rem;
+  max-width: 46ch;
+}
+
 .confidence-row {
   display: grid;
   /*

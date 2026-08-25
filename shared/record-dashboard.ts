@@ -13,6 +13,7 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
+import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
   BUCKETINGS,
@@ -61,6 +62,16 @@ export type ConfidenceReading = {
 
 export type RecordReading = {
   overall: CalibrationSummary;
+  /**
+   * The gap above, split into the three things it stands in for.
+   *
+   * `overall.gap` is one number owned by nobody in particular: it moves when the positions get
+   * harder, when the player's judgement changes, and when their willingness to commit changes,
+   * and it cannot say which happened. `calibration.uncertainty` is 100% the positions,
+   * `calibration.reliability` is the calibration error proper, and only the second is a statement
+   * about the player. See shared/calibration-score.ts.
+   */
+  calibration: CalibrationScore;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
@@ -140,5 +151,12 @@ export function readRecord(
       };
     });
 
-  return { overall: summarise(decisions), buckets, confidence, scored: decisions.length, mix };
+  return {
+    overall: summarise(decisions),
+    calibration: calibrationScore(decisions),
+    buckets,
+    confidence,
+    scored: decisions.length,
+    mix,
+  };
 }
