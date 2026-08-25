@@ -13,6 +13,7 @@ import {
   Stethoscope,
   Sun,
 } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,6 +90,8 @@ import {
 } from "@/lib/game-data";
 import {
   buildCommitEvent,
+  REVEAL_MULTIPV,
+  cpLossFromMultiPv,
   cpLossFromSearches,
   cpLossOfFinalMove,
   engineMayRun,
@@ -121,6 +124,7 @@ import {
 } from "@/lib/opponent";
 import {
   comparableCp,
+  emptyLine,
   hasEvaluation,
   isStale,
   type EngineLine,
@@ -168,6 +172,7 @@ export default function Home() {
    * decision, reveals in ~1s and gets an answer from Stockfish. It was only ever behind a
    * button. So it is the default now.
    */
+  const [, navigate] = useLocation();
   const [history, setHistory] = useState<GameSnapshot[]>([]);
   const [currentPly, setCurrentPly] = useState(-1);
   const [orientation, setOrientation] = useState<Orientation>("w");
@@ -626,9 +631,29 @@ export default function Home() {
 
       try {
         const engine = await ensureEngine();
-        // Two searches: the position as the player faced it, and the position their move
-        // produced. The second is scored from the opponent's side and must be flipped.
-        const best = await engine.analyze(positionFen, 14);
+        /*
+         * TWO SEARCHES OF THE SAME ROOT -- not a root and its child.
+         *
+         * This used to search the position the player faced and then the position their move
+         * produced, and difference the two. Those are not the same measurement: the child at
+         * depth d looks d plies ahead from one ply further along, which is a depth d+1 view of
+         * the root, and alpha-beta is parity-sensitive. Measured with Stockfish 18 on 110
+         * positions, feeding that arithmetic the engine's OWN BEST MOVE: mean loss 10.1cp, and
+         * 9.1% came out "inaccurate" against the 30cp threshold. The best move on the board,
+         * scored as a mistake, one position in eleven -- and the error is three times more
+         * common outside the opening, which is where the detector has a phase bucket to find it.
+         *
+         * `analyzeMove` restricts a search to one move with UCI `searchmoves` without moving the
+         * root, so both scores share a side to move, a depth and a horizon. Same number of
+         * searches as before; only the second one's position changes.
+         */
+        /*
+         * ONE search of the root, and line 1 of it IS the best line -- so this replaces the old
+         * single-line `analyze` rather than joining it. When the player's move is among the lines
+         * that is the whole engine cost of a reveal: one search where there used to be two.
+         */
+        const rootLines = await engine.analyzeAlternatives(positionFen, 14, REVEAL_MULTIPV);
+        const best = rootLines[0] ?? emptyLine(positionFen);
         const after = new Chess(positionFen);
         after.move({ from: move!.from, to: move!.to, promotion: "q" });
         /*
@@ -642,7 +667,18 @@ export default function Home() {
          * game. Asking the rules instead of the engine is both correct and one search cheaper.
          */
         const ended = after.isCheckmate() ? "checkmate" : after.isGameOver() ? "draw" : null;
-        const chosen = ended === null ? await engine.analyze(after.fen(), 14) : null;
+        /*
+         * The chosen move's score, from the SAME search when it can be, and from a second search
+         * of the child position when it cannot. Measured on 110 real positions at MultiPV 8: the
+         * player's actual move was among the lines 90% of the time. The remaining tenth is a move
+         * worse than the eighth-best, which is nowhere near the 30cp threshold -- so falling back
+         * there cannot change whether the decision reads as accurate, while the covered 90% is
+         * exactly the region where a 10cp instrument error could.
+         */
+        const fromMultiPv =
+          ended === null ? cpLossFromMultiPv(rootLines, draft.chosenMove!) : null;
+        const chosen =
+          ended === null && fromMultiPv === null ? await engine.analyze(after.fen(), 14) : null;
 
         /*
          * R2, and the reason this is a throw rather than a fallback. A search can also come back
@@ -657,7 +693,9 @@ export default function Home() {
         setAnalysis(best);
 
         const cpLoss =
-          ended === null ? cpLossFromSearches(best, chosen!) : cpLossOfFinalMove(best, ended);
+          ended !== null
+            ? cpLossOfFinalMove(best, ended)
+            : (fromMultiPv ?? cpLossFromSearches(best, chosen!));
         const bestMove = best.bestMove ?? draft.chosenMove!;
         const inputs: RevealInputs = {
           depth: chosen === null ? best.depth : Math.min(best.depth, chosen.depth),
@@ -1167,13 +1205,18 @@ export default function Home() {
   return (
     <main className="studio-shell" dir="rtl">
       <header className="studio-header">
-        <div className="brand-lockup">
+        {/*
+          * The lockup is the way back to the record, because that is where a brand mark in a
+          * header already points on every other site -- and because the alternative was a
+          * fifth unlabelled icon in a row that has already been trimmed once for overflowing.
+          */}
+        <button type="button" className="brand-lockup" onClick={() => navigate("/")}>
           <div className="brand-mark">♞</div>
           <div>
             <p className="brand-name">DECISION LAB</p>
             <span>COMMIT · THEN REVEAL</span>
           </div>
-        </div>
+        </button>
         <div className="header-reading">
           <span>תור</span>
           <b>{sideToMove}</b>

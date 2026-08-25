@@ -7,9 +7,9 @@
  *
  * Both the gate and the control run this identical harness. Only the thresholds differ.
  */
+import { CONFIDENCE_LEVELS, CONFIDENCE_STEP, normaliseConfidence } from "../../shared/confidence";
 import {
   MAX_SHUFFLED_FALSE_POSITIVE_RATE,
-  normaliseConfidence,
   seededRandom,
   shuffleControl,
   type DetectorThresholds,
@@ -21,7 +21,7 @@ export function makeNoise(n: number, seed: number): ScoredDecision[] {
   const random = seededRandom(seed);
   return Array.from({ length: n }, (_, index) => ({
     decision_id: `noise-${index}`,
-    confidence: normaliseConfidence(1 + Math.floor(random() * 5)),
+    confidence: normaliseConfidence(1 + Math.floor(random() * CONFIDENCE_LEVELS), CONFIDENCE_LEVELS),
     accurate: random() < 0.5,
     phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],
     secondsTaken: Math.floor(random() * 200),
@@ -44,7 +44,7 @@ export const noiseRecord = [40, 60, 80, 120, 200, 300, 600, 1200].map((n) => mak
 /**
  * A multiplier low enough to find structure in noise, for the positive control.
  *
- * The first draft's 12 / 0.25 cannot be written in this shape any more -- there is no fixed gap
+ * The first draft's 12 / CONFIDENCE_STEP cannot be written in this shape any more -- there is no fixed gap
  * floor to set -- so the control is the same idea expressed in the new parameter: two standard
  * errors, which is the textbook bar and is far too permissive for a six-bucket scan. Measured on
  * these records it reports structure in roughly a quarter of shuffled records at every size past

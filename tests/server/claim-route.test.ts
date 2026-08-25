@@ -1,6 +1,7 @@
 /**
  * The claim procedure over real HTTP, including the states where it declines to speak.
  */
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -23,6 +24,16 @@ const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 /**
  * A record with a strong, unambiguous calibration gap under time pressure.
  * Ids are globally unique: the store is append-only and correctly rejects a repeat.
+ *
+ * IT VARIES ON BOTH AXES, and it did not used to. Every fast decision carried `confidence: 5`
+ * and a cp_loss above the accuracy threshold, so every fast gap was exactly 1.0 and the bucket's
+ * sample variance was exactly 0 -- the configuration `gapDifferenceStandardError` now refuses,
+ * measured at up to 13% false positives against this product's own 2% ceiling. The "strong,
+ * unambiguous" gap was clearing the threshold on a zero denominator rather than on its size.
+ *
+ * This was the third fixture in the repo with the same defect, which is the part worth writing
+ * down: every fixture that produced a pattern strong enough to test the loop on was producing it
+ * degenerately. A real player is very confident MOSTLY, and wrong under time pressure MOSTLY.
  */
 let seeded = 0;
 async function seed(count: number, reveal = true) {
@@ -41,7 +52,8 @@ async function seed(count: number, reveal = true) {
       candidateMovesConsidered: ["e2e4"],
       statedRead: "k",
       statedUnknown: "u",
-      confidence: fast ? 5 : 3,
+      confidence: fast ? (i % 10 === 4 ? 4 : 5) : 3,
+      confidenceScale: CONFIDENCE_LEVELS,
     });
     if (reveal) {
       await store.recordReveal(id, {
@@ -49,8 +61,9 @@ async function seed(count: number, reveal = true) {
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
-        // Fast decisions are usually wrong; slow ones usually fine.
-        cp_loss: fast ? (i % 4 === 0 ? 200 : 150) : i % 3 === 0 ? 120 : 5,
+        // Fast decisions are usually wrong; slow ones usually fine. "Usually" on both sides:
+        // an always-wrong bucket has no variance and cannot estimate its own error.
+        cp_loss: fast ? (i % 8 === 0 ? 5 : i % 4 === 0 ? 200 : 150) : i % 3 === 0 ? 120 : 5,
       });
     }
   }
@@ -90,12 +103,25 @@ describe("the claim surface declines before it speaks", () => {
   });
 
   it("distinguishes unrevealed decisions from missing ones", async () => {
+    /*
+     * ASSERTED ON THE FIELDS, NOT ON THE PROSE.
+     *
+     * This used to require "ממתינות לחשיפה" inside `reason`, which made a route contract depend
+     * on the wording of one renderer's copy -- and that copy has since moved to the context
+     * ribbon, where the counts are read, so the panel's line would not repeat them. What the
+     * ROUTE owes a caller is the distinction itself, and it always answered it here: ten
+     * recorded against zero scored is exactly "recorded but not yet revealed", and no wording
+     * can make those two numbers agree with "nothing has been recorded".
+     */
     await seed(10, false);
     const data = await claim();
     expect(data.claim).toBeNull();
-    expect(String(data.reason)).toContain("ממתינות לחשיפה");
-    expect(data.scored).toBe(0);
     expect(data.recorded).toBe(10);
+    expect(data.scored).toBe(0);
+    expect(Number(data.recorded) - Number(data.scored), "no decision is awaiting reveal").toBe(10);
+    // An empty record is the other case, and it must not arrive looking like this one.
+    expect(data.recorded).not.toBe(data.scored);
+    expect(String(data.reason), "the route declined without saying why").toBeTruthy();
   });
 
   it("still declines below the floor of two full buckets", async () => {

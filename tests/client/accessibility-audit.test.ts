@@ -120,8 +120,20 @@ describe("what a control is called matches what it says", () => {
   it("puts the visible confidence text inside the accessible name", () => {
     // The button shows "1" over "ניחוש". An em dash used to sit between them in the label only,
     // so the name did not contain the text: WCAG 2.5.3, axe label-content-name-mismatch.
-    const label = /aria-label=\{`ביטחון \$\{level\} \$\{CONFIDENCE_LABELS\[level\]\}`\}/;
-    expect(commitment, "the confidence label no longer matches its visible text").toMatch(label);
+    /*
+     * Asserted by comparing the two EXPRESSIONS rather than by matching one spelling of the
+     * index. The contract is "the name contains the visible text", and when the scale moved to
+     * seven the lookup changed from `[level]` to `[level - 1]` -- a hard-coded regex failed on a
+     * change that could not break the contract, while a genuine mismatch between the two lookups
+     * would have slipped past it just as easily.
+     */
+    const named = commitment.match(/aria-label=\{`ביטחון \$\{level\} \$\{([^}]+)\}`\}/);
+    const shown = commitment.match(/<small>\{([^}]+)\}<\/small>/);
+    expect(named, "the confidence button lost its accessible name").not.toBeNull();
+    expect(shown, "the confidence button lost its visible word").not.toBeNull();
+    expect(named![1].trim(), "the accessible name reads a different word than the button shows").toBe(
+      shown![1].trim(),
+    );
     expect(commitment, "the separator between the number and the word is gone").toMatch(
       /<b>\{level\}<\/b>\{" "\}/,
     );

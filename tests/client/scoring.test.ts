@@ -1,5 +1,7 @@
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { scoreDecisions, silenceReason } from "@shared/scoring";
+import { loopPosition } from "@/lib/loop-position";
 import type { DecisionAtom } from "@shared/decision-atom";
 
 const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
@@ -13,7 +15,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   known: "k",
   unknown: "u",
   decision: "e2e4",
-  bounded_action: { seconds_taken: 30, confidence: 4, candidate_moves_considered: ["e2e4"] },
+  bounded_action: { seconds_taken: 30, confidence: 4, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
   result: {
     engine_eval_cp: 20,
     engine_best_move: "e2e4",
@@ -48,17 +50,66 @@ describe("only revealed decisions can be scored", () => {
 });
 
 describe("silence says WHICH kind of not-enough it is", () => {
-  it("distinguishes too-few-revealed from too-few-recorded", () => {
+  /*
+   * THIS CONTRACT MOVED SURFACES; IT DID NOT GO AWAY.
+   *
+   * It used to be asserted on `silenceReason`, which said "נרשמו N החלטות, מתוכן M נחשפו... ו-K
+   * ממתינות לחשיפה" -- and that was the second copy of a sentence the context ribbon renders at
+   * the top of the page from `loopPosition()`. The counts stayed where they are read and the
+   * panel's line became the rule behind the floor, so the 4.5 requirement -- that too-few-recorded
+   * and too-few-revealed must not render alike -- is now the ribbon's to keep. Asserting it there
+   * is the same contract against the surface that now owns it.
+   */
+  const position = (recorded: number, scored: number) =>
+    loopPosition({
+      drill: null,
+      recorded,
+      scored,
+      claimGrade: null,
+      scoredStillNeeded: 60 - scored,
+      narrowedTo: null,
+    });
+
+  it("distinguishes too-few-revealed from too-few-recorded, on the surface that carries the counts", () => {
+    expect(position(3, 1).headline).toContain("ממתינות לחשיפה");
+    expect(position(2, 2).headline).not.toContain("ממתינות לחשיפה");
+  });
+
+  it("does not say it a second time in the panel", () => {
+    /*
+     * The whole point of the split. Two surfaces disagreeing would be a bug; two surfaces
+     * agreeing at length is a dashboard, which is the thing this product exists not to be.
+     */
     const waiting = scoreDecisions([atom(), atom({ result: null }), atom({ result: null })], [
       "a",
       "b",
       "c",
     ]);
-    const reason = silenceReason(waiting, 60)!;
-    expect(reason).toContain("ממתינות לחשיפה");
+    expect(silenceReason(waiting, 60)!).not.toContain("ממתינות לחשיפה");
+  });
 
-    const allRevealed = scoreDecisions([atom(), atom()], ["a", "b"]);
-    expect(silenceReason(allRevealed, 60)!).not.toContain("ממתינות לחשיפה");
+  it("stops varying with the record, because the record's numbers are elsewhere", () => {
+    /*
+     * The strongest form of "it no longer carries the counts", and the one that cannot be
+     * satisfied by rewording: two records that differ in every count must produce the SAME
+     * string. A single count left in would break this, whatever it was phrased like.
+     */
+    const few = scoreDecisions([atom()], ["a"]);
+    const many = scoreDecisions(
+      [...Array.from({ length: 20 }, () => atom()), atom({ result: null })],
+      Array.from({ length: 21 }, (_, i) => `d${i}`),
+    );
+    expect(few.scored.length).not.toBe(many.scored.length);
+    expect(few.awaitingReveal).not.toBe(many.awaitingReveal);
+    expect(silenceReason(few, 60)).toBe(silenceReason(many, 60));
+  });
+
+  it("still says the one number the ribbon does not: the floor, and why it is doubled", () => {
+    // A bucket needs decisions inside it AND outside it, so the floor is twice the per-side
+    // minimum. Nothing else on the screen says that, which is why this line still earns its space.
+    const reason = silenceReason(scoreDecisions([atom()], ["a"]), 60)!;
+    expect(reason).toContain("30");
+    expect(reason).toContain("60");
   });
 
   it("never promises a finding, only a hypothesis", () => {

@@ -1,3 +1,4 @@
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import type { DecisionResult } from "../../shared/decision-atom";
@@ -57,6 +58,7 @@ async function recordPosition(
     statedRead: "I can develop safely",
     statedUnknown: "I may have missed a forcing move",
     confidence: 3,
+    confidenceScale: CONFIDENCE_LEVELS,
   });
   await store.recordReveal(id, result);
 }
@@ -92,6 +94,7 @@ describe("verified learning record", () => {
       statedRead: "safe",
       statedUnknown: "threat",
       confidence: 3,
+      confidenceScale: CONFIDENCE_LEVELS,
     });
     await expect(
       service.createLearningRule(

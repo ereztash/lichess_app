@@ -6,6 +6,7 @@
  * until one exists. What matters is that it obeys the SAME rules as the server store, because
  * shared/record-service.ts runs against both and those rules are the product.
  */
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   LocalRecordStore,
@@ -24,7 +25,7 @@ function event(id: string) {
     known: "המרכז פתוח",
     unknown: "לא יודע אם e5 עובד",
     decision: "e2e4",
-    bounded_action: { seconds_taken: 12, confidence: 3, candidate_moves_considered: ["e2e4"] },
+    bounded_action: { seconds_taken: 12, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
     result: null,
     feedback: null,
   } satisfies service.CommitEvent;

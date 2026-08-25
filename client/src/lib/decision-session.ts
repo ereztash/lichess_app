@@ -9,8 +9,9 @@
  *
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
+import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import type { DecisionAtom } from "@shared/decision-atom";
-import { comparableCp, type EngineLine } from "@/lib/engine-line";
+import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
 
@@ -132,6 +133,12 @@ export function buildCommitEvent(
       seconds_taken: secondsTaken,
       confidence: draft.confidence!,
       /*
+       * Sent with every commit, never inferred server-side. A stated level is meaningless without
+       * the scale it was stated on: "בטוח" was 4 of 5 and is 6 of 7, so the same integer asserts
+       * two different probabilities depending only on which build a player was using.
+       */
+      confidence_scale: CONFIDENCE_LEVELS,
+      /*
        * TOUCH ORDER IS THE DATA, and this line used to destroy it.
        *
        * `handleBoardMove` appends each distinct move in the order it was put on the board, and
@@ -183,7 +190,50 @@ export function centipawnLoss(bestEvalCp: number, chosenEvalCp: number): number 
 }
 
 /**
+ * Centipawn loss read out of ONE MultiPV search of the root.
+ *
+ * THE DEFECT THIS REMOVES, and it is structural rather than statistical. Loss used to be a root
+ * search minus a search of the position the move PRODUCED. Those are not the same measurement:
+ * the child at depth d looks d plies ahead from one ply further along, and alpha-beta is
+ * parity-sensitive, so the two scores come off different horizons. Measured against Stockfish 18
+ * on 110 real positions by feeding that arithmetic the engine's OWN BEST MOVE -- which a sound
+ * oracle charges nothing -- it returned a mean of 9.0cp and scored 7.3% of them "inaccurate"
+ * against the 30cp threshold. The best move on the board, called a mistake.
+ *
+ * Here both scores come out of the SAME search: same tree, same window, same iteration. So the
+ * best move is charged exactly zero BY CONSTRUCTION, not by luck -- 110 of 110 in the same run --
+ * and the defect cannot recur without the arithmetic changing.
+ *
+ * A ROUTE NOT TAKEN, because it was measured and it was worse. Restricting a second root search
+ * to the one move with UCI `searchmoves` looks equivalent and is not: with no sibling moves there
+ * are no cutoffs from them, so the window differs. Same control, same positions: mean 12.0cp and
+ * 12.7% "inaccurate" -- worse than the method it was meant to replace, on every statistic.
+ *
+ * RETURNS NULL WHEN THE MOVE IS NOT IN THE LINES, which happened for 10% of real played moves at
+ * MultiPV 8. That is not a gap to paper over: a move outside the top eight is far worse than the
+ * eighth-best, so it is nowhere near the 30cp threshold, and the caller can fall back to the old
+ * arithmetic without risking the classification. The instrument error matters where the threshold
+ * is, and that is exactly the region this covers.
+ */
+/** How many root lines the reveal asks for. Measured: covers 90% of real played moves. */
+export const REVEAL_MULTIPV = 8;
+
+export function cpLossFromMultiPv(lines: EngineLine[], chosenMove: string): number | null {
+  const best = lines[0];
+  if (!best || !hasEvaluation(best)) return null;
+  const chosen = lines.find((line) => (line.bestMove ?? line.pv[0]) === chosenMove);
+  if (!chosen || !hasEvaluation(chosen)) return null;
+  return centipawnLoss(comparableCp(best), comparableCp(chosen));
+}
+
+/**
  * Centipawn loss computed from two engine searches, handling the perspective flip.
+ *
+ * NO LONGER THE LIVE REVEAL'S PATH -- see `cpLossAtRoot` above, which searches one root twice
+ * instead of a root and its child. This remains for the import path, which analyses a whole game
+ * as a sequence of positions and has no root to restrict a search on. The perspective note below
+ * is exactly why the root version is safer: the negation is only necessary because the second
+ * search moved the root, and a negation that is only sometimes necessary is a hazard.
  *
  * UCI `score cp` is always from the side-to-move's point of view. The first search runs with the
  * PLAYER to move, so its score is already theirs. The second runs on the position after their

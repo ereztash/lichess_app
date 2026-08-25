@@ -126,8 +126,27 @@ export const PREREGISTERED_MIN_BUCKET_N = 20;
  * The margin is real but smaller than the arithmetic of "six tests instead of one" suggests, and
  * the reason is the one already recorded above: the six bucketings are not six independent tests.
  * Three phase buckets partition the same decisions and the two clock buckets overlap heavily.
+ *
+ * RAISED FROM 3.00 TO 3.25 WHEN THE CONFIDENCE SCALE WENT FROM FIVE LEVELS TO SEVEN, and the
+ * reason is worth writing down because it is not obvious: a FINER scale made the detector LESS
+ * safe. Confidence drawn uniformly over the levels has variance 0.125 on five and 0.090 on seven
+ * -- 72% of what it was -- because the seven-level grid is inset at .05/.95 and no longer reaches
+ * the ends. Less variance in the stated half means a smaller standard error of the gap
+ * difference, and the separability threshold IS a multiple of that standard error. So the same k
+ * became a lower bar, and noise started clearing it.
+ *
+ * RE-MEASURED ON THE SAME HARNESS THAT SET IT, worst false-positive rate over every bucketing,
+ * five record sizes and twelve seeds:
+ *
+ *     k       3.00    3.05    3.10    3.15    3.20    3.25    3.50    3.75
+ *     rate   2.50%   2.50%   2.50%   2.50%   2.50%   1.67%   1.67%   1.67%
+ *
+ * 3.25 is where it stops breaching the 2% ceiling, and nothing above it measures any better --
+ * the rate is 2 fires in 120 shuffles from there all the way up, so a larger k would cost power
+ * and buy nothing. THE OLD THREE-SEED NULL WAS TOO WEAK TO SEE THIS: at three seeds 3.10 already
+ * looked clean, and it is not. The seed count in the control moved with the constant.
  */
-export const PREREGISTERED_SEPARABILITY_K = 3.0;
+export const PREREGISTERED_SEPARABILITY_K = 3.25;
 
 /**
  * The most false positives on shuffled labels this build tolerates. GATE-SHUFFLE fails above it.
@@ -159,9 +178,6 @@ export interface BucketableDecision {
   secondsTaken: number;
   clockMsRemaining: number | null;
 }
-
-/** Confidence 1..5 -> 0..1. A 3 means "even odds", which is 0.5. */
-export const normaliseConfidence = (confidence: number) => (confidence - 1) / 4;
 
 /**
  * The gap of a SINGLE decision: what the player said, minus what happened.
@@ -213,17 +229,31 @@ export function summarise(decisions: ScoredDecision[]): CalibrationSummary {
  * The two samples are disjoint by construction -- a decision is inside a bucket or outside it, and
  * a drill's decisions are excluded from its own baseline -- so the variances add.
  *
- * Returns null when it cannot be computed: fewer than two decisions on a side, or a sample with
- * no variation at all on BOTH sides. A zero standard error would make any difference infinitely
- * significant, which is a degenerate sample rather than overwhelming evidence.
+ * EITHER SIDE DEGENERATE IS ENOUGH TO REFUSE, and this used to require BOTH.
+ *
+ * The old guard was `se > 0`, which only rejects when the sum is zero -- that is, when neither
+ * side varies. A bucket where every decision carries the same stated confidence and the same
+ * outcome has a sample variance of exactly 0, and if the OTHER side varies normally the sum is
+ * comfortably positive. The pooled error then reduces to `sqrt(varOut / nOut)` and the degenerate
+ * bucket is treated as though its gap were known exactly, which makes almost any difference clear
+ * the threshold.
+ *
+ * MEASURED, by simulation against a TRUE NULL where both sides have identical gaps: an opening
+ * bucket at book-move accuracy, played by someone who anchors on one confidence value there,
+ * fires on up to 13% of records -- against this product's own 2% ceiling, and tracking the
+ * degeneracy rate one-for-one. The triggering configuration is the most likely real one rather
+ * than an exotic corner, which is why the guard is here and not in a caller.
+ *
+ * A zero sample variance is not certainty about the gap. It is a sample that cannot estimate its
+ * own error, and the honest response to that is the same as to a sample of one: say so and stop.
  */
 export function gapDifferenceStandardError(
   a: Pick<CalibrationSummary, "n" | "gapVariance">,
   b: Pick<CalibrationSummary, "n" | "gapVariance">,
 ): number | null {
   if (a.n < 2 || b.n < 2) return null;
-  const se = Math.sqrt(a.gapVariance / a.n + b.gapVariance / b.n);
-  return se > 0 ? se : null;
+  if (a.gapVariance <= 0 || b.gapVariance <= 0) return null;
+  return Math.sqrt(a.gapVariance / a.n + b.gapVariance / b.n);
 }
 
 export interface Bucketing {

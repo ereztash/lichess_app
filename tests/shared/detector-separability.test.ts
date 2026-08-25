@@ -8,9 +8,12 @@
  * times sampling noise pushed it over, which is to say: the only times it fired were the times it
  * was wrong, and it got quieter about the truth the longer you played.
  *
- * That matters because 0.45 is enormous on this scale. `normaliseConfidence` maps 1..5 onto 0..1,
- * so one whole point of stated confidence is 0.25. A coaching-scale finding -- thirteen points of
- * accuracy plus half a point of confidence -- is 0.255, barely half the floor.
+ * That matters because 0.45 is enormous on this scale. When this was measured the scale had five
+ * levels running 0..1, so one whole point of stated confidence was 0.25, and a coaching-scale
+ * finding -- thirteen points of accuracy plus half a point of confidence -- came to 0.255, barely
+ * half the floor. The scale has since moved to seven inset levels and a point is `CONFIDENCE_STEP`
+ * = 0.15, which makes the same finding SMALLER against a fixed floor rather than larger. The
+ * figures above are left as they were measured; the argument they support only got stronger.
  *
  * THE CORRECT PATTERN WAS ALREADY IN THIS REPOSITORY, one file away. `worstBucketVerdict` in
  * shared/import-diagnostic.ts compares a separation against `2 * sqrt(var_a + var_b)` -- a
@@ -22,6 +25,7 @@
  * control, measured on the control's own harness, and the assertions below re-derive rather than
  * cite the properties that decision rests on.
  */
+import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, CONFIDENCE_STEP, normaliseConfidence } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_THRESHOLDS,
@@ -33,7 +37,6 @@ import {
   decisionGap,
   detect,
   gapDifferenceStandardError,
-  normaliseConfidence,
   seededRandom,
   shuffleControl,
   summarise,
@@ -45,19 +48,22 @@ import { makeNoise, noiseRecord } from "../fixtures/shuffle-scenario";
 /**
  * A record with a real effect planted in `fast-under-45s`.
  *
- * The true gap difference is exactly `accDrop + confLift`. `confLift` is delivered the only way a
- * 1..5 scale can deliver a fractional mean -- a share of the bucket's decisions state one point
- * higher -- because a player cannot state 3.5.
+ * The true gap difference is exactly `accDrop + confLift`. `confLift` is delivered the only way an
+ * ordinal scale can deliver a fractional mean -- a share of the bucket's decisions state one point
+ * higher -- because a player picks a button and cannot state a value between two of them. The
+ * share is `confLift / CONFIDENCE_STEP`, so the planted effect stays the size the caller asked
+ * for when the number of levels changes; it used to be `/ 0.25`, which silently rescaled every
+ * planted effect in this file the moment the scale moved.
  */
 function planted(n: number, seed: number, accDrop: number, confLift: number): ScoredDecision[] {
   const random = seededRandom(seed);
-  const stepChance = confLift / 0.25;
+  const stepChance = confLift / CONFIDENCE_STEP;
   return Array.from({ length: n }, (_, index) => {
     const secondsTaken = Math.floor(random() * 200);
     const fast = secondsTaken < 45;
     return {
       decision_id: `planted-${index}`,
-      confidence: normaliseConfidence(3 + (fast && random() < stepChance ? 1 : 0)),
+      confidence: normaliseConfidence(3 + (fast && random() < stepChance ? 1 : 0), CONFIDENCE_LEVELS),
       accurate: random() < (fast ? 0.55 - accDrop : 0.55),
       phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],
       secondsTaken,
@@ -152,16 +158,125 @@ describe("the standard error refuses what it cannot compute", () => {
     expect(seSmall / seLarge).toBeCloseTo(Math.sqrt(100), 6);
   });
 
-  it("returns null rather than zero when both sides are degenerate", () => {
+  it("returns null when EITHER side is degenerate, not only when both are", () => {
     /*
-     * A zero standard error makes ANY difference infinitely significant. That is a degenerate
-     * sample, not overwhelming evidence, and returning 0 would have made the detector loudest
-     * exactly where it knows least.
+     * THIS TEST USED TO ASSERT THE DEFECT, in as many words: "One degenerate side is fine: the
+     * other still carries error." It is not fine, and the sentence is wrong about what the other
+     * side's error is for.
+     *
+     * A bucket where every decision carries the same stated confidence and the same outcome has
+     * a sample variance of exactly 0. The pooled error then reduces to `sqrt(varOut / nOut)` --
+     * the OUTSIDE bucket's error alone -- and the inside gap is treated as though it were known
+     * exactly. Almost any difference clears the threshold after that. Measured by simulation
+     * against a true null, with both gaps identical: an opening bucket at book-move accuracy,
+     * played by someone who anchors on one confidence value there, fires on up to 13% of records
+     * against this product's own 2% ceiling, and the rate tracks the degeneracy rate one-for-one.
+     *
+     * A zero sample variance is not precision. It is a sample that cannot estimate its own error,
+     * and the honest response is the same as to a sample of one: say so and stop.
      */
     expect(gapDifferenceStandardError({ n: 50, gapVariance: 0 }, { n: 50, gapVariance: 0 })).toBeNull();
     expect(gapDifferenceStandardError({ n: 1, gapVariance: 0.2 }, { n: 50, gapVariance: 0.2 })).toBeNull();
-    // One degenerate side is fine: the other still carries error.
-    expect(gapDifferenceStandardError({ n: 50, gapVariance: 0 }, { n: 50, gapVariance: 0.2 })).toBeGreaterThan(0);
+    // The pair the old assertion blessed, in both orders.
+    expect(
+      gapDifferenceStandardError({ n: 50, gapVariance: 0 }, { n: 50, gapVariance: 0.2 }),
+      "a degenerate INSIDE bucket is still being read",
+    ).toBeNull();
+    expect(
+      gapDifferenceStandardError({ n: 50, gapVariance: 0.2 }, { n: 50, gapVariance: 0 }),
+      "a degenerate OUTSIDE bucket is still being read",
+    ).toBeNull();
+    // And a pair that genuinely varies on both sides is still computed.
+    expect(
+      gapDifferenceStandardError({ n: 50, gapVariance: 0.2 }, { n: 50, gapVariance: 0.3 }),
+    ).toBeGreaterThan(0);
+  });
+});
+
+describe("a bucket that cannot estimate its own error does not get to be certain", () => {
+  /*
+   * MEASURED, on a TRUE NULL where the bucket and the rest have the same EXPECTED gap. The bucket
+   * is 32 decisions at one confidence and 95-97% accuracy, so it comes out perfectly flat by
+   * chance about one record in five (or two in five at 97%) -- an ordinary shape for a clock or
+   * slow-move bucket, not a contrived one.
+   *
+   * Under the old guard the false-positive rate converged EXACTLY on the flat rate as the record
+   * grew: 18.22% fires against 18.45% flat at 3,000 outside decisions; 37.80% against 37.92% at
+   * 10,000. One fire per flat bucket, every time. And it RISES with the record, because the
+   * threshold collapses to `3.75 * sqrt(varOut / nOut)` and that shrinks -- so the more evidence
+   * the player accumulated, the more certain the false claim became.
+   *
+   * After the guard: 0.00% in every cell.
+   */
+  /*
+   * Any four levels off the real grid. What this null needs is a bucket with ZERO variance beside
+   * a bucket with some, so the values only have to be distinct and reachable -- but they are taken
+   * from the scale rather than written by hand, because a literal list here would go on claiming
+   * to be "the scale" after the scale changed.
+   */
+  const SCALE = CONFIDENCE_CHOICES.slice(-4).map((level) =>
+    normaliseConfidence(level, CONFIDENCE_LEVELS),
+  );
+
+  function nullRecordWithFlatBucket(nOut: number, seed: number): ScoredDecision[] {
+    const rnd = seededRandom(seed);
+    // Flat by construction here rather than by chance, so the test is deterministic.
+    const inside: ScoredDecision[] = Array.from({ length: MIN_BUCKET_N + 2 }, (_, i) => ({
+      decision_id: `i-${i}`,
+      confidence: 0.75,
+      accurate: true,
+      phase: "opening" as const,
+      secondsTaken: 10,
+      clockMsRemaining: 1000,
+    }));
+    const outside: ScoredDecision[] = Array.from({ length: nOut }, (_, i) => ({
+      decision_id: `o-${i}`,
+      confidence: SCALE[Math.floor(rnd() * 4)],
+      // Matched so the two expected gaps are equal: 0.625 - 0.425 = 0.75 - 0.55... the point is
+      // only that there is no real difference to find, and the assertion is about the guard.
+      accurate: rnd() < 0.425,
+      phase: (rnd() < 0.5 ? "middlegame" : "endgame") as "middlegame" | "endgame",
+      secondsTaken: 100,
+      clockMsRemaining: 200_000,
+    }));
+    return [...inside, ...outside];
+  }
+
+  it("refuses the flat bucket however large the rest of the record gets", () => {
+    for (const nOut of [300, 1000, 3000]) {
+      const found = detect(nullRecordWithFlatBucket(nOut, nOut * 7919), DEFAULT_THRESHOLDS, null);
+      const opening = found.find((p) => p.key === "phase-opening");
+      expect(
+        opening,
+        `a flat opening bucket cleared the threshold against ${nOut} outside decisions`,
+      ).toBeUndefined();
+    }
+  });
+
+  it("does not go quiet about buckets that DO vary", () => {
+    /*
+     * The mirror. A guard that refused everything would pass the assertion above and destroy the
+     * detector, so the same shape with a bucket that varies must still be readable.
+     */
+    const rnd = seededRandom(4242);
+    const inside: ScoredDecision[] = Array.from({ length: MIN_BUCKET_N + 2 }, (_, i) => ({
+      decision_id: `i-${i}`,
+      confidence: 1,
+      accurate: rnd() < 0.1,
+      phase: "opening" as const,
+      secondsTaken: 10,
+      clockMsRemaining: 1000,
+    }));
+    const outside: ScoredDecision[] = Array.from({ length: 300 }, (_, i) => ({
+      decision_id: `o-${i}`,
+      confidence: SCALE[Math.floor(rnd() * 4)],
+      accurate: rnd() < 0.8,
+      phase: "middlegame" as const,
+      secondsTaken: 100,
+      clockMsRemaining: 200_000,
+    }));
+    const found = detect([...inside, ...outside], DEFAULT_THRESHOLDS, null);
+    expect(found.find((p) => p.key === "phase-opening"), "the guard silenced a real effect").toBeDefined();
   });
 });
 
@@ -274,7 +389,7 @@ describe("the drill arm carried the same defect, where it cost a grade", () => {
   const baseline = summarise(
     Array.from({ length: 200 }, (_, i) => ({
       decision_id: `b${i}`,
-      confidence: normaliseConfidence(3),
+      confidence: normaliseConfidence(3, CONFIDENCE_LEVELS),
       accurate: i % 100 < 55,
       phase: "middlegame" as const,
       secondsTaken: 60,
@@ -286,7 +401,7 @@ describe("the drill arm carried the same defect, where it cost a grade", () => {
     const random = seededRandom(seed);
     return Array.from({ length: n }, (_, i) => ({
       decision_id: `d${i}`,
-      confidence: normaliseConfidence(3 + (random() < lift / 0.25 ? 1 : 0)),
+      confidence: normaliseConfidence(3 + (random() < lift / CONFIDENCE_STEP ? 1 : 0), CONFIDENCE_LEVELS),
       accurate: random() < 0.55 - 0.13,
     }));
   };

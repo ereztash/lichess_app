@@ -27,6 +27,8 @@ export interface CommitDecisionInput {
   statedRead: string;
   statedUnknown: string;
   confidence: number;
+  /** How many levels the scale had when it was stated. See shared/confidence.ts. */
+  confidenceScale: number;
 }
 
 export interface FeedbackInput {

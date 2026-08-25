@@ -17,6 +17,7 @@
  *     sed 's/--> statement-breakpoint//' drizzle/migrations/0000_*.sql | mariadb -u root decision_lab
  *     DATABASE_URL='mysql://root@127.0.0.1:3306/decision_lab' npx vitest run tests/server/drizzle-store.test.ts
  */
+import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { DrizzleRecordStore } from "../../server/record";
 import type { CommitDecisionInput } from "../../shared/record-store";
@@ -41,6 +42,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     statedRead: "המרכז פתוח",
     statedUnknown: "לא ברור מה השחור מאיים",
     confidence: 3,
+    confidenceScale: CONFIDENCE_LEVELS,
     ...overrides,
   };
 }
