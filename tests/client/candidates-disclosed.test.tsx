@@ -150,6 +150,7 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   overall: { n: 40, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
+  anchorAnswered: [],
   buckets: [],
   confidence: [],
   scored: 40,

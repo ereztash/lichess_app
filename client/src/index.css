@@ -2004,6 +2004,44 @@ button:not(:disabled) {
   font-weight: 700;
 }
 /*
+ * The way into the shared set. A row, not a card: it is an action attached to the layer it sits
+ * in, and a bordered panel here would read as a third measurement beside the two the page already
+ * walls apart.
+ */
+.anchor-run {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 10px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+  background: rgba(var(--cream-rgb), 0.4);
+}
+.anchor-run-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.anchor-run-text b {
+  font-size: var(--panel-title);
+}
+.anchor-run-text span {
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 48ch;
+}
+.anchor-run-note {
+  margin: 10px 0 4px;
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/*
  * The Murphy split -- a BREAKDOWN of the row above it, not a second row of headlines.
  *
  * The first version repeated `.review-stats`: three more bordered cells, same size and weight as

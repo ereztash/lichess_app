@@ -112,3 +112,20 @@ const BY_FEN = new Set(ANCHOR_POSITIONS.map((position) => position.fen));
 export function isAnchorFen(fen: string): boolean {
   return BY_FEN.has(fen);
 }
+
+const ID_BY_FEN = new Map(ANCHOR_POSITIONS.map((position) => [position.fen, position.id]));
+
+/**
+ * Which bank positions a set of decisions covers, in the bank's own order.
+ *
+ * Deduplicated, because a position answered twice is still one position covered -- counting it
+ * twice would report progress through a set that had not been made.
+ */
+export function anchorIdsIn(decisions: readonly { fen: string }[]): string[] {
+  const seen = new Set<string>();
+  for (const decision of decisions) {
+    const id = ID_BY_FEN.get(decision.fen);
+    if (id) seen.add(id);
+  }
+  return ANCHOR_POSITIONS.filter((position) => seen.has(position.id)).map((p) => p.id);
+}

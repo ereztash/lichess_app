@@ -13,7 +13,7 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
-import { isAnchorFen } from "./anchor-set.js";
+import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
@@ -86,6 +86,14 @@ export type RecordReading = {
    * comparable reading that nobody has earned yet must not be filled in from the rest.
    */
   anchor: CalibrationScore;
+  /**
+   * Which bank positions this record has already answered, by id.
+   *
+   * Carried so the front door can serve the NEXT one without refetching the whole record, and so
+   * progress through the set is a fact rather than a guess. Ids rather than positions: the caller
+   * that serves them loads the move lists lazily and needs nothing else from here.
+   */
+  anchorAnswered: readonly string[];
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
@@ -169,6 +177,7 @@ export function readRecord(
     overall: summarise(decisions),
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(decisions.filter((decision) => isAnchorFen(decision.fen))),
+    anchorAnswered: anchorIdsIn(decisions),
     buckets,
     confidence,
     scored: decisions.length,
