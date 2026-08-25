@@ -12,6 +12,9 @@ import {
   type SessionStage,
 } from "@/lib/decision-session";
 import { ATOM_FIELDS } from "@shared/decision-atom";
+import type { EngineLine } from "@/lib/engine-line";
+
+const FEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4";
 
 const POSITION: PositionUnderDecision = {
   gameId: "game-1",
@@ -153,23 +156,31 @@ describe("centipawn loss", () => {
 });
 
 describe("cp loss across two searches handles the perspective flip", () => {
+  /*
+   * These pass EngineLines rather than bare numbers, and that is the point of the signature: a
+   * `scoreCp` on a mate line is the mate DISTANCE times ten thousand, and a function taking two
+   * numbers could not tell one from a centipawn score. `pv` is non-empty because `hasEvaluation`
+   * reads it -- an empty one is the sentinel for "the engine said nothing".
+   */
+  const cp = (scoreCp: number): EngineLine => ({ scoreCp, depth: 14, pv: ["e2e4"], fen: FEN });
+
   it("is zero when the player played the engine's own move", () => {
     // Player to move: +40. After their (best) move the opponent is to move and sees -40.
-    expect(cpLossFromSearches(40, -40)).toBe(0);
+    expect(cpLossFromSearches(cp(40), cp(-40))).toBe(0);
   });
 
   it("measures the drop when the player's move was worse", () => {
     // Player to move: +40. After their move the opponent is to move and sees +60,
     // i.e. -60 for the player. Loss = 40 - (-60) = 100.
-    expect(cpLossFromSearches(40, 60)).toBe(100);
+    expect(cpLossFromSearches(cp(40), cp(60))).toBe(100);
   });
 
   it("works through a losing position without changing sign", () => {
     // Player is already worse: -150. After their move the opponent sees +400 => -400 for them.
-    expect(cpLossFromSearches(-150, 400)).toBe(250);
+    expect(cpLossFromSearches(cp(-150), cp(400))).toBe(250);
   });
 
   it("never reports a negative loss", () => {
-    expect(cpLossFromSearches(40, -300)).toBe(0);
+    expect(cpLossFromSearches(cp(40), cp(-300))).toBe(0);
   });
 });

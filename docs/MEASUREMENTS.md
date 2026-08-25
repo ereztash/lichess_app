@@ -1178,3 +1178,98 @@ point of stated confidence is 0.25, that is what the detector returns for a huma
 NOT FIXED HERE. Two further review passes (calibration measurement, psychometrics) were running
 against this same scoring path when this was found, and one planned change beats two conflicting
 ones in the same file.
+
+## A forced mate is not a centipawn quantity, and the live reveal read it as one
+
+Found while sizing the detector fix above, because everything the detector reads is derived from
+`accurate`, and `accurate` is `cp_loss <= 30`.
+
+`parseAnyInfo` stores a `score mate N` line as `scoreCp = N * 10000`. That is an ordering, not a
+magnitude — it makes *mate in nine* score higher than *mate in eight* — and `cpLossFromSearches`
+consumed it as centipawns. Driven through the shipped functions, not a copy of them:
+
+```
+delivering mate in 9, play the BEST move   cp_loss= 10000  ->  inaccurate
+delivering mate in 2, play the BEST move   cp_loss= 10000  ->  inaccurate
+mate in 9 available, throw it away (+11)   cp_loss= 88899  ->  inaccurate
+quiet position, blunder INTO being mated   cp_loss= 50040  ->  inaccurate
+being mated in 4, ACCELERATE to mate 1     cp_loss=     0  ->  ACCURATE
+ordinary: best +0.40, chosen -0.60         cp_loss=   100  ->  inaccurate
+```
+
+**Both errors are directional and they point the same way.** Row 1 and row 2 land on moves that
+force mate — typically stated at high confidence — and mark them wrong. Row 5 lands on a hopeless
+position, typically stated at low confidence, and marks it right. Both widen the measured gap
+between stated confidence and realised accuracy, and both concentrate in the endgame, which the
+detector has a phase bucket for.
+
+**GATE-SHUFFLE could not have caught it.** `shuffleLabels` permutes the bucket labels while
+leaving `accurate` attached to its decision, so a phase-correlated corruption survives in the
+observed statistic and is destroyed in the null — the gate would have certified this as signal.
+
+### The two paths disagreed about the same move
+
+The import scan clamps mate to a fixed `MATE_SCORE = 10000`; the live reveal multiplied the mate
+distance by 10000. Same engine output, same move, opposite verdicts:
+
+```
+White to move, can force mate in 9, plays the fastest mate
+  UCI before (White to move): score mate 9      after (Black to move): score mate -8
+  live path    cp_loss = 10000  -> inaccurate
+  import path  cp_loss =     0  -> ACCURATE
+```
+
+One constant now, in `shared/reveal.ts`, read by both — `shared/` cannot import from `client/`,
+which is why it lives beside `ENGINE_NOISE_CP` rather than beside the parser. `comparableCp` is
+the only thing allowed to turn a line into a number, and `cpLossFromSearches` takes `EngineLine`s
+rather than numbers so a caller cannot hand it the wrong field again.
+
+**The clamp is disclosed, not hidden.** A mate reveal now carries a limit sentence naming the
+ceiling and the discarded quantity (the distance to mate), and the cost renders as
+`0 ס״פ מול תקרת מט` rather than a bare `0 ס״פ` — because on a mating move zero means *nothing was
+better than this*, and unclamped zero means *this move changed nothing*, and those are opposite
+readings of identical glyphs (4.5).
+
+### `mate 0` was worth nothing at all
+
+`Math.sign(0)` is `0`, so the import path's clamp scored a position where the side to move is
+**already checkmated** as dead level — in the direction that flatters whoever just got mated.
+Now `mate > 0 ? +MATE_SCORE : -MATE_SCORE`.
+
+### The engine saying nothing, read as the engine saying zero
+
+A terminal position has no legal reply, so no `info` line carries a principal variation, so
+`analyze` **resolves** with `emptyLine` — `scoreCp: 0` — rather than rejecting. A search that
+times out resolves the same way. Driven end to end through the real `analyzePositions`, a game
+where White is +5.00 throughout and delivers mate:
+
+```
+White-relative evals per position: [ 500, 500, 500, 500, 500, 0 ]
+the MATING move (ply 5, White): before=500 after=0
+  cp_loss = 500  ->  inaccurate
+```
+
+**The best move of the game, scored as a 500-centipawn blunder, on the winner.**
+
+Live, this is now answered from the rules rather than from the engine: `after.isCheckmate()` →
+loss 0 (nothing outscores mate), `after.isGameOver()` → the position really is 0.00, so the
+ordinary comparison holds. It also saves one search per game-ending decision. A search that comes
+back empty for any *other* reason now throws into the existing engine-failure screen rather than
+producing a reveal built on zeroes that is indistinguishable from one built on an evaluation.
+
+**23 assertions, 12 positive controls, each confirmed red and each diffed against the original to
+prove the mutation reached the file.**
+
+### NOT FIXED HERE: the same defect on the import path
+
+`analyzePositions` still returns `0` for a position the engine did not evaluate, so the mating
+move of every imported game that ended in mate is still scored as a blunder — the measurement
+above was taken against the shipped import path and still reproduces. Fixing it means
+`evalScores` becomes `(number | null)[]`, which is the input type of `shared/eval-analysis.ts`,
+`shared/import-diagnostic.ts`, `GameReview` and the game-review screen in `Home.tsx`. That is a
+different change in four modules, and the reason it is recorded rather than bundled is the one
+already established above: one planned fix beats two conflicting ones in the same path.
+
+Size on the one real reading: 20 games, 554 decisions. Every game that ended in checkmate
+contributes exactly one such decision, so the affected share is at most 20/554 = 3.6% and lands
+only on the player's best move of that game.

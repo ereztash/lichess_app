@@ -10,11 +10,19 @@
  * WHITE's perspective, one entry per position starting with the initial one, mate as ±10000.
  */
 import { Chess } from "chess.js";
-import type { EngineLine } from "@/lib/engine-line";
+import { MATE_SCORE, comparableCp, type EngineLine } from "@/lib/engine-line";
 import { PROGRESS_INTERVAL_MS, throttleProgress } from "@/lib/progress-throttle";
 
-/** What `%eval #3` means in the ported analysis: a forced mate, clamped far outside any cp range. */
-export const MATE_SCORE = 10000;
+/**
+ * Re-exported, not defined here.
+ *
+ * This module owned the clamp and the live reveal did not use it -- it read `scoreCp` on a mate
+ * line straight, which is the mate DISTANCE times ten thousand. So the same engine output on the
+ * same move was worth ±10000 on this path and up to ±90000 on the other, and the two screens
+ * disagreed about whether delivering a forced mate was a blunder. One constant, one rule, one
+ * home: see `comparableCp` in engine-line.ts.
+ */
+export { MATE_SCORE };
 
 export type BatchProgress = { done: number; total: number };
 
@@ -71,7 +79,7 @@ export function gamePositions(pgn: string): string[] {
  */
 export function toWhitePerspective(line: EngineLine, fen: string): number {
   const blackToMove = fen.split(" ")[1] === "b";
-  const raw = typeof line.mate === "number" ? Math.sign(line.mate) * MATE_SCORE : line.scoreCp;
+  const raw = comparableCp(line);
   return blackToMove ? -raw : raw;
 }
 

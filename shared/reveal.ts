@@ -19,6 +19,21 @@ export const SHALLOW_DEPTH = 16;
 export const ENGINE_NOISE_CP = 30;
 /** A move this far from the engine's line is worth a sentence. */
 export const MATERIAL_LOSS_CP = 100;
+/**
+ * What a forced mate is worth when a centipawn number is unavoidable: a CLAMP, not a conversion.
+ *
+ * UCI reports a forced mate as `score mate N`, which is an ORDERING and not a magnitude. There is
+ * no centipawn value of "mate in nine"; there is only "this wins and every centipawn score does
+ * not". Any number put here is a convention, so the convention is stated once, in one place, and
+ * the sentence the reveal prints says which distance it threw away.
+ *
+ * IT LIVES IN THIS FILE, and not beside the parser, because `shared/` cannot import from
+ * `client/` and both engine paths must read the SAME constant. They did not: the import scan
+ * clamped mate to a fixed 10000 while the live reveal multiplied the mate distance BY 10000, so
+ * the same engine output on the same move produced opposite verdicts depending on which screen
+ * asked. Two conventions is not a convention.
+ */
+export const MATE_SCORE = 10000;
 export interface RevealInputs {
   depth: number;
   cpLoss: number;
@@ -41,6 +56,16 @@ export interface RevealInputs {
    * the other direction out loud.
    */
   candidatesConsidered: string[];
+  /**
+   * Set when the engine answered this position with a forced mate rather than a centipawn score.
+   *
+   * `cpLoss` is then measured against MATE_SCORE, which is a ceiling and not a measurement, and
+   * the mate distance -- whether the move brought mate seven moves closer or pushed it away --
+   * is not in the number at all. Optional because the branch mix constructs these inputs from
+   * stored decisions, where the record kept the loss and not the shape of the score that
+   * produced it; absent means "not known to be clamped", never "known not to be".
+   */
+  clampedMate?: boolean;
 }
 
 /**
@@ -96,6 +121,20 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
    * Only when the engine preferred something else: with nothing to have missed, there is no
    * distinction to be unable to make.
    */
+  /*
+   * The number on this screen is a ceiling, and saying so is the whole of section 4.4 here.
+   *
+   * A forced mate has no centipawn value. When the engine returns one, `cpLoss` is computed
+   * against MATE_SCORE -- so "0 centipawns" on a mating move means "nothing was better than
+   * this", which is true, and NOT "this move changed nothing", which is what the number looks
+   * like. The distance to mate is the part that was dropped, so the distance is what the
+   * sentence names.
+   */
+  if (inputs.clampedMate) {
+    limits.push(
+      `המנוע החזיר כאן מט כפוי, ומט אינו כמות בסנטי-פונים. עלות ההחלטה נמדדה מול תקרה קבועה של ${MATE_SCORE} ס״פ, ולכן המרחק למט — אם המהלך קירב אותו או דחה אותו — לא נמדד כאן כלל.`,
+    );
+  }
   if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
     limits.push(
       "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת כאן אם לא ראית את המהלך של המנוע או שראית ודחית. " +

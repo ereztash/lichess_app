@@ -83,6 +83,7 @@ import {
 import {
   buildCommitEvent,
   cpLossFromSearches,
+  cpLossOfFinalMove,
   engineMayRun,
   type DraftDecision,
   type SessionStage,
@@ -111,7 +112,13 @@ import {
   OPPONENT_FAILURE_TEXT,
   type OpponentDepth,
 } from "@/lib/opponent";
-import { isStale, type EngineLine, type EngineStatus } from "@/lib/engine-line";
+import {
+  comparableCp,
+  hasEvaluation,
+  isStale,
+  type EngineLine,
+  type EngineStatus,
+} from "@/lib/engine-line";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
 
@@ -548,13 +555,36 @@ export default function Home() {
         const best = await engine.analyze(positionFen, 14);
         const after = new Chess(positionFen);
         after.move({ from: move!.from, to: move!.to, promotion: "q" });
-        const chosen = await engine.analyze(after.fen(), 14);
-        setAnalysis(best.pv.length ? best : null);
+        /*
+         * WHETHER THERE IS A SECOND POSITION TO SEARCH AT ALL.
+         *
+         * A move that ends the game leaves nothing to search: no legal reply means no principal
+         * variation, so the parser rejects every `info` line and `analyze` RESOLVES -- it does
+         * not reject -- with `emptyLine`, whose `scoreCp` is 0. The comparison then read that as
+         * a dead-level evaluation and charged the player their whole advantage for winning: mate
+         * delivered from +5.00 was scored as a 500-centipawn blunder, on the best move of the
+         * game. Asking the rules instead of the engine is both correct and one search cheaper.
+         */
+        const ended = after.isCheckmate() ? "checkmate" : after.isGameOver() ? "draw" : null;
+        const chosen = ended === null ? await engine.analyze(after.fen(), 14) : null;
 
-        const cpLoss = cpLossFromSearches(best.scoreCp, chosen.scoreCp);
+        /*
+         * R2, and the reason this is a throw rather than a fallback. A search can also come back
+         * empty because it TIMED OUT -- `analyze` resolves with the same sentinel on its timer --
+         * and that is a position nothing measured. The outer catch already owns this case and
+         * renders the engine-failure screen; the alternative is a reveal built on zeroes that is
+         * indistinguishable from one built on an evaluation.
+         */
+        if (!hasEvaluation(best) || (chosen !== null && !hasEvaluation(chosen))) {
+          throw new Error("engine returned no evaluation for this decision");
+        }
+        setAnalysis(best);
+
+        const cpLoss =
+          ended === null ? cpLossFromSearches(best, chosen!) : cpLossOfFinalMove(best, ended);
         const bestMove = best.bestMove ?? draft.chosenMove!;
         const inputs: RevealInputs = {
-          depth: Math.min(best.depth, chosen.depth),
+          depth: chosen === null ? best.depth : Math.min(best.depth, chosen.depth),
           cpLoss,
           chosenMove: draft.chosenMove!,
           bestMove,
@@ -570,6 +600,13 @@ export default function Home() {
            * closure, and it is the one that describes the decision being revealed.
            */
           candidatesConsidered: draft.candidatesConsidered,
+          /*
+           * Carried so the reveal can say which distance the number threw away. A mate on either
+           * search means `cpLoss` was measured against MATE_SCORE, a ceiling, and the sentence
+           * that says so is the difference between "nothing was better than this" and "this move
+           * changed nothing" -- which read identically as "0 ס״פ".
+           */
+          clampedMate: best.mate !== undefined || chosen?.mate !== undefined,
         };
         setRevealInputs(inputs);
 
@@ -577,7 +614,9 @@ export default function Home() {
           await submitReveal.mutateAsync({
             decision_id: decisionId,
             result: {
-              engine_eval_cp: best.scoreCp,
+              // The clamp, not the mate distance: `scoreCp` on a mate line is distance x 10000,
+              // and the record is read back as centipawns by anything that reads it at all.
+              engine_eval_cp: comparableCp(best),
               engine_best_move: bestMove,
               engine_depth: inputs.depth,
               engine_source: "local_sf18",

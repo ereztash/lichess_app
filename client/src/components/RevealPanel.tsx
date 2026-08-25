@@ -119,10 +119,17 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
               <NotMeasured reason="לא הושלם ניתוח לעמדה זו" />
             )}
           </div>
+          {/*
+            * Section 4.5: a measured cost and a cost measured against a ceiling are different
+            * states, and "0 ס״פ" is where they look most alike. On a forced mate the number is
+            * the distance from MATE_SCORE, so zero means "nothing was better than this" and not
+            * "this move changed nothing" -- opposite readings, identical glyphs. The unit says
+            * which one it is; the limits list above says what the clamp discarded.
+            */}
           <div className="reveal-metric">
             <span>עלות ההחלטה</span>
             <Value provenance={{ kind: "engine", source: "local_sf18", depth: inputs.depth }}>
-              {inputs.cpLoss} ס״פ
+              {inputs.clampedMate ? `${inputs.cpLoss} ס״פ מול תקרת מט` : `${inputs.cpLoss} ס״פ`}
             </Value>
           </div>
           <div className="reveal-metric">

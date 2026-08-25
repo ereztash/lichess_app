@@ -10,6 +10,7 @@
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
 import type { DecisionAtom } from "@shared/decision-atom";
+import { comparableCp, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
 
@@ -190,8 +191,44 @@ export function centipawnLoss(bestEvalCp: number, chosenEvalCp: number): number 
  *
  * Getting this backwards produces a plausible number with the wrong sign, which is exactly the
  * kind of error that survives review and then feeds a claim.
+ *
+ * IT TAKES LINES AND NOT NUMBERS, and that is the fix rather than a tidying. It used to take two
+ * `scoreCp` values, and `scoreCp` on a mate line is the mate distance times ten thousand -- so
+ * the caller handed it a quantity that is not centipawns and it had no way to know. Measured
+ * against the shipped code, on positions the engine reports as mate:
+ *
+ *     delivering mate in 9, playing the FASTEST mate   -> cp_loss 10000 -> "inaccurate"
+ *     delivering mate in 2, playing the FASTEST mate   -> cp_loss 10000 -> "inaccurate"
+ *     being mated in 4, ACCELERATING it to mate in 1   -> cp_loss     0 -> "ACCURATE"
+ *
+ * Both errors push the calibration gap the same way -- the first lands on decisions stated at
+ * full confidence and marks them wrong, the second lands on hopeless positions and marks them
+ * right -- and both concentrate in the endgame, where the detector has a phase bucket. Taking
+ * the line means `comparableCp` is unavoidable and a caller cannot reintroduce this by passing
+ * the wrong field.
  */
-export function cpLossFromSearches(bestScoreCp: number, afterChosenScoreCp: number): number {
-  const chosenFromPlayersView = -afterChosenScoreCp;
-  return centipawnLoss(bestScoreCp, chosenFromPlayersView);
+export function cpLossFromSearches(best: EngineLine, afterChosen: EngineLine): number {
+  const chosenFromPlayersView = -comparableCp(afterChosen);
+  return centipawnLoss(comparableCp(best), chosenFromPlayersView);
+}
+
+/**
+ * The cost of a move that ENDED the game, where there is no second search to compare against.
+ *
+ * A terminal position has no legal reply, so the engine emits no principal variation and
+ * `analyze` resolves with `emptyLine` -- `scoreCp: 0`. Fed to the comparison above, that reads as
+ * a dead-level evaluation, and the arithmetic then charges the player their entire advantage for
+ * winning: a mate delivered from a +5.00 position scored as a 500-centipawn blunder, on the best
+ * move of the game.
+ *
+ * Neither outcome needs the engine, because both are facts of the rules rather than evaluations:
+ *
+ *   - Checkmate is the best available move by definition. Nothing scores higher, so the loss is
+ *     zero. This is not the clamp and not a convention; there is no better move to have played.
+ *   - A draw by stalemate, repetition, the fifty-move rule or insufficient material really is
+ *     0.00, so the loss is whatever the player was giving up by drawing -- which is the ordinary
+ *     comparison against a genuine zero.
+ */
+export function cpLossOfFinalMove(best: EngineLine, outcome: "checkmate" | "draw"): number {
+  return outcome === "checkmate" ? 0 : centipawnLoss(comparableCp(best), 0);
 }
