@@ -185,6 +185,54 @@ vacuity check, because the assertion it replaces was vacuous in precisely that w
 `transferObservation` now throws on a null answer instead of `?? false` under a comment saying the
 default could not fire. A missing measurement must not be recorded as a measured negative.
 
+## Cycle 13 — "available" was never measured, and two things believed it
+
+`a2ed0c5`. Reproduced before a line was written: point `DATABASE_URL` at a closed port and
+`isAvailable()` returns **true in 4ms**; the first real query throws. `drizzle(url)` builds a
+mysql2 pool, and a pool does not connect. `Boolean(await getDb())` was a test of whether a string
+was set in the environment, wearing the name of a test of whether the database was up.
+
+`record.storageAvailable` believed it — and `useRecordMode` exists for exactly one reason, in its
+own comment: *"The server is used only when it says it can store."* Against an unreachable
+database the server said it could, so the client abandoned a working browser-local record and
+every commit failed: **the failure the local path was built to prevent, delivered by the check
+meant to prevent it.**
+
+`/api/health` believed it too, answering `{ok:true}` unconditionally. It is the diagnostic this
+project actually used during the `FUNCTION_INVOCATION_FAILED` outage and the evidence cited in
+`docs/FINDINGS.md` that a deployment is alive. What it measured was that a line of code ran.
+
+Now: `select 1` under a 3s deadline; 503 for a **configured** database that cannot be reached, 200
+when none is configured — absent is not down, and a browser-local record is a supported
+deployment. No detail in the body: `system.lichessConfig` is protected because the names of the
+missing pieces describe the deployment, and listing them here would move that report to an
+unauthenticated URL.
+
+**Two controls survived their first form**, both the same shape — an assertion satisfied by the
+fixture rather than the code. The bound was timed against a dead address, and every unreachable
+address available here is refused in under 25ms, so a deadline stretched to ten minutes passed;
+the deadline is now its own function driven by a promise that never settles. "Does not hold a
+timer open" asserted only that the call resolved, and deleting the `clearTimeout` passed;
+`getTimerCount` is the observable.
+
+## Cycle 14 — a health check that hangs instead of answering
+
+Found in cycle 13's own code, after watching it answer `200` on the deployed preview. The handler
+had become `async`, and **Express 4 does not catch a rejected promise from a handler** — it
+neither responds nor errors, so the request hangs until the platform kills it. Reproduced: a store
+whose `isAvailable` rejects held the request for the full 4s client timeout and leaked an
+unhandled rejection.
+
+A hung health check is worse than a red one. A monitor reads a timeout as *"the whole deployment
+is gone"* and pages for the wrong thing, which is the same class of error as cycle 13 — a signal
+that means something other than what it says. Every path now ends in a response.
+
+**Verified on the deployed preview, not inferred from a green build**: `/api/health` on
+`lichessapp-git-claude-mati-user-exper-c09c92` answers `{"ok":true}` at 200 through Express. That
+proves the entry loads and the new handler runs. It deliberately cannot distinguish "no database
+configured" from "database reachable" — that is the privacy property, and it is stated here rather
+than papered over with a stronger claim than the route can support.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -194,11 +242,11 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
 | Scientific / construct validity | 4 | **7** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry. Not higher: positions still are not selected for the trigger, and there is no control condition |
 | Functional correctness | 6 | **8** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation — each with a reproduction |
-| Test quality and CI | 8 | **9** | 1,141 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9** | 1,152 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
 | UX, accessibility, recovery | 6 | **8.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
-| Operations / deployability | 4 | **5** | `scripts/dev-db.sh`; no health check, error tracking or env validation yet |
+| Operations / deployability | 4 | **7** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail. Not higher: no error tracking, no startup env validation, no incident runbook |
 | Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |
 | Differentiation / user value | 8 | **8** | Unchanged by design: this work made existing claims true rather than adding new ones |
 
@@ -210,6 +258,6 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | Three positions is below every single-case standard consulted; no control positions | **High** | open, and now **stated on screen** rather than silently assumed |
 | — | Multi-user separation: `user_id` on 12 tables, every query, index and cache key | High | **product decision for the operator**, not a defect fix |
 | 7 | `Home.tsx` 1,743 lines, `index.css` 3,693 | Low | open |
-| — | Health checks, error tracking, env validation, incident response | Medium | open — the weakest remaining gate |
-| — | Production deployment tested directly rather than inferred from a green build | Medium | open |
+| — | Error tracking, startup env validation, incident runbook | Medium | open. The health check itself is closed (cycles 13–14) |
+| — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |

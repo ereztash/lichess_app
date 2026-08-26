@@ -183,6 +183,37 @@ describe("the health route reports the health it measured", () => {
     }
   });
 
+  it("answers rather than hanging when the probe itself throws", async () => {
+    /*
+     * FOUND IN THIS CHANGE'S OWN CODE, after watching it answer on the deployed preview. The
+     * handler became `async`, and Express 4 does not catch a rejected promise from a handler --
+     * it neither responds nor errors, so the request hangs until the platform kills it. A hung
+     * health check is worse than a red one: a monitor reads a timeout as "the whole deployment is
+     * gone" and pages for the wrong thing.
+     *
+     * `isAvailable` swallows its own failures today, so this asserts the handler is safe against
+     * a store that does not.
+     */
+    vi.resetModules();
+    process.env.DATABASE_URL = DEAD;
+    const { createApp } = await import("../../server/app");
+    const { MemoryRecordStore } = await import("../../server/record");
+    const store = new MemoryRecordStore();
+    store.isAvailable = () => Promise.reject(new Error("driver exploded"));
+    const server = (await import("node:http")).createServer(createApp({ store }));
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const { port } = server.address() as { port: number };
+    close = () =>
+      new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      );
+    const response = await fetch(`http://127.0.0.1:${port}/api/health`, {
+      signal: AbortSignal.timeout(4_000),
+    });
+    expect(response.status, "a throwing probe must not be reported as healthy").toBe(503);
+    await expect(response.json()).resolves.toMatchObject({ ok: false });
+  });
+
   it.runIf(LIVE)("is healthy when the database it was given is up", async () => {
     await serve(LIVE);
     const response = await fetch(`${origin}/api/health`);

@@ -35,10 +35,19 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
    * unauthenticated URL. The operator gets the names after signing in. A monitor gets a status
    * code, which is what a monitor acts on.
    */
-  app.get("/api/health", async (_req, res) => {
+  app.get("/api/health", (_req, res) => {
     const configured = Boolean(process.env.DATABASE_URL);
-    const ok = !configured || (await store.isAvailable());
-    res.status(ok ? 200 : 503).json({ ok });
+    /*
+     * NOT AN `async` HANDLER. Express 4 does not catch a rejected promise from one -- it neither
+     * responds nor errors, so the request hangs until the platform kills it, and a monitor reads
+     * that timeout as "the whole deployment is gone" rather than "the database is down". A hung
+     * health check is worse than a red one: it pages for the wrong thing. So the probe's failure
+     * is handled here as well as inside it, and every path ends in a response.
+     */
+    const probe = configured ? store.isAvailable() : Promise.resolve(true);
+    probe
+      .then((ok) => res.status(ok ? 200 : 503).json({ ok }))
+      .catch(() => res.status(503).json({ ok: false }));
   });
   registerOAuthRoutes(app);
   app.use("/api/trpc", createExpressMiddleware({ router: buildAppRouter(store), createContext }));
