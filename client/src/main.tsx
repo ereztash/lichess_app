@@ -1,3 +1,5 @@
+// FIRST, and it must stay first -- see the file for why.
+import "./zod-jitless";
 import { trpc } from "@/lib/trpc";
 import { COOKIE_NAME, UNAUTHED_ERR_MSG } from "@shared/const";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

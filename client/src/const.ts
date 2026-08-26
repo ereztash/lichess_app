@@ -32,7 +32,12 @@ export const startLogin = (): StartLoginResult => {
   const appId = import.meta.env.VITE_APP_ID;
   const redirectUri = `${window.location.origin}/api/oauth/callback`;
   const nonce = crypto.randomUUID();
-  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=None; Secure`;
+  /*
+   * Lax, matching the session cookie. This nonce IS the OAuth CSRF check -- the callback compares
+   * it to the state parameter -- and `None` sent it on any cross-site request that could reach
+   * this origin. The provider's redirect back is a top-level GET, which Lax allows.
+   */
+  document.cookie = `${OAUTH_STATE_COOKIE}=${nonce}; Path=/; Max-Age=600; SameSite=Lax; Secure`;
   const state = encodeOAuthState({ redirectUri, nonce });
   const url = new URL(`${oauthPortalUrl}/app-auth`);
   url.searchParams.set("appId", appId);

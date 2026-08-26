@@ -872,13 +872,75 @@ adds is caught wherever it is added. It carries its own denominator — a second
 two placeholders it finds, because a scan whose regex has quietly stopped matching passes just as
 green as one that found nothing wrong.
 
+## Cycle 34 — a policy that was measured rather than written
+
+The deployment sent **no security headers of any kind**, and `SameSite=None` on the session cookie.
+Every item below except the last is a default somebody else was choosing; the cookie is the one
+that was chosen here, and it switched off the only CSRF defence in the codebase — there is no CSRF
+token anywhere, and every mutation is owner-gated by a check that a cross-site request passes
+because it carries the owner's own cookie. Nothing needed `None`: the single cross-site entry is
+the OAuth provider's redirect, a top-level GET, which `Lax` allows. It also fixed a second thing
+quietly — browsers reject `SameSite=None` without `Secure`, so on a local http deployment the
+session cookie was being dropped rather than stored.
+
+**The CSP was measured, not written.** `dist/public` is served under a candidate policy, both
+routes load in a real Chromium, and every `securitypolicyviolation` is collected. Two things came
+out that no amount of reading would have produced:
+
+| found by loading the page | what it was |
+| --- | --- |
+| `script-src <- eval` on **both** routes, at load | Zod 4 JIT-compiles its parsers and probes for permission with `new Function("")`. It handles the refusal and falls back, so nothing was broken — but the page reached for `new Function` on every load, and every load reported a violation |
+| the engine never reaches `uciok` under `script-src 'self'` | `WebAssembly.instantiateStreaming` is refused. `'wasm-unsafe-eval'` is enough; the browser's own error message names `'unsafe-eval'`, which would re-open eval to the whole page |
+
+The Zod fix took **three attempts, and the re-measurement is what caught each miss.**
+`config({ jitless: true })` in the entry body did nothing — the violation kept firing. Importing
+from `zod/v4/core` rather than `zod` did nothing. The reason is evaluation order: the JIT decision
+is memoised on first parse, which happens while `@shared/const` and the tRPC client are being
+imported, before any statement in `main.tsx` runs. It now lives in `client/src/zod-jitless.ts` as
+the first import, and the positive control for that is moving the import to last — which reddens
+both routes.
+
+The style directives were measured the same way, by setting a style attribute and inserting a
+`<style>` element under each candidate: `default-src 'self'` blocks both, `style-src-attr
+'unsafe-inline'` allows the attribute only, `style-src 'unsafe-inline'` allows both. React's
+`style={{}}` needs the attribute, so the policy grants `style-src 'self' 'unsafe-inline'` for
+browsers that stop there and withdraws the element half with `style-src-elem 'self'` for browsers
+that understand it.
+
+**The test reads the policy out of `vercel.json`.** A copy of the string in the test could pass
+while production failed. And the engine is constructed in the test rather than reached through the
+UI: it loads only on a reveal, so a page-load sweep would have reported a clean policy and the
+first player to ask for an evaluation would have met a dead worker.
+
+That test needs a build, and `npm test` ran before `npm run build`. **`verify` and the CI job now
+build first** — a CSP test that quietly did not run is exactly how a policy that breaks the engine
+reaches production.
+
+Also this cycle, each with its own control:
+
+- `npm install --no-audit` → **`npm ci`**. `install` may resolve to something the lock file does
+  not name, which means CI could be green about a tree no developer has.
+- **`npm audit --omit=dev --audit-level=high`** as a step that can fail. `--omit=dev` because a
+  vulnerability in vitest is not conveyed to anybody; `high` because a step that fails on every low
+  advisory gets disabled within a month. 0 vulnerabilities today. It can go red on a day nothing
+  here changed, and that is the step working.
+- `express.json({ limit: "10mb" })` → **1mb**. Ten megabytes was the framework's example, not a
+  decision; on a serverless function it is ten megabytes of parse a caller gets to spend before a
+  validator runs.
+- `z.custom<ImportDiagnostic>(v => typeof v === "object" && v !== null)` accepted **an array, a
+  Date, and an object of any size**. The shape stays unvalidated for the reason already written
+  there — it is the client's own output, and a field-by-field schema would restate this codebase —
+  but the size is now bounded at 64 KiB, which is a property of the storage this layer owns. A
+  cyclic object refuses rather than throwing: a thrown validator is a 500 where a refusal was the
+  honest answer.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
 
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
-| Security, privacy, isolation | 2 | **8.5** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more |
+| Security, privacy, isolation | 2 | **9** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more. Cycle 34 closed the headers: a CSP measured in a real browser against the built app rather than written from the source, `SameSite=Lax` restoring the only CSRF defence this codebase has, a 1mb body limit and a bounded opaque diagnostic, `npm ci` and an SCA step in CI |
 | Scientific / construct validity | 4 | **8.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable |
 | Functional correctness | 6 | **9** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. Not 9.5: `finishDrill` has the same two-write shape and is open |
 | Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
@@ -898,6 +960,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | Multi-user separation: `user_id` on 12 tables, every query, index and cache key | High | **product decision for the operator**, not a defect fix |
 | 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
 | — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
+| — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |
