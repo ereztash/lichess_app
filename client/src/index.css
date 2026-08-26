@@ -3332,6 +3332,39 @@ button:not(:disabled) {
  * without what produced it -- and it is the smallest step on the scale because it is a citation,
  * not a reading.
  */
+/*
+ * The height the slot holds while the record is being read.
+ *
+ * MEASURED, AND THE DERIVATION THAT PRECEDED IT WAS WRONG. The first version computed the two
+ * rows from the type scale -- sentence at `--panel-body` over 1.5, basis at `--panel-fine` over
+ * 1.4, plus the gap, padding and border -- which comes to 54px. The ribbon is 88px: the
+ * arithmetic forgot the action row, which most loop positions carry. Reserving 54 for 88 left a
+ * 34px shift, and the measurement is what said so.
+ *
+ * Measured on the built app in Chromium, at the position a new record actually shows:
+ *
+ *   390px  ribbon 124px  (headline wraps to three lines)
+ *   768px  ribbon  88px
+ *   1280px ribbon  88px
+ *   1440px ribbon  88px
+ *
+ * Two values, one breakpoint, because that is what the measurement found -- the headline wraps
+ * below 768 and does not above it.
+ *
+ * IT CANNOT BE EXACT AND IT IS NOT CLAIMED TO BE. The ribbon carries one of seven loop positions,
+ * their sentences differ in length, and two of the seven have no action row. A reservation is a
+ * guess at content nobody has read yet; this one is the measured common case, and the residual is
+ * bounded by the difference between the shortest and tallest position rather than by the whole
+ * height of the ribbon.
+ */
+.context-ribbon.is-reading {
+  min-block-size: 124px;
+}
+@media (min-width: 768px) {
+  .context-ribbon.is-reading {
+    min-block-size: 88px;
+  }
+}
 .context-loop {
   margin: 0;
   flex: 1 1 100%;

@@ -934,6 +934,73 @@ Also this cycle, each with its own control:
   cyclic object refuses rather than throwing: a thrown validator is a 500 where a refusal was the
   honest answer.
 
+## Cycle 35 — what moves under the cursor after the page is painted, and one of them was mine
+
+CLS is invisible to every other test here. jsdom reports no boxes, and a green build says nothing
+about whether the thing you were about to click stayed where it was. So it is measured: the built
+app, served, loaded in Chromium behind a `layout-shift` observer, at a phone width and a desktop
+width.
+
+| | before | after |
+| --- | --- | --- |
+| `/play` at 1280 | 0.06584 | **0.00000** |
+| `/play` at 390 | 0.067 (timing-dependent) | **0.00000** |
+| `/` at 390 | 0.07811 | **0.00015** |
+| `/` at 1280 | 0.01398 → 0.078 | **0.00006** |
+
+`/play` was the `ContextRibbon`, which is what the assessment reported: absent while
+`useClaimView` loads, then appearing above the board and dropping `section.workbench` 98 pixels
+after paint. Reserving its space is honest here for a specific reason — `loopPosition` returns a
+position for every one of its seven states and **cannot return null**, so the absence is purely a
+loading state and the slot is certainly going to be filled. It is not a bet that there will be
+something to say.
+
+**The reserved height was derived first, and the derivation was wrong.** Computing the two rows
+from the type scale gives 54px; the ribbon is 88px, because the arithmetic forgot the action row
+that most positions carry. Reserving 54 for 88 left a 34px shift. The measurement is what said so,
+and the reservation is now the measured 88px, with 124px below 768px where the headline wraps to
+three lines. It cannot be exact and is not claimed to be: seven positions, seven sentence lengths,
+two of them with no action row. The residual is bounded by the spread between positions rather
+than by the ribbon's whole height.
+
+**`/` was this branch's own doing, three commits earlier.** The licence footer added in cycle 32
+is the last element on the page, and when the record layers replaced "קורא את הרשומה…" it was
+pushed 289 pixels down — taking the front door from CLS 0.00015 to 0.07811 on a phone. A shift of
+the *last* element is still a shift. It now renders after the record has answered, so it is
+inserted at its final position rather than moved to it; an element appearing costs nothing, an
+element moving does. Reserving the layers' space instead would not have been honest — their height
+is the record's, and nobody knows it before it is read.
+
+The budget is 0.02: a hundred times the 0.00015 that remains, a fifth of Google's 0.1 threshold,
+and well under the 0.066 it caught. Deliberately not 0 — a threshold at the noise floor fails on a
+day nothing changed, and a test that cries wolf gets deleted. Two positive controls: dropping the
+reservation reddens `/play` at both widths, and ungating the footer reddens `/` at the phone width
+alone.
+
+**One existing test had to change, and its principle did not.** `knows-before-you-ask` asserted
+that the ribbon renders nothing while the record loads, with the right reason: a guessed position
+is worse than a blank frame. That still holds — no sentence about the player, no basis line, until
+the record answers. What changed is what "blank" means: an empty reserved slot carrying the same
+"reading" sentence the front door uses, rather than no element at all. Its stub restore also moved
+into a `finally`, because a leak there was failing the *next* test rather than itself.
+
+### Cycle 34's headers, confirmed on the deployment rather than inferred
+
+`vercel.json` sets the page headers through a legacy `routes` entry with `continue: true`, which
+nothing local can test. Fetched from the preview at `6b6185d` with a share bypass:
+
+```
+content-security-policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...
+cross-origin-opener-policy: same-origin      referrer-policy: no-referrer
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+strict-transport-security: max-age=31536000  x-content-type-options: nosniff
+x-frame-options: DENY                        x-powered-by: (gone)
+```
+
+and on `/api/health`, from the Express middleware: `cache-control: no-store`,
+`content-security-policy: frame-ancestors 'none'`, `cross-origin-resource-policy: same-origin`,
+`referrer-policy: no-referrer`, `x-content-type-options: nosniff`, `x-frame-options: DENY`.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -946,7 +1013,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five. SC 3.1.2 read island by island rather than swept: four English strings declared, thirty-one exemptions asserted so a later sweep cannot quietly claim a language for chess notation |
-| Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
+| Performance and bundle | 5 | **8.5** | Explicit budgets, wired into verify and CI, proven to fail — and now a **layout-shift budget measured in a real browser** at two viewports on both routes, which caught a 98px shift the assessment reported and a 289px one this branch had introduced itself. Not higher: LCP and INP are still unmeasured, and CLS is measured on a local server rather than on real users |
 | Operations / deployability | 4 | **8.5** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values; incoherent configurations named at startup, by variable and never by value. Not higher: no incident runbook, and the record loop itself is still exercised only locally. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it. Cycle 32 closed the licence obligations the build had been ignoring: a GPL-3.0 engine and nine OFL fonts now convey their licence texts, checked by GATE-NOTICE against the tree |
 | Documentation / DX | 7 | **8.5** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database, and `THIRD_PARTY_NOTICES.md` — every component the build conveys, at the version it conveys, with the licence text it serves and the source it came from |
 | Differentiation / user value | 8 | **8.5** | Cycles 13–22 were unchanged by design — they made existing claims true rather than adding new ones. Cycles 23–26 add one: the counterfactual probe reads candidate SELECTION, the half of expertise the accuracy rate cannot see. Not higher until it has n behind it: four readings need 30 scored answers, and the panel currently counts down to that rather than reporting anything |

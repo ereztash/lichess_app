@@ -305,6 +305,20 @@ export default function Record() {
         * because it is a notice and not a feature. `dir="ltr"` on the two names because they are
         * Latin script inside a Hebrew document; `lang` because they are not Hebrew words.
         */}
+      {/*
+        * WAITS FOR THE PAGE TO SETTLE, and that is a defect this footer itself introduced.
+        *
+        * Measured on the built app at 390x844: adding this notice took the front door from CLS
+        * 0.00015 to 0.07811. It is the last element on the page, so when the record layers finish
+        * loading and replace "קורא את הרשומה…", it is pushed 289 pixels down -- and a shift of
+        * the LAST element is still a shift.
+        *
+        * Rendering it after the record has answered means it is inserted at its final position
+        * and never moves. An element appearing does not count against CLS; an element moving
+        * does. The alternative -- reserving the layers' space -- cannot be done honestly, because
+        * their height is the record's, and nobody knows it before it is read.
+        */}
+      {!reading.isLoading && (
       <footer className="record-notices">
         <p>
           המנוע{" "}
@@ -322,6 +336,7 @@ export default function Record() {
           תחת SIL OFL 1.1. הקישורים הם לנוסח הרישיון עצמו, כפי שהוא נשלח יחד עם הקבצים.
         </p>
       </footer>
+      )}
     </main>
   );
 }

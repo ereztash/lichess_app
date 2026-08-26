@@ -137,16 +137,34 @@ describe("the sentence the app already computed reaches the top of the page", ()
     expect(document.querySelector(".context-loop-basis")?.textContent).toBe("0 מתוך 0");
   });
 
-  it("renders nothing when the record has not answered yet", () => {
-    // R2: a record still loading is not a record with nothing in it, and a guessed position is
-    // worse than a blank first frame.
-    loopStub.value = { position: null, loading: true } as never;
-    render(<ContextRibbon />);
-    expect(document.querySelector(".context-ribbon")).toBeNull();
-    loopStub.value = {
-      position: { step: "record", headline: "עוד 60 החלטות חשופות.", basis: "0 מתוך 0" },
-      loading: false,
-    } as never;
+  it("says nothing about the record while it is still being read, and holds the slot anyway", () => {
+    /*
+     * R2 UNCHANGED, THE BLANK FRAME REPLACED. A record still loading is not a record with nothing
+     * in it, and a guessed position is worse than a blank first frame -- so no sentence about the
+     * player, and no basis line, until the record answers.
+     *
+     * What changed is what "blank" means. Rendering NOTHING here was measured to cost CLS 0.066 on
+     * `/play`: this ribbon appearing above the board dropped `section.workbench` 98 pixels after
+     * paint. The slot is now held at the height it will fill, with the same sentence the front
+     * door uses while it reads. Nothing is claimed that has not been measured; the space is
+     * reserved for a claim that is certainly coming, because `loopPosition` returns a position for
+     * every one of its states and cannot return null.
+     */
+    const previous = loopStub.value;
+    try {
+      loopStub.value = { position: null, loading: true } as never;
+      render(<ContextRibbon />);
+      const ribbon = document.querySelector(".context-ribbon");
+      expect(ribbon, "the slot is not held, so the board moves when it fills").not.toBeNull();
+      expect(ribbon).toHaveClass("is-reading");
+      expect(ribbon?.getAttribute("aria-busy")).toBe("true");
+      // Nothing derived from a record that has not answered.
+      expect(document.querySelector(".context-loop-basis")).toBeNull();
+      expect(screen.queryByText(/החלטות חשופות/)).toBeNull();
+    } finally {
+      // Restored in `finally`: a leak here used to fail the NEXT test rather than this one.
+      loopStub.value = previous;
+    }
   });
 
   it("keeps the sentence when the return notice is dismissed", async () => {

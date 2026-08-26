@@ -99,6 +99,37 @@ export function ContextRibbon({
    * that says what the record is waiting for would be closing the thing this slot is now for.
    */
   const reorientation = dismissed ? null : (presentation?.reorientation ?? null);
+
+  /*
+   * THE SLOT IS HELD WHILE THE RECORD IS BEING READ, and this is a layout fix rather than a
+   * cosmetic one.
+   *
+   * Measured on the built app in Chromium: `/play` scored CLS 0.066, and every bit of it was one
+   * shift -- `section.workbench` dropping from y=112 to y=210 when this ribbon appeared above it.
+   * 98 pixels, after paint, under the player's cursor. Google's threshold for "good" is 0.1 and
+   * the assessment that found this measured 0.110 on a narrower viewport.
+   *
+   * The absence is PURELY a loading state, which is what makes reserving the space honest rather
+   * than a guess: `loopPosition` returns a position for every one of its seven states and cannot
+   * return null, so once `useClaimView` answers, this ribbon always renders. Holding the slot is
+   * not betting that there will be something to say -- there always is.
+   *
+   * The sentence is real, not a skeleton. `role="status"` announces it, which is the honest thing
+   * for a region whose whole job is to say where the record stands, and it is the same words the
+   * front door uses while it reads.
+   */
+  if (loop.loading) {
+    return (
+      <aside
+        className="context-ribbon is-reading"
+        role="status"
+        aria-busy="true"
+        aria-label="איפה הרשומה עומדת"
+      >
+        <p className="context-loop">קורא את הרשומה…</p>
+      </aside>
+    );
+  }
   if (!loop.position && !reorientation) return null;
 
   return (
