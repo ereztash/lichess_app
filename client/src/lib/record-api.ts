@@ -39,19 +39,57 @@ const LOCAL_KEYS = {
 };
 
 /**
- * Which backing is in use, and whether it can actually hold anything.
+ * Which backing is in use, whether it can hold anything, and WHY NOT when it cannot.
  *
  * A session is NOT sufficient to use the server: the server store throws when DATABASE_URL is
  * unset, so signing in on a deployment without a database moved a working local record onto a
  * broken server one and the loop stopped. Having a session and having storage are different
  * facts. The server is used only when it says it can store; otherwise the record stays local,
  * signed in or not.
+ *
+ * ONE BOOLEAN WAS NOT ENOUGH, AND THAT WAS THE DEFECT. `ownerProcedure` deliberately answers a
+ * refused visitor and an unconfigured deployment differently -- FORBIDDEN and PRECONDITION_FAILED,
+ * with two written messages, because one is a browser session and the other is a server the owner
+ * has to configure. `serverBroken` collapsed those, plus a dropped connection, into the single
+ * sentence "the server has no DATABASE_URL". A person who had been REFUSED was told the database
+ * was missing: a cause the client had not measured, reported in place of the one it was handed.
  */
+export type RecordServerStatus =
+  /** Nobody is signed in. The local record is the intended path, not a fallback. */
+  | "signed-out"
+  /** The probe has not answered. Nothing about the server is known yet. */
+  | "unknown"
+  /** The server holds the record. */
+  | "usable"
+  /** Signed in, past the gate, and the store reports no database behind it. */
+  | "no-database"
+  /** FORBIDDEN: the record belongs to the account named by OWNER_OPEN_ID, and this is not it. */
+  | "not-this-account"
+  /** PRECONDITION_FAILED: the deployment never named an owner, so no account can pass. */
+  | "no-owner-configured"
+  /** The request failed without saying why. Naming a cause here would be the original defect. */
+  | "unreachable";
+
+/**
+ * The reason, from the error the tRPC client was handed.
+ *
+ * `data.code` is what the server sends; `httpStatus` is read as a fallback so a transport that
+ * loses the envelope still distinguishes 403 from 412 rather than falling back to "unreachable"
+ * -- but anything unrecognised stays unnamed on purpose.
+ */
+function statusFromError(error: unknown): RecordServerStatus {
+  const data = (error as { data?: { code?: string; httpStatus?: number } } | null)?.data;
+  const code = data?.code ?? { 403: "FORBIDDEN", 412: "PRECONDITION_FAILED" }[data?.httpStatus ?? 0];
+  if (code === "FORBIDDEN") return "not-this-account";
+  if (code === "PRECONDITION_FAILED") return "no-owner-configured";
+  return "unreachable";
+}
+
 export function useRecordMode(): {
   local: boolean;
   /** How long a locally-kept decision survives. Always "persistent" on the server path. */
   durability: RecordDurability;
-  serverBroken: boolean;
+  serverStatus: RecordServerStatus;
 } {
   const { isAuthenticated } = useAuth();
   const probe = trpc.record.storageAvailable.useQuery(undefined, {
@@ -62,10 +100,17 @@ export function useRecordMode(): {
   });
   // Until the probe answers, treat the server as unusable. Guessing the other way would send
   // the first decision of a session into a store that may reject it.
-  const serverUsable = isAuthenticated && probe.data?.available === true;
-  const serverBroken = isAuthenticated && (probe.data?.available === false || probe.isError);
-  const local = !serverUsable;
-  return { local, durability: local ? localRecordDurability() : "persistent", serverBroken };
+  const serverStatus: RecordServerStatus = !isAuthenticated
+    ? "signed-out"
+    : probe.isError
+      ? statusFromError(probe.error)
+      : probe.data === undefined
+        ? "unknown"
+        : probe.data.available
+          ? "usable"
+          : "no-database";
+  const local = serverStatus !== "usable";
+  return { local, durability: local ? localRecordDurability() : "persistent", serverStatus };
 }
 
 function useStore(): LocalRecordStore {

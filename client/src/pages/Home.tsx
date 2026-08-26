@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
+import { RecordModeNotice } from "@/components/RecordModeNotice";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
@@ -1568,17 +1569,7 @@ export default function Home() {
             />
           </div>
 
-          {recordMode.local && (
-            <p
-              className={`record-mode ${recordMode.durability === "session-only" ? "session-only" : ""}`}
-            >
-              {recordMode.durability === "session-only"
-                ? "הדפדפן חוסם אחסון קבוע (חלון פרטי, חסימת נתוני אתר, תוסף פרטיות או מכסה מלאה). הלולאה עובדת וההחלטות נרשמות — אבל לכרטיסייה הזו בלבד: סגירה או רענון ימחקו אותן."
-                : recordMode.serverBroken
-                  ? "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים."
-                  : "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והמידע לא עוזב את המחשב שלך."}
-            </p>
-          )}
+          <RecordModeNotice {...recordMode} />
 
           {/*
            * The opponent thinking, said out loud. The whole defect this replaces was a board
