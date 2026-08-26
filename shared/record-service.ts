@@ -848,11 +848,15 @@ export async function currentClaim(
   }
 
   const patterns = detect(summary.scored, thresholds, narrowing?.bucket_key ?? null);
-  const selection = selectClaim(patterns, {
-    // Stable across queries, so a drill result can attach to the same claim.
-    claim_id: patterns.length ? `claim-${patterns[0].key}` : "claim-none",
-    created_at: now.created_at,
-  });
+  /*
+   * THE ID IS NOT BUILT HERE ANY MORE. It used to read `claim-${patterns[0].key}` -- the
+   * detector's own ordering -- while `selectClaim` chose which pattern to speak about. Once those
+   * two stopped agreeing, a claim carried one bucket's id and another bucket's statement:
+   * `getClaim` below would find a stored claim about a different phase and return it, and a drill
+   * result would attach to the wrong hypothesis. `selectClaim` derives it from the pattern it
+   * selected, so the two cannot diverge.
+   */
+  const selection = selectClaim(patterns, { created_at: now.created_at });
   if (selection) {
     // Persist, then read back: a claim already graded by a past drill must keep that grade
     // rather than being re-derived as a fresh hypothesis every query.

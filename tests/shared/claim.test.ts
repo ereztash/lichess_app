@@ -108,7 +108,7 @@ describe("the unit of output is one claim", () => {
       gapDifference: -0.4,
       inside: { ...pattern.inside, n: 31 },
     };
-    const selection = selectClaim([pattern, sameVariable], { claim_id: "c1", created_at: now });
+    const selection = selectClaim([pattern, sameVariable], { created_at: now });
     expect(selection?.claim.scope).toBe(pattern.scope);
     expect(selection?.othersWithheld, "a mirror was counted as a second finding").toBe(0);
   });
@@ -122,7 +122,7 @@ describe("the unit of output is one claim", () => {
       scope: "החלטות בסיום",
       inside: { ...pattern.inside, n: 31 },
     };
-    const selection = selectClaim([pattern, otherVariable], { claim_id: "c1", created_at: now });
+    const selection = selectClaim([pattern, otherVariable], { created_at: now });
     expect(selection?.othersWithheld).toBe(1);
   });
 
@@ -140,11 +140,11 @@ describe("the unit of output is one claim", () => {
       gapDifference: -0.1,
       standardError: 0.09,
     };
-    const selection = selectClaim([larger, pattern], { claim_id: "c1", created_at: now });
+    const selection = selectClaim([larger, pattern], { created_at: now });
     expect(selection?.claim.scope).toBe(pattern.scope);
   });
 
   it("returns nothing when there is nothing to say", () => {
-    expect(selectClaim([], { claim_id: "c1", created_at: now })).toBeNull();
+    expect(selectClaim([], { created_at: now })).toBeNull();
   });
 });

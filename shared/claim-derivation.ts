@@ -23,7 +23,22 @@ export interface ClaimSelection {
   claim: Claim & { grade: "hypothesis" };
   /** How many other candidates were found and deliberately not shown. */
   othersWithheld: number;
+  /** The bucket the claim is about. Exposed so a caller cannot re-derive it and get it wrong. */
+  key: string;
 }
+
+/**
+ * The claim's stable id, derived from the bucket the claim is ACTUALLY about.
+ *
+ * DERIVED HERE AND NOWHERE ELSE, and that is the fix rather than the tidying. The caller used to
+ * build it from `patterns[0].key` while `selectClaim` chose which pattern to speak about --
+ * two independent answers to one question. The moment those two disagreed, the record stored a
+ * claim carrying one bucket's id and another bucket's statement: `getClaim` would then find a
+ * stored claim about a different phase and return it, and a drill result would attach to the
+ * wrong hypothesis. Making the id a function of the selection makes that divergence unwritable.
+ */
+export const claimIdFor = (key: string) => `claim-${key}`;
+export const NO_CLAIM_ID = "claim-none";
 
 const pct = (value: number) => `${Math.round(value * 100)}%`;
 
@@ -103,12 +118,14 @@ export function deriveClaim(
  */
 export function selectClaim(
   patterns: CandidatePattern[],
-  options: { claim_id: string; created_at: string },
+  options: { created_at: string },
 ): ClaimSelection | null {
   const { findings } = readVariables(patterns);
   if (findings.length === 0) return null;
+  const strongest = findings[0].strongest;
   return {
-    claim: deriveClaim(findings[0].strongest, options),
+    claim: deriveClaim(strongest, { claim_id: claimIdFor(strongest.key), ...options }),
     othersWithheld: findings.length - 1,
+    key: strongest.key,
   };
 }
