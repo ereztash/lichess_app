@@ -156,6 +156,9 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   anchorAnswered: [],
   stability: splitHalfStability([]),
   sensitivity: metacognitiveSensitivity([]),
+  // No band beside an unreadable number: the literature's median is a persuasive thing to
+  // misread as your own result.
+  sensitivityReference: null,
   control: effortFollowsDoubt([]),
   buckets: [],
   confidence: [],

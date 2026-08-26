@@ -10,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
+import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
 import { NotMeasured, Proportion, SignedProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
@@ -25,8 +26,23 @@ import type { OneThingKind, OneThingMix } from "@shared/reveal";
  * MIN_BUCKET_N reports that it cannot be read, and stays on screen saying so, because a row that
  * simply disappears makes the remaining rows look like the complete picture.
  */
+/**
+ * One percentile off a reference band.
+ *
+ * Throws rather than defaults on a percentile the band was not published at. A missing percentile
+ * silently rendering as "0.00" would put a number on the screen that no corpus produced, and the
+ * band is generated -- so a percentile that is absent means the generator changed, not that this
+ * reader is unusual.
+ */
+function band(reference: SensitivityBand, p: number): string {
+  const at = reference.percentiles.find((entry) => entry.p === p);
+  if (!at) throw new Error(`no p${p} in the sensitivity reference band`);
+  return at.auroc2.toFixed(2);
+}
+
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
-  const { overall, buckets, confidence, scored, calibration, sensitivity, control } = reading;
+  const { overall, buckets, confidence, scored, calibration, sensitivity, sensitivityReference, control } =
+    reading;
 
   if (scored === 0) {
     return (
@@ -139,6 +155,27 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
               ? sensitivity.auroc2.toFixed(2)
               : "—"}
           </dd>
+          {/*
+            * THE RANGE THE NUMBER IS WORTH READING AGAINST. 0.71 on its own is uninterpretable:
+            * nobody knows whether that is good. This is the middle 80% of people who scored about
+            * as accurately as this reader, measured on the Confidence Database with this product's
+            * own estimator.
+            *
+            * A SECOND `dd`, NOT A SPAN INSIDE THE FIRST. It began as a span and broke an existing
+            * assertion that the discrimination cell holds a bare two-place area and never a
+            * percentage -- the cell's text became "0.81במחקר 0.47–0.62". That assertion is right
+            * and the markup was wrong: the figure is one value, the range is another, and a
+            * definition list is allowed to carry two.
+            *
+            * Absent rather than defaulted where the corpus has no stratum for their accuracy --
+            * the unconditioned range would hand back exactly the confound the conditioning
+            * removes, and would do it silently.
+            */}
+          {sensitivityReference && (
+            <dd className="split-band">
+              במחקר {band(sensitivityReference, 10)}–{band(sensitivityReference, 90)}
+            </dd>
+          )}
         </div>
         <div className="split-row">
           <dt>מאמץ שהולך אחרי הספק</dt>
@@ -152,6 +189,21 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           ? "ההבחנה היא בין 0 ל־1, ו־0.5 זה מקריות: כמה טוב הביטחון שלכם מפריד בין ההחלטות שיצאו טוב לאלה שלא. היא לא זזה כשאתם בטוחים מדי או מדי מעט — זה בדיוק מה שהפער כבר מודד."
           : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
       </p>
+      {/*
+        * The caveat is longer than the number, deliberately. Two things here are easy to misread
+        * and expensive to misread: that the range is drawn from people of similar accuracy rather
+        * than from everyone, and that the task behind it is not chess. A range without them reads
+        * as a grade.
+        */}
+      {sensitivityReference && (
+        <p className="dash-note" dir="rtl">
+          הטווח נמדד על {sensitivityReference.n.toLocaleString("he-IL")} אנשים ממאגר הביטחון (Rahnev
+          ואחרים, 2020) — ורק על מי שדייקו בערך כמוכם. זה לא פרט טכני: ההבחנה עולה עם הדיוק עצמו
+          (ρ={ACCURACY_COUPLING.toFixed(2)}), ובלי התנאי הזה שחקן חזק היה מקבל ציון גבוה על עצם
+          היותו חזק. והמשימה שם אינה שחמט — ברובה הכרעה בינארית בתפיסה או בזיכרון, ולכן זה טווח
+          להשוואה ולא הדירוג שלכם בתוכו.
+        </p>
+      )}
       <p className="dash-note" dir="rtl">
         המאמץ שלילי כשהשקעתם יותר זמן בהחלטות שהייתם בטוחים בהן פחות. על המשחקים שלכם המספר הזה
         מעורבב עם קושי העמדה — עמדה קשה גם לוקחת יותר זמן וגם מרגישה פחות בטוחה. רק על הסט המשותף

@@ -17,6 +17,7 @@ import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
 import { populationBucket } from "./population-baseline.js";
 import { splitHalfStability, type Stability } from "./stability.js";
 import { metacognitiveSensitivity, type Sensitivity } from "./sensitivity.js";
+import { sensitivityBand, type SensitivityBand } from "./sensitivity-reference.js";
 import { effortFollowsDoubt, type Control } from "./control.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
@@ -146,6 +147,21 @@ export type RecordReading = {
    * read on shared positions.
    */
   sensitivity: Sensitivity;
+  /*
+   * What that number looks like in the research literature, among people who were ABOUT AS
+   * ACCURATE as this reader.
+   *
+   * Conditioned on accuracy because that is the dominant term rather than a caveat: across 3,836
+   * people in the Confidence Database, Spearman rho between first-order accuracy and AUROC2 is
+   * +0.59, and the median climbs 0.53 -> 0.61 -> 0.65 -> 0.73 across accuracy bands. An
+   * unconditioned band would tell a strong player they are metacognitively gifted for being good
+   * at chess -- the same confound the population baseline removes from the buckets.
+   *
+   * Null where the corpus has no stratum for this reader's accuracy, or where their own number
+   * cannot be read at all. Falling back to the unconditioned band would hand back the confound
+   * silently.
+   */
+  sensitivityReference: SensitivityBand | null;
   control: Control;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
@@ -238,13 +254,23 @@ export function readRecord(
       };
     });
 
+  const overall = summarise(decisions);
+  const sensitivity = metacognitiveSensitivity(decisions);
+
   return {
-    overall: summarise(decisions),
+    overall,
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(anchored),
     anchorAnswered: anchorIdsIn(decisions),
     stability: splitHalfStability(anchored),
-    sensitivity: metacognitiveSensitivity(decisions),
+    sensitivity,
+    /*
+     * Only when the reader's own number can be read. A band beside a dash would invite them to
+     * read the band as their result, and the literature's median is a very persuasive thing to
+     * misread as your own.
+     */
+    sensitivityReference:
+      sensitivity.readable && sensitivity.auroc2 !== null ? sensitivityBand(overall.accuracyRate) : null,
     control: effortFollowsDoubt(decisions),
     buckets,
     confidence,

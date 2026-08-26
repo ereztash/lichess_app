@@ -32,6 +32,11 @@ import { WIN_PROBABILITY_K } from "@shared/win-probability";
 import { ANCHOR_POSITIONS, ANCHOR_SET_VERSION } from "@shared/anchor-set";
 import { OPENING_MAX_PLY } from "@shared/phase";
 import {
+  ACCURACY_COUPLING,
+  SENSITIVITY_REFERENCE,
+  SENSITIVITY_STRATA,
+} from "@shared/sensitivity-reference";
+import {
   POPULATION_BASELINE,
   POPULATION_BASELINE_N,
 } from "@shared/population-baseline";
@@ -242,7 +247,79 @@ describe("the specification's population table is the module's, not a copy that 
     const limits = section.slice(section.indexOf("What this instrument cannot do"));
     expect(limits).toContain("The confound is not gone");
     expect(limits, "the reference-class admission was quietly closed by the baseline").toMatch(
-      /No reference class exists for the confidence half/,
+      /No reference class exists for the calibration gap/,
+    );
+  });
+});
+
+describe("the specification's reference band is the module's, not a copy that drifted", () => {
+  const reference = section.slice(section.indexOf("What the discrimination figure is read against"));
+
+  it("keeps the section, and quotes the people and the coupling the module carries", () => {
+    /*
+     * Anchored to their own lines. The corpus size and the coupling each appear more than once in
+     * this document, and a `toContain` over a whole section passed while a headline figure and
+     * the module disagreed -- that drift is what this file exists to catch and it survived once.
+     */
+    expect(reference, "the sensitivity reference section was dropped").not.toBe("");
+    const headline = reference.split("\n").find((line) => line.includes("**Measured on"));
+    expect(headline, "the section stopped stating its denominator up front").toBeTruthy();
+    expect(headline).toContain(SENSITIVITY_REFERENCE.n.toLocaleString("en-US"));
+    expect(headline).toContain(String(SENSITIVITY_REFERENCE.studies));
+
+    const coupling = reference.split("\n").find((line) => line.includes("Spearman"));
+    expect(coupling, "the section stopped stating the coupling it stratifies for").toBeTruthy();
+    expect(coupling).toContain(ACCURACY_COUPLING.toFixed(2));
+  });
+
+  it("states every stratum to the figures a reader is actually shown", () => {
+    for (const stratum of SENSITIVITY_STRATA) {
+      const at = (p: number) => stratum.band.percentiles.find((entry) => entry.p === p)!.auroc2.toFixed(3);
+      const row = reference
+        .split("\n")
+        .find((line) => line.startsWith("|") && line.includes(`| ${stratum.band.n.toLocaleString("en-US")} |`));
+      expect(row, `no row for the ${stratum.from}-${stratum.to} stratum`).toBeTruthy();
+      expect(row, `${stratum.from}-${stratum.to} p10`).toContain(at(10));
+      expect(row, `${stratum.from}-${stratum.to} median`).toContain(at(50));
+      expect(row, `${stratum.from}-${stratum.to} p90`).toContain(at(90));
+    }
+  });
+
+  it("keeps saying the three things that stop a range being read as a grade", () => {
+    /*
+     * Each is exactly the kind of caveat a tidy-up drops, and each is the difference between a
+     * reference class and a score.
+     *
+     * That the band is people of SIMILAR ACCURACY -- without it, being good at chess reads as
+     * being metacognitively gifted. That the TASK IS NOT CHESS -- conditioning narrows that and
+     * does not close it. And that a missing stratum is ABSENT -- the fallback would hand the
+     * unconditioned band to precisely the readers for whom the confound is largest.
+     */
+    expect(reference, "the specification stopped saying it is a band and not a rank").toMatch(
+      /band, never a percentile rank/i,
+    );
+    expect(reference, "the specification stopped saying the task is not this one").toMatch(
+      /task is not this instrument's task/i,
+    );
+    expect(reference, "the specification stopped saying a missing stratum is absent").toMatch(
+      /absent, not interpolated/i,
+    );
+  });
+
+  it("states its own coverage, so a dropped dataset is visible", () => {
+    // A reference class that quietly drops the studies it cannot parse is a curated one, and the
+    // curation would be invisible in the output.
+    expect(reference).toMatch(/132 of\s*\n?180 datasets|132 of 180 datasets/);
+    expect(reference, "the specification stopped promising no dataset is hand-parsed").toMatch(
+      /No dataset is hand-parsed/i,
+    );
+  });
+
+  it("still admits that the reference class is borrowed from another task", () => {
+    const limits = section.slice(section.indexOf("What this instrument cannot do"));
+    expect(limits).toContain("borrowed from another task");
+    expect(limits, "the calibration gap was quietly declared referenced").toContain(
+      "remain un-referenced",
     );
   });
 });

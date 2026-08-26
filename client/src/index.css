@@ -3804,3 +3804,18 @@ button:not(:disabled) {
   border-inline-start: 2px solid var(--hairline-strong);
   color: var(--muted);
 }
+
+/*
+ * The research range beside a reader's own discrimination. Quieter than the figure it sits
+ * against, for the same reason `.bucket-versus` is: the reading is the claim, the range is what
+ * makes the claim readable, and equal weight would make one row look like two results.
+ */
+.split-band {
+  /* Its own `dd`, so it needs the list's default indent cleared like the figure's. */
+  margin: 0;
+  font-size: var(--panel-fine);
+  font-weight: 400;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
