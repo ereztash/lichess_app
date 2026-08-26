@@ -384,20 +384,61 @@ discrimination roughly 0.78. That is the correct answer where the alternative wa
 panel will look emptier on a short record than it did. It now says why, per cell, in five
 sentences instead of one dash.
 
+## Cycle 19 — the record came back in the error
+
+Reproduced against a real MariaDB before anything was written. Make a record write fail:
+drizzle-orm raises `Failed query: insert into decisions (...)` and **appends the bound values to
+the message**; the error also carries them on `params`. `toTrpc` rethrew anything that was not a
+`RecordError`, there was no `errorFormatter`, and tRPC's default shape puts `message` on the wire.
+
+```
+MESSAGE contains private: true
+PARAMS  contains private: true
+WIRE    contains private: true
+```
+
+The value that comes back is `stated_unknown` — what a player writes about what they did not
+understand, before anybody tells them the answer. Only the owner can reach these procedures, so
+this is not a cross-account leak; it is worse in a different direction. A 500 body travels into
+browser devtools, into the platform's function logs, and into anything on the response path.
+
+**The same defect twice.** The adversarial review found this exact shape once, on
+`completeLearningTransfer`, and it was fixed **there**. The class was declared closed with one
+procedure fixed and was live on every record procedure that writes — the pattern that review named.
+So the fix is the **error formatter**, not the router: there is no procedure left to forget.
+
+**Sanitising `message` was not enough, and the HTTP test proved it.** tRPC's default shape puts
+`data.stack` in every non-production build and a drizzle stack BEGINS with the drizzle message.
+The body still carried the sentence with the message already clean. The shape's `data` is now
+rebuilt from named fields rather than spread.
+
+**A regression this fix nearly introduced.** The first version replaced every unauthored message,
+which included a `BAD_REQUEST` carrying a `ZodError` — telling a client that sent the wrong shape
+that the server had broken. That is this cycle's own defect pointed the other way. A malformed
+request now names its **field paths**; measured, zod v4 does not echo rejected values, so that
+narrowing is a contract against a `.refine` that interpolates one, not a live fix, and it says so.
+
+**Two controls survived their first form.** The end-to-end HTTP test posted anonymously to a
+procedure behind `ownerProcedure`, so deleting the formatter entirely passed it — the request was
+refused at the gate and the store was never reached. It now signs a real owner session, sends an
+input that matches `commitEventSchema`, and carries **a vacuity guard that fails if the store was
+not called**. The second: nothing asserted that field paths beat zod's own text, so a control
+swapping them passed.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
 
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
-| Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
+| Security, privacy, isolation | 2 | **8** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
 | Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. Not higher: positions still are not selected for the trigger, and there is no control condition |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9.5** | 1,199 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9.5** | 1,214 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
-| Operations / deployability | 4 | **7** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail. Not higher: no error tracking, no startup env validation, no incident runbook |
+| Operations / deployability | 4 | **7.5** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values. Not higher: no startup env validation, no incident runbook. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it |
 | Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |
 | Differentiation / user value | 8 | **8** | Unchanged by design: this work made existing claims true rather than adding new ones |
 

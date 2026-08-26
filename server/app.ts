@@ -12,6 +12,7 @@ import { createContext } from "./_core/context.js";
 import { registerOAuthRoutes } from "./_core/oauth.js";
 import { buildAppRouter } from "./routers.js";
 import { recordStore, type RecordStore } from "./record.js";
+import { describeForOperator } from "./_core/safe-error.js";
 
 export function createApp({ store = recordStore }: { store?: RecordStore } = {}) {
   const app = express();
@@ -50,6 +51,24 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
       .catch(() => res.status(503).json({ ok: false }));
   });
   registerOAuthRoutes(app);
-  app.use("/api/trpc", createExpressMiddleware({ router: buildAppRouter(store), createContext }));
+  app.use(
+    "/api/trpc",
+    createExpressMiddleware({
+      router: buildAppRouter(store),
+      createContext,
+      /*
+       * The operator's half of the error, which is NOT the player's half.
+       *
+       * The wire now carries a fixed sentence for anything the product did not author, so without
+       * this a 500 would be undiagnosable from either side. `describeForOperator` keeps the
+       * PARAMETERIZED statement -- safe by construction, every value is `?` -- and drops
+       * `message` and `params`, which are the two places drizzle puts the values.
+       */
+      onError: ({ error, path }) => {
+        if (error.code !== "INTERNAL_SERVER_ERROR") return;
+        console.error(`[trpc] ${path ?? "?"} ${describeForOperator(error.cause ?? error)}`);
+      },
+    }),
+  );
   return app;
 }
