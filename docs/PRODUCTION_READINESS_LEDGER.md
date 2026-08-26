@@ -674,6 +674,67 @@ Too few decisions improves with play; a record with no clock can never fill a cl
 somebody "6 of 11 readable" when five of the missing are structurally impossible sends them toward
 something unreachable. The counts are held apart on screen.
 
+## Cycles 29–30 — the wiring, twice
+
+Both of these are the same shape, and it is not the shape the rest of this ledger records. Cycles
+13–22 were about measurements that were wrong. These two were about measurements that were **right
+in isolation and wrong where they were plugged in** — which is the third time in this PR, after the
+counterfactual probe sat collecting for three commits with nothing reading it back.
+
+### Cycle 29 — the stored claim named a phase the player was fine in
+
+Graded **Low** in this ledger on the strength of reasoning, then measured. The severity was wrong.
+
+`selectClaim` took `patterns[0]`, and `detect` sorts by support. Among levels of one variable that
+names whichever level the record happens to contain most of. Four hundred simulated players per
+condition, one weakness each:
+
+| weakness in | claim names a phase that is FINE | after | of the wrong ones, **inverted** |
+| --- | --- | --- | --- |
+| endgame | **14.7%** | 1.6% | 44 of 45 |
+| opening | **14.7%** | 1.0% | 44 of 46 |
+| middlegame | 0.0% | 0.8% | — |
+
+**A claim is not a panel sentence.** It is written to the record, it accumulates prospective drill
+results, and it is what the player is asked to go and test. Forty-four times in forty-five the
+stored claim was the mirror: a player told they were underconfident in a phase they were
+calibrated in, and then offered a drill to prove it. That does not merely misinform — it spends
+their decisions.
+
+An existing test failed and was right to. `"shows the best-supported candidate and counts the rest"`
+built its second candidate as `{ ...pattern, scope: "אחר" }`, which copies the KEY — so both
+candidates were one bucket under two names, something `detect` cannot produce. It read as "two
+candidates, show one, count one" and was really "one bucket, counted twice".
+
+### Cycle 30 — a claim carrying one bucket's id and another bucket's statement
+
+**Mine, ten minutes old, and worse than the defect it rode in on.** Cycle 29 changed which pattern
+`selectClaim` speaks about; the caller went on building the id from the detector's own ordering:
+
+    claim_id: patterns.length ? `claim-${patterns[0].key}` : "claim-none"
+
+Two independent answers to one question, diverging in exactly the case cycle 29 exists to create.
+`recordClaim` reads back by id before deriving, so it would find a stored claim about a **different
+phase** and return it — and a prospective drill result attaches by claim id, so the one mechanism
+in this product designed to be unfalsifiable-proof would have been filing evidence against the
+wrong hypothesis.
+
+**Found by reading the wiring of the fix, not by a test failing** — and `26b3be0`, the commit
+carrying it, **passed CI green**. No test asserted that the id and the statement describe the same
+bucket, so nothing could have caught it. That is the honest note: a green suite is evidence about
+the assertions that exist, not about the code.
+
+The fix is structural rather than coordinated. `selectClaim` derives the id from the pattern it
+selected and returns the key it used, so a caller cannot compute it independently and the two
+cannot diverge — rather than two places that must be kept in agreement by whoever edits next.
+
+### What these two say about the rest of the PR
+
+Every measurement in cycles 23–28 was built module-first and wired afterwards, and the wiring is
+where three of this PR's defects came from. The pattern worth carrying forward: **after changing
+what a function returns, grep every caller that derives anything from the same inputs** — an id, a
+count, an ordering — because those are the places that silently keep answering the old question.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
