@@ -598,6 +598,82 @@ of decisions, and the panel counts down to it rather than implying a reading exi
 grew; `runReveal` was extracted from `onCommit` so the engine half has a second caller, which is a
 real decoupling, and the remaining coupling stays recorded rather than scored as an improvement.
 
+## Cycles 27–28 — one weakness, told three times
+
+The operator asked to cross the criteria instead of reading each on its own. Measuring the cost of
+crossing turned up a defect in what was already there, and the crossing turned out to need the
+same repair.
+
+### The finding, measured before anything was changed
+
+Four hundred simulated players with **exactly one** weakness — overconfident in the middlegame,
+perfectly calibrated everywhere else — 240 decisions each, seeded:
+
+| | |
+| --- | --- |
+| `phase-middlegame` fires | 85.5% — correct |
+| `phase-opening` fires | **19.5%**, on a phase where nothing is wrong |
+| `phase-endgame` fires | 17.8%, likewise |
+| told they have more than one pattern | **35.0%** (43.0% once middlegame moves are quicker) |
+
+**Arithmetic, not chance.** Each bucket is measured against "the rest", and the rest contains the
+weakness. Of the 78 times `phase-opening` fired, it fired as underconfident **78 times out of 78**
+— the product telling a player to trust themselves more in a phase they are already calibrated in.
+
+A higher bar cannot fix it: the mirror and the real finding are one measurement seen from two
+sides. The fix is to stop asking one question three times.
+
+**What survived.** Candidates are ordered by support and the screen leads on the first, so the
+headline was right on 85.5% and wrong on 0.8%. The defect is in the count and the secondary
+claims, not the headline, and the ledger says so rather than inflating it.
+
+### The crossing, and what it costs
+
+On perfectly calibrated players, 500 runs per size:
+
+| | marginal only | with every phase × time crossing |
+| --- | --- | --- |
+| n = 120 | 0.6% | **0.0%** |
+| n = 240 | 0.4% | **0.0%** |
+| n = 480 | 0.2% | **0.0%** |
+
+Free in false positives — because `MIN_BUCKET_N` on **both** sides means an untrustworthy cell is
+never tested. The cost is silence: cells measurable at all run 0.1% → 17.1% → 65.1% across those
+sizes, so a profile needs roughly five hundred decisions before most of it can be read. The
+fraction is printed rather than hidden.
+
+And the crossing inherited the same defect: on a player weak only in fast middlegame positions the
+real cell separated 200/200 runs, its mirror 35, four other cells 24 between them. One finding per
+variable pair, same as one finding per variable.
+
+### What was recorded rather than asserted
+
+Three mutations survived their first form and only one became a test.
+
+- **Real:** taking the first cleared cell instead of the strongest passed, because the first pair
+  the list reaches was also the answer. A fixture with the weakness late in the bucket order
+  reddens it.
+- **Unreddenable by construction:** a crossed cell is an AND of two predicates, so it cannot exceed
+  either, so `outside` cannot fall under the floor. The check is a guard against a future variable
+  and the test says so — the second time this ledger records deleting an assertion instead of
+  keeping one no mutation can break.
+- **Honest about a rule I argued for:** distance-over-size ranking bought eleven points marginally
+  and 100.0% against 98.0% crossed. Kept for consistency with the marginal collapse, with a note so
+  consistency is not later read as measured superiority.
+
+**Two errors of mine, both caught by tests.** The first fixture could not tell the two ranking rules
+apart. Building one that could then failed an assertion I had written as "the mirror never leads" —
+it leads on about 1%, because a mirror estimated from twice as many decisions can sit further out
+in standard errors than the real effect. And a third rule I proposed as *the* fix — each level's own
+gap against the median of the others — measured 89.0%, no better than what it replaced. All three
+are written down so none is re-proposed.
+
+### Two silences that are not the same state
+
+Too few decisions improves with play; a record with no clock can never fill a clock cell. Telling
+somebody "6 of 11 readable" when five of the missing are structurally impossible sends them toward
+something unreachable. The counts are held apart on screen.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -605,9 +681,9 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **8.5** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more |
-| Scientific / construct validity | 4 | **8** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. Not higher: positions still are not selected for the trigger, there is no control condition, and per-item difficulty is unmeasured because Maia is unreachable |
+| Scientific / construct validity | 4 | **8.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9.5** | 1,341 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~140 positive controls red. Two regex-over-source assertions replaced by things that run — and one layout assertion **deleted** because no mutation could redden it at the width the app actually uses |
+| Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
@@ -627,4 +703,6 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |
 | — | The counterfactual probe has no n yet | **Medium** | open by construction. Four readings need 30 scored answers; the panel counts down rather than reporting. The randomisation check on screen is the negative control that must stay empty |
+| — | The crossed profile needs ~480 decisions before most of it is readable | **Medium** | open by construction, and measured: 0.1% of cells readable at n=120, 17.1% at 240, 65.1% at 480. The fraction is on screen so the silence has a size |
+| — | The variable collapse is a READING, not a change to the claims the record stores | Low | deliberate. `BUCKETINGS` keeps every key because stored claims and preregistered hypotheses name them and `onlyBucketKey` throws on an unknown one. A claim derived from a mirrored level can therefore still be stored; the panel now says it is a consequence, but the claim path is untouched |
 | — | Whether the confidence rating should be sampled rather than asked every move | **Medium** | open, and it is the operator's call. Raised because the burden is real; sampling it on the same two-arm logic would keep Brier, Murphy, AUROC2 and the calibration curve while halving the interruptions, at the cost of multiplying time-to-first-reading by 1/p |
