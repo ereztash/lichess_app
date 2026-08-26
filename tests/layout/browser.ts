@@ -22,11 +22,14 @@ import { chromium, type Browser } from "@playwright/test";
  * numbers drift independently: `@playwright/test` asks for a build the image does not carry, and
  * launching without a path fails with a "run npx playwright install" message that is wrong advice
  * in an image that ships the browser already.
+ *
+ * PLAYWRIGHT_CHROMIUM REPLACES THE LIST, it does not join it. It was one candidate among several
+ * at first, which meant pointing it at a path that does not exist silently ran a DIFFERENT
+ * browser -- the opposite of what an override is for, and it hid the throw path from its own
+ * test. An override that can be ignored is not an override.
  */
-const CANDIDATES = [
-  process.env.PLAYWRIGHT_CHROMIUM,
-  "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
-].filter((path): path is string => typeof path === "string" && path.length > 0);
+const OVERRIDE = process.env.PLAYWRIGHT_CHROMIUM;
+const CANDIDATES = OVERRIDE ? [OVERRIDE] : ["/opt/pw-browsers/chromium-1194/chrome-linux/chrome"];
 
 export async function launchChromium(): Promise<Browser> {
   for (const executablePath of CANDIDATES) {
