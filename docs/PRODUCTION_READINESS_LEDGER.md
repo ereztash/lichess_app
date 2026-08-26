@@ -306,6 +306,38 @@ population's own term keeps the sum above zero, so the assertion was satisfied b
 comparison it was not about. It now asserts the outcome: five points from 30 decisions must not be
 reported as a difference.
 
+## Cycle 17 — the same defect in the neighbouring cell, twice over
+
+Found by asking what else on the panel asserts without an error. `effortFollowsDoubt` gated on
+`n >= MIN_BUCKET_N` and two degeneracy checks, then the dashboard printed `rho.toFixed(2)` under
+the label *"מאמץ שהולך אחרי הספק"* — a claim about how somebody allocates their attention.
+
+**Measured.** A player whose time is drawn INDEPENDENTLY of their confidence — no association at
+all, by construction — 20,000 records, deterministic seed:
+
+| n | shows a figure | ¦ρ¦ ≥ 0.20 | ¦ρ¦ ≥ 0.30 |
+| --- | --- | --- | --- |
+| 30 | **100%** | 29% | **11%** |
+| 60 | 100% | 12% | 2% |
+| 150 | 100% | 2% | 0% |
+
+One player in nine with nothing whatsoever to find was handed *"−0.31"*. `Control` now carries
+Fisher's z error (`1/sqrt(n-3)`, the standard remedy for a statistic that is skewed and bounded at
+±1) and clears the detector's own multiplier — reused, again, so the panel does not hold itself to
+two standards one cell apart. `atanh` is clamped: a perfectly monotone record gives ρ = 1 exactly,
+and `atanh(1)` is Infinity, which clears any bar there is.
+
+**The second defect in the same cell, and the worse one.** `Control.reason` was computed with four
+distinct values — `ok`, `too-few`, `flat-time`, `flat-confidence` — and the dashboard rendered a
+bare `—` for every one of them. **The reason reached no screen at all.** The distinction was built
+in the shared code and thrown away at the last step.
+
+It is not cosmetic, because two of the four are not waits: a player who took the same time over
+every decision cannot fix that cell by playing more, and a player with twelve decisions can.
+Telling both of them nothing tells the first to keep going, silently and wrongly — the same shape
+as cycle 11's refusal reported as a missing database, one panel over. Five causes now, five
+sentences, and the new one says explicitly that the association **was** measured.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -313,11 +345,11 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
-| Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison now carries its own error and clears the detector's bar before it is asserted. Not higher: positions still are not selected for the trigger, and there is no control condition |
+| Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison and the control coefficient now each carry their own error and clear the detector's bar before being asserted. Not higher: positions still are not selected for the trigger, and there is no control condition |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9** | 1,172 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9** | 1,188 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
-| UX, accessibility, recovery | 6 | **8.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six |
+| UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
 | Operations / deployability | 4 | **7** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail. Not higher: no error tracking, no startup env validation, no incident runbook |
 | Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |

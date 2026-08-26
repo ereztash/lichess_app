@@ -10,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
+import type { Control } from "@shared/control";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
 import { NotMeasured, Proportion, SignedProportion } from "./Value";
@@ -39,6 +40,28 @@ function band(reference: SensitivityBand, p: number): string {
   if (!at) throw new Error(`no p${p} in the sensitivity reference band`);
   return at.auroc2.toFixed(2);
 }
+
+/**
+ * What the control cell says when it has nothing to report, one sentence per cause.
+ *
+ * `ok` is present so the map is total over the union rather than partial with a cast: a status
+ * that gains a member should break the build here, not render `undefined` on the panel.
+ */
+const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
+  ok: "",
+  "too-few": `נדרשות ${MIN_BUCKET_N} החלטות בעמדות העוגן כדי למדוד את הקשר הזה.`,
+  "flat-time":
+    "לקחתם בערך אותו זמן על כל ההחלטות, ולכן אין מה לקשור לביטחון. עוד החלטות באותו קצב לא ישנו את זה.",
+  "flat-confidence":
+    "אמרתם בערך אותו דבר על כל ההחלטות, ולכן אין שונות בביטחון לקשור אליה. עוד החלטות באותו ביטחון לא ישנו את זה.",
+  /*
+   * The one that is NOT a missing measurement: it was measured and came out indistinguishable
+   * from no association. Simulated on records where time was drawn independently of confidence, a
+   * coefficient appeared 100% of the time and reached 0.30 or more on one record in nine.
+   */
+  "inside-noise":
+    "נמדד, והקשר יצא קטן ממה שהרשומה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
+};
 
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
   const { overall, buckets, confidence, scored, calibration, sensitivity, sensitivityReference, control } =
@@ -191,6 +214,19 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           <dd>
             {control.readable && control.rho !== null ? control.rho.toFixed(2) : "—"}
           </dd>
+          {/*
+            * WHY THE CELL IS EMPTY, WHICH THE CELL NEVER SAID. `Control` computes four distinct
+            * reasons and this rendered a bare "—" for all of them, so a player who took the same
+            * time over every decision and a player with twelve decisions saw the same dash. The
+            * distinction was built in the shared code and thrown away at the last step.
+            *
+            * The advice differs per reason and that is the point: `too-few` and `inside-noise`
+            * are waits, `flat-time` and `flat-confidence` are not -- more decisions at the same
+            * speed will never make that cell readable.
+            */}
+          {!control.readable && control.reason !== null && (
+            <dd className="split-why">{CONTROL_SILENCE[control.reason]}</dd>
+          )}
         </div>
       </dl>
       <p className="dash-note" dir="rtl">

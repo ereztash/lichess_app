@@ -2069,6 +2069,22 @@ button:not(:disabled) {
  * a different route -- and it was caught the same way, by a real layout engine, a minute after
  * being introduced. jsdom reported every box as 0x0 and 1,165 other tests said nothing.
  */
+/*
+ * The sentence saying why the control cell is empty.
+ *
+ * A second `dd` in the same `.split-row`, for the reason `.split-band` is one beside the
+ * discrimination figure: the value is one thing and what makes it readable is another, and a
+ * definition list is allowed to carry two. Full width so it wraps as prose rather than competing
+ * with the figure for a track -- the same mistake `.bucket-versus-flat` below documents.
+ */
+.split-why {
+  grid-column: 1 / -1;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  line-height: 1.5;
+  white-space: normal;
+}
+
 .bucket-versus-flat {
   grid-column: 1 / -1;
   line-height: 1.5;
