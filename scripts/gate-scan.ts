@@ -126,3 +126,38 @@ export function findStaticEngineImports(files: string[]): Finding[] {
   }
   return findings;
 }
+
+/**
+ * Flow content nested inside a `<p>`, which the HTML parser will not accept.
+ *
+ * `<p>` may hold PHRASING content only. When a parser meets `<details>` or a `<div>` inside one,
+ * it closes the paragraph first and re-parents the child -- so the DOM the browser builds is not
+ * the tree React rendered, and React reports a hydration mismatch on a screen that is already
+ * telling the player something went wrong.
+ *
+ * FOUND IN `.commitment-error`, which wrapped a `<details>` holding the technical detail of a
+ * failed commit. That is the worst place for it: the error panel is the one surface whose entire
+ * job is to be trustworthy when everything else has failed, and it was the surface producing a
+ * console error of its own.
+ *
+ * A SCAN RATHER THAN A TEST OF ONE COMPONENT, because the next occurrence will be somewhere else.
+ * Nesting is not parsed -- a `<p>` inside a `<p>` would confuse the span match -- but that case is
+ * itself invalid, so being flagged is the correct outcome rather than a false positive.
+ */
+const FLOW_IN_PARAGRAPH =
+  /<p(?:\s[^>]*)?>([\s\S]*?)<\/p>/g;
+const FLOW_ONLY = /<(details|div|section|article|aside|ul|ol|dl|table|form|figure|blockquote|pre|h[1-6]|p)\b/;
+
+export function findInvalidParagraphs(files: string[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const file of files) {
+    const source = read(file);
+    for (const match of source.matchAll(FLOW_IN_PARAGRAPH)) {
+      const inner = match[1].match(FLOW_ONLY);
+      if (!inner) continue;
+      const line = source.slice(0, match.index).split("\n").length;
+      findings.push({ file, line, text: `<p> contains <${inner[1]}>` });
+    }
+  }
+  return findings;
+}

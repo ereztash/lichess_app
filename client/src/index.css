@@ -2204,6 +2204,15 @@ button:not(:disabled) {
   gap: 0.35rem;
   font-size: var(--panel-body);
   margin: 0;
+  /*
+   * Wraps, because this row can carry a `<details>` holding the technical detail of a failed
+   * commit. As a single un-wrapping flex line the disclosure sat beside the message and squeezed
+   * it -- the same collapse the bucket rows had, in the panel that can least afford it.
+   */
+  flex-wrap: wrap;
+}
+.commitment-error > details {
+  flex-basis: 100%;
 }
 .commitment-summary {
   font-size: var(--panel-label);

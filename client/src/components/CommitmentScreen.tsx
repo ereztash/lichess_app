@@ -438,7 +438,14 @@ export function CommitmentScreen({
       )}
 
       {error && (
-        <p className="commitment-error" role="alert">
+        /*
+         * A `div`, not a `p`, and that is a correctness fix rather than a preference. `<p>` holds
+         * phrasing content only: given the `<details>` below, the parser closes the paragraph and
+         * re-parents it, so the DOM differs from what React rendered and React warns on
+         * hydration -- on the one panel whose whole job is to be trustworthy when everything else
+         * has failed. `tests/client/valid-html-in-the-render-path.test.ts` scans for the shape.
+         */
+        <div className="commitment-error" role="alert">
           <CircleAlert size={14} /> {error.message}
           {/*
             * Kept and demoted, as ErrorBoundary does with a stack. Removing it would leave a
@@ -451,7 +458,7 @@ export function CommitmentScreen({
               <code dir="ltr">{error.detail}</code>
             </details>
           )}
-        </p>
+        </div>
       )}
 
       {/*
