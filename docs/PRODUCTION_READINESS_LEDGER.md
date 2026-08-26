@@ -147,18 +147,56 @@ The engine check was **wrong before it was right**: it searched the entry chunk 
 failed the build on `await import("./stockfish-…")` — the evidence that R3 *is* respected. Moved to
 index.html, where eager fetching is what a build artifact can actually show.
 
+## Cycle 11 — a refusal reported as a missing database
+
+`4fc9edd`. `ownerProcedure` answers a refused visitor and an unconfigured deployment differently
+**on purpose** — FORBIDDEN and PRECONDITION_FAILED, with two written messages, because one is a
+browser session and the other is a server the owner has to configure. The client had one boolean
+for six situations and printed one sentence for all of them: *"בשרת אין מאגר החלטות מוגדר
+(DATABASE_URL)"*. A person the server **refused** was told the database was missing. The server's
+two messages existed and never reached a screen.
+
+This is the product's own failure mode occurring inside the product: an instrument reporting a
+cause it did not measure. It could not have told a refusal from a missing database, because it
+never read the code it was handed.
+
+`serverStatus` now carries one of seven named causes, read from `data.code` with `httpStatus` as a
+fallback; anything unrecognised stays `unreachable`, because naming a cause there would be the
+same defect again. A refused account and an unconfigured deployment are both told the browser
+record belongs to the **browser, not their account** — said rather than fixed, because keying
+localStorage by account would look like separation and buy none.
+
+## Cycle 12 — a callback that held a value it did not depend on
+
+`97e28b5`. `onCommit` read `learningTransferApplied` twice and did not list it, while listing
+`learningTransferRecall` beside it. Nothing failed, because `useDecisionCount()` returns a fresh
+object every render and the callback was rebuilt regardless. **What hid the bug is exactly what a
+performance pass removes.** Memoize that hook — the obvious optimisation, correct on its own terms
+— and a stale `null` becomes a written `false`: *"did not apply the rule"*, about a player who said
+they did, in an append-only record, with every screen correct. `applied_rule` is half of
+`successes`, so the product would report a rule refuted on an observation nobody made.
+
+The assertion meant to cover this searched `Home.tsx` for two identifiers within 1200 characters of
+each other — satisfied by source that merely mentions both, and it passed throughout. It is
+replaced by a **parse**: every dependency list in the file, comparing what each hook body reads
+against what it declares, excluding the two kinds React guarantees stable. It carries its own
+vacuity check, because the assertion it replaces was vacuous in precisely that way.
+
+`transferObservation` now throws on a null answer instead of `?? false` under a comment saying the
+default could not fire. A missing measurement must not be recorded as a measured negative.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
 
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
-| Security, privacy, isolation | 2 | **7** | Two separate cross-account leaks closed, each reproduced first. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
+| Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
 | Scientific / construct validity | 4 | **7** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry. Not higher: positions still are not selected for the trigger, and there is no control condition |
-| Functional correctness | 6 | **8** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting — each with a reproduction |
-| Test quality and CI | 8 | **9** | 1,084 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~90 positive controls red |
+| Functional correctness | 6 | **8** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation — each with a reproduction |
+| Test quality and CI | 8 | **9** | 1,141 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
-| UX, accessibility, recovery | 6 | **8** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers |
+| UX, accessibility, recovery | 6 | **8.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
 | Operations / deployability | 4 | **5** | `scripts/dev-db.sh`; no health check, error tracking or env validation yet |
 | Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |
