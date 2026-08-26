@@ -13,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import {
   claims,
+  decisionCounterfactuals,
   decisionFeedback,
   decisionReveals,
   decisions,
@@ -30,6 +31,8 @@ import {
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
+import { assembleProbe } from "../shared/counterfactual.js";
+import { RecordError } from "../shared/record-service.js";
 import type { PreregisteredHypothesis } from "../shared/prereg.js";
 import type { StoredImportDiagnostic } from "../shared/import-diagnostic.js";
 import type {
@@ -72,6 +75,7 @@ function toAtom(
   decision: Decision,
   reveal: typeof decisionReveals.$inferSelect | undefined,
   feedback: typeof decisionFeedback.$inferSelect | undefined,
+  counterfactual?: typeof decisionCounterfactuals.$inferSelect | undefined,
 ): DecisionAtom {
   return {
     entry_state: {
@@ -90,6 +94,13 @@ function toAtom(
       ...(decision.confidenceScale === null ? {} : { confidence_scale: decision.confidenceScale }),
       candidate_moves_considered: decision.candidateMovesConsidered,
     },
+    probe: assembleProbe(
+      decision,
+      counterfactual && {
+        alternative: counterfactual.alternativeMove,
+        cpLoss: counterfactual.alternativeCpLoss,
+      },
+    ),
     result: reveal
       ? {
           engine_eval_cp: reveal.engineEvalCp,
@@ -217,6 +228,8 @@ export class DrizzleRecordStore implements RecordStore {
       statedUnknown: input.statedUnknown,
       confidence: input.confidence,
       confidenceScale: input.confidenceScale,
+      probeAssignment: input.probeAssignment,
+      legalMoves: input.legalMoves,
     };
     // Append-only: no onDuplicateKeyUpdate. A repeated decision_id is a bug, not an update.
     await db.insert(decisions).values(row);
@@ -241,6 +254,48 @@ export class DrizzleRecordStore implements RecordStore {
       revisedRead: feedback.revisedRead,
       wouldChooseAgain: feedback.wouldChooseAgain,
     });
+  }
+
+  async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
+    const db = await this.db();
+    const [decision] = await db
+      .select()
+      .from(decisions)
+      .where(eq(decisions.decisionId, decisionId))
+      .limit(1);
+    if (!decision) throw new RecordError("NOT_FOUND", "אין החלטה כזאת ברשומה.");
+    if (decision.probeAssignment !== "probed") {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה הזאת לא נשאלה את השאלה החלופית, ולכן אי אפשר לרשום עליה תשובה.",
+      );
+    }
+    /*
+     * R3 in the direction it is usually not written -- see the note on the in-memory store. An
+     * alternative named after the evaluation is on screen is a reading of the engine's candidate.
+     */
+    if (await this.hasReveal(decisionId)) {
+      throw new RecordError("BAD_REQUEST", "המנוע כבר דיבר על ההחלטה הזאת.");
+    }
+    // Append-only, like every other event table: no onDuplicateKeyUpdate.
+    await db.insert(decisionCounterfactuals).values({ decisionId, alternativeMove: alternative });
+  }
+
+  async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
+    const db = await this.db();
+    const [answer] = await db
+      .select()
+      .from(decisionCounterfactuals)
+      .where(eq(decisionCounterfactuals.decisionId, decisionId))
+      .limit(1);
+    if (!answer) throw new RecordError("NOT_FOUND", "אין תשובה חלופית לתת לה ציון.");
+    if (answer.alternativeMove === null) {
+      throw new RecordError("BAD_REQUEST", "לא נאמר מהלך חלופי, ולכן אין מה לתמחר.");
+    }
+    await db
+      .update(decisionCounterfactuals)
+      .set({ alternativeCpLoss: cpLoss })
+      .where(eq(decisionCounterfactuals.decisionId, decisionId));
   }
 
   async hasReveal(decisionId: string): Promise<boolean> {
@@ -271,7 +326,12 @@ export class DrizzleRecordStore implements RecordStore {
       .from(decisionFeedback)
       .where(eq(decisionFeedback.decisionId, decisionId))
       .limit(1);
-    return toAtom(decision, reveal, feedback);
+    const [counterfactual] = await db
+      .select()
+      .from(decisionCounterfactuals)
+      .where(eq(decisionCounterfactuals.decisionId, decisionId))
+      .limit(1);
+    return toAtom(decision, reveal, feedback, counterfactual);
   }
 
   /**
@@ -297,10 +357,17 @@ export class DrizzleRecordStore implements RecordStore {
       : await db.select().from(decisions).orderBy(decisions.createdAt, decisions.decisionId);
     const reveals = await db.select().from(decisionReveals);
     const feedbacks = await db.select().from(decisionFeedback);
+    const counterfactuals = await db.select().from(decisionCounterfactuals);
     const revealBy = new Map(reveals.map((r) => [r.decisionId, r]));
     const feedbackBy = new Map(feedbacks.map((f) => [f.decisionId, f]));
+    const counterfactualBy = new Map(counterfactuals.map((c) => [c.decisionId, c]));
     return rows.map((row) =>
-      toAtom(row, revealBy.get(row.decisionId), feedbackBy.get(row.decisionId)),
+      toAtom(
+        row,
+        revealBy.get(row.decisionId),
+        feedbackBy.get(row.decisionId),
+        counterfactualBy.get(row.decisionId),
+      ),
     );
   }
 
@@ -706,6 +773,8 @@ export class MemoryRecordStore implements RecordStore {
   private readonly rows = new Map<string, CommitDecisionInput>();
   private readonly reveals = new Map<string, DecisionResult>();
   private readonly feedbacks = new Map<string, FeedbackInput>();
+  /** Present iff the question was answered. The value is null when no move was named. */
+  private readonly counterfactuals = new Map<string, { alternative: string | null; cpLoss: number | null }>();
   private readonly preregRows: PreregisteredHypothesis[] = [];
 
   async commitDecision(input: CommitDecisionInput): Promise<void> {
@@ -723,6 +792,29 @@ export class MemoryRecordStore implements RecordStore {
     if (!this.rows.has(decisionId)) throw new Error("no such decision");
     if (this.feedbacks.has(decisionId)) throw new Error("append-only: feedback already exists");
     this.feedbacks.set(decisionId, feedback);
+  }
+
+  async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
+    const row = this.rows.get(decisionId);
+    if (!row) throw new Error("no such decision");
+    if (row.probeAssignment !== "probed") throw new Error("this decision was never asked");
+    /*
+     * R3 IN THE DIRECTION IT IS USUALLY NOT WRITTEN. The rule normally stops the engine speaking
+     * before a commitment; here it stops the player's answer arriving after the engine has. An
+     * alternative named with an evaluation already on screen is a reading of the engine's
+     * candidate, not a self-generated one, and the two are indistinguishable once stored.
+     */
+    if (this.reveals.has(decisionId)) throw new Error("the engine has already spoken");
+    if (this.counterfactuals.has(decisionId)) throw new Error("append-only: already answered");
+    this.counterfactuals.set(decisionId, { alternative, cpLoss: null });
+  }
+
+  async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
+    const answer = this.counterfactuals.get(decisionId);
+    if (!answer) throw new Error("no answer to score");
+    // A score with no move behind it came from somewhere other than this decision.
+    if (answer.alternative === null) throw new Error("no alternative was named");
+    this.counterfactuals.set(decisionId, { ...answer, cpLoss });
   }
 
   async hasReveal(decisionId: string): Promise<boolean> {
@@ -905,6 +997,7 @@ export class MemoryRecordStore implements RecordStore {
         ...(row.confidenceScale === null ? {} : { confidence_scale: row.confidenceScale }),
         candidate_moves_considered: row.candidateMovesConsidered,
       },
+      probe: assembleProbe(row, this.counterfactuals.get(row.decisionId)),
       result,
       feedback: feedback
         ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -912,6 +1005,7 @@ export class MemoryRecordStore implements RecordStore {
     };
   }
 }
+
 
 function sameLearningRuleAuthorship(left: LearningRule, right: LearningRule): boolean {
   const mutable = new Set(["grade", "retrieval_step", "next_due_at", "last_evaluated_at"]);

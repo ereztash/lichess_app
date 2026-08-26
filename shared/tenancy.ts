@@ -34,6 +34,7 @@ export const RECORD_TABLES = [
   "decisions",
   "decision_reveals",
   "decision_feedback",
+  "decision_counterfactuals",
   "claims",
   "drills",
   "drill_results",

@@ -75,6 +75,8 @@ async function recordPosition(
     statedUnknown: "I may have missed a forcing move",
     confidence: 3,
     confidenceScale: CONFIDENCE_LEVELS,
+    probeAssignment: "not-probed",
+    legalMoves: 20,
   });
   await store.recordReveal(id, result);
 }
@@ -135,6 +137,8 @@ describe("verified learning record", () => {
       statedUnknown: "threat",
       confidence: 3,
       confidenceScale: CONFIDENCE_LEVELS,
+      probeAssignment: "not-probed",
+      legalMoves: 20,
     });
     await expect(
       service.createLearningRule(

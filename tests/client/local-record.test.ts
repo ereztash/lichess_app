@@ -26,6 +26,9 @@ function event(id: string) {
     unknown: "לא יודע אם e5 עובד",
     decision: "e2e4",
     bounded_action: { seconds_taken: 12, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
+    // No arm: this file is about the browser record, and a decision with no arm is one written
+    // by a client that does not run the probe. Null here is a fourth state, never a control.
+    probe: null,
     result: null,
     feedback: null,
   } satisfies service.CommitEvent;

@@ -91,6 +91,7 @@ const commit = (decisionId: string) =>
     unknown: "cannot judge the resulting pawn structure",
     decision: "e2e4",
     bounded_action: { seconds_taken: 8, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
+    probe: null,
     result: null,
     feedback: null,
   });
@@ -140,6 +141,7 @@ describe("GATE-COMMIT: the engine does not speak before the decision is recorded
       unknown: "u",
       decision: "e2e4",
       bounded_action: { seconds_taken: 3, confidence: 2, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: [] },
+      probe: null,
       result: null,
       feedback: null,
     });

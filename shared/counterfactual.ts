@@ -27,6 +27,7 @@
  * in this file calls it that.
  */
 import { Chess } from "chess.js";
+import type { Probe, ProbeAssignment } from "./decision-atom.js";
 import { ACCURATE_WIN_PROBABILITY_LOSS } from "./detector.js";
 import { winProbabilityLoss } from "./win-probability.js";
 
@@ -70,14 +71,12 @@ export function probeEligibility(fen: string): ProbeEligibility {
 }
 
 /**
- * `ineligible` is a third value and not a synonym for the control arm.
- *
- * Folding unaskable positions into "not-probed" would make the control group a mixture of
+ * `ineligible` is a third value and not a synonym for the control arm -- see `PROBE_ASSIGNMENTS`
+ * in shared/decision-atom.ts, which is the canonical list because the database enum is built from
+ * it. Folding unaskable positions into "not-probed" would make the control group a mixture of
  * "eligible and not drawn" and "never askable", and every comparison between arms would silently
  * become a comparison between kinds of position.
  */
-export type ProbeAssignment = "probed" | "not-probed" | "ineligible";
-
 export interface ProbeAssignmentResult {
   assignment: ProbeAssignment;
   legalMoves: number;
@@ -149,4 +148,29 @@ export function classifyCounterfactual({
   const alternative = isAccurate(evalCp, alternativeCpLoss);
   if (chosen) return alternative ? "both-good" : "narrow";
   return alternative ? "reachable" : "neither";
+}
+
+/**
+ * The arm, and the answer if there is one, in the atom's shape.
+ *
+ * NULL WHEN THERE IS NO ARM, and that is a fourth state rather than a default. A decision
+ * committed before the probe existed was never randomised into anything, and giving it an arm on
+ * read would enrol it retrospectively into a group it was never part of.
+ *
+ * `answered` is the presence of the answer row, NOT `alternative !== null`. A player who was
+ * asked and could not name a move has said something real; one who was never asked has said
+ * nothing. Both carry a null move.
+ */
+export function assembleProbe(
+  row: { probeAssignment: ProbeAssignment | null; legalMoves: number | null },
+  answer: { alternative: string | null; cpLoss: number | null } | undefined,
+): Probe | null {
+  if (row.probeAssignment === null || row.legalMoves === null) return null;
+  return {
+    assignment: row.probeAssignment,
+    legal_moves: row.legalMoves,
+    alternative: answer?.alternative ?? null,
+    answered: answer !== undefined,
+    alternative_cp_loss: answer?.cpLoss ?? null,
+  };
 }

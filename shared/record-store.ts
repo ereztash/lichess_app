@@ -10,7 +10,7 @@
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
 import type { PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
-import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
+import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
 import type {
   LearningRule,
   LearningTransfer,
@@ -34,6 +34,16 @@ export interface CommitDecisionInput {
   confidence: number;
   /** How many levels the scale had when it was stated. See shared/confidence.ts. */
   confidenceScale: number;
+  /**
+   * Which arm of the counterfactual probe this decision was randomised into.
+   *
+   * NULL MEANS "NOT IN THE EXPERIMENT", not "control". A decision committed by a client that
+   * predates the probe was never randomised into anything, and reading it as an arm would enrol
+   * it retrospectively into a group it was never part of.
+   */
+  probeAssignment: ProbeAssignment | null;
+  /** Legal moves in the entry position. The covariate, not a filter. Null with the arm. */
+  legalMoves: number | null;
 }
 
 export interface FeedbackInput {
@@ -46,6 +56,15 @@ export interface RecordStore {
   commitDecision(input: CommitDecisionInput): Promise<void>;
   recordReveal(decisionId: string, result: DecisionResult): Promise<void>;
   recordFeedback(decisionId: string, feedback: FeedbackInput): Promise<void>;
+  /**
+   * The player's answer to "what would you have played instead". Append-only, and refused in
+   * three cases: no such decision, an arm that was never asked, and a decision the engine has
+   * already spoken on. `null` records an answered question with no move named, which is a
+   * different fact from an unanswered one and must stay distinguishable.
+   */
+  recordCounterfactual(decisionId: string, alternative: string | null): Promise<void>;
+  /** What the named alternative cost, measured at reveal. Refused when none was named. */
+  scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void>;
   hasReveal(decisionId: string): Promise<boolean>;
   getAtom(decisionId: string): Promise<DecisionAtom | null>;
   listAtoms(gameId?: string): Promise<DecisionAtom[]>;

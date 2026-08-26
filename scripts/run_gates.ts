@@ -209,6 +209,8 @@ export const GATES: Gate[] = [
         statedUnknown: "u",
         confidence: 3,
         confidenceScale: CONFIDENCE_LEVELS,
+        probeAssignment: "not-probed",
+        legalMoves: 20,
       });
       const atom = await store.getAtom(id);
       return isoPredicate(

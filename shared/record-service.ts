@@ -13,7 +13,8 @@
  */
 import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult } from "./claim.js";
 import { selectClaim } from "./claim-derivation.js";
-import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
+import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
+import { probeEligibility } from "./counterfactual.js";
 import {
   ACCURATE_CP_LOSS,
   BUCKETINGS,
@@ -101,6 +102,21 @@ export type CommitEvent = {
     confidence_scale?: number;
     candidate_moves_considered: string[];
   };
+  /**
+   * The arm, assigned before the player was seen. Null from a client that predates the probe.
+   *
+   * `alternative` and `answered` are on the type because the atom carries them, and they are
+   * refused below if a commit event arrives with either set: the commit happens BEFORE the
+   * question is put, so an answer riding along means the client asked first -- which is how
+   * naming an alternative turns into choosing it.
+   */
+  probe: {
+    assignment: ProbeAssignment;
+    legal_moves: number;
+    alternative: string | null;
+    answered: boolean;
+    alternative_cp_loss: number | null;
+  } | null;
   result: null;
   feedback: null;
 };
@@ -132,6 +148,41 @@ export async function commitDecision(
       "ההחלטה נשלחה בלי לציין על איזה סולם ביטחון היא נאמרה, ולכן אי אפשר לקרוא אותה.",
     );
   }
+  /*
+   * THE ARM IS CHECKED AGAINST THE POSITION, exactly as the phase is on the line above, and for
+   * the same reason: everything the record will later divide by has to be re-derived rather than
+   * believed. A wrong legal-move count silently biases every estimate conditioned on it, and a
+   * `probed` arm on a position that could never have carried the question puts a row in the
+   * treatment group that no randomisation could have placed there.
+   */
+  const probe = input.probe;
+  if (probe) {
+    if (probe.answered || probe.alternative !== null) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה עם תשובה על השאלה החלופית, אבל השאלה נשאלת רק אחרי שהמהלך ננעל.",
+      );
+    }
+    const { legalMoves, eligible } = probeEligibility(input.entry_state.fen);
+    if (probe.legal_moves !== legalMoves) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        `מספר המהלכים החוקיים שנשלח (${probe.legal_moves}) אינו תואם את העמדה (${legalMoves}).`,
+      );
+    }
+    if (probe.assignment !== "ineligible" && !eligible) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "העמדה הזאת לא יכולה לשאת את השאלה החלופית, ולכן היא לא יכולה להיות באף אחת משתי הזרועות.",
+      );
+    }
+    if (probe.assignment === "ineligible" && eligible) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "העמדה הזאת יכולה לשאת את השאלה החלופית, ולכן סימונה כלא־כשירה יוציא אותה מהניסוי בלי סיבה.",
+      );
+    }
+  }
   const row: CommitDecisionInput = {
     decisionId: input.decision_id,
     gameId: input.entry_state.game_id,
@@ -146,6 +197,8 @@ export async function commitDecision(
     statedUnknown: input.unknown,
     confidence: input.bounded_action.confidence,
     confidenceScale,
+    probeAssignment: probe?.assignment ?? null,
+    legalMoves: probe?.legal_moves ?? null,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.

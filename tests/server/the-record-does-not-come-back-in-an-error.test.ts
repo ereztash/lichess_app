@@ -214,6 +214,7 @@ describe("driven through the real HTTP stack, not reasoned about", () => {
       confidence_scale: 7,
       candidate_moves_considered: [],
     },
+    probe: null,
     result: null,
     feedback: null,
   };

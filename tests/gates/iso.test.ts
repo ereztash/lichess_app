@@ -22,6 +22,8 @@ async function reportFields(): Promise<string[]> {
     statedUnknown: "cannot judge the resulting pawn structure",
     confidence: 3,
     confidenceScale: CONFIDENCE_LEVELS,
+    probeAssignment: "not-probed",
+    legalMoves: 20,
   });
   const atom = await store.getAtom(decisionId);
   return Object.keys(atom!);

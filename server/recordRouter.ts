@@ -10,6 +10,7 @@ import { z } from "zod";
 import {
   boundedActionSchema,
   entryStateSchema,
+  probeSchema,
   resultSchema,
   type DecisionAtom,
 } from "../shared/decision-atom.js";
@@ -37,6 +38,12 @@ export const commitEventSchema = z.object({
   unknown: z.string().min(1).max(200),
   decision: z.string().min(4).max(6),
   bounded_action: boundedActionSchema,
+  /**
+   * Nullable on the wire, because a client that predates the probe has no arm to send and its
+   * decisions are still perfectly good calibration data. Null is stored as null and never read as
+   * a control -- see the note on `probeSchema`.
+   */
+  probe: probeSchema.nullable(),
   result: z.null(),
   feedback: z.null(),
 });

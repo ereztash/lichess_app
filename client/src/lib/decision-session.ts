@@ -11,6 +11,7 @@
  */
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import type { DecisionAtom } from "@shared/decision-atom";
+import { assignProbe } from "@shared/counterfactual";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
@@ -107,16 +108,30 @@ export type CommitEvent = Omit<DecisionAtom, "result" | "feedback"> & {
   feedback: null;
 };
 
+/**
+ * THE ARM IS DRAWN HERE, AT COMMIT, AND NOT WHEN THE POSITION IS ENTERED.
+ *
+ * The two are statistically identical -- `assignProbe` cannot see the position, which is the
+ * property its test pins -- but they are not identical in what they make possible. An arm that
+ * exists while the player is still deciding is an arm that some future pre-commit screen could
+ * read, and the moment anything before the commitment differs between arms, the comparison
+ * between them stops being about the question and starts being about the interface. Drawing at
+ * commit makes that leak unwritable rather than discouraged.
+ *
+ * `draw` is a parameter so a test can drive it; production passes nothing.
+ */
 export function buildCommitEvent(
   decisionId: string,
   position: PositionUnderDecision,
   draft: DraftDecision,
   secondsTaken: number,
+  draw: () => number = Math.random,
 ): CommitEvent {
   const problems = draftProblems(draft);
   if (problems.length) {
     throw new Error(`decision is not committable: ${problems.map((p) => p.message).join(" ")}`);
   }
+  const arm = assignProbe(position.fen, draw);
   return {
     decision_id: decisionId,
     entry_state: {
@@ -159,6 +174,18 @@ export function buildCommitEvent(
         draft.candidatesConsidered,
         draft.chosenMove!,
       ),
+    },
+    probe: {
+      assignment: arm.assignment,
+      legal_moves: arm.legalMoves,
+      /*
+       * Empty at commit, and refused by the service if they are not. The question is put AFTER
+       * this event is sent -- an answer riding along means the client asked first, and naming an
+       * alternative before committing to a move is how naming one turns into choosing it.
+       */
+      alternative: null,
+      answered: false,
+      alternative_cp_loss: null,
     },
     result: null,
     feedback: null,

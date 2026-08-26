@@ -16,7 +16,8 @@
 import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
-import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
+import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/decision-atom";
+import { assembleProbe } from "@shared/counterfactual";
 import type {
   LearningRule,
   LearningTransfer,
@@ -36,6 +37,15 @@ type Persisted = {
   decisions: StoredDecision[];
   reveals: Record<string, DecisionResult>;
   feedbacks: Record<string, FeedbackInput>;
+  /**
+   * Keyed by decision id, and PRESENCE IS THE MEASUREMENT: a key means the question was put and
+   * answered. `alternative: null` inside one means asked and unable to name a move, which is a
+   * different fact from never having been asked and has to stay distinguishable.
+   *
+   * Optional on the type because this store reads JSON an earlier build wrote, and those saves
+   * have no such key at all.
+   */
+  counterfactuals?: Record<string, { alternative: string | null; cpLoss: number | null }>;
   claims: Record<string, Claim>;
   drills: Record<string, StoredDrill>;
   drillResults: ProspectiveDrillResult[];
@@ -54,6 +64,7 @@ const empty = (): Persisted => ({
   decisions: [],
   reveals: {},
   feedbacks: {},
+  counterfactuals: {},
   claims: {},
   drills: {},
   drillResults: [],
@@ -186,6 +197,32 @@ export class LocalRecordStore implements RecordStore {
     }
     if (state.feedbacks[decisionId]) throw new Error("append-only: feedback already exists");
     state.feedbacks[decisionId] = input;
+    write(state);
+  }
+
+  async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
+    const state = read();
+    const row = state.decisions.find((d) => d.decisionId === decisionId);
+    if (!row) throw new Error("no such decision");
+    if (row.probeAssignment !== "probed") throw new Error("this decision was never asked");
+    /*
+     * R3 in the direction it is usually not written: an alternative named once the evaluation is
+     * on screen is a reading of the engine's candidate, not a self-generated one, and storage
+     * cannot tell the two apart afterwards.
+     */
+    if (state.reveals[decisionId]) throw new Error("the engine has already spoken");
+    const answers = (state.counterfactuals ??= {});
+    if (answers[decisionId]) throw new Error("append-only: already answered");
+    answers[decisionId] = { alternative, cpLoss: null };
+    write(state);
+  }
+
+  async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
+    const state = read();
+    const answer = state.counterfactuals?.[decisionId];
+    if (!answer) throw new Error("no answer to score");
+    if (answer.alternative === null) throw new Error("no alternative was named");
+    answer.cpLoss = cpLoss;
     write(state);
   }
 
@@ -411,6 +448,10 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
       ...(row.confidenceScale === undefined ? {} : { confidence_scale: row.confidenceScale }),
       candidate_moves_considered: row.candidateMovesConsidered,
     },
+    probe: assembleProbe(
+      { probeAssignment: row.probeAssignment ?? null, legalMoves: row.legalMoves ?? null },
+      state.counterfactuals?.[row.decisionId],
+    ),
     result: state.reveals[row.decisionId] ?? null,
     feedback: feedback
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -424,6 +465,17 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
  * field entirely. Typing them as if the field were always there would make the absence
  * unrepresentable and the `?? LEGACY` below dead code that no test could reach.
  */
-type StoredDecision = Omit<CommitDecisionInput, "confidenceScale"> & { confidenceScale?: number };
+type StoredDecision = Omit<
+  CommitDecisionInput,
+  "confidenceScale" | "probeAssignment" | "legalMoves"
+> & {
+  confidenceScale?: number;
+  /**
+   * Absent on rows an earlier build wrote, and absent is a FOURTH STATE rather than a control
+   * arm: those decisions were never randomised into anything.
+   */
+  probeAssignment?: ProbeAssignment | null;
+  legalMoves?: number | null;
+};
 
 

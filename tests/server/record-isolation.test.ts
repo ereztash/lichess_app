@@ -79,6 +79,7 @@ const commit = {
     confidence_scale: CONFIDENCE_LEVELS,
     candidate_moves_considered: ["e2e4"],
   },
+  probe: null,
   result: null,
   feedback: null,
 };

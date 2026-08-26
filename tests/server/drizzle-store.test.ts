@@ -43,6 +43,8 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     statedUnknown: "לא ברור מה השחור מאיים",
     confidence: 3,
     confidenceScale: CONFIDENCE_LEVELS,
+    probeAssignment: "not-probed",
+    legalMoves: 20,
     ...overrides,
   };
 }
