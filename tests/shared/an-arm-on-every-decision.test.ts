@@ -46,6 +46,7 @@ function event(probe: CommitEvent["probe"], id = nextId()): CommitEvent {
       candidate_moves_considered: ["e2e4"],
     },
     probe,
+    reveal_timing: null,
     result: null,
     feedback: null,
   };
@@ -102,6 +103,7 @@ describe("the arm is on the decision, not on the answer", () => {
       },
       decision: "h8h7",
       probe: { ...armed("ineligible"), legal_moves: 1 },
+      reveal_timing: null,
     });
     expect((await store.getAtom(id))?.probe?.assignment).toBe("ineligible");
   });
@@ -300,6 +302,7 @@ describe("the service refuses an arm that contradicts itself", () => {
         candidate_moves_considered: ["h8h7"],
       },
       probe: { ...armed("probed"), legal_moves: 1 },
+      reveal_timing: null,
       result: null,
       feedback: null,
     };

@@ -7,6 +7,7 @@
  */
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import {
   boundedActionSchema,
   entryStateSchema,
@@ -44,6 +45,7 @@ export const commitEventSchema = z.object({
    * a control -- see the note on `probeSchema`.
    */
   probe: probeSchema.nullable(),
+  reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
   result: z.null(),
   feedback: z.null(),
 });

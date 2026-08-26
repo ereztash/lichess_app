@@ -37,6 +37,7 @@ beforeEach(async () => {
     decision: "e2e4",
     bounded_action: { seconds_taken: 10, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
     probe: null,
+    reveal_timing: null,
     result: null,
     feedback: null,
   });

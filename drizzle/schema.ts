@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
+import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
 
@@ -75,6 +76,15 @@ export const decisions = mysqlTable(
     probeAssignment: mysqlEnum("probe_assignment", PROBE_ASSIGNMENTS),
     /** Legal moves in the entry position: the covariate an analysis conditions on. */
     legalMoves: int("legal_moves"),
+    /**
+     * Which reveal timing was in force -- after every decision, or after the whole game.
+     *
+     * NULLABLE, AND NULL IS NOT `per-decision`. Rows written before the deferred game existed
+     * were all made in the coached loop, and backfilling them would still be a lie: it would
+     * assert that a condition was recorded when nobody recorded one, and the first comparison
+     * between the two modes would show a coached arm that is enormous and perfectly measured.
+     */
+    revealTiming: mysqlEnum("reveal_timing", REVEAL_TIMINGS),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("decisions_game_idx").on(table.gameId)],

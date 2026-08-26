@@ -224,6 +224,7 @@ describe("pre-registration is only pre-registration if it precedes the decisions
         confidenceScale: CONFIDENCE_LEVELS,
         probeAssignment: "not-probed",
         legalMoves: 20,
+        revealTiming: "per-decision",
       });
     }
     const saved = await registerHypothesis(store, {
@@ -310,6 +311,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
         confidenceScale: CONFIDENCE_LEVELS,
         probeAssignment: "not-probed",
         legalMoves: 20,
+        revealTiming: "per-decision",
       });
       await store.recordReveal(id, {
         engine_eval_cp: 0,
@@ -359,6 +361,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
       confidenceScale: CONFIDENCE_LEVELS,
       probeAssignment: "not-probed",
       legalMoves: 20,
+      revealTiming: "per-decision",
     });
 
     const view = await currentClaim(store, { created_at: "2026-08-24T11:00:00.000Z" });
@@ -457,6 +460,7 @@ describe("the whole bridge, end to end", () => {
       confidenceScale: CONFIDENCE_LEVELS,
       probeAssignment: "not-probed",
       legalMoves: 20,
+      revealTiming: "per-decision",
     });
   }
 });

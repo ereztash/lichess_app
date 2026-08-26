@@ -15,6 +15,7 @@ import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult 
 import { selectClaim } from "./claim-derivation.js";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
 import { probeEligibility } from "./counterfactual.js";
+import type { RevealTiming } from "./reveal-timing.js";
 import {
   ACCURATE_CP_LOSS,
   BUCKETINGS,
@@ -117,6 +118,8 @@ export type CommitEvent = {
     answered: boolean;
     alternative_cp_loss: number | null;
   } | null;
+  /** Which reveal timing produced this decision. Null from a client that predates the setting. */
+  reveal_timing: RevealTiming | null;
   result: null;
   feedback: null;
 };
@@ -199,6 +202,7 @@ export async function commitDecision(
     confidenceScale,
     probeAssignment: probe?.assignment ?? null,
     legalMoves: probe?.legal_moves ?? null,
+    revealTiming: input.reveal_timing,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.

@@ -1765,6 +1765,39 @@ button:not(:disabled) {
    while deciding -- the engine's panel is absent, not hidden. */
 /* Every size in here comes from the five-step scale declared in :root. */
 /*
+ * A game the engine does not narrate, said on screen for as long as it lasts.
+ *
+ * Same tokens as the commitment panel it sits beside -- a panel that looked different would read
+ * as an interruption from elsewhere rather than as the state the player chose.
+ */
+.silent-game {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.15rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+.silent-game__title {
+  margin: 0;
+  font-size: var(--panel-title);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: normal;
+}
+.silent-game__count,
+.silent-game__note {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--muted);
+}
+/* A bare numeral inside a Hebrew sentence is neutral-direction and lands on the wrong side. */
+.silent-game__count bdi {
+  unicode-bidi: plaintext;
+}
+
+/*
  * The counterfactual probe: one question, between the commitment and the engine.
  *
  * Built from the commitment panel's own tokens rather than a new palette. It appears in the same

@@ -85,6 +85,7 @@ async function seedPattern(count: number) {
       confidenceScale: CONFIDENCE_LEVELS,
       probeAssignment: "not-probed",
       legalMoves: 20,
+      revealTiming: "per-decision",
     });
     await store.recordReveal(id, {
       engine_eval_cp: 10,
@@ -143,6 +144,7 @@ async function recordDrillDecisions(
         confidenceScale: CONFIDENCE_LEVELS,
         probeAssignment: "not-probed",
         legalMoves: 20,
+        revealTiming: "per-decision",
     });
     await store.recordReveal(id, {
       engine_eval_cp: 0,

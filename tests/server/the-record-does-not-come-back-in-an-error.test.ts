@@ -215,6 +215,7 @@ describe("driven through the real HTTP stack, not reasoned about", () => {
       candidate_moves_considered: [],
     },
     probe: null,
+    reveal_timing: null,
     result: null,
     feedback: null,
   };

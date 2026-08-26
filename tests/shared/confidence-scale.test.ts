@@ -284,6 +284,7 @@ describe("an incoming decision must say which scale it was stated on", () => {
       decision: "e2e4",
       bounded_action: { seconds_taken: 5, confidence: 3, candidate_moves_considered: ["e2e4"] },
       probe: null,
+      reveal_timing: null,
       result: null,
       feedback: null,
     } satisfies CommitEvent;
@@ -314,6 +315,7 @@ describe("an incoming decision must say which scale it was stated on", () => {
         candidate_moves_considered: ["e2e4"],
       },
       probe: null,
+      reveal_timing: null,
       result: null,
       feedback: null,
     } satisfies CommitEvent);

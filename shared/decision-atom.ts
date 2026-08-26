@@ -15,6 +15,7 @@
  */
 import { z } from "zod";
 import { CONFIDENCE_LEVELS } from "./confidence.js";
+import { REVEAL_TIMINGS } from "./reveal-timing.js";
 
 export const ATOM_FIELDS = [
   "entry_state",
@@ -23,6 +24,7 @@ export const ATOM_FIELDS = [
   "decision",
   "bounded_action",
   "probe",
+  "reveal_timing",
   "result",
   "feedback",
 ] as const;
@@ -151,6 +153,17 @@ export const decisionAtomSchema = z.object({
    * enrol it retrospectively into a group it was never part of.
    */
   probe: probeSchema.nullable(),
+  /**
+   * Which reveal timing was in force -- see shared/reveal-timing.ts for why the two are not
+   * poolable.
+   *
+   * NULLABLE, AND NULL IS NOT `per-decision`. Every decision written before the deferred game
+   * existed was in fact made in the coached loop, because that was the only loop -- and writing
+   * `per-decision` into those rows would still be wrong. It would assert that a condition was
+   * recorded when nobody recorded one, and the first comparison between modes would show a
+   * coached arm that is enormous and perfectly measured.
+   */
+  reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
   result: resultSchema.nullable(),
   feedback: feedbackSchema.nullable(),
 });

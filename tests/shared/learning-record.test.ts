@@ -77,6 +77,7 @@ async function recordPosition(
     confidenceScale: CONFIDENCE_LEVELS,
     probeAssignment: "not-probed",
     legalMoves: 20,
+    revealTiming: "per-decision",
   });
   await store.recordReveal(id, result);
 }
@@ -139,6 +140,7 @@ describe("verified learning record", () => {
       confidenceScale: CONFIDENCE_LEVELS,
       probeAssignment: "not-probed",
       legalMoves: 20,
+      revealTiming: "per-decision",
     });
     await expect(
       service.createLearningRule(

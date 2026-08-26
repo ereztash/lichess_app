@@ -1,0 +1,1 @@
+ALTER TABLE `decisions` ADD `reveal_timing` enum('per-decision','end-of-game');

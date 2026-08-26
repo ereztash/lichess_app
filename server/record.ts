@@ -101,6 +101,7 @@ function toAtom(
         cpLoss: counterfactual.alternativeCpLoss,
       },
     ),
+    reveal_timing: decision.revealTiming,
     result: reveal
       ? {
           engine_eval_cp: reveal.engineEvalCp,
@@ -230,6 +231,7 @@ export class DrizzleRecordStore implements RecordStore {
       confidenceScale: input.confidenceScale,
       probeAssignment: input.probeAssignment,
       legalMoves: input.legalMoves,
+      revealTiming: input.revealTiming,
     };
     // Append-only: no onDuplicateKeyUpdate. A repeated decision_id is a bug, not an update.
     await db.insert(decisions).values(row);
@@ -998,6 +1000,7 @@ export class MemoryRecordStore implements RecordStore {
         candidate_moves_considered: row.candidateMovesConsidered,
       },
       probe: assembleProbe(row, this.counterfactuals.get(row.decisionId)),
+      reveal_timing: row.revealTiming,
       result,
       feedback: feedback
         ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }

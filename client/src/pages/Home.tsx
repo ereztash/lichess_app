@@ -23,6 +23,7 @@ import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
+import { SilentGame } from "@/components/SilentGame";
 import { RevealPanel } from "@/components/RevealPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
@@ -39,6 +40,7 @@ import {
 import type { DrillSpec } from "@shared/claim";
 import { transferObservation } from "@shared/learning-record";
 import { PROBE_STAGE } from "@shared/counterfactual-stage";
+import { effectiveTiming, mayShowVerdictNow, type RevealTiming } from "@shared/reveal-timing";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
@@ -216,6 +218,8 @@ export default function Home() {
     isDrillDecision: boolean;
     /** The transfer run this decision belongs to, frozen at commit. See `runReveal`. */
     transfer: LearningTransfer | null;
+    /** Frozen with the decision, for the same reason: the setting can change while the probe is up. */
+    timing: RevealTiming;
   } | null>(null);
   /** What the player has put on the board as the alternative, before they confirm it. */
   const [probeAlternative, setProbeAlternative] = useState<string | null>(null);
@@ -250,6 +254,15 @@ export default function Home() {
     depth: DEFAULT_OPPONENT_DEPTH,
   });
   const [opponentThinking, setOpponentThinking] = useState(false);
+  /**
+   * When the engine is allowed to speak: after every decision, or after the whole game.
+   *
+   * Defaults to the coached loop, which is what every existing record was made under and what a
+   * single position wants. The deferred game is chosen deliberately, at "משחק חדש", because over
+   * forty moves the coached loop measures a player who has been coached mid-game -- a different
+   * condition, and the record stores which was in force.
+   */
+  const [revealTiming, setRevealTiming] = useState<RevealTiming>("per-decision");
   /*
    * ONE DOOR, and which room is open behind it.
    *
@@ -264,6 +277,16 @@ export default function Home() {
   const [showHelp, setShowHelp] = useState(false);
   const [setupColor, setSetupColor] = useState<"w" | "b">("w");
   const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
+  /** Chosen before the game starts, and applied to it -- not to the game already on the board. */
+  const [setupRevealTiming, setSetupRevealTiming] = useState<RevealTiming>("per-decision");
+  /**
+   * Decisions committed in the current game, counted here rather than read from the record.
+   *
+   * The record's own count is every decision ever made, across every game and every mode; what a
+   * silent game has to show is how many it holds. Reset by `newGame`, which is the only thing
+   * that starts one.
+   */
+  const [decisionsThisGame, setDecisionsThisGame] = useState(0);
   /** The position the opponent has already been asked about, so it is asked exactly once. */
   const answeredFen = useRef<string | null>(null);
 
@@ -652,15 +675,27 @@ export default function Home() {
       transfer: LearningTransfer | null,
       /** The alternative the player named, or null. Scored off the same root search below. */
       alternative: string | null,
+      /** Which timing was in force. Everything the player is SHOWN below is gated on it. */
+      timing: RevealTiming,
     ) => {
-      setCommittedDraft(draft);
-      setRevealFen(positionFen);
+      /*
+       * THE ENGINE RUNS IN BOTH MODES; ONLY THE TELLING DIFFERS. The record needs the verdict on
+       * every decision either way -- a deferred game that stored no evaluations would be forty
+       * decisions nothing ever scored, which is not a measurement, it is a diary.
+       */
+      const speak = mayShowVerdictNow(timing);
       setCandidateMove(null);
       setCandidatesConsidered([]);
       setRevealFailure(null);
       if (isDrillDecision) setDrillDecisionIds((prev) => [...prev, decisionId]);
-      setStage("revealed");
-      setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
+      if (speak) {
+        setCommittedDraft(draft);
+        setRevealFen(positionFen);
+        setStage("revealed");
+        setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
+      } else {
+        setNotice("ההחלטה נרשמה. המנוע שותק עד סוף המשחק.");
+      }
 
       // The board deliberately does NOT advance here. The reveal describes the position the
       // player decided on, so that is the position that must stay on screen -- otherwise every
@@ -748,7 +783,12 @@ export default function Home() {
         if (!hasEvaluation(best) || (chosen !== null && !hasEvaluation(chosen))) {
           throw new Error("engine returned no evaluation for this decision");
         }
-        setAnalysis(best);
+        /*
+         * `analysis` drives the evaluation bar. Setting it in a deferred game would put the
+         * engine's number on the board's edge while the panel below it says nothing -- which is
+         * the whole condition leaking through the one surface that is not a panel.
+         */
+        if (speak) setAnalysis(best);
 
         const cpLoss =
           ended !== null
@@ -780,7 +820,7 @@ export default function Home() {
            */
           clampedMate: best.mate !== undefined || chosen?.mate !== undefined,
         };
-        setRevealInputs(inputs);
+        if (speak) setRevealInputs(inputs);
 
         try {
           await submitReveal.mutateAsync({
@@ -835,6 +875,22 @@ export default function Home() {
           }
         }
         void decisionCount.refetch();
+        /*
+         * A DEFERRED GAME MOVES ON BY ITSELF. There is no reveal panel to read and therefore no
+         * "next decision" button to press -- leaving the player on a screen with no control that
+         * advances is the soft lock this codebase has already fixed once.
+         *
+         * The move is played HERE rather than before the search, so the engine is never running
+         * against a position the board has already left, and two searches can never overlap on
+         * one worker. The player waits for the search either way; the difference is that in this
+         * mode the wait ends in the next position instead of a verdict.
+         */
+        if (!speak) {
+          const played = uciToSquares(draft.chosenMove!);
+          if (played) playMove(played.from, played.to);
+          setStage("deciding");
+          setNotice("ההחלטה נרשמה. העמדה הבאה.");
+        }
       } catch {
         // No evaluation exists, so there is no reveal to render. Without this the screen
         // sat on "המנוע מחשב…" forever, with no control that advances.
@@ -845,9 +901,9 @@ export default function Home() {
     [
       decisionCount,
       ensureEngine,
-      learningTransfer,
       learningTransferApplied,
       learningTransferRecall,
+      playMove,
       recordTransferObservation,
       submitReveal,
     ],
@@ -893,6 +949,7 @@ export default function Home() {
         probe.isDrillDecision,
         probe.transfer,
         stored,
+        probe.timing,
       );
     },
     [probe, recordCounterfactual, runReveal],
@@ -906,6 +963,15 @@ export default function Home() {
       const isDrillDecision = drill !== null && drillStage === "running";
       const isLearningTransferDecision =
         learningTransfer !== null && learningTransferStage === "running";
+      /*
+       * The player's choice governs a live game and nothing else. `effectiveTiming` is where that
+       * is decided, rather than here and at each of the two other places that would otherwise get
+       * to have an opinion about it.
+       */
+      const timing = effectiveTiming(
+        revealTiming,
+        isDrillDecision ? "drill" : isLearningTransferDecision ? "transfer" : "game",
+      );
       /*
        * THE GUARD SITS ON THE COMMIT, not on the advance, and the placement is the fix.
        *
@@ -933,6 +999,7 @@ export default function Home() {
           },
           draft,
           secondsTaken,
+          timing,
         );
         await commitDecision.mutateAsync(event);
       } catch (error) {
@@ -947,6 +1014,7 @@ export default function Home() {
       }
       // Only now may the engine run at all.
       const positionFen = activeFen;
+      setDecisionsThisGame((n) => n + 1);
 
       /*
        * THE PROBE SITS HERE, AND NOWHERE ELSE IS AVAILABLE. The move is locked -- naming an
@@ -965,6 +1033,7 @@ export default function Home() {
           positionFen,
           isDrillDecision,
           transfer: isLearningTransferDecision ? learningTransfer : null,
+          timing,
         });
         setProbeAlternative(null);
         setStage(PROBE_STAGE);
@@ -979,6 +1048,7 @@ export default function Home() {
         isDrillDecision,
         isLearningTransferDecision ? learningTransfer : null,
         null,
+        timing,
       );
     },
     [
@@ -991,6 +1061,7 @@ export default function Home() {
       learningTransferIndex,
       learningTransferApplied,
       learningTransferStage,
+      revealTiming,
       runReveal,
     ],
   );
@@ -1343,7 +1414,9 @@ export default function Home() {
    * position and then asked the player to decide for both colours, one commit-and-reveal cycle
    * per half-move. Choosing a colour is what makes the other side someone else's.
    */
-  const newGame = (playerColor: "w" | "b", depth: OpponentDepth) => {
+  const newGame = (playerColor: "w" | "b", depth: OpponentDepth, timing: RevealTiming) => {
+    setRevealTiming(timing);
+    setDecisionsThisGame(0);
     setHistory([]);
     setCurrentPly(-1);
     setPgnInput("");
@@ -1386,6 +1459,18 @@ export default function Home() {
   const recordMode = useRecordMode();
 
   const deciding = stage === "deciding" || stage === "committing";
+  /**
+   * A live game the player chose to have the engine stay quiet through.
+   *
+   * Narrowed to `source === "live"` and to neither a drill nor a transfer, because
+   * `effectiveTiming` already forces those back to per-decision -- and a panel announcing silence
+   * over a run that is about to show a verdict would be saying something false.
+   */
+  const silentGame =
+    source === "live" &&
+    !inDrill &&
+    !inLearningTransfer &&
+    !mayShowVerdictNow(effectiveTiming(revealTiming, "game"));
   const learningTransferPanel = learningTransfer ? (
     <LearningTransferRunner
       transfer={learningTransfer}
@@ -1649,9 +1734,11 @@ export default function Home() {
                     <NewGameSetup
                       color={setupColor}
                       depth={setupDepth}
+                      revealTiming={setupRevealTiming}
                       onColor={setSetupColor}
                       onDepth={setSetupDepth}
-                      onStart={() => newGame(setupColor, setupDepth)}
+                      onRevealTiming={setSetupRevealTiming}
+                      onStart={() => newGame(setupColor, setupDepth, setupRevealTiming)}
                       onCancel={closePositionSource}
                     />
                   )}
@@ -1828,6 +1915,18 @@ export default function Home() {
                 setNotice(`עמדה 1 מתוך ${drill.fens.length} בדריל.`);
               }}
               onFinish={closeDrill}
+            />
+          ) : deciding && silentGame ? (
+            /*
+             * REPLACES the claim panel and the learning queue for the duration, rather than
+             * joining them. Both of those are readings of the record, and a screen that offers
+             * readings while promising the engine is silent is offering the player a way around
+             * the condition they chose.
+             */
+            <SilentGame
+              decisions={decisionsThisGame}
+              over={activeGame.isGameOver()}
+              onSeeRecord={() => navigate("/")}
             />
           ) : deciding ? (
             <>

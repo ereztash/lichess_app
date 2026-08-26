@@ -24,6 +24,7 @@ async function reportFields(): Promise<string[]> {
     confidenceScale: CONFIDENCE_LEVELS,
     probeAssignment: "not-probed",
     legalMoves: 20,
+    revealTiming: "per-decision",
   });
   const atom = await store.getAtom(decisionId);
   return Object.keys(atom!);

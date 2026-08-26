@@ -80,6 +80,7 @@ const commit = {
     candidate_moves_considered: ["e2e4"],
   },
   probe: null,
+  reveal_timing: null,
   result: null,
   feedback: null,
 };

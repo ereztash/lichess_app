@@ -56,6 +56,7 @@ async function seed(count: number, reveal = true) {
       confidenceScale: CONFIDENCE_LEVELS,
       probeAssignment: "not-probed",
       legalMoves: 20,
+      revealTiming: "per-decision",
     });
     if (reveal) {
       await store.recordReveal(id, {

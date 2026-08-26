@@ -18,6 +18,7 @@ import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/decision-atom";
 import { assembleProbe } from "@shared/counterfactual";
+import type { RevealTiming } from "@shared/reveal-timing";
 import type {
   LearningRule,
   LearningTransfer,
@@ -452,6 +453,7 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
       { probeAssignment: row.probeAssignment ?? null, legalMoves: row.legalMoves ?? null },
       state.counterfactuals?.[row.decisionId],
     ),
+    reveal_timing: row.revealTiming ?? null,
     result: state.reveals[row.decisionId] ?? null,
     feedback: feedback
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -467,7 +469,7 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
  */
 type StoredDecision = Omit<
   CommitDecisionInput,
-  "confidenceScale" | "probeAssignment" | "legalMoves"
+  "confidenceScale" | "probeAssignment" | "legalMoves" | "revealTiming"
 > & {
   confidenceScale?: number;
   /**
@@ -476,6 +478,8 @@ type StoredDecision = Omit<
    */
   probeAssignment?: ProbeAssignment | null;
   legalMoves?: number | null;
+  /** Absent on rows written before the deferred game existed. Absent is not `per-decision`. */
+  revealTiming?: RevealTiming | null;
 };
 
 

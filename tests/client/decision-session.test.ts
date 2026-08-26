@@ -92,7 +92,7 @@ describe("an incomplete decision is not recordable", () => {
       knownTags: ["המרכז פתוח", "מלך חשוף"],
       known: "וגם יש לי טור פתוח",
     };
-    const event = buildCommitEvent("d-2", POSITION, draft, 9);
+    const event = buildCommitEvent("d-2", POSITION, draft, 9, "per-decision");
     // A player who taps two options and adds a sentence stated all three things.
     expect(event.known).toBe("המרכז פתוח · מלך חשוף · וגם יש לי טור פתוח");
   });
@@ -101,12 +101,12 @@ describe("an incomplete decision is not recordable", () => {
     // The schema enforces max 200. Truncating here rather than letting the write fail keeps a
     // long read from becoming a rejection the player cannot act on.
     const draft = { ...complete(), knownTags: Array.from({ length: 40 }, () => "המרכז פתוח") };
-    const event = buildCommitEvent("d-3", POSITION, draft, 9);
+    const event = buildCommitEvent("d-3", POSITION, draft, 9, "per-decision");
     expect(event.known.length).toBeLessThanOrEqual(200);
   });
 
   it("refuses to build an event from an incomplete draft", () => {
-    expect(() => buildCommitEvent("id", POSITION, emptyDraft(), 5)).toThrow(/not committable/);
+    expect(() => buildCommitEvent("id", POSITION, emptyDraft(), 5, "per-decision")).toThrow(/not committable/);
   });
 
   it("accepts a complete draft", () => {
@@ -115,7 +115,7 @@ describe("an incomplete decision is not recordable", () => {
 });
 
 describe("the commit event is the atom, unchanged", () => {
-  const event = buildCommitEvent("d-1", POSITION, complete(), 12.4);
+  const event = buildCommitEvent("d-1", POSITION, complete(), 12.4, "per-decision");
 
   it("carries every atom field under the atom's own names", () => {
     const fields = Object.keys(event).filter((k) => k !== "decision_id");

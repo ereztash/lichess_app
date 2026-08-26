@@ -12,6 +12,7 @@
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import type { DecisionAtom } from "@shared/decision-atom";
 import { assignProbe } from "@shared/counterfactual";
+import type { RevealTiming } from "@shared/reveal-timing";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
@@ -125,6 +126,12 @@ export function buildCommitEvent(
   position: PositionUnderDecision,
   draft: DraftDecision,
   secondsTaken: number,
+  /**
+   * Which reveal timing this decision was made under. Required from a live client, because the
+   * client is the only thing that knows -- and a decision whose condition nothing recorded is one
+   * that can never be pooled with either mode afterwards.
+   */
+  revealTiming: RevealTiming,
   draw: () => number = Math.random,
 ): CommitEvent {
   const problems = draftProblems(draft);
@@ -187,6 +194,7 @@ export function buildCommitEvent(
       answered: false,
       alternative_cp_loss: null,
     },
+    reveal_timing: revealTiming,
     result: null,
     feedback: null,
   };

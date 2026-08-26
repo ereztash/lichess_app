@@ -55,6 +55,7 @@ async function commit(store: MemoryRecordStore, id: string, index: number, revea
     confidenceScale: CONFIDENCE_LEVELS,
     probeAssignment: "not-probed",
     legalMoves: 20,
+    revealTiming: "per-decision",
   });
   if (reveal) {
     await store.recordReveal(id, {

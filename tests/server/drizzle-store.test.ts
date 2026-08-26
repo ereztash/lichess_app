@@ -45,6 +45,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     confidenceScale: CONFIDENCE_LEVELS,
     probeAssignment: "not-probed",
     legalMoves: 20,
+    revealTiming: "per-decision",
     ...overrides,
   };
 }

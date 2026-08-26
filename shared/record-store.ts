@@ -18,6 +18,7 @@ import type {
   LearningTransferResult,
 } from "./learning-record.js";
 import type { Phase } from "./phase.js";
+import type { RevealTiming } from "./reveal-timing.js";
 
 export interface CommitDecisionInput {
   decisionId: string;
@@ -44,6 +45,8 @@ export interface CommitDecisionInput {
   probeAssignment: ProbeAssignment | null;
   /** Legal moves in the entry position. The covariate, not a filter. Null with the arm. */
   legalMoves: number | null;
+  /** Which reveal timing was in force. Null on rows written before the deferred game existed. */
+  revealTiming: RevealTiming | null;
 }
 
 export interface FeedbackInput {

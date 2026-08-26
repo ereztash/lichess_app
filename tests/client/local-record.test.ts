@@ -29,6 +29,7 @@ function event(id: string) {
     // No arm: this file is about the browser record, and a decision with no arm is one written
     // by a client that does not run the probe. Null here is a fourth state, never a control.
     probe: null,
+    reveal_timing: null,
     result: null,
     feedback: null,
   } satisfies service.CommitEvent;
