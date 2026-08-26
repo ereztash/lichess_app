@@ -63,6 +63,7 @@ describeDb("DrizzleRecordStore against MySQL", () => {
     const { getDb } = await import("../../server/db");
     const db = await getDb();
     if (!db) return;
+    await db.execute("DELETE FROM decision_counterfactuals");
     await db.execute("DELETE FROM decision_reveals");
     await db.execute("DELETE FROM decision_feedback");
     await db.execute("DELETE FROM decisions");
@@ -263,5 +264,107 @@ describeDb("DrizzleRecordStore against MySQL", () => {
       "d-1",
       "d-2",
     ]);
+  });
+
+  /*
+   * THE PROBE, AGAINST A REAL DATABASE.
+   *
+   * Every rule below is already asserted against `MemoryRecordStore` in
+   * tests/shared/an-arm-on-every-decision.test.ts -- and that is exactly why this block exists.
+   * The two implementations are separate code: the in-memory one checks its refusals against a
+   * `Map`, this one against three tables and a live driver, and nothing makes them agree except
+   * running both. `recordCounterfactual` and `scoreCounterfactual` on this class had never
+   * executed once before this file did it.
+   */
+  describe("the counterfactual probe, on a real database", () => {
+    const probed = (index: number) => decision(index, { probeAssignment: "probed" });
+
+    it("stores the arm and the covariate on the decision itself", async () => {
+      await store.commitDecision(probed(400));
+      const atom = await store.getAtom("d-400");
+      expect(atom?.probe?.assignment).toBe("probed");
+      expect(atom?.probe?.legal_moves).toBe(20);
+      expect(atom?.reveal_timing).toBe("per-decision");
+    });
+
+    it("keeps an absent arm absent, rather than defaulting it to a control", async () => {
+      await store.commitDecision(
+        decision(401, { probeAssignment: null, legalMoves: null, revealTiming: null }),
+      );
+      const atom = await store.getAtom("d-401");
+      expect(atom?.probe).toBeNull();
+      expect(atom?.reveal_timing).toBeNull();
+    });
+
+    it("keeps 'asked and named nothing' apart from 'never asked'", async () => {
+      /*
+       * The distinction that a schema storing only the move could never recover. Here it is the
+       * difference between a row in `decision_counterfactuals` with a NULL `alternative_move` and
+       * no row at all -- which is only true if the read path actually joins on row existence.
+       */
+      await store.commitDecision(probed(402));
+      await store.commitDecision(probed(403));
+      await store.recordCounterfactual("d-402", null);
+
+      const answered = (await store.getAtom("d-402"))?.probe;
+      const silent = (await store.getAtom("d-403"))?.probe;
+      expect(answered?.answered).toBe(true);
+      expect(answered?.alternative).toBeNull();
+      expect(silent?.answered).toBe(false);
+    });
+
+    it("prices a named alternative and hands it back", async () => {
+      await store.commitDecision(probed(404));
+      await store.recordCounterfactual("d-404", "d2d4");
+      await store.scoreCounterfactual("d-404", 240);
+      const probe = (await store.getAtom("d-404"))?.probe;
+      expect(probe?.alternative).toBe("d2d4");
+      expect(probe?.alternative_cp_loss).toBe(240);
+    });
+
+    it("refuses an answer on a decision that was never asked", async () => {
+      await store.commitDecision(decision(405, { probeAssignment: "not-probed" }));
+      await expect(store.recordCounterfactual("d-405", "d2d4")).rejects.toThrow();
+    });
+
+    it("refuses an answer once the engine has spoken", async () => {
+      // R3 from the other side, and the check here is a SELECT rather than a Map lookup.
+      await store.commitDecision(probed(406));
+      await store.recordReveal("d-406", {
+        engine_eval_cp: 15,
+        engine_best_move: "e2e4",
+        engine_depth: 14,
+        engine_source: "local_sf18",
+        cp_loss: 10,
+      });
+      await expect(store.recordCounterfactual("d-406", "d2d4")).rejects.toThrow();
+    });
+
+    it("answers once", async () => {
+      await store.commitDecision(probed(407));
+      await store.recordCounterfactual("d-407", "d2d4");
+      // Append-only, enforced by the primary key rather than by a guard this class wrote.
+      await expect(store.recordCounterfactual("d-407", "g1f3")).rejects.toThrow();
+    });
+
+    it("refuses a price for an answer that named no move", async () => {
+      await store.commitDecision(probed(408));
+      await store.recordCounterfactual("d-408", null);
+      await expect(store.scoreCounterfactual("d-408", 240)).rejects.toThrow();
+    });
+
+    it("carries the probe through listAtoms as well as getAtom", async () => {
+      /*
+       * TWO READ PATHS, AND ONLY ONE OF THEM FEEDS THE DASHBOARD. `getAtom` joins one row;
+       * `listAtoms` builds a map over the whole table, and it is what `recordReading` calls. A
+       * probe that arrived through one and not the other would leave every screen empty while
+       * every single-decision test passed.
+       */
+      await store.commitDecision(probed(409));
+      await store.recordCounterfactual("d-409", "g1f3");
+      const listed = (await store.listAtoms("game-1")).find((a) => a.decision === "e2e4" && a.probe?.alternative === "g1f3");
+      expect(listed, "the probe did not survive listAtoms").toBeTruthy();
+      expect(listed?.probe?.answered).toBe(true);
+    });
   });
 });
