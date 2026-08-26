@@ -280,6 +280,22 @@ export class LocalRecordStore implements RecordStore {
     return transfer ? structuredClone(transfer) : null;
   }
 
+  /**
+   * Preregistered and not yet reported, oldest first.
+   *
+   * THIS ONE MATTERS MOST IN THE BROWSER, because this is the store a signed-out player uses and
+   * a reload is the ordinary way their session ends. The transfer survived in localStorage while
+   * the knowledge that one was running did not, so refreshing lost the test and offered a new one.
+   */
+  async getOpenLearningTransfer(ruleId: string): Promise<LearningTransfer | null> {
+    const state = read();
+    const reported = new Set(state.learningTransferResults.map((row) => row.transfer_id));
+    const open = Object.values(state.learningTransfers)
+      .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
+      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+    return open[0] ? structuredClone(open[0]) : null;
+  }
+
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
     const state = read();
     if (state.learningTransferResults.some((row) => row.transfer_id === result.transfer_id)) {

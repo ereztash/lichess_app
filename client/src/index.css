@@ -2736,8 +2736,12 @@ button:not(:disabled) {
   padding-block: 0.65rem;
   border-top: 1px solid var(--hairline);
 }
+/*
+ * No `strong` selector any more, and that is deliberate rather than tidying. The row used to
+ * print `action_rule` in bold beside the button that tests recall of it -- see LearningQueue.tsx.
+ * Leaving the rule here would invite it back.
+ */
 .learning-rule-row p,
-.learning-rule-row strong,
 .learning-rule-row small {
   display: block;
   margin: 0.2rem 0 0;
@@ -2747,6 +2751,10 @@ button:not(:disabled) {
 }
 .learning-rule-row small {
   opacity: 0.68;
+}
+/* Set apart from the schedule line beside it: this one explains an absence, not a date. */
+.learning-withheld {
+  font-style: italic;
 }
 .learning-grade {
   font-size: var(--panel-fine);

@@ -10,7 +10,7 @@
  * stored must never look like one that was.
  */
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import {
   claims,
   decisionFeedback,
@@ -100,6 +100,37 @@ function toAtom(
     feedback: feedback
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
       : null,
+  };
+}
+
+/**
+ * One row of `learning_transfers`, as the shared type.
+ *
+ * Extracted because two queries now read this table and a second hand-written mapping is a second
+ * place for a field to be dropped -- which is how `refutation_condition` would quietly become
+ * undefined on the resume path while the original path stayed correct.
+ */
+function toLearningTransfer(row: {
+  transferId: string;
+  ruleId: string;
+  fens: string[];
+  ruleSnapshot: LearningTransfer["rule_snapshot"];
+  refutationCondition: string;
+  minimumSuccesses: number;
+  retrievalStep: number;
+  scheduledFor: Date;
+  startedAt: Date;
+}): LearningTransfer {
+  return {
+    transfer_id: row.transferId,
+    rule_id: row.ruleId,
+    fens: row.fens,
+    rule_snapshot: row.ruleSnapshot,
+    refutation_condition: row.refutationCondition,
+    minimum_successes: row.minimumSuccesses,
+    retrieval_step: row.retrievalStep,
+    scheduled_for: row.scheduledFor.toISOString(),
+    started_at: row.startedAt.toISOString(),
   };
 }
 
@@ -401,18 +432,31 @@ export class DrizzleRecordStore implements RecordStore {
       .from(learningTransfers)
       .where(eq(learningTransfers.transferId, transferId))
       .limit(1);
-    if (!row) return null;
-    return {
-      transfer_id: row.transferId,
-      rule_id: row.ruleId,
-      fens: row.fens,
-      rule_snapshot: row.ruleSnapshot,
-      refutation_condition: row.refutationCondition,
-      minimum_successes: row.minimumSuccesses,
-      retrieval_step: row.retrievalStep,
-      scheduled_for: row.scheduledFor.toISOString(),
-      started_at: row.startedAt.toISOString(),
-    };
+    return row ? toLearningTransfer(row) : null;
+  }
+
+  /**
+   * Preregistered and not yet reported, oldest first.
+   *
+   * A LEFT JOIN with the result table rather than two queries filtered in memory: "has this
+   * transfer reported" is the join, and expressing it as one makes it impossible for the two
+   * halves to be read at different moments.
+   */
+  async getOpenLearningTransfer(ruleId: string): Promise<LearningTransfer | null> {
+    const db = await this.db();
+    const [row] = await db
+      .select({ transfer: learningTransfers })
+      .from(learningTransfers)
+      .leftJoin(
+        learningTransferResults,
+        eq(learningTransferResults.transferId, learningTransfers.transferId),
+      )
+      .where(
+        and(eq(learningTransfers.ruleId, ruleId), isNull(learningTransferResults.transferId)),
+      )
+      .orderBy(learningTransfers.startedAt)
+      .limit(1);
+    return row ? toLearningTransfer(row.transfer) : null;
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
@@ -679,6 +723,14 @@ export class MemoryRecordStore implements RecordStore {
   async getLearningTransfer(transferId: string): Promise<LearningTransfer | null> {
     const transfer = this.learningTransferRows.get(transferId);
     return transfer ? structuredClone(transfer) : null;
+  }
+
+  async getOpenLearningTransfer(ruleId: string): Promise<LearningTransfer | null> {
+    const reported = new Set(this.learningTransferResultRows.map((row) => row.transfer_id));
+    const open = [...this.learningTransferRows.values()]
+      .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
+      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+    return open[0] ? structuredClone(open[0]) : null;
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {

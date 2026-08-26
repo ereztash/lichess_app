@@ -46,6 +46,7 @@ import {
 } from "./drill.js";
 import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
+import { positionKey, samePosition } from "./position-key.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import { oneThingMix } from "./reveal.js";
@@ -229,16 +230,62 @@ export async function beginLearningTransfer(
 ) {
   const rule = await store.getLearningRule(input.rule_id);
   if (!rule) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
-  if (rule.next_due_at && new Date(now.started_at) < new Date(rule.next_due_at)) {
+
+  /*
+   * ONE TEST IN FLIGHT PER RULE, AND IT IS RESUMED RATHER THAN REFUSED.
+   *
+   * The started transfer lived here on the server while the knowledge that one was running lived
+   * only in React state -- so a reload orphaned it, and nothing stopped a second preregistration
+   * over the same rule. A player could look at three positions, dislike them, refresh, and draw
+   * three more: choosing their own evidence under a stamp that says they did not.
+   *
+   * Handing back the open one rather than erroring, because losing a tab is not misconduct, and a
+   * rule whose test can be started but never finished can only ever be refuted by accident. The
+   * positions come back identical because they are the ones that were written down.
+   */
+  const open = await store.getOpenLearningTransfer(rule.rule_id);
+  if (open) return { transfer: open, reason: null };
+
+  /*
+   * NULL IS THE END OF THE SCHEDULE, NOT PERMISSION. `gradeLearningRule` sets `next_due_at` to
+   * null when the last retrieval interval has passed, and this read it as "no date to wait for,
+   * so go ahead" -- offering an unlimited supply of fresh tests to a rule that had finished,
+   * while the row beside the button said "אין בדיקה נוספת".
+   */
+  if (!rule.next_due_at) {
+    return {
+      transfer: null,
+      reason: "לוח החזרות של הכלל הזה הסתיים. אין בדיקה נוספת מתוזמנת עבורו.",
+    };
+  }
+  if (new Date(now.started_at) < new Date(rule.next_due_at)) {
     return {
       transfer: null,
       reason: `הכלל הזה מתוזמן לחזרה מרווחת בתאריך ${rule.next_due_at}.`,
     };
   }
-  const source = await store.getAtom(rule.source_decision_id);
-  const decided = new Set((await store.listAtoms()).map((atom) => atom.entry_state.fen));
-  if (source) decided.add(source.entry_state.fen);
-  const unseen = [...new Set(input.candidate_fens)].filter((fen) => !decided.has(fen));
+
+  /*
+   * NOVELTY IS A PROPERTY OF THE BOARD, NOT OF THE FEN STRING. The halfmove clock and fullmove
+   * number record the GAME, so knights out and back produce a different string for an identical
+   * position -- and this compared whole strings, which let a board the player had already decided
+   * (and been shown the answer for) enter the test as unseen. The same hole was in the
+   * deduplication: three spellings of one board would have filled a three-position test with one
+   * decision.
+   */
+  /*
+   * No separate fetch of the rule's source position. It used to be added to this set explicitly,
+   * which was dead: `listAtoms()` returns every committed decision unfiltered, and a rule cannot
+   * exist without its source having been committed AND revealed -- `createLearningRule` refuses
+   * otherwise. A positive control deleted the line and nothing failed. It also cost a query.
+   */
+  const decided = new Set((await store.listAtoms()).map((atom) => positionKey(atom.entry_state.fen)));
+  const byPosition = new Map<string, string>();
+  for (const fen of input.candidate_fens) {
+    const key = positionKey(fen);
+    if (!decided.has(key) && !byPosition.has(key)) byPosition.set(key, fen);
+  }
+  const unseen = [...byPosition.values()];
   if (unseen.length < TRANSFER_POSITION_COUNT) {
     return {
       transfer: null,
@@ -273,7 +320,10 @@ export async function finishLearningTransfer(
         "כל החלטה בבדיקת ההעברה חייבת להירשם ולהיחשף.",
       );
     }
-    if (atom.entry_state.fen !== transfer.fens[index]) {
+    // Compared as POSITIONS, for the same reason the candidates were: a decision recorded against
+    // the identical board later in a game is the position that was preregistered, and a
+    // whole-string mismatch here would reject an honest answer.
+    if (!samePosition(atom.entry_state.fen, transfer.fens[index])) {
       throw new RecordError(
         "PRECONDITION_FAILED",
         "החלטה בבדיקת ההעברה נרשמה לעמדה אחרת.",

@@ -213,3 +213,175 @@ describe("verified learning record", () => {
     ).toBe("replicated");
   });
 });
+
+describe("a preregistered transfer cannot be escaped or restarted", () => {
+  /*
+   * WHAT PREREGISTRATION IS FOR, and what these three defects each did to it. A test written down
+   * before it runs is only worth something if the version that ran is the version that counts.
+   * A player who can see the positions, dislike them, reload, and start again is choosing their
+   * own evidence -- and every finding the app then reports carries a preregistration stamp it did
+   * not earn.
+   */
+
+  it("refuses to start when the schedule is finished, rather than treating null as due now", async () => {
+    /*
+     * `next_due_at: null` means the retrieval schedule RAN OUT -- `gradeLearningRule` sets it when
+     * the last interval passes. Both the service and the queue read it as "due now", so a rule
+     * that had completed its schedule offered an unlimited supply of fresh tests, while the row
+     * beside the button said "אין בדיקה נוספת".
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    await store.saveLearningRule({ ...rule, grade: "replicated", next_due_at: null, retrieval_step: 4 });
+
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "after-the-end", started_at: "2030-01-01T00:00:00.000Z" },
+    );
+    expect(outcome.transfer).toBeNull();
+    expect(outcome.reason).toBeTruthy();
+    expect(await store.getLearningTransfer("after-the-end")).toBeNull();
+  });
+
+  it("hands back the transfer already in flight instead of preregistering a second one", async () => {
+    /*
+     * THE ABANDON-AND-RETRY HOLE. The started transfer lived on the server; the fact that one was
+     * running lived only in React state. A reload lost the second and left the first orphaned,
+     * and nothing stopped a fresh preregistration over the same rule -- so a player could look at
+     * three positions, not like them, refresh, and draw three more.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const first = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(first.transfer).not.toBeNull();
+
+    const second = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-01-02T00:05:00.000Z" },
+    );
+    // The SAME test, resumed -- not a refusal, because losing the tab is not misconduct and the
+    // player has to be able to finish what was registered for them.
+    expect(second.transfer?.transfer_id).toBe("transfer-1");
+    expect(second.transfer?.fens).toEqual(first.transfer?.fens);
+    expect(await store.getLearningTransfer("transfer-2")).toBeNull();
+  });
+
+  it("lets the next test start once the one in flight has reported", async () => {
+    // The other half. A single-active rule that never releases would end the schedule at one
+    // test, which refutes rules by making them untestable.
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const { transfer } = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const ids = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < ids.length; index += 1) {
+      await recordPosition(store, ids[index], transfer!.fens[index]);
+    }
+    await service.finishLearningTransfer(
+      store,
+      {
+        transfer_id: transfer!.transfer_id,
+        observations: ids.map((decision_id) => ({
+          decision_id,
+          recalled_rule: rule.action_rule,
+          applied_rule: true,
+        })),
+      },
+      { completed_at: "2026-01-02T01:00:00.000Z" },
+    );
+    const after = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-02-01T00:00:00.000Z" },
+    );
+    expect(after.transfer?.transfer_id).toBe("transfer-2");
+  });
+
+  it("does not offer a board the player has already decided, whatever the move counters say", async () => {
+    /*
+     * A FEN carries six fields and the last two record the GAME, not the POSITION. Knights out and
+     * back reach the identical board with the counters advanced, and the whole-string comparison
+     * this replaces called that a position nobody had seen. The transfer test's entire claim rests
+     * on these being positions the player has NOT decided: a rule that "transferred" to a board
+     * they had already been shown the answer for is measuring recall of that answer.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    /*
+     * DECIDED SEPARATELY FROM THE RULE'S SOURCE, and that distinction is load-bearing. An earlier
+     * version of this test used the source position, which `beginLearningTransfer` excludes by a
+     * SECOND path -- so reverting the `listAtoms` half to whole-string comparison changed nothing
+     * and a positive control walked straight through. The board here is reachable only through
+     * the decided-positions set.
+     */
+    const seen = FENS[4];
+    await recordPosition(store, "55555555-5555-4555-8555-555555555555", seen);
+    const sameBoardLaterInTheGame = seen.replace(/ \d+ \d+$/, " 8 5");
+    expect(sameBoardLaterInTheGame).not.toBe(seen);
+
+    const outcome = await service.beginLearningTransfer(
+      store,
+      {
+        rule_id: rule.rule_id,
+        candidate_fens: [sameBoardLaterInTheGame, FENS[1], FENS[2], FENS[3]],
+      },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer?.fens).not.toContain(sameBoardLaterInTheGame);
+    expect(outcome.transfer?.fens).toEqual([FENS[1], FENS[2], FENS[3]]);
+  });
+
+  it("counts one board once when the candidates repeat it under different counters", async () => {
+    // Deduplication has the same hole as the novelty check: three spellings of one board would
+    // have filled a three-position test with a single decision.
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const board = FENS[1];
+    const outcome = await service.beginLearningTransfer(
+      store,
+      {
+        rule_id: rule.rule_id,
+        candidate_fens: [board, board.replace(/ \d+ \d+$/, " 3 9"), board.replace(/ \d+ \d+$/, " 7 12")],
+      },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer, "three spellings of one board filled a three-position test").toBeNull();
+    expect(outcome.reason).toContain("1");
+  });
+});
+
+describe("the rule's own source position is never offered back", () => {
+  it("excludes it through the decided-positions set, with no second path", async () => {
+    /*
+     * WHY THIS TEST EXISTS SEPARATELY. `beginLearningTransfer` used to add the source position to
+     * the decided set explicitly, on top of `listAtoms()`. That line was dead -- a rule cannot
+     * exist unless its source was committed and revealed, so `listAtoms()` already returns it --
+     * and a positive control proved it by deleting the line and watching nothing fail.
+     *
+     * Removing dead code is only safe if the behaviour it appeared to provide is still asserted,
+     * and it was not: every existing test reached the source through the other path. This is that
+     * assertion, and it is the reason the deletion is defensible.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[0], FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer?.fens, "the position the rule was born from came back as a test").not.toContain(FENS[0]);
+  });
+});
