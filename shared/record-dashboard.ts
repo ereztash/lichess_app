@@ -118,6 +118,17 @@ export type RecordReading = {
    * Three of five. Metacognitive EFFICIENCY (meta-d'/d') needs a binary first-order task and
    * choosing a move from thirty options is not one. Metacognitive KNOWLEDGE -- knowing which
    * kinds of position you are bad at -- is not measured here at all.
+   *
+   * COMPUTED OVER THE WHOLE RECORD, not over the anchor subset, and the difference matters. Both
+   * are WITHIN-person questions: whether YOUR confidence separates YOUR right decisions from your
+   * wrong ones, and whether YOUR effort went where YOUR doubt was. Neither needs a fixed item
+   * bank to be answerable about one player. What the anchor set buys is comparison BETWEEN
+   * players, and `anchor` above is where that lives. Restricting these two to the bank as well
+   * would leave them empty for everybody in exchange for a comparability they do not claim.
+   *
+   * The cost is stated on screen: on a player's own games, "took longer" and "felt less sure" are
+   * both caused by the position being hard, so `control` in particular is confounded until it is
+   * read on shared positions.
    */
   sensitivity: Sensitivity;
   control: Control;
@@ -209,8 +220,8 @@ export function readRecord(
     anchor: calibrationScore(anchored),
     anchorAnswered: anchorIdsIn(decisions),
     stability: splitHalfStability(anchored),
-    sensitivity: metacognitiveSensitivity(anchored),
-    control: effortFollowsDoubt(anchored),
+    sensitivity: metacognitiveSensitivity(decisions),
+    control: effortFollowsDoubt(decisions),
     buckets,
     confidence,
     scored: decisions.length,

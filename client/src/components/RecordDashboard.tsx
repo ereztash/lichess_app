@@ -26,7 +26,7 @@ import type { OneThingKind, OneThingMix } from "@shared/reveal";
  * simply disappears makes the remaining rows look like the complete picture.
  */
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
-  const { overall, buckets, confidence, scored, calibration } = reading;
+  const { overall, buckets, confidence, scored, calibration, sensitivity, control } = reading;
 
   if (scored === 0) {
     return (
@@ -114,6 +114,49 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
       ) : (
         <NotMeasured reason="עוד לא נאמרה אף רמת ביטחון מספיק פעמים כדי לפרק את הפער. בגודל כזה הפירוק הוא רעש, לא ממצא." />
       )}
+
+      {/*
+        * THE TWO FACETS THE GAP CANNOT SEE, and the first one is arguably the most useful number
+        * on this screen.
+        *
+        * SENSITIVITY answers a question a chess player recognises -- can you tell your good moves
+        * from your bad ones -- and calibration structurally cannot answer it. Someone
+        * systematically far too confident can still rank their own decisions perfectly; someone
+        * perfectly calibrated on average can be ranking them at chance. Shifting every stated
+        * confidence by the same amount changes the gap completely and leaves this untouched.
+        *
+        * CONTROL is the half that monitoring alone cannot stand in for: knowing you are unsure
+        * matters because of what you do next. Negative is healthy, and the sign is shown rather
+        * than an absolute value, because the other direction is a finding about how someone
+        * spends their attention.
+        */}
+      <h4 className="dash-title">מה שהפער לא רואה</h4>
+      <dl className="calibration-split">
+        <div className="split-row split-mine">
+          <dt>ההבחנה שלכם</dt>
+          <dd>
+            {sensitivity.readable && sensitivity.auroc2 !== null
+              ? sensitivity.auroc2.toFixed(2)
+              : "—"}
+          </dd>
+        </div>
+        <div className="split-row">
+          <dt>מאמץ שהולך אחרי הספק</dt>
+          <dd>
+            {control.readable && control.rho !== null ? control.rho.toFixed(2) : "—"}
+          </dd>
+        </div>
+      </dl>
+      <p className="dash-note" dir="rtl">
+        {sensitivity.readable && sensitivity.auroc2 !== null
+          ? "ההבחנה היא בין 0 ל־1, ו־0.5 זה מקריות: כמה טוב הביטחון שלכם מפריד בין ההחלטות שיצאו טוב לאלה שלא. היא לא זזה כשאתם בטוחים מדי או מדי מעט — זה בדיוק מה שהפער כבר מודד."
+          : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
+      </p>
+      <p className="dash-note" dir="rtl">
+        המאמץ שלילי כשהשקעתם יותר זמן בהחלטות שהייתם בטוחים בהן פחות. על המשחקים שלכם המספר הזה
+        מעורבב עם קושי העמדה — עמדה קשה גם לוקחת יותר זמן וגם מרגישה פחות בטוחה. רק על הסט המשותף
+        אפשר להשוות אותו למישהו אחר.
+      </p>
 
       {curve.length > 0 && (
         <>

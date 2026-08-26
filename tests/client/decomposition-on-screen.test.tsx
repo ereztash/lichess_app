@@ -135,7 +135,58 @@ describe("the raw gap has stopped being the last word", () => {
      */
     const { container } = render(<RecordDashboard reading={readRecord(readable)} />);
     expect(screen.getByText(/ביטחון־יתר|ביטחון־חסר/)).toBeTruthy();
-    expect(container.querySelector(".calibration-split")).toBeTruthy();
-    expect(container.querySelectorAll(".calibration-split .split-row")).toHaveLength(3);
+    /*
+     * Scoped to the FIRST panel. There are two now -- the Murphy split and the two facets it
+     * cannot see -- and a document-wide row count silently became an assertion about both.
+     */
+    const panels = container.querySelectorAll(".calibration-split");
+    expect(panels.length).toBeGreaterThanOrEqual(1);
+    expect(panels[0].querySelectorAll(".split-row")).toHaveLength(3);
+  });
+});
+
+describe("the two facets the gap cannot see reach the screen", () => {
+  it("shows discrimination and effort, named for what they answer", () => {
+    render(<RecordDashboard reading={readRecord(readable)} />);
+    expect(screen.getByText("ההבחנה שלכם")).toBeTruthy();
+    expect(screen.getByText("מאמץ שהולך אחרי הספק")).toBeTruthy();
+  });
+
+  it("prints discrimination as an area, not a percentage or a squared error", () => {
+    /*
+     * AUROC2 runs 0 to 1 with 0.5 as chance. Two decimal places, and never a percent sign: it is
+     * not a rate, and the same defect that printed a mean squared error as "2%" would print this
+     * as "71%" and invite the reader to compare it with their accuracy.
+     */
+    const { container } = render(<RecordDashboard reading={readRecord(readable)} />);
+    const blocks = container.querySelectorAll(".calibration-split");
+    const facets = blocks[blocks.length - 1];
+    expect(facets.textContent, "an area under a curve is being shown as a percentage").not.toMatch(
+      /%/,
+    );
+    const shown = facets.querySelector("dd")!.textContent!;
+    expect(shown, `"${shown}" is not a two-place area`).toMatch(/^-?\d\.\d{2}$/);
+  });
+
+  it("says the effort number is confounded on the player's own games", () => {
+    /*
+     * The honest caveat, on screen rather than only in the module. On a player's own games "took
+     * longer" and "felt less sure" are both caused by the position being hard, so the coefficient
+     * says as much about the positions as about the player until it is read on shared ones.
+     */
+    render(<RecordDashboard reading={readRecord(readable)} />);
+    expect(screen.getByText(/מעורבב עם קושי העמדה/)).toBeTruthy();
+    expect(screen.getByText(/רק על הסט המשותף/)).toBeTruthy();
+  });
+
+  it("shows a dash rather than a number it cannot compute", () => {
+    /*
+     * A record where every decision went the same way has no false-alarm rate and therefore no
+     * curve. Printing 0.50 there would say "this player has no discrimination" about a record
+     * that cannot say anything.
+     */
+    const oneSided = run(CONFIDENCE_LEVELS, 60, 60, 0);
+    render(<RecordDashboard reading={readRecord(oneSided)} />);
+    expect(screen.getByText(/אין מה להפריד/)).toBeTruthy();
   });
 });
