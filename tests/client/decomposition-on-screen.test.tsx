@@ -184,9 +184,22 @@ describe("the two facets the gap cannot see reach the screen", () => {
      * A record where every decision went the same way has no false-alarm rate and therefore no
      * curve. Printing 0.50 there would say "this player has no discrimination" about a record
      * that cannot say anything.
+     *
+     * The sentence NAMES WHICH SIDE IS MISSING. It used to read "בלי שתיהן אין מה להפריד" for
+     * every silent case, which is true of a record short of both and false of this one -- 60
+     * decisions that all went well are not short of decisions that went well. The advice differs:
+     * this player needs harder positions, not more of the same.
      */
     const oneSided = run(CONFIDENCE_LEVELS, 60, 60, 0);
     render(<RecordDashboard reading={readRecord(oneSided)} />);
-    expect(screen.getByText(/אין מה להפריד/)).toBeTruthy();
+    const note = screen.getByText(/החלטות שלא יצאו טוב/);
+    expect(note).toBeTruthy();
+    expect(note.textContent, "the reader is told to record more of what they already have").toMatch(
+      /עמדות קשות יותר/,
+    );
+    expect(
+      screen.queryByText(/בלי שתיהן אין מה להפריד/),
+      "a one-sided record is described as short of both kinds",
+    ).toBeNull();
   });
 });

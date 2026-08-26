@@ -338,6 +338,52 @@ Telling both of them nothing tells the first to keep going, silently and wrongly
 as cycle 11's refusal reported as a missing database, one panel over. Five causes now, five
 sentences, and the new one says explicitly that the association **was** measured.
 
+## Cycle 18 — the sweep, finished
+
+Ran the pattern from cycles 16–17 as a mechanical audit: every discriminated field the shared code
+computes, checked for whether it reaches a screen and whether it carries its error.
+
+| module | reaches a screen | carries its error |
+| --- | --- | --- |
+| `import-diagnostic` | yes, every member | n/a |
+| `prereg` | yes, every member | n/a |
+| `stability` | yes | **yes, already** — `standardError` and `spread` |
+| `control` | **no** → cycle 17 | **no** → cycle 17 |
+| `sensitivity` | **no** → this cycle | **no** → this cycle |
+| `record-dashboard` buckets | yes | **no** → cycle 16 |
+
+`metacognitiveSensitivity` gated on `accurate.length >= MIN_BUCKET_N && inaccurate.length >=
+MIN_BUCKET_N` and printed `auroc2.toFixed(2)`. The panel puts two things beside that figure: the
+sentence *"0.5 זה מקריות"*, which invites a comparison against chance, and the middle 80% of
+matched people, which invites a placement inside it.
+
+**Measured.** Confidence drawn INDEPENDENTLY of the outcome — true area exactly 0.5:
+
+| per class | shows a figure | ≥0.05 from chance | ≥0.10 from chance |
+| --- | --- | --- | --- |
+| 30 | **100%** | 52% | **18%** |
+| 60 | 100% | 34% | 6% |
+| 150 | 100% | 14% | 0.3% |
+
+Hanley–McNeil rather than a binomial error, because this is a rank statistic over PAIRS whose
+precision is governed by the smaller class: 200 accurate decisions beside 30 inaccurate ones is
+not the precision of 115 and 115. Five reasons now reach the screen, and `too-few-inaccurate` says
+what it actually means — *harder positions, not more of the same*.
+
+**An existing fixture caught a defect in the fix, and was right to.** Hanley–McNeil's variance is
+exactly ZERO at an area of 1, so the first version returned null there and reported perfect
+separation — thirty confident hits against thirty diffident misses, the strongest evidence the
+statistic can produce — as no evidence at all. The area is now clamped one pair off the boundary:
+not a chosen epsilon but the granularity of the statistic itself, since over `n1·n2` pairs the
+area can only move in steps of `1/(n1·n2)`.
+
+**A consequence worth stating rather than burying.** Reusing `SEPARABILITY_K = 3.75` across the
+whole panel means that at the `MIN_BUCKET_N` floor these cells will usually be silent — the
+population comparison needs roughly a 34-point gap, the control coefficient roughly ρ = 0.62, the
+discrimination roughly 0.78. That is the correct answer where the alternative was noise, and the
+panel will look emptier on a short record than it did. It now says why, per cell, in five
+sentences instead of one dash.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -345,9 +391,9 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
-| Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison and the control coefficient now each carry their own error and clear the detector's bar before being asserted. Not higher: positions still are not selected for the trigger, and there is no control condition |
+| Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. Not higher: positions still are not selected for the trigger, and there is no control condition |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9** | 1,188 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9.5** | 1,199 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |

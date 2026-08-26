@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
 import type { Control } from "@shared/control";
+import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
 import { NotMeasured, Proportion, SignedProportion } from "./Value";
@@ -61,6 +62,31 @@ const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
    */
   "inside-noise":
     "נמדד, והקשר יצא קטן ממה שהרשומה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
+};
+
+/**
+ * What the discrimination cell says when it has nothing to report, one sentence per cause.
+ *
+ * `ok` is present so the map stays total over the union: a status that gains a member should
+ * break the build here rather than render `undefined` on the panel.
+ */
+const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = {
+  ok: "",
+  "too-few-accurate": `נדרשות ${MIN_BUCKET_N} החלטות שיצאו טוב כדי שיהיה מה להפריד מהן. ברשומה הזו יש פחות.`,
+  /*
+   * Named separately from its mirror because the advice is different and specific: this player
+   * needs harder positions, not simply more of them. "Record more decisions" is what they would
+   * hear from one shared sentence, and it is the wrong instruction.
+   */
+  "too-few-inaccurate": `נדרשות ${MIN_BUCKET_N} החלטות שלא יצאו טוב, ואין מספיק כאלה — עמדות קשות יותר יעשו את זה, לא עוד עמדות מאותו סוג.`,
+  "too-few-both": `ההבחנה צריכה ${MIN_BUCKET_N} החלטות מכל סוג — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד.`,
+  /*
+   * The one that is NOT a missing measurement. Simulated on records where confidence was drawn
+   * independently of the outcome -- true area exactly 0.5 -- a figure appeared every time and
+   * landed a tenth of the scale from chance on 18% of them.
+   */
+  "inside-noise":
+    "נמדד, והתוצאה יצאה קרובה מדי למקריות מכדי להבדיל אותה ממנה ברשומה בגודל הזה. עוד החלטות יחדדו את זה.",
 };
 
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
@@ -229,10 +255,19 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           )}
         </div>
       </dl>
+      {/*
+        * FIVE CAUSES, FIVE SENTENCES. This was a two-way ternary: the explanation, or one line
+        * saying the record needs enough of both kinds. That line is true of three of the four
+        * silent cases and false of the fourth -- a record with plenty of both, whose area was
+        * computed and came out indistinguishable from chance. Telling that player to record more
+        * of both kinds describes a problem they do not have.
+        */}
       <p className="dash-note" dir="rtl">
         {sensitivity.readable && sensitivity.auroc2 !== null
           ? "ההבחנה היא בין 0 ל־1, ו־0.5 זה מקריות: כמה טוב הביטחון שלכם מפריד בין ההחלטות שיצאו טוב לאלה שלא. היא לא זזה כשאתם בטוחים מדי או מדי מעט — זה בדיוק מה שהפער כבר מודד."
-          : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
+          : sensitivity.reason !== null
+            ? SENSITIVITY_SILENCE[sensitivity.reason]
+            : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
       </p>
       {/*
         * The caveat is longer than the number, deliberately. Two things here are easy to misread
