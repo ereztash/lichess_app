@@ -14,6 +14,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CONFIDENCE_LEVELS, normaliseConfidence } from "@shared/confidence";
+import { PHASE_DIFFICULTY_N, PHASE_VARIANCE_EXPLAINED } from "@shared/phase-difficulty";
 import { MIN_BUCKET_N, type ScoredDecision } from "@shared/detector";
 import { populationBucket } from "@shared/population-baseline";
 import { readRecord } from "@shared/record-dashboard";
@@ -148,5 +149,54 @@ describe("the bucket is shown against the population, not on its own", () => {
     render(<RecordDashboard reading={withoutBaseline} />);
     expect(screen.queryAllByText(/מול כולם/)).toHaveLength(0);
     expect(screen.queryAllByText(/0 נק׳/)).toHaveLength(0);
+  });
+});
+
+describe("the phase split says what it is a property of", () => {
+  /*
+   * MEASURED OUTSIDE THIS REPOSITORY. The baseline these buckets are read against says the
+   * middlegame is 12.6 points harder for everyone and the ENDGAME IS THE EASIEST PHASE by a wide
+   * margin. That is a statement about the accuracy rule. On 4.4 million Lichess puzzle positions
+   * carrying a Glicko rating from real human solve attempts, the phase label explains 0.35% of the
+   * variance in difficulty -- so the split is a property of the rule and not a measure of how hard
+   * the positions were.
+   *
+   * ASSERTED ON THE RENDERED TEXT. The first version of this grepped RecordDashboard.tsx for the
+   * two identifier names, and a control that rewrote the caveat's opening sentence passed it: the
+   * interpolations were still in the source while the sentence no longer said what the figures
+   * meant. A claim that appears on a screen is checked by rendering the screen.
+   */
+  const caveat = () => {
+    const { container } = render(<RecordDashboard reading={readRecord(readable)} />);
+    return [...container.querySelectorAll(".review-caveat")].map((n) => n.textContent ?? "");
+  };
+
+  it("says the split is a property of the measurement rather than of difficulty", () => {
+    const text = caveat().join(" ");
+    expect(text, "the phase caveat is not on screen").toMatch(/תכונה של הכלל/);
+    expect(text).toMatch(/לא מדד לקושי|לא אומרת שהעמדות שלכם היו קשות/);
+  });
+
+  it("carries the evidence, so the claim is attributable rather than asserted", () => {
+    const text = caveat().join(" ");
+    // `* 100` in floating point is 0.35000000000000003, which is not what the screen prints.
+    // Matched the way the component formats it, so the assertion tracks the rendered figure.
+    expect(text).toMatch(new RegExp(`${(PHASE_VARIANCE_EXPLAINED * 100).toFixed(2)}%`));
+    /*
+     * `n=4416361`, unformatted, because the figure is rendered through `Value` -- which attaches
+     * the denominator structurally. GATE-DENOM refused the hand-built percent that was here first
+     * and was right to: R1 exempts exactly one component from formatting a `%`, and it is the one
+     * that cannot render a number without its provenance.
+     */
+    expect(text, "the size of the corpus behind it is not given").toMatch(
+      new RegExp(`n=${PHASE_DIFFICULTY_N}`),
+    );
+  });
+
+  it("does not put a human difficulty rating on screen beside an accuracy", () => {
+    // The two constructs are not commensurable. A Glicko rating rendered next to a percentage
+    // invites exactly the subtraction the module refuses to make.
+    const text = caveat().join(" ");
+    expect(text).not.toMatch(/1355|1390|1475/);
   });
 });

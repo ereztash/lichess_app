@@ -471,16 +471,60 @@ the commit path handles modes, not a tidy-up, and it is the kind of change that 
 correctness work. Left open deliberately, with the reason recorded, rather than closed cosmetically
 and scored as an improvement.
 
+## Cycle 21 — one record, one person, declared and enforced
+
+Single-tenancy was already true and lived in one comment inside the gate. It is now a declaration
+the schema is checked against: no owner column on any record table, no `protectedProcedure` in the
+record router, and the table list verified against the schema so it cannot fall behind a migration.
+
+The point is not the rule but where it puts the decision. A record table that gained a `user_id`
+would make the deployment one that **stores** several people's records while still admitting one —
+and with no owner predicate on any query, the second person's rows would be served to the first.
+Going multi-tenant stays entirely possible; it just has to break that file first.
+
+The vacuity guard caught a defect **in itself**: `mysqlTable\("([a-z_]+)"` misses two tables whose
+name sits on the next line, and `length > 10` passed happily on the other eleven.
+
+## Cycle 22 — the phase split, checked outside this repository
+
+The product's baseline says the **endgame is the easiest phase of the game**. On 4,416,361 Lichess
+puzzle positions carrying a Glicko rating from real human solve attempts, humans find the endgame
+*harder* than the opening — while agreeing that the middlegame is hardest, which is the product's
+headline claim and survives.
+
+And the figure that matters more than either ordering: **η² = 0.0035**. The phase label explains a
+third of one percent of the variance in human difficulty, at three filter levels, with the
+best-measured items giving the smallest value.
+
+The screen now says the split is a property of the accuracy rule rather than a measure of
+difficulty. The ordering comparison stays in `docs/RESEARCH_EVIDENCE.md` with its caveat, because
+it compares two corpora measuring different constructs — and a test asserts the render path never
+pairs them.
+
+**GATE-DENOM went red on the fix**, which is the product's own R1 catching its author: the caveat
+built a percentage by hand. Wrapping it in `<Value>` did not satisfy the gate either — the
+exemption is per file, so the formatting itself had to move into `Value.tsx`. `SmallProportion`
+does not round 0.0035 to `0%`, which would read as *not measured* rather than *measured, and
+nearly nothing*.
+
+**Maia was the first choice and is unreachable** — 403 through this environment's proxy. Per-item
+difficulty stays unmeasured and is recorded as unmeasured, rather than replaced with an
+engine-derived proxy that would assert sharpness as difficulty.
+
+**The generator was nine minutes of solid CPU before it was twenty seconds.** Four `indexOf` scans
+per row over six million rows, and an `sd` recomputing its own mean per element. A generator
+nobody can bear to re-run is a generator whose output stops being checkable.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
 
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
-| Security, privacy, isolation | 2 | **8** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
-| Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. Not higher: positions still are not selected for the trigger, and there is no control condition |
+| Security, privacy, isolation | 2 | **8.5** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more |
+| Scientific / construct validity | 4 | **8** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. Not higher: positions still are not selected for the trigger, there is no control condition, and per-item difficulty is unmeasured because Maia is unreachable |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9.5** | 1,225 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9.5** | 1,244 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |

@@ -10,11 +10,12 @@ import {
   YAxis,
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
+import { PHASE_DIFFICULTY_N, PHASE_VARIANCE_EXPLAINED } from "@shared/phase-difficulty";
 import type { Control } from "@shared/control";
 import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
-import { NotMeasured, Proportion, SignedProportion } from "./Value";
+import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
 
 /**
@@ -435,6 +436,40 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
 
       <MixBlock mix={reading.mix} />
 
+      {/*
+        * WHAT THE PHASE SPLIT IS AND IS NOT, checked against a corpus outside this repository.
+        *
+        * The baseline these buckets are read against says the middlegame is 12.6 points harder for
+        * everyone and the ENDGAME IS THE EASIEST PHASE by a wide margin. That is a statement about
+        * the accuracy rule. The Lichess puzzle database carries a Glicko rating per position from
+        * real human solve attempts, and on 4.4 million of them the phase label explains 0.35% of
+        * the variance in difficulty -- checked at three filter levels, with the best-measured
+        * items giving the smallest value, so it is not an effect hidden by noise.
+        *
+        * The magnitudes are NOT compared on screen and must not be: a puzzle rating is finding a
+        * unique winning move in a selected tactical position, and the product's rate is not losing
+        * 30 centipawns on an ordinary move. What is said here is made entirely inside the puzzle
+        * corpus -- how little the phase label explains -- which needs no bridge between the two.
+        */}
+      <p className="review-caveat">
+        {/*
+          * THROUGH `Value`, NOT A HAND-BUILT PERCENT, and GATE-DENOM is what decided that.
+          *
+          * The first version interpolated `(PHASE_VARIANCE_EXPLAINED * 100).toFixed(2)}%` directly
+          * and the gate went red on it: R1 forbids a percentage without its denominator, and the
+          * scanner exempts exactly one component -- the one that cannot render a number without
+          * its provenance. Widening the exemption for this line would have been answering a gate
+          * by moving it. The exemption is per FILE, so wrapping the same hand-built percent in
+          * `<Value>` did not satisfy it either -- the formatting itself has to live there.
+          * `SmallProportion` does, and it does not round 0.0035 to "0%", which would read as
+          * "not measured" rather than "measured, and nearly nothing".
+          */}
+        החלוקה לשלבים היא תכונה של הכלל שמודד דיוק, לא מדד לקושי. על עמדות שדורגו לפי כמה בני אדם
+        באמת פתרו אותן, השלב מסביר{" "}
+        <SmallProportion value={PHASE_VARIANCE_EXPLAINED} n={PHASE_DIFFICULTY_N} />{" "}
+        מהשונות בקושי — כמעט כלום. ההשוואה לאוכלוסייה כאן מתקנת את הכלל; היא לא אומרת שהעמדות שלכם
+        היו קשות יותר.
+      </p>
       <p className="review-caveat">
         פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
         לא אומר דבר על הדירוג שלך ולא על שיפור.

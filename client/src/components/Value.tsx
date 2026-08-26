@@ -138,6 +138,47 @@ export function Proportion({ value, n, label }: { value: number; n: number; labe
 }
 
 /**
+ * A 0..1 rate too small for `Proportion` to render honestly.
+ *
+ * `Proportion` rounds to whole percent, and 0.0035 rounds to "0%". A zero on this panel reads as
+ * NOT MEASURED, which is the opposite of what a small figure here means: measured, on millions of
+ * observations, and nearly nothing. That distinction matters most for exactly the numbers that are
+ * small ON PURPOSE -- the share of variance a phase label explains in human difficulty is 0.35%,
+ * and how small it is IS the finding.
+ *
+ * It lives here rather than at the call site for the same reason `Score` does: GATE-DENOM exempts
+ * this file alone from formatting a `%`, because this file cannot render a number without its
+ * provenance. Formatting one anywhere else and passing it in would be honest by adjacency, which
+ * is not a property anything can enforce.
+ */
+export function SmallProportion({
+  value,
+  n,
+  label,
+  places = 2,
+}: {
+  value: number;
+  n: number;
+  label?: string;
+  places?: number;
+}) {
+  if (n <= 0) {
+    return (
+      <span className="value-triple value-empty" data-provenance="sample">
+        {label && <span className="value-label">{label}</span>}
+        <span className="value-number">—</span>
+        <span className="value-provenance">אין נתונים</span>
+      </span>
+    );
+  }
+  return (
+    <Value label={label} provenance={{ kind: "sample", n }}>
+      {(value * 100).toFixed(places)}%
+    </Value>
+  );
+}
+
+/**
  * A 0-100 score that is already a percentage, with the count it was averaged over.
  *
  * Distinct from `Proportion`, which takes a 0..1 rate. This exists because GameReview rendered

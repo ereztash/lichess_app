@@ -60,24 +60,36 @@ async function main() {
     input: createReadStream(source),
     crlfDelay: Infinity,
   });
-  let header: string[] | null = null;
+  /*
+   * Column positions resolved ONCE. The first version looked each name up per field per row --
+   * four `indexOf` scans over six million rows -- and took nine minutes of solid CPU. A generator
+   * nobody can bear to re-run is a generator whose output stops being checkable.
+   */
+  let columns: { rating: number; deviation: number; plays: number; themes: number } | null = null;
   for await (const line of lines) {
-    if (!header) {
-      header = line.split(",");
+    if (!columns) {
+      const header = line.split(",");
+      columns = {
+        rating: header.indexOf("Rating"),
+        deviation: header.indexOf("RatingDeviation"),
+        plays: header.indexOf("NbPlays"),
+        themes: header.indexOf("Themes"),
+      };
+      for (const [name, index] of Object.entries(columns))
+        if (index < 0) throw new Error(`the puzzle csv has no ${name} column`);
       continue;
     }
     read += 1;
     const cells = line.split(",");
-    const at = (name: string) => cells[header!.indexOf(name)];
-    const rating = Number(at("Rating"));
-    const deviation = Number(at("RatingDeviation"));
-    const plays = Number(at("NbPlays"));
+    const rating = Number(cells[columns.rating]);
+    const deviation = Number(cells[columns.deviation]);
+    const plays = Number(cells[columns.plays]);
     if (!Number.isFinite(rating) || deviation > MAX_RATING_DEVIATION || plays < MIN_PLAYS) continue;
     /*
      * EXACTLY ONE PHASE TAG. Lichess tags a handful of positions with two, and a position counted
      * in both buckets would make the between-group term partly a comparison of a set with itself.
      */
-    const themes = (at("Themes") ?? "").split(" ");
+    const themes = (cells[columns.themes] ?? "").split(" ");
     const tagged = PHASES.filter((phase) => themes.includes(phase));
     if (tagged.length !== 1) continue;
     buckets.get(tagged[0])!.ratings.push(rating);
@@ -96,7 +108,11 @@ async function main() {
     const s = [...xs].sort((a, b) => a - b);
     return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
   };
-  const sd = (xs: number[]) => Math.sqrt(mean(xs.map((x) => (x - mean(xs)) ** 2)));
+  // `mean` hoisted out of the map: recomputing it per element is O(n^2) on a two-million-item group.
+  const sd = (xs: number[]) => {
+    const m = mean(xs);
+    return Math.sqrt(mean(xs.map((x) => (x - m) ** 2)));
+  };
 
   const rows = groups
     .map((b) => ({
