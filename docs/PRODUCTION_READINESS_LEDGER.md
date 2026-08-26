@@ -835,6 +835,43 @@ evidence about how the two programs are combined, not a finding that the combina
 and the notices file says so in those words. A first draft of it claimed the budget check "asserts
 that separation as a build constraint", which is not what that script does.
 
+## Cycle 33 — the reported finding was eight times the real one
+
+A WCAG 2.2 AA assessment reported **"26+ `dir="ltr"` islands with no `lang`"** as a Level AA
+failure of SC 3.1.2. Thirty-five islands exist and thirty-two carried no `lang`, so the count was
+right. Read one at a time, **almost all of them are exempt, and adding `lang` would have been
+wrong**:
+
+| island | content | why SC 3.1.2 exempts it |
+| --- | --- | --- |
+| `pv-line`, `reveal-pv`, `moves-rail`, `moment-move`, the candidate list | SAN — `Nf3`, `exd5` | technical terms |
+| three `chart-frame`s | recharts ticks, which are numbers | indeterminate |
+| `avgCPL`, `moment-cpl`, `not-found-code`, `"7 / 9"`, `<time>` | numerals | indeterminate |
+| `import-players`, `provenance.username` | Lichess handles | proper names |
+| `OWNER_OPEN_ID`, the blocking list, the PGN box | identifiers and notation | technical terms |
+| `<pre>{stack}</pre>`, `<code>{error.detail}</code>` | a stack trace, a server detail | technical, and the element says so |
+| `timeline-controls`, `board-grid`, `confidence-row` | layout, Hebrew labels | no foreign text at all |
+
+**Four had actual English words**, and only those were changed: `placeholder="lichess username"`,
+`placeholder="username"`, and the Lichess speed name — `bullet`, `blitz`, `rapid`, `classical` —
+rendered raw from the API in two components. A scan of every user-visible Latin-script attribute in
+`client/src` found exactly two, which is the whole population; the codebase was already disciplined
+about this.
+
+`lang="en"` on `Nf3` is a **false statement about the content**. Declaring a language for strings
+that have none is the accessibility form of the thing this product exists not to do, so the
+exemptions are asserted as a test of their own: if a later sweep decides every `dir="ltr"` needs a
+`lang`, that test goes red on purpose.
+
+SC 3.1.1 — Language of Page, and the Level **A** one — was checked first and already passes:
+`<html lang="he" dir="rtl">`.
+
+The durable half is a source scan, not the four edits. It walks every `.tsx` under `client/src` and
+fails on any Latin-script placeholder whose element declares no language, so the next one anybody
+adds is caught wherever it is added. It carries its own denominator — a second assertion pins the
+two placeholders it finds, because a scan whose regex has quietly stopped matching passes just as
+green as one that found nothing wrong.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -846,7 +883,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Functional correctness | 6 | **9** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. Not 9.5: `finishDrill` has the same two-write shape and is open |
 | Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
-| UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
+| UX, accessibility, recovery | 6 | **9.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five. SC 3.1.2 read island by island rather than swept: four English strings declared, thirty-one exemptions asserted so a later sweep cannot quietly claim a language for chess notation |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
 | Operations / deployability | 4 | **8.5** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values; incoherent configurations named at startup, by variable and never by value. Not higher: no incident runbook, and the record loop itself is still exercised only locally. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it. Cycle 32 closed the licence obligations the build had been ignoring: a GPL-3.0 engine and nine OFL fonts now convey their licence texts, checked by GATE-NOTICE against the tree |
 | Documentation / DX | 7 | **8.5** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database, and `THIRD_PARTY_NOTICES.md` — every component the build conveys, at the version it conveys, with the licence text it serves and the source it came from |

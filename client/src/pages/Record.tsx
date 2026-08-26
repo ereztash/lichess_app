@@ -122,6 +122,7 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         <input
           id="first-decision-username"
           dir="ltr"
+          lang="en"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           onKeyDown={(event) => {

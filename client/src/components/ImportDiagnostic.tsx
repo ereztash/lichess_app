@@ -221,7 +221,11 @@ export function ImportDiagnosticPanel({
         */}
       {diagnostic.excludedForSpeed > 0 && diagnostic.timeBucketSpeed && (
         <p className="pv-note">
-          דליי הזמן נקראו רק על משחקי <span dir="ltr">{diagnostic.timeBucketSpeed}</span> שלכם.{" "}
+          דליי הזמן נקראו רק על משחקי{" "}
+          <span dir="ltr" lang="en">
+            {diagnostic.timeBucketSpeed}
+          </span>{" "}
+          שלכם.{" "}
           {diagnostic.excludedForSpeed} החלטות מסוגי משחק אחרים לא נכללו בהם — 45 שניות בבליץ ו-45
           שניות בקלאסי אינם אותה החלטה. דליי השלב והעמדה נקראו על כל המשחקים.
         </p>
