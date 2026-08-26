@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -72,6 +72,14 @@ describe("player-authored learning rule composer", () => {
       screen.getByLabelText(/איזו תוצאה תפריך/),
       "פחות משתי הצלחות בשלוש עמדות חדשות",
     );
+    /*
+     * Both choices made explicitly. This test used to save without touching either, and passed --
+     * because the form pre-selected "סריקת איומים" and "לא" and required neither. It was
+     * therefore an assertion that the DEFAULTS round-tripped, wearing the name of an assertion
+     * that the player's own language did.
+     */
+    await user.click(screen.getByRole("button", { name: "סריקת איומים" }));
+    await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
     await user.click(save);
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
@@ -81,5 +89,80 @@ describe("player-authored learning rule composer", () => {
       grade: "hypothesis",
       action_rule: "אסרוק שחים, הכאות ואיומים לפני מסע שקט",
     });
+  });
+});
+
+describe("the record says the player authored it, so the player has to have answered", () => {
+  /*
+   * `authored_by: "player"` is written on every rule and is the product's claim about where the
+   * content came from. Two of the fields were PRE-SELECTED and neither was required to save:
+   * `mechanism_class` opened on "threat_scan", and "would you choose it again" opened on "לא" with
+   * `aria-pressed` already set. A player could save without touching either, and the record would
+   * carry two answers they never gave under a field asserting they did.
+   *
+   * The mechanism is the more consequential of the two: it is the rule's own account of WHAT WENT
+   * WRONG, so defaulting it means every untouched rule in the record blames threat scanning.
+   */
+
+  /** Fill every free-text field, leaving both choices untouched. */
+  async function fillText() {
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/מה אתם מבינים עכשיו/), "פספסתי שח כפוי");
+    await user.type(screen.getByLabelText(/מתי הכלל אמור/), "כאשר מבנה הרגלים משתנה");
+    await user.type(screen.getByLabelText(/איזה סימן/), "נפתח קו למלכה");
+    await user.type(screen.getByLabelText(/מה תעשו/), "אסרוק שחים לפני מסע שקט");
+    await user.type(screen.getByLabelText(/איזו תוצאה אתם מצפים/), "פחות החמצות");
+    await user.type(screen.getByLabelText(/איזו תוצאה תפריך/), "פחות משתי הצלחות");
+    return user;
+  }
+  const save = () => screen.getByRole("button", { name: /שמירת כלל/ });
+  const pressedIn = (name: RegExp) =>
+    [...screen.getByRole("group", { name }).querySelectorAll("button")]
+      .filter((button) => button.getAttribute("aria-pressed") === "true")
+      .map((button) => button.textContent);
+
+  it("starts with no mechanism selected", () => {
+    renderComposer();
+    expect(pressedIn(/מנגנון/), "a mechanism was chosen for the player").toEqual([]);
+  });
+
+  it("starts with neither answer pressed on 'would you choose it again'", () => {
+    // `aria-pressed={!wouldChooseAgain}` rendered "לא" as chosen from the first paint, so a screen
+    // reader announced an answer the player had not given.
+    renderComposer();
+    expect(pressedIn(/בוחרים שוב/)).toEqual([]);
+  });
+
+  it("will not save until both have been chosen explicitly", async () => {
+    renderComposer();
+    const user = await fillText();
+    expect(save(), "saveable with two unanswered questions").toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "חישוב" }));
+    expect(save(), "saveable with one unanswered question").toBeDisabled();
+
+    await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
+    expect(save()).not.toBeDisabled();
+  });
+
+  it("stores what the player chose, not what the form opened on", async () => {
+    /*
+     * The control that matters. A form that merely LOOKS unselected while still posting a default
+     * would pass both tests above and write exactly the same false record.
+     *
+     * "חישוב" and "כן" are chosen because they are the OPPOSITE of the old defaults on both
+     * questions -- picking values that happened to match them would prove nothing.
+     */
+    const onSaved = renderComposer();
+    const user = await fillText();
+    await user.click(screen.getByRole("button", { name: "חישוב" }));
+    await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("כן"));
+    await user.click(save());
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    const [rule] = await new LocalRecordStore().listLearningRules();
+    expect(rule.mechanism_class).toBe("calculation");
+    const atom = await new LocalRecordStore().getAtom(ID);
+    expect(atom?.feedback?.would_choose_again).toBe(true);
   });
 });

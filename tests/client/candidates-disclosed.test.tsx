@@ -13,6 +13,10 @@
  * the denominator of the very measurement (`oneThingMix`) built to find out whether the finding
  * fires. So most of this file asserts the ABSENCE of things: no count, no target, no praise.
  */
+import { calibrationScore } from "@shared/calibration-score";
+import { splitHalfStability } from "@shared/stability";
+import { metacognitiveSensitivity } from "@shared/sensitivity";
+import { effortFollowsDoubt } from "@shared/control";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
@@ -133,14 +137,35 @@ const emptyMix = {
   eligible: 0,
 };
 
+/*
+ * NO `as RecordReading` HERE ANY MORE, and the cast it replaces had been hiding two things.
+ *
+ * It hid a missing field: when the reading gained the Murphy decomposition this fixture kept
+ * compiling and the component crashed at render instead, with a TypeError several frames deep
+ * rather than an error on the line that was wrong.
+ *
+ * And it hid a shape that was never right: `overall` was written as `{stated, observed, gap, n}`
+ * when `CalibrationSummary` has `meanConfidence` and `accuracyRate`. The cast silenced that from
+ * the day it was written, so the component under test was being handed a summary whose two main
+ * figures were `undefined`.
+ */
 const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
-  overall: { stated: 0.6, observed: 0.5, gap: 0.1, n: 40 },
+  overall: { n: 40, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
+  calibration: calibrationScore([]),
+  anchor: calibrationScore([]),
+  anchorAnswered: [],
+  stability: splitHalfStability([]),
+  sensitivity: metacognitiveSensitivity([]),
+  // No band beside an unreadable number: the literature's median is a persuasive thing to
+  // misread as your own result.
+  sensitivityReference: null,
+  control: effortFollowsDoubt([]),
   buckets: [],
   confidence: [],
   scored: 40,
   mix: emptyMix,
   ...over,
-}) as RecordReading;
+});
 
 describe("the mix is rendered, not computed and dropped", () => {
   it("reaches the screen once there are enough revealed decisions", () => {

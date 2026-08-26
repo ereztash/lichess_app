@@ -29,9 +29,42 @@
  * effect were the times it was wrong**, and it got quieter about the truth the longer you played.
  */
 import type { DecisionAtom } from "./decision-atom.js";
+import { winProbabilityLoss } from "./win-probability.js";
 
-/** A decision counts as accurate when it cost no more than this. Engine noise, not skill. */
+/**
+ * A decision counts as accurate when it cost no more than this. Engine noise, not skill.
+ *
+ * NO LONGER THE OUTCOME RULE ITSELF -- see ACCURATE_WIN_PROBABILITY_LOSS below, which is derived
+ * from this and is what a decision is actually judged against. Thirty centipawns is not one event:
+ * it costs 2.76 points of winning chances at a level position and 0.28 at +10.00, so calibration
+ * against it was calibration against a moving target. This constant survives as the anchor that
+ * fixes the new threshold at the one evaluation where it was defensible.
+ */
 export const ACCURATE_CP_LOSS = 30;
+
+/**
+ * What a decision is judged against: the share of the player's winning chances it gave away.
+ *
+ * DERIVED from ACCURATE_CP_LOSS rather than chosen, so the continuity between the old rule and
+ * this one is a fact of the code and not a coincidence the next edit could break in silence.
+ *
+ * ANCHORED AT THE WORST CASE, NOT AT A LEVEL POSITION, and a test is the reason. The win
+ * probability a fixed centipawn loss costs is greatest when the interval it spans straddles zero
+ * symmetrically -- at an evaluation of half the loss, not at zero:
+ *
+ *     position stood at   -30cp    0cp   +15cp   +30cp   +120cp
+ *     30cp costs          2.742  2.759   2.761   2.759    2.660  points
+ *
+ * Anchoring at zero would therefore make the new rule very slightly STRICTER than the old one
+ * across a narrow band around +15cp, and a decision that used to be accurate would silently stop
+ * being so. Anchored at the peak it costs 0.08% more tolerance and buys an invariant worth far
+ * more than that: no decision the old rule called accurate is called inaccurate by this one.
+ * The change is a pure relaxation, and only where the old rule was over-strict.
+ */
+export const ACCURATE_WIN_PROBABILITY_LOSS = winProbabilityLoss(
+  ACCURATE_CP_LOSS / 2,
+  ACCURATE_CP_LOSS,
+);
 /**
  * The smallest bucket, and the smallest remainder, this detector will read at all.
  *
@@ -156,6 +189,15 @@ export const MAX_SHUFFLED_FALSE_POSITIVE_RATE = 0.02;
 
 export interface ScoredDecision extends BucketableDecision {
   decision_id: string;
+  /**
+   * The position the decision was taken on.
+   *
+   * Carried so anchor-set membership can be DERIVED rather than stored: a flag written at commit
+   * time would go stale the moment the bank changed, and would need a column and a migration to
+   * say something the position already says. The detector itself never reads it -- it is here for
+   * `readRecord` to split the record on.
+   */
+  fen: string;
   /** Stated confidence mapped to 0..1, so it is comparable with an accuracy rate. */
   confidence: number;
   accurate: boolean;

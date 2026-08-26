@@ -36,6 +36,8 @@ import { Loader2 } from "lucide-react";
 import { useImportReading, useRecordReading } from "@/lib/record-api";
 import { fetchUserGames } from "@/lib/lichess-public";
 import { pickFirstDecision } from "@/lib/first-decision";
+import { ANCHOR_POSITIONS } from "@shared/anchor-set";
+import { nextAnchor } from "@/lib/anchor-run";
 import { writePosition } from "@/lib/session-position";
 import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
 
@@ -155,6 +157,67 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
   );
 }
 
+
+/**
+ * The way into the shared set.
+ *
+ * Inside the first layer rather than beside it, and that placement is a claim: an anchor decision
+ * is an ordinary decision with a stated confidence, recorded exactly like any other. What makes
+ * it different is only that everyone answers the same position, which is what lets the reading be
+ * compared to somebody. A third walled layer would say it was a different kind of measurement.
+ */
+function AnchorRunControl({ answered }: { answered: readonly string[] }) {
+  const [, navigate] = useLocation();
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function start() {
+    setBusy(true);
+    const next = await nextAnchor(answered);
+    if (!next) {
+      setDone(true);
+      setBusy(false);
+      return;
+    }
+    /*
+     * The same handoff a first decision uses. The board restores from this store on mount, so an
+     * anchor position arrives by the path a returning player's own game already takes.
+     */
+    writePosition({
+      sans: [...next.sans],
+      ply: next.ply,
+      source: "finished",
+      orientation: next.sans.length % 2 === 0 ? "w" : "b",
+      opponent: null,
+      gameId: `anchor-${next.id}`,
+    });
+    navigate("/play");
+  }
+
+  if (done) {
+    return (
+      <p className="anchor-run-note">
+        עניתם על כל {ANCHOR_POSITIONS.length} העמדות בסט המשותף. הקריאה למעלה היא כל מה שיש בו.
+      </p>
+    );
+  }
+
+  return (
+    <div className="anchor-run">
+      <div className="anchor-run-text">
+        <b>הסט המשותף</b>
+        <span>
+          {answered.length} מתוך {ANCHOR_POSITIONS.length} עמדות. כולם עונים על אותן עמדות, ולכן
+          רק הקריאה הזאת ניתנת להשוואה למישהו אחר — בשאר הרשומה כל אחד פגש עמדות אחרות.
+        </span>
+      </div>
+      <button type="button" className="primary-control" onClick={start} disabled={busy}>
+        {busy ? "טוען…" : "העמדה הבאה"}
+      </button>
+    </div>
+  );
+}
+
 export default function Record() {
   const [, navigate] = useLocation();
   const reading = useRecordReading();
@@ -190,9 +253,12 @@ export default function Record() {
             </p>
           </div>
           {reading.data && (
-            <Suspense fallback={null}>
-              <RecordDashboard reading={reading.data} />
-            </Suspense>
+            <>
+              <AnchorRunControl answered={reading.data.anchorAnswered} />
+              <Suspense fallback={null}>
+                <RecordDashboard reading={reading.data} />
+              </Suspense>
+            </>
           )}
         </section>
       )}

@@ -12,8 +12,12 @@ import {
 } from "../../shared/detector";
 import { makeNoise } from "../fixtures/shuffle-scenario";
 
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 const decision = (over: Partial<ScoredDecision> = {}): ScoredDecision => ({
   decision_id: "d",
+  fen: NON_ANCHOR_FEN,
   confidence: 0.5,
   accurate: true,
   phase: "middlegame",

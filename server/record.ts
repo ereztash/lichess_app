@@ -10,7 +10,7 @@
  * stored must never look like one that was.
  */
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import {
   claims,
   decisionFeedback,
@@ -19,6 +19,7 @@ import {
   drillResults,
   drills,
   learningRules,
+  learningTransferObservations,
   learningTransferResults,
   learningTransfers,
   importReadings,
@@ -34,6 +35,7 @@ import type { StoredImportDiagnostic } from "../shared/import-diagnostic.js";
 import type {
   LearningRule,
   LearningTransfer,
+  LearningTransferObservation,
   LearningTransferResult,
 } from "../shared/learning-record.js";
 import { getDb } from "./db.js";
@@ -103,10 +105,94 @@ function toAtom(
   };
 }
 
+/**
+ * One row of `learning_transfers`, as the shared type.
+ *
+ * Extracted because two queries now read this table and a second hand-written mapping is a second
+ * place for a field to be dropped -- which is how `refutation_condition` would quietly become
+ * undefined on the resume path while the original path stayed correct.
+ */
+function toLearningTransfer(row: {
+  transferId: string;
+  ruleId: string;
+  fens: string[];
+  ruleSnapshot: LearningTransfer["rule_snapshot"];
+  refutationCondition: string;
+  minimumSuccesses: number;
+  retrievalStep: number;
+  scheduledFor: Date;
+  startedAt: Date;
+}): LearningTransfer {
+  return {
+    transfer_id: row.transferId,
+    rule_id: row.ruleId,
+    fens: row.fens,
+    rule_snapshot: row.ruleSnapshot,
+    refutation_condition: row.refutationCondition,
+    minimum_successes: row.minimumSuccesses,
+    retrieval_step: row.retrievalStep,
+    scheduled_for: row.scheduledFor.toISOString(),
+    started_at: row.startedAt.toISOString(),
+  };
+}
+
+/**
+ * How long the availability probe is allowed to take before it answers "no".
+ *
+ * A refused connection is immediate; a firewalled host is not, and mysql2 would wait out its own
+ * connectTimeout. The serverless function has 30 seconds in total and a monitor needs an answer,
+ * so an unreachable host must produce one rather than a stall. Answering "no" on timeout is the
+ * honest direction: what the caller asked is whether it can store a decision HERE, NOW.
+ */
+export const AVAILABILITY_PROBE_MS = 3_000;
+
+/**
+ * Resolve `work`, or reject once `ms` have passed -- whichever happens first.
+ *
+ * Exported and separate because it is the only part of the probe that a test can actually
+ * measure. A control that lengthened the deadline to ten minutes SURVIVED the first version of
+ * this file: every unreachable address available in the test environment refuses the connection
+ * in under 25ms, so the race never needed the timer and the bound was never exercised. An
+ * assertion satisfied by the fixture rather than by the code is not an assertion.
+ */
+export function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    work,
+    new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error("timed out")), ms);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
+
 export class DrizzleRecordStore implements RecordStore {
-  /** There is no database configured unless DATABASE_URL is set and the driver connected. */
+  /**
+   * Whether the database can actually be reached, asked by reaching it.
+   *
+   * THIS USED TO BE `Boolean(await getDb())`, WHICH MEASURED NOTHING. `drizzle(url)` builds a
+   * mysql2 POOL, and a pool does not connect -- the connection happens on first use. Pointed at a
+   * closed port it returned **true in 4ms**, and the first real query then threw. It was a test
+   * of whether a string was set in the environment wearing the name of a test of whether the
+   * database was up.
+   *
+   * `useRecordMode` exists for exactly one reason, in its own words: "The server is used only
+   * when it says it can store." Against an unreachable database the server said it could, so the
+   * client abandoned a working browser-local record and every commit failed -- the failure the
+   * local path was built to prevent, delivered by the check meant to prevent it.
+   *
+   * Not cached. A cached "yes" during an outage is a stale claim of exactly the kind this
+   * replaces, and the client already holds the answer for 60 seconds.
+   */
   async isAvailable(): Promise<boolean> {
-    return Boolean(await getDb());
+    const db = await getDb();
+    if (!db) return false;
+    try {
+      await withDeadline(db.execute(sql`select 1`), AVAILABILITY_PROBE_MS);
+      return true;
+    } catch {
+      // Every failure means the same thing to the caller: do not send a decision here.
+      return false;
+    }
   }
 
   private async db() {
@@ -401,18 +487,69 @@ export class DrizzleRecordStore implements RecordStore {
       .from(learningTransfers)
       .where(eq(learningTransfers.transferId, transferId))
       .limit(1);
-    if (!row) return null;
-    return {
-      transfer_id: row.transferId,
-      rule_id: row.ruleId,
-      fens: row.fens,
-      rule_snapshot: row.ruleSnapshot,
-      refutation_condition: row.refutationCondition,
-      minimum_successes: row.minimumSuccesses,
-      retrieval_step: row.retrievalStep,
-      scheduled_for: row.scheduledFor.toISOString(),
-      started_at: row.startedAt.toISOString(),
-    };
+    return row ? toLearningTransfer(row) : null;
+  }
+
+  /**
+   * Preregistered and not yet reported, oldest first.
+   *
+   * A LEFT JOIN with the result table rather than two queries filtered in memory: "has this
+   * transfer reported" is the join, and expressing it as one makes it impossible for the two
+   * halves to be read at different moments.
+   */
+  async getOpenLearningTransfer(ruleId: string): Promise<LearningTransfer | null> {
+    const db = await this.db();
+    const [row] = await db
+      .select({ transfer: learningTransfers })
+      .from(learningTransfers)
+      .leftJoin(
+        learningTransferResults,
+        eq(learningTransferResults.transferId, learningTransfers.transferId),
+      )
+      .where(
+        and(eq(learningTransfers.ruleId, ruleId), isNull(learningTransferResults.transferId)),
+      )
+      .orderBy(learningTransfers.startedAt)
+      .limit(1);
+    return row ? toLearningTransfer(row.transfer) : null;
+  }
+
+  /**
+   * One position's observation, written when it is made.
+   *
+   * The composite primary key on (transfer_id, position) is what makes this append-only, so a
+   * second write for the same slot is refused by the database rather than by a check somebody has
+   * to remember to add.
+   */
+  async saveLearningTransferObservation(
+    transferId: string,
+    position: number,
+    observation: LearningTransferObservation,
+  ): Promise<void> {
+    const db = await this.db();
+    await db.insert(learningTransferObservations).values({
+      transferId,
+      position,
+      decisionId: observation.decision_id,
+      recalledRule: observation.recalled_rule,
+      appliedRule: observation.applied_rule,
+    });
+  }
+
+  async listLearningTransferObservations(
+    transferId: string,
+  ): Promise<LearningTransferObservation[]> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(learningTransferObservations)
+      .where(eq(learningTransferObservations.transferId, transferId))
+      .orderBy(learningTransferObservations.position);
+    return rows.map((row) => ({
+      decision_id: row.decisionId,
+      recalled_rule: row.recalledRule,
+      applied_rule: row.appliedRule,
+    }));
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
@@ -620,6 +757,8 @@ export class MemoryRecordStore implements RecordStore {
   private readonly learningRuleRows = new Map<string, LearningRule>();
   private readonly learningTransferRows = new Map<string, LearningTransfer>();
   private readonly learningTransferResultRows: LearningTransferResult[] = [];
+  /** Keyed `transferId#position`, mirroring the composite primary key in the database. */
+  private readonly learningObservationRows = new Map<string, LearningTransferObservation>();
 
   async saveClaim(claim: Claim): Promise<void> {
     this.claimRows.set(claim.claim_id, { ...claim });
@@ -679,6 +818,35 @@ export class MemoryRecordStore implements RecordStore {
   async getLearningTransfer(transferId: string): Promise<LearningTransfer | null> {
     const transfer = this.learningTransferRows.get(transferId);
     return transfer ? structuredClone(transfer) : null;
+  }
+
+  async getOpenLearningTransfer(ruleId: string): Promise<LearningTransfer | null> {
+    const reported = new Set(this.learningTransferResultRows.map((row) => row.transfer_id));
+    const open = [...this.learningTransferRows.values()]
+      .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
+      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+    return open[0] ? structuredClone(open[0]) : null;
+  }
+
+  async saveLearningTransferObservation(
+    transferId: string,
+    position: number,
+    observation: LearningTransferObservation,
+  ): Promise<void> {
+    const key = `${transferId}#${position}`;
+    if (this.learningObservationRows.has(key)) {
+      throw new Error("append-only: transfer observation already recorded for that position");
+    }
+    this.learningObservationRows.set(key, structuredClone(observation));
+  }
+
+  async listLearningTransferObservations(
+    transferId: string,
+  ): Promise<LearningTransferObservation[]> {
+    return [...this.learningObservationRows.entries()]
+      .filter(([key]) => key.startsWith(`${transferId}#`))
+      .sort((a, b) => Number(a[0].split("#")[1]) - Number(b[0].split("#")[1]))
+      .map(([, observation]) => structuredClone(observation));
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {

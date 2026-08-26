@@ -11,7 +11,12 @@ import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
 import type { PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
-import type { LearningRule, LearningTransfer, LearningTransferResult } from "./learning-record.js";
+import type {
+  LearningRule,
+  LearningTransfer,
+  LearningTransferObservation,
+  LearningTransferResult,
+} from "./learning-record.js";
 import type { Phase } from "./phase.js";
 
 export interface CommitDecisionInput {
@@ -65,6 +70,38 @@ export interface RecordStore {
   listLearningRules(): Promise<LearningRule[]>;
   saveLearningTransfer(transfer: LearningTransfer): Promise<void>;
   getLearningTransfer(transferId: string): Promise<LearningTransfer | null>;
+  /**
+   * The transfer already in flight for this rule -- preregistered, not yet reported -- or null.
+   *
+   * WITHOUT THIS THERE IS NO PREREGISTRATION. A started transfer lived on the server while the
+   * fact that one was running lived only in React state, so a reload orphaned it and nothing
+   * stopped a second one being registered over the same rule. A player could look at three
+   * positions, dislike them, refresh, and draw three more -- choosing their own evidence, under a
+   * stamp that says they did not.
+   *
+   * Returns the transfer rather than a boolean because the caller has to be able to RESUME it.
+   * Losing a tab is not misconduct, and a rule whose test can be started but never finished is a
+   * rule that can only be refuted by accident.
+   */
+  getOpenLearningTransfer(ruleId: string): Promise<LearningTransfer | null>;
+  /**
+   * Record one position's observation, at the moment it is made.
+   *
+   * APPEND-ONLY PER POSITION. These used to be held in React state for the whole run and reach the
+   * server only at completion, and three defects came out of that one choice: a reload lost them
+   * and the resume re-served positions whose answer the player had already seen; a failed reveal
+   * write stranded the run with no control that could advance it; and the client was the only
+   * holder, so completion had to trust whatever it sent.
+   *
+   * Throws on a second write for the same slot, the way every other append-only surface here does.
+   */
+  saveLearningTransferObservation(
+    transferId: string,
+    position: number,
+    observation: LearningTransferObservation,
+  ): Promise<void>;
+  /** Everything recorded for this transfer so far, in position order. */
+  listLearningTransferObservations(transferId: string): Promise<LearningTransferObservation[]>;
   saveLearningTransferResult(result: LearningTransferResult): Promise<void>;
   listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]>;
 

@@ -68,6 +68,36 @@ export interface LearningTransferObservation {
   applied_rule: boolean;
 }
 
+/**
+ * Build an observation, or refuse to build one.
+ *
+ * `applied_rule` is the player's report of whether they used their own rule, and it is half of
+ * `successes` -- the number the preregistered refutation condition is tested against. The client
+ * held it as `boolean | null` and wrote `learningTransferApplied ?? false`, guarded by a check
+ * earlier in the same callback and a comment saying the default could not fire.
+ *
+ * It could. `onCommit` did not list that value among its dependencies, so a stale `null` would
+ * have become a written `false`: "did not apply the rule", about a player who said they did, in
+ * an append-only record, with every screen showing the right answer. The dependency is fixed;
+ * this exists so the next way of reaching that line is a thrown error rather than a fabricated
+ * observation. A missing measurement must not be recorded as a measured negative.
+ */
+export function transferObservation(input: {
+  decision_id: string;
+  recalled_rule: string;
+  applied_rule: boolean | null;
+}): LearningTransferObservation {
+  if (input.applied_rule === null)
+    throw new Error(
+      "לא ניתן לרשום תצפית העברה בלי תשובה על יישום הכלל: היעדר תשובה אינו תשובה שלילית.",
+    );
+  return {
+    decision_id: input.decision_id,
+    recalled_rule: input.recalled_rule,
+    applied_rule: input.applied_rule,
+  };
+}
+
 export interface LearningTransferResult {
   readonly kind: "learning_transfer_result";
   transfer_id: string;
@@ -145,7 +175,31 @@ export function gradeLearningRule(
 
   const nextStep = Math.min(rule.retrieval_step + 1, RETRIEVAL_INTERVAL_DAYS.length);
   const nextInterval = RETRIEVAL_INTERVAL_DAYS[nextStep];
-  if (!result.observed) {
+
+  /*
+   * REFUTING IS AS HARD AS REPLICATING, and the asymmetry it replaces was the most damaging thing
+   * in this file.
+   *
+   * One failed test used to set `grade: "refuted"` and `next_due_at: null` -- permanent, from a
+   * single sitting of three positions -- while REPLICATING required success on two separate days.
+   * So the product needed two days of evidence to say a rule worked and one bad afternoon to say
+   * it did not, on a sample every single-case standard consulted calls too small either way.
+   *
+   * That asymmetry turned every weakness of the recall measure into a permanent verdict about a
+   * person. `shared/recall-score.ts` is word overlap and marks a correct paraphrase wrong; a
+   * review then found a rule whose text the measure cannot see AT ALL ("f7 f2"), scoring 0/3 on
+   * perfect recall and zero centipawns lost, refuted forever, with a message blaming the retrieval
+   * schedule. A measure with known false negatives must not be able to close a question.
+   *
+   * Two failed days now, mirroring the two successful ones. A rule that fails once stays in the
+   * queue and comes back at the next interval, which is also what the retrieval schedule is FOR.
+   */
+  const failedDays = new Set(
+    [...priorResults.filter((r) => !r.observed), ...(result.observed ? [] : [result])].map((r) =>
+      r.completed_at.slice(0, 10),
+    ),
+  );
+  if (!result.observed && failedDays.size >= 2) {
     return {
       ...rule,
       grade: "refuted",
@@ -155,11 +209,14 @@ export function gradeLearningRule(
     };
   }
 
-  const allSuccessful = [...priorResults.filter((r) => r.observed), result];
-  const testDays = new Set(allSuccessful.map((r) => r.completed_at.slice(0, 10)));
+  const successDays = new Set(
+    [...priorResults.filter((r) => r.observed), ...(result.observed ? [result] : [])].map((r) =>
+      r.completed_at.slice(0, 10),
+    ),
+  );
   return {
     ...rule,
-    grade: testDays.size >= 2 ? "replicated" : rule.grade,
+    grade: successDays.size >= 2 ? "replicated" : rule.grade,
     retrieval_step: nextStep,
     next_due_at: nextInterval === undefined ? null : addDays(result.completed_at, nextInterval),
     last_evaluated_at: result.completed_at,

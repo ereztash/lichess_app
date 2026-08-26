@@ -12,7 +12,8 @@
     "gates": "tsx scripts/run_gates.ts",
     "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
-    "verify": "npm run check && npm test && npm run gates && npm run gates:controls && npm run build"
+    "verify": "npm run check && npm test && npm run gates && npm run gates:controls && npm run build && npm run bundle:budget",
+    "bundle:budget": "tsx scripts/check_bundle_budget.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -26,7 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.45.2",
     "express": "^4.21.2",
     "jose": "6.1.0",
     "lucide-react": "^0.453.0",
@@ -44,6 +45,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.5",

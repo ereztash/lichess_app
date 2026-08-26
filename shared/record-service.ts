@@ -46,6 +46,8 @@ import {
 } from "./drill.js";
 import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
+import { plyFromFen, positionKey, samePosition } from "./position-key.js";
+import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import { oneThingMix } from "./reveal.js";
@@ -229,42 +231,251 @@ export async function beginLearningTransfer(
 ) {
   const rule = await store.getLearningRule(input.rule_id);
   if (!rule) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
-  if (rule.next_due_at && new Date(now.started_at) < new Date(rule.next_due_at)) {
+
+  /*
+   * ONE TEST IN FLIGHT PER RULE, AND IT IS RESUMED RATHER THAN REFUSED.
+   *
+   * The started transfer lived here on the server while the knowledge that one was running lived
+   * only in React state -- so a reload orphaned it, and nothing stopped a second preregistration
+   * over the same rule. A player could look at three positions, dislike them, refresh, and draw
+   * three more: choosing their own evidence under a stamp that says they did not.
+   *
+   * Handing back the open one rather than erroring, because losing a tab is not misconduct, and a
+   * rule whose test can be started but never finished can only ever be refuted by accident. The
+   * positions come back identical because they are the ones that were written down.
+   */
+  /*
+   * A TERMINAL GRADE ENDS THE TESTING, INCLUDING FOR A TRANSFER ALREADY IN FLIGHT.
+   *
+   * `preregisterLearningTransfer` throws on a refuted or retired rule, and that throw was
+   * unreachable whenever an open transfer existed -- the resume path returned before it. So a
+   * rule that had just been refuted, or one the player had deliberately retired, still handed
+   * back a live test. An adversarial review reproduced both.
+   *
+   * Checked BEFORE the resume, not after: the question is whether this rule should be under test
+   * at all, and it is not.
+   */
+  if (rule.grade === "refuted" || rule.grade === "retired") {
+    return {
+      transfer: null,
+      reason:
+        rule.grade === "refuted"
+          ? "הכלל הזה הופרך, ולכן אין עליו בדיקות נוספות."
+          : "הכלל הזה הוצא מתור הלמידה.",
+    };
+  }
+
+  /*
+   * AN UNSCOREABLE RULE IS NEVER TESTED, because the test it would get is unwinnable.
+   *
+   * `action_rule = "f7 f2"` is an ordinary way to write a chess rule and has no token the recall
+   * measure can see. A review ran it end to end: perfect verbatim recall on all three positions,
+   * zero centipawns lost, scored 0/3, and the rule came out refuted with a message blaming the
+   * retrieval schedule. Refusing here means the unwinnable test is never created, and the reason
+   * names the real cause instead.
+   */
+  if (!isScoreable(rule.action_rule)) {
+    return {
+      transfer: null,
+      reason:
+        "אי אפשר למדוד שליפה של הכלל הזה: הניסוח שלו קצר מדי או מורכב מסימונים בלבד. " +
+        "כדי שהבדיקה תוכל להשוות את מה שתשלפו למה שכתבתם, הכלל צריך כמה מילים משלו.",
+    };
+  }
+
+  const open = await store.getOpenLearningTransfer(rule.rule_id);
+  if (open) return { transfer: open, reason: null };
+
+  /*
+   * NULL IS THE END OF THE SCHEDULE, NOT PERMISSION. `gradeLearningRule` sets `next_due_at` to
+   * null when the last retrieval interval has passed, and this read it as "no date to wait for,
+   * so go ahead" -- offering an unlimited supply of fresh tests to a rule that had finished,
+   * while the row beside the button said "אין בדיקה נוספת".
+   */
+  if (!rule.next_due_at) {
+    return {
+      transfer: null,
+      reason: "לוח החזרות של הכלל הזה הסתיים. אין בדיקה נוספת מתוזמנת עבורו.",
+    };
+  }
+  if (new Date(now.started_at) < new Date(rule.next_due_at)) {
     return {
       transfer: null,
       reason: `הכלל הזה מתוזמן לחזרה מרווחת בתאריך ${rule.next_due_at}.`,
     };
   }
-  const source = await store.getAtom(rule.source_decision_id);
-  const decided = new Set((await store.listAtoms()).map((atom) => atom.entry_state.fen));
-  if (source) decided.add(source.entry_state.fen);
-  const unseen = [...new Set(input.candidate_fens)].filter((fen) => !decided.has(fen));
-  if (unseen.length < TRANSFER_POSITION_COUNT) {
+
+  /*
+   * NOVELTY IS A PROPERTY OF THE BOARD, NOT OF THE FEN STRING. The halfmove clock and fullmove
+   * number record the GAME, so knights out and back produce a different string for an identical
+   * position -- and this compared whole strings, which let a board the player had already decided
+   * (and been shown the answer for) enter the test as unseen. The same hole was in the
+   * deduplication: three spellings of one board would have filled a three-position test with one
+   * decision.
+   */
+  /*
+   * No separate fetch of the rule's source position. It used to be added to this set explicitly,
+   * which was dead: `listAtoms()` returns every committed decision unfiltered, and a rule cannot
+   * exist without its source having been committed AND revealed -- `createLearningRule` refuses
+   * otherwise. A positive control deleted the line and nothing failed. It also cost a query.
+   */
+  const decided = new Set((await store.listAtoms()).map((atom) => positionKey(atom.entry_state.fen)));
+  const byPosition = new Map<string, string>();
+  for (const fen of input.candidate_fens) {
+    const key = positionKey(fen);
+    if (!decided.has(key) && !byPosition.has(key)) byPosition.set(key, fen);
+  }
+
+  /*
+   * NOT THE OPENING, AND NOT THREE IN A ROW.
+   *
+   * The candidates arrive in game order and this used to take the first three unseen. On a fresh
+   * game that is plies 0, 1 and 2 -- the first of them the STARTING POSITION OF CHESS. A review
+   * ran it and got exactly that.
+   *
+   * Two things are wrong with it. The opening is where this product's own baseline puts accuracy
+   * at 70.3% against 60.2% everywhere else, so `cp_loss <= 30` is very nearly free there and half
+   * the success criterion stops discriminating. And three consecutive plies are close to the same
+   * board, so a test of whether a rule TRANSFERS is run on one position three times.
+   *
+   * The ply comes from the FEN's own fullmove number, so nothing extra has to be threaded through
+   * a candidate list that is only strings.
+   */
+  const eligible = [...byPosition.values()].filter(
+    (fen) => classifyPhase(fen, plyFromFen(fen)) !== "opening",
+  );
+  if (eligible.length < TRANSFER_POSITION_COUNT) {
     return {
       transfer: null,
-      reason: `נדרשות ${TRANSFER_POSITION_COUNT} עמדות שלא נראו; זמינות רק ${unseen.length}.`,
+      reason:
+        `נדרשות ${TRANSFER_POSITION_COUNT} עמדות מחוץ לפתיחה שלא הכרעתם בהן; זמינות ${eligible.length}. ` +
+        "בפתיחה הדיוק גבוה יותר אצל כולם, ולכן בדיקה שם כמעט לא מפרידה בין כלל שעבד לכלל שלא.",
     };
   }
+
+  /*
+   * Spread across what is available rather than the first three: a stride keeps the boards far
+   * enough apart in the game to be different decisions, which is the only way three of them can
+   * say anything about transfer.
+   */
+  const stride = Math.floor(eligible.length / TRANSFER_POSITION_COUNT);
+  const unseen = Array.from(
+    { length: TRANSFER_POSITION_COUNT },
+    (_, index) => eligible[index * stride],
+  );
   const transfer = preregisterLearningTransfer(rule, unseen.slice(0, TRANSFER_POSITION_COUNT), now);
   // R5 for learning: persist the snapshot and refutation condition before returning any FEN.
   await store.saveLearningTransfer(transfer);
   return { transfer, reason: null };
 }
 
+/**
+ * Record one position's observation, at the moment it is made.
+ *
+ * WHY THIS IS A SERVER CALL AND NOT A PIECE OF REACT STATE. These were held in the component for
+ * the whole run and sent only at completion, and three defects came out of that: a reload lost
+ * them and the resume re-served positions whose engine verdict the player had already seen; a
+ * failed reveal write stranded the run with no control that could advance it; and the client was
+ * the sole holder, so completion had to believe whatever it sent.
+ *
+ * It is the same rule the decision layer already follows. An observation is data.
+ */
+export async function recordLearningTransferObservation(
+  store: RecordStore,
+  input: { transfer_id: string; observation: LearningTransferObservation },
+) {
+  const transfer = await store.getLearningTransfer(input.transfer_id);
+  if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
+
+  const already = await store.listLearningTransferObservations(transfer.transfer_id);
+  const position = already.length;
+  if (position >= transfer.fens.length) {
+    throw new RecordError("PRECONDITION_FAILED", "כל העמדות בבדיקה הזו כבר נרשמו.");
+  }
+
+  /*
+   * The decision has to be the one this slot preregistered. Compared as POSITIONS, for the same
+   * reason the candidates were: a decision recorded against the identical board later in a game is
+   * the position that was written down.
+   */
+  const atom = await store.getAtom(input.observation.decision_id);
+  if (!atom) throw new RecordError("PRECONDITION_FAILED", "ההחלטה הזו לא נרשמה.");
+  if (!samePosition(atom.entry_state.fen, transfer.fens[position])) {
+    throw new RecordError("PRECONDITION_FAILED", "ההחלטה נרשמה לעמדה אחרת מזו שבתור.");
+  }
+
+  await store.saveLearningTransferObservation(transfer.transfer_id, position, input.observation);
+  return { position, remaining: transfer.fens.length - position - 1 };
+}
+
 export async function finishLearningTransfer(
   store: RecordStore,
-  input: { transfer_id: string; observations: LearningTransferObservation[] },
+  input: { transfer_id: string },
   now: { completed_at: string },
 ) {
   const transfer = await store.getLearningTransfer(input.transfer_id);
   if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
-  if (input.observations.length !== transfer.fens.length) {
+
+  /*
+   * THE OBSERVATIONS COME FROM THE RECORD, NOT FROM THE REQUEST.
+   *
+   * They used to arrive in the completion payload, which meant the client was their only holder
+   * and this function had to believe them. Each one is now written when it is made, so the caller
+   * sends a transfer id and nothing else -- there is no longer a shape of request that can report
+   * a test the player did not sit.
+   */
+  const observations = await store.listLearningTransferObservations(transfer.transfer_id);
+  if (observations.length !== transfer.fens.length) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      "לכל עמדה בבדיקת ההעברה נדרשת תצפית אחת.",
+      `נרשמו ${observations.length} תצפיות מתוך ${transfer.fens.length}. הבדיקה לא הושלמה.`,
     );
   }
-  const atoms = await Promise.all(input.observations.map((o) => store.getAtom(o.decision_id)));
+
+  const priorResults = await store.listLearningTransferResults(transfer.rule_id);
+
+  /*
+   * REPORTING TWICE RETURNS THE FIRST REPORT, it does not raise.
+   *
+   * The Drizzle store's insert hit a bare primary-key violation, which `toTrpc` rethrew unmapped
+   * as a 500 -- carrying the SQL, the column layout, the decision ids and THE PLAYER'S RECALL TEXT
+   * in the response body. The owner gate goes to some length to keep record content out of a
+   * refusal; this put it into one, with a worse status code.
+   *
+   * And it is reachable by design rather than by accident: a failed completion returns the player
+   * to `running` so reporting can be retried, so a lost response means retrying forever against a
+   * 500, with the verdict never shown and `next_due_at` already moved forward.
+   *
+   * Idempotent rather than an error, because a retry after a lost response is the honest case. The
+   * second call must return what the first one recorded -- not a second, differently-timed verdict.
+   */
+  const already = priorResults.find((result) => result.transfer_id === transfer.transfer_id);
+  if (already) return { result: already, rule: await store.getLearningRule(transfer.rule_id) };
+
+  /*
+   * A DECISION IS SPENT ONCE. This is the hole that let one sitting replicate itself.
+   *
+   * `beginLearningTransfer` is check-then-act with no uniqueness, so two concurrent starts -- a
+   * double click is enough, since the queue's `busy` flag only flips when the first mutation
+   * RESOLVES -- produced two preregistrations over the identical three positions. Play them once,
+   * report the same three `decision_id`s under transfer A on one day and transfer B on the next,
+   * and `gradeLearningRule` reads two results on two calendar days and writes `replicated`. It
+   * filters priors by `transfer_id`, so nothing looked at whether the DECISIONS were the same.
+   *
+   * Three decisions cannot be evidence that a rule held up across sittings, whatever the transfer
+   * ids say. Checked here rather than at `begin`, because it is the reporting that makes the
+   * claim.
+   */
+  const spent = new Set(priorResults.flatMap((result) => result.decision_ids));
+  const reused = observations.filter((o) => spent.has(o.decision_id));
+  if (reused.length > 0) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      "החלטות מהבדיקה הזו כבר נספרו בבדיקת העברה קודמת של אותו כלל. " +
+        "אותה ישיבה אינה יכולה לשמש כשתי בדיקות.",
+    );
+  }
+  const atoms = await Promise.all(observations.map((o) => store.getAtom(o.decision_id)));
   for (let index = 0; index < atoms.length; index += 1) {
     const atom = atoms[index];
     if (!atom?.result) {
@@ -273,7 +484,10 @@ export async function finishLearningTransfer(
         "כל החלטה בבדיקת ההעברה חייבת להירשם ולהיחשף.",
       );
     }
-    if (atom.entry_state.fen !== transfer.fens[index]) {
+    // Compared as POSITIONS, for the same reason the candidates were: a decision recorded against
+    // the identical board later in a game is the position that was preregistered, and a
+    // whole-string mismatch here would reject an honest answer.
+    if (!samePosition(atom.entry_state.fen, transfer.fens[index])) {
       throw new RecordError(
         "PRECONDITION_FAILED",
         "החלטה בבדיקת ההעברה נרשמה לעמדה אחרת.",
@@ -281,21 +495,39 @@ export async function finishLearningTransfer(
     }
   }
 
+  /*
+   * WHAT COUNTS AS A SUCCESS, AND WHAT WAS REMOVED FROM IT.
+   *
+   * This used to require three things: non-empty recalled text, a self-reported "I applied it",
+   * and a low cp loss. A reviewer typed `banana`, ticked the box, played well, and got 3/3 with a
+   * verdict of "the rule transferred". Two of the three were not measurements.
+   *
+   * `applied_rule` IS GONE FROM THE CRITERION. It is still collected -- uncontaminated now, before
+   * the reveal -- and still stored, because it is worth having. It is not evidence. Reed, Ernst &
+   * Banerji (1974, Exp. 3) found self-rated use of a prior solution did not correlate with
+   * transfer performance in a case where transfer demonstrably occurred, and Craig et al. (2020),
+   * meta-analysing 37 studies, put self-report against measured behaviour at r = 0.22 [0.14, 0.31].
+   * A single binary tick is the weakest form on that scale, and "did I apply a rule in my head" is
+   * the covert kind self-report handles worst.
+   *
+   * THE RECALL IS SCORED AGAINST THE RULE THE PLAYER AUTHORED, from the snapshot written down
+   * before the test ran -- not against the rule as it stands now, which may have been edited.
+   * `scoreRecall` is word overlap and says so; it is a floor against unrelated text, not a memory
+   * measure. Its coverage is not stored because `recalled_rules` is, and the score is a pure
+   * function of that text and the snapshot: derived beats duplicated.
+   */
   const successes = atoms.filter((atom, index) => {
-    const observation = input.observations[index];
-    return (
-      observation.recalled_rule.trim().length > 0 &&
-      observation.applied_rule &&
-      atom!.result!.cp_loss <= ACCURATE_CP_LOSS
-    );
+    const observation = observations[index];
+    const recall = scoreRecall(observation.recalled_rule, transfer.rule_snapshot.action_rule);
+    return recall.clearedFloor && atom!.result!.cp_loss <= ACCURATE_CP_LOSS;
   }).length;
   const result: LearningTransferResult = {
     kind: "learning_transfer_result",
     transfer_id: transfer.transfer_id,
     rule_id: transfer.rule_id,
-    decision_ids: input.observations.map((o) => o.decision_id),
-    recalled_rules: input.observations.map((o) => o.recalled_rule.trim()),
-    applied_rule: input.observations.map((o) => o.applied_rule),
+    decision_ids: observations.map((o) => o.decision_id),
+    recalled_rules: observations.map((o) => o.recalled_rule.trim()),
+    applied_rule: observations.map((o) => o.applied_rule),
     successes,
     observed: successes >= transfer.minimum_successes,
     completed_at: now.completed_at,

@@ -22,8 +22,19 @@ export function LearningRuleComposer({
   const createRule = useCreateLearningRule();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
-  const [mechanism, setMechanism] = useState<MechanismClass>("threat_scan");
-  const [wouldChooseAgain, setWouldChooseAgain] = useState(false);
+  /*
+   * BOTH START UNANSWERED, and that is a correctness fix rather than a nicety.
+   *
+   * `mechanism` opened on "threat_scan" and `wouldChooseAgain` on `false`, neither was required to
+   * save, and both rendered with `aria-pressed` already set -- so a screen reader announced
+   * answers the player had not given. Every rule carries `authored_by: "player"`, which is the
+   * product's claim about where its content came from, and two of its fields were the form's.
+   *
+   * The mechanism is the worse of the two: it is the rule's own account of WHAT WENT WRONG, so a
+   * default meant every untouched rule in the record blamed threat scanning.
+   */
+  const [mechanism, setMechanism] = useState<MechanismClass | null>(null);
+  const [wouldChooseAgain, setWouldChooseAgain] = useState<boolean | null>(null);
   const [fields, setFields] = useState({
     revisedRead: "",
     trigger: "",
@@ -37,6 +48,8 @@ export function LearningRuleComposer({
   const set = (key: keyof typeof fields, value: string) =>
     setFields((current) => ({ ...current, [key]: value }));
   const ready =
+    mechanism !== null &&
+    wouldChooseAgain !== null &&
     fields.revisedRead.trim() &&
     fields.trigger.trim() &&
     fields.missedSignal.trim() &&
@@ -45,7 +58,9 @@ export function LearningRuleComposer({
     fields.refutationCondition.trim();
 
   const submit = async () => {
-    if (!ready || saving) return;
+    // The narrowing is load-bearing, not defensive: `ready` is what proves both choices were made,
+    // and TypeScript will not let the two nullable values through without it.
+    if (!ready || mechanism === null || wouldChooseAgain === null || saving) return;
     setSaving(true);
     setError(undefined);
     try {
@@ -94,16 +109,21 @@ export function LearningRuleComposer({
 
       <div className="learning-choice" role="group" aria-label="האם הייתם בוחרים שוב באותו מהלך">
         <span>הייתם בוחרים שוב באותו מהלך?</span>
+        {/*
+          * `=== true` and `=== false`, not the value and its negation. `aria-pressed={!wouldChooseAgain}`
+          * was true while the answer was `null`, so "לא" announced itself as chosen before anyone
+          * had answered -- the defect this pair exists to remove, reproduced in the markup.
+          */}
         <button
           type="button"
-          aria-pressed={wouldChooseAgain}
+          aria-pressed={wouldChooseAgain === true}
           onClick={() => setWouldChooseAgain(true)}
         >
           כן
         </button>
         <button
           type="button"
-          aria-pressed={!wouldChooseAgain}
+          aria-pressed={wouldChooseAgain === false}
           onClick={() => setWouldChooseAgain(false)}
         >
           לא

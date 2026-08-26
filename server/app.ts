@@ -17,8 +17,28 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
   const app = express();
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "10mb", extended: true }));
-  app.get("/api/health", (_req, res) => {
-    res.status(200).json({ ok: true });
+  /**
+   * Whether this deployment can do what it says, measured rather than asserted.
+   *
+   * THIS RETURNED `{ok: true}` UNCONDITIONALLY. It is the diagnostic this project actually used
+   * during the FUNCTION_INVOCATION_FAILED outage and the evidence cited in docs/FINDINGS.md that
+   * a deployment is alive -- and what it measured was that a line of code ran. A deployment whose
+   * database was down was "ok" to every monitor watching it. "ok" is a much larger word than
+   * "this handler executed", and this product exists to say so.
+   *
+   * ABSENT IS NOT DOWN. No DATABASE_URL is a SUPPORTED deployment: the record runs in the
+   * browser, by design, and the client is told so. Down is a database that was configured and
+   * cannot be reached -- that is the state where the loop breaks and somebody should be woken up.
+   *
+   * NO AUTH, SO NO DETAIL. `system.lichessConfig` is protected precisely because the names of the
+   * missing pieces describe the deployment; listing them here would move that report to an
+   * unauthenticated URL. The operator gets the names after signing in. A monitor gets a status
+   * code, which is what a monitor acts on.
+   */
+  app.get("/api/health", async (_req, res) => {
+    const configured = Boolean(process.env.DATABASE_URL);
+    const ok = !configured || (await store.isAvailable());
+    res.status(ok ? 200 : 503).json({ ok });
   });
   registerOAuthRoutes(app);
   app.use("/api/trpc", createExpressMiddleware({ router: buildAppRouter(store), createContext }));

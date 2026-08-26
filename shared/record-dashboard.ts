@@ -13,6 +13,13 @@
  * that it is not measurable instead of reporting a number. That is the whole credibility of the
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
+import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
+import { populationBucket } from "./population-baseline.js";
+import { splitHalfStability, type Stability } from "./stability.js";
+import { metacognitiveSensitivity, type Sensitivity } from "./sensitivity.js";
+import { sensitivityBand, type SensitivityBand } from "./sensitivity-reference.js";
+import { effortFollowsDoubt, type Control } from "./control.js";
+import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
   BUCKETINGS,
@@ -30,6 +37,20 @@ export type BucketReading = {
   outside: CalibrationSummary;
   /** False when either side is under MIN_BUCKET_N: the split cannot be read yet. */
   measurable: boolean;
+  /**
+   * How this bucket's accuracy compares to the population's, in points, or null when the corpus
+   * has no baseline for it.
+   *
+   * THE POINT OF THIS FIELD. A bucket's accuracy is mostly a property of the bucket: measured on
+   * 693,130 real moves, the middlegame is 12.6 points less accurate than everything else FOR
+   * EVERYONE, and decisions over two minutes are 14.2 points worse. Telling a player their
+   * middlegame accuracy is low is telling them a fact about chess in the second person. Against
+   * the baseline it becomes a statement about them.
+   *
+   * Positive means better than the population in that bucket. Null is not zero: it means nobody
+   * measured a baseline here, and a caller must render the two differently.
+   */
+  versusPopulation: number | null;
   /** How many more decisions inside the bucket are needed before it can be read. */
   shortBy: number;
   /**
@@ -61,6 +82,87 @@ export type ConfidenceReading = {
 
 export type RecordReading = {
   overall: CalibrationSummary;
+  /**
+   * The gap above, split into the three things it stands in for.
+   *
+   * `overall.gap` is one number owned by nobody in particular: it moves when the positions get
+   * harder, when the player's judgement changes, and when their willingness to commit changes,
+   * and it cannot say which happened. `calibration.uncertainty` is 100% the positions,
+   * `calibration.reliability` is the calibration error proper, and only the second is a statement
+   * about the player. See shared/calibration-score.ts.
+   */
+  calibration: CalibrationScore;
+  /**
+   * The same decomposition over the ANCHOR SET alone -- the positions every player answers.
+   *
+   * THIS IS THE ONE THAT IS COMPARABLE BETWEEN PLAYERS, and the reason is not statistical
+   * sophistication, it is arithmetic: two players who answered the same positions have the same
+   * item difficulty, so `uncertainty` is identical for both and whatever separates their scores
+   * is the thing this product claims to measure. The reading above it is over whatever positions
+   * a player happened to reach, and is comparable to nobody.
+   *
+   * Empty until a player has taken anchor decisions, and empty is the correct answer there: a
+   * comparable reading that nobody has earned yet must not be filled in from the rest.
+   */
+  anchor: CalibrationScore;
+  /**
+   * Which bank positions this record has already answered, by id.
+   *
+   * Carried so the front door can serve the NEXT one without refetching the whole record, and so
+   * progress through the set is a fact rather than a guess. Ids rather than positions: the caller
+   * that serves them loads the move lists lazily and needs nothing else from here.
+   */
+  anchorAnswered: readonly string[];
+  /**
+   * Whether the anchor reading said the same thing twice.
+   *
+   * Over the ANCHOR subset specifically, because that is the only split that compares like with
+   * like: two halves of a free-play record are two different sets of positions, and a difference
+   * between them says as much about the positions as about the player. Necessary, not sufficient
+   * -- a record that fails this is noise, and one that passes is merely not obviously noise.
+   */
+  stability: Stability;
+  /**
+   * The three facets of metacognition this instrument measures, over the anchor set.
+   *
+   * BIAS is `anchor.reliability` above -- do the words match what happens. SENSITIVITY is whether
+   * the confidence separates the accurate decisions from the inaccurate ones, which bias cannot
+   * see: a player systematically far too confident can still rank their own decisions perfectly.
+   * CONTROL is whether the effort went where the doubt was, which is the half of the faculty the
+   * other two do not touch at all.
+   *
+   * Three of five. Metacognitive EFFICIENCY (meta-d'/d') needs a binary first-order task and
+   * choosing a move from thirty options is not one. Metacognitive KNOWLEDGE -- knowing which
+   * kinds of position you are bad at -- is not measured here at all.
+   *
+   * COMPUTED OVER THE WHOLE RECORD, not over the anchor subset, and the difference matters. Both
+   * are WITHIN-person questions: whether YOUR confidence separates YOUR right decisions from your
+   * wrong ones, and whether YOUR effort went where YOUR doubt was. Neither needs a fixed item
+   * bank to be answerable about one player. What the anchor set buys is comparison BETWEEN
+   * players, and `anchor` above is where that lives. Restricting these two to the bank as well
+   * would leave them empty for everybody in exchange for a comparability they do not claim.
+   *
+   * The cost is stated on screen: on a player's own games, "took longer" and "felt less sure" are
+   * both caused by the position being hard, so `control` in particular is confounded until it is
+   * read on shared positions.
+   */
+  sensitivity: Sensitivity;
+  /*
+   * What that number looks like in the research literature, among people who were ABOUT AS
+   * ACCURATE as this reader.
+   *
+   * Conditioned on accuracy because that is the dominant term rather than a caveat: across 3,836
+   * people in the Confidence Database, Spearman rho between first-order accuracy and AUROC2 is
+   * +0.59, and the median climbs 0.53 -> 0.61 -> 0.65 -> 0.73 across accuracy bands. An
+   * unconditioned band would tell a strong player they are metacognitively gifted for being good
+   * at chess -- the same confound the population baseline removes from the buckets.
+   *
+   * Null where the corpus has no stratum for this reader's accuracy, or where their own number
+   * cannot be read at all. Falling back to the unconditioned band would hand back the confound
+   * silently.
+   */
+  sensitivityReference: SensitivityBand | null;
+  control: Control;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
@@ -104,6 +206,15 @@ export function readRecord(
       measurable,
       shortBy: Math.max(0, MIN_BUCKET_N - inside.n),
       unmeasurableReason: measurable ? null : noClock ? "no-clock-data" : "too-few",
+      /*
+       * Only when the split can be read at all. A comparison against a population, computed from
+       * eight decisions, is a number with a very confident-looking provenance.
+       */
+      versusPopulation: (() => {
+        const population = populationBucket(bucketing.key);
+        if (!measurable || !population) return null;
+        return inside.accuracyRate - population.accuracy;
+      })(),
     };
   });
 
@@ -124,6 +235,9 @@ export function readRecord(
    * number is meaningless across scales: 4 asserted 0.75 then and asserts 0.50 now, so two rows
    * would collide on one label and mean different things.
    */
+  /* One filter for every anchor-scoped reading: three copies would be three chances to diverge. */
+  const anchored = decisions.filter((decision) => isAnchorFen(decision.fen));
+
   const claims = new Set<number>(
     CONFIDENCE_CHOICES.map((level) => normaliseConfidence(level, CONFIDENCE_LEVELS)),
   );
@@ -140,5 +254,27 @@ export function readRecord(
       };
     });
 
-  return { overall: summarise(decisions), buckets, confidence, scored: decisions.length, mix };
+  const overall = summarise(decisions);
+  const sensitivity = metacognitiveSensitivity(decisions);
+
+  return {
+    overall,
+    calibration: calibrationScore(decisions),
+    anchor: calibrationScore(anchored),
+    anchorAnswered: anchorIdsIn(decisions),
+    stability: splitHalfStability(anchored),
+    sensitivity,
+    /*
+     * Only when the reader's own number can be read. A band beside a dash would invite them to
+     * read the band as their result, and the literature's median is a very persuasive thing to
+     * misread as your own.
+     */
+    sensitivityReference:
+      sensitivity.readable && sensitivity.auroc2 !== null ? sensitivityBand(overall.accuracyRate) : null,
+    control: effortFollowsDoubt(decisions),
+    buckets,
+    confidence,
+    scored: decisions.length,
+    mix,
+  };
 }

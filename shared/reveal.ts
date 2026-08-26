@@ -350,5 +350,26 @@ export function nextQuestion(inputs: RevealInputs): string {
   if (unknown.length > 0) {
     return `כתבת שאתה לא יכול להעריך: "${unknown}". האם הקו של המנוע עונה על זה, או שהוא פשוט לא נכנס לשם?`;
   }
+  /*
+   * THE TWO MOVES HAVE TO BE TWO. Without this branch the sentence came out as "מה היית צריך
+   * לדעת כדי לבחור בין e4d5 ל-e4d5?" every time the player picked exactly the move the engine
+   * picked -- a comparison between a move and itself, printed with complete confidence.
+   *
+   * AND THE REPLACEMENT DOES NOT CONGRATULATE. Choosing the engine's move is not evidence of
+   * having understood it: the whole product exists to refuse that inference, and "correct!" here
+   * would be the app grading its own success on the one screen that must not. So the question
+   * asks whether the reason would have survived the engine choosing differently, which is the
+   * only form of it that can come back false.
+   *
+   * GUARDED ON THE STRINGS, NOT ON `chosenWasBest`, and the redundancy is the reason. The single
+   * call site computes the flag as `bestMove === draft.chosenMove`, so the two can never
+   * disagree in the running product -- which means one of them is dead weight. The strings are
+   * what get interpolated, so they are the half kept: if a caller ever passes a flag that lies,
+   * the sentence is still about two real things. A positive control found the disjunction by
+   * flipping it to the flag alone and watching nothing fail.
+   */
+  if (inputs.chosenMove === inputs.bestMove) {
+    return `בחרת את ${inputs.chosenMove}, וזה גם המהלך של המנוע. מה היה הנימוק שלך — והאם הוא היה מחזיק גם אילו המנוע היה בוחר אחרת?`;
+  }
   return `מה היית צריך לדעת כדי לבחור בין ${inputs.chosenMove} ל-${inputs.bestMove}?`;
 }

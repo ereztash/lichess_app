@@ -6,6 +6,7 @@
  * is the honesty of the reading: a bucket under the threshold must SAY it cannot be read, and a
  * confidence level nobody used must be absent rather than plotted as zero.
  */
+import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
 import {
   CONFIDENCE_CHOICES,
   CONFIDENCE_LEVELS,
@@ -15,11 +16,16 @@ import {
 } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { MIN_BUCKET_N, type ScoredDecision } from "../../shared/detector";
+import { populationBucket } from "../../shared/population-baseline";
 import { readRecord } from "../../shared/record-dashboard";
+
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 function decision(over: Partial<ScoredDecision> & { id?: string }): ScoredDecision {
   return {
     decision_id: over.id ?? `d-${Math.round(over.secondsTaken ?? 0)}-${over.confidence}`,
+    fen: NON_ANCHOR_FEN,
     confidence: over.confidence ?? normaliseConfidence(3, CONFIDENCE_LEVELS),
     accurate: over.accurate ?? true,
     phase: over.phase ?? "middlegame",
@@ -123,5 +129,150 @@ describe("reading the record", () => {
     expect(reading.overall.meanConfidence).toBeCloseTo(top, 5);
     expect(reading.overall.accuracyRate).toBeCloseTo(0.5, 5);
     expect(reading.overall.gap).toBeCloseTo(top - 0.5, 5);
+  });
+});
+
+describe("the gap is reported split, not only whole", () => {
+  it("carries the decomposition on the reading so a surface can lead with the player's term", () => {
+    /*
+     * Computing the split and not shipping it would leave the raw gap as the only thing anyone
+     * sees, which is the state this replaced. The reading has to carry it for a surface to be
+     * able to lead with `reliability` instead.
+     */
+    const reading = readRecord([
+      ...many(40, { confidence: normaliseConfidence(CONFIDENCE_LEVELS, CONFIDENCE_LEVELS), accurate: true }),
+      ...many(40, { confidence: normaliseConfidence(2, CONFIDENCE_LEVELS), accurate: false }),
+    ]);
+    expect(reading.calibration.n).toBe(80);
+    expect(
+      reading.calibration.reliability - reading.calibration.resolution + reading.calibration.uncertainty,
+    ).toBeCloseTo(reading.calibration.brier, 12);
+  });
+
+  it("separates the player's error from the difficulty of what they were served", () => {
+    /*
+     * Two records from the SAME judge -- each says a thing and is right exactly that often -- on
+     * item banks of different difficulty. `reliability` must not move; `uncertainty` must.
+     */
+    const calibrated = (level: number, count: number) =>
+      many(count, {
+        confidence: normaliseConfidence(level, CONFIDENCE_LEVELS),
+      }).map((d, i) => ({
+        ...d,
+        accurate: i < Math.round(normaliseConfidence(level, CONFIDENCE_LEVELS) * count),
+      }));
+
+    const easy = readRecord([...calibrated(CONFIDENCE_LEVELS, 100), ...calibrated(6, 100)]);
+    const hard = readRecord([...calibrated(EVEN_ODDS_LEVEL, 100), ...calibrated(2, 100)]);
+
+    expect(easy.calibration.reliability).toBeCloseTo(0, 2);
+    expect(hard.calibration.reliability).toBeCloseTo(0, 2);
+    expect(hard.calibration.uncertainty).toBeGreaterThan(easy.calibration.uncertainty);
+  });
+});
+
+describe("the anchor reading is the one that is comparable between players", () => {
+  const anchored = (index: number, confidence: number, accurate: boolean) => ({
+    decision_id: `a-${index}`,
+    fen: ANCHOR_POSITIONS[index % ANCHOR_POSITIONS.length].fen,
+    confidence,
+    accurate,
+    phase: "middlegame" as const,
+    secondsTaken: 30,
+    clockMsRemaining: 120_000,
+  });
+
+  it("counts only decisions taken on the bank, and says so with its own n", () => {
+    const record = [
+      ...Array.from({ length: 20 }, (_, i) => anchored(i, 0.8, i < 16)),
+      ...many(35, { confidence: 0.65, accurate: true }),
+    ];
+    const reading = readRecord(record);
+    expect(reading.calibration.n, "the whole record").toBe(55);
+    expect(reading.anchor.n, "the anchor subset").toBe(20);
+  });
+
+  it("gives two players who answered the same positions the same uncertainty", () => {
+    /*
+     * THE WHOLE POINT, as arithmetic. `uncertainty` is a property of the items, so two players on
+     * the same items cannot differ on it -- which is what makes the rest of their scores
+     * comparable. It is asserted here on records that differ in every OTHER way: different
+     * confidences, different people, same positions, same outcomes.
+     */
+    const bold = Array.from({ length: 30 }, (_, i) => anchored(i, 0.95, i < 21));
+    const timid = Array.from({ length: 30 }, (_, i) => anchored(i, 0.5, i < 21));
+    const a = readRecord(bold).anchor;
+    const b = readRecord(timid).anchor;
+    expect(a.uncertainty).toBeCloseTo(b.uncertainty, 12);
+    expect(a.reliability, "the two judges came out identical").not.toBeCloseTo(b.reliability, 3);
+  });
+
+  it("stays empty rather than borrowing from the rest of the record", () => {
+    /*
+     * A player who has answered no bank positions has no comparable reading, and the honest
+     * representation of that is nothing. Filling it in from their free-play decisions would
+     * produce exactly the number the anchor set exists to stop being produced.
+     */
+    const reading = readRecord(many(40, { confidence: 0.8, accurate: true }));
+    expect(reading.calibration.n).toBe(40);
+    expect(reading.anchor.n).toBe(0);
+    expect(reading.anchor.levels).toEqual([]);
+    expect(reading.anchor.reliable).toBe(false);
+  });
+});
+
+describe("a bucket's own accuracy is not a finding until it is against the population", () => {
+  /*
+   * WHY THIS BLOCK EXISTS. Measured on 693,130 Lichess moves: the middlegame is 12.6 points less
+   * accurate than everything else FOR EVERYONE, and moves that took over two minutes are 14.2
+   * points worse -- people think longer because the position is hard, so the slow bucket is a
+   * property of the positions before it is a property of anyone. A record that reports a player's
+   * middlegame rate on its own is telling them a fact about chess in the second person.
+   */
+  it("subtracts the population's rate for the bucket, not the record's own outside half", () => {
+    const inside = many(MIN_BUCKET_N + 10, { phase: "middlegame", accurate: true });
+    // Every one inside is accurate, so the record's own rate is exactly 1 and the comparison is
+    // pinned to the baseline: any other subtraction gives a different number.
+    const outside = many(MIN_BUCKET_N + 10, { phase: "opening", accurate: false });
+    const middlegame = readRecord([...inside, ...outside]).buckets.find(
+      (b) => b.key === "phase-middlegame",
+    )!;
+    const population = populationBucket("phase-middlegame")!;
+    expect(middlegame.measurable).toBe(true);
+    expect(middlegame.inside.accuracyRate).toBe(1);
+    expect(middlegame.versusPopulation).toBeCloseTo(1 - population.accuracy, 10);
+  });
+
+  it("keeps the sign, so being below the population reads as below", () => {
+    const inside = many(MIN_BUCKET_N + 10, { phase: "middlegame", accurate: false });
+    const outside = many(MIN_BUCKET_N + 10, { phase: "opening", accurate: true });
+    const middlegame = readRecord([...inside, ...outside]).buckets.find(
+      (b) => b.key === "phase-middlegame",
+    )!;
+    expect(middlegame.versusPopulation).toBeLessThan(0);
+    expect(middlegame.versusPopulation).toBeCloseTo(-populationBucket("phase-middlegame")!.accuracy, 10);
+  });
+
+  it("says nothing about a bucket the record itself cannot read", () => {
+    /*
+     * THE THRESHOLD GOVERNS THE COMPARISON TOO. A population has a very confident-looking
+     * provenance, and eight decisions measured against 693,130 is still eight decisions.
+     */
+    const thin = readRecord(many(MIN_BUCKET_N - 3, { phase: "middlegame" })).buckets.find(
+      (b) => b.key === "phase-middlegame",
+    )!;
+    expect(thin.measurable).toBe(false);
+    expect(thin.versusPopulation).toBeNull();
+  });
+
+  it("leaves it null where the corpus has no baseline for the bucket at all", () => {
+    // Not zero. Zero would read as "exactly average" -- a claim the corpus never made.
+    const reading = readRecord([
+      ...many(MIN_BUCKET_N + 10, { phase: "middlegame" }),
+      ...many(MIN_BUCKET_N + 10, { phase: "opening" }),
+    ]);
+    for (const bucket of reading.buckets) {
+      if (bucket.versusPopulation !== null) expect(populationBucket(bucket.key)).not.toBeNull();
+    }
   });
 });

@@ -422,8 +422,21 @@ button:not(:disabled) {
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
   font-size: var(--panel-label);
 }
+/*
+ * THE LABEL GETS A FLOOR AND THE REASON GETS THE REMAINDER, and the order of those two tracks is
+ * the whole fix.
+ *
+ * This was `minmax(0, 1fr) auto`. An `auto` track is sized from its content and the no-clock
+ * reason is a two-line sentence, so it claimed the row; `minmax(0, 1fr)` permits its own track to
+ * shrink to zero, so the scope did -- measured at 390px as ONE GLYPH PER LINE, twenty-three lines
+ * tall. Every one of 1,012 tests passed through it, because jsdom reports every box as 0x0 and
+ * cannot see a width. `tests/layout/bucket-row.layout.test.tsx` measures it in a real engine.
+ *
+ * The label naming what a figure is ABOUT is the one thing on this panel that must never be
+ * squeezed out: the panel exists to say what a number can and cannot be read to mean.
+ */
 .bucket-list li.unmeasurable {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr);
   color: rgba(var(--ink-rgb), 0.55);
 }
 /*
@@ -1659,7 +1672,26 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   opacity: 0.72;
 }
+/*
+ * THE SIGN STAYS ON THE READING SIDE, and this is a correctness rule rather than a typographic
+ * one.
+ *
+ * The page is right-to-left. `-` and `+` are NEUTRAL characters to the bidirectional algorithm,
+ * and a neutral sitting between Hebrew text and a number resolves to the paragraph's direction --
+ * which put it AFTER the digits. A gap of −30% rendered as `30%-`. The sign is the meaning of
+ * this figure: negative is overconfidence, positive is underconfidence, and a reader skimming
+ * `30%-` cannot tell which, with the flattering reading the likelier one.
+ *
+ * `plaintext` and not `isolate` or a hard `direction: ltr`: it takes the direction from the
+ * content's own first strong character, so `-30%` (no strong character) lays out left-to-right
+ * while "לא נמדד" in the same class stays right-to-left. One rule, both cases, nothing to keep
+ * in sync.
+ *
+ * Measured in a real engine, on glyph positions rather than on this property:
+ * tests/layout/signed-number-reads-as-signed.layout.test.tsx.
+ */
 .value-triple .value-number {
+  unicode-bidi: plaintext;
   font-variant-numeric: tabular-nums;
 }
 .value-triple .value-provenance {
@@ -2003,6 +2035,140 @@ button:not(:disabled) {
   border-style: solid;
   font-weight: 700;
 }
+/*
+ * A bucket's accuracy against the population's. Deliberately quieter than the gap beside it: the
+ * gap is the claim, this is what makes the claim readable, and rendering them at equal weight
+ * would make the row look like two findings.
+ */
+.bucket-versus {
+  /*
+   * Placed, not left where it lands. The measurable row has three tracks and four children, so
+   * this one wrapped into an implicit row under the SCOPE -- reading as though the population
+   * comparison were part of the label rather than of the figure. It belongs under the number.
+   *
+   * NO `unicode-bidi: plaintext` HERE, and that is the point. This span mixes a signed number with
+   * Hebrew words, so `plaintext` takes its direction from the first strong character -- Hebrew --
+   * resolves the whole run RTL, and leaves the sign exactly where it was, 62px from its digits.
+   * The number is isolated in the markup with `<bdi>` instead; see RecordDashboard.tsx.
+   */
+  grid-column: 2 / -1;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * The way into the shared set. A row, not a card: it is an action attached to the layer it sits
+ * in, and a bordered panel here would read as a third measurement beside the two the page already
+ * walls apart.
+ */
+.anchor-run {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 10px 0 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+  background: rgba(var(--cream-rgb), 0.4);
+}
+.anchor-run-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.anchor-run-text b {
+  font-size: var(--panel-title);
+}
+.anchor-run-text span {
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 48ch;
+}
+.anchor-run-note {
+  margin: 10px 0 4px;
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/*
+ * The Murphy split -- a BREAKDOWN of the row above it, not a second row of headlines.
+ *
+ * The first version repeated `.review-stats`: three more bordered cells, same size and weight as
+ * the three figures directly above them, which read as six headline numbers rather than three and
+ * their explanation. One quiet panel of rows instead, no border per cell, numbers in a tabular
+ * column so the eye can compare them down the page.
+ *
+ * Section 4.5, applied to a case it was not written for: the two distinct states here are "this
+ * number is you" and "this number is the item bank". They sit in one list, so the separation has
+ * to be structural -- a rule above the last row and a dimmed treatment on it, doing the work
+ * before the sentence underneath is read.
+ */
+.calibration-split {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 1px;
+  background: rgba(var(--ink-rgb), 0.12);
+  border: 1px solid rgba(var(--ink-rgb), 0.22);
+}
+.split-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 7px 10px;
+  background: rgba(var(--cream-rgb), 0.4);
+}
+.split-row dt {
+  font-size: var(--panel-label);
+  color: var(--muted);
+}
+.split-row dd {
+  margin: 0;
+  font-size: var(--panel-data);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  /*
+   * The same rule `.value-number` carries, and it was missing here for the same reason it is
+   * needed: this cell holds the effort coefficient, and `-0.99` rendered as `0.99-`.
+   *
+   * WORSE THAN THE CALIBRATION CASE, because negative is the HEALTHY direction for this figure --
+   * longer on the decisions you were less sure of -- so the reordered form is the ordinary one.
+   * An adversarial review found it after the earlier fix was applied to the one selector its test
+   * happened to render.
+   */
+  unicode-bidi: plaintext;
+}
+/* The one term that is a statement about the player. */
+.split-mine dt,
+.split-mine dd {
+  color: var(--ink);
+}
+.split-mine dd {
+  font-size: var(--panel-title);
+}
+/* And the one that is a property of the positions. Ruled off and stepped back. */
+.split-theirs {
+  border-top: 1px solid rgba(var(--ink-rgb), 0.22);
+}
+.split-theirs dt,
+.split-theirs dd {
+  opacity: 0.62;
+  font-weight: 400;
+}
+.dash-note {
+  font-size: var(--panel-label);
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 7px 0 4px;
+  max-width: 42ch;
+}
+
 .confidence-row {
   display: grid;
   /*
@@ -2053,6 +2219,15 @@ button:not(:disabled) {
   gap: 0.35rem;
   font-size: var(--panel-body);
   margin: 0;
+  /*
+   * Wraps, because this row can carry a `<details>` holding the technical detail of a failed
+   * commit. As a single un-wrapping flex line the disclosure sat beside the message and squeezed
+   * it -- the same collapse the bucket rows had, in the panel that can least afford it.
+   */
+  flex-wrap: wrap;
+}
+.commitment-error > details {
+  flex-basis: 100%;
 }
 .commitment-summary {
   font-size: var(--panel-label);
@@ -2491,6 +2666,28 @@ button:not(:disabled) {
 }
 .learning-choice,
 .mechanism-picker,
+/*
+ * What the panel says once the engine has answered: both observations are already written down.
+ * A control here -- even a disabled one -- would invite the next change to make it editable, and
+ * an editable answer after the reveal is the contamination this whole sequence exists to remove.
+ */
+/*
+ * The limits under the verdict. Deliberately not smaller than a caveat can be read at: the
+ * sentence above it says the preregistered condition held, and without these four clauses a
+ * reader completes that sentence into "my rule works" -- which is the claim the evidence cannot
+ * carry and the reason the wording changed.
+ */
+.transfer-limits {
+  font-size: var(--panel-fine);
+  line-height: 1.5;
+  opacity: 0.75;
+  margin: 0.4rem 0 0;
+}
+.transfer-frozen {
+  font-size: var(--panel-label);
+  opacity: 0.68;
+  margin: 0.4rem 0 0;
+}
 .transfer-applied {
   display: flex;
   flex-wrap: wrap;
@@ -2576,8 +2773,12 @@ button:not(:disabled) {
   padding-block: 0.65rem;
   border-top: 1px solid var(--hairline);
 }
+/*
+ * No `strong` selector any more, and that is deliberate rather than tidying. The row used to
+ * print `action_rule` in bold beside the button that tests recall of it -- see LearningQueue.tsx.
+ * Leaving the rule here would invite it back.
+ */
 .learning-rule-row p,
-.learning-rule-row strong,
 .learning-rule-row small {
   display: block;
   margin: 0.2rem 0 0;
@@ -2587,6 +2788,10 @@ button:not(:disabled) {
 }
 .learning-rule-row small {
   opacity: 0.68;
+}
+/* Set apart from the schedule line beside it: this one explains an absence, not a date. */
+.learning-withheld {
+  font-style: italic;
 }
 .learning-grade {
   font-size: var(--panel-fine);
@@ -3690,4 +3895,20 @@ button:not(:disabled) {
   padding: 8px 10px;
   border-inline-start: 2px solid var(--hairline-strong);
   color: var(--muted);
+}
+
+/*
+ * The research range beside a reader's own discrimination. Quieter than the figure it sits
+ * against, for the same reason `.bucket-versus` is: the reading is the claim, the range is what
+ * makes the claim readable, and equal weight would make one row look like two results.
+ */
+.split-band {
+  /* Its own `dd`, so it needs the list's default indent cleared like the figure's. */
+  margin: 0;
+  /* The range inside it is isolated in the markup, for the reason `.bucket-versus` is. */
+  font-size: var(--panel-fine);
+  font-weight: 400;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

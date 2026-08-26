@@ -16,11 +16,15 @@ import {
   type ScoredDecision,
 } from "../../shared/detector";
 
+/** A position that is deliberately NOT in the anchor set: these are free-play records. */
+const NON_ANCHOR_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 /** A record with NO relationship between context and calibration. Deterministic by seed. */
 export function makeNoise(n: number, seed: number): ScoredDecision[] {
   const random = seededRandom(seed);
   return Array.from({ length: n }, (_, index) => ({
     decision_id: `noise-${index}`,
+    fen: NON_ANCHOR_FEN,
     confidence: normaliseConfidence(1 + Math.floor(random() * CONFIDENCE_LEVELS), CONFIDENCE_LEVELS),
     accurate: random() < 0.5,
     phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],

@@ -17,6 +17,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
+import { RecordModeNotice } from "@/components/RecordModeNotice";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
@@ -35,6 +36,7 @@ import {
   type LearningTransferStage,
 } from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
+import { transferObservation } from "@shared/learning-record";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
@@ -77,6 +79,7 @@ import {
   useStartLearningTransfer,
   useImportReading,
   useSaveImportReading,
+  useRecordTransferObservation,
 } from "@/lib/record-api";
 import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
 import { MoveTimeline } from "@/components/MoveTimeline";
@@ -262,9 +265,8 @@ export default function Home() {
     useState<LearningTransferStage>("briefing");
   const [learningTransferRecall, setLearningTransferRecall] = useState("");
   const [learningTransferApplied, setLearningTransferApplied] = useState<boolean | null>(null);
-  const [learningTransferObservations, setLearningTransferObservations] = useState<
-    LearningTransferObservation[]
-  >([]);
+  /** How many positions have been recorded. The observations themselves live on the record. */
+  const [learningTransferObservations, setLearningTransferObservations] = useState(0);
   const [learningTransferVerdict, setLearningTransferVerdict] = useState<{
     observed: boolean;
     successes: number;
@@ -316,6 +318,7 @@ export default function Home() {
   const completeDrillMutation = useCompleteDrill();
   const startLearningTransferMutation = useStartLearningTransfer();
   const completeLearningTransferMutation = useCompleteLearningTransfer();
+  const recordTransferObservation = useRecordTransferObservation();
   const submitReveal = useReveal();
   const decisionCount = useDecisionCount();
   const recordReading = useRecordReading();
@@ -589,6 +592,21 @@ export default function Home() {
       const isDrillDecision = drill !== null && drillStage === "running";
       const isLearningTransferDecision =
         learningTransfer !== null && learningTransferStage === "running";
+      /*
+       * THE GUARD SITS ON THE COMMIT, not on the advance, and the placement is the fix.
+       *
+       * Blocking the advance instead would leave a player who skipped the question able to answer
+       * it only AFTER the reveal -- which is the contamination this change exists to remove,
+       * reached by a different route. Refusing here keeps both halves of the observation on the
+       * same side of the engine.
+       */
+      if (isLearningTransferDecision && learningTransferApplied === null) {
+        setStage("deciding");
+        setLearningTransferError(
+          "לפני הרישום, סמנו אם אתם מיישמים את הכלל בהחלטה הזו. התשובה נרשמת לפני החשיפה.",
+        );
+        return;
+      }
       try {
         const event = buildCommitEvent(
           decisionId,
@@ -739,14 +757,32 @@ export default function Home() {
           });
           setRevealedDecisionId(decisionId);
           if (isLearningTransferDecision) {
-            setLearningTransferObservations((current) => [
-              ...current,
-              {
+            /*
+             * WRITTEN DOWN NOW, not held until the end. These used to accumulate in component
+             * state for the whole run and reach the server only at completion, and three defects
+             * came out of that: a reload lost them and the resume re-served positions whose
+             * engine verdict the player had already seen; a failed reveal write stranded the run;
+             * and the client was their only holder, so completion had to believe it.
+             */
+            await recordTransferObservation.mutateAsync({
+              transfer_id: learningTransfer.transfer_id,
+              /*
+               * The player's own answer, frozen here -- not a placeholder patched later. It used
+               * to be written `false` and overwritten in `advanceLearningTransfer`, which runs
+               * after the reveal, so the value that reached the server had been collected on the
+               * wrong side of the engine while every screen looked correct.
+               *
+               * `transferObservation` throws rather than defaulting a null to `false`. That line
+               * used to read `?? false` under a comment saying it could not fire; it could,
+               * because this callback did not depend on the value it was reading.
+               */
+              observation: transferObservation({
                 decision_id: decisionId,
                 recalled_rule: learningTransferRecall,
-                applied_rule: false,
-              },
-            ]);
+                applied_rule: learningTransferApplied,
+              }),
+            });
+            setLearningTransferObservations((current) => current + 1);
           }
         } catch {
           // The decision itself is on the record; only the engine's verdict failed to store.
@@ -775,8 +811,10 @@ export default function Home() {
       ensureEngine,
       learningTransfer,
       learningTransferIndex,
+      learningTransferApplied,
       learningTransferRecall,
       learningTransferStage,
+      recordTransferObservation,
       submitReveal,
     ],
   );
@@ -887,7 +925,7 @@ export default function Home() {
         setLearningTransferStage("briefing");
         setLearningTransferRecall("");
         setLearningTransferApplied(null);
-        setLearningTransferObservations([]);
+        setLearningTransferObservations(0);
         setLearningTransferVerdict(null);
       } catch (cause) {
         setLearningTransferError(
@@ -900,21 +938,10 @@ export default function Home() {
 
   const advanceLearningTransfer = useCallback(async () => {
     if (!learningTransfer || learningTransferStage !== "running") return;
-    if (learningTransferApplied === null) {
-      setLearningTransferError("לפני המעבר לעמדה הבאה, סמנו אם יישמתם את הכלל.");
-      return;
-    }
-    if (learningTransferObservations.length !== learningTransferIndex + 1) {
+    if (learningTransferObservations !== learningTransferIndex + 1) {
       setLearningTransferError("החשיפה לא נשמרה ולכן אי אפשר להתקדם בבדיקה.");
       return;
     }
-
-    const observations = learningTransferObservations.map((observation, index) =>
-      index === learningTransferIndex
-        ? { ...observation, applied_rule: learningTransferApplied }
-        : observation,
-    );
-    setLearningTransferObservations(observations);
     setLearningTransferError(undefined);
 
     const next = learningTransferIndex + 1;
@@ -935,9 +962,13 @@ export default function Home() {
 
     setLearningTransferStage("reporting");
     try {
+      /*
+       * A transfer id and nothing else. The observations were written to the record as each was
+       * made, so this asks for the verdict on what is already down rather than posting the
+       * evidence and the request for a verdict in one breath.
+       */
       const outcome = await completeLearningTransferMutation.mutateAsync({
         transfer_id: learningTransfer.transfer_id,
-        observations,
       });
       setLearningTransferVerdict({
         observed: outcome.result.observed,
@@ -967,7 +998,7 @@ export default function Home() {
     setLearningTransferStage("briefing");
     setLearningTransferRecall("");
     setLearningTransferApplied(null);
-    setLearningTransferObservations([]);
+    setLearningTransferObservations(0);
     setLearningTransferVerdict(null);
     setLearningTransferError(undefined);
     setStage("deciding");
@@ -1541,17 +1572,7 @@ export default function Home() {
             />
           </div>
 
-          {recordMode.local && (
-            <p
-              className={`record-mode ${recordMode.durability === "session-only" ? "session-only" : ""}`}
-            >
-              {recordMode.durability === "session-only"
-                ? "הדפדפן חוסם אחסון קבוע (חלון פרטי, חסימת נתוני אתר, תוסף פרטיות או מכסה מלאה). הלולאה עובדת וההחלטות נרשמות — אבל לכרטיסייה הזו בלבד: סגירה או רענון ימחקו אותן."
-                : recordMode.serverBroken
-                  ? "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים."
-                  : "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והמידע לא עוזב את המחשב שלך."}
-            </p>
-          )}
+          <RecordModeNotice {...recordMode} />
 
           {/*
            * The opponent thinking, said out loud. The whole defect this replaces was a board

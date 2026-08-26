@@ -23,6 +23,10 @@ import { render, screen, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { calibrationScore } from "@shared/calibration-score";
+import { splitHalfStability } from "@shared/stability";
+import { metacognitiveSensitivity } from "@shared/sensitivity";
+import { effortFollowsDoubt } from "@shared/control";
 import type { RecordReading } from "@shared/record-service";
 
 const root = resolve(__dirname, "../..");
@@ -50,8 +54,39 @@ vi.mock("@/components/ImportDiagnostic", () => ({
 
 const { default: Record } = await import("@/pages/Record");
 
-const withRecord = (scored: number): RecordReading =>
-  ({ scored, overall: {}, buckets: [], confidence: [], mix: {} }) as unknown as RecordReading;
+/*
+ * NO `as unknown as RecordReading`, and the double cast it replaces was doing real damage. It let
+ * `overall` and `mix` be written as `{}` -- so the component under test received a summary and a
+ * mix whose every field was undefined -- and it let the reading go on compiling when the type
+ * gained the anchor fields, so the page crashed at render instead of failing at the line that
+ * was wrong. A fixture that lies about its shape is not a fixture.
+ */
+const withRecord = (scored: number): RecordReading => ({
+  scored,
+  overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
+  calibration: calibrationScore([]),
+  anchor: calibrationScore([]),
+  anchorAnswered: [],
+  stability: splitHalfStability([]),
+  sensitivity: metacognitiveSensitivity([]),
+  // No band beside an unreadable number: the literature's median is a persuasive thing to
+  // misread as your own result.
+  sensitivityReference: null,
+  control: effortFollowsDoubt([]),
+  buckets: [],
+  confidence: [],
+  mix: {
+    n: 0,
+    counts: {
+      "chose-past-it": 0,
+      "confident-and-wrong": 0,
+      outplayed: 0,
+      "trusted-it-too-little": 0,
+    },
+    silent: 0,
+    eligible: 0,
+  },
+});
 
 const keptReading = {
   username: "erez281",

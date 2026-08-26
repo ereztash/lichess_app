@@ -33,13 +33,32 @@ decision _policy_ rather than their opening knowledge — a second-order quantit
 improvement actually lives. And both halves come from outside the product's own opinion:
 confidence is the player's, accuracy is the engine's. The product grades neither.
 
-    confidence 1..5, mapped to 0..1        (the player's)
-    accuracy   = share of decisions costing <= 30 centipawns   (the engine's)
+    confidence 1..7, mapped to .05 .20 .35 .50 .65 .80 .95   (the player's)
+    accuracy   = share of decisions costing <= 2.76 points of
+                 the player's winning chances                  (the engine's)
     gap        = mean confidence - accuracy rate
 
-Positive gap is overconfidence, negative is underconfidence. A decision costing 30 cp or less is
-counted accurate because that is inside evaluation noise at the depths this product searches;
-calling it a mistake would be the product inventing a finding.
+Positive gap is overconfidence, negative is underconfidence.
+
+**Both halves of that changed, and the reasons are measured rather than stylistic.**
+
+The scale ran 1..5 onto 0..1 and now runs 1..7 inset at .05/.95. A perfectly calibrated player —
+one who knows their own probability of being accurate exactly, and whose only constraint is
+having to answer on these levels — is read by the old scale at up to 1.50 points of gap and by
+this one at 0.35, and the spread between two such players facing different difficulty streams
+fell from 2.98 points to 0.60. The coarseness was the defect, not the endpoints: pulling the ends
+in while staying at five levels made it *worse*. No level asserts 0 or 1, which is what makes a
+logarithmic score computable at all — one stated certainty that turned out wrong made it infinite,
+and infinite permanently.
+
+Accuracy was `cp_loss <= 30`. Thirty centipawns is not one event: it costs 2.76 points of winning
+chances at a level position and 0.28 at +10.00, so "accurate" meant something different depending
+on how the game stood, and calibration against an event that is not one event is undefined. The
+threshold is now that same 30 cp expressed as what it costs, anchored at the evaluation where the
+cost peaks, so that no decision the old rule called accurate is called inaccurate by this one.
+
+See `shared/confidence.ts`, `shared/win-probability.ts`, and the section
+"The instrument, as specified" below.
 
 ## Secondary
 
@@ -116,7 +135,7 @@ Both existed, both were defensible, and both were on screen under the word **ד�
 
 | | definition | where |
 | --- | --- | --- |
-| **accuracy rate** (canonical) | share of decisions with `cpLoss <= ACCURATE_CP_LOSS` (30) | `shared/detector.ts` |
+| **accuracy rate** (canonical) | share of decisions with `winProbabilityLoss(eval, cpLoss) <= ACCURATE_WIN_PROBABILITY_LOSS` (2.76 points of winning chances, derived from the old 30 cp) | `shared/detector.ts`, `shared/win-probability.ts` |
 | accuracy score | Lichess-style exponential 0-100 per move, averaged | `shared/eval-analysis.ts` |
 
 The **rate** is canonical for anything feeding a bucket, a claim, or a calibration gap. It is a
@@ -1181,7 +1200,8 @@ control chose"* below for what replaced it and what it cost.
 ## A forced mate is not a centipawn quantity, and the live reveal read it as one
 
 Found while sizing the detector fix above, because everything the detector reads is derived from
-`accurate`, and `accurate` is `cp_loss <= 30`.
+`accurate`, which at the time was `cp_loss <= 30`. (It is now a win-probability cost; the defect
+below is unchanged by that, because a mate distance read as centipawns is wrong on either scale.)
 
 `parseAnyInfo` stores a `score mate N` line as `scoreCp = N * 10000`. That is an ordering, not a
 magnitude — it makes *mate in nine* score higher than *mate in eight* — and `cpLossFromSearches`
@@ -1658,3 +1678,280 @@ call, not a refactor.
 **Four survived the first pass** and each named something real: two because the ribbon was only
 asserted through its source and never rendered, one because of the `savedAt` flaw above, and one
 because the prefill genuinely had two mechanisms.
+
+---
+
+# The instrument, as specified
+
+Everything a reader needs to say what this measures, reproduce it, or disagree with it. Written
+as a specification rather than a description: each row names the choice, the value, and **what
+set it** — because a constant whose provenance is "it seemed right" is not a measurement.
+
+**Instrument version 1.** Readings taken under different versions are not comparable and nothing
+pools them.
+
+## 1. What is elicited
+
+| | |
+| --- | --- |
+| Judgment | One move, plus a confidence that it is accurate |
+| When | **Before any engine output exists on the client.** Enforced by GATE-COMMIT, which fails if the engine module is in the initial module graph or if a pre-commit reveal carries engine output |
+| Scale | Seven ordinal levels: ניחוש · ספק · נוטה · שקול · סביר · בטוח · ודאי |
+| Mapped to | `.05 .20 .35 .50 .65 .80 .95` |
+| Recorded with | The scale it was stated on, so a stored level cannot be re-read on a scale the player never saw |
+
+**Why seven, and why inset.** A perfectly calibrated agent — zero self-knowledge error, its only
+constraint being these levels — is run through the scale and the gap it prints is the
+instrument's zero point. Computed as an integral, not simulated:
+
+| scale | worst reading | spread across difficulty streams |
+| --- | --- | --- |
+| 3 levels `.25 .50 .75` | −12.07 | 14.55 |
+| 5 levels `0 .25 .50 .75 1` | −1.50 | 2.98 |
+| 5 levels `.10 … .90` | −2.08 | 3.83 |
+| 7 levels `0 .167 … 1` | −0.99 | 1.67 |
+| **7 levels `.05 … .95`** | **−0.35** | **0.60** |
+| 9 levels `.05 … .95` | −0.52 | 0.55 |
+
+Nine levels buy nothing over seven, which is where Cox (1980) put the usable band from an
+unrelated direction. Reproduce: `tests/shared/confidence-scale.test.ts`.
+
+## 2. What counts as the outcome
+
+| | |
+| --- | --- |
+| Ground truth | Stockfish 18, depth 14, MultiPV 8 |
+| Cost of a move | `winProbability(eval) − winProbability(eval − cpLoss)` |
+| Accurate when | That cost ≤ `ACCURATE_WIN_PROBABILITY_LOSS` = 2.76 points |
+| Threshold set by | `ACCURATE_CP_LOSS` (30 cp) at the evaluation where its cost peaks — so no decision the centipawn rule called accurate is called inaccurate by this one |
+| Logistic constant | `k = 0.00368208`, Lichess's published fit **on 2300-rated games**. GM estimates are roughly twice as steep; any product inheriting it for another population misstates what moves cost, including this one |
+
+**The oracle charges nothing for its own best move.** Centipawn loss is read out of a single
+MultiPV root search, so the comparison is `best − chosen` within one tree, one window, one
+iteration. Measured against Stockfish 18 on 110 real positions, feeding it the engine's own best
+move: root-minus-child scored 7.3% of them "inaccurate", a second root search restricted with
+`searchmoves` scored 12.7%, and one MultiPV search scores 0 on 110 of 110.
+
+## 3. Which positions
+
+| | |
+| --- | --- |
+| Comparable reading | The **anchor set**: 60 positions, fixed, answered by everyone in one order |
+| Corpus | Lichess open database (CC0), games with `[%eval]`, terminating normally, base time ≥ 180 s |
+| Position filter | Past `OPENING_MAX_PLY`; not the final ply; `\|eval\| ≤ 300 cp` (Regan's exclusion) |
+| Sampling | Fixed stride through the eligible stream, at most one position per source game |
+| Generator | `scripts/build_anchor_set.ts` — the bank is regenerable, not hand-written |
+| Free-play reading | Also reported, and **comparable to nobody**: the player met their own positions |
+
+Sampled rather than curated because overconfidence is substantial on **selected** items and near
+zero on **representative** ones (Gigerenzer, Hoffrage & Kleinbölting 1991; Juslin 1994) — a bank
+chosen for instructive positions manufactures the finding it exists to measure.
+
+## 4. What is reported
+
+`BRIER = RELIABILITY − RESOLUTION + UNCERTAINTY` (Murphy 1973), exactly — the scale is discrete,
+so grouping is by level and there is no binning parameter to choose. This is the problem CORP
+(Dimitriadis, Gneiting & Jordan, *PNAS* 2021) exists to solve for continuous forecasts, and it
+does not arise here.
+
+| term | belongs to |
+| --- | --- |
+| `UNCERTAINTY` = `o(1−o)` | **the positions**, entirely |
+| `RESOLUTION` | the player's discrimination |
+| `RELIABILITY` | the player's calibration error — the only term that is a statement about them |
+
+Also reported: Brier, Brier skill score against the base rate, and a logarithmic score, which is
+finite only because no level asserts certainty.
+
+**Nothing is reported below `MIN_BUCKET_N` per level.** Reliability is biased upward in small
+samples — at one decision per level it is at its maximum by construction — so the figures stay
+arithmetically correct and are marked unreadable rather than shown.
+
+## 4b. Which facets of metacognition, exactly
+
+The instrument is described as measuring metacognition. Metacognition is not one thing, so this
+names the parts — and a claim stays at the grade its measurement justifies, which is GATE-GRADE
+turned on the product's own name.
+
+| facet | what it asks | measured? | where |
+| --- | --- | --- | --- |
+| **Bias / calibration** | Do the words match what happens? | ✅ | `RELIABILITY` in the decomposition above |
+| **Sensitivity / discrimination** | Does the confidence separate the right decisions from the wrong ones? | ✅ | `shared/sensitivity.ts` — AUROC2, referenced in 4d |
+| **Control** | Did the effort go where the doubt was? | ✅ | `shared/control.ts` — Spearman, seconds against stated confidence |
+| **Metacognitive efficiency** | How much of the available evidence did the confidence use? | ❌ | see below |
+| **Metacognitive knowledge** | Do you know *which kinds* of position you are bad at? | ❌ | not measured at all |
+
+**Bias and sensitivity are genuinely different, and the difference is the reason both are here.**
+A player who says "certain" about everything and is right 70% of the time, and a player who says
+"certain" about every decision they get right and "guess" about every one they get wrong, can
+have the *same* calibration error. The first is useless as a judge of themselves; the second is
+perfect. AUROC2 is the number that knows the difference, and it is unchanged by shifting every
+stated confidence by the same amount — which is exactly what makes it not a second calibration
+measure under another name.
+
+**Control is the half that monitoring alone cannot stand in for.** Knowing you are unsure is
+worth something because of what you do next. Negative is the healthy direction — longer on the
+decisions you were less sure of — and the coefficient is reported signed, because the opposite
+pattern is a finding rather than an error.
+
+**Why `meta-d′` is absent, since it is what the field reaches for first.** `meta-d′` is defined
+against a Type-1 signal detection model and needs `d′`, which needs a *binary* first-order task
+with signal-present and signal-absent trials. Choosing a move from thirty legal options is not
+that, and there is no honest way to force it into the shape. `meta-d′/d′` — metacognitive
+efficiency — exists to make metacognition comparable between people of different first-order
+skill, and **the anchor set is this instrument's answer to that same problem by a different
+route**: hold the items fixed and the first-order difficulty is identical for everyone.
+
+The cost of that route is worth stating plainly: `meta-d′/d′` would make readings comparable
+against *the existing literature*, and a fixed anchor set only makes them comparable *within this
+instrument*. **Section 4d recovers part of what that gives up by a third route** — placing AUROC2
+against 3,836 people from the Confidence Database, conditioned on their first-order accuracy,
+which is what `meta-d′/d′` normalises for. It is a weaker instrument than `meta-d′/d′` for the
+job and it is what the task admits.
+
+## 4c. What a bucket is reported against
+
+A bucket's accuracy is mostly a property of the bucket, not of the player, and a row that shows
+someone their middlegame rate on its own is telling them a fact about chess in the second person.
+So every readable bucket is reported against a population baseline built from the same corpus the
+rest of the instrument uses.
+
+**Measured, on 693,130 scored Lichess moves** (`shared/population-baseline.ts`, generated by
+`scripts/build_population_baseline.ts`):
+
+| bucket | population accuracy inside | outside | gap |
+| --- | --- | --- | --- |
+| `fast-under-45s` | 65.23% (n = 679,036) | 48.48% | **+16.75pp** |
+| `slow-over-2m` | 50.71% (n = 1,189) | 64.92% | **−14.20pp** |
+| `phase-opening` | 70.28% (n = 322,254) | 60.21% | **+10.08pp** |
+| `phase-middlegame` | 58.42% (n = 337,756) | 71.04% | **−12.62pp** |
+| `phase-endgame` | 78.43% (n = 33,120) | 64.21% | **+14.22pp** |
+| `clock-under-1m` | 66.72% (n = 29,209) | 64.81% | **+1.91pp** |
+
+The slow bucket is the one worth reading twice. Decisions that took over two minutes are 14.2
+points less accurate **for everyone**, which is reverse causation through position difficulty —
+people think longer *because* the position is hard. The population cannot be tired, cannot be
+tilted and cannot be out of its depth all at once, so nothing in that figure is about a person.
+
+**Corpus and rules.** Lichess open database (CC0), games carrying both `[%eval]` and `[%clk]`,
+terminating normally, base time 180s or more, positions not already decided (`|eval| ≤ 300cp`,
+Regan's exclusion). Built with the product's **own** `classifyPhase`, `BUCKETINGS` and
+`ACCURATE_WIN_PROBABILITY_LOSS` — a baseline computed with its own idea of "accurate" would be a
+number from a different instrument, and subtracting it would be arithmetic between two
+measurements. Asserted against the generator's source, not just its output.
+
+**What it is not.** There is **no confidence half and there never can be one from imported
+games** — nobody asked those players how sure they were. This baselines accuracy and nothing
+else, so it makes a bucket's accuracy interpretable and leaves the calibration gap exactly as
+un-referenced as it was.
+
+**A bucket the corpus cannot support is absent, not zero.** The floor is 500 moves on each side;
+below it `populationBucket` returns null and the screen renders nothing rather than a comparison
+against a number nobody measured. Zero would read as "exactly average", which is a measurement.
+The comparison is also withheld for any bucket the *record* cannot read — a population has a very
+confident-looking provenance, and eight decisions measured against 693,130 is still eight
+decisions.
+
+## 4d. What the discrimination figure is read against
+
+`AUROC2 = 0.71` is uninterpretable on its own — that was this document's first admission, and for
+sensitivity it stopped being true in 2020. The **Confidence Database** (Rahnev et al., *Nature
+Human Behaviour* 4, 317–325; osf.io/s46pr, CC0) carries trial-level confidence and accuracy from
+~180 datasets, and AUROC2 needs exactly those two columns.
+
+**Measured on 3,836 individual people across 76 datasets** (`shared/sensitivity-reference.ts`,
+generated by `scripts/build_sensitivity_reference.ts`), each person's AUROC2 computed by **this
+product's own** `metacognitiveSensitivity` under its own `MIN_BUCKET_N` floor on both outcomes.
+The unit is the **person**, not the study: a player is one person, and averaging studies first
+would weight a twelve-subject experiment like a four-hundred-subject one.
+
+**The band is conditioned on first-order accuracy, and that is the finding rather than a
+refinement.** AUROC2's standard criticism is that it is not independent of how good you are at the
+task, which `shared/sensitivity.ts` has always admitted in prose. Measured, it is the dominant
+term — Spearman ρ = **+0.59**:
+
+| the person's own accuracy | people | datasets | p10 | median | p90 | above chance |
+| --- | --- | --- | --- | --- | --- | --- |
+| under 60% | 260 | 45 | 0.472 | **0.531** | 0.617 | 76.9% |
+| 60–70% | 744 | 63 | 0.525 | **0.605** | 0.694 | 97.0% |
+| 70–80% | 1,966 | 70 | 0.561 | **0.654** | 0.752 | 98.7% |
+| 80–90% | 705 | 52 | 0.604 | **0.734** | 0.832 | 98.9% |
+
+An unconditioned band would tell a strong player they are metacognitively gifted for being good at
+chess. This is the same confound the population baseline removes from the buckets, in the same
+way. Note also the last column: **97% of people carry some information about their own
+correctness**, so "above chance" is not an achievement — the band is, and a reading at 0.55 is at
+the bottom of it rather than "better than chance".
+
+**A stratum the corpus cannot support is absent, not interpolated.** The floor is 200 people; the
+corpus holds only 161 above 90% accuracy, so `sensitivityBand` returns null there and the screen
+renders no range. That is deliberately the *opposite* of a fallback: an unconditioned band handed
+to the most accurate readers is where the confound is largest.
+
+**A band, never a percentile rank.** The literature's task is not this instrument's task — nearly
+every dataset is a binary or near-binary perceptual or memory judgement, and choosing a move from
+thirty legal options is not one. Conditioning on accuracy narrows the mismatch and does not close
+it. What this supports is one sentence — *"among people about this accurate, in the research
+literature, this number runs from X to Y"* — and nothing stronger. A percentile rank would assert
+that a chess player and a psychophysics subject are draws from one population.
+
+**Scale regime.** AUROC2 reads only the *order* of confidence values, so it is indifferent to what
+a study called its scale — but not to how many rungs it has: a two-point scale gives the curve two
+points and pushes the area toward 0.5 for reasons about the instrument rather than the person.
+Every band above is measured on subjects rated on 4–12 levels, where this product's seven sits.
+
+**Coverage, stated because a reference class that quietly drops studies is a curated one.** 132 of
+180 datasets contribute; 21 lack the standard schema (dual-task designs with `Response_1`/
+`Response_2`, multi-task files with one column per task) and 27 have no subject clearing the
+floor on both outcomes. **No dataset is hand-parsed** — a per-study parser is exactly how a
+reference class becomes a selection.
+
+## 5. What protects the finding
+
+| control | what it does | where |
+| --- | --- | --- |
+| GATE-SHUFFLE | Permutes clock, phase and time-taken hundreds of times over one record; the worst cell must stay under a 2% false-positive ceiling. **This sets `SEPARABILITY_K = 3.75`** | `scripts/run_gates.ts` |
+| Pre-registration | A bucket named in advance buys `n = 20` and `k = 3.25`, both measured on the same harness, not asserted | `shared/prereg.ts` |
+| Positive controls | Every gate must go RED under a deliberate defect, and every new assertion is shown red by a mutation diffed against the original | `npm run gates:controls` |
+| GATE-NO-FAKE, GATE-DENOM | No placeholder evaluation and no denominatorless percentage on any render-path file | `scripts/run_gates.ts` |
+
+## 6. What this instrument cannot do
+
+Stated here because a specification that lists only its strengths is advertising.
+
+- **No reference class exists for the calibration gap.** No published distribution of stated-
+  confidence-minus-realised-accuracy for chess exists at any sample size. A gap of −14 points
+  cannot be called large, small, typical or unusual, because there is nothing to call it relative
+  to. Neither external corpus closes this one: the population baseline (4c) is built from games in
+  which nobody was ever asked how sure they were, and the Confidence Database (4d) references
+  AUROC2 only. **The gap and the reliability term remain un-referenced.**
+- **The sensitivity reference class is borrowed from another task.** Section 4d places AUROC2
+  against 3,836 people, conditioned on their accuracy — which is far better than nothing and is
+  not the same as a chess reference class. Those people were judging gratings and word lists, and
+  AUROC2 is not fully separable from the first-order task even after conditioning. It supports a
+  range to read a number against; it does not support a rank.
+- **Trait status is unproven.** Test–retest reliability has never been measured, and cannot be
+  from a single sitting: retest separates the two measurements in TIME, which is what
+  distinguishes a trait from a mood, a warm-up or a run of good positions. Cross-task
+  correlations for ordinary calibration measures run .08–.39; the one instrument with
+  demonstrated trait reliability reaches r ≈ .53–.77 by making performance uninformative. Until
+  this clears something like r ≈ .5 across sessions, it measures the session, not the person.
+
+  What IS measured is weaker and is labelled as such: a **split-half stability check** on the
+  anchor decisions, alternating rather than down the middle so a steady drift over a sitting is
+  not reported as instability. It is a check on one sitting, and a trait claim needs two. It answers "did this record say the same thing twice", in standard
+  errors, and produces no coefficient — a correlation between halves needs many people, and one
+  player yields one pair of numbers. Failing it means the number is noise; passing it means the
+  number is not obviously noise, and nothing more. See `shared/stability.ts`.
+- **Nothing external has checked it.** No independent replication, no published protocol, no
+  second implementation.
+- **The time buckets are confounded, and the confound is now subtracted rather than merely
+  admitted.** On 380,310 real Lichess moves the blunder rate rises monotonically with think time
+  (1.55% → 7.92%) — reverse causation through position difficulty. Section 4c now reports every
+  readable bucket against a population baseline measured on 693,130 moves, which is what a
+  bucket-level claim needed. **The confound is not gone.** The baseline removes the part of a
+  bucket's accuracy that belongs to the bucket *on average*; it does not tell anyone whether the
+  positions THIS player met in that bucket were the average ones, and with thirty decisions they
+  very often are not.
+- **The elicitation is a move plus a level.** A stronger design elicits an interval on the cost
+  itself; this one does not.

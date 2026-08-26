@@ -9,7 +9,8 @@
  */
 import { LEGACY_CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import type { DecisionAtom } from "./decision-atom.js";
-import { ACCURATE_CP_LOSS, type ScoredDecision } from "./detector.js";
+import { ACCURATE_WIN_PROBABILITY_LOSS, type ScoredDecision } from "./detector.js";
+import { winProbabilityLoss } from "./win-probability.js";
 
 export interface ScoringSummary {
   scored: ScoredDecision[];
@@ -29,6 +30,7 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
     }
     scored.push({
       decision_id: decisionIds[index] ?? `decision-${index}`,
+      fen: atom.entry_state.fen,
       /*
        * THE ONE PLACE THAT RESOLVES A MISSING SCALE, and it resolves it to a fact rather than a
        * default: `confidence_scale` was added when the scale moved to seven, so a row without one
@@ -39,7 +41,15 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
         atom.bounded_action.confidence,
         atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
       ),
-      accurate: atom.result.cp_loss <= ACCURATE_CP_LOSS,
+      /*
+       * Judged on what the move COST, not on how many centipawns it shed. Thirty centipawns is
+       * worth 2.76 points of winning chances at a level position and 0.28 at +10.00 -- a tenth of
+       * the same "event" -- so the old rule made "accurate" mean something different depending on
+       * how the game stood, and calibration against an event that is not one event is undefined.
+       */
+      accurate:
+        winProbabilityLoss(atom.result.engine_eval_cp, atom.result.cp_loss) <=
+        ACCURATE_WIN_PROBABILITY_LOSS,
       phase: atom.entry_state.phase,
       secondsTaken: atom.bounded_action.seconds_taken,
       clockMsRemaining: atom.entry_state.clock_ms_remaining,

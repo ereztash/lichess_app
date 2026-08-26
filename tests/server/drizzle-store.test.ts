@@ -64,6 +64,10 @@ describeDb("DrizzleRecordStore against MySQL", () => {
     await db.execute("DELETE FROM decision_feedback");
     await db.execute("DELETE FROM decisions");
     await db.execute("DELETE FROM preregistered_hypotheses");
+    await db.execute("DELETE FROM learning_transfer_observations");
+    await db.execute("DELETE FROM learning_transfer_results");
+    await db.execute("DELETE FROM learning_transfers");
+    await db.execute("DELETE FROM learning_rules");
   };
 
   beforeAll(async () => {
@@ -192,5 +196,69 @@ describeDb("DrizzleRecordStore against MySQL", () => {
     const back = await store.getPreregisteredHypothesis();
     expect(back?.bucket_key).toBe("phase-endgame");
     expect(back?.decisions_before).toBe(40);
+  });
+
+  /*
+   * THE OBSERVATION TABLE, AGAINST THE REAL DATABASE.
+   *
+   * The append-only guarantee here is a COMPOSITE PRIMARY KEY on (transfer_id, position), not a
+   * check in TypeScript -- so it can only be proven where the key exists. The in-memory store
+   * enforces the same rule with a Map and would agree with a broken migration, which is precisely
+   * the "an interface is not a proof" point this file was written for.
+   */
+  it("records one observation per position, and refuses a second for the same slot", async () => {
+    const observation = (id: string) => ({
+      decision_id: id,
+      recalled_rule: "לספור שחים והכאות לפני מהלך שקט",
+      applied_rule: true,
+    });
+    await store.saveLearningTransferObservation("t-db", 0, observation("d-db-0"));
+    await store.saveLearningTransferObservation("t-db", 1, observation("d-db-1"));
+
+    const read = await store.listLearningTransferObservations("t-db");
+    expect(read.map((o) => o.decision_id)).toEqual(["d-db-0", "d-db-1"]);
+    expect(read[0].recalled_rule, "Hebrew did not survive the round trip").toBe(
+      "לספור שחים והכאות לפני מהלך שקט",
+    );
+    expect(read[0].applied_rule, "boolean came back as 0/1 rather than a boolean").toBe(true);
+
+    await expect(
+      store.saveLearningTransferObservation("t-db", 0, observation("d-db-other")),
+      "the composite primary key did not reject a second write for position 0",
+    ).rejects.toThrow();
+  });
+
+  it("keeps one transfer's observations out of another's", async () => {
+    // The key is composite, so a query that forgot the transfer id would still look correct on a
+    // single-transfer fixture.
+    await store.saveLearningTransferObservation("t-db-a", 0, {
+      decision_id: "d-a",
+      recalled_rule: "a",
+      applied_rule: true,
+    });
+    await store.saveLearningTransferObservation("t-db-b", 0, {
+      decision_id: "d-b",
+      recalled_rule: "b",
+      applied_rule: false,
+    });
+    expect((await store.listLearningTransferObservations("t-db-a")).map((o) => o.decision_id)).toEqual(["d-a"]);
+    expect((await store.listLearningTransferObservations("t-db-b")).map((o) => o.decision_id)).toEqual(["d-b"]);
+  });
+
+  it("returns them in position order, not insertion order", async () => {
+    // Written 2, 0, 1. A store that returned insertion order would file each observation against
+    // the wrong preregistered board while the test still looked complete.
+    for (const position of [2, 0, 1]) {
+      await store.saveLearningTransferObservation("t-db-order", position, {
+        decision_id: `d-${position}`,
+        recalled_rule: `r-${position}`,
+        applied_rule: true,
+      });
+    }
+    expect((await store.listLearningTransferObservations("t-db-order")).map((o) => o.decision_id)).toEqual([
+      "d-0",
+      "d-1",
+      "d-2",
+    ]);
   });
 });
