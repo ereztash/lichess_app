@@ -24,6 +24,8 @@ import { RecordDashboard } from "@/components/RecordDashboard";
 import { MIN_BUCKET_N } from "@shared/detector";
 import type { RecordReading } from "@shared/record-dashboard";
 import { readCounterfactuals } from "@shared/counterfactual-reading";
+import { readVariables } from "@shared/bucket-variable";
+import { crossVariables } from "@shared/crossing";
 
 const POSITION = {
   gameId: "g",
@@ -153,6 +155,7 @@ const emptyMix = {
 const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   overall: { n: 40, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
   counterfactual: readCounterfactuals([]),
+  profile: { variables: readVariables([]), crossing: crossVariables([]) },
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
   anchorAnswered: [],

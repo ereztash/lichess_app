@@ -23,12 +23,15 @@ import {
   readCounterfactuals,
   type CounterfactualRecordReading,
 } from "./counterfactual-reading.js";
+import { readVariables, type VariableReading } from "./bucket-variable.js";
+import { crossVariables, type CrossingReading } from "./crossing.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
   BUCKETINGS,
   MIN_BUCKET_N,
   SEPARABILITY_K,
+  detect,
   summarise,
   type CalibrationSummary,
   type ScoredDecision,
@@ -166,6 +169,16 @@ export type RecordReading = {
    * about it.
    */
   counterfactual: CounterfactualRecordReading;
+  /**
+   * The buckets read as VARIABLES rather than as levels, and the variables crossed.
+   *
+   * Both are readings over `decisions`, computed here rather than passed in, because unlike the
+   * probe they need nothing the `ScoredDecision` does not already carry.
+   */
+  profile: {
+    variables: VariableReading;
+    crossing: CrossingReading;
+  };
   /**
    * The gap above, split into the three things it stands in for.
    *
@@ -348,6 +361,10 @@ export function readRecord(
 
   return {
     counterfactual,
+    profile: {
+      variables: readVariables(detect(decisions)),
+      crossing: crossVariables(decisions),
+    },
     overall,
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(anchored),

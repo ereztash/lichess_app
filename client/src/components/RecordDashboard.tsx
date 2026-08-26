@@ -16,6 +16,7 @@ import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
 import { CounterfactualPanel } from "./CounterfactualPanel";
+import { ProfilePanel } from "./ProfilePanel";
 import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
 
@@ -481,6 +482,15 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         * right -- and this is selection, which move you produce. Placing it inside the
         * calibration block would invite reading one as a refinement of the other.
         */}
+      {/*
+        * Above the probe panel because it reads the SAME decisions the bucket rows above it read,
+        * and it exists to correct how those rows are counted. The probe is a separate facet on a
+        * different question and belongs after both.
+        */}
+      <ProfilePanel
+        variables={reading.profile.variables}
+        crossing={reading.profile.crossing}
+      />
       <CounterfactualPanel reading={reading.counterfactual} />
     </section>
   );

@@ -1765,6 +1765,73 @@ button:not(:disabled) {
    while deciding -- the engine's panel is absent, not hidden. */
 /* Every size in here comes from the five-step scale declared in :root. */
 /*
+ * The game profile, in the record dashboard.
+ *
+ * Same restraint as the probe panel below it: it corrects how the bucket rows above are counted,
+ * and a panel styled to outshine them would invert the relationship it exists to state.
+ */
+.profile-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+.profile-panel__title {
+  margin: 0 0 6px;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  color: var(--ink);
+}
+.profile-panel__subtitle {
+  margin: 12px 0 4px;
+  font-size: var(--panel-fine);
+  font-weight: 600;
+  color: var(--muted);
+}
+.profile-panel__variables,
+.profile-panel__crossings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-panel__variable,
+.profile-panel__crossing {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profile-panel__variable-label,
+.profile-panel__crossing-scope {
+  font-size: var(--panel-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+.profile-panel__variable-reading,
+.profile-panel__crossing-reading {
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+/* A mirror is a consequence, and reads as one: same size as a caveat, not as a finding. */
+.profile-panel__mirror,
+.profile-panel__alongside,
+.profile-panel__denominator,
+.profile-panel__impossible {
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.profile-panel__denominator,
+.profile-panel__impossible {
+  margin: 10px 0 0;
+}
+/* Bare numerals inside Hebrew sentences are neutral-direction and land on the wrong side. */
+.profile-panel bdi {
+  unicode-bidi: plaintext;
+}
+
+/*
  * The probe's readings, inside the record dashboard rather than beside it.
  *
  * Deliberately quiet: it is the newest measurement in the product and the one with the least n
