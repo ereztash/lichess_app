@@ -47,7 +47,7 @@ import {
 import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
 import { positionKey, samePosition } from "./position-key.js";
-import { scoreRecall } from "./recall-score.js";
+import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import { oneThingMix } from "./reveal.js";
@@ -262,6 +262,24 @@ export async function beginLearningTransfer(
         rule.grade === "refuted"
           ? "הכלל הזה הופרך, ולכן אין עליו בדיקות נוספות."
           : "הכלל הזה הוצא מתור הלמידה.",
+    };
+  }
+
+  /*
+   * AN UNSCOREABLE RULE IS NEVER TESTED, because the test it would get is unwinnable.
+   *
+   * `action_rule = "f7 f2"` is an ordinary way to write a chess rule and has no token the recall
+   * measure can see. A review ran it end to end: perfect verbatim recall on all three positions,
+   * zero centipawns lost, scored 0/3, and the rule came out refuted with a message blaming the
+   * retrieval schedule. Refusing here means the unwinnable test is never created, and the reason
+   * names the real cause instead.
+   */
+  if (!isScoreable(rule.action_rule)) {
+    return {
+      transfer: null,
+      reason:
+        "אי אפשר למדוד שליפה של הכלל הזה: הניסוח שלו קצר מדי או מורכב מסימונים בלבד. " +
+        "כדי שהבדיקה תוכל להשוות את מה שתשלפו למה שכתבתם, הכלל צריך כמה מילים משלו.",
     };
   }
 

@@ -43,6 +43,48 @@
 const MIN_TOKEN_LENGTH = 3;
 
 /**
+ * Function words and generic connectives that survive the length floor.
+ *
+ * THE FILE USED TO CLAIM "both languages spend their short tokens on function words". That is
+ * false above two letters in Hebrew, and an adversarial review turned it into an attack: ONE fixed
+ * sentence, typed with no knowledge of any rule --
+ *
+ *   "לפני שאני בוחר צריך לבדוק תמיד את כל האפשרויות ולחשוב יותר על המהלך הבא"
+ *
+ * -- cleared the floor on SIX of eight realistic learning rules. `לפני` `צריך` `תמיד` `יותר`
+ * `לחשוב` `האפשרויות` are all four letters or more and all carry no content.
+ *
+ * WHAT THIS LIST IS AND IS NOT. Removing function words from a content-word count is principled:
+ * they are not content, in either language. Measured on the same eight rules it takes the attack
+ * from 6/8 to **2/8** while verbatim recall stays 8/8.
+ *
+ * It does NOT take it to zero, and it is not extended until it does. The two that still pass share
+ * genuine vocabulary with the attack sentence -- `לבדוק`, `מהלך` -- and adding those would be
+ * fitting a parameter to eight examples, which is the thing this file's own comments warn against.
+ * The measure cannot be made sound by tuning. What follows from that is structural and lives
+ * elsewhere: a score like this must never be able to REFUTE a rule on its own.
+ */
+const STOP_WORDS = new Set([
+  "לפני", "אחרי", "כאשר", "כשיש", "צריך", "תמיד", "יותר", "פחות", "האפשרויות", "אפשרויות",
+  "לחשוב", "חושב", "הבא", "הזה", "הזאת", "שאני", "אני", "אתה", "שלי", "שלו", "שלהם", "זה", "זאת",
+  "כדי", "כמו", "אבל", "ולא", "גם", "רק", "עוד", "כבר", "להיות", "יכול", "אפשר", "באמת", "ממש",
+  "הראשונה", "הראשון", "משהו", "דברים", "בכל", "לכל", "מכל", "ואז", "ואם", "אם", "את", "כל", "על",
+  "של", "עם", "לי", "לו", "יש", "לא", "מה", "מי", "כן",
+  "the", "and", "for", "before", "after", "when", "should", "always", "more", "less", "this",
+  "that", "with", "from", "every", "all", "any", "not", "but", "must", "need", "needs", "have",
+]);
+
+/**
+ * The fewest of the rule's own content words a recall must reproduce, in absolute terms.
+ *
+ * A RATIO ALONE IS NOT ENOUGH ON A SHORT RULE. "לספור שחים" has two content words, so one match
+ * scored 0.50 and cleared a 0.34 floor -- and a rule repeating one word ("שחים שחים שחים")
+ * de-duplicates to a single content word, where any token containing it scored 1.00. Both were
+ * found by review, and neither is exotic: a short rule is a well-written rule.
+ */
+const MIN_MATCHED_WORDS = 2;
+
+/**
  * The share of the rule's own content words a recall must reproduce.
  *
  * A FLOOR AGAINST UNRELATED TEXT, not a pass mark for memory. It exists so that `banana` scores
@@ -76,7 +118,7 @@ function contentWords(text: string): string[] {
       text
         .toLowerCase()
         .split(/[^\p{L}\p{N}]+/u)
-        .filter((token) => token.length >= MIN_TOKEN_LENGTH),
+        .filter((token) => token.length >= MIN_TOKEN_LENGTH && !STOP_WORDS.has(token)),
     ),
   ];
 }
@@ -118,5 +160,27 @@ export function scoreRecall(recalled: string, authoredRule: string): RecallScore
   if (total === 0) return { matched: 0, total: 0, coverage: 0, clearedFloor: false };
   const matched = target.filter((word) => isMatched(word, attempt)).length;
   const coverage = matched / total;
-  return { matched, total, coverage, clearedFloor: coverage >= RECALL_COVERAGE_FLOOR };
+  return {
+    matched,
+    total,
+    coverage,
+    // BOTH conditions. The ratio catches a long recall that shares little; the absolute count
+    // catches a short rule where one lucky word is already half of it.
+    clearedFloor: matched >= MIN_MATCHED_WORDS && coverage >= RECALL_COVERAGE_FLOOR,
+  };
+}
+
+/**
+ * Whether a rule can be scored by this measure at all.
+ *
+ * A RULE THAT CANNOT BE SCORED MUST NEVER BE TESTED, because the test it gets is unwinnable and
+ * the product's response to losing it was to mark the rule refuted forever. `action_rule = "f7 f2"`
+ * is a perfectly ordinary way to write a chess rule and has no token this measure can see: perfect
+ * verbatim recall on all three positions, zero centipawns lost, scored 0/3, `refuted`,
+ * `next_due_at: null`, and the message blamed the retrieval schedule. Found by review.
+ *
+ * Checked before a transfer is preregistered, so the unwinnable test is never created.
+ */
+export function isScoreable(authoredRule: string): boolean {
+  return contentWords(authoredRule).length >= MIN_MATCHED_WORDS;
 }

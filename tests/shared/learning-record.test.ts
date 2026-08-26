@@ -177,7 +177,56 @@ describe("verified learning record", () => {
       { completed_at: "2026-01-02T01:00:00.000Z" },
     );
     expect(outcome.result).toMatchObject({ successes: 1, observed: false });
-    expect(outcome.rule).toMatchObject({ grade: "refuted", next_due_at: null });
+    /*
+     * ONE FAILED TEST DOES NOT REFUTE, and this assertion changed on purpose.
+     *
+     * It used to expect `refuted` with `next_due_at: null` right here -- permanent, from a single
+     * sitting of three positions -- while REPLICATING required two separate days. The product
+     * needed two days of evidence to say a rule worked and one bad afternoon to say it did not,
+     * on a sample every single-case standard consulted calls too small either way.
+     *
+     * That asymmetry turned every weakness of the recall measure into a permanent verdict about a
+     * person. The rule stays a hypothesis and comes back at the next interval, which is what the
+     * retrieval schedule is for.
+     */
+    expect(outcome.rule).toMatchObject({ grade: "hypothesis" });
+    expect(outcome.rule?.next_due_at, "a failed test dropped the rule out of the queue").not.toBeNull();
+  });
+
+  it("refutes only after failures on two distinct dates, mirroring replication", () => {
+    const base = {
+      ...RULE,
+      rule_id: "rule-1",
+      authored_by: "player" as const,
+      grade: "hypothesis" as const,
+      retrieval_step: 0,
+      next_due_at: "2026-01-02T00:00:00.000Z",
+      created_at: "2026-01-01T00:00:00.000Z",
+      last_evaluated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const failure = (day: string): LearningTransferResult => ({
+      kind: "learning_transfer_result",
+      transfer_id: `t-${day}`,
+      rule_id: "rule-1",
+      decision_ids: [],
+      recalled_rules: [],
+      applied_rule: [],
+      successes: 0,
+      observed: false,
+      completed_at: `${day}T01:00:00.000Z`,
+    });
+
+    const afterOne = gradeLearningRule(base, [], failure("2026-01-02"));
+    expect(afterOne.grade).toBe("hypothesis");
+
+    // Two failures on the SAME day are one sitting, not two. Symmetric with replication, which
+    // counts distinct dates for the same reason: a day is the unit that separates two tests.
+    const sameDay = gradeLearningRule(afterOne, [failure("2026-01-02")], failure("2026-01-02"));
+    expect(sameDay.grade).toBe("hypothesis");
+
+    const afterTwo = gradeLearningRule(afterOne, [failure("2026-01-02")], failure("2026-01-09"));
+    expect(afterTwo.grade).toBe("refuted");
+    expect(afterTwo.next_due_at).toBeNull();
   });
 
   it("requires successful tests on two distinct dates before replication", () => {
@@ -661,5 +710,55 @@ describe("one sitting cannot replicate itself", () => {
     expect(twice.result.completed_at).toBe(once.result.completed_at);
     expect(twice.result.successes).toBe(once.result.successes);
     expect(await store.listLearningTransferResults(rule.rule_id)).toHaveLength(1);
+  });
+});
+
+describe("a rule the measure cannot see is never tested", () => {
+  /*
+   * `action_rule = "f7 f2"` is an ordinary way to write a chess rule, and `shared/recall-score.ts`
+   * has no token it can see in it. A review ran it end to end: perfect verbatim recall on all
+   * three positions, ZERO centipawns lost, scored 0/3, refuted, `next_due_at: null` -- and the
+   * message the player got blamed the retrieval schedule.
+   *
+   * The unwinnable test is now never created, and the reason names the real cause.
+   */
+  it("refuses to preregister a transfer for a rule with nothing to match on", async () => {
+    /*
+     * AUTHORED that way, not edited into it: `saveLearningRule` holds rules append-only, so an
+     * existing rule cannot be turned into an unscoreable one. That is the right protection and it
+     * means the case has to be created from the start, which is also how a player would meet it.
+     */
+    const store = new MemoryRecordStore();
+    await recordPosition(store, SOURCE_ID, FENS[0]);
+    const rule = await service.createLearningRule(
+      store,
+      {
+        reflection: { revised_read: "new read", would_choose_again: false },
+        rule: { ...RULE, action_rule: "f7 f2" },
+      },
+      { rule_id: "rule-coords", created_at: "2026-01-01T00:00:00.000Z" },
+    );
+    expect(rule.action_rule).toBe("f7 f2");
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "unwinnable", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer, "an unwinnable test was preregistered").toBeNull();
+    expect(outcome.reason).toMatch(/קצר מדי|סימונים/);
+    expect(await store.getLearningTransfer("unwinnable")).toBeNull();
+  });
+
+  it("still preregisters a rule written in ordinary words", async () => {
+    // The control. A guard that refused everything would pass the test above and delete the
+    // feature.
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "fine", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer).not.toBeNull();
   });
 });

@@ -16,7 +16,7 @@
  * rather than too much -- and a test that only demonstrated the successes would be advertising.
  */
 import { describe, expect, it } from "vitest";
-import { RECALL_COVERAGE_FLOOR, scoreRecall } from "../../shared/recall-score";
+import { RECALL_COVERAGE_FLOOR, isScoreable, scoreRecall } from "../../shared/recall-score";
 
 const RULE = "רשימת שחים, הכאות ואיומים ישירים לפני יצירת מועמדים שקטים";
 
@@ -123,5 +123,71 @@ describe("it works in the language the record is written in", () => {
     const score = scoreRecall("anything at all", "או גם כי");
     expect(score.total).toBe(0);
     expect(score.clearedFloor).toBe(false);
+  });
+});
+
+describe("one generic sentence must not clear the floor on every rule", () => {
+  /*
+   * THE ATTACK, from an adversarial review. One fixed sentence, typed with no knowledge of any
+   * rule, cleared the floor on SIX of eight realistic learning rules. The file had claimed "both
+   * languages spend their short tokens on function words" -- false above two letters in Hebrew,
+   * where `לפני` `צריך` `תמיד` `יותר` `לחשוב` all survived a 3-character floor as "content".
+   *
+   * Removing function words takes it to 2/8 while verbatim recall stays 8/8. It is NOT zero, and
+   * the list is deliberately not extended until it is: the two that still pass share real
+   * vocabulary with the attack, and adding those words would be fitting a parameter to eight
+   * examples. What follows from that is structural and lives in `gradeLearningRule` -- a measure
+   * with known false positives AND false negatives must not be able to close a question on its
+   * own, and refuting a rule now needs failures on two separate days.
+   */
+  const GENERIC = "לפני שאני בוחר צריך לבדוק תמיד את כל האפשרויות ולחשוב יותר על המהלך הבא";
+  const RULES = [
+    "לפני כל מהלך צריך לבדוק תמיד את כל השחים וההכאות",
+    "לבדוק את כל ההכאות של היריב לפני שאני בוחר מהלך",
+    "לפני מהלך שקט לעבור על כל השחים",
+    "צריך לחשוב על המהלך של היריב לפני שאני משחק",
+    "לספור את כל האיומים על המלך שלי לפני כל מהלך",
+    "כשיש לי יותר זמן לבדוק את כל האפשרויות ולא לבחור את הראשונה",
+    "לא לזוז עם הרגלי לפני המלך",
+    "לבדוק תמיד אם הכלי תלוי",
+  ];
+
+  it("cuts the generic sentence from six rules to at most two", () => {
+    const beaten = RULES.filter((rule) => scoreRecall(GENERIC, rule).clearedFloor);
+    expect(beaten.length, `still beaten:\n${beaten.join("\n")}`).toBeLessThanOrEqual(2);
+  });
+
+  it("still accepts every rule's own words back, which is the cost side of the same change", () => {
+    // A stop-list aggressive enough to stop the attack and also stop real recall would be a fix
+    // that deletes the measurement. All eight must still pass their own verbatim recall.
+    for (const rule of RULES) {
+      expect(scoreRecall(rule, rule).clearedFloor, rule).toBe(true);
+    }
+  });
+
+  it("does not let a single lucky word carry a short rule", () => {
+    /*
+     * A ratio alone is not enough when the denominator is two. "לספור שחים" has two content words,
+     * so one match scored 0.50 against a 0.34 floor -- and a rule repeating one word
+     * de-duplicates to a single content word, where any token containing it scored 1.00.
+     */
+    expect(scoreRecall("שחים", "לספור שחים").clearedFloor).toBe(false);
+    expect(scoreRecall("חים", "שחים שחים שחים").clearedFloor).toBe(false);
+    expect(scoreRecall("לספור שחים", "לספור שחים").clearedFloor).toBe(true);
+  });
+});
+
+describe("a rule with nothing to match on is not scoreable", () => {
+  it("says so for a rule written only in coordinates", () => {
+    // Ordinary ways to write a chess rule that this measure cannot see at all. Testing one is
+    // unwinnable, and losing an unwinnable test used to refute the rule permanently.
+    for (const rule of ["f7 f2", "0-0", "h2 h3", "e4 e5", "a-b-c"]) {
+      expect(isScoreable(rule), rule).toBe(false);
+    }
+  });
+
+  it("says a rule in ordinary words is scoreable", () => {
+    expect(isScoreable("לספור שחים והכאות")).toBe(true);
+    expect(isScoreable("check every capture")).toBe(true);
   });
 });
