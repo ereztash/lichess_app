@@ -25,6 +25,8 @@ import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { calibrationScore } from "@shared/calibration-score";
 import { splitHalfStability } from "@shared/stability";
+import { metacognitiveSensitivity } from "@shared/sensitivity";
+import { effortFollowsDoubt } from "@shared/control";
 import type { RecordReading } from "@shared/record-service";
 
 const root = resolve(__dirname, "../..");
@@ -66,6 +68,8 @@ const withRecord = (scored: number): RecordReading => ({
   anchor: calibrationScore([]),
   anchorAnswered: [],
   stability: splitHalfStability([]),
+  sensitivity: metacognitiveSensitivity([]),
+  control: effortFollowsDoubt([]),
   buckets: [],
   confidence: [],
   mix: {

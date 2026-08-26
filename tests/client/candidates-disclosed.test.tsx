@@ -15,6 +15,8 @@
  */
 import { calibrationScore } from "@shared/calibration-score";
 import { splitHalfStability } from "@shared/stability";
+import { metacognitiveSensitivity } from "@shared/sensitivity";
+import { effortFollowsDoubt } from "@shared/control";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
@@ -153,6 +155,8 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   anchor: calibrationScore([]),
   anchorAnswered: [],
   stability: splitHalfStability([]),
+  sensitivity: metacognitiveSensitivity([]),
+  control: effortFollowsDoubt([]),
   buckets: [],
   confidence: [],
   scored: 40,

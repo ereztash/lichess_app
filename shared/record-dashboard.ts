@@ -15,6 +15,8 @@
  */
 import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
 import { splitHalfStability, type Stability } from "./stability.js";
+import { metacognitiveSensitivity, type Sensitivity } from "./sensitivity.js";
+import { effortFollowsDoubt, type Control } from "./control.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
@@ -104,6 +106,21 @@ export type RecordReading = {
    * -- a record that fails this is noise, and one that passes is merely not obviously noise.
    */
   stability: Stability;
+  /**
+   * The three facets of metacognition this instrument measures, over the anchor set.
+   *
+   * BIAS is `anchor.reliability` above -- do the words match what happens. SENSITIVITY is whether
+   * the confidence separates the accurate decisions from the inaccurate ones, which bias cannot
+   * see: a player systematically far too confident can still rank their own decisions perfectly.
+   * CONTROL is whether the effort went where the doubt was, which is the half of the faculty the
+   * other two do not touch at all.
+   *
+   * Three of five. Metacognitive EFFICIENCY (meta-d'/d') needs a binary first-order task and
+   * choosing a move from thirty options is not one. Metacognitive KNOWLEDGE -- knowing which
+   * kinds of position you are bad at -- is not measured here at all.
+   */
+  sensitivity: Sensitivity;
+  control: Control;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
   /** Decisions that have been revealed, and so can be scored at all. */
@@ -167,6 +184,9 @@ export function readRecord(
    * number is meaningless across scales: 4 asserted 0.75 then and asserts 0.50 now, so two rows
    * would collide on one label and mean different things.
    */
+  /* One filter for every anchor-scoped reading: three copies would be three chances to diverge. */
+  const anchored = decisions.filter((decision) => isAnchorFen(decision.fen));
+
   const claims = new Set<number>(
     CONFIDENCE_CHOICES.map((level) => normaliseConfidence(level, CONFIDENCE_LEVELS)),
   );
@@ -186,9 +206,11 @@ export function readRecord(
   return {
     overall: summarise(decisions),
     calibration: calibrationScore(decisions),
-    anchor: calibrationScore(decisions.filter((decision) => isAnchorFen(decision.fen))),
+    anchor: calibrationScore(anchored),
     anchorAnswered: anchorIdsIn(decisions),
-    stability: splitHalfStability(decisions.filter((decision) => isAnchorFen(decision.fen))),
+    stability: splitHalfStability(anchored),
+    sensitivity: metacognitiveSensitivity(anchored),
+    control: effortFollowsDoubt(anchored),
     buckets,
     confidence,
     scored: decisions.length,

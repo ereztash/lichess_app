@@ -133,3 +133,46 @@ describe("the specification says what the instrument cannot do", () => {
     expect(limits).toContain("380,310");
   });
 });
+
+describe("the specification claims exactly the facets it measures", () => {
+  it("names all three measured facets and points each at its module", () => {
+    /*
+     * GATE-GRADE, turned on the product's own name. "Metacognition" is broader than what is
+     * measured, and the way a specification stops being true is not a rewrite -- it is a facet
+     * quietly implied by a heading. Each measured one has to name where it lives.
+     */
+    const facets = section.slice(section.indexOf("Which facets of metacognition"));
+    for (const [facet, where] of [
+      ["Bias / calibration", "RELIABILITY"],
+      ["Sensitivity / discrimination", "shared/sensitivity.ts"],
+      ["Control", "shared/control.ts"],
+    ]) {
+      expect(facets, `the specification stopped naming ${facet}`).toContain(facet);
+      expect(facets, `${facet} does not say where it is computed`).toContain(where);
+    }
+  });
+
+  it("keeps admitting the two facets it does NOT measure", () => {
+    /*
+     * The rows most likely to be dropped when the table is next tidied, and the ones that make
+     * the difference between a scoped claim and an overclaim.
+     */
+    const facets = section.slice(section.indexOf("Which facets of metacognition"));
+    expect(facets).toContain("Metacognitive efficiency");
+    expect(facets).toContain("Metacognitive knowledge");
+    expect(facets, "the specification stopped saying meta-d-prime is unavailable").toMatch(
+      /meta-d′ is absent|meta-d′` is absent/,
+    );
+  });
+
+  it("says why meta-d-prime cannot be computed, rather than that it was not wanted", () => {
+    // The reason is specific and checkable: d' needs a binary first-order task, and choosing a
+    // move from thirty options is not one. A specification that just omitted it would read as a
+    // choice rather than a constraint.
+    const facets = section.slice(section.indexOf("Which facets of metacognition"));
+    expect(facets).toMatch(/binary\*? first-order task|\*binary\* first-order task/);
+    expect(facets, "the cost of the anchor-set route is no longer stated").toContain(
+      "existing literature",
+    );
+  });
+});

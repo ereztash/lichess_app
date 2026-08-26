@@ -1767,6 +1767,45 @@ finite only because no level asserts certainty.
 samples — at one decision per level it is at its maximum by construction — so the figures stay
 arithmetically correct and are marked unreadable rather than shown.
 
+## 4b. Which facets of metacognition, exactly
+
+The instrument is described as measuring metacognition. Metacognition is not one thing, so this
+names the parts — and a claim stays at the grade its measurement justifies, which is GATE-GRADE
+turned on the product's own name.
+
+| facet | what it asks | measured? | where |
+| --- | --- | --- | --- |
+| **Bias / calibration** | Do the words match what happens? | ✅ | `RELIABILITY` in the decomposition above |
+| **Sensitivity / discrimination** | Does the confidence separate the right decisions from the wrong ones? | ✅ | `shared/sensitivity.ts` — AUROC2 |
+| **Control** | Did the effort go where the doubt was? | ✅ | `shared/control.ts` — Spearman, seconds against stated confidence |
+| **Metacognitive efficiency** | How much of the available evidence did the confidence use? | ❌ | see below |
+| **Metacognitive knowledge** | Do you know *which kinds* of position you are bad at? | ❌ | not measured at all |
+
+**Bias and sensitivity are genuinely different, and the difference is the reason both are here.**
+A player who says "certain" about everything and is right 70% of the time, and a player who says
+"certain" about every decision they get right and "guess" about every one they get wrong, can
+have the *same* calibration error. The first is useless as a judge of themselves; the second is
+perfect. AUROC2 is the number that knows the difference, and it is unchanged by shifting every
+stated confidence by the same amount — which is exactly what makes it not a second calibration
+measure under another name.
+
+**Control is the half that monitoring alone cannot stand in for.** Knowing you are unsure is
+worth something because of what you do next. Negative is the healthy direction — longer on the
+decisions you were less sure of — and the coefficient is reported signed, because the opposite
+pattern is a finding rather than an error.
+
+**Why `meta-d′` is absent, since it is what the field reaches for first.** `meta-d′` is defined
+against a Type-1 signal detection model and needs `d′`, which needs a *binary* first-order task
+with signal-present and signal-absent trials. Choosing a move from thirty legal options is not
+that, and there is no honest way to force it into the shape. `meta-d′/d′` — metacognitive
+efficiency — exists to make metacognition comparable between people of different first-order
+skill, and **the anchor set is this instrument's answer to that same problem by a different
+route**: hold the items fixed and the first-order difficulty is identical for everyone.
+
+The cost of that route is worth stating plainly: `meta-d′/d′` would make readings comparable
+against *the existing literature*, and a fixed anchor set only makes them comparable *within this
+instrument*.
+
 ## 5. What protects the finding
 
 | control | what it does | where |
@@ -1792,7 +1831,7 @@ Stated here because a specification that lists only its strengths is advertising
 
   What IS measured is weaker and is labelled as such: a **split-half stability check** on the
   anchor decisions, alternating rather than down the middle so a steady drift over a sitting is
-  not reported as instability. It answers "did this record say the same thing twice", in standard
+  not reported as instability. It is a check on one sitting, and a trait claim needs two. It answers "did this record say the same thing twice", in standard
   errors, and produces no coefficient — a correlation between halves needs many people, and one
   player yields one pair of numbers. Failing it means the number is noise; passing it means the
   number is not obviously noise, and nothing more. See `shared/stability.ts`.
