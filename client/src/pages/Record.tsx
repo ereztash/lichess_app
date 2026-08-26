@@ -291,6 +291,36 @@ export default function Record() {
           />
         </section>
       )}
+
+      {/*
+        * THE NOTICE HAS TO REACH THE PERSON WHO RECEIVES THE BINARIES.
+        *
+        * This build conveys a GPL-3.0 engine and two OFL typefaces. A notices file in the
+        * repository serves the person who clones it; it does nothing for the person who loads the
+        * page, and they are the one the licences are about. The licence texts are served as static
+        * files and this is the link that makes them reachable from the program that carries them.
+        *
+        * It sits at the bottom of the front door rather than on every screen, and it is small,
+        * because it is a notice and not a feature. `dir="ltr"` on the two names because they are
+        * Latin script inside a Hebrew document; `lang` because they are not Hebrew words.
+        */}
+      <footer className="record-notices">
+        <p>
+          המנוע{" "}
+          <a href="/licenses/stockfish/COPYING.txt" dir="ltr" lang="en" hrefLang="en">
+            Stockfish
+          </a>{" "}
+          נמסר עם התוכנה הזו תחת רישיון GPL-3.0, והגופנים{" "}
+          <a href="/licenses/fonts/noto-sans-hebrew/OFL.txt" dir="ltr" lang="en" hrefLang="en">
+            Noto Sans Hebrew
+          </a>{" "}
+          ו־
+          <a href="/licenses/fonts/dm-mono/OFL.txt" dir="ltr" lang="en" hrefLang="en">
+            DM Mono
+          </a>{" "}
+          תחת SIL OFL 1.1. הקישורים הם לנוסח הרישיון עצמו, כפי שהוא נשלח יחד עם הקבצים.
+        </p>
+      </footer>
     </main>
   );
 }

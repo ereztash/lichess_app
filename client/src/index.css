@@ -4197,3 +4197,32 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/*
+ * The third-party notice at the foot of the front door.
+ *
+ * Deliberately quiet: it sits at the same size as the layer descriptions and uses the muted ink,
+ * because a licence notice that competes with the record for attention is badly designed in both
+ * directions. The padding is on the ANCHOR rather than only on the paragraph so the target grows
+ * with it -- SC 2.5.8 asks for 24px and a bare 11px line of text does not reach it on its own.
+ */
+.record-notices {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--panel-label);
+  line-height: 2;
+  color: var(--muted);
+}
+
+.record-notices a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  padding: 0.25rem 0.125rem;
+}
+
+.record-notices a:hover,
+.record-notices a:focus-visible {
+  color: var(--ink);
+}

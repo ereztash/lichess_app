@@ -253,3 +253,59 @@ describe("the record is the front door", () => {
     expect(page).toMatch(/navigate\("\/play"\)/);
   });
 });
+
+/**
+ * THE NOTICE IS FOR THE PERSON WHO RECEIVES THE BINARIES, not the person who reads the repository.
+ *
+ * This build conveys a 7.3 MB GPL-3.0 engine and nine OFL font files to whoever loads the page,
+ * and for the whole life of the repository nothing travelled with them. A `THIRD_PARTY_NOTICES.md`
+ * in the source tree does not fix that: the people the licences are about never see it.
+ *
+ * So the assertions are about the LINK BEING LIVE, not about the paragraph existing. A licence
+ * link that 404s conveys nothing, and it is the failure mode a renamed file produces silently --
+ * `GATE-NOTICE` checks the repository side, and this checks that the page points at it.
+ */
+describe("the licences travel with the thing they license", () => {
+  const linkTargets = () => {
+    mount({ reading: { data: withRecord(0), isLoading: false, isError: false } });
+    return [...screen.getByRole("contentinfo").querySelectorAll("a")].map((anchor) => ({
+      text: anchor.textContent ?? "",
+      href: anchor.getAttribute("href") ?? "",
+      lang: anchor.getAttribute("lang"),
+      dir: anchor.getAttribute("dir"),
+    }));
+  };
+
+  it("names each conveyed component and links to the licence text served with it", () => {
+    const links = linkTargets();
+    expect(links.map((link) => link.text)).toEqual([
+      "Stockfish",
+      "Noto Sans Hebrew",
+      "DM Mono",
+    ]);
+    expect(links.map((link) => link.href)).toEqual([
+      "/licenses/stockfish/COPYING.txt",
+      "/licenses/fonts/noto-sans-hebrew/OFL.txt",
+      "/licenses/fonts/dm-mono/OFL.txt",
+    ]);
+  });
+
+  it("points every one of them at a file that exists to be served", () => {
+    for (const link of linkTargets()) {
+      const served = resolve(root, "client/public", link.href.replace(/^\//, ""));
+      expect(readFileSync(served, "utf8").length, `${link.href} is served empty`).toBeGreaterThan(
+        1000,
+      );
+    }
+  });
+
+  it("marks the Latin names as Latin, inside a Hebrew document", () => {
+    // Three names in Latin script inside `lang="he" dir="rtl"`. Without `lang` a screen reader
+    // reads them with Hebrew phonetics; without `dir` the punctuation around them lands on the
+    // wrong side. Same rule the rest of this product's LTR islands follow.
+    for (const link of linkTargets()) {
+      expect(link.lang, `${link.text} is not declared as Latin script`).toBe("en");
+      expect(link.dir).toBe("ltr");
+    }
+  });
+});

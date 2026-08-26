@@ -784,6 +784,57 @@ to fold over. That is a store-contract change with a real-database test behind i
 ten-line edit, and pretending otherwise would have widened this commit past what was verified. Open
 below.
 
+## Cycle 32 — what the build hands on, and what travelled with it
+
+Every other gate in this repository protects the player from a claim the record cannot support.
+This one is about other people: the build **conveys** a 7.3 MB GPL-3.0 engine and nine OFL font
+files to whoever loads the page, and for the whole life of the repository **nothing travelled with
+them** — no licence text, no copyright line, no pointer to corresponding source. The engine's own
+npm package ships `Copying.txt`; the build did not carry it.
+
+| conveyed | licence | before | now |
+| --- | --- | --- | --- |
+| Stockfish 18.0.8 wasm + loader | GPL-3.0 | nothing | `/licenses/stockfish/COPYING.txt`, version pinned, source named |
+| Noto Sans Hebrew, 8 files | OFL 1.1 | nothing | `/licenses/fonts/noto-sans-hebrew/OFL.txt`, copyright line intact |
+| DM Mono, 1 file | OFL 1.1 | nothing | `/licenses/fonts/dm-mono/OFL.txt`, copyright line intact |
+
+Both OFL texts were **fetched from the upstream projects** rather than written out: a licence is a
+legal text and reproducing one from memory is worse than not shipping it. Each family gets its own
+verbatim copy, copyright header included, rather than one shared body — the notice is part of what
+the licence asks to be preserved.
+
+`THIRD_PARTY_NOTICES.md` serves the person who clones the repository. **It does nothing for the
+person who loads the page, and they are the one the licences are about**, so the licence texts are
+static files and the front door links to each of them. Three assertions on that footer, two
+positive controls: rename a licence file out from under a link and the "points at a file that
+exists" assertion goes red on its own; drop a `lang` and only the Latin-script assertion goes red.
+
+**GATE-NOTICE (L1)** is the tenth gate. The conveyed set is read from the tree — the installed
+engine version, the font families derived from the filenames in `client/public/fonts` — because a
+hardcoded list is precisely what stops noticing when a tenth font arrives. It fails on three
+things: a component the notices file never names, a version that has moved on without the notice
+(a stale version points at corresponding source that is not the source of what was received, which
+is the one thing GPL-3.0 §6 exists for), and a licence path that does not resolve. Its control
+feeds the same predicate an undeclared typeface and a wrong version, and goes red on both.
+
+**Two things this cycle deliberately does NOT do.**
+
+It does not pick a licence for the project. There is no `LICENSE` file, so by copyright default the
+application's own code is all rights reserved — which sits badly beside a GPL-3.0 engine in the
+same build. Whether that combination makes the application a work that must itself be offered under
+the GPL is a question about how the two programs are combined, and reasonable readings differ on
+message-passing to a separate program. It is the owner's decision with advice this repository
+cannot substitute for, it is written down as such in both `THIRD_PARTY_NOTICES.md` and the README,
+and **nothing above depends on how it is answered** — conveying the licence and the source is
+required either way.
+
+It does not claim the existing build checks are licence separation. GATE-COMMIT proves the engine
+is absent from the initial import graph and the bundle budget fails if `index.html` preloads it,
+but both were written for R3 — the engine must not speak before a decision is recorded. They are
+evidence about how the two programs are combined, not a finding that the combination is settled,
+and the notices file says so in those words. A first draft of it claimed the budget check "asserts
+that separation as a build constraint", which is not what that script does.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -797,8 +848,8 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
-| Operations / deployability | 4 | **8** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values; incoherent configurations named at startup, by variable and never by value. Not higher: no incident runbook, and the record loop itself is still exercised only locally. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it |
-| Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |
+| Operations / deployability | 4 | **8.5** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values; incoherent configurations named at startup, by variable and never by value. Not higher: no incident runbook, and the record loop itself is still exercised only locally. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it. Cycle 32 closed the licence obligations the build had been ignoring: a GPL-3.0 engine and nine OFL fonts now convey their licence texts, checked by GATE-NOTICE against the tree |
+| Documentation / DX | 7 | **8.5** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database, and `THIRD_PARTY_NOTICES.md` — every component the build conveys, at the version it conveys, with the licence text it serves and the source it came from |
 | Differentiation / user value | 8 | **8.5** | Cycles 13–22 were unchanged by design — they made existing claims true rather than adding new ones. Cycles 23–26 add one: the counterfactual probe reads candidate SELECTION, the half of expertise the accuracy rate cannot see. Not higher until it has n behind it: four readings need 30 scored answers, and the panel currently counts down to that rather than reporting anything |
 
 ## Open, by severity
@@ -809,6 +860,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | Three positions is below every single-case standard consulted; no control positions | **High** | open, and now **stated on screen** rather than silently assumed |
 | — | Multi-user separation: `user_id` on 12 tables, every query, index and cache key | High | **product decision for the operator**, not a defect fix |
 | 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
+| — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |

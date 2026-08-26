@@ -17,6 +17,7 @@ process.env.JWT_SECRET ||= "gate-runner-secret";
 process.env.OWNER_OPEN_ID ||= "gate-owner";
 
 import { spawnSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { ATOM_FIELDS } from "../shared/decision-atom";
@@ -381,6 +382,61 @@ export const GATES: Gate[] = [
         await import("../tests/fixtures/shuffle-scenario");
       // Same predicate, the thresholds this build started with. They found structure in noise.
       return shuffleVerdict(noiseRecord, PERMISSIVE_THRESHOLDS, pass, fail);
+    },
+  },
+  {
+    id: "GATE-NOTICE",
+    rule: "L1",
+    description: "Every third-party component the build conveys has a notice that travels with it.",
+    run: async () => {
+      const { noticeGaps, fontFamiliesIn } = await import("./notice_coverage");
+      /*
+       * WHAT THIS GATE IS ABOUT, AND WHY IT IS NOT A LINT ON `node_modules`.
+       *
+       * The build ships a 7.3 MB GPL-3.0 engine and nine OFL font files to whoever loads the page,
+       * and for the whole life of this repository nothing travelled with them: no licence text, no
+       * copyright line, no pointer to corresponding source. Every other gate here protects the
+       * player from a claim the record cannot support. This one protects the people whose work
+       * this build hands on.
+       *
+       * The conveyed set is READ FROM THE TREE. A hardcoded list is what stops noticing.
+       */
+      const conveyed = [
+        {
+          id: "stockfish",
+          version: JSON.parse(readFileSync("node_modules/stockfish/package.json", "utf8")).version,
+          licenceFile: "client/public/licenses/stockfish/COPYING.txt",
+        },
+        ...fontFamiliesIn(readdirSync("client/public/fonts")).map((family) => ({
+          id: family,
+          version: null,
+          licenceFile: `client/public/licenses/fonts/${family}/OFL.txt`,
+        })),
+      ];
+      const gaps = noticeGaps(conveyed, readFileSync("THIRD_PARTY_NOTICES.md", "utf8"), existsSync);
+      if (gaps.length > 0) {
+        return fail(gaps.map((gap) => `${gap.reason}: ${gap.detail}`).join("; "));
+      }
+      return pass(
+        `${conveyed.length} conveyed component(s) named, versioned and served their licence`,
+      );
+    },
+    positiveControl: async () => {
+      const { noticeGaps } = await import("./notice_coverage");
+      // Same predicate, a tree that conveys a font nobody wrote a notice for -- which is the way
+      // this goes wrong in practice: a typeface is added and the paperwork is not.
+      const gaps = noticeGaps(
+        [
+          { id: "stockfish", version: "99.0.0", licenceFile: "client/public/licenses/stockfish/COPYING.txt" },
+          { id: "a-typeface-nobody-declared", version: null, licenceFile: "client/public/licenses/fonts/nope/OFL.txt" },
+        ],
+        readFileSync("THIRD_PARTY_NOTICES.md", "utf8"),
+        existsSync,
+      );
+      if (gaps.length === 0) {
+        return pass("an undeclared font and a wrong version both passed -- the check is not a check");
+      }
+      return fail(gaps.map((gap) => `${gap.reason}: ${gap.detail}`).join("; "));
     },
   },
 ];
