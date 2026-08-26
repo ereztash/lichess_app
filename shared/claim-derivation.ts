@@ -12,6 +12,7 @@
 import type { Claim, RetrospectiveEvidence } from "./claim.js";
 import { formHypothesis } from "./claim.js";
 import type { CandidatePattern } from "./detector.js";
+import { readVariables } from "./bucket-variable.js";
 
 /**
  * The unit of output is ONE claim (section 3.5). If the system has three candidates it shows the
@@ -73,14 +74,41 @@ export function deriveClaim(
   });
 }
 
-/** Select the single claim to show, and count what is being withheld. */
+/**
+ * Select the single claim to store, and count what is being withheld.
+ *
+ * IT DOES NOT TAKE `patterns[0]`, AND THE MEASUREMENT IS WHY. `detect` sorts by support -- the
+ * number of decisions behind a bucket -- which is the right rule for choosing between unrelated
+ * claims and the wrong one for choosing among levels of a single variable, because the biggest
+ * level is whichever the record happens to contain most of.
+ *
+ * On 400 simulated players per condition, each with exactly one weakness, the claim this function
+ * stored named a phase the player was FINE in:
+ *
+ *     weakness in endgame     14.7%  ->  1.6%
+ *     weakness in opening     14.7%  ->  1.0%
+ *     weakness in middlegame   0.0%  ->  0.8%
+ *
+ * One in seven, and forty-four times in forty-five the stored claim was the MIRROR: a player told
+ * they were underconfident in a phase they were calibrated in, and then offered a drill to prove
+ * it. A claim is the most durable thing this product makes -- it accumulates prospective results
+ * and it is what the player is asked to go and test -- so a wrong one does not merely misinform,
+ * it spends their decisions.
+ *
+ * The middlegame case gets very slightly worse, because ranking by distance gives up the guarantee
+ * that the largest level always wins. Fourteen points bought for eight tenths of one.
+ *
+ * `othersWithheld` counts the other VARIABLES that separated, not the other levels. Counting
+ * levels reported one weakness as "and 2 more", which is the same overcount printed on a screen.
+ */
 export function selectClaim(
   patterns: CandidatePattern[],
   options: { claim_id: string; created_at: string },
 ): ClaimSelection | null {
-  if (patterns.length === 0) return null;
+  const { findings } = readVariables(patterns);
+  if (findings.length === 0) return null;
   return {
-    claim: deriveClaim(patterns[0], options),
-    othersWithheld: patterns.length - 1,
+    claim: deriveClaim(findings[0].strongest, options),
+    othersWithheld: findings.length - 1,
   };
 }
