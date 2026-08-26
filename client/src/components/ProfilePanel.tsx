@@ -14,6 +14,14 @@
  * twice -- and a player fine in slow middlegame positions and miscalibrated in fast ones has a
  * weakness no single bucket describes.
  *
+ * NOTHING HERE IS A CLAIM, AND THE PANEL SAYS SO. These findings come out of `detect` -- the same
+ * candidates a Layer B claim is drawn from -- but they are not claims: none carries a grade, a
+ * refutation condition, or a prospective test, and GATE-GRADE therefore does not govern them
+ * because they are not `Claim` objects. That is exactly why the sentence has to be here. A row
+ * that reads like a finding, in a product whose whole discipline is that a claim renders at its
+ * grade, would be the one place a statement about the player escapes the rule -- by not being
+ * shaped like the thing the rule checks.
+ *
  * WHAT IS PRINTED WHEN NOTHING IS FOUND, which is most of the time on most records. The share of
  * cells that could be read at all, and separately the ones no amount of further play can fill.
  * Silence with a denominator is a state a player can act on; a blank panel is indistinguishable
@@ -68,6 +76,15 @@ export function ProfilePanel({
   return (
     <section className="profile-panel">
       <h3 className="profile-panel__title">פרופיל המשחק</h3>
+      {/*
+        * FIRST, BEFORE ANY OF IT. A reader who takes these for conclusions has been told more than
+        * was measured -- and unlike a claim, none of this has a refutation condition or a drill
+        * behind it, so nothing here can ever have been wrong in a way the record would notice.
+        */}
+      <p className="profile-panel__status">
+        מה שלמטה הוא תיאור של הרשומה, לא טענה שנבדקה. אין לזה תנאי הפרכה ואף דריל לא העמיד את זה
+        במבחן — בשביל זה יש את הטענה שהמוצר מעלה בנפרד.
+      </p>
 
       {findings.length === 0 ? (
         <NotMeasured reason="אף משתנה עדיין לא נפרד משאר הרשומה" />

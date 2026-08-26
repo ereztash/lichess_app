@@ -57,6 +57,42 @@ function withMirror(): ScoredDecision[] {
   throw new Error("no seed produced a mirrored level");
 }
 
+describe("nothing here is a claim, and it says so", () => {
+  /*
+   * THE GAP THAT MADE THIS NECESSARY. These rows come out of `detect` -- the same candidates a
+   * Layer B claim is drawn from -- but they are not `Claim` objects, so GATE-GRADE does not
+   * govern them. In a product whose discipline is that a claim renders at its grade, a row that
+   * reads like a finding and carries no grade is the one place a statement about the player
+   * escapes the rule: by not being shaped like the thing the rule checks.
+   */
+  it("says the panel describes rather than claims, before saying anything else", () => {
+    /*
+     * ASSERTED AS VISIBLE, NOT AS PRESENT, and the difference is not pedantry.
+     *
+     * `getByText` and `document.body.textContent` both find text inside a `hidden` element, so
+     * the first version of this passed against a mutation that added `hidden` to the paragraph --
+     * a sentence in the DOM and not on the screen, which for a caveat is the same as no sentence.
+     * Every other text assertion in this file is about content that would be meaningless if
+     * invisible anyway; this one is about a reader seeing a warning, so it checks that.
+     */
+    show(withMirror());
+    const status = screen.getByText(/תיאור של הרשומה, לא טענה שנבדקה/);
+    expect(status).toBeVisible();
+  });
+
+  it("says no refutation condition and no drill stand behind it", () => {
+    // The two things that make a claim a claim in this product. Their absence is the point.
+    show(withMirror());
+    expect(document.body.textContent).toMatch(/אין לזה תנאי הפרכה/);
+    expect(document.body.textContent).toMatch(/אף דריל לא העמיד/);
+  });
+
+  it("says it on an empty record too, where a reader has least context", () => {
+    show([]);
+    expect(document.body.textContent).toMatch(/לא טענה שנבדקה/);
+  });
+});
+
 describe("with nothing separated", () => {
   it("says so rather than rendering an empty list", () => {
     show([]);

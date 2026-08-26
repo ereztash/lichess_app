@@ -1814,6 +1814,7 @@ button:not(:disabled) {
   color: var(--ink);
 }
 /* A mirror is a consequence, and reads as one: same size as a caveat, not as a finding. */
+.profile-panel__status,
 .profile-panel__mirror,
 .profile-panel__alongside,
 .profile-panel__denominator,
@@ -1825,6 +1826,9 @@ button:not(:disabled) {
 .profile-panel__denominator,
 .profile-panel__impossible {
   margin: 10px 0 0;
+}
+.profile-panel__status {
+  margin: 0 0 10px;
 }
 /* Bare numerals inside Hebrew sentences are neutral-direction and land on the wrong side. */
 .profile-panel bdi {
