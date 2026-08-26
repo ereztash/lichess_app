@@ -83,10 +83,35 @@ export function buildRecordRouter(store: RecordStore) {
         guard(() => service.commitDecision(store, input)),
       ),
 
+    /**
+     * The answer to the counterfactual probe. Its own procedure because it happens between the
+     * commit and the reveal, which is a moment no other route occupies.
+     */
+    recordCounterfactual: ownerProcedure
+      .input(
+        z.object({
+          decision_id: z.string().uuid(),
+          /** Null is a real answer -- asked, and no other move -- not an omitted field. */
+          alternative: z.string().min(4).max(6).nullable(),
+        }),
+      )
+      .mutation(({ input }): Promise<{ decision_id: string }> =>
+        guard(() => service.recordCounterfactual(store, input.decision_id, input.alternative)),
+      ),
+
     reveal: ownerProcedure
-      .input(z.object({ decision_id: z.string().uuid(), result: resultSchema }))
+      .input(
+        z.object({
+          decision_id: z.string().uuid(),
+          result: resultSchema,
+          /** The alternative's cost, off the same root search. Absent when none was named. */
+          alternative_cp_loss: z.number().int().min(0).nullable().optional(),
+        }),
+      )
       .mutation(({ input }): Promise<DecisionAtom> =>
-        guard(() => service.reveal(store, input.decision_id, input.result)),
+        guard(() =>
+          service.reveal(store, input.decision_id, input.result, input.alternative_cp_loss),
+        ),
       ),
 
     feedback: ownerProcedure

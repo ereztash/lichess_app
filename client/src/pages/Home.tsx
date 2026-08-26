@@ -22,6 +22,7 @@ import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { RevealPanel } from "@/components/RevealPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
@@ -37,6 +38,7 @@ import {
 } from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
 import { transferObservation } from "@shared/learning-record";
+import { PROBE_STAGE } from "@shared/counterfactual-stage";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
@@ -69,6 +71,7 @@ import type { ImportedGame } from "@/lib/lichess-public";
 import type { AnalysisSource } from "@shared/analysis-source";
 import {
   useCommitDecision,
+  useRecordCounterfactual,
   useCompleteDrill,
   useCompleteLearningTransfer,
   useDecisionCount,
@@ -99,6 +102,7 @@ import {
   cpLossOfFinalMove,
   engineMayRun,
   type DraftDecision,
+  type CommitEvent,
   type SessionStage,
 } from "@/lib/decision-session";
 import type { RevealInputs } from "@shared/reveal";
@@ -199,6 +203,24 @@ export default function Home() {
 
   // --- R3 state machine ------------------------------------------------------------------
   const [stage, setStage] = useState<SessionStage>("deciding");
+  /**
+   * The decision waiting on the counterfactual question, with everything the reveal will need.
+   *
+   * Held as one object rather than five state variables because they are one fact: a decision is
+   * either mid-probe with all of this, or it is not. Five variables can disagree.
+   */
+  const [probe, setProbe] = useState<{
+    decisionId: string;
+    draft: DraftDecision;
+    positionFen: string;
+    isDrillDecision: boolean;
+    /** The transfer run this decision belongs to, frozen at commit. See `runReveal`. */
+    transfer: LearningTransfer | null;
+  } | null>(null);
+  /** What the player has put on the board as the alternative, before they confirm it. */
+  const [probeAlternative, setProbeAlternative] = useState<string | null>(null);
+  const [probePending, setProbePending] = useState(false);
+  const [probeError, setProbeError] = useState<string | undefined>(undefined);
   const [candidateMove, setCandidateMove] = useState<string | null>(null);
   const [candidatesConsidered, setCandidatesConsidered] = useState<string[]>([]);
   const [commitError, setCommitError] = useState<CommitFailureText>();
@@ -320,6 +342,7 @@ export default function Home() {
   const completeLearningTransferMutation = useCompleteLearningTransfer();
   const recordTransferObservation = useRecordTransferObservation();
   const submitReveal = useReveal();
+  const recordCounterfactual = useRecordCounterfactual();
   const decisionCount = useDecisionCount();
   const recordReading = useRecordReading();
 
@@ -567,6 +590,24 @@ export default function Home() {
   const handleBoardMove = useCallback(
     (from: string, to: string) => {
       const uci = `${from}${to}`;
+      /*
+       * DURING THE PROBE A BOARD INTERACTION NAMES THE ALTERNATIVE, and does not play it. The
+       * board still shows the position the decision was made in -- it deliberately does not
+       * advance at commit -- so the same gesture that chose the move is the one that names what
+       * would have been played instead. Playing it here would move the board out from under the
+       * reveal that is about to describe that position.
+       */
+      if (stage === PROBE_STAGE) {
+        try {
+          new Chess(activeFen).move({ from, to, promotion: "q" });
+        } catch {
+          setNotice("המהלך אינו חוקי בעמדה זו.");
+          return;
+        }
+        setProbeAlternative(uci);
+        setProbeError(undefined);
+        return;
+      }
       if (stage !== "deciding") {
         if (!playMove(from, to)) setNotice("המהלך אינו חוקי בעמדה זו.");
         return;
@@ -584,54 +625,34 @@ export default function Home() {
     [activeFen, playMove, stage],
   );
 
-  const onCommit = useCallback(
-    async (draft: DraftDecision, secondsTaken: number) => {
-      setCommitError(undefined);
-      setStage("committing");
-      const decisionId = crypto.randomUUID();
-      const isDrillDecision = drill !== null && drillStage === "running";
-      const isLearningTransferDecision =
-        learningTransfer !== null && learningTransferStage === "running";
-      /*
-       * THE GUARD SITS ON THE COMMIT, not on the advance, and the placement is the fix.
+  /**
+   * Everything after the decision is stored: the engine runs, the reveal renders, the verdict is
+   * written back.
+   *
+   * EXTRACTED FROM `onCommit`, and the extraction is what makes the counterfactual probe
+   * possible. The probe has to sit between the commitment and the engine, so the engine half had
+   * to become something a second caller could start. Nothing in here changed; it takes as
+   * arguments the four values it used to close over.
+   */
+  const runReveal = useCallback(
+    async (
+      draft: DraftDecision,
+      decisionId: string,
+      positionFen: string,
+      isDrillDecision: boolean,
+      /**
+       * The transfer run this decision belongs to, or null.
        *
-       * Blocking the advance instead would leave a player who skipped the question able to answer
-       * it only AFTER the reveal -- which is the contamination this change exists to remove,
-       * reached by a different route. Refusing here keeps both halves of the observation on the
-       * same side of the engine.
+       * PASSED IN RATHER THAN READ FROM STATE. It used to be a boolean beside a `learningTransfer`
+       * this function closed over -- which types as possibly-null and, worse, could have MOVED ON
+       * by the time this runs: the counterfactual probe now sits between the commit and here, so
+       * "the transfer that was active when the decision was committed" and "the transfer that is
+       * active now" are no longer the same value by construction.
        */
-      if (isLearningTransferDecision && learningTransferApplied === null) {
-        setStage("deciding");
-        setLearningTransferError(
-          "לפני הרישום, סמנו אם אתם מיישמים את הכלל בהחלטה הזו. התשובה נרשמת לפני החשיפה.",
-        );
-        return;
-      }
-      try {
-        const event = buildCommitEvent(
-          decisionId,
-          {
-            gameId: isLearningTransferDecision ? learningTransfer.transfer_id : gameId.current,
-            fen: activeFen,
-            ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
-            clockMsRemaining: null,
-          },
-          draft,
-          secondsTaken,
-        );
-        await commitDecision.mutateAsync(event);
-      } catch (error) {
-        // R2: a decision that was not stored must never look like one that was. We do not
-        // advance to reveal, and we say what happened.
-        setStage("deciding");
-        // Never the raw message: on the default unauthenticated path this is LocalRecordStore's
-        // English invariant text, and it lands on the screen that has to say the decision was not
-        // recorded. The original is kept and demoted, not dropped.
-        setCommitError(commitFailureText(error));
-        return;
-      }
-      // Only now may the engine run at all.
-      const positionFen = activeFen;
+      transfer: LearningTransfer | null,
+      /** The alternative the player named, or null. Scored off the same root search below. */
+      alternative: string | null,
+    ) => {
       setCommittedDraft(draft);
       setRevealFen(positionFen);
       setCandidateMove(null);
@@ -695,6 +716,25 @@ export default function Home() {
          */
         const fromMultiPv =
           ended === null ? cpLossFromMultiPv(rootLines, draft.chosenMove!) : null;
+        /*
+         * THE ALTERNATIVE IS SCORED OUT OF THE SAME SEARCH, at no extra engine cost.
+         *
+         * `analyzeAlternatives` already returned the top `REVEAL_MULTIPV` root lines, and the
+         * named alternative is very often one of them. Reading it from there rather than running
+         * a second search is not only cheaper: both moves then come off one tree, one window and
+         * one iteration, which is the same property that stopped the chosen move's own loss
+         * charging the engine's best move nine centipawns for nothing.
+         *
+         * NULL WHEN THE MOVE IS NOT AMONG THE LINES, and null it stays. A move outside the top
+         * eight is worse than the eighth-best -- the record could carry "at least this bad" and
+         * the reading would still be honest -- but a bound is not a measurement, and every
+         * consumer of `alternative_cp_loss` treats it as one. An unscored alternative reads as no
+         * reading, which is what it is.
+         */
+        const alternativeCpLoss =
+          alternative !== null && ended === null
+            ? cpLossFromMultiPv(rootLines, alternative)
+            : null;
         const chosen =
           ended === null && fromMultiPv === null ? await engine.analyze(after.fen(), 14) : null;
 
@@ -754,9 +794,10 @@ export default function Home() {
               engine_source: "local_sf18",
               cp_loss: cpLoss,
             },
+            alternative_cp_loss: alternativeCpLoss,
           });
           setRevealedDecisionId(decisionId);
-          if (isLearningTransferDecision) {
+          if (transfer) {
             /*
              * WRITTEN DOWN NOW, not held until the end. These used to accumulate in component
              * state for the whole run and reach the server only at completion, and three defects
@@ -765,7 +806,7 @@ export default function Home() {
              * and the client was their only holder, so completion had to believe it.
              */
             await recordTransferObservation.mutateAsync({
-              transfer_id: learningTransfer.transfer_id,
+              transfer_id: transfer.transfer_id,
               /*
                * The player's own answer, frozen here -- not a placeholder patched later. It used
                * to be written `false` and overwritten in `advanceLearningTransfer`, which runs
@@ -789,7 +830,7 @@ export default function Home() {
           // The reveal above is valid and stays: `revealInputs` was set before this write.
           setRevealFailure("write");
           setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
-          if (isLearningTransferDecision) {
+          if (transfer) {
             setLearningTransferError("תוצאת המנוע לא נשמרה ולכן אי אפשר למדוד את העמדה הזו.");
           }
         }
@@ -802,22 +843,158 @@ export default function Home() {
       }
     },
     [
-      activeFen,
-      commitDecision,
-      currentPly,
       decisionCount,
-      drill,
-      drillStage,
       ensureEngine,
       learningTransfer,
-      learningTransferIndex,
       learningTransferApplied,
       learningTransferRecall,
-      learningTransferStage,
       recordTransferObservation,
       submitReveal,
     ],
   );
+
+  /**
+   * The answer, stored before the engine runs, and then the engine runs.
+   *
+   * BOTH ANSWERS GO DOWN THIS PATH. "I had nothing else" sends `null`, which the record stores as
+   * an ANSWERED probe carrying no move -- a fact about the player, and on the four readings
+   * arguably the most informative one available. It is not a skip and there is no skip: a
+   * dismissable question fills the probed arm with the decisions where the player happened to
+   * have an answer ready, which is the population most likely to differ from the control on
+   * exactly the thing being measured.
+   *
+   * A FAILED WRITE DOES NOT COST THE PLAYER THEIR REVEAL. The decision is already on the record;
+   * only the answer failed. The probe row stays absent, which reads as attrition in the probed
+   * arm -- visible and countable -- and the reveal proceeds with no alternative to score, because
+   * a reading built on an alternative the record does not hold would be a reading of nothing.
+   */
+  const onAnswerProbe = useCallback(
+    async (alternative: string | null) => {
+      if (!probe) return;
+      setProbePending(true);
+      setProbeError(undefined);
+      let stored: string | null = alternative;
+      try {
+        await recordCounterfactual.mutateAsync({
+          decision_id: probe.decisionId,
+          alternative,
+        });
+      } catch {
+        stored = null;
+        setProbeError("התשובה לא נשמרה. ההחלטה עצמה רשומה, והמנוע ממשיך.");
+      }
+      setProbePending(false);
+      setProbe(null);
+      setProbeAlternative(null);
+      await runReveal(
+        probe.draft,
+        probe.decisionId,
+        probe.positionFen,
+        probe.isDrillDecision,
+        probe.transfer,
+        stored,
+      );
+    },
+    [probe, recordCounterfactual, runReveal],
+  );
+
+  const onCommit = useCallback(
+    async (draft: DraftDecision, secondsTaken: number) => {
+      setCommitError(undefined);
+      setStage("committing");
+      const decisionId = crypto.randomUUID();
+      const isDrillDecision = drill !== null && drillStage === "running";
+      const isLearningTransferDecision =
+        learningTransfer !== null && learningTransferStage === "running";
+      /*
+       * THE GUARD SITS ON THE COMMIT, not on the advance, and the placement is the fix.
+       *
+       * Blocking the advance instead would leave a player who skipped the question able to answer
+       * it only AFTER the reveal -- which is the contamination this change exists to remove,
+       * reached by a different route. Refusing here keeps both halves of the observation on the
+       * same side of the engine.
+       */
+      if (isLearningTransferDecision && learningTransferApplied === null) {
+        setStage("deciding");
+        setLearningTransferError(
+          "לפני הרישום, סמנו אם אתם מיישמים את הכלל בהחלטה הזו. התשובה נרשמת לפני החשיפה.",
+        );
+        return;
+      }
+      let event: CommitEvent;
+      try {
+        event = buildCommitEvent(
+          decisionId,
+          {
+            gameId: isLearningTransferDecision ? learningTransfer.transfer_id : gameId.current,
+            fen: activeFen,
+            ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
+            clockMsRemaining: null,
+          },
+          draft,
+          secondsTaken,
+        );
+        await commitDecision.mutateAsync(event);
+      } catch (error) {
+        // R2: a decision that was not stored must never look like one that was. We do not
+        // advance to reveal, and we say what happened.
+        setStage("deciding");
+        // Never the raw message: on the default unauthenticated path this is LocalRecordStore's
+        // English invariant text, and it lands on the screen that has to say the decision was not
+        // recorded. The original is kept and demoted, not dropped.
+        setCommitError(commitFailureText(error));
+        return;
+      }
+      // Only now may the engine run at all.
+      const positionFen = activeFen;
+
+      /*
+       * THE PROBE SITS HERE, AND NOWHERE ELSE IS AVAILABLE. The move is locked -- naming an
+       * alternative can no longer turn into choosing one -- and the engine has not run, so the
+       * answer is the player's own candidate rather than a reading of the engine's. `PROBE_STAGE`
+       * is a stage `engineMayRun` refuses, which is what keeps the second half true.
+       *
+       * The arm was drawn inside `buildCommitEvent` and is already stored on the decision, so a
+       * player who closes the tab here leaves an answered=false row in the probed arm: attrition
+       * that is visible and countable, rather than a decision that quietly leaves the experiment.
+       */
+      if (event.probe?.assignment === "probed") {
+        setProbe({
+          decisionId,
+          draft,
+          positionFen,
+          isDrillDecision,
+          transfer: isLearningTransferDecision ? learningTransfer : null,
+        });
+        setProbeAlternative(null);
+        setStage(PROBE_STAGE);
+        setNotice("ההחלטה נרשמה. שאלה אחת לפני שהמנוע מדבר.");
+        return;
+      }
+
+      await runReveal(
+        draft,
+        decisionId,
+        positionFen,
+        isDrillDecision,
+        isLearningTransferDecision ? learningTransfer : null,
+        null,
+      );
+    },
+    [
+      activeFen,
+      commitDecision,
+      currentPly,
+      drill,
+      drillStage,
+      learningTransfer,
+      learningTransferIndex,
+      learningTransferApplied,
+      learningTransferStage,
+      runReveal,
+    ],
+  );
+
 
   /** Ask the server for a drill. The refutation condition is stored there before it returns. */
   const beginDrill = useCallback(
@@ -1619,6 +1796,22 @@ export default function Home() {
               pending={stage === "committing"}
               error={commitError}
             />
+          ) : null}
+          {/*
+            * Between the commitment and the engine, and rendered only in that stage. The board
+            * above still shows the position the decision was made in, so the alternative is named
+            * with the same gesture that chose the move.
+            */}
+          {stage === PROBE_STAGE && probe ? (
+            <>
+              <CounterfactualProbe
+                chosenMove={probe.draft.chosenMove!}
+                alternative={probeAlternative}
+                pending={probePending}
+                onAnswer={onAnswerProbe}
+              />
+              {probeError ? <p className="counterfactual-probe__error">{probeError}</p> : null}
+            </>
           ) : null}
           {deciding && learningTransfer ? (
             learningTransferPanel

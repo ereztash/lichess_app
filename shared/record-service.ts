@@ -209,10 +209,53 @@ export async function commitDecision(
  * Store the engine's verdict against an ALREADY COMMITTED decision, and hand back the atom.
  * Refuses when the decision was never recorded: that is R3, wherever the loop is running.
  */
+/**
+ * The player's answer to "what would you have played instead".
+ *
+ * A THIN WRAPPER OVER THE STORE ON PURPOSE. The three refusals -- no such decision, an arm that
+ * was never asked, the engine has already spoken -- live in the store implementations because
+ * each has to check them against its own reveal state, and both implementations are exercised by
+ * the same test file. What belongs here is the one rule that is about the ANSWER rather than the
+ * record: the alternative may not be the move that was committed.
+ */
+export async function recordCounterfactual(
+  store: RecordStore,
+  decisionId: string,
+  alternative: string | null,
+): Promise<{ decision_id: string }> {
+  if (alternative !== null) {
+    const atom = await store.getAtom(decisionId);
+    /*
+     * The committed move is not an answer to "what would you have played INSTEAD", and a board
+     * interaction produces it easily -- the piece is already on that square. A row whose two
+     * moves are the same would be classified on the strength of the chosen move alone, so it
+     * would read as `both-good` or `neither` while measuring nothing.
+     */
+    if (atom && atom.decision === alternative) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "המהלך החלופי זהה למהלך שנרשם, והשאלה היא מה היה נעשה במקומו.",
+      );
+    }
+  }
+  await store.recordCounterfactual(decisionId, alternative);
+  return { decision_id: decisionId };
+}
+
 export async function reveal(
   store: RecordStore,
   decisionId: string,
   result: DecisionResult,
+  /**
+   * What the named alternative cost, out of the SAME search that scored the chosen move.
+   *
+   * Carried on the reveal rather than as its own call because it is measured at the same moment
+   * and by the same tree: `cpLossFromMultiPv` reads both moves off one root search, so both
+   * scores share a window, a depth and an iteration. A second round trip would let one land
+   * without the other, and a record holding a chosen-move score and no alternative score is one
+   * where the reading silently does not exist.
+   */
+  alternativeCpLoss?: number | null,
 ): Promise<DecisionAtom> {
   const existing = await store.getAtom(decisionId);
   if (!existing) {
@@ -225,6 +268,14 @@ export async function reveal(
     throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
   }
   await store.recordReveal(decisionId, result);
+  /*
+   * AFTER the reveal is stored, and the order is the point. `scoreCounterfactual` refuses when no
+   * alternative was named, and that refusal must not be able to lose the engine's verdict on the
+   * chosen move -- which is the decision's own outcome and the thing every other measure reads.
+   */
+  if (alternativeCpLoss !== undefined && alternativeCpLoss !== null) {
+    await store.scoreCounterfactual(decisionId, alternativeCpLoss);
+  }
   const atom = await store.getAtom(decisionId);
   if (!atom) throw new RecordError("INTERNAL_SERVER_ERROR", "רשומה נעלמה.");
   return atom;

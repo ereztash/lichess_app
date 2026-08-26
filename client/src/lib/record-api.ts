@@ -179,6 +179,25 @@ export function useCommitDecision() {
   };
 }
 
+/**
+ * The answer to "what would you have played instead", stored before the engine runs.
+ *
+ * Invalidates nothing: the reading it feeds does not exist until the alternative has been scored
+ * at reveal, and refetching a dashboard here would refetch it for a decision that is still
+ * mid-flight.
+ */
+export function useRecordCounterfactual() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.recordCounterfactual.useMutation();
+  return {
+    mutateAsync: async (input: { decision_id: string; alternative: string | null }) => {
+      if (!local) return server.mutateAsync(input);
+      return service.recordCounterfactual(store, input.decision_id, input.alternative);
+    },
+  };
+}
+
 export function useReveal() {
   const { local } = useRecordMode();
   const store = useStore();
@@ -188,9 +207,15 @@ export function useReveal() {
     mutateAsync: async (input: {
       decision_id: string;
       result: DecisionResult;
+      alternative_cp_loss?: number | null;
     }): Promise<DecisionAtom> => {
       if (!local) return server.mutateAsync(input as never);
-      const atom = await service.reveal(store, input.decision_id, input.result);
+      const atom = await service.reveal(
+        store,
+        input.decision_id,
+        input.result,
+        input.alternative_cp_loss,
+      );
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.reading });
       return atom;

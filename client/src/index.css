@@ -1764,6 +1764,75 @@ button:not(:disabled) {
 /* The decision comes before the answer. This column replaces the analysis column entirely
    while deciding -- the engine's panel is absent, not hidden. */
 /* Every size in here comes from the five-step scale declared in :root. */
+/*
+ * The counterfactual probe: one question, between the commitment and the engine.
+ *
+ * Built from the commitment panel's own tokens rather than a new palette. It appears in the same
+ * column, in the same moment of the loop, and a panel that looked different would read as a
+ * different KIND of thing -- an interruption from elsewhere rather than the next step.
+ *
+ * NO OPACITY ON TEXT, per the note below `.commitment-header`: --ink is what the player reads,
+ * --muted is context, --warn is a problem.
+ */
+.counterfactual-probe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.15rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+.counterfactual-probe__question {
+  margin: 0;
+  /* The panel's one heading. The document's scale, not a size chosen here -- see the note above
+     `.commitment-kicker`: forty components each picking their own produced twenty-three sizes. */
+  font-size: var(--panel-title);
+  font-weight: 600;
+  color: var(--ink);
+  /*
+   * The question is a sentence, and a sentence wraps. Inheriting `nowrap` here laid a 456px line
+   * inside a 292px box once already, on a different panel, and pushed the whole document to
+   * 525px at a 390px viewport.
+   */
+  white-space: normal;
+}
+.counterfactual-probe__committed,
+.counterfactual-probe__how {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--muted);
+}
+.counterfactual-probe__same,
+.counterfactual-probe__error {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--warn);
+}
+.counterfactual-probe__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.counterfactual-probe__actions button {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.counterfactual-probe__confirm {
+  border-color: var(--ink);
+}
+.counterfactual-probe__actions button:disabled {
+  cursor: default;
+  color: var(--muted);
+}
+
 .commitment-screen {
   display: flex;
   flex-direction: column;
