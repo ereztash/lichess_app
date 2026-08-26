@@ -515,6 +515,89 @@ engine-derived proxy that would assert sharpness as difficulty.
 per row over six million rows, and an `sd` recomputing its own mean per element. A generator
 nobody can bear to re-run is a generator whose output stops being checkable.
 
+## Cycles 23–26 — the road not taken
+
+Two features the operator asked for, built as one measurement: a question asked at random times
+during play — *"if you hadn't done that, what would you have done?"* — and a game against the app
+that the engine does not narrate.
+
+### What is actually new, in one sentence
+
+Every facet this product measured until now reads the move that WAS played. de Groot (1946),
+replicated by Connors, Burns & Campitelli (2011), is that masters do not search deeper or wider —
+they **select better candidates**. The alternative a player names, priced by the engine, is a
+reading on the half the accuracy rate cannot see, and `reachable` (chosen inaccurate, alternative
+accurate) is the Einstellung signature Bilalić, McLeod & Gobet needed an eye tracker for in 2013.
+
+### The design decisions, and what each one prevents
+
+| decision | what it prevents |
+| --- | --- |
+| The arm rides on **every** decision | A treatment group with no control group and therefore no denominator |
+| `ineligible` is a third value | A control group that is a mixture of *not drawn* and *never askable* — a comparison of position types wearing an experiment's clothes |
+| Eligibility is definitional (≥2 legal moves), the count a covariate | A floor chosen to make the arm look cleaner, which is a threshold picked to shape a result |
+| The arm is drawn at **commit**, not at entry | Any pre-commit screen ever being able to read it — at which point the comparison is about the interface |
+| No skip button; "I had nothing else" is an answer | A probed arm self-selected down to the decisions where the player had an answer ready |
+| The alternative is priced from the **same root search** | Two scores off different trees, the defect that once charged the engine's own best move 9cp |
+| Not in the top eight lines → unscored, not "bad" | A bound reported as a measurement |
+| The reveal timing is stored on every decision | Pooling a coached game with an unnarrated one into a single calibration figure |
+
+### The fourth state, twice
+
+Both new fields are nullable, and in both cases null is **not** the majority value it looks like.
+Decisions written before the probe existed were never randomised into anything; decisions written
+before the deferred game existed were all made in the coached loop. Backfilling either would
+assert that somebody recorded a condition when nobody did — and the first comparison between
+groups would then show a control arm that is enormous and perfectly measured.
+
+### The step that mattered most, and why
+
+`ccf6e81` reads the four readings back onto a screen. Everything before it is collection, and a
+probe nobody can read back **is this ledger's recurring finding with the expensive half already
+paid for** — a distinction measured and discarded before display, found nine times in cycles
+13–22.
+
+Three denominators a single "probed" number would fuse — asked, answered, scored — are kept apart
+on screen, because dividing the readings by *asked* divides by decisions that never produced one.
+
+**The negative control is on the screen, not kept for a maintainer.** The arm is drawn after the
+decision is complete, so being asked cannot have changed the decision it is attached to; there is
+no causal path. A player reading their own numbers is entitled to know which comparison is the one
+supposed to come out empty, or a chance difference reads as a finding.
+
+### What the tests caught, that the author did not
+
+- **The layout test passed on a fixture, not on the CSS.** It measured the panel at full viewport
+  width, so `nowrap` on the question, `nowrap` on the actions row and zero-padding buttons all
+  passed. The app gives this panel a **330px** column.
+- **And two of those three still cannot go red at 330px.** Measured with the longest label the
+  panel can produce: wrapped, buttons are 291px holding 289px of content; unwrapped, 141px holding
+  139px. Both have slack. The assertion written to catch them was **deleted rather than kept**,
+  with the numbers recorded in the file — an assertion no mutation can redden is not evidence, and
+  keeping it claims a protection the panel does not have.
+- **The reporting panel broke R1 in the line that matters most.** `ArmRate` rendered a rate
+  unconditionally, so three probed decisions printed `0% (0/3)` inside the sentence asking the
+  reader to compare two numbers and judge whether they match. A reader comparing 0% against "no
+  data" would conclude the randomisation was broken.
+- **The stale-closure test caught two hooks** reading the reveal timing without depending on it —
+  the exact class it was written for after it fabricated a transfer observation.
+- **The type-scale test caught two invented font sizes**, against a document scale of seven named
+  steps that exists because forty components each picking their own once produced twenty-three.
+- **A service guard caught its own test's fixture**, which marked a twenty-legal-move opening
+  position `ineligible`.
+- **`recordCounterfactual` and `scoreCounterfactual` on `DrizzleRecordStore` had run zero times.**
+  Found by checking this PR's own "0 skipped" claim rather than repeating it. The most valuable of
+  the nine new database cases is `listAtoms`: `getAtom` and `listAtoms` are separate read paths and
+  only the second feeds the dashboard, so a probe arriving through one and not the other would
+  leave every screen empty while every single-decision test passed.
+
+### The cost, stated
+
+Four readings need `MIN_BUCKET_N = 30` **scored** answers. At one question in five that is a lot
+of decisions, and the panel counts down to it rather than implying a reading exists. `Home.tsx`
+grew; `runReveal` was extracted from `onCommit` so the engine half has a second caller, which is a
+real decoupling, and the remaining coupling stays recorded rather than scored as an improvement.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -524,13 +607,13 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Security, privacy, isolation | 2 | **8.5** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more |
 | Scientific / construct validity | 4 | **8** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. Not higher: positions still are not selected for the trigger, there is no control condition, and per-item difficulty is unmeasured because Maia is unreachable |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9.5** | 1,244 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9.5** | 1,341 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~140 positive controls red. Two regex-over-source assertions replaced by things that run — and one layout assertion **deleted** because no mutation could redden it at the width the app actually uses |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
 | Operations / deployability | 4 | **8** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values; incoherent configurations named at startup, by variable and never by value. Not higher: no incident runbook, and the record loop itself is still exercised only locally. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it |
 | Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |
-| Differentiation / user value | 8 | **8** | Unchanged by design: this work made existing claims true rather than adding new ones |
+| Differentiation / user value | 8 | **8.5** | Cycles 13–22 were unchanged by design — they made existing claims true rather than adding new ones. Cycles 23–26 add one: the counterfactual probe reads candidate SELECTION, the half of expertise the accuracy rate cannot see. Not higher until it has n behind it: four readings need 30 scored answers, and the panel currently counts down to that rather than reporting anything |
 
 ## Open, by severity
 
@@ -539,7 +622,9 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | 2b | Candidate positions chosen for being unseen, never for the rule's trigger applying | **High** | open. Motif retrieval is validated on lichess data (Bizjak & Guid 2021) but **48% top-1** — it may *propose* and must never assert |
 | — | Three positions is below every single-case standard consulted; no control positions | **High** | open, and now **stated on screen** rather than silently assumed |
 | — | Multi-user separation: `user_id` on 12 tables, every query, index and cache key | High | **product decision for the operator**, not a defect fix |
-| 7 | `Home.tsx` 1,743 lines, `index.css` 3,693 | Low | open |
+| 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |
+| — | The counterfactual probe has no n yet | **Medium** | open by construction. Four readings need 30 scored answers; the panel counts down rather than reporting. The randomisation check on screen is the negative control that must stay empty |
+| — | Whether the confidence rating should be sampled rather than asked every move | **Medium** | open, and it is the operator's call. Raised because the burden is real; sampling it on the same two-arm logic would keep Brier, Murphy, AUROC2 and the calibration curve while halving the interruptions, at the cost of multiplying time-to-first-reading by 1/p |
