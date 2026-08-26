@@ -243,9 +243,9 @@ describe("verified learning record", () => {
       created_at: "2026-01-01T00:00:00.000Z",
       last_evaluated_at: "2026-01-01T00:00:00.000Z",
     };
-    const failure = (day: string): LearningTransferResult => ({
+    const failure = (day: string, sitting = "a"): LearningTransferResult => ({
       kind: "learning_transfer_result",
-      transfer_id: `t-${day}`,
+      transfer_id: `t-${day}-${sitting}`,
       rule_id: "rule-1",
       decision_ids: [],
       recalled_rules: [],
@@ -255,15 +255,15 @@ describe("verified learning record", () => {
       completed_at: `${day}T01:00:00.000Z`,
     });
 
-    const afterOne = gradeLearningRule(base, [], failure("2026-01-02"));
-    expect(afterOne.grade).toBe("hypothesis");
+    expect(gradeLearningRule(base, [failure("2026-01-02")]).grade).toBe("hypothesis");
 
     // Two failures on the SAME day are one sitting, not two. Symmetric with replication, which
     // counts distinct dates for the same reason: a day is the unit that separates two tests.
-    const sameDay = gradeLearningRule(afterOne, [failure("2026-01-02")], failure("2026-01-02"));
-    expect(sameDay.grade).toBe("hypothesis");
+    expect(
+      gradeLearningRule(base, [failure("2026-01-02", "a"), failure("2026-01-02", "b")]).grade,
+    ).toBe("hypothesis");
 
-    const afterTwo = gradeLearningRule(afterOne, [failure("2026-01-02")], failure("2026-01-09"));
+    const afterTwo = gradeLearningRule(base, [failure("2026-01-02"), failure("2026-01-09")]);
     expect(afterTwo.grade).toBe("refuted");
     expect(afterTwo.next_due_at).toBeNull();
   });
@@ -291,14 +291,61 @@ describe("verified learning record", () => {
       completed_at,
     });
     const first = result("t1", "2026-01-02T08:00:00.000Z");
-    const afterFirst = gradeLearningRule(base, [], first);
-    expect(afterFirst.grade).toBe("hypothesis");
+    expect(gradeLearningRule(base, [first]).grade).toBe("hypothesis");
     expect(
-      gradeLearningRule(afterFirst, [first], result("t2", "2026-01-02T18:00:00.000Z")).grade,
+      gradeLearningRule(base, [first, result("t2", "2026-01-02T18:00:00.000Z")]).grade,
     ).toBe("hypothesis");
     expect(
-      gradeLearningRule(afterFirst, [first], result("t3", "2026-01-05T08:00:00.000Z")).grade,
+      gradeLearningRule(base, [first, result("t3", "2026-01-05T08:00:00.000Z")]).grade,
     ).toBe("replicated");
+  });
+
+  /*
+   * WHAT THE FOLD BUYS, ASSERTED RATHER THAN ASSUMED.
+   *
+   * The grade used to be stepped onto whatever rule it was handed, which made it depend on how
+   * many times it had been called and in what order -- and that is what a store with no
+   * transaction cannot promise. These two properties are the reason the signature changed, so
+   * they are tested directly and not only through the crash that found them.
+   */
+  it("reads the same record the same way, whatever the order and however many times it is run", () => {
+    const base = {
+      ...RULE,
+      rule_id: "rule-1",
+      authored_by: "player" as const,
+      grade: "hypothesis" as const,
+      retrieval_step: 0,
+      next_due_at: "2026-01-02T00:00:00.000Z",
+      created_at: "2026-01-01T00:00:00.000Z",
+      last_evaluated_at: "2026-01-01T00:00:00.000Z",
+    };
+    const result = (id: string, completed_at: string, observed: boolean): LearningTransferResult => ({
+      kind: "learning_transfer_result",
+      transfer_id: id,
+      rule_id: "rule-1",
+      decision_ids: [],
+      recalled_rules: [],
+      applied_rule: [],
+      successes: observed ? 3 : 0,
+      observed,
+      completed_at,
+    });
+    const sittings = [
+      result("t1", "2026-01-02T08:00:00.000Z", true),
+      result("t2", "2026-01-05T08:00:00.000Z", false),
+      result("t3", "2026-01-12T08:00:00.000Z", true),
+    ];
+
+    const graded = gradeLearningRule(base, sittings);
+    expect(graded.grade).toBe("replicated");
+    expect(graded.retrieval_step).toBe(3);
+
+    // Rows come back in whatever order the store gives them. The verdict is about the sittings.
+    expect(gradeLearningRule(base, [...sittings].reverse())).toEqual(graded);
+
+    // And running it on an already-graded rule changes nothing -- which is what lets the retry
+    // path grade unconditionally instead of having to know whether the first attempt got through.
+    expect(gradeLearningRule(graded, sittings)).toEqual(graded);
   });
 });
 
@@ -1059,5 +1106,136 @@ describe("an unanswered question is not a negative answer", () => {
       transferObservation({ decision_id: "d-1", recalled_rule: "", applied_rule: true })
         .recalled_rule,
     ).toBe("");
+  });
+});
+
+/**
+ * THE GRADE IS WRITTEN IN A SECOND STATEMENT, AND NOTHING PUTS THE TWO TOGETHER.
+ *
+ * `finishLearningTransfer` writes the transfer result, then reads the rule, then writes the graded
+ * rule. Three statements, no transaction -- neither store has one, because until now nothing in
+ * this record needed more than one write to be correct.
+ *
+ * Lose the connection between the first write and the third and the record is left holding the
+ * evidence with no verdict drawn from it. And the replay branch, which exists precisely so a lost
+ * response can be retried, hands back `await store.getLearningRule(...)` -- the rule AS STORED,
+ * which is the ungraded one. The retry that was written to recover from a lost response is the
+ * thing that makes the loss permanent: the result row exists, so `already` fires forever, and no
+ * call after it will ever grade that sitting.
+ *
+ * The player sees their three positions scored and a rule that says it was never evaluated.
+ */
+describe("a grade that two writes can lose", () => {
+  class LosesTheGradeWrite extends MemoryRecordStore {
+    crashNextGrade = false;
+    override async saveLearningRule(rule: Parameters<MemoryRecordStore["saveLearningRule"]>[0]) {
+      if (this.crashNextGrade) {
+        this.crashNextGrade = false;
+        throw new Error("connection reset by peer");
+      }
+      return super.saveLearningRule(rule);
+    }
+  }
+
+  const DAY_ONE = "2026-01-02T01:00:00.000Z";
+  const DAY_TWO = "2026-01-05T03:00:00.000Z";
+
+  /**
+   * Two success days, which is what `replicated` costs. The crash is armed for the second
+   * grading only -- the sitting that turns two days of evidence into the one grade this record
+   * treats as a verdict about a rule.
+   */
+  async function sitTwoDaysLosingTheSecondGrade() {
+    const store = new LosesTheGradeWrite();
+    const rule = await createRule(store);
+
+    const first = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const firstIds = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < firstIds.length; index += 1) {
+      await recordPosition(store, firstIds[index], first.transfer!.fens[index]);
+    }
+    await sitTransfer(
+      store,
+      "transfer-1",
+      firstIds.map((decision_id) => ({
+        decision_id,
+        recalled_rule: rule.action_rule,
+        applied_rule: true,
+      })),
+      DAY_ONE,
+    );
+
+    const second = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-01-05T02:00:00.000Z" },
+    );
+    const secondIds = [
+      "55555555-5555-4555-8555-555555555555",
+      "66666666-6666-4666-8666-666666666666",
+      "77777777-7777-4777-8777-777777777777",
+    ];
+    for (let index = 0; index < secondIds.length; index += 1) {
+      await recordPosition(store, secondIds[index], second.transfer!.fens[index]);
+    }
+    const observations = secondIds.map((decision_id) => ({
+      decision_id,
+      recalled_rule: rule.action_rule,
+      applied_rule: true,
+    }));
+
+    store.crashNextGrade = true;
+    const crash = await sitTransfer(store, "transfer-2", observations, DAY_TWO).catch(
+      (error: unknown) => error as Error,
+    );
+    return { store, rule, crash };
+  }
+
+  it("leaves the evidence written and the verdict undrawn when the second write is lost", async () => {
+    const { store, rule, crash } = await sitTwoDaysLosingTheSecondGrade();
+
+    // The failure is real and it is the grade write: the caller saw an error, so the client
+    // returns the player to `running` and lets them report again. That retry is the next test.
+    expect((crash as Error).message).toBe("connection reset by peer");
+    // The evidence is on the record. This is not a hypothetical half-state: the sitting counts.
+    expect(await store.listLearningTransferResults(rule.rule_id)).toHaveLength(2);
+    // And the rule carries no trace of it.
+    expect((await store.getLearningRule(rule.rule_id))?.last_evaluated_at).toBe(DAY_ONE);
+  });
+
+  it("draws the verdict the record already supports when the report is retried", async () => {
+    const { store, rule } = await sitTwoDaysLosingTheSecondGrade();
+
+    const replay = await service.finishLearningTransfer(
+      store,
+      { transfer_id: "transfer-2" },
+      // A retry happens later than the write it is retrying. The verdict must still be dated by
+      // the sitting, not by the retry -- the second call must not produce a differently-timed one.
+      { completed_at: "2026-01-05T05:00:00.000Z" },
+    );
+
+    expect(replay.result.completed_at).toBe(DAY_TWO);
+    expect(await store.listLearningTransferResults(rule.rule_id)).toHaveLength(2);
+
+    // Two success days are on the record. That is what `replicated` means here, and it is the
+    // only thing in this product that survives one sitting's noise.
+    expect(replay.rule?.grade).toBe("replicated");
+    expect(replay.rule?.retrieval_step).toBe(2);
+    expect(replay.rule?.last_evaluated_at).toBe(DAY_TWO);
+
+    // Returned AND stored: a verdict that lives only in one response is lost by the next reload.
+    const stored = await store.getLearningRule(rule.rule_id);
+    expect(stored?.grade).toBe("replicated");
+    expect(stored?.last_evaluated_at).toBe(DAY_TWO);
+    // The schedule moved too. Left where it was, the rule reads as due the moment it was tested.
+    expect(stored?.next_due_at).toBe("2026-01-12T03:00:00.000Z");
   });
 });

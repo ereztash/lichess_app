@@ -735,6 +735,55 @@ where three of this PR's defects came from. The pattern worth carrying forward: 
 what a function returns, grep every caller that derives anything from the same inputs** — an id, a
 count, an ordering — because those are the places that silently keep answering the old question.
 
+## Cycle 31 — a verdict written in a second statement
+
+The critic's pick across six assessments, chosen for being the only *load-bearing inferred claim*:
+that `finishLearningTransfer` can destroy a grade permanently. Nobody had run it. So it was run.
+
+`finishLearningTransfer` writes the transfer result, reads the rule, writes the graded rule. Three
+statements, no transaction — neither store has one, because nothing in this record had previously
+needed two writes to be correct. A store subclass was made to fail the grade write once, on a rule
+sitting on its **second success day**, which is what `replicated` costs here.
+
+**Observed, not inferred:**
+
+| after the injected failure | |
+| --- | --- |
+| transfer results on the record | **2** — the sitting counts |
+| the rule's `last_evaluated_at` | day one — the sitting left no trace |
+| what the retry returned | `grade: "hypothesis"` |
+| what the record supported | `replicated` |
+
+And the retry is what makes it permanent. That branch exists *precisely* so a lost response can be
+reported again; it returned `await store.getLearningRule(...)` — the rule as stored, which is the
+ungraded one. The result row exists, so `already` fires forever, and no later call would ever grade
+that sitting. **The recovery path was the thing that froze the loss.**
+
+The fix is not a transaction. `gradeLearningRule` was an accumulator: take one result, step the
+rule forward from wherever it stood. It is now a **fold over every result the record holds**, run
+from the rule as authored. Same record, same rule — once, five times, before the crash or after it.
+The retry now grades unconditionally instead of having to know whether the first attempt got
+through, and a run that dies between the two writes is repaired by the next one rather than frozen
+by it. `retired` is checked before the fold and never rebuilt by it: it is an act of the player's,
+not a reading of the evidence.
+
+It is the rule this file already states one function higher up — `recall.coverage` is not stored
+beside `recalled_rules` because it is derivable. **Derived beats duplicated, and here it also beats
+losable.**
+
+Three assertions, three positive controls: neutering the sort reddens order-independence alone;
+folding from the stored rule instead of the authored one reddens both idempotence and the crash
+recovery. The crash test was red before the fix and is the reason the fix has this shape.
+
+**Found while fixing it, and not fixed here:** `finishDrill` has the identical shape —
+`saveDrillResult` then `saveClaim`, two writes, no transaction. It is worse in one way and better
+in another: there is no idempotent replay branch at all, so a retry raises `append-only: drill
+already reported` rather than returning a wrong verdict quietly. The same cure does not fit, because
+a claim carries its own `prospective_tests` array and the store has no `listDrillResults(claimId)`
+to fold over. That is a store-contract change with a real-database test behind it, not a symmetric
+ten-line edit, and pretending otherwise would have widened this commit past what was verified. Open
+below.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -743,7 +792,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **8.5** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more |
 | Scientific / construct validity | 4 | **8.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable |
-| Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
+| Functional correctness | 6 | **9** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. Not 9.5: `finishDrill` has the same two-write shape and is open |
 | Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
@@ -766,4 +815,5 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | The counterfactual probe has no n yet | **Medium** | open by construction. Four readings need 30 scored answers; the panel counts down rather than reporting. The randomisation check on screen is the negative control that must stay empty |
 | — | The crossed profile needs ~480 decisions before most of it is readable | **Medium** | open by construction, and measured: 0.1% of cells readable at n=120, 17.1% at 240, 65.1% at 480. The fraction is on screen so the silence has a size |
 | — | ~~The variable collapse does not reach the claims the record stores~~ | ~~Low~~ **was Medium** | **closed in cycle 29, and the severity I first gave it was wrong.** Measured rather than reasoned about: `selectClaim` took `patterns[0]`, so on a player whose weakness sat in the opening or the endgame the STORED claim named a phase they were fine in **14.7% of the time**, and 44 times in 45 it was the inverted one. A claim is not a panel sentence — it is written to the record, accrues prospective drill results, and is what the player is asked to go and test, so a wrong one spends their decisions. Now 1.6% / 1.0%, at a cost of 0.0% → 0.8% when the weakness is the largest phase. `BUCKETINGS` still keeps every key, so claim ids and preregistered hypotheses are unaffected |
+| — | `finishDrill` loses a claim's grade the same way, and its retry raises instead of recovering | **Medium** | open, found in cycle 31. Needs `listDrillResults(claimId)` on the store contract and `evaluateClaim` folded over it — a real-database change, not a symmetric edit |
 | — | Whether the confidence rating should be sampled rather than asked every move | **Medium** | open, and it is the operator's call. Raised because the burden is real; sampling it on the same two-arm logic would keep Brier, Murphy, AUROC2 and the calibration curve while halving the interruptions, at the cost of multiplying time-to-first-reading by 1/p |

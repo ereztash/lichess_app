@@ -559,7 +559,13 @@ export async function finishLearningTransfer(
    * second call must return what the first one recorded -- not a second, differently-timed verdict.
    */
   const already = priorResults.find((result) => result.transfer_id === transfer.transfer_id);
-  if (already) return { result: already, rule: await store.getLearningRule(transfer.rule_id) };
+  /*
+   * The retry GRADES, it does not just fetch. Returning `getLearningRule` was what turned a lost
+   * grade write into a permanent one: the result row exists, so this branch fires forever, and the
+   * rule it handed back was the ungraded one. Grading here is free when nothing was lost -- the
+   * fold over the same results returns the same rule -- and repairs the record when something was.
+   */
+  if (already) return { result: already, rule: await gradeFromRecord(store, transfer.rule_id) };
 
   /*
    * A DECISION IS SPENT ONCE. This is the hole that let one sitting replicate itself.
@@ -642,15 +648,28 @@ export async function finishLearningTransfer(
     completed_at: now.completed_at,
   };
   await store.saveLearningTransferResult(result);
+  return { rule: await gradeFromRecord(store, transfer.rule_id), result };
+}
 
-  const rule = await store.getLearningRule(transfer.rule_id);
+/**
+ * Read every result for the rule and write the grade they add up to.
+ *
+ * THE RESULTS ARE RE-READ RATHER THAN ASSEMBLED FROM WHAT THIS CALL HAPPENS TO HOLD. That costs a
+ * query and buys the property the whole change is for: the grade is a function of the record, so
+ * whoever runs this -- the call that wrote the result, or a retry an hour later -- gets the same
+ * answer, and a run that dies between the two writes is repaired by the next one rather than
+ * frozen by it.
+ *
+ * The missing rule raises instead of returning null. The completion path already raised here; the
+ * retry path returned the null on, so a vanished rule surfaced as a scored sitting attached to
+ * nothing. One behaviour for one condition.
+ */
+async function gradeFromRecord(store: RecordStore, ruleId: string) {
+  const rule = await store.getLearningRule(ruleId);
   if (!rule) throw new RecordError("NOT_FOUND", "כלל הלמידה נעלם לפני הדירוג.");
-  const prior = (await store.listLearningTransferResults(rule.rule_id)).filter(
-    (candidate) => candidate.transfer_id !== result.transfer_id,
-  );
-  const graded = gradeLearningRule(rule, prior, result);
+  const graded = gradeLearningRule(rule, await store.listLearningTransferResults(ruleId));
   await store.saveLearningRule(graded);
-  return { rule: graded, result };
+  return graded;
 }
 
 export async function retireLearningRule(
