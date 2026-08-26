@@ -589,6 +589,21 @@ export default function Home() {
       const isDrillDecision = drill !== null && drillStage === "running";
       const isLearningTransferDecision =
         learningTransfer !== null && learningTransferStage === "running";
+      /*
+       * THE GUARD SITS ON THE COMMIT, not on the advance, and the placement is the fix.
+       *
+       * Blocking the advance instead would leave a player who skipped the question able to answer
+       * it only AFTER the reveal -- which is the contamination this change exists to remove,
+       * reached by a different route. Refusing here keeps both halves of the observation on the
+       * same side of the engine.
+       */
+      if (isLearningTransferDecision && learningTransferApplied === null) {
+        setStage("deciding");
+        setLearningTransferError(
+          "לפני הרישום, סמנו אם אתם מיישמים את הכלל בהחלטה הזו. התשובה נרשמת לפני החשיפה.",
+        );
+        return;
+      }
       try {
         const event = buildCommitEvent(
           decisionId,
@@ -744,7 +759,17 @@ export default function Home() {
               {
                 decision_id: decisionId,
                 recalled_rule: learningTransferRecall,
-                applied_rule: false,
+                /*
+                 * The player's own answer, frozen here -- not a placeholder patched later. It
+                 * used to be written `false` and overwritten in `advanceLearningTransfer`, which
+                 * runs after the reveal, so the value that reached the server had been collected
+                 * on the wrong side of the engine while every screen looked correct.
+                 *
+                 * `?? false` cannot fire: `onCommit` refuses a transfer decision with a null
+                 * answer. It is here because the type allows null and a silent `undefined` in an
+                 * append-only record is worse than a redundant default.
+                 */
+                applied_rule: learningTransferApplied ?? false,
               },
             ]);
           }
@@ -900,21 +925,16 @@ export default function Home() {
 
   const advanceLearningTransfer = useCallback(async () => {
     if (!learningTransfer || learningTransferStage !== "running") return;
-    if (learningTransferApplied === null) {
-      setLearningTransferError("לפני המעבר לעמדה הבאה, סמנו אם יישמתם את הכלל.");
-      return;
-    }
     if (learningTransferObservations.length !== learningTransferIndex + 1) {
       setLearningTransferError("החשיפה לא נשמרה ולכן אי אפשר להתקדם בבדיקה.");
       return;
     }
 
-    const observations = learningTransferObservations.map((observation, index) =>
-      index === learningTransferIndex
-        ? { ...observation, applied_rule: learningTransferApplied }
-        : observation,
-    );
-    setLearningTransferObservations(observations);
+    /*
+     * Reported as recorded. This used to patch `applied_rule` in at this point, which is after
+     * the reveal -- the observation is complete when the decision is committed now.
+     */
+    const observations = learningTransferObservations;
     setLearningTransferError(undefined);
 
     const next = learningTransferIndex + 1;

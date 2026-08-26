@@ -2651,6 +2651,16 @@ button:not(:disabled) {
 }
 .learning-choice,
 .mechanism-picker,
+/*
+ * What the panel says once the engine has answered: both observations are already written down.
+ * A control here -- even a disabled one -- would invite the next change to make it editable, and
+ * an editable answer after the reveal is the contamination this whole sequence exists to remove.
+ */
+.transfer-frozen {
+  font-size: var(--panel-label);
+  opacity: 0.68;
+  margin: 0.4rem 0 0;
+}
 .transfer-applied {
   display: flex;
   flex-wrap: wrap;
