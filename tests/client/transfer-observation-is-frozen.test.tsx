@@ -115,3 +115,61 @@ describe("the frozen observation is what gets reported", () => {
     expect(home).toMatch(/onCommit[\s\S]{0,1200}learningTransferApplied === null/);
   });
 });
+
+describe("the verdict claims only what three positions can carry", () => {
+  const done = (observed: boolean) =>
+    render(
+      <LearningTransferRunner
+        transfer={transfer}
+        stage="done"
+        index={2}
+        revealed
+        recall=""
+        applied
+        verdict={{ observed, successes: observed ? 3 : 0 }}
+        onRecall={vi.fn()}
+        onApplied={vi.fn()}
+        onStart={vi.fn()}
+        onFinish={vi.fn()}
+      />,
+    );
+
+  it("does not tell the player their rule was refuted", () => {
+    /*
+     * "הכלל הופרך" is a claim about the RULE. Three positions is below every single-case standard
+     * consulted; the positions were not chosen for the rule's trigger; and there is no control
+     * condition. What is true is that a preregistered condition did not hold.
+     */
+    done(false);
+    expect(screen.queryByText(/הכלל הופרך/)).toBeNull();
+    expect(screen.getByText(/התנאי שנרשם מראש לא התקיים/)).toBeTruthy();
+  });
+
+  it("does not tell the player their rule survived either", () => {
+    // Both directions. A verdict that only softened the bad news would be worse than one that
+    // softened neither -- it would read as a product protecting the player from its own findings.
+    done(true);
+    expect(screen.getByText(/התנאי שנרשם מראש התקיים/)).toBeTruthy();
+  });
+
+  it("names all four reasons the number is not a finding about the rule", () => {
+    /*
+     * Each clause is load-bearing and each is the kind a tidy-up drops: too few positions, not
+     * selected for the trigger, no control condition, and a recall check that is word overlap and
+     * will mark a correct paraphrase wrong.
+     */
+    done(true);
+    const element = screen.getByText(/זו לא קביעה על הכלל עצמו/);
+    /*
+     * VISIBLE, not merely present. `hidden` leaves the node in the DOM and `getByText` still finds
+     * it, so an assertion that only queried for the text passed with the whole caveat hidden --
+     * a positive control proved that by adding the attribute and watching nothing fail.
+     */
+    expect(element).toBeVisible();
+    const limits = element.textContent ?? "";
+    expect(limits).toMatch(/שלוש עמדות/);
+    expect(limits).toMatch(/לא לפי הטריגר|לא לפי הטריגר של הכלל/);
+    expect(limits).toMatch(/עמדות ביקורת/);
+    expect(limits).toMatch(/חפיפת מילים/);
+  });
+});

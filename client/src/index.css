@@ -2656,6 +2656,18 @@ button:not(:disabled) {
  * A control here -- even a disabled one -- would invite the next change to make it editable, and
  * an editable answer after the reveal is the contamination this whole sequence exists to remove.
  */
+/*
+ * The limits under the verdict. Deliberately not smaller than a caveat can be read at: the
+ * sentence above it says the preregistered condition held, and without these four clauses a
+ * reader completes that sentence into "my rule works" -- which is the claim the evidence cannot
+ * carry and the reason the wording changed.
+ */
+.transfer-limits {
+  font-size: var(--panel-fine);
+  line-height: 1.5;
+  opacity: 0.75;
+  margin: 0.4rem 0 0;
+}
 .transfer-frozen {
   font-size: var(--panel-label);
   opacity: 0.68;

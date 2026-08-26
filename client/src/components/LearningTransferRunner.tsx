@@ -134,11 +134,33 @@ export function LearningTransferRunner({
           <p>
             {verdict.successes} מתוך {transfer.fens.length} עמדות עברו את תנאי ההצלחה.
           </p>
+          {/*
+            * WHAT THE VERDICT IS ALLOWED TO SAY.
+            *
+            * It used to say "הכלל הופרך" and "הבדיקה שרדה" -- claims about the RULE. The evidence
+            * cannot carry them, and three separate literatures say so in different words. Three
+            * positions is below every single-case standard consulted (the WWC asks for six
+            * baseline points and three demonstrations of an effect). The positions were not
+            * selected for the rule's trigger, so the rule may not even apply in them. And there
+            * are no control positions that DON'T instantiate the trigger, which is the comparison
+            * that would show the rule is doing any work at all -- in this exact domain, chess
+            * training effects measured against passive controls collapsed from 0.25 SD to 0.03 SD
+            * once an active control was added.
+            *
+            * So the sentence now describes what happened: the preregistered condition held, or it
+            * did not. That is true, and it is all that is true.
+            */}
           <strong>
             {verdict.observed
-              ? "הבדיקה שרדה. הכלל נשאר בתור לחזרה מושהית."
-              : "הכלל הופרך ונשמר כתוצאה."}
+              ? "התנאי שנרשם מראש התקיים. הכלל נשאר בתור לחזרה מושהית."
+              : "התנאי שנרשם מראש לא התקיים, ונשמר כתוצאה."}
           </strong>
+          <p className="transfer-limits">
+            זו לא קביעה על הכלל עצמו. שלוש עמדות הן מתחת לכל סף מקובל למחקר יחיד; העמדות נבחרו
+            כעמדות שלא הכרעתם בהן, לא לפי הטריגר של הכלל; ואין כאן עמדות ביקורת שהטריגר לא חל בהן —
+            בלעדיהן אי אפשר לדעת אם הכלל עשה משהו או שפשוט שיחקתם טוב. השליפה נמדדת כחפיפת מילים מול
+            מה שכתבתם, ולכן ניסוח נכון במילים אחרות ייספר כשגוי.
+          </p>
           <button type="button" onClick={onFinish}>
             חזרה למשחק
           </button>

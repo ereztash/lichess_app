@@ -385,3 +385,117 @@ describe("the rule's own source position is never offered back", () => {
     expect(outcome.transfer?.fens, "the position the rule was born from came back as a test").not.toContain(FENS[0]);
   });
 });
+
+describe("the transfer is graded against the rule, not against arbitrary text", () => {
+  /** Run three positions with the same recall text, and report what the test made of it. */
+  async function runTransfer(recalled: string, applied: boolean) {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const { transfer } = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const ids = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < ids.length; index += 1) {
+      // cp_loss 10, comfortably accurate: the engine half of the criterion is satisfied on every
+      // position, so what the verdict turns on is the recall alone.
+      await recordPosition(store, ids[index], transfer!.fens[index]);
+    }
+    return service.finishLearningTransfer(
+      store,
+      {
+        transfer_id: transfer!.transfer_id,
+        observations: ids.map((decision_id) => ({
+          decision_id,
+          recalled_rule: recalled,
+          applied_rule: applied,
+        })),
+      },
+      { completed_at: "2026-01-02T01:00:00.000Z" },
+    );
+  }
+
+  it("does not count `banana` as a successful retrieval", async () => {
+    /*
+     * THE REPRODUCTION. Non-empty text, the box ticked, an accurate move: three of three and
+     * "the rule transferred". Two of those three criteria were not measurements.
+     */
+    const outcome = await runTransfer("banana", true);
+    expect(outcome.result.successes).toBe(0);
+    expect(outcome.result.observed).toBe(false);
+  });
+
+  it("counts a recall that reproduces the authored rule", async () => {
+    // The control. Without it, a criterion that failed everything would pass the test above.
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    expect(rule.action_rule.length).toBeGreaterThan(0);
+    const outcome = await runTransfer(rule.action_rule, false);
+    expect(outcome.result.successes).toBe(3);
+    expect(outcome.result.observed).toBe(true);
+  });
+
+  it("ignores the self-report entirely, in both directions", async () => {
+    /*
+     * `applied_rule` is collected and stored, and it decides nothing. Reed, Ernst & Banerji (1974)
+     * found self-rated use of a prior solution did not correlate with transfer performance in a
+     * case where transfer demonstrably occurred; Craig et al. (2020) put self-report against
+     * measured behaviour at r = 0.22 across 37 studies.
+     *
+     * Asserted in BOTH directions on purpose: a criterion that had merely inverted the tick would
+     * pass a one-sided test while being just as wrong.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const ticked = await runTransfer(rule.action_rule, true);
+    const unticked = await runTransfer(rule.action_rule, false);
+    expect(ticked.result.successes).toBe(unticked.result.successes);
+
+    const junkTicked = await runTransfer("banana", true);
+    const junkUnticked = await runTransfer("banana", false);
+    expect(junkTicked.result.successes).toBe(junkUnticked.result.successes);
+  });
+
+  it("still records the self-report, because dropping it would lose data that is worth having", async () => {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await runTransfer(rule.action_rule, true);
+    expect(outcome.result.applied_rule).toEqual([true, true, true]);
+    expect(outcome.result.recalled_rules.every((text) => text.length > 0)).toBe(true);
+  });
+
+  it("grades against the snapshot, which cannot drift because the rule cannot be edited", async () => {
+    /*
+     * TWO DEFENCES, AND THE SECOND ONE TURNED OUT TO BE THE REAL ONE.
+     *
+     * The grading reads `transfer.rule_snapshot`, written down before any position was returned --
+     * so a rule edited after the player saw the positions could not move the target to meet the
+     * answer. This test was first written to prove that by editing the rule mid-test, and the
+     * edit was REFUSED: both stores hold authored rules append-only. The scenario the snapshot
+     * guards against cannot occur at all.
+     *
+     * Both are asserted anyway. The snapshot is the correct source whether or not a lower layer
+     * happens to make drift impossible today, and the append-only guard is worth pinning because
+     * it is what makes the whole preregistration meaningful.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const { transfer } = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(transfer!.rule_snapshot.action_rule).toBe(rule.action_rule);
+
+    await expect(
+      store.saveLearningRule({ ...rule, action_rule: "משהו אחר לגמרי בלי מילים משותפות" }),
+      "the authored rule was editable, so the snapshot is the only thing standing between a " +
+        "preregistered test and a target that moves to meet the answer",
+    ).rejects.toThrow(/append-only/);
+  });
+});

@@ -47,6 +47,7 @@ import {
 import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
 import { positionKey, samePosition } from "./position-key.js";
+import { scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import { oneThingMix } from "./reveal.js";
@@ -331,13 +332,31 @@ export async function finishLearningTransfer(
     }
   }
 
+  /*
+   * WHAT COUNTS AS A SUCCESS, AND WHAT WAS REMOVED FROM IT.
+   *
+   * This used to require three things: non-empty recalled text, a self-reported "I applied it",
+   * and a low cp loss. A reviewer typed `banana`, ticked the box, played well, and got 3/3 with a
+   * verdict of "the rule transferred". Two of the three were not measurements.
+   *
+   * `applied_rule` IS GONE FROM THE CRITERION. It is still collected -- uncontaminated now, before
+   * the reveal -- and still stored, because it is worth having. It is not evidence. Reed, Ernst &
+   * Banerji (1974, Exp. 3) found self-rated use of a prior solution did not correlate with
+   * transfer performance in a case where transfer demonstrably occurred, and Craig et al. (2020),
+   * meta-analysing 37 studies, put self-report against measured behaviour at r = 0.22 [0.14, 0.31].
+   * A single binary tick is the weakest form on that scale, and "did I apply a rule in my head" is
+   * the covert kind self-report handles worst.
+   *
+   * THE RECALL IS SCORED AGAINST THE RULE THE PLAYER AUTHORED, from the snapshot written down
+   * before the test ran -- not against the rule as it stands now, which may have been edited.
+   * `scoreRecall` is word overlap and says so; it is a floor against unrelated text, not a memory
+   * measure. Its coverage is not stored because `recalled_rules` is, and the score is a pure
+   * function of that text and the snapshot: derived beats duplicated.
+   */
   const successes = atoms.filter((atom, index) => {
     const observation = input.observations[index];
-    return (
-      observation.recalled_rule.trim().length > 0 &&
-      observation.applied_rule &&
-      atom!.result!.cp_loss <= ACCURATE_CP_LOSS
-    );
+    const recall = scoreRecall(observation.recalled_rule, transfer.rule_snapshot.action_rule);
+    return recall.clearedFloor && atom!.result!.cp_loss <= ACCURATE_CP_LOSS;
   }).length;
   const result: LearningTransferResult = {
     kind: "learning_transfer_result",
