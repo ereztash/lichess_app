@@ -14,6 +14,7 @@
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
 import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
+import { populationBucket } from "./population-baseline.js";
 import { splitHalfStability, type Stability } from "./stability.js";
 import { metacognitiveSensitivity, type Sensitivity } from "./sensitivity.js";
 import { effortFollowsDoubt, type Control } from "./control.js";
@@ -35,6 +36,20 @@ export type BucketReading = {
   outside: CalibrationSummary;
   /** False when either side is under MIN_BUCKET_N: the split cannot be read yet. */
   measurable: boolean;
+  /**
+   * How this bucket's accuracy compares to the population's, in points, or null when the corpus
+   * has no baseline for it.
+   *
+   * THE POINT OF THIS FIELD. A bucket's accuracy is mostly a property of the bucket: measured on
+   * 693,130 real moves, the middlegame is 12.6 points less accurate than everything else FOR
+   * EVERYONE, and decisions over two minutes are 14.2 points worse. Telling a player their
+   * middlegame accuracy is low is telling them a fact about chess in the second person. Against
+   * the baseline it becomes a statement about them.
+   *
+   * Positive means better than the population in that bucket. Null is not zero: it means nobody
+   * measured a baseline here, and a caller must render the two differently.
+   */
+  versusPopulation: number | null;
   /** How many more decisions inside the bucket are needed before it can be read. */
   shortBy: number;
   /**
@@ -175,6 +190,15 @@ export function readRecord(
       measurable,
       shortBy: Math.max(0, MIN_BUCKET_N - inside.n),
       unmeasurableReason: measurable ? null : noClock ? "no-clock-data" : "too-few",
+      /*
+       * Only when the split can be read at all. A comparison against a population, computed from
+       * eight decisions, is a number with a very confident-looking provenance.
+       */
+      versusPopulation: (() => {
+        const population = populationBucket(bucketing.key);
+        if (!measurable || !population) return null;
+        return inside.accuracyRate - population.accuracy;
+      })(),
     };
   });
 

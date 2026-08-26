@@ -31,6 +31,10 @@ import {
 import { WIN_PROBABILITY_K } from "@shared/win-probability";
 import { ANCHOR_POSITIONS, ANCHOR_SET_VERSION } from "@shared/anchor-set";
 import { OPENING_MAX_PLY } from "@shared/phase";
+import {
+  POPULATION_BASELINE,
+  POPULATION_BASELINE_N,
+} from "@shared/population-baseline";
 
 const spec = readFileSync(resolve(__dirname, "../../docs/MEASUREMENTS.md"), "utf8");
 const section = spec.slice(spec.indexOf("# The instrument, as specified"));
@@ -173,6 +177,72 @@ describe("the specification claims exactly the facets it measures", () => {
     expect(facets).toMatch(/binary\*? first-order task|\*binary\* first-order task/);
     expect(facets, "the cost of the anchor-set route is no longer stated").toContain(
       "existing literature",
+    );
+  });
+});
+
+describe("the specification's population table is the module's, not a copy that drifted", () => {
+  const baseline = section.slice(section.indexOf("What a bucket is reported against"));
+
+  it("keeps the section, and quotes the denominator the module was built from", () => {
+    /*
+     * ANCHORED TO ITS OWN LINE, not to the section. The corpus size appears twice in this section
+     * -- once as the headline denominator and once inside a sentence about small samples -- and
+     * a `toContain` over the whole section passed while the headline said 690,000 and the module
+     * said 693,130. That is exactly the drift this file exists to catch, and it survived.
+     */
+    expect(baseline, "the population baseline section was dropped").not.toBe("");
+    const headline = baseline.split("\n").find((line) => line.includes("**Measured, on"));
+    expect(headline, "the section stopped stating its denominator up front").toBeTruthy();
+    expect(headline).toContain(POPULATION_BASELINE_N.toLocaleString("en-US"));
+  });
+
+  it("states every bucket's rate to the same figure the code will subtract", () => {
+    /*
+     * THE DRIFT THIS FILE EXISTS FOR, on the newest numbers. The table is the part of the
+     * document a reader would quote, and regenerating the baseline from a different corpus would
+     * change every one of these while the prose sat still.
+     *
+     * Anchored to the bucket key on its own row, never to a bare figure: `.08` matches inside
+     * `-2.08` and `30` inside `300 cp`, which is how two mutations got through this file before.
+     */
+    for (const bucket of POPULATION_BASELINE) {
+      const row = baseline.split("\n").find((line) => line.includes(`\`${bucket.key}\``));
+      expect(row, `no row for ${bucket.key}`).toBeTruthy();
+      expect(row, `${bucket.key} inside`).toContain(`${(bucket.accuracy * 100).toFixed(2)}%`);
+      expect(row, `${bucket.key} outside`).toContain(`${(bucket.outsideAccuracy * 100).toFixed(2)}%`);
+      expect(row, `${bucket.key} n`).toContain(bucket.n.toLocaleString("en-US"));
+    }
+  });
+
+  it("keeps saying the two things that stop it being read as more than it is", () => {
+    /*
+     * Both are load-bearing and both are exactly the kind of caveat a tidy-up drops.
+     *
+     * The first: this baselines ACCURACY. The games it was built from never asked anyone how
+     * sure they were, so nothing here references the calibration gap, and a reader who takes the
+     * section as a reference class for confidence has been misled by the document.
+     *
+     * The second: a bucket the corpus cannot support is ABSENT. Zero would read as "exactly
+     * average", which is a measurement nobody made.
+     */
+    expect(baseline, "the specification stopped saying there is no confidence half").toMatch(
+      /no confidence half/i,
+    );
+    expect(baseline, "the specification stopped saying an absent bucket is not a zero").toMatch(
+      /absent, not zero/i,
+    );
+  });
+
+  it("still admits the confound the baseline only partly removes", () => {
+    // The baseline subtracts what a bucket costs ON AVERAGE. It cannot say whether the positions
+    // this player met in that bucket were the average ones -- and at thirty decisions they often
+    // are not. A limits section that upgraded to "solved" would be the advertising this document
+    // exists not to be.
+    const limits = section.slice(section.indexOf("What this instrument cannot do"));
+    expect(limits).toContain("The confound is not gone");
+    expect(limits, "the reference-class admission was quietly closed by the baseline").toMatch(
+      /No reference class exists for the confidence half/,
     );
   });
 });

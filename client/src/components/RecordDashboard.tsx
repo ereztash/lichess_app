@@ -223,6 +223,23 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                   />
                 </span>
                 <SignedProportion value={b.inside.gap} n={b.inside.n} />
+                {/*
+                  * WHAT THE BUCKET IS WORTH KNOWING AGAINST. Measured on 693,130 real Lichess
+                  * moves: the middlegame is 12.6 points less accurate than everything else FOR
+                  * EVERYONE, and decisions over two minutes are 14.2 points worse -- people think
+                  * longer because the position is hard. Reporting a player's rate in a bucket
+                  * without that is telling them a fact about chess in the second person.
+                  *
+                  * Absent rather than zero where the corpus has no baseline: a bucket the
+                  * population data cannot support renders nothing, not a comparison against a
+                  * number nobody measured.
+                  */}
+                {b.versusPopulation !== null && (
+                  <span className="bucket-versus">
+                    {b.versusPopulation >= 0 ? "+" : "−"}
+                    {Math.abs(Math.round(b.versusPopulation * 100))} נק׳ מול כולם
+                  </span>
+                )}
               </>
             ) : b.unmeasurableReason === "no-clock-data" ? (
               /*

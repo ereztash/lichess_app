@@ -16,6 +16,7 @@ import {
 } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
 import { MIN_BUCKET_N, type ScoredDecision } from "../../shared/detector";
+import { populationBucket } from "../../shared/population-baseline";
 import { readRecord } from "../../shared/record-dashboard";
 
 /** A position that is deliberately NOT in the anchor set: these are free-play records. */
@@ -217,5 +218,61 @@ describe("the anchor reading is the one that is comparable between players", () 
     expect(reading.anchor.n).toBe(0);
     expect(reading.anchor.levels).toEqual([]);
     expect(reading.anchor.reliable).toBe(false);
+  });
+});
+
+describe("a bucket's own accuracy is not a finding until it is against the population", () => {
+  /*
+   * WHY THIS BLOCK EXISTS. Measured on 693,130 Lichess moves: the middlegame is 12.6 points less
+   * accurate than everything else FOR EVERYONE, and moves that took over two minutes are 14.2
+   * points worse -- people think longer because the position is hard, so the slow bucket is a
+   * property of the positions before it is a property of anyone. A record that reports a player's
+   * middlegame rate on its own is telling them a fact about chess in the second person.
+   */
+  it("subtracts the population's rate for the bucket, not the record's own outside half", () => {
+    const inside = many(MIN_BUCKET_N + 10, { phase: "middlegame", accurate: true });
+    // Every one inside is accurate, so the record's own rate is exactly 1 and the comparison is
+    // pinned to the baseline: any other subtraction gives a different number.
+    const outside = many(MIN_BUCKET_N + 10, { phase: "opening", accurate: false });
+    const middlegame = readRecord([...inside, ...outside]).buckets.find(
+      (b) => b.key === "phase-middlegame",
+    )!;
+    const population = populationBucket("phase-middlegame")!;
+    expect(middlegame.measurable).toBe(true);
+    expect(middlegame.inside.accuracyRate).toBe(1);
+    expect(middlegame.versusPopulation).toBeCloseTo(1 - population.accuracy, 10);
+  });
+
+  it("keeps the sign, so being below the population reads as below", () => {
+    const inside = many(MIN_BUCKET_N + 10, { phase: "middlegame", accurate: false });
+    const outside = many(MIN_BUCKET_N + 10, { phase: "opening", accurate: true });
+    const middlegame = readRecord([...inside, ...outside]).buckets.find(
+      (b) => b.key === "phase-middlegame",
+    )!;
+    expect(middlegame.versusPopulation).toBeLessThan(0);
+    expect(middlegame.versusPopulation).toBeCloseTo(-populationBucket("phase-middlegame")!.accuracy, 10);
+  });
+
+  it("says nothing about a bucket the record itself cannot read", () => {
+    /*
+     * THE THRESHOLD GOVERNS THE COMPARISON TOO. A population has a very confident-looking
+     * provenance, and eight decisions measured against 693,130 is still eight decisions.
+     */
+    const thin = readRecord(many(MIN_BUCKET_N - 3, { phase: "middlegame" })).buckets.find(
+      (b) => b.key === "phase-middlegame",
+    )!;
+    expect(thin.measurable).toBe(false);
+    expect(thin.versusPopulation).toBeNull();
+  });
+
+  it("leaves it null where the corpus has no baseline for the bucket at all", () => {
+    // Not zero. Zero would read as "exactly average" -- a claim the corpus never made.
+    const reading = readRecord([
+      ...many(MIN_BUCKET_N + 10, { phase: "middlegame" }),
+      ...many(MIN_BUCKET_N + 10, { phase: "opening" }),
+    ]);
+    for (const bucket of reading.buckets) {
+      if (bucket.versusPopulation !== null) expect(populationBucket(bucket.key)).not.toBeNull();
+    }
   });
 });

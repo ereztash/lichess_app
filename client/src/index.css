@@ -2004,6 +2004,18 @@ button:not(:disabled) {
   font-weight: 700;
 }
 /*
+ * A bucket's accuracy against the population's. Deliberately quieter than the gap beside it: the
+ * gap is the claim, this is what makes the claim readable, and rendering them at equal weight
+ * would make the row look like two findings.
+ */
+.bucket-versus {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
  * The way into the shared set. A row, not a card: it is an action attached to the layer it sits
  * in, and a bordered panel here would read as a third measurement beside the two the page already
  * walls apart.
