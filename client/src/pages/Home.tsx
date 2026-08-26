@@ -77,6 +77,7 @@ import {
   useStartLearningTransfer,
   useImportReading,
   useSaveImportReading,
+  useRecordTransferObservation,
 } from "@/lib/record-api";
 import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
 import { MoveTimeline } from "@/components/MoveTimeline";
@@ -262,9 +263,8 @@ export default function Home() {
     useState<LearningTransferStage>("briefing");
   const [learningTransferRecall, setLearningTransferRecall] = useState("");
   const [learningTransferApplied, setLearningTransferApplied] = useState<boolean | null>(null);
-  const [learningTransferObservations, setLearningTransferObservations] = useState<
-    LearningTransferObservation[]
-  >([]);
+  /** How many positions have been recorded. The observations themselves live on the record. */
+  const [learningTransferObservations, setLearningTransferObservations] = useState(0);
   const [learningTransferVerdict, setLearningTransferVerdict] = useState<{
     observed: boolean;
     successes: number;
@@ -316,6 +316,7 @@ export default function Home() {
   const completeDrillMutation = useCompleteDrill();
   const startLearningTransferMutation = useStartLearningTransfer();
   const completeLearningTransferMutation = useCompleteLearningTransfer();
+  const recordTransferObservation = useRecordTransferObservation();
   const submitReveal = useReveal();
   const decisionCount = useDecisionCount();
   const recordReading = useRecordReading();
@@ -754,9 +755,16 @@ export default function Home() {
           });
           setRevealedDecisionId(decisionId);
           if (isLearningTransferDecision) {
-            setLearningTransferObservations((current) => [
-              ...current,
-              {
+            /*
+             * WRITTEN DOWN NOW, not held until the end. These used to accumulate in component
+             * state for the whole run and reach the server only at completion, and three defects
+             * came out of that: a reload lost them and the resume re-served positions whose
+             * engine verdict the player had already seen; a failed reveal write stranded the run;
+             * and the client was their only holder, so completion had to believe it.
+             */
+            await recordTransferObservation.mutateAsync({
+              transfer_id: learningTransfer.transfer_id,
+              observation: {
                 decision_id: decisionId,
                 recalled_rule: learningTransferRecall,
                 /*
@@ -771,7 +779,8 @@ export default function Home() {
                  */
                 applied_rule: learningTransferApplied ?? false,
               },
-            ]);
+            });
+            setLearningTransferObservations((current) => current + 1);
           }
         } catch {
           // The decision itself is on the record; only the engine's verdict failed to store.
@@ -912,7 +921,7 @@ export default function Home() {
         setLearningTransferStage("briefing");
         setLearningTransferRecall("");
         setLearningTransferApplied(null);
-        setLearningTransferObservations([]);
+        setLearningTransferObservations(0);
         setLearningTransferVerdict(null);
       } catch (cause) {
         setLearningTransferError(
@@ -925,16 +934,10 @@ export default function Home() {
 
   const advanceLearningTransfer = useCallback(async () => {
     if (!learningTransfer || learningTransferStage !== "running") return;
-    if (learningTransferObservations.length !== learningTransferIndex + 1) {
+    if (learningTransferObservations !== learningTransferIndex + 1) {
       setLearningTransferError("החשיפה לא נשמרה ולכן אי אפשר להתקדם בבדיקה.");
       return;
     }
-
-    /*
-     * Reported as recorded. This used to patch `applied_rule` in at this point, which is after
-     * the reveal -- the observation is complete when the decision is committed now.
-     */
-    const observations = learningTransferObservations;
     setLearningTransferError(undefined);
 
     const next = learningTransferIndex + 1;
@@ -955,9 +958,13 @@ export default function Home() {
 
     setLearningTransferStage("reporting");
     try {
+      /*
+       * A transfer id and nothing else. The observations were written to the record as each was
+       * made, so this asks for the verdict on what is already down rather than posting the
+       * evidence and the request for a verdict in one breath.
+       */
       const outcome = await completeLearningTransferMutation.mutateAsync({
         transfer_id: learningTransfer.transfer_id,
-        observations,
       });
       setLearningTransferVerdict({
         observed: outcome.result.observed,
@@ -987,7 +994,7 @@ export default function Home() {
     setLearningTransferStage("briefing");
     setLearningTransferRecall("");
     setLearningTransferApplied(null);
-    setLearningTransferObservations([]);
+    setLearningTransferObservations(0);
     setLearningTransferVerdict(null);
     setLearningTransferError(undefined);
     setStage("deciding");

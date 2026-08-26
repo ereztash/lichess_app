@@ -338,17 +338,66 @@ export async function beginLearningTransfer(
   return { transfer, reason: null };
 }
 
+/**
+ * Record one position's observation, at the moment it is made.
+ *
+ * WHY THIS IS A SERVER CALL AND NOT A PIECE OF REACT STATE. These were held in the component for
+ * the whole run and sent only at completion, and three defects came out of that: a reload lost
+ * them and the resume re-served positions whose engine verdict the player had already seen; a
+ * failed reveal write stranded the run with no control that could advance it; and the client was
+ * the sole holder, so completion had to believe whatever it sent.
+ *
+ * It is the same rule the decision layer already follows. An observation is data.
+ */
+export async function recordLearningTransferObservation(
+  store: RecordStore,
+  input: { transfer_id: string; observation: LearningTransferObservation },
+) {
+  const transfer = await store.getLearningTransfer(input.transfer_id);
+  if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
+
+  const already = await store.listLearningTransferObservations(transfer.transfer_id);
+  const position = already.length;
+  if (position >= transfer.fens.length) {
+    throw new RecordError("PRECONDITION_FAILED", "כל העמדות בבדיקה הזו כבר נרשמו.");
+  }
+
+  /*
+   * The decision has to be the one this slot preregistered. Compared as POSITIONS, for the same
+   * reason the candidates were: a decision recorded against the identical board later in a game is
+   * the position that was written down.
+   */
+  const atom = await store.getAtom(input.observation.decision_id);
+  if (!atom) throw new RecordError("PRECONDITION_FAILED", "ההחלטה הזו לא נרשמה.");
+  if (!samePosition(atom.entry_state.fen, transfer.fens[position])) {
+    throw new RecordError("PRECONDITION_FAILED", "ההחלטה נרשמה לעמדה אחרת מזו שבתור.");
+  }
+
+  await store.saveLearningTransferObservation(transfer.transfer_id, position, input.observation);
+  return { position, remaining: transfer.fens.length - position - 1 };
+}
+
 export async function finishLearningTransfer(
   store: RecordStore,
-  input: { transfer_id: string; observations: LearningTransferObservation[] },
+  input: { transfer_id: string },
   now: { completed_at: string },
 ) {
   const transfer = await store.getLearningTransfer(input.transfer_id);
   if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
-  if (input.observations.length !== transfer.fens.length) {
+
+  /*
+   * THE OBSERVATIONS COME FROM THE RECORD, NOT FROM THE REQUEST.
+   *
+   * They used to arrive in the completion payload, which meant the client was their only holder
+   * and this function had to believe them. Each one is now written when it is made, so the caller
+   * sends a transfer id and nothing else -- there is no longer a shape of request that can report
+   * a test the player did not sit.
+   */
+  const observations = await store.listLearningTransferObservations(transfer.transfer_id);
+  if (observations.length !== transfer.fens.length) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      "לכל עמדה בבדיקת ההעברה נדרשת תצפית אחת.",
+      `נרשמו ${observations.length} תצפיות מתוך ${transfer.fens.length}. הבדיקה לא הושלמה.`,
     );
   }
 
@@ -387,7 +436,7 @@ export async function finishLearningTransfer(
    * claim.
    */
   const spent = new Set(priorResults.flatMap((result) => result.decision_ids));
-  const reused = input.observations.filter((o) => spent.has(o.decision_id));
+  const reused = observations.filter((o) => spent.has(o.decision_id));
   if (reused.length > 0) {
     throw new RecordError(
       "PRECONDITION_FAILED",
@@ -395,7 +444,7 @@ export async function finishLearningTransfer(
         "אותה ישיבה אינה יכולה לשמש כשתי בדיקות.",
     );
   }
-  const atoms = await Promise.all(input.observations.map((o) => store.getAtom(o.decision_id)));
+  const atoms = await Promise.all(observations.map((o) => store.getAtom(o.decision_id)));
   for (let index = 0; index < atoms.length; index += 1) {
     const atom = atoms[index];
     if (!atom?.result) {
@@ -437,7 +486,7 @@ export async function finishLearningTransfer(
    * function of that text and the snapshot: derived beats duplicated.
    */
   const successes = atoms.filter((atom, index) => {
-    const observation = input.observations[index];
+    const observation = observations[index];
     const recall = scoreRecall(observation.recalled_rule, transfer.rule_snapshot.action_rule);
     return recall.clearedFloor && atom!.result!.cp_loss <= ACCURATE_CP_LOSS;
   }).length;
@@ -445,9 +494,9 @@ export async function finishLearningTransfer(
     kind: "learning_transfer_result",
     transfer_id: transfer.transfer_id,
     rule_id: transfer.rule_id,
-    decision_ids: input.observations.map((o) => o.decision_id),
-    recalled_rules: input.observations.map((o) => o.recalled_rule.trim()),
-    applied_rule: input.observations.map((o) => o.applied_rule),
+    decision_ids: observations.map((o) => o.decision_id),
+    recalled_rules: observations.map((o) => o.recalled_rule.trim()),
+    applied_rule: observations.map((o) => o.applied_rule),
     successes,
     observed: successes >= transfer.minimum_successes,
     completed_at: now.completed_at,

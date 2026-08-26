@@ -78,6 +78,30 @@ async function createRule(store: MemoryRecordStore) {
   );
 }
 
+
+/**
+ * Sit a transfer the way the product now does: record each observation as it is made, then
+ * complete with nothing but the transfer id.
+ *
+ * The observations used to travel in the completion payload. They are written one at a time now,
+ * so a test that still posted them wholesale would be exercising a request shape the server no
+ * longer accepts -- which is exactly why the type system flagged every one of these call sites.
+ */
+async function sitTransfer(
+  store: MemoryRecordStore,
+  transferId: string,
+  observations: { decision_id: string; recalled_rule: string; applied_rule: boolean }[],
+  completed_at: string,
+) {
+  for (const observation of observations) {
+    await service.recordLearningTransferObservation(store, {
+      transfer_id: transferId,
+      observation,
+    });
+  }
+  return service.finishLearningTransfer(store, { transfer_id: transferId }, { completed_at });
+}
+
 describe("verified learning record", () => {
   it("only forms a player-authored rule after reveal and keeps the reflection append-only", async () => {
     const store = new MemoryRecordStore();
@@ -164,18 +188,11 @@ describe("verified learning record", () => {
     for (let index = 0; index < ids.length; index += 1) {
       await recordPosition(store, ids[index], transfer!.fens[index]);
     }
-    const outcome = await service.finishLearningTransfer(
-      store,
-      {
-        transfer_id: transfer!.transfer_id,
-        observations: ids.map((decision_id, index) => ({
+    const outcome = await sitTransfer(store, transfer!.transfer_id, ids.map((decision_id, index) => ({
           decision_id,
           recalled_rule: index === 0 ? rule.action_rule : "",
           applied_rule: index === 0,
-        })),
-      },
-      { completed_at: "2026-01-02T01:00:00.000Z" },
-    );
+        })), "2026-01-02T01:00:00.000Z");
     expect(outcome.result).toMatchObject({ successes: 1, observed: false });
     /*
      * ONE FAILED TEST DOES NOT REFUTE, and this assertion changed on purpose.
@@ -339,18 +356,11 @@ describe("a preregistered transfer cannot be escaped or restarted", () => {
     for (let index = 0; index < ids.length; index += 1) {
       await recordPosition(store, ids[index], transfer!.fens[index]);
     }
-    await service.finishLearningTransfer(
-      store,
-      {
-        transfer_id: transfer!.transfer_id,
-        observations: ids.map((decision_id) => ({
+    await sitTransfer(store, transfer!.transfer_id, ids.map((decision_id) => ({
           decision_id,
           recalled_rule: rule.action_rule,
           applied_rule: true,
-        })),
-      },
-      { completed_at: "2026-01-02T01:00:00.000Z" },
-    );
+        })), "2026-01-02T01:00:00.000Z");
     const after = await service.beginLearningTransfer(
       store,
       { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
@@ -455,18 +465,11 @@ describe("the transfer is graded against the rule, not against arbitrary text", 
       // position, so what the verdict turns on is the recall alone.
       await recordPosition(store, ids[index], transfer!.fens[index]);
     }
-    return service.finishLearningTransfer(
-      store,
-      {
-        transfer_id: transfer!.transfer_id,
-        observations: ids.map((decision_id) => ({
+    return sitTransfer(store, transfer!.transfer_id, ids.map((decision_id) => ({
           decision_id,
           recalled_rule: recalled,
           applied_rule: applied,
-        })),
-      },
-      { completed_at: "2026-01-02T01:00:00.000Z" },
-    );
+        })), "2026-01-02T01:00:00.000Z");
   }
 
   it("does not count `banana` as a successful retrieval", async () => {
@@ -645,21 +648,13 @@ describe("one sitting cannot replicate itself", () => {
       recalled_rule: rule.action_rule,
       applied_rule: true,
     }));
-    const reported = await service.finishLearningTransfer(
-      store,
-      { transfer_id: "transfer-1", observations },
-      { completed_at: "2026-01-02T01:00:00.000Z" },
-    );
+    const reported = await sitTransfer(store, "transfer-1", observations, "2026-01-02T01:00:00.000Z");
     expect(reported.result.observed).toBe(true);
 
-    // A second transfer, holding the same positions, reported with the SAME decisions.
+    // A second transfer, holding the same positions, sat with the SAME decisions.
     await store.saveLearningTransfer({ ...first.transfer!, transfer_id: "transfer-2" });
     await expect(
-      service.finishLearningTransfer(
-        store,
-        { transfer_id: "transfer-2", observations },
-        { completed_at: "2026-01-03T01:00:00.000Z" },
-      ),
+      sitTransfer(store, "transfer-2", observations, "2026-01-03T01:00:00.000Z"),
       "the same three decisions replicated the rule across two days",
     ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
   });
@@ -694,15 +689,13 @@ describe("one sitting cannot replicate itself", () => {
       recalled_rule: rule.action_rule,
       applied_rule: true,
     }));
-    const once = await service.finishLearningTransfer(
-      store,
-      { transfer_id: "transfer-1", observations },
-      { completed_at: "2026-01-02T01:00:00.000Z" },
-    );
+    const once = await sitTransfer(store, "transfer-1", observations, "2026-01-02T01:00:00.000Z");
 
+    // Completing again with no further observations: the second call must return the first
+    // report, not raise, and not write a second verdict.
     const twice = await service.finishLearningTransfer(
       store,
-      { transfer_id: "transfer-1", observations },
+      { transfer_id: "transfer-1" },
       { completed_at: "2026-01-02T02:00:00.000Z" },
     );
     // IDEMPOTENT, not an error: a retry after a lost response is the honest case, and the second
@@ -760,5 +753,163 @@ describe("a rule the measure cannot see is never tested", () => {
       { transfer_id: "fine", started_at: "2026-01-02T00:00:00.000Z" },
     );
     expect(outcome.transfer).not.toBeNull();
+  });
+});
+
+describe("an observation is on the record the moment it is made", () => {
+  /*
+   * These used to live in React state for the whole run and reach the server only at completion.
+   * Three defects came out of that one choice, all found by an adversarial review: a reload lost
+   * them and the resume re-served positions whose engine verdict the player had already been
+   * shown; a failed reveal write stranded the run with no control that could advance it; and the
+   * client was their only holder, so completion had to believe whatever finally arrived.
+   */
+  async function startAndDecide(store: MemoryRecordStore, howMany: number) {
+    const rule = await createRule(store);
+    const { transfer } = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const ids = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < howMany; index += 1) {
+      await recordPosition(store, ids[index], transfer!.fens[index]);
+      await service.recordLearningTransferObservation(store, {
+        transfer_id: "transfer-1",
+        observation: {
+          decision_id: ids[index],
+          recalled_rule: rule.action_rule,
+          applied_rule: true,
+        },
+      });
+    }
+    return { rule, transfer: transfer!, ids };
+  }
+
+  it("survives losing everything the client was holding", async () => {
+    /*
+     * The reload case, stated as what it is: the store is asked what happened, and it knows,
+     * because each observation was written when it was made rather than at the end.
+     */
+    const store = new MemoryRecordStore();
+    await startAndDecide(store, 2);
+    const recorded = await store.listLearningTransferObservations("transfer-1");
+    expect(recorded).toHaveLength(2);
+    expect(recorded[0].recalled_rule.length).toBeGreaterThan(0);
+  });
+
+  it("refuses to report a test that was not finished, and says how far it got", async () => {
+    // The message names the count. "Something went wrong" on a preregistered test is the shape of
+    // failure this product exists to refuse.
+    const store = new MemoryRecordStore();
+    await startAndDecide(store, 2);
+    await expect(
+      service.finishLearningTransfer(
+        store,
+        { transfer_id: "transfer-1" },
+        { completed_at: "2026-01-02T01:00:00.000Z" },
+      ),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+  });
+
+  it("records each position once, refusing a second write for the same slot", async () => {
+    const store = new MemoryRecordStore();
+    const { ids, rule } = await startAndDecide(store, 1);
+    await expect(
+      service.recordLearningTransferObservation(store, {
+        transfer_id: "transfer-1",
+        observation: { decision_id: ids[0], recalled_rule: rule.action_rule, applied_rule: true },
+      }),
+      "the same position was recorded twice",
+    ).rejects.toThrow();
+  });
+
+  it("refuses a fourth observation on a three-position test", async () => {
+    /*
+     * A BOUNDS CHECK, distinct from the append-only one. The slot is derived from how many
+     * observations are already down, so once three are recorded the next would be position 3 --
+     * off the end of the preregistered set, with no board to compare against.
+     *
+     * Its own test because the append-only guard cannot cover it: that one fires on a REPEATED
+     * slot, and a positive control removing the bounds check passed every assertion here until
+     * this one existed.
+     */
+    const store = new MemoryRecordStore();
+    const { rule } = await startAndDecide(store, 3);
+    const extra = "66666666-6666-4666-8666-666666666666";
+    await recordPosition(store, extra, FENS[4]);
+    await expect(
+      service.recordLearningTransferObservation(store, {
+        transfer_id: "transfer-1",
+        observation: { decision_id: extra, recalled_rule: rule.action_rule, applied_rule: true },
+      }),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+  });
+
+  it("holds the store itself append-only per slot, not only the service above it", async () => {
+    /*
+     * Asserted against the STORE, because the service never asks it twice for the same slot -- it
+     * derives the position from what is already recorded. So the store's own guarantee was
+     * untested by every path through the app, and a positive control removing it passed.
+     *
+     * It matters because the guarantee is what the database enforces with a composite primary key.
+     * The in-memory store has to agree with that key, or the two disagree about what the data
+     * does -- which is the whole reason `tests/server/drizzle-store.test.ts` exists.
+     */
+    const store = new MemoryRecordStore();
+    const observation = { decision_id: "d-1", recalled_rule: "x", applied_rule: true };
+    await store.saveLearningTransferObservation("t-1", 0, observation);
+    await expect(
+      store.saveLearningTransferObservation("t-1", 0, { ...observation, decision_id: "d-2" }),
+    ).rejects.toThrow(/append-only/);
+    // A different slot on the same transfer is fine, and a different transfer's slot 0 too.
+    await store.saveLearningTransferObservation("t-1", 1, observation);
+    await store.saveLearningTransferObservation("t-2", 0, observation);
+    expect(await store.listLearningTransferObservations("t-1")).toHaveLength(2);
+  });
+
+  it("refuses an observation whose decision is for a different position", async () => {
+    /*
+     * The slot is decided by how many observations are already down, so an out-of-order decision
+     * would otherwise be filed against the wrong preregistered board -- and the test would read
+     * as complete while measuring the wrong thing.
+     */
+    const store = new MemoryRecordStore();
+    const { rule, transfer } = await startAndDecide(store, 0);
+    const wrong = "55555555-5555-4555-8555-555555555555";
+    await recordPosition(store, wrong, transfer.fens[2]);
+    await expect(
+      service.recordLearningTransferObservation(store, {
+        transfer_id: "transfer-1",
+        observation: { decision_id: wrong, recalled_rule: rule.action_rule, applied_rule: true },
+      }),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+  });
+
+  it("cannot be told about a test that was never sat", async () => {
+    /*
+     * THE PROPERTY THE REWRITE EXISTS FOR. `finishLearningTransfer` takes a transfer id and
+     * nothing else: there is no argument through which a caller can supply observations, so there
+     * is no request shape that reports a test nobody sat. Before this, the completion payload
+     * carried them and the server had to trust it.
+     *
+     * Asserted as a type-level fact made runtime-visible: passing them is not a thing that
+     * compiles, so the check is that the verdict ignores anything but the record.
+     */
+    const store = new MemoryRecordStore();
+    const { rule } = await startAndDecide(store, 3);
+    const outcome = await service.finishLearningTransfer(
+      store,
+      // @ts-expect-error -- observations are not part of the input any more; this is the point.
+      { transfer_id: "transfer-1", observations: [{ decision_id: "x", recalled_rule: "x", applied_rule: true }] },
+      { completed_at: "2026-01-02T01:00:00.000Z" },
+    );
+    const recorded = await store.listLearningTransferObservations("transfer-1");
+    expect(outcome.result.decision_ids).toEqual(recorded.map((o) => o.decision_id));
+    expect(outcome.result.recalled_rules.every((text) => text === rule.action_rule)).toBe(true);
   });
 });

@@ -5,6 +5,7 @@ import {
   json,
   mysqlEnum,
   mysqlTable,
+  primaryKey,
   text,
   timestamp,
   varchar,
@@ -201,6 +202,41 @@ export const learningTransfers = mysqlTable("learning_transfers", {
 export type LearningTransferRow = typeof learningTransfers.$inferSelect;
 
 /** Observed transfer result. Append-only and separate from both rule and preregistration. */
+/**
+ * ONE ROW PER POSITION, WRITTEN WHEN THE OBSERVATION IS MADE.
+ *
+ * These used to live in React state for the whole run and reach the server only at completion.
+ * Three separate defects came out of that single choice, all found by review:
+ *
+ *   - a reload lost them, and the resume path then re-served positions whose engine verdict the
+ *     player had already been shown -- measuring recall of that answer, which is the exact failure
+ *     `position-key.ts` exists to prevent;
+ *   - a failed reveal write stranded the run with no control that could advance it;
+ *   - and the client was the only holder of the observations, so completion had to trust whatever
+ *     it sent.
+ *
+ * Writing each one as it is made is the same rule the decision layer already follows: an
+ * observation is data, and data that was not stored must never look like data that was. The
+ * composite primary key makes it append-only per position -- a second write for the same slot is
+ * rejected by the database rather than by a check somebody has to remember.
+ */
+export const learningTransferObservations = mysqlTable(
+  "learning_transfer_observations",
+  {
+    transferId: varchar("transfer_id", { length: 64 }).notNull(),
+    /** Index into the preregistered `fens`, so a resume knows exactly where it stopped. */
+    position: int("position").notNull(),
+    decisionId: varchar("decision_id", { length: 36 }).notNull(),
+    /** Written before the reveal. Empty recall is a FAILED RETRIEVAL and is stored as one. */
+    recalledRule: varchar("recalled_rule", { length: 300 }).notNull(),
+    /** Player report, also collected before the reveal. Recorded; never a success criterion. */
+    appliedRule: boolean("applied_rule").notNull(),
+    recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.transferId, table.position] })],
+);
+export type LearningTransferObservationRow = typeof learningTransferObservations.$inferSelect;
+
 export const learningTransferResults = mysqlTable("learning_transfer_results", {
   transferId: varchar("transfer_id", { length: 64 }).primaryKey(),
   ruleId: varchar("rule_id", { length: 64 }).notNull(),

@@ -20,6 +20,7 @@ import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
 import type {
   LearningRule,
   LearningTransfer,
+  LearningTransferObservation,
   LearningTransferResult,
 } from "@shared/learning-record";
 import type {
@@ -40,6 +41,8 @@ type Persisted = {
   drillResults: ProspectiveDrillResult[];
   learningRules: Record<string, LearningRule>;
   learningTransfers: Record<string, LearningTransfer>;
+  /** Keyed `transferId#position`, mirroring the composite primary key in the database. */
+  learningTransferObservations: Record<string, LearningTransferObservation>;
   learningTransferResults: LearningTransferResult[];
   /** Append-only, newest last. See shared/prereg.ts. */
   preregs: PreregisteredHypothesis[];
@@ -56,6 +59,7 @@ const empty = (): Persisted => ({
   drillResults: [],
   learningRules: {},
   learningTransfers: {},
+  learningTransferObservations: {},
   learningTransferResults: [],
   preregs: [],
   importReadings: [],
@@ -294,6 +298,35 @@ export class LocalRecordStore implements RecordStore {
       .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
       .sort((a, b) => a.started_at.localeCompare(b.started_at));
     return open[0] ? structuredClone(open[0]) : null;
+  }
+
+  async saveLearningTransferObservation(
+    transferId: string,
+    position: number,
+    observation: LearningTransferObservation,
+  ): Promise<void> {
+    const state = read();
+    const key = `${transferId}#${position}`;
+    // Matters most here: this is the store a signed-out player uses, and a reload is the ordinary
+    // way their session ends. Held in memory, these were exactly what a reload lost.
+    if (state.learningTransferObservations?.[key]) {
+      throw new Error("append-only: transfer observation already recorded for that position");
+    }
+    state.learningTransferObservations = {
+      ...(state.learningTransferObservations ?? {}),
+      [key]: structuredClone(observation),
+    };
+    write(state);
+  }
+
+  async listLearningTransferObservations(
+    transferId: string,
+  ): Promise<LearningTransferObservation[]> {
+    const rows = read().learningTransferObservations ?? {};
+    return Object.entries(rows)
+      .filter(([key]) => key.startsWith(`${transferId}#`))
+      .sort((a, b) => Number(a[0].split("#")[1]) - Number(b[0].split("#")[1]))
+      .map(([, observation]) => structuredClone(observation));
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {

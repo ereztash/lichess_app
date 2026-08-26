@@ -19,6 +19,7 @@ import {
   drillResults,
   drills,
   learningRules,
+  learningTransferObservations,
   learningTransferResults,
   learningTransfers,
   importReadings,
@@ -34,6 +35,7 @@ import type { StoredImportDiagnostic } from "../shared/import-diagnostic.js";
 import type {
   LearningRule,
   LearningTransfer,
+  LearningTransferObservation,
   LearningTransferResult,
 } from "../shared/learning-record.js";
 import { getDb } from "./db.js";
@@ -459,6 +461,44 @@ export class DrizzleRecordStore implements RecordStore {
     return row ? toLearningTransfer(row.transfer) : null;
   }
 
+  /**
+   * One position's observation, written when it is made.
+   *
+   * The composite primary key on (transfer_id, position) is what makes this append-only, so a
+   * second write for the same slot is refused by the database rather than by a check somebody has
+   * to remember to add.
+   */
+  async saveLearningTransferObservation(
+    transferId: string,
+    position: number,
+    observation: LearningTransferObservation,
+  ): Promise<void> {
+    const db = await this.db();
+    await db.insert(learningTransferObservations).values({
+      transferId,
+      position,
+      decisionId: observation.decision_id,
+      recalledRule: observation.recalled_rule,
+      appliedRule: observation.applied_rule,
+    });
+  }
+
+  async listLearningTransferObservations(
+    transferId: string,
+  ): Promise<LearningTransferObservation[]> {
+    const db = await this.db();
+    const rows = await db
+      .select()
+      .from(learningTransferObservations)
+      .where(eq(learningTransferObservations.transferId, transferId))
+      .orderBy(learningTransferObservations.position);
+    return rows.map((row) => ({
+      decision_id: row.decisionId,
+      recalled_rule: row.recalledRule,
+      applied_rule: row.appliedRule,
+    }));
+  }
+
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
     const db = await this.db();
     await db.insert(learningTransferResults).values({
@@ -664,6 +704,8 @@ export class MemoryRecordStore implements RecordStore {
   private readonly learningRuleRows = new Map<string, LearningRule>();
   private readonly learningTransferRows = new Map<string, LearningTransfer>();
   private readonly learningTransferResultRows: LearningTransferResult[] = [];
+  /** Keyed `transferId#position`, mirroring the composite primary key in the database. */
+  private readonly learningObservationRows = new Map<string, LearningTransferObservation>();
 
   async saveClaim(claim: Claim): Promise<void> {
     this.claimRows.set(claim.claim_id, { ...claim });
@@ -731,6 +773,27 @@ export class MemoryRecordStore implements RecordStore {
       .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
       .sort((a, b) => a.started_at.localeCompare(b.started_at));
     return open[0] ? structuredClone(open[0]) : null;
+  }
+
+  async saveLearningTransferObservation(
+    transferId: string,
+    position: number,
+    observation: LearningTransferObservation,
+  ): Promise<void> {
+    const key = `${transferId}#${position}`;
+    if (this.learningObservationRows.has(key)) {
+      throw new Error("append-only: transfer observation already recorded for that position");
+    }
+    this.learningObservationRows.set(key, structuredClone(observation));
+  }
+
+  async listLearningTransferObservations(
+    transferId: string,
+  ): Promise<LearningTransferObservation[]> {
+    return [...this.learningObservationRows.entries()]
+      .filter(([key]) => key.startsWith(`${transferId}#`))
+      .sort((a, b) => Number(a[0].split("#")[1]) - Number(b[0].split("#")[1]))
+      .map(([, observation]) => structuredClone(observation));
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {

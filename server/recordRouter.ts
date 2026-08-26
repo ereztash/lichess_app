@@ -128,25 +128,39 @@ export function buildRecordRouter(store: RecordStore) {
         ),
       ),
 
-    completeLearningTransfer: ownerProcedure
+    /**
+     * One position's observation, recorded when it is made.
+     *
+     * The whole set used to arrive at completion, which made the client their only holder for the
+     * length of the run: a reload lost them, a failed reveal write stranded the run, and the
+     * server had to believe whatever finally showed up.
+     */
+    recordTransferObservation: ownerProcedure
       .input(
         z
           .object({
             transfer_id: z.string().min(1).max(64),
-            observations: z
-              .array(
-                z
-                  .object({
-                    decision_id: z.string().uuid(),
-                    recalled_rule: z.string().max(300),
-                    applied_rule: z.boolean(),
-                  })
-                  .strict(),
-              )
-              .length(TRANSFER_POSITION_COUNT),
+            observation: z
+              .object({
+                decision_id: z.string().uuid(),
+                recalled_rule: z.string().max(300),
+                applied_rule: z.boolean(),
+              })
+              .strict(),
           })
           .strict(),
       )
+      .mutation(({ input }) => guard(() => service.recordLearningTransferObservation(store, input))),
+
+    /**
+     * A TRANSFER ID AND NOTHING ELSE.
+     *
+     * The observations used to be posted here, so there was a shape of request that could report a
+     * test the player never sat. They are read from the record now; this route can only ask for
+     * the verdict on what was already written down.
+     */
+    completeLearningTransfer: ownerProcedure
+      .input(z.object({ transfer_id: z.string().min(1).max(64) }).strict())
       .mutation(({ input }) =>
         guard(() =>
           service.finishLearningTransfer(store, input, {

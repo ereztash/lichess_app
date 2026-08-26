@@ -197,16 +197,37 @@ export function useStartLearningTransfer() {
   };
 }
 
+/**
+ * Record one position's observation, at the moment it is made.
+ *
+ * Both paths write it down immediately -- the local store as well as the server. Holding these in
+ * component state for the length of a run is what lost them on a reload, stranded a run whose
+ * reveal write failed, and left the client as their only holder at completion.
+ */
+export function useRecordTransferObservation() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.recordTransferObservation.useMutation();
+  return {
+    mutateAsync: async (input: {
+      transfer_id: string;
+      observation: LearningTransferObservation;
+    }) =>
+      !local
+        ? server.mutateAsync(input)
+        : service.recordLearningTransferObservation(store, input),
+  };
+}
+
 export function useCompleteLearningTransfer() {
   const { local } = useRecordMode();
   const store = useStore();
   const queryClient = useQueryClient();
   const server = trpc.record.completeLearningTransfer.useMutation();
   return {
-    mutateAsync: async (input: {
-      transfer_id: string;
-      observations: LearningTransferObservation[];
-    }) => {
+    // A transfer id and nothing else. The observations are read from the record, so there is no
+    // longer a call that can report a test the player did not sit.
+    mutateAsync: async (input: { transfer_id: string }) => {
       const out = !local
         ? await server.mutateAsync(input)
         : await service.finishLearningTransfer(store, input, {
