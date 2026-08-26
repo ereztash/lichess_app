@@ -68,6 +68,36 @@ export interface LearningTransferObservation {
   applied_rule: boolean;
 }
 
+/**
+ * Build an observation, or refuse to build one.
+ *
+ * `applied_rule` is the player's report of whether they used their own rule, and it is half of
+ * `successes` -- the number the preregistered refutation condition is tested against. The client
+ * held it as `boolean | null` and wrote `learningTransferApplied ?? false`, guarded by a check
+ * earlier in the same callback and a comment saying the default could not fire.
+ *
+ * It could. `onCommit` did not list that value among its dependencies, so a stale `null` would
+ * have become a written `false`: "did not apply the rule", about a player who said they did, in
+ * an append-only record, with every screen showing the right answer. The dependency is fixed;
+ * this exists so the next way of reaching that line is a thrown error rather than a fabricated
+ * observation. A missing measurement must not be recorded as a measured negative.
+ */
+export function transferObservation(input: {
+  decision_id: string;
+  recalled_rule: string;
+  applied_rule: boolean | null;
+}): LearningTransferObservation {
+  if (input.applied_rule === null)
+    throw new Error(
+      "לא ניתן לרשום תצפית העברה בלי תשובה על יישום הכלל: היעדר תשובה אינו תשובה שלילית.",
+    );
+  return {
+    decision_id: input.decision_id,
+    recalled_rule: input.recalled_rule,
+    applied_rule: input.applied_rule,
+  };
+}
+
 export interface LearningTransferResult {
   readonly kind: "learning_transfer_result";
   transfer_id: string;

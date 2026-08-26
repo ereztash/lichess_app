@@ -6,6 +6,7 @@ import {
   gradeLearningRule,
   type LearningRuleDraft,
   type LearningTransferResult,
+  transferObservation,
 } from "../../shared/learning-record";
 import { classifyPhase } from "../../shared/phase";
 import { plyFromFen, positionKey } from "../../shared/position-key";
@@ -1020,5 +1021,37 @@ describe("the positions a transfer draws are not the opening, and not three in a
     );
     expect(outcome.transfer!.fens).toHaveLength(3);
     expect(new Set(outcome.transfer!.fens.map(positionKey)).size).toBe(3);
+  });
+});
+
+describe("an unanswered question is not a negative answer", () => {
+  /*
+   * `applied_rule` is half of `successes`, which is what the preregistered refutation condition
+   * is tested against. The client held it as `boolean | null` and wrote `?? false` under a
+   * comment saying the default could not fire -- while the callback that read it did not depend
+   * on it, so a stale null would have been written down as "did not apply the rule" about a
+   * player who said they did. Append-only, and every screen correct.
+   */
+  it("refuses to build an observation with no answer rather than defaulting it to false", () => {
+    expect(() =>
+      transferObservation({ decision_id: "d-1", recalled_rule: "רשימת שחים", applied_rule: null }),
+    ).toThrow(/יישום הכלל/);
+  });
+
+  it("builds both real answers, including the negative one a player actually gave", () => {
+    // The point is not that `false` is suspect; it is that a MEASURED false and a missing
+    // measurement must not become the same record.
+    for (const applied of [true, false]) {
+      expect(
+        transferObservation({ decision_id: "d-1", recalled_rule: "רשימת שחים", applied_rule: applied }),
+      ).toEqual({ decision_id: "d-1", recalled_rule: "רשימת שחים", applied_rule: applied });
+    }
+  });
+
+  it("keeps an empty recall, which is a failed retrieval and not a missing one", () => {
+    expect(
+      transferObservation({ decision_id: "d-1", recalled_rule: "", applied_rule: true })
+        .recalled_rule,
+    ).toBe("");
   });
 });

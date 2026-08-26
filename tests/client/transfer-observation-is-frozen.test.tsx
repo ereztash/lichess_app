@@ -22,6 +22,7 @@ import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { LearningTransfer } from "@shared/learning-record";
 import { LearningTransferRunner } from "@/components/LearningTransferRunner";
+import { transferObservation } from "@shared/learning-record";
 
 const root = resolve(__dirname, "../..");
 
@@ -107,12 +108,22 @@ describe("the frozen observation is what gets reported", () => {
     );
   });
 
-  it("refuses to commit a transfer decision before both halves are answered", () => {
-    // The guard has to sit on the COMMIT, not on the advance. Blocking the advance would leave a
-    // player who skipped the question able to answer it only after the reveal -- which is the
-    // defect, reached by a different route.
-    const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
-    expect(home).toMatch(/onCommit[\s\S]{0,1200}learningTransferApplied === null/);
+  it("refuses to build an observation whose application half is unanswered", () => {
+    /*
+     * The guard has to sit on the COMMIT, not on the advance: blocking the advance would leave a
+     * player who skipped the question able to answer it only after the reveal, which is the
+     * defect reached by a different route.
+     *
+     * This used to be asserted with a regex looking for `onCommit` and `learningTransferApplied
+     * === null` within 1200 characters of each other in Home.tsx -- satisfied by source that
+     * merely mentions both, and it went on passing while the callback holding that value did not
+     * depend on it. What replaces it is the refusal itself, run:
+     * tests/shared/learning-record.test.ts drives `transferObservation` with a null answer, and
+     * tests/client/a-stale-closure-fabricates-an-observation.test.ts parses the dependency lists.
+     */
+    expect(() =>
+      transferObservation({ decision_id: "d-1", recalled_rule: "כלל", applied_rule: null }),
+    ).toThrow();
   });
 });
 

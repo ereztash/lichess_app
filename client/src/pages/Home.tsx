@@ -36,6 +36,7 @@ import {
   type LearningTransferStage,
 } from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
+import { transferObservation } from "@shared/learning-record";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
@@ -765,21 +766,21 @@ export default function Home() {
              */
             await recordTransferObservation.mutateAsync({
               transfer_id: learningTransfer.transfer_id,
-              observation: {
+              /*
+               * The player's own answer, frozen here -- not a placeholder patched later. It used
+               * to be written `false` and overwritten in `advanceLearningTransfer`, which runs
+               * after the reveal, so the value that reached the server had been collected on the
+               * wrong side of the engine while every screen looked correct.
+               *
+               * `transferObservation` throws rather than defaulting a null to `false`. That line
+               * used to read `?? false` under a comment saying it could not fire; it could,
+               * because this callback did not depend on the value it was reading.
+               */
+              observation: transferObservation({
                 decision_id: decisionId,
                 recalled_rule: learningTransferRecall,
-                /*
-                 * The player's own answer, frozen here -- not a placeholder patched later. It
-                 * used to be written `false` and overwritten in `advanceLearningTransfer`, which
-                 * runs after the reveal, so the value that reached the server had been collected
-                 * on the wrong side of the engine while every screen looked correct.
-                 *
-                 * `?? false` cannot fire: `onCommit` refuses a transfer decision with a null
-                 * answer. It is here because the type allows null and a silent `undefined` in an
-                 * append-only record is worse than a redundant default.
-                 */
-                applied_rule: learningTransferApplied ?? false,
-              },
+                applied_rule: learningTransferApplied,
+              }),
             });
             setLearningTransferObservations((current) => current + 1);
           }
@@ -810,8 +811,10 @@ export default function Home() {
       ensureEngine,
       learningTransfer,
       learningTransferIndex,
+      learningTransferApplied,
       learningTransferRecall,
       learningTransferStage,
+      recordTransferObservation,
       submitReveal,
     ],
   );
