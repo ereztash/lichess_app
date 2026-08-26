@@ -116,6 +116,57 @@ describe("the frozen observation is what gets reported", () => {
   });
 });
 
+describe("the answer key is not on screen during the exam", () => {
+  /*
+   * `c507a15` removed `action_rule` from the queue so the rule would not sit beside the button
+   * that tests recall of it. An adversarial review then found a paraphrase of it rendered INSIDE
+   * the test: `refutation_condition` sat outside every stage conditional, visible throughout.
+   *
+   * That field is written by answering "איזו תוצאה תפריך את הכלל?", and a player answers that by
+   * restating the behaviour the rule prescribes. Pasting it as the recall was measured clearing
+   * the floor at coverage 0.556 -- so the exam contained an answer that passes it.
+   *
+   * It stays at the BRIEFING, because that is what preregistering means: fixed and shown before
+   * any position is drawn. What it must not do is stay up while recall is being asked for.
+   */
+  const at = (stage: "briefing" | "running") =>
+    render(
+      <LearningTransferRunner
+        transfer={transfer}
+        stage={stage}
+        index={0}
+        revealed={false}
+        recall=""
+        applied={null}
+        verdict={null}
+        onRecall={vi.fn()}
+        onApplied={vi.fn()}
+        onStart={vi.fn()}
+        onFinish={vi.fn()}
+      />,
+    );
+
+  it("shows the refutation condition before the test starts", () => {
+    at("briefing");
+    expect(screen.getByText(transfer.refutation_condition)).toBeTruthy();
+  });
+
+  it("removes it once the test is running", () => {
+    at("running");
+    expect(
+      screen.queryByText(transfer.refutation_condition),
+      "a paraphrase of the rule is on screen while the player is asked to recall it",
+    ).toBeNull();
+  });
+
+  it("still says what the bar is while running, without restating the rule", () => {
+    // Removing the condition must not remove the fact that two of three are needed -- a
+    // preregistered bar the player cannot see is not preregistered from their side.
+    at("running");
+    expect(screen.getByText(/נדרשות 2/)).toBeTruthy();
+  });
+});
+
 describe("the verdict claims only what three positions can carry", () => {
   const done = (observed: boolean) =>
     render(

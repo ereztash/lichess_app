@@ -2045,6 +2045,11 @@ button:not(:disabled) {
    * Placed, not left where it lands. The measurable row has three tracks and four children, so
    * this one wrapped into an implicit row under the SCOPE -- reading as though the population
    * comparison were part of the label rather than of the figure. It belongs under the number.
+   *
+   * NO `unicode-bidi: plaintext` HERE, and that is the point. This span mixes a signed number with
+   * Hebrew words, so `plaintext` takes its direction from the first strong character -- Hebrew --
+   * resolves the whole run RTL, and leaves the sign exactly where it was, 62px from its digits.
+   * The number is isolated in the markup with `<bdi>` instead; see RecordDashboard.tsx.
    */
   grid-column: 2 / -1;
   font-size: var(--panel-fine);
@@ -2128,6 +2133,16 @@ button:not(:disabled) {
   font-size: var(--panel-data);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  /*
+   * The same rule `.value-number` carries, and it was missing here for the same reason it is
+   * needed: this cell holds the effort coefficient, and `-0.99` rendered as `0.99-`.
+   *
+   * WORSE THAN THE CALIBRATION CASE, because negative is the HEALTHY direction for this figure --
+   * longer on the decisions you were less sure of -- so the reordered form is the ordinary one.
+   * An adversarial review found it after the earlier fix was applied to the one selector its test
+   * happened to render.
+   */
+  unicode-bidi: plaintext;
 }
 /* The one term that is a statement about the player. */
 .split-mine dt,
@@ -3890,6 +3905,7 @@ button:not(:disabled) {
 .split-band {
   /* Its own `dd`, so it needs the list's default indent cleared like the figure's. */
   margin: 0;
+  /* The range inside it is isolated in the markup, for the reason `.bucket-versus` is. */
   font-size: var(--panel-fine);
   font-weight: 400;
   color: var(--muted);

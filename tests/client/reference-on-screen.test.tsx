@@ -61,7 +61,10 @@ describe("the reading is shown against a reference class, not on its own", () =>
     const low = reference!.percentiles.find((p) => p.p === 10)!.auroc2.toFixed(2);
     const high = reference!.percentiles.find((p) => p.p === 90)!.auroc2.toFixed(2);
     render(<RecordDashboard reading={reading} />);
-    expect(screen.getByText(new RegExp(`במחקר\\s*${low}.*${high}`))).toBeTruthy();
+    // Same reason as the population comparison: the range is isolated in a `<bdi>`, so it is read
+    // off the element rather than off a single text node.
+    const band = document.querySelector(".split-band")?.textContent?.replace(/\s+/g, " ").trim();
+    expect(band, "the research range is not on screen").toBe(`במחקר ${low}–${high}`);
   });
 
   it("says the people in it scored about as accurately as the reader", () => {

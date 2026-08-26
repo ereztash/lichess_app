@@ -499,3 +499,167 @@ describe("the transfer is graded against the rule, not against arbitrary text", 
     ).rejects.toThrow(/append-only/);
   });
 });
+
+describe("a terminal grade ends the testing, including a transfer already in flight", () => {
+  /*
+   * `preregisterLearningTransfer` throws on a refuted or retired rule, and that throw was
+   * UNREACHABLE whenever an open transfer existed: the resume path returned before it. So a rule
+   * that had just been refuted, or one the player had deliberately retired, still handed back a
+   * live test. Found by an adversarial review, reproduced here in both directions.
+   */
+  async function openTransferThenGrade(grade: "refuted" | "retired") {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    await store.saveLearningRule({ ...rule, grade, next_due_at: null });
+    return { store, rule };
+  }
+
+  it("refuses to resume a transfer on a refuted rule", async () => {
+    const { store, rule } = await openTransferThenGrade("refuted");
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-01-03T00:00:00.000Z" },
+    );
+    expect(outcome.transfer, "a refuted rule handed back a live test").toBeNull();
+    expect(outcome.reason).toContain("הופרך");
+  });
+
+  it("refuses to resume a transfer on a rule the player retired", async () => {
+    // Retiring is the player saying they are done with this rule. Handing it back a test is the
+    // product overruling them about their own record.
+    const { store, rule } = await openTransferThenGrade("retired");
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-01-03T00:00:00.000Z" },
+    );
+    expect(outcome.transfer).toBeNull();
+  });
+
+  it("still resumes a transfer on a rule that is merely a hypothesis", async () => {
+    // The control. A guard that refused every resume would pass both tests above while deleting
+    // the feature the previous commit existed to add.
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const resumed = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-01-02T00:05:00.000Z" },
+    );
+    expect(resumed.transfer?.transfer_id).toBe("transfer-1");
+  });
+});
+
+describe("one sitting cannot replicate itself", () => {
+  /*
+   * THE WORST FINDING OF THE REVIEW, and it defeated the whole preregistration claim.
+   *
+   * `beginLearningTransfer` was check-then-act with no uniqueness anywhere: read the open
+   * transfer, then insert a new one with a fresh id. Two concurrent starts -- a double-click is
+   * enough, since the queue's `busy` flag only flips once the first mutation RESOLVES -- produced
+   * two preregistrations holding the IDENTICAL three positions.
+   *
+   * Then: play the three positions ONCE, report those same three `decision_id`s under transfer A
+   * on one day and under transfer B on the next, and the rule grades `replicated`. Three
+   * decisions, two results, two calendar days, and a claim that the rule held up across sittings.
+   * `gradeLearningRule` filters priors by `transfer_id`, so nothing noticed.
+   */
+  it("refuses a decision already spent on another transfer of the same rule", async () => {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const first = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const ids = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < ids.length; index += 1) {
+      await recordPosition(store, ids[index], first.transfer!.fens[index]);
+    }
+    const observations = ids.map((decision_id) => ({
+      decision_id,
+      recalled_rule: rule.action_rule,
+      applied_rule: true,
+    }));
+    const reported = await service.finishLearningTransfer(
+      store,
+      { transfer_id: "transfer-1", observations },
+      { completed_at: "2026-01-02T01:00:00.000Z" },
+    );
+    expect(reported.result.observed).toBe(true);
+
+    // A second transfer, holding the same positions, reported with the SAME decisions.
+    await store.saveLearningTransfer({ ...first.transfer!, transfer_id: "transfer-2" });
+    await expect(
+      service.finishLearningTransfer(
+        store,
+        { transfer_id: "transfer-2", observations },
+        { completed_at: "2026-01-03T01:00:00.000Z" },
+      ),
+      "the same three decisions replicated the rule across two days",
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+  });
+
+  it("reports a transfer once, and says so rather than throwing a database error", async () => {
+    /*
+     * Completing twice hit a bare primary-key violation in the Drizzle store, which `toTrpc`
+     * rethrew as an unmapped 500 -- carrying the SQL, the column layout, the decision ids and the
+     * PLAYER'S RECALL TEXT in the response body. The owner gate goes to some length to keep record
+     * content out of a refusal; this put it in one, at 500 instead of 403.
+     *
+     * It is reachable by design: a failed completion returns the player to `running` so reporting
+     * can be retried, so a lost response means retrying forever against a 500.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const { transfer } = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const ids = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < ids.length; index += 1) {
+      await recordPosition(store, ids[index], transfer!.fens[index]);
+    }
+    const observations = ids.map((decision_id) => ({
+      decision_id,
+      recalled_rule: rule.action_rule,
+      applied_rule: true,
+    }));
+    const once = await service.finishLearningTransfer(
+      store,
+      { transfer_id: "transfer-1", observations },
+      { completed_at: "2026-01-02T01:00:00.000Z" },
+    );
+
+    const twice = await service.finishLearningTransfer(
+      store,
+      { transfer_id: "transfer-1", observations },
+      { completed_at: "2026-01-02T02:00:00.000Z" },
+    );
+    // IDEMPOTENT, not an error: a retry after a lost response is the honest case, and the second
+    // call must return what the first one recorded rather than a second, different verdict.
+    expect(twice.result.completed_at).toBe(once.result.completed_at);
+    expect(twice.result.successes).toBe(once.result.successes);
+    expect(await store.listLearningTransferResults(rule.rule_id)).toHaveLength(1);
+  });
+});

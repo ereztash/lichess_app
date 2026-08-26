@@ -244,6 +244,27 @@ export async function beginLearningTransfer(
    * rule whose test can be started but never finished can only ever be refuted by accident. The
    * positions come back identical because they are the ones that were written down.
    */
+  /*
+   * A TERMINAL GRADE ENDS THE TESTING, INCLUDING FOR A TRANSFER ALREADY IN FLIGHT.
+   *
+   * `preregisterLearningTransfer` throws on a refuted or retired rule, and that throw was
+   * unreachable whenever an open transfer existed -- the resume path returned before it. So a
+   * rule that had just been refuted, or one the player had deliberately retired, still handed
+   * back a live test. An adversarial review reproduced both.
+   *
+   * Checked BEFORE the resume, not after: the question is whether this rule should be under test
+   * at all, and it is not.
+   */
+  if (rule.grade === "refuted" || rule.grade === "retired") {
+    return {
+      transfer: null,
+      reason:
+        rule.grade === "refuted"
+          ? "הכלל הזה הופרך, ולכן אין עליו בדיקות נוספות."
+          : "הכלל הזה הוצא מתור הלמידה.",
+    };
+  }
+
   const open = await store.getOpenLearningTransfer(rule.rule_id);
   if (open) return { transfer: open, reason: null };
 
@@ -310,6 +331,50 @@ export async function finishLearningTransfer(
     throw new RecordError(
       "PRECONDITION_FAILED",
       "לכל עמדה בבדיקת ההעברה נדרשת תצפית אחת.",
+    );
+  }
+
+  const priorResults = await store.listLearningTransferResults(transfer.rule_id);
+
+  /*
+   * REPORTING TWICE RETURNS THE FIRST REPORT, it does not raise.
+   *
+   * The Drizzle store's insert hit a bare primary-key violation, which `toTrpc` rethrew unmapped
+   * as a 500 -- carrying the SQL, the column layout, the decision ids and THE PLAYER'S RECALL TEXT
+   * in the response body. The owner gate goes to some length to keep record content out of a
+   * refusal; this put it into one, with a worse status code.
+   *
+   * And it is reachable by design rather than by accident: a failed completion returns the player
+   * to `running` so reporting can be retried, so a lost response means retrying forever against a
+   * 500, with the verdict never shown and `next_due_at` already moved forward.
+   *
+   * Idempotent rather than an error, because a retry after a lost response is the honest case. The
+   * second call must return what the first one recorded -- not a second, differently-timed verdict.
+   */
+  const already = priorResults.find((result) => result.transfer_id === transfer.transfer_id);
+  if (already) return { result: already, rule: await store.getLearningRule(transfer.rule_id) };
+
+  /*
+   * A DECISION IS SPENT ONCE. This is the hole that let one sitting replicate itself.
+   *
+   * `beginLearningTransfer` is check-then-act with no uniqueness, so two concurrent starts -- a
+   * double click is enough, since the queue's `busy` flag only flips when the first mutation
+   * RESOLVES -- produced two preregistrations over the identical three positions. Play them once,
+   * report the same three `decision_id`s under transfer A on one day and transfer B on the next,
+   * and `gradeLearningRule` reads two results on two calendar days and writes `replicated`. It
+   * filters priors by `transfer_id`, so nothing looked at whether the DECISIONS were the same.
+   *
+   * Three decisions cannot be evidence that a rule held up across sittings, whatever the transfer
+   * ids say. Checked here rather than at `begin`, because it is the reporting that makes the
+   * claim.
+   */
+  const spent = new Set(priorResults.flatMap((result) => result.decision_ids));
+  const reused = input.observations.filter((o) => spent.has(o.decision_id));
+  if (reused.length > 0) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      "החלטות מהבדיקה הזו כבר נספרו בבדיקת העברה קודמת של אותו כלל. " +
+        "אותה ישיבה אינה יכולה לשמש כשתי בדיקות.",
     );
   }
   const atoms = await Promise.all(input.observations.map((o) => store.getAtom(o.decision_id)));

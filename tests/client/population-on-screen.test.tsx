@@ -56,7 +56,15 @@ describe("the bucket is shown against the population, not on its own", () => {
     const population = populationBucket("phase-middlegame")!;
     const points = Math.round((1 - population.accuracy) * 100);
     expect(points).toBeGreaterThan(0);
-    expect(screen.getAllByText(new RegExp(`\\+${points}\\s*נק׳ מול כולם`)).length).toBeGreaterThan(0);
+    /*
+     * Matched on the ELEMENT's text, not on one text node. The figure is wrapped in `<bdi>` so
+     * the bidirectional algorithm cannot drag its sign across the Hebrew beside it, which splits
+     * the run into three nodes -- and a `getByText` regex spanning them silently stopped matching.
+     * The assertion is about what a reader sees, so it reads the same thing a reader does.
+     */
+    const versus = document.querySelectorAll(".bucket-versus");
+    const texts = [...versus].map((node) => node.textContent?.replace(/\s+/g, " ").trim() ?? "");
+    expect(texts.some((text) => text === `+${points} נק׳ מול כולם`), texts.join(" | ")).toBe(true);
   });
 
   it("says what the comparison is against, so the number is not a bare figure", () => {

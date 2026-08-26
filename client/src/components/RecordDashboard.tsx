@@ -173,7 +173,16 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
             */}
           {sensitivityReference && (
             <dd className="split-band">
-              במחקר {band(sensitivityReference, 10)}–{band(sensitivityReference, 90)}
+              {/*
+                * Isolated for the same reason as `.bucket-versus`: a range read left-to-right
+                * inside a Hebrew line. Without it "במחקר 0.52–0.69" renders as
+                * "0.69–0.52 רקחמב" -- the numbers reversed, so the range reads high-to-low and
+                * a reader takes the lower bound for the upper one.
+                */}
+              במחקר{" "}
+              <bdi>
+                {band(sensitivityReference, 10)}–{band(sensitivityReference, 90)}
+              </bdi>
             </dd>
           )}
         </div>
@@ -288,8 +297,23 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                   */}
                 {b.versusPopulation !== null && (
                   <span className="bucket-versus">
-                    {b.versusPopulation >= 0 ? "+" : "−"}
-                    {Math.abs(Math.round(b.versusPopulation * 100))} נק׳ מול כולם
+                    {/*
+                      * `<bdi>` around the number, not a CSS rule on the span.
+                      *
+                      * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
+                      * plaintext` -- which fixed the bare numbers elsewhere -- takes its direction
+                      * from the first strong character, resolves the whole run right-to-left, and
+                      * leaves the sign 62px from its digits. Measured: "−4 נק׳ מול כולם" rendered
+                      * as "םלוכ לומ ׳קנ 4−".
+                      *
+                      * An isolate is the tool for a mixed run: it fixes the direction of what is
+                      * inside it and stops it interacting with what is outside.
+                      */}
+                    <bdi>
+                      {b.versusPopulation >= 0 ? "+" : "−"}
+                      {Math.abs(Math.round(b.versusPopulation * 100))}
+                    </bdi>{" "}
+                    נק׳ מול כולם
                   </span>
                 )}
               </>

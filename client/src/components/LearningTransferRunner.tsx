@@ -39,16 +39,28 @@ export function LearningTransferRunner({
           <h3>העברה לעמדות חדשות</h3>
         </div>
       </header>
-      <div className="transfer-prereg">
-        <span>תנאי הפרכה</span>
-        <p>{transfer.refutation_condition}</p>
-        <small>
-          נדרשות {transfer.minimum_successes} הצלחות מתוך {transfer.fens.length}.
-        </small>
-      </div>
-
+      {/*
+        * THE REFUTATION CONDITION IS SHOWN AT THE BRIEFING AND NOWHERE ELSE.
+        *
+        * It used to sit outside every stage conditional, so it stayed on screen for the whole
+        * test. That undid the change that hid `action_rule` from the queue: a refutation
+        * condition is written by answering "איזו תוצאה תפריך את הכלל?", and a player answers
+        * that by restating the behaviour the rule prescribes. Pasting it as the recall was
+        * measured clearing the floor at 0.556 -- the answer key, rendered inside the exam.
+        *
+        * It stays visible during the briefing because that is what preregistration MEANS: the
+        * condition is fixed and shown before any position is drawn. What it must not do is stay
+        * up while the player is being asked to recall the rule from memory.
+        */}
       {stage === "briefing" && (
         <>
+          <div className="transfer-prereg">
+            <span>תנאי הפרכה</span>
+            <p>{transfer.refutation_condition}</p>
+            <small>
+              נדרשות {transfer.minimum_successes} הצלחות מתוך {transfer.fens.length}.
+            </small>
+          </div>
           <p>הכלל לא יוצג במהלך הבדיקה. לפני כל החלטה נסו לשלוף אותו מהזיכרון.</p>
           <button type="button" className="learning-save" onClick={onStart}>
             התחלת הבדיקה
@@ -59,7 +71,8 @@ export function LearningTransferRunner({
       {stage === "running" && (
         <>
           <p className="transfer-progress">
-            עמדה {index + 1} מתוך {transfer.fens.length}
+            עמדה {index + 1} מתוך {transfer.fens.length} · נדרשות {transfer.minimum_successes}{" "}
+            הצלחות
           </p>
           {/*
             * BOTH HALVES BEFORE THE REVEAL, and the second one moved here from after it.
