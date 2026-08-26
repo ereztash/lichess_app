@@ -7,7 +7,8 @@ import { layerCEnabled, MAX_POSITIONS_CONSULTED, pointerForClaim } from "./layer
 import { buildRecordRouter } from "./recordRouter.js";
 import { ENV } from "./_core/env.js";
 import { systemRouter } from "./_core/systemRouter.js";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
+import { ownerProcedure } from "./_core/owner.js";
+import { publicProcedure, router } from "./_core/trpc.js";
 import {
   getLichessAccount,
   getLichessGamePgn,
@@ -16,30 +17,6 @@ import {
   getPostGameLayers,
   getRecentLichessGames,
 } from "./lichess.js";
-/**
- * The single-tenant gate.
- *
- * Two different causes used to produce one identical message: a deployment that never set
- * OWNER_OPEN_ID, and a visitor signed in as somebody else. Identical output erasing different
- * causes is the thing this product exists to stop, so the two are separated here.
- */
-const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (!ENV.ownerOpenId)
-    throw new TRPCError({
-      code: "PRECONDITION_FAILED",
-      message:
-        "בפריסה הזו לא הוגדר OWNER_OPEN_ID, ולכן אף חשבון אינו יכול לעבור את השער. " +
-        "זו הגדרה חסרה בשרת, לא הרשאה חסרה שלך.",
-    });
-  if (ctx.user.openId !== ENV.ownerOpenId)
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message:
-        "חיבור Lichess זמין רק לבעל החשבון שהגדיר אותו. אתם מחוברים בחשבון אחר מזה " +
-        "ש-OWNER_OPEN_ID מצביע עליו.",
-    });
-  return next({ ctx });
-});
 export function buildAppRouter(store: RecordStore = recordStore) {
   return router({
     system: systemRouter,

@@ -22,7 +22,8 @@ import * as service from "../shared/record-service.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
-import { protectedProcedure, router } from "./_core/trpc.js";
+import { ownerProcedure } from "./_core/owner.js";
+import { router } from "./_core/trpc.js";
 
 /**
  * The API event. Carries every atom field (section 3.1). `result` and `feedback` are present and
@@ -69,19 +70,19 @@ async function guard<T>(run: () => Promise<T>): Promise<T> {
 
 export function buildRecordRouter(store: RecordStore) {
   return router({
-    commitDecision: protectedProcedure
+    commitDecision: ownerProcedure
       .input(commitEventSchema)
       .mutation(({ input }): Promise<{ decision_id: string }> =>
         guard(() => service.commitDecision(store, input)),
       ),
 
-    reveal: protectedProcedure
+    reveal: ownerProcedure
       .input(z.object({ decision_id: z.string().uuid(), result: resultSchema }))
       .mutation(({ input }): Promise<DecisionAtom> =>
         guard(() => service.reveal(store, input.decision_id, input.result)),
       ),
 
-    feedback: protectedProcedure
+    feedback: ownerProcedure
       .input(
         z.object({
           decision_id: z.string().uuid(),
@@ -98,7 +99,7 @@ export function buildRecordRouter(store: RecordStore) {
         ),
       ),
 
-    createLearningRule: protectedProcedure.input(learningRuleEventSchema).mutation(({ input }) =>
+    createLearningRule: ownerProcedure.input(learningRuleEventSchema).mutation(({ input }) =>
       guard(() =>
         service.createLearningRule(store, input, {
           rule_id: `rule-${crypto.randomUUID()}`,
@@ -107,9 +108,9 @@ export function buildRecordRouter(store: RecordStore) {
       ),
     ),
 
-    learningRules: protectedProcedure.query(() => guard(() => service.learningRules(store))),
+    learningRules: ownerProcedure.query(() => guard(() => service.learningRules(store))),
 
-    startLearningTransfer: protectedProcedure
+    startLearningTransfer: ownerProcedure
       .input(
         z
           .object({
@@ -127,7 +128,7 @@ export function buildRecordRouter(store: RecordStore) {
         ),
       ),
 
-    completeLearningTransfer: protectedProcedure
+    completeLearningTransfer: ownerProcedure
       .input(
         z
           .object({
@@ -154,7 +155,7 @@ export function buildRecordRouter(store: RecordStore) {
         ),
       ),
 
-    retireLearningRule: protectedProcedure
+    retireLearningRule: ownerProcedure
       .input(z.object({ rule_id: z.string().min(1).max(64) }).strict())
       .mutation(({ input }) =>
         guard(() =>
@@ -162,11 +163,11 @@ export function buildRecordRouter(store: RecordStore) {
         ),
       ),
 
-    atom: protectedProcedure
+    atom: ownerProcedure
       .input(z.object({ decision_id: z.string().uuid() }))
       .query(({ input }) => store.getAtom(input.decision_id)),
 
-    startDrill: protectedProcedure
+    startDrill: ownerProcedure
       .input(
         z.object({
           claim_id: z.string().min(1).max(64),
@@ -190,7 +191,7 @@ export function buildRecordRouter(store: RecordStore) {
         ),
       ),
 
-    completeDrill: protectedProcedure
+    completeDrill: ownerProcedure
       .input(
         z.object({
           drill_id: z.string().min(1).max(64),
@@ -209,16 +210,16 @@ export function buildRecordRouter(store: RecordStore) {
      * broken server one and the loop stopped: "I signed in and now I cannot play". Having a
      * session and having storage are different facts, and the client needs the second one.
      */
-    storageAvailable: protectedProcedure.query(async () => ({
+    storageAvailable: ownerProcedure.query(async () => ({
       available: await store.isAvailable(),
     })),
 
-    reading: protectedProcedure.query(() => guard(() => service.recordReading(store))),
+    reading: ownerProcedure.query(() => guard(() => service.recordReading(store))),
 
     /** Cold-start reporting (section 6): the curve, not a single number. */
-    count: protectedProcedure.query(() => guard(() => service.countDecisions(store))),
+    count: ownerProcedure.query(() => guard(() => service.countDecisions(store))),
 
-    claim: protectedProcedure.query((): Promise<service.ClaimView> =>
+    claim: ownerProcedure.query((): Promise<service.ClaimView> =>
       guard(() => service.currentClaim(store, { created_at: new Date().toISOString() })),
     ),
 
@@ -228,7 +229,7 @@ export function buildRecordRouter(store: RecordStore) {
      * `decisions_before` is absent from the input on purpose, not merely optional: the service
      * reads it from the store. See registerHypothesis for why a caller must not get to choose it.
      */
-    registerHypothesis: protectedProcedure
+    registerHypothesis: ownerProcedure
       .input(
         z.object({
           bucket_key: z.string().min(1).max(40),
@@ -247,7 +248,7 @@ export function buildRecordRouter(store: RecordStore) {
       )
       .mutation(({ input }) => guard(() => service.registerHypothesis(store, input))),
 
-    hypothesis: protectedProcedure.query(() => guard(() => store.getPreregisteredHypothesis())),
+    hypothesis: ownerProcedure.query(() => guard(() => store.getPreregisteredHypothesis())),
 
     /**
      * The kept reading (shared/import-diagnostic.ts).
@@ -261,7 +262,7 @@ export function buildRecordRouter(store: RecordStore) {
      * schema here would restate this codebase rather than validate input -- and it would have to
      * be edited in lockstep every time a bucket is added.
      */
-    saveImportReading: protectedProcedure
+    saveImportReading: ownerProcedure
       .input(
         z.object({
           username: z.string().min(1).max(60),
@@ -271,6 +272,6 @@ export function buildRecordRouter(store: RecordStore) {
       )
       .mutation(({ input }) => guard(() => service.saveImportReading(store, input))),
 
-    importReading: protectedProcedure.query(() => guard(() => store.getImportDiagnostic())),
+    importReading: ownerProcedure.query(() => guard(() => store.getImportDiagnostic())),
   });
 }
