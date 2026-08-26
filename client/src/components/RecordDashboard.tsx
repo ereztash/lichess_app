@@ -295,27 +295,52 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                   * population data cannot support renders nothing, not a comparison against a
                   * number nobody measured.
                   */}
-                {b.versusPopulation !== null && (
-                  <span className="bucket-versus">
-                    {/*
-                      * `<bdi>` around the number, not a CSS rule on the span.
+                {b.versusPopulation !== null &&
+                  (b.versusPopulation.separated ? (
+                    <span className="bucket-versus">
+                      {/*
+                        * `<bdi>` around the number, not a CSS rule on the span.
+                        *
+                        * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
+                        * plaintext` -- which fixed the bare numbers elsewhere -- takes its
+                        * direction from the first strong character, resolves the whole run
+                        * right-to-left, and leaves the sign 62px from its digits. Measured:
+                        * "−4 נק׳ מול כולם" rendered as "םלוכ לומ ׳קנ 4−".
+                        *
+                        * An isolate is the tool for a mixed run: it fixes the direction of what
+                        * is inside it and stops it interacting with what is outside.
+                        */}
+                      <bdi>
+                        {b.versusPopulation.points >= 0 ? "+" : "−"}
+                        {Math.abs(Math.round(b.versusPopulation.points * 100))}
+                      </bdi>{" "}
+                      נק׳ מול כולם
+                    </span>
+                  ) : (
+                    /*
+                      * MEASURED, AND THE SAME. Both rates stay on screen -- the population figure
+                      * is computed on hundreds of thousands of moves and is the context the whole
+                      * baseline exists to supply. What is dropped is the ASSERTION that the
+                      * player differs from it, which is the only part that needed this record to
+                      * carry it and could not.
                       *
-                      * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
-                      * plaintext` -- which fixed the bare numbers elsewhere -- takes its direction
-                      * from the first strong character, resolves the whole run right-to-left, and
-                      * leaves the sign 62px from its digits. Measured: "−4 נק׳ מול כולם" rendered
-                      * as "םלוכ לומ ׳קנ 4−".
-                      *
-                      * An isolate is the tool for a mixed run: it fixes the direction of what is
-                      * inside it and stops it interacting with what is outside.
-                      */}
-                    <bdi>
-                      {b.versusPopulation >= 0 ? "+" : "−"}
-                      {Math.abs(Math.round(b.versusPopulation * 100))}
-                    </bdi>{" "}
-                    נק׳ מול כולם
-                  </span>
-                )}
+                      * Simulated against the real baselines, a player whose true accuracy EQUALS
+                      * the population's was shown a signed figure on 100% of draws at
+                      * MIN_BUCKET_N, ten points or more on a quarter of them.
+                      */
+                    <span className="bucket-versus bucket-versus-flat">
+                      אצלכם{" "}
+                      <bdi>{Math.round(b.inside.accuracyRate * 100)}%</bdi>, אצל כולם{" "}
+                      <bdi>
+                        {Math.round(
+                          (b.inside.accuracyRate - b.versusPopulation.points) * 100,
+                        )}
+                        %
+                      </bdi>{" "}
+                      — ההפרש קטן ממה ש-{b.inside.n} החלטות יכולות להבחין בו, ולכן הוא לא מדווח
+                      כהפרש.
+                    </span>
+                  ))}
               </>
             ) : b.unmeasurableReason === "no-clock-data" ? (
               /*

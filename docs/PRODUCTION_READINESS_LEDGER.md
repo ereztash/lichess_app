@@ -263,6 +263,49 @@ lose and belongs on the local path. Six positive controls red, including the two
 matter — restoring the silent fallback, and a latch greedy enough to catch the cold start and
 break the local path.
 
+## Cycle 16 — the instrument held itself to two standards on two screens
+
+`findPatterns` will not report a bucket as a finding until its gap sits `SEPARABILITY_K = 3.75`
+standard errors from the rest of the record. That bar is the whole reason `CalibrationSummary`
+carries `gapVariance`. The dashboard then printed `inside.accuracyRate - population.accuracy` as a
+signed figure, with **no standard error anywhere in its path and no bar to clear**, in the second
+person: *"+14 נק׳ מול כולם"*.
+
+**Measured, not argued.** Simulating a player whose true accuracy EQUALS the population's, drawing
+`MIN_BUCKET_N` decisions against the real published baselines, 20,000 trials, deterministic seed:
+
+| n | shows a figure | ≥5 points | ≥10 points | clears K=3.75 |
+| --- | --- | --- | --- | --- |
+| 30 | **100%** | 71% | **25%** | 0.22% |
+| 50 | 100% | 55% | 13% | 0.11% |
+| 100 | 92% | 34% | 4% | 0.03% |
+| 300 | 85% | 10% | 0.1% | 0.04% |
+
+One exactly-average player in four was told they were ten or more points from everyone, at the
+floor the product itself set.
+
+`populationSeparation` now carries the difference **with its error**, using the detector's own
+multiplier — reused rather than invented, because both comparisons run across the same six splits
+and a fresh constant here would be a threshold chosen to make this screen produce a number. Both
+rates stay on screen; what goes is the assertion that the player *differs*, which is the only part
+that needed 30 decisions to carry it.
+
+Agresti-Coull rather than `sqrt(p(1-p)/n)`: a player accurate on all 30 has `p(1-p) = 0`, so the
+textbook estimator makes the bar **loudest where the sample says least**.
+
+**The browser caught a regression a minute after it was introduced.** The new sentence inherited
+`white-space: nowrap` from `.bucket-versus` — correct for a four-word figure, wrong for a sentence
+— and laid 456px of text inside a 292px box, pushing the document to 525px at a 390px viewport
+while collapsing the scope label to 0px across 12 lines. That is the same collapse
+`bucket-row.layout.test.tsx` was written for, reached by a different route. jsdom reported every
+box as 0x0 and the other 1,165 tests said nothing.
+
+**One control survived its first form.** "Keeps a degenerate record from reading as infinite
+precision" asserted `standardError > 0`, and restoring the textbook estimator passed it — the
+population's own term keeps the sum above zero, so the assertion was satisfied by the side of the
+comparison it was not about. It now asserts the outcome: five points from 30 decisions must not be
+reported as a difference.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -270,9 +313,9 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
-| Scientific / construct validity | 4 | **7** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry. Not higher: positions still are not selected for the trigger, and there is no control condition |
+| Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison now carries its own error and clears the detector's bar before it is asserted. Not higher: positions still are not selected for the trigger, and there is no control condition |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9** | 1,163 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Test quality and CI | 8 | **9** | 1,172 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
 | UX, accessibility, recovery | 6 | **8.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |

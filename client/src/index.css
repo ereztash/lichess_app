@@ -2057,6 +2057,33 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/*
+ * The "measured, and the same" sentence takes the WHOLE row, unlike the signed figure above it.
+ *
+ * WHY IT CANNOT SIT IN TRACKS 2-3 like its sibling. Track 3 is `auto`, which sizes from content,
+ * and this is a sentence rather than a two-character figure -- so it claimed the row and squeezed
+ * the scope label, whose track is `minmax(0, 1fr)`, to 0px. Measured in Chromium at 390px: the
+ * label collapsed to zero width and wrapped onto 12 lines, and the document grew to 535px.
+ *
+ * That is the SAME collapse `tests/layout/bucket-row.layout.test.tsx` was written for, reached by
+ * a different route -- and it was caught the same way, by a real layout engine, a minute after
+ * being introduced. jsdom reported every box as 0x0 and 1,165 other tests said nothing.
+ */
+.bucket-versus-flat {
+  grid-column: 1 / -1;
+  line-height: 1.5;
+  /*
+   * `.bucket-versus` sets `nowrap`, correctly: "+14 נק׳ מול כולם" is four words that must not
+   * break away from their sign. This is a SENTENCE, and it inherited the nowrap -- 456px of text
+   * laid out inside a 292px box, pushing the document to 525px at a 390px viewport.
+   *
+   * The panel has been here before. `tests/layout/bucket-row.layout.test.tsx` carries the note
+   * that `white-space: nowrap` on the unmeasurable reason once laid 628px of text inside a 340px
+   * column and scrolled the page. Same property, same panel, a different span.
+   */
+  white-space: normal;
+}
+
 
 /*
  * The way into the shared set. A row, not a card: it is an action attached to the layer it sits

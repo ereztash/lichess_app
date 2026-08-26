@@ -86,6 +86,53 @@ describe("the bucket is shown against the population, not on its own", () => {
     expect(screen.queryAllByText(/מול כולם/)).toHaveLength(0);
   });
 
+  it("does not print a signed figure for a difference inside the noise", () => {
+    /*
+     * A DIFFERENCE THAT IS NOT A DIFFERENCE. `findPatterns` will not report a bucket until its gap
+     * sits SEPARABILITY_K standard errors from the rest of the record; this comparison printed the
+     * raw subtraction with no error anywhere in its path. Simulated against the real baselines, a
+     * player whose true accuracy EQUALS the population's was shown a signed figure on 100% of
+     * draws at MIN_BUCKET_N and ten points or more on a quarter of them.
+     */
+    const reading = readRecord(readable);
+    const flattened = {
+      ...reading,
+      buckets: reading.buckets.map((b) =>
+        b.versusPopulation === null
+          ? b
+          : { ...b, versusPopulation: { ...b.versusPopulation, separated: false } },
+      ),
+    };
+    render(<RecordDashboard reading={flattened} />);
+    expect(screen.queryAllByText(/מול כולם/), "an unseparated difference is asserted").toHaveLength(
+      0,
+    );
+  });
+
+  it("keeps both rates on screen when the difference is not reportable", () => {
+    /*
+     * WHAT IS NOT DROPPED. The population figure is measured on hundreds of thousands of moves and
+     * is the context the whole baseline exists to supply -- a bucket's accuracy is mostly a
+     * property of the bucket. Hiding it would leave the player's own rate bare, which is the
+     * defect the baseline was built to fix, reached by the fix for a different one.
+     */
+    const reading = readRecord(readable);
+    const flattened = {
+      ...reading,
+      buckets: reading.buckets.map((b) =>
+        b.versusPopulation === null
+          ? b
+          : { ...b, versusPopulation: { ...b.versusPopulation, separated: false } },
+      ),
+    };
+    render(<RecordDashboard reading={flattened} />);
+    expect(screen.getAllByText(/אצל כולם/).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/לא מדווח כהפרש/).length,
+      "the reader is not told why the difference is absent",
+    ).toBeGreaterThan(0);
+  });
+
   it("never renders a zero comparison for a bucket with no baseline", () => {
     /*
      * THE NEGATIVE THAT MATTERS. Null and zero are different states and render alike if the
