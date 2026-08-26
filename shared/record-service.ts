@@ -52,6 +52,7 @@ import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
+import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
@@ -1004,5 +1005,5 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       bestMove: atom.result?.engine_best_move ?? null,
     })),
   );
-  return readRecord(scoreDecisions(atoms, ids).scored, mix);
+  return readRecord(scoreDecisions(atoms, ids).scored, mix, readCounterfactuals(atoms));
 }

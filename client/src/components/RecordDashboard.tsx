@@ -15,6 +15,7 @@ import type { Control } from "@shared/control";
 import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
+import { CounterfactualPanel } from "./CounterfactualPanel";
 import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
 
@@ -474,6 +475,13 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
         לא אומר דבר על הדירוג שלך ולא על שיפור.
       </p>
+      {/*
+        * The probe's own readings, below the calibration ones because they answer a different
+        * question about a different facet: calibration is monitoring -- do you know when you are
+        * right -- and this is selection, which move you produce. Placing it inside the
+        * calibration block would invite reading one as a refinement of the other.
+        */}
+      <CounterfactualPanel reading={reading.counterfactual} />
     </section>
   );
 }

@@ -19,6 +19,10 @@ import { splitHalfStability, type Stability } from "./stability.js";
 import { metacognitiveSensitivity, type Sensitivity } from "./sensitivity.js";
 import { sensitivityBand, type SensitivityBand } from "./sensitivity-reference.js";
 import { effortFollowsDoubt, type Control } from "./control.js";
+import {
+  readCounterfactuals,
+  type CounterfactualRecordReading,
+} from "./counterfactual-reading.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
@@ -154,6 +158,15 @@ export type ConfidenceReading = {
 export type RecordReading = {
   overall: CalibrationSummary;
   /**
+   * What the counterfactual probe has said, with the denominators it came out of.
+   *
+   * ASSEMBLED FROM THE ATOMS RATHER THAN FROM `ScoredDecision`, for the same reason the branch
+   * mix is: the probe lives on the atom, and `ScoredDecision` deliberately carries only what a
+   * bucket may look at. Passed in rather than computed here, so this module keeps not knowing
+   * about it.
+   */
+  counterfactual: CounterfactualRecordReading;
+  /**
    * The gap above, split into the three things it stands in for.
    *
    * `overall.gap` is one number owned by nobody in particular: it moves when the positions get
@@ -259,6 +272,13 @@ export type RecordReading = {
 export function readRecord(
   decisions: ScoredDecision[],
   mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0 },
+  /**
+   * Defaults to an empty reading rather than to `undefined`, so a caller that has not been
+   * updated renders "nothing measured yet" instead of crashing on a missing field -- and so the
+   * emptiness is the honest one produced by `readCounterfactuals([])` rather than a shape
+   * hand-written here that could drift from it.
+   */
+  counterfactual: CounterfactualRecordReading = readCounterfactuals([]),
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -327,6 +347,7 @@ export function readRecord(
   const sensitivity = metacognitiveSensitivity(decisions);
 
   return {
+    counterfactual,
     overall,
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(anchored),

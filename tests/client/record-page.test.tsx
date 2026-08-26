@@ -23,6 +23,7 @@ import { render, screen, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { readCounterfactuals } from "@shared/counterfactual-reading";
 import { calibrationScore } from "@shared/calibration-score";
 import { splitHalfStability } from "@shared/stability";
 import { metacognitiveSensitivity } from "@shared/sensitivity";
@@ -63,6 +64,7 @@ const { default: Record } = await import("@/pages/Record");
  */
 const withRecord = (scored: number): RecordReading => ({
   scored,
+  counterfactual: readCounterfactuals([]),
   overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),

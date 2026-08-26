@@ -1765,6 +1765,75 @@ button:not(:disabled) {
    while deciding -- the engine's panel is absent, not hidden. */
 /* Every size in here comes from the five-step scale declared in :root. */
 /*
+ * The probe's readings, inside the record dashboard rather than beside it.
+ *
+ * Deliberately quiet: it is the newest measurement in the product and the one with the least n
+ * behind it, and a panel styled to draw the eye would give a handful of counts the weight of the
+ * calibration figures above it.
+ */
+.counterfactual-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+.counterfactual-panel__title {
+  margin: 0 0 6px;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  color: var(--ink);
+}
+.counterfactual-panel__what,
+.counterfactual-panel__short,
+.counterfactual-panel__control {
+  margin: 8px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.counterfactual-panel__denominators {
+  margin: 8px 0 0;
+  padding-inline-start: 1.1rem;
+  font-size: var(--panel-fine);
+  line-height: 1.7;
+  color: var(--muted);
+}
+.counterfactual-panel__readings {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.counterfactual-panel__reading {
+  display: grid;
+  /*
+   * `minmax(0, 1fr)` on the label and `auto` on the figure, NOT the other way round. An `auto`
+   * track is sized from its content and would let a long sentence claim the row while the
+   * `minmax(0, 1fr)` figure collapsed -- which is exactly how the bucket rows shipped a scope
+   * label one glyph wide, twenty lines tall, with a thousand passing tests.
+   */
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+/* The one the instrument exists for reads as the one to look at, without a colour claim. */
+.counterfactual-panel__reading.is-reachable .counterfactual-panel__reading-label {
+  font-weight: 600;
+}
+.counterfactual-panel__count {
+  font-size: var(--panel-body);
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* Bare numerals inside Hebrew sentences are neutral-direction and land on the wrong side. */
+.counterfactual-panel bdi {
+  unicode-bidi: plaintext;
+}
+
+/*
  * A game the engine does not narrate, said on screen for as long as it lasts.
  *
  * Same tokens as the commitment panel it sits beside -- a panel that looked different would read
