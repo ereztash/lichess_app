@@ -10,7 +10,7 @@
  * stored must never look like one that was.
  */
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import {
   claims,
   decisionFeedback,
@@ -136,10 +136,63 @@ function toLearningTransfer(row: {
   };
 }
 
+/**
+ * How long the availability probe is allowed to take before it answers "no".
+ *
+ * A refused connection is immediate; a firewalled host is not, and mysql2 would wait out its own
+ * connectTimeout. The serverless function has 30 seconds in total and a monitor needs an answer,
+ * so an unreachable host must produce one rather than a stall. Answering "no" on timeout is the
+ * honest direction: what the caller asked is whether it can store a decision HERE, NOW.
+ */
+export const AVAILABILITY_PROBE_MS = 3_000;
+
+/**
+ * Resolve `work`, or reject once `ms` have passed -- whichever happens first.
+ *
+ * Exported and separate because it is the only part of the probe that a test can actually
+ * measure. A control that lengthened the deadline to ten minutes SURVIVED the first version of
+ * this file: every unreachable address available in the test environment refuses the connection
+ * in under 25ms, so the race never needed the timer and the bound was never exercised. An
+ * assertion satisfied by the fixture rather than by the code is not an assertion.
+ */
+export function withDeadline<T>(work: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    work,
+    new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error("timed out")), ms);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
+
 export class DrizzleRecordStore implements RecordStore {
-  /** There is no database configured unless DATABASE_URL is set and the driver connected. */
+  /**
+   * Whether the database can actually be reached, asked by reaching it.
+   *
+   * THIS USED TO BE `Boolean(await getDb())`, WHICH MEASURED NOTHING. `drizzle(url)` builds a
+   * mysql2 POOL, and a pool does not connect -- the connection happens on first use. Pointed at a
+   * closed port it returned **true in 4ms**, and the first real query then threw. It was a test
+   * of whether a string was set in the environment wearing the name of a test of whether the
+   * database was up.
+   *
+   * `useRecordMode` exists for exactly one reason, in its own words: "The server is used only
+   * when it says it can store." Against an unreachable database the server said it could, so the
+   * client abandoned a working browser-local record and every commit failed -- the failure the
+   * local path was built to prevent, delivered by the check meant to prevent it.
+   *
+   * Not cached. A cached "yes" during an outage is a stale claim of exactly the kind this
+   * replaces, and the client already holds the answer for 60 seconds.
+   */
   async isAvailable(): Promise<boolean> {
-    return Boolean(await getDb());
+    const db = await getDb();
+    if (!db) return false;
+    try {
+      await withDeadline(db.execute(sql`select 1`), AVAILABILITY_PROBE_MS);
+      return true;
+    } catch {
+      // Every failure means the same thing to the caller: do not send a decision here.
+      return false;
+    }
   }
 
   private async db() {
