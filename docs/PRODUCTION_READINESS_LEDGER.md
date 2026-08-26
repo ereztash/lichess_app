@@ -425,6 +425,52 @@ input that matches `commitEventSchema`, and carries **a vacuity guard that fails
 not called**. The second: nothing asserted that field paths beat zod's own text, so a control
 swapping them passed.
 
+## Cycle 20 — a deployment that cannot say what is wrong with it
+
+`system.lichessConfig` is the only place this product names which server-side pieces are absent,
+and it is a `protectedProcedure` — correctly, since those names describe the deployment. Reaching
+it needs a session. Creating a session needs `JWT_SECRET`. **So on a deployment missing
+`JWT_SECRET`, the report that would say `JWT_SECRET` is missing is the one thing unreachable.**
+What the operator sees is a sign-in button that appears to do nothing, `/api/health` answering
+200, and the variable named nowhere.
+
+**Combinations, not presence.** Five booleans were already available; that is not what was
+missing. What no single flag can show is that a SET is incoherent — an owner who can never sign
+in, a database no account can ever reach. Every variable is present or absent exactly as intended
+and the deployment still cannot work.
+
+Three faults, each naming what the deployment **cannot do** rather than restating which name is
+absent: `owner-without-session`, `session-without-oauth`, `database-without-owner`.
+
+**An empty deployment is not a fault**, and that is the load-bearing part. Nothing configured is
+the supported browser-local product running as designed. A report that fires on it is a report an
+operator learns to skip, and then it is worth less than none — which is why the
+database-without-owner rule requires a deployment otherwise configured for sign-in.
+
+**The channel is the server log.** Naming variables on a public route would move the private
+report onto the open internet — the same reasoning that keeps `/api/health` to one boolean. Names
+only, never values: a secret in a log is still a secret.
+
+Five controls red, including the one that matters most for this session's recurring pattern — the
+faults computed and never logged, which is a distinction discarded at the last step, found twice
+already in cycles 17 and 18.
+
+## Cycle 19 addendum — verified on the deployed preview
+
+`/api/trpc/record.count` unauthenticated on the live preview returns the authored sentence and
+`data` holding exactly `code`, `httpStatus`, `path`. **No `stack`.** The rebuild is running in a
+real deployment, not inferred from a green build.
+
+## Architecture, stated rather than scored up
+
+`Home.tsx` is 1,764 lines with 71 hooks, and the line count is a **symptom**. The actual coupling
+is that `onCommit` serves three decision modes — ordinary, drill, transfer — in one callback, so
+extracting the transfer state moves `useState` declarations out while leaving the callback
+reaching back in: more indirection, identical coupling. A clean split is a design change to how
+the commit path handles modes, not a tidy-up, and it is the kind of change that can quietly undo
+correctness work. Left open deliberately, with the reason recorded, rather than closed cosmetically
+and scored as an improvement.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -434,11 +480,11 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Security, privacy, isolation | 2 | **8** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
 | Scientific / construct validity | 4 | **7.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. Not higher: positions still are not selected for the trigger, and there is no control condition |
 | Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
-| Test quality and CI | 8 | **9.5** | 1,214 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
-| Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
+| Test quality and CI | 8 | **9.5** | 1,225 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |
-| Operations / deployability | 4 | **7.5** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values. Not higher: no startup env validation, no incident runbook. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it |
+| Operations / deployability | 4 | **8** | `scripts/dev-db.sh`; a health check that measures health, returns 503 for a configured-but-unreachable database, cannot hang, and leaks no deployment detail; server-side error logging that keeps the parameterized statement and drops the values; incoherent configurations named at startup, by variable and never by value. Not higher: no incident runbook, and the record loop itself is still exercised only locally. Third-party error tracking is deliberately absent — shipping this record to a vendor would break the claim the product makes about it |
 | Documentation / DX | 7 | **8** | This ledger, `RESEARCH_EVIDENCE.md`, a reproducible database |
 | Differentiation / user value | 8 | **8** | Unchanged by design: this work made existing claims true rather than adding new ones |
 
@@ -450,6 +496,6 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | Three positions is below every single-case standard consulted; no control positions | **High** | open, and now **stated on screen** rather than silently assumed |
 | — | Multi-user separation: `user_id` on 12 tables, every query, index and cache key | High | **product decision for the operator**, not a defect fix |
 | 7 | `Home.tsx` 1,743 lines, `index.css` 3,693 | Low | open |
-| — | Error tracking, startup env validation, incident runbook | Medium | open. The health check itself is closed (cycles 13–14) |
+| — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |

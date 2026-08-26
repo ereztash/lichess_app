@@ -13,9 +13,31 @@ import { registerOAuthRoutes } from "./_core/oauth.js";
 import { buildAppRouter } from "./routers.js";
 import { recordStore, type RecordStore } from "./record.js";
 import { describeForOperator } from "./_core/safe-error.js";
+import { configurationFaults } from "./_core/configuration.js";
+import { ENV } from "./_core/env.js";
 
 export function createApp({ store = recordStore }: { store?: RecordStore } = {}) {
   const app = express();
+  /*
+   * SAID ONCE, AT STARTUP, TO THE ONLY CHANNEL THAT CAN CARRY IT.
+   *
+   * `system.lichessConfig` is where this product names its missing pieces, and it is protected --
+   * correctly, because those names describe the deployment. But reaching it needs a session and
+   * creating a session needs `JWT_SECRET`, so on a deployment missing that variable the report
+   * that would name it is the one thing unreachable. The operator sees a sign-in button that
+   * appears to do nothing.
+   *
+   * On the serverless entry this runs per cold start rather than once per deploy, which is the
+   * right frequency anyway: the variables can change under a running project.
+   */
+  for (const fault of configurationFaults({
+    jwtSecret: ENV.cookieSecret,
+    oAuthServerUrl: ENV.oAuthServerUrl,
+    ownerOpenId: ENV.ownerOpenId,
+    databaseUrl: process.env.DATABASE_URL ?? "",
+  })) {
+    console.warn(`[config] ${fault.code} (${fault.variables.join(", ")}): ${fault.consequence}`);
+  }
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ limit: "10mb", extended: true }));
   /**
