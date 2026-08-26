@@ -233,6 +233,36 @@ proves the entry loads and the new handler runs. It deliberately cannot distingu
 configured" from "database reachable" — that is the privacy property, and it is stated here rather
 than papered over with a stronger claim than the route can support.
 
+## Cycle 15 — the fallback that could now run backwards
+
+A failure mode **this branch introduced**, found by re-reading cycle 13's own diff. Until
+`isAvailable()` measured a live connection it read an environment variable, and an environment
+variable does not change while somebody is playing — so `useRecordMode` could not flip
+mid-session. Now it can. `storageAvailable` has `retry: false` and react-query's
+`refetchOnReconnect` default is **on**, so the probe re-runs exactly when the network has just
+been flaky and one failed attempt decides it.
+
+The flip switches every read hook — claim, reading, count, learning rules — in a single render,
+and the player watches their record shrink to whatever this browser holds. The next commit lands
+in localStorage while the earlier ones sit on the server: one record, two stores, nothing said.
+
+R2 already covers the shape of this — *"a record that could not be READ must not render as a
+record with nothing in it"* — and rendering it as a **different, smaller** record is the same
+violation with a worse ending, because this one also accepts writes.
+
+**So the fallback is directional.** Starting local and staying local is the product working as
+designed and had to keep working; a deployment with no database is supported. Starting on the
+server and silently landing local is data loss dressed as graceful degradation. Once the server
+has held this account's record in this session, losing it is `server-lost`: the record stays
+pointed at the server, the commit fails visibly, and the notice says the browser record is a
+different record that does not contain what was already written — rather than reassuring anyone
+that their decisions are being kept here.
+
+Latched per **account**, not per browser: the next person at this keyboard has no server record to
+lose and belongs on the local path. Six positive controls red, including the two directions that
+matter — restoring the silent fallback, and a latch greedy enough to catch the cold start and
+break the local path.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -241,8 +271,8 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **7.5** | Two cross-account leaks closed, each reproduced first; a refusal now reaches the screen as a refusal. Not 9+: the product is single-tenant by gate, not scoped by tenant, and that is an open product decision |
 | Scientific / construct validity | 4 | **7** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry. Not higher: positions still are not selected for the trigger, and there is no control condition |
-| Functional correctness | 6 | **8** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation — each with a reproduction |
-| Test quality and CI | 8 | **9** | 1,152 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
+| Functional correctness | 6 | **8.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction |
+| Test quality and CI | 8 | **9** | 1,163 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~100 positive controls red. Two regex-over-source assertions replaced by things that run |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; `Home.tsx` still 1,743 lines |
 | UX, accessibility, recovery | 6 | **8.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six |
 | Performance and bundle | 5 | **7** | Explicit budgets, wired into verify and CI, proven to fail |

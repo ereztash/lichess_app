@@ -68,7 +68,46 @@ export type RecordServerStatus =
   /** PRECONDITION_FAILED: the deployment never named an owner, so no account can pass. */
   | "no-owner-configured"
   /** The request failed without saying why. Naming a cause here would be the original defect. */
-  | "unreachable";
+  | "unreachable"
+  /**
+   * The server WAS holding this account's record in this session and has stopped answering.
+   *
+   * Distinct from every cause above because the response is different: the record stays pointed
+   * at the server and the failure is reported, rather than the loop quietly continuing against a
+   * different store. See `confirmedServerRecords`.
+   */
+  | "server-lost";
+
+/**
+ * Accounts whose record this session has seen the server actually hold.
+ *
+ * A FAILURE MODE THIS BRANCH INTRODUCED. Until `isAvailable()` measured a live connection it read
+ * an environment variable, and an environment variable does not change while somebody is playing,
+ * so this hook could not flip mid-session. Now it can: `storageAvailable` has `retry: false` and
+ * react-query's `refetchOnReconnect` default is ON, so the probe re-runs exactly when the network
+ * has just been flaky and one failed attempt decides it.
+ *
+ * The flip switches every read hook -- claim, reading, count, learning rules -- in a single
+ * render, and the player watches their record shrink to whatever this browser holds. The next
+ * commit then lands in localStorage while the earlier ones sit on the server: one record, two
+ * stores, nothing said. R2 already covers the shape of this ("a record that could not be READ
+ * must not render as a record with nothing in it"); rendering it as a DIFFERENT, smaller record
+ * is the same violation with a worse ending, because this one also accepts writes.
+ *
+ * So the fallback is DIRECTIONAL. Starting local and staying local is the product working as
+ * designed and must keep working -- a deployment with no database is supported. Starting on the
+ * server and silently landing local is data loss dressed as graceful degradation.
+ *
+ * Keyed by account, because the next person at this keyboard has no server record to lose and
+ * belongs on the local path. Module scope rather than state: it is not rendered, and every writer
+ * writes the same value, so it cannot drive a render loop.
+ */
+const confirmedServerRecords = new Set<string>();
+
+/** Test seam. Nothing in the product clears this -- a session ends by the tab closing. */
+export function forgetConfirmedServerRecords(): void {
+  confirmedServerRecords.clear();
+}
 
 /**
  * The reason, from the error the tRPC client was handed.
@@ -91,7 +130,7 @@ export function useRecordMode(): {
   durability: RecordDurability;
   serverStatus: RecordServerStatus;
 } {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const probe = trpc.record.storageAvailable.useQuery(undefined, {
     enabled: isAuthenticated,
     retry: false,
@@ -100,7 +139,7 @@ export function useRecordMode(): {
   });
   // Until the probe answers, treat the server as unusable. Guessing the other way would send
   // the first decision of a session into a store that may reject it.
-  const serverStatus: RecordServerStatus = !isAuthenticated
+  const measured: RecordServerStatus = !isAuthenticated
     ? "signed-out"
     : probe.isError
       ? statusFromError(probe.error)
@@ -109,7 +148,13 @@ export function useRecordMode(): {
         : probe.data.available
           ? "usable"
           : "no-database";
-  const local = serverStatus !== "usable";
+  const openId = user?.openId ?? null;
+  if (measured === "usable" && openId) confirmedServerRecords.add(openId);
+  // A record the server was holding does not move into this browser because one probe failed.
+  const lost =
+    measured !== "usable" && openId !== null && confirmedServerRecords.has(openId);
+  const serverStatus: RecordServerStatus = lost ? "server-lost" : measured;
+  const local = serverStatus !== "usable" && serverStatus !== "server-lost";
   return { local, durability: local ? localRecordDurability() : "persistent", serverStatus };
 }
 
