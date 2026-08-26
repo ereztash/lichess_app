@@ -12,7 +12,8 @@
     "gates": "tsx scripts/run_gates.ts",
     "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
-    "verify": "npm run check && npm test && npm run gates && npm run gates:controls && npm run build"
+    "verify": "npm run check && npm test && npm run gates && npm run gates:controls && npm run build && npm run bundle:budget",
+    "bundle:budget": "tsx scripts/check_bundle_budget.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

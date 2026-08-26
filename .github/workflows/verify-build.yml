@@ -85,3 +85,8 @@ jobs:
         run: npm run gates:controls
       - name: Build
         run: npm run build
+      # The budget measures the BUILD's output, so it can only run after it. Vite already warns
+      # about chunks over 500 kB and has warned on every build for a long time, which is what a
+      # warning nobody can fail becomes. This one fails.
+      - name: Bundle budget
+        run: npm run bundle:budget
