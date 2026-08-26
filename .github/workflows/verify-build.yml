@@ -45,6 +45,15 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      # A REAL BROWSER, for the same reason the job runs a real database.
+      #
+      # `tests/layout/*` measure boxes, and jsdom reports every box as 0x0 -- which is how a
+      # bucket label shipped collapsed to one glyph per line, and a signed gap shipped with its
+      # minus on the wrong side, both past a fully green suite. `tests/layout/browser.ts` THROWS
+      # when no Chromium is present rather than skipping, so a runner without this step fails
+      # loudly instead of reporting green on tests that never ran.
+      - name: Install Chromium for the layout tests
+        run: npx playwright install --with-deps chromium
       - name: Typecheck
         run: npm run check
       # Schema from the generated SQL, not from a hand-written file that can drift from schema.ts.

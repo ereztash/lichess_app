@@ -77,7 +77,10 @@ describe("the reveal order is what section 4.2 says it is", () => {
   });
 
   it("still leads with the limits when there is nothing to work on", () => {
-    const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: 3 };
+    // `bestMove` matched to the chosen move, like the fixture above it. Saying the player chose
+    // the best move while naming a different one is a state the product cannot produce, and a
+    // fixture that describes an impossible record proves nothing about a real one.
+    const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: 3, bestMove: "g8f6" };
     expect(headings(renderPanel(quiet).container)[0]).toContain("מה אי אפשר להסיק");
   });
 

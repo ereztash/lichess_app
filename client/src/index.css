@@ -422,8 +422,21 @@ button:not(:disabled) {
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
   font-size: var(--panel-label);
 }
+/*
+ * THE LABEL GETS A FLOOR AND THE REASON GETS THE REMAINDER, and the order of those two tracks is
+ * the whole fix.
+ *
+ * This was `minmax(0, 1fr) auto`. An `auto` track is sized from its content and the no-clock
+ * reason is a two-line sentence, so it claimed the row; `minmax(0, 1fr)` permits its own track to
+ * shrink to zero, so the scope did -- measured at 390px as ONE GLYPH PER LINE, twenty-three lines
+ * tall. Every one of 1,012 tests passed through it, because jsdom reports every box as 0x0 and
+ * cannot see a width. `tests/layout/bucket-row.layout.test.tsx` measures it in a real engine.
+ *
+ * The label naming what a figure is ABOUT is the one thing on this panel that must never be
+ * squeezed out: the panel exists to say what a number can and cannot be read to mean.
+ */
 .bucket-list li.unmeasurable {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr);
   color: rgba(var(--ink-rgb), 0.55);
 }
 /*
@@ -1659,7 +1672,26 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   opacity: 0.72;
 }
+/*
+ * THE SIGN STAYS ON THE READING SIDE, and this is a correctness rule rather than a typographic
+ * one.
+ *
+ * The page is right-to-left. `-` and `+` are NEUTRAL characters to the bidirectional algorithm,
+ * and a neutral sitting between Hebrew text and a number resolves to the paragraph's direction --
+ * which put it AFTER the digits. A gap of −30% rendered as `30%-`. The sign is the meaning of
+ * this figure: negative is overconfidence, positive is underconfidence, and a reader skimming
+ * `30%-` cannot tell which, with the flattering reading the likelier one.
+ *
+ * `plaintext` and not `isolate` or a hard `direction: ltr`: it takes the direction from the
+ * content's own first strong character, so `-30%` (no strong character) lays out left-to-right
+ * while "לא נמדד" in the same class stays right-to-left. One rule, both cases, nothing to keep
+ * in sync.
+ *
+ * Measured in a real engine, on glyph positions rather than on this property:
+ * tests/layout/signed-number-reads-as-signed.layout.test.tsx.
+ */
 .value-triple .value-number {
+  unicode-bidi: plaintext;
   font-variant-numeric: tabular-nums;
 }
 .value-triple .value-provenance {
@@ -2009,6 +2041,12 @@ button:not(:disabled) {
  * would make the row look like two findings.
  */
 .bucket-versus {
+  /*
+   * Placed, not left where it lands. The measurable row has three tracks and four children, so
+   * this one wrapped into an implicit row under the SCOPE -- reading as though the population
+   * comparison were part of the label rather than of the figure. It belongs under the number.
+   */
+  grid-column: 2 / -1;
   font-size: var(--panel-fine);
   color: var(--muted);
   font-variant-numeric: tabular-nums;

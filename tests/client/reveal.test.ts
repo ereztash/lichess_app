@@ -102,8 +102,61 @@ describe("the next question is anchored to what the player could not evaluate", 
   });
 
   it("falls back to the decision itself when no unknown was stated", () => {
-    const question = nextQuestion(from({ statedUnknown: "", bestMove: "f8e7" }));
+    /*
+     * `chosenWasBest: false` is not padding. This override used to name a DIFFERENT best move
+     * while leaving the flag saying the player had chosen it -- a state the product can never
+     * produce, and the test passed on it for as long as nothing read the flag. The moment
+     * `nextQuestion` did, the contradiction surfaced here rather than in the app.
+     */
+    const question = nextQuestion(from({ statedUnknown: "", bestMove: "f8e7", chosenWasBest: false }));
     expect(question).toContain("g8f6");
     expect(question).toContain("f8e7");
+  });
+
+  it("never asks the player to choose between a move and itself", () => {
+    /*
+     * THE DEFECT, AS SEEN ON SCREEN: "מה היית צריך לדעת כדי לבחור בין e4d5 ל-e4d5?" -- asked
+     * whenever the player picked exactly the move the engine picked. The comparison branch
+     * interpolated both moves without ever checking they were two.
+     *
+     * The test above missed it because its fixture overrides `bestMove` to something different,
+     * which is the one case that cannot produce the bug. The default fixture has them EQUAL, so
+     * the degenerate sentence was one line away the whole time.
+     */
+    const question = nextQuestion(from({ statedUnknown: "", chosenMove: "e4d5", bestMove: "e4d5" }));
+    expect(question).not.toMatch(/בין e4d5 ל-?e4d5/);
+    expect(question, "the question stopped naming the decision at all").toContain("e4d5");
+  });
+
+  it("asks what the reason was, rather than congratulating the right move", () => {
+    /*
+     * Picking the engine's move is not evidence of understanding it, and this product exists to
+     * refuse that inference. So the branch does not say "correct" -- it asks whether the reason
+     * would have survived the engine choosing differently, which is the only version of the
+     * question that could come back false.
+     */
+    const question = nextQuestion(from({ statedUnknown: "", chosenMove: "e4d5", bestMove: "e4d5" }));
+    expect(question).toMatch(/נימוק|למה|מה גרם/);
+    expect(question, "the question told the player they were right").not.toMatch(/כל הכבוד|מצוין|נכון!/);
+  });
+
+  it("stays non-degenerate even when the chosenWasBest flag contradicts the moves", () => {
+    /*
+     * The guard reads the STRINGS, because the strings are what the sentence interpolates. The
+     * flag and the comparison are computed from the same expression at the only call site, so a
+     * guard on the flag alone would be untested by construction -- a positive control confirmed
+     * exactly that by flipping it and watching nothing fail.
+     */
+    const question = nextQuestion(
+      from({ statedUnknown: "", chosenMove: "e4d5", bestMove: "e4d5", chosenWasBest: false }),
+    );
+    expect(question).not.toMatch(/בין e4d5 ל-?e4d5/);
+  });
+
+  it("still quotes a stated unknown even when the move was the engine's", () => {
+    // The unknown branch comes first and is unaffected: what the player said they could not
+    // evaluate is the one thing on screen the engine did not produce, right move or not.
+    const question = nextQuestion(from({ chosenMove: "e4d5", bestMove: "e4d5" }));
+    expect(question).toContain("לא יודע אם d5 עובד");
   });
 });
