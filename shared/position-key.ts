@@ -33,3 +33,22 @@ export function positionKey(fen: string): string {
 export function samePosition(a: string, b: string): boolean {
   return positionKey(a) === positionKey(b);
 }
+
+/**
+ * The ply a FEN sits at, from its own fullmove number and side to move.
+ *
+ * The two fields `positionKey` deliberately drops are a record of the GAME rather than of the
+ * position -- which is exactly what makes them the right source when the question IS about the
+ * game. Phase classification needs a ply, and a caller holding only a FEN would otherwise have to
+ * be handed one alongside it, or guess.
+ *
+ * Ply 0 is the position before White's first move, matching how the record numbers decisions.
+ * A malformed or missing fullmove number reads as 0, which classifies as opening -- the
+ * conservative direction for every caller here, since the opening is what they exclude.
+ */
+export function plyFromFen(fen: string): number {
+  const fields = fen.trim().split(/\s+/);
+  const fullmove = Number(fields[5]);
+  if (!Number.isFinite(fullmove) || fullmove < 1) return 0;
+  return (fullmove - 1) * 2 + (fields[1] === "b" ? 1 : 0);
+}

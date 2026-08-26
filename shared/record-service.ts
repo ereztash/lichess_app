@@ -46,7 +46,7 @@ import {
 } from "./drill.js";
 import { selectDrillPositions } from "./drill-positions.js";
 import { classifyPhase } from "./phase.js";
-import { positionKey, samePosition } from "./position-key.js";
+import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
@@ -325,13 +325,44 @@ export async function beginLearningTransfer(
     const key = positionKey(fen);
     if (!decided.has(key) && !byPosition.has(key)) byPosition.set(key, fen);
   }
-  const unseen = [...byPosition.values()];
-  if (unseen.length < TRANSFER_POSITION_COUNT) {
+
+  /*
+   * NOT THE OPENING, AND NOT THREE IN A ROW.
+   *
+   * The candidates arrive in game order and this used to take the first three unseen. On a fresh
+   * game that is plies 0, 1 and 2 -- the first of them the STARTING POSITION OF CHESS. A review
+   * ran it and got exactly that.
+   *
+   * Two things are wrong with it. The opening is where this product's own baseline puts accuracy
+   * at 70.3% against 60.2% everywhere else, so `cp_loss <= 30` is very nearly free there and half
+   * the success criterion stops discriminating. And three consecutive plies are close to the same
+   * board, so a test of whether a rule TRANSFERS is run on one position three times.
+   *
+   * The ply comes from the FEN's own fullmove number, so nothing extra has to be threaded through
+   * a candidate list that is only strings.
+   */
+  const eligible = [...byPosition.values()].filter(
+    (fen) => classifyPhase(fen, plyFromFen(fen)) !== "opening",
+  );
+  if (eligible.length < TRANSFER_POSITION_COUNT) {
     return {
       transfer: null,
-      reason: `נדרשות ${TRANSFER_POSITION_COUNT} עמדות שלא נראו; זמינות רק ${unseen.length}.`,
+      reason:
+        `נדרשות ${TRANSFER_POSITION_COUNT} עמדות מחוץ לפתיחה שלא הכרעתם בהן; זמינות ${eligible.length}. ` +
+        "בפתיחה הדיוק גבוה יותר אצל כולם, ולכן בדיקה שם כמעט לא מפרידה בין כלל שעבד לכלל שלא.",
     };
   }
+
+  /*
+   * Spread across what is available rather than the first three: a stride keeps the boards far
+   * enough apart in the game to be different decisions, which is the only way three of them can
+   * say anything about transfer.
+   */
+  const stride = Math.floor(eligible.length / TRANSFER_POSITION_COUNT);
+  const unseen = Array.from(
+    { length: TRANSFER_POSITION_COUNT },
+    (_, index) => eligible[index * stride],
+  );
   const transfer = preregisterLearningTransfer(rule, unseen.slice(0, TRANSFER_POSITION_COUNT), now);
   // R5 for learning: persist the snapshot and refutation condition before returning any FEN.
   await store.saveLearningTransfer(transfer);

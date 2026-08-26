@@ -6,7 +6,7 @@
  * same board in three times. Nothing about the test would have looked wrong.
  */
 import { describe, expect, it } from "vitest";
-import { positionKey, samePosition } from "../../shared/position-key";
+import { plyFromFen, positionKey, samePosition } from "../../shared/position-key";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -52,5 +52,32 @@ describe("two FENs are the same position when the board and its legal moves are"
     // identical broken ones still match; a broken one never quietly becomes a real position.
     expect(samePosition("nonsense", "nonsense")).toBe(true);
     expect(samePosition("nonsense", START)).toBe(false);
+  });
+});
+
+describe("the ply a FEN sits at", () => {
+  /*
+   * The two fields `positionKey` deliberately drops are a record of the GAME, which is exactly
+   * what makes them the right source when the question IS about the game. `beginLearningTransfer`
+   * needs a ply to keep the opening out of a transfer test, and its candidates are only strings.
+   */
+  it("counts both half-moves of a full move", () => {
+    /*
+     * THE HALF THAT WENT UNTESTED. A positive control dropped the side-to-move term entirely and
+     * nothing failed -- so the boundary case is pinned directly: `OPENING_MAX_PLY` is 20, which is
+     * move 11 for White (ply 20, still opening) and move 11 for Black (ply 21, not).
+     */
+    expect(plyFromFen("8/8/8/8/8/8/8/8 w - - 0 1")).toBe(0);
+    expect(plyFromFen("8/8/8/8/8/8/8/8 b - - 0 1")).toBe(1);
+    expect(plyFromFen("8/8/8/8/8/8/8/8 w - - 0 11")).toBe(20);
+    expect(plyFromFen("8/8/8/8/8/8/8/8 b - - 0 11")).toBe(21);
+  });
+
+  it("reads a missing or malformed fullmove number as the start", () => {
+    // Zero classifies as opening, which is the conservative direction for every caller here:
+    // the opening is what they exclude, so an unreadable FEN is excluded rather than admitted.
+    expect(plyFromFen("8/8/8/8/8/8/8/8 w - -")).toBe(0);
+    expect(plyFromFen("nonsense")).toBe(0);
+    expect(plyFromFen("8/8/8/8/8/8/8/8 w - - 0 0")).toBe(0);
   });
 });

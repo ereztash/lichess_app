@@ -7,17 +7,32 @@ import {
   type LearningRuleDraft,
   type LearningTransferResult,
 } from "../../shared/learning-record";
+import { classifyPhase } from "../../shared/phase";
+import { plyFromFen, positionKey } from "../../shared/position-key";
 import * as service from "../../shared/record-service";
 
 const SOURCE_ID = "11111111-1111-4111-8111-111111111111";
+/**
+ * Fixture positions, and why the fullmove numbers run high.
+ *
+ * `beginLearningTransfer` excludes OPENING positions from a transfer, because this product's own
+ * baseline puts accuracy there at 70.3% against 60.2% everywhere else -- so `cp_loss <= 30` is
+ * very nearly free and half the success criterion stops discriminating. `classifyPhase` reads the
+ * ply, and a FEN carries one in its fullmove field.
+ *
+ * FENS[0] stays at move 1: it is the rule's SOURCE position, never a transfer candidate. The rest
+ * are the same boards at move 12 and later, which is unusual but legal -- a shuffled game reaches
+ * a full board late. They are fixtures for a selection rule, not a chess narrative, and being
+ * explicit about that is better than dressing them up as a plausible game.
+ */
 const FENS = [
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
-  "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
-  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 4",
-  "r1bqk1nr/pppp1ppp/2n5/1Bb1p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 5",
-  "r1bqk1nr/pppp1ppp/2n5/2b1p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 6",
-  "r1bqk2r/pppp1ppp/2n2n2/2b1p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 7",
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 12",
+  "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 0 13",
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 0 14",
+  "r1bqk1nr/pppp1ppp/2n5/1Bb1p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 15",
+  "r1bqk1nr/pppp1ppp/2n5/2b1p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 16",
+  "r1bqk2r/pppp1ppp/2n2n2/2b1p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 17",
 ] as const;
 
 const RESULT: DecisionResult = {
@@ -388,7 +403,7 @@ describe("a preregistered transfer cannot be escaped or restarted", () => {
      */
     const seen = FENS[4];
     await recordPosition(store, "55555555-5555-4555-8555-555555555555", seen);
-    const sameBoardLaterInTheGame = seen.replace(/ \d+ \d+$/, " 8 5");
+    const sameBoardLaterInTheGame = seen.replace(/ \d+ \d+$/, " 8 21");
     expect(sameBoardLaterInTheGame).not.toBe(seen);
 
     const outcome = await service.beginLearningTransfer(
@@ -413,7 +428,7 @@ describe("a preregistered transfer cannot be escaped or restarted", () => {
       store,
       {
         rule_id: rule.rule_id,
-        candidate_fens: [board, board.replace(/ \d+ \d+$/, " 3 9"), board.replace(/ \d+ \d+$/, " 7 12")],
+        candidate_fens: [board, board.replace(/ \d+ \d+$/, " 3 19"), board.replace(/ \d+ \d+$/, " 7 22")],
       },
       { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
     );
@@ -911,5 +926,99 @@ describe("an observation is on the record the moment it is made", () => {
     const recorded = await store.listLearningTransferObservations("transfer-1");
     expect(outcome.result.decision_ids).toEqual(recorded.map((o) => o.decision_id));
     expect(outcome.result.recalled_rules.every((text) => text === rule.action_rule)).toBe(true);
+  });
+});
+
+describe("the positions a transfer draws are not the opening, and not three in a row", () => {
+  /*
+   * THE REPRODUCTION. The candidates arrive in game order and the service took the first three
+   * unseen. On a fresh game that is plies 0, 1 and 2 -- and the first of them is the STARTING
+   * POSITION OF CHESS. A review ran it and got exactly that:
+   *
+   *   1. ply 0  opening  rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+   *   2. ply 1  opening  ...4P3...
+   *   3. ply 2  opening  ...4p3/4P3...
+   *
+   * Two things are wrong with that. This product's own baseline puts opening accuracy at 70.3%
+   * against 60.2% everywhere else, so `cp_loss <= 30` is very nearly free there and half the
+   * success criterion stops discriminating. And three consecutive plies are close to the same
+   * board, so a test of whether a rule TRANSFERS runs on one position three times.
+   */
+  const OPENING = [
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 0 3",
+  ] as const;
+
+  it("refuses a game that offers nothing but the opening, and says why", async () => {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [...OPENING] },
+      { transfer_id: "all-opening", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer, "the starting position of chess was preregistered as a transfer test").toBeNull();
+    expect(outcome.reason).toMatch(/פתיחה/);
+    expect(await store.getLearningTransfer("all-opening")).toBeNull();
+  });
+
+  it("never draws an opening position even when the game has plenty", async () => {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [...OPENING, FENS[1], FENS[2], FENS[3], FENS[4]] },
+      { transfer_id: "mixed", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer).not.toBeNull();
+    for (const fen of outcome.transfer!.fens) {
+      expect(OPENING, `an opening position was drawn: ${fen}`).not.toContain(fen);
+      expect(classifyPhase(fen, plyFromFen(fen))).not.toBe("opening");
+    }
+  });
+
+  it("spreads across what is available rather than taking three in a row", async () => {
+    /*
+     * With six eligible positions the stride is two, so the draw is the 1st, 3rd and 5th. Taking
+     * the first three would give adjacent boards -- and the assertion is on the SPREAD rather than
+     * on exact indices, so a different but still-spread rule does not fail it.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3], FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "spread", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    /*
+     * ASSERTED AGAINST "THE FIRST THREE", not against a ply span. A span check passed a positive
+     * control that set the stride back to 1: these fixtures carry jumps in their fullmove numbers,
+     * so even adjacent ones span several plies. What the rule actually promises is that the draw
+     * is not the head of the list.
+     */
+    const eligible = [FENS[1], FENS[2], FENS[3], FENS[4], FENS[5], FENS[6]];
+    const firstThree = eligible.slice(0, 3);
+    expect(
+      outcome.transfer!.fens,
+      "the draw was the first three eligible positions, which are adjacent in the game",
+    ).not.toEqual(firstThree);
+    // And it reaches the far end of what was available, rather than clustering anywhere.
+    expect(outcome.transfer!.fens).toContain(eligible[eligible.length - 2]);
+  });
+
+  it("still draws exactly three, and three that differ", async () => {
+    // The control. A selector that returned fewer, or the same board repeatedly, would satisfy
+    // "not the opening" and "spread" while making the test meaningless.
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const outcome = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3], FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "three", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(outcome.transfer!.fens).toHaveLength(3);
+    expect(new Set(outcome.transfer!.fens.map(positionKey)).size).toBe(3);
   });
 });
