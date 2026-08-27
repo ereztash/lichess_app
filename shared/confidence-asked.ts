@@ -29,9 +29,9 @@
  * of the six readings. Sampling keeps most decisions at three taps AND keeps those buckets fed.
  *
  * WHAT THIS COSTS, STATED, and it is a real cost rather than a free lunch. Against asking on
- * everything, the wait for a first claim grows by 1/ASK_RATE -- at one in four, four times as many
- * decisions for the same n. That is precisely why the rate below is a number that has to be
- * MEASURED and is marked as a guess until it has been.
+ * everything, the wait for a first claim grows by 1/ASK_RATE -- at one in seven, nearly seven
+ * times as many decisions for the same n. That is precisely why the rate below is a number that
+ * has to be MEASURED, and why lowering it is not free even when it buys something better.
  */
 
 /**
@@ -84,13 +84,28 @@ const ALWAYS: readonly DecisionPurpose[] = ["first", "anchor", "drill", "transfe
 /**
  * How often the question is put on an ordinary decision.
  *
- * ONE IN FOUR IS A PLACEHOLDER AND IS MARKED AS ONE. The right number is a measurement, not a
- * preference: it trades the burden against how long a player waits for a first claim, and that
- * curve can be produced today on the shuffle harness in docs/MEASUREMENTS.md by thinning the label
- * set -- no field data needed. Until that has been run, this constant is a guess and the only
- * honest thing to do is say so where it is defined.
+ * ONE IN SEVEN, AND IT WAS LOWERED DELIBERATELY TO PAY FOR SOMETHING ELSE. The burden a player
+ * will absorb is finite, and this product has two questions competing for it: this one, and the
+ * counterfactual probe -- "if you hadn't played that, what would you have played instead?" -- in
+ * `shared/counterfactual.ts`. The probe went from one in five to about one in three in the same
+ * change. That is a judgement about which instrument is worth interrupting for, and it is the
+ * owner's to make; it is recorded here because a constant that moved for a reason should say what
+ * the reason was.
+ *
+ * WHAT THAT COSTS, ARITHMETICALLY, because it is easy to read this as a swap and it is not one.
+ * Over a forty-move game the two draws together used to produce 10 + 8 = 18 extra questions; they
+ * now produce 6 + 14 = 20. The share of decisions carrying at least one extra step rises from
+ * 1 - (0.75 x 0.80) = 40% to 1 - (0.85 x 0.65) = 45%. The burden went UP slightly and moved to
+ * the question that measures what nothing else here can.
+ *
+ * STILL NOT THE MEASURED NUMBER, and that has not changed. The curve that would settle it trades
+ * the burden against how long a player waits for a first claim, and it can be produced on the
+ * shuffle harness in docs/MEASUREMENTS.md by thinning the label set -- no field data needed. What
+ * HAS been measured is that the draw still behaves at this rate, which is a different claim and a
+ * necessary one: see `drawForDecision`, whose finalising mix was validated at 0.25 and re-measured
+ * here.
  */
-export const ASK_RATE = 0.25;
+export const ASK_RATE = 0.15;
 
 /**
  * A stable draw for one position, so the question does not appear and vanish between renders.
@@ -120,6 +135,11 @@ export const ASK_RATE = 0.25;
  * bits are read. It is not a cryptographic choice and does not need to be: nothing here is a
  * secret, and what is wanted is a cheap, reproducible spread over [0, 1) that does not care which
  * part of the key changed.
+ *
+ * RE-MEASURED WHEN ASK_RATE DROPPED, because a spread validated at one rate is not validated at
+ * another -- and the assertion most at risk is the one that no whole game passes unasked, whose
+ * margin shrinks as the rate falls. Over the same 500 games x 60 plies: rate 0.1525, longest run
+ * FIVE, no game without a question. Held at 5,000 games too (0.1508, longest run 7, still none).
  */
 export function drawForDecision(gameId: string, fen: string, ply: number): number {
   const key = `${gameId}|${fen}|${ply}`;

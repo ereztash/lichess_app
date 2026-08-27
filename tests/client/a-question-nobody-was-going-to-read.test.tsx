@@ -53,7 +53,7 @@ const FEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4";
  * Read off the shipped function rather than typed in from a run, so they cannot silently stop
  * being the cases they are named for: the assertions below check them first.
  */
-const DRAWN_PLY = 3;
+const DRAWN_PLY = 6;
 const QUIET_PLY = 7;
 
 const at = (purpose: DecisionPurpose, ply = QUIET_PLY): PositionUnderDecision => ({
@@ -278,8 +278,12 @@ describe("the rule itself", () => {
      * bits. Measured over 500 games of 60 plies: a worst run of FIFTY-NINE consecutive asks, and
      * games that asked nothing at all. A correct average over a ruinous distribution.
      *
-     * These bounds are what the finalising mix bought. A run of six is what an honest coin gives
-     * over thirty thousand draws at this rate; fifty-nine is not.
+     * These bounds are what the finalising mix bought, and they were RE-MEASURED when ASK_RATE
+     * was lowered to 0.15. A spread validated at one rate is not validated at another, and the
+     * assertion most at risk is "no game goes unasked" -- its margin is exactly what a falling
+     * rate eats into. At 0.15 over the same 500 x 60: rate 0.1525, longest run FIVE, no silent
+     * game; still none at 5,000 games. A run of five is what an honest coin gives over thirty
+     * thousand draws at this rate; fifty-nine is not.
      */
     let asked = 0;
     let longestRun = 0;
