@@ -1,0 +1,180 @@
+// @vitest-environment jsdom
+/**
+ * The two read fields, required everywhere except the one decision where nobody has been taught
+ * the rule yet.
+ *
+ * WHAT THEY ARE FOR, WHICH IS NOT WHAT THEY LOOK LIKE. `known` and `unknown` are the ordering rule
+ * -- R3 says the player states what they can read BEFORE the engine speaks -- and nothing
+ * downstream reads them: the detector never looks at either, and `vocabulary-reading` reads the
+ * PARTS to measure the menu rather than the answer. So the cost is paid on every decision and what
+ * is bought is the discipline.
+ *
+ * ON THE OPENING DECISION THAT TRADE IS THE WRONG WAY ROUND. It is the one moment the player has
+ * not yet seen what the loop asks, so a wall of required fields IS their first impression of the
+ * product, and a rule nobody has been taught is not discipline -- it is a toll. One decision per
+ * game is a bounded exemption.
+ *
+ * NOTHING TESTED THE REQUIREMENT BEFORE THIS FILE, which is how the exemption landed with 1,609
+ * tests still green. Every existing test supplies both fields, so relaxing the rule broke none of
+ * them -- a rule enforced in one branch and asserted nowhere. That is recorded here because the
+ * silence was the finding, not the fix.
+ */
+import { describe, expect, it } from "vitest";
+import {
+  buildCommitEvent,
+  draftProblems,
+  emptyDraft,
+  isCommittable,
+  type PositionUnderDecision,
+} from "@/lib/decision-session";
+import { decisionAtomSchema } from "@shared/decision-atom";
+import { readVocabulary } from "@shared/vocabulary-reading";
+import { CONFIDENCE_LEVELS } from "@shared/confidence";
+
+const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+const at = (purpose: PositionUnderDecision["purpose"]): PositionUnderDecision => ({
+  gameId: "live-1",
+  fen: FEN,
+  ply: 0,
+  clockMsRemaining: null,
+  purpose,
+});
+
+/** A move and a confidence, and neither read field said. */
+const silent = () => ({ ...emptyDraft(), chosenMove: "e2e4", confidence: 5 });
+
+describe("the opening decision does not charge for the words", () => {
+  it("commits with a move alone", () => {
+    expect(draftProblems(silent(), at("first"))).toEqual([]);
+    expect(isCommittable(silent(), at("first"))).toBe(true);
+  });
+
+  it("still refuses the same silence on an ordinary decision", () => {
+    /*
+     * The half that makes the exemption an exemption rather than a removal. Without this the test
+     * above would pass just as well against a build that asks for nothing anywhere.
+     */
+    const fields = draftProblems(silent(), at("play")).map((problem) => problem.field);
+    expect(fields).toContain("known");
+    expect(fields).toContain("unknown");
+  });
+
+  it("still refuses it on the bank, a drill and a transfer check", () => {
+    for (const purpose of ["anchor", "drill", "transfer"] as const) {
+      expect(
+        draftProblems(silent(), at(purpose)).length,
+        `${purpose} stopped requiring the read`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it("still requires the move itself, which was never the toll", () => {
+    const problems = draftProblems({ ...emptyDraft(), confidence: 5 }, at("first"));
+    expect(problems.map((problem) => problem.field)).toContain("chosenMove");
+  });
+
+  it("takes the answer when a first decision does give one", () => {
+    const draft = { ...silent(), knownTags: ["המרכז פתוח"], unknown: "לא יודע איך הוא יענה" };
+    const event = buildCommitEvent("11111111-1111-4111-8111-111111111111", at("first"), draft, 9, "per-decision");
+    expect(event.known_parts).toEqual({ tapped: ["המרכז פתוח"], typed: "" });
+    expect(event.unknown_parts).toEqual({ tapped: [], typed: "לא יודע איך הוא יענה" });
+  });
+});
+
+describe("an unanswered read is a hole, not a zero", () => {
+  const event = () =>
+    buildCommitEvent("22222222-2222-4222-8222-222222222222", at("first"), silent(), 9, "per-decision");
+
+  it("writes null parts rather than an empty pair", () => {
+    /*
+     * THE WHOLE REASON THE EXEMPTION IS SAFE. `{ tapped: [], typed: "" }` would enter
+     * `vocabulary-reading`'s `recorded` count as a decision where the menu WAS put and the player
+     * picked nothing -- which reads as the list failing. It did not fail; it was not put.
+     */
+    const committed = event();
+    expect(committed.known_parts).toBeNull();
+    expect(committed.unknown_parts).toBeNull();
+    expect(committed.known).toBe("");
+  });
+
+  it("is counted out of the vocabulary reading rather than averaged into it", () => {
+    const committed = event();
+    const answered = buildCommitEvent(
+      "33333333-3333-4333-8333-333333333333",
+      at("play"),
+      { ...silent(), knownTags: ["המרכז פתוח"], unknownTags: ["לא יודע איך הוא יענה"] },
+      9,
+      "per-decision",
+    );
+    const reading = readVocabulary(
+      [
+        { knownParts: committed.known_parts, unknownParts: committed.unknown_parts },
+        { knownParts: answered.known_parts, unknownParts: answered.unknown_parts },
+      ],
+      { known: ["המרכז פתוח"], unknown: ["לא יודע איך הוא יענה"] },
+    );
+    expect(reading.known.recorded, "the unanswered decision was counted as an answer").toBe(1);
+    expect(reading.known.unrecorded, "the size of the hole is not stated").toBe(1);
+    expect(reading.known.escaped, "an unasked field was read as the menu working").toBe(0);
+  });
+});
+
+describe("the schema keeps a guard where min(1) used to be", () => {
+  const atom = (over: Record<string, unknown>) => ({
+    entry_state: {
+      game_id: "g",
+      fen: FEN,
+      ply: 0,
+      phase: "opening" as const,
+      clock_ms_remaining: null,
+    },
+    known: "",
+    unknown: "",
+    known_parts: null,
+    unknown_parts: null,
+    decision: "e2e4",
+    bounded_action: {
+      seconds_taken: 9,
+      confidence: 5,
+      confidence_scale: CONFIDENCE_LEVELS,
+      candidate_moves_considered: [],
+    },
+    probe: null,
+    reveal_timing: "per-decision" as const,
+    result: null,
+    feedback: null,
+    ...over,
+  });
+
+  it("accepts an empty read that says nothing was said", () => {
+    expect(decisionAtomSchema.safeParse(atom({})).success).toBe(true);
+  });
+
+  it("refuses an empty sentence beside parts that say something WAS said", () => {
+    /*
+     * `min(1)` was unconditional and therefore enforceable; the exemption made it conditional on
+     * something the record does not carry, so it could not survive. What replaces it catches the
+     * failure this pair has actually had: a client that loses the composed string while still
+     * holding the parts it was composed from.
+     */
+    const broken = atom({ known_parts: { tapped: ["המרכז פתוח"], typed: "" } });
+    const parsed = decisionAtomSchema.safeParse(broken);
+    expect(parsed.success, "an empty sentence beside a tapped label parsed clean").toBe(false);
+  });
+
+  it("refuses it on the unknown side too, so the guard is not half-applied", () => {
+    const broken = atom({ unknown_parts: { tapped: [], typed: "משהו" } });
+    expect(decisionAtomSchema.safeParse(broken).success).toBe(false);
+  });
+
+  it("still accepts an ordinary decision that answered both", () => {
+    const full = atom({
+      known: "המרכז פתוח",
+      unknown: "לא יודע איך הוא יענה",
+      known_parts: { tapped: ["המרכז פתוח"], typed: "" },
+      unknown_parts: { tapped: ["לא יודע איך הוא יענה"], typed: "" },
+    });
+    expect(decisionAtomSchema.safeParse(full).success).toBe(true);
+  });
+});

@@ -10,7 +10,7 @@
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
-import type { DecisionAtom } from "@shared/decision-atom";
+import type { DecisionAtom, StatedParts } from "@shared/decision-atom";
 import { assignProbe } from "@shared/counterfactual";
 import type { RevealTiming } from "@shared/reveal-timing";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
@@ -65,6 +65,19 @@ export const emptyDraft = (): DraftDecision => ({
 
 /** What this draft actually asserts for one field: what was tapped plus what was typed. */
 export const statedKnown = (draft: DraftDecision) => composeStatement(draft.knownTags, draft.known);
+
+/**
+ * The parts of one read field, or null when the player said nothing at all.
+ *
+ * NULL AND `{ tapped: [], typed: "" }` ARE DIFFERENT FACTS and the reading depends on telling them
+ * apart: one is "nobody recorded this", the other is "the menu was put and refused". Only the
+ * second says anything about the words.
+ */
+const statedParts = (tapped: string[], typed: string): StatedParts | null => {
+  const text = typed.trim();
+  if (tapped.length === 0 && text.length === 0) return null;
+  return { tapped, typed: text };
+};
 export const statedUnknown = (draft: DraftDecision) =>
   composeStatement(draft.unknownTags, draft.unknown);
 
@@ -89,13 +102,42 @@ export function draftProblems(
   if (!draft.chosenMove) {
     problems.push({ field: "chosenMove", message: "לא נבחר מהלך." });
   }
-  // Still required, and still with no default -- an unanswered field and an empty one must not
-  // look the same (R2). What changed is the cost of answering: one tap satisfies it.
-  if (statedKnown(draft).length === 0) {
-    problems.push({ field: "known", message: "לא נאמר מה אתם קוראים בעמדה." });
-  }
-  if (statedUnknown(draft).length === 0) {
-    problems.push({ field: "unknown", message: "לא נאמר מה אי אפשר להעריך כאן." });
+  /*
+   * REQUIRED EVERYWHERE EXCEPT THE FIRST DECISION OF A GAME.
+   *
+   * They are the ordering rule, not a measurement: R3 says the player states what they can read
+   * BEFORE the engine speaks, and nothing downstream reads these two -- the detector never looks
+   * at them, and `vocabulary-reading` reads the PARTS to measure the menu rather than the answer.
+   * So the cost of requiring them is paid on every decision and the benefit is the discipline.
+   *
+   * On the opening decision that trade is the wrong way round. It is the one moment the player
+   * has not yet seen what the loop asks, so the wall of questions IS their first impression of
+   * the product, and a rule nobody has been taught yet is not discipline -- it is a toll. One
+   * decision per game is a bounded exemption, and the record can say which one it was: a first
+   * decision is exactly the one whose ply the handoff named.
+   *
+   * NOT MADE OPTIONAL EVERYWHERE, for the reason the confidence question is not: a field somebody
+   * may skip is filled by whoever felt like filling it. Across the whole record that would curate
+   * the vocabulary measurement on how articulate the player was feeling, which is the thing it
+   * exists to read.
+   *
+   * AND ON A FIRST DECISION IT IS EXACTLY THAT, WHICH IS THE COST. Optional here means the first
+   * decisions that DO carry words are the ones whose player felt like typing, so the words on
+   * them are a self-selected sample and the escape rate over them is not comparable to the rest
+   * of the record. What keeps this bounded rather than corrosive: it is one decision per game,
+   * and `known_parts: null` makes the omission COUNTABLE -- `readVocabulary` reports `unrecorded`
+   * beside `recorded`, so the size of the self-selected hole is on the page rather than averaged
+   * into the finding. An analysis that wants a clean vocabulary reading drops them; it cannot
+   * currently do that from the record alone, because the record does not carry the purpose --
+   * see shared/confidence-asked.ts, which now says so.
+   */
+  if (position.purpose !== "first") {
+    if (statedKnown(draft).length === 0) {
+      problems.push({ field: "known", message: "לא נאמר מה אתם קוראים בעמדה." });
+    }
+    if (statedUnknown(draft).length === 0) {
+      problems.push({ field: "unknown", message: "לא נאמר מה אי אפשר להעריך כאן." });
+    }
   }
   /*
    * ASKED ONLY WHERE SOMETHING READS IT. On every other position the question is not on the
@@ -182,8 +224,18 @@ export function buildCommitEvent(
      * said. A test holds the two consistent, so the redundancy is a checked invariant rather than
      * two sources that can drift apart.
      */
-    known_parts: { tapped: draft.knownTags, typed: draft.known.trim() },
-    unknown_parts: { tapped: draft.unknownTags, typed: draft.unknown.trim() },
+    /*
+     * NULL WHEN NOTHING WAS SAID, and this is the whole reason the exemption above is safe.
+     *
+     * Writing `{ tapped: [], typed: "" }` for a first decision nobody was required to answer
+     * would put it in `vocabulary-reading`'s `recorded` count as a decision where the menu was
+     * offered and the player picked nothing -- which reads as the list failing. It did not fail;
+     * it was not put. `readVocabulary` counts nulls separately as `unrecorded` and prints the
+     * size of what cannot be read, so a null here is the difference between a hole the reading
+     * declares and a zero it quietly averages in.
+     */
+    known_parts: statedParts(draft.knownTags, draft.known),
+    unknown_parts: statedParts(draft.unknownTags, draft.unknown),
     decision: draft.chosenMove!,
     bounded_action: {
       seconds_taken: secondsTaken,

@@ -1519,6 +1519,17 @@ export default function Home() {
     setDecisionsThisGame(0);
     setHistory([]);
     setCurrentPly(-1);
+    /*
+     * A NEW GAME'S OPENING DECISION IS A FIRST DECISION TOO, and it is the one the player actually
+     * complained about: the front door was not the only way in, so exempting only the handoff
+     * would have left a fresh game against the engine asking for everything on move one.
+     *
+     * Ply 0, because `currentPly` starts at -1 and the board records at `currentPly + 1`. A PLY
+     * rather than a flag for the reason `firstDecisionPly` exists: a flag would need clearing once
+     * used, a reload would undo the clearing, and the record would hold two decisions each
+     * claiming to be the first of the game.
+     */
+    setFirstDecisionPly(0);
     setPgnInput("");
     setSource("live");
     gameId.current = `live-${Date.now()}`;

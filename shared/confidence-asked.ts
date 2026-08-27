@@ -75,9 +75,23 @@ export type DecisionPurpose =
  *
  * `first` is here for a different reason and it is a REACHABILITY one: everything else in the
  * product is gated behind having one scored decision, so a first decision that draws no question
- * leaves the newcomer with no route forward at all. It is one decision per handoff, stamped as
- * its own purpose rather than folded into `play`, so an analysis can condition it out -- it is
- * the only decision in the record that was asked for a reason other than measurement.
+ * leaves the newcomer with no route forward at all. It is one decision per game -- the front
+ * door's handoff, and the opening decision of a game against the engine.
+ *
+ * A CORRECTION TO WHAT THIS COMMENT USED TO SAY, kept rather than quietly deleted. It claimed
+ * `first` was "stamped as its own purpose so an analysis can condition it out". IT IS NOT STAMPED
+ * ANYWHERE. `purpose` is derived at render time in `Home` and discarded at write: it is absent
+ * from `ATOM_FIELDS`, from `decisionAtomSchema`, and from both stores. The sentence described a
+ * record that does not exist -- written, in this file, by the same hand that treats that defect
+ * as the one worth catching.
+ *
+ * WHAT IT COSTS, NOW THAT `first` ALSO EXEMPTS THE TWO READ FIELDS. `known_parts: null` says
+ * nobody recorded the words, which is enough for `vocabulary-reading` to count the decision out
+ * rather than average it in -- that reading stays honest without the purpose. What cannot be
+ * answered from the record is "was this decision ALLOWED to be empty": the server cannot enforce
+ * the exemption conditionally, and no analysis can separate first decisions from the rest.
+ * Recording `purpose` on the atom answers all three. It is a column, a migration and both stores,
+ * and it has NOT been done.
  */
 const ALWAYS: readonly DecisionPurpose[] = ["first", "anchor", "drill", "transfer"];
 
