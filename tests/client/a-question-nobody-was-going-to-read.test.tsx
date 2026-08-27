@@ -1,20 +1,21 @@
 // @vitest-environment jsdom
 /**
- * The confidence question, asked where something reads the answer and nowhere else.
+ * The confidence question, asked where a measurement is structural and drawn for everywhere else.
  *
  * It was on every decision, so a game against the app was forty of them. Reported twice as the
  * reason a game does not get finished -- and it is not a UX complaint, it is a measurement problem
  * wearing one: AN INSTRUMENT TOO EXPENSIVE TO USE PRODUCES NO READINGS, and a calibration gap over
  * decisions nobody stayed to record is not a smaller finding, it is no finding.
  *
- * The rule is in `shared/confidence-asked.ts` and it is the only one: asked on the shared bank, on
- * drills and on transfer checks -- the three places a measurement reads it -- and absent
- * everywhere else. This file holds the three things that make that safe rather than merely lighter:
+ * The rule is in `shared/confidence-asked.ts`: always on the shared bank, on drills and on
+ * transfer checks -- where the measurement is structural -- and on a random subset of everything
+ * else. This file holds the three things that make that safe rather than merely lighter:
  *
- *   1. ABSENT, NOT OPTIONAL. Whoever would skip an optional question skips it because of how they
- *      feel about the position, which makes the confidence data a sample the player curated on the
- *      very variable being measured. That is the one bias this product exists to avoid, and it
- *      would have been introduced to save a tap.
+ *   1. DRAWN BY A COIN, NEVER BY THE PLAYER. Whoever would skip an optional question skips it
+ *      because of how they feel about the position, which makes the confidence data a sample the
+ *      player curated on the very variable being measured. That is the one bias this product
+ *      exists to avoid, and it would have been introduced to save a tap. A draw has no opinion
+ *      about the position, which is the whole reason it is a draw and not a checkbox.
  *   2. NULL IS NEVER DEFAULTED. Not to zero, not to the middle of the scale, not to "unsure". One
  *      guard in `scoreDecisions` excludes them, and every measurement in the product reads its
  *      decisions through that function.

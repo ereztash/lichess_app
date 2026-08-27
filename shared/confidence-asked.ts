@@ -7,10 +7,12 @@
  * readings, and a calibration gap over decisions nobody stayed to record is not a smaller finding
  * than one over a full record, it is no finding at all.
  *
- * THE RULE, AND IT IS THE ONLY ONE: the question is asked exactly where a measurement reads the
- * answer. Nowhere else. Every other decision is recorded in full -- move, what you could read,
+ * THE RULE HAS TWO CLAUSES AND NO THIRD. The question is ALWAYS put where a measurement is
+ * structural -- the shared bank, a drill, a transfer check -- and on a RANDOM SUBSET of everything
+ * else. A decision the draw passed over is still recorded in full -- move, what you could read,
  * what you could not -- and simply carries no stated confidence, which is a fact about the
- * protocol rather than a hole in the data.
+ * protocol rather than a hole in the data. What there is nowhere is a third clause letting the
+ * PLAYER decide; see the paragraph below, which is the reason the whole file exists.
  *
  * WHY NOT "OPTIONAL EVERYWHERE", which is the obvious way to make it lighter. Whoever skips it
  * skips it BECAUSE OF HOW THEY FEEL ABOUT THE POSITION -- unsure, bored, in a hurry, embarrassed.
@@ -19,16 +21,17 @@
  * same thing, it is a reading of something else. It is the one bias this whole product is built to
  * avoid, and it would have been introduced to save a tap.
  *
- * WHY NOT RANDOM SAMPLING, which is unbiased and was the other candidate. It works, but it makes
- * the wait longer in proportion to the sampling rate, and the wait is already 60-90 decisions. The
- * shared bank is better than random on both counts: it is a FIXED set of positions, so the wait is
- * a bounded and visible task rather than an open-ended one, and the readings that need comparing
- * between players -- the anchor calibration score, the split-half stability check -- are computed
- * over that bank and nothing else anyway.
+ * WHY NOT "THE SHARED BANK AND NOWHERE ELSE", which is what this file said for exactly one
+ * commit and which was the first attempt at making it lighter. It was light and it was too narrow:
+ * it took every free-play decision out of the six buckets the detector is allowed to look at, so
+ * "under 45 seconds", "over two minutes" and "under a minute on the clock" could only ever fill
+ * from a bank of positions played without a clock at all. The lighter rule quietly deleted three
+ * of the six readings. Sampling keeps most decisions at three taps AND keeps those buckets fed.
  *
- * WHAT THIS COSTS, STATED: a decision in a player's own game no longer contributes to the
- * calibration gap. The six buckets narrow to the bank plus the drills. That is a real loss of n
- * and it is the price of the instrument being used at all.
+ * WHAT THIS COSTS, STATED, and it is a real cost rather than a free lunch. Against asking on
+ * everything, the wait for a first claim grows by 1/ASK_RATE -- at one in four, four times as many
+ * decisions for the same n. That is precisely why the rate below is a number that has to be
+ * MEASURED and is marked as a guess until it has been.
  */
 
 /**
