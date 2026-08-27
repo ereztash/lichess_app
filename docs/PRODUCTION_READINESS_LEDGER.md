@@ -1078,6 +1078,86 @@ moves is information about the assertion, not a formality to be waved through.
 
 Full verify with the database up: **1,444 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 37 — a sweep, because the last two were found by accident
+
+Cycles 31 and 36 each found a two-write-no-transaction defect, and **both were found while doing
+something else**. So the question stopped being "fix this one" and became "how many are there".
+Six independent search angles over the record layer, each told to read code and cite lines, each
+verified adversarially. The first angle back enumerated every store call in every service function,
+wrote and ran its own failure-injection repros, and returned five findings — **and independently
+rejected the same information-disclosure claim cycle 36 had already withdrawn**, by reading
+`server/_core/trpc.ts`. Two agents reaching the same withdrawal separately is the closest thing to
+a control this kind of audit has.
+
+### The third instance, closed here
+
+`reveal` stores the engine's verdict on the chosen move, then the price of the alternative the
+player named. Two writes, no transaction — and the function's own docstring states the invariant it
+breaks: *"A second round trip would let one land without the other, and a record holding a
+chosen-move score and no alternative score is one where the reading silently does not exist."* It
+**is** that second round trip, inside itself.
+
+Injected and confirmed before anything was changed:
+
+| after the injected failure | |
+| --- | --- |
+| the engine's verdict on the chosen move | **stored** |
+| the alternative's price | null |
+| the retry | throws CONFLICT at `hasReveal`, before it can reach the second write |
+| any other path that could write it | **none** — this line is the only caller of `scoreCounterfactual` |
+| what the reading shows | `asked` 1, `answered` 1, **`scored` 0** |
+
+`readCounterfactuals` drops an unpriced pair — "null is not a fifth reading" — so a row of the
+probe's **treatment arm** leaves the denominator with no trace and no way back. Nothing on any
+screen says so. This is the third time the gate written to protect append-only-ness turned out to
+be what froze a half-written record.
+
+**The distinction the fix turns on: completing a null is not overwriting a value.** A replay may
+fill the price if it is still null; it may not touch the reveal, the alternative move, or a price
+already stored. A second reveal carrying a *different* verdict is a different claim about the same
+decision and stays a CONFLICT — the verdict is compared field by field. Two positive controls that
+are exact complements: reverting the branch reddens the completion, dropping the comparison reddens
+the refusal.
+
+### The server half alone would have been unreachable
+
+The UI never retried. `RevealFailure` offers only "next", so a half-written record stayed that way
+whatever `reveal` was willing to accept. So the fix has three halves, not one:
+
+1. `reveal` completes the record on an identical replay.
+2. `runReveal` sends the **same payload object** a second time. Not a recomputed one: the price has
+   to come out of the same search that scored the chosen move — that is why it travels on the
+   reveal at all — so a retry that re-ran the engine would store two numbers from two trees under
+   one decision, and the server would refuse it as a second, different reveal. Extracted into
+   `client/src/lib/retry-once.ts` so it could be tested, which the inline version could not be.
+3. **The failure panel stopped asserting something it cannot know.** Its copy said *"ההחלטה הזו לא
+   תיספר בין ההחלטות החשופות"* — and in the partial case that is the opposite of what happened: the
+   verdict WAS stored and the decision WAS counted. After a failed write and a failed retry the
+   client cannot tell the two apart, so it now says what is certain and points at the record.
+
+### Two tests encoded the pre-fix behaviour, and their principle survived both times
+
+`local-record.test.ts` and **GATE-COMMIT's own suite** both asserted that a second identical reveal
+returns CONFLICT. That conflates two things: the append-only rule is about **the value, not the
+call**. Both were rewritten to assert what it actually requires, and the gate's version is stronger
+than what it replaced — over the same real HTTP it now checks that an identical reveal replays
+byte-for-byte, that a different verdict is refused, and that the stored verdict is the first one
+after the refusal.
+
+### Four more findings, recorded and not yet fixed
+
+Each came with a reproduction the sweep ran itself. They are open as tasks rather than folded into
+this commit:
+
+| where | what |
+| --- | --- |
+| `record-service.ts:837`, `:671` | **The grade fold persists last-writer-wins** — a direct criticism of the cycle-31 and cycle-36 fixes. The fold made the grade a function of the record; the write that persists it is still a blind overwrite. Two concurrent drill completions bury a refutation, and `beginDrill` has no open-drill check (transfers have `getOpenLearningTransfer`), so two drills on one claim take a double click |
+| `record-service.ts:782` | **A lost reveal silently shrinks a pre-registered drill.** `Home.tsx` pushes the decision id before the reveal write and carries on when it fails; `finishDrill` filters against scored decisions, so a five-position registered drill is reported as a four-decision result — and the truncated verdict is append-only. An R5 violation |
+| `record-service.ts:316` | **A failure between the reflection and the rule locks the reflection forever.** The composer keeps the form on screen after a failure, so editing one word — the natural response — makes every later save CONFLICT, and that decision can never carry a learning rule |
+| `record-service.ts:328` | **A lost response duplicates a learning rule.** The id is minted per call, nothing keys on `source_decision_id`, and the append-only check only compares rules of the same id. Two identical rules, each with its own retrieval schedule, each `authored_by: "player"` |
+
+Full verify with the database up: **1,443 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1087,7 +1167,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Security, privacy, isolation | 2 | **9** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more. Cycle 34 closed the headers: a CSP measured in a real browser against the built app rather than written from the source, `SameSite=Lax` restoring the only CSRF defence this codebase has, a 1mb body limit and a bounded opaque diagnostic, `npm ci` and an SCA step in CI |
 | Scientific / construct validity | 4 | **8.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable |
 | Functional correctness | 6 | **9.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. The drill path had the same shape and is closed in cycle 36 — worse there, since it had no replay branch at all — along with two timestamp divergences between the two stores that no memory-backed test could see. Not 10: a systematic sweep for the rest of this class is still running |
-| Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
+| Test quality and CI | 8 | **10** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge. Cycle 37 added the thing that was missing: a **systematic adversarial sweep** rather than defects found while doing something else — six angles, each verified, which turned up four more open findings including one against this branch's own fixes |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five. SC 3.1.2 read island by island rather than swept: four English strings declared, thirty-one exemptions asserted so a later sweep cannot quietly claim a language for chess notation |
 | Performance and bundle | 5 | **8.5** | Explicit budgets, wired into verify and CI, proven to fail — and now a **layout-shift budget measured in a real browser** at two viewports on both routes, which caught a 98px shift the assessment reported and a 289px one this branch had introduced itself. Not higher: LCP and INP are still unmeasured, and CLS is measured on a local server rather than on real users |
@@ -1105,6 +1185,9 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
 | — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
+| — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
+| — | A lost reveal silently shrinks a pre-registered drill, and the truncated verdict is append-only | **Medium** | open, found by the cycle-37 sweep. R5: the verdict is decided over a decision set the pre-registration did not name |
+| — | `createLearningRule`: a failure between its two writes locks the reflection, and a lost response duplicates the rule | **Medium** | open, found by the cycle-37 sweep, both reproduced |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |

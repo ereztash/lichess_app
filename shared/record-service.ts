@@ -270,7 +270,48 @@ export async function reveal(
     );
   }
   if (await store.hasReveal(decisionId)) {
-    throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
+    /*
+     * A REPLAY COMPLETES THE RECORD; A DIFFERENT SECOND REVEAL IS STILL REFUSED.
+     *
+     * This threw unconditionally, and that is the third instance of the shape cycles 31 and 36
+     * closed -- the gate written to protect append-only-ness being the thing that freezes a
+     * half-written record. The two writes below are not atomic: the reveal can land and the
+     * alternative's price fail, and `scoreCounterfactual` can refuse on its own (no answer row,
+     * or an answer that named no move) AFTER the reveal has committed. The retry then re-entered
+     * here, found `hasReveal` true, and threw -- and this line is the ONLY caller of
+     * `scoreCounterfactual` in the product, so no other path could ever write that price.
+     *
+     * What the record loses is invisible: `readCounterfactuals` drops an unpriced pair, so the
+     * decision counts in `asked` and `answered` and in none of the four readings. A row of the
+     * probe's treatment arm leaves the denominator with no trace.
+     *
+     * COMPLETING A NULL IS NOT OVERWRITING A VALUE, and that distinction is the whole of the
+     * safety here. A replay may fill the price if it is still null; it may not change the reveal,
+     * the alternative move, or a price already stored. A second reveal carrying a DIFFERENT
+     * verdict is a different claim about the same decision and stays a CONFLICT.
+     */
+    const sameVerdict =
+      existing.result !== null &&
+      existing.result.engine_eval_cp === result.engine_eval_cp &&
+      existing.result.engine_best_move === result.engine_best_move &&
+      existing.result.engine_depth === result.engine_depth &&
+      existing.result.engine_source === result.engine_source &&
+      existing.result.cp_loss === result.cp_loss;
+    if (!sameVerdict) {
+      throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
+    }
+    if (
+      alternativeCpLoss !== undefined &&
+      alternativeCpLoss !== null &&
+      existing.probe?.answered === true &&
+      existing.probe.alternative !== null &&
+      existing.probe.alternative_cp_loss === null
+    ) {
+      await store.scoreCounterfactual(decisionId, alternativeCpLoss);
+    }
+    const replayed = await store.getAtom(decisionId);
+    if (!replayed) throw new RecordError("INTERNAL_SERVER_ERROR", "רשומה נעלמה.");
+    return replayed;
   }
   await store.recordReveal(decisionId, result);
   /*

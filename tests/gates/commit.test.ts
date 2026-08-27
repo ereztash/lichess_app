@@ -123,15 +123,41 @@ describe("GATE-COMMIT: the engine does not speak before the decision is recorded
     }
   });
 
-  it("reveal succeeds only after the decision exists, and only once", async () => {
+  it("reveal succeeds only after the decision exists, and never rewrites the verdict", async () => {
+    /*
+     * THE APPEND-ONLY RULE IS ABOUT THE VALUE, NOT ABOUT THE CALL. This asserted that a second
+     * identical reveal was a CONFLICT, and that conflated two things.
+     *
+     * `reveal` writes twice -- the engine's verdict, then the price of the alternative the player
+     * named -- and the two are not atomic. Refusing every second call meant a half-written record
+     * could never be completed: `scoreCounterfactual` has exactly one caller in the product, so
+     * the price of that alternative was unwritable forever, and `readCounterfactuals` drops an
+     * unpriced pair without saying so.
+     *
+     * What R3 and append-only actually require is asserted here instead, over the same real HTTP:
+     * an identical reveal replays and changes nothing, a DIFFERENT verdict for the same decision
+     * is refused, and the stored verdict is the first one either way.
+     */
     const first = await post("record.reveal", { decision_id: DECISION_ID, result: RESULT });
     expect(first.status).toBe(200);
     expect(first.body).toContain("engine_eval_cp");
 
-    // Append-only: the record cannot be revealed twice.
-    const second = await post("record.reveal", { decision_id: DECISION_ID, result: RESULT });
-    expect(second.status).toBeGreaterThanOrEqual(400);
-    expect(second.body).toContain("CONFLICT");
+    // A retry after a lost response. It writes nothing and returns the record as it stands.
+    const replay = await post("record.reveal", { decision_id: DECISION_ID, result: RESULT });
+    expect(replay.status).toBe(200);
+    expect(replay.body).toBe(first.body);
+
+    // A second, DIFFERENT verdict about the same decision is what append-only forbids.
+    const rewritten = await post("record.reveal", {
+      decision_id: DECISION_ID,
+      result: { ...RESULT, cp_loss: RESULT.cp_loss + 250 },
+    });
+    expect(rewritten.status).toBeGreaterThanOrEqual(400);
+    expect(rewritten.body).toContain("CONFLICT");
+
+    // And the record still holds the first verdict, not the one that was refused.
+    const after = await post("record.reveal", { decision_id: DECISION_ID, result: RESULT });
+    expect(after.body).toBe(first.body);
   });
 
   it("rejects a phase label that disagrees with the position", async () => {

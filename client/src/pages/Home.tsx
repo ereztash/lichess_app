@@ -1,4 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { retryOnce } from "@/lib/retry-once";
 import { Chess } from "chess.js";
 import {
   Activity,
@@ -822,20 +823,36 @@ export default function Home() {
         };
         if (speak) setRevealInputs(inputs);
 
+        /*
+         * ONE RETRY, WITH THE SAME OBJECT rather than a recomputed one.
+         *
+         * `reveal` writes the engine's verdict and then the alternative's price, and the two are
+         * not atomic. Losing the second left the record holding a chosen-move score and no
+         * alternative score -- which `readCounterfactuals` drops silently, so a row of the probe's
+         * treatment arm left the denominator with no trace. Nothing retried, because this catch
+         * only offers "next".
+         *
+         * THE PAYLOAD IS BUILT ONCE AND SENT TWICE. The price has to come out of the same search
+         * that scored the chosen move -- that is why it travels on the reveal at all -- so a retry
+         * that re-ran the engine would be storing two numbers from two trees under one decision.
+         * It also lets the server tell a replay from a second, different reveal: the verdict is
+         * compared field by field, and only an identical one is allowed to complete a null price.
+         */
+        const revealPayload = {
+          decision_id: decisionId,
+          result: {
+            // The clamp, not the mate distance: `scoreCp` on a mate line is distance x 10000,
+            // and the record is read back as centipawns by anything that reads it at all.
+            engine_eval_cp: comparableCp(best),
+            engine_best_move: bestMove,
+            engine_depth: inputs.depth,
+            engine_source: "local_sf18" as const,
+            cp_loss: cpLoss,
+          },
+          alternative_cp_loss: alternativeCpLoss,
+        };
         try {
-          await submitReveal.mutateAsync({
-            decision_id: decisionId,
-            result: {
-              // The clamp, not the mate distance: `scoreCp` on a mate line is distance x 10000,
-              // and the record is read back as centipawns by anything that reads it at all.
-              engine_eval_cp: comparableCp(best),
-              engine_best_move: bestMove,
-              engine_depth: inputs.depth,
-              engine_source: "local_sf18",
-              cp_loss: cpLoss,
-            },
-            alternative_cp_loss: alternativeCpLoss,
-          });
+          await retryOnce(() => submitReveal.mutateAsync(revealPayload));
           setRevealedDecisionId(decisionId);
           if (transfer) {
             /*
