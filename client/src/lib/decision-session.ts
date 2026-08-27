@@ -16,7 +16,7 @@ import type { RevealTiming } from "@shared/reveal-timing";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
-import { confidenceIsMeasured, type DecisionPurpose } from "@shared/confidence-asked";
+import { confidenceIsAsked, type DecisionPurpose } from "@shared/confidence-asked";
 
 export type SessionStage = "deciding" | "committing" | "committed" | "revealed" | "blocked";
 
@@ -78,7 +78,13 @@ export interface DraftProblem {
  * boolean so the interface can say WHICH part is absent -- "incomplete" and "invalid" are
  * different states and must not render the same (R2).
  */
-export function draftProblems(draft: DraftDecision, purpose: DecisionPurpose): DraftProblem[] {
+export function draftProblems(
+  draft: DraftDecision,
+  /* The whole position, not just its purpose: the draw that decides an ordinary decision needs the
+     game, the FEN and the ply, and passing four loose arguments is four chances to pass the wrong
+     one. */
+  position: Pick<PositionUnderDecision, "purpose" | "gameId" | "fen" | "ply">,
+): DraftProblem[] {
   const problems: DraftProblem[] = [];
   if (!draft.chosenMove) {
     problems.push({ field: "chosenMove", message: "לא נבחר מהלך." });
@@ -96,14 +102,16 @@ export function draftProblems(draft: DraftDecision, purpose: DecisionPurpose): D
    * screen at all, so it cannot be missing -- requiring it here would refuse a decision for
    * failing to answer something nobody asked.
    */
-  if (confidenceIsMeasured(purpose) && draft.confidence === null) {
+  if (confidenceIsAsked(position) && draft.confidence === null) {
     problems.push({ field: "confidence", message: "לא נבחרה רמת ביטחון." });
   }
   return problems;
 }
 
-export const isCommittable = (draft: DraftDecision, purpose: DecisionPurpose) =>
-  draftProblems(draft, purpose).length === 0;
+export const isCommittable = (
+  draft: DraftDecision,
+  position: Pick<PositionUnderDecision, "purpose" | "gameId" | "fen" | "ply">,
+) => draftProblems(draft, position).length === 0;
 
 /**
  * The engine may only run once the decision is on the record. Every other stage returns false,
@@ -150,7 +158,7 @@ export function buildCommitEvent(
   revealTiming: RevealTiming,
   draw: () => number = Math.random,
 ): CommitEvent {
-  const problems = draftProblems(draft, position.purpose);
+  const problems = draftProblems(draft, position);
   if (problems.length) {
     throw new Error(`decision is not committable: ${problems.map((p) => p.message).join(" ")}`);
   }
@@ -184,7 +192,7 @@ export function buildCommitEvent(
        * here would be the machine stating a belief on the player's behalf and then measuring them
        * against it, and `scoreDecisions` is built to exclude the null rather than read one.
        */
-      confidence: confidenceIsMeasured(position.purpose) ? draft.confidence : null,
+      confidence: confidenceIsAsked(position) ? draft.confidence : null,
       /*
        * Sent with every commit, never inferred server-side. A stated level is meaningless without
        * the scale it was stated on: "בטוח" was 4 of 5 and is 6 of 7, so the same integer asserts

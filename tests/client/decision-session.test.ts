@@ -51,7 +51,7 @@ describe("R3: the engine may not run before the decision is recorded", () => {
 
 describe("an incomplete decision is not recordable", () => {
   it("names every missing part rather than returning a bare boolean", () => {
-    const problems = draftProblems(emptyDraft(), "anchor");
+    const problems = draftProblems(emptyDraft(), POSITION);
     expect(problems.map((p) => p.field).sort()).toEqual([
       "chosenMove",
       "confidence",
@@ -62,8 +62,8 @@ describe("an incomplete decision is not recordable", () => {
 
   it("requires `unknown` explicitly -- blank is not an answer", () => {
     const draft = { ...complete(), unknown: "   ", unknownTags: [] };
-    expect(isCommittable(draft, "anchor")).toBe(false);
-    expect(draftProblems(draft, "anchor")[0].field).toBe("unknown");
+    expect(isCommittable(draft, POSITION)).toBe(false);
+    expect(draftProblems(draft, POSITION)[0].field).toBe("unknown");
   });
 
   /*
@@ -74,18 +74,18 @@ describe("an incomplete decision is not recordable", () => {
    */
   it("accepts a selection with nothing typed", () => {
     const draft = { ...complete(), known: "", unknown: "", unknownTags: ["לא יודע איך הוא יענה"] };
-    expect(isCommittable(draft, "anchor")).toBe(true);
+    expect(isCommittable(draft, POSITION)).toBe(true);
   });
 
   it("accepts typing with nothing selected", () => {
     const draft = { ...complete(), knownTags: [], unknownTags: [], known: "מרכז", unknown: "לא" };
-    expect(isCommittable(draft, "anchor")).toBe(true);
+    expect(isCommittable(draft, POSITION)).toBe(true);
   });
 
   it("still refuses a field that is neither tapped nor typed", () => {
     const draft = { ...complete(), knownTags: [], known: "" };
-    expect(isCommittable(draft, "anchor")).toBe(false);
-    expect(draftProblems(draft, "anchor")[0].field).toBe("known");
+    expect(isCommittable(draft, POSITION)).toBe(false);
+    expect(draftProblems(draft, POSITION)[0].field).toBe("known");
   });
 
   it("puts both the tapped and the typed part on the record", () => {
@@ -112,7 +112,7 @@ describe("an incomplete decision is not recordable", () => {
   });
 
   it("accepts a complete draft", () => {
-    expect(isCommittable(complete(), "anchor")).toBe(true);
+    expect(isCommittable(complete(), POSITION)).toBe(true);
   });
 });
 

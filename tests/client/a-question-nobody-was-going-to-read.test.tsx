@@ -31,7 +31,12 @@ import {
   isCommittable,
   type PositionUnderDecision,
 } from "@/lib/decision-session";
-import { confidenceIsMeasured, type DecisionPurpose } from "@shared/confidence-asked";
+import {
+  ASK_RATE,
+  confidenceIsAsked,
+  drawForDecision,
+  type DecisionPurpose,
+} from "@shared/confidence-asked";
 import { scoreDecisions } from "@shared/scoring";
 import { summarise } from "@shared/detector";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
@@ -40,18 +45,28 @@ import { openStep } from "../fixtures/commitment-steps";
 import { beginVisit, clearProgress, progress } from "@/lib/progress-record";
 
 const FEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4";
-const at = (purpose: DecisionPurpose): PositionUnderDecision => ({
+
+/*
+ * Two plies of the same game, one the draw selected and one it did not.
+ *
+ * Read off the shipped function rather than typed in from a run, so they cannot silently stop
+ * being the cases they are named for: the assertions below check them first.
+ */
+const DRAWN_PLY = 3;
+const QUIET_PLY = 7;
+
+const at = (purpose: DecisionPurpose, ply = QUIET_PLY): PositionUnderDecision => ({
   gameId: "g",
   fen: FEN,
-  ply: 7,
+  ply,
   clockMsRemaining: null,
   purpose,
 });
 
-const screenAt = (purpose: DecisionPurpose) =>
+const screenAt = (purpose: DecisionPurpose, ply = QUIET_PLY) =>
   render(
     <CommitmentScreen
-      position={at(purpose)}
+      position={at(purpose, ply)}
       chosenMove="g8f6"
       candidatesConsidered={[]}
       onCommit={vi.fn()}
@@ -67,10 +82,16 @@ const answered = () => ({
 });
 
 describe("the question is on the screen only where a measurement reads it", () => {
-  it("is absent in an ordinary game, and absent is not disabled", () => {
+  it("holds the two fixture plies to what they are named for", () => {
+    // Everything below depends on these two being on opposite sides of the draw.
+    expect(drawForDecision("g", FEN, DRAWN_PLY)).toBeLessThan(ASK_RATE);
+    expect(drawForDecision("g", FEN, QUIET_PLY)).toBeGreaterThanOrEqual(ASK_RATE);
+  });
+
+  it("is absent on an ordinary decision the draw passed over, and absent is not disabled", () => {
     /*
      * A greyed-out step still costs a glance and an explanation, and an optional one is answered
-     * by whoever feels like answering. On an ordinary decision it simply is not part of the screen.
+     * by whoever feels like answering. On a decision the draw passed over it is not on the screen.
      */
     const { container } = screenAt("play");
     const heads = [...container.querySelectorAll(".step-head")];
@@ -118,6 +139,14 @@ describe("the question is on the screen only where a measurement reads it", () =
     expect(attempt.open).toBe("unknown");
   });
 
+  it("is there on an ordinary decision the draw selected", () => {
+    // The same game, the same position, a different ply -- and the coin came up the other way.
+    const { container } = screenAt("play", DRAWN_PLY);
+    expect(container.textContent, "the draw selected this decision and nothing asked").toContain(
+      "כמה אתם בטוחים",
+    );
+  });
+
   it("is there, and required, on a position from the shared bank", () => {
     screenAt("anchor");
     expect(openStep("confidence")).toBeTruthy();
@@ -137,14 +166,16 @@ describe("the question is on the screen only where a measurement reads it", () =
 });
 
 describe("a decision is complete without an answer nobody wanted", () => {
-  it("is recordable in an ordinary game with no confidence stated", () => {
-    expect(isCommittable(answered(), "play")).toBe(true);
-    expect(draftProblems(answered(), "play").map((problem) => problem.field)).toEqual([]);
+  it("is recordable in an ordinary game the draw passed over", () => {
+    expect(isCommittable(answered(), at("play"))).toBe(true);
+    expect(draftProblems(answered(), at("play")).map((problem) => problem.field)).toEqual([]);
   });
 
-  it("is still refused on the bank until the question is answered", () => {
-    expect(isCommittable(answered(), "anchor")).toBe(false);
-    expect(draftProblems(answered(), "anchor")[0].field).toBe("confidence");
+  it("is refused on a decision the draw selected, and on the bank", () => {
+    for (const position of [at("play", DRAWN_PLY), at("anchor")]) {
+      expect(isCommittable(answered(), position)).toBe(false);
+      expect(draftProblems(answered(), position)[0].field).toBe("confidence");
+    }
   });
 
   it("writes null rather than a number nobody said", () => {
@@ -220,11 +251,73 @@ describe("nothing downstream reads a null as a number", () => {
 });
 
 describe("the rule itself", () => {
-  it("names the three purposes a measurement reads, and only those", () => {
-    expect(confidenceIsMeasured("anchor")).toBe(true);
-    expect(confidenceIsMeasured("drill")).toBe(true);
-    expect(confidenceIsMeasured("transfer")).toBe(true);
-    expect(confidenceIsMeasured("play")).toBe(false);
-    expect(confidenceIsMeasured("import")).toBe(false);
+  it("always asks where the measurement is structural", () => {
+    // A drill's verdict IS a calibration gap; sampling there produces drills that cannot be graded.
+    for (const purpose of ["anchor", "drill", "transfer"] as const)
+      for (const ply of [DRAWN_PLY, QUIET_PLY])
+        expect(confidenceIsAsked({ purpose, gameId: "g", fen: FEN, ply })).toBe(true);
+  });
+
+  it("draws the same answer every time it is asked about one decision", () => {
+    /*
+     * NOT `Math.random()` AT RENDER TIME. React re-renders on every keystroke in the free-text box
+     * beside it, and a question that flickers in and out while somebody is answering the field
+     * above is worse than one always asked.
+     */
+    const context = { purpose: "play" as const, gameId: "g", fen: FEN, ply: DRAWN_PLY };
+    const answers = Array.from({ length: 50 }, () => confidenceIsAsked(context));
+    expect(new Set(answers).size, "the draw was re-rolled").toBe(1);
+  });
+
+  it("spreads across a game instead of clustering, which was measured and was not free", () => {
+    /*
+     * THE FIRST HASH PASSED THE RATE AND FAILED THE PLAYER. FNV-1a alone, with the ply appended
+     * last, gave 0.2472 over twenty thousand keys -- and within one game it was all or nothing,
+     * because FNV's avalanche is weak on the bytes it eats last and the comparison reads the high
+     * bits. Measured over 500 games of 60 plies: a worst run of FIFTY-NINE consecutive asks, and
+     * games that asked nothing at all. A correct average over a ruinous distribution.
+     *
+     * These bounds are what the finalising mix bought. A run of six is what an honest coin gives
+     * over thirty thousand draws at this rate; fifty-nine is not.
+     */
+    let asked = 0;
+    let longestRun = 0;
+    let gamesWithNoAsk = 0;
+    const GAMES = 500;
+    const PLIES = 60;
+    for (let game = 0; game < GAMES; game += 1) {
+      let run = 0;
+      let inGame = 0;
+      for (let ply = 1; ply <= PLIES; ply += 1) {
+        const ask = confidenceIsAsked({
+          purpose: "play",
+          gameId: `live-${game}`,
+          fen: FEN,
+          ply,
+        });
+        run = ask ? run + 1 : 0;
+        longestRun = Math.max(longestRun, run);
+        if (ask) {
+          asked += 1;
+          inGame += 1;
+        }
+      }
+      if (inGame === 0) gamesWithNoAsk += 1;
+    }
+    /*
+     * THE DISTRIBUTION FIRST, THE RATE SECOND, and the order is not cosmetic: `expect` throws on
+     * the first failure, and with the rate checked first a positive control on the broken hash
+     * reddened on the average and never reached these two -- which are the ones carrying the
+     * finding. An assertion shadowed by a tighter one above it is an assertion that is not run.
+     */
+    expect(longestRun, "the question clusters into a run a player would call constant").toBeLessThan(
+      10,
+    );
+    expect(gamesWithNoAsk, "whole games go by without the question being put once").toBe(0);
+    const rate = asked / (GAMES * PLIES);
+    expect(rate, `asked ${rate.toFixed(4)} of decisions, wanted ${ASK_RATE}`).toBeCloseTo(
+      ASK_RATE,
+      2,
+    );
   });
 });
