@@ -1310,6 +1310,50 @@ something touches it.
 
 Full verify with the database up: **1,455 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 40 — a reload changed which experiment the player was in
+
+All six sweep angles are in: 35 raw findings. This one is the most damaging to the *instrument*
+rather than to the record's integrity, and it came from the angle that looked at writes spanning
+the client and the server.
+
+`revealTiming` is an **experimental condition**, not a preference. The product's own note says why
+the deferred game exists: *"over forty moves the coached loop measures a player who has been coached
+mid-game — a different condition, and the record stores which was in force."*
+
+`writePosition` stored the moves, the ply, the source, the orientation, the opponent and the game
+id. **It did not store the arm.** So a player who chose the deferred game, played fifteen moves and
+reloaded carried on in `per-decision` — the `useState` default — and the record then held **one game
+whose first fifteen decisions say `end-of-game` and whose rest say `per-decision`**. Every row
+internally consistent. Nothing anywhere saying the condition changed underneath them.
+
+**A position that cannot say which arm it was in is no longer restored.** That is this file's own
+rule — *"a stored shape that changed is not a position"*, and `parse` already returned null for
+every other missing field — applied to the field that matters most. A game in flight across this
+change is forgotten; its decisions are on the record either way, and forgetting a board is better
+than continuing it in the wrong condition.
+
+**The type system found every writer.** Making the field required turned up four call sites in one
+compile: the live game, two handoffs from the front door, and a fixture. The two handoffs are a
+single position rather than a game in progress, so they state `per-decision` explicitly rather than
+leaving it to the board's default — the arm travels with the handoff now.
+
+### Two things this repository's own guards caught, mid-change
+
+- **The stale-closure test caught me.** Adding `revealTiming` to the write effect made it read a
+  value its dependency array did not list. `no callback in the decision path closes over a value it
+  does not depend on` went red immediately. That test exists because a dependency list that
+  fabricated an observation shipped once; it earned its keep here.
+- **A control came back GREEN, and that was the finding.** Deleting `setRevealTiming(saved.revealTiming)`
+  from the restore broke nothing: the arm was stored and parsed and **quietly not applied**, and
+  every test still passed. A first version of this change would have shipped exactly that. The
+  restore wiring is asserted now, and the same deletion reddens it.
+
+Four positive controls in the end: not requiring the arm in `parse` reddens both refusals; not
+writing it reddens the round trip; and dropping either half of the board wiring — the restore or the
+write-back — reddens the arm's wiring test.
+
+Full verify with the database up: **1,460 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1317,7 +1361,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | category | base | now | what moved it |
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **9** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more. Cycle 34 closed the headers: a CSP measured in a real browser against the built app rather than written from the source, `SameSite=Lax` restoring the only CSRF defence this codebase has, a 1mb body limit and a bounded opaque diagnostic, `npm ci` and an SCA step in CI |
-| Scientific / construct validity | 4 | **8.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable |
+| Scientific / construct validity | 4 | **9** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable. Cycle 40 closed a defect in the instrument itself rather than in a measure — a reload moved a game from the deferred arm into the coached one mid-game, so one game's rows recorded two conditions with nothing saying so |
 | Functional correctness | 6 | **9.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. The drill path had the same shape and is closed in cycle 36 — worse there, since it had no replay branch at all — along with two timestamp divergences between the two stores that no memory-backed test could see. Not 10: a systematic sweep for the rest of this class is still running |
 | Test quality and CI | 8 | **10** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge. Cycle 37 added the thing that was missing: a **systematic adversarial sweep** rather than defects found while doing something else — six angles, each verified, which turned up four more open findings including one against this branch's own fixes |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
@@ -1339,6 +1383,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
 | — | ~~The fold's write can destroy `retired`~~; the learning queue's DISPLAY still prints the stored grade | ~~High~~ **Low** | **the write half is closed in cycle 39**: all three stores refuse to move a rule off `retired`, and `beginLearningTransfer` derives the grade before deciding on it. What is left is cosmetic — `LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`, so a row can say `השערה` about a refuted rule until something touches it. The click is refused with a reason and repairs the record |
 | — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
+| — | The learning queue's display prints the stored grade rather than the derived one | Low | open, cosmetic since cycle 39: the click is refused with a reason and repairs the record |
 | — | A lost reveal silently shrinks a pre-registered drill, and the truncated verdict is append-only | **Medium** | open, found by the cycle-37 sweep. R5: the verdict is decided over a decision set the pre-registration did not name |
 | — | `createLearningRule`: a failure between its two writes locks the reflection, and a lost response duplicates the rule | **Medium** | open, found by the cycle-37 sweep, both reproduced |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |

@@ -458,6 +458,12 @@ export default function Home() {
       setSource(saved.source);
       setOrientation(saved.orientation);
       setOpponent(saved.opponent);
+      /*
+       * The arm, restored like everything else. This was the one field the handoff did not carry,
+       * so a resumed deferred game silently continued as a coached one and the record ended up
+       * holding a single game played under two conditions.
+       */
+      setRevealTiming(saved.revealTiming);
       gameId.current = saved.gameId;
       setNotice(
         loaded.length
@@ -484,9 +490,12 @@ export default function Home() {
       source,
       orientation,
       opponent,
+      // The arm the game is being played under, so a reload does not move a deferred game into
+      // the coached one. It is a condition, not a preference.
+      revealTiming,
       gameId: gameId.current,
     });
-  }, [history, currentPly, source, orientation, opponent, drill, learningTransfer]);
+  }, [history, currentPly, source, orientation, opponent, revealTiming, drill, learningTransfer]);
 
   useEffect(() => {
     if (!candidateMove || stage !== "deciding") return;

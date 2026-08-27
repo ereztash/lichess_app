@@ -275,6 +275,9 @@ describe("the game survives the tab", () => {
     orientation: "w" as const,
     opponent: { playerColor: "w" as const, depth: 4 as never },
     gameId: "live-123",
+    // The arm is part of the position now: a game resumed into the other one is a different
+    // condition, and the record stores which was in force per decision.
+    revealTiming: "per-decision" as const,
   };
 
   it("comes back after the store is reconstructed, which is what closing the tab does", () => {
@@ -409,6 +412,26 @@ describe("a transfer run resumes where it stopped", () => {
     expect(home).toMatch(/retryOnce\(\(\) => completeDrillMutation\.mutateAsync\(drillPayload\)\)/);
     // Built once and sent twice: a rebuilt payload is a different question.
     expect(home).toMatch(/const drillPayload = \{ drill_id: drill\.drill_id/);
+  });
+
+  it("puts the reveal-timing arm back on the board it was restored onto", () => {
+    /*
+     * The arm is an experimental condition, and it was the one field the handoff did not carry:
+     * a deferred game resumed as a coached one, and the record ended up holding a single game
+     * whose halves say different things about which condition was in force.
+     *
+     * `session-position` refuses a stored position that cannot name its arm -- that half has its
+     * own tests. This is the other half: the board must actually apply it. A first version of this
+     * change stored and parsed the arm and quietly did not restore it, and every test still passed.
+     */
+    const home = code("client/src/pages/Home.tsx");
+    const restore = home.slice(home.indexOf("const saved = readPosition()"));
+    const block = restore.slice(0, restore.indexOf("gameId.current = saved.gameId"));
+    expect(block, "the restored game keeps whatever arm the board happened to default to").toMatch(
+      /setRevealTiming\(saved\.revealTiming\)/,
+    );
+    // And written back with the game, so the next reload reads it rather than the default.
+    expect(home).toMatch(/revealTiming,\n\s*gameId: gameId\.current/);
   });
 
   it("is served by the service, so the client is not guessing", () => {

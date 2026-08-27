@@ -98,6 +98,12 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         sans: decision.sans,
         ply: decision.ply,
         source: "finished",
+        /*
+         * A position handed over for a first decision, not a game already in progress: the coached
+         * loop is what a single position wants, and it is what the board defaults to. Stated here
+         * rather than left to the board's `useState`, because the arm now travels with the handoff.
+         */
+        revealTiming: "per-decision",
         orientation: decision.orientation,
         opponent: null,
         gameId: `lichess-${decision.gameId}`,
@@ -188,6 +194,8 @@ function AnchorRunControl({ answered }: { answered: readonly string[] }) {
       sans: [...next.sans],
       ply: next.ply,
       source: "finished",
+      // An anchor position is one decision, so the coached loop -- the same as the handoff above.
+      revealTiming: "per-decision",
       orientation: next.sans.length % 2 === 0 ? "w" : "b",
       opponent: null,
       gameId: `anchor-${next.id}`,
