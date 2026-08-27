@@ -88,6 +88,8 @@ function toAtom(
     },
     known: decision.statedRead,
     unknown: decision.statedUnknown,
+    known_parts: decision.statedReadParts ?? null,
+    unknown_parts: decision.statedUnknownParts ?? null,
     decision: decision.chosenMove,
     bounded_action: {
       seconds_taken: decision.secondsTaken,
@@ -228,6 +230,8 @@ export class DrizzleRecordStore implements RecordStore {
       candidateMovesConsidered: input.candidateMovesConsidered,
       statedRead: input.statedRead,
       statedUnknown: input.statedUnknown,
+      statedReadParts: input.statedReadParts,
+      statedUnknownParts: input.statedUnknownParts,
       confidence: input.confidence,
       confidenceScale: input.confidenceScale,
       probeAssignment: input.probeAssignment,
@@ -1074,6 +1078,8 @@ export class MemoryRecordStore implements RecordStore {
       },
       known: row.statedRead,
       unknown: row.statedUnknown,
+      known_parts: row.statedReadParts ?? null,
+      unknown_parts: row.statedUnknownParts ?? null,
       decision: row.chosenMove,
       bounded_action: {
         seconds_taken: row.secondsTaken,

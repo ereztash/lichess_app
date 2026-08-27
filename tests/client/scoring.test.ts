@@ -14,6 +14,9 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   },
   known: "k",
   unknown: "u",
+  // Null, not an empty pair: this fixture records no vocabulary, it does not assert silence.
+  known_parts: null,
+  unknown_parts: null,
   decision: "e2e4",
   bounded_action: { seconds_taken: 30, confidence: 4, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
   probe: null,

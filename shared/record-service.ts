@@ -53,6 +53,7 @@ import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
+import type { StatedParts } from "./decision-atom.js";
 import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
@@ -98,6 +99,12 @@ export type CommitEvent = {
   };
   known: string;
   unknown: string;
+  /**
+   * How each read was said. Optional on the type because a client older than this change sends
+   * neither, and null is written for those -- "nobody recorded it", not "answered with silence".
+   */
+  known_parts?: StatedParts | null;
+  unknown_parts?: StatedParts | null;
   decision: string;
   bounded_action: {
     seconds_taken: number;
@@ -201,6 +208,8 @@ export async function commitDecision(
     candidateMovesConsidered: input.bounded_action.candidate_moves_considered,
     statedRead: input.known,
     statedUnknown: input.unknown,
+    statedReadParts: input.known_parts ?? null,
+    statedUnknownParts: input.unknown_parts ?? null,
     confidence: input.bounded_action.confidence,
     confidenceScale,
     probeAssignment: probe?.assignment ?? null,

@@ -50,6 +50,13 @@
       "when": 1787794789091,
       "tag": "0006_strong_the_liberteens",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1787827522412,
+      "tag": "0007_graceful_shadowcat",
+      "breakpoints": true
     }
   ]
 }

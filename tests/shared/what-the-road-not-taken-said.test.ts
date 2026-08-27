@@ -38,6 +38,9 @@ const atom = (over: { probe?: Probe | null; cpLoss?: number; evalCp?: number } =
   entry_state: { game_id: "g", fen: OPEN, ply: 0, phase: "opening", clock_ms_remaining: null },
   known: "k",
   unknown: "u",
+  // Null, not an empty pair: this fixture records no vocabulary, it does not assert silence.
+  known_parts: null,
+  unknown_parts: null,
   decision: "e2e4",
   bounded_action: { seconds_taken: 5, confidence: 4, confidence_scale: 7, candidate_moves_considered: [] },
   probe: over.probe === undefined ? probe() : over.probe,

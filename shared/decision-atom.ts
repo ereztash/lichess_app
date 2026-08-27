@@ -21,6 +21,8 @@ export const ATOM_FIELDS = [
   "entry_state",
   "known",
   "unknown",
+  "known_parts",
+  "unknown_parts",
   "decision",
   "bounded_action",
   "probe",
@@ -47,6 +49,22 @@ export const entryStateSchema = z.object({
  * bounded_action -- the act of committing, and the constraints it happened under.
  * seconds_taken is a predictor, not telemetry (section 4.1).
  */
+/**
+ * The parts one stated read was composed from.
+ *
+ * LABELS, NOT IDS, and for the same reason `DraftDecision.knownTags` holds labels: the label is
+ * what the player saw and what `known` carries, so a record stays readable without a lookup
+ * table. It also keeps the measurement honest across a rewording -- an option whose words change
+ * IS a different option to the person reading it, and old rows go on naming what they were shown.
+ */
+export const statedPartsSchema = z.object({
+  /** The options tapped. Empty is a real answer here: it means everything said was typed. */
+  tapped: z.array(z.string().min(1).max(80)).max(20),
+  /** What was typed beside them. Empty means the menu was enough, which is the measurement. */
+  typed: z.string().max(200),
+});
+export type StatedParts = z.infer<typeof statedPartsSchema>;
+
 export const boundedActionSchema = z.object({
   seconds_taken: z.number().min(0),
   confidence: z.number().int().min(1).max(CONFIDENCE_LEVELS),
@@ -144,6 +162,29 @@ export const decisionAtomSchema = z.object({
   /** What the player says they cannot evaluate here. <=200 chars. Required, no default: an
    *  empty answer and an unanswered one must not look the same (R2). */
   unknown: z.string().min(1).max(200),
+  /**
+   * HOW the read was said -- what was tapped, and what was typed beside it.
+   *
+   * `known` above is one string, because `composeStatement` joins the tapped labels and the typed
+   * sentence with " · ". That join threw away the only measurement the product has about its own
+   * vocabulary. Every time somebody types instead of tapping, THAT IS A MEASUREMENT THAT THE MENU
+   * FAILED: the position in front of them was not in the list, and what they typed is the missing
+   * words. `client/src/lib/read-options.ts` says in as many words that a selected option and the
+   * same words typed by hand are indistinguishable in the record. They are not any more.
+   *
+   * Four things become readable from the record alone, with no interview and no model in the
+   * loop: how often each field is escaped to free text, what was written when it was, which
+   * options nobody ever picks, and which options are always picked together (two words for one
+   * thing). That is the whole method for deciding what the words should be.
+   *
+   * NULLABLE, AND NULL IS NOT "TAPPED NOTHING, TYPED NOTHING". A decision written before this
+   * existed recorded no parts at all, and `{ tapped: [], typed: "" }` would assert that the player
+   * answered with silence -- while `known` on the same row plainly holds text. Null is "nobody
+   * recorded this", and the reading below counts it out of the denominator rather than into the
+   * numerator.
+   */
+  known_parts: statedPartsSchema.nullable(),
+  unknown_parts: statedPartsSchema.nullable(),
   /** The chosen move, UCI. */
   decision: z.string().min(4).max(6),
   bounded_action: boundedActionSchema,

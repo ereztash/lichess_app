@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "gates": "tsx scripts/run_gates.ts",
+    "read:vocabulary": "tsx scripts/read_vocabulary.ts",
     "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
     "verify": "npm run check && npm run build && npm test && npm run gates && npm run gates:controls && npm run bundle:budget",

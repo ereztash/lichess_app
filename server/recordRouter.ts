@@ -8,6 +8,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
+import { statedPartsSchema } from "../shared/decision-atom.js";
 import {
   boundedActionSchema,
   entryStateSchema,
@@ -64,6 +65,17 @@ export const commitEventSchema = z.object({
   entry_state: entryStateSchema,
   known: z.string().min(1).max(200),
   unknown: z.string().min(1).max(200),
+  /**
+   * How each read was said. Optional on the wire and NULLABLE, which are two different states.
+   *
+   * ABSENT is a client older than this change: it never recorded the parts, and null is stored.
+   * NULL sent explicitly means the same thing. Neither is `{ tapped: [], typed: "" }`, which
+   * would assert the player tapped nothing and typed nothing while `known` on the same event
+   * plainly holds text. A zod object drops what it does not name, so leaving these out of this
+   * schema would have made the whole change a no-op over HTTP while every local test passed.
+   */
+  known_parts: statedPartsSchema.nullable().optional(),
+  unknown_parts: statedPartsSchema.nullable().optional(),
   decision: z.string().min(4).max(6),
   bounded_action: boundedActionSchema,
   /**

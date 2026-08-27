@@ -150,6 +150,16 @@ export function buildCommitEvent(
     },
     known: statedKnown(draft),
     unknown: statedUnknown(draft),
+    /*
+     * The same answer, unjoined. `statedKnown` above runs the two through `composeStatement`,
+     * which is the only thing the record used to keep -- and the join is exactly where the
+     * product's one measurement about its own vocabulary was being thrown away. Both are written:
+     * `known` is what the player asserted and every reader already reads it; these say how it was
+     * said. A test holds the two consistent, so the redundancy is a checked invariant rather than
+     * two sources that can drift apart.
+     */
+    known_parts: { tapped: draft.knownTags, typed: draft.known.trim() },
+    unknown_parts: { tapped: draft.unknownTags, typed: draft.unknown.trim() },
     decision: draft.chosenMove!,
     bounded_action: {
       seconds_taken: secondsTaken,
