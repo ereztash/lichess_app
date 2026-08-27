@@ -388,6 +388,23 @@ export const GATES: Gate[] = [
     },
   },
   {
+    id: "GATE-REACHABILITY",
+    rule: "4.6",
+    description:
+      "From an empty record a newcomer can reach a measurement, and no bucket is promised a test the protocol cannot run.",
+    run: () =>
+      runVitestFile(
+        "tests/gates/reachability.test.ts",
+        "the front door reaches a scored decision; registrable means collectible",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/reachability.control.test.ts",
+        "a front door that draws, and registrability by membership alone",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-NOTICE",
     rule: "L1",
     description: "Every third-party component the build conveys has a notice that travels with it.",

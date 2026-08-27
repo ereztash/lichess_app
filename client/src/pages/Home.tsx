@@ -188,6 +188,13 @@ export default function Home() {
   const [, navigate] = useLocation();
   const [history, setHistory] = useState<GameSnapshot[]>([]);
   const [currentPly, setCurrentPly] = useState(-1);
+  /*
+   * The decision ply the front door handed this board over to produce, restored and written back
+   * like `revealTiming` and for the same reason: the write-back effect below runs on every board
+   * change, so a field it does not carry is erased on the first render after the restore -- here,
+   * before the player has made the decision the handoff exists for.
+   */
+  const [firstDecisionPly, setFirstDecisionPly] = useState<number | null>(null);
   const [orientation, setOrientation] = useState<Orientation>("w");
   const [selectedSquare, setSelectedSquare] = useState<string>();
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
@@ -352,7 +359,9 @@ export default function Home() {
       ? "drill"
       : isAnchorFen(activeFen)
         ? "anchor"
-        : "play";
+        : currentPly + 1 === firstDecisionPly
+          ? "first"
+          : "play";
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
@@ -478,6 +487,7 @@ export default function Home() {
       setHistory(loaded);
       setCurrentPly(ply);
       setSource(saved.source);
+      setFirstDecisionPly(saved.firstDecisionPly);
       setOrientation(saved.orientation);
       setOpponent(saved.opponent);
       /*
@@ -515,9 +525,20 @@ export default function Home() {
       // The arm the game is being played under, so a reload does not move a deferred game into
       // the coached one. It is a condition, not a preference.
       revealTiming,
+      firstDecisionPly,
       gameId: gameId.current,
     });
-  }, [history, currentPly, source, orientation, opponent, revealTiming, drill, learningTransfer]);
+  }, [
+    history,
+    currentPly,
+    source,
+    orientation,
+    opponent,
+    revealTiming,
+    firstDecisionPly,
+    drill,
+    learningTransfer,
+  ]);
 
   useEffect(() => {
     if (!candidateMove || stage !== "deciding") return;

@@ -270,12 +270,12 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
             זה איטי יותר, ולא נמדד כמה. אפשר לעצור באמצע.
           </p>
           <p className="import-buys">
-            מה זה קונה: אם יימצא דלי אחד שנבדל מהשאר, אפשר לרשום אותו מראש — ואז הגלאי בודק אותו
-            לבדו במקום שישה דליים, וצריך {PREREGISTERED_THRESHOLDS.minBucketN * 2} החלטות חשופות
-            במקום {MIN_BUCKET_N * 2}. אם שום דלי לא נבדל, נשארת עם קריאה על המשחקים שלך ובלי קיצור.
+            מה זה קונה: אם יימצא סוג אחד שנבדל מהשאר, אפשר לרשום אותו מראש — ואז הגלאי בודק אותו
+            לבדו במקום שישה סוגים, וצריך {PREREGISTERED_THRESHOLDS.minBucketN * 2} החלטות מדודות
+            במקום {MIN_BUCKET_N * 2}. אם שום סוג לא נבדל, נשארת עם קריאה על המשחקים שלך ובלי קיצור.
           </p>
           <button className="import-scan" onClick={() => void scan()}>
-            נתחו את {games.length} המשחקים ומדדו את הדליים
+            נתחו את {games.length} המשחקים ומדדו את הסוגים
           </button>
         </>
       )}

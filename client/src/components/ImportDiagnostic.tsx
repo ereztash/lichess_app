@@ -33,14 +33,14 @@ function Unmeasurable({ reason, n }: { reason: "too-few" | "no-clock-data" | nul
   if (reason === "no-clock-data") {
     return (
       <span className="bucket-short">
-        אין נתוני שעון במשחקים האלה, ולכן לא ניתן למדוד את הדלי הזה. ליצ׳ס מייצא שעונים רק אם
+        אין נתוני שעון במשחקים האלה, ולכן לא ניתן למדוד את הסוג הזה. ליצ׳ס מייצא שעונים רק אם
         ביקשתם אותם בייצוא — ייבוא של עוד משחקים מאותו מקור לא יעזור.
       </span>
     );
   }
   return (
     <span className="bucket-short">
-      לא ניתן למדוד — {n} החלטות בדלי, נדרשות {MIN_BUCKET_N}
+      לא ניתן למדוד — {n} החלטות מהסוג הזה, נדרשות {MIN_BUCKET_N}
     </span>
   );
 }
@@ -60,7 +60,7 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
         reason={
           diagnostic.scored === 0
             ? "לא נקראה אף החלטה שלכם מהמשחקים האלה."
-            : `נקראו ${diagnostic.scored} החלטות, ואף דלי לא הגיע ל-${MIN_BUCKET_N}. אין עדיין מה לומר.`
+            : `נקראו ${diagnostic.scored} החלטות, ואף סוג לא הגיע ל-${MIN_BUCKET_N}. אין עדיין מה לומר.`
         }
       />
     );
@@ -76,8 +76,8 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
       <NotMeasured
         reason={
           verdict.runnerUp === null
-            ? "רק דלי אחד ניתן לקריאה, ואין לו למה להשוות את עצמו."
-            : "הדליים שנקראו קרובים זה לזה יותר מטעות הדגימה שלהם. יש מספר נמוך ביותר, אבל הוא לא נבדל מהשאר."
+            ? "רק סוג אחד יש בו מספיק החלטות, ואין לו למה להשוות את עצמו."
+            : "הסוגים שנמדדו קרובים זה לזה יותר מטעות הדגימה שלהם. יש מספר נמוך ביותר, אבל הוא לא נבדל מהשאר."
         }
       />
     );
@@ -87,7 +87,7 @@ function Observation({ diagnostic }: { diagnostic: Diagnostic }) {
     <p className="import-observation">
       הדיוק הנמוך ביותר שנמדד הוא ב<strong>{verdict.worst.scope}</strong>:{" "}
       <Proportion value={verdict.worst.accurateRate} n={verdict.worst.n} /> — לעומת{" "}
-      <Proportion value={verdict.runnerUp.accurateRate} n={verdict.runnerUp.n} /> בדלי הבא אחריו.
+      <Proportion value={verdict.runnerUp.accurateRate} n={verdict.runnerUp.n} /> בסוג הבא אחריו.
     </p>
   );
 }
@@ -209,7 +209,7 @@ export function ImportDiagnosticPanel({
       {diagnostic.forced > 0 && (
         <p className="pv-note">
           {diagnostic.forced} מתוך {diagnostic.scored} ההחלטות היו עמדות עם מהלך חוקי אחד בלבד, ולכן
-          לא נספרו באף דלי — לא בחרתם בהן דבר. זה לא מנקה מהלכי ספר בפתיחה ולא לקיחות-חזרה שיש
+          לא נספרו באף סוג — לא בחרתם בהן דבר. זה לא מנקה מהלכי ספר בפתיחה ולא לקיחות-חזרה שיש
           להן חלופה חוקית, והם עדיין מעלים את שיעורי הדיוק.
         </p>
       )}
@@ -221,13 +221,13 @@ export function ImportDiagnosticPanel({
         */}
       {diagnostic.excludedForSpeed > 0 && diagnostic.timeBucketSpeed && (
         <p className="pv-note">
-          דליי הזמן נקראו רק על משחקי{" "}
+          הסוגים שנוגעים לזמן נקראו רק על משחקי{" "}
           <span dir="ltr" lang="en">
             {diagnostic.timeBucketSpeed}
           </span>{" "}
           שלכם.{" "}
           {diagnostic.excludedForSpeed} החלטות מסוגי משחק אחרים לא נכללו בהם — 45 שניות בבליץ ו-45
-          שניות בקלאסי אינם אותה החלטה. דליי השלב והעמדה נקראו על כל המשחקים.
+          שניות בקלאסי אינם אותה החלטה. הסוגים שנוגעים לשלב המשחק נקראו על כל המשחקים.
         </p>
       )}
 

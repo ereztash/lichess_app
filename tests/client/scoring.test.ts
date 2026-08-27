@@ -82,7 +82,7 @@ describe("silence says WHICH kind of not-enough it is", () => {
   /*
    * THIS CONTRACT MOVED SURFACES; IT DID NOT GO AWAY.
    *
-   * It used to be asserted on `silenceReason`, which said "נרשמו N החלטות, מתוכן M נחשפו... ו-K
+   * It used to be asserted on `silenceReason`, which said "נרשמו N החלטות, מתוכן M נמדדו... ו-K
    * ממתינות לחשיפה" -- and that was the second copy of a sentence the context ribbon renders at
    * the top of the page from `loopPosition()`. The counts stayed where they are read and the
    * panel's line became the rule behind the floor, so the 4.5 requirement -- that too-few-recorded

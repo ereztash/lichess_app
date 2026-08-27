@@ -44,6 +44,16 @@
  * count that pools them could not say which loop a player abandoned.
  */
 export type DecisionPurpose =
+  /**
+   * The one position the front door hands over, from a game the player actually played.
+   *
+   * ITS WHOLE JOB IS TO PRODUCE THE FIRST SCOREABLE DECISION, and under sampling it did not.
+   * `Record` shows `FirstDecision` while `scored === 0` and the shared bank sits behind
+   * `scored > 0`, so a drawn-over first decision left the newcomer on the same screen that had
+   * just sent them out -- three times in four -- with the screen's own words promising "תגידו כמה
+   * אתם בטוחים". A front door whose success rate is one in four is not a front door.
+   */
+  | "first"
   /** A position from the shared bank. The only reading comparable between players lives here. */
   | "anchor"
   /** A drill position. The verdict IS a calibration gap against the record's baseline. */
@@ -62,8 +72,14 @@ export type DecisionPurpose =
  * graded the same way -- sampling there would produce drills that cannot be graded, which is a
  * worse failure than a tap. The bank is where the only between-player reading lives, and it is a
  * fixed, bounded set: the whole point of it is that everyone answers the same positions.
+ *
+ * `first` is here for a different reason and it is a REACHABILITY one: everything else in the
+ * product is gated behind having one scored decision, so a first decision that draws no question
+ * leaves the newcomer with no route forward at all. It is one decision per handoff, stamped as
+ * its own purpose rather than folded into `play`, so an analysis can condition it out -- it is
+ * the only decision in the record that was asked for a reason other than measurement.
  */
-const ALWAYS: readonly DecisionPurpose[] = ["anchor", "drill", "transfer"];
+const ALWAYS: readonly DecisionPurpose[] = ["first", "anchor", "drill", "transfer"];
 
 /**
  * How often the question is put on an ordinary decision.

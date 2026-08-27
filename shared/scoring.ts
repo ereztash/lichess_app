@@ -88,7 +88,7 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
  *
  * IT USED TO CARRY THE COUNTS, and that made it the second copy of a sentence already on screen.
  * The context ribbon at the top of the page renders `loopPosition()`, which says "עוד N החלטות
- * חשופות עד שאפשר לומר משהו", how many are awaiting reveal, and "{scored} חשופות מתוך {recorded}
+ * מדודות עד שאפשר לומר משהו", how many are awaiting reveal, and "{scored} נמדדו מתוך {recorded}
  * רשומות" as its basis. This returned the same four numbers in different words, five hundred
  * pixels lower. Two surfaces disagreeing would be a bug; two surfaces agreeing at length is a
  * dashboard, which is the thing this product exists not to be.
@@ -110,7 +110,7 @@ export function silenceReason(summary: ScoringSummary, minimumRequired: number):
    */
   const perSide = minimumRequired / 2;
   return (
-    `דפוס הוא הפרש בין דלי אחד לשאר הרשומה, ולכן צריך ${perSide} החלטות חשופות בתוך הדלי ` +
+    `דפוס הוא הפרש בין סוג אחד לשאר הרשומה, ולכן צריך ${perSide} החלטות מדודות בתוך הסוג ` +
     `ו-${perSide} מחוצה לו — ${minimumRequired} בסך הכול. ואפילו אז זו תהיה השערה, לא ממצא.`
   );
 }

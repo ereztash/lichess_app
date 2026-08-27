@@ -9,6 +9,7 @@
  */
 import { CONFIDENCE_LEVELS, CONFIDENCE_STEP, normaliseConfidence } from "../../shared/confidence";
 import { describe, expect, it } from "vitest";
+import { collectibleInLiveLoop } from "../../shared/live-acquisition";
 import {
   BUCKETINGS,
   DEFAULT_THRESHOLDS,
@@ -135,8 +136,22 @@ describe("the threshold the narrowing buys, and the measurement behind it", () =
 });
 
 describe("what may be registered", () => {
-  it("accepts only buckets the live detector knows", () => {
-    for (const bucketing of BUCKETINGS) expect(isRegistrableBucket(bucketing.key)).toBe(true);
+  it("accepts only buckets the live detector knows AND the live loop can fill", () => {
+    /*
+     * TWO CONDITIONS, AND THIS TEST USED TO ASSERT ONE. It required every shared bucketing to be
+     * registrable, which is exactly the defect: registration promises a test at a relaxed
+     * threshold, and `clock-under-1m` is a bucket no live decision can ever fall inside, because
+     * `Home` builds every one of them with `clockMsRemaining: null`. The countdown to its twenty
+     * observations never finishes and the screen goes on saying how many are left.
+     */
+    for (const bucketing of BUCKETINGS) {
+      expect(
+        isRegistrableBucket(bucketing.key),
+        `${bucketing.key}: registrable iff the live loop can collect it`,
+      ).toBe(collectibleInLiveLoop(bucketing));
+    }
+    // Not a blanket refusal: the buckets a played game does fill are still registrable.
+    expect(BUCKETINGS.filter((b) => isRegistrableBucket(b.key)).length).toBeGreaterThan(1);
     // The import's standing buckets read the engine's verdict on the position the player FACED,
     // which the live record structurally cannot have -- R3 forbids the engine speaking first.
     for (const importOnly of IMPORT_BUCKETINGS) {
@@ -369,7 +384,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
     // A DIFFERENT sentence from the ordinary silence: the wait is shorter and counted from the
     // import onward, and section 4.5 forbids two different facts rendering as one.
     expect(view.reason).toContain(String(PREREGISTERED_THRESHOLDS.minBucketN * 2));
-    expect(view.reason).toContain("דלי אחד במקום שישה");
+    expect(view.reason).toContain("סוג אחד במקום שישה");
   });
 });
 

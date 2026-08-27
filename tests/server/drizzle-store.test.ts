@@ -170,7 +170,7 @@ describeDb("DrizzleRecordStore against MySQL", () => {
         threshold: 0.142,
         games: 20,
       },
-      refutation_condition: "אם לא יימצא פער כיול בדלי הזה — ההשערה הופרכה.",
+      refutation_condition: "אם לא יימצא פער כיול בסוג הזה — ההשערה הופרכה.",
     });
 
     const back = await store.getPreregisteredHypothesis();
@@ -200,7 +200,7 @@ describeDb("DrizzleRecordStore against MySQL", () => {
         threshold: 0.15,
         games: 25,
       },
-      refutation_condition: "אם לא יימצא פער כיול בדלי הזה — ההשערה הופרכה.",
+      refutation_condition: "אם לא יימצא פער כיול בסוג הזה — ההשערה הופרכה.",
     });
     const back = await store.getPreregisteredHypothesis();
     expect(back?.bucket_key).toBe("phase-endgame");

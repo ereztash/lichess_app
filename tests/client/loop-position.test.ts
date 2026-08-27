@@ -65,7 +65,7 @@ describe("no claim: three different answers, never one", () => {
   it("states the distance, and what is already waiting to be revealed", () => {
     const at = loopPosition(inputs({ recorded: 20, scored: 12, scoredStillNeeded: 48 }));
     expect(at.step).toBe("record");
-    expect(at.headline).toContain("עוד 48 החלטות חשופות");
+    expect(at.headline).toContain("עוד 48 החלטות מדודות");
     // Matched with its clause, not as a bare "8": the "48" above contains an 8, so a loose
     // assertion here passes whether or not the awaiting-reveal count is rendered at all.
     expect(at.headline).toContain("8 כבר רשומות");
