@@ -80,6 +80,21 @@ describe("no driver error reaches the wire with a value in it", () => {
     // A blank message is its own failure: the player is told the write failed and given no idea
     // whether to retry, and the operator gets a 500 with no name.
     expect(INTERNAL_ERROR_MESSAGE.length).toBeGreaterThan(10);
+    /*
+     * AND IT DOES NOT CLAIM THE WRITE DID NOT HAPPEN.
+     *
+     * It used to say "והיא לא נשמרה" -- the operation was not saved -- which this code cannot
+     * know. Several operations here are more than one write (the reveal stores the verdict then
+     * the alternative's price; completing a transfer stores the result then the grade; authoring a
+     * rule stores the reflection then the rule), and when the second fails that sentence is
+     * exactly backwards about the first. The server does not know how far it got, so it says so.
+     */
+    expect(INTERNAL_ERROR_MESSAGE, "the message asserts the write did not happen").not.toMatch(
+      /לא נשמרה/,
+    );
+    expect(INTERNAL_ERROR_MESSAGE, "it does not say the server cannot tell").toMatch(/לא יודע/);
+    // Still actionable: a sentence that only expresses uncertainty leaves the player with nothing.
+    expect(INTERNAL_ERROR_MESSAGE).toMatch(/נסו שוב/);
     expect(INTERNAL_ERROR_MESSAGE).not.toMatch(/[a-z]{4}/); // written for the player, in Hebrew
   });
 });

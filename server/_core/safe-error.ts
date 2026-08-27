@@ -27,12 +27,29 @@ import { RecordError } from "../../shared/record-service.js";
 /**
  * What the player is told when the server failed in a way the product did not author.
  *
- * Says the write did not happen and that retrying is the next step, because a 500 with no
- * sentence leaves them unable to tell a lost decision from a slow one -- and R2 turns on exactly
- * that distinction.
+ * IT USED TO SAY THE WRITE DID NOT HAPPEN, AND IT DOES NOT KNOW THAT.
+ *
+ * The sentence read "השרת נכשל באמצע הפעולה והיא לא נשמרה" -- the operation was not saved -- which
+ * is a claim of fact this code cannot make. Several operations in this record are more than one
+ * write: the reveal stores the engine's verdict and then the alternative's price, completing a
+ * transfer stores the result and then the grade, authoring a rule stores the reflection and then
+ * the rule. When the SECOND of a pair fails, "it was not saved" is precisely backwards about the
+ * first, and the player is told the opposite of what the record holds.
+ *
+ * Its own note said R2 turns on the distinction between a lost decision and a slow one. It does,
+ * and that is the argument for saying what is true rather than what is reassuring: the server does
+ * not know how far it got, so it says so, and points at the record rather than asking to be
+ * believed.
+ *
+ * IT STILL RECOMMENDS RETRYING, and that advice is now sound in a way it was not before: cycles
+ * 31-43 made the completion paths replay rather than refuse. It is deliberately not promised as a
+ * blanket property -- `commitDecision` still mints a fresh id per attempt, so a retry there writes
+ * a second decision rather than repairing the first -- which is why this says "check the record"
+ * and not "a retry writes nothing twice".
  */
 export const INTERNAL_ERROR_MESSAGE =
-  "השרת נכשל באמצע הפעולה והיא לא נשמרה. נסו שוב; אם זה חוזר, זו תקלה בשרת ולא משהו שעשיתם.";
+  "השרת נכשל באמצע הפעולה. ייתכן שחלק ממנה נרשם וייתכן שלא — השרת לא יודע לומר. " +
+  "נסו שוב, ואפשר לבדוק ברשומה מה נשמר. אם זה חוזר, זו תקלה בשרת ולא משהו שעשיתם.";
 
 /**
  * The message that may leave the server for this error.

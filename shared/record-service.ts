@@ -356,10 +356,17 @@ export async function createLearningRule(
   /*
    * THE RULE IS VALIDATED BEFORE THE REFLECTION IS WRITTEN, because the write used to come first.
    *
-   * `formLearningRule` runs a schema parse that can throw, and it ran BETWEEN the two writes --
-   * reachable on the browser path, where the service is called directly with nothing validating
-   * ahead of it. So a draft the router would have refused left a reflection on the record and no
-   * rule. Building the rule first makes that throw free: nothing has been written when it fires.
+   * `formLearningRule` runs a schema parse that can throw, and it ran BETWEEN the two writes, so a
+   * draft it refused left a reflection on the record and no rule. Building the rule first makes
+   * that throw free: nothing has been written when it fires.
+   *
+   * NARROWER THAN THE FIRST VERSION OF THIS NOTE CLAIMED. An adversarial check of the finding
+   * established that the parse is dead on the SERVER path -- `learningRuleEventSchema` parses both
+   * halves with `.strict()` in the router before this function is reached -- so it survives only on
+   * the browser path, where `record-api` calls the service directly. And on that path the store
+   * write cannot fail either, because `LocalRecordStore.write` swallows a quota error and
+   * downgrades to memory. The two ways to reach a half-written record are therefore disjoint: this
+   * throw on the browser, and a genuine driver failure on the signed-in MySQL path.
    */
   const rule = formLearningRule(input.rule, now);
   const reflection = reflectionDraftSchema.parse(input.reflection);
@@ -372,11 +379,15 @@ export async function createLearningRule(
    * actually trying to record.
    *
    * It matters because the two writes are not atomic. Lose the rule write and the record holds a
-   * reflection and no rule; the retry then succeeds only if the reflection is BYTE-IDENTICAL. The
-   * composer keeps every field on screen after a failure and says "הכלל לא נשמר", so editing one
-   * word of the revised-read box -- the natural response to a failed save -- made every future
-   * attempt throw. That decision could never carry a learning rule again, and the composer is the
-   * only path that authors one.
+   * reflection and no rule; the retry then succeeds only if the reflection is BYTE-IDENTICAL.
+   *
+   * AND THE PLAIN RETRY DOES SUCCEED -- checked rather than assumed. The composer keeps every field
+   * on screen after a failure, so a re-click without touching anything sends the same bytes, passes
+   * the gate and writes the rule. An adversarial check proved that empirically against the pre-fix
+   * code. What traps the decision is EDITING the revised-read box first, which is a plausible
+   * response to "הכלל לא נשמר" rather than an automatic one -- and once edited, the stored text is
+   * no longer on screen to be retyped. `LearningRuleComposer` is the only path that authors a rule,
+   * so from there that decision carried none.
    *
    * WHAT WAS BEING PROTECTED IS STILL PROTECTED. The stored reflection is not rewritten: what you
    * said before seeing more cannot be retroactively improved, and that is the whole of the

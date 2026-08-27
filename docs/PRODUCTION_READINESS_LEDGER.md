@@ -1466,11 +1466,21 @@ and the validation that can reject the rule ran **between** them, reachable on t
 where the service is called directly with nothing validating ahead of it.
 
 Lose the second write and the record holds a reflection and no rule. The retry then meets the
-append-only gate, which succeeds only on a **byte-identical** reflection. The composer keeps every
-field on screen after a failure and says "הכלל לא נשמר" — so editing one word of the revised-read
-box, which is what a player does after a failed save, made every future attempt throw CONFLICT.
-**That decision could never carry a learning rule again**, and the composer is the only path that
-authors one.
+append-only gate, which succeeds only on a **byte-identical** reflection.
+
+**Narrower than this entry first said, and the correction is the sweep's.** A verifier ran the
+pre-fix code and established that the plain retry *works*: the composer keeps every field on screen,
+so a re-click without touching anything sends the same bytes and writes the rule — *"RETRY SAME →
+rule created"*. What traps the decision is **editing** the revised-read box first, a plausible
+response to "הכלל לא נשמר" rather than an automatic one; and once edited, the stored text is no
+longer on screen to be retyped. It also narrowed the two ways in, which turn out to be disjoint: the
+schema throw between the writes is dead on the server path (`learningRuleEventSchema` parses both
+halves with `.strict()` in the router first) and survives only in the browser — where the store
+write cannot fail at all, because `LocalRecordStore.write` swallows a quota error and downgrades to
+memory. So a half-written record needs *either* that throw in the browser *or* a genuine driver
+failure on the signed-in MySQL path.
+
+The defect stands and the fix is unchanged; what was overstated was its inevitability.
 
 Three things changed, and the third is the one that matters most:
 
@@ -1505,6 +1515,43 @@ mutation is deliberately **not** wrapped in `retryOnce`, so it takes a human re-
 machine. Left open at `low` rather than fixed on the same commit.
 
 Twenty-one verdicts now, three confirmed, eighteen refuted.
+
+Full verify with the database up: **1,474 tests, 0 skipped**, 10/10 gates, every control red.
+
+## Cycle 44 — the server said the write did not happen, and it did not know that
+
+The generic 500 message read *"השרת נכשל באמצע הפעולה **והיא לא נשמרה**"* — the operation was not
+saved. That is a claim of fact the server cannot make, and this record is full of counterexamples:
+the reveal stores the engine's verdict and then the alternative's price; completing a transfer
+stores the result and then the grade; authoring a rule stores the reflection and then the rule.
+**When the second of a pair fails, "it was not saved" is exactly backwards about the first** — and
+the player is told the opposite of what the record holds.
+
+Its own note said R2 turns on the distinction between a lost decision and a slow one. It does, and
+that is the argument for saying what is true rather than what is reassuring. It now says the server
+does not know how far it got and points at the record.
+
+**It still recommends retrying, and that advice is newly sound**: cycles 31–43 made the completion
+paths replay rather than refuse. Deliberately *not* promised as a blanket property — `commitDecision`
+still mints a fresh id per attempt, so a retry there writes a second decision rather than repairing
+the first — which is why it says "check the record" and not "a retry never writes twice".
+
+### Four of this branch's own claims, refuted by the sweep
+
+The fourth confirmed verdict landed on the defect cycle 43 had just fixed, and while confirming the
+core it **took apart four of my supporting claims** — including one I had written into a code
+comment. The corrections are in the code and in cycle 43's entry above:
+
+| I claimed | what was established |
+| --- | --- |
+| the decision could never carry a rule again | the **plain retry works** — a re-click without editing sends the same bytes and writes the rule, proved by running the pre-fix code |
+| the schema throw between the writes is reachable on the browser path | true, but the *store write* cannot fail there — `LocalRecordStore.write` swallows a quota error — so the two ways in are **disjoint** |
+| the router path is exposed to that throw | dead: `learningRuleEventSchema` parses both halves with `.strict()` before the service is reached |
+| a lost response could duplicate the rule automatically | it takes a **human re-press**: this mutation is deliberately not wrapped in `retryOnce`, unlike `reveal` and `completeDrill` |
+
+The defect and the fix are unchanged. What was overstated was its inevitability, and an entry that
+says a thing is permanent when it is merely likely is the same failure this ledger exists to catch —
+committed one cycle after being written, which is the shortest such loop in this PR.
 
 Full verify with the database up: **1,474 tests, 0 skipped**, 10/10 gates, every control red.
 
