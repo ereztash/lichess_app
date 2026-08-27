@@ -10,35 +10,22 @@
  * product exists to argue against, so it is not one of the possible outcomes.
  */
 
+import {
+  clampMax,
+  UNFINISHED,
+  type ImportFailure,
+  type ImportResult,
+  type ImportedGame,
+} from "./game-source";
+
+/*
+ * The shape of an imported game moved to `game-source.ts` when Chess.com arrived, and these
+ * re-exports keep every existing importer working. There is one definition of what a game is
+ * because two would be two chances for a screen to read a Lichess game as a Chess.com one.
+ */
+export type { ImportFailure, ImportResult, ImportedGame };
+
 const LICHESS_ORIGIN = "https://lichess.org";
-
-export type ImportedGame = {
-  id: string;
-  white: string;
-  black: string;
-  whiteRating: number | null;
-  blackRating: number | null;
-  /** Lichess's own terminal status: "draw", "mate", "resign", "outoftime", ... */
-  status: string;
-  speed: string;
-  rated: boolean;
-  playedAt: number;
-  opening: string | null;
-  pgn: string;
-};
-
-export type ImportFailure = {
-  /** Named so the screen can say which of these happened rather than "something went wrong". */
-  kind: "empty-username" | "no-such-user" | "rate-limited" | "no-games" | "blocked" | "lichess-error";
-  message: string;
-};
-
-export type ImportResult =
-  | { ok: true; games: ImportedGame[] }
-  | { ok: false; failure: ImportFailure };
-
-/** Games still in progress must never reach the analysis layers -- the fair-play guard is why. */
-const UNFINISHED = new Set(["created", "started"]);
 
 function playerName(side: { user?: { name?: string }; aiLevel?: number } | undefined): string {
   if (side?.user?.name) return side.user.name;
@@ -69,6 +56,7 @@ function toGame(raw: Record<string, unknown>): ImportedGame | null {
     playedAt: typeof raw.createdAt === "number" ? raw.createdAt : 0,
     opening: opening?.name ?? null,
     pgn,
+    source: "lichess",
   };
 }
 
@@ -89,7 +77,7 @@ export async function fetchUserGames(
   }
 
   const query = new URLSearchParams({
-    max: String(Math.min(Math.max(max, 1), 50)),
+    max: String(clampMax(max)),
     pgnInJson: "true",
     opening: "true",
     // "true" so the PGN carries [%clk], which is the only source of secondsTaken and
@@ -135,7 +123,7 @@ export async function fetchUserGames(
   if (!response.ok) {
     return {
       ok: false,
-      failure: { kind: "lichess-error", message: `ליצ'ס החזיר שגיאה ${response.status}.` },
+      failure: { kind: "source-error", message: `ליצ'ס החזיר שגיאה ${response.status}.` },
     };
   }
 

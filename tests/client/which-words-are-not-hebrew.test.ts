@@ -29,6 +29,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { SOURCE_PLACEHOLDER } from "@/lib/game-source";
 
 const root = resolve(__dirname, "../..");
 
@@ -43,6 +44,17 @@ function tsxFiles(dir: string): string[] {
 }
 
 const HEBREW = /[֐-׿]/;
+
+/**
+ * An element's attributes with its comments removed.
+ *
+ * A positive control stayed green over this: deleting `lang="en"` from the import input left the
+ * scan passing, because the comment ABOVE the attribute explains the rule and contains the words
+ * `lang="he"`. The check was reading the prose that describes the requirement instead of the
+ * requirement. Same trap ux-contract.test.ts strips comments for, one file over.
+ */
+const attributes = (element: string) =>
+  element.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 
 /**
  * Every `placeholder` whose text is Latin script with no Hebrew in it, with the attribute block of
@@ -60,7 +72,7 @@ function latinPlaceholders() {
       // Back to the `<` that opens this element, forward to the `>` that closes the open tag.
       const open = source.lastIndexOf("<", match.index);
       const close = source.indexOf(">", match.index);
-      found.push({ file, placeholder: value, element: source.slice(open, close) });
+      found.push({ file, placeholder: value, element: attributes(source.slice(open, close)) });
     }
   }
   return found;
@@ -79,10 +91,50 @@ describe("a Hebrew page that says which of its words are not Hebrew", () => {
 
   it("found placeholders to check, so a passing scan is not an empty one", () => {
     // The scan above passes trivially if the regex stops matching. This is the denominator.
-    expect(latinPlaceholders().map((entry) => entry.placeholder).sort()).toEqual([
-      "lichess username",
-      "username",
-    ]);
+    expect(latinPlaceholders().map((entry) => entry.placeholder).sort()).toEqual(["username"]);
+  });
+
+  it("keeps an inventory of the placeholders no literal scan can read", () => {
+    /*
+     * THE SCAN WENT BLIND ONCE AND NOTHING FAILED. `placeholder="lichess username"` was a literal
+     * until the import grew a second site; it became `placeholder={SOURCE_PLACEHOLDER[source]}`,
+     * still English, still inside a Hebrew page, still needing `lang` -- and the regex above
+     * simply stopped seeing it. The element was correct, which is exactly what made the silence
+     * dangerous: coverage had shrunk with nothing to say so.
+     *
+     * Widening the regex to catch every `placeholder={...}` was the wrong repair: two of them are
+     * handed Hebrew example sentences, which correctly carry no `lang`, and demanding one would
+     * have asserted a language for text that already has the page's. So the interpolated ones are
+     * an inventory instead, each with the rule that applies to it -- which is how the thirty-five
+     * LTR islands at the top of this file were settled too.
+     */
+    const interpolated = tsxFiles("client/src").flatMap((file) =>
+      [...readFileSync(resolve(root, file), "utf8").matchAll(/placeholder=\{([^}]*)\}/g)].map(
+        (match) => `${file}: ${match[1].trim()}`,
+      ),
+    );
+    expect(interpolated.sort()).toEqual([
+      // English, and its input declares lang="en". The strings are asserted below.
+      "client/src/components/ImportGames.tsx: SOURCE_PLACEHOLDER[source]",
+      // Hebrew example sentences. No lang, correctly: they are the language of the page.
+      "client/src/components/CommitmentScreen.tsx: textPlaceholder",
+    ].sort());
+
+    const values = Object.values(SOURCE_PLACEHOLDER);
+    expect(values.length, "the source list emptied out").toBeGreaterThan(1);
+    for (const value of values) {
+      expect(/[A-Za-z]{2,}/.test(value), `"${value}" is not Latin text`).toBe(true);
+      expect(HEBREW.test(value), `"${value}" is Hebrew under lang="en"`).toBe(false);
+    }
+    const importGames = readFileSync(resolve(root, "client/src/components/ImportGames.tsx"), "utf8");
+    const at = importGames.indexOf("placeholder={SOURCE_PLACEHOLDER");
+    const input = attributes(
+      importGames.slice(importGames.lastIndexOf("<", at), importGames.indexOf(">", at)),
+    );
+    expect(
+      /\blang=/.test(input),
+      "the English placeholder's input stopped declaring a language",
+    ).toBe(true);
   });
 
   it("declares the Lichess speed name, which is an English word and not a code", () => {

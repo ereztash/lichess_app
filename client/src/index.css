@@ -832,6 +832,26 @@ button:not(:disabled) {
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.75);
 }
+/*
+ * The two sites, side by side.
+ *
+ * A row rather than a select, because with two options a menu costs a tap just to learn what the
+ * alternative is -- and the person who needs to know the alternative exists is exactly the one
+ * without a Lichess account. `.ghost-control` carries the 44px tap floor already, so the pressed
+ * state is all this adds.
+ */
+.import-sources {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.import-source[aria-pressed="true"] {
+  border-color: var(--blue);
+  color: var(--on-blue);
+  background: var(--blue);
+}
+
 .import-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

@@ -34,7 +34,14 @@ import { Suspense, lazy, useState } from "react";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { useImportReading, useRecordReading } from "@/lib/record-api";
-import { fetchUserGames } from "@/lib/lichess-public";
+import { fetchGames } from "@/lib/fetch-games";
+import {
+  GAME_SOURCES,
+  preferredSource,
+  rememberSource,
+  SOURCE_LABEL,
+  type GameSource,
+} from "@/lib/game-source";
 import { pickFirstDecision } from "@/lib/first-decision";
 import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import { nextAnchor } from "@/lib/anchor-run";
@@ -65,6 +72,9 @@ const RecordDashboard = lazy(() =>
 function FirstDecision({ knownUsername }: { knownUsername?: string }) {
   const [, navigate] = useLocation();
   const [username, setUsername] = useState(knownUsername ?? "");
+  /* The front door has to offer both sites, or the fastest route into the product is closed to
+     whoever does not have a Lichess account. Remembered per browser, like the import drawer. */
+  const [source, setSource] = useState<GameSource>(preferredSource);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,7 +82,7 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
     setBusy(true);
     setError(null);
     try {
-      const result = await fetchUserGames(username, GAMES_FOR_FIRST_DECISION);
+      const result = await fetchGames(source, username, GAMES_FOR_FIRST_DECISION);
       if (!result.ok) {
         setError(result.failure.message);
         return;
@@ -106,11 +116,13 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         revealTiming: "per-decision",
         orientation: decision.orientation,
         opponent: null,
-        gameId: `lichess-${decision.gameId}`,
+        gameId: `${source}-${decision.gameId}`,
       });
       navigate("/play");
     } catch {
-      setError("לא הצלחתי להגיע ל-Lichess. אפשר לנסות שוב, או לטעון משחק ידנית מהלוח.");
+      setError(
+        `לא הצלחתי להגיע ל-${SOURCE_LABEL[source]}. אפשר לנסות שוב, או לטעון משחק ידנית מהלוח.`,
+      );
     } finally {
       setBusy(false);
     }
@@ -123,8 +135,26 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         עמדה אחת ממשחק ש<strong>אתם</strong> שיחקתם. תבחרו מהלך ותגידו כמה אתם בטוחים — ורק אז
         המנוע ידבר. זה מה שהאפליקציה מודדת, וזו הדרך המהירה ביותר להרגיש אותו.
       </p>
+      {/* Both named, because someone without a Lichess account has to see the other one exists. */}
+      <div className="import-sources" role="group" aria-label="מאיזה אתר לייבא">
+        {GAME_SOURCES.map((option) => (
+          <button
+            key={option}
+            type="button"
+            className={`ghost-control import-source${option === source ? " selected" : ""}`}
+            aria-pressed={option === source}
+            onClick={() => {
+              setSource(option);
+              rememberSource(option);
+              setError(null);
+            }}
+          >
+            {SOURCE_LABEL[option]}
+          </button>
+        ))}
+      </div>
       <div className="first-decision-form">
-        <label htmlFor="first-decision-username">שם המשתמש שלכם ב-Lichess</label>
+        <label htmlFor="first-decision-username">שם המשתמש שלכם ב-{SOURCE_LABEL[source]}</label>
         <input
           id="first-decision-username"
           dir="ltr"

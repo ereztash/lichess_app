@@ -65,7 +65,7 @@ describe("importing games by username", () => {
   it.each([
     [404, "no-such-user"],
     [429, "rate-limited"],
-    [500, "lichess-error"],
+    [500, "source-error"],
   ])("names the cause behind HTTP %i as %s", async (status, kind) => {
     const result = await fetchUserGames("alice", 5, respondWith("", status));
     expect(result.ok).toBe(false);
