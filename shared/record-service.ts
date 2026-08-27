@@ -408,6 +408,7 @@ export async function beginLearningTransfer(
   if (rule.grade === "refuted" || rule.grade === "retired") {
     return {
       transfer: null,
+      observed: 0,
       reason:
         rule.grade === "refuted"
           ? "הכלל הזה הופרך, ולכן אין עליו בדיקות נוספות."
@@ -427,6 +428,7 @@ export async function beginLearningTransfer(
   if (!isScoreable(rule.action_rule)) {
     return {
       transfer: null,
+      observed: 0,
       reason:
         "אי אפשר למדוד שליפה של הכלל הזה: הניסוח שלו קצר מדי או מורכב מסימונים בלבד. " +
         "כדי שהבדיקה תוכל להשוות את מה שתשלפו למה שכתבתם, הכלל צריך כמה מילים משלו.",
@@ -434,7 +436,22 @@ export async function beginLearningTransfer(
   }
 
   const open = await store.getOpenLearningTransfer(rule.rule_id);
-  if (open) return { transfer: open, reason: null };
+  if (open) {
+    /*
+     * THE RESUME CARRIES HOW FAR THE RUN GOT, because the client cannot know and used to assume.
+     *
+     * It reset its index to 0 on every resume, and nothing exposed the observation count -- so a
+     * returning player was served a board they had already decided and seen the engine's verdict
+     * for. The server no longer breaks when that happens (the slot is derived from the board), but
+     * re-serving a decided position is the thing per-position writes were introduced to prevent,
+     * and not doing it is better than surviving it.
+     */
+    return {
+      transfer: open,
+      observed: (await store.listLearningTransferObservations(open.transfer_id)).length,
+      reason: null,
+    };
+  }
 
   /*
    * NULL IS THE END OF THE SCHEDULE, NOT PERMISSION. `gradeLearningRule` sets `next_due_at` to
@@ -445,12 +462,14 @@ export async function beginLearningTransfer(
   if (!rule.next_due_at) {
     return {
       transfer: null,
+      observed: 0,
       reason: "לוח החזרות של הכלל הזה הסתיים. אין בדיקה נוספת מתוזמנת עבורו.",
     };
   }
   if (new Date(now.started_at) < new Date(rule.next_due_at)) {
     return {
       transfer: null,
+      observed: 0,
       reason: `הכלל הזה מתוזמן לחזרה מרווחת בתאריך ${rule.next_due_at}.`,
     };
   }
@@ -497,6 +516,7 @@ export async function beginLearningTransfer(
   if (eligible.length < TRANSFER_POSITION_COUNT) {
     return {
       transfer: null,
+      observed: 0,
       reason:
         `נדרשות ${TRANSFER_POSITION_COUNT} עמדות מחוץ לפתיחה שלא הכרעתם בהן; זמינות ${eligible.length}. ` +
         "בפתיחה הדיוק גבוה יותר אצל כולם, ולכן בדיקה שם כמעט לא מפרידה בין כלל שעבד לכלל שלא.",
@@ -516,7 +536,7 @@ export async function beginLearningTransfer(
   const transfer = preregisterLearningTransfer(rule, unseen.slice(0, TRANSFER_POSITION_COUNT), now);
   // R5 for learning: persist the snapshot and refutation condition before returning any FEN.
   await store.saveLearningTransfer(transfer);
-  return { transfer, reason: null };
+  return { transfer, observed: 0, reason: null };
 }
 
 /**
@@ -538,19 +558,61 @@ export async function recordLearningTransferObservation(
   if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
 
   const already = await store.listLearningTransferObservations(transfer.transfer_id);
-  const position = already.length;
-  if (position >= transfer.fens.length) {
-    throw new RecordError("PRECONDITION_FAILED", "כל העמדות בבדיקה הזו כבר נרשמו.");
-  }
 
   /*
-   * The decision has to be the one this slot preregistered. Compared as POSITIONS, for the same
-   * reason the candidates were: a decision recorded against the identical board later in a game is
-   * the position that was written down.
+   * THE SLOT COMES FROM THE BOARD, NOT FROM A COUNT ONLY THE SERVER CAN SEE.
+   *
+   * This took `already.length` as the slot being answered, and that deadlocked the rule. The
+   * client resets its index to 0 on every resume and no route exposes the count -- so after ONE
+   * interruption past the first position, the board re-served `fens[0]`, this computed slot 1,
+   * compared the decision against `fens[1]`, and refused. The count never changes, so every retry
+   * repeated the identical refusal.
+   *
+   * What that costs is not the run, it is the rule. The transfer can never reach `fens.length`
+   * observations, so it can never be reported; `getOpenLearningTransfer` therefore returns it
+   * forever and `beginLearningTransfer` never issues another. The rule sits at `hypothesis` with a
+   * due date, a test button and no path that can complete a test. The only escape in the product
+   * is Archive, which kills the rule rather than repairing it.
+   *
+   * It is the same failure the per-position write was introduced to prevent -- "a reload lost them
+   * and the resume re-served positions whose engine verdict the player had already seen". The
+   * observations survived the reload; the POINTER INTO THEM did not, because it was never stored,
+   * only counted.
+   *
+   * Deriving it from the position makes this write idempotent and independent of what the client
+   * believes: the same decision on the same board answers the same slot however many times it
+   * arrives, and a client that has lost its place cannot be told a wrong one.
    */
   const atom = await store.getAtom(input.observation.decision_id);
   if (!atom) throw new RecordError("PRECONDITION_FAILED", "ההחלטה הזו לא נרשמה.");
-  if (!samePosition(atom.entry_state.fen, transfer.fens[position])) {
+  /*
+   * Compared as POSITIONS, for the same reason the candidates were: a decision recorded against
+   * the identical board later in a game is the position that was written down. The candidate set
+   * is deduplicated by `positionKey` at preregistration, so no two slots share a board and this
+   * match is unambiguous.
+   */
+  const position = transfer.fens.findIndex((fen) => samePosition(atom.entry_state.fen, fen));
+  if (position === -1) {
+    throw new RecordError("PRECONDITION_FAILED", "ההחלטה נרשמה לעמדה אחרת מזו שבתור.");
+  }
+
+  /*
+   * ALREADY ANSWERED IS A REPLAY, NOT AN ERROR -- and the answer that stands is the first one.
+   *
+   * A resumed client re-serves a board it has already decided; the honest response is to say that
+   * slot is done so it can move on, not to write a second answer over the preregistered one. The
+   * decision the player just made is a decision like any other and stays on the record; it is
+   * simply not this slot's observation.
+   */
+  if (position < already.length) {
+    return { position, remaining: transfer.fens.length - position - 1 };
+  }
+  /*
+   * And out of order is still refused. `finishLearningTransfer` pairs observation i with `fens[i]`,
+   * so the slots must fill in sequence; answering position 2 while 1 is empty would put the run in
+   * a state nothing downstream can read.
+   */
+  if (position > already.length) {
     throw new RecordError("PRECONDITION_FAILED", "ההחלטה נרשמה לעמדה אחרת מזו שבתור.");
   }
 
@@ -800,8 +862,13 @@ export async function finishDrill(
    * `finishLearningTransfer` learned this in cycle 31 and this path had not. `saveDrillResult` is
    * append-only in both stores -- Memory throws "append-only: drill already reported", Drizzle
    * violates the `drill_results` primary key -- so the retry that a lost response makes inevitable
-   * raised, forever, and the verdict was unreachable. A failed completion is reachable by design:
-   * the runner returns the player to the drill so reporting can be retried.
+   * raised, forever, and the verdict was unreachable.
+   *
+   * AND THE FIRST VERSION OF THIS COMMENT WAS WRONG ABOUT WHY IT IS REACHED. It said "the runner
+   * returns the player to the drill so reporting can be retried" -- which is what the TRANSFER
+   * runner does. `DrillRunner` sets the stage to "done" and renders no control at all, so nothing
+   * retried and this branch could not run. `advanceDrill` now sends the same payload twice, which
+   * is what makes the repair below reachable rather than theoretical.
    *
    * `prospective_tests` is read from the result rows by both `getClaim` implementations, so this
    * is a read the function was already doing. And it grades before returning, because the write

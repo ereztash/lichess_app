@@ -1135,11 +1135,23 @@ export default function Home() {
     }
 
     setDrillStage("reporting");
+    /*
+     * THE SAME PAYLOAD, TWICE, for the same reason the reveal does it.
+     *
+     * `finishDrill` gained an idempotent replay branch that repairs a claim whose grade write was
+     * lost -- and it was unreachable from here. This catch sets the stage to "done", not back to
+     * "running" the way the transfer runner does, and at "done" with no verdict `DrillRunner`
+     * renders an error paragraph and no control at all: the verdict block is gated on `verdict`
+     * and the abandon button on briefing|running. The drill id lives only in React state, so a
+     * reload discards it. Nothing would ever have called `completeDrill` with it again.
+     *
+     * A server-side repair branch nothing retries is worth nothing. One retry, with the object
+     * already built -- the decision ids are the record's, not recomputed, so the second attempt
+     * asks the identical question and the replay branch answers it.
+     */
+    const drillPayload = { drill_id: drill.drill_id, decision_ids: drillDecisionIds };
     try {
-      const result = await completeDrillMutation.mutateAsync({
-        drill_id: drill.drill_id,
-        decision_ids: drillDecisionIds,
-      });
+      const result = await retryOnce(() => completeDrillMutation.mutateAsync(drillPayload));
       // Reported either way -- a refutation is the result, not a failure to report.
       setDrillVerdict({
         description: result.description,
@@ -1185,12 +1197,24 @@ export default function Home() {
           setLearningTransferError(response.reason ?? "אין כרגע שלוש עמדות חדשות לבדיקה.");
           return;
         }
+        /*
+         * RESUME WHERE THE RECORD IS, not at zero.
+         *
+         * This reset the index unconditionally, and a resumed run was therefore served a board the
+         * player had already decided and already seen the engine's verdict for -- the exact thing
+         * per-position writes were introduced to prevent. Worse, the server derived the slot being
+         * answered by counting rows, so the mismatch refused the write and the transfer could
+         * never be completed: the rule was left with a due date and no path that could test it.
+         *
+         * `observed` comes back with the resumed transfer now. A fresh start returns 0, so this is
+         * the same line for both cases.
+         */
         setLearningTransfer(response.transfer);
-        setLearningTransferIndex(0);
+        setLearningTransferIndex(response.observed);
         setLearningTransferStage("briefing");
         setLearningTransferRecall("");
         setLearningTransferApplied(null);
-        setLearningTransferObservations(0);
+        setLearningTransferObservations(response.observed);
         setLearningTransferVerdict(null);
       } catch (cause) {
         setLearningTransferError(

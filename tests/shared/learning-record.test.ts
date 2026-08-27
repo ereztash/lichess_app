@@ -885,16 +885,35 @@ describe("an observation is on the record the moment it is made", () => {
     ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
   });
 
-  it("records each position once, refusing a second write for the same slot", async () => {
+  it("records each position once: the first answer stands and a second writes nothing", async () => {
+    /*
+     * THIS TEST NAMED THE WRONG MECHANISM, and the mechanism it named was a deadlock.
+     *
+     * It asserted that a second write for slot 0 throws, and called that "refusing a second write
+     * for the same slot". What actually threw was the FEN comparison: the slot was derived by
+     * counting rows, so a decision on `fens[0]` was checked against `fens[1]`. That is precisely
+     * the state a resumed client produces -- it restarts at index 0 -- so the refusal this test
+     * pinned as correct was the thing that froze the rule.
+     *
+     * The slot now comes from the board. Re-answering a slot already answered is a REPLAY: it
+     * returns that slot so a client which has lost its place can move on, and it writes nothing.
+     * What is protected is the answer, not the call -- the preregistered one stands.
+     */
     const store = new MemoryRecordStore();
     const { ids, rule } = await startAndDecide(store, 1);
-    await expect(
-      service.recordLearningTransferObservation(store, {
-        transfer_id: "transfer-1",
-        observation: { decision_id: ids[0], recalled_rule: rule.action_rule, applied_rule: true },
-      }),
-      "the same position was recorded twice",
-    ).rejects.toThrow();
+    const first = await store.listLearningTransferObservations("transfer-1");
+
+    const replay = await service.recordLearningTransferObservation(store, {
+      transfer_id: "transfer-1",
+      observation: { decision_id: ids[0], recalled_rule: "משהו אחר לגמרי", applied_rule: false },
+    });
+
+    expect(replay).toEqual({ position: 0, remaining: 2 });
+    expect(
+      await store.listLearningTransferObservations("transfer-1"),
+      "a second answer overwrote the preregistered one",
+    ).toEqual(first);
+    expect(first[0].recalled_rule).toBe(rule.action_rule);
   });
 
   it("refuses a fourth observation on a three-position test", async () => {
@@ -1237,5 +1256,168 @@ describe("a grade that two writes can lose", () => {
     expect(stored?.last_evaluated_at).toBe(DAY_TWO);
     // The schedule moved too. Left where it was, the rule reads as due the moment it was tested.
     expect(stored?.next_due_at).toBe("2026-01-12T03:00:00.000Z");
+  });
+});
+
+/**
+ * The pointer into the observations does not survive what the observations survive.
+ *
+ * Per-position writes were introduced so a reload could not lose a transfer run: "each observation
+ * is written when it is made", and the test above proves the rows come back. What it does not
+ * prove is that the run can CONTINUE, and it cannot.
+ *
+ * `recordLearningTransferObservation` derives which slot is being answered by COUNTING the rows
+ * already written. The client resets its index to 0 unconditionally on resume, and no route exposes
+ * the count -- `listLearningTransferObservations` is on no tRPC procedure. So after one
+ * interruption the board re-serves `fens[0]`, the server computes slot 1, compares the decision's
+ * board against `fens[1]`, and refuses. The count never changes, so every retry repeats the
+ * identical refusal.
+ *
+ * IT DEADLOCKS THE RULE, NOT JUST THE RUN. The transfer can never reach `fens.length`
+ * observations, so it can never be reported; `getOpenLearningTransfer` therefore returns it
+ * forever and `beginLearningTransfer` never issues another. The rule sits at `hypothesis` with a
+ * due date, a test button, and no path that can complete a test. The only escape in the product is
+ * Archive, which kills the rule rather than repairing it.
+ *
+ * THE CLIENT IS MODELLED RATHER THAN ASSUMED. These tests hold a `served` index the way `Home.tsx`
+ * does -- starting at 0 on every resume, advancing only when a write resolves -- because the defect
+ * lives in the gap between that index and the server's count. A test that simply posted the right
+ * FEN would pass against the broken code and prove nothing.
+ */
+describe("a transfer run that cannot be resumed", () => {
+  /** A started transfer with `howMany` positions already sat. Local copy: the one above is scoped. */
+  async function started(store: MemoryRecordStore, howMany: number) {
+    const rule = await createRule(store);
+    const { transfer } = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    const ids = [
+      "22222222-2222-4222-8222-222222222222",
+      "33333333-3333-4333-8333-333333333333",
+      "44444444-4444-4444-8444-444444444444",
+    ];
+    for (let index = 0; index < howMany; index += 1) {
+      await recordPosition(store, ids[index], transfer!.fens[index]);
+      await service.recordLearningTransferObservation(store, {
+        transfer_id: "transfer-1",
+        observation: {
+          decision_id: ids[index],
+          recalled_rule: rule.action_rule,
+          applied_rule: true,
+        },
+      });
+    }
+    return { rule, transfer: transfer! };
+  }
+
+  /** What `Home.tsx` does: serve `fens[served]`, advance only when the write resolves. */
+  async function sitAsTheClientWould(
+    store: MemoryRecordStore,
+    transfer: { transfer_id: string; fens: string[] },
+    rule: { action_rule: string },
+    idPrefix: string,
+    served: number,
+  ) {
+    const recorded: number[] = [];
+    for (let attempt = 0; served < transfer.fens.length; attempt += 1) {
+      const decisionId = `${idPrefix}${String(attempt).padStart(12, "0")}`;
+      await recordPosition(store, decisionId, transfer.fens[served]);
+      const outcome = await service
+        .recordLearningTransferObservation(store, {
+          transfer_id: transfer.transfer_id,
+          observation: {
+            decision_id: decisionId,
+            recalled_rule: rule.action_rule,
+            applied_rule: true,
+          },
+        })
+        .catch((error: unknown) => error as Error);
+      if (outcome instanceof Error) return { recorded, stuckAt: served, error: outcome };
+      recorded.push(outcome.position);
+      served += 1;
+    }
+    return { recorded, stuckAt: null, error: null };
+  }
+
+  it("continues from where the record already is, after the client has lost its place", async () => {
+    const store = new MemoryRecordStore();
+    const { rule, transfer } = await started(store, 1);
+    // One observation is on the record. The tab is closed; the client comes back at index 0.
+    expect(await store.listLearningTransferObservations(transfer.transfer_id)).toHaveLength(1);
+
+    const run = await sitAsTheClientWould(store, transfer, rule, "aaaaaaaa-aaaa-4aaa-8aaa-", 0);
+
+    expect(run.error, `the run stopped at position ${run.stuckAt}`).toBeNull();
+    expect(await store.listLearningTransferObservations(transfer.transfer_id)).toHaveLength(
+      transfer.fens.length,
+    );
+  });
+
+  it("lets the transfer be reported, so the rule is not frozen with a due date and no way to test it", async () => {
+    const store = new MemoryRecordStore();
+    const { rule, transfer } = await started(store, 2);
+    await sitAsTheClientWould(store, transfer, rule, "bbbbbbbb-bbbb-4bbb-8bbb-", 0);
+
+    const outcome = await service.finishLearningTransfer(
+      store,
+      { transfer_id: transfer.transfer_id },
+      { completed_at: "2026-01-02T04:00:00.000Z" },
+    );
+    expect(outcome.result.decision_ids).toHaveLength(transfer.fens.length);
+
+    // And the rule is testable again rather than pinned to a transfer that can never close.
+    const next = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-2", started_at: "2026-01-05T06:00:00.000Z" },
+    );
+    expect(next.transfer?.transfer_id, next.reason ?? "").toBe("transfer-2");
+  });
+
+  it("tells the resuming client how far the run got, so a decided board is not served again", async () => {
+    /*
+     * The server survives a client that has lost its place, but surviving it is not the same as
+     * not doing it: re-serving a position whose engine verdict the player has already seen is the
+     * thing per-position writes exist to prevent. `observed` is what lets the client skip it.
+     */
+    const store = new MemoryRecordStore();
+    const { rule } = await started(store, 2);
+    const resumed = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-ignored", started_at: "2026-01-02T03:00:00.000Z" },
+    );
+    expect(resumed.transfer?.transfer_id, "a second transfer was preregistered").toBe("transfer-1");
+    expect(resumed.observed).toBe(2);
+  });
+
+  it("reports zero for a run that has not started, so the client has one code path", async () => {
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const fresh = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-fresh", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(fresh.transfer?.transfer_id).toBe("transfer-fresh");
+    expect(fresh.observed).toBe(0);
+  });
+
+  it("still refuses a board that is in no slot of this transfer", async () => {
+    // The guard that must survive: a decision recorded against some other position is not an
+    // answer to any question this transfer asked.
+    const store = new MemoryRecordStore();
+    const { rule, transfer } = await started(store, 0);
+    const stray = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    await recordPosition(store, stray, FENS[6]);
+    expect(transfer.fens).not.toContain(FENS[6]);
+    await expect(
+      service.recordLearningTransferObservation(store, {
+        transfer_id: transfer.transfer_id,
+        observation: { decision_id: stray, recalled_rule: rule.action_rule, applied_rule: true },
+      }),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
   });
 });

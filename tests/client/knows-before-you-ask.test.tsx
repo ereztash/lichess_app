@@ -371,3 +371,49 @@ describe("the game survives the tab", () => {
     expect(home).toMatch(/if \(restored\.current\) return;\s*\n\s*restored\.current = true;/);
   });
 });
+
+/**
+ * The resumed transfer run picks up where the record is.
+ *
+ * Asserted against the source because the alternative is mounting the board, an engine worker and
+ * a store to observe one `useState` call. The claim is narrow and the wiring is the whole of it:
+ * `beginLearningTransfer` returns `observed` with a resumed transfer, and the client must use it
+ * rather than resetting to zero.
+ */
+describe("a transfer run resumes where it stopped", () => {
+  it("seeds the index and the counter from the record, not from zero", () => {
+    /*
+     * Scoped to the block that installs the transfer. `closeLearningTransfer` also resets the
+     * index to 0 and is right to -- it is tearing the run down, not starting one -- so a
+     * whole-file assertion would be red for the wrong reason.
+     */
+    const home = code("client/src/pages/Home.tsx");
+    const install = home.slice(home.indexOf("setLearningTransfer(response.transfer)"));
+    const block = install.slice(0, install.indexOf("setLearningTransferVerdict"));
+    expect(block, "the resumed run restarts at position 0").not.toMatch(
+      /setLearningTransferIndex\(0\)/,
+    );
+    expect(block).toMatch(/setLearningTransferIndex\(response\.observed\)/);
+    expect(block).toMatch(/setLearningTransferObservations\(response\.observed\)/);
+  });
+
+  it("retries the drill completion, which is what makes its repair branch reachable", () => {
+    /*
+     * `finishDrill` repairs a claim whose grade write was lost -- and only if something calls it
+     * again. This catch sets the stage to "done", where `DrillRunner` renders an error paragraph
+     * and no control: the verdict block is gated on `verdict`, the abandon button on
+     * briefing|running, and the drill id lives only in React state. Without the retry the repair
+     * branch could not run at all.
+     */
+    const home = code("client/src/pages/Home.tsx");
+    expect(home).toMatch(/retryOnce\(\(\) => completeDrillMutation\.mutateAsync\(drillPayload\)\)/);
+    // Built once and sent twice: a rebuilt payload is a different question.
+    expect(home).toMatch(/const drillPayload = \{ drill_id: drill\.drill_id/);
+  });
+
+  it("is served by the service, so the client is not guessing", () => {
+    const service = code("shared/record-service.ts");
+    // Returned beside the resumed transfer, from the rows themselves.
+    expect(service).toMatch(/observed: \(await store\.listLearningTransferObservations\(/);
+  });
+});

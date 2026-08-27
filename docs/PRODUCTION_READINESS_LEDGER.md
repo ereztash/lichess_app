@@ -1158,6 +1158,88 @@ this commit:
 
 Full verify with the database up: **1,443 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 38 — the pointer did not survive what the observations survived
+
+Two more sweep angles came back and **found the same defect independently**, both `high`, both
+reproduced. It is the worst thing in this PR so far, because it does not lose a run — it kills a
+rule.
+
+`recordLearningTransferObservation` derived the slot being answered by **counting the rows already
+written**. The client resets its index to 0 on every resume, and no route exposes that count —
+`listLearningTransferObservations` is on no tRPC procedure. So after one interruption past the
+first position:
+
+| | |
+| --- | --- |
+| the board re-serves | `fens[0]` |
+| the server computes slot | `already.length` = 1 |
+| compares the decision against | `fens[1]` — a different board by construction |
+| result | `PRECONDITION_FAILED`, and the count never changes, so **every** retry repeats it |
+| the transfer | can never reach `fens.length`, so can never be reported |
+| `getOpenLearningTransfer` | therefore returns it **forever** |
+| the rule | frozen at `hypothesis`, with a due date, a test button, and no path that can complete a test |
+
+The only escape in the product is Archive, which kills the rule rather than repairing it.
+
+**It is the exact failure the per-position write was introduced to prevent** — its own comment says
+*"a reload lost them and the resume re-served positions whose engine verdict the player had already
+seen"*. The observations survived the reload. **The pointer into them did not, because it was never
+stored, only counted.**
+
+### An existing test had it pinned as correct
+
+`"records each position once, refusing a second write for the same slot"` asserted that the second
+write throws, and named append-only as the reason. What actually threw was the FEN comparison —
+which is precisely the state a resumed client produces. **The test that was supposed to protect the
+slot was protecting the deadlock.** Rewritten to assert what actually matters: the preregistered
+answer stands and a second one writes nothing.
+
+That is the fourth time in this PR a test encoded the pre-fix behaviour, and the fourth time the
+principle survived and only its expression changed.
+
+### The fix is on both sides, because either alone is half
+
+- **Server**: the slot comes from the **board**, not the count. `transfer.fens.findIndex(samePosition)`
+  — the candidate set is deduplicated by `positionKey` at preregistration, so no two slots share a
+  board and the match is unambiguous. A slot already answered is a **replay**: it returns that slot
+  so a client which has lost its place can move on, and writes nothing. Out of order is still
+  refused, because `finishLearningTransfer` pairs observation *i* with `fens[i]`.
+- **Client**: `beginLearningTransfer` now returns `observed` with a resumed transfer, and the run
+  picks up there. Surviving a re-served board is not the same as not re-serving it — the player had
+  already seen the engine's verdict for that position, which is the thing this whole mechanism
+  exists to prevent.
+
+**The tests model the client rather than assuming it** — they hold a `served` index the way
+`Home.tsx` does, starting at 0 on every resume and advancing only when a write resolves. A test that
+simply posted the right FEN would have passed against the broken code and proved nothing.
+
+### And a second finding against this branch's own work
+
+The sweep also found that **cycle 36's repair branch was unreachable from the UI** — the same
+mistake cycle 37 caught for the reveal, one function over and not noticed. `DrillRunner` sets the
+stage to "done" on a failed completion, not back to "running" the way the transfer runner does, and
+at "done" with no verdict it renders an error paragraph and **no control at all**: the verdict block
+is gated on `verdict`, the abandon button on briefing|running, and the drill id lives only in React
+state. Nothing would ever have called `completeDrill` again.
+
+Worse, **the comment justifying that branch was wrong** — it said "the runner returns the player to
+the drill so reporting can be retried", which describes the *transfer* runner. Both are fixed:
+`advanceDrill` sends the same payload twice through `retryOnce`, and the comment says what is
+actually true.
+
+Four positive controls: the count-derived slot reddens three assertions, an overwriting replay
+reddens the same three, the client's reset-to-zero reddens the resume wiring, and dropping the drill
+retry reddens the reachability claim.
+
+Full verify with the database up: **1,451 tests, 0 skipped**, 10/10 gates, every control red.
+
+**Still open from the sweep, with reproductions:** the fold's write is last-writer-wins and can
+destroy `retired` — the one grade nothing can re-derive, and cycle 31 put that write on a path that
+previously performed none; every READ of a learning rule still serves the stored grade, so a rule
+the record refutes is offered for another test; a lost reveal silently shrinks a pre-registered
+drill; `createLearningRule` locks the reflection or duplicates the rule; and a lost `commitDecision`
+response writes a phantom decision. Three angles and the completeness critic are still running.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1185,6 +1267,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
 | — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
+| — | The fold's write can destroy `retired`, and every read of a learning rule serves the stored grade | **High** | open, found by the cycle-38 sweep, both reproduced, and both are gaps in the cycle-31 fix. `retired` is set by one function and stored only as the grade enum — no `retired_at`, no retirement event — so nothing can re-derive it, and the fold's write now runs on a path that previously performed none |
 | — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
 | — | A lost reveal silently shrinks a pre-registered drill, and the truncated verdict is append-only | **Medium** | open, found by the cycle-37 sweep. R5: the verdict is decided over a decision set the pre-registration did not name |
 | — | `createLearningRule`: a failure between its two writes locks the reflection, and a lost response duplicates the rule | **Medium** | open, found by the cycle-37 sweep, both reproduced |
