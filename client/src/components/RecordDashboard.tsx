@@ -10,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
+import { MIN_STABILITY_HALF } from "@shared/stability";
 import { PHASE_DIFFICULTY_N, PHASE_VARIANCE_EXPLAINED } from "@shared/phase-difficulty";
 import type { Control } from "@shared/control";
 import type { Sensitivity } from "@shared/sensitivity";
@@ -93,8 +94,17 @@ const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = 
 };
 
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
-  const { overall, buckets, confidence, scored, calibration, sensitivity, sensitivityReference, control } =
-    reading;
+  const {
+    overall,
+    buckets,
+    confidence,
+    scored,
+    calibration,
+    sensitivity,
+    sensitivityReference,
+    control,
+    stability,
+  } = reading;
 
   if (scored === 0) {
     return (
@@ -292,6 +302,79 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         מעורבב עם קושי העמדה — עמדה קשה גם לוקחת יותר זמן וגם מרגישה פחות בטוחה. רק על הסט המשותף
         אפשר להשוות אותו למישהו אחר.
       </p>
+
+      {/*
+        * THE QUESTION THAT COMES BEFORE ALL OF THEM, and the one this screen never asked.
+        *
+        * `splitHalfStability` has been computed on every reading for as long as the dashboard has
+        * existed and no component read it. Everything above is a number ABOUT THE PLAYER, and
+        * every one of them is worthless if the record does not say the same thing twice -- so the
+        * screen was showing five answers and withholding the one that says whether to believe
+        * them.
+        *
+        * NO VERDICT, AND THAT IS DELIBERATE -- `Stability` deliberately ships no threshold, and a
+        * "stable" here would manufacture exactly the reading the module was written to prevent:
+        * that a passing record has a settled number about the person. The spread is printed and
+        * the reader is told which direction is good. Nothing is graded.
+        *
+        * THE CAVEAT IS LOAD-BEARING, NOT DECORATION. Both halves come from the same record, so
+        * this cannot separate a trait from a mood, a warm-up, or a run of kind positions. Read as
+        * test-retest reliability it would be a much stronger claim than anything here supports,
+        * and the sentence saying so is the reason this block is allowed on screen at all.
+        */}
+      <h4 className="dash-title">האם הרשומה אמרה את אותו הדבר פעמיים</h4>
+      {stability.readable && stability.spread !== null ? (
+        <>
+          <dl className="calibration-split">
+            {/*
+              * `SignedProportion` rather than a local formatter, and GATE-DENOM is why.
+              *
+              * The first version printed the percentage by hand and put each half's n in its own
+              * `dd` beside it, matching how the calibration split above lays out its cells. The
+              * gate failed the build: those cells are squared-error quantities and carry no
+              * denominator to lose, while a gap IS a rate, and a rate whose n sits in a sibling
+              * element is a rate the scanner cannot see paired with anything. It was right to.
+              * The n belongs to the number, and `Value.tsx` is the one place allowed to say so.
+              */}
+            <div className="split-row">
+              <dt>הפער במחצית האחת</dt>
+              <dd>
+                <SignedProportion value={stability.gap[0]} n={stability.n[0]} />
+              </dd>
+            </div>
+            <div className="split-row">
+              <dt>הפער במחצית השנייה</dt>
+              <dd>
+                <SignedProportion value={stability.gap[1]} n={stability.n[1]} />
+              </dd>
+            </div>
+            <div className="split-row split-mine">
+              <dt>המרחק ביניהן</dt>
+              <dd>{stability.spread.toFixed(2)}</dd>
+              <dd className="split-band">שגיאות תקן</dd>
+            </div>
+          </dl>
+          <p className="dash-note" dir="rtl">
+            הרשומה נחתכה לשתי מחציות לסירוגין — החלטה לכאן, החלטה לשם — ולא לחצי ראשון וחצי שני,
+            כדי שעייפות או התחממות לא ייקראו כחוסר יציבות. קטן זה טוב: המספר יצא דומה בשתיהן. אין
+            כאן סף ואין מעבר או נכשל, כי הפיכת זה לציון הייתה בדיוק הקריאה שהמדידה הזו נועדה למנוע.
+          </p>
+          <p className="dash-note" dir="rtl">
+            <strong>זו אינה מדידת יציבות לאורך זמן.</strong> שתי המחציות מגיעות מאותה רשומה, ולכן
+            הבדיקה הזו לא יכולה להבחין בין תכונה שלכם לבין מצב רוח, התחממות או רצף עמדות נוחות —
+            להבחנה הזו צריך מדידה שמופרדת בזמן, ואין כזו כאן. מרחק גדול אומר שהמספרים למעלה הם רעש;
+            מרחק קטן אומר שהם לא רעש גלוי, ולא יותר מזה.
+          </p>
+        </>
+      ) : (
+        <NotMeasured
+          reason={
+            stability.n[0] < MIN_STABILITY_HALF || stability.n[1] < MIN_STABILITY_HALF
+              ? `לכל מחצית צריך ${MIN_STABILITY_HALF} החלטות מהסט המשותף — ${MIN_STABILITY_HALF * 2} בסך הכול, ויש ${stability.n[0] + stability.n[1]}. מתחת לזה הבדיקה לא יכולה להיכשל, ולכן מעבר שלה לא היה אומר כלום.`
+              : "שתי המחציות שטוחות מכדי לחשב מהן שגיאת תקן, ובלי שגיאת תקן למרחק ביניהן אין קנה מידה."
+          }
+        />
+      )}
 
       {curve.length > 0 && (
         <>

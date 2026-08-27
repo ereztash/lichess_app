@@ -1,6 +1,15 @@
 import { Download, LoaderCircle, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { fetchUserGames, type ImportedGame } from "@/lib/lichess-public";
+import { fetchGames } from "@/lib/fetch-games";
+import {
+  GAME_SOURCES,
+  preferredSource,
+  rememberSource,
+  SOURCE_LABEL,
+  SOURCE_PLACEHOLDER,
+  type GameSource,
+  type ImportedGame,
+} from "@/lib/game-source";
 import type { EngineLine } from "@/lib/engine-line";
 import { runImportDiagnostic, type ImportRunProgress } from "@/lib/import-run";
 import { ImportDiagnosticPanel } from "./ImportDiagnostic";
@@ -87,6 +96,16 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
   useEffect(() => {
     if (!edited.current && lastUsername) setUsername(lastUsername);
   }, [lastUsername]);
+  /*
+   * WHICH SITE, and why this is a picker rather than a second screen.
+   *
+   * Lichess was the only door, and a door only some people have. The import is the bridge over a
+   * cold start of 60-90 decisions, so which site a player happens to use decided whether the
+   * product worked for them at all. The choice is remembered per browser: a player is on one
+   * site, not both, and re-picking every visit would put the cost of the second source on exactly
+   * the people it was added for.
+   */
+  const [source, setSource] = useState<GameSource>(preferredSource);
   const [games, setGames] = useState<ImportedGame[] | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -104,7 +123,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
     setDiagnostic(null);
     setScanFailure(null);
     setKept(true);
-    const result = await fetchUserGames(username, 20);
+    const result = await fetchGames(source, username, 20);
     setLoading(false);
     if (result.ok) setGames(result.games);
     else setFailure(result.failure.message);
@@ -163,14 +182,41 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
       <div className="drawer-heading">
         <div>
           <span>ייבוא לפי שם משתמש</span>
-          <b>LICHESS</b>
+          {/* The site is chosen below, so the badge names the act rather than one of the two. */}
+          <b>IMPORT</b>
         </div>
         <button onClick={onClose}>סגור</button>
       </div>
 
       <p className="import-hint">
-        המשחקים הציבוריים שלכם בליצ'ס. לא נדרש מפתח API ולא נדרשת התחברות.
+        המשחקים הציבוריים שלכם ב-{SOURCE_LABEL[source]}. לא נדרש מפתח API ולא נדרשת התחברות.
       </p>
+
+      {/*
+        * BOTH SITES VISIBLE AT ONCE, not a menu.
+        *
+        * Two options is the case where a menu costs a tap to learn what the alternatives even
+        * are, and someone who does not have a Lichess account needs to see that the other one
+        * exists without opening anything. Nothing is preselected in the sense that matters: the
+        * highlighted one is what THIS browser used last, not a recommendation.
+        */}
+      <div className="import-sources" role="group" aria-label="מאיזה אתר לייבא">
+        {GAME_SOURCES.map((option) => (
+          <button
+            key={option}
+            className={`ghost-control import-source${option === source ? " selected" : ""}`}
+            aria-pressed={option === source}
+            onClick={() => {
+              setSource(option);
+              rememberSource(option);
+              setGames(null);
+              setFailure(null);
+            }}
+          >
+            {SOURCE_LABEL[option]}
+          </button>
+        ))}
+      </div>
 
       <div className="import-row">
         <input
@@ -178,9 +224,10 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
           dir="ltr"
           /* An English phrase inside `lang="he"`. Without this a screen reader reads "lichess
              username" with Hebrew phonetics. SC 3.1.2 exempts proper names and technical terms --
-             "username" is neither. */
+             "username" is neither. The placeholder now names the chosen site, and both are
+             English, so the attribute is as necessary as it was. */
           lang="en"
-          placeholder="lichess username"
+          placeholder={SOURCE_PLACEHOLDER[source]}
           value={username}
           spellCheck={false}
           autoComplete="off"

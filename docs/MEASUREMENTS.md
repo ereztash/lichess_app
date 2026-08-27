@@ -66,6 +66,13 @@ Centipawn loss and its trend, per phase and per clock bucket. Phase is a **heuri
 fact about the position, and the rule is fixed and stated (`shared/phase.ts`): endgame when
 non-pawn material is at most 13 points, opening within the first 20 ply, middlegame otherwise.
 
+The rule reads material off a FEN, so **which** position it is handed is part of the rule, and
+this paragraph did not say. It is the position **before the move** -- the one the player was
+deciding in. Every surface that files a decision by phase reads that position: the live record,
+the import, and the game report. Handing it the position the move produced answers a different
+question, and the two answers diverge on exactly the capture that crosses the material line --
+one-directionally, always into the endgame.
+
 ## External, and not self-graded
 
 Lichess rating trajectory, already available through the existing `recentGames` endpoint.
@@ -150,9 +157,16 @@ Nothing outside GameReview may use the exponential score. It never enters a buck
 
 ## Layer C
 
-**Not mounted.** `server/layerC.ts` is imported by no router, so no request can reach it and
-`LAYER_C_ENABLED` changes nothing at runtime. Everything below describes the module as written and
-unit-tested, not as something the deployed API can do.
+**Mounted at `external.pointer`, and off.** This section said "not mounted" for longer than it was
+true -- see "Layer C is reachable" below, which records the mount this paragraph kept denying. The
+two statements sat in this file at the same time, which is the failure mode the specification test
+exists to catch and did not, because nothing tied either sentence to `server/routers.ts`. It does
+now.
+
+`LAYER_C_ENABLED` therefore changes something at runtime: unset, every call returns
+`{ kind: "disabled" }` with a reason and nothing leaves the deployment; set to exactly `"true"`,
+the layer reaches the Lichess explorer for real. Everything below describes the module as written
+and unit-tested -- against a stubbed `fetch`, never against the live service.
 
 Off by default (`LAYER_C_ENABLED`). It consults the Lichess masters database for at most three of
 a claim's positions and returns counts, sources, and one question with a fixed shape.

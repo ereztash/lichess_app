@@ -263,9 +263,15 @@ export function analyzeAggregateEval(
 /**
  * Group the player's move accuracies by the phase of the position each move was made in.
  *
- * `fens[m.ply]` is the position AFTER the move, which is the same indexing `gamePositions()`
- * produces and the same one `evalScores` uses. A move whose FEN is missing is skipped rather
- * than defaulted into a phase: a wrong bucket is worse than a smaller n.
+ * `fens[i]` is the position AFTER ply i -- the same indexing `gamePositions()` produces and the
+ * one `evalScores` uses -- so the position the move was CHOSEN IN is `fens[m.ply - 1]`, and that
+ * is the one classified. This read `fens[m.ply]` and defended it on the grounds that the indexing
+ * matched `evalScores`. The indexing did match; the question did not. `classifyPhase` reads
+ * material off the FEN, so a capture that crosses ENDGAME_MATERIAL_THRESHOLD moved the move that
+ * made it into the endgame group -- one-directionally, and disagreeing with decision-session.ts,
+ * which the comment above calls the rule this repository has. `m.ply` is never 0 (the loop that
+ * builds these skips it), so the index is always in range. A move whose position is missing is
+ * skipped rather than defaulted into a phase: a wrong bucket is worse than a smaller n.
  */
 function accuracyByPhase(playerMoves: MoveEval[], fens: string[]): PhaseAccuracy | null {
   const groups: Record<keyof PhaseAccuracy, number[]> = {
@@ -274,7 +280,7 @@ function accuracyByPhase(playerMoves: MoveEval[], fens: string[]): PhaseAccuracy
     endgame: [],
   };
   for (const m of playerMoves) {
-    const fen = fens[m.ply];
+    const fen = fens[m.ply - 1];
     if (!fen) continue;
     groups[classifyPhase(fen, m.ply)].push(m.accuracy);
   }

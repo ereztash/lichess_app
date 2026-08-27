@@ -470,12 +470,21 @@ describe("a position with one legal move is not a decision", () => {
   });
 
   it("claims nothing about a position it cannot load", () => {
+    /*
+     * This used to assert `[0].forced === false` -- a decision was still produced, carrying one
+     * honest `false` and a phase guessed from the position the move PRODUCED, because that was
+     * the FEN `classifyPhase` was handed. Since cycle 48 the phase is read off the position the
+     * player was deciding in, and `Phase` has no "could not read it" case: all three of its
+     * values are claims. So a before-position chess.js will not load yields no decision, which is
+     * what "claims nothing" has to mean once every field on the row depends on that position.
+     */
     const broken: ImportedGameInput = {
       fens: ["not a fen at all", FREE],
       evalScores: [0, 0],
       clockTimes: [],
       playerColor: "w",
     };
-    expect(decisionsFromGame(broken)[0].forced).toBe(false);
+    expect(() => decisionsFromGame(broken)).not.toThrow();
+    expect(decisionsFromGame(broken)).toHaveLength(0);
   });
 });

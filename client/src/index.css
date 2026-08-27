@@ -832,6 +832,26 @@ button:not(:disabled) {
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.75);
 }
+/*
+ * The two sites, side by side.
+ *
+ * A row rather than a select, because with two options a menu costs a tap just to learn what the
+ * alternative is -- and the person who needs to know the alternative exists is exactly the one
+ * without a Lichess account. `.ghost-control` carries the 44px tap floor already, so the pressed
+ * state is all this adds.
+ */
+.import-sources {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.import-source[aria-pressed="true"] {
+  border-color: var(--blue);
+  color: var(--on-blue);
+  background: var(--blue);
+}
+
 .import-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -3968,6 +3988,20 @@ button:not(:disabled) {
 .self-check-note {
   font-size: var(--panel-label);
   color: var(--muted);
+}
+/*
+ * The trial log's own block, separated by a rule.
+ *
+ * It is not one of the ten checks and must not read as one: the checks say whether the software
+ * works, this says how far a visit got. A border rather than a heading, because a heading here
+ * would give a research artefact the same weight as the thing the drawer is for.
+ */
+.self-check-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--hairline);
 }
 .self-check-verdict {
   font-size: var(--panel-body);
