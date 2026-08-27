@@ -20,6 +20,7 @@
  * - One at a time. Three of these can be true at once; showing all three is the dashboard the
  *   product exists to not be. The list is ordered, and the screen renders the head of it.
  */
+import { CONFIDENCE_LEVELS, normaliseConfidence } from "@shared/confidence";
 import type { DraftDecision } from "./decision-session";
 import { KNOWN_OPTIONS, UNKNOWN_OPTIONS } from "./read-options";
 
@@ -31,10 +32,45 @@ export interface DeclaredTension {
   basis: string;
 }
 
-/** Confidence at or above this is a claim strong enough to be worth asking about. */
-export const HIGH_CONFIDENCE = 4;
-/** The top of the scale -- "ודאי". Held to a stricter standard than 4. */
-export const CERTAIN = 5;
+/**
+ * A claim strong enough to be worth asking about, in STATED PROBABILITY rather than in buttons.
+ *
+ * This was `HIGH_CONFIDENCE = 4`, written when the scale had five buttons, where 4 asserted 75%.
+ * The scale now has seven and 4 is `EVEN_ODDS_LEVEL` -- 50%, the button that exists so a player
+ * can decline to claim anything. Measured, with three unknowns tapped:
+ *
+ *     button 4 (שקול, asserts 50%) -> certainty-without-familiarity
+ *         "סימנת "לא מכיר את העמדה הזו", ולצידה ביטחון 4 מתוך 5. על מה מבוסס הביטחון כאן"
+ *
+ * A player who had just said they were 50/50 was asked what their certainty rested on. 0.75
+ * reproduces the original meaning exactly and does not move again when the scale does; it is the
+ * same cut point `shared/reveal.ts` uses for the same reason.
+ */
+export const HIGH_CONFIDENCE_ASSERTION = 0.75;
+/**
+ * The top of the scale -- "ודאי". Held to a stricter standard, and compared with `===`.
+ *
+ * This was the literal `5`, whose doc comment already named it "ודאי". On the seven-level scale
+ * button 5 is `סביר` and asserts 65%; `ודאי` is button 7. Because the comparison is `===`, the two
+ * rules built on it fired at `סביר` and were SILENT at both `בטוח` and `ודאי` -- the rules written
+ * for the top of the scale could not fire at the top of the scale. Derived from the scale now, so
+ * it cannot drift from it again.
+ */
+export const CERTAIN = CONFIDENCE_LEVELS;
+/**
+ * The lowest BUTTON whose assertion clears `HIGH_CONFIDENCE_ASSERTION`.
+ *
+ * Derived from the scale, never written down. It exists so tests and fixtures can say "the lowest
+ * confidence that counts as high" without planting an integer -- which is precisely how the old
+ * `HIGH_CONFIDENCE = 4` survived the move from five buttons to seven while quietly coming to mean
+ * even odds.
+ */
+export const HIGH_CONFIDENCE_LEVEL = (() => {
+  for (let level = 1; level <= CONFIDENCE_LEVELS; level += 1) {
+    if (normaliseConfidence(level, CONFIDENCE_LEVELS) >= HIGH_CONFIDENCE_ASSERTION) return level;
+  }
+  return CONFIDENCE_LEVELS;
+})();
 /** This many open questions alongside a stated certainty is worth one question back. */
 export const MANY_UNKNOWNS = 3;
 /** Under this many seconds, a top-of-scale confidence was not deliberated over. */
@@ -86,42 +122,48 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
   }
 
   if (confidence === null) return tensions;
+  /*
+   * What the player ASSERTED, not which button they pressed. The commitment screen always states
+   * on the current scale, so it is named here rather than threaded through -- but the comparison
+   * is against a probability, so a scale change moves the buttons and not the meaning.
+   */
+  const asserted = normaliseConfidence(confidence, CONFIDENCE_LEVELS);
 
   // 2. Top of the scale, quickly, with something still open. A fast confident recapture is a
   //    real thing, which is why the check also wants a stated unknown before it says anything.
   if (confidence === CERTAIN && secondsElapsed < FAST_DECISION_SECONDS && unknownCount > 0) {
     tensions.push({
       id: "fast-certainty",
-      question: `אמרת ביטחון ${CERTAIN} מתוך 5 אחרי ${Math.floor(secondsElapsed)} שניות, ולצידו ${unknownCount === 1 ? "דבר אחד שאי אפשר להעריך" : `${unknownCount} דברים שאי אפשר להעריך`}. זו ההחלטה שאתה מתכוון לרשום?`,
-      basis: `ביטחון ${CERTAIN}/5 · ${Math.floor(secondsElapsed)} שניות · ${unknownCount} סימוני "לא יודע"`,
+      question: `אמרת ביטחון ${CERTAIN} מתוך ${CONFIDENCE_LEVELS} אחרי ${Math.floor(secondsElapsed)} שניות, ולצידו ${unknownCount === 1 ? "דבר אחד שאי אפשר להעריך" : `${unknownCount} דברים שאי אפשר להעריך`}. זו ההחלטה שאתה מתכוון לרשום?`,
+      basis: `ביטחון ${CERTAIN}/${CONFIDENCE_LEVELS} · ${Math.floor(secondsElapsed)} שניות · ${unknownCount} סימוני "לא יודע"`,
     });
   }
 
   // 3. Certainty alongside not knowing the position at all.
   const theory = labelOf(UNKNOWN_OPTIONS, "theory");
   if (
-    confidence >= HIGH_CONFIDENCE &&
+    asserted >= HIGH_CONFIDENCE_ASSERTION &&
     theory &&
     selected(draft.unknownTags, UNKNOWN_OPTIONS, "theory")
   ) {
     tensions.push({
       id: "certainty-without-familiarity",
-      question: `סימנת "${theory}", ולצידה ביטחון ${confidence} מתוך 5. על מה מבוסס הביטחון כאן — על העמדה, או על המהלך?`,
-      basis: `ביטחון ${confidence}/5 מול "${theory}"`,
+      question: `סימנת "${theory}", ולצידה ביטחון ${confidence} מתוך ${CONFIDENCE_LEVELS}. על מה מבוסס הביטחון כאן — על העמדה, או על המהלך?`,
+      basis: `ביטחון ${confidence}/${CONFIDENCE_LEVELS} מול "${theory}"`,
     });
   }
 
   // 4. Certainty in a move alongside not knowing what the position is for.
   const plan = labelOf(UNKNOWN_OPTIONS, "plan");
   if (
-    confidence >= HIGH_CONFIDENCE &&
+    asserted >= HIGH_CONFIDENCE_ASSERTION &&
     plan &&
     selected(draft.unknownTags, UNKNOWN_OPTIONS, "plan")
   ) {
     tensions.push({
       id: "certainty-without-plan",
-      question: `סימנת "${plan}", ולצידה ביטחון ${confidence} מתוך 5. הביטחון הוא במהלך הזה, או בכך שהוא לא מזיק?`,
-      basis: `ביטחון ${confidence}/5 מול "${plan}"`,
+      question: `סימנת "${plan}", ולצידה ביטחון ${confidence} מתוך ${CONFIDENCE_LEVELS}. הביטחון הוא במהלך הזה, או בכך שהוא לא מזיק?`,
+      basis: `ביטחון ${confidence}/${CONFIDENCE_LEVELS} מול "${plan}"`,
     });
   }
 
@@ -130,8 +172,8 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
   if (confidence === CERTAIN && unknownCount >= MANY_UNKNOWNS) {
     tensions.push({
       id: "certainty-with-open-questions",
-      question: `סימנת ${unknownCount} דברים שאי אפשר להעריך כאן, ולצידם ביטחון ${CERTAIN} מתוך 5. מי מהם היה משנה את המהלך, אילו ידעת אותו?`,
-      basis: `ביטחון ${CERTAIN}/5 מול ${unknownCount} סימוני "לא יודע"`,
+      question: `סימנת ${unknownCount} דברים שאי אפשר להעריך כאן, ולצידם ביטחון ${CERTAIN} מתוך ${CONFIDENCE_LEVELS}. מי מהם היה משנה את המהלך, אילו ידעת אותו?`,
+      basis: `ביטחון ${CERTAIN}/${CONFIDENCE_LEVELS} מול ${unknownCount} סימוני "לא יודע"`,
     });
   }
 

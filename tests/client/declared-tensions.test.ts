@@ -13,13 +13,15 @@ import { describe, expect, it } from "vitest";
 import {
   CERTAIN,
   FAST_DECISION_SECONDS,
-  HIGH_CONFIDENCE,
+  HIGH_CONFIDENCE_ASSERTION,
+  HIGH_CONFIDENCE_LEVEL,
   MANY_UNKNOWNS,
   declaredTensions,
   foremostTension,
 } from "@/lib/declared-tensions";
 import { emptyDraft, type DraftDecision } from "@/lib/decision-session";
 import { KNOWN_OPTIONS, UNKNOWN_OPTIONS } from "@/lib/read-options";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL, normaliseConfidence } from "@shared/confidence";
 
 const label = (options: typeof KNOWN_OPTIONS, id: string) => {
   const found = options.find((option) => option.id === id);
@@ -32,7 +34,7 @@ const draft = (overrides: Partial<DraftDecision> = {}): DraftDecision => ({
   chosenMove: "g8f6",
   knownTags: [label(KNOWN_OPTIONS, "center-open")],
   unknownTags: [label(UNKNOWN_OPTIONS, "reply")],
-  confidence: 3,
+  confidence: EVEN_ODDS_LEVEL,
   ...overrides,
 });
 
@@ -77,7 +79,7 @@ describe("an ordinary decision states no tension", () => {
   });
 
   it("says nothing about a fast decision at a moderate confidence", () => {
-    expect(declaredTensions(draft({ confidence: 3 }), 2)).toEqual([]);
+    expect(declaredTensions(draft({ confidence: EVEN_ODDS_LEVEL }), 2)).toEqual([]);
   });
 
   it("says nothing about a fast top-of-scale decision with nothing left open", () => {
@@ -112,7 +114,7 @@ describe("certainty alongside a stated blind spot", () => {
     const found = declaredTensions(
       draft({
         unknownTags: [label(UNKNOWN_OPTIONS, "theory")],
-        confidence: HIGH_CONFIDENCE,
+        confidence: HIGH_CONFIDENCE_LEVEL,
       }),
       40,
     );
@@ -121,7 +123,7 @@ describe("certainty alongside a stated blind spot", () => {
 
   it("asks what the confidence is in when the plan is unknown", () => {
     const found = declaredTensions(
-      draft({ unknownTags: [label(UNKNOWN_OPTIONS, "plan")], confidence: HIGH_CONFIDENCE }),
+      draft({ unknownTags: [label(UNKNOWN_OPTIONS, "plan")], confidence: HIGH_CONFIDENCE_LEVEL }),
       40,
     );
     expect(found.map((t) => t.id)).toContain("certainty-without-plan");
@@ -131,7 +133,7 @@ describe("certainty alongside a stated blind spot", () => {
     const found = declaredTensions(
       draft({
         unknownTags: [label(UNKNOWN_OPTIONS, "theory"), label(UNKNOWN_OPTIONS, "plan")],
-        confidence: HIGH_CONFIDENCE - 1,
+        confidence: HIGH_CONFIDENCE_LEVEL - 1,
       }),
       40,
     );
@@ -186,6 +188,83 @@ describe("every question carries the selections that produced it", () => {
       expect(tension.question.trim().endsWith("?"), `${tension.id} is phrased as a finding`).toBe(
         true,
       );
+    }
+  });
+});
+
+/**
+ * The same unfinished 5→7 migration that had `shared/reveal.ts` printing "ביטחון 7 מתוך 5".
+ *
+ * `HIGH_CONFIDENCE` was the literal `4` — 75% when the scale had five buttons, and `EVEN_ODDS_LEVEL`
+ * once it had seven. `CERTAIN` was the literal `5`, whose own doc comment named it "ודאי"; on the
+ * seven-level scale button 5 is `סביר` at 65% and `ודאי` is button 7. Both were compared against
+ * the raw level, and `CERTAIN` with `===`.
+ *
+ * MEASURED BEFORE THE FIX, three unknowns tapped and five seconds on the clock:
+ *
+ *     button 4 (שקול, 50%) -> certainty-without-familiarity   "ביטחון 4 מתוך 5"
+ *     button 5 (סביר, 65%) -> all three                       "ביטחון 5 מתוך 5"
+ *     button 6 (בטוח, 80%) -> certainty-without-familiarity   "ביטחון 6 מתוך 5"
+ *     button 7 (ודאי, 95%) -> certainty-without-familiarity   "ביטחון 7 מתוך 5"
+ *
+ * A player who had just said 50/50 was asked what their certainty rested on, and the two rules
+ * written for "the top of the scale" fired at `סביר` and were silent at both `בטוח` and `ודאי` —
+ * they could not fire at the top of the scale.
+ */
+describe("the tensions fire on what the player asserted, not on a button number", () => {
+  // Real ids, resolved through `label`, which throws on one that no longer exists -- so a renamed
+  // option breaks this loudly instead of quietly reducing the fixture to two unknowns.
+  const threeUnknowns = [
+    label(UNKNOWN_OPTIONS, "theory"),
+    label(UNKNOWN_OPTIONS, "plan"),
+    label(UNKNOWN_OPTIONS, "reply"),
+  ];
+
+  it("does not ask a player who said even odds what their certainty rests on", () => {
+    expect(normaliseConfidence(EVEN_ODDS_LEVEL, CONFIDENCE_LEVELS)).toBe(0.5);
+    const found = declaredTensions(
+      draft({ unknownTags: threeUnknowns, confidence: EVEN_ODDS_LEVEL }),
+      5,
+    );
+    expect(found.map((t) => t.id)).not.toContain("certainty-without-familiarity");
+    expect(found.map((t) => t.id)).not.toContain("certainty-with-open-questions");
+  });
+
+  it("fires the top-of-scale rules at the top of the scale", () => {
+    // The whole point of `CERTAIN`. It was silent here.
+    const found = declaredTensions(
+      draft({ unknownTags: threeUnknowns, confidence: CONFIDENCE_LEVELS }),
+      5,
+    );
+    expect(found.map((t) => t.id)).toContain("fast-certainty");
+    expect(found.map((t) => t.id)).toContain("certainty-with-open-questions");
+  });
+
+  it("asks about high confidence at exactly the levels that assert enough", () => {
+    for (let level = 1; level <= CONFIDENCE_LEVELS; level += 1) {
+      const asserted = normaliseConfidence(level, CONFIDENCE_LEVELS);
+      const ids = declaredTensions(
+        draft({ unknownTags: [label(UNKNOWN_OPTIONS, "theory")], confidence: level }),
+        40,
+      ).map((t) => t.id);
+      const shouldAsk = asserted >= HIGH_CONFIDENCE_ASSERTION;
+      expect(ids.includes("certainty-without-familiarity"), `level ${level} asserts ${asserted}`).toBe(
+        shouldAsk,
+      );
+    }
+  });
+
+  it("never prints a denominator that is not the scale on the screen", () => {
+    for (let level = 1; level <= CONFIDENCE_LEVELS; level += 1) {
+      for (const seconds of [3, 40]) {
+        for (const tension of declaredTensions(
+          draft({ unknownTags: threeUnknowns, confidence: level }),
+          seconds,
+        )) {
+          expect(tension.question, tension.question).not.toContain("מתוך 5");
+          expect(tension.basis, tension.basis).not.toMatch(/\/5\b/);
+        }
+      }
     }
   });
 });
