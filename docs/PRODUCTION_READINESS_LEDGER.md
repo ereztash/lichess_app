@@ -1354,6 +1354,58 @@ write-back — reddens the arm's wiring test.
 
 Full verify with the database up: **1,460 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 41 — the sweep's adversarial pass, and the one finding that survived it
+
+The sweep's Verify phase is what this cycle is about as much as the fix is. Fourteen verdicts in so
+far on 35 raw findings, and **thirteen refuted**. The refutations are the useful part:
+
+| why refuted | count |
+| --- | --- |
+| describes code that cycles 37–40 already changed — "written against a revision that no longer exists" | 6 |
+| the mechanism is real but the load-bearing claim is false or overstated | 5 |
+| unreachable in production, or no observable effect | 2 |
+
+Several verifiers re-checked every line against HEAD and found the citations shifted by my own
+commits, then judged the finding against the current code rather than the one the finder read. That
+is the behaviour that makes a sweep worth running — and it is also a warning about reading raw
+findings, which is why none of these were acted on before verification.
+
+### The one that survived, at `high`
+
+**`finishDrill` graded whatever survived the intersection.** It filtered the posted decision ids
+against the *revealed* ones and reported the remainder. A five-position pre-registered drill whose
+third reveal write was lost came back as a **four-decision result** — `describeResult` reporting the
+smaller n as the test's size, `evaluateRefutation` computing its standard error from the survivors,
+and nothing anywhere recording that a registered position went unmeasured, because
+`ProspectiveDrillResult` has no field for it. The only guard was `length === 0`.
+
+And it is terminal. A false `observed` grades the claim `refuted`, refutation cannot be revisited,
+and `beginDrill` then refuses to test that claim again. **A run that lost a position could close a
+question permanently.**
+
+**The verifier's decisive argument was the sibling in the same file.** It named the refutation it
+expected to work — that partial measurement is tolerated by design — and then closed it:
+`finishLearningTransfer` refuses when `observations.length !== transfer.fens.length` *and* refuses
+any decision without a reveal. Both are pre-registered tests. Only one of them checked that the test
+it graded was the test it registered.
+
+It also recorded an overstatement against itself: `revealFailure === "write"` does not always
+truncate, because `reveal` is two writes and a `scoreCounterfactual` failure after `recordReveal`
+committed leaves the decision scored — and `retryOnce` must now fail twice. *"That narrows the
+window but does not close it."*
+
+`finishDrill` now refuses a run that did not measure what it registered, naming both numbers the way
+its sibling does, and refuses a decision recorded against a board the drill never registered —
+because the right *number* of revealed decisions is not the right *positions*, and without that the
+completion believes whatever the client sends. Two positive controls, one per guard.
+
+**What the player gets instead:** a refusal with both numbers rather than a false verdict, and the
+run is lost. That is the same contract the transfer path has had all along. The residual is real and
+stated: `beginDrill` still has no open-drill check, so a refused drill can be followed by a second
+preregistration over the same claim — which is the other half of an open finding, not this one.
+
+Full verify with the database up: **1,463 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1384,7 +1436,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | ~~The fold's write can destroy `retired`~~; the learning queue's DISPLAY still prints the stored grade | ~~High~~ **Low** | **the write half is closed in cycle 39**: all three stores refuse to move a rule off `retired`, and `beginLearningTransfer` derives the grade before deciding on it. What is left is cosmetic — `LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`, so a row can say `השערה` about a refuted rule until something touches it. The click is refused with a reason and repairs the record |
 | — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
 | — | The learning queue's display prints the stored grade rather than the derived one | Low | open, cosmetic since cycle 39: the click is refused with a reason and repairs the record |
-| — | A lost reveal silently shrinks a pre-registered drill, and the truncated verdict is append-only | **Medium** | open, found by the cycle-37 sweep. R5: the verdict is decided over a decision set the pre-registration did not name |
+| — | ~~A lost reveal silently shrinks a pre-registered drill~~ | ~~Medium~~ | **closed in cycle 41**, and it was the one finding of 35 that survived adversarial verification at `high`. `finishDrill` now refuses a run that did not measure what it registered, and refuses a decision recorded against a board it never registered |
 | — | `createLearningRule`: a failure between its two writes locks the reflection, and a lost response duplicates the rule | **Medium** | open, found by the cycle-37 sweep, both reproduced |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |

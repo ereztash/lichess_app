@@ -135,6 +135,100 @@ async function seed(store: MemoryRecordStore) {
 
 const RECORDED_AT = "2026-02-01T10:00:00.000Z";
 
+/**
+ * R5: the verdict must be decided over the positions that were written down.
+ *
+ * `finishDrill` intersected the posted decision ids with the REVEALED decisions and reported
+ * whatever survived. A five-position pre-registered drill whose third reveal write was lost came
+ * back as a four-decision result, and nothing anywhere recorded that a registered position went
+ * unmeasured: `ProspectiveDrillResult` has no such field, `describeResult` reports the smaller n as
+ * the test's size, and `evaluateRefutation` computes its standard error from the survivors. The
+ * only guard was `length === 0`.
+ *
+ * THE SIBLING IN THE SAME FILE SETTLES WHAT WAS INTENDED. `finishLearningTransfer` refuses when
+ * `observations.length !== transfer.fens.length` and refuses any decision without a reveal. Both
+ * are pre-registered tests; only one of them checked that the test it graded was the test it
+ * registered.
+ *
+ * And it is terminal: a false `observed` grades the claim `refuted`, refutation is terminal, and
+ * `beginDrill` then refuses to test that claim again — so a truncated run could close a question
+ * permanently.
+ */
+describe("a drill grades the positions it registered, or none", () => {
+  it("refuses a run that lost a position, naming what was registered and what was measured", async () => {
+    const store = new MemoryRecordStore();
+    const drillIds = await seed(store);
+    // Four of the five decisions reached a reveal. The fifth is committed and unrevealed, which is
+    // what a lost reveal write leaves behind.
+    await store.commitDecision({
+      decisionId: "dr-unrevealed",
+      gameId: "drill-fixture",
+      fen: FENS[5],
+      ply: 0,
+      phase: "middlegame",
+      clockMsRemaining: 120_000,
+      secondsTaken: 10,
+      chosenMove: "e2e4",
+      candidateMovesConsidered: ["e2e4"],
+      statedRead: "המרכז פתוח",
+      statedUnknown: "לא ברור מה השחור מאיים",
+      confidence: CONFIDENCE_LEVELS,
+      confidenceScale: CONFIDENCE_LEVELS,
+      probeAssignment: "not-probed",
+      legalMoves: 20,
+      revealTiming: "per-decision",
+    });
+
+    const outcome = await service
+      .finishDrill(
+        store,
+        { drill_id: "drill-1", decision_ids: [...drillIds.slice(0, 4), "dr-unrevealed"] },
+        { recorded_at: RECORDED_AT },
+      )
+      .catch((error: unknown) => error as Error);
+
+    expect(outcome).toBeInstanceOf(Error);
+    expect((outcome as Error).message).toContain("5");
+    expect((outcome as Error).message).toContain("4");
+    // And nothing was written: a refusal must not leave a verdict behind.
+    expect((await store.getClaim(CLAIM.claim_id))?.prospective_tests).toHaveLength(0);
+  });
+
+  it("refuses a decision recorded against a board this drill never registered", async () => {
+    /*
+     * The other half of "the test it graded is the test it registered": the right NUMBER of
+     * revealed decisions is not the same as the right positions. Without this the completion
+     * believes whatever the client sends, which is the thing the per-position write was introduced
+     * to stop on the transfer path.
+     */
+    const store = new MemoryRecordStore();
+    const drillIds = await seed(store);
+    await record(store, "dr-elsewhere", FENS[7], { confidence: 4, cpLoss: 20, seconds: 12 });
+
+    await expect(
+      service.finishDrill(
+        store,
+        { drill_id: "drill-1", decision_ids: [...drillIds.slice(0, 4), "dr-elsewhere"] },
+        { recorded_at: RECORDED_AT },
+      ),
+    ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
+    expect((await store.getClaim(CLAIM.claim_id))?.prospective_tests).toHaveLength(0);
+  });
+
+  it("still grades a run that measured every registered position", async () => {
+    // The half a refusal can break. A guard that rejects everything protects nothing.
+    const store = new MemoryRecordStore();
+    const drillIds = await seed(store);
+    const outcome = await service.finishDrill(
+      store,
+      { drill_id: "drill-1", decision_ids: drillIds },
+      { recorded_at: RECORDED_AT },
+    );
+    expect(outcome.claim.grade).not.toBe("hypothesis");
+    expect((await store.getClaim(CLAIM.claim_id))?.prospective_tests).toHaveLength(1);
+  });
+});
+
 describe("a verdict the drill cannot report twice", () => {
   it("leaves the claim ungraded when the write after the result is lost", async () => {
     const store = new LosesTheClaimWrite();

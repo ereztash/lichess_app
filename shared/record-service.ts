@@ -934,14 +934,54 @@ export async function finishDrill(
   const ids = await store.listDecisionIds();
   const summary = scoreDecisions(atoms, ids);
   const drillSet = new Set(input.decision_ids);
-  const drillDecisions: DrillDecision[] = summary.scored
-    .filter((d) => drillSet.has(d.decision_id))
-    .map((d) => ({ decision_id: d.decision_id, confidence: d.confidence, accurate: d.accurate }));
-  if (drillDecisions.length === 0) {
+  const drillScored = summary.scored.filter((d) => drillSet.has(d.decision_id));
+  const drillDecisions: DrillDecision[] = drillScored.map((d) => ({
+    decision_id: d.decision_id,
+    confidence: d.confidence,
+    accurate: d.accurate,
+  }));
+  /*
+   * R5: THE VERDICT IS DECIDED OVER THE POSITIONS THAT WERE WRITTEN DOWN, OR IT IS NOT DECIDED.
+   *
+   * This guarded only against zero, and silently graded whatever survived the intersection above.
+   * A five-position pre-registered drill whose third reveal write was lost came back as a
+   * four-decision result -- `describeResult` reporting the smaller n as the test's size,
+   * `evaluateRefutation` computing its standard error from the survivors, and nothing anywhere
+   * recording that a registered position went unmeasured, because `ProspectiveDrillResult` has no
+   * field for it. And it is terminal: a false `observed` grades the claim `refuted`, refutation
+   * cannot be revisited, and `beginDrill` then refuses to test that claim again. A run that lost a
+   * position could close a question permanently.
+   *
+   * WHAT WAS INTENDED IS SETTLED BY THE SIBLING IN THIS FILE. `finishLearningTransfer` refuses when
+   * `observations.length !== transfer.fens.length`, and refuses any decision that was not revealed.
+   * Both are pre-registered tests. Only one of them checked that the test it graded was the test it
+   * registered.
+   */
+  if (drillDecisions.length !== stored.spec.fens.length) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      "אף החלטה מהדריל לא נחשפה עדיין, ולכן אין מה למדוד.",
+      `נרשמו ${drillDecisions.length} החלטות חשופות מתוך ${stored.spec.fens.length} שנרשמו מראש. ` +
+        "הדריל לא הושלם, ופסק על חלק מהעמדות אינו הבדיקה שנרשמה.",
     );
+  }
+  /*
+   * And they have to be the positions this drill preregistered, not merely the right NUMBER of
+   * revealed decisions. Compared as boards for the same reason the transfer's are: a decision
+   * recorded against the identical position later in a game is the position that was written down.
+   * Without this the completion believes whatever the client sends, which is the thing the
+   * per-position write was introduced to stop on the sibling path.
+   */
+  const registered = [...stored.spec.fens];
+  for (const decision of drillScored) {
+    const slot = registered.findIndex((fen) => samePosition(decision.fen, fen));
+    if (slot === -1) {
+      throw new RecordError(
+        "PRECONDITION_FAILED",
+        "החלטה בדריל נרשמה לעמדה שלא נרשמה מראש עבורו.",
+      );
+    }
+    // Removed so two decisions cannot both answer one registered position.
+    registered.splice(slot, 1);
   }
   const bucketing = BUCKETINGS.find((b) => claim.claim_id.endsWith(b.key));
   const baseline = summarise(
