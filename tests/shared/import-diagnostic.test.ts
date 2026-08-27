@@ -19,7 +19,7 @@ import {
   type ImportedBucketReading,
   type ImportedGameInput,
 } from "../../shared/import-diagnostic";
-import { ACCURATE_CP_LOSS, BUCKETINGS, MIN_BUCKET_N } from "../../shared/detector";
+import { BUCKETINGS, MIN_BUCKET_N } from "../../shared/detector";
 
 const FULL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -67,13 +67,30 @@ describe("it reads the player's own decisions, and only those", () => {
   });
 
   it("scores accuracy by the detector's rule, not by an exponential score", () => {
-    // A 200cp drop is inaccurate; anything at or under ACCURATE_CP_LOSS is accurate. There is no
-    // partial credit here, which is exactly the difference from eval-analysis's 0-100 score.
+    /*
+     * THIS ASSERTED THE RULE THE DETECTOR HAD ALREADY ABANDONED, and passed for it.
+     *
+     * It read `expect(d.accurate).toBe(d.cpLoss <= ACCURATE_CP_LOSS)` -- the raw centipawn cut --
+     * while `shared/detector.ts` had moved to win-probability loss and `scoreDecisions` with it.
+     * It stayed green because this fixture only ever produces a `cpLoss` of 0 or 200 at an
+     * evaluation of 0 or +-200, and both rules agree on those two values. An assertion satisfied
+     * by the fixture rather than by the code; the divergence lives between 31cp and 212cp, which
+     * the fixture never reaches. `tests/shared/one-rule-for-what-counts-as-accurate.test.ts`
+     * covers that band.
+     *
+     * There is still no partial credit, which is what this test was really for and what separates
+     * it from eval-analysis's 0-100 score.
+     */
     const decisions = decisionsFromGame(game({ plies: 20, withClocks: true, lossEvery: 3 }));
     for (const d of decisions) {
-      expect(d.accurate).toBe(d.cpLoss <= ACCURATE_CP_LOSS);
+      // No partial credit. That, and not the threshold, is what separates this from a 0-100 score.
+      expect(typeof d.accurate).toBe("boolean");
+      // At this fixture's evaluations a 200cp drop is inaccurate under either rule, and a 0cp move
+      // is accurate under either. What the flag must NOT be is a score.
+      expect(d.accurate).toBe(d.cpLoss === 0);
     }
     expect(decisions.some((d) => !d.accurate)).toBe(true);
+    expect(decisions.some((d) => d.accurate)).toBe(true);
   });
 });
 

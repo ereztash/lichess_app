@@ -33,7 +33,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
-import { CONFIDENCE_LEVELS } from "../../shared/confidence";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "../../shared/confidence";
 import { BUCKETINGS } from "../../shared/detector";
 import { classifyPhase } from "../../shared/phase";
 import { plyFromFen } from "../../shared/position-key";
@@ -83,11 +83,48 @@ function claimFor(key: string, scope: string): Claim {
 const ENDGAME_CLAIM = claimFor("phase-endgame", "החלטות בסיום");
 const FAST_CLAIM = claimFor("fast-under-45s", "החלטות תחת פחות מ-45 שניות");
 
+/**
+ * A claim, and a RECORD FOR IT TO BE COMPARED AGAINST.
+ *
+ * This used to return a store holding nothing but the claim. Every drill run against it was
+ * therefore measured against an empty baseline: `summarise([])` has zero variance, so
+ * `gapDifferenceStandardError` returned null and the verdict carried no standard error at all.
+ * The two tests below still asserted a verdict, and got one, because `evaluateRefutation` used to
+ * hand back `observed: false` in that case — which `applyDrillResult` writes as `refuted`.
+ *
+ * `finishDrill` now refuses to grade a drill it could not measure
+ * (tests/shared/a-drill-that-measured-nothing.test.ts), and that refusal is what exposed this: the
+ * fixture was proving that an in-scope drill produces a verdict by producing one from a
+ * comparison against nothing. The principle is unchanged and the baseline is now real.
+ *
+ * Out-of-bucket by construction — middlegame decisions at a slow pace — so it never contaminates
+ * the claim's own bucket, and varied on both axes so it has a variance to contribute.
+ */
 async function withClaim(claim: Claim) {
   const store = new MemoryRecordStore();
   await store.saveClaim(claim);
+  for (let i = 0; i < 40; i += 1) {
+    await decide(store, `base-${i}`, PLAYED_BASELINE[i % PLAYED_BASELINE.length], {
+      secondsTaken: 200,
+      confidence: i % 3 === 0 ? EVEN_ODDS_LEVEL : CONFIDENCE_LEVELS - 2,
+      cpLoss: i % 4 === 0 ? 300 : 5,
+    });
+  }
   return store;
 }
+
+/**
+ * Boards for the baseline. `decide` derives the phase from the board, and these carry full
+ * material at plies 12-19 — so they classify as opening, which is outside `phase-endgame`; and
+ * they are decided at 200 seconds, which is outside `fast-under-45s`. Outside both claims either
+ * way, which is what `finishDrill` requires of a baseline.
+ */
+const PLAYED_BASELINE = [
+  "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 7",
+  "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R b KQkq - 0 8",
+  "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQK2R w KQ - 0 9",
+  "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQ1RK1 b - - 0 10",
+];
 
 const begin = (store: MemoryRecordStore, claim: Claim, fens: string[]) =>
   service.beginDrill(

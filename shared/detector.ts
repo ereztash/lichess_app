@@ -66,6 +66,32 @@ export const ACCURATE_WIN_PROBABILITY_LOSS = winProbabilityLoss(
   ACCURATE_CP_LOSS / 2,
   ACCURATE_CP_LOSS,
 );
+
+/**
+ * WHETHER A DECISION WAS ACCURATE. One rule, one place, every caller.
+ *
+ * `shared/scoring.ts` inlined this and was the only site that had migrated. Two others were still
+ * comparing raw centipawns against `ACCURATE_CP_LOSS` -- the rule the comment above records as
+ * abandoned, because thirty centipawns is 2.76 points of winning chances at a level position and
+ * 0.28 at +10.00, so "accurate" meant something different depending on how the game stood.
+ *
+ * MEASURED, at HEAD, before this existed:
+ *
+ *     at eval     0: the record calls up to  30cp accurate; the other two called >30 a failure
+ *     at eval   300: the record calls up to  38cp accurate; the other two called >30 a failure
+ *     at eval   500: the record calls up to  58cp accurate; the other two called >30 a failure
+ *     at eval  1000: the record calls up to 212cp accurate; the other two called >30 a failure
+ *
+ * `finishLearningTransfer` was one of them, and it writes a TERMINAL grade: two sittings where the
+ * player's moves fall in that band grade their own learning rule `refuted`, which nothing can
+ * revive, on evidence this function calls accurate. `import-diagnostic` was the other, and it had
+ * the evaluation in scope two lines away.
+ *
+ * Takes the evaluation the position stood at, so the caller cannot forget that the rule needs it.
+ */
+export function accurateDecision(engineEvalCp: number, cpLoss: number): boolean {
+  return winProbabilityLoss(engineEvalCp, cpLoss) <= ACCURATE_WIN_PROBABILITY_LOSS;
+}
 /**
  * The smallest bucket, and the smallest remainder, this detector will read at all.
  *

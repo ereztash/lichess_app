@@ -9,8 +9,7 @@
  */
 import { LEGACY_CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import type { DecisionAtom } from "./decision-atom.js";
-import { ACCURATE_WIN_PROBABILITY_LOSS, type ScoredDecision } from "./detector.js";
-import { winProbabilityLoss } from "./win-probability.js";
+import { accurateDecision, type ScoredDecision } from "./detector.js";
 
 export interface ScoringSummary {
   scored: ScoredDecision[];
@@ -47,9 +46,7 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
        * the same "event" -- so the old rule made "accurate" mean something different depending on
        * how the game stood, and calibration against an event that is not one event is undefined.
        */
-      accurate:
-        winProbabilityLoss(atom.result.engine_eval_cp, atom.result.cp_loss) <=
-        ACCURATE_WIN_PROBABILITY_LOSS,
+      accurate: accurateDecision(atom.result.engine_eval_cp, atom.result.cp_loss),
       phase: atom.entry_state.phase,
       secondsTaken: atom.bounded_action.seconds_taken,
       clockMsRemaining: atom.entry_state.clock_ms_remaining,

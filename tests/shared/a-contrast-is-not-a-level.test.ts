@@ -32,7 +32,7 @@
  * fix to the sentence cannot quietly change the test.
  */
 import { describe, expect, it } from "vitest";
-import { detect, type ScoredDecision } from "../../shared/detector";
+import { detect, PREREGISTERED_SEPARABILITY_K, type ScoredDecision } from "../../shared/detector";
 import { refutationConditionFor, selectClaim, statementFor } from "../../shared/claim-derivation";
 
 let seq = 0;
@@ -129,6 +129,24 @@ describe("a bucket that separates upward while the player is underconfident in i
     const condition = refutationConditionFor(opening!);
     expect(condition).toContain("מאשר בשאר ההחלטות");
     expect(condition).toContain("הופרכה");
+  });
+
+  it("names the bar the grader actually applies, not a plain comparison", () => {
+    /*
+     * The condition promised "if the gap is not larger than in the rest — refuted", while
+     * `evaluateRefutation` requires the difference to clear PREREGISTERED_SEPARABILITY_K standard
+     * errors of itself first. A player who reads the stored sentence, meets it on the drill, and
+     * is then told the claim is refuted has been held to a condition nobody showed them — and
+     * refutation is terminal.
+     *
+     * The multiplier is asserted from the constant rather than typed, so the sentence and the test
+     * cannot drift from the grader together.
+     */
+    for (const pattern of [opening!, { ...opening!, predicts_overconfidence: false }]) {
+      const condition = refutationConditionFor(pattern);
+      expect(condition).toContain(String(PREREGISTERED_SEPARABILITY_K));
+      expect(condition).toContain("שגיאות תקן");
+    }
   });
 
   it("carries the same direction onto the stored claim, so grading is unaffected", () => {

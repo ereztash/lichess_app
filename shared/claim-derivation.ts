@@ -11,7 +11,7 @@
  */
 import type { Claim, RetrospectiveEvidence } from "./claim.js";
 import { formHypothesis } from "./claim.js";
-import type { CandidatePattern } from "./detector.js";
+import { PREREGISTERED_SEPARABILITY_K, type CandidatePattern } from "./detector.js";
 import { readVariables } from "./bucket-variable.js";
 
 /**
@@ -96,11 +96,23 @@ export function statementFor(pattern: CandidatePattern): string {
  *
  * A claim that predicts nothing specific cannot fail, and a claim that cannot fail measures
  * nothing. This states the observable outcome that would refute it.
+ *
+ * IT HAS TO NAME THE BAR THE GRADER ACTUALLY APPLIES. This promised a plain comparison -- "if the
+ * gap is not larger than in the rest, the hypothesis is refuted" -- while `evaluateRefutation`
+ * requires the difference to clear `PREREGISTERED_SEPARABILITY_K` standard errors of itself before
+ * it counts as anything. A player who reads the stored sentence, meets it on the drill, and is
+ * then told the claim is refuted has been held to a condition nobody showed them, and refutation
+ * is terminal.
+ *
+ * The multiplier is interpolated from the constant rather than typed, so the sentence cannot drift
+ * from the test the way it just had. The scope clause is unchanged and is enforced by `beginDrill`
+ * and `finishDrill` since cycle 46.
  */
 export function refutationConditionFor(pattern: CandidatePattern): string {
+  const bar = `בפער של לפחות ${PREREGISTERED_SEPARABILITY_K} שגיאות תקן`;
   return pattern.predicts_overconfidence
-    ? `בדריל של עמדות מ-${pattern.scope}, אם הפער בין הביטחון המוצהר לדיוק בפועל לא יהיה גדול יותר מאשר בשאר ההחלטות — ההשערה הופרכה.`
-    : `בדריל של עמדות מ-${pattern.scope}, אם הביטחון המוצהר לא יהיה נמוך מהדיוק בפועל יותר מאשר בשאר ההחלטות — ההשערה הופרכה.`;
+    ? `בדריל של עמדות מ-${pattern.scope}, אם הפער בין הביטחון המוצהר לדיוק בפועל לא יהיה גדול יותר מאשר בשאר ההחלטות ${bar} — ההשערה הופרכה.`
+    : `בדריל של עמדות מ-${pattern.scope}, אם הביטחון המוצהר לא יהיה נמוך מהדיוק בפועל יותר מאשר בשאר ההחלטות ${bar} — ההשערה הופרכה.`;
 }
 
 export function deriveClaim(

@@ -17,7 +17,7 @@ import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-a
 import { probeEligibility } from "./counterfactual.js";
 import type { RevealTiming } from "./reveal-timing.js";
 import {
-  ACCURATE_CP_LOSS,
+  accurateDecision,
   BUCKETINGS,
   DEFAULT_THRESHOLDS,
   MIN_BUCKET_N,
@@ -845,10 +845,32 @@ export async function finishLearningTransfer(
    * measure. Its coverage is not stored because `recalled_rules` is, and the score is a pure
    * function of that text and the snapshot: derived beats duplicated.
    */
+  /*
+   * ACCURACY IS THE RECORD'S RULE, NOT A RAW CENTIPAWN CUT.
+   *
+   * This read `cp_loss <= ACCURATE_CP_LOSS`, which `shared/detector.ts` documents as the rule the
+   * product abandoned: thirty centipawns is 2.76 points of winning chances at a level position and
+   * 0.28 at +10.00, so it made "accurate" mean something different depending on how the game stood.
+   * `scoreDecisions` migrated to win-probability loss; this line did not, and it had the evaluation
+   * sitting on the atom the whole time.
+   *
+   * MEASURED at HEAD before the fix -- what the record calls accurate and this line called failure:
+   *
+   *     at eval   300: up to  38cp        at eval   500: up to  58cp
+   *     at eval  1000: up to 212cp
+   *
+   * AND IT IS TERMINAL. Two sittings inside that band grade the rule `refuted`, `next_due_at` goes
+   * null, and `beginLearningTransfer` refuses every later test -- on decisions the profile screen
+   * is simultaneously showing as accurate. Reproduced: a player who recalls their own rule verbatim
+   * and plays moves the record scores accurate had that rule killed by the evidence supporting it.
+   */
   const successes = atoms.filter((atom, index) => {
     const observation = observations[index];
     const recall = scoreRecall(observation.recalled_rule, transfer.rule_snapshot.action_rule);
-    return recall.clearedFloor && atom!.result!.cp_loss <= ACCURATE_CP_LOSS;
+    return (
+      recall.clearedFloor &&
+      accurateDecision(atom!.result!.engine_eval_cp, atom!.result!.cp_loss)
+    );
   }).length;
   const result: LearningTransferResult = {
     kind: "learning_transfer_result",
@@ -1169,6 +1191,42 @@ export async function finishDrill(
     // One bucket, named in advance, tested once -- the pre-registered multiplier, not the scan's.
     separabilityK: PREREGISTERED_SEPARABILITY_K,
   });
+  /*
+   * A DRILL THAT MEASURED NOTHING DOES NOT GET TO GRADE ANYTHING.
+   *
+   * `evaluateRefutation` returns `standardError: null` when the comparison could not be made at
+   * all -- fewer than two decisions on a side, or no variation on either. Its own comment already
+   * says what that means: "A drill that cannot produce a standard error has not observed anything,
+   * in either direction. It must not read as a confirmation." It was not a confirmation. It was
+   * `observed: false`, which `applyDrillResult` reads as `survived === false` and writes as
+   * `refuted` -- terminal by design, kept forever, and `beginDrill` refuses the claim afterwards.
+   *
+   * `gapDifferenceStandardError` HAS FOUR CALLERS AND THIS WAS THE ONLY ONE THAT DID THIS.
+   * `stability.ts` sets `readable: false` on null. `crossing.ts` sets `silence: "too-few"`.
+   * `detector.ts` skips the bucket. Three of four treat null as unreadable; the fourth wrote a
+   * permanent grade from it.
+   *
+   * Reproduced, five decisions with no variation:
+   *
+   *     verdict  {"observed":false,"standardError":null,"n":5}
+   *     GRADE AFTER A DRILL THAT MEASURED NOTHING: refuted
+   *     AFTER a later drill that genuinely confirms it: refuted
+   *
+   * That second line is the whole reason this is the guard rather than a nicer sentence: the
+   * result row is append-only and refutation is terminal, so a claim killed by a measurement that
+   * never happened cannot be revived by one that did.
+   *
+   * Nothing is written. The drill is spent and the claim stays a hypothesis, which is the same
+   * trade the two guards above make -- a run lost is recoverable, and `refuted` is not.
+   */
+  if (verdict.standardError === null) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      `הדריל רץ על ${drillDecisions.length} החלטות, אבל אי אפשר היה למדוד מהן פער בר-השוואה — ` +
+        `אין די שונות בין ההחלטות כדי לחשב שגיאת תקן. לכן אין מכאן פסק, והטענה נשארת השערה. ` +
+        `אפשר לרוץ דריל נוסף.`,
+    );
+  }
   const result: ProspectiveDrillResult = completeDrillAgainstBaseline(
     stored,
     drillDecisions,
