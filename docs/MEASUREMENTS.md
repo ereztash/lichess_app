@@ -66,6 +66,13 @@ Centipawn loss and its trend, per phase and per clock bucket. Phase is a **heuri
 fact about the position, and the rule is fixed and stated (`shared/phase.ts`): endgame when
 non-pawn material is at most 13 points, opening within the first 20 ply, middlegame otherwise.
 
+The rule reads material off a FEN, so **which** position it is handed is part of the rule, and
+this paragraph did not say. It is the position **before the move** -- the one the player was
+deciding in. Every surface that files a decision by phase reads that position: the live record,
+the import, and the game report. Handing it the position the move produced answers a different
+question, and the two answers diverge on exactly the capture that crosses the material line --
+one-directionally, always into the endgame.
+
 ## External, and not self-graded
 
 Lichess rating trajectory, already available through the existing `recentGames` endpoint.

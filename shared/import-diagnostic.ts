@@ -98,6 +98,24 @@ function onlyLegalMove(fenBefore: string): boolean {
   }
 }
 
+/**
+ * Can the position be read at all?
+ *
+ * `forced` above can answer "not shown to be" for a FEN chess.js rejects, because `false` is a
+ * truthful reading of a position nobody could inspect. `phase` has no such value -- Phase is
+ * three cases and every one of them is a claim -- and since cycle 48 the phase is read off this
+ * same position. So an unreadable before-position stops being a decision with a hole in it and
+ * becomes no decision at all, which is the rule the rest of this loop already follows.
+ */
+function loadable(fen: string): boolean {
+  try {
+    new Chess(fen);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export interface ImportedBucketReading {
   /** From BUCKETINGS. */
   key: string;
@@ -219,7 +237,19 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
 
     const cpLoss = cpLossAt(game.evalScores, ply);
     const fen = game.fens[ply];
-    if (cpLoss === null || fen === undefined) continue;
+    /*
+     * The position as the player found it, which is the one BEFORE their move.
+     *
+     * Everything about a DECISION is a fact about this position, not about the one the move
+     * produced: what the player was facing, whether they had a choice, and -- since cycle 48 --
+     * which phase the decision is filed under. `classifyPhase` reads material off the FEN, and a
+     * capture changes material, so handing it `fen` answered a different question. Required now
+     * rather than optional: a decision whose before-position is missing is skipped, because a
+     * wrong bucket is worse than a smaller n.
+     */
+    const fenBefore = game.fens[ply - 1];
+    if (cpLoss === null || fen === undefined || fenBefore === undefined) continue;
+    if (!loadable(fenBefore)) continue;
 
     /*
      * secondsTaken is 0 when there are no clocks, and that is not a measurement -- it is the
@@ -236,12 +266,10 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
      */
     const evalBefore = game.evalScores[ply - 1];
     const facing = isWhiteMove ? evalBefore : -evalBefore;
-    // The position as the player found it is the one BEFORE their move.
-    const fenBefore = game.fens[ply - 1];
 
     out.push({
       ply,
-      phase: classifyPhase(fen, ply),
+      phase: classifyPhase(fenBefore, ply),
       secondsTaken: seconds ?? 0,
       clockMsRemaining: clocks ? clockMsRemainingAt(game.clockTimes, ply) : null,
       cpLoss,
@@ -260,7 +288,7 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
       accurate: accurateDecision(facing, cpLoss),
       standing: standingFrom(facing),
       speed: game.speed ?? null,
-      forced: fenBefore !== undefined && onlyLegalMove(fenBefore),
+      forced: onlyLegalMove(fenBefore),
     });
   }
   return out;
