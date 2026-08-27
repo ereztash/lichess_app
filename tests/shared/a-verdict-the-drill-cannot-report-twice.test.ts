@@ -45,6 +45,8 @@ const CLAIM: Claim = {
   n: 40,
   grade: "hypothesis",
   refutation_condition: "פער הביטחון לא ישוחזר בבדיקה קדימה",
+  // "בטוחים יותר משאתם מדויקים" -- overconfidence, matching the statement above.
+  predicts_overconfidence: true,
   prospective_tests: [],
   created_at: "2026-01-01T00:00:00.000Z",
   last_evaluated_at: "2026-01-01T00:00:00.000Z",
@@ -126,6 +128,13 @@ async function seed(store: MemoryRecordStore) {
       claim_id: CLAIM.claim_id,
       fens: drillIds.map((_, index) => FENS[index]),
       refutation_condition: CLAIM.refutation_condition,
+      /*
+       * Stated here rather than copied off CLAIM, and the type is what says why: a claim's
+       * direction is `boolean | null` because a claim may predate the field, while a spec's is
+       * `boolean` because `createDrill` is the only bridge and it throws rather than narrow a
+       * null. A fixture that skips `createDrill` has to supply the sign itself.
+       */
+      predicts_overconfidence: true,
     },
     predicted: true,
     started_at: "2026-02-01T09:00:00.000Z",

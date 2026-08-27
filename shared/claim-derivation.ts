@@ -85,6 +85,14 @@ export function deriveClaim(
     scope: pattern.scope,
     evidence,
     refutation_condition: refutationConditionFor(pattern),
+    /*
+     * THE SAME FLAG THAT CHOSE THE TWO SENTENCES ABOVE, now also kept. It used to be spent here
+     * and nowhere else: `statementFor` and `refutationConditionFor` each read it, said "higher"
+     * or "lower", and the boolean went out of scope. The claim then travelled to the drill
+     * carrying a sentence about a direction and no direction, and the grading path -- which is a
+     * signed test -- had to supply its own.
+     */
+    predicts_overconfidence: pattern.predicts_overconfidence,
     created_at: options.created_at,
   });
 }

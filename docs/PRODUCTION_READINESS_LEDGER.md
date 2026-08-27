@@ -1612,6 +1612,92 @@ the verification: two pieces of work that looked worth doing, and were not.
 
 Full verify with the database up: **1,478 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 46 — the claim named a direction, and the verdict tested the other one
+
+The sweep's completeness critic returned last, after the five confirmed findings were already
+fixed and the run was closed out. It was asked what the six angles were not *shaped* to catch, and
+its answer was that every one of them was fault-shaped — crash, retry, duplicate, race — while the
+reference defect's real signature is **evidence written, verdict drawn from something other than
+that evidence**. A dropped field produces that on the happy path with nothing failing.
+
+It found one, and it is the worst thing on this branch so far.
+
+`detect` measures which way a pattern points — `predicts_overconfidence: gapDifference > 0`
+(`shared/detector.ts:448`). Two functions in `claim-derivation.ts` read it: one writes "your
+confidence is HIGHER than the results justify" or "lower", the other writes the matching refutation
+condition. Then the boolean went out of scope. `Claim` had no field for it, the `claims` table had
+no column, and so `finishDrill` had nothing to read and passed a constant:
+
+```ts
+predictsOverconfidence: true,
+```
+
+into a test whose entire grading rule is one line (`shared/drill.ts:221`):
+
+```ts
+const directional = options.predictsOverconfidence ? gapDifference : -gapDifference;
+observed: standardError !== null && directional >= options.separabilityK * standardError
+```
+
+**So every underconfidence claim was graded by whether the player turned out overconfident.**
+
+Reproduced end to end through the real service and the real store before anything was changed —
+90 decisions, endgames underconfident, everything else calibrated, then eight fresh endgame
+positions played exactly the way the claim says this player plays endgames:
+
+```
+STATEMENT: ...הביטחון שלך נמוך יותר ממה שהתוצאות מצדיקות...
+VERDICT:   {"observed":false,"drillGap":-0.6375,"baselineGap":-0.0667,
+            "gapDifference":-0.5708,"standardError":0.1357,"n":8}
+GRADE AFTER DRILL: refuted
+DESCRIPTION: הדריל הפריך את ההשערה על 8 החלטות חדשות... ונשמרת לתמיד
+```
+
+Evidence 4.2 standard errors **in the direction the claim named**, reported as a refutation.
+Refutation is terminal by design, `beginDrill` refuses that claim from then on, and `drill_results`
+is append-only so the fold reproduces `refuted` on every replay. The player is told the claim about
+them is disproved, permanently, by the drill that confirmed it.
+
+**No fault is needed to reach it.** Not a lost write, not a retry, not a second tab. It fired every
+time the selected claim pointed that way — and `shared/bucket-variable.ts` already recorded that as
+the *common* direction, not the rare one: of the 78 mirror claims that file measured, 78 out of 78
+were underconfidence.
+
+**The positive control is red in both directions, and the second half is the more damning.**
+Restoring the constant makes a confirmed claim read `refuted` — and makes a *contradicted* one read
+`replicated`. A player who behaved the opposite of what the claim said would have been told it was
+confirmed.
+
+The fix carries the sign the way the sentence is already carried: measured on the claim, copied
+onto the drill spec when the drill starts, read back from the stored spec at grading time. Not
+re-derived — re-deriving it from the record as it stands would let the evidence choose which way
+its own test points, which is the post-hoc choice R5 exists to forbid, and reading it back out of
+the Hebrew statement would rebuild the prose-carries-the-fact coupling that caused this.
+
+**Legacy rows get a refusal, not a guess.** Both columns are nullable and `null` is not a third
+direction. `createDrill` and `startDrill` refuse a claim that never recorded one, and both the
+MySQL and browser stores refuse to hand back an ungradeable spec. It matters more in the browser:
+there the missing key parses back as `undefined`, which does not throw on the way into a ternary —
+it is merely falsy, so the one-sided test would have run quietly on the opposite side.
+
+**GATE-PREREG is the part worth keeping.** It passed throughout, because it asked for the stored
+refutation *condition* and never for the direction. R5 says what would disprove the claim is
+written down before the drill runs, and for this instrument that is two things: the sentence, and
+the side of zero it is about. A drill storing "if the gap is not larger — refuted", with nothing
+recording larger in *which direction*, has registered a sentence rather than a test. The gate now
+asks for both, and its positive control gained a second starter — the defect exactly as it shipped,
+checking the sentence and not the sign — because a single check-nothing starter reddens on the
+first case and never reaches the new one.
+
+**What the critic also said, and what was not done about it.** Two neighbours in the same seam are
+logged as tasks #37 and #38 rather than fixed here: `beginDrill` excludes already-decided positions
+by raw FEN string while every sibling path compares boards, and the refutation condition promises
+positions from the claim's scope while the drill ships the first eight plies of the loaded game.
+Both are reported, neither is verified yet, and neither is claimed as closed.
+
+Full verify: **1,485 tests, 1,463 passed, 22 skipped without a database**, 10/10 gates, all ten
+controls red, bundle 622.6 / 640 kB.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1621,7 +1707,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Security, privacy, isolation | 2 | **9** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more. Cycle 34 closed the headers: a CSP measured in a real browser against the built app rather than written from the source, `SameSite=Lax` restoring the only CSRF defence this codebase has, a 1mb body limit and a bounded opaque diagnostic, `npm ci` and an SCA step in CI |
 | Scientific / construct validity | 4 | **9** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable. Cycle 40 closed a defect in the instrument itself rather than in a measure — a reload moved a game from the deferred arm into the coached one mid-game, so one game's rows recorded two conditions with nothing saying so |
 | Functional correctness | 6 | **9.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. The drill path had the same shape and is closed in cycle 36 — worse there, since it had no replay branch at all — along with two timestamp divergences between the two stores that no memory-backed test could see. Not 10: a systematic sweep for the rest of this class is still running |
-| Test quality and CI | 8 | **10** | **1,478 tests, none permanently skipped** (was 5, and 1,373 tests at cycle 30) — the 21 that skip on a machine with no `DATABASE_URL` are the MySQL suite, and CI runs them against a real MySQL 8 service, where the run is 1,478 of 1,478; a real database and a real browser locally and in CI; ~110 positive controls red at cycle 30, and every cycle since has shipped its own — the counts are in the entries above. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge. Cycle 37 added the thing that was missing: a **systematic adversarial sweep** rather than defects found while doing something else — six angles, each verified, which turned up four more open findings including one against this branch's own fixes |
+| Test quality and CI | 8 | **10** | **1,485 tests, none permanently skipped** (was 5, and 1,373 tests at cycle 30) — the 22 that skip on a machine with no `DATABASE_URL` are the MySQL suite, and CI runs them against a real MySQL 8 service, where the run is 1,485 of 1,485. Cycle 46 widened a GATE rather than only its suite: GATE-PREREG had asked for the stored refutation condition and never for the direction, and passed for as long as the grading path filled the gap with a constant; a real database and a real browser locally and in CI; ~110 positive controls red at cycle 30, and every cycle since has shipped its own — the counts are in the entries above. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge. Cycle 37 added the thing that was missing: a **systematic adversarial sweep** rather than defects found while doing something else — six angles, each verified, which turned up four more open findings including one against this branch's own fixes |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five. SC 3.1.2 read island by island rather than swept: four English strings declared, thirty-one exemptions asserted so a later sweep cannot quietly claim a language for chess notation |
 | Performance and bundle | 5 | **8.5** | Explicit budgets, wired into verify and CI, proven to fail — and now a **layout-shift budget measured in a real browser** at two viewports on both routes, which caught a 98px shift the assessment reported and a 289px one this branch had introduced itself. Not higher: LCP and INP are still unmeasured, and CLS is measured on a local server rather than on real users |

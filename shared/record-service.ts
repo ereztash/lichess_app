@@ -1087,7 +1087,23 @@ export async function finishDrill(
     // The whole summary, not just its gap: the baseline is an estimate with its own sampling
     // error, and a comparison that treats it as exactly known is too permissive by that much.
     baseline: baseline,
-    predictsOverconfidence: true,
+    /*
+     * THE DIRECTION THE DRILL REGISTERED, not a constant.
+     *
+     * This was `true`. `evaluateRefutation` is a one-sided test -- `directional =
+     * predictsOverconfidence ? gapDifference : -gapDifference` -- so the constant graded every
+     * claim as if it named overconfidence. For the other half it inverted the verdict: a player
+     * who behaved exactly as an underconfidence claim described produced `observed: false`, the
+     * claim graded `refuted`, refutation is terminal, `beginDrill` then refuses that claim
+     * forever, and `drill_results` is append-only so the fold reproduces it on every replay.
+     * No fault was needed; it fired on the ordinary path, and `shared/bucket-variable.ts` records
+     * underconfidence as the COMMON direction rather than the rare one.
+     *
+     * Read from the stored spec rather than from the claim, so the sign is the one written down
+     * before the first position was shown (R5) -- the same rule that makes the condition itself
+     * come from `stored.spec`.
+     */
+    predictsOverconfidence: stored.spec.predicts_overconfidence,
     // One bucket, named in advance, tested once -- the pre-registered multiplier, not the scan's.
     separabilityK: PREREGISTERED_SEPARABILITY_K,
   });

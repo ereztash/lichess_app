@@ -403,6 +403,8 @@ describeDb("DrizzleRecordStore against MySQL", () => {
       n: 40,
       grade: "hypothesis" as const,
       refutation_condition: "פער הביטחון לא ישוחזר בבדיקה קדימה",
+      // "בטוחים יותר משאתם מדויקים" -- overconfidence, so the flag agrees with the sentence.
+      predicts_overconfidence: true,
       prospective_tests: [],
       created_at: CREATED_AT,
       last_evaluated_at: CREATED_AT,
@@ -436,8 +438,40 @@ describeDb("DrizzleRecordStore against MySQL", () => {
         expect(stored?.prospective_tests[0].recorded_at, `${name} restamped the result`).toBe(
           REPORTED_AT,
         );
+        /*
+         * Named rather than left to the toEqual below, because this one is a SIGN and losing it
+         * does not look like a loss. A claim that comes back without its direction cannot be
+         * drilled at all, and a claim that comes back with the wrong one is graded backwards --
+         * `evaluateRefutation` is one-sided, so the two outcomes are a refusal and a false
+         * refutation, not a missing field and a present one.
+         */
+        expect(stored?.predicts_overconfidence, `${name} lost which way the claim points`).toBe(
+          true,
+        );
       }
       expect(fromMysql).toEqual(fromMemory);
+    });
+
+    it("agrees on a claim that never recorded a direction, rather than one store inventing one", async () => {
+      /*
+       * The tri-state is the thing to check across stores, and it is exactly where the two
+       * timestamp divergences this block was written for came from: a nullable MySQL column and
+       * an in-memory object are not obliged to disagree, they just usually do. Absent must arrive
+       * as `null` from both, because `createDrill` distinguishes "no direction recorded" from
+       * `false`, and `false` is a real direction that would be silently tested.
+       */
+      const legacy = { ...claim, claim_id: "claim-no-direction", predicts_overconfidence: null };
+      await store.saveClaim(legacy);
+      await new MemoryRecordStore().saveClaim(legacy);
+      const fromMysql = await store.getClaim(legacy.claim_id);
+      expect(fromMysql?.predicts_overconfidence, "MySQL invented a direction").toBeNull();
+
+      const memory = new MemoryRecordStore();
+      await memory.saveClaim(legacy);
+      expect(
+        (await memory.getClaim(legacy.claim_id))?.predicts_overconfidence,
+        "memory invented a direction",
+      ).toBeNull();
     });
   });
 });

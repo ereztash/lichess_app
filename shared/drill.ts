@@ -22,9 +22,30 @@ export class MissingRefutationCondition extends Error {
 }
 
 /**
+ * A claim that never recorded which direction it names, so no drill of it can be graded.
+ *
+ * Separate from the class above because it is a different failure with a different remedy: the
+ * condition is missing PROSE, this is a missing SIGN, and `evaluateRefutation` is a one-sided
+ * test that has no honest default for it. Guessing `true` is precisely the defect this class was
+ * added to make unreachable -- it graded every underconfidence claim by whether the player turned
+ * out overconfident, and refutation is terminal.
+ */
+export class MissingClaimDirection extends Error {
+  constructor(claimId: string) {
+    super(
+      `claim ${claimId} does not record whether it predicts overconfidence; ` +
+        `a one-sided refutation test cannot be graded without the side it is on`,
+    );
+    this.name = "MissingClaimDirection";
+  }
+}
+
+/**
  * Build a drill from a claim. The refutation condition is COPIED from the claim at creation
  * time, not referenced, so editing the claim later cannot retroactively change what the drill
- * was testing.
+ * was testing. The DIRECTION travels with it, for the same reason and as one term: the stored
+ * sentence says "higher" or "lower", and a verdict computed on the other sign would be reported
+ * under that sentence.
  */
 export function createDrill(
   claim: Claim,
@@ -37,11 +58,18 @@ export function createDrill(
   if (fens.length === 0) {
     throw new Error(`drill ${options.drill_id} has no positions to test`);
   }
+  if (typeof claim.predicts_overconfidence !== "boolean") {
+    // A claim stored before the direction was recorded. Refusing is the only honest exit: the
+    // sign cannot be recovered later without letting the evidence pick it, and a drill graded on
+    // the wrong side ends in a permanent 'refuted'.
+    throw new MissingClaimDirection(claim.claim_id);
+  }
   return {
     drill_id: options.drill_id,
     claim_id: claim.claim_id,
     fens: [...fens],
     refutation_condition: claim.refutation_condition,
+    predicts_overconfidence: claim.predicts_overconfidence,
   };
 }
 
@@ -66,6 +94,23 @@ export function startDrill(
   const condition = spec?.refutation_condition;
   if (typeof condition !== "string" || condition.trim().length === 0) {
     throw new MissingRefutationCondition(spec?.drill_id ?? "<unknown>");
+  }
+  /*
+   * THE SIGN IS HALF THE PRE-REGISTERED TERM, and this check is here because it was not.
+   *
+   * The condition above says "if the gap is not LARGER than in the rest -- refuted" or "if it is
+   * not SMALLER -- refuted". Which of the two is a fact about the claim that `evaluateRefutation`
+   * reads as a sign. A spec carrying the sentence and no sign has written down half a test, and
+   * the grading path used to fill the other half with a constant `true` -- so an underconfidence
+   * claim was graded on whether the player turned out overconfident, and refutation is terminal.
+   *
+   * GATE-PREREG asked only for the sentence, which is why it passed throughout. Same guard shape
+   * as the one above, and for the same reason: `createDrill` already refuses to BUILD such a
+   * spec, but a spec read back from storage or written by older code can carry an absent value
+   * that TypeScript cannot see.
+   */
+  if (typeof spec?.predicts_overconfidence !== "boolean") {
+    throw new MissingClaimDirection(spec?.claim_id ?? "<unknown>");
   }
   if (!spec.fens?.length) {
     throw new Error(`drill ${spec.drill_id} has no positions to test`);

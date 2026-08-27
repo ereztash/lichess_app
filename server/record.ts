@@ -33,6 +33,7 @@ import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
 import { assembleProbe } from "../shared/counterfactual.js";
 import { RecordError } from "../shared/record-service.js";
+import { MissingClaimDirection } from "../shared/drill.js";
 import type { PreregisteredHypothesis } from "../shared/prereg.js";
 import type { StoredImportDiagnostic } from "../shared/import-diagnostic.js";
 import type {
@@ -414,6 +415,7 @@ export class DrizzleRecordStore implements RecordStore {
        *
        * "When was this claim last evaluated" is a fact about the drill, not about the row.
        */
+      predictsOverconfidence: claim.predicts_overconfidence,
       createdAt: new Date(claim.created_at),
       lastEvaluatedAt: new Date(claim.last_evaluated_at),
     };
@@ -440,6 +442,7 @@ export class DrizzleRecordStore implements RecordStore {
       n: row.n,
       grade: row.grade,
       refutation_condition: row.refutationCondition,
+      predicts_overconfidence: row.predictsOverconfidence,
       prospective_tests: results.map((r) => ({
         kind: "prospective_drill_result" as const,
         drill_id: r.drillId,
@@ -462,6 +465,7 @@ export class DrizzleRecordStore implements RecordStore {
       fens: started.spec.fens,
       refutationCondition: started.spec.refutation_condition,
       predicted: started.predicted,
+      predictsOverconfidence: started.spec.predicts_overconfidence,
     });
   }
 
@@ -469,12 +473,23 @@ export class DrizzleRecordStore implements RecordStore {
     const db = await this.db();
     const [row] = await db.select().from(drills).where(eq(drills.drillId, drillId)).limit(1);
     if (!row) return null;
+    if (row.predictsOverconfidence === null) {
+      /*
+       * A drill registered before the direction was recorded. The one consumer of this spec is a
+       * SIGNED test, so handing back a spec with no sign only moves the guess downstream -- and
+       * the guess that used to live there is what graded confirming evidence as a refutation.
+       * The drill is unfinishable; saying so beats finishing it wrongly, because a wrong verdict
+       * is terminal and this is not.
+       */
+      throw new MissingClaimDirection(row.claimId);
+    }
     return {
       spec: {
         drill_id: row.drillId,
         claim_id: row.claimId,
         fens: row.fens,
         refutation_condition: row.refutationCondition,
+        predicts_overconfidence: row.predictsOverconfidence,
       },
       predicted: row.predicted,
       started_at: row.startedAt.toISOString(),

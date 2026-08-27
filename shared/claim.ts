@@ -72,6 +72,16 @@ export interface DrillSpec {
    * cannot fail measures nothing.
    */
   refutation_condition: string;
+  /**
+   * The direction the condition above is written in, copied from the claim when the drill starts.
+   *
+   * IT IS COPIED RATHER THAN LOOKED UP, for the reason `refutation_condition` is copied: the terms
+   * of the test are fixed before the first position is shown, and reading them off the claim at
+   * grading time would let a claim edited in between change what the drill was. The sentence and
+   * the sign are one term, so they are pinned together or the sentence describes a test that was
+   * not run.
+   */
+  predicts_overconfidence: boolean;
 }
 
 export interface Claim {
@@ -83,6 +93,27 @@ export interface Claim {
   n: number;
   grade: ClaimGrade;
   refutation_condition: string;
+  /**
+   * WHICH DIRECTION THE CLAIM NAMES: true for "more confident than the results justify", false for
+   * less. Measured by `detect` (shared/detector.ts) as `gapDifference > 0`.
+   *
+   * IT IS STORED BECAUSE THE VERDICT IS A SIGNED TEST AND NOTHING ELSE CARRIES THE SIGN. It used
+   * to be computed, spent on the two sentences in claim-derivation.ts, and dropped -- so
+   * `finishDrill` had nothing to read and passed the constant `true` to `evaluateRefutation`,
+   * whose `directional = predictsOverconfidence ? gapDifference : -gapDifference` is the entire
+   * grading rule. An underconfidence claim was therefore graded by whether the player turned out
+   * OVERconfident. A player who behaved exactly as the claim described refuted it, permanently,
+   * on the ordinary path with nothing failing. `shared/bucket-variable.ts` records that this is
+   * the common direction, not the rare one: of 78 mirror claims, 78 were underconfidence.
+   *
+   * NULL MEANS A CLAIM WRITTEN BEFORE THIS WAS RECORDED, and it is not a third direction. The
+   * direction cannot be recovered afterwards -- re-deriving it from today's record would let the
+   * evidence choose the test's sign, which is the post-hoc choice R5 exists to forbid, and
+   * reading it back out of the Hebrew statement would rebuild the same prose-carries-the-fact
+   * coupling that caused this. So `createDrill` refuses such a claim rather than guessing, the
+   * way it already refuses one with no refutation condition.
+   */
+  predicts_overconfidence: boolean | null;
   prospective_tests: ProspectiveDrillResult[];
   created_at: string;
   last_evaluated_at: string;
@@ -98,6 +129,7 @@ export function formHypothesis(input: {
   scope: string;
   evidence: RetrospectiveEvidence;
   refutation_condition: string;
+  predicts_overconfidence: boolean;
   created_at: string;
 }): Claim & { grade: "hypothesis" } {
   if (!input.refutation_condition.trim()) {
@@ -112,6 +144,7 @@ export function formHypothesis(input: {
     n: input.evidence.decision_ids.length,
     grade: "hypothesis",
     refutation_condition: input.refutation_condition,
+    predicts_overconfidence: input.predicts_overconfidence,
     prospective_tests: [],
     created_at: input.created_at,
     last_evaluated_at: input.created_at,

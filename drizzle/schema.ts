@@ -164,6 +164,18 @@ export const claims = mysqlTable("claims", {
   n: int("n").notNull(),
   grade: mysqlEnum("grade", CLAIM_GRADES).notNull(),
   refutationCondition: text("refutation_condition").notNull(),
+  /*
+   * WHICH SIDE THE REFUTATION CONDITION IS ON. See the field note on `Claim` in shared/claim.ts:
+   * the verdict is a one-sided test and this is the side, so a claim that reaches `finishDrill`
+   * without it cannot be graded honestly.
+   *
+   * NULLABLE ON PURPOSE, and it is not a third direction. Rows written before this column existed
+   * genuinely do not record it, and there is no backfill that would not be a guess: re-deriving
+   * the sign from today's decisions lets the evidence choose the test's direction, which is the
+   * post-hoc choice R5 forbids. `createDrill` refuses such a claim instead. A DEFAULT here would
+   * be worse than the null -- it would make every legacy row assert a direction nobody measured.
+   */
+  predictsOverconfidence: boolean("predicts_overconfidence"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastEvaluatedAt: timestamp("last_evaluated_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -182,6 +194,17 @@ export const drills = mysqlTable("drills", {
   fens: json("fens").$type<string[]>().notNull(),
   refutationCondition: text("refutation_condition").notNull(),
   predicted: boolean("predicted").notNull(),
+  /*
+   * The direction copied from the claim when the drill started -- one term with the condition
+   * above, which states it in words.
+   *
+   * NULLABLE FOR THE SAME REASON AS THE CLAIMS COLUMN, and for one more: a drill already open
+   * when this shipped was registered without a recorded sign. Adding the column NOT NULL would
+   * either refuse to migrate a table with rows in it or invent a direction for those drills.
+   * `getDrill` refuses to hand back an ungradeable spec instead, which fails the one drill
+   * rather than mis-grading it.
+   */
+  predictsOverconfidence: boolean("predicts_overconfidence"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
 });
 export type DrillRow = typeof drills.$inferSelect;

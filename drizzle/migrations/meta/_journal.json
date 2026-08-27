@@ -43,6 +43,13 @@
       "when": 1787769515479,
       "tag": "0005_furry_gabe_jones",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1787794789091,
+      "tag": "0006_strong_the_liberteens",
+      "breakpoints": true
     }
   ]
 }

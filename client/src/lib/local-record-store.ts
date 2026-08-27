@@ -18,6 +18,7 @@ import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/decision-atom";
 import { assembleProbe } from "@shared/counterfactual";
+import { MissingClaimDirection } from "@shared/drill";
 import type { RevealTiming } from "@shared/reveal-timing";
 import type {
   LearningRule,
@@ -263,6 +264,13 @@ export class LocalRecordStore implements RecordStore {
     if (!claim) return null;
     return {
       ...claim,
+      /*
+       * A claim stored before the direction was recorded parses back with the key ABSENT, not
+       * null. Normalised here so the three stores agree on one shape for "not recorded": the
+       * MySQL column is nullable and returns null, and a caller that has to tell `undefined` from
+       * `null` to know which store it is talking to has two contracts, not one.
+       */
+      predicts_overconfidence: claim.predicts_overconfidence ?? null,
       prospective_tests: state.drillResults.filter((r) => r.claim_id === claimId),
     };
   }
@@ -277,7 +285,19 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async getDrill(drillId: string): Promise<StoredDrill | null> {
-    return read().drills[drillId] ?? null;
+    const started = read().drills[drillId] ?? null;
+    if (started && typeof started.spec.predicts_overconfidence !== "boolean") {
+      /*
+       * A drill registered before the direction was recorded, read back out of localStorage with
+       * the key missing. It matters MORE here than in MySQL, because `undefined` does not throw
+       * on the way to `evaluateRefutation` -- it is falsy, so the one-sided test would quietly
+       * run on the opposite side and report a confident verdict about the wrong hypothesis.
+       * Same refusal as the Drizzle store: this drill cannot be graded, and a refuted claim
+       * cannot be un-refuted.
+       */
+      throw new MissingClaimDirection(started.spec.claim_id);
+    }
+    return started;
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {

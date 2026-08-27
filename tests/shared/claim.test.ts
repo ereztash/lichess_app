@@ -46,6 +46,7 @@ describe("a claim states its n, its scope, and what would refute it", () => {
         scope: "sc",
         evidence: { kind: "retrospective", decision_ids: ["a"] },
         refutation_condition: "   ",
+        predicts_overconfidence: true,
         created_at: now,
       }),
     ).toThrow(/refutation condition/);
