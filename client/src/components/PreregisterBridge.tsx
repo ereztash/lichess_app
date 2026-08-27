@@ -19,7 +19,7 @@
  * wait, and a screen that renders it as an absent button would turn it into one.
  */
 import { useState } from "react";
-import { PREREGISTERED_THRESHOLDS, MIN_BUCKET_N } from "@shared/detector";
+import { PREREGISTERED_THRESHOLDS, MIN_BUCKET_N, SEPARABILITY_K } from "@shared/detector";
 import { hypothesisFromImport, type PreregOutcome } from "@shared/prereg";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
 import { useRegisterHypothesis } from "@/lib/record-api";
@@ -52,14 +52,32 @@ export function PreregisterBridge({
 
   if (outcome.kind === "nothing-readable") return null;
 
+  if (outcome.kind === "only-one-readable") {
+    /*
+     * One readable bucket. This used to fall through to `not-separable`, which renders
+     * `outcome.separation` and `outcome.threshold` -- and for this case `worstBucketVerdict`
+     * returns both as literal zeros because there is no runner-up to compare against. The screen
+     * printed "the difference is 0 percentage points, and their sampling error is 0" beside a
+     * panel showing exactly one bucket: a comparison against something that does not exist,
+     * dressed as two measurements.
+     */
+    return (
+      <p className="prereg-note">
+        רק דלי אחד נקרא מהמשחקים האלה, ושיעור לבדו אינו השוואה — אין למה להיות גרוע ממנו. כדי
+        לרשום מראש צריך שני דליים קריאים לפחות, כדי שיהיה אפשר להראות שהנמוך מביניהם באמת נבדל.
+      </p>
+    );
+  }
+
   if (outcome.kind === "not-separable") {
     // Deliberately not a disabled button. There is nothing to wait for here -- more games would
     // sharpen the rates, but the answer "these buckets are not distinguishable" is the finding.
     return (
       <p className="prereg-note">
         אין דלי אחד שאפשר לרשום מראש: הפרש הדיוק בין הנמוך ביותר לזה שאחריו הוא{" "}
-        {Math.round(outcome.separation * 100)} נקודות אחוז, וטעות הדגימה שלהם היא{" "}
-        {Math.round(outcome.threshold * 100)}. לרשום את הנמוך מביניהם היה להלביש ניחוש כהשערה.
+        {Math.round(outcome.separation * 100)} נקודות אחוז, והבר שהוא צריך לעבור — שתי שגיאות
+        תקן של ההפרש — הוא {Math.round(outcome.threshold * 100)} נקודות אחוז. לרשום את הנמוך
+        מביניהם היה להלביש ניחוש כהשערה.
       </p>
     );
   }
@@ -89,17 +107,29 @@ export function PreregisterBridge({
       <p>
         המשחקים האלה מצביעים על <strong>{hypothesis.scope}</strong> כמקום לבדוק בו —{" "}
         <Proportion value={hypothesis.evidence.accurate_rate} n={hypothesis.evidence.n} /> דיוק,
-        נמוך ב-{Math.round(hypothesis.evidence.separation * 100)} נקודות אחוז מהדלי הבא, כשטעות
-        הדגימה היא {Math.round(hypothesis.evidence.threshold * 100)}.
+        נמוך ב-{Math.round(hypothesis.evidence.separation * 100)} נקודות אחוז מהדלי הבא — יותר
+        מהבר של שתי שגיאות תקן, שהוא {Math.round(hypothesis.evidence.threshold * 100)} נקודות אחוז.
       </p>
       {/*
-        * What it buys, in the only unit that matters to someone deciding whether to press it.
-        * The n comes from the constants so this sentence cannot drift from the detector.
-        */}
+       * What it buys, and what it costs, in the only unit that matters to someone deciding whether
+       * to press it.
+       *
+       * THE LAST SENTENCE WAS THE OPPOSITE OF TRUE. It said in bold that registering would NOT
+       * lower the gap threshold, and registering swaps SEPARABILITY_K (3.75) for
+       * PREREGISTERED_SEPARABILITY_K (3.25). The comment here used to read "the n comes from the
+       * constants so this sentence cannot drift from the detector" -- and the drift-proofing had
+       * been applied to the half that did not need it, while the k was typed prose beside it.
+       *
+       * Both numbers come from the constants now. The lower bar is deliberate and measured
+       * (detector.ts records the shuffle rates that chose 3.25), so the sentence says what it is
+       * and why rather than denying it: one bucket named in advance is one chance, not six.
+       */}
       <p className="prereg-buys">
         אם תרשמו את זה עכשיו — לפני שנרשמה החלטה חיה אחת — הגלאי יבדוק את הדלי הזה בלבד במקום שישה,
         ולכן יספיקו {PREREGISTERED_THRESHOLDS.minBucketN * 2} החלטות חשופות במקום{" "}
-        {MIN_BUCKET_N * 2}. הוא <em>לא</em> יוריד את הסף של הפער עצמו.
+        {MIN_BUCKET_N * 2}. הסף של הפער עצמו יורד מ-{SEPARABILITY_K} ל-
+        {PREREGISTERED_THRESHOLDS.separabilityK} שגיאות תקן — בדיקה של דלי אחד שנרשם מראש היא
+        הזדמנות אחת ולא שש, ולכן היא לא צריכה את אותו בר.
       </p>
       <p className="prereg-refutation">{hypothesis.refutation_condition}</p>
       <button
