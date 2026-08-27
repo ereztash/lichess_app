@@ -38,7 +38,8 @@ vi.mock("@/lib/trpc", () => ({
   trpc: { record: { storageAvailable: { useQuery: () => probe } } },
 }));
 
-const { useRecordMode, forgetConfirmedServerRecords } = await import("@/lib/record-api");
+const { useRecordMode, forgetConfirmedServerRecords, markKeptLocally, forgetKeptLocalRecords } =
+  await import("@/lib/record-api");
 const { RecordModeNotice } = await import("@/components/RecordModeNotice");
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -61,7 +62,62 @@ const NO_DB: Probe = { data: { available: false }, isError: false };
 
 beforeEach(() => {
   forgetConfirmedServerRecords();
+  forgetKeptLocalRecords();
   user = { openId: "player-a" };
+});
+
+/**
+ * THE OTHER DIRECTION, WHICH THIS FILE DID NOT COVER.
+ *
+ * The latch is written only on success and read only for the usable → failure transition, so
+ * failure → usable is unguarded. A signed-in session whose probe fails once records into
+ * localStorage **under an explicit on-screen promise that it is doing so** ("ההחלטות נשמרות
+ * בדפדפן הזה בינתיים") — and when the probe recovers, every read and every write moves back to
+ * the server, with no notice and no merge. `RecordModeNotice` returns null the moment the status
+ * is `usable`, so even the explanation disappears.
+ *
+ * The decisions are not deleted: `LocalRecordStore` keeps one browser-wide key and any later
+ * local-mode session renders them. What is true is that they are **invisible whenever the server
+ * is healthy**, and no migration or merge code exists anywhere in `client/src/lib`.
+ *
+ * This file's own note already states the rule and states it symmetrically: the record must not
+ * change underneath you. It was enforced in one direction.
+ */
+describe("a record this session wrote here stays here", () => {
+  it("does not move to the server when the probe recovers mid-session", () => {
+    // Signed in, probe down: the product promises the decisions are being kept in this browser.
+    expect(mode(DROPPED).local).toBe(true);
+    markKeptLocally("player-a");
+
+    const recovered = mode(UP);
+    expect(recovered.local, "the record silently moved to the server mid-session").toBe(true);
+    expect(recovered.serverStatus).toBe("kept-local");
+  });
+
+  it("keeps saying so, rather than removing the explanation when the server comes back", () => {
+    // The notice returns null on `usable`; a recovered probe would take the sentence away with it.
+    mode(DROPPED);
+    markKeptLocally("player-a");
+    const { container } = render(
+      <RecordModeNotice local durability="persistent" serverStatus={mode(UP).serverStatus} />,
+    );
+    expect(container.textContent, "the flip is silent").toBeTruthy();
+    expect(container.textContent).toContain("בדפדפן הזה");
+  });
+
+  it("does not latch an account that never wrote here, so a healthy session is unaffected", () => {
+    // The half that keeps this from being a blanket "always local". A flag that is always on is
+    // not a flag.
+    expect(mode(UP).local).toBe(false);
+    expect(mode(UP).serverStatus).toBe("usable");
+  });
+
+  it("is keyed by account, like the latch it mirrors", () => {
+    mode(DROPPED);
+    markKeptLocally("player-a");
+    // The next person at this keyboard has written nothing here in this session.
+    expect(mode(UP, { openId: "player-b" }).local).toBe(false);
+  });
 });
 
 describe("the fallback runs one way only", () => {

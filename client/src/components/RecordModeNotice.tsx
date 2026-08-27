@@ -36,6 +36,18 @@ const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
   unreachable:
     "לא הצלחנו להגיע לשרת, והוא לא אמר למה. ההחלטות נשמרות בדפדפן הזה בינתיים; לא ידוע אם קיימת שם רשומה אחרת.",
   /*
+   * NOT A FAILURE, AND IT STILL HAS TO BE SAID.
+   *
+   * The server is answering again. What this names is that the decisions from this session went
+   * into the browser -- under the sentence above, which promised exactly that -- so the record
+   * stays here rather than pointing back at the server and leaving them unreadable. Moving
+   * silently is what this notice exists to prevent, and it would have taken its own explanation
+   * away with it: the component returns null on `usable`.
+   */
+  "kept-local":
+    "השרת חזר לענות, אבל ההחלטות שרשמתם בביקור הזה נשמרו בדפדפן הזה — ולכן הרשומה נשארת כאן לעת עתה. " +
+    "הן לא אבדו והן לא בשרת; רשומת השרת היא רשומה אחרת. אין כאן מיזוג אוטומטי בין השתיים.",
+  /*
    * Deliberately does NOT say the decisions are being kept here. They are not: the record stays
    * pointed at the server. Saying otherwise would be the reassurance that makes a split record
    * invisible, which is the whole reason this state exists instead of a silent fallback.

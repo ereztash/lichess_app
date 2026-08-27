@@ -1555,6 +1555,63 @@ committed one cycle after being written, which is the shortest such loop in this
 
 Full verify with the database up: **1,474 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 45 — the fallback was directional, and only one direction was guarded
+
+The fifth finding to survive adversarial verification, at `medium`, and it is against a guard this
+branch already wrote.
+
+`confirmedServerRecords` exists so that **a record on the server does not move into this browser
+because one probe failed**. Its own file says the rule symmetrically: *"the record does not change
+underneath you."* It was enforced in one direction. The latch is written only on success and read
+only for the `usable → failure` transition, so **`failure → usable` is unguarded**:
+
+    probe fails  →  "ההחלטות נשמרות בדפדפן הזה בינתיים"  →  decisions go into localStorage
+    probe recovers  →  every read and every write silently points at the server again
+
+Under an explicit on-screen promise, and then with no notice at all — `RecordModeNotice` returns
+null the moment the status is `usable`, so the flip **takes its own explanation away with it**. And
+there is no merge: no migration code exists anywhere in `client/src/lib`.
+
+`kept-local` is the mirror latch: once this account has written into the browser record in this
+session, a recovered probe leaves the record where those decisions are, and says so. Keyed by
+account and module-scoped, exactly like the latch it mirrors. Three positive controls: not reading
+it reddens the flip and the notice, dropping the account key reddens the next-person case, and
+emptying the sentence reddens the on-screen half alone.
+
+### What the verifier corrected, and it sharpened the fix
+
+- **The commit → reveal interleaving is impossible on the ordinary path.** `onCommit` issues both
+  the commit and the reveal from closures captured in one render, so both see the same mode. The
+  window exists **only in the probed arm**, where the reveal is issued later by `onAnswerProbe`, a
+  callback rebuilt every render that therefore reads the *current* mode. So the mark is written
+  before the local write rather than after it.
+- **"Never read again" was overstated.** `LocalRecordStore` keeps one browser-wide key, so the
+  decisions still render in any later local-mode session. What is true is that they are invisible
+  *whenever the server is healthy* — which is the same violation R2 already names: a record that
+  could not be read must not render as a different, smaller one.
+- **The orphaned unrevealed decision is a state the record already models as attrition.** The
+  defect there is not a malformed record; it is that the player can never complete that decision
+  and is told the wrong cause.
+
+### The sweep, closed out
+
+Thirty verdicts on 35 raw findings. **Five confirmed, all five fixed** — the truncated drill (41),
+the double transfer (42), the reflection lock and the duplicate rule (43, the second re-graded and
+left open at `low`), and this. **Twenty-five refuted**, and the refutations did real work:
+
+| why | notable |
+| --- | --- |
+| describes code cycles 37–44 already changed | six of them, several catching that their own citations had shifted by my commits |
+| the load-bearing claim is false at HEAD | the `beginDrill` race: *"beginDrill performs exactly ONE write… an unreported drill is designed, documented, and shipped as a button"* |
+| the harm cannot occur through the product | the last-writer-wins grade: *"the fold is monotone, so a bury can only turn refuted into replicated — and `ClaimPanel` renders the drill button only for `hypothesis`, so the buried claim is never offered again"* |
+| wrong class entirely | the phantom decision: *"nothing is derived from the extra row; every reader folds over `scored` decisions only"* |
+| the trigger does not exist | the `NOT_FOUND` after an evidence write: *"nothing in this codebase can remove either row"* — no delete surface exists at all |
+
+**Tasks #29 and #35 are closed as refuted, not as fixed.** That distinction is the point of running
+the verification: two pieces of work that looked worth doing, and were not.
+
+Full verify with the database up: **1,478 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1584,7 +1641,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
 | — | ~~The fold's write can destroy `retired`~~; the learning queue's DISPLAY still prints the stored grade | ~~High~~ **Low** | **the write half is closed in cycle 39**: all three stores refuse to move a rule off `retired`, and `beginLearningTransfer` derives the grade before deciding on it. What is left is cosmetic — `LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`, so a row can say `השערה` about a refuted rule until something touches it. The click is refused with a reason and repairs the record |
 | — | ~~`beginLearningTransfer` is check-then-act with no uniqueness~~ | ~~High~~ | **the damage is closed in cycle 42**: an orphan preregistration is never resumed, so two transfers over one set of boards can no longer replicate a rule. The race itself remains — there is still no unique index on `rule_id`, so a lost race still writes a second row; it is now inert |
-| — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
+| — | ~~The grade fold persists last-writer-wins; `beginDrill` has no open-drill check~~ | ~~Medium~~ | **refuted in cycle 45, not fixed.** The fold is monotone and each writer reads after writing its own row, so a bury can only turn refuted into replicated — and `ClaimPanel` renders the drill button only for `hypothesis`, so a buried claim is never offered again. `beginDrill` performs exactly one write, and an unreported drill is a state the product ships a button for |
 | — | The learning queue's display prints the stored grade rather than the derived one | Low | open, cosmetic since cycle 39: the click is refused with a reason and repairs the record |
 | — | ~~A lost reveal silently shrinks a pre-registered drill~~ | ~~Medium~~ | **closed in cycle 41**, and it was the one finding of 35 that survived adversarial verification at `high`. `finishDrill` now refuses a run that did not measure what it registered, and refuses a decision recorded against a board it never registered |
 | — | ~~`createLearningRule`: a failure between its two writes locks the reflection~~; a lost response still duplicates the rule | ~~Medium~~ **Low** | **the lock is closed in cycle 43**: a stored reflection stands and no longer refuses the rule, and the composer names what was kept. The duplicate half was confirmed and re-graded `low` by the verifier — removable through Archive, single consumer, nothing double-counted, and it takes a human re-press since this mutation is not wrapped in `retryOnce` |
