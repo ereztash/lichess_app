@@ -196,6 +196,50 @@ describe("a claim about how you decided, not about which positions", () => {
     expect((await store.getClaim(FAST_CLAIM.claim_id))?.grade).toBe("hypothesis");
   });
 
+  it("replays a verdict already written, rather than refusing it under the new rule", async () => {
+    /*
+     * THE NEW GUARD MUST NOT REACH BACKWARDS. A drill graded before this rule existed has a
+     * `drill_results` row, and that row is append-only and terminal. The replay branch sits ahead
+     * of the scope check for exactly that reason: a retry after a lost response has to return the
+     * stored verdict, not discover a new objection to it.
+     *
+     * Set up here the only way it can be: write the result directly, as a store that had already
+     * graded this drill would hold it, then ask the service to finish the drill again.
+     */
+    const store = await withClaim(FAST_CLAIM);
+    const begun = await begin(store, FAST_CLAIM, FRESH_OPENING);
+    const ids: string[] = [];
+    for (const [i, fen] of begun.drill!.fens.entries()) {
+      const id = `legacy-${i}`;
+      ids.push(id);
+      // Out of scope by the rule that now applies -- four minutes a move.
+      await decide(store, id, fen, {
+        secondsTaken: 240,
+        confidence: i === 3 ? CONFIDENCE_LEVELS - 1 : CONFIDENCE_LEVELS,
+        cpLoss: i === 6 ? 5 : 250,
+      });
+    }
+    await store.saveDrillResult({
+      kind: "prospective_drill_result",
+      drill_id: `drill-${FAST_CLAIM.claim_id}`,
+      claim_id: FAST_CLAIM.claim_id,
+      decision_ids: ids,
+      predicted: true,
+      observed: true,
+      recorded_at: "2026-02-01T10:00:00.000Z",
+    });
+
+    const done = await service.finishDrill(
+      store,
+      { drill_id: `drill-${FAST_CLAIM.claim_id}`, decision_ids: ids },
+      { recorded_at: "2026-03-01T10:00:00.000Z" },
+    );
+    // Null verdict is the replay's honest answer -- the numbers were measured against a baseline
+    // that has since grown -- and the grade the stored result produced still stands.
+    expect(done.verdict).toBeNull();
+    expect(done.claim.grade).toBe("replicated");
+  });
+
   it("grades it when the drill's decisions are in scope", async () => {
     // The other side, so the guard above cannot be satisfied by refusing everything.
     const store = await withClaim(FAST_CLAIM);
