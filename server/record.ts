@@ -401,12 +401,30 @@ export class DrizzleRecordStore implements RecordStore {
       n: claim.n,
       grade: claim.grade,
       refutationCondition: claim.refutation_condition,
+      /*
+       * THE TWO TIMESTAMPS ARE WRITTEN, NOT LEFT TO THE DATABASE, and the second one was a real
+       * divergence between the two stores.
+       *
+       * `created_at` defaulted to `now()` and `last_evaluated_at` carried `ON UPDATE NOW()`, so
+       * the values the service computed were discarded: MemoryRecordStore kept
+       * `result.recorded_at` and MySQL kept the wall-clock time of the write. Probed side by side
+       * against a real MariaDB -- the service wrote 2026-02-02T10:00:00Z, memory returned it, and
+       * MySQL returned the moment the statement ran. Every test in this repository except this
+       * file's runs against the in-memory store, so nothing could see it.
+       *
+       * "When was this claim last evaluated" is a fact about the drill, not about the row.
+       */
+      createdAt: new Date(claim.created_at),
+      lastEvaluatedAt: new Date(claim.last_evaluated_at),
     };
-    // The grade is the one field that legitimately changes, and only via evaluateClaim.
+    // The grade and the evaluation date are what legitimately change, and only via evaluateClaim.
+    // An explicit value in the SET clause is what overrides the column's ON UPDATE NOW().
     await db
       .insert(claims)
       .values(row)
-      .onDuplicateKeyUpdate({ set: { grade: claim.grade } });
+      .onDuplicateKeyUpdate({
+        set: { grade: claim.grade, lastEvaluatedAt: new Date(claim.last_evaluated_at) },
+      });
   }
 
   async getClaim(claimId: string): Promise<Claim | null> {
@@ -477,6 +495,16 @@ export class DrizzleRecordStore implements RecordStore {
       refutationCondition: drill?.refutationCondition ?? "",
       predicted: result.predicted,
       observed: result.observed,
+      /*
+       * WRITTEN, not left to `defaultNow()`. Same divergence as the claim's two timestamps above:
+       * MemoryRecordStore kept what the service reported and MySQL kept when the row happened to
+       * be inserted, and every test but the database ones runs against memory.
+       *
+       * It matters more here than anywhere else, because `evaluateClaim` now ORDERS THE FOLD BY
+       * THIS FIELD. Ordering by when the row was written and grading by when the drill was
+       * reported are the same thing only as long as nothing is ever backfilled or replayed.
+       */
+      recordedAt: new Date(result.recorded_at),
     });
   }
 

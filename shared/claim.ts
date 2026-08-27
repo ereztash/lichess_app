@@ -121,14 +121,58 @@ export function formHypothesis(input: {
 /**
  * The ONLY function that may change a grade.
  *
- * It accepts a ProspectiveDrillResult and nothing else. There is deliberately no overload for
+ * It accepts ProspectiveDrillResults and nothing else. There is deliberately no overload for
  * RetrospectiveEvidence and none for ExternalPointer -- R4 says external evidence can raise a
  * question, order a queue, or suggest a test, but never the confidence grade of a claim about
- * the player. Only the player's own prospective results can do that.
+ * the player. Only the player's own prospective results can do that. Taking an ARRAY of them
+ * rather than one narrows nothing: the element type is still the discriminant that GATE-EXTERNAL's
+ * positive control fails to compile against.
  *
  * A refuted claim is kept forever. Deleting it lets the same wrong pattern be rediscovered.
+ *
+ * THE GRADE IS DERIVED FROM THE DRILL RESULTS, NOT ACCUMULATED ONTO THE CLAIM.
+ *
+ * This took one result and stepped the claim forward from wherever it stood. That made the grade
+ * an accumulator whose correctness depended on every result having been folded in exactly once --
+ * across two separate writes, in two stores, neither of which has a transaction. It is the same
+ * shape that cost a learning rule its grade in cycle 31, and it was worse here: `finishDrill` had
+ * no idempotent replay branch at all, and `saveDrillResult` is append-only in both stores, so the
+ * retry a lost response makes inevitable raised rather than recovering. The verdict became
+ * unreachable, permanently, on the path the product exists to run.
+ *
+ * A fold over the whole result set has no such state. Run it once or five times, before the crash
+ * or after it, and the same record produces the same claim -- so the retry repairs rather than
+ * freezes.
+ *
+ * NOTHING NEW HAD TO BE STORED FOR THIS. Both `getClaim` implementations already build
+ * `prospective_tests` by reading the `drill_results` rows rather than from a column on the claim,
+ * so the evidence to fold over was already being handed to every caller.
+ *
+ * The per-result rules are unchanged and are in `applyDrillResult` below, including the one that
+ * matters most: refutation is terminal within the sequence.
  */
-export function evaluateClaim(claim: Claim, result: ProspectiveDrillResult): Claim {
+export function evaluateClaim(claim: Claim, results: ProspectiveDrillResult[]): Claim {
+  /*
+   * Ordered by when the drill was reported, because the fold reproduces the sequence the drills
+   * happened in and `refuted` is terminal within it. Ties break on the drill id so the ordering is
+   * total: two results stamped the same instant must not grade differently depending on row order.
+   */
+  const ordered = [...results].sort(
+    (a, b) => a.recorded_at.localeCompare(b.recorded_at) || a.drill_id.localeCompare(b.drill_id),
+  );
+  // The claim as formed. `formHypothesis` cannot produce any other grade, and a claim with no
+  // forward test behind it has been evaluated exactly as recently as it was written.
+  let folded: Claim = {
+    ...claim,
+    grade: "hypothesis",
+    prospective_tests: [],
+    last_evaluated_at: claim.created_at,
+  };
+  for (const result of ordered) folded = applyDrillResult(folded, result);
+  return folded;
+}
+
+function applyDrillResult(claim: Claim, result: ProspectiveDrillResult): Claim {
   if (result.claim_id !== claim.claim_id) {
     throw new Error("drill result belongs to a different claim");
   }

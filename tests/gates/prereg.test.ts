@@ -62,7 +62,7 @@ describe("a drill reports its result either way", () => {
       { recorded_at: "2026-08-23T00:00:00Z" },
     );
     expect(result.observed).toBe(true);
-    expect(evaluateClaim(claim, result).grade).toBe("replicated");
+    expect(evaluateClaim(claim, [result]).grade).toBe("replicated");
     expect(describeResult(result)).toContain("שוחזר");
   });
 
@@ -77,7 +77,7 @@ describe("a drill reports its result either way", () => {
       { recorded_at: "2026-08-23T00:00:00Z" },
     );
     expect(result.observed).toBe(false);
-    const refuted = evaluateClaim(claim, result);
+    const refuted = evaluateClaim(claim, [result]);
     expect(refuted.grade).toBe("refuted");
     expect(describeResult(result)).toContain("הופרך");
     expect(describeResult(result)).toContain("נשמרת לתמיד");

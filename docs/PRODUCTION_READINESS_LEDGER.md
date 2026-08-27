@@ -1001,6 +1001,83 @@ and on `/api/health`, from the Express middleware: `cache-control: no-store`,
 `content-security-policy: frame-ancestors 'none'`, `cross-origin-resource-policy: same-origin`,
 `referrer-policy: no-referrer`, `x-content-type-options: nosniff`, `x-frame-options: DENY`.
 
+## Cycle 36 — the same two writes, one function over, and worse
+
+Cycle 31 found `finishLearningTransfer` writing the evidence and the verdict in two statements with
+no transaction. `finishDrill` is the same three lines — `saveDrillResult`, `getClaim`, `saveClaim`
+— and it was found **by accident**, while fixing the other one. So this cycle began by asking how
+many more there are (a six-angle sweep is running) and by proving this one rather than arguing it.
+
+Injected the same way: fail the claim write once, after the result is already in.
+
+| after the injected failure | |
+| --- | --- |
+| drill results on the record | **1** — the drill was run, the positions decided, the verdict computed |
+| the claim's grade | `hypothesis` |
+| the claim's `last_evaluated_at` | the day it was formed |
+| what a retry does | **raises**, and does so forever |
+
+**It is worse than the transfer case.** That path at least HAD an idempotent replay branch, which
+returned stale state. This one had none, and `saveDrillResult` is append-only in both stores —
+Memory throws `append-only: drill already reported`, MySQL violates the `drill_results` primary
+key. So the retry a lost response makes inevitable did not return a wrong verdict; it returned a
+500, every time, and the verdict was unreachable permanently.
+
+**The fix needed no new store method, and my own note said it would.** The task for this cycle read
+"needs `listDrillResults(claimId)` on the store contract" — a store-contract change with a
+real-database test behind it. Reading the code instead of trusting the note: **both** `getClaim`
+implementations already build `prospective_tests` by selecting the `drill_results` rows, rather
+than from a column on the claim. The evidence to fold over was already being handed to every
+caller. `evaluateClaim(claim, results)` is now a fold and `finishDrill` grades from the record on
+both paths, fresh and replayed.
+
+### Two divergences between the stores, found by running them side by side
+
+Probed against a real MariaDB before anything was written, and neither was visible to any test —
+every test in the repository except `drizzle-store.test.ts` runs against the in-memory store:
+
+| field | what the service wrote | memory returned | MySQL returned |
+| --- | --- | --- | --- |
+| `claims.last_evaluated_at` | `2026-02-02T10:00:00Z` | the same | `2026-08-26T23:50:33Z` |
+| `drill_results.recorded_at` | `2026-02-02T10:00:00Z` | the same | the moment the insert ran |
+
+`ON UPDATE NOW()` and `defaultNow()`, with neither write passing a value. "When was this claim last
+evaluated" was a fact about the row rather than about the drill. It matters more now that
+`evaluateClaim` **orders the fold by `recorded_at`**: ordering by when a row was written and
+grading by when a drill was reported are the same thing only until something is replayed. Asserted
+as **agreement between the two stores**, not as one store's behaviour — an interface is not a proof,
+and these two classes satisfied the same types while disagreeing about what the data meant.
+
+While there: the database wipe in that file was not clearing `claims`, `drills` or `drill_results`,
+so rows had been accumulating across every run.
+
+### A claim I formed and then had to withdraw before writing it
+
+The MySQL duplicate-insert error carries the bound values — the player's decision ids — in its
+message, and the first version of this note said the retry put them in a 500 body. **It does not.**
+`server/_core/trpc.ts`'s `errorFormatter` rebuilds the shape and replaces the message for every
+error the product did not author, and it was deliberately put there rather than in a router so no
+procedure could be forgotten. That fix, from an earlier cycle, already covers this path. The player
+gets a generic 500 — and a verdict they can never see, which is defect enough.
+
+### The array is a new surface, so GATE-EXTERNAL now covers it
+
+`evaluateClaim` taking the whole result set is a new way to ask the same forbidden question. The R4
+positive control gained two attempts — a list containing a pointer, and a list mixing a real result
+with one — and now rejects 5 where it rejected 3. A gate that only covers the shape of the argument
+the function used to take is a gate for the old function.
+
+### A control that barely moved, which is itself a finding
+
+The first positive control for the fold reset both the grade and the accumulated tests, and reddened
+only ONE assertion. Chased rather than accepted: refutation is monotone in this data model and the
+result rows are append-only, so **resetting the grade is observable only on the empty-result path**.
+The mutation that discriminates is the one that reintroduces the accumulator — keeping the stored
+`prospective_tests` — and that reddens idempotence directly. Recorded because a control that barely
+moves is information about the assertion, not a formality to be waved through.
+
+Full verify with the database up: **1,444 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1009,7 +1086,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | --- | --- | --- | --- |
 | Security, privacy, isolation | 2 | **9** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more. Cycle 34 closed the headers: a CSP measured in a real browser against the built app rather than written from the source, `SameSite=Lax` restoring the only CSRF defence this codebase has, a 1mb body limit and a bounded opaque diagnostic, `npm ci` and an SCA step in CI |
 | Scientific / construct validity | 4 | **8.5** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable |
-| Functional correctness | 6 | **9** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. Not 9.5: `finishDrill` has the same two-write shape and is open |
+| Functional correctness | 6 | **9.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. The drill path had the same shape and is closed in cycle 36 — worse there, since it had no replay branch at all — along with two timestamp divergences between the two stores that no memory-backed test could see. Not 10: a systematic sweep for the rest of this class is still running |
 | Test quality and CI | 8 | **9.5** | 1,373 tests, **0 skipped** (was 5); a real database and a real browser locally and in CI; ~110 positive controls red. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five. SC 3.1.2 read island by island rather than swept: four English strings declared, thirty-one exemptions asserted so a later sweep cannot quietly claim a language for chess notation |
@@ -1034,5 +1111,5 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | The counterfactual probe has no n yet | **Medium** | open by construction. Four readings need 30 scored answers; the panel counts down rather than reporting. The randomisation check on screen is the negative control that must stay empty |
 | — | The crossed profile needs ~480 decisions before most of it is readable | **Medium** | open by construction, and measured: 0.1% of cells readable at n=120, 17.1% at 240, 65.1% at 480. The fraction is on screen so the silence has a size |
 | — | ~~The variable collapse does not reach the claims the record stores~~ | ~~Low~~ **was Medium** | **closed in cycle 29, and the severity I first gave it was wrong.** Measured rather than reasoned about: `selectClaim` took `patterns[0]`, so on a player whose weakness sat in the opening or the endgame the STORED claim named a phase they were fine in **14.7% of the time**, and 44 times in 45 it was the inverted one. A claim is not a panel sentence — it is written to the record, accrues prospective drill results, and is what the player is asked to go and test, so a wrong one spends their decisions. Now 1.6% / 1.0%, at a cost of 0.0% → 0.8% when the weakness is the largest phase. `BUCKETINGS` still keeps every key, so claim ids and preregistered hypotheses are unaffected |
-| — | `finishDrill` loses a claim's grade the same way, and its retry raises instead of recovering | **Medium** | open, found in cycle 31. Needs `listDrillResults(claimId)` on the store contract and `evaluateClaim` folded over it — a real-database change, not a symmetric edit |
+| — | ~~`finishDrill` loses a claim's grade the same way, and its retry raises instead of recovering~~ | ~~**Medium**~~ | **closed in cycle 36**, and the estimate written here was wrong: it needed no store-contract change at all. `getClaim` already derived `prospective_tests` from the result rows in both stores, so the fold had its input already. Found in cycle 31. Needs `listDrillResults(claimId)` on the store contract and `evaluateClaim` folded over it — a real-database change, not a symmetric edit |
 | — | Whether the confidence rating should be sampled rather than asked every move | **Medium** | open, and it is the operator's call. Raised because the burden is real; sampling it on the same two-arm logic would keep Brier, Murphy, AUROC2 and the calibration curve while halving the interruptions, at the cost of multiplying time-to-first-reading by 1/p |

@@ -66,22 +66,59 @@ describe("only a prospective drill can raise a grade", () => {
   });
 
   it("raises to replicated when the drill matched the prediction", () => {
-    expect(evaluateClaim(claim, result()).grade).toBe("replicated");
+    expect(evaluateClaim(claim, [result()]).grade).toBe("replicated");
   });
 
   it("refutes when the drill contradicted the prediction", () => {
-    expect(evaluateClaim(claim, result({ observed: false })).grade).toBe("refuted");
+    expect(evaluateClaim(claim, [result({ observed: false })]).grade).toBe("refuted");
   });
 
   it("keeps a refuted claim refuted forever", () => {
-    const refuted = evaluateClaim(claim, result({ observed: false }));
-    const retried = evaluateClaim(refuted, result({ drill_id: "dr2", observed: true }));
+    const history = [
+      result({ observed: false }),
+      result({ drill_id: "dr2", recorded_at: "2026-08-23T00:00:00Z", observed: true }),
+    ];
+    const retried = evaluateClaim(claim, history);
     expect(retried.grade).toBe("refuted");
     expect(retried.prospective_tests).toHaveLength(2);
   });
 
   it("rejects a result belonging to another claim", () => {
-    expect(() => evaluateClaim(claim, result({ claim_id: "other" }))).toThrow(/different claim/);
+    expect(() => evaluateClaim(claim, [result({ claim_id: "other" })])).toThrow(/different claim/);
+  });
+
+  /*
+   * WHAT THE FOLD BUYS, ASSERTED RATHER THAN ASSUMED.
+   *
+   * The grade used to be stepped onto whatever claim it was handed, which made it depend on how
+   * many times it had been called and in what order -- and that is what a store with no
+   * transaction cannot promise. These are the reason the signature changed, so they are tested
+   * directly and not only through the crash in
+   * `tests/shared/a-verdict-the-drill-cannot-report-twice.test.ts`.
+   */
+  it("reads the same record the same way, whatever the order and however many times it runs", () => {
+    const history = [
+      result({ drill_id: "dr1", recorded_at: "2026-08-22T00:00:00Z", observed: true }),
+      result({ drill_id: "dr2", recorded_at: "2026-08-25T00:00:00Z", observed: false }),
+    ];
+    const graded = evaluateClaim(claim, history);
+    expect(graded.grade).toBe("refuted");
+    expect(graded.last_evaluated_at).toBe("2026-08-25T00:00:00Z");
+
+    // Rows come back in whatever order the store gives them. The verdict is about the drills.
+    expect(evaluateClaim(claim, [...history].reverse())).toEqual(graded);
+
+    // And grading an already-graded claim changes nothing, which is what lets the retry path grade
+    // unconditionally instead of having to know whether the first attempt got through.
+    expect(evaluateClaim(graded, history)).toEqual(graded);
+  });
+
+  it("returns a claim with no forward test behind it to the day it was written", () => {
+    // Not "never evaluated" and not today: a claim that has been tested zero times has been
+    // evaluated exactly as recently as it was formed.
+    const untested = evaluateClaim({ ...claim, grade: "replicated" }, []);
+    expect(untested.grade).toBe("hypothesis");
+    expect(untested.last_evaluated_at).toBe(claim.created_at);
   });
 });
 

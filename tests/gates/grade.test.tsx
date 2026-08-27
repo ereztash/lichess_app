@@ -43,7 +43,7 @@ describe("GATE-GRADE: a claim never renders above its grade", () => {
       observed: true,
       recorded_at: "2026-08-22T00:00:00Z",
     };
-    const replicated = evaluateClaim(N1_HYPOTHESIS, result);
+    const replicated = evaluateClaim(N1_HYPOTHESIS, [result]);
     expect(replicated.grade).toBe("replicated");
     const { container } = render(<ClaimCard claim={replicated} othersWithheld={0} />);
     expect(container.textContent).toContain("שוחזר");
@@ -59,11 +59,17 @@ describe("GATE-GRADE: a claim never renders above its grade", () => {
       observed: false,
       recorded_at: "2026-08-22T00:00:00Z",
     };
-    const refuted = evaluateClaim(N1_HYPOTHESIS, failed);
+    const refuted = evaluateClaim(N1_HYPOTHESIS, [failed]);
     expect(refuted.grade).toBe("refuted");
     expect(refuted.prospective_tests).toHaveLength(1);
-    // Refutation is terminal: a later "success" cannot revive it.
-    const revived = evaluateClaim(refuted, { ...failed, observed: true, drill_id: "dr3" });
+    /*
+     * Refutation is terminal: a later "success" cannot revive it. Asserted as a SEQUENCE now that
+     * the grade is a fold -- the drill that refuted and the drill that followed it, in the order
+     * they were reported. Re-feeding an already-refuted claim tested the guard; this tests the
+     * history, which is what the record actually holds.
+     */
+    const revived = evaluateClaim(N1_HYPOTHESIS, [failed, { ...failed, observed: true, drill_id: "dr3" }]);
     expect(revived.grade, "a refuted claim was revived").toBe("refuted");
+    expect(revived.prospective_tests).toHaveLength(2);
   });
 });

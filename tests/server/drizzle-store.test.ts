@@ -19,7 +19,7 @@
  */
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DrizzleRecordStore } from "../../server/record";
+import { DrizzleRecordStore, MemoryRecordStore } from "../../server/record";
 import type { CommitDecisionInput } from "../../shared/record-store";
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -72,6 +72,11 @@ describeDb("DrizzleRecordStore against MySQL", () => {
     await db.execute("DELETE FROM learning_transfer_results");
     await db.execute("DELETE FROM learning_transfers");
     await db.execute("DELETE FROM learning_rules");
+    // Added with the claim-timestamp test below: these three were accumulating across every run,
+    // so a later assertion could have been reading a row an earlier run wrote.
+    await db.execute("DELETE FROM drill_results");
+    await db.execute("DELETE FROM drills");
+    await db.execute("DELETE FROM claims");
   };
 
   beforeAll(async () => {
@@ -365,6 +370,74 @@ describeDb("DrizzleRecordStore against MySQL", () => {
       const listed = (await store.listAtoms("game-1")).find((a) => a.decision === "e2e4" && a.probe?.alternative === "g1f3");
       expect(listed, "the probe did not survive listAtoms").toBeTruthy();
       expect(listed?.probe?.answered).toBe(true);
+    });
+  });
+
+  /**
+   * The two stores said different things about when a claim was last evaluated.
+   *
+   * `claims.last_evaluated_at` carried `ON UPDATE NOW()` and `drill_results.recorded_at` carried
+   * `defaultNow()`, and neither write passed a value -- so MySQL stamped the moment the statement
+   * ran while MemoryRecordStore kept what the service reported. Probed side by side before this
+   * test existed: the service wrote `2026-02-02T10:00:00Z`, memory returned it, MySQL returned
+   * the wall clock. Every test in this repository except this file's runs against the in-memory
+   * store, so nothing could see it.
+   *
+   * It matters more since `evaluateClaim` became a fold, because the fold ORDERS BY
+   * `recorded_at`. Ordering by when a row was written and grading by when a drill was reported
+   * are the same thing only until something is replayed.
+   *
+   * ASSERTED AS AGREEMENT BETWEEN THE STORES, not as one store's behaviour. An interface is not a
+   * proof: two classes can satisfy the same types and disagree about what the data means, and
+   * these two did.
+   */
+  describe("the two stores agree about when a claim was evaluated", () => {
+    const CREATED_AT = "2026-01-01T00:00:00.000Z";
+    const REPORTED_AT = "2026-02-02T10:00:00.000Z";
+
+    const claim = {
+      claim_id: "claim-timestamps",
+      statement: "תחת לחץ זמן אתם בטוחים יותר משאתם מדויקים",
+      scope: "החלטות מהירות",
+      supporting_decision_ids: ["d-001"],
+      n: 40,
+      grade: "hypothesis" as const,
+      refutation_condition: "פער הביטחון לא ישוחזר בבדיקה קדימה",
+      prospective_tests: [],
+      created_at: CREATED_AT,
+      last_evaluated_at: CREATED_AT,
+    };
+    const result = {
+      kind: "prospective_drill_result" as const,
+      drill_id: "drill-timestamps",
+      claim_id: claim.claim_id,
+      decision_ids: ["dd-1", "dd-2", "dd-3"],
+      predicted: true,
+      observed: true,
+      recorded_at: REPORTED_AT,
+    };
+
+    async function roundTrip(target: typeof store | InstanceType<typeof MemoryRecordStore>) {
+      await target.saveClaim(claim);
+      await target.saveDrillResult(result);
+      await target.saveClaim({ ...claim, grade: "replicated", last_evaluated_at: REPORTED_AT });
+      return target.getClaim(claim.claim_id);
+    }
+
+    it("keeps the date the drill was reported, in MySQL as well as in memory", async () => {
+      const fromMysql = await roundTrip(store);
+      const fromMemory = await roundTrip(new MemoryRecordStore());
+
+      for (const [name, stored] of [["MySQL", fromMysql], ["memory", fromMemory]] as const) {
+        expect(stored?.grade, `${name} lost the grade`).toBe("replicated");
+        expect(stored?.last_evaluated_at, `${name} stamped its own clock`).toBe(REPORTED_AT);
+        expect(stored?.created_at, `${name} rewrote when the claim was formed`).toBe(CREATED_AT);
+        expect(stored?.prospective_tests, `${name} lost the drill result`).toHaveLength(1);
+        expect(stored?.prospective_tests[0].recorded_at, `${name} restamped the result`).toBe(
+          REPORTED_AT,
+        );
+      }
+      expect(fromMysql).toEqual(fromMemory);
     });
   });
 });

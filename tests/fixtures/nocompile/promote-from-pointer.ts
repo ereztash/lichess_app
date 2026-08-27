@@ -42,6 +42,30 @@ export const promotedFromRetrospective = evaluateClaim(claim, {
   decision_ids: ["a", "b", "c"],
 });
 
+/*
+ * EXPECTED COMPILE ERROR: nor in an array.
+ *
+ * `evaluateClaim` takes the whole result set since the grade became a fold over it, and an array
+ * is a new way to ask the same forbidden question. This control exists because the surface
+ * changed, not because anyone tried it -- a gate that only covers the shape of the argument the
+ * function used to take is a gate for the old function.
+ */
+export const promotedFromPointerList = evaluateClaim(claim, [pointer]);
+
+// EXPECTED COMPILE ERROR: and a list that MIXES a real result with a pointer is still refused.
+export const promotedFromMixedList = evaluateClaim(claim, [
+  {
+    kind: "prospective_drill_result",
+    drill_id: "dr1",
+    claim_id: "c1",
+    decision_ids: ["a"],
+    predicted: true,
+    observed: true,
+    recorded_at: "2026-08-22T00:00:00Z",
+  },
+  pointer,
+]);
+
 // EXPECTED COMPILE ERROR: a pointer cannot assert that it promotes.
 export const lyingPointer: ExternalPointer = {
   kind: "pointer",

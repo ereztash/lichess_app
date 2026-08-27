@@ -730,11 +730,50 @@ export async function finishDrill(
   store: RecordStore,
   input: { drill_id: string; decision_ids: string[] },
   now: { recorded_at: string },
-): Promise<{ claim: Claim; verdict: ReturnType<typeof evaluateRefutation>; description: string }> {
+): Promise<{
+  claim: Claim;
+  /**
+   * Null on a replay, and that is the honest answer rather than a recomputed one.
+   *
+   * The verdict's numbers are a measurement of this drill AGAINST THE BASELINE AS IT STOOD when
+   * the drill was reported. That baseline is every other scored decision in the record, and it
+   * grows. Recomputing it on a retry would return different numbers under the same drill id --
+   * a second, differently-measured verdict for one sitting. The stored result carries `predicted`
+   * and `observed`, which is what the grade and the description are made of, and those come back.
+   *
+   * Nothing reads this field today: `useCompleteDrill` returns it and `Home.tsx` uses only
+   * `description` and `claim.grade`. It is kept because it is the measured detail an operator
+   * would want, and narrowed rather than fabricated.
+   */
+  verdict: ReturnType<typeof evaluateRefutation> | null;
+  description: string;
+}> {
   const stored = await store.getDrill(input.drill_id);
   if (!stored) throw new RecordError("NOT_FOUND", "אין דריל עם המזהה הזה.");
   const claim = await store.getClaim(stored.spec.claim_id);
   if (!claim) throw new RecordError("NOT_FOUND", "הטענה של הדריל אינה קיימת.");
+
+  /*
+   * REPORTING TWICE RETURNS THE FIRST REPORT, it does not raise.
+   *
+   * `finishLearningTransfer` learned this in cycle 31 and this path had not. `saveDrillResult` is
+   * append-only in both stores -- Memory throws "append-only: drill already reported", Drizzle
+   * violates the `drill_results` primary key -- so the retry that a lost response makes inevitable
+   * raised, forever, and the verdict was unreachable. A failed completion is reachable by design:
+   * the runner returns the player to the drill so reporting can be retried.
+   *
+   * `prospective_tests` is read from the result rows by both `getClaim` implementations, so this
+   * is a read the function was already doing. And it grades before returning, because the write
+   * that was lost may have been the CLAIM write rather than the response.
+   */
+  const already = claim.prospective_tests.find((result) => result.drill_id === input.drill_id);
+  if (already) {
+    return {
+      claim: await gradeClaimFromRecord(store, claim.claim_id),
+      verdict: null,
+      description: describeResult(already),
+    };
+  }
 
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
@@ -771,11 +810,32 @@ export async function finishDrill(
   );
   await store.saveDrillResult(result);
 
-  // The ONLY path that changes a grade, and it accepts a prospective result only.
-  const graded = evaluateClaim(claim, result);
-  await store.saveClaim(graded);
   // Section 3.5: report the result even when it refutes -- especially then.
-  return { claim: graded, verdict, description: describeResult(result) };
+  return {
+    claim: await gradeClaimFromRecord(store, claim.claim_id),
+    verdict,
+    description: describeResult(result),
+  };
+}
+
+/**
+ * Read every drill result the claim holds and write the grade they add up to.
+ *
+ * THE CLAIM IS RE-READ RATHER THAN GRADED FROM THE COPY THIS CALL ALREADY HAS. That costs a query
+ * and buys the property the whole change is for: the grade is a function of the record, so whoever
+ * runs this -- the call that wrote the result, or a retry an hour later -- gets the same answer,
+ * and a run that dies between the two writes is repaired by the next one rather than frozen by it.
+ *
+ * It is also the only way the fresh path can see the result it just wrote: `prospective_tests`
+ * comes from the `drill_results` rows, not from anything held in memory here.
+ */
+async function gradeClaimFromRecord(store: RecordStore, claimId: string): Promise<Claim> {
+  const claim = await store.getClaim(claimId);
+  if (!claim) throw new RecordError("NOT_FOUND", "הטענה של הדריל אינה קיימת.");
+  // The ONLY path that changes a grade, and it accepts prospective results only.
+  const graded = evaluateClaim(claim, claim.prospective_tests);
+  await store.saveClaim(graded);
+  return graded;
 }
 
 export type ClaimView = {
