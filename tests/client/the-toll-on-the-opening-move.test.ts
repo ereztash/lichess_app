@@ -33,10 +33,25 @@ import { CONFIDENCE_LEVELS } from "@shared/confidence";
 
 const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-const at = (purpose: PositionUnderDecision["purpose"]): PositionUnderDecision => ({
+/**
+ * Two plies of the same game, on opposite sides of the draw.
+ *
+ * The read fields are no longer required on every ordinary decision -- they are asked on the same
+ * decisions the confidence question is, so that a decision is either fully instrumented or a move
+ * and nothing else. `drawForDecision("live-1", FEN, ...)` puts ply 3 at 0.1221 (under the 0.15
+ * rate, so asked) and ply 0 at 0.7015 (over it, so passed over). Pinned as constants because a
+ * fixture that happened to sit on one side of the line would make the pair below vacuous.
+ */
+const DRAWN_PLY = 3;
+const PASSED_OVER_PLY = 0;
+
+const at = (
+  purpose: PositionUnderDecision["purpose"],
+  ply = DRAWN_PLY,
+): PositionUnderDecision => ({
   gameId: "live-1",
   fen: FEN,
-  ply: 0,
+  ply,
   clockMsRemaining: null,
   purpose,
 });
@@ -50,14 +65,26 @@ describe("the opening decision does not charge for the words", () => {
     expect(isCommittable(silent(), at("first"))).toBe(true);
   });
 
-  it("still refuses the same silence on an ordinary decision", () => {
+  it("still refuses the same silence on an ordinary decision the draw selected", () => {
     /*
      * The half that makes the exemption an exemption rather than a removal. Without this the test
      * above would pass just as well against a build that asks for nothing anywhere.
      */
-    const fields = draftProblems(silent(), at("play")).map((problem) => problem.field);
+    const fields = draftProblems(silent(), at("play", DRAWN_PLY)).map((problem) => problem.field);
     expect(fields).toContain("known");
     expect(fields).toContain("unknown");
+  });
+
+  it("does not charge for the words on an ordinary decision the draw passed over", () => {
+    /*
+     * REPORTED FROM ACTUAL PLAY. The two read fields were required on every decision but the
+     * first, so an ordinary turn cost three steps -- and on six decisions in seven nothing would
+     * ever read two of them: the detector never looks at either, and the vocabulary reading reads
+     * the PARTS to measure the menu. The words are now asked exactly where a confidence is, so a
+     * decision is either fully instrumented or a move.
+     */
+    expect(draftProblems(silent(), at("play", PASSED_OVER_PLY))).toEqual([]);
+    expect(isCommittable(silent(), at("play", PASSED_OVER_PLY))).toBe(true);
   });
 
   it("still refuses it on the bank, a drill and a transfer check", () => {
@@ -165,11 +192,28 @@ describe("the schema keeps a guard where min(1) used to be", () => {
      * exemption for one decision silently became an exemption for all of them, and a client that
      * dropped the field entirely was indistinguishable from a player being spared a toll.
      */
-    for (const purpose of ["anchor", "drill", "transfer", "play", "import"] as const) {
+    for (const purpose of ["anchor", "drill", "transfer"] as const) {
       expect(
         decisionAtomSchema.safeParse(atom({ purpose })).success,
         `${purpose} accepted a decision with neither read field`,
       ).toBe(false);
+    }
+    /*
+     * `play` and `import` are sampled, so the schema re-derives the draw rather than refusing them
+     * outright. For game "g" on this board the draw selects ply 16 (0.0583) and passes over ply 0
+     * (0.5563) -- so the same purpose is refused at one ply and accepted at the other, which is
+     * the rule being enforced rather than a purpose being trusted.
+     */
+    for (const purpose of ["play", "import"] as const) {
+      const entry = { ...atom({}).entry_state, ply: 16 };
+      expect(
+        decisionAtomSchema.safeParse(atom({ purpose, entry_state: entry })).success,
+        `${purpose} accepted an empty read on a decision the draw selected`,
+      ).toBe(false);
+      expect(
+        decisionAtomSchema.safeParse(atom({ purpose })).success,
+        `${purpose} was charged for words on a decision nothing will read`,
+      ).toBe(true);
     }
   });
 
@@ -183,7 +227,12 @@ describe("the schema keeps a guard where min(1) used to be", () => {
   });
 
   it("refuses a half-empty read, so one field cannot be dropped alone", () => {
-    const half = atom({ purpose: "play", unknown: "לא יודע איך הוא יענה" });
+    // On a decision the draw selected, so the pair is genuinely required.
+    const half = atom({
+      purpose: "play",
+      entry_state: { ...atom({}).entry_state, ply: 16 },
+      unknown: "לא יודע איך הוא יענה",
+    });
     expect(decisionAtomSchema.safeParse(half).success).toBe(false);
   });
 

@@ -96,7 +96,13 @@ describe("the question is on the screen only where a measurement reads it", () =
      */
     const { container } = screenAt("play");
     const heads = [...container.querySelectorAll(".step-head")];
-    expect(heads).toHaveLength(3);
+    /*
+     * ONE STEP: THE MOVE. This asserted three until the read fields joined the same draw, and the
+     * number is what caught the half-fix -- `stepsFor` had stopped listing `known` and `unknown`
+     * while the markup went on rendering them unconditionally, so the navigation list and the
+     * screen disagreed and only the trial log could tell. Counting the heads is what sees that.
+     */
+    expect(heads, "the screen renders a step the decision does not ask for").toHaveLength(1);
     expect(container.textContent, "the question was rendered after all").not.toContain(
       "כמה אתם בטוחים",
     );
@@ -117,9 +123,26 @@ describe("the question is on the screen only where a measurement reads it", () =
      * screen never renders means an accordion trying to open nothing and a log reporting a step
      * as permanently unanswered. The log is the readable consumer, so it is what is asserted.
      */
+    /*
+     * ON A QUIET PLY THE MOVE IS THE WHOLE OF IT. The two read fields used to be required on every
+     * decision but the first, which made an ordinary turn three steps -- and on six turns in seven
+     * nothing downstream reads two of them: the detector never looks at either, and the vocabulary
+     * reading reads the PARTS to measure the menu rather than the answer. They are asked on the
+     * same decisions the confidence question is now, so a decision is fully instrumented or it is
+     * a move.
+     */
     clearProgress();
     beginVisit(new Date("2026-08-27T12:00:00.000Z"));
-    const { unmount } = screenAt("play");
+    const quiet = screenAt("play");
+    quiet.unmount();
+    const [light] = progress().flatMap((visit) => visit.attempts);
+    expect(light.done, "a decision nothing will read still charged for the words").toEqual([
+      "chosenMove",
+    ]);
+
+    clearProgress();
+    beginVisit(new Date("2026-08-27T12:00:00.000Z"));
+    const { unmount } = screenAt("play", DRAWN_PLY);
     openStep("known");
     fireEvent.click(screen.getByRole("button", { name: "המרכז פתוח" }));
     openStep("unknown");

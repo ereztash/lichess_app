@@ -246,6 +246,48 @@ export interface DecisionContext {
 }
 
 /**
+ * Whether the two read fields are asked for on this decision.
+ *
+ * WHAT THEY COST AND WHAT THEY BOUGHT. `known` and `unknown` were required on every decision
+ * except the first of a game, and nothing downstream reads either one: the detector never looks at
+ * them, and `vocabulary-reading` reads the PARTS to measure the MENU -- which options get tapped,
+ * what gets typed beside them -- rather than the answer. So an ordinary turn cost three steps,
+ * and on six decisions out of seven two of those three bought nothing measurable at all.
+ *
+ * REPORTED FROM ACTUAL PLAY, which is the only reason this changed. The confidence draw was
+ * measured at 14.7% over six thousand simulated decisions and is behaving exactly as designed;
+ * the reads were the per-turn burden, and a burden that makes a game not get finished produces no
+ * readings at all. An instrument too expensive to use is not a more careful instrument.
+ *
+ * TIED TO THE CONFIDENCE DRAW RATHER THAN GIVEN A SECOND ONE, and the coupling is the design.
+ * A decision is either fully instrumented -- move, both reads, and a stated confidence -- or it is
+ * a move and nothing else. Two independent draws would have produced decisions carrying words with
+ * no confidence and decisions carrying a confidence with no words, and neither is a complete
+ * observation of anything. Coupled, the vocabulary sample and the calibration sample are the SAME
+ * decisions, so an analysis can finally ask whether what a player could name relates to how well
+ * calibrated they were on that very position. It could not, before.
+ *
+ * NOT A CHOICE THE PLAYER MAKES, for the reason the confidence question is not: whoever skips
+ * skips because of how they feel about the position, and the sample is then curated on the
+ * variable being measured. This is the same stable draw, so the decisions that carry words are
+ * chosen by a hash and not by anybody's mood.
+ *
+ * RE-DERIVABLE BY THE SERVER, which the `first` exemption never was. Every input here rides on the
+ * commit event, so the boundary can independently work out whether a decision was required to
+ * carry the words instead of believing a client that says it was exempt. That is the difference
+ * between a rule and a claim, and it is why this replaces the purpose-only check.
+ */
+export function readsAreAsked(context: DecisionContext): boolean {
+  /*
+   * The opening decision stays exempt whatever the draw says. It is the one moment the player has
+   * not yet seen what the loop asks, and a wall of required fields is their whole first impression
+   * -- a rule nobody has been taught is a toll rather than discipline.
+   */
+  if (context.purpose === "first") return false;
+  return confidenceIsAsked(context);
+}
+
+/**
  * Whether this decision's confidence is asked for.
  *
  * SAMPLED RATHER THAN NEVER, on an ordinary decision. The earlier rule asked on the bank and

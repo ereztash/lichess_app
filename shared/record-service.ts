@@ -61,6 +61,7 @@ export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import { forDiscovery } from "./evidence-policy.js";
 import { isAnchorFen } from "./anchor-set.js";
+import { readsAreAsked } from "./confidence-asked.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 import { LEGACY_CONFIDENCE_LEVELS } from "./confidence.js";
@@ -220,12 +221,30 @@ export async function commitDecision(
       "ההחלטה נשלחה כאילו היא עמדה מהסט המשותף, אבל העמדה אינה בסט — ורק עמדות הסט נמדדות בו.",
     );
   }
-  const exempt = input.purpose === "first";
-  if (!exempt && (input.known.length === 0 || input.unknown.length === 0)) {
+  /*
+   * RE-DERIVED FROM THE EVENT, WHICH IS WHAT MAKES IT A RULE RATHER THAN A CLAIM. The first
+   * version of this check read `purpose === "first"` -- a label the client supplies, which the
+   * boundary had to take on trust. `readsAreAsked` is a pure function of the purpose, the game,
+   * the position and the ply, and all four ride on the event, so the server works out for itself
+   * whether this decision was required to carry the words.
+   *
+   * A DECISION WITH NO PURPOSE IS REQUIRED TO CARRY THEM. Nothing recorded why it existed, so
+   * nothing can say the draw passed it over -- and an exemption claimable by omission would make
+   * dropping the field the way to skip the questions.
+   */
+  const required =
+    input.purpose == null
+      ? true
+      : readsAreAsked({
+          purpose: input.purpose,
+          gameId: input.entry_state.game_id,
+          fen: input.entry_state.fen,
+          ply: input.entry_state.ply,
+        });
+  if (required && (input.known.length === 0 || input.unknown.length === 0)) {
     throw new RecordError(
       "BAD_REQUEST",
-      "ההחלטה נשלחה בלי מה שנקרא בעמדה ובלי מה שאי אפשר להעריך בה, והיא לא ההחלטה הראשונה במשחק — " +
-        "רק שם הוויתור הזה קיים.",
+      "ההחלטה נשלחה בלי מה שנקרא בעמדה ובלי מה שאי אפשר להעריך בה, אבל על ההחלטה הזאת הן נדרשות.",
     );
   }
   /*

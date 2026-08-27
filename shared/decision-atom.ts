@@ -15,7 +15,7 @@
  */
 import { z } from "zod";
 import { CONFIDENCE_LEVELS } from "./confidence.js";
-import { DECISION_PURPOSES } from "./confidence-asked.js";
+import { DECISION_PURPOSES, readsAreAsked } from "./confidence-asked.js";
 import { REVEAL_TIMINGS } from "./reveal-timing.js";
 
 export const ATOM_FIELDS = [
@@ -293,7 +293,26 @@ export const decisionAtomSchema = z.object({
    * `first` carries. Stored rows of that age are unaffected -- they were written while `min(1)`
    * was unconditional, so none of them is empty, and nothing re-validates a row on the way out.
    */
-  const exempt = atom.purpose === "first";
+  /*
+   * RE-DERIVED, NOT BELIEVED. The exemption used to be "purpose is first", which the atom could
+   * only take the client's word for. `readsAreAsked` is a pure function of the purpose, the game,
+   * the position and the ply -- all of them on the atom -- so the rule can be recomputed here from
+   * what was written down rather than accepted as a claim.
+   *
+   * A ROW WITH NO PURPOSE IS REQUIRED TO CARRY THE WORDS. Nothing recorded why it existed, so
+   * nothing can say the draw passed it over, and an exemption that could be claimed by omission is
+   * not an exemption.
+   */
+  const required =
+    atom.purpose === null
+      ? true
+      : readsAreAsked({
+          purpose: atom.purpose,
+          gameId: atom.entry_state.game_id,
+          fen: atom.entry_state.fen,
+          ply: atom.entry_state.ply,
+        });
+  const exempt = !required;
   if (atom.known.length === 0 && !exempt) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

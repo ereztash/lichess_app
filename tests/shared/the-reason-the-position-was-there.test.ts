@@ -146,13 +146,45 @@ describe("the exemption is a rule the record can now enforce", () => {
     expect(atom.purpose).toBe("first");
   });
 
-  it("refuses the same silence from every other purpose", async () => {
-    for (const purpose of DECISION_PURPOSES.filter((p) => p !== "first")) {
+  it("refuses the same silence from every purpose the draw always asks", async () => {
+    /*
+     * `anchor` is excluded here only because its own binding check needs a bank position, and this
+     * fixture's board is the starting one -- it is covered in the round-trip test above.
+     */
+    for (const purpose of ["drill", "transfer"] as const) {
       await expect(
         committed({ purpose, ...silent }),
         `${purpose} was allowed to skip both read fields`,
       ).rejects.toBeInstanceOf(RecordError);
     }
+  });
+
+  it("refuses it from a sampled purpose on a decision the draw selected", async () => {
+    /*
+     * THE RULE IS RE-DERIVED, NOT BELIEVED, and this pair is what says so. `play` at ply 16 of
+     * game "g" draws 0.0583 -- under the rate, so the words are required -- and at ply 0 draws
+     * 0.5563, so they are not. The same purpose, refused at one ply and accepted at the next: the
+     * boundary is working the rule out from the event rather than trusting a label.
+     */
+    const selected = {
+      entry_state: { game_id: "g", fen: FEN, ply: 16, phase: "opening" as const, clock_ms_remaining: null },
+      probe: null,
+    };
+    await expect(
+      committed({ purpose: "play", ...selected, ...silent }),
+    ).rejects.toBeInstanceOf(RecordError);
+  });
+
+  it("does not charge for the words where nothing will read them", async () => {
+    /*
+     * REPORTED FROM PLAY, and the reason this rule changed. The words were required on every
+     * decision but the first, and on six in seven nothing downstream reads them -- the detector
+     * never looks at either, and the vocabulary reading reads the PARTS to measure the menu. A
+     * turn cost three steps to record one.
+     */
+    const atom = await committed({ purpose: "play", ...silent });
+    expect(atom.known).toBe("");
+    expect(atom.known_parts, "an unasked field was stored as an answered one").toBeNull();
   });
 
   it("refuses it from a decision that names no purpose", async () => {
@@ -166,15 +198,15 @@ describe("the exemption is a rule the record can now enforce", () => {
 
   it("refuses a half-empty read, so one field cannot be dropped alone", async () => {
     await expect(
-      committed({ purpose: "play", known: "", known_parts: null }),
+      committed({ purpose: "drill", known: "", known_parts: null }),
     ).rejects.toBeInstanceOf(RecordError);
   });
 
-  it("says which decision the exemption belongs to, rather than naming a field", async () => {
-    // R2: a refusal that says "known is required" describes a form, not what actually happened.
-    const error = await committed({ purpose: "play", ...silent }).catch((e: unknown) => e);
+  it("says what happened rather than naming a form field", async () => {
+    // R2: "known is required" describes a form. The refusal is about this decision.
+    const error = await committed({ purpose: "drill", ...silent }).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(RecordError);
-    expect((error as RecordError).message).toContain("ההחלטה הראשונה");
+    expect((error as RecordError).message).toContain("נדרשות");
   });
 });
 

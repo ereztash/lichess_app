@@ -16,7 +16,7 @@ import type { RevealTiming } from "@shared/reveal-timing";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
-import { confidenceIsAsked, type DecisionPurpose } from "@shared/confidence-asked";
+import { confidenceIsAsked, readsAreAsked, type DecisionPurpose } from "@shared/confidence-asked";
 
 export type SessionStage = "deciding" | "committing" | "committed" | "revealed" | "blocked";
 
@@ -131,7 +131,7 @@ export function draftProblems(
    * that from the record alone now: the purpose is stamped on the decision, so a first decision is
    * identifiable afterwards rather than only at the moment it was taken.
    */
-  if (position.purpose !== "first") {
+  if (readsAreAsked(position)) {
     if (statedKnown(draft).length === 0) {
       problems.push({ field: "known", message: "לא נאמר מה אתם קוראים בעמדה." });
     }
