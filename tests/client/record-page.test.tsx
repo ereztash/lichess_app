@@ -41,10 +41,23 @@ const code = (path: string) =>
 const state = vi.hoisted(() => ({
   reading: { data: undefined as RecordReading | undefined, isLoading: false, isError: false },
   importReading: { reading: null as unknown, loading: false },
+  /*
+   * The claim, read by the Outcome Summary the page now renders above the dashboard. Empty by
+   * default and deliberately so: every case in this file is about what an EMPTY record may show,
+   * and a summary handed a claim here would be the page asserting a finding these tests exist to
+   * forbid. The summary's own states have their own file.
+   */
+  claim: {
+    data: undefined as unknown,
+    isLoading: false,
+    isError: false,
+    errorMessage: "",
+  },
 }));
 vi.mock("@/lib/record-api", () => ({
   useRecordReading: () => state.reading,
   useImportReading: () => state.importReading,
+  useClaimView: () => state.claim,
 }));
 vi.mock("wouter", () => ({ useLocation: () => ["/", vi.fn()] }));
 /* The dashboard and the import panel have their own tests; what is under test is the page. */

@@ -168,11 +168,25 @@ export const feedbackSchema = z.object({
  */
 export const decisionAtomSchema = z.object({
   entry_state: entryStateSchema,
-  /** What the player can name about this position. <=200 chars. */
-  known: z.string().min(1).max(200),
-  /** What the player says they cannot evaluate here. <=200 chars. Required, no default: an
-   *  empty answer and an unanswered one must not look the same (R2). */
-  unknown: z.string().min(1).max(200),
+  /**
+   * What the player can name about this position. <=200 chars.
+   *
+   * MAY BE EMPTY, AND ONLY ON THE FIRST DECISION OF A GAME. The two read fields are required
+   * everywhere else; on the opening decision they are not, because that is the one moment the
+   * player has not yet seen what the loop asks and the wall of questions is the whole of their
+   * first impression. `draftProblems` is where that exemption lives.
+   *
+   * WHAT THE SCHEMA GAVE UP TO ALLOW IT, said rather than glossed. `min(1)` was a real guard: a
+   * client that dropped this field could not write. The record does not carry the decision's
+   * PURPOSE -- see the note in shared/confidence-asked.ts -- so the server cannot ask "was this
+   * one allowed to be empty?" and enforce it conditionally. What replaces it is the consistency
+   * check below: an empty sentence must arrive with nothing tapped and nothing typed. That
+   * catches a client that loses the composed string while still holding the parts, which is the
+   * failure mode this field has actually had.
+   */
+  known: z.string().max(200),
+  /** What the player says they cannot evaluate here. <=200 chars. Same exemption, same guard. */
+  unknown: z.string().max(200),
   /**
    * HOW the read was said -- what was tapped, and what was typed beside it.
    *
@@ -218,6 +232,35 @@ export const decisionAtomSchema = z.object({
   reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
   result: resultSchema.nullable(),
   feedback: feedbackSchema.nullable(),
+}).superRefine((atom, ctx) => {
+  /*
+   * WHAT REPLACES `min(1)` ON THE TWO READ FIELDS, and why it is a different guard rather than a
+   * weaker version of the same one.
+   *
+   * The old rule was "these are never empty", and it was enforceable because it was unconditional.
+   * The exemption for a first decision makes it conditional on something the record does not
+   * carry, so it cannot be enforced here at all. What CAN be enforced is that the two
+   * representations of one answer agree: the composed sentence and the parts it was composed
+   * from. An empty sentence beside a tapped label is not a lighter first decision, it is a client
+   * that lost the string -- and that is the failure this pair has actually had, which is why
+   * `known_parts` exists at all.
+   */
+  const said = (parts: { tapped: string[]; typed: string } | null | undefined) =>
+    parts !== null && parts !== undefined && (parts.tapped.length > 0 || parts.typed.length > 0);
+  if (atom.known.length === 0 && said(atom.known_parts)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["known"],
+      message: "known is empty but known_parts says something was said",
+    });
+  }
+  if (atom.unknown.length === 0 && said(atom.unknown_parts)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["unknown"],
+      message: "unknown is empty but unknown_parts says something was said",
+    });
+  }
 });
 
 export type DecisionAtom = z.infer<typeof decisionAtomSchema>;

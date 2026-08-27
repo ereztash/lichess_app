@@ -33,7 +33,9 @@
 import { Suspense, lazy, useState } from "react";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
-import { useImportReading, useRecordReading } from "@/lib/record-api";
+import { useClaimView, useImportReading, useRecordReading } from "@/lib/record-api";
+import { OutcomeSummary } from "@/components/OutcomeSummary";
+import { outcomeSummary } from "@/lib/outcome-summary";
 import { fetchGames } from "@/lib/fetch-games";
 import {
   GAME_SOURCES,
@@ -274,6 +276,13 @@ export default function Record() {
   const [, navigate] = useLocation();
   const reading = useRecordReading();
   const importReading = useImportReading();
+  /*
+   * The claim as the rest of the page already reads it. `ClaimPanel` calls the same hook, so the
+   * summary and the card cannot disagree about the grade: react-query serves one cached result to
+   * both, and a second fetch of the same thing is how two surfaces end up showing a claim at two
+   * different grades a second apart.
+   */
+  const claimView = useClaimView();
   const scored = reading.data?.scored ?? 0;
 
   return (
@@ -304,6 +313,28 @@ export default function Record() {
               מול מה שקרה.
             </p>
           </div>
+          {/*
+            * OUTCOME FIRST, INSTRUMENTATION SECOND, and the order on the page is the whole change.
+            *
+            * Everything below this line was already true and almost none of it was an ANSWER: a
+            * returning player had to assemble "did it find anything about me" out of a calibration
+            * decomposition, six bucket rows, a discrimination area and a claim card. The summary
+            * says at most three sentences, each taken from the module entitled to say it, and then
+            * gets out of the way. It adds no measurement and owns no control -- the bank stays
+            * with `AnchorRunControl`, the drill with `ClaimPanel`, the loop with `ContextRibbon`.
+            *
+            * Inside this layer rather than above it, because that is the measurement wall: every
+            * statement it makes is about decisions whose confidence was stated before the engine
+            * spoke. Imported accuracy is a different section with a different heading and cannot
+            * reach this function at all.
+            */}
+          <OutcomeSummary
+            statements={outcomeSummary({
+              claim: claimView.data,
+              reading: reading.data,
+              unreadable: claimView.isError || reading.isError,
+            })}
+          />
           {reading.data && (
             <>
               <AnchorRunControl answered={reading.data.anchorAnswered} />

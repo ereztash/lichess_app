@@ -4322,3 +4322,89 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   padding: 4px 12px;
 }
+
+/*
+ * The Outcome Summary: what came out, before what produced it.
+ *
+ * EVERY SIZE AND COLOUR COMES FROM THE DOCUMENT'S OWN SCALE AND TOKENS. The first version of this
+ * block invented four font sizes and two colour tokens, and two existing tests rejected it -- the
+ * type-scale test because a panel that sets its own sizes is a second scale, and the token test
+ * because `var(--line)` and `var(--surface-raised)` resolve to nothing and would have rendered as
+ * a silent fallback. Both guards were right and both are cheaper to obey than to argue with.
+ *
+ * THE BADGE COLOURS ARE THE EPISTEMIC TYPES and nothing else. A hypothesis and a survived forward
+ * test are deliberately not the same shade, because that difference is the one a reader loses
+ * first -- and it must be lost neither in wording nor in weight. A description is quieter than
+ * both, since it has no refutation condition behind it.
+ */
+.outcome-summary {
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 10px;
+}
+.outcome-summary__title {
+  margin: 0 0 10px;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  color: var(--ink);
+}
+.outcome-summary__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.outcome-summary__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  align-items: start;
+}
+.outcome-summary__badge {
+  grid-row: 1;
+  align-self: start;
+  font-size: var(--panel-fine);
+  font-weight: 600;
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+/* Only a survived forward test carries the strongest colour on the page. */
+.outcome-summary__badge[data-kind="tested-claim"] {
+  color: var(--chosen);
+}
+.outcome-summary__badge[data-kind="hypothesis"] {
+  color: var(--accent-soft);
+}
+.outcome-summary__badge[data-kind="record-description"],
+.outcome-summary__badge[data-kind="no-pattern"],
+.outcome-summary__badge[data-kind="insufficient"],
+.outcome-summary__badge[data-kind="same-twice"] {
+  color: var(--muted);
+}
+.outcome-summary__badge[data-kind="unreadable"] {
+  color: var(--warn);
+}
+.outcome-summary__text {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.outcome-summary__basis {
+  grid-column: 2;
+  margin: 2px 0 0;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.outcome-summary__note {
+  margin: 12px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
