@@ -108,7 +108,8 @@ export type CommitEvent = {
   decision: string;
   bounded_action: {
     seconds_taken: number;
-    confidence: number;
+    /** Null when the question was never put -- see shared/confidence-asked.ts. Not "unanswered". */
+    confidence: number | null;
     /** Which scale that confidence was stated on. Optional in the type, refused below if absent. */
     confidence_scale?: number;
     candidate_moves_considered: string[];

@@ -42,8 +42,14 @@ export interface RevealInputs {
   chosenMove: string;
   bestMove: string;
   chosenWasBest: boolean;
-  /** The stated level as the player pressed it: 1..confidenceScale, NOT a probability. */
-  confidence: number;
+  /**
+   * The stated level as the player pressed it: 1..confidenceScale, NOT a probability.
+   *
+   * NULL when the question was never put, which is a protocol fact rather than a missing value --
+   * see shared/confidence-asked.ts. The two branches that are about the stated confidence sit out;
+   * the two that are about the move do not.
+   */
+  confidence: number | null;
   /**
    * How many buttons that level was one of.
    *
@@ -243,8 +249,25 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
 
   // The calibration gap is the primary measure (section 6): stated confidence against realised
   // accuracy. It outranks the move itself, because it is a property of the decision policy.
-  const stated = normaliseConfidence(inputs.confidence, inputs.confidenceScale);
-  if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && stated >= CONFIDENT_ENOUGH_TO_NAME) {
+  /*
+   * NULL SITS THE CONFIDENCE BRANCHES OUT RATHER THAN SCORING ZERO ON THEM.
+   *
+   * A decision taken where nothing measures a stated confidence has none, and the two branches
+   * below are both ABOUT the stated confidence. Normalising a null would land it at the bottom of
+   * the scale, which reads as "said they were unsure" -- and `trusted-it-too-little` would then
+   * fire on every quiet decision in a game, telling players they doubted themselves on a question
+   * nobody asked them. The other two branches are about the move and still apply.
+   */
+  const stated =
+    inputs.confidence === null
+      ? null
+      : normaliseConfidence(inputs.confidence, inputs.confidenceScale);
+  if (
+    !noisy &&
+    inputs.cpLoss >= MATERIAL_LOSS_CP &&
+    stated !== null &&
+    stated >= CONFIDENT_ENOUGH_TO_NAME
+  ) {
     return {
       kind: "confident-and-wrong",
       text: `אמרת ביטחון ${inputs.confidence} מתוך ${inputs.confidenceScale}, וההחלטה עלתה ${inputs.cpLoss} ס״פ. הפער בין הביטחון לתוצאה הוא מה שכדאי להסתכל עליו, לא המהלך.`,
@@ -258,7 +281,7 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
       basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
-  if (noisy && stated <= UNSURE_ENOUGH_TO_NAME) {
+  if (noisy && stated !== null && stated <= UNSURE_ENOUGH_TO_NAME) {
     return {
       kind: "trusted-it-too-little",
       text: `בחרת נכון בתוך רעש ההערכה, אבל אמרת ביטחון ${inputs.confidence} מתוך ${inputs.confidenceScale}. ייתכן שאתה יודע כאן יותר ממה שאתה סומך על עצמו.`,
@@ -332,7 +355,8 @@ export interface OneThingMix {
 
 /** The atom fields this reads. Kept structural so the record's own type does not leak in here. */
 export interface MixableDecision {
-  confidence: number;
+  /** Null on a decision nothing measures a confidence from. The two confidence branches sit out. */
+  confidence: number | null;
   /**
    * The scale that level was stated on, straight off `bounded_action.confidence_scale`.
    *

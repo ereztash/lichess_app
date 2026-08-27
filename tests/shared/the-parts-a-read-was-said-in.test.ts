@@ -22,6 +22,8 @@ const POSITION: PositionUnderDecision = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ply: 0,
   clockMsRemaining: null,
+  // Anchor: the purpose where the confidence question IS put. The `play` case has its own file.
+  purpose: "anchor",
 };
 
 const TAPPED = ["המרכז סגור", "מלך חשוף"];

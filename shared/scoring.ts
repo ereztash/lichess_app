@@ -17,14 +17,38 @@ export interface ScoringSummary {
   total: number;
   /** Decisions the engine has not yet passed verdict on. */
   awaitingReveal: number;
+  /**
+   * Decisions taken where nothing measures a stated confidence, so none was asked for.
+   *
+   * NOT A WAIT, and that is the difference from `awaitingReveal` above. An unrevealed decision
+   * becomes scoreable the moment the engine speaks; this one never will, by design, and telling a
+   * player to keep going would describe a problem they do not have. Counted rather than dropped,
+   * because a record of 200 decisions of which 40 carry a confidence is a different thing from a
+   * record of 40, and only one of those is honest about what the player did.
+   */
+  withoutConfidence: number;
 }
 
 export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): ScoringSummary {
   const scored: ScoredDecision[] = [];
   let awaitingReveal = 0;
+  let withoutConfidence = 0;
   atoms.forEach((atom, index) => {
     if (!atom.result) {
       awaitingReveal += 1;
+      return;
+    }
+    /*
+     * THE ONE PLACE A MISSING CONFIDENCE IS HANDLED, and it is handled by exclusion.
+     *
+     * Every measurement in this product -- the gap, its three-way split, the discrimination area,
+     * the effort correlation, the detector's six buckets, a drill's verdict -- reads
+     * `ScoredDecision.confidence`, and every one of them gets there through this function. So one
+     * guard here is the whole of it, and no downstream module ever sees a null it might quietly
+     * read as zero, or as the middle of the scale, or as "not confident".
+     */
+    if (atom.bounded_action.confidence === null) {
+      withoutConfidence += 1;
       return;
     }
     scored.push({
@@ -52,7 +76,7 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
       clockMsRemaining: atom.entry_state.clock_ms_remaining,
     });
   });
-  return { scored, total: atoms.length, awaitingReveal };
+  return { scored, total: atoms.length, awaitingReveal, withoutConfidence };
 }
 
 /**

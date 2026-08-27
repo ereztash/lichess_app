@@ -52,7 +52,8 @@ export interface CommitDecisionInput {
    */
   statedReadParts?: StatedParts | null;
   statedUnknownParts?: StatedParts | null;
-  confidence: number;
+  /** Null when the question was never put -- see shared/confidence-asked.ts. Not "unanswered". */
+  confidence: number | null;
   /** How many levels the scale had when it was stated. See shared/confidence.ts. */
   confidenceScale: number;
   /**

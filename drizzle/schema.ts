@@ -66,7 +66,14 @@ export const decisions = mysqlTable(
      */
     statedReadParts: json("stated_read_parts").$type<StatedParts>(),
     statedUnknownParts: json("stated_unknown_parts").$type<StatedParts>(),
-    confidence: int("confidence").notNull(),
+    /**
+     * NULLABLE, AND NULL IS NOT A MISSING ANSWER. It means the question was never put, because
+     * nothing measures a confidence stated on that position -- see shared/confidence-asked.ts.
+     * `scoreDecisions` leaves those rows out of the calibration record and counts them; nothing
+     * anywhere defaults them, because a default would be a belief the machine stated for a player
+     * and then measured them against.
+     */
+    confidence: int("confidence"),
     /**
      * How many levels the scale had when that confidence was stated.
      *

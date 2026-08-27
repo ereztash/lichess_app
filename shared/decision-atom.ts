@@ -67,7 +67,18 @@ export type StatedParts = z.infer<typeof statedPartsSchema>;
 
 export const boundedActionSchema = z.object({
   seconds_taken: z.number().min(0),
-  confidence: z.number().int().min(1).max(CONFIDENCE_LEVELS),
+  /**
+   * How sure the player said they were, on the scale below.
+   *
+   * NULLABLE, AND NULL IS NOT "UNANSWERED". It means the question was never put, because nothing
+   * measures a confidence stated here -- see `shared/confidence-asked.ts` for which positions do.
+   * The decision is complete without it: the move, the read and the doubt are all recorded, and
+   * `scoreDecisions` leaves it out of the calibration record and counts it separately rather than
+   * defaulting it to anything. A default here would be the machine stating a belief on the
+   * player's behalf and then measuring them against it, which is the one thing this atom exists
+   * to prevent.
+   */
+  confidence: z.number().int().min(1).max(CONFIDENCE_LEVELS).nullable(),
   /*
    * WHICH SCALE THAT CONFIDENCE WAS STATED ON, and why a bare number is not enough.
    *

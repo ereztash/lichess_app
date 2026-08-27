@@ -35,6 +35,9 @@ const POSITION = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ply: 0,
   clockMsRemaining: null,
+  // Anchor: the purpose where the confidence question IS put. `as never` below casts past the
+  // type, so a missing `purpose` here is invisible to tsc and shows up as a vanished step.
+  purpose: "anchor",
 };
 
 const panel = (props: Partial<Parameters<typeof CommitmentScreen>[0]> = {}) =>

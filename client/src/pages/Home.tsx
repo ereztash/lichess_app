@@ -23,6 +23,8 @@ import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
+import { isAnchorFen } from "@shared/anchor-set";
+import type { DecisionPurpose } from "@shared/confidence-asked";
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { SilentGame } from "@/components/SilentGame";
 import { RevealPanel } from "@/components/RevealPanel";
@@ -332,6 +334,25 @@ export default function Home() {
     : inDrill
       ? (drill.fens[drillIndex] ?? INITIAL_FEN)
       : (historyMove?.fen ?? INITIAL_FEN);
+  /**
+   * Why this position is in front of the player, and therefore whether the confidence question is
+   * put -- see shared/confidence-asked.ts.
+   *
+   * Derived once, here, beside the position it describes. Two call sites need it (the screen that
+   * asks and the event that gets written) and a second derivation is a second chance to disagree
+   * about whether a decision was measured, which is the kind of disagreement that only shows up
+   * in the record weeks later.
+   *
+   * An anchor is recognised by its POSITION, not by the route that served it: the shared bank is
+   * handed into the ordinary board, so `gameId` says "a game" while the FEN is a bank position.
+   */
+  const decisionPurpose: DecisionPurpose = inLearningTransfer
+    ? "transfer"
+    : inDrill
+      ? "drill"
+      : isAnchorFen(activeFen)
+        ? "anchor"
+        : "play";
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
@@ -1026,6 +1047,7 @@ export default function Home() {
             fen: activeFen,
             ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
             clockMsRemaining: null,
+            purpose: decisionPurpose,
           },
           draft,
           secondsTaken,
@@ -1085,6 +1107,9 @@ export default function Home() {
       activeFen,
       commitDecision,
       currentPly,
+      /* The purpose decides whether a stated confidence is written at all. A stale one here would
+         record a decision as measured that was not, or the reverse -- silently, and forever. */
+      decisionPurpose,
       drill,
       drillStage,
       learningTransfer,
@@ -1930,6 +1955,7 @@ export default function Home() {
                 fen: activeFen,
                 ply: learningTransfer ? learningTransferIndex : currentPly + 1,
                 clockMsRemaining: null,
+                purpose: decisionPurpose,
               }}
               chosenMove={candidateMove}
               candidatesConsidered={candidatesConsidered}
