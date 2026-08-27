@@ -188,7 +188,7 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         */}
       <p className="first-decision-note">
         העמדה נבחרת בלי להסתכל על מה שיצא מהמהלך שלכם — לא רצה עליה מנוע ולא נבדקה שום תוצאה.
-        המשחקים נמשכים מ-Lichess ולא נשמרים כאן.
+        המשחקים נמשכים מ-{SOURCE_LABEL[source]} ולא נשמרים כאן.
       </p>
     </section>
   );

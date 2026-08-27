@@ -34,6 +34,25 @@ export const SOURCE_LABEL: Record<GameSource, string> = {
   lichess: "Lichess",
   chesscom: "Chess.com",
 };
+/**
+ * The origin each source is read from, and the reason this is DATA rather than a private const
+ * inside each client.
+ *
+ * The deployment's `connect-src` names the origins the browser is allowed to reach. Adding
+ * Chess.com without adding it there shipped a build where every test passed -- tests inject their
+ * own `fetch` -- and the real app failed on a phone with "the browser could not reach Chess.com",
+ * which is this app's own wording for a network refusal. A CSP violation surfaces to `fetch` as a
+ * plain TypeError, so the code could not tell "blocked by policy" from "you are offline", and the
+ * message named the second.
+ *
+ * Two places asserted the same fact and one of them moved. `tests/client/every-source-the-page-may-reach.test.ts`
+ * holds them together now, reading this list against `vercel.json`.
+ */
+export const SOURCE_ORIGIN: Record<GameSource, string> = {
+  lichess: "https://lichess.org",
+  chesscom: "https://api.chess.com",
+};
+
 export const SOURCE_PLACEHOLDER: Record<GameSource, string> = {
   lichess: "lichess username",
   chesscom: "chess.com username",
