@@ -29,7 +29,7 @@ import { answerEveryStep, openStep } from "../fixtures/commitment-steps";
 import type { PositionUnderDecision } from "@/lib/decision-session";
 
 const FEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4";
-const POSITION: PositionUnderDecision = { gameId: "g", fen: FEN, ply: 7, clockMsRemaining: null };
+const POSITION: PositionUnderDecision = { gameId: "g", fen: FEN, ply: 7, clockMsRemaining: null, purpose: "anchor" };
 
 const renderScreen = (overrides: Partial<Parameters<typeof CommitmentScreen>[0]> = {}) =>
   render(

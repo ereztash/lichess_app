@@ -1,0 +1,1 @@
+ALTER TABLE `decisions` MODIFY COLUMN `confidence` int;

@@ -469,6 +469,8 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
     },
     known: row.statedRead,
     unknown: row.statedUnknown,
+    known_parts: row.statedReadParts ?? null,
+    unknown_parts: row.statedUnknownParts ?? null,
     decision: row.chosenMove,
     bounded_action: {
       seconds_taken: row.secondsTaken,

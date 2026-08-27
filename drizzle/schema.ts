@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
+import type { StatedParts } from "../shared/decision-atom.js";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
@@ -51,7 +52,28 @@ export const decisions = mysqlTable(
     statedRead: varchar("stated_read", { length: 200 }).notNull(),
     /** Atom `unknown`. See the deviation note in shared/decision-atom.ts. */
     statedUnknown: varchar("stated_unknown", { length: 200 }).notNull(),
-    confidence: int("confidence").notNull(),
+    /**
+     * How each read was said: the options tapped, and what was typed beside them.
+     *
+     * NULLABLE, AND NULL IS NOT AN EMPTY ANSWER. A row written before this existed has a
+     * `stated_read` full of text and recorded no parts at all; `{tapped:[],typed:""}` there would
+     * assert the player answered with silence. Every reading of these counts null out of the
+     * denominator instead.
+     *
+     * JSON rather than two columns each, because the pair is one fact -- what was said and how --
+     * and splitting it would let a row hold tapped labels with no record of whether anything was
+     * typed beside them.
+     */
+    statedReadParts: json("stated_read_parts").$type<StatedParts>(),
+    statedUnknownParts: json("stated_unknown_parts").$type<StatedParts>(),
+    /**
+     * NULLABLE, AND NULL IS NOT A MISSING ANSWER. It means the question was never put, because
+     * nothing measures a confidence stated on that position -- see shared/confidence-asked.ts.
+     * `scoreDecisions` leaves those rows out of the calibration record and counts them; nothing
+     * anywhere defaults them, because a default would be a belief the machine stated for a player
+     * and then measured them against.
+     */
+    confidence: int("confidence"),
     /**
      * How many levels the scale had when that confidence was stated.
      *

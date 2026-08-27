@@ -32,6 +32,8 @@ const POSITION = {
   fen: "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4",
   ply: 7,
   clockMsRemaining: null,
+  // Anchor: the purpose where the confidence question IS put. The `play` case has its own file.
+  purpose: "anchor" as const,
 };
 
 const panel = (candidates: string[], chosen: string | null = "g1f3") =>

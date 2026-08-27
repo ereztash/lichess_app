@@ -22,7 +22,11 @@ import { describe, expect, it, vi } from "vitest";
 import { CommitmentScreen } from "../../client/src/components/CommitmentScreen";
 import { answerEveryStep, openStep } from "../fixtures/commitment-steps";
 
-const position = { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", ply: 0 };
+const position = { fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", ply: 0,
+  // Anchor: the purpose where the confidence question IS put. `as never` below casts past the
+  // type, so a missing `purpose` here is invisible to tsc and shows up as a vanished step.
+  purpose: "anchor",
+};
 const setup = (props: Partial<Parameters<typeof CommitmentScreen>[0]> = {}) =>
   render(
     <CommitmentScreen

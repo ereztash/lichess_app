@@ -12,6 +12,7 @@
 
 import {
   clampMax,
+  SOURCE_ORIGIN,
   UNFINISHED,
   type ImportFailure,
   type ImportResult,
@@ -25,7 +26,7 @@ import {
  */
 export type { ImportFailure, ImportResult, ImportedGame };
 
-const LICHESS_ORIGIN = "https://lichess.org";
+const LICHESS_ORIGIN = SOURCE_ORIGIN.lichess;
 
 function playerName(side: { user?: { name?: string }; aiLevel?: number } | undefined): string {
   if (side?.user?.name) return side.user.name;

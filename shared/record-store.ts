@@ -10,7 +10,12 @@
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
 import type { PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
-import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
+import type {
+  DecisionAtom,
+  DecisionResult,
+  ProbeAssignment,
+  StatedParts,
+} from "./decision-atom.js";
 import type {
   LearningRule,
   LearningTransfer,
@@ -32,7 +37,23 @@ export interface CommitDecisionInput {
   candidateMovesConsidered: string[];
   statedRead: string;
   statedUnknown: string;
-  confidence: number;
+  /**
+   * How each read was said: the options tapped, and what was typed beside them.
+   *
+   * NULL IS "NOBODY RECORDED THIS", not "tapped nothing and typed nothing". Rows written before
+   * this existed have a `statedRead` full of text and no parts at all, and reading them as an
+   * empty answer would assert a silence that never happened.
+   *
+   * OPTIONAL ON THE TYPE, ENFORCED AT THE BOUNDARY -- the same shape `confidence_scale` already
+   * uses, and for the same reason. A row that predates this has none, and a required field would
+   * have made every fixture in the suite assert something about a vocabulary it is not testing.
+   * What matters is that the LIVE path always fills it, and that is held by a test over the write
+   * rather than by a type that cannot see which caller is the product.
+   */
+  statedReadParts?: StatedParts | null;
+  statedUnknownParts?: StatedParts | null;
+  /** Null when the question was never put -- see shared/confidence-asked.ts. Not "unanswered". */
+  confidence: number | null;
   /** How many levels the scale had when it was stated. See shared/confidence.ts. */
   confidenceScale: number;
   /**

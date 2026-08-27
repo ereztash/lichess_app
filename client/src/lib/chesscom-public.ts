@@ -37,12 +37,13 @@
  */
 import {
   clampMax,
+  SOURCE_ORIGIN,
   UNFINISHED,
   type ImportResult,
   type ImportedGame,
 } from "./game-source";
 
-const CHESSCOM_ORIGIN = "https://api.chess.com";
+const CHESSCOM_ORIGIN = SOURCE_ORIGIN.chesscom;
 
 /**
  * How many monthly archives to walk back through before giving up.

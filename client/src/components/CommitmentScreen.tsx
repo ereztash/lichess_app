@@ -44,6 +44,7 @@
  */
 import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
 import { recordAttempt } from "@/lib/progress-record";
+import { confidenceIsMeasured, type DecisionPurpose } from "@shared/confidence-asked";
 import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
 import {
@@ -73,7 +74,21 @@ interface CommitmentScreenProps {
 
 /** The four requirements, in the order the decision actually happens. */
 type StepId = "chosenMove" | "known" | "unknown" | "confidence";
-const STEPS: StepId[] = ["chosenMove", "known", "unknown", "confidence"];
+const ALL_STEPS: StepId[] = ["chosenMove", "known", "unknown", "confidence"];
+
+/**
+ * The steps THIS position asks for.
+ *
+ * The confidence question was on every decision, so a game against the app was forty of them --
+ * reported as the reason a game does not get finished, and it is a measurement problem wearing a
+ * UX complaint: an instrument too expensive to use produces no readings. It is asked now exactly
+ * where a measurement reads the answer (`shared/confidence-asked.ts`), and everywhere else the
+ * step is ABSENT rather than optional. Absent, because an optional question is answered by
+ * whoever feels like answering, which makes the confidence data a sample the player curated on
+ * the very variable being measured.
+ */
+const stepsFor = (purpose: DecisionPurpose): StepId[] =>
+  confidenceIsMeasured(purpose) ? ALL_STEPS : ALL_STEPS.filter((step) => step !== "confidence");
 
 const STEP_LEGEND: Record<StepId, string> = {
   chosenMove: "המהלך שבחרתם",
@@ -131,8 +146,21 @@ export function CommitmentScreen({
   }, []);
 
   const live: DraftDecision = { ...draft, chosenMove, candidatesConsidered };
-  const problems = draftProblems(live);
-  const ready = isCommittable(live);
+  /* What this position asks for. Absent steps are not optional ones -- see `stepsFor`. */
+  const STEPS = stepsFor(position.purpose);
+  /*
+   * DERIVED FROM THE LIST, not asked of the rule a second time.
+   *
+   * These were two independent gates -- the list filtered by `stepsFor`, the block rendered behind
+   * its own `confidenceIsMeasured` call -- and a positive control caught it: deleting the filter
+   * from `stepsFor` changed nothing observable, because the second gate still hid the block. A
+   * rule with a redundant enforcement point has one that is dead, and dead enforcement is worse
+   * than none: it reads like a guard while guarding nothing, and the day the live one moves it
+   * will not catch anything either.
+   */
+  const asksConfidence = STEPS.includes("confidence");
+  const problems = draftProblems(live, position.purpose);
+  const ready = isCommittable(live, position.purpose);
   /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
   const tension = foremostTension(live, confidenceStatedAt ?? elapsed);
 
@@ -432,7 +460,16 @@ export function CommitmentScreen({
         />,
       )}
 
-      {step(
+      {/*
+        * ABSENT, NOT DISABLED AND NOT OPTIONAL, where nothing measures the answer.
+        *
+        * A greyed-out step still costs a reader a glance and an explanation; an optional one is
+        * answered by whoever feels like answering, which curates the confidence data on the very
+        * variable being measured. On an ordinary decision the question simply is not part of this
+        * screen, and the decision is complete without it.
+        */}
+      {asksConfidence &&
+        step(
         "confidence",
         3,
         <fieldset className="commitment-confidence" disabled={pending}>

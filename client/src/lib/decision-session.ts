@@ -16,6 +16,7 @@ import type { RevealTiming } from "@shared/reveal-timing";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
+import { confidenceIsMeasured, type DecisionPurpose } from "@shared/confidence-asked";
 
 export type SessionStage = "deciding" | "committing" | "committed" | "revealed" | "blocked";
 
@@ -24,6 +25,15 @@ export interface PositionUnderDecision {
   fen: string;
   ply: number;
   clockMsRemaining: number | null;
+  /**
+   * Why this position is in front of the player, which decides whether the confidence question is
+   * put at all -- see shared/confidence-asked.ts.
+   *
+   * It travels ON THE POSITION rather than as a prop of its own, because it is a fact about the
+   * position and it has to reach every place the position already reaches: the screen that asks,
+   * the check that says what is still missing, and the event that gets written.
+   */
+  purpose: DecisionPurpose;
 }
 
 export interface DraftDecision {
@@ -68,7 +78,7 @@ export interface DraftProblem {
  * boolean so the interface can say WHICH part is absent -- "incomplete" and "invalid" are
  * different states and must not render the same (R2).
  */
-export function draftProblems(draft: DraftDecision): DraftProblem[] {
+export function draftProblems(draft: DraftDecision, purpose: DecisionPurpose): DraftProblem[] {
   const problems: DraftProblem[] = [];
   if (!draft.chosenMove) {
     problems.push({ field: "chosenMove", message: "לא נבחר מהלך." });
@@ -81,13 +91,19 @@ export function draftProblems(draft: DraftDecision): DraftProblem[] {
   if (statedUnknown(draft).length === 0) {
     problems.push({ field: "unknown", message: "לא נאמר מה אי אפשר להעריך כאן." });
   }
-  if (draft.confidence === null) {
+  /*
+   * ASKED ONLY WHERE SOMETHING READS IT. On every other position the question is not on the
+   * screen at all, so it cannot be missing -- requiring it here would refuse a decision for
+   * failing to answer something nobody asked.
+   */
+  if (confidenceIsMeasured(purpose) && draft.confidence === null) {
     problems.push({ field: "confidence", message: "לא נבחרה רמת ביטחון." });
   }
   return problems;
 }
 
-export const isCommittable = (draft: DraftDecision) => draftProblems(draft).length === 0;
+export const isCommittable = (draft: DraftDecision, purpose: DecisionPurpose) =>
+  draftProblems(draft, purpose).length === 0;
 
 /**
  * The engine may only run once the decision is on the record. Every other stage returns false,
@@ -134,7 +150,7 @@ export function buildCommitEvent(
   revealTiming: RevealTiming,
   draw: () => number = Math.random,
 ): CommitEvent {
-  const problems = draftProblems(draft);
+  const problems = draftProblems(draft, position.purpose);
   if (problems.length) {
     throw new Error(`decision is not committable: ${problems.map((p) => p.message).join(" ")}`);
   }
@@ -150,10 +166,25 @@ export function buildCommitEvent(
     },
     known: statedKnown(draft),
     unknown: statedUnknown(draft),
+    /*
+     * The same answer, unjoined. `statedKnown` above runs the two through `composeStatement`,
+     * which is the only thing the record used to keep -- and the join is exactly where the
+     * product's one measurement about its own vocabulary was being thrown away. Both are written:
+     * `known` is what the player asserted and every reader already reads it; these say how it was
+     * said. A test holds the two consistent, so the redundancy is a checked invariant rather than
+     * two sources that can drift apart.
+     */
+    known_parts: { tapped: draft.knownTags, typed: draft.known.trim() },
+    unknown_parts: { tapped: draft.unknownTags, typed: draft.unknown.trim() },
     decision: draft.chosenMove!,
     bounded_action: {
       seconds_taken: secondsTaken,
-      confidence: draft.confidence!,
+      /*
+       * Null where the question was never put. NOT `draft.confidence!` with a fallback: a default
+       * here would be the machine stating a belief on the player's behalf and then measuring them
+       * against it, and `scoreDecisions` is built to exclude the null rather than read one.
+       */
+      confidence: confidenceIsMeasured(position.purpose) ? draft.confidence : null,
       /*
        * Sent with every commit, never inferred server-side. A stated level is meaningless without
        * the scale it was stated on: "בטוח" was 4 of 5 and is 6 of 7, so the same integer asserts
