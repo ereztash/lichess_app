@@ -75,6 +75,19 @@ export function isRegistrableBucket(key: string): boolean {
 export type PreregOutcome =
   | { kind: "registered"; hypothesis: PreregisteredHypothesis }
   | { kind: "nothing-readable" }
+  /**
+   * ONE READABLE BUCKET IS A RATE, NOT A COMPARISON, and it needed its own outcome.
+   *
+   * `worstBucketVerdict` says exactly this in its own comment and returns
+   * `separation: 0, threshold: 0, separable: false` to express it. Those are SENTINELS, and they
+   * were reaching the screen through `not-separable`, which renders them: "the accuracy difference
+   * between the lowest and the next is 0 percentage points, and their sampling error is 0" — a
+   * comparison against a bucket that does not exist, printed as two measurements, contradicting
+   * the panel above it that shows one readable bucket.
+   *
+   * The type's own doc says these outcomes "must not read alike". This is the fifth.
+   */
+  | { kind: "only-one-readable"; worstKey: string }
   | { kind: "not-separable"; worstKey: string; separation: number; threshold: number }
   | { kind: "not-registrable"; worstKey: string };
 
@@ -92,6 +105,10 @@ export function hypothesisFromImport(
 ): PreregOutcome {
   const verdict = worstBucketVerdict(diagnostic);
   if (!verdict) return { kind: "nothing-readable" };
+  if (!verdict.runnerUp) {
+    // Nothing to be worse than. Reported as its own thing rather than as a separation of zero.
+    return { kind: "only-one-readable", worstKey: verdict.worst.key };
+  }
   if (!verdict.separable) {
     return {
       kind: "not-separable",
