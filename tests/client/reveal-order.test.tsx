@@ -9,6 +9,7 @@ import { describe, expect, it } from "vitest";
 import { RevealPanel } from "@/components/RevealPanel";
 import type { RevealInputs } from "@shared/reveal";
 import type { EngineLine } from "@/lib/stockfish";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 
 const FEN = "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 4 4";
 const INPUTS: RevealInputs = {
@@ -17,7 +18,8 @@ const INPUTS: RevealInputs = {
   chosenMove: "g8f6",
   bestMove: "f8c5",
   chosenWasBest: false,
-  confidence: 5,
+  confidence: CONFIDENCE_LEVELS,
+  confidenceScale: CONFIDENCE_LEVELS,
   statedUnknown: "לא יודע אם d5 עובד",
   decisionsOnRecord: 120,
   candidatesConsidered: [],
@@ -70,7 +72,7 @@ describe("the reveal order is what section 4.2 says it is", () => {
   });
 
   it("renders an honest nothing rather than filling the space", () => {
-    const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: 3, bestMove: "g8f6" };
+    const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: EVEN_ODDS_LEVEL, bestMove: "g8f6" };
     const { container } = renderPanel(quiet);
     expect(container.querySelector(".one-thing-none")).not.toBeNull();
     expect(container.textContent).toContain("זו תוצאה תקינה, לא מסך ריק");
@@ -80,7 +82,7 @@ describe("the reveal order is what section 4.2 says it is", () => {
     // `bestMove` matched to the chosen move, like the fixture above it. Saying the player chose
     // the best move while naming a different one is a state the product cannot produce, and a
     // fixture that describes an impossible record proves nothing about a real one.
-    const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: 3, bestMove: "g8f6" };
+    const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: EVEN_ODDS_LEVEL, bestMove: "g8f6" };
     expect(headings(renderPanel(quiet).container)[0]).toContain("מה אי אפשר להסיק");
   });
 

@@ -7,6 +7,7 @@ import {
   theOneThing,
   type RevealInputs,
 } from "@shared/reveal";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 
 const base: RevealInputs = {
   depth: 20,
@@ -14,7 +15,15 @@ const base: RevealInputs = {
   chosenMove: "g8f6",
   bestMove: "g8f6",
   chosenWasBest: true,
-  confidence: 3,
+  /*
+   * WRITTEN AS THE NAMED LEVEL, NOT AS AN INTEGER. `3` used to mean "the middle of five". The
+   * middle is now `EVEN_ODDS_LEVEL` = 4 of 7, and a fixture that kept planting `3` would have gone
+   * on asserting "moderate confidence" while planting 35% -- which is the rot shared/confidence.ts
+   * added the scale field to prevent, and which these fixtures nonetheless had until `RevealInputs`
+   * was made to carry a scale and the type system named them all.
+   */
+  confidence: EVEN_ODDS_LEVEL,
+  confidenceScale: CONFIDENCE_LEVELS,
   statedUnknown: "לא יודע אם d5 עובד",
   decisionsOnRecord: 120,
   candidatesConsidered: [],
@@ -68,9 +77,9 @@ describe("the one thing to work on is one thing, or nothing", () => {
   });
 
   it("prefers the calibration gap over the move when confidence was high and loss was real", () => {
-    const one = theOneThing(from({ cpLoss: 180, chosenWasBest: false, confidence: 5 }));
+    const one = theOneThing(from({ cpLoss: 180, chosenWasBest: false, confidence: CONFIDENCE_LEVELS }));
     expect(one?.text).toContain("הפער בין הביטחון לתוצאה");
-    expect(one?.basis).toContain("ביטחון 5/5");
+    expect(one?.basis).toContain(`ביטחון ${CONFIDENCE_LEVELS}/${CONFIDENCE_LEVELS}`);
   });
 
   it("talks about the move when confidence was not the signal", () => {
@@ -80,13 +89,13 @@ describe("the one thing to work on is one thing, or nothing", () => {
   });
 
   it("does not call a within-noise difference a cost", () => {
-    const one = theOneThing(from({ cpLoss: 20, chosenWasBest: false, confidence: 5 }));
+    const one = theOneThing(from({ cpLoss: 20, chosenWasBest: false, confidence: CONFIDENCE_LEVELS }));
     expect(one?.text ?? "").not.toContain("עלה");
   });
 
   it("carries its basis whenever it says anything at all", () => {
     for (const inputs of [
-      from({ cpLoss: 180, chosenWasBest: false, confidence: 5 }),
+      from({ cpLoss: 180, chosenWasBest: false, confidence: CONFIDENCE_LEVELS }),
       from({ cpLoss: 180, chosenWasBest: false, confidence: 2 }),
       from({ cpLoss: 5, confidence: 1 }),
     ]) {

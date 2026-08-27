@@ -23,10 +23,19 @@ import {
   theOneThing,
   type MixableDecision,
 } from "@shared/reveal";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 
 /** A revealed decision. Defaults land on "outplayed" so each test moves one thing. */
 const d = (over: Partial<MixableDecision> = {}): MixableDecision => ({
-  confidence: 3,
+  /*
+   * NAMED LEVELS, NOT INTEGERS, THROUGHOUT THIS FILE. These read `3` for "the middle" and `5` for
+   * "the top" when the scale had five buttons. The middle is now `EVEN_ODDS_LEVEL` = 4 of 7 and
+   * the top is 7 -- so a test named "counts high confidence" was planting 65% and would have gone
+   * on passing. `RevealInputs` and `MixableDecision` now carry the scale they were stated on,
+   * which is what made the type system name every one of these.
+   */
+  confidence: EVEN_ODDS_LEVEL,
+  confidenceScale: CONFIDENCE_LEVELS,
   candidatesConsidered: ["g1f3"],
   chosenMove: "g1f3",
   cpLoss: MATERIAL_LOSS_CP + 40,
@@ -41,7 +50,8 @@ const inputs = (over: Partial<RevealInputs> = {}): RevealInputs => ({
   chosenMove: "g1f3",
   bestMove: "e2e4",
   chosenWasBest: false,
-  confidence: 3,
+  confidence: EVEN_ODDS_LEVEL,
+  confidenceScale: CONFIDENCE_LEVELS,
   statedUnknown: "",
   decisionsOnRecord: 1,
   candidatesConsidered: ["g1f3"],
@@ -57,7 +67,7 @@ describe("each branch is counted as itself", () => {
   });
 
   it("counts high confidence on a move that cost material", () => {
-    const mix = oneThingMix([d({ confidence: 5 })]);
+    const mix = oneThingMix([d({ confidence: CONFIDENCE_LEVELS })]);
     expect(mix.counts["confident-and-wrong"]).toBe(1);
   });
 
@@ -78,7 +88,7 @@ describe("each branch is counted as itself", () => {
      * decisions where the product correctly declined to speak -- which would be the product
      * overstating itself in the one place it is proudest of not doing.
      */
-    const mix = oneThingMix([d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: 4 })]);
+    const mix = oneThingMix([d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: CONFIDENCE_LEVELS - 1 })]);
     expect(mix.silent).toBe(1);
     expect(mix.n).toBe(1);
     expect(Object.values(mix.counts).reduce((a, b) => a + b, 0)).toBe(0);
@@ -88,10 +98,10 @@ describe("each branch is counted as itself", () => {
     // The shares are read as a distribution, so they have to be one.
     const decisions = [
       d({ candidatesConsidered: ["g1f3", "e2e4"] }),
-      d({ confidence: 5 }),
+      d({ confidence: CONFIDENCE_LEVELS }),
       d(),
       d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: 1 }),
-      d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: 4 }),
+      d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: CONFIDENCE_LEVELS - 1 }),
     ];
     const mix = oneThingMix(decisions);
     const total = Object.values(mix.counts).reduce((a, b) => a + b, 0) + mix.silent;
@@ -167,14 +177,14 @@ describe("the counter uses the real branches, not a copy of their conditions", (
      */
     const decisions = [
       d({ candidatesConsidered: ["g1f3", "e2e4"] }),
-      d({ confidence: 5 }),
+      d({ confidence: CONFIDENCE_LEVELS }),
       d(),
       d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: 1 }),
-      d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: 4 }),
-      d({ confidence: 4, candidatesConsidered: ["g1f3", "e2e4"] }),
+      d({ cpLoss: ENGINE_NOISE_CP - 10, confidence: CONFIDENCE_LEVELS - 1 }),
+      d({ confidence: CONFIDENCE_LEVELS - 1, candidatesConsidered: ["g1f3", "e2e4"] }),
       // On the material line exactly, and just above it, in each branch that reads that line.
       d({ cpLoss: MATERIAL_LOSS_CP, candidatesConsidered: ["g1f3", "e2e4"] }),
-      d({ cpLoss: MATERIAL_LOSS_CP + 1, confidence: 5 }),
+      d({ cpLoss: MATERIAL_LOSS_CP + 1, confidence: CONFIDENCE_LEVELS }),
       d({ cpLoss: MATERIAL_LOSS_CP + 10 }),
       d({ cpLoss: MATERIAL_LOSS_CP + 19, candidatesConsidered: ["g1f3", "e2e4"] }),
       // And on the noise line, which the other two branches read.
@@ -191,6 +201,9 @@ describe("the counter uses the real branches, not a copy of their conditions", (
         bestMove: one.bestMove!,
         chosenWasBest: one.chosenMove === one.bestMove,
         confidence: one.confidence,
+        // Off the decision, not a constant: this loop exists to prove the mix agrees with
+        // theOneThing, so it must hand over the same scale the mix hands over.
+        confidenceScale: one.confidenceScale,
         statedUnknown: "",
         decisionsOnRecord: decisions.length,
         candidatesConsidered: one.candidatesConsidered,
@@ -206,7 +219,7 @@ describe("the counter uses the real branches, not a copy of their conditions", (
   it("puts the choice rule ahead of the confidence sentence, as the reveal does", () => {
     // Both conditions hold at once here. The reveal ranks the choice rule first deliberately --
     // it needs no aggregation and points at different work -- and the count must rank it the same.
-    const mix = oneThingMix([d({ confidence: 5, candidatesConsidered: ["g1f3", "e2e4"] })]);
+    const mix = oneThingMix([d({ confidence: CONFIDENCE_LEVELS, candidatesConsidered: ["g1f3", "e2e4"] })]);
     expect(mix.counts["chose-past-it"]).toBe(1);
     expect(mix.counts["confident-and-wrong"]).toBe(0);
   });
@@ -237,10 +250,10 @@ describe("silence says WHICH kind of silence, because there are two", () => {
     const { render } = await import("@testing-library/react");
 
     const { container: quiet } = render(
-      <RevealPanel inputs={inputs({ cpLoss: 10, confidence: 4 })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
+      <RevealPanel inputs={inputs({ cpLoss: 10, confidence: CONFIDENCE_LEVELS - 1 })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
     );
     const { container: band } = render(
-      <RevealPanel inputs={inputs({ cpLoss: 60, confidence: 5 })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
+      <RevealPanel inputs={inputs({ cpLoss: 60, confidence: CONFIDENCE_LEVELS })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
     );
     const quietText = quiet.querySelector(".one-thing-none")!.textContent ?? "";
     const bandText = band.querySelector(".one-thing-none")!.textContent ?? "";

@@ -59,6 +59,7 @@ export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
+import { LEGACY_CONFIDENCE_LEVELS } from "./confidence.js";
 
 /**
  * A refusal with a transport-neutral code.
@@ -1448,6 +1449,9 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
   const mix = oneThingMix(
     atoms.map((atom) => ({
       confidence: atom.bounded_action.confidence,
+      // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
+      // a row written before the field existed was written on the five-level scale by definition.
+      confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
       candidatesConsidered: atom.bounded_action.candidate_moves_considered,
       chosenMove: atom.decision,
       cpLoss: atom.result?.cp_loss ?? null,

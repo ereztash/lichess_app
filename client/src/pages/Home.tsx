@@ -142,6 +142,7 @@ import {
 } from "@/lib/engine-line";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
+import { CONFIDENCE_LEVELS } from "@shared/confidence";
 
 const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע ידלק אחרי ההחלטה" };
 
@@ -812,6 +813,9 @@ export default function Home() {
           bestMove,
           chosenWasBest: bestMove === draft.chosenMove,
           confidence: draft.confidence!,
+          // The scale this level was pressed on, not a constant read later. It is the same value
+          // the decision is committed with, so the reveal grades the number the record stores.
+          confidenceScale: CONFIDENCE_LEVELS,
           statedUnknown: draft.unknown,
           decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
           /*
