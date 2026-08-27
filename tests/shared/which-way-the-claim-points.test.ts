@@ -82,6 +82,7 @@ async function record(
     ply: 0,
     phase: o.phase,
     clockMsRemaining: 120_000,
+    purpose: "play",
     secondsTaken: 60,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4"],

@@ -15,10 +15,21 @@
  */
 import { z } from "zod";
 import { CONFIDENCE_LEVELS } from "./confidence.js";
+import { DECISION_PURPOSES } from "./confidence-asked.js";
 import { REVEAL_TIMINGS } from "./reveal-timing.js";
 
 export const ATOM_FIELDS = [
   "entry_state",
+  /*
+   * DIRECTLY AFTER `entry_state`, because it is the rest of the same fact and the field order
+   * here is the chain in section 3.1 rather than the order things were added. `entry_state` is
+   * the position the player was handed; this is why they were handed it. Both are known before
+   * the player reads anything, and putting the purpose at the end -- beside `reveal_timing`,
+   * which is where a field added late naturally lands -- would separate it from the entry it
+   * describes and make the list a history of the repository instead of a description of a
+   * decision.
+   */
+  "purpose",
   "known",
   "unknown",
   "known_parts",
@@ -169,20 +180,44 @@ export const feedbackSchema = z.object({
 export const decisionAtomSchema = z.object({
   entry_state: entryStateSchema,
   /**
+   * WHY this position was in front of the player -- the front door's handoff, the shared bank, a
+   * drill, a transfer check, an ordinary move, or a game already played.
+   *
+   * IT DECIDES WHAT MAY BE MISSING FROM THE ROW, which is why it is stored rather than derived at
+   * render time and dropped. The confidence question is put on some purposes and sampled on
+   * others, and the two read fields are required on every purpose except `first`; both of those
+   * are rules ABOUT a purpose, so a record that did not carry one could not enforce either and
+   * could not tell a permitted absence from a lost field afterwards.
+   *
+   * NULLABLE, AND NULL IS NOT `play`. A row written before this field existed was never stamped,
+   * and the rows in that era are not all ordinary moves -- the bank, the drills and the transfer
+   * checks are in there too. Writing `play` into them would not be a tidy default, it would file
+   * every drill in that era as a free-play decision and quietly corrupt the one comparison the
+   * drills exist to support.
+   *
+   * THE ONE ATOM FIELD THE SERVER CANNOT RE-DERIVE, and that is stated because everything else it
+   * receives is checked: the phase is recomputed from the FEN and the legal-move count from the
+   * position, precisely so a wrong label cannot bias what the record is later divided by. Why a
+   * position was in front of a player is a fact about the client's loop, and nothing on the wire
+   * proves it. This is a claim by the client -- the same standing `reveal_timing` has -- and a
+   * reading that treats it as verified is reading more than the field carries.
+   */
+  purpose: z.enum(DECISION_PURPOSES).nullable(),
+  /**
    * What the player can name about this position. <=200 chars.
    *
    * MAY BE EMPTY, AND ONLY ON THE FIRST DECISION OF A GAME. The two read fields are required
    * everywhere else; on the opening decision they are not, because that is the one moment the
    * player has not yet seen what the loop asks and the wall of questions is the whole of their
-   * first impression. `draftProblems` is where that exemption lives.
+   * first impression. `draftProblems` is where that exemption is enforced on screen; the refusal
+   * below is what makes it a rule of the record rather than a habit of one client.
    *
-   * WHAT THE SCHEMA GAVE UP TO ALLOW IT, said rather than glossed. `min(1)` was a real guard: a
-   * client that dropped this field could not write. The record does not carry the decision's
-   * PURPOSE -- see the note in shared/confidence-asked.ts -- so the server cannot ask "was this
-   * one allowed to be empty?" and enforce it conditionally. What replaces it is the consistency
-   * check below: an empty sentence must arrive with nothing tapped and nothing typed. That
-   * catches a client that loses the composed string while still holding the parts, which is the
-   * failure mode this field has actually had.
+   * WHAT THE SCHEMA GAVE UP TO ALLOW IT, AND WHAT GAVE IT BACK. `min(1)` was a real guard -- a
+   * client that dropped this field could not write -- and the exemption cost it, because the rule
+   * became conditional on a fact the record did not carry. It carries it now: `purpose` above is
+   * stored, so the guard is back as a conditional one. An empty read is accepted from a `first`
+   * decision and refused from every other, which is stricter than the unconditional `min(1)` was
+   * on five purposes and exactly as permissive as the product intends on the sixth.
    */
   known: z.string().max(200),
   /** What the player says they cannot evaluate here. <=200 chars. Same exemption, same guard. */
@@ -247,6 +282,32 @@ export const decisionAtomSchema = z.object({
    */
   const said = (parts: { tapped: string[]; typed: string } | null | undefined) =>
     parts !== null && parts !== undefined && (parts.tapped.length > 0 || parts.typed.length > 0);
+  /*
+   * THE GUARD `min(1)` USED TO BE, BACK AS A CONDITIONAL ONE. The exemption is a rule about a
+   * decision's purpose, and until the purpose was stored the rule could not be checked here at
+   * all -- so an empty read was accepted from every decision in the product, and a client that
+   * silently dropped the field looked identical to a player being spared a toll.
+   *
+   * NULL IS REFUSED ALONGSIDE THE OTHER FIVE, and that is the point rather than an oversight. An
+   * unstamped decision is one this build did not write; it cannot claim an exemption that only
+   * `first` carries. Stored rows of that age are unaffected -- they were written while `min(1)`
+   * was unconditional, so none of them is empty, and nothing re-validates a row on the way out.
+   */
+  const exempt = atom.purpose === "first";
+  if (atom.known.length === 0 && !exempt) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["known"],
+      message: "known is empty on a decision whose purpose does not allow it",
+    });
+  }
+  if (atom.unknown.length === 0 && !exempt) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["unknown"],
+      message: "unknown is empty on a decision whose purpose does not allow it",
+    });
+  }
   if (atom.known.length === 0 && said(atom.known_parts)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

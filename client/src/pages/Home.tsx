@@ -24,7 +24,7 @@ import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { isAnchorFen } from "@shared/anchor-set";
-import type { DecisionPurpose } from "@shared/confidence-asked";
+import { decisionPurposeFor, type DecisionPurpose } from "@shared/confidence-asked";
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { SilentGame } from "@/components/SilentGame";
 import { RevealPanel } from "@/components/RevealPanel";
@@ -352,16 +352,24 @@ export default function Home() {
    *
    * An anchor is recognised by its POSITION, not by the route that served it: the shared bank is
    * handed into the ordinary board, so `gameId` says "a game" while the FEN is a bank position.
+   *
+   * THE ORDERING LIVES IN `decisionPurposeFor` RATHER THAN HERE, because the purpose is written to
+   * the record now and a five-branch conditional buried in this component could only be checked by
+   * reading it. This screen answers the four questions it has the answers to; which answer wins is
+   * the rule module's.
    */
-  const decisionPurpose: DecisionPurpose = inLearningTransfer
-    ? "transfer"
-    : inDrill
-      ? "drill"
-      : isAnchorFen(activeFen)
-        ? "anchor"
-        : currentPly + 1 === firstDecisionPly
-          ? "first"
-          : "play";
+  const decisionPurpose: DecisionPurpose = decisionPurposeFor({
+    inLearningTransfer,
+    inDrill,
+    isAnchor: isAnchorFen(activeFen),
+    isFirstDecision: currentPly + 1 === firstDecisionPly,
+    /*
+     * `live` is the game being played against the engine. Everything else -- a pasted PGN, a
+     * finished Lichess game, a study -- is a position from a game that is already over, which is
+     * what `import` names on the other side of this call.
+     */
+    isLiveGame: source === "live",
+  });
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";

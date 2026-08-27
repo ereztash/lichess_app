@@ -127,9 +127,9 @@ export function draftProblems(
    * of the record. What keeps this bounded rather than corrosive: it is one decision per game,
    * and `known_parts: null` makes the omission COUNTABLE -- `readVocabulary` reports `unrecorded`
    * beside `recorded`, so the size of the self-selected hole is on the page rather than averaged
-   * into the finding. An analysis that wants a clean vocabulary reading drops them; it cannot
-   * currently do that from the record alone, because the record does not carry the purpose --
-   * see shared/confidence-asked.ts, which now says so.
+   * into the finding. An analysis that wants a clean vocabulary reading drops them, and it can do
+   * that from the record alone now: the purpose is stamped on the decision, so a first decision is
+   * identifiable afterwards rather than only at the moment it was taken.
    */
   if (position.purpose !== "first") {
     if (statedKnown(draft).length === 0) {
@@ -214,6 +214,13 @@ export function buildCommitEvent(
       phase: classifyPhase(position.fen, position.ply),
       clock_ms_remaining: position.clockMsRemaining,
     },
+    /*
+     * STAMPED, NOT DERIVED AND DISCARDED. The purpose already decided two things about this
+     * decision -- whether the confidence question was put, and whether the two read fields were
+     * required -- and until it was written down neither of those was answerable from the row
+     * afterwards. Sending it is what lets the boundary check the exemption it is exercising.
+     */
+    purpose: position.purpose,
     known: statedKnown(draft),
     unknown: statedUnknown(draft),
     /*

@@ -199,6 +199,7 @@ describe("a decision is complete without an answer nobody wanted", () => {
 describe("nothing downstream reads a null as a number", () => {
   const atom = (confidence: number | null, accurate: boolean): DecisionAtom => ({
     entry_state: { game_id: "g", fen: FEN, ply: 7, phase: "middlegame", clock_ms_remaining: null },
+    purpose: "play",
     known: "k",
     unknown: "u",
     known_parts: null,

@@ -203,6 +203,7 @@ export const GATES: Gate[] = [
         ply: 0,
         phase: "opening",
         clockMsRemaining: null,
+        purpose: "play",
         secondsTaken: 5,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],

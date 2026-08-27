@@ -23,6 +23,7 @@ import type {
   LearningTransferResult,
 } from "./learning-record.js";
 import type { Phase } from "./phase.js";
+import type { DecisionPurpose } from "./confidence-asked.js";
 import type { RevealTiming } from "./reveal-timing.js";
 
 export interface CommitDecisionInput {
@@ -32,6 +33,14 @@ export interface CommitDecisionInput {
   ply: number;
   phase: Phase;
   clockMsRemaining: number | null;
+  /**
+   * Why this position was in front of the player. See shared/decision-atom.ts.
+   *
+   * NULL IS "NOBODY RECORDED THIS", not `play`. The purposes in an unstamped era are not all
+   * ordinary moves -- the bank, the drills and the transfer checks are in there -- so a default
+   * would file every drill of that era as free play.
+   */
+  purpose: DecisionPurpose | null;
   secondsTaken: number;
   chosenMove: string;
   candidateMovesConsidered: string[];

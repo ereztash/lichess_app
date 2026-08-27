@@ -1,0 +1,1 @@
+ALTER TABLE `decisions` ADD `purpose` enum('first','anchor','drill','transfer','play','import');

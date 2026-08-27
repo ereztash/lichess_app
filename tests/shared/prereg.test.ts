@@ -46,6 +46,7 @@ function noise(n: number, seed: number): ScoredDecision[] {
     phase: (["opening", "middlegame", "endgame"] as const)[Math.floor(random() * 3)],
     secondsTaken: Math.floor(random() * 200),
     clockMsRemaining: Math.floor(random() * 300_000),
+    purpose: "play",
   }));
 }
 
@@ -230,6 +231,7 @@ describe("pre-registration is only pre-registration if it precedes the decisions
         ply: index,
         phase: "middlegame",
         clockMsRemaining: 60_000,
+        purpose: "play",
         secondsTaken: 20,
         chosenMove: "a1b1",
         candidateMovesConsidered: ["a1b1"],
@@ -317,6 +319,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
         ply: index,
         phase: index % 2 === 0 ? "middlegame" : "endgame",
         clockMsRemaining: 60_000,
+        purpose: "play",
         secondsTaken: index % 2 === 0 ? 10 : 200,
         chosenMove: "a1b1",
         candidateMovesConsidered: ["a1b1"],
@@ -367,6 +370,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
       ply: 1,
       phase: "middlegame",
       clockMsRemaining: 60_000,
+      purpose: "play",
       secondsTaken: 10,
       chosenMove: "a1b1",
       candidateMovesConsidered: ["a1b1"],
@@ -466,6 +470,7 @@ describe("the whole bridge, end to end", () => {
       ply: index,
       phase: index % 2 === 0 ? "opening" : "endgame",
       clockMsRemaining: 60_000,
+      purpose: "play",
       secondsTaken: 10,
       chosenMove: "a1b1",
       candidateMovesConsidered: ["a1b1"],

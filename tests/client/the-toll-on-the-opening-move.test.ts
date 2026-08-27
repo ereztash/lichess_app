@@ -129,6 +129,12 @@ describe("the schema keeps a guard where min(1) used to be", () => {
       phase: "opening" as const,
       clock_ms_remaining: null,
     },
+    /*
+     * The exemption's own condition, now that the record carries it. The default is the decision
+     * the exemption is FOR, so each case below states the purpose it is actually about instead of
+     * inheriting one silently.
+     */
+    purpose: "first" as const,
     known: "",
     unknown: "",
     known_parts: null,
@@ -151,6 +157,36 @@ describe("the schema keeps a guard where min(1) used to be", () => {
     expect(decisionAtomSchema.safeParse(atom({})).success).toBe(true);
   });
 
+  it("refuses the same empty read from every other purpose", () => {
+    /*
+     * THE GUARD `min(1)` USED TO BE, BACK BECAUSE THE PURPOSE IS STORED. While the record did not
+     * carry one, this rule could not be expressed here at all -- the schema had a choice between
+     * refusing every empty read and accepting every empty read, and it took the second. So the
+     * exemption for one decision silently became an exemption for all of them, and a client that
+     * dropped the field entirely was indistinguishable from a player being spared a toll.
+     */
+    for (const purpose of ["anchor", "drill", "transfer", "play", "import"] as const) {
+      expect(
+        decisionAtomSchema.safeParse(atom({ purpose })).success,
+        `${purpose} accepted a decision with neither read field`,
+      ).toBe(false);
+    }
+  });
+
+  it("refuses it from a decision that names no purpose at all", () => {
+    /*
+     * NULL IS NOT AN EXEMPTION. A row this build did not stamp cannot claim a standing only
+     * `first` has -- otherwise dropping the field would BE the way to skip the questions, and the
+     * guard would be re-openable by omission.
+     */
+    expect(decisionAtomSchema.safeParse(atom({ purpose: null })).success).toBe(false);
+  });
+
+  it("refuses a half-empty read, so one field cannot be dropped alone", () => {
+    const half = atom({ purpose: "play", unknown: "לא יודע איך הוא יענה" });
+    expect(decisionAtomSchema.safeParse(half).success).toBe(false);
+  });
+
   it("refuses an empty sentence beside parts that say something WAS said", () => {
     /*
      * `min(1)` was unconditional and therefore enforceable; the exemption made it conditional on
@@ -170,6 +206,7 @@ describe("the schema keeps a guard where min(1) used to be", () => {
 
   it("still accepts an ordinary decision that answered both", () => {
     const full = atom({
+      purpose: "play",
       known: "המרכז פתוח",
       unknown: "לא יודע איך הוא יענה",
       known_parts: { tapped: ["המרכז פתוח"], typed: "" },

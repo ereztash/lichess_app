@@ -58,6 +58,7 @@ async function probedDecision(store: MemoryRecordStore) {
     ply: 24,
     phase: "middlegame",
     clockMsRemaining: 120_000,
+    purpose: "play",
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],

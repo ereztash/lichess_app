@@ -36,6 +36,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     ply: index,
     phase: "middlegame",
     clockMsRemaining: 120_000,
+    purpose: "play",
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],
@@ -148,6 +149,36 @@ describeDb("DrizzleRecordStore against MySQL", () => {
       atoms.map((atom) => `d-${String(atom.entry_state.ply).padStart(3, "0")}`),
       "listAtoms must return arrival order, not primary-key order",
     ).toEqual(arrival);
+  });
+
+  it("stores the purpose as an enum and keeps an unstamped decision unstamped", async () => {
+    /*
+     * THE COLUMN, NOT THE INTERFACE. `purpose` is a MySQL enum, so a value the schema does not
+     * list is rejected by the database rather than by TypeScript -- and the in-memory store, which
+     * every other test of this field runs against, is a Map that would happily hold anything. What
+     * is checked here is that a real column round-trips the value and that an absent one comes
+     * back NULL rather than as the enum's first member, which is what MySQL substitutes in a
+     * non-strict mode for an invalid value.
+     */
+    await store.commitDecision(decision(90, { purpose: "drill" }));
+    expect((await store.getAtom("d-090"))?.purpose).toBe("drill");
+
+    await store.commitDecision(decision(91, { purpose: null }));
+    const unstamped = await store.getAtom("d-091");
+    expect(unstamped?.purpose, "an unstamped decision came back as a purpose").toBeNull();
+    expect(unstamped?.known, "the rest of the row did not survive alongside a null purpose").toBe(
+      "המרכז פתוח",
+    );
+
+    /*
+     * Its own rows, removed again. The ordering test above asserts the COMPLETE listing, so a
+     * decision left behind here fails a test that has nothing to do with this field -- which is
+     * how a fixture becomes the reason someone distrusts an assertion about ordering.
+     */
+    const { getDb } = await import("../../server/db");
+    const db = await getDb();
+    if (!db) throw new Error("no database");
+    await db.execute("DELETE FROM decisions WHERE decision_id IN ('d-090', 'd-091')");
   });
 
   it("round-trips a pre-registered hypothesis, rates included", async () => {

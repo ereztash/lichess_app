@@ -157,6 +157,7 @@ describe("what counts as accurate is one rule", () => {
         ply: 80,
         phase: "endgame",
         clockMsRemaining: 120_000,
+        purpose: "play",
         secondsTaken: 40,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],

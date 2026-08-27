@@ -46,6 +46,7 @@ async function commit(store: MemoryRecordStore, id: string, index: number, revea
     ply: index,
     phase: index % 2 === 0 ? "opening" : "endgame",
     clockMsRemaining: 60_000,
+    purpose: "play",
     secondsTaken: 10,
     chosenMove: "a1b1",
     candidateMovesConsidered: ["a1b1"],

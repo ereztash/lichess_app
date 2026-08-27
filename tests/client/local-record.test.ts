@@ -127,6 +127,30 @@ describe("the browser-side record", () => {
     expect((await store.getAtom(id))?.feedback?.revised_read).toBe("first revision");
   });
 
+  it("reads a decision written before the purpose existed as unstamped, not as free play", async () => {
+    /*
+     * THE STORE THAT ACTUALLY HAS SUCH ROWS. The browser record is written by whatever build the
+     * player last loaded and it is never migrated, so rows from the era when the purpose was
+     * derived at render time and thrown away are sitting in real localStorage right now. They are
+     * NOT all ordinary moves -- the shared bank, the drills and the transfer checks all wrote
+     * through here -- so reading an absent purpose as `play` would file every drill of that era as
+     * free play, which is precisely the comparison the drills exist to support.
+     */
+    const store = new LocalRecordStore();
+    const id = "14141414-1414-4414-8414-141414141414";
+    await service.commitDecision(store, { ...event(id), purpose: "drill" });
+
+    const stored = JSON.parse(localStorage.getItem("decision-lab.record.v1")!);
+    expect(stored.decisions[0].purpose, "the purpose never reached storage").toBe("drill");
+    delete stored.decisions[0].purpose;
+    localStorage.setItem("decision-lab.record.v1", JSON.stringify(stored));
+
+    const atom = await new LocalRecordStore().getAtom(id);
+    expect(atom, "an older row stopped being readable at all").not.toBeNull();
+    expect(atom?.purpose, "an unstamped decision came back as an ordinary move").toBeNull();
+    expect(atom?.known, "the rest of the row was lost with the purpose").toBe("המרכז פתוח");
+  });
+
   it("adds empty learning collections to an existing v1 record without losing decisions", async () => {
     const store = new LocalRecordStore();
     await service.commitDecision(store, event("13131313-1313-4313-8313-131313131313"));

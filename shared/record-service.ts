@@ -52,6 +52,7 @@ import { classifyPhase } from "./phase.js";
 import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
+import type { DecisionPurpose } from "./confidence-asked.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import type { StatedParts } from "./decision-atom.js";
 import { readCounterfactuals } from "./counterfactual-reading.js";
@@ -97,6 +98,16 @@ export type CommitEvent = {
     phase: string;
     clock_ms_remaining: number | null;
   };
+  /**
+   * Why the position was in front of the player.
+   *
+   * OPTIONAL AND NULLABLE, WHICH ARE THE SAME THING HERE AND NEITHER IS `play`. A client that
+   * predates this field sends nothing, and null is stored: its decisions are still perfectly good
+   * calibration data, and refusing them would cost real measurements to gain a label. What is NOT
+   * optional is the consequence -- an absent purpose cannot claim the first-decision exemption,
+   * so an empty read arriving without one is refused below.
+   */
+  purpose?: DecisionPurpose | null;
   known: string;
   unknown: string;
   /**
@@ -163,6 +174,31 @@ export async function commitDecision(
     );
   }
   /*
+   * THE EXEMPTION IS ENFORCED HERE, WHERE BOTH LOOPS RUN THROUGH, and this check could not have
+   * existed a commit ago.
+   *
+   * The two read fields are required on every purpose except `first`. That rule lived only in
+   * `draftProblems`, on the client, because the record did not carry a purpose for anything else
+   * to check against -- so the boundary had a choice between refusing every empty read and
+   * accepting every empty read, and the HTTP path took the first while the browser path took the
+   * second. The exemption shipped unreachable over the wire: `commitEventSchema` still carried
+   * `min(1)`, so a first decision made against a server was refused with a validation error that
+   * named a field the player had deliberately not been asked for.
+   *
+   * Now the purpose is on the event, one rule holds on both paths, and it is a REFUSAL rather
+   * than a repair: nothing here fills the fields in or downgrades the purpose. A decision that
+   * arrives empty without the standing to be empty is a client bug, and R2 says a bug is reported
+   * rather than smoothed into a row that reads like a player who said nothing.
+   */
+  const exempt = input.purpose === "first";
+  if (!exempt && (input.known.length === 0 || input.unknown.length === 0)) {
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה נשלחה בלי מה שנקרא בעמדה ובלי מה שאי אפשר להעריך בה, והיא לא ההחלטה הראשונה במשחק — " +
+        "רק שם הוויתור הזה קיים.",
+    );
+  }
+  /*
    * THE ARM IS CHECKED AGAINST THE POSITION, exactly as the phase is on the line above, and for
    * the same reason: everything the record will later divide by has to be re-derived rather than
    * believed. A wrong legal-move count silently biases every estimate conditioned on it, and a
@@ -204,6 +240,15 @@ export async function commitDecision(
     ply: input.entry_state.ply,
     phase,
     clockMsRemaining: input.entry_state.clock_ms_remaining,
+    /*
+     * Stored as sent, and NOT re-derived -- because it cannot be. The phase above is recomputed
+     * from the FEN and the legal-move count from the position, precisely so a wrong label cannot
+     * bias what the record is divided by later. Why a position was in front of a player is a fact
+     * about the client's loop and nothing on the wire proves it, so this is a claim by the client
+     * with the same standing as `reveal_timing`. `?? null` rather than a default: absent means
+     * nobody recorded one.
+     */
+    purpose: input.purpose ?? null,
     secondsTaken: Math.round(input.bounded_action.seconds_taken),
     chosenMove: input.decision,
     candidateMovesConsidered: input.bounded_action.candidate_moves_considered,
