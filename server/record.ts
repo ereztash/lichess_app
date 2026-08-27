@@ -626,7 +626,21 @@ export class DrizzleRecordStore implements RecordStore {
       .where(
         and(eq(learningTransfers.ruleId, ruleId), isNull(learningTransferResults.transferId)),
       )
-      .orderBy(learningTransfers.startedAt)
+    /*
+     * THE NEWEST OPEN TRANSFER, NOT THE OLDEST.
+     *
+     * With one open transfer -- every ordinary case -- these are the same row. They differ only
+     * after `beginLearningTransfer`'s check-then-act loses a race and two preregistrations exist
+     * over the same rule. Then the oldest is the ORPHAN: the one nobody sat, whose boards the
+     * player has since decided under the other. Handing it back re-served three decided boards and
+     * a second sitting on them graded the rule `replicated` on one set of positions.
+     *
+     * The service refuses to resume such a transfer and preregisters a fresh one; ordering by most
+     * recent is what lets that fresh one supersede the orphan instead of queueing behind it
+     * forever. Nothing in the store contract deletes a transfer, so the orphan stays in the table
+     * and is simply never the newest again.
+     */
+      .orderBy(desc(learningTransfers.startedAt))
       .limit(1);
     return row ? toLearningTransfer(row.transfer) : null;
   }
@@ -970,7 +984,8 @@ export class MemoryRecordStore implements RecordStore {
     const reported = new Set(this.learningTransferResultRows.map((row) => row.transfer_id));
     const open = [...this.learningTransferRows.values()]
       .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
-      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+      // Newest first, for the reason DrizzleRecordStore spells out above.
+      .sort((a, b) => b.started_at.localeCompare(a.started_at));
     return open[0] ? structuredClone(open[0]) : null;
   }
 

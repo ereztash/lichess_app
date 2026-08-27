@@ -452,6 +452,44 @@ export async function beginLearningTransfer(
   }
 
   const open = await store.getOpenLearningTransfer(rule.rule_id);
+  /*
+   * AN ORPHAN IS NOT RESUMED, and telling one from a legitimate resume takes both halves.
+   *
+   * `beginLearningTransfer` is check-then-act with no uniqueness -- it reads the open transfer and
+   * later writes a new one, with nothing between them and no unique index on `rule_id`. Two tabs
+   * are enough: the queue's button is disabled on `busy`, and `busy` only becomes true after the
+   * first mutation RESOLVES. Both calls select from the same candidates by the same deterministic
+   * rule, so the two preregistrations cover the IDENTICAL three positions.
+   *
+   * Reproduced end to end: sit one of them, and at the next due date the OTHER is resumed over the
+   * same three boards. Decide them again -- fresh decision ids, so the spent-decision guard does
+   * not fire, and `finishLearningTransfer`'s position check passes because the board IS the one
+   * that was written down -- and two success days grade the rule `replicated`. Three positions
+   * have become evidence that a rule held up across sittings, which is precisely what that guard
+   * exists to prevent, and results are append-only so the fold reads two success days forever.
+   *
+   * ZERO OBSERVATIONS AND EVERY BOARD ALREADY DECIDED is what makes it an orphan. Neither half
+   * alone is enough: a run the player got halfway through has some boards decided and is a
+   * legitimate resume, and a run they COMPLETED but could not report has all of them decided --
+   * by itself, with observations to show for it -- and must be handed back so it can be reported.
+   *
+   * Refusing at the report instead would leave the orphan open and the rule frozen, which is the
+   * deadlock this path was fixed for one cycle ago.
+   */
+  const openObserved = open
+    ? (await store.listLearningTransferObservations(open.transfer_id)).length
+    : 0;
+  if (open && openObserved === 0) {
+    const decided = new Set(
+      (await store.listAtoms()).map((atom) => positionKey(atom.entry_state.fen)),
+    );
+    if (open.fens.every((fen) => decided.has(positionKey(fen)))) {
+      // Left in the table -- nothing in the store contract deletes one -- but never resumed again:
+      // `getOpenLearningTransfer` hands back the NEWEST open transfer, so the fresh preregistration
+      // below supersedes it instead of queueing behind it forever.
+      return preregisterFreshTransfer(store, rule, input.candidate_fens, now);
+    }
+  }
   if (open) {
     /*
      * THE RESUME CARRIES HOW FAR THE RUN GOT, because the client cannot know and used to assume.
@@ -490,6 +528,20 @@ export async function beginLearningTransfer(
     };
   }
 
+  return preregisterFreshTransfer(store, rule, input.candidate_fens, now);
+}
+
+/**
+ * Select the positions and write the preregistration. Extracted so the orphan branch above can
+ * reach it without duplicating the selection rule -- two copies of "which boards may be tested"
+ * is how the two of them would drift.
+ */
+async function preregisterFreshTransfer(
+  store: RecordStore,
+  rule: LearningRule,
+  candidateFens: string[],
+  now: { transfer_id: string; started_at: string },
+) {
   /*
    * NOVELTY IS A PROPERTY OF THE BOARD, NOT OF THE FEN STRING. The halfmove clock and fullmove
    * number record the GAME, so knights out and back produce a different string for an identical
@@ -506,7 +558,7 @@ export async function beginLearningTransfer(
    */
   const decided = new Set((await store.listAtoms()).map((atom) => positionKey(atom.entry_state.fen)));
   const byPosition = new Map<string, string>();
-  for (const fen of input.candidate_fens) {
+  for (const fen of candidateFens) {
     const key = positionKey(fen);
     if (!decided.has(key) && !byPosition.has(key)) byPosition.set(key, fen);
   }

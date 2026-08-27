@@ -339,7 +339,9 @@ export class LocalRecordStore implements RecordStore {
     const reported = new Set(state.learningTransferResults.map((row) => row.transfer_id));
     const open = Object.values(state.learningTransfers)
       .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
-      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+      // Newest first, matching the two server stores: the oldest open transfer after a lost race
+      // is the orphan, and re-serving its already-decided boards replicated a rule on one sitting.
+      .sort((a, b) => b.started_at.localeCompare(a.started_at));
     return open[0] ? structuredClone(open[0]) : null;
   }
 

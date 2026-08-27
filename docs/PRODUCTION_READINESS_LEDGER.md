@@ -1406,6 +1406,59 @@ preregistration over the same claim — which is the other half of an open findi
 
 Full verify with the database up: **1,463 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 42 — three positions, decided twice, graded `replicated`
+
+The second finding to survive adversarial verification, at `high`, and the verifier **reproduced it
+end to end against the real service** before confirming it — while refuting three of the finding's
+own claims as overstated and every one of its line numbers as stale.
+
+`beginLearningTransfer` is check-then-act with no uniqueness: it reads the open transfer and later
+writes a new one, with nothing between them and no unique index on `rule_id`. **Two tabs are
+enough** — the queue's button is disabled on `busy`, and `busy` only becomes true after the first
+mutation resolves. Both calls select from the same candidates by the same deterministic rule, so
+the two preregistrations cover the **identical three positions**.
+
+    sit transfer-B on day 1   →  observed, grade hypothesis, next due in three days
+    on the due date, begin    →  RESUMES transfer-A, the orphan, over the same three boards
+    sit transfer-A on day 2   →  two success days  →  grade `replicated`
+
+Three positions have become evidence that a rule held up **across sittings**. That is exactly what
+the spent-decision guard exists to prevent, and its own comment names this precondition — *"a double
+click is enough, since the queue's busy flag only flips when the first mutation RESOLVES"*. It closes
+only the `decision_id` half: the client mints a fresh id per position, so a re-decision of the same
+board sails through, and the completion's only position check is that the atom matches
+`transfer.fens[index]` — which a re-decision satisfies. Results are append-only, so the fold reads
+two success days forever.
+
+The existing test named for this — *"one sitting cannot replicate itself"* — covers only the id-reuse
+case and **hand-inserts the second transfer rather than exercising the concurrent start.**
+
+### The cure is at the start, and it took both halves
+
+Refusing at the report would leave the orphan open and the rule frozen — the deadlock this path was
+fixed for one cycle ago. So:
+
+- **An orphan is not resumed.** The discriminator is *zero observations of its own* **and** *every
+  board already decided*. Neither half alone works: a run the player got halfway through has some
+  boards decided and is a legitimate resume, and a run they **completed but could not report** has
+  all of them decided — by itself, with observations to show for it — and must be handed back.
+- **`getOpenLearningTransfer` returns the NEWEST open transfer**, in all three stores. With one open
+  transfer these are the same row; they differ only after a lost race. Ordering by most recent is
+  what lets the fresh preregistration supersede the orphan instead of queueing behind it forever —
+  without it, every start skips the orphan and preregisters another, one row per visit.
+
+The selection rule was extracted rather than copied, because two answers to "which boards may be
+tested" is how the two of them would drift.
+
+### A positive control came back green again, and again it was the finding
+
+Dropping the *zero observations* half broke nothing: the completed-but-unreported case was
+**untested**, and discarding a finished sitting is worse than the defect being fixed. It is asserted
+now, and the same deletion reddens it. That is the second cycle running in which a control that
+failed to go red was more informative than the two that did.
+
+Full verify with the database up: **1,467 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1434,6 +1487,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
 | — | ~~The fold's write can destroy `retired`~~; the learning queue's DISPLAY still prints the stored grade | ~~High~~ **Low** | **the write half is closed in cycle 39**: all three stores refuse to move a rule off `retired`, and `beginLearningTransfer` derives the grade before deciding on it. What is left is cosmetic — `LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`, so a row can say `השערה` about a refuted rule until something touches it. The click is refused with a reason and repairs the record |
+| — | ~~`beginLearningTransfer` is check-then-act with no uniqueness~~ | ~~High~~ | **the damage is closed in cycle 42**: an orphan preregistration is never resumed, so two transfers over one set of boards can no longer replicate a rule. The race itself remains — there is still no unique index on `rule_id`, so a lost race still writes a second row; it is now inert |
 | — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
 | — | The learning queue's display prints the stored grade rather than the derived one | Low | open, cosmetic since cycle 39: the click is refused with a reason and repairs the record |
 | — | ~~A lost reveal silently shrinks a pre-registered drill~~ | ~~Medium~~ | **closed in cycle 41**, and it was the one finding of 35 that survived adversarial verification at `high`. `finishDrill` now refuses a run that did not measure what it registered, and refuses a decision recorded against a board it never registered |

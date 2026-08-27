@@ -1471,3 +1471,171 @@ describe("a transfer run that cannot be resumed", () => {
     ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
   });
 });
+
+/**
+ * One set of boards, decided twice, graded `replicated`.
+ *
+ * `beginLearningTransfer` is check-then-act with no uniqueness: it reads `getOpenLearningTransfer`
+ * and later writes a new transfer, with nothing serialising the two and no unique index on
+ * `rule_id`. Two tabs are enough — the queue's button is disabled on `busy`, and `busy` only
+ * becomes true after the first mutation RESOLVES. Both calls select from the same candidates by
+ * the same deterministic rule, so the two preregistrations cover the IDENTICAL three positions.
+ *
+ * Then, reproduced end to end by the sweep's verifier and again here:
+ *
+ *   sit transfer-B on day 1        -> observed, grade hypothesis, next due in three days
+ *   on the due date, begin         -> RESUMES transfer-A, the orphan, with the same three boards
+ *   sit transfer-A on day 2        -> two success days -> grade `replicated`
+ *
+ * Three positions have become evidence that a rule held up ACROSS SITTINGS. That is the exact
+ * thing the spent-decision guard was written to stop, and its own comment names this precondition
+ * — "a double click is enough, since the queue's busy flag only flips when the first mutation
+ * RESOLVES". It closes only the decision_id half: the client mints a fresh id per position, so a
+ * re-decision of the same board sails through, and `finishLearningTransfer`'s only position check
+ * is that the atom matches `transfer.fens[index]`, which a re-decision satisfies.
+ *
+ * And it cannot be undone. Results are append-only, so the fold reads two success days forever.
+ *
+ * THE CURE IS AT THE START, NOT AT THE REPORT. Refusing the second sitting would leave the orphan
+ * open and the rule frozen — the deadlock the transfer path was just fixed for. So a transfer whose
+ * positions the player has already decided is not resumed, and `getOpenLearningTransfer` hands back
+ * the NEWEST open transfer rather than the oldest, so the fresh one supersedes the orphan instead
+ * of queueing behind it forever.
+ */
+describe("two transfers over one set of boards", () => {
+  async function raceTwoStarts(store: MemoryRecordStore) {
+    const rule = await createRule(store);
+    const candidates = { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] };
+    // Concurrent, the way two tabs are: neither sees the other's write.
+    const [a, b] = await Promise.all([
+      service.beginLearningTransfer(store, candidates, {
+        transfer_id: "transfer-A",
+        started_at: "2026-01-02T00:00:00.000Z",
+      }),
+      service.beginLearningTransfer(store, candidates, {
+        transfer_id: "transfer-B",
+        started_at: "2026-01-02T00:00:01.000Z",
+      }),
+    ]);
+    return { rule, a: a.transfer!, b: b.transfer! };
+  }
+
+  /** Decide the three boards of a transfer with fresh ids, then report it. */
+  async function sit(
+    store: MemoryRecordStore,
+    transfer: { transfer_id: string; fens: string[] },
+    rule: { action_rule: string },
+    prefix: string,
+    completed_at: string,
+  ) {
+    for (const [index, fen] of transfer.fens.entries()) {
+      const id = `${prefix}${String(index).padStart(12, "0")}`;
+      await recordPosition(store, id, fen);
+      await service.recordLearningTransferObservation(store, {
+        transfer_id: transfer.transfer_id,
+        observation: { decision_id: id, recalled_rule: rule.action_rule, applied_rule: true },
+      });
+    }
+    return service.finishLearningTransfer(store, { transfer_id: transfer.transfer_id }, { completed_at });
+  }
+
+  it("does not replicate a rule on three boards decided twice", async () => {
+    const store = new MemoryRecordStore();
+    const { rule, a, b } = await raceTwoStarts(store);
+    // The race itself is the precondition, and it is real: two transfers, identical boards.
+    expect(a.transfer_id).not.toBe(b.transfer_id);
+    expect(a.fens).toEqual(b.fens);
+
+    const first = await sit(store, b, rule, "dddddddd-dddd-4ddd-8ddd-", "2026-01-02T01:00:00.000Z");
+    expect(first.result.observed).toBe(true);
+    expect(first.rule?.grade).toBe("hypothesis");
+
+    // The next legitimately due date. The orphan must not be handed back over boards the player
+    // has already decided and already seen the engine's verdict for.
+    const next = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-C", started_at: "2026-01-05T02:00:00.000Z" },
+    );
+    expect(next.transfer, next.reason ?? "").not.toBeNull();
+    expect(next.transfer!.fens, "the orphan's decided boards were served again").not.toEqual(a.fens);
+  });
+
+  it("still replicates on a second sitting over boards the player has not decided", async () => {
+    // The half a refusal can break: two genuine sittings on two days must still reach `replicated`.
+    const store = new MemoryRecordStore();
+    const { rule, b } = await raceTwoStarts(store);
+    await sit(store, b, rule, "eeeeeeee-eeee-4eee-8eee-", "2026-01-02T01:00:00.000Z");
+
+    const next = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-C", started_at: "2026-01-05T02:00:00.000Z" },
+    );
+    const second = await sit(
+      store,
+      next.transfer!,
+      rule,
+      "ffffffff-ffff-4fff-8fff-",
+      "2026-01-05T03:00:00.000Z",
+    );
+    expect(second.rule?.grade).toBe("replicated");
+  });
+
+  it("hands back a run that was completed but never reported, which has all its boards decided too", async () => {
+    /*
+     * THE HALF THAT DISCRIMINATES, and a positive control found it missing: dropping the
+     * "no observations of its own" condition broke nothing, because nothing exercised this case.
+     *
+     * A completed-but-unreported run looks exactly like an orphan from the outside -- every one of
+     * its boards is decided. The difference is WHO decided them: an orphan's were decided under
+     * another transfer and it has nothing to show, while this one decided its own and has three
+     * observations. Discarding it would throw away a finished sitting the player still has to
+     * report, which is worse than the defect being fixed.
+     */
+    const store = new MemoryRecordStore();
+    const rule = await createRule(store);
+    const only = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
+      { transfer_id: "transfer-only", started_at: "2026-01-02T00:00:00.000Z" },
+    );
+    for (const [index, fen] of only.transfer!.fens.entries()) {
+      const id = `77777777-7777-4777-8777-${String(index).padStart(12, "0")}`;
+      await recordPosition(store, id, fen);
+      await service.recordLearningTransferObservation(store, {
+        transfer_id: "transfer-only",
+        observation: { decision_id: id, recalled_rule: rule.action_rule, applied_rule: true },
+      });
+    }
+    // Every board decided, nothing reported: the response was lost before `finish` could run.
+    const resumed = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-would-be-new", started_at: "2026-01-02T05:00:00.000Z" },
+    );
+    expect(resumed.transfer?.transfer_id, "a finished sitting was thrown away").toBe("transfer-only");
+    expect(resumed.observed).toBe(3);
+  });
+
+  it("does not preregister a fresh transfer on every start once an orphan exists", async () => {
+    // The runaway the naive cure produces: skip the orphan, and the next start skips it again.
+    const store = new MemoryRecordStore();
+    const { rule, b } = await raceTwoStarts(store);
+    await sit(store, b, rule, "99999999-9999-4999-8999-", "2026-01-02T01:00:00.000Z");
+
+    const first = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-C", started_at: "2026-01-05T02:00:00.000Z" },
+    );
+    const again = await service.beginLearningTransfer(
+      store,
+      { rule_id: rule.rule_id, candidate_fens: [FENS[4], FENS[5], FENS[6]] },
+      { transfer_id: "transfer-D", started_at: "2026-01-05T03:00:00.000Z" },
+    );
+    expect(again.transfer?.transfer_id, "a second transfer was preregistered on a resume").toBe(
+      first.transfer?.transfer_id,
+    );
+  });
+});
