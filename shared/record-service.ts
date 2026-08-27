@@ -59,6 +59,8 @@ import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
+import { forDiscovery } from "./evidence-policy.js";
+import { isAnchorFen } from "./anchor-set.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 import { LEGACY_CONFIDENCE_LEVELS } from "./confidence.js";
@@ -190,6 +192,34 @@ export async function commitDecision(
    * arrives empty without the standing to be empty is a client bug, and R2 says a bug is reported
    * rather than smoothed into a row that reads like a player who said nothing.
    */
+  /*
+   * THE ONE PROTOCOL BINDING THAT IS VERIFIABLE TODAY, and the reason it is only one.
+   *
+   * A purpose is a label the CLIENT supplies, and a label with nothing behind it is metadata from
+   * the subject rather than provenance. `anchor` is the one this build can check without believing
+   * anything it was told: bank membership is a property of the FEN, and the FEN is re-derived for
+   * the phase check above anyway. So a decision claiming to be a bank answer must be on a bank
+   * position, and the reading that compares players cannot be inflated with positions nobody else
+   * ever answered.
+   *
+   * THE OTHER DIRECTION IS NOT CHECKED, DELIBERATELY. A decision on a bank FEN claiming `play`
+   * would slip a bank answer into discovery, and refusing that here would ALSO refuse a drill or a
+   * transfer check that legitimately uses a bank position -- `decisionPurposeFor` ranks both above
+   * `anchor` precisely because what is being measured is the drill. Closing it needs the anchor
+   * payload (set version and position) that section 2 of the constitution specifies, so that a
+   * bank answer identifies its slot rather than being guessed at from the board.
+   *
+   * `drill` AND `transfer` CANNOT BE CHECKED AT ALL YET. Nothing on the commit event references
+   * the drill or the transfer it belongs to, so there is no binding to verify. That is a gap and
+   * it is named rather than papered over: until the context carries `drill_id` / `transfer_id`,
+   * those two labels are the subject's word.
+   */
+  if (input.purpose === "anchor" && !isAnchorFen(input.entry_state.fen)) {
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה נשלחה כאילו היא עמדה מהסט המשותף, אבל העמדה אינה בסט — ורק עמדות הסט נמדדות בו.",
+    );
+  }
   const exempt = input.purpose === "first";
   if (!exempt && (input.known.length === 0 || input.unknown.length === 0)) {
     throw new RecordError(
@@ -1358,7 +1388,24 @@ export async function currentClaim(
 ): Promise<ClaimView> {
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
-  const full = scoreDecisions(atoms, ids);
+  /*
+   * THE POPULATION THE DETECTOR MAY SEARCH, AND THE ORDER OF THESE TWO STEPS IS LOAD-BEARING.
+   *
+   * This used to be `scoreDecisions(atoms, ids)` over the whole record, so an anchor answer, a
+   * drill decision, a transfer check, a position from a game already played and a row that never
+   * recorded why it existed all competed to become the next finding about the player. The drill
+   * case is the one that matters most: the product could take a player through an exercise built
+   * to fix a weakness, read the decisions that exercise produced, and announce the next weakness
+   * from them. Evidence generated while trying to CHANGE the player, reused as evidence about how
+   * the player behaved.
+   *
+   * `shared/evidence-policy.ts` is the only authority on which of those may be read here, and the
+   * filter is applied AFTER the prereg slice below rather than before it: `decisions_before`
+   * counts raw rows as they stood at registration, so slicing a filtered array by it would take
+   * the wrong prefix and silently move the boundary a registered hypothesis is measured from.
+   */
+  const wide = forDiscovery(atoms, ids);
+  const full = scoreDecisions(wide.atoms, wide.ids);
 
   /*
    * THE BRIDGE, AND THE RULE THAT KEEPS IT FROM COMPOUNDING (shared/prereg.ts).
@@ -1387,7 +1434,14 @@ export async function currentClaim(
    * `listDecisionIds` are ordered and append-only, so the prefix is exactly what existed then.
    */
   const summary = narrowing
-    ? scoreDecisions(atoms.slice(narrowing.decisions_before), ids.slice(narrowing.decisions_before))
+    ? (() => {
+        // Slice the raw record by the raw count it was taken against, THEN admit. See above.
+        const after = forDiscovery(
+          atoms.slice(narrowing.decisions_before),
+          ids.slice(narrowing.decisions_before),
+        );
+        return scoreDecisions(after.atoms, after.ids);
+      })()
     : full;
   const thresholds = narrowing ? PREREGISTERED_THRESHOLDS : DEFAULT_THRESHOLDS;
 

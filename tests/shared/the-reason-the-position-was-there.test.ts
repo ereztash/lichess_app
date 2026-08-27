@@ -32,6 +32,8 @@ import {
   type PurposeInputs,
 } from "@shared/confidence-asked";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
+import { ANCHOR_POSITIONS } from "@shared/anchor-set";
+import { classifyPhase } from "@shared/phase";
 
 const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -71,8 +73,27 @@ async function committed(over: Partial<CommitEvent> = {}) {
 describe("the purpose survives the write", () => {
   it("comes back on the atom, for every purpose the product can produce", async () => {
     for (const purpose of DECISION_PURPOSES) {
-      // `first` is the one purpose allowed an empty read; it is committed here with a full one.
-      const atom = await committed({ purpose });
+      /*
+       * `anchor` gets a real bank position, because the service verifies that binding: bank
+       * membership is a property of the FEN, so a decision claiming to be a bank answer has to be
+       * on one. `first` is the one purpose allowed an empty read; it is committed with a full one.
+       */
+      const atom = await committed(
+        purpose === "anchor"
+          ? {
+              purpose,
+              entry_state: {
+                game_id: "g",
+                fen: ANCHOR_POSITIONS[0].fen,
+                ply: 30,
+                phase: classifyPhase(ANCHOR_POSITIONS[0].fen, 30),
+                clock_ms_remaining: null,
+              },
+              // The legal-move count is re-derived too, and this board is not the starting one.
+              probe: null,
+            }
+          : { purpose },
+      );
       expect(atom.purpose, `${purpose} did not survive the round trip`).toBe(purpose);
     }
   });
@@ -109,8 +130,8 @@ describe("the purpose survives the write", () => {
      * It is stored as sent, and that is a property worth pinning -- a future "correction" here
      * would be the server inventing a fact it has no way to know.
      */
-    const atom = await committed({ purpose: "anchor" });
-    expect(atom.purpose).toBe("anchor");
+    const atom = await committed({ purpose: "drill" });
+    expect(atom.purpose).toBe("drill");
     // The phase, by contrast, is the server's answer and not the client's.
     expect(atom.entry_state.phase).toBe("opening");
   });

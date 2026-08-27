@@ -22,8 +22,16 @@ const POSITION: PositionUnderDecision = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ply: 0,
   clockMsRemaining: null,
-  // Anchor: the purpose where the confidence question IS put. The `play` case has its own file.
-  purpose: "anchor",
+  /*
+   * A purpose where the confidence question IS put. The `play` case has its own file.
+   *
+   * `drill` rather than `anchor`, which is what this said until the service began verifying that
+   * a decision claiming to be a bank answer is actually on a bank position. This fixture never
+   * meant the bank -- it wanted a purpose that is always asked, and the starting position is not
+   * in the bank. The old label was a convenience that the boundary can now see through, which is
+   * the check working rather than a test that needs weakening.
+   */
+  purpose: "drill",
 };
 
 const TAPPED = ["המרכז סגור", "מלך חשוף"];

@@ -25,8 +25,26 @@ import { join } from "node:path";
 const ASSETS = "dist/public/assets";
 const INDEX = "dist/public/index.html";
 
-/** Raw bytes of the entry chunk. What the browser must download and parse before anything runs. */
-const ENTRY_RAW_KB = 640;
+/**
+ * Raw bytes of the entry chunk. What the browser must download and parse before anything runs.
+ *
+ * RAISED FROM 640 TO 648 FOR `shared/evidence-policy.ts`, and the ratchet firing is the mechanism
+ * working rather than an obstacle to route around. What this budget protects is stated above: that
+ * the engine and the chart library stay behind a dynamic import. Neither moved. What crossed the
+ * line is ~4 kB of the evidence policy -- the table deciding which observations each analysis may
+ * read -- and it has to be in the entry graph because the browser-record deployment runs the same
+ * `commitDecision` and `currentClaim` the server does. A policy that shipped only to the server
+ * would leave the local record with no filter at all, which is the hole it was written to close.
+ *
+ * MEASURED, NOT ESTIMATED. 639.4 kB before, 643.0 kB after, of which 0.9 kB was recovered by
+ * deduplicating reasons that were repeated verbatim across cells. The remaining weight is the
+ * table's structure, and trimming that further would mean deleting cells rather than bytes.
+ *
+ * STILL JUST ABOVE THE BUILD, which is the property that makes this a ratchet: 648 leaves 5 kB, so
+ * the next hundred is visible on the day it arrives. The gzip ceiling (197.7 / 200 kB) and the
+ * initial-download ceiling (709.3 / 720 kB) were not touched and did not move.
+ */
+const ENTRY_RAW_KB = 648;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 200;
 /**
