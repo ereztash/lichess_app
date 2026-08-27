@@ -29,6 +29,7 @@
  * effect were the times it was wrong**, and it got quieter about the truth the longer you played.
  */
 import type { DecisionAtom } from "./decision-atom.js";
+import type { Phase } from "./phase.js";
 import { winProbabilityLoss } from "./win-probability.js";
 
 /**
@@ -314,6 +315,24 @@ export interface Bucketing {
    * decisions yet" and must not render as the same sentence.
    */
   requiresClock?: true;
+  /**
+   * The phase a drill position must classify as for it to be inside this bucket -- and, by its
+   * absence, whether a drill can be built for this bucket AT ALL.
+   *
+   * WHY A BUCKET NEEDS TO SAY THIS. A claim's stored refutation condition promises "בדריל של
+   * עמדות מ-{scope}". Three of these buckets are properties of a POSITION, so a drill can honour
+   * that by choosing positions. The other three are properties of the DECISION EVENT -- how long
+   * the player took, what the clock said -- and no choice of positions can put a player under
+   * time pressure. Selection ignored the distinction and simply took the first fresh positions of
+   * the loaded game, which are its opening; an endgame claim was drilled on eight opening
+   * positions and graded terminally on the result.
+   *
+   * So this field is what `beginDrill` filters on when it is set, and what it refuses on when it
+   * is not. It is deliberately not a general predicate: a predicate over positions would invite
+   * the same over-reach, because the honest answer for a time bucket is that there is no such
+   * predicate.
+   */
+  drillPhase?: Phase;
 }
 
 /**
@@ -333,13 +352,24 @@ export const BUCKETINGS: Bucketing[] = [
     scope: "החלטות אחרי יותר משתי דקות",
     predicate: (d) => d.secondsTaken > 120,
   },
-  { key: "phase-opening", scope: "החלטות בפתיחה", predicate: (d) => d.phase === "opening" },
+  {
+    key: "phase-opening",
+    scope: "החלטות בפתיחה",
+    predicate: (d) => d.phase === "opening",
+    drillPhase: "opening",
+  },
   {
     key: "phase-middlegame",
     scope: "החלטות באמצע המשחק",
     predicate: (d) => d.phase === "middlegame",
+    drillPhase: "middlegame",
   },
-  { key: "phase-endgame", scope: "החלטות בסיום", predicate: (d) => d.phase === "endgame" },
+  {
+    key: "phase-endgame",
+    scope: "החלטות בסיום",
+    predicate: (d) => d.phase === "endgame",
+    drillPhase: "endgame",
+  },
   {
     key: "clock-under-1m",
     scope: "החלטות עם פחות מדקה על השעון",

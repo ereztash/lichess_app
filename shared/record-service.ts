@@ -952,10 +952,43 @@ export async function beginDrill(
       "הטענה כבר הופרכה. הפרכה סופית — לא בודקים אותה שוב.",
     );
   }
+  /*
+   * THE DRILL HAS TO BE OF THE KIND THE CLAIM PROMISED.
+   *
+   * The stored refutation condition says "בדריל של עמדות מ-{scope}", and nothing enforced it. The
+   * client offers every position of the loaded game in ply order (Home.tsx) and selection took
+   * the first fresh ones, which are its opening. Measured: a `claim-phase-endgame` whose promise
+   * names החלטות בסיום produced a drill of eight positions that classify `opening, opening,
+   * opening, opening, opening, opening, opening, opening`. It was then graded against a baseline
+   * that EXCLUDES the endgame (see `finishDrill`), so a terminal verdict about endgame play was
+   * decided by opening play measured against middlegame play.
+   */
+  /*
+   * WHERE EACH KIND OF SCOPE CAN BE ENFORCED, AND IT IS NOT THE SAME PLACE.
+   *
+   * Three of the six buckets are properties of a POSITION -- the phases -- so membership is fixed
+   * the moment the positions are chosen, and here is the only place it can be got right. The
+   * other three are properties of the DECISION EVENT: how long the player took, what the clock
+   * said. No selection of positions can decide those, but the drill itself does, and `finishDrill`
+   * checks them there against the same predicate. Refusing them here as well was the first thing
+   * tried and it was too blunt -- `tests/server/drill-route.test.ts` drills a `fast-under-45s`
+   * claim with 12-second decisions, which is a genuine test of that claim, and refusing it would
+   * have withdrawn a capability that works.
+   */
+  const bucketing = BUCKETINGS.find((b) => claim.claim_id.endsWith(b.key));
   const atoms = await store.listAtoms();
   const decidedFens = atoms.map((atom) => atom.entry_state.fen);
-  const available = input.candidate_fens.map((fen, index) => ({ fen, ply: index }));
-  const selection = selectDrillPositions(available, decidedFens);
+  const inScope = bucketing?.drillPhase
+    ? input.candidate_fens.filter(
+        (fen) => classifyPhase(fen, plyFromFen(fen)) === bucketing.drillPhase,
+      )
+    : input.candidate_fens;
+  const available = inScope.map((fen, index) => ({ fen, ply: index }));
+  const selection = selectDrillPositions(
+    available,
+    decidedFens,
+    bucketing?.drillPhase ? claim.scope : undefined,
+  );
   if (selection.reason) return { drill: null, reason: selection.reason };
 
   const spec = createDrill(claim, selection.fens, { drill_id: now.drill_id });
@@ -1078,6 +1111,34 @@ export async function finishDrill(
     registered.splice(slot, 1);
   }
   const bucketing = BUCKETINGS.find((b) => claim.claim_id.endsWith(b.key));
+  /*
+   * AND THEY HAVE TO BE DECISIONS OF THE KIND THE CLAIM IS ABOUT.
+   *
+   * The stored refutation condition promises "בדריל של עמדות מ-{scope}", and until now nothing
+   * anywhere held the drill to it. The client offers every position of the loaded game in ply
+   * order, so a `claim-phase-endgame` was measured to produce a drill of eight positions that
+   * every one classified `opening` -- then graded against a baseline that EXCLUDES the endgame,
+   * which makes the verdict opening play compared with middlegame play, settling a question
+   * about the endgame. `refuted` is terminal and `beginDrill` refuses the claim afterwards.
+   *
+   * `beginDrill` now selects phase positions by phase, so for those buckets this is a second net.
+   * For the time and clock buckets it is the ONLY net, because no choice of positions can put a
+   * player under time pressure -- the drill itself decides that, and this is where it is known.
+   * One predicate for both, the same one that defines the bucket, so selection and grading cannot
+   * drift apart.
+   *
+   * All of them, not a majority: the drill registered these positions as the test. A verdict over
+   * the subset that happened to qualify is a test chosen after the fact from its own results.
+   */
+  const outOfScope = bucketing ? drillScored.filter((d) => !bucketing.predicate(d)) : [];
+  if (outOfScope.length > 0) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      `${outOfScope.length} מתוך ${drillScored.length} ההחלטות בדריל אינן ${claim.scope}, ` +
+        `והטענה היא עליהן בלבד. הדריל הזה לא בדק אותה, ולכן אין ממנו פסק. ` +
+        `אפשר לרוץ דריל נוסף.`,
+    );
+  }
   const baseline = summarise(
     summary.scored.filter(
       (d) => !drillSet.has(d.decision_id) && (!bucketing || !bucketing.predicate(d)),
