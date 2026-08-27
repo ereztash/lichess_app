@@ -1748,6 +1748,137 @@ message that ordering would produce.
 Full verify: **1,498 tests, 1,476 passed, 22 skipped without a database**, 10/10 gates, all ten
 controls red, bundle 623.2 / 640 kB.
 
+## Cycle 47 — the sentence was true of a number and false about the person
+
+Cycle 46 ended by taking a completeness critic seriously: the six-angle sweep had been entirely
+*fault*-shaped — crash, retry, duplicate, race — and that shape is blind to a defect that fires on
+the happy path with nothing failing. So this cycle ran a second sweep built from that observation:
+seven angles, every one of them a different way a **measured value fails to reach the verdict**.
+
+It was a worse sweep than the one before it, and its critic said so first. Recorded here because
+the failures are more instructive than the findings.
+
+### What the sweep did badly, in its own critic's words
+
+- **42 raw findings that reduce to six defects.** Seven angles did not find seven things; five of
+  them independently re-found one unfinished scale migration, and the verifier counted each pass as
+  an independent confirmation. Eight of fourteen "confirmed" findings were the same defect.
+- **It never opened 82% of the codebase.** 21 files cited out of 119. Zero citations in `server/`,
+  zero in 30 of 33 client components. It was handed an explicit list of eleven never-opened files
+  and left four of them completely closed — including the two the headline defect turned out to be
+  in. Same failure as the previous cycle: told where to look, looked elsewhere.
+- **Its verification was reading, not running,** and that is provable rather than suspected: the
+  five reports of one defect gave **five mutually contradictory line maps**, three of them citing
+  lines past the end of a 142-line file. Two adversarial lenses confirmed all five without noticing
+  they disagreed with each other.
+- **The cap was mine and it was wrong.** The dedup ranked executed findings first, so verifying
+  "the top 14" verified exactly the fourteen that already had transcripts — which is why 14 of 14
+  survived and nothing was refuted, against 25 of 30 refuted the cycle before. Twenty-four
+  findings, five of them marked high, were never adjudicated at all. They are being executed now
+  rather than assumed.
+
+### The defect the sweep's own shape could not catch, which its critic found anyway
+
+Every angle assumed `measured_value ≠ used_value`. The class none of them can see is: **the value
+is measured correctly, stored correctly, read correctly, spent on exactly the right sentence — and
+the sentence claims something the measurement is not about.** No mismatch exists anywhere. The
+pipeline is perfect and the *referent* is wrong.
+
+`detect` sets `predicts_overconfidence: gapDifference > 0`, where `gapDifference` is
+`insideSummary.gap - outsideSummary.gap`. That is a **contrast**: it says the bucket sits above the
+rest of the record. It says nothing about whether the player is overconfident *inside* it, and
+`detect` never tests an inside gap against zero — what clears the separability bar is the contrast.
+
+Two surfaces spent it as a statement about the person. Reproduced on the ordinary path, 900
+decisions through the real store, nothing injected — a player underconfident *everywhere* and least
+so in the opening, which `bucket-variable.ts` had already recorded as the common shape at 78 of 78:
+
+```
+inside : confidence 50%  accuracy 55%   gap -0.050
+outside: confidence 35%  accuracy 65%   gap -0.300
+gapDifference +0.250  ->  predicts_overconfidence: true
+
+ב-החלטות בפתיחה (300 החלטות) הביטחון שלך גבוה יותר ממה שהתוצאות מצדיקות:
+ביטחון ממוצע 50% מול דיוק 55%. בשאר ההחלטות (600) הפער קטן בהרבה — ביטחון 35% מול דיוק 65%.
+```
+
+**Two falsehoods, each contradicted by a number printed in the same sentence.** The player is five
+points *under*confident in the opening. And the rest's gap is 0.300 against the bucket's 0.050 —
+six times bigger, printed as "much smaller". That second clause was a template constant; the two
+magnitudes were never compared at all.
+
+The wording is now about confidence *relative to* accuracy rather than about the size of a gap, and
+that is deliberate: `gapDifference > 0` is an algebraic comparison of a signed quantity, and in the
+run above the inside gap is higher than the outside gap **and six times smaller in magnitude**. "The
+gap is bigger" would have been a second false statement in the same place.
+
+**The grading path was never wrong and is untouched.** `evaluateRefutation` signs
+`drillGap - baseline.gap`, itself a contrast, and `refutationConditionFor` writes a relative
+condition. That is asserted in the new test so a later edit to the sentence cannot quietly change
+it. Three positive controls, including one against the cheap fix — dropping the direction and saying
+nothing at all.
+
+A client test encoded the old string, and **its own doc comment forbade exactly what that string
+did**: it required "the measurement, not a trait" while asserting a contrast spoken as a fact about
+the player.
+
+### The migration that was declared finished and was not
+
+Five of the seven angles found this, which is the one thing the redundancy was good for.
+
+`shared/confidence.ts` carries the rule in a comment written when the scale changed: *"'בטוח' was 4
+of 5 and is 6 of 7. That is precisely why a stored level is meaningless without the scale it was
+stated on."* `normaliseConfidence` exists to do the conversion; `confidence_scale` is stored on
+every decision to make it possible. Two screens called neither.
+
+`shared/reveal.ts`, measured at every button the picker actually offers, on a move costing 150cp:
+
+```
+button 4 (שקול, asserts 50%) -> confident-and-wrong   "אמרת ביטחון 4 מתוך 5"
+button 5 (סביר, asserts 65%) -> confident-and-wrong   "אמרת ביטחון 5 מתוך 5"
+button 6 (בטוח, asserts 80%) -> confident-and-wrong   "אמרת ביטחון 6 מתוך 5"
+button 7 (ודאי, asserts 95%) -> confident-and-wrong   "אמרת ביטחון 7 מתוך 5"
+```
+
+`שקול` is `EVEN_ODDS_LEVEL` — the button documented as existing so a player can decline to claim
+anything — and it was being told the gap between its confidence and the result was the thing to work
+on. Two of the four printed a denominator smaller than the level beside them, on a screen reading
+"7 · ודאי".
+
+`client/src/lib/declared-tensions.ts`, three unknowns tapped and five seconds on the clock:
+
+```
+button 4 (שקול, 50%) -> certainty-without-familiarity
+button 5 (סביר, 65%) -> all three, incl. "אמרת ביטחון 5 מתוך 5"
+button 6 (בטוח, 80%) -> certainty-without-familiarity only
+button 7 (ודאי, 95%) -> certainty-without-familiarity only
+```
+
+`CERTAIN` was the literal `5` and compared with `===`, so **the two rules written for "the top of
+the scale" fired at `סביר` and were silent at both `בטוח` and `ודאי`** — they could not fire at the
+top of the scale. And a player who had just said 50/50 was asked what their certainty rested on.
+
+Both are now cut at a stated **probability** — 0.75 and 0.25 — which reproduces the five-level
+meaning exactly (its grid is `[0, 0.25, 0.5, 0.75, 1]`) and survives the next scale change.
+`HIGH_CONFIDENCE_LEVEL` is derived rather than written, so a fixture can say "the lowest button that
+counts as high" without planting an integer.
+
+**Five test files were still planting five-scale integers** — `5` for "the top", `3` for "the
+middle" — and nothing forced them, which is why the migration was declared complete while they sat
+there. A test named *"counts high confidence"* was planting 65%. They now read `CONFIDENCE_LEVELS`
+and `EVEN_ODDS_LEVEL`. The type system found every one of them the moment `RevealInputs` was made to
+carry a scale, which is the actual fix: the fixtures were not the problem, the missing field was.
+
+### Still open from this sweep
+
+Four confirmed-and-executed findings are not yet fixed — a drill decision stamped with the loaded
+game's cursor ply, `finishLearningTransfer` scoring on the retired flat centipawn rule, the import
+diagnostic fabricating `secondsTaken: 0`, and a population-exclusion mismatch on the dashboard — and
+seventeen more are being executed rather than read. Nothing is claimed as closed that was not run.
+
+Verify at `1302f45`: **1,517 tests, 22 skipped without a database**, 10/10 gates, all ten controls
+red, bundle 623.7 / 640 kB.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1757,7 +1888,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | Security, privacy, isolation | 2 | **9** | Two cross-account leaks closed, each reproduced first; a refusal reaches the screen as a refusal; the record no longer comes back in a 500 body or a stack. Not 9+: single-tenancy is now declared and enforced from both ends rather than open, but it remains a gate rather than per-tenant scoping — the right design for one person, and the thing that would have to change for more. Cycle 34 closed the headers: a CSP measured in a real browser against the built app rather than written from the source, `SameSite=Lax` restoring the only CSRF defence this codebase has, a 1mb body limit and a bounded opaque diagnostic, `npm ci` and an SCA step in CI |
 | Scientific / construct validity | 4 | **9** | `banana` closed; self-report removed on published evidence; the verdict scoped to what three positions carry; the population comparison, the control coefficient and the discrimination area now each carry their own error and clear the detector's bar before being asserted -- a mechanical sweep of every field, not three spot fixes. the phase split checked against 4.4M human-rated positions and its caveat put on screen. the six marginal buckets read as three variables, so one weakness is reported once instead of up to three times with one of them inverted; variables crossed, with the false-positive cost measured at 0.0% and the readability cost printed. Not higher: positions still are not selected for the trigger, and per-item difficulty is unmeasured because Maia is unreachable. Cycle 40 closed a defect in the instrument itself rather than in a measure — a reload moved a game from the deferred arm into the coached one mid-game, so one game's rows recorded two conditions with nothing saying so |
 | Functional correctness | 6 | **9.5** | Degenerate question, bidi sign, null-due, FEN novelty, invalid nesting, a dependency list that would fabricate an observation, a fallback that could run backwards — each with a reproduction. And the first defect here found by **injecting a failure rather than reading code**: a lost grade write, reproduced, with the retry branch shown to be what made it permanent. The drill path had the same shape and is closed in cycle 36 — worse there, since it had no replay branch at all — along with two timestamp divergences between the two stores that no memory-backed test could see. Not 10: a systematic sweep for the rest of this class is still running |
-| Test quality and CI | 8 | **10** | **1,498 tests, none permanently skipped** (was 5, and 1,373 tests at cycle 30) — the 22 that skip on a machine with no `DATABASE_URL` are the MySQL suite, and CI runs them against a real MySQL 8 service, where the run is 1,498 of 1,498. Cycle 46 widened a GATE rather than only its suite: GATE-PREREG had asked for the stored refutation condition and never for the direction, and passed for as long as the grading path filled the gap with a constant; a real database and a real browser locally and in CI; ~110 positive controls red at cycle 30, and every cycle since has shipped its own — the counts are in the entries above. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge. Cycle 37 added the thing that was missing: a **systematic adversarial sweep** rather than defects found while doing something else — six angles, each verified, which turned up four more open findings including one against this branch's own fixes |
+| Test quality and CI | 8 | **10** | **1,517 tests, none permanently skipped** (was 5, and 1,373 tests at cycle 30) — the 22 that skip on a machine with no `DATABASE_URL` are the MySQL suite, and CI runs them against a real MySQL 8 service. Cycle 47's lesson cuts the other way and is recorded above: a sweep that verifies by re-reading its own findings confirmed five contradictory line maps for one file, and the cap that produced "14 of 14 confirmed" had selected exactly the fourteen findings that already had transcripts. Cycle 46 widened a GATE rather than only its suite: GATE-PREREG had asked for the stored refutation condition and never for the direction, and passed for as long as the grading path filled the gap with a constant; a real database and a real browser locally and in CI; ~110 positive controls red at cycle 30, and every cycle since has shipped its own — the counts are in the entries above. Two regex-over-source assertions replaced by things that run — and **three** claims deleted or downgraded because no mutation could redden them: a panel width measured to have slack under every setting, a crossed-cell `outside` floor that cannot bind by construction, and a ranking rule kept for consistency rather than a measured edge. Cycle 37 added the thing that was missing: a **systematic adversarial sweep** rather than defects found while doing something else — six angles, each verified, which turned up four more open findings including one against this branch's own fixes |
 | Architecture / maintainability | 5 | **6** | Store contract extended cleanly; the shared modules each own their own error and their own reasons. `Home.tsx` is 1,764 lines and stays there: the coupling is `onCommit` serving three decision modes, not the line count, and that is a design decision rather than a cleanup |
 | UX, accessibility, recovery | 6 | **9.5** | Collapsed label, sign on the wrong side, invalid nesting, `aria-pressed` announcing unmade answers; six storage situations that shared two sentences now have six; four reasons an empty cell is empty that shared one dash now have five. SC 3.1.2 read island by island rather than swept: four English strings declared, thirty-one exemptions asserted so a later sweep cannot quietly claim a language for chess notation |
 | Performance and bundle | 5 | **8.5** | Explicit budgets, wired into verify and CI, proven to fail — and now a **layout-shift budget measured in a real browser** at two viewports on both routes, which caught a 98px shift the assessment reported and a 289px one this branch had introduced itself. Not higher: LCP and INP are still unmeasured, and CLS is measured on a local server rather than on real users |
