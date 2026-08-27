@@ -57,6 +57,13 @@ export function LearningRuleComposer({
     fields.predictedOutcome.trim() &&
     fields.refutationCondition.trim();
 
+  /**
+   * The reflection the record already held, when this save kept it instead of the one on screen.
+   *
+   * Null while nothing has been kept, which is every ordinary save.
+   */
+  const [keptEarlier, setKeptEarlier] = useState<string | null>(null);
+
   const submit = async () => {
     // The narrowing is load-bearing, not defensive: `ready` is what proves both choices were made,
     // and TypeScript will not let the two nullable values through without it.
@@ -64,7 +71,7 @@ export function LearningRuleComposer({
     setSaving(true);
     setError(undefined);
     try {
-      await createRule.mutateAsync({
+      const outcome = await createRule.mutateAsync({
         reflection: {
           revised_read: fields.revisedRead,
           would_choose_again: wouldChooseAgain,
@@ -80,6 +87,24 @@ export function LearningRuleComposer({
           refutation_condition: fields.refutationCondition,
         },
       });
+      /*
+       * THE EARLIER REFLECTION IS SAID OUT LOUD, not silently kept.
+       *
+       * `createLearningRule` writes the reflection and the rule in two statements with no
+       * transaction. Lose the second and the record holds a reflection and no rule -- and this
+       * form keeps every field on screen after a failure, so a player who edits one word of the
+       * revised-read box and presses save again is sending a DIFFERENT reflection. The service
+       * used to refuse the whole operation, which locked that decision out of ever carrying a
+       * rule; it now keeps the reflection already on the record and writes the rule.
+       *
+       * Which means the text in this box may not be what the record holds, and the player has to
+       * be told. Keeping one version while the screen shows another is the thing this product
+       * exists not to do.
+       */
+      if (outcome.reflection === "kept-earlier") {
+        setKeptEarlier(outcome.storedReflection?.revised_read ?? null);
+        return;
+      }
       onSaved();
     } catch (cause) {
       setError(readableFailureText(cause, "הכלל לא נשמר."));
@@ -197,6 +222,28 @@ export function LearningRuleComposer({
         <p className="learning-error" role="alert">
           {error}
         </p>
+      )}
+      {/*
+        * WHAT THE RECORD KEPT, when it is not what this form shows.
+        *
+        * `role="status"` rather than `alert`: nothing failed. The rule was saved. What the player
+        * needs to know is that the reflection above is not the one on the record, because a
+        * reflection is what you said BEFORE seeing more and this decision already had one.
+        *
+        * It names the stored text rather than saying "an earlier version was kept", so the player
+        * can see what the record actually holds instead of being asked to remember.
+        */}
+      {keptEarlier !== null && (
+        <div className="learning-kept" role="status">
+          <p>
+            הכלל נשמר. הרפלקציה שכתבתם עכשיו לא נשמרה — על ההחלטה הזו כבר נרשמה רפלקציה, ומה
+            שנכתב לפני שראיתם עוד אינו משתנה בדיעבד.
+          </p>
+          <p className="learning-kept-text">מה שנשמר: „{keptEarlier}”</p>
+          <button type="button" className="learning-kept-ok" onClick={onSaved}>
+            הבנתי
+          </button>
+        </div>
       )}
       <button
         type="button"

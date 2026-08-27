@@ -353,7 +353,39 @@ export async function createLearningRule(
     );
   }
 
+  /*
+   * THE RULE IS VALIDATED BEFORE THE REFLECTION IS WRITTEN, because the write used to come first.
+   *
+   * `formLearningRule` runs a schema parse that can throw, and it ran BETWEEN the two writes --
+   * reachable on the browser path, where the service is called directly with nothing validating
+   * ahead of it. So a draft the router would have refused left a reflection on the record and no
+   * rule. Building the rule first makes that throw free: nothing has been written when it fires.
+   */
+  const rule = formLearningRule(input.rule, now);
   const reflection = reflectionDraftSchema.parse(input.reflection);
+
+  /*
+   * A REFLECTION ALREADY ON THE RECORD STANDS, AND THAT NO LONGER REFUSES THE RULE.
+   *
+   * This threw CONFLICT whenever the incoming reflection differed from the stored one, which
+   * discarded the rule as well -- and the rule is a different thing, the one the player was
+   * actually trying to record.
+   *
+   * It matters because the two writes are not atomic. Lose the rule write and the record holds a
+   * reflection and no rule; the retry then succeeds only if the reflection is BYTE-IDENTICAL. The
+   * composer keeps every field on screen after a failure and says "הכלל לא נשמר", so editing one
+   * word of the revised-read box -- the natural response to a failed save -- made every future
+   * attempt throw. That decision could never carry a learning rule again, and the composer is the
+   * only path that authors one.
+   *
+   * WHAT WAS BEING PROTECTED IS STILL PROTECTED. The stored reflection is not rewritten: what you
+   * said before seeing more cannot be retroactively improved, and that is the whole of the
+   * append-only claim. What changes is that refusing to overwrite it no longer refuses everything
+   * else. The caller is TOLD which happened rather than left to assume its text was stored --
+   * silently keeping one version while the screen shows another is the thing this product exists
+   * not to do.
+   */
+  let reflectionOutcome: "recorded" | "kept-earlier" = "recorded";
   if (!atom.feedback) {
     await store.recordFeedback(input.rule.source_decision_id, {
       revisedRead: reflection.revised_read,
@@ -363,12 +395,11 @@ export async function createLearningRule(
     atom.feedback.revised_read !== reflection.revised_read ||
     atom.feedback.would_choose_again !== reflection.would_choose_again
   ) {
-    throw new RecordError("CONFLICT", "הרפלקציה על ההחלטה הזו היא append-only ואי אפשר לשנות אותה.");
+    reflectionOutcome = "kept-earlier";
   }
 
-  const rule = formLearningRule(input.rule, now);
   await store.saveLearningRule(rule);
-  return rule;
+  return { rule, reflection: reflectionOutcome, storedReflection: atom.feedback ?? null };
 }
 
 export async function learningRules(store: RecordStore) {

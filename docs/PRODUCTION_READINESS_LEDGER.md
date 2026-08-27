@@ -1459,6 +1459,55 @@ failed to go red was more informative than the two that did.
 
 Full verify with the database up: **1,467 tests, 0 skipped**, 10/10 gates, every control red.
 
+## Cycle 43 — a refusal that protected one value by discarding another
+
+`createLearningRule` writes the player's reflection, then the rule. Two writes, no transaction —
+and the validation that can reject the rule ran **between** them, reachable on the browser path
+where the service is called directly with nothing validating ahead of it.
+
+Lose the second write and the record holds a reflection and no rule. The retry then meets the
+append-only gate, which succeeds only on a **byte-identical** reflection. The composer keeps every
+field on screen after a failure and says "הכלל לא נשמר" — so editing one word of the revised-read
+box, which is what a player does after a failed save, made every future attempt throw CONFLICT.
+**That decision could never carry a learning rule again**, and the composer is the only path that
+authors one.
+
+Three things changed, and the third is the one that matters most:
+
+1. **The rule is built before the reflection is written.** `formLearningRule`'s schema parse can
+   throw; running it first makes that throw free, because nothing has been written when it fires.
+2. **A stored reflection no longer refuses the rule.** What the append-only rule protects is the
+   VALUE — what you said before seeing more is not retroactively improved — and that is untouched:
+   the stored text still stands. What changes is that refusing to overwrite it no longer refuses
+   everything else.
+3. **The caller is told which happened.** `createLearningRule` returns `recorded` or `kept-earlier`
+   with the stored text, and the composer shows it: the rule was saved, the reflection you just
+   wrote was not, and here is what the record holds. Keeping one version silently while the screen
+   shows another is the same defect in a different place — the form does not close until the player
+   has acknowledged it.
+
+Three positive controls: restoring the throw reddens four assertions across both layers; letting
+the write overwrite reddens the append-only claim; and closing the composer without the notice
+reddens the on-screen half alone.
+
+**The seventh test in this PR to encode the pre-fix behaviour.** *"keeps the reflection
+append-only"* asserted a thrown CONFLICT. The principle survives — the stored reflection is
+unchanged, asserted directly — and only the expression changed. That is now the count: seven tests,
+seven principles intact.
+
+### The sweep's third confirmed finding, and its severity corrected downward
+
+The duplicate-rule half of the same finding was confirmed but **re-graded `low` by the verifier**,
+with reasons worth keeping: the duplicate is removable through the queue's ungated Archive button,
+`listLearningRules` has exactly one consumer so nothing double-counts it, nothing is lost or
+undrawn — the record gains a spurious authored row — and, unlike `reveal` and `completeDrill`, this
+mutation is deliberately **not** wrapped in `retryOnce`, so it takes a human re-press rather than a
+machine. Left open at `low` rather than fixed on the same commit.
+
+Twenty-one verdicts now, three confirmed, eighteen refuted.
+
+Full verify with the database up: **1,474 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1491,7 +1540,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
 | — | The learning queue's display prints the stored grade rather than the derived one | Low | open, cosmetic since cycle 39: the click is refused with a reason and repairs the record |
 | — | ~~A lost reveal silently shrinks a pre-registered drill~~ | ~~Medium~~ | **closed in cycle 41**, and it was the one finding of 35 that survived adversarial verification at `high`. `finishDrill` now refuses a run that did not measure what it registered, and refuses a decision recorded against a board it never registered |
-| — | `createLearningRule`: a failure between its two writes locks the reflection, and a lost response duplicates the rule | **Medium** | open, found by the cycle-37 sweep, both reproduced |
+| — | ~~`createLearningRule`: a failure between its two writes locks the reflection~~; a lost response still duplicates the rule | ~~Medium~~ **Low** | **the lock is closed in cycle 43**: a stored reflection stands and no longer refuses the rule, and the composer names what was kept. The duplicate half was confirmed and re-graded `low` by the verifier — removable through Archive, single consumer, nothing double-counted, and it takes a human re-press since this mutation is not wrapped in `retryOnce` |
 | — | Incident runbook | Low | open. Health checks (13–14), error handling (19) and startup configuration faults (20) are closed. Third-party error tracking is deliberately absent: shipping this record to a vendor would break the claim the product makes about it |
 | — | Production deployment tested directly rather than inferred from a green build | Medium | partly closed: `/api/health` fetched on the live preview (cycle 14). The record loop itself is still only exercised locally |
 | — | Every construct PR #24 added, audited as *metric* vs *product inference* | — | partially done in `docs/MEASUREMENTS.md` §4b–4d |

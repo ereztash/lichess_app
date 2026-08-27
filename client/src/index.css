@@ -4259,3 +4259,32 @@ button:not(:disabled) {
 .record-notices a:focus-visible {
   color: var(--ink);
 }
+
+/*
+ * What the record kept, when it is not what the composer shows.
+ *
+ * Not an error colour: nothing failed, and the rule was saved. It reads as a notice the player has
+ * to acknowledge, because the alternative -- closing the form silently -- would leave them
+ * believing the text they typed is on the record.
+ */
+.learning-kept {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 4px;
+  font-size: var(--panel-label);
+  line-height: 1.7;
+}
+
+.learning-kept p {
+  margin: 0 0 6px;
+}
+
+.learning-kept-text {
+  color: var(--muted);
+}
+
+.learning-kept-ok {
+  font-size: var(--panel-label);
+  padding: 4px 12px;
+}

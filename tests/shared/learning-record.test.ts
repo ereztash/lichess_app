@@ -82,7 +82,7 @@ async function recordPosition(
   await store.recordReveal(id, result);
 }
 
-async function createRule(store: MemoryRecordStore) {
+async function authorRule(store: MemoryRecordStore) {
   await recordPosition(store, SOURCE_ID, FENS[0]);
   return service.createLearningRule(
     store,
@@ -95,6 +95,18 @@ async function createRule(store: MemoryRecordStore) {
     },
     { rule_id: "rule-1", created_at: "2026-01-01T00:00:00.000Z" },
   );
+}
+
+/**
+ * The rule alone, which is what almost every test here is about.
+ *
+ * `createLearningRule` returns the rule together with what became of the reflection -- whether it
+ * was recorded or an earlier one was kept -- because refusing to overwrite a stored reflection no
+ * longer refuses the rule, and a caller that silently kept one version while the screen showed
+ * another would be the defect in a different place.
+ */
+async function createRule(store: MemoryRecordStore) {
+  return (await authorRule(store)).rule;
 }
 
 
@@ -151,7 +163,7 @@ describe("verified learning record", () => {
     ).rejects.toMatchObject({ code: "PRECONDITION_FAILED" });
 
     await store.recordReveal(SOURCE_ID, RESULT);
-    const rule = await service.createLearningRule(
+    const authored = await service.createLearningRule(
       store,
       {
         reflection: { revised_read: "new read", would_choose_again: false },
@@ -159,16 +171,35 @@ describe("verified learning record", () => {
       },
       { rule_id: "rule-1", created_at: "2026-01-01T00:00:00.000Z" },
     );
-    expect(rule).toMatchObject({ authored_by: "player", grade: "hypothesis" });
+    expect(authored.rule).toMatchObject({ authored_by: "player", grade: "hypothesis" });
+    // First reflection on this decision, so it was recorded rather than an earlier one kept.
+    expect(authored.reflection).toBe("recorded");
     expect((await store.getAtom(SOURCE_ID))?.feedback?.revised_read).toBe("new read");
 
-    await expect(
-      service.createLearningRule(
-        store,
-        { reflection: { revised_read: "rewritten later", would_choose_again: true }, rule: RULE },
-        { rule_id: "rule-2", created_at: "2026-01-02T00:00:00.000Z" },
-      ),
-    ).rejects.toMatchObject({ code: "CONFLICT" });
+    /*
+     * THE REFLECTION IS STILL APPEND-ONLY, AND THAT NO LONGER REFUSES THE RULE.
+     *
+     * This asserted a thrown CONFLICT, which protected the stored reflection by discarding the
+     * rule with it -- and the two writes are not atomic, so a lost rule write left a reflection on
+     * the record that made every later attempt throw. Editing one word of the revised-read box
+     * after a failed save, which is what a player does, locked that decision out of ever carrying
+     * a learning rule.
+     *
+     * What the rule protects is the VALUE: what you said before seeing more is not retroactively
+     * improved. That is asserted here, together with the response saying which happened -- keeping
+     * one version silently while the screen shows another would be the same defect moved.
+     */
+    const second = await service.createLearningRule(
+      store,
+      { reflection: { revised_read: "rewritten later", would_choose_again: true }, rule: RULE },
+      { rule_id: "rule-2", created_at: "2026-01-02T00:00:00.000Z" },
+    );
+    expect(second.reflection).toBe("kept-earlier");
+    expect(second.storedReflection?.revised_read).toBe("new read");
+    expect(
+      (await store.getAtom(SOURCE_ID))?.feedback?.revised_read,
+      "the stored reflection was rewritten",
+    ).toBe("new read");
   });
 
   it("pre-registers exactly three unseen positions before returning them", async () => {
@@ -842,7 +873,7 @@ describe("a rule the measure cannot see is never tested", () => {
      */
     const store = new MemoryRecordStore();
     await recordPosition(store, SOURCE_ID, FENS[0]);
-    const rule = await service.createLearningRule(
+    const { rule } = await service.createLearningRule(
       store,
       {
         reflection: { revised_read: "new read", would_choose_again: false },
