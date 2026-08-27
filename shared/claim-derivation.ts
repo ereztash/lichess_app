@@ -45,17 +45,49 @@ const pct = (value: number) => `${Math.round(value * 100)}%`;
 /**
  * What the claim says. Built from the numbers, not from a template with the numbers dropped in:
  * change the measurement and the sentence changes shape, not just its digits.
+ *
+ * THE SENTENCE USED TO NAME A LEVEL, AND THE MEASUREMENT IS A CONTRAST.
+ *
+ * `predicts_overconfidence` is `insideSummary.gap - outsideSummary.gap > 0` (shared/detector.ts).
+ * It says this bucket sits ABOVE THE REST of the record. It says nothing about whether the player
+ * is overconfident inside it -- and `detect` never tests the inside level against zero, so nothing
+ * in the product is entitled to assert one. This function read that boolean and wrote "הביטחון שלך
+ * גבוה יותר ממה שהתוצאות מצדיקות", which is a claim about the person in that bucket.
+ *
+ * Reproduced on the ordinary path, 900 decisions through the real store, nothing injected: a
+ * player UNDERconfident everywhere and least so in the opening produced
+ *
+ *     inside : confidence 50%  accuracy 55%   gap -0.050
+ *     outside: confidence 35%  accuracy 65%   gap -0.300
+ *     gapDifference +0.250  ->  predicts_overconfidence: true
+ *
+ * and the screen read "ב-החלטות בפתיחה הביטחון שלך גבוה יותר ממה שהתוצאות מצדיקות: ביטחון ממוצע
+ * 50% מול דיוק 55%" -- overconfidence asserted beside two numbers showing five points of the
+ * opposite, in the same sentence.
+ *
+ * THE SECOND CLAUSE WAS WORSE, BECAUSE IT WAS NEVER COMPUTED AT ALL. "בשאר ההחלטות הפער קטן
+ * בהרבה" was a template constant. In the run above the rest's gap is 0.300 against the bucket's
+ * 0.050 -- six times BIGGER, printed as "much smaller" beside the two numbers that disprove it.
+ *
+ * WHAT IS SAID NOW. The direction describes the contrast, which is the thing that cleared the
+ * separability bar. Both pairs of numbers are printed, so the absolute levels are on the screen
+ * and the reader can see them. And the last line says what the comparison is ABOUT, because
+ * "confidence sits higher relative to accuracy here than there" is easy to finish reading as
+ * "I am overconfident here", and that is the sentence this function is no longer allowed to make.
+ *
+ * NOT "the gap is bigger". `gapDifference > 0` is an ALGEBRAIC comparison of a signed quantity.
+ * In the run above the inside gap is higher than the outside gap and six times smaller in
+ * magnitude. A sentence about magnitude would have been a second false statement in the same
+ * place, so the wording is about confidence RELATIVE TO accuracy, which is what was measured.
  */
 export function statementFor(pattern: CandidatePattern): string {
   const { scope, inside, outside } = pattern;
-  const direction = pattern.predicts_overconfidence
-    ? "גבוה יותר ממה שהתוצאות מצדיקות"
-    : "נמוך יותר ממה שהתוצאות מצדיקות";
+  const direction = pattern.predicts_overconfidence ? "גבוה יותר" : "נמוך יותר";
   return (
-    `ב-${scope} (${inside.n} החלטות) הביטחון שלך ${direction}: ` +
-    `ביטחון ממוצע ${pct(inside.meanConfidence)} מול דיוק ${pct(inside.accuracyRate)}. ` +
-    `בשאר ההחלטות (${outside.n}) הפער קטן בהרבה — ` +
-    `ביטחון ${pct(outside.meanConfidence)} מול דיוק ${pct(outside.accuracyRate)}.`
+    `ב-${scope} (${inside.n} החלטות) הביטחון המוצהר ${direction} ביחס לדיוק בפועל ` +
+    `מאשר בשאר ההחלטות: ביטחון ממוצע ${pct(inside.meanConfidence)} מול דיוק ${pct(inside.accuracyRate)}. ` +
+    `בשאר ההחלטות (${outside.n}): ביטחון ${pct(outside.meanConfidence)} מול דיוק ${pct(outside.accuracyRate)}. ` +
+    `ההשוואה היא בין שתי הקבוצות, לא על גובה הביטחון בכל אחת מהן בנפרד.`
   );
 }
 

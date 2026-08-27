@@ -475,6 +475,26 @@ export function detect(
       gapDifference,
       standardError,
       supporting_decision_ids: inside.map((d) => d.decision_id),
+      /*
+       * A CONTRAST, NOT A LEVEL, AND THE NAME INVITES THE OTHER READING.
+       *
+       * `gapDifference` is `insideSummary.gap - outsideSummary.gap`. True here means this bucket
+       * sits ABOVE THE REST OF THE RECORD on the (confidence - accuracy) quantity. It does NOT
+       * mean the player is overconfident inside the bucket: a player underconfident everywhere
+       * and least so in one phase produces `true` for that phase, with `inside.gap` still
+       * negative. Nothing in `detect` tests an inside gap against zero, so no caller is entitled
+       * to assert an absolute direction from this field.
+       *
+       * Two consumers read it as a level and said so on screen -- `statementFor`
+       * (shared/claim-derivation.ts) and `direction` (client/src/components/ProfilePanel.tsx) --
+       * and both told a player who had stated five points LESS confidence than their results
+       * warranted that they had stated more. Both now speak it as the comparison it is.
+       *
+       * The GRADING path was always right to read it: `evaluateRefutation` (shared/drill.ts)
+       * signs `drillGap - baseline.gap`, itself a contrast, and `refutationConditionFor` writes a
+       * relative condition. The name survives because it is a stored column and a drill-spec
+       * field; what it means is written down here so the next reader does not have to guess.
+       */
       predicts_overconfidence: gapDifference > 0,
     });
   }

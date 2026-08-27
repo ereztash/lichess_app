@@ -124,16 +124,35 @@ describe("one weakness, one finding", () => {
     expect(document.body.textContent).toMatch(/ולא ממצא נוסף/);
   });
 
-  it("states the direction as what happened, never as a label about the player", () => {
+  it("states the direction as the comparison it measured, never as a label about the player", () => {
     /*
-     * The standing constraint: the product must not say more about the player than it measured.
-     * "You are overconfident" is a trait; "you stated more confidence than came out" is the
-     * measurement.
+     * THE PRINCIPLE WAS RIGHT AND THE STRING IT ASSERTED WAS AN INSTANCE OF WHAT IT FORBADE.
+     *
+     * This asserted "הצהרתם יותר ביטחון ממה שיצא" -- "you stated more confidence than came out" --
+     * and its own comment explained that a trait is forbidden and a measurement is required. But
+     * that sentence is not the measurement either. `direction()` is handed `gapDifference`, which
+     * is `inside.gap - outside.gap`: a CONTRAST between this cell and the rest of the record.
+     * `detect` never tests a cell's own gap against zero, so the one number the function has
+     * cannot support a statement about what happened INSIDE the cell.
+     *
+     * Reproduced on the real record: a player underconfident everywhere and least so in the
+     * opening has inside.gap -0.050 against outside.gap -0.300, so gapDifference is +0.250 and
+     * this line told them they had stated MORE confidence than came out in the one phase where
+     * they had stated five points less.
+     *
+     * So the assertion moves to the contrast, and the forbidden-trait list grows to include the
+     * absolute reading that used to be the expected value.
      */
     show(withMirror());
     const text = document.body.textContent ?? "";
-    expect(text).toMatch(/הצהרתם יותר ביטחון ממה שיצא|הצהרתם פחות ביטחון ממה שיצא/);
+    expect(text).toMatch(/הביטחון המוצהר (גבוה|נמוך) יותר ביחס לתוצאה מאשר בשאר הרשומה/);
+    // Traits, as before.
     expect(text).not.toMatch(/אתם בטוחים מדי|אתם לא בטוחים מספיק|חלש ב/);
+    // ...and the absolute reading of a relative number, which is what this test used to require.
+    expect(
+      text,
+      "a contrast spoken as a fact about the player inside the cell",
+    ).not.toMatch(/הצהרתם יותר ביטחון ממה שיצא|הצהרתם פחות ביטחון ממה שיצא/);
   });
 
   it("carries the n the finding rests on", () => {

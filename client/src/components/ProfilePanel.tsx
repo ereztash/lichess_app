@@ -33,11 +33,27 @@ import type { VariableReading } from "@shared/bucket-variable";
 import type { CrossedFinding, CrossingReading } from "@shared/crossing";
 import { NotMeasured, Rate } from "@/components/Value";
 
-/** Overconfidence and underconfidence, said as what happened rather than as a label. */
+/**
+ * Which way this cell sits AGAINST THE REST OF THE RECORD -- not how the player did in it.
+ *
+ * `gapDifference` is `inside.gap - outside.gap` (shared/detector.ts, shared/crossing.ts): a
+ * contrast between two groups. This read it and said "הצהרתם יותר ביטחון ממה שיצא" -- "you stated
+ * more confidence than came out" -- which is a statement about the player INSIDE the cell, and the
+ * one number it is given cannot support it. The doc comment even claimed it said "what happened".
+ *
+ * Reproduced through the real record: a player underconfident everywhere and least so in the
+ * opening has `inside.gap -0.050`, `outside.gap -0.300`, so `gapDifference +0.250`, and this line
+ * told them they had stated more confidence than came out in the one phase where they had stated
+ * five points LESS. The same defect and the same cause as `statementFor` in
+ * shared/claim-derivation.ts, on a second surface of the same page.
+ *
+ * `detect` never tests a cell's own gap against zero -- what cleared the separability bar is the
+ * contrast -- so the contrast is what may be spoken, and it is spoken as a comparison.
+ */
 const direction = (gapDifference: number) =>
   gapDifference > 0
-    ? "הצהרתם יותר ביטחון ממה שיצא"
-    : "הצהרתם פחות ביטחון ממה שיצא";
+    ? "הביטחון המוצהר גבוה יותר ביחס לתוצאה מאשר בשאר הרשומה"
+    : "הביטחון המוצהר נמוך יותר ביחס לתוצאה מאשר בשאר הרשומה";
 
 function CrossedFindingRow({ finding }: { finding: CrossedFinding }) {
   const { strongest } = finding;
