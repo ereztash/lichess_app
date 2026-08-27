@@ -3969,6 +3969,20 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   color: var(--muted);
 }
+/*
+ * The trial log's own block, separated by a rule.
+ *
+ * It is not one of the ten checks and must not read as one: the checks say whether the software
+ * works, this says how far a visit got. A border rather than a heading, because a heading here
+ * would give a research artefact the same weight as the thing the drawer is for.
+ */
+.self-check-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block-start: 14px;
+  border-block-start: 1px solid var(--hairline);
+}
 .self-check-verdict {
   font-size: var(--panel-body);
   font-weight: 700;

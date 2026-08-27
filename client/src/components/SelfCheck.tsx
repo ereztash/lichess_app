@@ -14,6 +14,7 @@ import {
   type CheckStatus,
 } from "@/lib/self-check";
 import { localRecordAvailable, localRecordDurability } from "@/lib/local-record-store";
+import { clearProgress, progressReport } from "@/lib/progress-record";
 
 const ICON: Record<CheckStatus, typeof Check> = { pass: Check, fail: X, skip: Minus };
 const WORD: Record<CheckStatus, string> = { pass: "עבר", fail: "נכשל", skip: "לא רץ" };
@@ -22,6 +23,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
   const [results, setResults] = useState<CheckResult[] | null>(null);
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [progressCopied, setProgressCopied] = useState(false);
 
   const run = useCallback(async () => {
     setRunning(true);
@@ -94,6 +96,45 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
           בדיקת המנוע לוקחת עד דקה — הוא מוריד קובץ של 7MB.
         </p>
       )}
+
+      {/*
+        * HOW FAR THE VISITS GOT, and why it is behind this button rather than on a screen.
+        *
+        * The trial needs to know where people stopped, and the product must not react to it --
+        * so it is written by the commitment screen, read by nobody, and handed over only when a
+        * person presses this. It sits in the self-check drawer because that is already the
+        * "copy this and send it" surface, and it is kept OUT of `formatReport` so the ten checks
+        * keep meaning exactly what they meant.
+        *
+        * Deliberately not summarised into a completion rate. A rate here would be this panel
+        * making a claim about the person, in a drawer built for claims about the software.
+        */}
+      <div className="self-check-progress">
+        <p className="self-check-note" dir="rtl">
+          נשמר גם מהלך הביקורים בדפדפן הזה — כמה החלטות נפתחו, אילו שלבים הושלמו ואיפה נעצרתם.
+          בלי מהלכים, בלי טקסט שכתבתם ובלי רמות ביטחון, והוא לא נשלח לשום מקום מעצמו.
+        </p>
+        <div className="self-check-actions">
+          <button
+            className="ghost-control"
+            onClick={async () => {
+              await navigator.clipboard?.writeText(progressReport());
+              setProgressCopied(true);
+            }}
+          >
+            <Copy size={13} /> {progressCopied ? "הועתק" : "העתיקו את מהלך הביקורים"}
+          </button>
+          <button
+            className="ghost-control"
+            onClick={() => {
+              clearProgress();
+              setProgressCopied(false);
+            }}
+          >
+            מחקו את מהלך הביקורים
+          </button>
+        </div>
+      </div>
 
       {results && (
         <>

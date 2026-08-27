@@ -43,6 +43,7 @@
  * explicit "next", or on tapping any other step's header.
  */
 import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
+import { recordAttempt } from "@/lib/progress-record";
 import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
 import {
@@ -141,6 +142,48 @@ export function CommitmentScreen({
     unknown: statedUnknown(live).length > 0,
     confidence: draft.confidence !== null,
   };
+
+  /*
+   * HOW FAR THIS PASS GOT, for the trial rather than for the record.
+   *
+   * A tester who fills three steps and leaves is, in every record this app keeps, identical to a
+   * tester who never opened the screen. That is the one thing a five-person trial cannot afford
+   * not to see. Nothing here reaches the decision path: it is written and never read back, and a
+   * test holds that over the imports.
+   *
+   * The step ids come from `STEPS` above rather than from a list of their own, so a step that
+   * leaves the screen -- a confidence question that stops being asked in free play, say -- leaves
+   * this too, instead of being reported as permanently unanswered.
+   */
+  const attempt = useRef({ done, open: openStep, startedAt: startedAt.current, refusals: 0, closed: false });
+  attempt.current.done = done;
+  attempt.current.open = openStep;
+  attempt.current.startedAt = startedAt.current;
+
+  const closeAttempt = (outcome: "recorded" | "left") => {
+    if (attempt.current.closed) return;
+    attempt.current.closed = true;
+    recordAttempt({
+      done: STEPS.filter((step) => attempt.current.done[step]),
+      open: attempt.current.open,
+      seconds: Math.floor((Date.now() - attempt.current.startedAt) / 1000),
+      refusals: attempt.current.refusals,
+      outcome,
+    });
+  };
+
+  /*
+   * The cleanup fires on BOTH things that end a pass without a commit: the position changing
+   * under the player, and the screen going away entirely. One effect covers both because React
+   * runs the cleanup for a dependency change and for an unmount identically.
+   */
+  useEffect(() => {
+    attempt.current.closed = false;
+    attempt.current.refusals = 0;
+    return () => closeAttempt("left");
+    // The closure reads everything it needs through the ref, so it must not re-run on state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position.fen, position.ply]);
   const nextIncomplete = (after?: StepId) => {
     const from = after ? STEPS.indexOf(after) + 1 : 0;
     return STEPS.slice(from).find((s) => !done[s]) ?? STEPS.find((s) => !done[s]) ?? null;
@@ -193,6 +236,8 @@ export function CommitmentScreen({
   const openBody = useRef<HTMLDivElement>(null);
   const submit = () => {
     if (!ready) {
+      // A player who WANTED to finish and was stopped reads nothing like one who wandered off.
+      attempt.current.refusals += 1;
       setShowProblems(true);
       const missingStep = problems[0].field as StepId;
       setOpenStep(missingStep);
@@ -205,6 +250,7 @@ export function CommitmentScreen({
       });
       return;
     }
+    closeAttempt("recorded");
     onCommit(live, (Date.now() - startedAt.current) / 1000);
   };
 

@@ -1,5 +1,7 @@
 import NotFound from "@/pages/NotFound";
+import { useEffect } from "react";
 import { Route, Switch } from "wouter";
+import { beginVisit } from "@/lib/progress-record";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -24,6 +26,14 @@ function Router() {
   );
 }
 export default function App() {
+  /*
+   * ONE VISIT PER PAGE LOAD, so a trial can tell a tester who came back from one who never left.
+   *
+   * Written and never read: nothing in the running app branches on it, and no measurement is
+   * scoped by it. It is here rather than in a page because a visit is a page LOAD, and both
+   * routes are reached without one.
+   */
+  useEffect(() => beginVisit(), []);
   return (
     <ErrorBoundary>
       {/*
