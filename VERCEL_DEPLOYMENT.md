@@ -70,18 +70,28 @@ Vercel SSO protection is enabled for this project on all non-custom domains, so 
 preview or production URL asks for a Vercel login before the app loads at all. That is a
 deployment setting, not an application one; a custom domain bypasses it.
 
-## Layer C is not mounted
+## Layer C is mounted and off
 
-**`LAYER_C_ENABLED` currently changes nothing.** `server/layerC.ts` is imported by no router --
-only by its own test -- so the running API has no path that reaches it. Setting the variable to
-`"true"` on a deployment has no effect, and this section previously read as though it did.
+**`LAYER_C_ENABLED=true` is a live switch. Do not set it casually.** This section said the
+opposite until now, and that was true when it was written: `server/layerC.ts` was imported by no
+router, so the flag changed nothing whatever it was set to. It is mounted since the router gained
+`external.pointer`, and the sentence outlived the state it described.
 
-Two things are true at once and both matter: the flag is honoured by the code that reads it
-(`layerCEnabled()` accepts only the exact string), and nothing calls the code that reads it. It is
-documented here rather than quietly mounted because mounting it would ship a live dependency on
-`explorer.lichess.ovh` that this codebase has never once reached -- see docs/FINDINGS.md.
+What the flag does now, with the mount in place:
 
-The rest of this section describes the layer as designed, for whoever mounts it.
+- **unset, or anything other than the exact string `"true"`** -- every call returns
+  `{ kind: "disabled" }` with a reason, and nothing leaves the deployment. This is the shipped
+  state everywhere.
+- **exactly `"true"`** -- `pointerForClaim` calls `getPostGameLayers` for each consulted position,
+  which reaches the Lichess explorer over the network. That dependency has never once been
+  exercised against the live service; its tests stub `fetch`. See docs/MEASUREMENTS.md.
+
+Mounting it did not turn it on. What it changed is that "off" is now distinguishable from "never
+built" -- a caller gets a stated reason instead of a missing route, which is the distinction R2 is
+about. The cost of that is this paragraph: the off switch is now load-bearing, so it has to be
+described accurately rather than dismissed.
+
+The rest of this section describes the layer as designed.
 
 The external-pointer layer (`server/layerC.ts`) is disabled unless `LAYER_C_ENABLED` is exactly
 `"true"`. Layers A and B are a complete product without it.

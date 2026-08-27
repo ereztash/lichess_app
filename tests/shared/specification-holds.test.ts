@@ -323,3 +323,65 @@ describe("the specification's reference band is the module's, not a copy that dr
     );
   });
 });
+
+/**
+ * Whether Layer C is mounted is a fact about `server/routers.ts`, and two documents asserted it.
+ *
+ * `server/layerC.ts` spent most of this project's life imported by no router, and both
+ * `docs/MEASUREMENTS.md` and `VERCEL_DEPLOYMENT.md` said so correctly. Then the router imported
+ * it, and neither sentence moved. MEASUREMENTS.md ended up holding both readings at once -- "Not
+ * mounted" in the Layer C section and "It is mounted at `external.pointer`" in the changelog below
+ * it -- and the deployment runbook went on telling whoever reads it that setting
+ * `LAYER_C_ENABLED=true` has no effect. It has one: with the mount in place the flag is what
+ * stands between a deployment and a live call to the Lichess explorer.
+ *
+ * The figures above are held to constants. This is held to an IMPORT, because that is what the
+ * claim is about. No prose is asserted -- only that a document does not deny a mount the router
+ * performs, in whichever words it currently uses.
+ */
+describe("a document cannot deny a mount the router performs", () => {
+  const routers = readFileSync(resolve(__dirname, "../../server/routers.ts"), "utf8");
+  const runbook = readFileSync(resolve(__dirname, "../../VERCEL_DEPLOYMENT.md"), "utf8");
+
+  /* The mount, as the running API would see it: the module is imported AND a route registers it. */
+  const mounted =
+    /from\s+"\.\/layerC\.js"/.test(routers) && /pointer:\s*ownerProcedure/.test(routers);
+
+  /* Sentences that assert the opposite. Each was live in one of the two documents. */
+  const DENIALS = [
+    /imported by no router/i,
+    /is not mounted/i,
+    /\bNot mounted\b/,
+    /LAYER_C_ENABLED[^.]{0,40}changes nothing/i,
+    /no effect/i,
+  ];
+
+  it("is mounted, so neither document may say otherwise", () => {
+    expect(mounted, "layerC is no longer reachable from the router -- update this test with it").toBe(
+      true,
+    );
+    for (const [name, text] of [
+      ["docs/MEASUREMENTS.md", spec],
+      ["VERCEL_DEPLOYMENT.md", runbook],
+    ] as const) {
+      for (const denial of DENIALS) {
+        const hit = text.match(denial);
+        expect(
+          hit === null,
+          `${name} says ${JSON.stringify(hit?.[0])} while server/routers.ts mounts layerC`,
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("says what the flag does, since the flag now does something", () => {
+    // "Off by default" was the whole story while nothing could call it. Now the on state reaches
+    // the network, and a runbook that omits that is the one a deployer reads before setting it.
+    expect(runbook, "the runbook stopped saying what the enabled state reaches").toMatch(
+      /Lichess explorer|explorer\.lichess/i,
+    );
+    expect(runbook, "the runbook stopped naming the exact string the flag needs").toContain(
+      '`"true"`',
+    );
+  });
+});
