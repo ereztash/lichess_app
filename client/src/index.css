@@ -1764,6 +1764,248 @@ button:not(:disabled) {
 /* The decision comes before the answer. This column replaces the analysis column entirely
    while deciding -- the engine's panel is absent, not hidden. */
 /* Every size in here comes from the five-step scale declared in :root. */
+/*
+ * The game profile, in the record dashboard.
+ *
+ * Same restraint as the probe panel below it: it corrects how the bucket rows above are counted,
+ * and a panel styled to outshine them would invert the relationship it exists to state.
+ */
+.profile-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+.profile-panel__title {
+  margin: 0 0 6px;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  color: var(--ink);
+}
+.profile-panel__subtitle {
+  margin: 12px 0 4px;
+  font-size: var(--panel-fine);
+  font-weight: 600;
+  color: var(--muted);
+}
+.profile-panel__variables,
+.profile-panel__crossings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.profile-panel__variable,
+.profile-panel__crossing {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profile-panel__variable-label,
+.profile-panel__crossing-scope {
+  font-size: var(--panel-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+.profile-panel__variable-reading,
+.profile-panel__crossing-reading {
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+/* A mirror is a consequence, and reads as one: same size as a caveat, not as a finding. */
+.profile-panel__status,
+.profile-panel__mirror,
+.profile-panel__alongside,
+.profile-panel__denominator,
+.profile-panel__impossible {
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.profile-panel__denominator,
+.profile-panel__impossible {
+  margin: 10px 0 0;
+}
+.profile-panel__status {
+  margin: 0 0 10px;
+}
+/* Bare numerals inside Hebrew sentences are neutral-direction and land on the wrong side. */
+.profile-panel bdi {
+  unicode-bidi: plaintext;
+}
+
+/*
+ * The probe's readings, inside the record dashboard rather than beside it.
+ *
+ * Deliberately quiet: it is the newest measurement in the product and the one with the least n
+ * behind it, and a panel styled to draw the eye would give a handful of counts the weight of the
+ * calibration figures above it.
+ */
+.counterfactual-panel {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
+}
+.counterfactual-panel__title {
+  margin: 0 0 6px;
+  font-size: var(--panel-label);
+  font-weight: 600;
+  color: var(--ink);
+}
+.counterfactual-panel__what,
+.counterfactual-panel__short,
+.counterfactual-panel__control {
+  margin: 8px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.counterfactual-panel__denominators {
+  margin: 8px 0 0;
+  padding-inline-start: 1.1rem;
+  font-size: var(--panel-fine);
+  line-height: 1.7;
+  color: var(--muted);
+}
+.counterfactual-panel__readings {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.counterfactual-panel__reading {
+  display: grid;
+  /*
+   * `minmax(0, 1fr)` on the label and `auto` on the figure, NOT the other way round. An `auto`
+   * track is sized from its content and would let a long sentence claim the row while the
+   * `minmax(0, 1fr)` figure collapsed -- which is exactly how the bucket rows shipped a scope
+   * label one glyph wide, twenty lines tall, with a thousand passing tests.
+   */
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+/* The one the instrument exists for reads as the one to look at, without a colour claim. */
+.counterfactual-panel__reading.is-reachable .counterfactual-panel__reading-label {
+  font-weight: 600;
+}
+.counterfactual-panel__count {
+  font-size: var(--panel-body);
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* Bare numerals inside Hebrew sentences are neutral-direction and land on the wrong side. */
+.counterfactual-panel bdi {
+  unicode-bidi: plaintext;
+}
+
+/*
+ * A game the engine does not narrate, said on screen for as long as it lasts.
+ *
+ * Same tokens as the commitment panel it sits beside -- a panel that looked different would read
+ * as an interruption from elsewhere rather than as the state the player chose.
+ */
+.silent-game {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.15rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+.silent-game__title {
+  margin: 0;
+  font-size: var(--panel-title);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: normal;
+}
+.silent-game__count,
+.silent-game__note {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--muted);
+}
+/* A bare numeral inside a Hebrew sentence is neutral-direction and lands on the wrong side. */
+.silent-game__count bdi {
+  unicode-bidi: plaintext;
+}
+
+/*
+ * The counterfactual probe: one question, between the commitment and the engine.
+ *
+ * Built from the commitment panel's own tokens rather than a new palette. It appears in the same
+ * column, in the same moment of the loop, and a panel that looked different would read as a
+ * different KIND of thing -- an interruption from elsewhere rather than the next step.
+ *
+ * NO OPACITY ON TEXT, per the note below `.commitment-header`: --ink is what the player reads,
+ * --muted is context, --warn is a problem.
+ */
+.counterfactual-probe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.15rem;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+}
+.counterfactual-probe__question {
+  margin: 0;
+  /* The panel's one heading. The document's scale, not a size chosen here -- see the note above
+     `.commitment-kicker`: forty components each picking their own produced twenty-three sizes. */
+  font-size: var(--panel-title);
+  font-weight: 600;
+  color: var(--ink);
+  /*
+   * The question is a sentence, and a sentence wraps. Inheriting `nowrap` here laid a 456px line
+   * inside a 292px box once already, on a different panel, and pushed the whole document to
+   * 525px at a 390px viewport.
+   */
+  white-space: normal;
+}
+.counterfactual-probe__committed,
+.counterfactual-probe__how {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--muted);
+}
+.counterfactual-probe__same,
+.counterfactual-probe__error {
+  margin: 0;
+  font-size: var(--panel-body);
+  color: var(--warn);
+}
+.counterfactual-probe__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.counterfactual-probe__actions button {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+.counterfactual-probe__confirm {
+  border-color: var(--ink);
+}
+.counterfactual-probe__actions button:disabled {
+  cursor: default;
+  color: var(--muted);
+}
+
 .commitment-screen {
   display: flex;
   flex-direction: column;
@@ -2057,6 +2299,49 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/*
+ * The "measured, and the same" sentence takes the WHOLE row, unlike the signed figure above it.
+ *
+ * WHY IT CANNOT SIT IN TRACKS 2-3 like its sibling. Track 3 is `auto`, which sizes from content,
+ * and this is a sentence rather than a two-character figure -- so it claimed the row and squeezed
+ * the scope label, whose track is `minmax(0, 1fr)`, to 0px. Measured in Chromium at 390px: the
+ * label collapsed to zero width and wrapped onto 12 lines, and the document grew to 535px.
+ *
+ * That is the SAME collapse `tests/layout/bucket-row.layout.test.tsx` was written for, reached by
+ * a different route -- and it was caught the same way, by a real layout engine, a minute after
+ * being introduced. jsdom reported every box as 0x0 and 1,165 other tests said nothing.
+ */
+/*
+ * The sentence saying why the control cell is empty.
+ *
+ * A second `dd` in the same `.split-row`, for the reason `.split-band` is one beside the
+ * discrimination figure: the value is one thing and what makes it readable is another, and a
+ * definition list is allowed to carry two. Full width so it wraps as prose rather than competing
+ * with the figure for a track -- the same mistake `.bucket-versus-flat` below documents.
+ */
+.split-why {
+  grid-column: 1 / -1;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.bucket-versus-flat {
+  grid-column: 1 / -1;
+  line-height: 1.5;
+  /*
+   * `.bucket-versus` sets `nowrap`, correctly: "+14 נק׳ מול כולם" is four words that must not
+   * break away from their sign. This is a SENTENCE, and it inherited the nowrap -- 456px of text
+   * laid out inside a 292px box, pushing the document to 525px at a 390px viewport.
+   *
+   * The panel has been here before. `tests/layout/bucket-row.layout.test.tsx` carries the note
+   * that `white-space: nowrap` on the unmeasurable reason once laid 628px of text inside a 340px
+   * column and scrolled the page. Same property, same panel, a different span.
+   */
+  white-space: normal;
+}
+
 
 /*
  * The way into the shared set. A row, not a card: it is an action attached to the layer it sits
@@ -3047,6 +3332,39 @@ button:not(:disabled) {
  * without what produced it -- and it is the smallest step on the scale because it is a citation,
  * not a reading.
  */
+/*
+ * The height the slot holds while the record is being read.
+ *
+ * MEASURED, AND THE DERIVATION THAT PRECEDED IT WAS WRONG. The first version computed the two
+ * rows from the type scale -- sentence at `--panel-body` over 1.5, basis at `--panel-fine` over
+ * 1.4, plus the gap, padding and border -- which comes to 54px. The ribbon is 88px: the
+ * arithmetic forgot the action row, which most loop positions carry. Reserving 54 for 88 left a
+ * 34px shift, and the measurement is what said so.
+ *
+ * Measured on the built app in Chromium, at the position a new record actually shows:
+ *
+ *   390px  ribbon 124px  (headline wraps to three lines)
+ *   768px  ribbon  88px
+ *   1280px ribbon  88px
+ *   1440px ribbon  88px
+ *
+ * Two values, one breakpoint, because that is what the measurement found -- the headline wraps
+ * below 768 and does not above it.
+ *
+ * IT CANNOT BE EXACT AND IT IS NOT CLAIMED TO BE. The ribbon carries one of seven loop positions,
+ * their sentences differ in length, and two of the seven have no action row. A reservation is a
+ * guess at content nobody has read yet; this one is the measured common case, and the residual is
+ * bounded by the difference between the shortest and tallest position rather than by the whole
+ * height of the ribbon.
+ */
+.context-ribbon.is-reading {
+  min-block-size: 124px;
+}
+@media (min-width: 768px) {
+  .context-ribbon.is-reading {
+    min-block-size: 88px;
+  }
+}
 .context-loop {
   margin: 0;
   flex: 1 1 100%;
@@ -3911,4 +4229,62 @@ button:not(:disabled) {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/*
+ * The third-party notice at the foot of the front door.
+ *
+ * Deliberately quiet: it sits at the same size as the layer descriptions and uses the muted ink,
+ * because a licence notice that competes with the record for attention is badly designed in both
+ * directions. The padding is on the ANCHOR rather than only on the paragraph so the target grows
+ * with it -- SC 2.5.8 asks for 24px and a bare 11px line of text does not reach it on its own.
+ */
+.record-notices {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--panel-label);
+  line-height: 2;
+  color: var(--muted);
+}
+
+.record-notices a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  padding: 0.25rem 0.125rem;
+}
+
+.record-notices a:hover,
+.record-notices a:focus-visible {
+  color: var(--ink);
+}
+
+/*
+ * What the record kept, when it is not what the composer shows.
+ *
+ * Not an error colour: nothing failed, and the rule was saved. It reads as a notice the player has
+ * to acknowledge, because the alternative -- closing the form silently -- would leave them
+ * believing the text they typed is on the record.
+ */
+.learning-kept {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 4px;
+  font-size: var(--panel-label);
+  line-height: 1.7;
+}
+
+.learning-kept p {
+  margin: 0 0 6px;
+}
+
+.learning-kept-text {
+  color: var(--muted);
+}
+
+.learning-kept-ok {
+  font-size: var(--panel-label);
+  padding: 4px 12px;
 }

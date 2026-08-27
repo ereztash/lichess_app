@@ -14,6 +14,8 @@
  */
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
+import { normaliseConfidence } from "./confidence.js";
+
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
 export const ENGINE_NOISE_CP = 30;
@@ -40,7 +42,16 @@ export interface RevealInputs {
   chosenMove: string;
   bestMove: string;
   chosenWasBest: boolean;
+  /** The stated level as the player pressed it: 1..confidenceScale, NOT a probability. */
   confidence: number;
+  /**
+   * How many buttons that level was one of.
+   *
+   * Required, not optional with a default. Every decision stores `confidence_scale` for exactly
+   * this reason, and a default here would silently re-interpret rows from the other scale -- which
+   * is the defect this field was added to make unreachable.
+   */
+  confidenceScale: number;
   statedUnknown: string;
   /** Recorded decisions so far, including this one. */
   decisionsOnRecord: number;
@@ -154,14 +165,44 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
  * Whether it can carry more weight than it does depends entirely on how often it actually fires,
  * and nobody has ever measured that. `oneThingMix` below is that measurement.
  */
+/**
+ * THE TWO CUT POINTS, IN STATED PROBABILITY RATHER THAN IN BUTTON NUMBERS.
+ *
+ * They used to be `confidence >= 4` and `confidence <= 2`, read off the RAW stored level. Those
+ * numbers were written for the five-level scale, whose grid is `[0, 0.25, 0.5, 0.75, 1]`
+ * (shared/confidence.ts) -- so they meant "asserted at least 75%" and "asserted at most 25%".
+ *
+ * The product now offers seven buttons on the grid `[0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95]`, and
+ * `shared/confidence.ts` says why the old numbers cannot survive that: "'בטוח' was 4 of 5 and is
+ * 6 of 7. That is precisely why a stored level is meaningless without the scale it was stated on."
+ * `normaliseConfidence` exists to do this conversion and was never called from here.
+ *
+ * Measured at every button the picker actually offers, on a move costing 150cp:
+ *
+ *     button 4 (שקול, asserts 50%) -> confident-and-wrong   "אמרת ביטחון 4 מתוך 5"
+ *     button 5 (סביר, asserts 65%) -> confident-and-wrong   "אמרת ביטחון 5 מתוך 5"
+ *     button 6 (בטוח, asserts 80%) -> confident-and-wrong   "אמרת ביטחון 6 מתוך 5"
+ *     button 7 (ודאי, asserts 95%) -> confident-and-wrong   "אמרת ביטחון 7 מתוך 5"
+ *
+ * `שקול` is `EVEN_ODDS_LEVEL` -- the button that exists so a player can decline to claim anything
+ * -- and it was being told the gap between its confidence and the result was the thing to work on.
+ * Two of the four printed a denominator that is not the scale they were stated on, beside a screen
+ * showing "7 · ודאי".
+ *
+ * These constants reproduce the ORIGINAL meaning exactly, and are scale-independent: on the
+ * seven-grid, 0.75 admits `בטוח` and `ודאי`, and 0.25 admits `ניחוש` and `ספק`.
+ */
+export const CONFIDENT_ENOUGH_TO_NAME = 0.75;
+export const UNSURE_ENOUGH_TO_NAME = 0.25;
+
 export type OneThingKind =
   /** The engine's move was among the ones the player put on the board, and they played another. */
   | "chose-past-it"
-  /** Said 4 or 5 out of 5, and the move cost material. */
+  /** Asserted at least CONFIDENT_ENOUGH_TO_NAME, and the move cost material. */
   | "confident-and-wrong"
   /** Cost material, with nothing else the measurement can add. */
   | "outplayed"
-  /** Chose well inside the noise, and said 1 or 2 out of 5. */
+  /** Chose well inside the noise, having asserted at most UNSURE_ENOUGH_TO_NAME. */
   | "trusted-it-too-little";
 
 export interface OneThing {
@@ -202,11 +243,12 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
 
   // The calibration gap is the primary measure (section 6): stated confidence against realised
   // accuracy. It outranks the move itself, because it is a property of the decision policy.
-  if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && inputs.confidence >= 4) {
+  const stated = normaliseConfidence(inputs.confidence, inputs.confidenceScale);
+  if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && stated >= CONFIDENT_ENOUGH_TO_NAME) {
     return {
       kind: "confident-and-wrong",
-      text: `אמרת ביטחון ${inputs.confidence} מתוך 5, וההחלטה עלתה ${inputs.cpLoss} ס״פ. הפער בין הביטחון לתוצאה הוא מה שכדאי להסתכל עליו, לא המהלך.`,
-      basis: `ביטחון ${inputs.confidence}/5 מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      text: `אמרת ביטחון ${inputs.confidence} מתוך ${inputs.confidenceScale}, וההחלטה עלתה ${inputs.cpLoss} ס״פ. הפער בין הביטחון לתוצאה הוא מה שכדאי להסתכל עליו, לא המהלך.`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
@@ -216,11 +258,11 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
       basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
-  if (noisy && inputs.confidence <= 2) {
+  if (noisy && stated <= UNSURE_ENOUGH_TO_NAME) {
     return {
       kind: "trusted-it-too-little",
-      text: `בחרת נכון בתוך רעש ההערכה, אבל אמרת ביטחון ${inputs.confidence} מתוך 5. ייתכן שאתה יודע כאן יותר ממה שאתה סומך על עצמו.`,
-      basis: `ביטחון ${inputs.confidence}/5 מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      text: `בחרת נכון בתוך רעש ההערכה, אבל אמרת ביטחון ${inputs.confidence} מתוך ${inputs.confidenceScale}. ייתכן שאתה יודע כאן יותר ממה שאתה סומך על עצמו.`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   // Nothing measured here supports a sentence. Say nothing rather than fill the space.
@@ -291,6 +333,14 @@ export interface OneThingMix {
 /** The atom fields this reads. Kept structural so the record's own type does not leak in here. */
 export interface MixableDecision {
   confidence: number;
+  /**
+   * The scale that level was stated on, straight off `bounded_action.confidence_scale`.
+   *
+   * Carried because this mix runs over the WHOLE record, which is where a scale change actually
+   * bites: pooling legacy five-level rows and current seven-level rows on one raw threshold
+   * counts a stored 4 (which asserted 75%) and a current 4 (which asserts 50%) as the same claim.
+   */
+  confidenceScale: number;
   candidatesConsidered: string[];
   chosenMove: string;
   cpLoss: number | null;
@@ -331,6 +381,7 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
       bestMove: d.bestMove,
       chosenWasBest: d.chosenMove === d.bestMove,
       confidence: d.confidence,
+      confidenceScale: d.confidenceScale,
       statedUnknown: "",
       decisionsOnRecord: decisions.length,
       candidatesConsidered: d.candidatesConsidered,

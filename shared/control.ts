@@ -25,7 +25,7 @@
  * is what the number is for. What it cannot do is turn one player's coefficient into a statement
  * about that player alone, and it does not claim to.
  */
-import { MIN_BUCKET_N, type ScoredDecision } from "./detector.js";
+import { MIN_BUCKET_N, SEPARABILITY_K, type ScoredDecision } from "./detector.js";
 
 export interface Control {
   n: number;
@@ -45,11 +45,39 @@ export interface Control {
    * no association to measure. Zero would be a claim that effort and confidence are unrelated for
    * them; null is the truth, which is that this record cannot say.
    */
-  reason: "ok" | "too-few" | "flat-time" | "flat-confidence" | null;
+  /**
+   * The standard error of `atanh(rho)`, or null where no coefficient exists.
+   *
+   * CARRIED BECAUSE THE COEFFICIENT ALONE IS NOT A FINDING, the same rule the detector applies to
+   * a bucket's gap. A rank correlation from 30 pairs has a standard error near 0.19, and this cell
+   * printed two decimals of it under a label that says a player's effort follows their doubt.
+   *
+   * Measured: with time drawn INDEPENDENTLY of confidence -- no association by construction --
+   * over 20,000 records, a figure appeared 100% of the time, |rho| >= 0.20 on 29% of them at
+   * MIN_BUCKET_N and >= 0.30 on 11%. One player in nine with nothing to find was handed "−0.31".
+   *
+   * Fisher's z rather than an error on rho itself: the sampling distribution of a correlation is
+   * skewed and bounded at ±1, and `1/sqrt(n-3)` on the transformed scale is the standard remedy.
+   */
+  standardError: number | null;
+  /**
+   * Why the cell is empty, when it is -- and every value here is a DIFFERENT fact with different
+   * advice.
+   *
+   * A player who took the same time over everything, or said the same thing about everything, has
+   * no association to measure and never will: more decisions at the same speed cannot help, so
+   * "keep playing" is advice that cannot work. `too-few` is a wait. `inside-noise` is a wait too,
+   * but a different one -- the coefficient was computed and came out indistinguishable from none.
+   *
+   * ALL FOUR OF THESE EXISTED AND NONE REACHED A SCREEN. The dashboard rendered a bare "—" for
+   * every one of them, so the distinction was built and discarded at the last step.
+   */
+  reason: "ok" | "too-few" | "flat-time" | "flat-confidence" | "inside-noise" | null;
+  /** Whether the coefficient is a statement about this player rather than about this sample. */
   readable: boolean;
 }
 
-const EMPTY: Control = { n: 0, rho: null, reason: null, readable: false };
+const EMPTY: Control = { n: 0, rho: null, standardError: null, reason: null, readable: false };
 
 /** Ranks, averaging ties -- which is what makes this Spearman rather than an approximation of it. */
 function ranks(values: readonly number[]): number[] {
@@ -75,12 +103,15 @@ function ranks(values: readonly number[]): number[] {
 export function effortFollowsDoubt(decisions: readonly ScoredDecision[]): Control {
   const n = decisions.length;
   if (n === 0) return EMPTY;
-  if (n < MIN_BUCKET_N) return { n, rho: null, reason: "too-few", readable: false };
+  if (n < MIN_BUCKET_N)
+    return { n, rho: null, standardError: null, reason: "too-few", readable: false };
 
   const times = decisions.map((d) => d.secondsTaken);
   const said = decisions.map((d) => d.confidence);
-  if (new Set(times).size < 2) return { n, rho: null, reason: "flat-time", readable: false };
-  if (new Set(said).size < 2) return { n, rho: null, reason: "flat-confidence", readable: false };
+  if (new Set(times).size < 2)
+    return { n, rho: null, standardError: null, reason: "flat-time", readable: false };
+  if (new Set(said).size < 2)
+    return { n, rho: null, standardError: null, reason: "flat-confidence", readable: false };
 
   const a = ranks(times);
   const b = ranks(said);
@@ -101,8 +132,27 @@ export function effortFollowsDoubt(decisions: readonly ScoredDecision[]): Contro
    * as a correlation.
    */
   if (leftSq <= 0 || rightSq <= 0) {
-    return { n, rho: null, reason: leftSq <= 0 ? "flat-time" : "flat-confidence", readable: false };
+    return {
+      n,
+      rho: null,
+      standardError: null,
+      reason: leftSq <= 0 ? "flat-time" : "flat-confidence",
+      readable: false,
+    };
   }
 
-  return { n, rho: top / Math.sqrt(leftSq * rightSq), reason: "ok", readable: true };
+  const rho = top / Math.sqrt(leftSq * rightSq);
+  /*
+   * THE BAR IS THE DETECTOR'S OWN, reused rather than invented, for the same reason the
+   * population comparison reuses it: the panel must not hold itself to two standards, and a
+   * constant chosen here would be one picked to make this cell produce a number.
+   *
+   * `atanh` is clamped away from ±1 first. A perfectly monotone record gives rho = 1 exactly and
+   * `atanh(1)` is Infinity, which clears any multiplier there is -- so the bar would be loudest
+   * on the record with the fewest distinct ranks behind it.
+   */
+  const standardError = 1 / Math.sqrt(n - 3);
+  const z = Math.atanh(Math.max(-0.999999, Math.min(0.999999, rho)));
+  const readable = Math.abs(z) >= SEPARABILITY_K * standardError;
+  return { n, rho, standardError, reason: readable ? "ok" : "inside-noise", readable };
 }

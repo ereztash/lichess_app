@@ -36,6 +36,8 @@ beforeEach(async () => {
     unknown: "A forcing move may exist",
     decision: "e2e4",
     bounded_action: { seconds_taken: 10, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
+    probe: null,
+    reveal_timing: null,
     result: null,
     feedback: null,
   });
@@ -89,6 +91,60 @@ describe("player-authored learning rule composer", () => {
       grade: "hypothesis",
       action_rule: "אסרוק שחים, הכאות ואיומים לפני מסע שקט",
     });
+  });
+});
+
+/**
+ * The reflection the record kept, said out loud on the screen that holds the other one.
+ *
+ * `createLearningRule` writes the reflection and the rule in two statements with no transaction,
+ * and this form keeps every field on screen after a failure. So a player whose rule write was lost
+ * edits a word and presses save again — sending a DIFFERENT reflection for a decision that already
+ * has one. The service used to refuse the whole operation, which locked that decision out of ever
+ * carrying a rule. It now keeps the reflection already on the record and writes the rule.
+ *
+ * Which means the text in the box is not what the record holds, and the form has to say so. Closing
+ * silently would leave the player believing what they typed was stored — the same defect, moved.
+ */
+describe("the reflection the record kept", () => {
+  const fill = async (user: ReturnType<typeof userEvent.setup>, revisedRead: string) => {
+    await user.type(screen.getByLabelText(/מה אתם מבינים עכשיו/), revisedRead);
+    await user.type(screen.getByLabelText(/מתי הכלל אמור/), "כאשר מבנה הרגלים ליד המלך משתנה");
+    await user.type(screen.getByLabelText(/איזה סימן/), "נפתח קו למלכה");
+    await user.type(screen.getByLabelText(/מה תעשו/), "אסרוק שחים, הכאות ואיומים לפני מסע שקט");
+    await user.type(screen.getByLabelText(/איזו תוצאה אתם מצפים/), "פחות החמצות טקטיות");
+    await user.type(screen.getByLabelText(/איזו תוצאה תפריך/), "פחות משתי הצלחות בשלוש עמדות חדשות");
+    await user.click(screen.getByRole("button", { name: "סריקת איומים" }));
+    await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
+    await user.click(screen.getByRole("button", { name: /שמירת כלל/ }));
+  };
+
+  it("names what was kept, and does not close until the player has seen it", async () => {
+    // A reflection is already on this decision, which is what a lost rule write leaves behind.
+    await service.feedback(new LocalRecordStore(), ID, {
+      revisedRead: "פספסתי שח כפוי",
+      wouldChooseAgain: false,
+    });
+
+    const onSaved = renderComposer();
+    await fill(userEvent.setup(), "פספסתי שח כפוי, וגם לא ספרתי חומר");
+
+    const kept = await screen.findByRole("status");
+    expect(kept.textContent, "the kept reflection is not named").toContain("פספסתי שח כפוי");
+    // The rule IS saved -- that is the whole point of no longer refusing.
+    expect(await new LocalRecordStore().listLearningRules()).toHaveLength(1);
+    // And the form stays until acknowledged, so the notice cannot be missed.
+    expect(onSaved).not.toHaveBeenCalled();
+    await userEvent.setup().click(screen.getByRole("button", { name: "הבנתי" }));
+    expect(onSaved).toHaveBeenCalledOnce();
+  });
+
+  it("says nothing when the reflection was the first one, which is every ordinary save", async () => {
+    // The half that makes the notice mean something: a message that always shows is not a message.
+    const onSaved = renderComposer();
+    await fill(userEvent.setup(), "פספסתי שח כפוי");
+    await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
+    expect(screen.queryByRole("status")).toBeNull();
   });
 });
 

@@ -13,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import {
   claims,
+  decisionCounterfactuals,
   decisionFeedback,
   decisionReveals,
   decisions,
@@ -30,6 +31,9 @@ import {
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
+import { assembleProbe } from "../shared/counterfactual.js";
+import { RecordError } from "../shared/record-service.js";
+import { MissingClaimDirection } from "../shared/drill.js";
 import type { PreregisteredHypothesis } from "../shared/prereg.js";
 import type { StoredImportDiagnostic } from "../shared/import-diagnostic.js";
 import type {
@@ -72,6 +76,7 @@ function toAtom(
   decision: Decision,
   reveal: typeof decisionReveals.$inferSelect | undefined,
   feedback: typeof decisionFeedback.$inferSelect | undefined,
+  counterfactual?: typeof decisionCounterfactuals.$inferSelect | undefined,
 ): DecisionAtom {
   return {
     entry_state: {
@@ -90,6 +95,14 @@ function toAtom(
       ...(decision.confidenceScale === null ? {} : { confidence_scale: decision.confidenceScale }),
       candidate_moves_considered: decision.candidateMovesConsidered,
     },
+    probe: assembleProbe(
+      decision,
+      counterfactual && {
+        alternative: counterfactual.alternativeMove,
+        cpLoss: counterfactual.alternativeCpLoss,
+      },
+    ),
+    reveal_timing: decision.revealTiming,
     result: reveal
       ? {
           engine_eval_cp: reveal.engineEvalCp,
@@ -217,6 +230,9 @@ export class DrizzleRecordStore implements RecordStore {
       statedUnknown: input.statedUnknown,
       confidence: input.confidence,
       confidenceScale: input.confidenceScale,
+      probeAssignment: input.probeAssignment,
+      legalMoves: input.legalMoves,
+      revealTiming: input.revealTiming,
     };
     // Append-only: no onDuplicateKeyUpdate. A repeated decision_id is a bug, not an update.
     await db.insert(decisions).values(row);
@@ -241,6 +257,48 @@ export class DrizzleRecordStore implements RecordStore {
       revisedRead: feedback.revisedRead,
       wouldChooseAgain: feedback.wouldChooseAgain,
     });
+  }
+
+  async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
+    const db = await this.db();
+    const [decision] = await db
+      .select()
+      .from(decisions)
+      .where(eq(decisions.decisionId, decisionId))
+      .limit(1);
+    if (!decision) throw new RecordError("NOT_FOUND", "אין החלטה כזאת ברשומה.");
+    if (decision.probeAssignment !== "probed") {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה הזאת לא נשאלה את השאלה החלופית, ולכן אי אפשר לרשום עליה תשובה.",
+      );
+    }
+    /*
+     * R3 in the direction it is usually not written -- see the note on the in-memory store. An
+     * alternative named after the evaluation is on screen is a reading of the engine's candidate.
+     */
+    if (await this.hasReveal(decisionId)) {
+      throw new RecordError("BAD_REQUEST", "המנוע כבר דיבר על ההחלטה הזאת.");
+    }
+    // Append-only, like every other event table: no onDuplicateKeyUpdate.
+    await db.insert(decisionCounterfactuals).values({ decisionId, alternativeMove: alternative });
+  }
+
+  async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
+    const db = await this.db();
+    const [answer] = await db
+      .select()
+      .from(decisionCounterfactuals)
+      .where(eq(decisionCounterfactuals.decisionId, decisionId))
+      .limit(1);
+    if (!answer) throw new RecordError("NOT_FOUND", "אין תשובה חלופית לתת לה ציון.");
+    if (answer.alternativeMove === null) {
+      throw new RecordError("BAD_REQUEST", "לא נאמר מהלך חלופי, ולכן אין מה לתמחר.");
+    }
+    await db
+      .update(decisionCounterfactuals)
+      .set({ alternativeCpLoss: cpLoss })
+      .where(eq(decisionCounterfactuals.decisionId, decisionId));
   }
 
   async hasReveal(decisionId: string): Promise<boolean> {
@@ -271,7 +329,12 @@ export class DrizzleRecordStore implements RecordStore {
       .from(decisionFeedback)
       .where(eq(decisionFeedback.decisionId, decisionId))
       .limit(1);
-    return toAtom(decision, reveal, feedback);
+    const [counterfactual] = await db
+      .select()
+      .from(decisionCounterfactuals)
+      .where(eq(decisionCounterfactuals.decisionId, decisionId))
+      .limit(1);
+    return toAtom(decision, reveal, feedback, counterfactual);
   }
 
   /**
@@ -297,10 +360,17 @@ export class DrizzleRecordStore implements RecordStore {
       : await db.select().from(decisions).orderBy(decisions.createdAt, decisions.decisionId);
     const reveals = await db.select().from(decisionReveals);
     const feedbacks = await db.select().from(decisionFeedback);
+    const counterfactuals = await db.select().from(decisionCounterfactuals);
     const revealBy = new Map(reveals.map((r) => [r.decisionId, r]));
     const feedbackBy = new Map(feedbacks.map((f) => [f.decisionId, f]));
+    const counterfactualBy = new Map(counterfactuals.map((c) => [c.decisionId, c]));
     return rows.map((row) =>
-      toAtom(row, revealBy.get(row.decisionId), feedbackBy.get(row.decisionId)),
+      toAtom(
+        row,
+        revealBy.get(row.decisionId),
+        feedbackBy.get(row.decisionId),
+        counterfactualBy.get(row.decisionId),
+      ),
     );
   }
 
@@ -332,12 +402,31 @@ export class DrizzleRecordStore implements RecordStore {
       n: claim.n,
       grade: claim.grade,
       refutationCondition: claim.refutation_condition,
+      /*
+       * THE TWO TIMESTAMPS ARE WRITTEN, NOT LEFT TO THE DATABASE, and the second one was a real
+       * divergence between the two stores.
+       *
+       * `created_at` defaulted to `now()` and `last_evaluated_at` carried `ON UPDATE NOW()`, so
+       * the values the service computed were discarded: MemoryRecordStore kept
+       * `result.recorded_at` and MySQL kept the wall-clock time of the write. Probed side by side
+       * against a real MariaDB -- the service wrote 2026-02-02T10:00:00Z, memory returned it, and
+       * MySQL returned the moment the statement ran. Every test in this repository except this
+       * file's runs against the in-memory store, so nothing could see it.
+       *
+       * "When was this claim last evaluated" is a fact about the drill, not about the row.
+       */
+      predictsOverconfidence: claim.predicts_overconfidence,
+      createdAt: new Date(claim.created_at),
+      lastEvaluatedAt: new Date(claim.last_evaluated_at),
     };
-    // The grade is the one field that legitimately changes, and only via evaluateClaim.
+    // The grade and the evaluation date are what legitimately change, and only via evaluateClaim.
+    // An explicit value in the SET clause is what overrides the column's ON UPDATE NOW().
     await db
       .insert(claims)
       .values(row)
-      .onDuplicateKeyUpdate({ set: { grade: claim.grade } });
+      .onDuplicateKeyUpdate({
+        set: { grade: claim.grade, lastEvaluatedAt: new Date(claim.last_evaluated_at) },
+      });
   }
 
   async getClaim(claimId: string): Promise<Claim | null> {
@@ -353,6 +442,7 @@ export class DrizzleRecordStore implements RecordStore {
       n: row.n,
       grade: row.grade,
       refutation_condition: row.refutationCondition,
+      predicts_overconfidence: row.predictsOverconfidence,
       prospective_tests: results.map((r) => ({
         kind: "prospective_drill_result" as const,
         drill_id: r.drillId,
@@ -375,6 +465,7 @@ export class DrizzleRecordStore implements RecordStore {
       fens: started.spec.fens,
       refutationCondition: started.spec.refutation_condition,
       predicted: started.predicted,
+      predictsOverconfidence: started.spec.predicts_overconfidence,
     });
   }
 
@@ -382,12 +473,23 @@ export class DrizzleRecordStore implements RecordStore {
     const db = await this.db();
     const [row] = await db.select().from(drills).where(eq(drills.drillId, drillId)).limit(1);
     if (!row) return null;
+    if (row.predictsOverconfidence === null) {
+      /*
+       * A drill registered before the direction was recorded. The one consumer of this spec is a
+       * SIGNED test, so handing back a spec with no sign only moves the guess downstream -- and
+       * the guess that used to live there is what graded confirming evidence as a refutation.
+       * The drill is unfinishable; saying so beats finishing it wrongly, because a wrong verdict
+       * is terminal and this is not.
+       */
+      throw new MissingClaimDirection(row.claimId);
+    }
     return {
       spec: {
         drill_id: row.drillId,
         claim_id: row.claimId,
         fens: row.fens,
         refutation_condition: row.refutationCondition,
+        predicts_overconfidence: row.predictsOverconfidence,
       },
       predicted: row.predicted,
       started_at: row.startedAt.toISOString(),
@@ -408,6 +510,16 @@ export class DrizzleRecordStore implements RecordStore {
       refutationCondition: drill?.refutationCondition ?? "",
       predicted: result.predicted,
       observed: result.observed,
+      /*
+       * WRITTEN, not left to `defaultNow()`. Same divergence as the claim's two timestamps above:
+       * MemoryRecordStore kept what the service reported and MySQL kept when the row happened to
+       * be inserted, and every test but the database ones runs against memory.
+       *
+       * It matters more here than anywhere else, because `evaluateClaim` now ORDERS THE FOLD BY
+       * THIS FIELD. Ordering by when the row was written and grading by when the drill was
+       * reported are the same thing only as long as nothing is ever backfilled or replayed.
+       */
+      recordedAt: new Date(result.recorded_at),
     });
   }
 
@@ -420,6 +532,26 @@ export class DrizzleRecordStore implements RecordStore {
       .limit(1);
     if (existingRow && !sameLearningRuleAuthorship(toLearningRule(existingRow), rule)) {
       throw new Error("append-only: authored learning rule cannot change");
+    }
+    /*
+     * RETIRED IS TERMINAL, AND IT IS TERMINAL HERE RATHER THAN IN THE SERVICE.
+     *
+     * Retirement is the one grade nothing can re-derive: it is stored only as this enum -- no
+     * `retired_at`, no retirement row -- so a write that moves a rule off it destroys a fact the
+     * player authored, permanently and silently. `gradeLearningRule` refuses to rebuild it, but
+     * the fold's WRITE could still overwrite it: read the rule, await the results, and the player
+     * archives the rule in between. The Archive button has no disabled state, so a second tab or a
+     * completion still in flight is enough.
+     *
+     * A service-level check would be another read-then-write and would lose the same race. Here it
+     * cannot be lost, whichever caller the write came from.
+     *
+     * Writing a retired rule back AS retired is allowed on purpose: the fold returns it unchanged,
+     * and refusing that would fail every completion on a rule archived mid-run, after the result
+     * was already on the record -- trading a silent loss for a partial one.
+     */
+    if (existingRow && existingRow.grade === "retired" && rule.grade !== "retired") {
+      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
     }
     await db
       .insert(learningRules)
@@ -509,7 +641,21 @@ export class DrizzleRecordStore implements RecordStore {
       .where(
         and(eq(learningTransfers.ruleId, ruleId), isNull(learningTransferResults.transferId)),
       )
-      .orderBy(learningTransfers.startedAt)
+    /*
+     * THE NEWEST OPEN TRANSFER, NOT THE OLDEST.
+     *
+     * With one open transfer -- every ordinary case -- these are the same row. They differ only
+     * after `beginLearningTransfer`'s check-then-act loses a race and two preregistrations exist
+     * over the same rule. Then the oldest is the ORPHAN: the one nobody sat, whose boards the
+     * player has since decided under the other. Handing it back re-served three decided boards and
+     * a second sitting on them graded the rule `replicated` on one set of positions.
+     *
+     * The service refuses to resume such a transfer and preregisters a fresh one; ordering by most
+     * recent is what lets that fresh one supersede the orphan instead of queueing behind it
+     * forever. Nothing in the store contract deletes a transfer, so the orphan stays in the table
+     * and is simply never the newest again.
+     */
+      .orderBy(desc(learningTransfers.startedAt))
       .limit(1);
     return row ? toLearningTransfer(row.transfer) : null;
   }
@@ -706,6 +852,8 @@ export class MemoryRecordStore implements RecordStore {
   private readonly rows = new Map<string, CommitDecisionInput>();
   private readonly reveals = new Map<string, DecisionResult>();
   private readonly feedbacks = new Map<string, FeedbackInput>();
+  /** Present iff the question was answered. The value is null when no move was named. */
+  private readonly counterfactuals = new Map<string, { alternative: string | null; cpLoss: number | null }>();
   private readonly preregRows: PreregisteredHypothesis[] = [];
 
   async commitDecision(input: CommitDecisionInput): Promise<void> {
@@ -723,6 +871,29 @@ export class MemoryRecordStore implements RecordStore {
     if (!this.rows.has(decisionId)) throw new Error("no such decision");
     if (this.feedbacks.has(decisionId)) throw new Error("append-only: feedback already exists");
     this.feedbacks.set(decisionId, feedback);
+  }
+
+  async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
+    const row = this.rows.get(decisionId);
+    if (!row) throw new Error("no such decision");
+    if (row.probeAssignment !== "probed") throw new Error("this decision was never asked");
+    /*
+     * R3 IN THE DIRECTION IT IS USUALLY NOT WRITTEN. The rule normally stops the engine speaking
+     * before a commitment; here it stops the player's answer arriving after the engine has. An
+     * alternative named with an evaluation already on screen is a reading of the engine's
+     * candidate, not a self-generated one, and the two are indistinguishable once stored.
+     */
+    if (this.reveals.has(decisionId)) throw new Error("the engine has already spoken");
+    if (this.counterfactuals.has(decisionId)) throw new Error("append-only: already answered");
+    this.counterfactuals.set(decisionId, { alternative, cpLoss: null });
+  }
+
+  async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
+    const answer = this.counterfactuals.get(decisionId);
+    if (!answer) throw new Error("no answer to score");
+    // A score with no move behind it came from somewhere other than this decision.
+    if (answer.alternative === null) throw new Error("no alternative was named");
+    this.counterfactuals.set(decisionId, { ...answer, cpLoss });
   }
 
   async hasReveal(decisionId: string): Promise<boolean> {
@@ -796,6 +967,10 @@ export class MemoryRecordStore implements RecordStore {
     if (existing && !sameLearningRuleAuthorship(existing, rule)) {
       throw new Error("append-only: authored learning rule cannot change");
     }
+    // The same terminal guard as DrizzleRecordStore above, and for the same reason.
+    if (existing && existing.grade === "retired" && rule.grade !== "retired") {
+      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
+    }
     this.learningRuleRows.set(rule.rule_id, structuredClone(rule));
   }
 
@@ -824,7 +999,8 @@ export class MemoryRecordStore implements RecordStore {
     const reported = new Set(this.learningTransferResultRows.map((row) => row.transfer_id));
     const open = [...this.learningTransferRows.values()]
       .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
-      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+      // Newest first, for the reason DrizzleRecordStore spells out above.
+      .sort((a, b) => b.started_at.localeCompare(a.started_at));
     return open[0] ? structuredClone(open[0]) : null;
   }
 
@@ -905,6 +1081,8 @@ export class MemoryRecordStore implements RecordStore {
         ...(row.confidenceScale === null ? {} : { confidence_scale: row.confidenceScale }),
         candidate_moves_considered: row.candidateMovesConsidered,
       },
+      probe: assembleProbe(row, this.counterfactuals.get(row.decisionId)),
+      reveal_timing: row.revealTiming,
       result,
       feedback: feedback
         ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -912,6 +1090,7 @@ export class MemoryRecordStore implements RecordStore {
     };
   }
 }
+
 
 function sameLearningRuleAuthorship(left: LearningRule, right: LearningRule): boolean {
   const mutable = new Set(["grade", "retrieval_step", "next_due_at", "last_evaluated_at"]);

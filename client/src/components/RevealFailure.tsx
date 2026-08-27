@@ -28,9 +28,18 @@ const COPY: Record<RevealFailureKind, { what: string; detail: string }> = {
   },
   write: {
     what: "תוצאת המנוע לא נשמרה.",
+    /*
+     * IT NO LONGER SAYS THE DECISION IS NOT COUNTED, because it could not know that.
+     *
+     * The reveal is two writes. When the first landed and the second did not, this panel was
+     * telling the player the opposite of what had happened: the engine's verdict WAS stored and
+     * the decision WAS counted among the revealed ones. The client cannot tell the two failures
+     * apart from here -- after a failed write and a failed retry, either is possible -- so it
+     * says what is certain and points at the surface that holds the answer.
+     */
     detail:
-      "המנוע ענה והחשיפה למעלה תקפה, אבל הפסק שלו לא נכתב לרשומה. ההחלטה הזו לא תיספר " +
-      "בין ההחלטות החשופות, ולכן לא תיכנס לחישוב הדפוסים.",
+      "המנוע ענה והחשיפה למעלה תקפה, אבל הכתיבה לרשומה נכשלה — גם בניסיון החוזר. " +
+      "מסך הרשומה יראה אם ההחלטה הזו נספרת בין החשופות; אם לא, היא לא תיכנס לחישוב הדפוסים.",
   },
 };
 

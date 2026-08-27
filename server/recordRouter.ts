@@ -7,9 +7,11 @@
  */
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import {
   boundedActionSchema,
   entryStateSchema,
+  probeSchema,
   resultSchema,
   type DecisionAtom,
 } from "../shared/decision-atom.js";
@@ -26,6 +28,33 @@ import { ownerProcedure } from "./_core/owner.js";
 import { router } from "./_core/trpc.js";
 
 /**
+ * The largest an import diagnostic may serialise to, in JSON characters.
+ *
+ * 64 KiB. A real one is a fixed set of bucket readings plus a dozen counters -- the fixtures in
+ * this repository run well under 4 KB -- so this is roughly sixteen times the largest honest
+ * value, which is the margin an opaque object deserves rather than none at all.
+ */
+const MAX_DIAGNOSTIC_BYTES = 64 * 1024;
+
+/**
+ * The check itself, exported so it can be tested as behaviour rather than read as source.
+ *
+ * It answers one question -- can this be stored and read back -- and deliberately not "is this a
+ * valid diagnostic". The shape is the client's own output and a field-by-field schema here would
+ * restate this codebase; the size is a property of the storage, which this layer owns.
+ */
+export function isStorableDiagnostic(value: unknown): boolean {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  try {
+    return JSON.stringify(value).length <= MAX_DIAGNOSTIC_BYTES;
+  } catch {
+    // A cycle, or a BigInt. Either way it cannot be stored, and it must not throw out of a
+    // validator -- a thrown parse is a 500 where a refusal was the honest answer.
+    return false;
+  }
+}
+
+/**
  * The API event. Carries every atom field (section 3.1). `result` and `feedback` are present and
  * null at commit time: the engine has not spoken and the player has not revised anything.
  * GATE-ISO checks that the FIELD is here, not that it holds a value.
@@ -37,6 +66,13 @@ export const commitEventSchema = z.object({
   unknown: z.string().min(1).max(200),
   decision: z.string().min(4).max(6),
   bounded_action: boundedActionSchema,
+  /**
+   * Nullable on the wire, because a client that predates the probe has no arm to send and its
+   * decisions are still perfectly good calibration data. Null is stored as null and never read as
+   * a control -- see the note on `probeSchema`.
+   */
+  probe: probeSchema.nullable(),
+  reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
   result: z.null(),
   feedback: z.null(),
 });
@@ -76,10 +112,35 @@ export function buildRecordRouter(store: RecordStore) {
         guard(() => service.commitDecision(store, input)),
       ),
 
+    /**
+     * The answer to the counterfactual probe. Its own procedure because it happens between the
+     * commit and the reveal, which is a moment no other route occupies.
+     */
+    recordCounterfactual: ownerProcedure
+      .input(
+        z.object({
+          decision_id: z.string().uuid(),
+          /** Null is a real answer -- asked, and no other move -- not an omitted field. */
+          alternative: z.string().min(4).max(6).nullable(),
+        }),
+      )
+      .mutation(({ input }): Promise<{ decision_id: string }> =>
+        guard(() => service.recordCounterfactual(store, input.decision_id, input.alternative)),
+      ),
+
     reveal: ownerProcedure
-      .input(z.object({ decision_id: z.string().uuid(), result: resultSchema }))
+      .input(
+        z.object({
+          decision_id: z.string().uuid(),
+          result: resultSchema,
+          /** The alternative's cost, off the same root search. Absent when none was named. */
+          alternative_cp_loss: z.number().int().min(0).nullable().optional(),
+        }),
+      )
       .mutation(({ input }): Promise<DecisionAtom> =>
-        guard(() => service.reveal(store, input.decision_id, input.result)),
+        guard(() =>
+          service.reveal(store, input.decision_id, input.result, input.alternative_cp_loss),
+        ),
       ),
 
     feedback: ownerProcedure
@@ -275,13 +336,23 @@ export function buildRecordRouter(store: RecordStore) {
      * `diagnoseImportedGames` from PGNs it fetched, never typed by a user, so a field-by-field
      * schema here would restate this codebase rather than validate input -- and it would have to
      * be edited in lockstep every time a bucket is added.
+     *
+     * WHAT IS CHECKED INSTEAD IS SIZE, and it is checked because "opaque" was doing more work than
+     * it should. `typeof value === "object"` accepts an array, a Date, and an object of any depth
+     * and any size -- so the one property the rest of the system actually depends on, that this
+     * fits in a row and renders without choking, was resting on the client being well behaved.
+     * A bound on the serialised bytes is a real constraint that does not have to be edited when a
+     * bucket is added; a real diagnostic is a fixed handful of readings and is orders of magnitude
+     * under it.
      */
     saveImportReading: ownerProcedure
       .input(
         z.object({
           username: z.string().min(1).max(60),
           games: z.number().int().nonnegative(),
-          diagnostic: z.custom<ImportDiagnostic>((value) => typeof value === "object" && value !== null),
+          diagnostic: z.custom<ImportDiagnostic>(isStorableDiagnostic, {
+            message: "אבחון הייבוא אינו אובייקט או שהוא גדול מדי.",
+          }),
         }),
       )
       .mutation(({ input }) => guard(() => service.saveImportReading(store, input))),

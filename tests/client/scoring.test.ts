@@ -16,6 +16,8 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   unknown: "u",
   decision: "e2e4",
   bounded_action: { seconds_taken: 30, confidence: 4, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
+  probe: null,
+  reveal_timing: null,
   result: {
     engine_eval_cp: 20,
     engine_best_move: "e2e4",

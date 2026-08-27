@@ -23,6 +23,9 @@ import { render, screen, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { readCounterfactuals } from "@shared/counterfactual-reading";
+import { readVariables } from "@shared/bucket-variable";
+import { crossVariables } from "@shared/crossing";
 import { calibrationScore } from "@shared/calibration-score";
 import { splitHalfStability } from "@shared/stability";
 import { metacognitiveSensitivity } from "@shared/sensitivity";
@@ -63,6 +66,8 @@ const { default: Record } = await import("@/pages/Record");
  */
 const withRecord = (scored: number): RecordReading => ({
   scored,
+  counterfactual: readCounterfactuals([]),
+  profile: { variables: readVariables([]), crossing: crossVariables([]) },
   overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
@@ -246,5 +251,61 @@ describe("the record is the front door", () => {
     const page = code("client/src/pages/Record.tsx");
     expect(page).toMatch(/writePosition\(/);
     expect(page).toMatch(/navigate\("\/play"\)/);
+  });
+});
+
+/**
+ * THE NOTICE IS FOR THE PERSON WHO RECEIVES THE BINARIES, not the person who reads the repository.
+ *
+ * This build conveys a 7.3 MB GPL-3.0 engine and nine OFL font files to whoever loads the page,
+ * and for the whole life of the repository nothing travelled with them. A `THIRD_PARTY_NOTICES.md`
+ * in the source tree does not fix that: the people the licences are about never see it.
+ *
+ * So the assertions are about the LINK BEING LIVE, not about the paragraph existing. A licence
+ * link that 404s conveys nothing, and it is the failure mode a renamed file produces silently --
+ * `GATE-NOTICE` checks the repository side, and this checks that the page points at it.
+ */
+describe("the licences travel with the thing they license", () => {
+  const linkTargets = () => {
+    mount({ reading: { data: withRecord(0), isLoading: false, isError: false } });
+    return [...screen.getByRole("contentinfo").querySelectorAll("a")].map((anchor) => ({
+      text: anchor.textContent ?? "",
+      href: anchor.getAttribute("href") ?? "",
+      lang: anchor.getAttribute("lang"),
+      dir: anchor.getAttribute("dir"),
+    }));
+  };
+
+  it("names each conveyed component and links to the licence text served with it", () => {
+    const links = linkTargets();
+    expect(links.map((link) => link.text)).toEqual([
+      "Stockfish",
+      "Noto Sans Hebrew",
+      "DM Mono",
+    ]);
+    expect(links.map((link) => link.href)).toEqual([
+      "/licenses/stockfish/COPYING.txt",
+      "/licenses/fonts/noto-sans-hebrew/OFL.txt",
+      "/licenses/fonts/dm-mono/OFL.txt",
+    ]);
+  });
+
+  it("points every one of them at a file that exists to be served", () => {
+    for (const link of linkTargets()) {
+      const served = resolve(root, "client/public", link.href.replace(/^\//, ""));
+      expect(readFileSync(served, "utf8").length, `${link.href} is served empty`).toBeGreaterThan(
+        1000,
+      );
+    }
+  });
+
+  it("marks the Latin names as Latin, inside a Hebrew document", () => {
+    // Three names in Latin script inside `lang="he" dir="rtl"`. Without `lang` a screen reader
+    // reads them with Hebrew phonetics; without `dir` the punctuation around them lands on the
+    // wrong side. Same rule the rest of this product's LTR islands follow.
+    for (const link of linkTargets()) {
+      expect(link.lang, `${link.text} is not declared as Latin script`).toBe("en");
+      expect(link.dir).toBe("ltr");
+    }
   });
 });

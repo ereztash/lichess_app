@@ -165,7 +165,62 @@ export function preregisterLearningTransfer(
   };
 }
 
+/**
+ * THE GRADE IS DERIVED FROM THE RESULTS, NOT ACCUMULATED ONTO THE RULE.
+ *
+ * This used to take one result and step the rule forward from wherever it stood: `retrieval_step`
+ * incremented, `next_due_at` recomputed, `grade` possibly closed. That made the rule's schedule an
+ * accumulator whose correctness depended on every result having been folded in exactly once --
+ * across two unrelated writes, in two stores, neither of which has a transaction.
+ *
+ * An injected failure between those writes showed what that costs. `finishLearningTransfer` writes
+ * the result, then writes the graded rule. Lose the second and the record holds two days of
+ * successful transfer with the rule still marked `hypothesis` -- and the retry branch, which exists
+ * so a lost response can be reported again, handed back the rule AS STORED. The recovery path was
+ * what made the loss permanent: the result row exists, so the retry short-circuits forever, and no
+ * later call would ever grade that sitting.
+ *
+ * A fold over the whole result set has no such state. Run it once or five times, before the crash
+ * or after it, and the same record produces the same rule. It is the same reason `recall.coverage`
+ * is not stored beside `recalled_rules`: derived beats duplicated, and here it also beats losable.
+ *
+ * `retired` is the one thing not derivable this way -- it is an act of the player's, not a reading
+ * of the evidence -- so it is checked before the fold and never rebuilt by it.
+ */
 export function gradeLearningRule(
+  rule: LearningRule,
+  results: LearningTransferResult[],
+): LearningRule {
+  if (rule.grade === "retired") return rule;
+
+  /*
+   * Ordered by completion, because the fold reproduces the sequence the sittings happened in and
+   * `refuted` is terminal within it. Ties break on the transfer id so the ordering is total: two
+   * results stamped the same instant must not grade differently depending on row order.
+   */
+  const ordered = [...results].sort(
+    (a, b) =>
+      a.completed_at.localeCompare(b.completed_at) || a.transfer_id.localeCompare(b.transfer_id),
+  );
+
+  // The rule as authored. Every schedule field below it is a function of the results, so the fold
+  // starts from what `formLearningRule` wrote and never from what a previous grading left behind.
+  let folded: LearningRule = {
+    ...rule,
+    grade: "hypothesis",
+    retrieval_step: 0,
+    next_due_at: addDays(rule.created_at, RETRIEVAL_INTERVAL_DAYS[0]),
+    last_evaluated_at: rule.created_at,
+  };
+  const priors: LearningTransferResult[] = [];
+  for (const result of ordered) {
+    folded = applyTransferResult(folded, priors, result);
+    priors.push(result);
+  }
+  return folded;
+}
+
+function applyTransferResult(
   rule: LearningRule,
   priorResults: LearningTransferResult[],
   result: LearningTransferResult,

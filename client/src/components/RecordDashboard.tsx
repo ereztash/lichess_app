@@ -10,9 +10,14 @@ import {
   YAxis,
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
+import { PHASE_DIFFICULTY_N, PHASE_VARIANCE_EXPLAINED } from "@shared/phase-difficulty";
+import type { Control } from "@shared/control";
+import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
-import { NotMeasured, Proportion, SignedProportion } from "./Value";
+import { CounterfactualPanel } from "./CounterfactualPanel";
+import { ProfilePanel } from "./ProfilePanel";
+import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
 
 /**
@@ -39,6 +44,53 @@ function band(reference: SensitivityBand, p: number): string {
   if (!at) throw new Error(`no p${p} in the sensitivity reference band`);
   return at.auroc2.toFixed(2);
 }
+
+/**
+ * What the control cell says when it has nothing to report, one sentence per cause.
+ *
+ * `ok` is present so the map is total over the union rather than partial with a cast: a status
+ * that gains a member should break the build here, not render `undefined` on the panel.
+ */
+const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
+  ok: "",
+  "too-few": `נדרשות ${MIN_BUCKET_N} החלטות בעמדות העוגן כדי למדוד את הקשר הזה.`,
+  "flat-time":
+    "לקחתם בערך אותו זמן על כל ההחלטות, ולכן אין מה לקשור לביטחון. עוד החלטות באותו קצב לא ישנו את זה.",
+  "flat-confidence":
+    "אמרתם בערך אותו דבר על כל ההחלטות, ולכן אין שונות בביטחון לקשור אליה. עוד החלטות באותו ביטחון לא ישנו את זה.",
+  /*
+   * The one that is NOT a missing measurement: it was measured and came out indistinguishable
+   * from no association. Simulated on records where time was drawn independently of confidence, a
+   * coefficient appeared 100% of the time and reached 0.30 or more on one record in nine.
+   */
+  "inside-noise":
+    "נמדד, והקשר יצא קטן ממה שהרשומה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
+};
+
+/**
+ * What the discrimination cell says when it has nothing to report, one sentence per cause.
+ *
+ * `ok` is present so the map stays total over the union: a status that gains a member should
+ * break the build here rather than render `undefined` on the panel.
+ */
+const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = {
+  ok: "",
+  "too-few-accurate": `נדרשות ${MIN_BUCKET_N} החלטות שיצאו טוב כדי שיהיה מה להפריד מהן. ברשומה הזו יש פחות.`,
+  /*
+   * Named separately from its mirror because the advice is different and specific: this player
+   * needs harder positions, not simply more of them. "Record more decisions" is what they would
+   * hear from one shared sentence, and it is the wrong instruction.
+   */
+  "too-few-inaccurate": `נדרשות ${MIN_BUCKET_N} החלטות שלא יצאו טוב, ואין מספיק כאלה — עמדות קשות יותר יעשו את זה, לא עוד עמדות מאותו סוג.`,
+  "too-few-both": `ההבחנה צריכה ${MIN_BUCKET_N} החלטות מכל סוג — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד.`,
+  /*
+   * The one that is NOT a missing measurement. Simulated on records where confidence was drawn
+   * independently of the outcome -- true area exactly 0.5 -- a figure appeared every time and
+   * landed a tenth of the scale from chance on 18% of them.
+   */
+  "inside-noise":
+    "נמדד, והתוצאה יצאה קרובה מדי למקריות מכדי להבדיל אותה ממנה ברשומה בגודל הזה. עוד החלטות יחדדו את זה.",
+};
 
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
   const { overall, buckets, confidence, scored, calibration, sensitivity, sensitivityReference, control } =
@@ -191,12 +243,34 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           <dd>
             {control.readable && control.rho !== null ? control.rho.toFixed(2) : "—"}
           </dd>
+          {/*
+            * WHY THE CELL IS EMPTY, WHICH THE CELL NEVER SAID. `Control` computes four distinct
+            * reasons and this rendered a bare "—" for all of them, so a player who took the same
+            * time over every decision and a player with twelve decisions saw the same dash. The
+            * distinction was built in the shared code and thrown away at the last step.
+            *
+            * The advice differs per reason and that is the point: `too-few` and `inside-noise`
+            * are waits, `flat-time` and `flat-confidence` are not -- more decisions at the same
+            * speed will never make that cell readable.
+            */}
+          {!control.readable && control.reason !== null && (
+            <dd className="split-why">{CONTROL_SILENCE[control.reason]}</dd>
+          )}
         </div>
       </dl>
+      {/*
+        * FIVE CAUSES, FIVE SENTENCES. This was a two-way ternary: the explanation, or one line
+        * saying the record needs enough of both kinds. That line is true of three of the four
+        * silent cases and false of the fourth -- a record with plenty of both, whose area was
+        * computed and came out indistinguishable from chance. Telling that player to record more
+        * of both kinds describes a problem they do not have.
+        */}
       <p className="dash-note" dir="rtl">
         {sensitivity.readable && sensitivity.auroc2 !== null
           ? "ההבחנה היא בין 0 ל־1, ו־0.5 זה מקריות: כמה טוב הביטחון שלכם מפריד בין ההחלטות שיצאו טוב לאלה שלא. היא לא זזה כשאתם בטוחים מדי או מדי מעט — זה בדיוק מה שהפער כבר מודד."
-          : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
+          : sensitivity.reason !== null
+            ? SENSITIVITY_SILENCE[sensitivity.reason]
+            : "ההבחנה צריכה מספיק החלטות משני הסוגים — כאלה שיצאו טוב וכאלה שלא. בלי שתיהן אין מה להפריד."}
       </p>
       {/*
         * The caveat is longer than the number, deliberately. Two things here are easy to misread
@@ -295,27 +369,52 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                   * population data cannot support renders nothing, not a comparison against a
                   * number nobody measured.
                   */}
-                {b.versusPopulation !== null && (
-                  <span className="bucket-versus">
-                    {/*
-                      * `<bdi>` around the number, not a CSS rule on the span.
+                {b.versusPopulation !== null &&
+                  (b.versusPopulation.separated ? (
+                    <span className="bucket-versus">
+                      {/*
+                        * `<bdi>` around the number, not a CSS rule on the span.
+                        *
+                        * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
+                        * plaintext` -- which fixed the bare numbers elsewhere -- takes its
+                        * direction from the first strong character, resolves the whole run
+                        * right-to-left, and leaves the sign 62px from its digits. Measured:
+                        * "−4 נק׳ מול כולם" rendered as "םלוכ לומ ׳קנ 4−".
+                        *
+                        * An isolate is the tool for a mixed run: it fixes the direction of what
+                        * is inside it and stops it interacting with what is outside.
+                        */}
+                      <bdi>
+                        {b.versusPopulation.points >= 0 ? "+" : "−"}
+                        {Math.abs(Math.round(b.versusPopulation.points * 100))}
+                      </bdi>{" "}
+                      נק׳ מול כולם
+                    </span>
+                  ) : (
+                    /*
+                      * MEASURED, AND THE SAME. Both rates stay on screen -- the population figure
+                      * is computed on hundreds of thousands of moves and is the context the whole
+                      * baseline exists to supply. What is dropped is the ASSERTION that the
+                      * player differs from it, which is the only part that needed this record to
+                      * carry it and could not.
                       *
-                      * This line mixes a signed figure with Hebrew words, so `unicode-bidi:
-                      * plaintext` -- which fixed the bare numbers elsewhere -- takes its direction
-                      * from the first strong character, resolves the whole run right-to-left, and
-                      * leaves the sign 62px from its digits. Measured: "−4 נק׳ מול כולם" rendered
-                      * as "םלוכ לומ ׳קנ 4−".
-                      *
-                      * An isolate is the tool for a mixed run: it fixes the direction of what is
-                      * inside it and stops it interacting with what is outside.
-                      */}
-                    <bdi>
-                      {b.versusPopulation >= 0 ? "+" : "−"}
-                      {Math.abs(Math.round(b.versusPopulation * 100))}
-                    </bdi>{" "}
-                    נק׳ מול כולם
-                  </span>
-                )}
+                      * Simulated against the real baselines, a player whose true accuracy EQUALS
+                      * the population's was shown a signed figure on 100% of draws at
+                      * MIN_BUCKET_N, ten points or more on a quarter of them.
+                      */
+                    <span className="bucket-versus bucket-versus-flat">
+                      אצלכם{" "}
+                      <bdi>{Math.round(b.inside.accuracyRate * 100)}%</bdi>, אצל כולם{" "}
+                      <bdi>
+                        {Math.round(
+                          (b.inside.accuracyRate - b.versusPopulation.points) * 100,
+                        )}
+                        %
+                      </bdi>{" "}
+                      — ההפרש קטן ממה ש-{b.inside.n} החלטות יכולות להבחין בו, ולכן הוא לא מדווח
+                      כהפרש.
+                    </span>
+                  ))}
               </>
             ) : b.unmeasurableReason === "no-clock-data" ? (
               /*
@@ -339,10 +438,60 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
 
       <MixBlock mix={reading.mix} />
 
+      {/*
+        * WHAT THE PHASE SPLIT IS AND IS NOT, checked against a corpus outside this repository.
+        *
+        * The baseline these buckets are read against says the middlegame is 12.6 points harder for
+        * everyone and the ENDGAME IS THE EASIEST PHASE by a wide margin. That is a statement about
+        * the accuracy rule. The Lichess puzzle database carries a Glicko rating per position from
+        * real human solve attempts, and on 4.4 million of them the phase label explains 0.35% of
+        * the variance in difficulty -- checked at three filter levels, with the best-measured
+        * items giving the smallest value, so it is not an effect hidden by noise.
+        *
+        * The magnitudes are NOT compared on screen and must not be: a puzzle rating is finding a
+        * unique winning move in a selected tactical position, and the product's rate is not losing
+        * 30 centipawns on an ordinary move. What is said here is made entirely inside the puzzle
+        * corpus -- how little the phase label explains -- which needs no bridge between the two.
+        */}
+      <p className="review-caveat">
+        {/*
+          * THROUGH `Value`, NOT A HAND-BUILT PERCENT, and GATE-DENOM is what decided that.
+          *
+          * The first version interpolated `(PHASE_VARIANCE_EXPLAINED * 100).toFixed(2)}%` directly
+          * and the gate went red on it: R1 forbids a percentage without its denominator, and the
+          * scanner exempts exactly one component -- the one that cannot render a number without
+          * its provenance. Widening the exemption for this line would have been answering a gate
+          * by moving it. The exemption is per FILE, so wrapping the same hand-built percent in
+          * `<Value>` did not satisfy it either -- the formatting itself has to live there.
+          * `SmallProportion` does, and it does not round 0.0035 to "0%", which would read as
+          * "not measured" rather than "measured, and nearly nothing".
+          */}
+        החלוקה לשלבים היא תכונה של הכלל שמודד דיוק, לא מדד לקושי. על עמדות שדורגו לפי כמה בני אדם
+        באמת פתרו אותן, השלב מסביר{" "}
+        <SmallProportion value={PHASE_VARIANCE_EXPLAINED} n={PHASE_DIFFICULTY_N} />{" "}
+        מהשונות בקושי — כמעט כלום. ההשוואה לאוכלוסייה כאן מתקנת את הכלל; היא לא אומרת שהעמדות שלכם
+        היו קשות יותר.
+      </p>
       <p className="review-caveat">
         פער כיול הוא ההפרש בין הביטחון שהצהרת לבין מה שקרה. הוא נמדד על ההחלטות שרשמת ותו לא — הוא
         לא אומר דבר על הדירוג שלך ולא על שיפור.
       </p>
+      {/*
+        * The probe's own readings, below the calibration ones because they answer a different
+        * question about a different facet: calibration is monitoring -- do you know when you are
+        * right -- and this is selection, which move you produce. Placing it inside the
+        * calibration block would invite reading one as a refinement of the other.
+        */}
+      {/*
+        * Above the probe panel because it reads the SAME decisions the bucket rows above it read,
+        * and it exists to correct how those rows are counted. The probe is a separate facet on a
+        * different question and belongs after both.
+        */}
+      <ProfilePanel
+        variables={reading.profile.variables}
+        crossing={reading.profile.crossing}
+      />
+      <CounterfactualPanel reading={reading.counterfactual} />
     </section>
   );
 }

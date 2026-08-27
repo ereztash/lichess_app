@@ -21,6 +21,7 @@
  * nothing measured.
  */
 import { ANALYSIS_SOURCES, type AnalysisSource } from "@shared/analysis-source";
+import { REVEAL_TIMINGS, type RevealTiming } from "@shared/reveal-timing";
 import type { OpponentDepth } from "@/lib/opponent";
 
 const KEY = "decision-lab.position.v1";
@@ -42,6 +43,18 @@ export interface StoredPosition {
   opponent: { playerColor: "w" | "b"; depth: OpponentDepth } | null;
   /** The id decisions in this game were recorded against, so a resumed game stays one game. */
   gameId: string;
+  /**
+   * WHICH ARM THE GAME IS BEING PLAYED UNDER, and it is here because a reload used to change it.
+   *
+   * `revealTiming` is an experimental condition, not a preference: the deferred game exists
+   * because over forty moves the coached loop measures a player who has been coached mid-game.
+   * Everything else on this object was restored and this was not, so it fell back to the
+   * `useState` default -- and a deferred game resumed as a coached one. The record stores the arm
+   * per decision, so what came out was ONE GAME whose first half says `end-of-game` and whose
+   * second half says `per-decision`, every row internally consistent and nothing saying the
+   * condition changed underneath it.
+   */
+  revealTiming: RevealTiming;
   savedAt: string;
 }
 
@@ -62,6 +75,15 @@ function parse(raw: string): StoredPosition | null {
   if (v.orientation !== "w" && v.orientation !== "b") return null;
   if (typeof v.gameId !== "string" || v.gameId.length === 0) return null;
   if (typeof v.savedAt !== "string") return null;
+  /*
+   * REQUIRED, like every other field here. A position that cannot say which arm it was in is not
+   * a position this build can honour -- restoring it would put a possibly-deferred game into the
+   * coached arm silently, which is the defect. A game in flight across this change is forgotten;
+   * its decisions are on the record either way, and forgetting a board is better than continuing
+   * it in the wrong condition.
+   */
+  const revealTiming = REVEAL_TIMINGS.find((known) => known === v.revealTiming);
+  if (!revealTiming) return null;
   const opponent = v.opponent;
   if (opponent !== null && opponent !== undefined) {
     if (typeof opponent !== "object") return null;
@@ -75,6 +97,7 @@ function parse(raw: string): StoredPosition | null {
     orientation: v.orientation,
     opponent: opponent ?? null,
     gameId: v.gameId,
+    revealTiming,
     savedAt: v.savedAt,
   };
 }

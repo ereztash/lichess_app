@@ -165,3 +165,56 @@ evidence cannot carry.**
 - **Do not over-extend:** Sala & Gobet concerns chess instruction → external cognitive outcomes,
   not within-chess tactical transfer. It is cited for its methodological lesson about active
   controls, nothing else.
+
+
+## The phase split, checked against a corpus outside this repository
+
+**The claim under test is the product's own.** The dashboard splits a record by phase and reads
+each bucket against a baseline built from this product's accuracy rule. On 693,130 real Lichess
+moves that rule says the middlegame is 12.6 points harder for everyone — and that the **endgame is
+the easiest phase of the game** by a wide margin, 78.4% accurate against 70.3% in the opening.
+
+That is a statement about the rule. Whether it is also a statement about people had never been
+checked against anything outside this repository.
+
+**The corpus.** The Lichess puzzle database (CC0) carries a Glicko rating per position derived
+from real human solve attempts — item difficulty measured on humans rather than inferred from an
+engine — and tags each position with Lichess's own phase definitions. 6,100,960 rows read,
+4,416,361 kept (RatingDeviation ≤ 100, NbPlays ≥ 100, exactly one phase tag).
+
+| phase | median rating (humans) | accuracy (the product's rule) |
+| --- | --- | --- |
+| opening | **1355** — easiest | 70.3% |
+| endgame | 1390 | **78.4%** — easiest |
+| middlegame | **1475** — hardest | 58.4% — hardest |
+
+**What survives.** The middlegame is hardest in both corpora. That is the product's headline claim
+and it holds against external human data.
+
+**What inverts.** The product's rule calls the endgame the easiest phase; humans find it *harder*
+than the opening. No claim is made here about which is right. The likeliest reading is that a
+30-centipawn budget is cheap in a simplified position — many moves preserve the evaluation when
+few pieces remain — which would make the product's endgame figure a property of the rule rather
+than of people.
+
+**The number that matters more than either.** η² = **0.0035**: the phase label explains about a
+third of one percent of the variance in human difficulty. Checked at three filter levels —
+0.0020 (rd ≤ 80, plays ≥ 200), 0.0035, 0.0053 (unfiltered) — and the **best-measured items give
+the smallest value**, so this is not an effect being hidden by noise.
+
+**What may not be concluded.** A puzzle rating measures finding a unique winning move in a
+*selected tactical* position; the product's accuracy rate measures not losing 30 centipawns on an
+*ordinary* move. The magnitudes are not commensurable and are never subtracted anywhere in the
+code — a test asserts that the render path does not pair them. Two things survive the gap: the
+**order** of the phases, and **how much the phase label explains at all**, the second being a
+statement made entirely inside the puzzle corpus.
+
+**What reached the screen.** Only the second. The dashboard now says the phase split is a property
+of the accuracy rule rather than a measure of difficulty, and carries η² with its denominator.
+The ordering comparison stays here, with its caveat attached, because it compares two corpora.
+
+**Maia was the first choice and is unreachable**: the weights host answers 403 through this
+environment's proxy. Per-item difficulty for the anchor set therefore remains unmeasured, and is
+recorded as unmeasured rather than replaced with an engine-derived proxy — an engine's idea of
+sharpness is not a human's idea of difficulty, and asserting one as the other is the defect this
+whole line of work exists to remove.

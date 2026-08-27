@@ -137,16 +137,34 @@ describe("the sentence the app already computed reaches the top of the page", ()
     expect(document.querySelector(".context-loop-basis")?.textContent).toBe("0 מתוך 0");
   });
 
-  it("renders nothing when the record has not answered yet", () => {
-    // R2: a record still loading is not a record with nothing in it, and a guessed position is
-    // worse than a blank first frame.
-    loopStub.value = { position: null, loading: true } as never;
-    render(<ContextRibbon />);
-    expect(document.querySelector(".context-ribbon")).toBeNull();
-    loopStub.value = {
-      position: { step: "record", headline: "עוד 60 החלטות חשופות.", basis: "0 מתוך 0" },
-      loading: false,
-    } as never;
+  it("says nothing about the record while it is still being read, and holds the slot anyway", () => {
+    /*
+     * R2 UNCHANGED, THE BLANK FRAME REPLACED. A record still loading is not a record with nothing
+     * in it, and a guessed position is worse than a blank first frame -- so no sentence about the
+     * player, and no basis line, until the record answers.
+     *
+     * What changed is what "blank" means. Rendering NOTHING here was measured to cost CLS 0.066 on
+     * `/play`: this ribbon appearing above the board dropped `section.workbench` 98 pixels after
+     * paint. The slot is now held at the height it will fill, with the same sentence the front
+     * door uses while it reads. Nothing is claimed that has not been measured; the space is
+     * reserved for a claim that is certainly coming, because `loopPosition` returns a position for
+     * every one of its states and cannot return null.
+     */
+    const previous = loopStub.value;
+    try {
+      loopStub.value = { position: null, loading: true } as never;
+      render(<ContextRibbon />);
+      const ribbon = document.querySelector(".context-ribbon");
+      expect(ribbon, "the slot is not held, so the board moves when it fills").not.toBeNull();
+      expect(ribbon).toHaveClass("is-reading");
+      expect(ribbon?.getAttribute("aria-busy")).toBe("true");
+      // Nothing derived from a record that has not answered.
+      expect(document.querySelector(".context-loop-basis")).toBeNull();
+      expect(screen.queryByText(/החלטות חשופות/)).toBeNull();
+    } finally {
+      // Restored in `finally`: a leak here used to fail the NEXT test rather than this one.
+      loopStub.value = previous;
+    }
   });
 
   it("keeps the sentence when the return notice is dismissed", async () => {
@@ -257,6 +275,9 @@ describe("the game survives the tab", () => {
     orientation: "w" as const,
     opponent: { playerColor: "w" as const, depth: 4 as never },
     gameId: "live-123",
+    // The arm is part of the position now: a game resumed into the other one is a different
+    // condition, and the record stores which was in force per decision.
+    revealTiming: "per-decision" as const,
   };
 
   it("comes back after the store is reconstructed, which is what closing the tab does", () => {
@@ -351,5 +372,71 @@ describe("the game survives the tab", () => {
     const home = code("client/src/pages/Home.tsx");
     expect(home).toMatch(/const restored = useRef\(false\)/);
     expect(home).toMatch(/if \(restored\.current\) return;\s*\n\s*restored\.current = true;/);
+  });
+});
+
+/**
+ * The resumed transfer run picks up where the record is.
+ *
+ * Asserted against the source because the alternative is mounting the board, an engine worker and
+ * a store to observe one `useState` call. The claim is narrow and the wiring is the whole of it:
+ * `beginLearningTransfer` returns `observed` with a resumed transfer, and the client must use it
+ * rather than resetting to zero.
+ */
+describe("a transfer run resumes where it stopped", () => {
+  it("seeds the index and the counter from the record, not from zero", () => {
+    /*
+     * Scoped to the block that installs the transfer. `closeLearningTransfer` also resets the
+     * index to 0 and is right to -- it is tearing the run down, not starting one -- so a
+     * whole-file assertion would be red for the wrong reason.
+     */
+    const home = code("client/src/pages/Home.tsx");
+    const install = home.slice(home.indexOf("setLearningTransfer(response.transfer)"));
+    const block = install.slice(0, install.indexOf("setLearningTransferVerdict"));
+    expect(block, "the resumed run restarts at position 0").not.toMatch(
+      /setLearningTransferIndex\(0\)/,
+    );
+    expect(block).toMatch(/setLearningTransferIndex\(response\.observed\)/);
+    expect(block).toMatch(/setLearningTransferObservations\(response\.observed\)/);
+  });
+
+  it("retries the drill completion, which is what makes its repair branch reachable", () => {
+    /*
+     * `finishDrill` repairs a claim whose grade write was lost -- and only if something calls it
+     * again. This catch sets the stage to "done", where `DrillRunner` renders an error paragraph
+     * and no control: the verdict block is gated on `verdict`, the abandon button on
+     * briefing|running, and the drill id lives only in React state. Without the retry the repair
+     * branch could not run at all.
+     */
+    const home = code("client/src/pages/Home.tsx");
+    expect(home).toMatch(/retryOnce\(\(\) => completeDrillMutation\.mutateAsync\(drillPayload\)\)/);
+    // Built once and sent twice: a rebuilt payload is a different question.
+    expect(home).toMatch(/const drillPayload = \{ drill_id: drill\.drill_id/);
+  });
+
+  it("puts the reveal-timing arm back on the board it was restored onto", () => {
+    /*
+     * The arm is an experimental condition, and it was the one field the handoff did not carry:
+     * a deferred game resumed as a coached one, and the record ended up holding a single game
+     * whose halves say different things about which condition was in force.
+     *
+     * `session-position` refuses a stored position that cannot name its arm -- that half has its
+     * own tests. This is the other half: the board must actually apply it. A first version of this
+     * change stored and parsed the arm and quietly did not restore it, and every test still passed.
+     */
+    const home = code("client/src/pages/Home.tsx");
+    const restore = home.slice(home.indexOf("const saved = readPosition()"));
+    const block = restore.slice(0, restore.indexOf("gameId.current = saved.gameId"));
+    expect(block, "the restored game keeps whatever arm the board happened to default to").toMatch(
+      /setRevealTiming\(saved\.revealTiming\)/,
+    );
+    // And written back with the game, so the next reload reads it rather than the default.
+    expect(home).toMatch(/revealTiming,\n\s*gameId: gameId\.current/);
+  });
+
+  it("is served by the service, so the client is not guessing", () => {
+    const service = code("shared/record-service.ts");
+    // Returned beside the resumed transfer, from the rows themselves.
+    expect(service).toMatch(/observed: \(await store\.listLearningTransferObservations\(/);
   });
 });

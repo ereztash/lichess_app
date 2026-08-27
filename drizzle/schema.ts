@@ -11,7 +11,8 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
-import { ENGINE_SOURCES, PHASES } from "../shared/decision-atom.js";
+import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
+import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
 
@@ -60,6 +61,30 @@ export const decisions = mysqlTable(
      * assert that someone recorded it, and nobody did.
      */
     confidenceScale: int("confidence_scale"),
+    /**
+     * Which arm of the counterfactual probe this decision was randomised into.
+     *
+     * NULLABLE, AND NULL IS NOT A CONTROL. A row written before the probe existed was never
+     * randomised into anything. Backfilling it as `not-probed` would enrol thousands of decisions
+     * retrospectively into a group they were never part of, and every comparison between arms
+     * would then be a comparison between two eras of the product.
+     *
+     * ON `decisions` RATHER THAN IN THE ANSWER TABLE, which is the whole design. The arm is known
+     * at commit and has to be recorded whether or not anything was asked -- a table of answers
+     * holds only probed decisions, and a treatment group with no control group has no denominator.
+     */
+    probeAssignment: mysqlEnum("probe_assignment", PROBE_ASSIGNMENTS),
+    /** Legal moves in the entry position: the covariate an analysis conditions on. */
+    legalMoves: int("legal_moves"),
+    /**
+     * Which reveal timing was in force -- after every decision, or after the whole game.
+     *
+     * NULLABLE, AND NULL IS NOT `per-decision`. Rows written before the deferred game existed
+     * were all made in the coached loop, and backfilling them would still be a lie: it would
+     * assert that a condition was recorded when nobody recorded one, and the first comparison
+     * between the two modes would show a coached arm that is enormous and perfectly measured.
+     */
+    revealTiming: mysqlEnum("reveal_timing", REVEAL_TIMINGS),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("decisions_game_idx").on(table.gameId)],
@@ -88,6 +113,26 @@ export const decisionReveals = mysqlTable("decision_reveals", {
 });
 export type DecisionReveal = typeof decisionReveals.$inferSelect;
 export type InsertDecisionReveal = typeof decisionReveals.$inferInsert;
+
+/**
+ * The answer to "what would you have played instead" -- a FOURTH event, not a column.
+ *
+ * SEPARATE TABLE FOR THE SAME REASON AS THE REVEAL AND THE FEEDBACK. It happens at a different
+ * moment from the commit, it may never happen at all, and the presence of the row is itself the
+ * measurement: a row means the question was put and answered.
+ *
+ * `alternativeMove` NULL INSIDE AN EXISTING ROW IS A REAL ANSWER -- asked, and unable to name
+ * one. That is a different fact from never having been asked, which is the absence of the row
+ * entirely, and a design that stored only the move could never separate them again.
+ */
+export const decisionCounterfactuals = mysqlTable("decision_counterfactuals", {
+  decisionId: varchar("decision_id", { length: 36 }).primaryKey(),
+  alternativeMove: varchar("alternative_move", { length: 6 }),
+  /** What the alternative cost, from the reveal's own search. Null until the engine has run. */
+  alternativeCpLoss: int("alternative_cp_loss"),
+  answeredAt: timestamp("answered_at").defaultNow().notNull(),
+});
+export type DecisionCounterfactual = typeof decisionCounterfactuals.$inferSelect;
 
 /**
  * Atom `feedback` -- what the player revised after seeing the result.
@@ -119,6 +164,18 @@ export const claims = mysqlTable("claims", {
   n: int("n").notNull(),
   grade: mysqlEnum("grade", CLAIM_GRADES).notNull(),
   refutationCondition: text("refutation_condition").notNull(),
+  /*
+   * WHICH SIDE THE REFUTATION CONDITION IS ON. See the field note on `Claim` in shared/claim.ts:
+   * the verdict is a one-sided test and this is the side, so a claim that reaches `finishDrill`
+   * without it cannot be graded honestly.
+   *
+   * NULLABLE ON PURPOSE, and it is not a third direction. Rows written before this column existed
+   * genuinely do not record it, and there is no backfill that would not be a guess: re-deriving
+   * the sign from today's decisions lets the evidence choose the test's direction, which is the
+   * post-hoc choice R5 forbids. `createDrill` refuses such a claim instead. A DEFAULT here would
+   * be worse than the null -- it would make every legacy row assert a direction nobody measured.
+   */
+  predictsOverconfidence: boolean("predicts_overconfidence"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastEvaluatedAt: timestamp("last_evaluated_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -137,6 +194,17 @@ export const drills = mysqlTable("drills", {
   fens: json("fens").$type<string[]>().notNull(),
   refutationCondition: text("refutation_condition").notNull(),
   predicted: boolean("predicted").notNull(),
+  /*
+   * The direction copied from the claim when the drill started -- one term with the condition
+   * above, which states it in words.
+   *
+   * NULLABLE FOR THE SAME REASON AS THE CLAIMS COLUMN, and for one more: a drill already open
+   * when this shipped was registered without a recorded sign. Adding the column NOT NULL would
+   * either refuse to migrate a table with rows in it or invent a direction for those drills.
+   * `getDrill` refuses to hand back an ungradeable spec instead, which fails the one drill
+   * rather than mis-grading it.
+   */
+  predictsOverconfidence: boolean("predicts_overconfidence"),
   startedAt: timestamp("started_at").defaultNow().notNull(),
 });
 export type DrillRow = typeof drills.$inferSelect;

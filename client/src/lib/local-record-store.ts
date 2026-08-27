@@ -16,7 +16,10 @@
 import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
-import type { DecisionAtom, DecisionResult } from "@shared/decision-atom";
+import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/decision-atom";
+import { assembleProbe } from "@shared/counterfactual";
+import { MissingClaimDirection } from "@shared/drill";
+import type { RevealTiming } from "@shared/reveal-timing";
 import type {
   LearningRule,
   LearningTransfer,
@@ -36,6 +39,15 @@ type Persisted = {
   decisions: StoredDecision[];
   reveals: Record<string, DecisionResult>;
   feedbacks: Record<string, FeedbackInput>;
+  /**
+   * Keyed by decision id, and PRESENCE IS THE MEASUREMENT: a key means the question was put and
+   * answered. `alternative: null` inside one means asked and unable to name a move, which is a
+   * different fact from never having been asked and has to stay distinguishable.
+   *
+   * Optional on the type because this store reads JSON an earlier build wrote, and those saves
+   * have no such key at all.
+   */
+  counterfactuals?: Record<string, { alternative: string | null; cpLoss: number | null }>;
   claims: Record<string, Claim>;
   drills: Record<string, StoredDrill>;
   drillResults: ProspectiveDrillResult[];
@@ -54,6 +66,7 @@ const empty = (): Persisted => ({
   decisions: [],
   reveals: {},
   feedbacks: {},
+  counterfactuals: {},
   claims: {},
   drills: {},
   drillResults: [],
@@ -189,6 +202,32 @@ export class LocalRecordStore implements RecordStore {
     write(state);
   }
 
+  async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
+    const state = read();
+    const row = state.decisions.find((d) => d.decisionId === decisionId);
+    if (!row) throw new Error("no such decision");
+    if (row.probeAssignment !== "probed") throw new Error("this decision was never asked");
+    /*
+     * R3 in the direction it is usually not written: an alternative named once the evaluation is
+     * on screen is a reading of the engine's candidate, not a self-generated one, and storage
+     * cannot tell the two apart afterwards.
+     */
+    if (state.reveals[decisionId]) throw new Error("the engine has already spoken");
+    const answers = (state.counterfactuals ??= {});
+    if (answers[decisionId]) throw new Error("append-only: already answered");
+    answers[decisionId] = { alternative, cpLoss: null };
+    write(state);
+  }
+
+  async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
+    const state = read();
+    const answer = state.counterfactuals?.[decisionId];
+    if (!answer) throw new Error("no answer to score");
+    if (answer.alternative === null) throw new Error("no alternative was named");
+    answer.cpLoss = cpLoss;
+    write(state);
+  }
+
   async hasReveal(decisionId: string): Promise<boolean> {
     return Boolean(read().reveals[decisionId]);
   }
@@ -225,6 +264,13 @@ export class LocalRecordStore implements RecordStore {
     if (!claim) return null;
     return {
       ...claim,
+      /*
+       * A claim stored before the direction was recorded parses back with the key ABSENT, not
+       * null. Normalised here so the three stores agree on one shape for "not recorded": the
+       * MySQL column is nullable and returns null, and a caller that has to tell `undefined` from
+       * `null` to know which store it is talking to has two contracts, not one.
+       */
+      predicts_overconfidence: claim.predicts_overconfidence ?? null,
       prospective_tests: state.drillResults.filter((r) => r.claim_id === claimId),
     };
   }
@@ -239,7 +285,19 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async getDrill(drillId: string): Promise<StoredDrill | null> {
-    return read().drills[drillId] ?? null;
+    const started = read().drills[drillId] ?? null;
+    if (started && typeof started.spec.predicts_overconfidence !== "boolean") {
+      /*
+       * A drill registered before the direction was recorded, read back out of localStorage with
+       * the key missing. It matters MORE here than in MySQL, because `undefined` does not throw
+       * on the way to `evaluateRefutation` -- it is falsy, so the one-sided test would quietly
+       * run on the opposite side and report a confident verdict about the wrong hypothesis.
+       * Same refusal as the Drizzle store: this drill cannot be graded, and a refuted claim
+       * cannot be un-refuted.
+       */
+      throw new MissingClaimDirection(started.spec.claim_id);
+    }
+    return started;
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
@@ -256,6 +314,11 @@ export class LocalRecordStore implements RecordStore {
     const existing = state.learningRules[rule.rule_id];
     if (existing && !sameLearningRuleAuthorship(existing, rule)) {
       throw new Error("append-only: authored learning rule cannot change");
+    }
+    // The same terminal guard the two server stores carry: retirement is the player's act and
+    // nothing re-derives it, so no write may take a rule off `retired`.
+    if (existing && existing.grade === "retired" && rule.grade !== "retired") {
+      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
     }
     state.learningRules[rule.rule_id] = structuredClone(rule);
     write(state);
@@ -296,7 +359,9 @@ export class LocalRecordStore implements RecordStore {
     const reported = new Set(state.learningTransferResults.map((row) => row.transfer_id));
     const open = Object.values(state.learningTransfers)
       .filter((row) => row.rule_id === ruleId && !reported.has(row.transfer_id))
-      .sort((a, b) => a.started_at.localeCompare(b.started_at));
+      // Newest first, matching the two server stores: the oldest open transfer after a lost race
+      // is the orphan, and re-serving its already-decided boards replicated a rule on one sitting.
+      .sort((a, b) => b.started_at.localeCompare(a.started_at));
     return open[0] ? structuredClone(open[0]) : null;
   }
 
@@ -411,6 +476,11 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
       ...(row.confidenceScale === undefined ? {} : { confidence_scale: row.confidenceScale }),
       candidate_moves_considered: row.candidateMovesConsidered,
     },
+    probe: assembleProbe(
+      { probeAssignment: row.probeAssignment ?? null, legalMoves: row.legalMoves ?? null },
+      state.counterfactuals?.[row.decisionId],
+    ),
+    reveal_timing: row.revealTiming ?? null,
     result: state.reveals[row.decisionId] ?? null,
     feedback: feedback
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -424,6 +494,19 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
  * field entirely. Typing them as if the field were always there would make the absence
  * unrepresentable and the `?? LEGACY` below dead code that no test could reach.
  */
-type StoredDecision = Omit<CommitDecisionInput, "confidenceScale"> & { confidenceScale?: number };
+type StoredDecision = Omit<
+  CommitDecisionInput,
+  "confidenceScale" | "probeAssignment" | "legalMoves" | "revealTiming"
+> & {
+  confidenceScale?: number;
+  /**
+   * Absent on rows an earlier build wrote, and absent is a FOURTH STATE rather than a control
+   * arm: those decisions were never randomised into anything.
+   */
+  probeAssignment?: ProbeAssignment | null;
+  legalMoves?: number | null;
+  /** Absent on rows written before the deferred game existed. Absent is not `per-decision`. */
+  revealTiming?: RevealTiming | null;
+};
 
 

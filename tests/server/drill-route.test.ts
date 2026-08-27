@@ -83,6 +83,9 @@ async function seedPattern(count: number) {
       // Varies within the bucket: a player who says "certain" four times in five, not five.
       confidence: fast ? (i % 10 === 4 ? CONFIDENCE_LEVELS - 1 : CONFIDENCE_LEVELS) : EVEN_ODDS_LEVEL,
       confidenceScale: CONFIDENCE_LEVELS,
+      probeAssignment: "not-probed",
+      legalMoves: 20,
+      revealTiming: "per-decision",
     });
     await store.recordReveal(id, {
       engine_eval_cp: 10,
@@ -139,6 +142,9 @@ async function recordDrillDecisions(
             )
           : profile.confidence,
         confidenceScale: CONFIDENCE_LEVELS,
+        probeAssignment: "not-probed",
+        legalMoves: 20,
+        revealTiming: "per-decision",
     });
     await store.recordReveal(id, {
       engine_eval_cp: 0,

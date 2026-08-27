@@ -98,6 +98,12 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         sans: decision.sans,
         ply: decision.ply,
         source: "finished",
+        /*
+         * A position handed over for a first decision, not a game already in progress: the coached
+         * loop is what a single position wants, and it is what the board defaults to. Stated here
+         * rather than left to the board's `useState`, because the arm now travels with the handoff.
+         */
+        revealTiming: "per-decision",
         orientation: decision.orientation,
         opponent: null,
         gameId: `lichess-${decision.gameId}`,
@@ -122,6 +128,7 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         <input
           id="first-decision-username"
           dir="ltr"
+          lang="en"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           onKeyDown={(event) => {
@@ -187,6 +194,8 @@ function AnchorRunControl({ answered }: { answered: readonly string[] }) {
       sans: [...next.sans],
       ply: next.ply,
       source: "finished",
+      // An anchor position is one decision, so the coached loop -- the same as the handoff above.
+      revealTiming: "per-decision",
       orientation: next.sans.length % 2 === 0 ? "w" : "b",
       opponent: null,
       gameId: `anchor-${next.id}`,
@@ -290,6 +299,51 @@ export default function Record() {
             }}
           />
         </section>
+      )}
+
+      {/*
+        * THE NOTICE HAS TO REACH THE PERSON WHO RECEIVES THE BINARIES.
+        *
+        * This build conveys a GPL-3.0 engine and two OFL typefaces. A notices file in the
+        * repository serves the person who clones it; it does nothing for the person who loads the
+        * page, and they are the one the licences are about. The licence texts are served as static
+        * files and this is the link that makes them reachable from the program that carries them.
+        *
+        * It sits at the bottom of the front door rather than on every screen, and it is small,
+        * because it is a notice and not a feature. `dir="ltr"` on the two names because they are
+        * Latin script inside a Hebrew document; `lang` because they are not Hebrew words.
+        */}
+      {/*
+        * WAITS FOR THE PAGE TO SETTLE, and that is a defect this footer itself introduced.
+        *
+        * Measured on the built app at 390x844: adding this notice took the front door from CLS
+        * 0.00015 to 0.07811. It is the last element on the page, so when the record layers finish
+        * loading and replace "קורא את הרשומה…", it is pushed 289 pixels down -- and a shift of
+        * the LAST element is still a shift.
+        *
+        * Rendering it after the record has answered means it is inserted at its final position
+        * and never moves. An element appearing does not count against CLS; an element moving
+        * does. The alternative -- reserving the layers' space -- cannot be done honestly, because
+        * their height is the record's, and nobody knows it before it is read.
+        */}
+      {!reading.isLoading && (
+      <footer className="record-notices">
+        <p>
+          המנוע{" "}
+          <a href="/licenses/stockfish/COPYING.txt" dir="ltr" lang="en" hrefLang="en">
+            Stockfish
+          </a>{" "}
+          נמסר עם התוכנה הזו תחת רישיון GPL-3.0, והגופנים{" "}
+          <a href="/licenses/fonts/noto-sans-hebrew/OFL.txt" dir="ltr" lang="en" hrefLang="en">
+            Noto Sans Hebrew
+          </a>{" "}
+          ו־
+          <a href="/licenses/fonts/dm-mono/OFL.txt" dir="ltr" lang="en" hrefLang="en">
+            DM Mono
+          </a>{" "}
+          תחת SIL OFL 1.1. הקישורים הם לנוסח הרישיון עצמו, כפי שהוא נשלח יחד עם הקבצים.
+        </p>
+      </footer>
       )}
     </main>
   );

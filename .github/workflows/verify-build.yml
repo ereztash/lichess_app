@@ -43,8 +43,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # `ci`, NOT `install`. `npm install` is free to resolve a dependency to something the lock
+      # file does not name -- which means CI could be testing a tree no developer has, and a
+      # green run would be evidence about that tree rather than about the one that ships. `npm ci`
+      # installs the lock exactly and fails if the two have drifted apart.
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+      # WHAT THE BUILD SHIPS, CHECKED AGAINST WHAT IS KNOWN ABOUT IT.
+      #
+      # `--omit=dev` because the question this step asks is about the deployment, not the
+      # workbench: a vulnerability in vitest is not conveyed to anybody. `--audit-level=high`
+      # because a step that fails on every low advisory gets disabled within a month, and one
+      # that never fails is decoration.
+      #
+      # This can go red on a day nothing in this repository changed. That is the step working:
+      # an advisory published against a dependency this build ships is news whether or not
+      # somebody happened to push.
+      - name: Audit the dependencies this build ships
+        run: npm audit --omit=dev --audit-level=high
       # A REAL BROWSER, for the same reason the job runs a real database.
       #
       # `tests/layout/*` measure boxes, and jsdom reports every box as 0x0 -- which is how a
@@ -72,6 +88,14 @@ jobs:
             sed 's/--> statement-breakpoint//' "$migration" \
               | mysql -h 127.0.0.1 -P 3306 -u root decision_lab
           done
+      # BEFORE THE TESTS, not after them, and the reason is one test.
+      #
+      # `tests/layout/content-security-policy.layout.test.ts` serves `dist/public` under the exact
+      # policy `vercel.json` sends and loads it in a real browser. It cannot measure a build that
+      # does not exist yet, and it throws rather than skipping -- a CSP test that quietly did not
+      # run is how a policy that breaks the engine reaches production.
+      - name: Build
+        run: npm run build
       - name: Test
         # With DATABASE_URL set, the database suite RUNS instead of skipping. If the service is
         # missing or the schema failed to load, those tests fail rather than quietly skipping --
@@ -83,8 +107,6 @@ jobs:
         run: npm run gates
       - name: Gate positive controls (each must go red)
         run: npm run gates:controls
-      - name: Build
-        run: npm run build
       # The budget measures the BUILD's output, so it can only run after it. Vite already warns
       # about chunks over 500 kB and has warned on every build for a long time, which is what a
       # warning nobody can fail becomes. This one fails.

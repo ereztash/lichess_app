@@ -35,6 +35,25 @@ const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
   "no-owner-configured": `בפריסה הזו לא הוגדר OWNER_OPEN_ID, ולכן אף חשבון לא יכול להגיע לרשומה שבשרת — זו הגדרה חסרה בשרת, לא הרשאה חסרה שלכם. ${SHARED_BROWSER}`,
   unreachable:
     "לא הצלחנו להגיע לשרת, והוא לא אמר למה. ההחלטות נשמרות בדפדפן הזה בינתיים; לא ידוע אם קיימת שם רשומה אחרת.",
+  /*
+   * NOT A FAILURE, AND IT STILL HAS TO BE SAID.
+   *
+   * The server is answering again. What this names is that the decisions from this session went
+   * into the browser -- under the sentence above, which promised exactly that -- so the record
+   * stays here rather than pointing back at the server and leaving them unreadable. Moving
+   * silently is what this notice exists to prevent, and it would have taken its own explanation
+   * away with it: the component returns null on `usable`.
+   */
+  "kept-local":
+    "השרת חזר לענות, אבל ההחלטות שרשמתם בביקור הזה נשמרו בדפדפן הזה — ולכן הרשומה נשארת כאן לעת עתה. " +
+    "הן לא אבדו והן לא בשרת; רשומת השרת היא רשומה אחרת. אין כאן מיזוג אוטומטי בין השתיים.",
+  /*
+   * Deliberately does NOT say the decisions are being kept here. They are not: the record stays
+   * pointed at the server. Saying otherwise would be the reassurance that makes a split record
+   * invisible, which is the whole reason this state exists instead of a silent fallback.
+   */
+  "server-lost":
+    "הרשומה שלכם נמצאת בשרת, והשרת הפסיק לענות. לא עברנו לרשומה בדפדפן — היא רשומה אחרת, וההחלטות שכבר רשמתם אינן בה. נסו שוב בעוד רגע; עד אז אי אפשר לרשום החלטה חדשה.",
 };
 
 const SESSION_ONLY =
@@ -49,8 +68,15 @@ export function RecordModeNotice({
   durability: RecordDurability;
   serverStatus: RecordServerStatus;
 }) {
-  // Nothing to explain: the record is where a signed-in person would expect it.
-  if (!local || serverStatus === "usable") return null;
+  /*
+   * Nothing to explain: the record is where a signed-in person would expect it.
+   *
+   * `server-lost` is the exception that is NOT local -- the record stays on the server on purpose
+   * -- and it still has to be said, or it becomes the one failure the player is told nothing
+   * about while every panel shows an error and the reason sits nowhere.
+   */
+  if (serverStatus === "usable") return null;
+  if (!local && serverStatus !== "server-lost") return null;
   const sessionOnly = durability === "session-only";
   return (
     <p className={`record-mode ${sessionOnly ? "session-only" : ""}`}>

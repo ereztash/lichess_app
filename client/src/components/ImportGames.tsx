@@ -176,6 +176,10 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
         <input
           className="import-input"
           dir="ltr"
+          /* An English phrase inside `lang="he"`. Without this a screen reader reads "lichess
+             username" with Hebrew phonetics. SC 3.1.2 exempts proper names and technical terms --
+             "username" is neither. */
+          lang="en"
           placeholder="lichess username"
           value={username}
           spellCheck={false}
@@ -270,7 +274,12 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
                 </span>
                 <span className="import-meta">
                   <b>{RESULT_LABEL[game.status] ?? game.status}</b>
-                  <span dir="ltr">{game.speed}</span>
+                  {/* Lichess returns the speed as an English word -- bullet, blitz, rapid,
+                      classical -- and it is rendered raw. A word, not a code: declared as English
+                      rather than left for a Hebrew voice to sound out. */}
+                  <span dir="ltr" lang="en">
+                    {game.speed}
+                  </span>
                   {game.playedAt > 0 && (
                     <time dir="ltr">
                       {new Date(game.playedAt).toLocaleDateString("he-IL", {

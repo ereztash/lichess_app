@@ -31,7 +31,7 @@
  * Those buckets are import-only and DELIBERATELY cannot produce a claim -- claims come from the
  * detector running over the record, and nothing here reaches it.
  */
-import { ACCURATE_CP_LOSS, BUCKETINGS, MIN_BUCKET_N, type BucketableDecision } from "./detector.js";
+import { accurateDecision, BUCKETINGS, MIN_BUCKET_N, type BucketableDecision } from "./detector.js";
 import { Chess } from "chess.js";
 import { classifyPhase } from "./phase.js";
 import { clockMsRemainingAt, hasClockData, secondsSpentAt, parseTimeControl } from "./pgn-clock.js";
@@ -245,7 +245,19 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
       secondsTaken: seconds ?? 0,
       clockMsRemaining: clocks ? clockMsRemainingAt(game.clockTimes, ply) : null,
       cpLoss,
-      accurate: cpLoss <= ACCURATE_CP_LOSS,
+      /*
+       * The record's rule, against the evaluation this position actually stood at.
+       *
+       * This was `cpLoss <= ACCURATE_CP_LOSS` -- the raw cut `shared/detector.ts` records as
+       * abandoned. The header of this file says it uses "the DETECTOR's definition", and the
+       * detector's definition moved to win-probability loss without this call site following.
+       * `facing` is the evaluation before the move and is already in scope, two lines below.
+       *
+       * It matters here for the same reason it mattered in the transfer: the bucket this screen
+       * picks is what `registerHypothesis` pre-registers, so a third definition of דיוק selected
+       * the hypothesis that a different definition would go on to grade.
+       */
+      accurate: accurateDecision(facing, cpLoss),
       standing: standingFrom(facing),
       speed: game.speed ?? null,
       forced: fenBefore !== undefined && onlyLegalMove(fenBefore),

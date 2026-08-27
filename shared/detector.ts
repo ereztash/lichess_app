@@ -29,6 +29,7 @@
  * effect were the times it was wrong**, and it got quieter about the truth the longer you played.
  */
 import type { DecisionAtom } from "./decision-atom.js";
+import type { Phase } from "./phase.js";
 import { winProbabilityLoss } from "./win-probability.js";
 
 /**
@@ -65,6 +66,32 @@ export const ACCURATE_WIN_PROBABILITY_LOSS = winProbabilityLoss(
   ACCURATE_CP_LOSS / 2,
   ACCURATE_CP_LOSS,
 );
+
+/**
+ * WHETHER A DECISION WAS ACCURATE. One rule, one place, every caller.
+ *
+ * `shared/scoring.ts` inlined this and was the only site that had migrated. Two others were still
+ * comparing raw centipawns against `ACCURATE_CP_LOSS` -- the rule the comment above records as
+ * abandoned, because thirty centipawns is 2.76 points of winning chances at a level position and
+ * 0.28 at +10.00, so "accurate" meant something different depending on how the game stood.
+ *
+ * MEASURED, at HEAD, before this existed:
+ *
+ *     at eval     0: the record calls up to  30cp accurate; the other two called >30 a failure
+ *     at eval   300: the record calls up to  38cp accurate; the other two called >30 a failure
+ *     at eval   500: the record calls up to  58cp accurate; the other two called >30 a failure
+ *     at eval  1000: the record calls up to 212cp accurate; the other two called >30 a failure
+ *
+ * `finishLearningTransfer` was one of them, and it writes a TERMINAL grade: two sittings where the
+ * player's moves fall in that band grade their own learning rule `refuted`, which nothing can
+ * revive, on evidence this function calls accurate. `import-diagnostic` was the other, and it had
+ * the evaluation in scope two lines away.
+ *
+ * Takes the evaluation the position stood at, so the caller cannot forget that the rule needs it.
+ */
+export function accurateDecision(engineEvalCp: number, cpLoss: number): boolean {
+  return winProbabilityLoss(engineEvalCp, cpLoss) <= ACCURATE_WIN_PROBABILITY_LOSS;
+}
 /**
  * The smallest bucket, and the smallest remainder, this detector will read at all.
  *
@@ -314,6 +341,24 @@ export interface Bucketing {
    * decisions yet" and must not render as the same sentence.
    */
   requiresClock?: true;
+  /**
+   * The phase a drill position must classify as for it to be inside this bucket -- and, by its
+   * absence, whether a drill can be built for this bucket AT ALL.
+   *
+   * WHY A BUCKET NEEDS TO SAY THIS. A claim's stored refutation condition promises "בדריל של
+   * עמדות מ-{scope}". Three of these buckets are properties of a POSITION, so a drill can honour
+   * that by choosing positions. The other three are properties of the DECISION EVENT -- how long
+   * the player took, what the clock said -- and no choice of positions can put a player under
+   * time pressure. Selection ignored the distinction and simply took the first fresh positions of
+   * the loaded game, which are its opening; an endgame claim was drilled on eight opening
+   * positions and graded terminally on the result.
+   *
+   * So this field is what `beginDrill` filters on when it is set, and what it refuses on when it
+   * is not. It is deliberately not a general predicate: a predicate over positions would invite
+   * the same over-reach, because the honest answer for a time bucket is that there is no such
+   * predicate.
+   */
+  drillPhase?: Phase;
 }
 
 /**
@@ -333,13 +378,24 @@ export const BUCKETINGS: Bucketing[] = [
     scope: "החלטות אחרי יותר משתי דקות",
     predicate: (d) => d.secondsTaken > 120,
   },
-  { key: "phase-opening", scope: "החלטות בפתיחה", predicate: (d) => d.phase === "opening" },
+  {
+    key: "phase-opening",
+    scope: "החלטות בפתיחה",
+    predicate: (d) => d.phase === "opening",
+    drillPhase: "opening",
+  },
   {
     key: "phase-middlegame",
     scope: "החלטות באמצע המשחק",
     predicate: (d) => d.phase === "middlegame",
+    drillPhase: "middlegame",
   },
-  { key: "phase-endgame", scope: "החלטות בסיום", predicate: (d) => d.phase === "endgame" },
+  {
+    key: "phase-endgame",
+    scope: "החלטות בסיום",
+    predicate: (d) => d.phase === "endgame",
+    drillPhase: "endgame",
+  },
   {
     key: "clock-under-1m",
     scope: "החלטות עם פחות מדקה על השעון",
@@ -445,6 +501,26 @@ export function detect(
       gapDifference,
       standardError,
       supporting_decision_ids: inside.map((d) => d.decision_id),
+      /*
+       * A CONTRAST, NOT A LEVEL, AND THE NAME INVITES THE OTHER READING.
+       *
+       * `gapDifference` is `insideSummary.gap - outsideSummary.gap`. True here means this bucket
+       * sits ABOVE THE REST OF THE RECORD on the (confidence - accuracy) quantity. It does NOT
+       * mean the player is overconfident inside the bucket: a player underconfident everywhere
+       * and least so in one phase produces `true` for that phase, with `inside.gap` still
+       * negative. Nothing in `detect` tests an inside gap against zero, so no caller is entitled
+       * to assert an absolute direction from this field.
+       *
+       * Two consumers read it as a level and said so on screen -- `statementFor`
+       * (shared/claim-derivation.ts) and `direction` (client/src/components/ProfilePanel.tsx) --
+       * and both told a player who had stated five points LESS confidence than their results
+       * warranted that they had stated more. Both now speak it as the comparison it is.
+       *
+       * The GRADING path was always right to read it: `evaluateRefutation` (shared/drill.ts)
+       * signs `drillGap - baseline.gap`, itself a contrast, and `refutationConditionFor` writes a
+       * relative condition. The name survives because it is a stored column and a drill-spec
+       * field; what it means is written down here so the next reader does not have to guess.
+       */
       predicts_overconfidence: gapDifference > 0,
     });
   }

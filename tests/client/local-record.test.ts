@@ -26,6 +26,10 @@ function event(id: string) {
     unknown: "לא יודע אם e5 עובד",
     decision: "e2e4",
     bounded_action: { seconds_taken: 12, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
+    // No arm: this file is about the browser record, and a decision with no arm is one written
+    // by a client that does not run the probe. Null here is a fourth state, never a control.
+    probe: null,
+    reveal_timing: null,
     result: null,
     feedback: null,
   } satisfies service.CommitEvent;
@@ -71,14 +75,37 @@ describe("the browser-side record", () => {
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 
-  it("refuses a second reveal, because the record is append-only", async () => {
+  it("refuses a second reveal that carries a DIFFERENT verdict, because the record is append-only", async () => {
+    /*
+     * THE APPEND-ONLY RULE IS ABOUT THE VALUE, NOT ABOUT THE CALL, and this test used to conflate
+     * them: it asserted that revealing twice with the identical result was a CONFLICT.
+     *
+     * `reveal` writes twice -- the engine's verdict, then the alternative's price -- and the two
+     * are not atomic. Refusing every second call meant a half-written record could never be
+     * completed, and the browser store is one of the three places that happens
+     * (`client/src/lib/local-record-store.ts` commits to localStorage twice; a tab closed between
+     * them is the same window). An identical replay now completes what is missing and writes
+     * nothing else. A second verdict is still refused, and that is what this asserts.
+     */
     const store = new LocalRecordStore();
     const id = "44444444-4444-4444-8444-444444444444";
     await service.commitDecision(store, event(id));
     await service.reveal(store, id, { ...RESULT });
-    await expect(service.reveal(store, id, { ...RESULT })).rejects.toMatchObject({
-      code: "CONFLICT",
-    });
+    await expect(
+      service.reveal(store, id, { ...RESULT, cp_loss: RESULT.cp_loss + 100 }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    // And the stored verdict is the first one, untouched.
+    expect((await store.getAtom(id))?.result?.cp_loss).toBe(RESULT.cp_loss);
+  });
+
+  it("replays an identical reveal instead of refusing it, in the browser store too", async () => {
+    // The retry a lost response makes inevitable. It writes nothing and returns the record.
+    const store = new LocalRecordStore();
+    const id = "66666666-6666-4666-8666-666666666666";
+    await service.commitDecision(store, event(id));
+    const once = await service.reveal(store, id, { ...RESULT });
+    const twice = await service.reveal(store, id, { ...RESULT });
+    expect(twice.result).toEqual(once.result);
   });
 
   it("refuses to commit the same decision id twice", async () => {

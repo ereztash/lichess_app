@@ -19,7 +19,7 @@
  */
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { DrizzleRecordStore } from "../../server/record";
+import { DrizzleRecordStore, MemoryRecordStore } from "../../server/record";
 import type { CommitDecisionInput } from "../../shared/record-store";
 
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -43,6 +43,9 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     statedUnknown: "לא ברור מה השחור מאיים",
     confidence: 3,
     confidenceScale: CONFIDENCE_LEVELS,
+    probeAssignment: "not-probed",
+    legalMoves: 20,
+    revealTiming: "per-decision",
     ...overrides,
   };
 }
@@ -60,6 +63,7 @@ describeDb("DrizzleRecordStore against MySQL", () => {
     const { getDb } = await import("../../server/db");
     const db = await getDb();
     if (!db) return;
+    await db.execute("DELETE FROM decision_counterfactuals");
     await db.execute("DELETE FROM decision_reveals");
     await db.execute("DELETE FROM decision_feedback");
     await db.execute("DELETE FROM decisions");
@@ -68,6 +72,11 @@ describeDb("DrizzleRecordStore against MySQL", () => {
     await db.execute("DELETE FROM learning_transfer_results");
     await db.execute("DELETE FROM learning_transfers");
     await db.execute("DELETE FROM learning_rules");
+    // Added with the claim-timestamp test below: these three were accumulating across every run,
+    // so a later assertion could have been reading a row an earlier run wrote.
+    await db.execute("DELETE FROM drill_results");
+    await db.execute("DELETE FROM drills");
+    await db.execute("DELETE FROM claims");
   };
 
   beforeAll(async () => {
@@ -260,5 +269,209 @@ describeDb("DrizzleRecordStore against MySQL", () => {
       "d-1",
       "d-2",
     ]);
+  });
+
+  /*
+   * THE PROBE, AGAINST A REAL DATABASE.
+   *
+   * Every rule below is already asserted against `MemoryRecordStore` in
+   * tests/shared/an-arm-on-every-decision.test.ts -- and that is exactly why this block exists.
+   * The two implementations are separate code: the in-memory one checks its refusals against a
+   * `Map`, this one against three tables and a live driver, and nothing makes them agree except
+   * running both. `recordCounterfactual` and `scoreCounterfactual` on this class had never
+   * executed once before this file did it.
+   */
+  describe("the counterfactual probe, on a real database", () => {
+    const probed = (index: number) => decision(index, { probeAssignment: "probed" });
+
+    it("stores the arm and the covariate on the decision itself", async () => {
+      await store.commitDecision(probed(400));
+      const atom = await store.getAtom("d-400");
+      expect(atom?.probe?.assignment).toBe("probed");
+      expect(atom?.probe?.legal_moves).toBe(20);
+      expect(atom?.reveal_timing).toBe("per-decision");
+    });
+
+    it("keeps an absent arm absent, rather than defaulting it to a control", async () => {
+      await store.commitDecision(
+        decision(401, { probeAssignment: null, legalMoves: null, revealTiming: null }),
+      );
+      const atom = await store.getAtom("d-401");
+      expect(atom?.probe).toBeNull();
+      expect(atom?.reveal_timing).toBeNull();
+    });
+
+    it("keeps 'asked and named nothing' apart from 'never asked'", async () => {
+      /*
+       * The distinction that a schema storing only the move could never recover. Here it is the
+       * difference between a row in `decision_counterfactuals` with a NULL `alternative_move` and
+       * no row at all -- which is only true if the read path actually joins on row existence.
+       */
+      await store.commitDecision(probed(402));
+      await store.commitDecision(probed(403));
+      await store.recordCounterfactual("d-402", null);
+
+      const answered = (await store.getAtom("d-402"))?.probe;
+      const silent = (await store.getAtom("d-403"))?.probe;
+      expect(answered?.answered).toBe(true);
+      expect(answered?.alternative).toBeNull();
+      expect(silent?.answered).toBe(false);
+    });
+
+    it("prices a named alternative and hands it back", async () => {
+      await store.commitDecision(probed(404));
+      await store.recordCounterfactual("d-404", "d2d4");
+      await store.scoreCounterfactual("d-404", 240);
+      const probe = (await store.getAtom("d-404"))?.probe;
+      expect(probe?.alternative).toBe("d2d4");
+      expect(probe?.alternative_cp_loss).toBe(240);
+    });
+
+    it("refuses an answer on a decision that was never asked", async () => {
+      await store.commitDecision(decision(405, { probeAssignment: "not-probed" }));
+      await expect(store.recordCounterfactual("d-405", "d2d4")).rejects.toThrow();
+    });
+
+    it("refuses an answer once the engine has spoken", async () => {
+      // R3 from the other side, and the check here is a SELECT rather than a Map lookup.
+      await store.commitDecision(probed(406));
+      await store.recordReveal("d-406", {
+        engine_eval_cp: 15,
+        engine_best_move: "e2e4",
+        engine_depth: 14,
+        engine_source: "local_sf18",
+        cp_loss: 10,
+      });
+      await expect(store.recordCounterfactual("d-406", "d2d4")).rejects.toThrow();
+    });
+
+    it("answers once", async () => {
+      await store.commitDecision(probed(407));
+      await store.recordCounterfactual("d-407", "d2d4");
+      // Append-only, enforced by the primary key rather than by a guard this class wrote.
+      await expect(store.recordCounterfactual("d-407", "g1f3")).rejects.toThrow();
+    });
+
+    it("refuses a price for an answer that named no move", async () => {
+      await store.commitDecision(probed(408));
+      await store.recordCounterfactual("d-408", null);
+      await expect(store.scoreCounterfactual("d-408", 240)).rejects.toThrow();
+    });
+
+    it("carries the probe through listAtoms as well as getAtom", async () => {
+      /*
+       * TWO READ PATHS, AND ONLY ONE OF THEM FEEDS THE DASHBOARD. `getAtom` joins one row;
+       * `listAtoms` builds a map over the whole table, and it is what `recordReading` calls. A
+       * probe that arrived through one and not the other would leave every screen empty while
+       * every single-decision test passed.
+       */
+      await store.commitDecision(probed(409));
+      await store.recordCounterfactual("d-409", "g1f3");
+      const listed = (await store.listAtoms("game-1")).find((a) => a.decision === "e2e4" && a.probe?.alternative === "g1f3");
+      expect(listed, "the probe did not survive listAtoms").toBeTruthy();
+      expect(listed?.probe?.answered).toBe(true);
+    });
+  });
+
+  /**
+   * The two stores said different things about when a claim was last evaluated.
+   *
+   * `claims.last_evaluated_at` carried `ON UPDATE NOW()` and `drill_results.recorded_at` carried
+   * `defaultNow()`, and neither write passed a value -- so MySQL stamped the moment the statement
+   * ran while MemoryRecordStore kept what the service reported. Probed side by side before this
+   * test existed: the service wrote `2026-02-02T10:00:00Z`, memory returned it, MySQL returned
+   * the wall clock. Every test in this repository except this file's runs against the in-memory
+   * store, so nothing could see it.
+   *
+   * It matters more since `evaluateClaim` became a fold, because the fold ORDERS BY
+   * `recorded_at`. Ordering by when a row was written and grading by when a drill was reported
+   * are the same thing only until something is replayed.
+   *
+   * ASSERTED AS AGREEMENT BETWEEN THE STORES, not as one store's behaviour. An interface is not a
+   * proof: two classes can satisfy the same types and disagree about what the data means, and
+   * these two did.
+   */
+  describe("the two stores agree about when a claim was evaluated", () => {
+    const CREATED_AT = "2026-01-01T00:00:00.000Z";
+    const REPORTED_AT = "2026-02-02T10:00:00.000Z";
+
+    const claim = {
+      claim_id: "claim-timestamps",
+      statement: "תחת לחץ זמן אתם בטוחים יותר משאתם מדויקים",
+      scope: "החלטות מהירות",
+      supporting_decision_ids: ["d-001"],
+      n: 40,
+      grade: "hypothesis" as const,
+      refutation_condition: "פער הביטחון לא ישוחזר בבדיקה קדימה",
+      // "בטוחים יותר משאתם מדויקים" -- overconfidence, so the flag agrees with the sentence.
+      predicts_overconfidence: true,
+      prospective_tests: [],
+      created_at: CREATED_AT,
+      last_evaluated_at: CREATED_AT,
+    };
+    const result = {
+      kind: "prospective_drill_result" as const,
+      drill_id: "drill-timestamps",
+      claim_id: claim.claim_id,
+      decision_ids: ["dd-1", "dd-2", "dd-3"],
+      predicted: true,
+      observed: true,
+      recorded_at: REPORTED_AT,
+    };
+
+    async function roundTrip(target: typeof store | InstanceType<typeof MemoryRecordStore>) {
+      await target.saveClaim(claim);
+      await target.saveDrillResult(result);
+      await target.saveClaim({ ...claim, grade: "replicated", last_evaluated_at: REPORTED_AT });
+      return target.getClaim(claim.claim_id);
+    }
+
+    it("keeps the date the drill was reported, in MySQL as well as in memory", async () => {
+      const fromMysql = await roundTrip(store);
+      const fromMemory = await roundTrip(new MemoryRecordStore());
+
+      for (const [name, stored] of [["MySQL", fromMysql], ["memory", fromMemory]] as const) {
+        expect(stored?.grade, `${name} lost the grade`).toBe("replicated");
+        expect(stored?.last_evaluated_at, `${name} stamped its own clock`).toBe(REPORTED_AT);
+        expect(stored?.created_at, `${name} rewrote when the claim was formed`).toBe(CREATED_AT);
+        expect(stored?.prospective_tests, `${name} lost the drill result`).toHaveLength(1);
+        expect(stored?.prospective_tests[0].recorded_at, `${name} restamped the result`).toBe(
+          REPORTED_AT,
+        );
+        /*
+         * Named rather than left to the toEqual below, because this one is a SIGN and losing it
+         * does not look like a loss. A claim that comes back without its direction cannot be
+         * drilled at all, and a claim that comes back with the wrong one is graded backwards --
+         * `evaluateRefutation` is one-sided, so the two outcomes are a refusal and a false
+         * refutation, not a missing field and a present one.
+         */
+        expect(stored?.predicts_overconfidence, `${name} lost which way the claim points`).toBe(
+          true,
+        );
+      }
+      expect(fromMysql).toEqual(fromMemory);
+    });
+
+    it("agrees on a claim that never recorded a direction, rather than one store inventing one", async () => {
+      /*
+       * The tri-state is the thing to check across stores, and it is exactly where the two
+       * timestamp divergences this block was written for came from: a nullable MySQL column and
+       * an in-memory object are not obliged to disagree, they just usually do. Absent must arrive
+       * as `null` from both, because `createDrill` distinguishes "no direction recorded" from
+       * `false`, and `false` is a real direction that would be silently tested.
+       */
+      const legacy = { ...claim, claim_id: "claim-no-direction", predicts_overconfidence: null };
+      await store.saveClaim(legacy);
+      await new MemoryRecordStore().saveClaim(legacy);
+      const fromMysql = await store.getClaim(legacy.claim_id);
+      expect(fromMysql?.predicts_overconfidence, "MySQL invented a direction").toBeNull();
+
+      const memory = new MemoryRecordStore();
+      await memory.saveClaim(legacy);
+      expect(
+        (await memory.getClaim(legacy.claim_id))?.predicts_overconfidence,
+        "memory invented a direction",
+      ).toBeNull();
+    });
   });
 });

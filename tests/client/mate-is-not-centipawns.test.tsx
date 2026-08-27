@@ -38,6 +38,7 @@ import { toWhitePerspective } from "@/lib/batch-analysis";
 import { cpLossFromSearches, cpLossOfFinalMove } from "@/lib/decision-session";
 import { ACCURATE_CP_LOSS } from "@shared/detector";
 import { MATE_SCORE as SHARED_MATE_SCORE, inferenceLimits, type RevealInputs } from "@shared/reveal";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 
 const WHITE_TO_MOVE = "8/8/8/8/8/8/4K3/4k3 w - - 0 1";
 const BLACK_TO_MOVE = "8/8/8/8/8/8/4K3/4k3 b - - 0 1";
@@ -207,7 +208,8 @@ describe("the reveal says which distance the number threw away", () => {
     chosenMove: "e2e4",
     bestMove: "e2e4",
     chosenWasBest: true,
-    confidence: 4,
+    confidence: CONFIDENCE_LEVELS - 1,
+    confidenceScale: CONFIDENCE_LEVELS,
     statedUnknown: "לא ברור",
     decisionsOnRecord: 12,
     candidatesConsidered: ["e2e4"],
@@ -248,7 +250,8 @@ describe("the rendered cost distinguishes a measurement from a ceiling", () => {
     chosenMove: "e2e4",
     bestMove: "e2e4",
     chosenWasBest: true,
-    confidence: 5,
+    confidence: CONFIDENCE_LEVELS,
+    confidenceScale: CONFIDENCE_LEVELS,
     statedUnknown: "לא ברור",
     decisionsOnRecord: 40,
     candidatesConsidered: ["e2e4"],

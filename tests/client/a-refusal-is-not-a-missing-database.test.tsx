@@ -160,6 +160,7 @@ describe("the reason reaches the screen", () => {
       "not-this-account",
       "no-owner-configured",
       "unreachable",
+      "server-lost",
     ] as const;
     const said = causes.map((serverStatus) =>
       notice({ local: true, durability: "persistent", serverStatus }),

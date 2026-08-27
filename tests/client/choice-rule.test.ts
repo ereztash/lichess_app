@@ -12,6 +12,7 @@
  * still have been considered in their head. Every assertion here runs in that direction only.
  */
 import { describe, expect, it } from "vitest";
+import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 import {
   ENGINE_NOISE_CP,
   MATERIAL_LOSS_CP,
@@ -26,7 +27,8 @@ const base: RevealInputs = {
   chosenMove: "g8f6",
   bestMove: "g8f6",
   chosenWasBest: true,
-  confidence: 3,
+  confidence: EVEN_ODDS_LEVEL,
+  confidenceScale: CONFIDENCE_LEVELS,
   statedUnknown: "",
   decisionsOnRecord: 12,
   candidatesConsidered: ["g8f6"],
@@ -71,7 +73,7 @@ describe("the reading itself", () => {
      * single decision is the aggregate claim at n=1 -- the detector will not make it under
      * MIN_BUCKET_N. "The move was on your board and you played another" needs no aggregation.
      */
-    const both = { ...rejected, confidence: 5 };
+    const both = { ...rejected, confidence: CONFIDENCE_LEVELS };
     const one = theOneThing(both)!;
     expect(one.text).toMatch(/מה שהכריע ביניהם/);
     expect(one.text).not.toMatch(/אמרת ביטחון/);

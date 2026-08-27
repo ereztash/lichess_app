@@ -240,7 +240,11 @@ describe("a bucket's own accuracy is not a finding until it is against the popul
     const population = populationBucket("phase-middlegame")!;
     expect(middlegame.measurable).toBe(true);
     expect(middlegame.inside.accuracyRate).toBe(1);
-    expect(middlegame.versusPopulation).toBeCloseTo(1 - population.accuracy, 10);
+    expect(middlegame.versusPopulation!.points).toBeCloseTo(1 - population.accuracy, 10);
+    // A record accurate on every decision is also the record with no sample variance at all, and
+    // the error must stay finite there or the bar would be loudest where the sample says least.
+    expect(Number.isFinite(middlegame.versusPopulation!.standardError)).toBe(true);
+    expect(middlegame.versusPopulation!.standardError).toBeGreaterThan(0);
   });
 
   it("keeps the sign, so being below the population reads as below", () => {
@@ -249,8 +253,11 @@ describe("a bucket's own accuracy is not a finding until it is against the popul
     const middlegame = readRecord([...inside, ...outside]).buckets.find(
       (b) => b.key === "phase-middlegame",
     )!;
-    expect(middlegame.versusPopulation).toBeLessThan(0);
-    expect(middlegame.versusPopulation).toBeCloseTo(-populationBucket("phase-middlegame")!.accuracy, 10);
+    expect(middlegame.versusPopulation!.points).toBeLessThan(0);
+    expect(middlegame.versusPopulation!.points).toBeCloseTo(
+      -populationBucket("phase-middlegame")!.accuracy,
+      10,
+    );
   });
 
   it("says nothing about a bucket the record itself cannot read", () => {

@@ -15,6 +15,7 @@
  */
 import { z } from "zod";
 import { CONFIDENCE_LEVELS } from "./confidence.js";
+import { REVEAL_TIMINGS } from "./reveal-timing.js";
 
 export const ATOM_FIELDS = [
   "entry_state",
@@ -22,6 +23,8 @@ export const ATOM_FIELDS = [
   "unknown",
   "decision",
   "bounded_action",
+  "probe",
+  "reveal_timing",
   "result",
   "feedback",
 ] as const;
@@ -71,6 +74,54 @@ export const resultSchema = z.object({
   cp_loss: z.number().int().min(0),
 });
 
+/**
+ * The three arms of the counterfactual probe, and the third is not a synonym for the second.
+ *
+ * `ineligible` is a position that could never have carried the question -- fewer than two legal
+ * moves. Folding those into `not-probed` would make the control group a mixture of "eligible and
+ * not drawn" and "never askable", and any difference between arms would then be a difference
+ * between kinds of position.
+ */
+export const PROBE_ASSIGNMENTS = ["probed", "not-probed", "ineligible"] as const;
+export type ProbeAssignment = (typeof PROBE_ASSIGNMENTS)[number];
+
+/**
+ * probe -- which arm this decision was randomised into, and what came back if it was asked.
+ *
+ * PRESENT ON EVERY DECISION, INCLUDING THE ONES NOTHING WAS ASKED ON. A record that holds only
+ * the probed decisions has no denominator: "do probed decisions differ from unprobed ones" would
+ * become a comparison of probed decisions against the record's own average, which mixes every
+ * other difference between the groups into the estimate.
+ */
+export const probeSchema = z.object({
+  assignment: z.enum(PROBE_ASSIGNMENTS),
+  /**
+   * Legal moves in the entry position, carried as a covariate rather than used as a filter.
+   *
+   * A position with three legal moves is a thinner question than one with forty. Setting a floor
+   * -- "ask only where there are at least eight" -- would have made the probed arm look cleaner
+   * and would have been a threshold chosen to shape a result. Eligibility stays definitional and
+   * the count is stored, so an analysis can condition on it instead.
+   */
+  legal_moves: z.number().int().min(0),
+  /** The move the player named. Null both when unasked and when asked and unable -- see below. */
+  alternative: z.string().min(4).max(6).nullable(),
+  /**
+   * Whether the question was actually put and answered.
+   *
+   * A FIELD RATHER THAN AN INFERENCE FROM `alternative`, and R2 is the reason. A player who was
+   * asked and could not produce an alternative has told the instrument something real -- on the
+   * four readings it is arguably the most interesting thing available. A player who was never
+   * asked has told it nothing. Both are `alternative === null`, and a record storing only the
+   * move can never tell them apart again.
+   */
+  answered: z.boolean(),
+  /** What the alternative cost, measured at reveal. Null until the engine has scored it. */
+  alternative_cp_loss: z.number().int().min(0).nullable(),
+});
+
+export type Probe = z.infer<typeof probeSchema>;
+
 /** feedback -- what the player revised after seeing the result. Null until they revise. */
 export const feedbackSchema = z.object({
   revised_read: z.string().max(200),
@@ -96,6 +147,23 @@ export const decisionAtomSchema = z.object({
   /** The chosen move, UCI. */
   decision: z.string().min(4).max(6),
   bounded_action: boundedActionSchema,
+  /**
+   * NULLABLE, AND NULL IS A FOURTH STATE RATHER THAN A DEFAULT ARM. A decision written before the
+   * probe existed was never randomised into anything, and assigning it to an arm on read would
+   * enrol it retrospectively into a group it was never part of.
+   */
+  probe: probeSchema.nullable(),
+  /**
+   * Which reveal timing was in force -- see shared/reveal-timing.ts for why the two are not
+   * poolable.
+   *
+   * NULLABLE, AND NULL IS NOT `per-decision`. Every decision written before the deferred game
+   * existed was in fact made in the coached loop, because that was the only loop -- and writing
+   * `per-decision` into those rows would still be wrong. It would assert that a condition was
+   * recorded when nobody recorded one, and the first comparison between modes would show a
+   * coached arm that is enormous and perfectly measured.
+   */
+  reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
   result: resultSchema.nullable(),
   feedback: feedbackSchema.nullable(),
 });

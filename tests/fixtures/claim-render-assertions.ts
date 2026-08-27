@@ -44,6 +44,8 @@ export const N1_HYPOTHESIS: Claim = {
   n: 1,
   grade: "hypothesis",
   refutation_condition: "אם בדריל הפער לא יהיה גדול יותר — הופרך.",
+  // "גבוה מהתוצאות" -- the statement above names overconfidence, so the flag matches the prose.
+  predicts_overconfidence: true,
   prospective_tests: [],
   created_at: "2026-08-21T00:00:00Z",
   last_evaluated_at: "2026-08-21T00:00:00Z",

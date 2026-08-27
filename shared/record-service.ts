@@ -13,9 +13,11 @@
  */
 import { evaluateClaim, type Claim, type DrillSpec, type ProspectiveDrillResult } from "./claim.js";
 import { selectClaim } from "./claim-derivation.js";
-import type { DecisionAtom, DecisionResult } from "./decision-atom.js";
+import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
+import { probeEligibility } from "./counterfactual.js";
+import type { RevealTiming } from "./reveal-timing.js";
 import {
-  ACCURATE_CP_LOSS,
+  accurateDecision,
   BUCKETINGS,
   DEFAULT_THRESHOLDS,
   MIN_BUCKET_N,
@@ -31,6 +33,7 @@ import {
   reflectionDraftSchema,
   retireLearningRule as retireRule,
   TRANSFER_POSITION_COUNT,
+  type LearningRule,
   type LearningRuleDraft,
   type LearningTransferObservation,
   type LearningTransferResult,
@@ -50,11 +53,13 @@ import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
+import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
+import { LEGACY_CONFIDENCE_LEVELS } from "./confidence.js";
 
 /**
  * A refusal with a transport-neutral code.
@@ -101,6 +106,23 @@ export type CommitEvent = {
     confidence_scale?: number;
     candidate_moves_considered: string[];
   };
+  /**
+   * The arm, assigned before the player was seen. Null from a client that predates the probe.
+   *
+   * `alternative` and `answered` are on the type because the atom carries them, and they are
+   * refused below if a commit event arrives with either set: the commit happens BEFORE the
+   * question is put, so an answer riding along means the client asked first -- which is how
+   * naming an alternative turns into choosing it.
+   */
+  probe: {
+    assignment: ProbeAssignment;
+    legal_moves: number;
+    alternative: string | null;
+    answered: boolean;
+    alternative_cp_loss: number | null;
+  } | null;
+  /** Which reveal timing produced this decision. Null from a client that predates the setting. */
+  reveal_timing: RevealTiming | null;
   result: null;
   feedback: null;
 };
@@ -132,6 +154,41 @@ export async function commitDecision(
       "ההחלטה נשלחה בלי לציין על איזה סולם ביטחון היא נאמרה, ולכן אי אפשר לקרוא אותה.",
     );
   }
+  /*
+   * THE ARM IS CHECKED AGAINST THE POSITION, exactly as the phase is on the line above, and for
+   * the same reason: everything the record will later divide by has to be re-derived rather than
+   * believed. A wrong legal-move count silently biases every estimate conditioned on it, and a
+   * `probed` arm on a position that could never have carried the question puts a row in the
+   * treatment group that no randomisation could have placed there.
+   */
+  const probe = input.probe;
+  if (probe) {
+    if (probe.answered || probe.alternative !== null) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה עם תשובה על השאלה החלופית, אבל השאלה נשאלת רק אחרי שהמהלך ננעל.",
+      );
+    }
+    const { legalMoves, eligible } = probeEligibility(input.entry_state.fen);
+    if (probe.legal_moves !== legalMoves) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        `מספר המהלכים החוקיים שנשלח (${probe.legal_moves}) אינו תואם את העמדה (${legalMoves}).`,
+      );
+    }
+    if (probe.assignment !== "ineligible" && !eligible) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "העמדה הזאת לא יכולה לשאת את השאלה החלופית, ולכן היא לא יכולה להיות באף אחת משתי הזרועות.",
+      );
+    }
+    if (probe.assignment === "ineligible" && eligible) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "העמדה הזאת יכולה לשאת את השאלה החלופית, ולכן סימונה כלא־כשירה יוציא אותה מהניסוי בלי סיבה.",
+      );
+    }
+  }
   const row: CommitDecisionInput = {
     decisionId: input.decision_id,
     gameId: input.entry_state.game_id,
@@ -146,6 +203,9 @@ export async function commitDecision(
     statedUnknown: input.unknown,
     confidence: input.bounded_action.confidence,
     confidenceScale,
+    probeAssignment: probe?.assignment ?? null,
+    legalMoves: probe?.legal_moves ?? null,
+    revealTiming: input.reveal_timing,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.
@@ -156,10 +216,53 @@ export async function commitDecision(
  * Store the engine's verdict against an ALREADY COMMITTED decision, and hand back the atom.
  * Refuses when the decision was never recorded: that is R3, wherever the loop is running.
  */
+/**
+ * The player's answer to "what would you have played instead".
+ *
+ * A THIN WRAPPER OVER THE STORE ON PURPOSE. The three refusals -- no such decision, an arm that
+ * was never asked, the engine has already spoken -- live in the store implementations because
+ * each has to check them against its own reveal state, and both implementations are exercised by
+ * the same test file. What belongs here is the one rule that is about the ANSWER rather than the
+ * record: the alternative may not be the move that was committed.
+ */
+export async function recordCounterfactual(
+  store: RecordStore,
+  decisionId: string,
+  alternative: string | null,
+): Promise<{ decision_id: string }> {
+  if (alternative !== null) {
+    const atom = await store.getAtom(decisionId);
+    /*
+     * The committed move is not an answer to "what would you have played INSTEAD", and a board
+     * interaction produces it easily -- the piece is already on that square. A row whose two
+     * moves are the same would be classified on the strength of the chosen move alone, so it
+     * would read as `both-good` or `neither` while measuring nothing.
+     */
+    if (atom && atom.decision === alternative) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "המהלך החלופי זהה למהלך שנרשם, והשאלה היא מה היה נעשה במקומו.",
+      );
+    }
+  }
+  await store.recordCounterfactual(decisionId, alternative);
+  return { decision_id: decisionId };
+}
+
 export async function reveal(
   store: RecordStore,
   decisionId: string,
   result: DecisionResult,
+  /**
+   * What the named alternative cost, out of the SAME search that scored the chosen move.
+   *
+   * Carried on the reveal rather than as its own call because it is measured at the same moment
+   * and by the same tree: `cpLossFromMultiPv` reads both moves off one root search, so both
+   * scores share a window, a depth and an iteration. A second round trip would let one land
+   * without the other, and a record holding a chosen-move score and no alternative score is one
+   * where the reading silently does not exist.
+   */
+  alternativeCpLoss?: number | null,
 ): Promise<DecisionAtom> {
   const existing = await store.getAtom(decisionId);
   if (!existing) {
@@ -169,9 +272,58 @@ export async function reveal(
     );
   }
   if (await store.hasReveal(decisionId)) {
-    throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
+    /*
+     * A REPLAY COMPLETES THE RECORD; A DIFFERENT SECOND REVEAL IS STILL REFUSED.
+     *
+     * This threw unconditionally, and that is the third instance of the shape cycles 31 and 36
+     * closed -- the gate written to protect append-only-ness being the thing that freezes a
+     * half-written record. The two writes below are not atomic: the reveal can land and the
+     * alternative's price fail, and `scoreCounterfactual` can refuse on its own (no answer row,
+     * or an answer that named no move) AFTER the reveal has committed. The retry then re-entered
+     * here, found `hasReveal` true, and threw -- and this line is the ONLY caller of
+     * `scoreCounterfactual` in the product, so no other path could ever write that price.
+     *
+     * What the record loses is invisible: `readCounterfactuals` drops an unpriced pair, so the
+     * decision counts in `asked` and `answered` and in none of the four readings. A row of the
+     * probe's treatment arm leaves the denominator with no trace.
+     *
+     * COMPLETING A NULL IS NOT OVERWRITING A VALUE, and that distinction is the whole of the
+     * safety here. A replay may fill the price if it is still null; it may not change the reveal,
+     * the alternative move, or a price already stored. A second reveal carrying a DIFFERENT
+     * verdict is a different claim about the same decision and stays a CONFLICT.
+     */
+    const sameVerdict =
+      existing.result !== null &&
+      existing.result.engine_eval_cp === result.engine_eval_cp &&
+      existing.result.engine_best_move === result.engine_best_move &&
+      existing.result.engine_depth === result.engine_depth &&
+      existing.result.engine_source === result.engine_source &&
+      existing.result.cp_loss === result.cp_loss;
+    if (!sameVerdict) {
+      throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
+    }
+    if (
+      alternativeCpLoss !== undefined &&
+      alternativeCpLoss !== null &&
+      existing.probe?.answered === true &&
+      existing.probe.alternative !== null &&
+      existing.probe.alternative_cp_loss === null
+    ) {
+      await store.scoreCounterfactual(decisionId, alternativeCpLoss);
+    }
+    const replayed = await store.getAtom(decisionId);
+    if (!replayed) throw new RecordError("INTERNAL_SERVER_ERROR", "רשומה נעלמה.");
+    return replayed;
   }
   await store.recordReveal(decisionId, result);
+  /*
+   * AFTER the reveal is stored, and the order is the point. `scoreCounterfactual` refuses when no
+   * alternative was named, and that refusal must not be able to lose the engine's verdict on the
+   * chosen move -- which is the decision's own outcome and the thing every other measure reads.
+   */
+  if (alternativeCpLoss !== undefined && alternativeCpLoss !== null) {
+    await store.scoreCounterfactual(decisionId, alternativeCpLoss);
+  }
   const atom = await store.getAtom(decisionId);
   if (!atom) throw new RecordError("INTERNAL_SERVER_ERROR", "רשומה נעלמה.");
   return atom;
@@ -202,7 +354,50 @@ export async function createLearningRule(
     );
   }
 
+  /*
+   * THE RULE IS VALIDATED BEFORE THE REFLECTION IS WRITTEN, because the write used to come first.
+   *
+   * `formLearningRule` runs a schema parse that can throw, and it ran BETWEEN the two writes, so a
+   * draft it refused left a reflection on the record and no rule. Building the rule first makes
+   * that throw free: nothing has been written when it fires.
+   *
+   * NARROWER THAN THE FIRST VERSION OF THIS NOTE CLAIMED. An adversarial check of the finding
+   * established that the parse is dead on the SERVER path -- `learningRuleEventSchema` parses both
+   * halves with `.strict()` in the router before this function is reached -- so it survives only on
+   * the browser path, where `record-api` calls the service directly. And on that path the store
+   * write cannot fail either, because `LocalRecordStore.write` swallows a quota error and
+   * downgrades to memory. The two ways to reach a half-written record are therefore disjoint: this
+   * throw on the browser, and a genuine driver failure on the signed-in MySQL path.
+   */
+  const rule = formLearningRule(input.rule, now);
   const reflection = reflectionDraftSchema.parse(input.reflection);
+
+  /*
+   * A REFLECTION ALREADY ON THE RECORD STANDS, AND THAT NO LONGER REFUSES THE RULE.
+   *
+   * This threw CONFLICT whenever the incoming reflection differed from the stored one, which
+   * discarded the rule as well -- and the rule is a different thing, the one the player was
+   * actually trying to record.
+   *
+   * It matters because the two writes are not atomic. Lose the rule write and the record holds a
+   * reflection and no rule; the retry then succeeds only if the reflection is BYTE-IDENTICAL.
+   *
+   * AND THE PLAIN RETRY DOES SUCCEED -- checked rather than assumed. The composer keeps every field
+   * on screen after a failure, so a re-click without touching anything sends the same bytes, passes
+   * the gate and writes the rule. An adversarial check proved that empirically against the pre-fix
+   * code. What traps the decision is EDITING the revised-read box first, which is a plausible
+   * response to "הכלל לא נשמר" rather than an automatic one -- and once edited, the stored text is
+   * no longer on screen to be retyped. `LearningRuleComposer` is the only path that authors a rule,
+   * so from there that decision carried none.
+   *
+   * WHAT WAS BEING PROTECTED IS STILL PROTECTED. The stored reflection is not rewritten: what you
+   * said before seeing more cannot be retroactively improved, and that is the whole of the
+   * append-only claim. What changes is that refusing to overwrite it no longer refuses everything
+   * else. The caller is TOLD which happened rather than left to assume its text was stored --
+   * silently keeping one version while the screen shows another is the thing this product exists
+   * not to do.
+   */
+  let reflectionOutcome: "recorded" | "kept-earlier" = "recorded";
   if (!atom.feedback) {
     await store.recordFeedback(input.rule.source_decision_id, {
       revisedRead: reflection.revised_read,
@@ -212,12 +407,11 @@ export async function createLearningRule(
     atom.feedback.revised_read !== reflection.revised_read ||
     atom.feedback.would_choose_again !== reflection.would_choose_again
   ) {
-    throw new RecordError("CONFLICT", "הרפלקציה על ההחלטה הזו היא append-only ואי אפשר לשנות אותה.");
+    reflectionOutcome = "kept-earlier";
   }
 
-  const rule = formLearningRule(input.rule, now);
   await store.saveLearningRule(rule);
-  return rule;
+  return { rule, reflection: reflectionOutcome, storedReflection: atom.feedback ?? null };
 }
 
 export async function learningRules(store: RecordStore) {
@@ -229,8 +423,23 @@ export async function beginLearningTransfer(
   input: { rule_id: string; candidate_fens: string[] },
   now: { transfer_id: string; started_at: string },
 ) {
-  const rule = await store.getLearningRule(input.rule_id);
-  if (!rule) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
+  const exists = await store.getLearningRule(input.rule_id);
+  if (!exists) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
+  /*
+   * THE GRADE IS RE-DERIVED BEFORE ANYTHING IS DECIDED ON IT.
+   *
+   * The cycle-31 fold repaired the WRITE path and left every read serving the stored grade. Lose
+   * one grade write on a sitting that refutes a rule -- and the player abandons the retry, which a
+   * closed tab does -- and the record holds two failing results on two days while this function
+   * reads `hypothesis` and preregisters a NEW transfer. `preregisterLearningTransfer` throws on a
+   * refuted rule, and that throw is bypassed because it is handed the stale rule. The player then
+   * sits a three-position retrieval test on a rule the record has already closed.
+   *
+   * Grading here is idempotent -- the fold over the same results returns the same rule -- so on
+   * the ordinary path it costs a query and changes nothing, and on the damaged path it repairs the
+   * record before the decision that would have been wrong.
+   */
+  const rule = await gradeFromRecord(store, input.rule_id);
 
   /*
    * ONE TEST IN FLIGHT PER RULE, AND IT IS RESUMED RATHER THAN REFUSED.
@@ -258,6 +467,7 @@ export async function beginLearningTransfer(
   if (rule.grade === "refuted" || rule.grade === "retired") {
     return {
       transfer: null,
+      observed: 0,
       reason:
         rule.grade === "refuted"
           ? "הכלל הזה הופרך, ולכן אין עליו בדיקות נוספות."
@@ -277,6 +487,7 @@ export async function beginLearningTransfer(
   if (!isScoreable(rule.action_rule)) {
     return {
       transfer: null,
+      observed: 0,
       reason:
         "אי אפשר למדוד שליפה של הכלל הזה: הניסוח שלו קצר מדי או מורכב מסימונים בלבד. " +
         "כדי שהבדיקה תוכל להשוות את מה שתשלפו למה שכתבתם, הכלל צריך כמה מילים משלו.",
@@ -284,7 +495,60 @@ export async function beginLearningTransfer(
   }
 
   const open = await store.getOpenLearningTransfer(rule.rule_id);
-  if (open) return { transfer: open, reason: null };
+  /*
+   * AN ORPHAN IS NOT RESUMED, and telling one from a legitimate resume takes both halves.
+   *
+   * `beginLearningTransfer` is check-then-act with no uniqueness -- it reads the open transfer and
+   * later writes a new one, with nothing between them and no unique index on `rule_id`. Two tabs
+   * are enough: the queue's button is disabled on `busy`, and `busy` only becomes true after the
+   * first mutation RESOLVES. Both calls select from the same candidates by the same deterministic
+   * rule, so the two preregistrations cover the IDENTICAL three positions.
+   *
+   * Reproduced end to end: sit one of them, and at the next due date the OTHER is resumed over the
+   * same three boards. Decide them again -- fresh decision ids, so the spent-decision guard does
+   * not fire, and `finishLearningTransfer`'s position check passes because the board IS the one
+   * that was written down -- and two success days grade the rule `replicated`. Three positions
+   * have become evidence that a rule held up across sittings, which is precisely what that guard
+   * exists to prevent, and results are append-only so the fold reads two success days forever.
+   *
+   * ZERO OBSERVATIONS AND EVERY BOARD ALREADY DECIDED is what makes it an orphan. Neither half
+   * alone is enough: a run the player got halfway through has some boards decided and is a
+   * legitimate resume, and a run they COMPLETED but could not report has all of them decided --
+   * by itself, with observations to show for it -- and must be handed back so it can be reported.
+   *
+   * Refusing at the report instead would leave the orphan open and the rule frozen, which is the
+   * deadlock this path was fixed for one cycle ago.
+   */
+  const openObserved = open
+    ? (await store.listLearningTransferObservations(open.transfer_id)).length
+    : 0;
+  if (open && openObserved === 0) {
+    const decided = new Set(
+      (await store.listAtoms()).map((atom) => positionKey(atom.entry_state.fen)),
+    );
+    if (open.fens.every((fen) => decided.has(positionKey(fen)))) {
+      // Left in the table -- nothing in the store contract deletes one -- but never resumed again:
+      // `getOpenLearningTransfer` hands back the NEWEST open transfer, so the fresh preregistration
+      // below supersedes it instead of queueing behind it forever.
+      return preregisterFreshTransfer(store, rule, input.candidate_fens, now);
+    }
+  }
+  if (open) {
+    /*
+     * THE RESUME CARRIES HOW FAR THE RUN GOT, because the client cannot know and used to assume.
+     *
+     * It reset its index to 0 on every resume, and nothing exposed the observation count -- so a
+     * returning player was served a board they had already decided and seen the engine's verdict
+     * for. The server no longer breaks when that happens (the slot is derived from the board), but
+     * re-serving a decided position is the thing per-position writes were introduced to prevent,
+     * and not doing it is better than surviving it.
+     */
+    return {
+      transfer: open,
+      observed: (await store.listLearningTransferObservations(open.transfer_id)).length,
+      reason: null,
+    };
+  }
 
   /*
    * NULL IS THE END OF THE SCHEDULE, NOT PERMISSION. `gradeLearningRule` sets `next_due_at` to
@@ -295,16 +559,32 @@ export async function beginLearningTransfer(
   if (!rule.next_due_at) {
     return {
       transfer: null,
+      observed: 0,
       reason: "לוח החזרות של הכלל הזה הסתיים. אין בדיקה נוספת מתוזמנת עבורו.",
     };
   }
   if (new Date(now.started_at) < new Date(rule.next_due_at)) {
     return {
       transfer: null,
+      observed: 0,
       reason: `הכלל הזה מתוזמן לחזרה מרווחת בתאריך ${rule.next_due_at}.`,
     };
   }
 
+  return preregisterFreshTransfer(store, rule, input.candidate_fens, now);
+}
+
+/**
+ * Select the positions and write the preregistration. Extracted so the orphan branch above can
+ * reach it without duplicating the selection rule -- two copies of "which boards may be tested"
+ * is how the two of them would drift.
+ */
+async function preregisterFreshTransfer(
+  store: RecordStore,
+  rule: LearningRule,
+  candidateFens: string[],
+  now: { transfer_id: string; started_at: string },
+) {
   /*
    * NOVELTY IS A PROPERTY OF THE BOARD, NOT OF THE FEN STRING. The halfmove clock and fullmove
    * number record the GAME, so knights out and back produce a different string for an identical
@@ -321,7 +601,7 @@ export async function beginLearningTransfer(
    */
   const decided = new Set((await store.listAtoms()).map((atom) => positionKey(atom.entry_state.fen)));
   const byPosition = new Map<string, string>();
-  for (const fen of input.candidate_fens) {
+  for (const fen of candidateFens) {
     const key = positionKey(fen);
     if (!decided.has(key) && !byPosition.has(key)) byPosition.set(key, fen);
   }
@@ -347,6 +627,7 @@ export async function beginLearningTransfer(
   if (eligible.length < TRANSFER_POSITION_COUNT) {
     return {
       transfer: null,
+      observed: 0,
       reason:
         `נדרשות ${TRANSFER_POSITION_COUNT} עמדות מחוץ לפתיחה שלא הכרעתם בהן; זמינות ${eligible.length}. ` +
         "בפתיחה הדיוק גבוה יותר אצל כולם, ולכן בדיקה שם כמעט לא מפרידה בין כלל שעבד לכלל שלא.",
@@ -366,7 +647,7 @@ export async function beginLearningTransfer(
   const transfer = preregisterLearningTransfer(rule, unseen.slice(0, TRANSFER_POSITION_COUNT), now);
   // R5 for learning: persist the snapshot and refutation condition before returning any FEN.
   await store.saveLearningTransfer(transfer);
-  return { transfer, reason: null };
+  return { transfer, observed: 0, reason: null };
 }
 
 /**
@@ -388,19 +669,61 @@ export async function recordLearningTransferObservation(
   if (!transfer) throw new RecordError("NOT_FOUND", "אין בדיקת העברה עם המזהה הזה.");
 
   const already = await store.listLearningTransferObservations(transfer.transfer_id);
-  const position = already.length;
-  if (position >= transfer.fens.length) {
-    throw new RecordError("PRECONDITION_FAILED", "כל העמדות בבדיקה הזו כבר נרשמו.");
-  }
 
   /*
-   * The decision has to be the one this slot preregistered. Compared as POSITIONS, for the same
-   * reason the candidates were: a decision recorded against the identical board later in a game is
-   * the position that was written down.
+   * THE SLOT COMES FROM THE BOARD, NOT FROM A COUNT ONLY THE SERVER CAN SEE.
+   *
+   * This took `already.length` as the slot being answered, and that deadlocked the rule. The
+   * client resets its index to 0 on every resume and no route exposes the count -- so after ONE
+   * interruption past the first position, the board re-served `fens[0]`, this computed slot 1,
+   * compared the decision against `fens[1]`, and refused. The count never changes, so every retry
+   * repeated the identical refusal.
+   *
+   * What that costs is not the run, it is the rule. The transfer can never reach `fens.length`
+   * observations, so it can never be reported; `getOpenLearningTransfer` therefore returns it
+   * forever and `beginLearningTransfer` never issues another. The rule sits at `hypothesis` with a
+   * due date, a test button and no path that can complete a test. The only escape in the product
+   * is Archive, which kills the rule rather than repairing it.
+   *
+   * It is the same failure the per-position write was introduced to prevent -- "a reload lost them
+   * and the resume re-served positions whose engine verdict the player had already seen". The
+   * observations survived the reload; the POINTER INTO THEM did not, because it was never stored,
+   * only counted.
+   *
+   * Deriving it from the position makes this write idempotent and independent of what the client
+   * believes: the same decision on the same board answers the same slot however many times it
+   * arrives, and a client that has lost its place cannot be told a wrong one.
    */
   const atom = await store.getAtom(input.observation.decision_id);
   if (!atom) throw new RecordError("PRECONDITION_FAILED", "ההחלטה הזו לא נרשמה.");
-  if (!samePosition(atom.entry_state.fen, transfer.fens[position])) {
+  /*
+   * Compared as POSITIONS, for the same reason the candidates were: a decision recorded against
+   * the identical board later in a game is the position that was written down. The candidate set
+   * is deduplicated by `positionKey` at preregistration, so no two slots share a board and this
+   * match is unambiguous.
+   */
+  const position = transfer.fens.findIndex((fen) => samePosition(atom.entry_state.fen, fen));
+  if (position === -1) {
+    throw new RecordError("PRECONDITION_FAILED", "ההחלטה נרשמה לעמדה אחרת מזו שבתור.");
+  }
+
+  /*
+   * ALREADY ANSWERED IS A REPLAY, NOT AN ERROR -- and the answer that stands is the first one.
+   *
+   * A resumed client re-serves a board it has already decided; the honest response is to say that
+   * slot is done so it can move on, not to write a second answer over the preregistered one. The
+   * decision the player just made is a decision like any other and stays on the record; it is
+   * simply not this slot's observation.
+   */
+  if (position < already.length) {
+    return { position, remaining: transfer.fens.length - position - 1 };
+  }
+  /*
+   * And out of order is still refused. `finishLearningTransfer` pairs observation i with `fens[i]`,
+   * so the slots must fill in sequence; answering position 2 while 1 is empty would put the run in
+   * a state nothing downstream can read.
+   */
+  if (position > already.length) {
     throw new RecordError("PRECONDITION_FAILED", "ההחלטה נרשמה לעמדה אחרת מזו שבתור.");
   }
 
@@ -450,7 +773,13 @@ export async function finishLearningTransfer(
    * second call must return what the first one recorded -- not a second, differently-timed verdict.
    */
   const already = priorResults.find((result) => result.transfer_id === transfer.transfer_id);
-  if (already) return { result: already, rule: await store.getLearningRule(transfer.rule_id) };
+  /*
+   * The retry GRADES, it does not just fetch. Returning `getLearningRule` was what turned a lost
+   * grade write into a permanent one: the result row exists, so this branch fires forever, and the
+   * rule it handed back was the ungraded one. Grading here is free when nothing was lost -- the
+   * fold over the same results returns the same rule -- and repairs the record when something was.
+   */
+  if (already) return { result: already, rule: await gradeFromRecord(store, transfer.rule_id) };
 
   /*
    * A DECISION IS SPENT ONCE. This is the hole that let one sitting replicate itself.
@@ -516,10 +845,32 @@ export async function finishLearningTransfer(
    * measure. Its coverage is not stored because `recalled_rules` is, and the score is a pure
    * function of that text and the snapshot: derived beats duplicated.
    */
+  /*
+   * ACCURACY IS THE RECORD'S RULE, NOT A RAW CENTIPAWN CUT.
+   *
+   * This read `cp_loss <= ACCURATE_CP_LOSS`, which `shared/detector.ts` documents as the rule the
+   * product abandoned: thirty centipawns is 2.76 points of winning chances at a level position and
+   * 0.28 at +10.00, so it made "accurate" mean something different depending on how the game stood.
+   * `scoreDecisions` migrated to win-probability loss; this line did not, and it had the evaluation
+   * sitting on the atom the whole time.
+   *
+   * MEASURED at HEAD before the fix -- what the record calls accurate and this line called failure:
+   *
+   *     at eval   300: up to  38cp        at eval   500: up to  58cp
+   *     at eval  1000: up to 212cp
+   *
+   * AND IT IS TERMINAL. Two sittings inside that band grade the rule `refuted`, `next_due_at` goes
+   * null, and `beginLearningTransfer` refuses every later test -- on decisions the profile screen
+   * is simultaneously showing as accurate. Reproduced: a player who recalls their own rule verbatim
+   * and plays moves the record scores accurate had that rule killed by the evidence supporting it.
+   */
   const successes = atoms.filter((atom, index) => {
     const observation = observations[index];
     const recall = scoreRecall(observation.recalled_rule, transfer.rule_snapshot.action_rule);
-    return recall.clearedFloor && atom!.result!.cp_loss <= ACCURATE_CP_LOSS;
+    return (
+      recall.clearedFloor &&
+      accurateDecision(atom!.result!.engine_eval_cp, atom!.result!.cp_loss)
+    );
   }).length;
   const result: LearningTransferResult = {
     kind: "learning_transfer_result",
@@ -533,15 +884,59 @@ export async function finishLearningTransfer(
     completed_at: now.completed_at,
   };
   await store.saveLearningTransferResult(result);
+  return { rule: await gradeFromRecord(store, transfer.rule_id), result };
+}
 
-  const rule = await store.getLearningRule(transfer.rule_id);
+/**
+ * Read every result for the rule and write the grade they add up to.
+ *
+ * THE RESULTS ARE RE-READ RATHER THAN ASSEMBLED FROM WHAT THIS CALL HAPPENS TO HOLD. That costs a
+ * query and buys the property the whole change is for: the grade is a function of the record, so
+ * whoever runs this -- the call that wrote the result, or a retry an hour later -- gets the same
+ * answer, and a run that dies between the two writes is repaired by the next one rather than
+ * frozen by it.
+ *
+ * The missing rule raises instead of returning null. The completion path already raised here; the
+ * retry path returned the null on, so a vanished rule surfaced as a scored sitting attached to
+ * nothing. One behaviour for one condition.
+ */
+async function gradeFromRecord(store: RecordStore, ruleId: string) {
+  /*
+   * THE RESULTS ARE READ FIRST AND THE RULE LAST, which is the opposite of the obvious order and
+   * the reason is the window between them.
+   *
+   * Reading the rule first and then awaiting the results left a gap in which the player could
+   * archive the rule -- the Archive button has no disabled state -- and the write that followed
+   * overwrote `retired`, the one grade nothing can re-derive. Reversing it leaves one statement
+   * between the read and the write instead of a query.
+   *
+   * The remainder is closed in the store: `saveLearningRule` refuses to take a rule off `retired`
+   * in all three implementations. If that guard fires, this call raises and the completion is
+   * retried -- and the retry finds the result already recorded, re-reads the now-retired rule, and
+   * returns it unchanged. Self-healing rather than lost.
+   */
+  const results = await store.listLearningTransferResults(ruleId);
+  const rule = await store.getLearningRule(ruleId);
   if (!rule) throw new RecordError("NOT_FOUND", "כלל הלמידה נעלם לפני הדירוג.");
-  const prior = (await store.listLearningTransferResults(rule.rule_id)).filter(
-    (candidate) => candidate.transfer_id !== result.transfer_id,
+  const graded = gradeLearningRule(rule, results);
+  /*
+   * WRITTEN ONLY WHEN IT CHANGES SOMETHING. The fold is idempotent, so on the ordinary path -- and
+   * `beginLearningTransfer` now runs this on every start -- it would otherwise rewrite an
+   * identical row on a hot path, adding a failure surface that buys nothing. The write happens
+   * when this is actually repairing.
+   */
+  if (!sameLearningRule(rule, graded)) await store.saveLearningRule(graded);
+  return graded;
+}
+
+/** Field-by-field, over exactly what the fold may change. */
+function sameLearningRule(a: LearningRule, b: LearningRule): boolean {
+  return (
+    a.grade === b.grade &&
+    a.retrieval_step === b.retrieval_step &&
+    a.next_due_at === b.next_due_at &&
+    a.last_evaluated_at === b.last_evaluated_at
   );
-  const graded = gradeLearningRule(rule, prior, result);
-  await store.saveLearningRule(graded);
-  return { rule: graded, result };
 }
 
 export async function retireLearningRule(
@@ -580,10 +975,43 @@ export async function beginDrill(
       "הטענה כבר הופרכה. הפרכה סופית — לא בודקים אותה שוב.",
     );
   }
+  /*
+   * THE DRILL HAS TO BE OF THE KIND THE CLAIM PROMISED.
+   *
+   * The stored refutation condition says "בדריל של עמדות מ-{scope}", and nothing enforced it. The
+   * client offers every position of the loaded game in ply order (Home.tsx) and selection took
+   * the first fresh ones, which are its opening. Measured: a `claim-phase-endgame` whose promise
+   * names החלטות בסיום produced a drill of eight positions that classify `opening, opening,
+   * opening, opening, opening, opening, opening, opening`. It was then graded against a baseline
+   * that EXCLUDES the endgame (see `finishDrill`), so a terminal verdict about endgame play was
+   * decided by opening play measured against middlegame play.
+   */
+  /*
+   * WHERE EACH KIND OF SCOPE CAN BE ENFORCED, AND IT IS NOT THE SAME PLACE.
+   *
+   * Three of the six buckets are properties of a POSITION -- the phases -- so membership is fixed
+   * the moment the positions are chosen, and here is the only place it can be got right. The
+   * other three are properties of the DECISION EVENT: how long the player took, what the clock
+   * said. No selection of positions can decide those, but the drill itself does, and `finishDrill`
+   * checks them there against the same predicate. Refusing them here as well was the first thing
+   * tried and it was too blunt -- `tests/server/drill-route.test.ts` drills a `fast-under-45s`
+   * claim with 12-second decisions, which is a genuine test of that claim, and refusing it would
+   * have withdrawn a capability that works.
+   */
+  const bucketing = BUCKETINGS.find((b) => claim.claim_id.endsWith(b.key));
   const atoms = await store.listAtoms();
   const decidedFens = atoms.map((atom) => atom.entry_state.fen);
-  const available = input.candidate_fens.map((fen, index) => ({ fen, ply: index }));
-  const selection = selectDrillPositions(available, decidedFens);
+  const inScope = bucketing?.drillPhase
+    ? input.candidate_fens.filter(
+        (fen) => classifyPhase(fen, plyFromFen(fen)) === bucketing.drillPhase,
+      )
+    : input.candidate_fens;
+  const available = inScope.map((fen, index) => ({ fen, ply: index }));
+  const selection = selectDrillPositions(
+    available,
+    decidedFens,
+    bucketing?.drillPhase ? claim.scope : undefined,
+  );
   if (selection.reason) return { drill: null, reason: selection.reason };
 
   const spec = createDrill(claim, selection.fens, { drill_id: now.drill_id });
@@ -602,26 +1030,138 @@ export async function finishDrill(
   store: RecordStore,
   input: { drill_id: string; decision_ids: string[] },
   now: { recorded_at: string },
-): Promise<{ claim: Claim; verdict: ReturnType<typeof evaluateRefutation>; description: string }> {
+): Promise<{
+  claim: Claim;
+  /**
+   * Null on a replay, and that is the honest answer rather than a recomputed one.
+   *
+   * The verdict's numbers are a measurement of this drill AGAINST THE BASELINE AS IT STOOD when
+   * the drill was reported. That baseline is every other scored decision in the record, and it
+   * grows. Recomputing it on a retry would return different numbers under the same drill id --
+   * a second, differently-measured verdict for one sitting. The stored result carries `predicted`
+   * and `observed`, which is what the grade and the description are made of, and those come back.
+   *
+   * Nothing reads this field today: `useCompleteDrill` returns it and `Home.tsx` uses only
+   * `description` and `claim.grade`. It is kept because it is the measured detail an operator
+   * would want, and narrowed rather than fabricated.
+   */
+  verdict: ReturnType<typeof evaluateRefutation> | null;
+  description: string;
+}> {
   const stored = await store.getDrill(input.drill_id);
   if (!stored) throw new RecordError("NOT_FOUND", "אין דריל עם המזהה הזה.");
   const claim = await store.getClaim(stored.spec.claim_id);
   if (!claim) throw new RecordError("NOT_FOUND", "הטענה של הדריל אינה קיימת.");
 
+  /*
+   * REPORTING TWICE RETURNS THE FIRST REPORT, it does not raise.
+   *
+   * `finishLearningTransfer` learned this in cycle 31 and this path had not. `saveDrillResult` is
+   * append-only in both stores -- Memory throws "append-only: drill already reported", Drizzle
+   * violates the `drill_results` primary key -- so the retry that a lost response makes inevitable
+   * raised, forever, and the verdict was unreachable.
+   *
+   * AND THE FIRST VERSION OF THIS COMMENT WAS WRONG ABOUT WHY IT IS REACHED. It said "the runner
+   * returns the player to the drill so reporting can be retried" -- which is what the TRANSFER
+   * runner does. `DrillRunner` sets the stage to "done" and renders no control at all, so nothing
+   * retried and this branch could not run. `advanceDrill` now sends the same payload twice, which
+   * is what makes the repair below reachable rather than theoretical.
+   *
+   * `prospective_tests` is read from the result rows by both `getClaim` implementations, so this
+   * is a read the function was already doing. And it grades before returning, because the write
+   * that was lost may have been the CLAIM write rather than the response.
+   */
+  const already = claim.prospective_tests.find((result) => result.drill_id === input.drill_id);
+  if (already) {
+    return {
+      claim: await gradeClaimFromRecord(store, claim.claim_id),
+      verdict: null,
+      description: describeResult(already),
+    };
+  }
+
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
   const summary = scoreDecisions(atoms, ids);
   const drillSet = new Set(input.decision_ids);
-  const drillDecisions: DrillDecision[] = summary.scored
-    .filter((d) => drillSet.has(d.decision_id))
-    .map((d) => ({ decision_id: d.decision_id, confidence: d.confidence, accurate: d.accurate }));
-  if (drillDecisions.length === 0) {
+  const drillScored = summary.scored.filter((d) => drillSet.has(d.decision_id));
+  const drillDecisions: DrillDecision[] = drillScored.map((d) => ({
+    decision_id: d.decision_id,
+    confidence: d.confidence,
+    accurate: d.accurate,
+  }));
+  /*
+   * R5: THE VERDICT IS DECIDED OVER THE POSITIONS THAT WERE WRITTEN DOWN, OR IT IS NOT DECIDED.
+   *
+   * This guarded only against zero, and silently graded whatever survived the intersection above.
+   * A five-position pre-registered drill whose third reveal write was lost came back as a
+   * four-decision result -- `describeResult` reporting the smaller n as the test's size,
+   * `evaluateRefutation` computing its standard error from the survivors, and nothing anywhere
+   * recording that a registered position went unmeasured, because `ProspectiveDrillResult` has no
+   * field for it. And it is terminal: a false `observed` grades the claim `refuted`, refutation
+   * cannot be revisited, and `beginDrill` then refuses to test that claim again. A run that lost a
+   * position could close a question permanently.
+   *
+   * WHAT WAS INTENDED IS SETTLED BY THE SIBLING IN THIS FILE. `finishLearningTransfer` refuses when
+   * `observations.length !== transfer.fens.length`, and refuses any decision that was not revealed.
+   * Both are pre-registered tests. Only one of them checked that the test it graded was the test it
+   * registered.
+   */
+  if (drillDecisions.length !== stored.spec.fens.length) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      "אף החלטה מהדריל לא נחשפה עדיין, ולכן אין מה למדוד.",
+      `נרשמו ${drillDecisions.length} החלטות חשופות מתוך ${stored.spec.fens.length} שנרשמו מראש. ` +
+        "הדריל לא הושלם, ופסק על חלק מהעמדות אינו הבדיקה שנרשמה.",
     );
   }
+  /*
+   * And they have to be the positions this drill preregistered, not merely the right NUMBER of
+   * revealed decisions. Compared as boards for the same reason the transfer's are: a decision
+   * recorded against the identical position later in a game is the position that was written down.
+   * Without this the completion believes whatever the client sends, which is the thing the
+   * per-position write was introduced to stop on the sibling path.
+   */
+  const registered = [...stored.spec.fens];
+  for (const decision of drillScored) {
+    const slot = registered.findIndex((fen) => samePosition(decision.fen, fen));
+    if (slot === -1) {
+      throw new RecordError(
+        "PRECONDITION_FAILED",
+        "החלטה בדריל נרשמה לעמדה שלא נרשמה מראש עבורו.",
+      );
+    }
+    // Removed so two decisions cannot both answer one registered position.
+    registered.splice(slot, 1);
+  }
   const bucketing = BUCKETINGS.find((b) => claim.claim_id.endsWith(b.key));
+  /*
+   * AND THEY HAVE TO BE DECISIONS OF THE KIND THE CLAIM IS ABOUT.
+   *
+   * The stored refutation condition promises "בדריל של עמדות מ-{scope}", and until now nothing
+   * anywhere held the drill to it. The client offers every position of the loaded game in ply
+   * order, so a `claim-phase-endgame` was measured to produce a drill of eight positions that
+   * every one classified `opening` -- then graded against a baseline that EXCLUDES the endgame,
+   * which makes the verdict opening play compared with middlegame play, settling a question
+   * about the endgame. `refuted` is terminal and `beginDrill` refuses the claim afterwards.
+   *
+   * `beginDrill` now selects phase positions by phase, so for those buckets this is a second net.
+   * For the time and clock buckets it is the ONLY net, because no choice of positions can put a
+   * player under time pressure -- the drill itself decides that, and this is where it is known.
+   * One predicate for both, the same one that defines the bucket, so selection and grading cannot
+   * drift apart.
+   *
+   * All of them, not a majority: the drill registered these positions as the test. A verdict over
+   * the subset that happened to qualify is a test chosen after the fact from its own results.
+   */
+  const outOfScope = bucketing ? drillScored.filter((d) => !bucketing.predicate(d)) : [];
+  if (outOfScope.length > 0) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      `${outOfScope.length} מתוך ${drillScored.length} ההחלטות בדריל אינן ${claim.scope}, ` +
+        `והטענה היא עליהן בלבד. הדריל הזה לא בדק אותה, ולכן אין ממנו פסק. ` +
+        `אפשר לרוץ דריל נוסף.`,
+    );
+  }
   const baseline = summarise(
     summary.scored.filter(
       (d) => !drillSet.has(d.decision_id) && (!bucketing || !bucketing.predicate(d)),
@@ -631,10 +1171,62 @@ export async function finishDrill(
     // The whole summary, not just its gap: the baseline is an estimate with its own sampling
     // error, and a comparison that treats it as exactly known is too permissive by that much.
     baseline: baseline,
-    predictsOverconfidence: true,
+    /*
+     * THE DIRECTION THE DRILL REGISTERED, not a constant.
+     *
+     * This was `true`. `evaluateRefutation` is a one-sided test -- `directional =
+     * predictsOverconfidence ? gapDifference : -gapDifference` -- so the constant graded every
+     * claim as if it named overconfidence. For the other half it inverted the verdict: a player
+     * who behaved exactly as an underconfidence claim described produced `observed: false`, the
+     * claim graded `refuted`, refutation is terminal, `beginDrill` then refuses that claim
+     * forever, and `drill_results` is append-only so the fold reproduces it on every replay.
+     * No fault was needed; it fired on the ordinary path, and `shared/bucket-variable.ts` records
+     * underconfidence as the COMMON direction rather than the rare one.
+     *
+     * Read from the stored spec rather than from the claim, so the sign is the one written down
+     * before the first position was shown (R5) -- the same rule that makes the condition itself
+     * come from `stored.spec`.
+     */
+    predictsOverconfidence: stored.spec.predicts_overconfidence,
     // One bucket, named in advance, tested once -- the pre-registered multiplier, not the scan's.
     separabilityK: PREREGISTERED_SEPARABILITY_K,
   });
+  /*
+   * A DRILL THAT MEASURED NOTHING DOES NOT GET TO GRADE ANYTHING.
+   *
+   * `evaluateRefutation` returns `standardError: null` when the comparison could not be made at
+   * all -- fewer than two decisions on a side, or no variation on either. Its own comment already
+   * says what that means: "A drill that cannot produce a standard error has not observed anything,
+   * in either direction. It must not read as a confirmation." It was not a confirmation. It was
+   * `observed: false`, which `applyDrillResult` reads as `survived === false` and writes as
+   * `refuted` -- terminal by design, kept forever, and `beginDrill` refuses the claim afterwards.
+   *
+   * `gapDifferenceStandardError` HAS FOUR CALLERS AND THIS WAS THE ONLY ONE THAT DID THIS.
+   * `stability.ts` sets `readable: false` on null. `crossing.ts` sets `silence: "too-few"`.
+   * `detector.ts` skips the bucket. Three of four treat null as unreadable; the fourth wrote a
+   * permanent grade from it.
+   *
+   * Reproduced, five decisions with no variation:
+   *
+   *     verdict  {"observed":false,"standardError":null,"n":5}
+   *     GRADE AFTER A DRILL THAT MEASURED NOTHING: refuted
+   *     AFTER a later drill that genuinely confirms it: refuted
+   *
+   * That second line is the whole reason this is the guard rather than a nicer sentence: the
+   * result row is append-only and refutation is terminal, so a claim killed by a measurement that
+   * never happened cannot be revived by one that did.
+   *
+   * Nothing is written. The drill is spent and the claim stays a hypothesis, which is the same
+   * trade the two guards above make -- a run lost is recoverable, and `refuted` is not.
+   */
+  if (verdict.standardError === null) {
+    throw new RecordError(
+      "PRECONDITION_FAILED",
+      `הדריל רץ על ${drillDecisions.length} החלטות, אבל אי אפשר היה למדוד מהן פער בר-השוואה — ` +
+        `אין די שונות בין ההחלטות כדי לחשב שגיאת תקן. לכן אין מכאן פסק, והטענה נשארת השערה. ` +
+        `אפשר לרוץ דריל נוסף.`,
+    );
+  }
   const result: ProspectiveDrillResult = completeDrillAgainstBaseline(
     stored,
     drillDecisions,
@@ -643,11 +1235,32 @@ export async function finishDrill(
   );
   await store.saveDrillResult(result);
 
-  // The ONLY path that changes a grade, and it accepts a prospective result only.
-  const graded = evaluateClaim(claim, result);
-  await store.saveClaim(graded);
   // Section 3.5: report the result even when it refutes -- especially then.
-  return { claim: graded, verdict, description: describeResult(result) };
+  return {
+    claim: await gradeClaimFromRecord(store, claim.claim_id),
+    verdict,
+    description: describeResult(result),
+  };
+}
+
+/**
+ * Read every drill result the claim holds and write the grade they add up to.
+ *
+ * THE CLAIM IS RE-READ RATHER THAN GRADED FROM THE COPY THIS CALL ALREADY HAS. That costs a query
+ * and buys the property the whole change is for: the grade is a function of the record, so whoever
+ * runs this -- the call that wrote the result, or a retry an hour later -- gets the same answer,
+ * and a run that dies between the two writes is repaired by the next one rather than frozen by it.
+ *
+ * It is also the only way the fresh path can see the result it just wrote: `prospective_tests`
+ * comes from the `drill_results` rows, not from anything held in memory here.
+ */
+async function gradeClaimFromRecord(store: RecordStore, claimId: string): Promise<Claim> {
+  const claim = await store.getClaim(claimId);
+  if (!claim) throw new RecordError("NOT_FOUND", "הטענה של הדריל אינה קיימת.");
+  // The ONLY path that changes a grade, and it accepts prospective results only.
+  const graded = evaluateClaim(claim, claim.prospective_tests);
+  await store.saveClaim(graded);
+  return graded;
 }
 
 export type ClaimView = {
@@ -739,11 +1352,15 @@ export async function currentClaim(
   }
 
   const patterns = detect(summary.scored, thresholds, narrowing?.bucket_key ?? null);
-  const selection = selectClaim(patterns, {
-    // Stable across queries, so a drill result can attach to the same claim.
-    claim_id: patterns.length ? `claim-${patterns[0].key}` : "claim-none",
-    created_at: now.created_at,
-  });
+  /*
+   * THE ID IS NOT BUILT HERE ANY MORE. It used to read `claim-${patterns[0].key}` -- the
+   * detector's own ordering -- while `selectClaim` chose which pattern to speak about. Once those
+   * two stopped agreeing, a claim carried one bucket's id and another bucket's statement:
+   * `getClaim` below would find a stored claim about a different phase and return it, and a drill
+   * result would attach to the wrong hypothesis. `selectClaim` derives it from the pattern it
+   * selected, so the two cannot diverge.
+   */
+  const selection = selectClaim(patterns, { created_at: now.created_at });
   if (selection) {
     // Persist, then read back: a claim already graded by a past drill must keep that grade
     // rather than being re-derived as a fresh hypothesis every query.
@@ -890,11 +1507,14 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
   const mix = oneThingMix(
     atoms.map((atom) => ({
       confidence: atom.bounded_action.confidence,
+      // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
+      // a row written before the field existed was written on the five-level scale by definition.
+      confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
       candidatesConsidered: atom.bounded_action.candidate_moves_considered,
       chosenMove: atom.decision,
       cpLoss: atom.result?.cp_loss ?? null,
       bestMove: atom.result?.engine_best_move ?? null,
     })),
   );
-  return readRecord(scoreDecisions(atoms, ids).scored, mix);
+  return readRecord(scoreDecisions(atoms, ids).scored, mix, readCounterfactuals(atoms));
 }

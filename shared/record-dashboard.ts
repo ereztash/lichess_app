@@ -14,16 +14,24 @@
  * thing -- a calibration gap over six decisions is noise wearing a percentage sign.
  */
 import { anchorIdsIn, isAnchorFen } from "./anchor-set.js";
-import { populationBucket } from "./population-baseline.js";
+import { populationBucket, type PopulationBucket } from "./population-baseline.js";
 import { splitHalfStability, type Stability } from "./stability.js";
 import { metacognitiveSensitivity, type Sensitivity } from "./sensitivity.js";
 import { sensitivityBand, type SensitivityBand } from "./sensitivity-reference.js";
 import { effortFollowsDoubt, type Control } from "./control.js";
+import {
+  readCounterfactuals,
+  type CounterfactualRecordReading,
+} from "./counterfactual-reading.js";
+import { readVariables, type VariableReading } from "./bucket-variable.js";
+import { crossVariables, type CrossingReading } from "./crossing.js";
 import { calibrationScore, type CalibrationScore } from "./calibration-score.js";
 import { CONFIDENCE_CHOICES, CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import {
   BUCKETINGS,
   MIN_BUCKET_N,
+  SEPARABILITY_K,
+  detect,
   summarise,
   type CalibrationSummary,
   type ScoredDecision,
@@ -50,7 +58,7 @@ export type BucketReading = {
    * Positive means better than the population in that bucket. Null is not zero: it means nobody
    * measured a baseline here, and a caller must render the two differently.
    */
-  versusPopulation: number | null;
+  versusPopulation: PopulationSeparation | null;
   /** How many more decisions inside the bucket are needed before it can be read. */
   shortBy: number;
   /**
@@ -63,6 +71,76 @@ export type BucketReading = {
    */
   unmeasurableReason: "too-few" | "no-clock-data" | null;
 };
+
+/**
+ * A bucket's accuracy against the population's, WITH the error on that difference.
+ *
+ * THE INSTRUMENT WAS HOLDING ITSELF TO TWO STANDARDS ON TWO SCREENS. `findPatterns` will not
+ * report a bucket as a finding until its gap sits `SEPARABILITY_K` standard errors from the rest
+ * of the record -- that is the whole reason `CalibrationSummary` carries `gapVariance`. This
+ * comparison had no standard error anywhere in its path, and the dashboard printed the raw
+ * subtraction as a signed figure in the second person: "+14 נק׳ מול כולם".
+ *
+ * MEASURED. Simulating a player whose true accuracy EQUALS the population's, drawing
+ * MIN_BUCKET_N decisions against the real published baselines: a non-zero figure appeared on
+ * 100% of draws, five points or more on 71%, ten points or more on 25%. One exactly-average
+ * player in four was told they were ten points from everyone.
+ *
+ * The multiplier is the detector's own, reused rather than invented -- both comparisons run
+ * across the same six splits, so the same multiplicity applies, and a fresh constant here would
+ * be a threshold chosen to make this screen produce a number.
+ */
+export type PopulationSeparation = {
+  /** Player minus population, in rate units. Positive is better than the population. */
+  points: number;
+  /** The sampling error of `points`, carried with it because the difference alone is not a claim. */
+  standardError: number;
+  /**
+   * Whether the difference clears the bar. ONLY then is it a statement about the player; below it
+   * the two rates are still worth showing side by side, and the difference between them is not.
+   */
+  separated: boolean;
+};
+
+/**
+ * Agresti-Coull rather than the textbook `sqrt(p(1-p)/n)`, because of one real record shape.
+ *
+ * A player accurate on every one of 30 decisions has `p(1-p) = 0`, so the plain estimator returns
+ * an error of ZERO and `points / 0` clears any multiplier there is. The bar would then be loudest
+ * in exactly the samples that say least. Adding two successes and two failures is the standard
+ * remedy and costs nothing away from the boundary.
+ */
+function proportionStandardError(rate: number, n: number): number {
+  const adjustedN = n + 4;
+  const adjusted = (rate * n + 2) / adjustedN;
+  return Math.sqrt((adjusted * (1 - adjusted)) / adjustedN);
+}
+
+export function populationSeparation(
+  player: Pick<CalibrationSummary, "n" | "accuracyRate">,
+  population: PopulationBucket | null,
+): PopulationSeparation | null {
+  // Null is not zero: no baseline means nobody measured this bucket, and a caller renders that
+  // differently from "measured, and the same".
+  if (!population) return null;
+  // Below two decisions there is no variance to estimate, which is different from no variation.
+  if (player.n < 2) return null;
+  const points = player.accuracyRate - population.accuracy;
+  /*
+   * BOTH SIDES. The corpus is large but finite and a baseline bucket can be as thin as 500 moves,
+   * so treating the population rate as exact would understate the error by the most in exactly
+   * the buckets where the baseline is weakest.
+   */
+  const standardError = Math.sqrt(
+    proportionStandardError(player.accuracyRate, player.n) ** 2 +
+      proportionStandardError(population.accuracy, population.n) ** 2,
+  );
+  return {
+    points,
+    standardError,
+    separated: Math.abs(points) >= SEPARABILITY_K * standardError,
+  };
+}
 
 export type ConfidenceReading = {
   /**
@@ -82,6 +160,25 @@ export type ConfidenceReading = {
 
 export type RecordReading = {
   overall: CalibrationSummary;
+  /**
+   * What the counterfactual probe has said, with the denominators it came out of.
+   *
+   * ASSEMBLED FROM THE ATOMS RATHER THAN FROM `ScoredDecision`, for the same reason the branch
+   * mix is: the probe lives on the atom, and `ScoredDecision` deliberately carries only what a
+   * bucket may look at. Passed in rather than computed here, so this module keeps not knowing
+   * about it.
+   */
+  counterfactual: CounterfactualRecordReading;
+  /**
+   * The buckets read as VARIABLES rather than as levels, and the variables crossed.
+   *
+   * Both are readings over `decisions`, computed here rather than passed in, because unlike the
+   * probe they need nothing the `ScoredDecision` does not already carry.
+   */
+  profile: {
+    variables: VariableReading;
+    crossing: CrossingReading;
+  };
   /**
    * The gap above, split into the three things it stands in for.
    *
@@ -188,6 +285,13 @@ export type RecordReading = {
 export function readRecord(
   decisions: ScoredDecision[],
   mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0 },
+  /**
+   * Defaults to an empty reading rather than to `undefined`, so a caller that has not been
+   * updated renders "nothing measured yet" instead of crashing on a missing field -- and so the
+   * emptiness is the honest one produced by `readCounterfactuals([])` rather than a shape
+   * hand-written here that could drift from it.
+   */
+  counterfactual: CounterfactualRecordReading = readCounterfactuals([]),
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -210,11 +314,9 @@ export function readRecord(
        * Only when the split can be read at all. A comparison against a population, computed from
        * eight decisions, is a number with a very confident-looking provenance.
        */
-      versusPopulation: (() => {
-        const population = populationBucket(bucketing.key);
-        if (!measurable || !population) return null;
-        return inside.accuracyRate - population.accuracy;
-      })(),
+      versusPopulation: measurable
+        ? populationSeparation(inside, populationBucket(bucketing.key))
+        : null,
     };
   });
 
@@ -258,6 +360,11 @@ export function readRecord(
   const sensitivity = metacognitiveSensitivity(decisions);
 
   return {
+    counterfactual,
+    profile: {
+      variables: readVariables(detect(decisions)),
+      crossing: crossVariables(decisions),
+    },
     overall,
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(anchored),

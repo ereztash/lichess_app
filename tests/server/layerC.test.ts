@@ -12,6 +12,7 @@ const claim = formHypothesis({
   scope: "החלטות תחת פחות מ-45 שניות",
   evidence: { kind: "retrospective", decision_ids: ["d1", "d2"] },
   refutation_condition: "אם הפער בדריל לא יהיה גדול יותר — הופרך.",
+  predicts_overconfidence: true,
   created_at: "2026-08-21T00:00:00Z",
 });
 const FENS = [
