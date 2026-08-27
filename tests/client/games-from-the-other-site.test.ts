@@ -176,13 +176,35 @@ describe("what the archive mixes in, and must not pass on", () => {
   });
 
   it("takes the opening's name out of the ECO url and leaves the move order behind", () => {
-    expect(openingFromEco("https://www.chess.com/openings/Nimzowitsch-Defense-Declined")).toBe(
-      "Nimzowitsch Defense Declined",
+    /*
+     * THESE CASES CAME BACK FROM THE LIVE API, not from imagination, and that is the point.
+     * The first version of this cut on "..." alone and every fixture here passed; a run against
+     * the real endpoint put "Scandinavian Defense Mieses Kotrc Main Line 4.g3 Nf6 5.Bg2 c6 6.Nge2"
+     * on screen, because only 552 of 832 real slugs use that separator at all.
+     */
+    const eco = (slug: string) => openingFromEco(`https://www.chess.com/openings/${slug}`);
+
+    expect(eco("Nimzowitsch-Defense-Declined")).toBe("Nimzowitsch Defense Declined");
+    // Cut one: the "..." separator.
+    expect(eco("Closed-Sicilian-Defense-Fianchetto-Variation...6.exd5-exd5")).toBe(
+      "Closed Sicilian Defense Fianchetto Variation",
     );
+    // Cut two: a move number with no separator before it. This is what the live run exposed.
     expect(
-      openingFromEco("https://www.chess.com/openings/Closed-Sicilian-Defense...6.exd5-exd5"),
-      "the exact move order was read as part of the name",
-    ).toBe("Closed Sicilian Defense");
+      eco("Scandinavian-Defense-Mieses-Kotrc-Main-Line-4.g3-Nf6-5.Bg2-c6-6.Nge2"),
+      "the move order was read as part of the name",
+    ).toBe("Scandinavian Defense Mieses Kotrc Main Line");
+    // Cut three: the bare number "..." leaves behind when it follows a move number.
+    expect(eco("Alapin-Sicilian-Defense-2...e5-3.Nf3-Nc6")).toBe("Alapin Sicilian Defense");
+
+    // AND WHAT THE CUTS MUST NOT TAKE. 35 of 832 real names carry a digit and every one is part
+    // of the name; stripping digits would damage exactly what this is meant to preserve.
+    expect(eco("Modern-Defense-Pterodactyl-Defense-with-3-Bf4-4.c3-cxd4")).toBe(
+      "Modern Defense Pterodactyl Defense with 3 Bf4",
+    );
+
+    // Chess.com's own placeholder is the site saying it does not know.
+    expect(eco("Undefined"), "a screen was told the opening is called Undefined").toBeNull();
     expect(openingFromEco(undefined)).toBeNull();
     expect(openingFromEco("https://www.chess.com/something-else")).toBeNull();
   });
