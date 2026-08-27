@@ -17,6 +17,7 @@ import {
   LocalRecordStore,
   localRecordDurability,
   type RecordDurability,
+  setLocalRecordIdentity,
 } from "@/lib/local-record-store";
 import { trpc } from "@/lib/trpc";
 import * as service from "@shared/record-service";
@@ -214,7 +215,23 @@ export function useRecordMode(): {
   return { local, durability: local ? localRecordDurability() : "persistent", serverStatus };
 }
 
+/**
+ * The browser-side store, pointed at the signed-in account's record.
+ *
+ * WHY THE IDENTITY IS SET HERE. `LocalRecordStore` holds its state in module scope -- a store is
+ * constructed per hook, so per-instance state would give each hook a private record -- which
+ * means the account has to be told to the module rather than to the object. This hook is the one
+ * place every local-mode read and write passes through.
+ *
+ * DURING RENDER RATHER THAN IN AN EFFECT, and that is the point: an effect runs AFTER the render
+ * that used the store, so the first read of a session would come off the previous account's key.
+ * The call is idempotent and returns immediately when the identity has not changed, so it is safe
+ * on every render -- and this is a pointer, not a fetch: nothing is written and nothing is read
+ * until a hook below asks.
+ */
 function useStore(): LocalRecordStore {
+  const { user } = useAuth();
+  setLocalRecordIdentity(user?.openId ?? null);
   return useMemo(() => new LocalRecordStore(), []);
 }
 

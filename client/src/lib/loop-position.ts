@@ -91,7 +91,7 @@ export interface LoopPosition {
   /**
    * Where the sentence points, or null when it points at the board.
    *
-   * Null is the common case and it is not a gap. "עוד 12 החלטות בדלי אחד" and "אין דפוס מעל הסף"
+   * Null is the common case and it is not a gap. "עוד 12 החלטות בסוג אחד" and "אין דפוס מעל הסף"
    * are both answered by deciding on the position already in front of you, and a link to the
    * board you are looking at would be furniture.
    */
@@ -154,7 +154,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     return {
       step: "drill",
       headline: "יש השערה. דריל הוא הדבר היחיד שיכול לדרג אותה.",
-      basis: `${scored} החלטות חשופות · השערה אחת פתוחה`,
+      basis: `${scored} החלטות שנמדדו · השערה אחת פתוחה`,
       /*
        * `ClaimPanel` renders the only control that can start a drill, and it needs the claim_id
        * to do it -- which is why this is an address and not a button that runs one. On a phone
@@ -172,7 +172,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
         claimGrade === "refuted"
           ? "הטענה הופרכה ונשמרת. היא לא נבדקת שוב."
           : "הטענה שרדה דריל. עוד החלטות יכולות להוליד את הבאה.",
-      basis: `${scored} החלטות חשופות · טענה מדורגת`,
+      basis: `${scored} החלטות שנמדדו · טענה מדורגת`,
       // A grade is an outcome. There is no surface that changes it, so there is no address.
       action: null,
     };
@@ -201,8 +201,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        */
       return {
         step: "record",
-        headline: `עוד ${scoredStillNeeded} החלטות חשופות שנרשמו אחרי הייבוא, בדלי אחד — ${narrowedTo}.${waiting}`,
-        basis: `${scored} חשופות ברשומה · החיפוש מצומצם`,
+        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}`,
+        basis: `${scored} החלטות שנמדדו ברשומה · החיפוש מצומצם`,
         /*
          * Nowhere to send anyone. An import has already narrowed the search, so the one thing
          * that closes this gap is deciding on the position on screen -- and a second import
@@ -227,9 +227,9 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     return {
       step: "record",
       headline:
-        `עוד ${scoredStillNeeded} החלטות חשופות עד שאפשר לומר משהו.${waiting} ` +
-        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם דלי אחד שנבדל מהשאר.`,
-      basis: `${scored} חשופות מתוך ${recorded} רשומות`,
+        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting} ` +
+        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם סוג אחד שנבדל מהשאר.`,
+      basis: `${scored} נמדדו מתוך ${recorded} שנרשמו`,
       /*
        * The only headline that names a surface out loud, and the reason this field exists: it
        * said an import can shorten the wait while the import sat four controls away in the tool
@@ -242,7 +242,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   return {
     step: "detect",
     headline: "יש מספיק החלטות, ואף דפוס לא עבר את הסף. זו תשובה ולא שתיקה.",
-    basis: `${scored} החלטות חשופות · אין דפוס מעל הסף`,
+    basis: `${scored} החלטות שנמדדו · אין דפוס מעל הסף`,
     // An answer, not a queue. More decisions may change it, and those are taken on the board.
     action: null,
   };

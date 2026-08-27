@@ -109,7 +109,7 @@ describe("and what it buys, in the units the wait is counted in", () => {
     await searchFor();
     const buys = document.querySelector(".import-buys")!.textContent ?? "";
     expect(buys).toMatch(/אם יימצא/);
-    expect(buys).toMatch(/אם שום דלי לא נבדל/);
+    expect(buys).toMatch(/אם שום סוג לא נבדל/);
   });
 
   it("shows neither note before a search, when there is nothing to scan", async () => {

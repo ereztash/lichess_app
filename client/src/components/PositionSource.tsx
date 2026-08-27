@@ -66,7 +66,7 @@ export const POSITION_SOURCES: readonly PositionSourceEntry[] = [
      * 60 revealed decisions to 40. A player choosing between four doors is entitled to know that
      * one of them has a second effect on the record.
      */
-    detail: "משחקים שכבר שיחקתם ב-Lichess. הסריקה גם מייצרת קריאה, ויכולה לצמצם את החיפוש לדלי אחד.",
+    detail: "משחקים שכבר שיחקתם ב-Lichess. הסריקה גם מייצרת קריאה, ויכולה לצמצם את החיפוש לסוג אחד.",
     icon: UserSearch,
   },
   {

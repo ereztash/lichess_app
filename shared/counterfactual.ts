@@ -49,9 +49,19 @@ export const MIN_LEGAL_MOVES_TO_ASK = 2;
  * It changes how much data the probed arm collects and how often the player is interrupted. It
  * never changes whether a finding is real -- that is what the arm assignment is for. Probing
  * everything would make a game unplayable and maximise reactivity; probing almost nothing gives
- * no n. One question in five is roughly four interruptions in a forty-move game.
+ * no n. About one in three is roughly fourteen questions in a forty-move game.
+ *
+ * RAISED FROM ONE IN FIVE, AND THE CONFIDENCE QUESTION WAS LOWERED TO PAY FOR IT. Both draws
+ * compete for the same finite patience, and this one measures something no other reading here
+ * can: whether the better move was in the player's own hand and did not get played. The accuracy
+ * rate sees only which move WAS played; `ASK_RATE` in shared/confidence-asked.ts carries the
+ * other half of the trade and the arithmetic of what it costs.
+ *
+ * A JUDGEMENT, NOT A MEASUREMENT, and it is still marked as one. Nothing here has measured what
+ * rate a player tolerates; what has been decided is which of the two questions is worth the
+ * interruption when only one of them can be.
  */
-export const PROBE_PROBABILITY = 0.2;
+export const PROBE_PROBABILITY = 0.35;
 
 export interface ProbeEligibility {
   /** Legal moves in the position. Carried on every assignment as the covariate above. */

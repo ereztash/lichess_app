@@ -163,7 +163,7 @@ describe("what did NOT collapse, because it is not the same question", () => {
      */
     const username = POSITION_SOURCES.find((entry) => entry.id === "username")!;
     expect(username.detail).toMatch(/קריאה/);
-    expect(username.detail).toMatch(/דלי/);
+    expect(username.detail).toMatch(/סוג/);
   });
 });
 

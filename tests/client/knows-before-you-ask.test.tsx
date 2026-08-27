@@ -40,7 +40,7 @@ import { clearPosition, readPosition, writePosition } from "@/lib/session-positi
  * sentence reaches the screen at all, which is precisely what was wrong.
  */
 const loopStub = vi.hoisted(() => ({
-  value: { position: { step: "record", headline: "עוד 60 החלטות חשופות.", basis: "0 מתוך 0" }, loading: false },
+  value: { position: { step: "record", headline: "עוד 60 החלטות מדודות.", basis: "0 מתוך 0" }, loading: false },
 }));
 vi.mock("@/lib/use-loop-position", () => ({ useLoopPosition: () => loopStub.value }));
 vi.mock("@/lib/record-api", () => ({
@@ -131,7 +131,7 @@ describe("the sentence the app already computed reaches the top of the page", ()
      */
     render(<ContextRibbon />);
     expect(
-      screen.getByText("עוד 60 החלטות חשופות."),
+      screen.getByText("עוד 60 החלטות מדודות."),
       "the slot is empty again on an ordinary visit",
     ).toBeInTheDocument();
     expect(document.querySelector(".context-loop-basis")?.textContent).toBe("0 מתוך 0");
@@ -160,7 +160,7 @@ describe("the sentence the app already computed reaches the top of the page", ()
       expect(ribbon?.getAttribute("aria-busy")).toBe("true");
       // Nothing derived from a record that has not answered.
       expect(document.querySelector(".context-loop-basis")).toBeNull();
-      expect(screen.queryByText(/החלטות חשופות/)).toBeNull();
+      expect(screen.queryByText(/החלטות מדודות/)).toBeNull();
     } finally {
       // Restored in `finally`: a leak here used to fail the NEXT test rather than this one.
       loopStub.value = previous;
@@ -183,7 +183,7 @@ describe("the sentence the app already computed reaches the top of the page", ()
     await userEvent.click(dismiss);
     expect(document.querySelector(".context-reorientation")).toBeNull();
     expect(
-      screen.getByText("עוד 60 החלטות חשופות."),
+      screen.getByText("עוד 60 החלטות מדודות."),
       "dismissing the notice closed the position too",
     ).toBeInTheDocument();
   });
@@ -278,6 +278,7 @@ describe("the game survives the tab", () => {
     // The arm is part of the position now: a game resumed into the other one is a different
     // condition, and the record stores which was in force per decision.
     revealTiming: "per-decision" as const,
+    firstDecisionPly: null,
   };
 
   it("comes back after the store is reconstructed, which is what closing the tab does", () => {
@@ -430,8 +431,18 @@ describe("a transfer run resumes where it stopped", () => {
     expect(block, "the restored game keeps whatever arm the board happened to default to").toMatch(
       /setRevealTiming\(saved\.revealTiming\)/,
     );
-    // And written back with the game, so the next reload reads it rather than the default.
-    expect(home).toMatch(/revealTiming,\n\s*gameId: gameId\.current/);
+    /*
+     * And written back with the game, so the next reload reads it rather than the default.
+     *
+     * SCOPED TO THE CALL RATHER THAN MATCHED BY ADJACENCY. This asserted that `revealTiming` was
+     * followed immediately by `gameId`, which made it a test of field ORDER: adding any field
+     * between them broke it while the arm was still written back correctly. What it is about is
+     * that the write-back carries the arm, and that is what it now says.
+     */
+    const write = home.slice(home.indexOf("writePosition({", home.indexOf("if (drill || learningTransfer) return;")));
+    const call = write.slice(0, write.indexOf("});"));
+    expect(call, "the write-back does not carry the arm").toContain("revealTiming,");
+    expect(call).toContain("gameId: gameId.current");
   });
 
   it("is served by the service, so the client is not guessing", () => {

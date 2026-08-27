@@ -130,13 +130,13 @@ describe("one readable bucket is a rate, not a comparison", () => {
     const text = document.body.textContent ?? "";
     // The sentinel zeros the old branch rendered as measurements.
     expect(text, "printed a separation of 0 as a measurement").not.toMatch(/0 נקודות אחוז/);
-    expect(text).toContain("רק דלי אחד");
+    expect(text).toContain("רק סוג אחד");
   });
 
   it("still says why registering is not possible, rather than going blank", () => {
     // Silence with a stated reason, not an empty screen — the standard this codebase holds
     // every other refusal to.
     show(ONE_ONLY);
-    expect(screen.getByText(/שני דליים קריאים לפחות/)).toBeTruthy();
+    expect(screen.getByText(/שני סוגים עם מספיק החלטות לפחות/)).toBeTruthy();
   });
 });

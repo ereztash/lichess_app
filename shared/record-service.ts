@@ -1120,7 +1120,7 @@ export async function finishDrill(
   if (drillDecisions.length !== stored.spec.fens.length) {
     throw new RecordError(
       "PRECONDITION_FAILED",
-      `נרשמו ${drillDecisions.length} החלטות חשופות מתוך ${stored.spec.fens.length} שנרשמו מראש. ` +
+      `נרשמו ${drillDecisions.length} החלטות מדודות מתוך ${stored.spec.fens.length} שנרשמו מראש. ` +
         "הדריל לא הושלם, ופסק על חלק מהעמדות אינו הבדיקה שנרשמה.",
     );
   }
@@ -1415,7 +1415,7 @@ export async function registerHypothesis(
   if (!isRegistrableBucket(input.bucket_key)) {
     throw new RecordError(
       "BAD_REQUEST",
-      `הדלי "${input.bucket_key}" אינו אחד מהדליים שהגלאי החי יודע לבדוק, ולכן אי אפשר לרשום אותו מראש.`,
+      `הסוג "${input.bucket_key}" אינו אחד מהסוגים שהגלאי החי יודע לבדוק, ולכן אי אפשר לרשום אותו מראש.`,
     );
   }
   const hypothesis: PreregisteredHypothesis = {
@@ -1462,7 +1462,7 @@ export async function getImportReading(store: RecordStore): Promise<StoredImport
  *
  * This used to open with "המשחקים שייבאת הצביעו על X כמקום לבדוק בו, וזה נרשם מראש", which is
  * word for word what `ClaimPanel` already renders one paragraph above it in `.claim-prereg`:
- * "החיפוש מצומצם לX — הדלי שהמשחקים המיובאים הצביעו עליו, שנרשם לפני שנרשמה כאן החלטה". The same
+ * "החיפוש מצומצם לX — הסוג שהמשחקים המיובאים הצביעו עליו, שנרשם לפני שנרשמה כאן החלטה". The same
  * fact, twice, inside one panel. It then closed with "מאז הייבוא נחשפו N, חסרות עוד M", which is
  * the distance the context ribbon carries at the top of the page.
  *
@@ -1474,7 +1474,7 @@ function preregSilenceReason(since: ScoringSummary): string | null {
   const required = PREREGISTERED_THRESHOLDS.minBucketN * 2;
   if (since.scored.length >= required) return null;
   return (
-    `מפני שהדלי נרשם מראש, נבדק דלי אחד במקום שישה — ולכן דרושות ${required} החלטות חשופות ` +
+    `מפני שהסוג נרשם מראש, נבדק סוג אחד במקום שישה — ולכן דרושות ${required} החלטות מדודות ` +
     `במקום ${MIN_BUCKET_N * 2}. הרישום מקצר את ההמתנה, הוא לא מבטיח שיימצא בה משהו.`
   );
 }
@@ -1484,16 +1484,16 @@ function preregSilenceReason(since: ScoringSummary): string | null {
  *
  * Trimmed for the same reason as the two above. `loopPosition()` already says, at the top of the
  * page, "יש מספיק החלטות, ואף דפוס לא עבר את הסף. זו תשובה ולא שתיקה", with "{scored} החלטות
- * חשופות · אין דפוס מעל הסף" as its basis -- so the count and the it-is-an-answer line were both
+ * נמדדו · אין דפוס מעל הסף" as its basis -- so the count and the it-is-an-answer line were both
  * second copies. What is kept is why the threshold is there at all, which the ribbon does not say
  * and which is the difference between a silence a player trusts and one they work around.
  */
 function emptySearchReason(hypothesis: PreregisteredHypothesis | null): string {
   if (hypothesis) {
-    return `הייבוא אמר איפה לחפש, לא מה יימצא. בדלי הזה לא נמצא פער כיול שעובר את הסף.`;
+    return `הייבוא אמר איפה לחפש, לא מה יימצא. בסוג הזה לא נמצא פער כיול שעובר את הסף.`;
   }
   return (
-    `הסף קיים כדי שלא נדווח על רעש: פער שנראה גדול בדלי קטן מצטמצם לאפס ככל שנוספות אליו ` +
+    `הסף קיים כדי שלא נדווח על רעש: פער שנראה גדול בסוג קטן מצטמצם לאפס ככל שנוספות אליו ` +
     `החלטות, והסף הוא בדיוק הגודל שרעש כזה לא עובר.`
   );
 }

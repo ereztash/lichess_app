@@ -44,7 +44,7 @@
  */
 import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
 import { recordAttempt } from "@/lib/progress-record";
-import { confidenceIsMeasured, type DecisionPurpose } from "@shared/confidence-asked";
+import { confidenceIsAsked, type DecisionContext } from "@shared/confidence-asked";
 import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
 import {
@@ -87,8 +87,8 @@ const ALL_STEPS: StepId[] = ["chosenMove", "known", "unknown", "confidence"];
  * whoever feels like answering, which makes the confidence data a sample the player curated on
  * the very variable being measured.
  */
-const stepsFor = (purpose: DecisionPurpose): StepId[] =>
-  confidenceIsMeasured(purpose) ? ALL_STEPS : ALL_STEPS.filter((step) => step !== "confidence");
+const stepsFor = (context: DecisionContext): StepId[] =>
+  confidenceIsAsked(context) ? ALL_STEPS : ALL_STEPS.filter((step) => step !== "confidence");
 
 const STEP_LEGEND: Record<StepId, string> = {
   chosenMove: "המהלך שבחרתם",
@@ -147,7 +147,7 @@ export function CommitmentScreen({
 
   const live: DraftDecision = { ...draft, chosenMove, candidatesConsidered };
   /* What this position asks for. Absent steps are not optional ones -- see `stepsFor`. */
-  const STEPS = stepsFor(position.purpose);
+  const STEPS = stepsFor(position);
   /*
    * DERIVED FROM THE LIST, not asked of the rule a second time.
    *
@@ -159,8 +159,8 @@ export function CommitmentScreen({
    * will not catch anything either.
    */
   const asksConfidence = STEPS.includes("confidence");
-  const problems = draftProblems(live, position.purpose);
-  const ready = isCommittable(live, position.purpose);
+  const problems = draftProblems(live, position);
+  const ready = isCommittable(live, position);
   /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
   const tension = foremostTension(live, confidenceStatedAt ?? elapsed);
 

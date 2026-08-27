@@ -114,6 +114,16 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
          * rather than left to the board's `useState`, because the arm now travels with the handoff.
          */
         revealTiming: "per-decision",
+        /*
+         * The ply this handoff exists to produce, so the board asks for a confidence on it.
+         *
+         * `decision.ply` is the position shown -- the half-move BEFORE the player's -- and the
+         * board records the decision at `currentPly + 1`, so the decision's own ply is one past
+         * it. Without this the decision is `play`, drawn at ASK_RATE, and carries no confidence
+         * three times in four -- leaving `scored` at zero and this very screen on display again,
+         * having promised "תגידו כמה אתם בטוחים" on the way out.
+         */
+        firstDecisionPly: decision.ply + 1,
         orientation: decision.orientation,
         opponent: null,
         gameId: `${source}-${decision.gameId}`,
@@ -226,6 +236,9 @@ function AnchorRunControl({ answered }: { answered: readonly string[] }) {
       source: "finished",
       // An anchor position is one decision, so the coached loop -- the same as the handoff above.
       revealTiming: "per-decision",
+      // Not the front door's first decision: an anchor is always asked on its own purpose, and
+      // stamping it `first` too would put two names on one decision.
+      firstDecisionPly: null,
       orientation: next.sans.length % 2 === 0 ? "w" : "b",
       opponent: null,
       gameId: `anchor-${next.id}`,

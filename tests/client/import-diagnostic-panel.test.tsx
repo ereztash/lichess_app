@@ -125,7 +125,7 @@ describe("every bucket is shown, including the ones it could not read", () => {
     ]);
     render(<ImportDiagnosticPanel diagnostic={half} />);
     // The wait names the number still needed; the other names the reason and the real fix.
-    expect(screen.getByText(new RegExp(`4 החלטות בדלי, נדרשות ${MIN_BUCKET_N}`))).toBeTruthy();
+    expect(screen.getByText(new RegExp(`4 החלטות מהסוג הזה, נדרשות ${MIN_BUCKET_N}`))).toBeTruthy();
     const noClock = screen.getByText(/אין נתוני שעון/);
     expect(noClock.textContent).toMatch(/לא יעזור/);
   });
@@ -158,7 +158,7 @@ describe("the observation, and when there is none", () => {
     // Section 4.5: these are different states and must not render the same.
     const thin = reading([{ measurable: false, accurateRate: null, n: 7, unmeasurableReason: "too-few" }]);
     render(<ImportDiagnosticPanel diagnostic={thin} />);
-    expect(screen.getByText(new RegExp(`אף דלי לא הגיע ל-${MIN_BUCKET_N}`))).toBeTruthy();
+    expect(screen.getByText(new RegExp(`אף סוג לא הגיע ל-${MIN_BUCKET_N}`))).toBeTruthy();
     expect(screen.queryByText(/לא נבדל מהשאר/)).toBeNull();
   });
 
@@ -229,7 +229,7 @@ describe("the clock buckets were narrowed, and it says so", () => {
         diagnostic={reading([{}], { timeBucketSpeed: "blitz", excludedForSpeed: 34 })}
       />,
     );
-    const note = screen.getByText(/\u05d3\u05dc\u05d9\u05d9 \u05d4\u05d6\u05de\u05df \u05e0\u05e7\u05e8\u05d0\u05d5 \u05e8\u05e7 \u05e2\u05dc \u05de\u05e9\u05d7\u05e7\u05d9/);
+    const note = screen.getByText(/\u05d4\u05e1\u05d5\u05d2\u05d9\u05dd \u05e9\u05e0\u05d5\u05d2\u05e2\u05d9\u05dd \u05dc\u05d6\u05de\u05df \u05e0\u05e7\u05e8\u05d0\u05d5 \u05e8\u05e7 \u05e2\u05dc \u05de\u05e9\u05d7\u05e7\u05d9/);
     expect(note.textContent).toContain("blitz");
     expect(note.textContent).toContain("34");
   });
@@ -240,7 +240,7 @@ describe("the clock buckets were narrowed, and it says so", () => {
         diagnostic={reading([{}], { timeBucketSpeed: "blitz", excludedForSpeed: 0 })}
       />,
     );
-    expect(container.textContent).not.toMatch(/\u05d3\u05dc\u05d9\u05d9 \u05d4\u05d6\u05de\u05df \u05e0\u05e7\u05e8\u05d0\u05d5 \u05e8\u05e7/);
+    expect(container.textContent).not.toMatch(/\u05d4\u05e1\u05d5\u05d2\u05d9\u05dd \u05e9\u05e0\u05d5\u05d2\u05e2\u05d9\u05dd \u05dc\u05d6\u05de\u05df \u05e0\u05e7\u05e8\u05d0\u05d5 \u05e8\u05e7/);
   });
 });
 

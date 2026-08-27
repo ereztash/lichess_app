@@ -19,7 +19,7 @@
  * product refuses everywhere else. Nothing below clicks a drill or runs a scan.
  *
  * AND MOSTLY THERE IS NO ADDRESS. Five of the seven positions point at the board -- "עוד 12
- * החלטות בדלי אחד" is answered by deciding on the position already in front of you -- and a link
+ * החלטות בסוג אחד" is answered by deciding on the position already in front of you -- and a link
  * to the board you are looking at is furniture. The tests hold that too, because a link that
  * appears on every visit because a full stop looks unfinished is the failure mode here.
  */

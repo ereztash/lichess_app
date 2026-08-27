@@ -27,6 +27,7 @@
  *     rather than returning the ordinary "no patterns" answer.
  */
 import { BUCKETINGS } from "./detector.js";
+import { collectibleInLiveLoop } from "./live-acquisition.js";
 import { worstBucketVerdict, type ImportDiagnostic } from "./import-diagnostic.js";
 
 /**
@@ -62,9 +63,27 @@ export interface PreregisteredHypothesis {
   refutation_condition: string;
 }
 
-/** Only the six shared bucketings can be registered; the import's standing buckets have no live twin. */
+/**
+ * Whether a hypothesis about this bucket can be registered -- which means whether it can be TESTED.
+ *
+ * TWO CONDITIONS, AND THE SECOND WAS MISSING. Being one of the six shared bucketings is necessary:
+ * the import's own standing buckets have no live twin and were already refused here. It is not
+ * sufficient. Registration promises a test at a relaxed threshold on decisions recorded from here
+ * on, and a bucket the live loop cannot fill turns that promise into a countdown that never
+ * finishes -- `clock-under-1m` against a board that writes `clockMsRemaining: null` on every
+ * decision it will ever record. See shared/live-acquisition.ts, which holds that fact and the
+ * measurement behind it.
+ *
+ * REFUSING IS ALREADY A HANDLED OUTCOME, which is what makes this a one-line fix rather than a
+ * feature: `not-registrable` exists, and `PreregisterBridge` already renders it in words that fit
+ * this case exactly -- the lowest bucket is one that is only read out of finished games and has no
+ * counterpart in the live loop. The screen could say the true thing all along; the predicate never
+ * routed here.
+ */
 export function isRegistrableBucket(key: string): boolean {
-  return BUCKETINGS.some((bucketing) => bucketing.key === key);
+  const bucketing = BUCKETINGS.find((candidate) => candidate.key === key);
+  if (!bucketing) return false;
+  return collectibleInLiveLoop(bucketing);
 }
 
 /**
@@ -152,8 +171,8 @@ export function hypothesisFromImport(
 export function refutationFor(scope: string): string {
   return (
     `המשחקים המיובאים הצביעו על ${scope} כמקום לבדוק בו — לא על מה שיימצא שם. ` +
-    `אם ייאספו מספיק החלטות חיות בדלי הזה ולא יימצא בו פער כיול שחורג מהסף, ההשערה הופרכה, ` +
-    `והחיפוש חוזר לשישה הדליים.`
+    `אם ייאספו מספיק החלטות חיות בסוג הזה ולא יימצא בו פער כיול שחורג מהסף, ההשערה הופרכה, ` +
+    `והחיפוש חוזר לשישה הסוגים.`
   );
 }
 

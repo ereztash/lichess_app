@@ -31,6 +31,7 @@ const POSITION: Omit<StoredPosition, "savedAt"> = {
   opponent: { playerColor: "w", depth: 8 },
   gameId: "game-1",
   revealTiming: "end-of-game",
+      firstDecisionPly: null,
 };
 
 beforeEach(() => localStorage.clear());

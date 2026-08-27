@@ -55,6 +55,17 @@ export interface StoredPosition {
    * condition changed underneath it.
    */
   revealTiming: RevealTiming;
+  /**
+   * The decision ply this handoff exists to produce, or null for an ordinary board.
+   *
+   * WHY A PLY AND NOT A BOOLEAN. `Record`'s front door hands over one position so that a newcomer
+   * can reach one scored decision; every decision AFTER it is an ordinary one and must not be
+   * stamped as the first. A boolean would have to be cleared once used, which a reload undoes --
+   * and the record would then carry two decisions both claiming to be the first. A ply matches
+   * exactly the decision the handoff was made for, survives a reload unchanged, and stops
+   * matching by itself the moment the player moves on.
+   */
+  firstDecisionPly: number | null;
   savedAt: string;
 }
 
@@ -90,6 +101,16 @@ function parse(raw: string): StoredPosition | null {
     if (opponent.playerColor !== "w" && opponent.playerColor !== "b") return null;
     if (typeof opponent.depth !== "number") return null;
   }
+  /*
+   * Optional where every sibling is required, and the asymmetry is deliberate: a board stored by
+   * a build before this field existed is an ordinary board, which is exactly what null says. The
+   * required fields above each carry an experimental condition, where a missing value would have
+   * to be guessed; this one has a true default.
+   */
+  const firstDecisionPly =
+    typeof v.firstDecisionPly === "number" && Number.isInteger(v.firstDecisionPly)
+      ? v.firstDecisionPly
+      : null;
   return {
     sans: v.sans,
     ply: v.ply,
@@ -98,6 +119,7 @@ function parse(raw: string): StoredPosition | null {
     opponent: opponent ?? null,
     gameId: v.gameId,
     revealTiming,
+    firstDecisionPly,
     savedAt: v.savedAt,
   };
 }

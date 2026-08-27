@@ -68,8 +68,22 @@ jobs:
       # minus on the wrong side, both past a fully green suite. `tests/layout/browser.ts` THROWS
       # when no Chromium is present rather than skipping, so a runner without this step fails
       # loudly instead of reporting green on tests that never ran.
+      #
+      # `--with-deps` SHELLS OUT TO apt, AND apt IS NOT PART OF THIS PROJECT. It refreshes every
+      # source the runner image has configured -- including packages.microsoft.com, which has
+      # nothing to do with Chromium -- and `apt-get update` fails the whole step if any one of
+      # them is unreachable. That is exactly what happened: a 403 from Microsoft's mirror took
+      # `verify` down before a single test ran, on a diff that touches no CI, no browser and no
+      # system package.
+      #
+      # So the apt half is allowed to fail and the browser is installed either way. This cannot
+      # produce a quiet green: the shared libraries Chromium needs are already on the
+      # ubuntu-latest image, and if they ever are not, `browser.ts` THROWS -- it is written to
+      # refuse rather than skip, for the reason directly above. A missing browser still fails
+      # this job loudly; it just no longer fails because a package index unrelated to this
+      # repository was having a bad minute.
       - name: Install Chromium for the layout tests
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Typecheck
         run: npm run check
       # Schema from the generated SQL, not from a hand-written file that can drift from schema.ts.

@@ -33,7 +33,58 @@ import type {
   StoredDrill,
 } from "@shared/record-store";
 
-const KEY = "decision-lab.record.v1";
+/**
+ * WHOSE RECORD THIS IS, and until now the answer was "this browser's".
+ *
+ * One key held every decision anyone made here. `record-api.ts` already reasons about "the next
+ * person at this keyboard" -- it keys its two server/local latches by account for exactly that
+ * case -- and then wrote both people's decisions into the same store. Two harms at once, and the
+ * second is the worse one for a trial:
+ *
+ *   PRIVACY. This record holds what somebody thought they could read in a position, what they
+ *   said they could not evaluate, and free text in their own words. It is not a game history.
+ *
+ *   THE MEASUREMENT. Decisions from two people become one record, and every reading in the
+ *   product -- the calibration gap, its six splits, the discrimination area, the stability check
+ *   -- is computed over it as if it described one mind. Nothing downstream can tell, because
+ *   nothing downstream is told.
+ *
+ * SIGNED OUT KEEPS THE BARE KEY, deliberately. A record already written by this build lives
+ * there, and moving it would either lose it or hand it to whichever account signed in first --
+ * a guess about whose it is, which is the defect again in the other direction.
+ *
+ * WHAT THIS DOES NOT FIX, AND IT IS SAID RATHER THAN IMPLIED: two people who both use this
+ * browser WITHOUT signing in still share one record, because nothing distinguishes them. The
+ * product cannot separate identities it was never given. What it can do is stop merging the ones
+ * it WAS given, which is what this does.
+ */
+const KEY_ROOT = "decision-lab.record.v1";
+
+/** The account whose record this browser is keeping, or null when nobody has signed in. */
+let identity: string | null = null;
+
+/**
+ * Point the store at an account's record. Called from `record-api` as the session resolves.
+ *
+ * SWITCHING CLEARS THE MEMORY FALLBACK, and that is not tidying: `session` is a whole record held
+ * in a module variable, so leaving it in place would serve the previous account's decisions to
+ * the next one from RAM even though the persistent keys are correctly separate.
+ */
+export function setLocalRecordIdentity(openId: string | null | undefined): void {
+  const next = openId ?? null;
+  if (next === identity) return;
+  identity = next;
+  session = null;
+}
+
+/** Test seam, and the reset every test that touches identity needs. */
+export function currentLocalRecordIdentity(): string | null {
+  return identity;
+}
+
+function storageKey(): string {
+  return identity === null ? KEY_ROOT : `${KEY_ROOT}:${identity}`;
+}
 
 type Persisted = {
   decisions: StoredDecision[];
@@ -111,7 +162,7 @@ let session: Persisted | null = null;
 
 function probeWritable(): boolean {
   try {
-    const probe = `${KEY}.probe`;
+    const probe = `${storageKey()}.probe`;
     localStorage.setItem(probe, "1");
     localStorage.removeItem(probe);
     return true;
@@ -129,7 +180,7 @@ export function localRecordDurability(): RecordDurability {
 function read(): Persisted {
   if (session !== null) return session;
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(storageKey());
     if (!raw) return empty();
     return { ...empty(), ...(JSON.parse(raw) as Partial<Persisted>) };
   } catch {
@@ -143,7 +194,7 @@ function write(state: Persisted): void {
     return;
   }
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    localStorage.setItem(storageKey(), JSON.stringify(state));
   } catch {
     // Downgrade in place, carrying this write. A quota that fills mid-session must not lose the
     // decision that filled it, and from here on every read comes from memory -- so what the
@@ -167,6 +218,50 @@ export function resetSessionFallbackForTests(): void {
   session = null;
 }
 
+/**
+ * One read-modify-write, atomic against the other tabs of this browser.
+ *
+ * THE DEFECT, AND IT MADE AN APPEND-ONLY RECORD LOSE APPENDS. Every mutator below is
+ * `read(); check; mutate; write()`, and `localStorage` gives no atomicity across that span. Two
+ * tabs open on the same record:
+ *
+ *   tab A reads S          tab B reads S
+ *   tab A writes S+a       tab B writes S+b     -> the store holds S+b, and `a` is gone
+ *
+ * Nothing throws, nothing is marked, and the decision is simply not there. Each function was
+ * append-only and the SYSTEM was not -- the same shape as every other finding in this project,
+ * where the parts are right and the composition is not. It is not exotic either: this product
+ * builds multi-step loops that invite a second tab, and a reload is the ordinary way a session
+ * ends.
+ *
+ * WEB LOCKS, WHICH ARE THE ONLY REAL MUTUAL EXCLUSION A BROWSER OFFERS. `navigator.locks` is
+ * origin-scoped and cross-tab, so the critical section below genuinely serialises. The fallback
+ * for a browser without it is a per-tab promise chain: that closes the common case -- two
+ * concurrent writes from one tab's own async code -- and narrows the cross-tab window to the
+ * span of one synchronous read-and-write. It does not close it, and pretending otherwise with a
+ * hand-rolled lease in `localStorage` would add a second unsynchronised read-modify-write to fix
+ * the first one.
+ *
+ * THE READ IS INSIDE THE LOCK. Hoisting it out would leave exactly the race this exists to close,
+ * with a lock held around the harmless half.
+ */
+let tail: Promise<unknown> = Promise.resolve();
+
+async function update<T>(mutate: (state: Persisted) => T): Promise<T> {
+  const critical = (): T => {
+    const state = read();
+    const result = mutate(state);
+    write(state);
+    return result;
+  };
+  const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
+  if (locks) return locks.request(`${storageKey()}.write`, critical);
+  // No Web Locks: serialise this tab's own writes, which is strictly better than nothing.
+  const run = tail.then(critical, critical);
+  tail = run.catch(() => undefined);
+  return run;
+}
+
 export class LocalRecordStore implements RecordStore {
   /** Whether this browser will keep what we write at all. See localRecordDurability for how long. */
   async isAvailable(): Promise<boolean> {
@@ -174,58 +269,58 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async commitDecision(input: CommitDecisionInput): Promise<void> {
-    const state = read();
-    if (state.decisions.some((d) => d.decisionId === input.decisionId)) {
-      throw new Error("append-only: decision_id already exists");
-    }
-    state.decisions.push(input);
-    write(state);
+    return update((state) => {
+      if (state.decisions.some((d) => d.decisionId === input.decisionId)) {
+        throw new Error("append-only: decision_id already exists");
+      }
+      state.decisions.push(input);
+    });
   }
 
   async recordReveal(decisionId: string, result: DecisionResult): Promise<void> {
-    const state = read();
-    if (!state.decisions.some((d) => d.decisionId === decisionId)) {
-      throw new Error("no such decision");
-    }
-    if (state.reveals[decisionId]) throw new Error("append-only: already revealed");
-    state.reveals[decisionId] = result;
-    write(state);
+    return update((state) => {
+      if (!state.decisions.some((d) => d.decisionId === decisionId)) {
+        throw new Error("no such decision");
+      }
+      if (state.reveals[decisionId]) throw new Error("append-only: already revealed");
+      state.reveals[decisionId] = result;
+    });
   }
 
   async recordFeedback(decisionId: string, input: FeedbackInput): Promise<void> {
-    const state = read();
-    if (!state.decisions.some((d) => d.decisionId === decisionId)) {
-      throw new Error("no such decision");
-    }
-    if (state.feedbacks[decisionId]) throw new Error("append-only: feedback already exists");
-    state.feedbacks[decisionId] = input;
-    write(state);
+    return update((state) => {
+      if (!state.decisions.some((d) => d.decisionId === decisionId)) {
+        throw new Error("no such decision");
+      }
+      if (state.feedbacks[decisionId]) throw new Error("append-only: feedback already exists");
+      state.feedbacks[decisionId] = input;
+    });
   }
 
   async recordCounterfactual(decisionId: string, alternative: string | null): Promise<void> {
-    const state = read();
-    const row = state.decisions.find((d) => d.decisionId === decisionId);
-    if (!row) throw new Error("no such decision");
-    if (row.probeAssignment !== "probed") throw new Error("this decision was never asked");
-    /*
-     * R3 in the direction it is usually not written: an alternative named once the evaluation is
-     * on screen is a reading of the engine's candidate, not a self-generated one, and storage
-     * cannot tell the two apart afterwards.
-     */
-    if (state.reveals[decisionId]) throw new Error("the engine has already spoken");
-    const answers = (state.counterfactuals ??= {});
-    if (answers[decisionId]) throw new Error("append-only: already answered");
-    answers[decisionId] = { alternative, cpLoss: null };
-    write(state);
+    return update((state) => {
+      const row = state.decisions.find((d) => d.decisionId === decisionId);
+      if (!row) throw new Error("no such decision");
+      if (row.probeAssignment !== "probed") throw new Error("this decision was never asked");
+      /*
+       * R3 in the direction it is usually not written: an alternative named once the evaluation is
+       * on screen is a reading of the engine's candidate, not a self-generated one, and storage
+       * cannot tell the two apart afterwards.
+       */
+      if (state.reveals[decisionId]) throw new Error("the engine has already spoken");
+      const answers = (state.counterfactuals ??= {});
+      if (answers[decisionId]) throw new Error("append-only: already answered");
+      answers[decisionId] = { alternative, cpLoss: null };
+    });
   }
 
   async scoreCounterfactual(decisionId: string, cpLoss: number): Promise<void> {
-    const state = read();
-    const answer = state.counterfactuals?.[decisionId];
-    if (!answer) throw new Error("no answer to score");
-    if (answer.alternative === null) throw new Error("no alternative was named");
-    answer.cpLoss = cpLoss;
-    write(state);
+    return update((state) => {
+      const answer = state.counterfactuals?.[decisionId];
+      if (!answer) throw new Error("no answer to score");
+      if (answer.alternative === null) throw new Error("no alternative was named");
+      answer.cpLoss = cpLoss;
+    });
   }
 
   async hasReveal(decisionId: string): Promise<boolean> {
@@ -253,9 +348,9 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async saveClaim(claim: Claim): Promise<void> {
-    const state = read();
-    state.claims[claim.claim_id] = { ...claim };
-    write(state);
+    return update((state) => {
+      state.claims[claim.claim_id] = { ...claim };
+    });
   }
 
   async getClaim(claimId: string): Promise<Claim | null> {
@@ -276,12 +371,12 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async saveDrill(started: StoredDrill): Promise<void> {
-    const state = read();
-    if (state.drills[started.spec.drill_id]) {
-      throw new Error("append-only: drill already started");
-    }
-    state.drills[started.spec.drill_id] = started;
-    write(state);
+    return update((state) => {
+      if (state.drills[started.spec.drill_id]) {
+        throw new Error("append-only: drill already started");
+      }
+      state.drills[started.spec.drill_id] = started;
+    });
   }
 
   async getDrill(drillId: string): Promise<StoredDrill | null> {
@@ -301,27 +396,27 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
-    const state = read();
-    if (state.drillResults.some((r) => r.drill_id === result.drill_id)) {
-      throw new Error("append-only: drill already reported");
-    }
-    state.drillResults.push(result);
-    write(state);
+    return update((state) => {
+      if (state.drillResults.some((r) => r.drill_id === result.drill_id)) {
+        throw new Error("append-only: drill already reported");
+      }
+      state.drillResults.push(result);
+    });
   }
 
   async saveLearningRule(rule: LearningRule): Promise<void> {
-    const state = read();
-    const existing = state.learningRules[rule.rule_id];
-    if (existing && !sameLearningRuleAuthorship(existing, rule)) {
-      throw new Error("append-only: authored learning rule cannot change");
-    }
-    // The same terminal guard the two server stores carry: retirement is the player's act and
-    // nothing re-derives it, so no write may take a rule off `retired`.
-    if (existing && existing.grade === "retired" && rule.grade !== "retired") {
-      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
-    }
-    state.learningRules[rule.rule_id] = structuredClone(rule);
-    write(state);
+    return update((state) => {
+      const existing = state.learningRules[rule.rule_id];
+      if (existing && !sameLearningRuleAuthorship(existing, rule)) {
+        throw new Error("append-only: authored learning rule cannot change");
+      }
+      // The same terminal guard the two server stores carry: retirement is the player's act and
+      // nothing re-derives it, so no write may take a rule off `retired`.
+      if (existing && existing.grade === "retired" && rule.grade !== "retired") {
+        throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
+      }
+      state.learningRules[rule.rule_id] = structuredClone(rule);
+    });
   }
 
   async getLearningRule(ruleId: string): Promise<LearningRule | null> {
@@ -334,12 +429,12 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async saveLearningTransfer(transfer: LearningTransfer): Promise<void> {
-    const state = read();
-    if (state.learningTransfers[transfer.transfer_id]) {
-      throw new Error("append-only: learning transfer already started");
-    }
-    state.learningTransfers[transfer.transfer_id] = structuredClone(transfer);
-    write(state);
+    return update((state) => {
+      if (state.learningTransfers[transfer.transfer_id]) {
+        throw new Error("append-only: learning transfer already started");
+      }
+      state.learningTransfers[transfer.transfer_id] = structuredClone(transfer);
+    });
   }
 
   async getLearningTransfer(transferId: string): Promise<LearningTransfer | null> {
@@ -370,18 +465,18 @@ export class LocalRecordStore implements RecordStore {
     position: number,
     observation: LearningTransferObservation,
   ): Promise<void> {
-    const state = read();
-    const key = `${transferId}#${position}`;
-    // Matters most here: this is the store a signed-out player uses, and a reload is the ordinary
-    // way their session ends. Held in memory, these were exactly what a reload lost.
-    if (state.learningTransferObservations?.[key]) {
-      throw new Error("append-only: transfer observation already recorded for that position");
-    }
-    state.learningTransferObservations = {
-      ...(state.learningTransferObservations ?? {}),
-      [key]: structuredClone(observation),
-    };
-    write(state);
+    return update((state) => {
+      const key = `${transferId}#${position}`;
+      // Matters most here: this is the store a signed-out player uses, and a reload is the ordinary
+      // way their session ends. Held in memory, these were exactly what a reload lost.
+      if (state.learningTransferObservations?.[key]) {
+        throw new Error("append-only: transfer observation already recorded for that position");
+      }
+      state.learningTransferObservations = {
+        ...(state.learningTransferObservations ?? {}),
+        [key]: structuredClone(observation),
+      };
+    });
   }
 
   async listLearningTransferObservations(
@@ -395,12 +490,12 @@ export class LocalRecordStore implements RecordStore {
   }
 
   async saveLearningTransferResult(result: LearningTransferResult): Promise<void> {
-    const state = read();
-    if (state.learningTransferResults.some((row) => row.transfer_id === result.transfer_id)) {
-      throw new Error("append-only: learning transfer already reported");
-    }
-    state.learningTransferResults.push(structuredClone(result));
-    write(state);
+    return update((state) => {
+      if (state.learningTransferResults.some((row) => row.transfer_id === result.transfer_id)) {
+        throw new Error("append-only: learning transfer already reported");
+      }
+      state.learningTransferResults.push(structuredClone(result));
+    });
   }
 
   async listLearningTransferResults(ruleId: string): Promise<LearningTransferResult[]> {
@@ -415,9 +510,9 @@ export class LocalRecordStore implements RecordStore {
    * same limit the record itself has -- see the durability note at the top of this file.
    */
   async savePreregisteredHypothesis(hypothesis: PreregisteredHypothesis): Promise<void> {
-    const state = read();
-    state.preregs = [...state.preregs, structuredClone(hypothesis)];
-    write(state);
+    return update((state) => {
+      state.preregs = [...state.preregs, structuredClone(hypothesis)];
+    });
   }
 
   /*
@@ -426,9 +521,9 @@ export class LocalRecordStore implements RecordStore {
    * rates were on screen when the first one was registered.
    */
   async saveImportDiagnostic(reading: StoredImportDiagnostic): Promise<void> {
-    const state = read();
-    state.importReadings = [...state.importReadings, structuredClone(reading)];
-    write(state);
+    return update((state) => {
+      state.importReadings = [...state.importReadings, structuredClone(reading)];
+    });
   }
 
   async getImportDiagnostic(): Promise<StoredImportDiagnostic | null> {

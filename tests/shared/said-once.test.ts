@@ -6,9 +6,9 @@
  * silent states they were saying the same thing in different words:
  *
  *   FLOOR NOT MET, ORDINARY SCAN
- *     ribbon  "עוד 52 החלטות חשופות עד שאפשר לומר משהו. 2 כבר רשומות וממתינות לחשיפה."
- *             basis "8 חשופות מתוך 10 רשומות"
- *     panel   "נרשמו 10 החלטות, מתוכן 8 נחשפו. צריך עוד 52 החלטות חשופות לפני שאפשר לומר משהו
+ *     ribbon  "עוד 52 החלטות מדודות עד שאפשר לומר משהו. 2 כבר רשומות וממתינות לחשיפה."
+ *             basis "8 נמדדו מתוך 10 רשומות"
+ *     panel   "נרשמו 10 החלטות, מתוכן 8 נמדדו. צריך עוד 52 החלטות מדודות לפני שאפשר לומר משהו
  *              — ו-2 ממתינות לחשיפה."
  *     -- the same four numbers, and the panel added nothing at all.
  *
@@ -19,7 +19,7 @@
  *
  *   FLOOR MET, NOTHING CLEARED
  *     ribbon  "יש מספיק החלטות, ואף דפוס לא עבר את הסף. זו תשובה ולא שתיקה."
- *     panel   "נבדקו 60 החלטות חשופות ולא נמצא דפוס שעובר את הסף. זו תשובה תקינה — ..."
+ *     panel   "נבדקו 60 החלטות מדודות ולא נמצא דפוס שעובר את הסף. זו תשובה תקינה — ..."
  *
  * THE SPLIT IS DISTANCE VERSUS RULE. The ribbon owns how far THIS record is from a claim: it
  * changes every time a decision is revealed, and it sits above the fold where it is read. The
@@ -139,7 +139,7 @@ describe("the panel explains the rule; the ribbon carries the distance", () => {
     const view = await recordOf(4, 2);
     expect(view.reason).toContain(`${MIN_BUCKET_N}`);
     expect(view.reason).toContain(`${MIN_BUCKET_N * 2}`);
-    expect(ribbonText(view), "the ribbon does not explain the floor").not.toContain("בתוך הדלי");
+    expect(ribbonText(view), "the ribbon does not explain the floor").not.toContain("בתוך הסוג");
   });
 
   it("never upgrades a hypothesis to a finding, which is what the wait is FOR", async () => {
@@ -173,7 +173,7 @@ describe("the narrowed search stops repeating the paragraph above it", () => {
 
   it("leaves the scope to .claim-prereg, which renders it one paragraph above", async () => {
     /*
-     * `ClaimPanel` renders "החיפוש מצומצם לX — הדלי שהמשחקים המיובאים הצביעו עליו, שנרשם לפני
+     * `ClaimPanel` renders "החיפוש מצומצם לX — הסוג שהמשחקים המיובאים הצביעו עליו, שנרשם לפני
      * שנרשמה כאן החלטה" whenever `prereg` is set -- on the claim AND on the silence. The reason
      * used to open by saying the same thing, so the panel introduced its own narrowing twice.
      */
