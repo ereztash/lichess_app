@@ -518,6 +518,26 @@ export class DrizzleRecordStore implements RecordStore {
     if (existingRow && !sameLearningRuleAuthorship(toLearningRule(existingRow), rule)) {
       throw new Error("append-only: authored learning rule cannot change");
     }
+    /*
+     * RETIRED IS TERMINAL, AND IT IS TERMINAL HERE RATHER THAN IN THE SERVICE.
+     *
+     * Retirement is the one grade nothing can re-derive: it is stored only as this enum -- no
+     * `retired_at`, no retirement row -- so a write that moves a rule off it destroys a fact the
+     * player authored, permanently and silently. `gradeLearningRule` refuses to rebuild it, but
+     * the fold's WRITE could still overwrite it: read the rule, await the results, and the player
+     * archives the rule in between. The Archive button has no disabled state, so a second tab or a
+     * completion still in flight is enough.
+     *
+     * A service-level check would be another read-then-write and would lose the same race. Here it
+     * cannot be lost, whichever caller the write came from.
+     *
+     * Writing a retired rule back AS retired is allowed on purpose: the fold returns it unchanged,
+     * and refusing that would fail every completion on a rule archived mid-run, after the result
+     * was already on the record -- trading a silent loss for a partial one.
+     */
+    if (existingRow && existingRow.grade === "retired" && rule.grade !== "retired") {
+      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
+    }
     await db
       .insert(learningRules)
       .values({
@@ -917,6 +937,10 @@ export class MemoryRecordStore implements RecordStore {
     const existing = this.learningRuleRows.get(rule.rule_id);
     if (existing && !sameLearningRuleAuthorship(existing, rule)) {
       throw new Error("append-only: authored learning rule cannot change");
+    }
+    // The same terminal guard as DrizzleRecordStore above, and for the same reason.
+    if (existing && existing.grade === "retired" && rule.grade !== "retired") {
+      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
     }
     this.learningRuleRows.set(rule.rule_id, structuredClone(rule));
   }

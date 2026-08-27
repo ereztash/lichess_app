@@ -1240,6 +1240,76 @@ the record refutes is offered for another test; a lost reveal silently shrinks a
 drill; `createLearningRule` locks the reflection or duplicates the rule; and a lost `commitDecision`
 response writes a phantom decision. Three angles and the completeness critic are still running.
 
+## Cycle 39 — the fold's own comment named the thing the fold could destroy
+
+Two findings against cycle 31, both from the sweep, both reproduced. They are the sharpest kind of
+criticism: the fix was right about what to derive and wrong about what that let it overwrite.
+
+### The one grade nothing can rebuild
+
+`gradeLearningRule` checks `retired` before the fold and never re-derives it — the comment I wrote
+says why: retirement is an act of the player's, not a reading of the evidence. **What that did not
+account for is that the fold's WRITE can destroy it**, and cycle 31 put that write on a path (the
+replay branch) which previously performed none.
+
+    read rule (hypothesis) → player archives the rule → the fold's write lands → grade: hypothesis
+
+Ordinary rather than exotic: the Archive button has **no disabled state at all** — no `busy` guard,
+unlike the test button beside it — so a second tab or a completion still in flight is enough. And
+it is unrecoverable by construction: retirement is stored **only as the grade enum**. No
+`retired_at`, no retirement row. Nothing can put it back. The rule reappears in the queue with a
+live due date and a test button, as though the player had never archived it, with no message and no
+trace.
+
+**The guard is in the store, not the service.** A service-level check is another read-then-write and
+loses the same race; all three stores now refuse to move a rule off `retired`. Writing a retired
+rule back *as* retired stays allowed on purpose — the fold returns it unchanged, and refusing that
+would fail every completion on a rule archived mid-run, after the result was already on the record,
+trading a silent loss for a partial one.
+
+`gradeFromRecord` also reads the results **first** and the rule **last** — the opposite of the
+obvious order — so one statement sits between the read and the write instead of a query. The store
+guard closes the remainder, and if it fires the completion is retried: the retry finds the result
+already recorded, re-reads the now-retired rule, and returns it unchanged. Self-healing rather than
+lost.
+
+### The fold repaired the write path and left every read serving the stored grade
+
+Lose one grade write on a sitting that refutes a rule, and let the player abandon the retry — a
+closed tab does — and the record holds two failing results on two days while `beginLearningTransfer`
+reads `hypothesis` and **preregisters a new transfer**. `preregisterLearningTransfer` throws on a
+refuted rule and that throw is bypassed, because it is handed the stale rule. The player then sits a
+three-position retrieval test on a rule the record has already closed.
+
+It now derives the grade before deciding anything. Idempotent, so on the ordinary path it costs a
+query and changes nothing — and **it writes only when the fold actually repairs something**, because
+running a rewrite on the path the player hits most would add a failure surface that buys nothing.
+
+### Two fixtures were constructing states the product cannot produce
+
+Both invariant tests wrote a grade straight onto the rule: `{...rule, grade: "refuted"}` and
+`{...rule, next_due_at: null, retrieval_step: 4}`. Once the grade is derived, a hand-set one is
+simply rebuilt — so the tests went red, correctly. **In production every grade except `retired`
+comes from the results**: `formHypothesis` gives hypothesis with none, the fold gives the rest, and
+retirement is written and guarded. So the fixtures build the record now — two failing sittings on
+two days for refutation, four successful ones for a schedule that has run out — and each asserts its
+invariant against a rule that could exist.
+
+That is the fifth and sixth time in this PR a test needed changing, and again the principle survived
+and only its expression did not.
+
+Four positive controls: removing the store guard reddens the retirement claim; reading the stored
+grade in `beginLearningTransfer` reddens **both** invariant tests, which is what shows the derivation
+is now what enforces them; and writing unconditionally reddens the no-extra-write claim.
+
+**Still open and stated plainly:** the learning queue's *display* still prints the stored grade
+(`LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`). The
+damage is now bounded to a wasted click — `beginLearningTransfer` refuses with a reason and repairs
+the record on the way — but the row can still say `השערה` about a rule the record has refuted until
+something touches it.
+
+Full verify with the database up: **1,455 tests, 0 skipped**, 10/10 gates, every control red.
+
 ## Scores this cycle
 
 Evidence-backed, against the state at `03d8f96`. A score does not rise because more code exists.
@@ -1267,7 +1337,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
 | — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
-| — | The fold's write can destroy `retired`, and every read of a learning rule serves the stored grade | **High** | open, found by the cycle-38 sweep, both reproduced, and both are gaps in the cycle-31 fix. `retired` is set by one function and stored only as the grade enum — no `retired_at`, no retirement event — so nothing can re-derive it, and the fold's write now runs on a path that previously performed none |
+| — | ~~The fold's write can destroy `retired`~~; the learning queue's DISPLAY still prints the stored grade | ~~High~~ **Low** | **the write half is closed in cycle 39**: all three stores refuse to move a rule off `retired`, and `beginLearningTransfer` derives the grade before deciding on it. What is left is cosmetic — `LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`, so a row can say `השערה` about a refuted rule until something touches it. The click is refused with a reason and repairs the record |
 | — | The grade fold persists last-writer-wins; `beginDrill` has no open-drill check | **Medium** | open, found by the cycle-37 sweep, and it is a criticism of the cycle-31 and cycle-36 fixes: the fold made the grade a function of the record, the write that persists it did not become conditional |
 | — | A lost reveal silently shrinks a pre-registered drill, and the truncated verdict is append-only | **Medium** | open, found by the cycle-37 sweep. R5: the verdict is decided over a decision set the pre-registration did not name |
 | — | `createLearningRule`: a failure between its two writes locks the reflection, and a lost response duplicates the rule | **Medium** | open, found by the cycle-37 sweep, both reproduced |

@@ -295,6 +295,11 @@ export class LocalRecordStore implements RecordStore {
     if (existing && !sameLearningRuleAuthorship(existing, rule)) {
       throw new Error("append-only: authored learning rule cannot change");
     }
+    // The same terminal guard the two server stores carry: retirement is the player's act and
+    // nothing re-derives it, so no write may take a rule off `retired`.
+    if (existing && existing.grade === "retired" && rule.grade !== "retired") {
+      throw new Error("retired: a rule the player took out of the queue cannot be graded back in");
+    }
     state.learningRules[rule.rule_id] = structuredClone(rule);
     write(state);
   }

@@ -365,9 +365,32 @@ describe("a preregistered transfer cannot be escaped or restarted", () => {
      * that had completed its schedule offered an unlimited supply of fresh tests, while the row
      * beside the button said "אין בדיקה נוספת".
      */
+    /*
+     * THE STATE IS BUILT FROM THE RECORD, not written onto the rule.
+     *
+     * This used to set `next_due_at: null` and `retrieval_step: 4` directly, which is a state the
+     * product cannot produce: the schedule is a function of the results, and `beginLearningTransfer`
+     * now re-derives it before deciding anything (a stale grade used to let a refuted rule be
+     * tested again). A fixture asserting a rule cannot be tested has to be a rule that could exist.
+     *
+     * Four sittings on four days is what runs the schedule out -- RETRIEVAL_INTERVAL_DAYS has four
+     * entries, so the fifth step has no interval and the fold sets `next_due_at` to null.
+     */
     const store = new MemoryRecordStore();
     const rule = await createRule(store);
-    await store.saveLearningRule({ ...rule, grade: "replicated", next_due_at: null, retrieval_step: 4 });
+    for (const [index, day] of ["02", "05", "12", "26"].entries()) {
+      await store.saveLearningTransferResult({
+        kind: "learning_transfer_result",
+        transfer_id: `spent-${index}`,
+        rule_id: rule.rule_id,
+        decision_ids: [],
+        recalled_rules: [],
+        applied_rule: [],
+        successes: 3,
+        observed: true,
+        completed_at: `2026-01-${day}T01:00:00.000Z`,
+      });
+    }
 
     const outcome = await service.beginLearningTransfer(
       store,
@@ -636,7 +659,34 @@ describe("a terminal grade ends the testing, including a transfer already in fli
       { rule_id: rule.rule_id, candidate_fens: [FENS[1], FENS[2], FENS[3]] },
       { transfer_id: "transfer-1", started_at: "2026-01-02T00:00:00.000Z" },
     );
-    await store.saveLearningRule({ ...rule, grade, next_due_at: null });
+    if (grade === "retired") {
+      // Retirement is the player's act and is not derivable from results -- it is written.
+      await service.retireLearningRule(
+        store,
+        { rule_id: rule.rule_id },
+        { retired_at: "2026-01-02T12:00:00.000Z" },
+      );
+    } else {
+      /*
+       * REFUTATION IS BUILT FROM THE RECORD. Writing `grade: "refuted"` onto the rule constructs a
+       * state the product cannot produce -- the grade is a fold over the results -- and
+       * `beginLearningTransfer` now re-derives it, so a hand-set grade would simply be rebuilt.
+       * Two failing sittings on two distinct days is what refutation costs.
+       */
+      for (const [index, day] of ["02", "09"].entries()) {
+        await store.saveLearningTransferResult({
+          kind: "learning_transfer_result",
+          transfer_id: `failed-${index}`,
+          rule_id: rule.rule_id,
+          decision_ids: [],
+          recalled_rules: [],
+          applied_rule: [],
+          successes: 0,
+          observed: false,
+          completed_at: `2026-01-${day}T01:00:00.000Z`,
+        });
+      }
+    }
     return { store, rule };
   }
 

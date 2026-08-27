@@ -33,6 +33,7 @@ import {
   reflectionDraftSchema,
   retireLearningRule as retireRule,
   TRANSFER_POSITION_COUNT,
+  type LearningRule,
   type LearningRuleDraft,
   type LearningTransferObservation,
   type LearningTransferResult,
@@ -379,8 +380,23 @@ export async function beginLearningTransfer(
   input: { rule_id: string; candidate_fens: string[] },
   now: { transfer_id: string; started_at: string },
 ) {
-  const rule = await store.getLearningRule(input.rule_id);
-  if (!rule) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
+  const exists = await store.getLearningRule(input.rule_id);
+  if (!exists) throw new RecordError("NOT_FOUND", "אין כלל למידה עם המזהה הזה.");
+  /*
+   * THE GRADE IS RE-DERIVED BEFORE ANYTHING IS DECIDED ON IT.
+   *
+   * The cycle-31 fold repaired the WRITE path and left every read serving the stored grade. Lose
+   * one grade write on a sitting that refutes a rule -- and the player abandons the retry, which a
+   * closed tab does -- and the record holds two failing results on two days while this function
+   * reads `hypothesis` and preregisters a NEW transfer. `preregisterLearningTransfer` throws on a
+   * refuted rule, and that throw is bypassed because it is handed the stale rule. The player then
+   * sits a three-position retrieval test on a rule the record has already closed.
+   *
+   * Grading here is idempotent -- the fold over the same results returns the same rule -- so on
+   * the ordinary path it costs a query and changes nothing, and on the damaged path it repairs the
+   * record before the decision that would have been wrong.
+   */
+  const rule = await gradeFromRecord(store, input.rule_id);
 
   /*
    * ONE TEST IN FLIGHT PER RULE, AND IT IS RESUMED RATHER THAN REFUSED.
@@ -768,11 +784,42 @@ export async function finishLearningTransfer(
  * nothing. One behaviour for one condition.
  */
 async function gradeFromRecord(store: RecordStore, ruleId: string) {
+  /*
+   * THE RESULTS ARE READ FIRST AND THE RULE LAST, which is the opposite of the obvious order and
+   * the reason is the window between them.
+   *
+   * Reading the rule first and then awaiting the results left a gap in which the player could
+   * archive the rule -- the Archive button has no disabled state -- and the write that followed
+   * overwrote `retired`, the one grade nothing can re-derive. Reversing it leaves one statement
+   * between the read and the write instead of a query.
+   *
+   * The remainder is closed in the store: `saveLearningRule` refuses to take a rule off `retired`
+   * in all three implementations. If that guard fires, this call raises and the completion is
+   * retried -- and the retry finds the result already recorded, re-reads the now-retired rule, and
+   * returns it unchanged. Self-healing rather than lost.
+   */
+  const results = await store.listLearningTransferResults(ruleId);
   const rule = await store.getLearningRule(ruleId);
   if (!rule) throw new RecordError("NOT_FOUND", "כלל הלמידה נעלם לפני הדירוג.");
-  const graded = gradeLearningRule(rule, await store.listLearningTransferResults(ruleId));
-  await store.saveLearningRule(graded);
+  const graded = gradeLearningRule(rule, results);
+  /*
+   * WRITTEN ONLY WHEN IT CHANGES SOMETHING. The fold is idempotent, so on the ordinary path -- and
+   * `beginLearningTransfer` now runs this on every start -- it would otherwise rewrite an
+   * identical row on a hot path, adding a failure surface that buys nothing. The write happens
+   * when this is actually repairing.
+   */
+  if (!sameLearningRule(rule, graded)) await store.saveLearningRule(graded);
   return graded;
+}
+
+/** Field-by-field, over exactly what the fold may change. */
+function sameLearningRule(a: LearningRule, b: LearningRule): boolean {
+  return (
+    a.grade === b.grade &&
+    a.retrieval_step === b.retrieval_step &&
+    a.next_due_at === b.next_due_at &&
+    a.last_evaluated_at === b.last_evaluated_at
+  );
 }
 
 export async function retireLearningRule(
