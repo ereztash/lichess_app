@@ -252,7 +252,20 @@ describe("continuation is an act, not a location", () => {
 });
 
 describe("the one question, and what it may not do", () => {
-  const mount = (reveals: number) => render(<ValueReconstruction revealsPresented={reveals} />);
+  /*
+   * Seeded through the LEDGER rather than through a prop, which is the interface the component
+   * actually has -- and the reason it has it. The first version took the count as a prop computed
+   * during `Home`'s render, and `reveal_presented` is written by `RevealPanel`'s effect, which
+   * runs after that render: on the reveal this question belongs to, the prop was one behind and
+   * the panel never appeared. Two full cycles in Chromium, both reveals in the ledger, no
+   * question. A test that passed the number in could not have caught it.
+   */
+  const mount = (reveals: number) => {
+    for (let i = 0; i < reveals; i += 1) {
+      recordTrialEvent({ name: "reveal_presented", at: "2026-08-28T10:00:00Z", decisionId: `r${i}` });
+    }
+    return render(<ValueReconstruction />);
+  };
 
   it("puts the question after the SECOND reveal, and the number is pinned rather than read", () => {
     /*
@@ -277,7 +290,10 @@ describe("the one question, and what it may not do", () => {
   it("says nothing before the rule is met", () => {
     const { container } = mount(ASK_AFTER_REVEALS - 1);
     expect(container.textContent).toBe("");
-    expect(events()).toHaveLength(0);
+    // The seeded reveal is there; what must not be is a prompt event.
+    expect(events().filter((event) => event.name === "value_reconstruction_prompted")).toHaveLength(
+      0,
+    );
   });
 
   it("appears once and never again in the same browser", () => {

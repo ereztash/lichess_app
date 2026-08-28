@@ -43,6 +43,7 @@ import { MessageSquare } from "lucide-react";
 import { ANSWER_MAX, shouldAskValueQuestion } from "@/lib/acquisition-evidence";
 import {
   recordTrialEvent,
+  revealsPresented,
   trialEventEverSeen,
   trialEventSeen,
 } from "@/lib/progress-record";
@@ -56,35 +57,50 @@ import {
  */
 export const VALUE_QUESTION = "מה קיבלת כאן שלא היית מקבל מניתוח רגיל של המשחק?";
 
-export function ValueReconstruction({ revealsPresented }: { revealsPresented: number }) {
+export function ValueReconstruction() {
   /*
-   * Decided once, on mount, and held. Recomputing it from the ledger on every render would let
-   * the panel disappear underneath the player the moment their own submission was written -- and
-   * a question that vanishes mid-sentence is worse than one never asked.
+   * THE COUNT IS READ IN AN EFFECT, NOT TAKEN AS A PROP, AND THE FIRST VERSION GOT THIS WRONG.
+   *
+   * It received `revealsPresented` from `Home`, computed during render. `reveal_presented` is
+   * written by `RevealPanel`'s own effect, which runs AFTER that render -- so on the reveal this
+   * question belongs to, the prop was one behind and the panel never appeared. Walked in
+   * Chromium: two full decide-commit-reveal cycles, both reveals in the ledger, no question.
+   *
+   * Reading the ledger here removes the whole class: this component is rendered under the reveal,
+   * behind a dynamic import, so by the time its effect runs the reveal above it has recorded
+   * itself. Nothing has to be threaded through a render, and nothing can be stale.
+   *
+   * DECIDED ONCE AND HELD. Re-deriving on every render would let the panel vanish underneath the
+   * player the moment their own submission was written, and a question that disappears
+   * mid-sentence is worse than one never asked.
    */
-  const [state, setState] = useState<"asking" | "done">("asking");
+  const [state, setState] = useState<"deciding" | "asking" | "done">("deciding");
   const [text, setText] = useState("");
-  const eligible = useRef(
-    shouldAskValueQuestion({
-      revealsPresented,
-      everPrompted: trialEventEverSeen("value_reconstruction_prompted"),
-    }),
-  );
+  const asked = useRef(0);
 
   useEffect(() => {
-    if (!eligible.current) return;
     if (trialEventSeen("value_reconstruction_prompted")) return;
+    const reveals = revealsPresented();
+    if (
+      !shouldAskValueQuestion({
+        revealsPresented: reveals,
+        everPrompted: trialEventEverSeen("value_reconstruction_prompted"),
+      })
+    ) {
+      return;
+    }
+    asked.current = reveals;
     recordTrialEvent({
       name: "value_reconstruction_prompted",
       at: new Date().toISOString(),
-      afterReveals: revealsPresented,
+      afterReveals: reveals,
     });
-    // Deliberately not in the dependency list: this fires for the mount that was eligible, and a
-    // later reveal in the same session must not put the question a second time.
+    setState("asking");
+    // Once per mount: a later reveal in the same session must not put the question a second time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!eligible.current || state === "done") return null;
+  if (state !== "asking") return null;
 
   const close = (outcome: "answered" | "dismissed") => {
     recordTrialEvent({

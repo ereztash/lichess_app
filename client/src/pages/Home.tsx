@@ -2232,7 +2232,7 @@ export default function Home() {
                 */}
               {revealedDecisionId && (
                 <Suspense fallback={null}>
-                  <ValueReconstruction revealsPresented={revealsPresented()} />
+                  <ValueReconstruction />
                 </Suspense>
               )}
               {/*
