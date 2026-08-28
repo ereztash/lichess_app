@@ -15,6 +15,7 @@ import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
   BUILD_LIMIT,
+  CONTINUATION_PROPOSITION,
   ENGINE_NOISE_CP,
   EVIDENCE_LABEL,
   MATERIAL_LOSS_CP,
@@ -224,6 +225,24 @@ export function RevealPanel({
           </div>
         </div>
       </details>
+
+      {/*
+        * WHY ANOTHER DECISION, and it is deliberately not inside any of the four blocks.
+        *
+        * The only reason to continue that this product stated anywhere lived in the record: "עוד N
+        * החלטות מדודות עד שאפשר לומר משהו". That sentence is true and it is about what a CLAIM
+        * needs before a detector may speak. Read as motivation it is a countdown to a locked
+        * thing, which is the mechanic this product refuses -- and it never answered the question a
+        * player actually has after a reveal, which is what the NEXT decision gives THEM.
+        *
+        * OUTSIDE THE BLOCKS BECAUSE IT IS NOT A MEASUREMENT. Everything above is derived from this
+        * position. This is a constant: the same sentence after every one of the five outcomes,
+        * with no digit in it and no variation by reveal kind, by how many decisions are on record,
+        * or by anything the player did. A proposition that warmed up after a good branch would be
+        * measuring the player and answering them, and the trial would be reading its own copy
+        * back.
+        */}
+      <p className="reveal-continuation">{CONTINUATION_PROPOSITION}</p>
     </section>
   );
 }

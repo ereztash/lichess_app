@@ -295,6 +295,50 @@ export interface OneThing {
 }
 
 /**
+ * Why another decision is worth taking, said once and said the same way every time.
+ *
+ * THE SENTENCE THAT WAS MISSING, AND WHAT WAS STANDING IN FOR IT. The only reason to continue that
+ * this product stated anywhere was the measurement floor -- "עוד N החלטות מדודות עד שאפשר לומר
+ * משהו" in `loop-position.ts`. That sentence is correct and it belongs to the record: it says what
+ * a CLAIM requires before a detector may speak. It says nothing about what the PLAYER gets from
+ * the next decision, and read as motivation it is a countdown to a locked thing, which is the
+ * mechanic this product refuses.
+ *
+ * So the two are kept apart on purpose. The floor stays in the record with its denominators. This
+ * is the other half: what one more decision adds BEFORE any claim exists, which is a separate
+ * observation -- the only thing that can turn "this happened" into "this happens".
+ *
+ * IT IS A CONSTANT AND THAT IS THE DESIGN. Not a function of the reveal kind, the acquisition
+ * angle, how many decisions are on record, or anything the player did. A proposition that got
+ * warmer after a `chose-past-it` and cooler after silence would be measuring the player and
+ * answering them, and the trial would then be reading its own copy back. Every reveal gets this
+ * sentence; a test asserts all five outcomes render it identically.
+ *
+ * NO NUMBER APPEARS IN IT. A digit here is a countdown whatever the surrounding words say.
+ *
+ * AND IT SAYS "עמדה אחרת ורגע אחר" RATHER THAN THE WORD FOR IT. The first draft read "תצפית
+ * נפרדת", which is exactly right and is method vocabulary; `the-player-sees-chess.test.ts` caught
+ * it on the reveal, which is what that test is for. Independence is the whole content of this
+ * sentence, so it is said in the two things that actually make a decision independent of this one
+ * -- a different position and a different moment -- in words a player already owns.
+ */
+export const CONTINUATION_PROPOSITION =
+  "החלטה אחת אומרת מה קרה בה, ולא יותר. החלטה נוספת היא עמדה אחרת ורגע אחר — וזה מה שמאפשר לשאול אם מה שקרה כאן חוזר, או שקרה פעם אחת.";
+
+/**
+ * The button, named for the experiment rather than for the movement.
+ *
+ * "ההחלטה הבאה" describes where the click goes. This describes what taking it is FOR, which is the
+ * only thing that makes the proposition above actionable rather than decorative -- and it is the
+ * same words, so a reader who understood the sentence recognises the button as its consequence.
+ *
+ * PHRASED SO IT CAN COME BACK FALSE. "לבדוק אם" is a question. "לגלות את הדפוס שלך" would be a
+ * promise that a pattern exists and will appear, which no build can make: the branches that carry
+ * one fire only when the record happens to contain the evidence.
+ */
+export const CONTINUATION_CTA = "לבדוק אם זה חוזר";
+
+/**
  * SECTION 4.2 STEP 2: the one thing to work on. One. Not a list.
  * Returns null when the measurement does not support saying anything, which is a valid outcome.
  */

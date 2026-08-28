@@ -2737,6 +2737,22 @@ button:not(:disabled) {
   font-size: var(--panel-fine);
   opacity: 0.66;
 }
+/*
+ * The one reason to continue, under everything derived from this position.
+ *
+ * QUIETER THAN THE FINDING AND LOUDER THAN THE FOOTNOTES, because that is what it is: not a
+ * measurement, not a disclaimer, and not a call to action dressed as one. `--panel-label` with a
+ * hairline above puts it in the same register as `.reveal-build-limit`, which is the other thing
+ * on this panel that is true of every position rather than of this one.
+ */
+.reveal-continuation {
+  margin: 0.9rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  opacity: 0.86;
+}
 /* A property of the build, not of the position. Set apart from the per-position limits. */
 .reveal-build-limit {
   margin: 0.5rem 0 0;

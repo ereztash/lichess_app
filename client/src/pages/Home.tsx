@@ -122,7 +122,7 @@ import {
   type CommitEvent,
   type SessionStage,
 } from "@/lib/decision-session";
-import type { RevealInputs } from "@shared/reveal";
+import { CONTINUATION_CTA, type RevealInputs } from "@shared/reveal";
 import {
   commitFailureText,
   readableFailureText,
@@ -1782,8 +1782,17 @@ export default function Home() {
           {stage === "revealed" &&
             revealedDecisionId &&
             (!learningTransfer || learningTransferStage === "running") && (
+              /*
+               * NAMED FOR THE EXPERIMENT, NOT FOR THE MOVEMENT. "ההחלטה הבאה" says where the
+               * click goes. `CONTINUATION_CTA` says what taking it is for, in the same words as
+               * the proposition at the foot of the reveal -- so a reader who understood that
+               * sentence recognises this button as its consequence rather than as a way out of
+               * the screen. The transfer run keeps its own label: those positions are a
+               * pre-registered set being worked through, and "לבדוק אם זה חוזר" would describe
+               * the wrong experiment.
+               */
               <button className="primary-control" onClick={nextDecision}>
-                {learningTransfer ? "העמדה הבאה" : "ההחלטה הבאה"}
+                {learningTransfer ? "העמדה הבאה" : CONTINUATION_CTA}
               </button>
             )}
           {/*
