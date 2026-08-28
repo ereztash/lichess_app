@@ -1,11 +1,15 @@
 /**
  * The record's home, and the app's front door.
  *
- * WHAT THIS PAGE IS FOR, in one line: every other chess tool tells you what you did wrong; this
- * one tells you when you did not know you were wrong. Chess.com Insights, Lichess Insights,
- * Aimchess, Chessable, DecodeChess and Noctie were all checked, and not one of them captures what
- * the player believed BEFORE the engine answered. That is the difference, and this page exists to
- * make it legible.
+ * WHAT THIS PAGE IS FOR, in one line: an engine can say which move was better; it cannot say what
+ * happened on the way to choosing. Chess.com Insights, Lichess Insights, Aimchess, Chessable,
+ * DecodeChess and Noctie were all checked, and not one of them holds anything the player recorded
+ * BEFORE the engine answered. That is the difference, and this page exists to make it legible.
+ *
+ * IT USED TO SAY THAT DIFFERENCE AS A CONSTRUCT -- "tells you when you did not know you were
+ * wrong" -- and so did the header it produced. That sentence is true and it is not a problem a
+ * chess player recognises having. The page now names the problem in board terms first and reaches
+ * the construct afterwards, as a consequence rather than as an introduction.
  *
  * THE STRUCTURAL PROBLEM THIS PAGE CANNOT SOLVE, only handle honestly. A calibration gap needs a
  * confidence stated before the reveal. It cannot be imported, backfilled or inferred -- which is
@@ -47,6 +51,7 @@ import {
 } from "@/lib/game-source";
 import { pickFirstDecision } from "@/lib/first-decision";
 import { ANCHOR_POSITIONS } from "@shared/anchor-set";
+import { PROMISE, PROMISE_RETURNING } from "@shared/promise";
 import { nextAnchor } from "@/lib/anchor-run";
 import { writePosition } from "@/lib/session-position";
 import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
@@ -179,9 +184,14 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
   return (
     <section className="first-decision">
       <h2>ההחלטה הראשונה</h2>
+      {/*
+        * WHAT TO DO, and only that. The header above has already given the problem, the mechanism
+        * and the possible payoff; repeating the mechanism here was the third time one first
+        * viewport said "ורק אז המנוע ידבר", and a screen that says one thing three times is a
+        * screen with one idea and no room for the next.
+        */}
       <p className="first-decision-lead">
-        עמדה אחת ממשחק ש<strong>אתם</strong> שיחקתם. תבחרו מהלך ותגידו כמה אתם בטוחים — ורק אז
-        המנוע ידבר. זה מה שהאפליקציה מודדת, וזו הדרך המהירה ביותר להרגיש אותו.
+        עמדה אחת ממשחק ש<strong>אתם</strong> שיחקתם. החלטה אחת, שתי דקות.
       </p>
       {/* Both named, because someone without a Lichess account has to see the other one exists. */}
       <div className="import-sources" role="group" aria-label="מאיזה אתר לייבא">
@@ -359,13 +369,49 @@ export default function Record() {
 
   return (
     <main className="record-page">
+      {/*
+        * TWO IDENTITIES, BECAUSE THERE ARE TWO VISITORS, and the page already branches on exactly
+        * this distinction one element below.
+        *
+        * A returning player IS visiting the record, and "הרשומה" is the right name for the thing
+        * they came back to. A cold arrival is asking a different question -- what is this -- and
+        * the answer "the record" names a database object. The old header answered the returning
+        * player's question to everybody, and then reached a research construct ("לא ידעתם שאתם
+        * לא יודעים", "כמה הייתם בטוחים") inside one sentence, before naming any chess problem at
+        * all.
+        *
+        * NOT AN ADAPTATION. It keys on whether the record has anything in it, which is the same
+        * condition that decides whether the body below is the first-decision screen or the
+        * reading. Nothing here reads the acquisition angle, the ledger, or anything about who
+        * this person is.
+        *
+        * PROBLEM, THEN MECHANISM, THEN A HEDGED PAYOFF, in that order and no other. The construct
+        * survives, further down and as a consequence -- "calibration" is not the job a chess
+        * player hires anything to do, and leading with it teaches vocabulary to someone who has
+        * not yet been told there is a problem.
+        */}
       <header className="record-page-head">
         <div>
-          <h1>הרשומה</h1>
-          <p className="record-page-claim">
-            כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים —
-            המרחק בין כמה הייתם בטוחים לכמה צדקתם.
-          </p>
+          {measured === 0 ? (
+            <>
+              <h1>מה קרה בהחלטה, לפני שהמנוע דיבר</h1>
+              <p className="record-page-problem">{PROMISE.problem}</p>
+              <p className="record-page-mechanism">{PROMISE.mechanism}</p>
+              {/*
+                * "לפעמים" IS LOAD-BEARING AND IS NOT HEDGING FOR ITS OWN SAKE. The reveal branch
+                * that carries this distinction fires only when the record happens to contain the
+                * evidence for it. A front door that promised it on every decision would bring
+                * every arrival an expectation the instrument cannot meet, and then no continuation
+                * measured afterwards would mean anything.
+                */}
+              <p className="record-page-payoff">{PROMISE.payoff}</p>
+            </>
+          ) : (
+            <>
+              <h1>הרשומה</h1>
+              <p className="record-page-claim">{PROMISE_RETURNING}</p>
+            </>
+          )}
         </div>
         <button type="button" className="ghost-control" onClick={() => navigate("/play")}>
           ללוח

@@ -16,10 +16,24 @@
  * WHAT THIS FILE IS NOT. It does not check that the card looks good. It checks that the card
  * exists, that it is the size every unfurl expects, and -- the part that matters -- that its
  * words claim no more than the instrument can deliver.
+ *
+ * AND THE THIRD DEFECT, WHICH THIS FILE NOW EXISTS FOR. A player meets this product as a chain:
+ * a message with a link, the card it unfurls into, the front door, the sentence above the first
+ * decision, and finally a reveal. Every stage held its own copy of the promise, so the chain could
+ * break in the middle without any test noticing -- and it did: the front door was rewritten to
+ * lead with a chess problem while the card still led with the research construct. A player
+ * arriving through the card was promised one product and handed another.
+ *
+ * The sentences now live in `shared/promise.ts`. The front door and the card BUILDER import them,
+ * so those two cannot drift at all. Two copies remain that no import can reach -- `index.html`,
+ * which is static, and the PNG, which is pixels -- and holding those two in step is this file's
+ * job. It asserts the three ideas of `PROMISE_ANCHORS` on every stage, in the order the reader
+ * meets them.
  */
 import { readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { PROMISE, PROMISE_ANCHORS, PROMISE_PROHIBITED, PROMISE_SHORT } from "@shared/promise";
 
 const root = resolve(__dirname, "../..");
 const html = readFileSync(resolve(root, "client/index.html"), "utf8");
@@ -95,10 +109,9 @@ describe("the acquisition copy claims only what the instrument can do", () => {
     expect(shareText, "the share copy still promises the read fields").not.toMatch(
       /כותבים את הקריאה|תכתבו את הקריאה/,
     );
-    expect(shareText).toMatch(/ורק אז המנוע/);
   });
 
-  it("promises a distinction rather than a diagnosis", () => {
+  it.each(PROMISE_PROHIBITED)("does not $why", ({ pattern }) => {
     /*
      * THE VALIDITY RULE FOR THE WHOLE TRIAL. `chose-past-it` is the finding no other tool can
      * make and it fires only when the engine's move was actually among the ones placed on the
@@ -110,16 +123,113 @@ describe("the acquisition copy claims only what the instrument can do", () => {
      * A promise about the player's MIND is out for the same reason it is out of the reveal: the
      * record holds moves placed on a board, not what anyone saw.
      */
-    expect(shareText, "the card promises a reveal branch that may never fire").not.toMatch(
-      /ראית|ראיתם|שקלת|שקלתם|פספסת|פספסתם|נראה לך שידעת/,
-    );
-    expect(shareText, "the card promises a diagnosis").not.toMatch(/נגלה לך|נראה לך בדיוק|נאבחן/);
-  });
-
-  it("says the differentiator, so the unfurl is not interchangeable with any engine", () => {
-    // The front door's own sentence. If the two ever disagree, the page is right and this is stale.
-    const front = readFileSync(resolve(root, "client/src/pages/Record.tsx"), "utf8");
-    expect(front).toContain("מודד מתי לא ידעתם שאתם לא יודעים");
-    expect(shareText).toContain("מודד מתי לא ידעתם שאתם לא יודעים");
+    expect(shareText).not.toMatch(pattern);
   });
 });
+
+/**
+ * The chain, asserted as a chain.
+ *
+ * Each stage below is a place the promise is written down. `shared/promise.ts` is the one the
+ * other stages are supposed to be saying, and a stage that has stopped carrying one of the three
+ * ideas has stopped making the same promise, whatever else it now says.
+ */
+describe("the same promise survives every stage of the chain", () => {
+  const card = readFileSync(resolve(root, "scripts/build_share_card.ts"), "utf8");
+  const front = readFileSync(resolve(root, "client/src/pages/Record.tsx"), "utf8");
+
+  const stages: readonly { readonly stage: string; readonly text: string }[] = [
+    { stage: "the module every other stage reads", text: Object.values(PROMISE).join(" ") },
+    {
+      stage: "the unfurl, which is the only copy no compiler keeps in step",
+      text: [meta("description"), meta("og:description"), meta("og:image:alt"), meta("twitter:description")].join(" "),
+    },
+    { stage: "the card, at card length", text: Object.values(PROMISE_SHORT).join(" ") },
+  ];
+
+  describe.each(stages)("$stage", ({ text }) => {
+    it.each(PROMISE_ANCHORS)("still says $idea", ({ pattern }) => {
+      expect(text).toMatch(pattern);
+    });
+  });
+
+  it("keeps the front door and the card on imports rather than on copies", () => {
+    /*
+     * The strongest half of this file, and the half that is not a test of words. Two stages import
+     * the sentences, so no edit can put them out of step -- there is nothing to keep in step. If
+     * either of these lines goes, the assertions above start passing on two independent copies
+     * that happen to agree today.
+     */
+    expect(front, "the front door has its own copy of the promise again").toMatch(
+      /import \{[^}]*PROMISE[^}]*\} from "@shared\/promise"/,
+    );
+    expect(card, "the share card has its own copy of the promise again").toMatch(
+      /import \{[^}]*PROMISE_SHORT[^}]*\} from "\.\.\/shared\/promise"/,
+    );
+    expect(front).toContain("{PROMISE.problem}");
+    expect(front).toContain("{PROMISE.mechanism}");
+    expect(front).toContain("{PROMISE.payoff}");
+  });
+
+  it("orders the front door problem first and the construct not at all", () => {
+    /*
+     * LENS 1, AS DOM ORDER RATHER THAN AS TASTE. "Calibration" and "you did not know that you did
+     * not know" are true and are not problems a chess player recognises having. They may appear
+     * further down the page, as a consequence. What may not happen is a first viewport that opens
+     * with them, because that teaches vocabulary to someone who has not yet been told there is a
+     * problem -- and the acquisition surfaces, which have no "further down", may not carry them at
+     * all.
+     */
+    const head = front.slice(front.indexOf('<header className="record-page-head">'));
+    const problem = head.indexOf("{PROMISE.problem}");
+    const mechanism = head.indexOf("{PROMISE.mechanism}");
+    const payoff = head.indexOf("{PROMISE.payoff}");
+    expect(problem).toBeGreaterThan(-1);
+    expect(mechanism, "the mechanism arrives before the problem it solves").toBeGreaterThan(problem);
+    expect(payoff, "the payoff arrives before the mechanism that produces it").toBeGreaterThan(mechanism);
+
+    const acquisition = [Object.values(PROMISE_SHORT).join(" "), shareCopy()].join(" ");
+    expect(acquisition, "an acquisition surface leads with the construct").not.toMatch(
+      /כיול|לא ידעתם שאתם לא יודעים/,
+    );
+  });
+
+  it("hedges the payoff wherever the payoff is stated", () => {
+    /*
+     * "לפעמים" and "לא בכל החלטה" are load-bearing. The branch that carries this distinction fires
+     * only when the record happens to contain the evidence for it, so a surface promising it on
+     * every decision brings every arrival an expectation the instrument cannot meet -- and then no
+     * continuation measured afterwards means anything.
+     */
+    expect(PROMISE.payoff).toMatch(/לפעמים/);
+    expect(PROMISE.payoff).toMatch(/לא בכל החלטה/);
+  });
+
+  it("regenerates the card from the module rather than from a pasted sentence", () => {
+    /*
+     * The PNG is the one stage that cannot be checked for words: it is pixels, and it is stale
+     * from the moment `shared/promise.ts` changes until someone re-runs the builder. What CAN be
+     * held is that re-running the builder produces the current promise, which is what these two
+     * assertions are for -- the pasted-constant version of this file would have passed both while
+     * shipping last month's sentence.
+     */
+    expect(card).toContain("PROMISE_SHORT.engineDoes");
+    expect(card).toContain("PROMISE_SHORT.engineCannot");
+    expect(card).toContain("PROMISE_SHORT.mechanism");
+    expect(card, "the card builder still holds a hand-written sentence").not.toMatch(
+      /const (CLAIM|DIFFERENTIATOR|RULE) = "/,
+    );
+  });
+});
+
+/** Every word an unfurl actually shows, which is the only text a stranger reads before entering. */
+function shareCopy(): string {
+  return [
+    meta("description"),
+    meta("og:title"),
+    meta("og:description"),
+    meta("og:image:alt"),
+    meta("twitter:title"),
+    meta("twitter:description"),
+  ].join(" ");
+}
