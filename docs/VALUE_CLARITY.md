@@ -125,3 +125,53 @@ sentence.
 - The value-reconstruction question stays where it is, after the second Reveal, so that
   continuation after the first is measured without it.
 - No position is chosen by looking at what the engine will later say about it.
+
+---
+
+## Scorecard — what is closed here, and what is not closeable here
+
+Every lens below is at the state its own **pass criterion** describes: the repo half is asserted
+and each assertion has been shown red by a mutation; the field half is a question this repository
+cannot answer about itself. A green control was treated as a finding, not as a pass — one was, and
+it is recorded below.
+
+| lens | repo | field | evidence |
+| --- | --- | --- | --- |
+| 1 — Problem legibility | **CLEAR** | REQUIRED | Problem → mechanism → payoff asserted in DOM order; measured in Chromium at 390×844 with problem, mechanism, payoff and the action all inside the first viewport; the construct is absent from every acquisition surface. |
+| 2 — Differentiated promise | **CLEAR** | REQUIRED | `shared/promise.ts` is imported by the front door and the card builder, so those two cannot drift; the three ideas are asserted **per meta tag**; prohibited vocabulary is a shared list checked on the joined copy. |
+| 3 — Action → payoff causality | **CLEAR** | REQUIRED | The commitment screen states the reason, not only the rule; no mind-claiming verbs in it; the candidate-list asymmetry stated in the direction the record runs. |
+| 4 — Reveal salience and boundary | **CLEAR** | REQUIRED | `ONE_THING_EVIDENCE` labels each branch and is proved by **ablation** rather than read back; silence renders no label and keeps its sentence; both classes typeset identically. |
+| 5 — Continuation economics | **CLEAR** | REQUIRED | One constant, identical across five outcomes and three record sizes, no digit, no unlock vocabulary, post-commit only, and the CTA names the experiment in the proposition's own words. |
+
+**Verdict: REPO-CLEAR / FIELD REQUIRED.** Every remaining uncertainty under all five lenses is a
+question about what a person understands, and no further edit in this repository can shrink it.
+The next authority is a player.
+
+### The one control that came back green
+
+The unfurl's three ideas were first asserted on `description`, `og:description`, `og:image:alt` and
+`twitter:description` **joined into one string**. A control that rewrote `og:description` alone
+reddened only the construct check, not the anchors — the other three tags were carrying the missing
+idea. No surface ever reads the four joined: Twitter reads one, iMessage another, a screen reader
+the alt. Each is now asserted on its own, and the same control now names the exact missing idea.
+
+### Checked and deliberately not changed
+
+- **`ProfilePanel`'s contrast sentence** — *"הביטחון המוצהר גבוה/נמוך יותר ביחס לתוצאה מאשר בשאר
+  הרשומה"*. Dense, and correct: `gapDifference` is a contrast between two groups, and the file's own
+  history is a defect where that number was spoken as a level. Rewriting it for readability is the
+  shortest path back to that defect, and it is not on any of the five lenses' primary surfaces.
+  Whether a player parses it is **FIELD REQUIRED**, not repo-solvable.
+- **`מהלך` vs `החלטה` across the record surfaces** — scanned. `דיוק מהלכים מול המנוע` (imported
+  games) and `סופרת רק מהלכים שהנחתם פיזית על הלוח` (the candidate list) are both about moves and
+  both correct. The one real defect was `STEP_LABELS.record`, fixed.
+
+### What was NOT done, and why
+
+- No detector, threshold, scoring, schema, eligibility or claim-grading change. Nothing here
+  touched what the instrument measures — only what the player is told about it.
+- No adaptive copy anywhere: nothing branches on reveal kind, acquisition angle, record size or
+  prior behaviour.
+- No LLM, coach, self-explanation layer, or second classifier.
+- The value-reconstruction question stayed after the **second** reveal, so continuation after the
+  first is still measured without it.

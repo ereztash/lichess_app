@@ -201,3 +201,56 @@ reader.
 - Arm A and Arm B participants never enter Arm C's numbers, in either direction.
 - The app learns nothing about arms, thresholds, or codes. If a future build branches on any of
   them, every measurement taken before that build is retired.
+
+---
+
+## Recruitment package
+
+Ready to run. Nothing below requires another build.
+
+### What a recruiter sends
+
+**Arm A** (message comprehension) — send the acquisition message and the link, **and stop**. Do not
+open the app with them, do not explain, do not answer questions about what it does until after Q2.
+A participant who has been told the answer cannot be recycled into B or C.
+
+**Arm B** (first-Reveal comprehension) — sit them with the app, say only *"תשחקו כרגיל"*, and
+intervene for the first time after Reveal 1. Ask A, B, C in that order, then the two limits-order
+questions. Record which Reveal branch they received.
+
+**Arm C** (natural trial) — send the link, say nothing else, and do not contact them again. Their
+whole contribution is the ledger they carry out.
+
+### The two entry routes, both of which must work for a stranger
+
+| route | who it is for | first screen |
+| --- | --- | --- |
+| username | has a Lichess or Chess.com account | a position from a game they actually played |
+| shared set | has neither, or does not want to type one | a position from the anchor set |
+
+Both were walked in Chromium at 390×844 on the build under test. Arm A and Arm B participants
+should be spread across both; a comprehension result from only the username route says nothing
+about the half of arrivals who never type one.
+
+### Numbers to hit before analysis starts
+
+- **Arm A:** 5–8, none of whom has seen the product.
+- **Arm B:** 5–8, cold, ideally with at least two who receive a `process` branch and at least one
+  who receives `outplayed` or silence — the coding scheme is uninterpretable without the contrast.
+  Branch is not controllable, so this is a stopping rule, not a quota: keep recruiting until both
+  sides appear.
+- **Arm C:** 8–15.
+
+### How each participant is carried out of the session
+
+One row per person, per **Per-participant reconstruction** above. Arm C's row comes from the
+browser's own ledger, copied out by hand — it is never read back by the app and never transmitted.
+Arms A and B are the researcher's notes; the raw text is kept verbatim and never overwritten.
+
+### What would stop the trial rather than produce a result
+
+- A participant cannot reach a first decision at all on either route. That is a liveness defect and
+  the trial pauses until it is fixed; it is not a comprehension finding.
+- The same wording of a question is changed between participants within an arm. Everything measured
+  before the change is retired.
+- Anyone codes their own participant's answers, or an arm is reassigned after answers are seen.
