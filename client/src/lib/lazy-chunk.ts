@@ -97,7 +97,35 @@ function clearReloadMark(): void {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function lazyChunk<T extends ComponentType<any>>(
   load: () => Promise<{ default: T }>,
-  _reload: () => void = () => window.location.reload(),
+  reload: () => void = () => window.location.reload(),
 ) {
-  return lazy(load);
+  return lazy(async () => {
+    try {
+      const loaded = await load();
+      /*
+       * A chunk arrived, so whatever went wrong before is over. Clearing here rather than on
+       * mount means the next genuine failure gets its own reload rather than inheriting a mark
+       * from an unrelated one earlier in the session.
+       */
+      clearReloadMark();
+      return loaded;
+    } catch (first) {
+      if (!isChunkLoadError(first)) throw first;
+      try {
+        const loaded = await load();
+        clearReloadMark();
+        return loaded;
+      } catch (second) {
+        if (!isChunkLoadError(second) || alreadyReloaded()) throw second;
+        rememberReload();
+        reload();
+        /*
+         * Never resolves, on purpose. The page is on its way out; resolving with anything would
+         * paint a component for the instant before it goes, and rejecting would put the crash
+         * screen up underneath a reload that is about to fix it.
+         */
+        return await new Promise<never>(() => {});
+      }
+    }
+  });
 }
