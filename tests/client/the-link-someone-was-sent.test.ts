@@ -138,13 +138,20 @@ describe("the same promise survives every stage of the chain", () => {
   const card = readFileSync(resolve(root, "scripts/build_share_card.ts"), "utf8");
   const front = readFileSync(resolve(root, "client/src/pages/Record.tsx"), "utf8");
 
+  /*
+   * PER TAG, NOT PER PAGE, and the difference is the whole point. Checking the four meta tags
+   * joined together passes while any one of them is drifting, because the other three still carry
+   * the missing idea -- and a player never sees the four joined: Twitter reads one, iMessage reads
+   * another, a screen reader reads the alt. Each of them is a whole first screen on its own. A
+   * control that rewrote `og:description` alone survived the joined version of this assertion.
+   */
   const stages: readonly { readonly stage: string; readonly text: string }[] = [
     { stage: "the module every other stage reads", text: Object.values(PROMISE).join(" ") },
-    {
-      stage: "the unfurl, which is the only copy no compiler keeps in step",
-      text: [meta("description"), meta("og:description"), meta("og:image:alt"), meta("twitter:description")].join(" "),
-    },
     { stage: "the card, at card length", text: Object.values(PROMISE_SHORT).join(" ") },
+    ...["description", "og:description", "twitter:description", "og:image:alt"].map((key) => ({
+      stage: `<meta ${key}>, read on its own by some surface`,
+      text: meta(key) ?? "",
+    })),
   ];
 
   describe.each(stages)("$stage", ({ text }) => {
