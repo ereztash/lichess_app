@@ -198,6 +198,20 @@ export default function Home() {
    */
   const [, navigate] = useLocation();
   const [history, setHistory] = useState<GameSnapshot[]>([]);
+  /*
+   * Whether the handoff has been read, so nothing describes the board before it is the board.
+   *
+   * THE DEFECT THIS FIXES, caught in a browser walk rather than by a test. `first_position_presented`
+   * fired on the first render where a position was actionable -- and on a visit arriving through a
+   * handoff, that render is the component's own default board, one tick before the restore
+   * replaces it. The event went into the trial log with `purpose: "first"` while the decision that
+   * followed committed as `purpose: "anchor"`, so the funnel's second stage described a position
+   * the player never decided on.
+   *
+   * State rather than the `restored` ref, because a ref does not re-render and the emitter has to
+   * run again once the real position is on the board.
+   */
+  const [restoreSettled, setRestoreSettled] = useState(false);
   const [currentPly, setCurrentPly] = useState(-1);
   /*
    * The decision ply the front door handed this board over to produce, restored and written back
@@ -429,14 +443,15 @@ export default function Home() {
     (opponent === null || activeGame.turn() === opponent.playerColor);
 
   useEffect(() => {
-    if (!positionIsActionable) return;
+    // Not before the handoff has been read: see `restoreSettled`.
+    if (!restoreSettled || !positionIsActionable) return;
     if (trialEventSeen("first_position_presented")) return;
     recordTrialEvent({
       name: "first_position_presented",
       at: new Date().toISOString(),
       purpose: decisionPurpose,
     });
-  }, [positionIsActionable, decisionPurpose]);
+  }, [restoreSettled, positionIsActionable, decisionPurpose]);
 
   /*
    * CONTINUATION, DEFINED AS AN ACT RATHER THAN AS A LOCATION.
@@ -577,7 +592,10 @@ export default function Home() {
     if (restored.current) return;
     restored.current = true;
     const saved = readPosition();
-    if (!saved) return;
+    if (!saved) {
+      setRestoreSettled(true);
+      return;
+    }
     try {
       const loaded = saved.sans.length ? buildHistory(saved.sans.join(" ")) : [];
       // A ply past the end of what replayed is a stored value this build cannot honour.
@@ -602,6 +620,8 @@ export default function Home() {
       );
     } catch {
       /* Unreplayable. The opening position stands, which is where a fresh visit starts anyway. */
+    } finally {
+      setRestoreSettled(true);
     }
   }, []);
 

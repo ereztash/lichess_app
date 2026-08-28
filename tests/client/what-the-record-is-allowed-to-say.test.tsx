@@ -64,6 +64,7 @@ const view = (over: Partial<ClaimView> = {}): ClaimView => ({
   reason: null,
   awaitingReveal: 0,
   withoutConfidence: 0,
+  readElsewhere: 0,
   recorded: 0,
   scored: 0,
   prereg: null,

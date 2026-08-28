@@ -175,6 +175,7 @@ describe("the sentence the player reads carries the same distinction", () => {
       scored: 0,
       awaitingReveal: 0,
       withoutConfidence: 4,
+      readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60,
       narrowedTo: null,

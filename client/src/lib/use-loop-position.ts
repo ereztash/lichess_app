@@ -62,6 +62,7 @@ export function useLoopPosition(drill: DrillProgress): LoopView {
        */
       awaitingReveal: data?.awaitingReveal ?? 0,
       withoutConfidence: data?.withoutConfidence ?? 0,
+      readElsewhere: data?.readElsewhere ?? 0,
       claimGrade: data?.claim?.grade ?? null,
       scoredStillNeeded: stillNeeded,
       narrowedTo: narrowing?.scope ?? null,

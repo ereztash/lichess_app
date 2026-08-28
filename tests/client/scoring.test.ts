@@ -100,6 +100,7 @@ describe("silence says WHICH kind of not-enough it is", () => {
          counts is no longer one thing, and this test is about the half that is a wait. */
       awaitingReveal: recorded - scored,
       withoutConfidence: 0,
+      readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60 - scored,
       narrowedTo: null,

@@ -65,6 +65,18 @@ export interface LoopInputs {
    */
   awaitingReveal: number;
   withoutConfidence: number;
+  /**
+   * Decisions the record holds that this reading does not cover, because another one does.
+   *
+   * A bank answer, a drill, a transfer check, an imported position. The evidence policy files
+   * them `separate` rather than `refused` -- readable under their own heading with their own
+   * denominator -- and the strip has to say so, because otherwise the arithmetic on screen has a
+   * hole in it: one decision recorded, none measured, and no reason given for the difference.
+   *
+   * It became visible the day the front door started handing cold arrivals a bank position. Until
+   * then every decision a newcomer could make was free play, so this was always zero.
+   */
+  readElsewhere: number;
   /** The grade of the claim currently on offer, or null when there is no claim. */
   claimGrade: ClaimGrade | null;
   /**
@@ -169,6 +181,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     narrowedTo,
     awaitingReveal: awaiting,
     withoutConfidence,
+    readElsewhere,
   } = inputs;
 
   if (drill) {
@@ -242,6 +255,12 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
       withoutConfidence > 0
         ? ` ${withoutConfidence} נרשמו בעמדות שבהן לא נשאלה שאלת הביטחון, ולכן אינן נספרות כאן.`
         : "";
+    /* Not a loss and not a wait: they are counted, under another heading, with their own
+       denominator. Saying nothing about them leaves a hole in the arithmetic on screen. */
+    const elsewhere =
+      readElsewhere > 0
+        ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של הרשומה — הסט המשותף, תרגול או משחקים שיובאו.`
+        : "";
 
     if (narrowedTo) {
       /*
@@ -251,7 +270,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        */
       return {
         step: "record",
-        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}${passed}`,
+        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}${passed}${elsewhere}`,
         basis: `${scored} החלטות שנמדדו ברשומה · החיפוש מצומצם`,
         /*
          * Nowhere to send anyone. An import has already narrowed the search, so the one thing
@@ -277,7 +296,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     return {
       step: "record",
       headline:
-        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed} ` +
+        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed}${elsewhere} ` +
         `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם סוג אחד שנבדל מהשאר.`,
       basis: `${scored} נמדדו מתוך ${recorded} שנרשמו`,
       /*

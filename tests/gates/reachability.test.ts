@@ -38,6 +38,8 @@ import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import { classifyPhase } from "@shared/phase";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import { scoreDecisions } from "@shared/scoring";
+import { MemoryRecordStore } from "../../server/record";
+import { commitDecision, recordReading, reveal } from "@shared/record-service";
 import type { DecisionAtom } from "@shared/decision-atom";
 import { buildCommitEvent, emptyDraft } from "@/lib/decision-session";
 import { readPosition, writePosition } from "@/lib/session-position";
@@ -261,6 +263,66 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
     expect(summary.withoutConfidence).toBe(0);
   });
 
+  it("carries the account-less arrival's bank answer to a state the front door counts", async () => {
+    /*
+     * THE THIRD DOOR, and the one the audit opened. `FirstDecision` now offers a bank position to
+     * anyone who has no account to import from, because the opening position of a new live game
+     * is a position where no reveal branch can fire at all.
+     *
+     * What this walks is the consequence rather than the route: a bank answer is `anchor`, the
+     * evidence policy keeps `anchor` out of the descriptive reading on purpose, and the front
+     * door's gate was reading that reading. So the assertion at the end is not `scored === 1` --
+     * it is that the reading the FRONT DOOR consults is non-empty, which is a different number
+     * and the one that was wrong.
+     */
+    const store = new MemoryRecordStore();
+    const bank = ANCHOR_POSITIONS[0];
+    const decisionId = "11111111-1111-4111-8111-333333333333";
+    await commitDecision(store, {
+      decision_id: decisionId,
+      entry_state: {
+        game_id: `anchor-${bank.id}`,
+        fen: bank.fen,
+        ply: 21,
+        phase: classifyPhase(bank.fen, 21),
+        clock_ms_remaining: null,
+      },
+      purpose: "anchor",
+      known: "המרכז סגור",
+      unknown: "לא רואה את הווריאציה עד הסוף",
+      known_parts: { tapped: ["המרכז סגור"], typed: "" },
+      unknown_parts: { tapped: ["לא רואה את הווריאציה עד הסוף"], typed: "" },
+      decision: "b5b4",
+      bounded_action: {
+        seconds_taken: 22,
+        confidence: 5,
+        confidence_scale: CONFIDENCE_LEVELS,
+        candidate_moves_considered: ["b5b4"],
+      },
+      probe: null,
+      reveal_timing: "per-decision",
+      result: null,
+      feedback: null,
+    });
+    await reveal(store, decisionId, {
+      engine_eval_cp: -78,
+      engine_best_move: "b5b4",
+      engine_depth: 18,
+      engine_source: "local_sf18",
+      cp_loss: 0,
+    });
+
+    const reading = await recordReading(store);
+    expect(
+      reading.scored,
+      "the descriptive reading absorbed a bank answer; the policy exists to stop that",
+    ).toBe(0);
+    expect(
+      reading.anchor.n,
+      "a bank answer produced nothing the front door can count, so it shows the door again",
+    ).toBe(1);
+  });
+
   it("holds the shared bank behind exactly the condition the chain above satisfies", () => {
     /*
      * The gate's own premise, asserted rather than assumed. If `Record` ever stops keying the
@@ -268,7 +330,21 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
      * be proving something about a screen nobody sees.
      */
     const record = readFileSync(resolve(__dirname, "../../client/src/pages/Record.tsx"), "utf8");
-    expect(record).toContain("scored === 0");
+    /*
+     * THE PREMISE MOVED, AND IT MOVED BECAUSE THE GATE'S OWN FIX BROKE IT.
+     *
+     * It used to be `scored === 0`. Opening the bank to the account-less arrival made that number
+     * the wrong one: `scored` is the DESCRIPTIVE population -- free play and the handoff -- and
+     * the evidence policy files a bank answer as `separate`. So a player whose only decision was
+     * a bank answer had `scored === 0`, and this page used that to decide whether to offer them
+     * their first decision. Walked in Chromium: one decision committed, revealed, a reveal branch
+     * fired, and the front door asked for a first decision. The same liveness failure this file
+     * exists for, arriving through the door that was opened to fix it.
+     *
+     * The gate is now "has anything been measured", which is what the screen was always asking.
+     */
+    expect(record).toContain("const measured = scored + anchored");
+    expect(record).toContain("measured === 0");
     expect(record).toContain("<FirstDecision");
     expect(record).toContain("<AnchorRunControl");
   });

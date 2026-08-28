@@ -325,6 +325,39 @@ describe("the licences travel with the thing they license", () => {
   });
 });
 
+describe("a bank answer is a measurement the front door counts", () => {
+  /*
+   * THE REGRESSION THE ROUTE BELOW INTRODUCED, caught in a browser walk rather than by a test.
+   *
+   * `scored` is the descriptive population -- free play and the handoff -- and the evidence policy
+   * files a bank answer as `separate`. So a player whose only decision was a bank answer had
+   * `scored === 0`, and this page used that number to decide whether to offer them their first
+   * decision: one decision committed, revealed, a reveal branch fired, and the door asked again.
+   */
+  it("shows the record rather than the first-decision screen once the bank has an answer", () => {
+    const base = withRecord(0);
+    const { container } = mount({
+      reading: {
+        data: { ...base, anchor: { ...base.anchor, n: 1 } },
+        isLoading: false,
+        isError: false,
+      },
+    });
+    expect(
+      container.textContent,
+      "a player who answered the shared set was asked for a first decision",
+    ).not.toContain("ההחלטה הראשונה");
+  });
+
+  it("still shows it when genuinely nothing has been measured", () => {
+    // Both halves zero. The gate has to stay closed here or it is no gate.
+    const base = withRecord(0);
+    expect(
+      mount({ reading: { data: base, isLoading: false, isError: false } }).container.textContent,
+    ).toContain("ההחלטה הראשונה");
+  });
+});
+
 describe("the arrival with no account has a route to a decision that measures something", () => {
   /*
    * THE ROUTE THAT DID NOT EXIST, AND THE TWO REASONS IT HAD TO.

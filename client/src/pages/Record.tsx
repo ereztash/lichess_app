@@ -336,7 +336,25 @@ export default function Record() {
    * different grades a second apart.
    */
   const claimView = useClaimView();
+  /*
+   * HAS THIS RECORD MEASURED ANYTHING AT ALL -- which is not the same question as `scored`.
+   *
+   * `scored` is the DESCRIPTIVE population: free play and the front door's handoff. The evidence
+   * policy files a bank answer as `separate`, so a player whose only decision was a bank answer
+   * has `scored === 0` -- and this page used that number to decide whether to show them the
+   * screen that asks for their first decision.
+   *
+   * That was invisible until the account-less route started handing cold arrivals a bank
+   * position: walked in Chromium, one decision committed, revealed, a reveal branch fired, and
+   * the front door offered the first decision again. The same liveness failure GATE-REACHABILITY
+   * was written for, reintroduced through the door that was opened to fix it.
+   *
+   * The bank reading carries its own denominator and is the right one to add here: what this
+   * gate asks is whether anything has been measured, and a bank answer has been.
+   */
   const scored = reading.data?.scored ?? 0;
+  const anchored = reading.data?.anchor.n ?? 0;
+  const measured = scored + anchored;
 
   return (
     <main className="record-page">
@@ -355,7 +373,7 @@ export default function Record() {
 
       {reading.isLoading ? (
         <p className="record-page-loading">קורא את הרשומה…</p>
-      ) : scored === 0 ? (
+      ) : measured === 0 ? (
         <FirstDecision knownUsername={importReading.reading?.username} />
       ) : (
         <section className="record-layer" aria-label="החלטות עם ביטחון מוצהר">
