@@ -28,6 +28,8 @@ import { decisionPurposeFor, type DecisionPurpose } from "@shared/confidence-ask
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { SilentGame } from "@/components/SilentGame";
 import { RevealPanel } from "@/components/RevealPanel";
+import { recordTrialEvent, revealsPresented, trialEventSeen } from "@/lib/progress-record";
+import { continuationStarted } from "@/lib/acquisition-evidence";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
@@ -62,6 +64,15 @@ import { Overlay } from "@/components/Overlay";
  * it in the initial graph, which is the same weight mistake the engine import was -- the reason
  * engine-line.ts exists at all.
  */
+/*
+ * LAZY, LIKE THE GAME REVIEW AND FOR THE SAME REASON. This renders on the second reveal of a
+ * browser's whole history and never again -- so in the overwhelmingly common visit it is code
+ * downloaded and not run. Static, it put the entry chunk over budget on its own.
+ */
+const ValueReconstruction = lazy(() =>
+  import("@/components/ValueReconstruction").then((m) => ({ default: m.ValueReconstruction })),
+);
+
 const GameReview = lazy(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReview })),
 );
@@ -187,6 +198,20 @@ export default function Home() {
    */
   const [, navigate] = useLocation();
   const [history, setHistory] = useState<GameSnapshot[]>([]);
+  /*
+   * Whether the handoff has been read, so nothing describes the board before it is the board.
+   *
+   * THE DEFECT THIS FIXES, caught in a browser walk rather than by a test. `first_position_presented`
+   * fired on the first render where a position was actionable -- and on a visit arriving through a
+   * handoff, that render is the component's own default board, one tick before the restore
+   * replaces it. The event went into the trial log with `purpose: "first"` while the decision that
+   * followed committed as `purpose: "anchor"`, so the funnel's second stage described a position
+   * the player never decided on.
+   *
+   * State rather than the `restored` ref, because a ref does not re-render and the emitter has to
+   * run again once the real position is on the board.
+   */
+  const [restoreSettled, setRestoreSettled] = useState(false);
   const [currentPly, setCurrentPly] = useState(-1);
   /*
    * The decision ply the front door handed this board over to produce, restored and written back
@@ -194,7 +219,26 @@ export default function Home() {
    * change, so a field it does not carry is erased on the first render after the restore -- here,
    * before the player has made the decision the handoff exists for.
    */
-  const [firstDecisionPly, setFirstDecisionPly] = useState<number | null>(null);
+  /*
+   * ZERO, NOT NULL, AND THE DEFAULT IS THE WHOLE DEFECT THIS FIXES.
+   *
+   * `newGame` sets this to 0 and says why; the front door's handoff sets it to the ply it means.
+   * But the board this component renders before either of them runs is ALSO a live game at the
+   * opening position -- it is what `/play` shows anyone who arrives without pressing anything --
+   * and it was the one live game whose opening decision was not a first decision. Walked in
+   * Chromium from an empty profile: the atom came back `purpose: "play"`, `confidence: null`,
+   * because `currentPly + 1 === firstDecisionPly` compared `0 === null`.
+   *
+   * What that cost is not a tap. `first` is in `ALWAYS`, so the question is put and the decision
+   * is scoreable; drawn as `play` it goes to `ASK_RATE` and six arrivals in seven record a
+   * decision nothing can read -- on a screen the front door reached having promised "תבחרו מהלך
+   * ותגידו כמה אתם בטוחים", and with `scored` left at zero, which is the state the front door
+   * shows `FirstDecision` for. The newcomer is returned to the door they just came through.
+   *
+   * The default board and `newGame`'s board are the same board, so they carry the same value. A
+   * loaded game is not -- see `importPgn` and `loadLichessGame`, which clear it.
+   */
+  const [firstDecisionPly, setFirstDecisionPly] = useState<number | null>(0);
   const [orientation, setOrientation] = useState<Orientation>("w");
   const [selectedSquare, setSelectedSquare] = useState<string>();
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
@@ -253,6 +297,15 @@ export default function Home() {
   const [revealFailure, setRevealFailure] = useState<RevealFailureKind | null>(null);
   const [learningRuleSaved, setLearningRuleSaved] = useState(false);
   const gameId = useRef(`live-${Date.now()}`);
+  /*
+   * How many decisions this SESSION has committed, for the trial's ordinal.
+   *
+   * A ref rather than state: nothing renders from it, and a state update here would re-render the
+   * board on every commit for a number no player ever sees. Not `decisionsThisGame`, which resets
+   * with each new game -- a session that plays two games is still one arrival, and the ordinal
+   * has to keep counting across them or "did they make a second decision" becomes unanswerable.
+   */
+  const decisionsThisVisit = useRef(0);
 
   // --- The opponent ------------------------------------------------------------------------
   /*
@@ -374,6 +427,58 @@ export default function Home() {
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
 
+  /*
+   * THE SECOND STAGE OF THE ACQUISITION FUNNEL, AND WHY IT IS NOT "the page loaded".
+   *
+   * A stage every arrival clears measures nothing. What has to be true for the acquisition
+   * experience to be possible is that a position is ON the board, it is the player's move, there
+   * is a legal move to make, and the board will accept one -- so an arrival that landed on a
+   * finished game, on the opponent's turn, or mid-reveal has not reached it. The difference
+   * between this and a route is the difference between "they could have decided" and "they were
+   * somewhere near a board".
+   */
+  const positionIsActionable =
+    stage === "deciding" &&
+    activeGame.moves().length > 0 &&
+    (opponent === null || activeGame.turn() === opponent.playerColor);
+
+  useEffect(() => {
+    // Not before the handoff has been read: see `restoreSettled`.
+    if (!restoreSettled || !positionIsActionable) return;
+    if (trialEventSeen("first_position_presented")) return;
+    recordTrialEvent({
+      name: "first_position_presented",
+      at: new Date().toISOString(),
+      purpose: decisionPurpose,
+    });
+  }, [restoreSettled, positionIsActionable, decisionPurpose]);
+
+  /*
+   * CONTINUATION, DEFINED AS AN ACT RATHER THAN AS A LOCATION.
+   *
+   * "Still on /play" is not continuation and neither is a re-render: both are true of a player
+   * who read the reveal and stopped. Putting a move on the board after having seen one is
+   * something a person did, knowing what the product had to say -- which is the behaviour the
+   * question "was that worth another decision" is actually about.
+   *
+   * Once per visit, because what the trial needs is whether they went on at all. The count of
+   * decisions is already in the ledger under `decision_committed`, with an ordinal.
+   */
+  useEffect(() => {
+    const reveals = revealsPresented();
+    const started = continuationStarted({
+      movePlaced: candidateMove !== null,
+      revealsPresented: reveals,
+      alreadyRecorded: trialEventSeen("next_decision_started"),
+    });
+    if (!started) return;
+    recordTrialEvent({
+      name: "next_decision_started",
+      at: new Date().toISOString(),
+      afterReveals: reveals,
+    });
+  }, [candidateMove]);
+
   const material = useMemo(() => {
     const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
     return board.flat().reduce(
@@ -487,7 +592,10 @@ export default function Home() {
     if (restored.current) return;
     restored.current = true;
     const saved = readPosition();
-    if (!saved) return;
+    if (!saved) {
+      setRestoreSettled(true);
+      return;
+    }
     try {
       const loaded = saved.sans.length ? buildHistory(saved.sans.join(" ")) : [];
       // A ply past the end of what replayed is a stored value this build cannot honour.
@@ -512,6 +620,8 @@ export default function Home() {
       );
     } catch {
       /* Unreplayable. The opening position stands, which is where a fresh visit starts anyway. */
+    } finally {
+      setRestoreSettled(true);
     }
   }, []);
 
@@ -1093,6 +1203,27 @@ export default function Home() {
         setCommitError(commitFailureText(error));
         return;
       }
+      /*
+       * THE COMMIT BOUNDARY, AND THE EVENT IS ON THE FAR SIDE OF IT.
+       *
+       * Above this line every path still returns: a missing field, a refused rule, a failed
+       * write. `decision_committed` fires only where the decision is actually on the record, so
+       * the funnel stage means "a decision exists" rather than "a button was pressed" -- and a
+       * write failure shows up as an arrival that never committed, which is exactly what it is.
+       *
+       * `confidenceAsked` is the protocol's answer, not the player's: whether the question was
+       * put. The value they gave is in the record and has no business in a trial log.
+       */
+      recordTrialEvent({
+        name: "decision_committed",
+        at: new Date().toISOString(),
+        decisionId,
+        ordinal: decisionsThisVisit.current + 1,
+        purpose: decisionPurpose,
+        confidenceAsked: event.bounded_action.confidence !== null,
+      });
+      decisionsThisVisit.current += 1;
+
       // Only now may the engine run at all.
       const positionFen = activeFen;
       setDecisionsThisGame((n) => n + 1);
@@ -1415,6 +1546,17 @@ export default function Home() {
       setPgnInput(pgn);
       closePositionSource();
       setSource("imported");
+      /*
+       * CLEARED, because a loaded game has no first decision of its own.
+       *
+       * `first` names the one position a handoff put in front of the player to produce their
+       * first scoreable decision, and `Record` sets it to the ply it means when it means it.
+       * Loading a PGN over the default board would otherwise leave the board's own 0 standing,
+       * and a player who rewound to the start of someone else's game would have that decision
+       * stamped as the front door's handoff. Null is the honest value: this game was not handed
+       * over, so no ply in it is the first decision.
+       */
+      setFirstDecisionPly(null);
       gameId.current = `pgn-${Date.now()}`;
       // No opponent for a loaded game: the other side's moves are already in the PGN.
       setOpponent(null);
@@ -1477,6 +1619,8 @@ export default function Home() {
       setPgnInput(game.pgn);
       closePositionSource();
       setSource("finished");
+      // Cleared for the reason `importPgn` gives: a game loaded here was not handed over.
+      setFirstDecisionPly(null);
       gameId.current = `lichess-${game.id}`;
       setOpponent(null);
       answeredFen.current = null;
@@ -2067,10 +2211,30 @@ export default function Home() {
                   analysis={analysis}
                   fen={revealFen}
                   statedKnown={committedDraft.known}
+                  /* Null until the reveal has actually been written: an unrecorded reveal is not
+                     a funnel stage, and an id that does not name a committed decision cannot be
+                     joined to one. */
+                  decisionId={revealedDecisionId}
                 />
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
               ) : null}
+              {/*
+                * DIRECTLY UNDER THE REVEAL, and only from the second one onward.
+                *
+                * Attribution wants it as close to the reveal as it can get; the continuation
+                * measurement wants it nowhere near the first one. The component owns that rule
+                * and the reason for it -- what is decided here is only the position on the page,
+                * which is under the thing the question is about and above everything that is not.
+                *
+                * `revealedDecisionId` gates it for the same reason it gates the panel: a reveal
+                * that was never written is not one anybody was shown.
+                */}
+              {revealedDecisionId && (
+                <Suspense fallback={null}>
+                  <ValueReconstruction />
+                </Suspense>
+              )}
               {/*
                 * Rendered under the reveal on a write failure -- that reveal is valid -- and
                 * on its own when the engine never answered. Either way it carries the only

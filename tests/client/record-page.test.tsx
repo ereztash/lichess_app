@@ -19,7 +19,7 @@
  * an engine and can never become the first, however many games it covers -- so they get separate
  * containers with separate headings, and the test holds that they never merge.
  */
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
@@ -79,6 +79,8 @@ const { default: Record } = await import("@/pages/Record");
  */
 const withRecord = (scored: number): RecordReading => ({
   scored,
+  awaitingReveal: 0,
+  withoutConfidence: 0,
   counterfactual: readCounterfactuals([]),
   profile: { variables: readVariables([]), crossing: crossVariables([]) },
   overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },
@@ -320,5 +322,94 @@ describe("the licences travel with the thing they license", () => {
       expect(link.lang, `${link.text} is not declared as Latin script`).toBe("en");
       expect(link.dir).toBe("ltr");
     }
+  });
+});
+
+describe("a bank answer is a measurement the front door counts", () => {
+  /*
+   * THE REGRESSION THE ROUTE BELOW INTRODUCED, caught in a browser walk rather than by a test.
+   *
+   * `scored` is the descriptive population -- free play and the handoff -- and the evidence policy
+   * files a bank answer as `separate`. So a player whose only decision was a bank answer had
+   * `scored === 0`, and this page used that number to decide whether to offer them their first
+   * decision: one decision committed, revealed, a reveal branch fired, and the door asked again.
+   */
+  it("shows the record rather than the first-decision screen once the bank has an answer", () => {
+    const base = withRecord(0);
+    const { container } = mount({
+      reading: {
+        data: { ...base, anchor: { ...base.anchor, n: 1 } },
+        isLoading: false,
+        isError: false,
+      },
+    });
+    expect(
+      container.textContent,
+      "a player who answered the shared set was asked for a first decision",
+    ).not.toContain("ההחלטה הראשונה");
+  });
+
+  it("still shows it when genuinely nothing has been measured", () => {
+    // Both halves zero. The gate has to stay closed here or it is no gate.
+    const base = withRecord(0);
+    expect(
+      mount({ reading: { data: base, isLoading: false, isError: false } }).container.textContent,
+    ).toContain("ההחלטה הראשונה");
+  });
+});
+
+describe("the arrival with no account has a route to a decision that measures something", () => {
+  /*
+   * THE ROUTE THAT DID NOT EXIST, AND THE TWO REASONS IT HAD TO.
+   *
+   * The cold front door offered exactly one action -- hand over a username -- plus `ללוח` in the
+   * header, a bare `navigate("/play")`. Walked in Chromium from an empty profile, `ללוח` lands on
+   * the opening position of a new live game, and that position can produce no reveal at all:
+   * `theOneThing` needs a centipawn loss at or over the material threshold or a stated
+   * confidence, and the starting position offers neither. The first thing the product said to an
+   * account-less arrival was that it had nothing to say.
+   *
+   * The bank is the set of positions that exist to be decided on. It was already served, through
+   * this exact handoff, by `AnchorRunControl` -- which the page renders only when `scored > 0`,
+   * that is, only after the state this screen means "not yet". No capability is added here. A
+   * gate is removed from in front of the one route that works.
+   */
+  it("hands over a bank position, through the same store the front door's own handoff uses", async () => {
+    localStorage.clear();
+    state.reading = { data: undefined, isLoading: false, isError: false };
+    mount();
+    fireEvent.click(screen.getByRole("button", { name: /עמדה מהסט המשותף/ }));
+    await waitFor(() => expect(localStorage.getItem("decision-lab.position.v1")).toBeTruthy());
+    const stored = JSON.parse(localStorage.getItem("decision-lab.position.v1")!);
+    expect(stored.gameId, "the handoff is not a bank position").toMatch(/^anchor-/);
+    /*
+     * `null`, and it is the field that keeps the two names apart. An anchor is always asked on
+     * its own purpose; stamping it `first` as well would put two purposes on one decision, and
+     * `decisionPurposeFor` ranks `anchor` above `first` precisely because the bank is what is
+     * being measured there.
+     */
+    expect(stored.firstDecisionPly).toBeNull();
+    expect(stored.revealTiming).toBe("per-decision");
+    expect(stored.sans.length, "a bank position with no game behind it").toBeGreaterThan(0);
+  });
+
+  it("keeps the player's own game as the first offer, and the bank as the second", () => {
+    /*
+     * ORDER IS THE CLAIM. A position from a game they played is the better first decision -- the
+     * note under the form says why -- so the bank is offered below it and named for what it is,
+     * rather than competing for the same press.
+     */
+    state.reading = { data: undefined, isLoading: false, isError: false };
+    const { container } = mount();
+    const text = container.textContent ?? "";
+    expect(text.indexOf("קחו אותי לעמדה")).toBeGreaterThan(-1);
+    expect(text.indexOf("עמדה מהסט המשותף")).toBeGreaterThan(text.indexOf("קחו אותי לעמדה"));
+  });
+
+  it("serves both routes from one handoff, so they cannot disagree about what a bank decision is", () => {
+    // Two callers, one function. A second transcription is a second chance to drift.
+    const page = code("client/src/pages/Record.tsx");
+    expect(page.match(/handOverBankPosition/g)?.length, "the handoff was transcribed twice").toBe(3);
+    expect(page.match(/gameId: `anchor-/g)?.length).toBe(1);
   });
 });

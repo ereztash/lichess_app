@@ -1,7 +1,13 @@
 import NotFound from "@/pages/NotFound";
 import { useEffect } from "react";
 import { Route, Switch } from "wouter";
-import { beginVisit } from "@/lib/progress-record";
+import {
+  beginVisit,
+  previousVisitStartedAt,
+  recordTrialEvent,
+  visitsOnRecord,
+} from "@/lib/progress-record";
+import { readAcquisitionContext } from "@/lib/acquisition-evidence";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -33,7 +39,49 @@ export default function App() {
    * scoped by it. It is here rather than in a page because a visit is a page LOAD, and both
    * routes are reached without one.
    */
-  useEffect(() => beginVisit(), []);
+  useEffect(() => {
+    beginVisit();
+    /*
+     * THE FIRST STAGE OF THE ACQUISITION FUNNEL, AND ITS DENOMINATOR.
+     *
+     * Written here, once, immediately after the visit is opened, because everything downstream is
+     * a rate against it: how many arrivals reached a position, committed, saw a reveal, started
+     * another decision. An entry event emitted from a page would count one of the two routes.
+     *
+     * NOTHING BRANCHES ON THE CONTEXT. The angle is recorded and never read by the running app --
+     * `tests/client/a-record-of-the-trial-not-of-the-player.test.tsx` holds that as an assertion
+     * over the import graph. A build that served a different reveal, a different position or a
+     * different sentence to one angle would be measuring the interaction between the product and
+     * its own telemetry, and no result from that trial would mean anything.
+     */
+    const context = readAcquisitionContext(window.location.search);
+    const previous = previousVisitStartedAt();
+    const returning = visitsOnRecord() > 1;
+    recordTrialEvent({
+      name: "acquisition_entry",
+      at: new Date().toISOString(),
+      context,
+      returning,
+    });
+    if (returning && previous) {
+      /*
+       * A SESSION BOUNDARY IS A PAGE LOAD, stated plainly and with its limits: two tabs are two
+       * sessions, and a cleared browser is a first arrival. Neither is worked around.
+       *
+       * The gap is a duration between two timestamps. It is not "they lapsed" and it is not "they
+       * came back keen" -- an interpretation of a number is an analysis, and it is done later by
+       * somebody who has to say what window they chose.
+       */
+      const hours = (Date.now() - new Date(previous).getTime()) / 3_600_000;
+      if (Number.isFinite(hours)) {
+        recordTrialEvent({
+          name: "return_session_started",
+          at: new Date().toISOString(),
+          hoursSincePrevious: Math.round(hours * 10) / 10,
+        });
+      }
+    }
+  }, []);
   return (
     <ErrorBoundary>
       {/*

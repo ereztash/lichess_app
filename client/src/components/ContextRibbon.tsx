@@ -85,12 +85,19 @@ export function ContextRibbon({
   const presentation = useMemo(() => {
     if (!usage) return null;
     const recorded = count.data?.decisions ?? 0;
-    const scored = reading.data?.scored ?? 0;
+    /*
+     * READ, NOT SUBTRACTED. `recorded - scored` counted every decision the reading is not
+     * computed over as one the engine had not answered yet -- which after the ask rule became a
+     * sample is most of them, all of them already revealed. The gap line then greeted a
+     * returning player with a backlog that did not exist.
+     */
     return derivePresentation(
       usage,
-      recorded > 0 ? { recorded, awaitingReveal: Math.max(0, recorded - scored) } : null,
+      recorded > 0
+        ? { recorded, awaitingReveal: reading.data?.awaitingReveal ?? 0 }
+        : null,
     );
-  }, [usage, count.data?.decisions, reading.data?.scored]);
+  }, [usage, count.data?.decisions, reading.data?.awaitingReveal]);
 
   const loop = useLoopPosition(drill);
   /*

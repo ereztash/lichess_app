@@ -1375,6 +1375,32 @@ export type ClaimView = {
   recorded: number;
   scored: number;
   /**
+   * Why the rest of `recorded` is not in `scored`, split the way `scoreDecisions` splits it.
+   *
+   * CARRIED SO NOBODY SUBTRACTS. `recorded - scored` was being computed in two places -- the loop
+   * strip and the context ribbon -- and both spent the difference on "ממתינות לחשיפה". Since the
+   * ask rule became a sample that is mostly wrong: those decisions were revealed, and no amount
+   * of waiting will make them scoreable, because the question was never put on them. One number
+   * cannot answer two questions, and the summary this view is built from already answers both.
+   */
+  awaitingReveal: number;
+  withoutConfidence: number;
+  /**
+   * Decisions on the record that this reading does not cover, because another one does.
+   *
+   * THE THIRD REASON, and it only became visible when the front door started handing cold
+   * arrivals a bank position. `recorded` is the whole record and `scored` is the discovery
+   * population -- free play and nothing else -- so a player whose only decision was a bank answer
+   * saw "0 נמדדו מתוך 0 שנרשמו" and a front door still offering them their first decision. They
+   * had made one, it had been revealed, and a branch of the reveal had fired.
+   *
+   * `separate` in `shared/evidence-policy.ts` is precisely this state: not unreadable, not
+   * waiting, not passed over -- read under another heading with its own denominator. Carried as a
+   * count so the strip can say so instead of leaving a gap the player has to explain to
+   * themselves.
+   */
+  readElsewhere: number;
+  /**
    * The hypothesis that narrowed this search, or null when the ordinary six-bucket scan ran.
    *
    * Non-null is a statement about HOW the answer was reached, and the screen has to say so: a
@@ -1472,8 +1498,11 @@ export async function currentClaim(
       claim: null,
       othersWithheld: 0,
       reason,
-      recorded: full.total,
+      recorded: atoms.length,
       scored: full.scored.length,
+      awaitingReveal: full.awaitingReveal,
+      withoutConfidence: full.withoutConfidence,
+      readElsewhere: atoms.length - full.total,
       prereg: narrowing,
       preregScored: narrowing ? summary.scored.length : null,
     };
@@ -1498,8 +1527,11 @@ export async function currentClaim(
         claim: existing,
         othersWithheld: selection.othersWithheld,
         reason: null,
-        recorded: full.total,
+        recorded: atoms.length,
         scored: full.scored.length,
+        awaitingReveal: full.awaitingReveal,
+        withoutConfidence: full.withoutConfidence,
+        readElsewhere: atoms.length - full.total,
         prereg: narrowing,
         preregScored: narrowing ? summary.scored.length : null,
       };
@@ -1510,8 +1542,11 @@ export async function currentClaim(
     claim: selection?.claim ?? null,
     othersWithheld: selection?.othersWithheld ?? 0,
     reason: selection ? null : emptySearchReason(narrowing),
-    recorded: full.total,
+    recorded: atoms.length,
     scored: full.scored.length,
+    awaitingReveal: full.awaitingReveal,
+    withoutConfidence: full.withoutConfidence,
+    readElsewhere: atoms.length - full.total,
     prereg: narrowing,
     preregScored: narrowing ? summary.scored.length : null,
   };
@@ -1663,10 +1698,22 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       bestMove: atom.result?.engine_best_move ?? null,
     })),
   );
+  /*
+   * ONE CALL, THREE NUMBERS. `scoreDecisions` was being called for its `scored` array and its two
+   * counts thrown away on the same line -- which is how "waiting for the engine" came to be
+   * rebuilt downstream by subtracting `scored` from the recorded total. The counts are about the
+   * DESCRIBED population, the same one the reading is computed over, so a decision the policy
+   * files as `separate` is neither waiting nor passed over here: it is in another reading.
+   */
+  const describedSummary = scoreDecisions(atoms, ids);
   return readRecord(
-    scoreDecisions(atoms, ids).scored,
+    describedSummary.scored,
     mix,
     readCounterfactuals(atoms),
     scoreDecisions(bank.atoms, bank.ids).scored,
+    {
+      awaitingReveal: describedSummary.awaitingReveal,
+      withoutConfidence: describedSummary.withoutConfidence,
+    },
   );
 }

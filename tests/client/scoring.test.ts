@@ -95,6 +95,12 @@ describe("silence says WHICH kind of not-enough it is", () => {
       drill: null,
       recorded,
       scored,
+      /* The wait, as this contract has always meant it: decisions the engine has not answered.
+         Named rather than subtracted, which is the change -- the difference between the two
+         counts is no longer one thing, and this test is about the half that is a wait. */
+      awaitingReveal: recorded - scored,
+      withoutConfidence: 0,
+      readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60 - scored,
       narrowedTo: null,

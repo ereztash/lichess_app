@@ -115,13 +115,37 @@ export function LearningRuleComposer({
 
   return (
     <section className="learning-composer" aria-label="כלל למידה חדש">
-      <header className="learning-heading">
-        <BookOpenCheck size={15} />
-        <div>
-          <span>אחרי החשיפה</span>
-          <h3>נסחו כלל שאפשר להפריך</h3>
-        </div>
-      </header>
+      {/*
+        * CLOSED UNTIL ASKED FOR, and the reason is mass rather than doubt about the form.
+        *
+        * Measured on the built app in Chromium at 390x844, first reveal from an empty profile:
+        * this section was 877px of a 3315px page -- 26%, the single largest thing on it, and
+        * twice the height of the whole reveal panel above it. Nine fields asking a player to
+        * state a falsifiable rule, opened by default, seven hundred pixels below the product's
+        * own sentence saying "זו החלטה אחת שנרשמה. שום דבר כאן אינו דפוס".
+        *
+        * NOTHING IS GATED. Writing a rule from one decision is epistemically fine -- it is a
+        * hypothesis, and it is graded by testing it forward on new decisions, which is exactly
+        * what the product does with it. What was wrong was the weight: the hardest thing on the
+        * screen was also the biggest, and it was competing with the reveal for the attention the
+        * reveal exists to get. The summary keeps the offer at full visibility and moves the nine
+        * fields behind one deliberate press.
+        *
+        * `<details>` rather than component state, for the reason `.reveal-secondary` is one: the
+        * open/closed state is the element's own, it survives without a store, and a screen reader
+        * gets a real disclosure with a real name instead of a div that changed height.
+        */}
+      <details className="learning-composer-body">
+        <summary className="learning-heading">
+          <BookOpenCheck size={15} />
+          <div>
+            <span>אחרי החשיפה</span>
+            <h3>נסחו כלל שאפשר להפריך</h3>
+          </div>
+        </summary>
+        {/* One box for the fields, so `<details>` itself stays a plain block and keeps its own
+            closed-state behaviour rather than depending on a layout mode that fights it. */}
+        <div className="learning-composer-fields">
 
       <label>
         <span>מה אתם מבינים עכשיו אחרת?</span>
@@ -254,6 +278,8 @@ export function LearningRuleComposer({
         {saving ? <Loader2 size={14} /> : <BookOpenCheck size={14} />}
         שמירת כלל כהשערה
       </button>
+        </div>
+      </details>
     </section>
   );
 }

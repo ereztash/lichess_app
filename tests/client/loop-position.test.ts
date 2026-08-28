@@ -19,6 +19,11 @@ const inputs = (overrides: Partial<LoopInputs> = {}): LoopInputs => ({
   drill: null,
   recorded: 0,
   scored: 0,
+  /* Both zero by default: the two sentences they feed are opt-in, and a fixture that wants one
+     says so. They used to be derived from `recorded - scored`, which no test could turn off. */
+  awaitingReveal: 0,
+  withoutConfidence: 0,
+  readElsewhere: 0,
   claimGrade: null,
   scoredStillNeeded: 60,
   narrowedTo: null,
@@ -63,12 +68,58 @@ describe("a claim, and what can move it", () => {
 
 describe("no claim: three different answers, never one", () => {
   it("states the distance, and what is already waiting to be revealed", () => {
-    const at = loopPosition(inputs({ recorded: 20, scored: 12, scoredStillNeeded: 48 }));
+    /*
+     * THE WAIT IS NAMED BY THE FIXTURE NOW, and that is the change under test rather than a
+     * fixture chore. This used to read `recorded: 20, scored: 12` and the function subtracted --
+     * so the sentence "8 כבר רשומות וממתינות לחשיפה" was produced by arithmetic that could not
+     * tell a decision the engine has not answered from one revealed on a position where the
+     * confidence question was never put. Only the first is a wait.
+     */
+    const at = loopPosition(
+      inputs({ recorded: 20, scored: 12, awaitingReveal: 8, scoredStillNeeded: 48 }),
+    );
     expect(at.step).toBe("record");
     expect(at.headline).toContain("עוד 48 החלטות מדודות");
     // Matched with its clause, not as a bare "8": the "48" above contains an 8, so a loose
     // assertion here passes whether or not the awaiting-reveal count is rendered at all.
     expect(at.headline).toContain("8 כבר רשומות");
+  });
+
+  it("does not call a decision revealed without a confidence a decision awaiting reveal", () => {
+    /*
+     * THE SENTENCE THE SUBTRACTION USED TO PRODUCE. Twenty decisions recorded, twelve of them
+     * scoreable, and the other eight already answered by the engine on positions the ask rule
+     * passed over. The old arithmetic reported all eight as waiting; nothing is waiting.
+     */
+    const at = loopPosition(
+      inputs({
+        recorded: 20,
+        scored: 12,
+        awaitingReveal: 0,
+        withoutConfidence: 8,
+        scoredStillNeeded: 48,
+      }),
+    );
+    expect(at.headline, "a revealed decision was reported as waiting").not.toContain(
+      "ממתינות לחשיפה",
+    );
+    // And it says why they do not count, which is the half the player can act on: nothing they
+    // do makes those eight scoreable, and the floor above is in a unit only some decisions reach.
+    expect(at.headline).toContain("8 נרשמו בעמדות שבהן לא נשאלה שאלת הביטחון");
+  });
+
+  it("keeps the two counts as two clauses when both are non-zero", () => {
+    const at = loopPosition(
+      inputs({
+        recorded: 20,
+        scored: 12,
+        awaitingReveal: 3,
+        withoutConfidence: 5,
+        scoredStillNeeded: 48,
+      }),
+    );
+    expect(at.headline).toContain("3 כבר רשומות");
+    expect(at.headline).toContain("5 נרשמו בעמדות");
   });
 
   it("omits the awaiting-reveal clause when nothing is waiting", () => {

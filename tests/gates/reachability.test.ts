@@ -38,6 +38,8 @@ import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import { classifyPhase } from "@shared/phase";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import { scoreDecisions } from "@shared/scoring";
+import { MemoryRecordStore } from "../../server/record";
+import { commitDecision, recordReading, reveal } from "@shared/record-service";
 import type { DecisionAtom } from "@shared/decision-atom";
 import { buildCommitEvent, emptyDraft } from "@/lib/decision-session";
 import { readPosition, writePosition } from "@/lib/session-position";
@@ -140,6 +142,187 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
     expect(summary.withoutConfidence).toBe(0);
   });
 
+  it("carries the OTHER front door -- the board with no handoff at all -- to the same place", () => {
+    /*
+     * THE ROUTE THIS GATE DID NOT WALK, AND IT IS THE ONE MOST ARRIVALS TAKE.
+     *
+     * `Record`'s header carries `ללוח`, a bare `navigate("/play")` with no handoff written. It is
+     * the first interactive element on the front door and the only one that does not require a
+     * username, so it is the whole route for anyone without an account. The board it lands on is
+     * a live game at the opening position -- and that board went through neither `newGame` (which
+     * sets `firstDecisionPly` to 0 and says why) nor the handoff (which sets it to the ply it
+     * means). It ran on the component's own `useState` initial value.
+     *
+     * Walked in Chromium from an empty profile: the stored atom came back `purpose: "play"`,
+     * `confidence: null`, and the record read `0 נמדדו מתוך 1 שנרשמו`. Every local invariant was
+     * satisfied. The gate above was green. It is the same liveness failure this file was written
+     * for, one door along -- which is why the fix is a second walk rather than a second assertion
+     * inside the first.
+     *
+     * THE TWO DEFAULTS ARE READ OFF THE SOURCE, not restated here, for the reason the clock
+     * assertion below gives: a stated fact drifts. What the rule compares is `currentPly + 1`
+     * against `firstDecisionPly`, so both halves have to come from the file that renders them or
+     * the comparison is a fixture agreeing with itself.
+     */
+    const source = ts.createSourceFile(
+      "Home.tsx",
+      readFileSync(HOME, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+
+    /** The literal a `useState` is initialised with, for one destructured state name. */
+    const initialOf = (name: string): number | null | undefined => {
+      let found: number | null | undefined;
+      const walk = (node: ts.Node): void => {
+        if (
+          ts.isVariableDeclaration(node) &&
+          ts.isArrayBindingPattern(node.name) &&
+          node.name.elements.some(
+            (el) => ts.isBindingElement(el) && ts.isIdentifier(el.name) && el.name.text === name,
+          ) &&
+          node.initializer &&
+          ts.isCallExpression(node.initializer)
+        ) {
+          const [arg] = node.initializer.arguments;
+          if (!arg) found = undefined;
+          else if (arg.kind === ts.SyntaxKind.NullKeyword) found = null;
+          else if (ts.isNumericLiteral(arg)) found = Number(arg.text);
+          else if (ts.isPrefixUnaryExpression(arg) && ts.isNumericLiteral(arg.operand)) {
+            found = arg.operator === ts.SyntaxKind.MinusToken
+              ? -Number(arg.operand.text)
+              : Number(arg.operand.text);
+          }
+        }
+        ts.forEachChild(node, walk);
+      };
+      walk(source);
+      return found;
+    };
+
+    const currentPly = initialOf("currentPly");
+    const firstDecisionPly = initialOf("firstDecisionPly");
+    expect(typeof currentPly, "no currentPly state in Home; this assertion went blind").toBe(
+      "number",
+    );
+
+    // `Home` derives it exactly this way, and nothing else in the component decides it.
+    const decisionPly = (currentPly as number) + 1;
+    const purpose: DecisionPurpose = decisionPly === firstDecisionPly ? "first" : "play";
+    expect(
+      purpose,
+      "the board every account-less arrival lands on calls its opening decision ordinary play",
+    ).toBe("first");
+
+    const gameId = "live-1787903252462";
+    const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    expect(
+      confidenceIsAsked({ purpose, gameId, fen: START, ply: decisionPly }),
+      "the account-less route asked nothing, so its one decision measures nothing",
+    ).toBe(true);
+
+    /*
+     * AND THE SAME POSITION UNDER THE OTHER PURPOSE IS THE CONTROL, in the same test rather than
+     * in a mutation: this exact game, position and ply is one the draw passes over. So the
+     * assertion above is not passing because the sampler happened to say yes here -- it is
+     * passing because `first` is in `ALWAYS`.
+     */
+    expect(
+      confidenceIsAsked({ purpose: "play", gameId, fen: START, ply: decisionPly }),
+      "the draw says yes on this position anyway; the assertion above proves nothing",
+    ).toBe(false);
+
+    const event = buildCommitEvent(
+      "11111111-1111-4111-8111-222222222222",
+      { gameId, fen: START, ply: decisionPly, clockMsRemaining: null, purpose },
+      { ...emptyDraft(), chosenMove: "e2e4", confidence: 5 },
+      12.4,
+      "per-decision",
+    );
+    const atom = {
+      ...event,
+      result: {
+        engine_eval_cp: 33,
+        engine_best_move: "e2e4",
+        engine_depth: 14,
+        engine_source: "local_sf18" as const,
+        cp_loss: 0,
+      },
+      feedback: null,
+      probe: event.probe ?? null,
+      reveal_timing: event.reveal_timing ?? null,
+      bounded_action: { ...event.bounded_action, confidence_scale: CONFIDENCE_LEVELS },
+    } as unknown as DecisionAtom;
+
+    const summary = scoreDecisions([atom], [event.decision_id]);
+    expect(
+      summary.scored,
+      "one decision through the account-less door and the record still reads empty",
+    ).toHaveLength(1);
+    expect(summary.withoutConfidence).toBe(0);
+  });
+
+  it("carries the account-less arrival's bank answer to a state the front door counts", async () => {
+    /*
+     * THE THIRD DOOR, and the one the audit opened. `FirstDecision` now offers a bank position to
+     * anyone who has no account to import from, because the opening position of a new live game
+     * is a position where no reveal branch can fire at all.
+     *
+     * What this walks is the consequence rather than the route: a bank answer is `anchor`, the
+     * evidence policy keeps `anchor` out of the descriptive reading on purpose, and the front
+     * door's gate was reading that reading. So the assertion at the end is not `scored === 1` --
+     * it is that the reading the FRONT DOOR consults is non-empty, which is a different number
+     * and the one that was wrong.
+     */
+    const store = new MemoryRecordStore();
+    const bank = ANCHOR_POSITIONS[0];
+    const decisionId = "11111111-1111-4111-8111-333333333333";
+    await commitDecision(store, {
+      decision_id: decisionId,
+      entry_state: {
+        game_id: `anchor-${bank.id}`,
+        fen: bank.fen,
+        ply: 21,
+        phase: classifyPhase(bank.fen, 21),
+        clock_ms_remaining: null,
+      },
+      purpose: "anchor",
+      known: "המרכז סגור",
+      unknown: "לא רואה את הווריאציה עד הסוף",
+      known_parts: { tapped: ["המרכז סגור"], typed: "" },
+      unknown_parts: { tapped: ["לא רואה את הווריאציה עד הסוף"], typed: "" },
+      decision: "b5b4",
+      bounded_action: {
+        seconds_taken: 22,
+        confidence: 5,
+        confidence_scale: CONFIDENCE_LEVELS,
+        candidate_moves_considered: ["b5b4"],
+      },
+      probe: null,
+      reveal_timing: "per-decision",
+      result: null,
+      feedback: null,
+    });
+    await reveal(store, decisionId, {
+      engine_eval_cp: -78,
+      engine_best_move: "b5b4",
+      engine_depth: 18,
+      engine_source: "local_sf18",
+      cp_loss: 0,
+    });
+
+    const reading = await recordReading(store);
+    expect(
+      reading.scored,
+      "the descriptive reading absorbed a bank answer; the policy exists to stop that",
+    ).toBe(0);
+    expect(
+      reading.anchor.n,
+      "a bank answer produced nothing the front door can count, so it shows the door again",
+    ).toBe(1);
+  });
+
   it("holds the shared bank behind exactly the condition the chain above satisfies", () => {
     /*
      * The gate's own premise, asserted rather than assumed. If `Record` ever stops keying the
@@ -147,7 +330,21 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
      * be proving something about a screen nobody sees.
      */
     const record = readFileSync(resolve(__dirname, "../../client/src/pages/Record.tsx"), "utf8");
-    expect(record).toContain("scored === 0");
+    /*
+     * THE PREMISE MOVED, AND IT MOVED BECAUSE THE GATE'S OWN FIX BROKE IT.
+     *
+     * It used to be `scored === 0`. Opening the bank to the account-less arrival made that number
+     * the wrong one: `scored` is the DESCRIPTIVE population -- free play and the handoff -- and
+     * the evidence policy files a bank answer as `separate`. So a player whose only decision was
+     * a bank answer had `scored === 0`, and this page used that to decide whether to offer them
+     * their first decision. Walked in Chromium: one decision committed, revealed, a reveal branch
+     * fired, and the front door asked for a first decision. The same liveness failure this file
+     * exists for, arriving through the door that was opened to fix it.
+     *
+     * The gate is now "has anything been measured", which is what the screen was always asking.
+     */
+    expect(record).toContain("const measured = scored + anchored");
+    expect(record).toContain("measured === 0");
     expect(record).toContain("<FirstDecision");
     expect(record).toContain("<AnchorRunControl");
   });

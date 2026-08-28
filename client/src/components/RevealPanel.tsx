@@ -10,6 +10,7 @@
  * useful one. It lives in step 4, inside a collapsed <details>. If it ever becomes the largest
  * thing here, this has been rebuilt into the tool the repo already was.
  */
+import { useEffect } from "react";
 import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
@@ -23,6 +24,7 @@ import {
   type RevealInputs,
 } from "@shared/reveal";
 import type { EngineLine } from "@/lib/engine-line";
+import { recordTrialEvent, trialEventSeen } from "@/lib/progress-record";
 import { NotMeasured, Value } from "./Value";
 
 interface RevealPanelProps {
@@ -31,13 +33,61 @@ interface RevealPanelProps {
   /** The position the analysis was computed for. */
   fen: string;
   statedKnown: string;
+  /**
+   * The decision this reveal is about, or null when it is not being rendered for a real one.
+   *
+   * The trial's reveal events are keyed on it, and null means "do not record" rather than
+   * "record without an id": a reveal that cannot say which decision it belongs to cannot be
+   * joined to a commit, so it would enter the funnel as a stage with no denominator. Every test
+   * that renders this panel in isolation passes null and records nothing, which is correct --
+   * a test is not a reveal a player was shown.
+   */
+  decisionId?: string | null;
 }
 
-export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelProps) {
+export function RevealPanel({
+  inputs,
+  analysis,
+  fen,
+  statedKnown,
+  decisionId = null,
+}: RevealPanelProps) {
   const limits = inferenceLimits(inputs);
   const oneThing = theOneThing(inputs);
   const question = nextQuestion(inputs);
   const pv = analysis ? sanPrincipalVariation(fen, analysis.pv) : [];
+
+  /*
+   * THE REVEAL EVENTS ARE EMITTED FROM THE THING THAT RENDERS THE REVEAL, and that placement is
+   * the whole of their validity.
+   *
+   * `reveal_kind_presented` has to answer "which branch did this player actually see". Computed
+   * anywhere else -- in `Home`, in the ledger, in an analysis script -- it would be a SECOND
+   * implementation of the branch conditions, and the two would part company the first time a
+   * threshold moved: the panel would show one sentence and the trial would record another, with
+   * nothing failing. Here, `oneThing` is the same value that is rendered five lines below.
+   *
+   * PRESENTED, NOT COMPUTED. The effect runs after the panel is in the document, which is the
+   * distinction between this and "the engine finished": an analysis that completes into a failure
+   * branch, a deferred game, or a player who has already navigated away is not a reveal anybody
+   * saw.
+   *
+   * Keyed on the decision so a re-render, a StrictMode double-invoke or a parent update cannot
+   * count one reveal twice -- every rate in the funnel has this as its denominator.
+   */
+  useEffect(() => {
+    if (!decisionId) return;
+    if (trialEventSeen("reveal_presented", decisionId)) return;
+    const at = new Date().toISOString();
+    recordTrialEvent({ name: "reveal_presented", at, decisionId });
+    recordTrialEvent({
+      name: "reveal_kind_presented",
+      at,
+      decisionId,
+      // `silence` is a branch, not an absence: see the type's comment on why it has to be counted.
+      kind: oneThing?.kind ?? "silence",
+      });
+  }, [decisionId, oneThing?.kind]);
 
   return (
     <section className="reveal-panel" aria-label="חשיפה">

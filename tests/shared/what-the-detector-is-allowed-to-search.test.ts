@@ -20,6 +20,7 @@
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
+import { remainingBeforeClaim } from "../../client/src/lib/loop-position";
 import { MIN_BUCKET_N } from "../../shared/detector";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
@@ -215,14 +216,40 @@ describe("an intervention cannot manufacture the next weakness", () => {
      * the detector searched a subset, the screen would announce a wait against one set and the
      * engine would run against another -- the exact disagreement this codebase spends its gates
      * on, reintroduced by the fix.
+     *
+     * `recorded` USED TO BE ASSERTED HERE AS 10 AND IS NOW 50, AND THE CHANGE IS DELIBERATE.
+     *
+     * Three things settled it. The field's own doc has always read "Always the WHOLE record, even
+     * when the claim was searched over a slice of it", and the code disagreed with it. The wait
+     * this test is about is computed from `scored` -- `remainingBeforeClaim` never reads
+     * `recorded` -- so nothing about the announced distance moves. And the old value was wrong
+     * where it was visible: once the front door began handing account-less arrivals a bank
+     * position, a player who had committed one decision, had it revealed, and had a reveal branch
+     * fire read "0 נמדדו מתוך 0 שנרשמו" and was offered their first decision again.
+     *
+     * What the difference between the two numbers now needs is a NAME rather than a smaller
+     * numerator, which is `readElsewhere`: those rows are `separate` in the evidence policy --
+     * read under another heading with their own denominator -- and the strip says so.
      */
     const store = new MemoryRecordStore();
     await loudRecord(store, "drill", 40);
     await loudRecord(store, "play", 10);
     const view = await service.currentClaim(store, NOW);
     expect(view.claim).toBeNull();
-    expect(view.scored).toBe(10);
-    expect(view.recorded, "the wait was measured against rows the detector cannot read").toBe(10);
+    expect(view.scored, "interventions entered the population the detector searches").toBe(10);
+    expect(view.recorded).toBe(50);
+    expect(
+      view.readElsewhere,
+      "the forty rows the detector cannot read vanished instead of being named",
+    ).toBe(40);
+    /*
+     * THE ASSERTION THIS TEST WAS ACTUALLY FOR, made directly rather than through `recorded`: the
+     * distance announced on screen is measured against the population the detector searches.
+     */
+    expect(
+      remainingBeforeClaim({ scored: view.scored, preregScored: null, unreadable: false }),
+      "the wait was measured against rows the detector cannot read",
+    ).toBe(MIN_BUCKET_N * 2 - 10);
   });
 });
 

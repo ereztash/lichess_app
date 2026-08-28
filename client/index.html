@@ -1,1 +1,66 @@
-<!doctype html><html lang="he" dir="rtl"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><link rel="icon" href="/favicon.svg" type="image/svg+xml"/><meta name="theme-color" content="#e9e4d8"/><meta name="description" content="לוח החלטות לשחמט: אתם מחליטים וכותבים את הקריאה שלכם, ורק אז המנוע מדבר."/><title>Decision Lab — החלטה, ואז חשיפה</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#e9e4d8" />
+
+    <title>Decision Lab — החלטה, ואז חשיפה</title>
+
+    <!--
+      WHAT THE DESCRIPTION USED TO PROMISE, AND WHY IT CHANGED.
+
+      It read "אתם מחליטים וכותבים את הקריאה שלכם, ורק אז המנוע מדבר". The middle clause stopped
+      being true when the ask rule became a sample: the two read fields are asked on the same
+      decisions the confidence question is, which on ordinary play is a minority of them. What is
+      invariant -- on every decision, in every loop, with no exception anywhere in the product --
+      is the ordering: the decision is committed before the engine says anything. That is what
+      this now says, and it is the same sentence the front door leads with.
+    -->
+    <meta
+      name="description"
+      content="כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים — אתם מחליטים, ורק אז המנוע מדבר."
+    />
+
+    <!--
+      THE SHARE CARD, AND STAGE ZERO OF THE ACQUISITION PATH.
+
+      There was no Open Graph or Twitter metadata at all, so a link pasted into a DM, a post or a
+      group rendered as a bare URL: no title, no image, and on most surfaces not even the
+      description above. For a trial whose entry vector IS a message with a link in it, that is
+      the first screen of the funnel and it was empty.
+
+      THE WORDING IS A DISTINCTION, NOT A DIAGNOSIS. It says what the tool can tell apart, never
+      what it will find: `chose-past-it` may not occur on any given decision, and a card promising
+      "we will show you the move you saw and rejected" would make the experiment unfalsifiable --
+      every player arriving expecting a result the instrument cannot guarantee.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Decision Lab" />
+    <meta property="og:locale" content="he_IL" />
+    <meta property="og:title" content="Decision Lab — החלטה, ואז חשיפה" />
+    <meta
+      property="og:description"
+      content="כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים."
+    />
+    <meta property="og:image" content="/share-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Decision Lab — החלטה, ואז חשיפה. כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Decision Lab — החלטה, ואז חשיפה" />
+    <meta
+      name="twitter:description"
+      content="כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים."
+    />
+    <meta name="twitter:image" content="/share-card.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

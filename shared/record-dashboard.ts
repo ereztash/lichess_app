@@ -262,8 +262,35 @@ export type RecordReading = {
   control: Control;
   buckets: BucketReading[];
   confidence: ConfidenceReading[];
-  /** Decisions that have been revealed, and so can be scored at all. */
+  /**
+   * Decisions this reading is computed over: revealed AND carrying a stated confidence.
+   *
+   * THE SUMMARY LINE USED TO SAY "decisions that have been revealed", and the two are not the
+   * same set. `scoreDecisions` drops a revealed decision whose `confidence` is null -- which
+   * since the ask rule became a sample is most of them -- so the number is smaller than the
+   * revealed count and always will be. Three surfaces spent it on a sentence about reveals: this
+   * comment, `RecordDashboard`'s "עוד לא נחשפה אף החלטה", and the ribbon, which recovered a wait
+   * by subtracting this from the recorded count. All three told a player that a decision the
+   * engine had already answered was still waiting for it.
+   *
+   * The two counts below are the ones those sentences needed, and they are carried rather than
+   * derived precisely so nobody has to subtract again.
+   */
   scored: number;
+  /**
+   * Decisions the engine has not passed verdict on. A wait, and it ends by itself.
+   */
+  awaitingReveal: number;
+  /**
+   * Decisions revealed on a position where the confidence question was not put.
+   *
+   * NOT A WAIT. `scoreDecisions` documents the distinction at source and returns both counts;
+   * `RecordReading` did not carry either, so every consumer that wanted one had to invent it.
+   * This one never becomes scoreable -- no arrangement of the future changes what was asked at
+   * the time -- and a screen that tells the player to keep going describes a problem they do not
+   * have.
+   */
+  withoutConfidence: number;
   /**
    * Which of the reveal's four sentences the record actually produced.
    *
@@ -308,6 +335,23 @@ export function readRecord(
    * without a symptom. Empty produces a visibly unreadable anchor section instead.
    */
   anchored: readonly ScoredDecision[] = [],
+  /**
+   * What `scoreDecisions` set aside, and why it set each one aside.
+   *
+   * Carried rather than recomputed here, because this function only ever sees the decisions that
+   * survived the filter -- it cannot tell how many did not, or which of the two reasons applied.
+   * `ScoringSummary` already separates them and says in as many words that one is a wait and the
+   * other is not; the reading dropped the distinction and the ribbon rebuilt it by subtraction,
+   * which can only produce the wrong one.
+   *
+   * DEFAULTS TO TWO ZEROES, which is a silence and not the old behaviour. A caller that has not
+   * been updated makes a smaller claim -- nothing is waiting, nothing was passed over -- rather
+   * than the previous one, which was that every unscored decision was waiting for the engine.
+   */
+  unscored: { readonly awaitingReveal: number; readonly withoutConfidence: number } = {
+    awaitingReveal: 0,
+    withoutConfidence: 0,
+  },
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -401,6 +445,8 @@ export function readRecord(
     buckets,
     confidence,
     scored: decisions.length,
+    awaitingReveal: unscored.awaitingReveal,
+    withoutConfidence: unscored.withoutConfidence,
     mix,
   };
 }
