@@ -193,7 +193,15 @@ describe("the primary interface speaks chess, not method", () => {
 
   it("names the loop's steps in a player's words", () => {
     // The steps themselves are untouched: record -> detect -> drill -> grade still runs the loop.
-    expect(Object.values(STEP_LABELS)).toEqual(["מהלכים", "מה חוזר", "בדיקה", "תשובה"]);
+    expect(Object.values(STEP_LABELS)).toEqual(["החלטות", "מה חוזר", "בדיקה", "תשובה"]);
+    /*
+     * "החלטות" REPLACED "מהלכים", AND THE UNIT IS THE REASON. Both are a player's words, so the
+     * first pass was not wrong to reject "רישום" -- it landed on the unit every other tool already
+     * counts. This product's whole stated difference is that what is on the record is a decision
+     * with a confidence and a candidate list attached, not a move; the strip that shows a player
+     * where they are may not name the first step after the other thing.
+     */
+    expect(STEP_LABELS.record, "the loop's first step is named in moves").not.toBe("מהלכים");
   });
 
   it("explains what is measured without teaching the word for it", () => {

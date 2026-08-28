@@ -396,8 +396,26 @@ export function CommitmentScreen({
         </span>
       </header>
 
+      {/*
+        * THE RULE WAS HERE AND THE REASON WAS NOT.
+        *
+        * It read "המנוע לא ידבר לפני שההחלטה נרשמה — זו כל הנקודה". The first clause is the one
+        * invariant this whole product rests on. The second is an assertion that it matters, which
+        * is not a reason, and a rule given without one reads as ceremony -- a hoop before the
+        * analysis, resented in proportion to how much the player wants the analysis.
+        *
+        * The reason is short and it is the entire justification for the ordering: after the engine
+        * has spoken there is no way to separate what the player wrote from what the engine added.
+        * Not a policy, not a preference -- an information fact about the record, and one a player
+        * can check against their own experience of reading an engine line.
+        *
+        * SAID WITHOUT CLAIMING A MIND. "מה שרשמתם" is what the record holds. Any version reaching
+        * for what they thought, saw or considered would be making the exact over-claim the reveal
+        * spends its own sentences refusing.
+        */}
       <p className="commitment-intro">
-        בחרו מהלך על הלוח וסמנו את הקריאה שלכם. המנוע לא ידבר לפני שההחלטה נרשמה — זו כל הנקודה.
+        בחרו מהלך על הלוח וסמנו את הקריאה שלכם. המנוע לא ידבר לפני שההחלטה נרשמה, כי אחרי שהוא
+        דיבר כבר אי אפשר להפריד בין מה שרשמתם לבין מה שהוא הוסיף.
       </p>
 
       {step(
