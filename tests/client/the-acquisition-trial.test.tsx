@@ -254,6 +254,26 @@ describe("continuation is an act, not a location", () => {
 describe("the one question, and what it may not do", () => {
   const mount = (reveals: number) => render(<ValueReconstruction revealsPresented={reveals} />);
 
+  it("puts the question after the SECOND reveal, and the number is pinned rather than read", () => {
+    /*
+     * THIS ASSERTION EXISTS BECAUSE ITS FIRST VERSION WAS VACUOUS, and the control caught it.
+     *
+     * Every case in this describe was written against `ASK_AFTER_REVEALS`, so moving the constant
+     * to 1 -- the mutation that puts the question at the first reveal, before continuation has
+     * been recorded -- moved the tests with it and all thirty-one stayed green. A test that reads
+     * the value it is meant to hold agrees with the implementation whatever the implementation
+     * says.
+     *
+     * The number is a DECISION with a stated cost, not an implementation detail: at the first
+     * reveal `next_decision_started` would be measuring the question rather than the reveal, and
+     * Q4 is one of the four things the trial exists to answer. So it is pinned here, and the
+     * document that argues for it has to agree.
+     */
+    expect(ASK_AFTER_REVEALS, "the prompt moved off the second reveal").toBe(2);
+    const doc = readFileSync(resolve(root, "docs/ACQUISITION_EVIDENCE.md"), "utf8");
+    expect(doc).toContain("after the second reveal");
+  });
+
   it("says nothing before the rule is met", () => {
     const { container } = mount(ASK_AFTER_REVEALS - 1);
     expect(container.textContent).toBe("");
