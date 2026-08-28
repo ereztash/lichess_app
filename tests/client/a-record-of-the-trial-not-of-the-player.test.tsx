@@ -146,6 +146,23 @@ describe("nothing reads it back", () => {
     "client/src/components/CommitmentScreen.tsx",
     "client/src/components/SelfCheck.tsx",
     "client/src/lib/progress-record.ts",
+    /*
+     * THE ACQUISITION EVIDENCE LAYER, ADDED TO THIS LIST DELIBERATELY AND WITH ITS REASON.
+     *
+     * Each of these WRITES. `Home` emits the funnel's stages, `RevealPanel` emits which branch it
+     * rendered -- from the same `theOneThing` value it renders, so the trial and the screen can
+     * never disagree -- and `ValueReconstruction` puts the one qualitative question and stores the
+     * answer. The rule this file exists for is unchanged and is asserted separately below: the
+     * interface may not REACT to the log. The three narrow reads that exist -- has this event
+     * fired, how many reveals, how many visits -- are about the protocol, not the player, and the
+     * chess is identical whatever they return.
+     *
+     * What is NOT on this list and must never be: anything under `shared/`, and anything that
+     * decides which position to serve, which reveal to show, or what to say.
+     */
+    "client/src/pages/Home.tsx",
+    "client/src/components/RevealPanel.tsx",
+    "client/src/components/ValueReconstruction.tsx",
   ]);
 
   function sources(dir: string): string[] {

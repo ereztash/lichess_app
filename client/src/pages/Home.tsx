@@ -28,6 +28,8 @@ import { decisionPurposeFor, type DecisionPurpose } from "@shared/confidence-ask
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { SilentGame } from "@/components/SilentGame";
 import { RevealPanel } from "@/components/RevealPanel";
+import { recordTrialEvent, revealsPresented, trialEventSeen } from "@/lib/progress-record";
+import { continuationStarted } from "@/lib/acquisition-evidence";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
@@ -62,6 +64,15 @@ import { Overlay } from "@/components/Overlay";
  * it in the initial graph, which is the same weight mistake the engine import was -- the reason
  * engine-line.ts exists at all.
  */
+/*
+ * LAZY, LIKE THE GAME REVIEW AND FOR THE SAME REASON. This renders on the second reveal of a
+ * browser's whole history and never again -- so in the overwhelmingly common visit it is code
+ * downloaded and not run. Static, it put the entry chunk over budget on its own.
+ */
+const ValueReconstruction = lazy(() =>
+  import("@/components/ValueReconstruction").then((m) => ({ default: m.ValueReconstruction })),
+);
+
 const GameReview = lazy(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReview })),
 );
@@ -272,6 +283,15 @@ export default function Home() {
   const [revealFailure, setRevealFailure] = useState<RevealFailureKind | null>(null);
   const [learningRuleSaved, setLearningRuleSaved] = useState(false);
   const gameId = useRef(`live-${Date.now()}`);
+  /*
+   * How many decisions this SESSION has committed, for the trial's ordinal.
+   *
+   * A ref rather than state: nothing renders from it, and a state update here would re-render the
+   * board on every commit for a number no player ever sees. Not `decisionsThisGame`, which resets
+   * with each new game -- a session that plays two games is still one arrival, and the ordinal
+   * has to keep counting across them or "did they make a second decision" becomes unanswerable.
+   */
+  const decisionsThisVisit = useRef(0);
 
   // --- The opponent ------------------------------------------------------------------------
   /*
@@ -392,6 +412,57 @@ export default function Home() {
   const activeGame = useMemo(() => new Chess(activeFen), [activeFen]);
   const board = activeGame.board();
   const sideToMove = activeGame.turn() === "w" ? "לבן" : "שחור";
+
+  /*
+   * THE SECOND STAGE OF THE ACQUISITION FUNNEL, AND WHY IT IS NOT "the page loaded".
+   *
+   * A stage every arrival clears measures nothing. What has to be true for the acquisition
+   * experience to be possible is that a position is ON the board, it is the player's move, there
+   * is a legal move to make, and the board will accept one -- so an arrival that landed on a
+   * finished game, on the opponent's turn, or mid-reveal has not reached it. The difference
+   * between this and a route is the difference between "they could have decided" and "they were
+   * somewhere near a board".
+   */
+  const positionIsActionable =
+    stage === "deciding" &&
+    activeGame.moves().length > 0 &&
+    (opponent === null || activeGame.turn() === opponent.playerColor);
+
+  useEffect(() => {
+    if (!positionIsActionable) return;
+    if (trialEventSeen("first_position_presented")) return;
+    recordTrialEvent({
+      name: "first_position_presented",
+      at: new Date().toISOString(),
+      purpose: decisionPurpose,
+    });
+  }, [positionIsActionable, decisionPurpose]);
+
+  /*
+   * CONTINUATION, DEFINED AS AN ACT RATHER THAN AS A LOCATION.
+   *
+   * "Still on /play" is not continuation and neither is a re-render: both are true of a player
+   * who read the reveal and stopped. Putting a move on the board after having seen one is
+   * something a person did, knowing what the product had to say -- which is the behaviour the
+   * question "was that worth another decision" is actually about.
+   *
+   * Once per visit, because what the trial needs is whether they went on at all. The count of
+   * decisions is already in the ledger under `decision_committed`, with an ordinal.
+   */
+  useEffect(() => {
+    const reveals = revealsPresented();
+    const started = continuationStarted({
+      movePlaced: candidateMove !== null,
+      revealsPresented: reveals,
+      alreadyRecorded: trialEventSeen("next_decision_started"),
+    });
+    if (!started) return;
+    recordTrialEvent({
+      name: "next_decision_started",
+      at: new Date().toISOString(),
+      afterReveals: reveals,
+    });
+  }, [candidateMove]);
 
   const material = useMemo(() => {
     const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
@@ -1112,6 +1183,27 @@ export default function Home() {
         setCommitError(commitFailureText(error));
         return;
       }
+      /*
+       * THE COMMIT BOUNDARY, AND THE EVENT IS ON THE FAR SIDE OF IT.
+       *
+       * Above this line every path still returns: a missing field, a refused rule, a failed
+       * write. `decision_committed` fires only where the decision is actually on the record, so
+       * the funnel stage means "a decision exists" rather than "a button was pressed" -- and a
+       * write failure shows up as an arrival that never committed, which is exactly what it is.
+       *
+       * `confidenceAsked` is the protocol's answer, not the player's: whether the question was
+       * put. The value they gave is in the record and has no business in a trial log.
+       */
+      recordTrialEvent({
+        name: "decision_committed",
+        at: new Date().toISOString(),
+        decisionId,
+        ordinal: decisionsThisVisit.current + 1,
+        purpose: decisionPurpose,
+        confidenceAsked: event.bounded_action.confidence !== null,
+      });
+      decisionsThisVisit.current += 1;
+
       // Only now may the engine run at all.
       const positionFen = activeFen;
       setDecisionsThisGame((n) => n + 1);
@@ -2099,10 +2191,30 @@ export default function Home() {
                   analysis={analysis}
                   fen={revealFen}
                   statedKnown={committedDraft.known}
+                  /* Null until the reveal has actually been written: an unrecorded reveal is not
+                     a funnel stage, and an id that does not name a committed decision cannot be
+                     joined to one. */
+                  decisionId={revealedDecisionId}
                 />
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
               ) : null}
+              {/*
+                * DIRECTLY UNDER THE REVEAL, and only from the second one onward.
+                *
+                * Attribution wants it as close to the reveal as it can get; the continuation
+                * measurement wants it nowhere near the first one. The component owns that rule
+                * and the reason for it -- what is decided here is only the position on the page,
+                * which is under the thing the question is about and above everything that is not.
+                *
+                * `revealedDecisionId` gates it for the same reason it gates the panel: a reveal
+                * that was never written is not one anybody was shown.
+                */}
+              {revealedDecisionId && (
+                <Suspense fallback={null}>
+                  <ValueReconstruction revealsPresented={revealsPresented()} />
+                </Suspense>
+              )}
               {/*
                 * Rendered under the reveal on a write failure -- that reveal is valid -- and
                 * on its own when the engine never answered. Either way it carries the only

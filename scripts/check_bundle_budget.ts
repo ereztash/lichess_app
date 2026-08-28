@@ -41,19 +41,38 @@ const INDEX = "dist/public/index.html";
  * table's structure, and trimming that further would mean deleting cells rather than bytes.
  *
  * STILL JUST ABOVE THE BUILD, which is the property that makes this a ratchet: 648 leaves 5 kB, so
- * the next hundred is visible on the day it arrives. The gzip ceiling (197.7 / 200 kB) and the
- * initial-download ceiling (709.3 / 720 kB) were not touched and did not move.
+ * the next hundred is visible on the day it arrives.
+ *
+ * RAISED AGAIN, 648 -> 652, FOR THE ACQUISITION EVIDENCE LEDGER, and all three ceilings moved this
+ * time because all three were crossed. Measured: 645.0 kB before, 650.8 kB after, 649.2 kB once
+ * the value-reconstruction prompt was moved behind a dynamic import -- it renders on the second
+ * reveal of a browser's whole history and never again, so in almost every visit it was code
+ * downloaded and not run.
+ *
+ * WHAT IS LEFT CANNOT BE DEFERRED, and that is the argument for the raise rather than for another
+ * split. The remaining ~4 kB is the event vocabulary and the emitters, and the funnel's first
+ * stage is `acquisition_entry` -- written on mount, before anything else, as the denominator every
+ * later rate is computed against. Instrumentation that arrives after the first paint has already
+ * missed the arrivals that leave before it.
+ *
+ * WHAT WAS CONSIDERED AND REFUSED. `SelfCheck` is statically imported and carries the report
+ * generator with it; making it lazy would recover more than this costs. It stays eager on purpose:
+ * it is the diagnostic for a browser where something is broken, and a diagnostic that has to fetch
+ * a chunk before it can tell you the network is failing is not one.
+ *
+ * The gzip ceiling went 200 -> 202 (201.2 measured) and the initial-download ceiling 720 -> 724
+ * (720.6 measured), for the same code and the same reason.
  */
-const ENTRY_RAW_KB = 648;
+const ENTRY_RAW_KB = 652;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 200;
+const ENTRY_GZIP_KB = 202;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
  * Separate from the entry ceiling because a stylesheet growing past a megabyte would be invisible
  * to a JavaScript-only budget, and `index.css` is already 3,693 lines.
  */
-const INITIAL_RAW_KB = 720;
+const INITIAL_RAW_KB = 724;
 
 interface Asset {
   name: string;
