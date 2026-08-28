@@ -2225,6 +2225,13 @@ export default function Home() {
                      a funnel stage, and an id that does not name a committed decision cannot be
                      joined to one. */
                   decisionId={revealedDecisionId}
+                  /* Same condition the header control uses: a transfer run works through a
+                     pre-registered set and has its own way forward. */
+                  onContinue={
+                    revealedDecisionId && (!learningTransfer || learningTransferStage === "running")
+                      ? nextDecision
+                      : undefined
+                  }
                 />
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>

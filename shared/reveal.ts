@@ -267,8 +267,18 @@ export const ONE_THING_EVIDENCE: Record<OneThingKind, RevealEvidence> = {
  * ordinary case would be teaching them to want a branch the instrument cannot promise.
  */
 export const EVIDENCE_LABEL: Record<RevealEvidence, string> = {
-  process: "נשען על מה שנרשם ממך לפני שהמנוע דיבר — ניתוח משחק רגיל לא מחזיק את זה.",
-  engine: "נשען על השוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.",
+  /*
+   * "המשפט הזה יצא מ..." AND NOT "נשען על...", which is what the first version said.
+   *
+   * Caught by looking at the rendered screen rather than at the constant. The very next line in
+   * the panel is `OneThing.basis`, prefixed "מבוסס על:" -- so the reveal showed two consecutive
+   * lines opening with near-synonyms for "rests on", saying two genuinely different things: this
+   * one is the CLASS of evidence, that one is the measurement detail. A reader has to work out
+   * that they are not the same statement, which is the referent collision this pair was already
+   * renamed once to avoid, reappearing as layout instead of as an identifier.
+   */
+  process: "המשפט הזה יצא ממה שנרשם ממך לפני שהמנוע דיבר — ניתוח משחק רגיל לא מחזיק את זה.",
+  engine: "המשפט הזה יצא מהשוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.",
 };
 
 export interface OneThing {

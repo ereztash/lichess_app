@@ -2753,6 +2753,18 @@ button:not(:disabled) {
   line-height: 1.55;
   opacity: 0.86;
 }
+/*
+ * The way to act on the sentence above it, next to the sentence above it.
+ *
+ * It lived only in the page header, which is not sticky: measured at 390x844, the proposition sits
+ * around y=1200 of a 2715px page and the header button at y=0, with engine analysis in between.
+ * Full width because at this point in the page it is the only thing being offered, and there is
+ * nothing for it to sit beside.
+ */
+.reveal-continue {
+  margin-top: 0.85rem;
+  width: 100%;
+}
 /* A property of the build, not of the position. Set apart from the per-position limits. */
 .reveal-build-limit {
   margin: 0.5rem 0 0;

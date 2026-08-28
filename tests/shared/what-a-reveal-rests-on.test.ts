@@ -159,6 +159,22 @@ describe("what the label is allowed to say", () => {
     }
   });
 
+  it("does not open with the same words as the measurement line under it", () => {
+    /*
+     * FOUND BY LOOKING AT THE RENDERED SCREEN, NOT AT THE CONSTANT. `OneThing.basis` renders on
+     * the very next line, prefixed "מבוסס על:", and the first version of these labels opened
+     * "נשען על". Two consecutive lines beginning with near-synonyms for "rests on", saying
+     * genuinely different things -- one is the CLASS of evidence, the other the measurement
+     * detail. That is the referent collision this pair was renamed once to avoid, reappearing as
+     * layout rather than as an identifier.
+     */
+    for (const label of Object.values(EVIDENCE_LABEL)) {
+      expect(label, "the evidence line echoes the basis line's opening").not.toMatch(
+        /^(נשען על|מבוסס על)/,
+      );
+    }
+  });
+
   it("gives the two classes different sentences, which is the entire point", () => {
     expect(EVIDENCE_LABEL.process).not.toBe(EVIDENCE_LABEL.engine);
   });

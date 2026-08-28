@@ -163,6 +163,38 @@ describe("the button names the experiment rather than the movement", () => {
     expect(CONTINUATION_CTA).toMatch(/לבדוק אם/);
   });
 
+  it("sits next to the sentence that justifies it", () => {
+    /*
+     * MEASURED, NOT ASSUMED. The control lived only in the page header, which is not sticky: at
+     * 390x844 the proposition renders around y=1200 of a 2715px page and the header button at
+     * y=0, with the whole engine analysis column between them. A reason the reader cannot act on
+     * where they read it is a reason that did not reach them.
+     */
+    const container = render(
+      <RevealPanel
+        inputs={OUTCOMES.outplayed}
+        analysis={ANALYSIS}
+        fen={FEN}
+        statedKnown=""
+        onContinue={() => {}}
+      />,
+    ).container;
+    const button = container.querySelector(".reveal-continue");
+    expect(button, "the reveal offers no way to take the decision it just argued for").not.toBeNull();
+    expect(button?.textContent).toBe(CONTINUATION_CTA);
+    const nodes = [...container.querySelectorAll(".reveal-continuation, .reveal-continue")];
+    expect(nodes).toHaveLength(2);
+    expect(
+      nodes[0].classList.contains("reveal-continuation"),
+      "the button comes before the reason for it",
+    ).toBe(true);
+  });
+
+  it("offers nothing where there is nothing to offer", () => {
+    // A panel rendered for inspection, or a transfer run with its own control, gets no button.
+    expect(panel(OUTCOMES.outplayed).querySelector(".reveal-continue")).toBeNull();
+  });
+
   it("is the label the reveal screen actually renders", () => {
     /*
      * Asserted against the page rather than only against the constant: a constant nobody uses is

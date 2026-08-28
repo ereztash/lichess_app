@@ -15,6 +15,7 @@ import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
   BUILD_LIMIT,
+  CONTINUATION_CTA,
   CONTINUATION_PROPOSITION,
   ENGINE_NOISE_CP,
   EVIDENCE_LABEL,
@@ -46,6 +47,14 @@ interface RevealPanelProps {
    * a test is not a reveal a player was shown.
    */
   decisionId?: string | null;
+  /**
+   * Take another decision. Absent wherever there is not one to take.
+   *
+   * Optional because most callers of this panel are tests rendering it in isolation, and a reveal
+   * with no way forward is a valid screen -- the transfer run has its own control, and a panel
+   * shown for inspection has none.
+   */
+  onContinue?: () => void;
 }
 
 export function RevealPanel({
@@ -54,6 +63,7 @@ export function RevealPanel({
   fen,
   statedKnown,
   decisionId = null,
+  onContinue,
 }: RevealPanelProps) {
   const limits = inferenceLimits(inputs);
   const oneThing = theOneThing(inputs);
@@ -243,6 +253,27 @@ export function RevealPanel({
         * back.
         */}
       <p className="reveal-continuation">{CONTINUATION_PROPOSITION}</p>
+      {/*
+        * THE BUTTON GOES WHERE THE REASON IS, and the measurement is why.
+        *
+        * The post-reveal control lived only in the page header, which is not sticky. Walked in
+        * Chromium at 390x844: the proposition sits around y=1200 of a 2715px page and the header
+        * button is at y=0. So the one sentence that says why another decision is worth taking was
+        * twelve hundred pixels from the only way to take one, and everything between them is
+        * engine analysis. A reason the reader cannot act on where they read it is a reason that
+        * did not reach them.
+        *
+        * THE HEADER BUTTON STAYS, and the duplicate label is deliberate. It is the control that
+        * exists while the panel is scrolled away, and -- the reason that decided it -- it is also
+        * the only way forward in the window where the decision is committed but the engine has
+        * not answered yet, where this panel does not render at all. Removing it there would turn
+        * a slow analysis into a dead end.
+        */}
+      {onContinue && (
+        <button type="button" className="primary-control reveal-continue" onClick={onContinue}>
+          {CONTINUATION_CTA}
+        </button>
+      )}
     </section>
   );
 }
