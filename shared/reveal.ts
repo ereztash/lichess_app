@@ -211,6 +211,66 @@ export type OneThingKind =
   /** Chose well inside the noise, having asserted at most UNSURE_ENOUGH_TO_NAME. */
   | "trusted-it-too-little";
 
+/**
+ * Which kind of evidence a branch rests on -- and the reason this exists at all.
+ *
+ * THE QUESTION A PLAYER CANNOT ANSWER WITHOUT IT. `theOneThing` returns four branches into the
+ * same block, in the same typeface, at the same weight. Two of them are things no engine report
+ * could contain, because they read something the player recorded before any evaluation existed.
+ * One of them -- `outplayed` -- is an engine comparison, exactly what Game Review has been giving
+ * players for years. Rendered identically, the reader has no way to tell which one they received,
+ * so the reveal cannot answer "is this something an engine could not have told me?", and neither
+ * can a trial that asks them.
+ *
+ * THE TEST, STATED AS A RULE RATHER THAN AS TASTE. A branch is `process` iff its FIRING CONDITION
+ * reads an input the player supplied before the engine spoke AND which a PGN plus an engine could
+ * not reconstruct afterwards. The chosen move does not count: it is in the PGN. What counts is the
+ * stated confidence and the moves placed on the board, neither of which survives anywhere but
+ * here.
+ *
+ * NOT A SECOND CLASSIFIER, and the distinction matters. Nothing is computed here. This is a
+ * statement about conditions that are already written, twenty lines below, and
+ * `tests/shared/what-a-reveal-rests-on.test.ts` proves it by ablation rather than by restating it:
+ * strip the pre-engine inputs from a decision and every `process` branch must stop firing, while
+ * every `engine` branch must fire exactly as before. A table that had drifted from the conditions
+ * would fail that.
+ *
+ * NAMED `EVIDENCE` AND NOT `BASIS` on purpose: `OneThing.basis` already exists on the interface
+ * below and means something else -- the human-readable measurement detail rendered under the
+ * sentence. Two fields called basis, meaning "the numbers behind this" and "the class of thing
+ * this rests on", is the referent confusion this file has been bitten by before.
+ */
+export type RevealEvidence =
+  /** Rests on something the player recorded before the engine spoke. Unreconstructable later. */
+  | "process"
+  /** Rests on the engine's comparison alone. A retrospective analysis could produce it. */
+  | "engine";
+
+export const ONE_THING_EVIDENCE: Record<OneThingKind, RevealEvidence> = {
+  /** Fires on `candidatesConsidered.includes(bestMove)` -- moves placed on the board. */
+  "chose-past-it": "process",
+  /** Fires on `stated >= CONFIDENT_ENOUGH_TO_NAME` -- a confidence asserted before the reveal. */
+  "confident-and-wrong": "process",
+  /** Fires on cpLoss alone. Chosen move, best move, evaluation: all of it is in the PGN. */
+  outplayed: "engine",
+  /** Fires on `stated <= UNSURE_ENOUGH_TO_NAME` -- again the pre-reveal confidence. */
+  "trusted-it-too-little": "process",
+};
+
+/**
+ * What the reader is told the sentence rests on, in the two symmetrical directions.
+ *
+ * NEITHER LINE APOLOGISES AND NEITHER BOASTS. `engine` is not a miss, a failure, or a lesser
+ * result -- it is the honest report that on this decision the record held nothing the engine did
+ * not already have. Saying so is what makes the other line believable; a product that called every
+ * reveal unique would be telling the player nothing, and a product that apologised for the
+ * ordinary case would be teaching them to want a branch the instrument cannot promise.
+ */
+export const EVIDENCE_LABEL: Record<RevealEvidence, string> = {
+  process: "נשען על מה שנרשם ממך לפני שהמנוע דיבר — ניתוח משחק רגיל לא מחזיק את זה.",
+  engine: "נשען על השוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.",
+};
+
 export interface OneThing {
   kind: OneThingKind;
   /**

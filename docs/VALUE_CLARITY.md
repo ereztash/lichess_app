@@ -77,9 +77,9 @@ below is judged by whether a player can reconstruct what is true, never by wheth
 | **User question** | What did I actually get here — and is it something an engine could not have told me? |
 | **Current answer** | The Reveal names which of two things happened: the record contained evidence about the choice that a PGN and an engine could not reconstruct, or it did not and what is shown is the ordinary comparison. Silence remains a third, valid state. |
 | **Failure condition** | A generic engine observation is presented in the same frame as a process observation, so the player cannot tell which one they received — and the trial cannot tell either. |
-| **Allowed intervention** | Label the block by which evidence it rests on, derived from the branch the product already computed. Weight the finding above the engine's number. |
+| **Allowed intervention** | Label the block by which evidence it rests on, derived from the branch the product already computed. Weight the finding above the engine's number. Named `ONE_THING_EVIDENCE`, not `ONE_THING_BASIS`: `OneThing.basis` already exists and means the human-readable measurement detail, and two fields called basis is the referent confusion this repo keeps paying for. |
 | **Forbidden** | A second classifier. A stored subjective field (`unique_value_delivered`). Calling the generic case a failure, a miss, or apologising for it. Strengthening any branch's language to make it sound more unique. |
-| **Repo-solvable evidence** | `ONE_THING_BASIS` derives the label from `OneThingKind`; a test asserts `outplayed` is not labelled process evidence and `chose-past-it` is; silence is preserved and unapologetic. |
+| **Repo-solvable evidence** | `ONE_THING_EVIDENCE` labels each branch, and an **ablation** test proves the labelling from the firing conditions rather than restating it: strip `candidatesConsidered` and `confidence` and every `process` branch must stop firing while every `engine` branch is unchanged. Silence renders no label and keeps "זו תוצאה תקינה, לא מסך ריק". |
 | **Field-required evidence** | Whether a player who received a process Reveal reconstructs the distinction unprompted. |
 | **Pass criterion** | Repo: basis tests pass, no second classifier exists. Field: Arm B ≥ 8/10 among those exposed to a process branch. |
 

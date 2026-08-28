@@ -16,7 +16,9 @@ import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
   BUILD_LIMIT,
   ENGINE_NOISE_CP,
+  EVIDENCE_LABEL,
   MATERIAL_LOSS_CP,
+  ONE_THING_EVIDENCE,
   inferenceLimits,
   nextQuestion,
   silenceBasis,
@@ -123,6 +125,23 @@ export function RevealPanel({
               * second is a reading of it. A branch with nothing to point at renders nothing.
               */}
             {oneThing.note && <p className="one-thing-note">{oneThing.note}</p>}
+            {/*
+              * WHICH OF TWO THINGS THIS IS, and the block was unreadable without it.
+              *
+              * Four branches render here in the same typeface at the same weight. Two of them read
+              * something the player recorded before any evaluation existed and could not be
+              * reconstructed from a PGN afterwards; `outplayed` is an engine comparison, which is
+              * what every game report has always given. Undistinguished, a reader has no way to
+              * answer "could an engine have told me this?" -- which is the question this whole
+              * product's difference lives or dies on -- and neither does a trial that asks them.
+              *
+              * Derived from the branch already computed. No second classifier, and nothing stored:
+              * `ONE_THING_EVIDENCE` is a statement about firing conditions that already exist, and
+              * the ablation test proves it rather than restating it.
+              */}
+            <p className="one-thing-evidence" data-evidence={ONE_THING_EVIDENCE[oneThing.kind]}>
+              {EVIDENCE_LABEL[ONE_THING_EVIDENCE[oneThing.kind]]}
+            </p>
             <p className="one-thing-basis">מבוסס על: {oneThing.basis}</p>
           </>
         ) : (

@@ -2712,6 +2712,25 @@ button:not(:disabled) {
   line-height: 1.55;
   opacity: 0.82;
 }
+/*
+ * Which kind of evidence the sentence rests on -- the one line that tells a reader whether they
+ * received something an engine could not have produced.
+ *
+ * SET APART BY A RULE, NOT BY COLOUR. It is not a third sentence about the position; it is a
+ * statement about the two above it, so it sits under a hairline the way `.reveal-build-limit`
+ * does for the same reason. `--panel-label` keeps it legible without competing with the finding,
+ * and the two evidence classes are deliberately typeset IDENTICALLY: making `process` louder
+ * would turn an honest classification into a reward, and the reader would learn to want a branch
+ * the instrument cannot promise them.
+ */
+.one-thing-evidence {
+  margin: 0.55rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--panel-label);
+  line-height: 1.5;
+  opacity: 0.82;
+}
 /* R1: the sentence never appears without the measurement that produced it. */
 .one-thing-basis {
   margin: 0.35rem 0 0;
