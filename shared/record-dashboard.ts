@@ -292,6 +292,22 @@ export function readRecord(
    * hand-written here that could drift from it.
    */
   counterfactual: CounterfactualRecordReading = readCounterfactuals([]),
+  /**
+   * The shared bank's decisions, chosen by the evidence policy and handed in.
+   *
+   * AN ARGUMENT RATHER THAN A FILTER, and the change is not cosmetic. This used to be
+   * `decisions.filter(isAnchorFen)` -- bank membership of the POSITION -- which answers a
+   * different question from "was this decision a bank answer". A drill can legitimately run on a
+   * bank position, and `decisionPurposeFor` ranks `drill` above `anchor` there because what is
+   * being measured is the drill; under the FEN filter that decision walked into the only
+   * between-player comparison the product has, where nothing had placed it.
+   *
+   * DEFAULTS TO EMPTY, NOT TO THE OLD FILTER. A fallback that quietly reproduced the FEN rule
+   * would make this parameter dead enforcement: it would read like a boundary while guarding
+   * nothing, and a caller that forgot to pass the population would get the old behaviour back
+   * without a symptom. Empty produces a visibly unreadable anchor section instead.
+   */
+  anchored: readonly ScoredDecision[] = [],
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -337,9 +353,6 @@ export function readRecord(
    * number is meaningless across scales: 4 asserted 0.75 then and asserts 0.50 now, so two rows
    * would collide on one label and mean different things.
    */
-  /* One filter for every anchor-scoped reading: three copies would be three chances to diverge. */
-  const anchored = decisions.filter((decision) => isAnchorFen(decision.fen));
-
   const claims = new Set<number>(
     CONFIDENCE_CHOICES.map((level) => normaliseConfidence(level, CONFIDENCE_LEVELS)),
   );
@@ -368,7 +381,13 @@ export function readRecord(
     overall,
     calibration: calibrationScore(decisions),
     anchor: calibrationScore(anchored),
-    anchorAnswered: anchorIdsIn(decisions),
+    /*
+     * FROM THE BANK POPULATION, not from the whole record. This read `anchorIdsIn(decisions)`, so
+     * any decision that happened to sit on a bank FEN -- a drill, a transfer check -- counted as
+     * that bank position having been answered, and the front door would serve the next one as
+     * though the set had progressed.
+     */
+    anchorAnswered: anchorIdsIn(anchored),
     stability: splitHalfStability(anchored),
     sensitivity,
     /*

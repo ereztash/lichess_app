@@ -187,7 +187,17 @@ describe("the anchor reading is the one that is comparable between players", () 
       ...Array.from({ length: 20 }, (_, i) => anchored(i, 0.8, i < 16)),
       ...many(35, { confidence: 0.65, accurate: true }),
     ];
-    const reading = readRecord(record);
+    /*
+     * THE BANK POPULATION IS HANDED IN NOW. `readRecord` used to recover it by filtering the
+     * record on `isAnchorFen`, which answers "was this position in the bank" rather than "was
+     * this decision a bank answer" -- and a drill can legitimately run on a bank position. The
+     * evidence policy decides it upstream; this test hands in the same split explicitly.
+     *
+     * The invariant is untouched: the anchor reading carries its OWN denominator and never
+     * borrows the record's.
+     */
+    const bankAnswers = record.filter((d) => d.decision_id.startsWith("a-"));
+    const reading = readRecord(record, undefined, undefined, bankAnswers);
     expect(reading.calibration.n, "the whole record").toBe(55);
     expect(reading.anchor.n, "the anchor subset").toBe(20);
   });
@@ -201,8 +211,8 @@ describe("the anchor reading is the one that is comparable between players", () 
      */
     const bold = Array.from({ length: 30 }, (_, i) => anchored(i, 0.95, i < 21));
     const timid = Array.from({ length: 30 }, (_, i) => anchored(i, 0.5, i < 21));
-    const a = readRecord(bold).anchor;
-    const b = readRecord(timid).anchor;
+    const a = readRecord(bold, undefined, undefined, bold).anchor;
+    const b = readRecord(timid, undefined, undefined, timid).anchor;
     expect(a.uncertainty).toBeCloseTo(b.uncertainty, 12);
     expect(a.reliability, "the two judges came out identical").not.toBeCloseTo(b.reliability, 3);
   });

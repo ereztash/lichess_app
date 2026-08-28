@@ -263,6 +263,39 @@ export function forDiscovery(atoms: readonly DecisionAtom[], ids: readonly strin
 }
 
 /**
+ * What the record may say the player DID: free play and the front door's handoff.
+ *
+ * `separate` IS NOT ADMITTED HERE EITHER, and that is the whole of this consumer. A bank answer, a
+ * drill decision, a transfer check and a position from a game already played are all readable --
+ * under their own heading, with their own denominator. Pooling them into one calibration number
+ * makes it a number about a mixture of protocols: the bank is a fixed set everyone answers, a
+ * drill selected its positions BECAUSE of a weakness, and a transfer check is the player
+ * deliberately applying a rule. An average over those is not a description of anybody's play.
+ */
+export function forDescriptiveHistory(
+  atoms: readonly DecisionAtom[],
+  ids: readonly string[],
+): EvidenceSet {
+  return admit("descriptive-history", atoms, ids, (a) => a.kind === "admitted");
+}
+
+/**
+ * The shared bank, and only the shared bank.
+ *
+ * BY WHAT THE DECISION WAS FOR, NOT BY WHERE THE PIECES STOOD. The anchor readings used to be
+ * filtered with `isAnchorFen` -- bank membership of the position -- which is a different question.
+ * A drill can legitimately run on a bank position, and `decisionPurposeFor` ranks `drill` above
+ * `anchor` precisely because what is being measured there is the drill. Under the FEN filter that
+ * decision entered the between-player comparison, where it was never randomised to belong.
+ */
+export function forAnchorReference(
+  atoms: readonly DecisionAtom[],
+  ids: readonly string[],
+): EvidenceSet {
+  return admit("anchor-reference", atoms, ids, (a) => a.kind === "admitted");
+}
+
+/**
  * Why one decision was left out, for a caller that has to explain a population rather than use it.
  *
  * R1 and R2 both want this: a count that shrank should be able to say what it dropped, and a

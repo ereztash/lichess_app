@@ -59,7 +59,7 @@ import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
-import { forDiscovery } from "./evidence-policy.js";
+import { forAnchorReference, forDescriptiveHistory, forDiscovery } from "./evidence-policy.js";
 import { isAnchorFen } from "./anchor-set.js";
 import { readsAreAsked } from "./confidence-asked.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
@@ -1624,8 +1624,27 @@ function emptySearchReason(hypothesis: PreregisteredHypothesis | null): string {
  * cannot drift into disagreeing about the same player.
  */
 export async function recordReading(store: RecordStore): Promise<RecordReading> {
-  const atoms = await store.listAtoms();
-  const ids = await store.listDecisionIds();
+  const allAtoms = await store.listAtoms();
+  const allIds = await store.listDecisionIds();
+  /*
+   * TWO CONSUMERS, TWO POPULATIONS, and until now they were one.
+   *
+   * This page carries a description of what the player did AND the shared bank's between-player
+   * reading, and both were computed from the whole record: the description pooled bank answers,
+   * drill decisions, transfer checks, imported positions and rows that never recorded a context
+   * into one calibration number, and the bank reading was recovered from it by filtering on the
+   * FEN. So a drill decision counted twice -- once diluting the description of free play, once
+   * entering the comparison against other players.
+   *
+   * `shared/evidence-policy.ts` decides both. The descriptive population is free play and the
+   * front door's handoff; everything else is `separate` there, which means readable under its own
+   * heading rather than averaged into this one. The bank population is decisions taken FOR the
+   * bank, which is a different question from decisions taken ON a bank position.
+   */
+  const described = forDescriptiveHistory(allAtoms, allIds);
+  const bank = forAnchorReference(allAtoms, allIds);
+  const atoms = described.atoms;
+  const ids = described.ids;
   /*
    * The branch mix is assembled HERE and not inside `readRecord`, because it needs fields that
    * `ScoredDecision` deliberately does not carry: the moves that were on the board, the chosen
@@ -1644,5 +1663,10 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       bestMove: atom.result?.engine_best_move ?? null,
     })),
   );
-  return readRecord(scoreDecisions(atoms, ids).scored, mix, readCounterfactuals(atoms));
+  return readRecord(
+    scoreDecisions(atoms, ids).scored,
+    mix,
+    readCounterfactuals(atoms),
+    scoreDecisions(bank.atoms, bank.ids).scored,
+  );
 }
