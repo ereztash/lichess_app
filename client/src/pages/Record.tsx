@@ -30,8 +30,9 @@
  *     coat, and the product refuses streaks;
  *   - any figure derived from imported games anywhere near the word "כיול".
  */
-import { Suspense, lazy, useState } from "react";
+import { Suspense, useState } from "react";
 import { useLocation } from "wouter";
+import { lazyChunk } from "@/lib/lazy-chunk";
 import { Loader2 } from "lucide-react";
 import { useClaimView, useImportReading, useRecordReading } from "@/lib/record-api";
 import { OutcomeSummary } from "@/components/OutcomeSummary";
@@ -67,7 +68,7 @@ const GAMES_FOR_FIRST_DECISION = 6;
  * arrival, including the overwhelmingly common one where the record is empty and no chart is
  * rendered at all. `Home` already loads it this way; the front door has more reason to, not less.
  */
-const RecordDashboard = lazy(() =>
+const RecordDashboard = lazyChunk(() =>
   import("@/components/RecordDashboard").then((m) => ({ default: m.RecordDashboard })),
 );
 

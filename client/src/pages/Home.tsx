@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { retryOnce } from "@/lib/retry-once";
 import { Chess } from "chess.js";
 import {
@@ -15,6 +15,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { lazyChunk } from "@/lib/lazy-chunk";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,18 +70,18 @@ import { Overlay } from "@/components/Overlay";
  * browser's whole history and never again -- so in the overwhelmingly common visit it is code
  * downloaded and not run. Static, it put the entry chunk over budget on its own.
  */
-const ValueReconstruction = lazy(() =>
+const ValueReconstruction = lazyChunk(() =>
   import("@/components/ValueReconstruction").then((m) => ({ default: m.ValueReconstruction })),
 );
 
-const GameReview = lazy(() =>
+const GameReview = lazyChunk(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReview })),
 );
-const GameReviewProgress = lazy(() =>
+const GameReviewProgress = lazyChunk(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReviewProgress })),
 );
 /* Same reason: recharts stays out of the initial graph. */
-const RecordDashboard = lazy(() =>
+const RecordDashboard = lazyChunk(() =>
   import("@/components/RecordDashboard").then((m) => ({ default: m.RecordDashboard })),
 );
 import type { ImportedGame } from "@/lib/lichess-public";
