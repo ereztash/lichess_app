@@ -72,8 +72,15 @@ const SAID_TWO_THINGS = () => record(ENOUGH, (i) => 7 - (i % 2), (i) => 3 + (i %
 /** Not enough to split: below the point where the check could fail. */
 const TOO_SHORT = () => record(MIN_STABILITY_HALF, (i) => 4 + (i % 3), (i) => 4 + (i % 3));
 
+/*
+ * THE SPLIT-HALF CHECK RUNS OVER THE BANK POPULATION, and it is handed in now rather than
+ * recovered by filtering the record on `isAnchorFen`. These fixtures are bank answers end to
+ * end -- that is what makes the two halves comparable at all -- so the whole record is also the
+ * bank population here.
+ */
 const screen = (decisions: ScoredDecision[]) =>
-  render(<RecordDashboard reading={readRecord(decisions)} />).container;
+  render(<RecordDashboard reading={readRecord(decisions, undefined, undefined, decisions)} />)
+    .container;
 
 /** The block, found by its own heading rather than by position on the page. */
 function stabilityBlock(container: HTMLElement): HTMLElement {
@@ -101,7 +108,8 @@ describe("whether the record said the same thing twice", () => {
       /שגיאות תקן/,
     );
     // Each half carries its OWN n, because an odd record splits off by one.
-    const { n } = readRecord(SAID_IT_TWICE()).stability;
+    const twice = SAID_IT_TWICE();
+    const { n } = readRecord(twice, undefined, undefined, twice).stability;
     expect(block.textContent).toMatch(new RegExp(`n=${n[0]}`));
     expect(block.textContent).toMatch(new RegExp(`n=${n[1]}`));
   });
@@ -147,7 +155,7 @@ describe("whether the record said the same thing twice", () => {
 
   it("separates a record that repeated itself from one that did not", () => {
     const spread = (decisions: ScoredDecision[]) =>
-      readRecord(decisions).stability.spread ?? Number.NaN;
+      readRecord(decisions, undefined, undefined, decisions).stability.spread ?? Number.NaN;
     // The fixture is only worth rendering if the two records genuinely differ underneath.
     expect(spread(SAID_TWO_THINGS())).toBeGreaterThan(spread(SAID_IT_TWICE()));
     for (const decisions of [SAID_IT_TWICE(), SAID_TWO_THINGS()]) {
