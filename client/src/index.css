@@ -4373,9 +4373,25 @@ button:not(:disabled) {
   border-radius: 999px;
   white-space: nowrap;
 }
-/* Only a survived forward test carries the strongest colour on the page. */
-.outcome-summary__badge[data-kind="tested-claim"] {
+/*
+ * Only a survived forward test carries the strongest colour on the page -- and the selector now
+ * says so. It used to key on `data-kind="tested-claim"` alone, which `replicated` and `refuted`
+ * both carry, so the line above described an intention the rule did not implement and a
+ * refutation rendered in the same weight as a confirmation.
+ */
+.outcome-summary__badge[data-kind="tested-claim"][data-grade="replicated"] {
   color: var(--chosen);
+}
+/*
+ * A refutation is a result, not a failure, and it is shown as plainly as a confirmation -- the
+ * page's own ink rather than a warning colour, which would read as something having gone wrong
+ * when what happened is the method working. Struck through, which is how `.claim-card
+ * .grade-refuted` and `.learning-grade.refuted` already mark a refuted claim: an existing
+ * convention rather than a second one invented here.
+ */
+.outcome-summary__badge[data-kind="tested-claim"][data-grade="refuted"] {
+  color: var(--ink);
+  text-decoration: line-through;
 }
 .outcome-summary__badge[data-kind="hypothesis"] {
   color: var(--accent-soft);

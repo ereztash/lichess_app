@@ -44,7 +44,7 @@
  */
 import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
 import { recordAttempt } from "@/lib/progress-record";
-import { confidenceIsAsked, type DecisionContext } from "@shared/confidence-asked";
+import { confidenceIsAsked, readsAreAsked, type DecisionContext } from "@shared/confidence-asked";
 import { useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
 import {
@@ -88,7 +88,16 @@ const ALL_STEPS: StepId[] = ["chosenMove", "known", "unknown", "confidence"];
  * the very variable being measured.
  */
 const stepsFor = (context: DecisionContext): StepId[] =>
-  confidenceIsAsked(context) ? ALL_STEPS : ALL_STEPS.filter((step) => step !== "confidence");
+  confidenceIsAsked(context)
+    ? ALL_STEPS
+    : /*
+       * A DECISION IS FULLY INSTRUMENTED OR IT IS A MOVE. When the draw passes a position over,
+       * nothing will read a confidence stated on it and nothing will read the words either -- so
+       * asking for the words anyway charges two of the three steps for nothing. Reported from
+       * actual play as the reason a game is not worth finishing, which is a measurement problem
+       * wearing a complaint: an instrument nobody completes produces no readings.
+       */
+      ALL_STEPS.filter((step) => step === "chosenMove" || readsAreAsked(context));
 
 const STEP_LEGEND: Record<StepId, string> = {
   chosenMove: "המהלך שבחרתם",
@@ -159,6 +168,16 @@ export function CommitmentScreen({
    * will not catch anything either.
    */
   const asksConfidence = STEPS.includes("confidence");
+  /*
+   * THE SAME DERIVATION FOR THE TWO READ FIELDS, and they did not have one.
+   *
+   * `confidence` was gated in both places -- the list and the markup -- while `known` and
+   * `unknown` were rendered unconditionally. So when `stepsFor` stopped listing them, the
+   * navigation list dropped them and the screen went on drawing all three steps: the player still
+   * answered them, and only the trial log knew they were not supposed to be there. That is the
+   * two-gate defect this file already carries a test for, found again from the other side.
+   */
+  const asksReads = STEPS.includes("known");
   const problems = draftProblems(live, position);
   const ready = isCommittable(live, position);
   /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
@@ -302,7 +321,14 @@ export function CommitmentScreen({
     }
   };
 
-  const step = (id: StepId, index: number, body: React.ReactNode) => {
+  /*
+   * The number a step shows is its place in THIS decision's list, not a literal written at the
+   * call site. With the reads absent, a hard-coded `3` on the confidence step made a two-step
+   * screen count "1" and then "4" -- the numbering describing a screen the player was not looking
+   * at. Deriving it from `STEPS` means the ordering cannot disagree with what is rendered.
+   */
+  const step = (id: StepId, body: React.ReactNode) => {
+    const index = STEPS.indexOf(id);
     const open = openStep === id;
     const answer = answerFor(id);
     const problem = problemFor(id);
@@ -376,7 +402,6 @@ export function CommitmentScreen({
 
       {step(
         "chosenMove",
-        0,
         <>
           <output id="commit-move" className={`commitment-move ${chosenMove ? "set" : "unset"}`}>
             {chosenMove ?? "בחרו מהלך על הלוח"}
@@ -424,9 +449,9 @@ export function CommitmentScreen({
         </>,
       )}
 
-      {step(
+      {asksReads &&
+        step(
         "known",
-        1,
         <ReadField
           hint="בחרו כמה שרוצים"
           options={KNOWN_OPTIONS}
@@ -441,9 +466,9 @@ export function CommitmentScreen({
         />,
       )}
 
-      {step(
+      {asksReads &&
+        step(
         "unknown",
-        2,
         <ReadField
           hint="בחרו כמה שרוצים"
           options={UNKNOWN_OPTIONS}
@@ -471,7 +496,6 @@ export function CommitmentScreen({
       {asksConfidence &&
         step(
         "confidence",
-        3,
         <fieldset className="commitment-confidence" disabled={pending}>
           <legend className="sr-only">כמה אתם בטוחים</legend>
           <div className="confidence-row" dir="ltr">

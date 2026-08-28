@@ -8,6 +8,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
+import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import { statedPartsSchema } from "../shared/decision-atom.js";
 import {
   boundedActionSchema,
@@ -63,8 +64,34 @@ export function isStorableDiagnostic(value: unknown): boolean {
 export const commitEventSchema = z.object({
   decision_id: z.string().uuid(),
   entry_state: entryStateSchema,
-  known: z.string().min(1).max(200),
-  unknown: z.string().min(1).max(200),
+  /**
+   * Why the position was in front of the player.
+   *
+   * IN THE ATOM'S POSITION, not appended at the end: GATE-ISO compares the field ORDER of this
+   * schema against `ATOM_FIELDS`, so a field in the wrong place fails the gate as loudly as a
+   * missing one.
+   *
+   * Optional, because a client that predates the field sends nothing and null is stored for it.
+   * That absence has a price and the price is paid below rather than here -- an unstamped
+   * decision cannot claim the first-decision exemption, and `service.commitDecision` refuses it.
+   */
+  purpose: z.enum(DECISION_PURPOSES).nullable().optional(),
+  /*
+   * `min(1)` IS GONE FROM BOTH, AND THIS IS THE LINE THAT MADE THE EXEMPTION REAL.
+   *
+   * The opening decision stopped requiring the two read fields one commit ago, and this schema
+   * did not move -- so the whole exemption was unreachable over HTTP: a first decision made
+   * against a server was refused at the boundary with a validation error naming a field the
+   * player had deliberately not been asked for. It worked only in the browser-record deployment,
+   * where nothing runs this schema. Nothing caught it, because every test of the exemption calls
+   * the service directly.
+   *
+   * The guard did not become weaker, it became conditional and moved to where the condition is
+   * legible: `decisionAtomSchema` refuses an empty read from any purpose but `first`, and
+   * `service.commitDecision` does the same at the boundary with a message a player can read.
+   */
+  known: z.string().max(200),
+  unknown: z.string().max(200),
   /**
    * How each read was said. Optional on the wire and NULLABLE, which are two different states.
    *

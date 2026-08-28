@@ -12,6 +12,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
     phase: "opening",
     clock_ms_remaining: 90_000,
   },
+  purpose: "play",
   known: "k",
   unknown: "u",
   // Null, not an empty pair: this fixture records no vocabulary, it does not assert silence.

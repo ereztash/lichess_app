@@ -47,6 +47,7 @@ async function seed(count: number, reveal = true) {
       ply: 0,
       phase: "opening",
       clockMsRemaining: 120_000,
+      purpose: "play",
       secondsTaken: fast ? 10 : 200,
       chosenMove: "e2e4",
       candidateMovesConsidered: ["e2e4"],

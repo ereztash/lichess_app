@@ -52,12 +52,16 @@ import { classifyPhase } from "./phase.js";
 import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
+import type { DecisionPurpose } from "./confidence-asked.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import type { StatedParts } from "./decision-atom.js";
 import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
+import { forDiscovery } from "./evidence-policy.js";
+import { isAnchorFen } from "./anchor-set.js";
+import { readsAreAsked } from "./confidence-asked.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 import { LEGACY_CONFIDENCE_LEVELS } from "./confidence.js";
@@ -97,6 +101,16 @@ export type CommitEvent = {
     phase: string;
     clock_ms_remaining: number | null;
   };
+  /**
+   * Why the position was in front of the player.
+   *
+   * OPTIONAL AND NULLABLE, WHICH ARE THE SAME THING HERE AND NEITHER IS `play`. A client that
+   * predates this field sends nothing, and null is stored: its decisions are still perfectly good
+   * calibration data, and refusing them would cost real measurements to gain a label. What is NOT
+   * optional is the consequence -- an absent purpose cannot claim the first-decision exemption,
+   * so an empty read arriving without one is refused below.
+   */
+  purpose?: DecisionPurpose | null;
   known: string;
   unknown: string;
   /**
@@ -163,6 +177,77 @@ export async function commitDecision(
     );
   }
   /*
+   * THE EXEMPTION IS ENFORCED HERE, WHERE BOTH LOOPS RUN THROUGH, and this check could not have
+   * existed a commit ago.
+   *
+   * The two read fields are required on every purpose except `first`. That rule lived only in
+   * `draftProblems`, on the client, because the record did not carry a purpose for anything else
+   * to check against -- so the boundary had a choice between refusing every empty read and
+   * accepting every empty read, and the HTTP path took the first while the browser path took the
+   * second. The exemption shipped unreachable over the wire: `commitEventSchema` still carried
+   * `min(1)`, so a first decision made against a server was refused with a validation error that
+   * named a field the player had deliberately not been asked for.
+   *
+   * Now the purpose is on the event, one rule holds on both paths, and it is a REFUSAL rather
+   * than a repair: nothing here fills the fields in or downgrades the purpose. A decision that
+   * arrives empty without the standing to be empty is a client bug, and R2 says a bug is reported
+   * rather than smoothed into a row that reads like a player who said nothing.
+   */
+  /*
+   * THE ONE PROTOCOL BINDING THAT IS VERIFIABLE TODAY, and the reason it is only one.
+   *
+   * A purpose is a label the CLIENT supplies, and a label with nothing behind it is metadata from
+   * the subject rather than provenance. `anchor` is the one this build can check without believing
+   * anything it was told: bank membership is a property of the FEN, and the FEN is re-derived for
+   * the phase check above anyway. So a decision claiming to be a bank answer must be on a bank
+   * position, and the reading that compares players cannot be inflated with positions nobody else
+   * ever answered.
+   *
+   * THE OTHER DIRECTION IS NOT CHECKED, DELIBERATELY. A decision on a bank FEN claiming `play`
+   * would slip a bank answer into discovery, and refusing that here would ALSO refuse a drill or a
+   * transfer check that legitimately uses a bank position -- `decisionPurposeFor` ranks both above
+   * `anchor` precisely because what is being measured is the drill. Closing it needs the anchor
+   * payload (set version and position) that section 2 of the constitution specifies, so that a
+   * bank answer identifies its slot rather than being guessed at from the board.
+   *
+   * `drill` AND `transfer` CANNOT BE CHECKED AT ALL YET. Nothing on the commit event references
+   * the drill or the transfer it belongs to, so there is no binding to verify. That is a gap and
+   * it is named rather than papered over: until the context carries `drill_id` / `transfer_id`,
+   * those two labels are the subject's word.
+   */
+  if (input.purpose === "anchor" && !isAnchorFen(input.entry_state.fen)) {
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה נשלחה כאילו היא עמדה מהסט המשותף, אבל העמדה אינה בסט — ורק עמדות הסט נמדדות בו.",
+    );
+  }
+  /*
+   * RE-DERIVED FROM THE EVENT, WHICH IS WHAT MAKES IT A RULE RATHER THAN A CLAIM. The first
+   * version of this check read `purpose === "first"` -- a label the client supplies, which the
+   * boundary had to take on trust. `readsAreAsked` is a pure function of the purpose, the game,
+   * the position and the ply, and all four ride on the event, so the server works out for itself
+   * whether this decision was required to carry the words.
+   *
+   * A DECISION WITH NO PURPOSE IS REQUIRED TO CARRY THEM. Nothing recorded why it existed, so
+   * nothing can say the draw passed it over -- and an exemption claimable by omission would make
+   * dropping the field the way to skip the questions.
+   */
+  const required =
+    input.purpose == null
+      ? true
+      : readsAreAsked({
+          purpose: input.purpose,
+          gameId: input.entry_state.game_id,
+          fen: input.entry_state.fen,
+          ply: input.entry_state.ply,
+        });
+  if (required && (input.known.length === 0 || input.unknown.length === 0)) {
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה נשלחה בלי מה שנקרא בעמדה ובלי מה שאי אפשר להעריך בה, אבל על ההחלטה הזאת הן נדרשות.",
+    );
+  }
+  /*
    * THE ARM IS CHECKED AGAINST THE POSITION, exactly as the phase is on the line above, and for
    * the same reason: everything the record will later divide by has to be re-derived rather than
    * believed. A wrong legal-move count silently biases every estimate conditioned on it, and a
@@ -204,6 +289,15 @@ export async function commitDecision(
     ply: input.entry_state.ply,
     phase,
     clockMsRemaining: input.entry_state.clock_ms_remaining,
+    /*
+     * Stored as sent, and NOT re-derived -- because it cannot be. The phase above is recomputed
+     * from the FEN and the legal-move count from the position, precisely so a wrong label cannot
+     * bias what the record is divided by later. Why a position was in front of a player is a fact
+     * about the client's loop and nothing on the wire proves it, so this is a claim by the client
+     * with the same standing as `reveal_timing`. `?? null` rather than a default: absent means
+     * nobody recorded one.
+     */
+    purpose: input.purpose ?? null,
     secondsTaken: Math.round(input.bounded_action.seconds_taken),
     chosenMove: input.decision,
     candidateMovesConsidered: input.bounded_action.candidate_moves_considered,
@@ -1313,7 +1407,24 @@ export async function currentClaim(
 ): Promise<ClaimView> {
   const atoms = await store.listAtoms();
   const ids = await store.listDecisionIds();
-  const full = scoreDecisions(atoms, ids);
+  /*
+   * THE POPULATION THE DETECTOR MAY SEARCH, AND THE ORDER OF THESE TWO STEPS IS LOAD-BEARING.
+   *
+   * This used to be `scoreDecisions(atoms, ids)` over the whole record, so an anchor answer, a
+   * drill decision, a transfer check, a position from a game already played and a row that never
+   * recorded why it existed all competed to become the next finding about the player. The drill
+   * case is the one that matters most: the product could take a player through an exercise built
+   * to fix a weakness, read the decisions that exercise produced, and announce the next weakness
+   * from them. Evidence generated while trying to CHANGE the player, reused as evidence about how
+   * the player behaved.
+   *
+   * `shared/evidence-policy.ts` is the only authority on which of those may be read here, and the
+   * filter is applied AFTER the prereg slice below rather than before it: `decisions_before`
+   * counts raw rows as they stood at registration, so slicing a filtered array by it would take
+   * the wrong prefix and silently move the boundary a registered hypothesis is measured from.
+   */
+  const wide = forDiscovery(atoms, ids);
+  const full = scoreDecisions(wide.atoms, wide.ids);
 
   /*
    * THE BRIDGE, AND THE RULE THAT KEEPS IT FROM COMPOUNDING (shared/prereg.ts).
@@ -1342,7 +1453,14 @@ export async function currentClaim(
    * `listDecisionIds` are ordered and append-only, so the prefix is exactly what existed then.
    */
   const summary = narrowing
-    ? scoreDecisions(atoms.slice(narrowing.decisions_before), ids.slice(narrowing.decisions_before))
+    ? (() => {
+        // Slice the raw record by the raw count it was taken against, THEN admit. See above.
+        const after = forDiscovery(
+          atoms.slice(narrowing.decisions_before),
+          ids.slice(narrowing.decisions_before),
+        );
+        return scoreDecisions(after.atoms, after.ids);
+      })()
     : full;
   const thresholds = narrowing ? PREREGISTERED_THRESHOLDS : DEFAULT_THRESHOLDS;
 

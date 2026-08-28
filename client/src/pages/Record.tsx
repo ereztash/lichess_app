@@ -332,7 +332,15 @@ export default function Record() {
             statements={outcomeSummary({
               claim: claimView.data,
               reading: reading.data,
-              unreadable: claimView.isError || reading.isError,
+              /*
+               * THE TWO FAILURES ARE PASSED SEPARATELY, and the `||` that used to fold them here
+               * was the defect. A failed claim query has no `data`, so the summary returned
+               * nothing and a broken record layer rendered exactly like a brand-new one; and a
+               * failed READING silenced a claim that had loaded perfectly well. They are two
+               * queries and either can fail on its own.
+               */
+              claimUnreadable: claimView.isError,
+              readingUnreadable: reading.isError,
             })}
           />
           {reading.data && (

@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
+import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
@@ -46,6 +47,26 @@ export const decisions = mysqlTable(
     ply: int("ply").notNull(),
     phase: mysqlEnum("phase", PHASES).notNull(),
     clockMsRemaining: int("clock_ms_remaining"),
+    /**
+     * Why this position was in front of the player -- the handoff, the bank, a drill, a transfer
+     * check, an ordinary move, or a game already played.
+     *
+     * WHAT IT MAKES ANSWERABLE, and none of it was answerable before. Whether a decision was
+     * ALLOWED to arrive without the two read fields, which is the difference between a player
+     * being spared a toll and a client dropping a column. Which loop a player abandoned, since
+     * `play` and `import` are different decisions and a count that pools them cannot say. And a
+     * clean vocabulary reading, by dropping the decisions that were never asked for words.
+     *
+     * NULLABLE, AND NULL IS NOT `play`. Rows written before this column existed were never
+     * stamped, and that era holds bank positions, drills and transfer checks as well as ordinary
+     * moves. Backfilling the commonest value would not be a tidy default -- it would file every
+     * drill of that era as free play and quietly corrupt the comparison the drills exist for.
+     *
+     * NOT RE-DERIVABLE SERVER-SIDE, unlike the phase two lines up. Nothing on the wire proves why
+     * a client put a position in front of someone, so this column holds a claim rather than a
+     * measurement, exactly as `reveal_timing` does.
+     */
+    purpose: mysqlEnum("purpose", DECISION_PURPOSES),
     secondsTaken: int("seconds_taken").notNull(),
     chosenMove: varchar("chosen_move", { length: 6 }).notNull(),
     candidateMovesConsidered: json("candidate_moves_considered").$type<string[]>().notNull(),

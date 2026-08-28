@@ -66,8 +66,21 @@ export function OutcomeSummary({ statements }: { statements: readonly OutcomeSta
              * two are rendered as different things rather than merely worded differently.
              */
             data-kind={statement.kind}
+            /*
+             * THE GRADE BESIDE THE KIND, because `replicated` and `refuted` share a kind and must
+             * not share a weight. They are one kind honestly -- both are claims a forward test has
+             * graded -- so a stylesheet with only `kind` to reach for gave the strongest colour on
+             * the page to a refutation as well, while the CSS beside it said in as many words that
+             * only a survived test carries it. `Claim.grade` stays the source of truth and no new
+             * taxonomy is invented; the attribute simply lets the styling see what the word does.
+             */
+            data-grade={statement.grade ?? undefined}
           >
-            <span className="outcome-summary__badge" data-kind={statement.kind}>
+            <span
+              className="outcome-summary__badge"
+              data-kind={statement.kind}
+              data-grade={statement.grade ?? undefined}
+            >
               {label(statement)}
             </span>
             <p className="outcome-summary__text">{statement.text}</p>

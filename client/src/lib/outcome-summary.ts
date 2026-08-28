@@ -34,7 +34,7 @@
  */
 import type { ClaimView } from "@shared/record-service";
 import type { RecordReading } from "@shared/record-dashboard";
-import { GRADE_WORD, type ClaimGrade } from "@shared/claim";
+import { GRADE_WORD, type Claim, type ClaimGrade } from "@shared/claim";
 import { remainingBeforeClaim } from "@/lib/loop-position";
 
 /**
@@ -69,6 +69,17 @@ export interface OutcomeStatement {
    * giving the description a badge of its own invites the reading that it earned one.
    */
   gradeWord: string | null;
+  /**
+   * The grade itself, kept beside its word so styling can key off the state rather than the text.
+   *
+   * WHY BOTH. `gradeWord` is what the reader sees and `GRADE_WORD` owns it; this is what the
+   * REPOSITORY says, and the two are needed separately because `replicated` and `refuted` are one
+   * `kind` -- both are claims a forward test has graded -- while they are emphatically not one
+   * outcome. Without this the stylesheet could only reach them through `kind`, and a rule meant
+   * for a survived test would land on a refuted one as well: the words would still differ and the
+   * weight would not, which is the promotion-by-layout this whole layer exists to prevent.
+   */
+  grade: ClaimGrade | null;
   /** The statement itself, taken from its producer rather than composed here. */
   text: string;
   /** What that statement rests on -- the n, the count, the scope. Rendered with it (R1). */
@@ -81,19 +92,75 @@ export interface OutcomeStatement {
   source: string;
 }
 
+/**
+ * TWO FAILURES RATHER THAN ONE FLAG, because they are not the same failure and the caller had
+ * been folding them together with `||`.
+ *
+ * The claim layer and the reading are separate queries and either can fail alone. Folded into one
+ * boolean, a failed READING made the whole summary say "the record could not be read" -- throwing
+ * away a claim that had loaded perfectly well -- and a failed CLAIM could not say anything at all,
+ * because a failed query has no `data` and the function returned early on the missing view before
+ * the flag was ever consulted. The empty summary that came out was indistinguishable from the one
+ * a brand-new record gets, which is precisely the R2 confusion this layer is supposed to report.
+ */
 export interface OutcomeSummaryInput {
   claim: ClaimView | undefined;
   reading: RecordReading | undefined;
-  /** The record could not be read, from the query layer. Distinct from an empty record. */
-  unreadable: boolean;
+  /** The claim layer could not be read. The claim state is unknown, not empty. */
+  claimUnreadable: boolean;
+  /** The reading could not be read. The claim state is unaffected and still says what it says. */
+  readingUnreadable: boolean;
 }
 
 /** ProfilePanel's own sentence about what its findings are. Quoted, not paraphrased. */
 export const DESCRIPTION_CAVEAT =
   "תיאור של הרשומה, לא טענה שנבדקה. אין לזה תנאי הפרכה ואף דריל לא העמיד את זה במבחן.";
 
+/** R2, as its own statement: the claim layer did not answer, which is not an empty record. */
+function unreadableStatement(): OutcomeStatement {
+  return {
+    kind: "unreadable",
+    gradeWord: null,
+    grade: null,
+    text: "הרשומה לא נקראה, ולכן אי אפשר לומר מה יש בה.",
+    basis: null,
+    source: "ClaimView (unreadable) — R2",
+  };
+}
+
 /**
- * The one statement about the claim search -- exactly one of five states, never two.
+ * WHAT THE READER IS OWED BENEATH A GRADE, which is not the number that was under it.
+ *
+ * `Claim.n` counts the RETROSPECTIVE decisions the hypothesis was built from, and printing it
+ * alone beneath the word "שוחזר" reads as the evidence that earned the word. It is not: in this
+ * repository a grade moves on `ProspectiveDrillResult` and on nothing else, so the count that
+ * bought `replicated` or `refuted` is the decisions taken in the drills that followed the claim.
+ * The two numbers answer different questions -- where the idea came from, and what tested it --
+ * and one line carrying only the first is not a wrong number, it is a compression that credits
+ * the grade to the wrong evidence. `ClaimCard` already says "נבדק קדימה N פעמים" one screen down;
+ * this is the same fact, kept beside the word that depends on it.
+ */
+function gradeBasis(claim: Claim): string {
+  const built = `נבנה מ־${claim.n} החלטות`;
+  if (claim.grade === "hypothesis") return `${claim.scope} · ${built}`;
+
+  const tests = claim.prospective_tests;
+  /*
+   * A GRADED CLAIM WITH NO FORWARD TEST BEHIND IT IS SAID, NOT SMOOTHED. `evaluateClaim` is the
+   * only thing that moves a grade and it moves it on a drill result, so this state should not
+   * exist -- and "נבדק קדימה 0 פעמים" beneath the word "שוחזר" would be the page asserting an
+   * evidence base it is simultaneously reporting as absent. R2: an unexplained state is named.
+   */
+  if (tests.length === 0) {
+    return `${claim.scope} · ${built} · הראיה שקבעה את הדירוג לא נמצאת על הטענה`;
+  }
+  const decisions = tests.reduce((sum, test) => sum + test.decision_ids.length, 0);
+  const times = tests.length === 1 ? "פעם אחת" : `${tests.length} פעמים`;
+  return `${claim.scope} · ${built} · נבדק קדימה ${times} על ${decisions} החלטות`;
+}
+
+/**
+ * The one statement about the claim search -- exactly one of four states, never two.
  *
  * The order of the checks is the epistemic order and not a convenience: a graded claim outranks a
  * hypothesis, and both outrank a silence. The two silences are told apart by
@@ -101,39 +168,47 @@ export const DESCRIPTION_CAVEAT =
  * no pattern cleared the threshold" -- so the distinction between "still waiting" and "searched
  * and found nothing" is read from the existing function rather than re-derived from the reason
  * string, which would be parsing prose to recover a fact the code already knows.
+ *
+ * THE FIFTH STATE IS NOT HERE ANY MORE. "The record could not be read" used to be produced by
+ * this function, from a `ClaimView` it had been handed -- which is a contradiction: the view only
+ * exists when the query succeeded. It is answered by the caller now, where a failed query is
+ * actually visible.
  */
-function claimStatement(view: ClaimView, unreadable: boolean): OutcomeStatement {
+function claimStatement(view: ClaimView): OutcomeStatement {
   if (view.claim) {
     const grade: ClaimGrade = view.claim.grade;
     return {
       kind: grade === "hypothesis" ? "hypothesis" : "tested-claim",
       gradeWord: GRADE_WORD[grade].he,
+      grade,
       text: view.claim.statement,
-      basis: `${view.claim.scope} · ${view.claim.n} החלטות`,
-      source: "Claim.statement + Claim.grade (shared/claim-derivation.ts)",
+      basis: gradeBasis(view.claim),
+      source: "Claim.statement + Claim.grade + Claim.prospective_tests (shared/claim.ts)",
     };
   }
 
   const remaining = remainingBeforeClaim({
     scored: view.scored,
     preregScored: view.preregScored,
-    unreadable,
+    /*
+     * False, and not a flag threaded through from the caller: `outcomeSummary` answers an
+     * unreadable claim layer before it ever calls this, so by here the view is one that loaded.
+     */
+    unreadable: false,
   });
 
-  if (remaining === null) {
-    return {
-      kind: "unreadable",
-      gradeWord: null,
-      text: "הרשומה לא נקראה, ולכן אי אפשר לומר מה יש בה.",
-      basis: null,
-      source: "ClaimView (unreadable) — R2",
-    };
-  }
+  /*
+   * Unreachable from here for the reason directly above. Kept rather than cast away, because the
+   * signature says null is possible and a non-null assertion would be this function asserting
+   * something about a function it does not own.
+   */
+  if (remaining === null) return unreadableStatement();
 
   if (remaining > 0) {
     return {
       kind: "insufficient",
       gradeWord: null,
+      grade: null,
       // The existing reason, which already says WHY the floor is where it is.
       text: view.reason ?? "אין עדיין מספיק החלטות מדודות כדי לחפש דפוס.",
       basis: `${view.scored} החלטות מדודות · חסרות עוד ${remaining}`,
@@ -144,6 +219,7 @@ function claimStatement(view: ClaimView, unreadable: boolean): OutcomeStatement 
   return {
     kind: "no-pattern",
     gradeWord: null,
+    grade: null,
     text: view.reason ?? "אף דפוס לא עבר את הסף.",
     basis: `${view.scored} החלטות מדודות · אין דפוס מעל הסף`,
     source: "ClaimView.reason (emptySearchReason) — an outcome, not a silence",
@@ -172,6 +248,7 @@ function descriptionStatement(reading: RecordReading): OutcomeStatement | null {
   return {
     kind: "record-description",
     gradeWord: null,
+    grade: null,
     text: `${finding.variable.label}: ${finding.strongest.scope} נפרד משאר הרשומה. ${DESCRIPTION_CAVEAT}`,
     basis:
       others > 0
@@ -195,6 +272,7 @@ function stabilityStatement(reading: RecordReading): OutcomeStatement | null {
   return {
     kind: "same-twice",
     gradeWord: null,
+    grade: null,
     text:
       /*
        * "תכונה יציבה" was the first phrasing and the test rejected it -- correctly. The sentence
@@ -217,18 +295,28 @@ function stabilityStatement(reading: RecordReading): OutcomeStatement | null {
  * front door already owns that moment.
  */
 export function outcomeSummary(input: OutcomeSummaryInput): OutcomeStatement[] {
-  const { claim, reading, unreadable } = input;
-  if (!claim) return [];
-
-  const statements: OutcomeStatement[] = [claimStatement(claim, unreadable)];
+  const { claim, reading, claimUnreadable, readingUnreadable } = input;
 
   /*
-   * Nothing below the claim state when the record could not be read. The other two both describe
-   * the contents of a reading, and a reading that failed to load has no contents to describe --
-   * rendering them from a stale or empty object is exactly the R2 failure the first statement is
-   * there to report.
+   * BEFORE THE MISSING VIEW, AND THAT ORDER IS THE FIX. A failed query has no `data`, so the
+   * check below sees `undefined` and returns nothing -- which rendered a failed claim layer as a
+   * record with nothing in it. The failure has to be answered where it is known, and it is known
+   * here rather than inside `claimStatement`, which takes a view that by definition loaded.
    */
-  if (unreadable || !reading) return statements;
+  if (claimUnreadable) return [unreadableStatement()];
+  // Not an error: the query has not resolved yet, and a summary of a pending record is a guess.
+  if (!claim) return [];
+
+  const statements: OutcomeStatement[] = [claimStatement(claim)];
+
+  /*
+   * Nothing below the claim state when the READING could not be read -- and the claim statement
+   * above survives, because the two are separate queries and one failing says nothing about the
+   * other. The description and the split-half both describe the contents of a reading, and a
+   * reading that failed to load has no contents to describe: rendering them from a stale or empty
+   * object is exactly the R2 failure this layer exists to report.
+   */
+  if (readingUnreadable || !reading) return statements;
 
   const description = descriptionStatement(reading);
   if (description) statements.push(description);

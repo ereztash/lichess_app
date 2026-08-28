@@ -480,7 +480,13 @@ describe("the read chips are a ground, not eighteen boxes", () => {
      */
     render(
       <CommitmentScreen
-        position={{ gameId: "g", fen: START, ply: 0, clockMsRemaining: null } as never}
+        /*
+         * A purpose the read fields are always asked on. They are drawn now -- asked on the same
+         * decisions the confidence question is -- so a position with no purpose falls to the draw,
+         * and this fixture's board and ply happen to be one the draw passes over. The chips would
+         * be absent for a reason that has nothing to do with what this test is about.
+         */
+        position={{ gameId: "g", fen: START, ply: 0, clockMsRemaining: null, purpose: "drill" } as never}
         chosenMove="e2e4"
         candidatesConsidered={["e2e4"]}
         onCommit={() => {}}

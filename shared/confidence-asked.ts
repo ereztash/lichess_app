@@ -42,8 +42,14 @@
  * a surface added later has to name itself rather than quietly default. `play` and `import` both
  * mean "nothing measures this" and are kept apart anyway: they are different decisions and a
  * count that pools them could not say which loop a player abandoned.
+ *
+ * A RUNTIME TUPLE AND NOT A BARE TYPE, because the purpose is now a recorded field. A TypeScript
+ * union is erased, and the three places that have to police this vocabulary at runtime -- the
+ * atom's schema, the wire schema and the MySQL enum -- can only read a list that survives to
+ * runtime. The type is derived from the list rather than written twice, so a purpose added here
+ * reaches the column and the boundary without anyone having to remember to widen them.
  */
-export type DecisionPurpose =
+export const DECISION_PURPOSES = [
   /**
    * The one position the front door hands over, from a game the player actually played.
    *
@@ -52,18 +58,75 @@ export type DecisionPurpose =
    * `scored > 0`, so a drawn-over first decision left the newcomer on the same screen that had
    * just sent them out -- three times in four -- with the screen's own words promising "תגידו כמה
    * אתם בטוחים". A front door whose success rate is one in four is not a front door.
+   *
+   * IT IS ALSO THE ONE DECISION ALLOWED TO ARRIVE WITHOUT THE TWO READ FIELDS, which is the
+   * second reason this value had to become storable. The exemption is a rule ABOUT a purpose, so
+   * a record that did not carry the purpose could not enforce it -- see `decisionAtomSchema`.
    */
-  | "first"
+  "first",
   /** A position from the shared bank. The only reading comparable between players lives here. */
-  | "anchor"
+  "anchor",
   /** A drill position. The verdict IS a calibration gap against the record's baseline. */
-  | "drill"
+  "drill",
   /** The forward check on a rule the player wrote. Graded the same way. */
-  | "transfer"
+  "transfer",
   /** An ordinary decision in a game being played. */
-  | "play"
+  "play",
   /** A position from a game already finished, reached through the import. */
-  | "import";
+  "import",
+] as const;
+
+export type DecisionPurpose = (typeof DECISION_PURPOSES)[number];
+
+/**
+ * What the screen knows about why this position is on it. Booleans plus the source, nothing else.
+ *
+ * Deliberately NOT the whole of Home's state: the caller answers four yes/no questions it already
+ * has answers to, and this owns the ordering. Passing the component's state in would let the rule
+ * grow a dependency on something only that screen has, and there is a second caller coming for
+ * every purpose that gets its own surface.
+ */
+export interface PurposeInputs {
+  /** A transfer check is running: the forward test on a rule the player wrote. */
+  inLearningTransfer: boolean;
+  /** A drill is running. */
+  inDrill: boolean;
+  /** The position is in the shared bank -- recognised by the POSITION, not by the route. */
+  isAnchor: boolean;
+  /** This is the ply the handoff named as the game's first decision. */
+  isFirstDecision: boolean;
+  /** Whether the game is being played right now, or is one already over. */
+  isLiveGame: boolean;
+}
+
+/**
+ * Why this position is in front of the player, in one place.
+ *
+ * EXTRACTED FROM `Home` WHEN THE PURPOSE BECAME A STORED FACT, and the extraction is the point
+ * rather than tidiness. As a render-time value it was a five-branch conditional in the middle of a
+ * two-thousand-line component, checkable only by reading it; as a column it is an assertion the
+ * record will carry for as long as the record exists, and an assertion nothing can test is one
+ * nobody can trust.
+ *
+ * THE ORDER IS THE RULE. A drill position that also sits in the bank is a drill -- what is being
+ * measured is the drill -- and the front door's handoff is a `first` decision even though it is
+ * served from a game already played. Each branch above the next is the more specific claim, so
+ * reordering them silently reclassifies decisions rather than failing anywhere.
+ */
+export function decisionPurposeFor(inputs: PurposeInputs): DecisionPurpose {
+  if (inputs.inLearningTransfer) return "transfer";
+  if (inputs.inDrill) return "drill";
+  if (inputs.isAnchor) return "anchor";
+  if (inputs.isFirstDecision) return "first";
+  /*
+   * A GAME ALREADY OVER IS NOT AN ORDINARY MOVE. Both fall through to the sampled branch of the
+   * ask rule, so nothing about the interface depends on the difference -- which is exactly why the
+   * distinction went unnoticed while the value was discarded at write. Stored, it is a claim about
+   * which loop produced the decision, and the comment on `DECISION_PURPOSES` says why the two are
+   * kept apart: a count that pools them cannot say which loop a player abandoned.
+   */
+  return inputs.isLiveGame ? "play" : "import";
+}
 
 /**
  * The purposes where the question is ALWAYS put, because the measurement is structural.
@@ -78,20 +141,24 @@ export type DecisionPurpose =
  * leaves the newcomer with no route forward at all. It is one decision per game -- the front
  * door's handoff, and the opening decision of a game against the engine.
  *
- * A CORRECTION TO WHAT THIS COMMENT USED TO SAY, kept rather than quietly deleted. It claimed
- * `first` was "stamped as its own purpose so an analysis can condition it out". IT IS NOT STAMPED
- * ANYWHERE. `purpose` is derived at render time in `Home` and discarded at write: it is absent
- * from `ATOM_FIELDS`, from `decisionAtomSchema`, and from both stores. The sentence described a
- * record that does not exist -- written, in this file, by the same hand that treats that defect
- * as the one worth catching.
+ * A CORRECTION THIS COMMENT ONCE CARRIED, AND THE STATE THAT DISCHARGED IT. The comment first
+ * claimed `first` was "stamped as its own purpose so an analysis can condition it out"; it was
+ * not stamped anywhere, and the correction said so and said what it would take -- a column, a
+ * migration and both stores. That has now been done: `purpose` is an atom field, a nullable
+ * column, and a value both stores write and read back. The history is kept rather than deleted
+ * because the defect was the interesting part -- a sentence in this file, about this file,
+ * describing a record that did not exist.
  *
- * WHAT IT COSTS, NOW THAT `first` ALSO EXEMPTS THE TWO READ FIELDS. `known_parts: null` says
- * nobody recorded the words, which is enough for `vocabulary-reading` to count the decision out
- * rather than average it in -- that reading stays honest without the purpose. What cannot be
- * answered from the record is "was this decision ALLOWED to be empty": the server cannot enforce
- * the exemption conditionally, and no analysis can separate first decisions from the rest.
- * Recording `purpose` on the atom answers all three. It is a column, a migration and both stores,
- * and it has NOT been done.
+ * WHAT THE STAMP BOUGHT, precisely, so the next reader does not overclaim it either. The server
+ * can now ask "was this decision allowed to arrive without the two read fields?" and refuse when
+ * the answer is no, which it could not do while the exemption was a rule about a fact nobody
+ * stored. An analysis can separate first decisions from the rest, and live decisions from ones
+ * taken over a game already played.
+ *
+ * WHAT IT DID NOT BUY. The purpose is the ONE atom field the server cannot re-derive: the phase
+ * comes back from the FEN and the legal-move count from the position, but why a position was in
+ * front of a player is a fact about the client's loop and nothing on the wire proves it. It is a
+ * claim by the client, exactly as `reveal_timing` is, and every reading of it inherits that.
  */
 const ALWAYS: readonly DecisionPurpose[] = ["first", "anchor", "drill", "transfer"];
 
@@ -176,6 +243,48 @@ export interface DecisionContext {
   gameId: string;
   fen: string;
   ply: number;
+}
+
+/**
+ * Whether the two read fields are asked for on this decision.
+ *
+ * WHAT THEY COST AND WHAT THEY BOUGHT. `known` and `unknown` were required on every decision
+ * except the first of a game, and nothing downstream reads either one: the detector never looks at
+ * them, and `vocabulary-reading` reads the PARTS to measure the MENU -- which options get tapped,
+ * what gets typed beside them -- rather than the answer. So an ordinary turn cost three steps,
+ * and on six decisions out of seven two of those three bought nothing measurable at all.
+ *
+ * REPORTED FROM ACTUAL PLAY, which is the only reason this changed. The confidence draw was
+ * measured at 14.7% over six thousand simulated decisions and is behaving exactly as designed;
+ * the reads were the per-turn burden, and a burden that makes a game not get finished produces no
+ * readings at all. An instrument too expensive to use is not a more careful instrument.
+ *
+ * TIED TO THE CONFIDENCE DRAW RATHER THAN GIVEN A SECOND ONE, and the coupling is the design.
+ * A decision is either fully instrumented -- move, both reads, and a stated confidence -- or it is
+ * a move and nothing else. Two independent draws would have produced decisions carrying words with
+ * no confidence and decisions carrying a confidence with no words, and neither is a complete
+ * observation of anything. Coupled, the vocabulary sample and the calibration sample are the SAME
+ * decisions, so an analysis can finally ask whether what a player could name relates to how well
+ * calibrated they were on that very position. It could not, before.
+ *
+ * NOT A CHOICE THE PLAYER MAKES, for the reason the confidence question is not: whoever skips
+ * skips because of how they feel about the position, and the sample is then curated on the
+ * variable being measured. This is the same stable draw, so the decisions that carry words are
+ * chosen by a hash and not by anybody's mood.
+ *
+ * RE-DERIVABLE BY THE SERVER, which the `first` exemption never was. Every input here rides on the
+ * commit event, so the boundary can independently work out whether a decision was required to
+ * carry the words instead of believing a client that says it was exempt. That is the difference
+ * between a rule and a claim, and it is why this replaces the purpose-only check.
+ */
+export function readsAreAsked(context: DecisionContext): boolean {
+  /*
+   * The opening decision stays exempt whatever the draw says. It is the one moment the player has
+   * not yet seen what the loop asks, and a wall of required fields is their whole first impression
+   * -- a rule nobody has been taught is a toll rather than discipline.
+   */
+  if (context.purpose === "first") return false;
+  return confidenceIsAsked(context);
 }
 
 /**

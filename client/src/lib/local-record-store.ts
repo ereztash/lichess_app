@@ -20,6 +20,7 @@ import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/deci
 import { assembleProbe } from "@shared/counterfactual";
 import { MissingClaimDirection } from "@shared/drill";
 import type { RevealTiming } from "@shared/reveal-timing";
+import type { DecisionPurpose } from "@shared/confidence-asked";
 import type {
   LearningRule,
   LearningTransfer,
@@ -562,6 +563,8 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
       phase: row.phase,
       clock_ms_remaining: row.clockMsRemaining,
     },
+    // `?? null` for the same reason as every other field below: a row this build did not write.
+    purpose: row.purpose ?? null,
     known: row.statedRead,
     unknown: row.statedUnknown,
     known_parts: row.statedReadParts ?? null,
@@ -593,9 +596,18 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
  */
 type StoredDecision = Omit<
   CommitDecisionInput,
-  "confidenceScale" | "probeAssignment" | "legalMoves" | "revealTiming"
+  "confidenceScale" | "probeAssignment" | "legalMoves" | "revealTiming" | "purpose"
 > & {
   confidenceScale?: number;
+  /**
+   * Absent on rows written before the purpose was recorded, and absent is not `play`.
+   *
+   * This store is the one that has such rows in the wild: the browser record is written by
+   * whatever build the player last loaded, and it is never migrated. A row from the era when the
+   * purpose was derived at render time and thrown away has no purpose, and reading it as an
+   * ordinary move would invent the one fact it does not hold.
+   */
+  purpose?: DecisionPurpose | null;
   /**
    * Absent on rows an earlier build wrote, and absent is a FOURTH STATE rather than a control
    * arm: those decisions were never randomised into anything.

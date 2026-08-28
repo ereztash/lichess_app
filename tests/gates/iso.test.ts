@@ -15,6 +15,7 @@ async function reportFields(): Promise<string[]> {
     ply: 0,
     phase: "opening",
     clockMsRemaining: null,
+    purpose: "play",
     secondsTaken: 9,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],
