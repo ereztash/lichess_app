@@ -62,17 +62,32 @@ const INDEX = "dist/public/index.html";
  *
  * The gzip ceiling went 200 -> 202 (201.2 measured) and the initial-download ceiling 720 -> 724
  * (720.6 measured), for the same code and the same reason.
+ *
+ * RAISED A THIRD TIME, 652 -> 653, FOR THE VALUE-CLARITY SENTENCES. Measured 652.2 kB, so this is
+ * the smallest raise that clears it and the ratchet keeps its property of sitting just above the
+ * build. All three ceilings moved again because all three were crossed by the same 0.2 kB.
+ *
+ * IT IS TEXT AND IT CANNOT BE DEFERRED, which is the whole argument. The added weight is
+ * `shared/promise.ts`, one evidence label per reveal branch, the continuation proposition and the
+ * commitment screen's reason -- every one of them a sentence that has to be on screen at the
+ * moment the player is deciding whether this product is worth their attention. A lazy chunk that
+ * arrives after the first paint would be the front door's promise showing up late, which is the
+ * one place in this app where late is the same as absent.
+ *
+ * WHAT WAS CONSIDERED. `shared/promise.ts` is imported by `Record.tsx`, which is the entry route:
+ * there is nothing to split it away from. The evidence labels ride in `shared/reveal.ts`, already
+ * in the entry chunk for the reveal path.
  */
-const ENTRY_RAW_KB = 652;
+const ENTRY_RAW_KB = 653;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 202;
+const ENTRY_GZIP_KB = 203;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
  * Separate from the entry ceiling because a stylesheet growing past a megabyte would be invisible
  * to a JavaScript-only budget, and `index.css` is already 3,693 lines.
  */
-const INITIAL_RAW_KB = 724;
+const INITIAL_RAW_KB = 725;
 
 interface Asset {
   name: string;
