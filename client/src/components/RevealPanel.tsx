@@ -44,7 +44,7 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
       {/* 1 -- before any number */}
       <section className="reveal-block reveal-limits">
         <h3>
-          <AlertTriangle size={14} /> מה אי אפשר להסיק מכאן
+          <AlertTriangle size={14} /> מה ההחלטה הזאת עדיין לא אומרת
         </h3>
         <ul>
           {limits.map((limit) => (
@@ -62,11 +62,17 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
       {/* 2 -- one thing */}
       <section className="reveal-block reveal-one-thing">
         <h3>
-          <Target size={14} /> הדבר האחד לעבוד עליו
+          <Target size={14} /> מה קרה כאן
         </h3>
         {oneThing ? (
           <>
             <p className="one-thing-text">{oneThing.text}</p>
+            {/*
+              * The event above, what it points at here. Two elements rather than one sentence,
+              * because they are not equally certain: the first is what the record holds, the
+              * second is a reading of it. A branch with nothing to point at renders nothing.
+              */}
+            {oneThing.note && <p className="one-thing-note">{oneThing.note}</p>}
             <p className="one-thing-basis">מבוסס על: {oneThing.basis}</p>
           </>
         ) : (
@@ -97,7 +103,7 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
       {/* 3 -- the next question */}
       <section className="reveal-block reveal-question">
         <h3>
-          <HelpCircle size={14} /> השאלה הבאה
+          <HelpCircle size={14} /> מה שווה לבדוק
         </h3>
         <p>{question}</p>
         {statedKnown.trim() && <p className="reveal-echo">הקריאה שלך הייתה: "{statedKnown}"</p>}
@@ -106,7 +112,7 @@ export function RevealPanel({ inputs, analysis, fen, statedKnown }: RevealPanelP
       {/* 4 -- everything else, collapsed */}
       <details className="reveal-secondary">
         <summary>
-          <ChevronDown size={13} /> מספרים ופרטי מנוע
+          <ChevronDown size={13} /> פרטי הניתוח
         </summary>
         <div className="reveal-secondary-body">
           <div className="reveal-metric">

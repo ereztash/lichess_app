@@ -83,11 +83,18 @@ const pct = (value: number) => `${Math.round(value * 100)}%`;
 export function statementFor(pattern: CandidatePattern): string {
   const { scope, inside, outside } = pattern;
   const direction = pattern.predicts_overconfidence ? "גבוה יותר" : "נמוך יותר";
+  /*
+   * PLAYER WORDS, IDENTICAL ARITHMETIC. `הביטחון המוצהר` and `דיוק בפועל` are the internal names
+   * for the two quantities; a player says "how sure I said I was" and "what actually came out".
+   * Every number, both denominators, the direction and the closing caveat are unchanged -- and the
+   * caveat is the load-bearing part: this is a CONTRAST between two groups, never a statement
+   * about how confident the player is in one of them.
+   */
   return (
-    `ב-${scope} (${inside.n} החלטות) הביטחון המוצהר ${direction} ביחס לדיוק בפועל ` +
-    `מאשר בשאר ההחלטות: ביטחון ממוצע ${pct(inside.meanConfidence)} מול דיוק ${pct(inside.accuracyRate)}. ` +
-    `בשאר ההחלטות (${outside.n}): ביטחון ${pct(outside.meanConfidence)} מול דיוק ${pct(outside.accuracyRate)}. ` +
-    `ההשוואה היא בין שתי הקבוצות, לא על גובה הביטחון בכל אחת מהן בנפרד.`
+    `ב-${scope} (${inside.n} החלטות) אמרת שאתה בטוח ${direction} ביחס למה שיצא בפועל, ` +
+    `מאשר בשאר ההחלטות: בממוצע אמרת ${pct(inside.meanConfidence)} ויצא ${pct(inside.accuracyRate)}. ` +
+    `בשאר ההחלטות (${outside.n}): אמרת ${pct(outside.meanConfidence)} ויצא ${pct(outside.accuracyRate)}. ` +
+    `ההשוואה היא בין שתי הקבוצות, ולא על כמה שהיית בטוח בכל אחת מהן בנפרד.`
   );
 }
 
@@ -109,10 +116,21 @@ export function statementFor(pattern: CandidatePattern): string {
  * and `finishDrill` since cycle 46.
  */
 export function refutationConditionFor(pattern: CandidatePattern): string {
+  /*
+   * THE BAR STAYS IN ITS OWN WORDS. `שגיאות תקן` is a statistical term and it survives the rewrite
+   * on purpose: the comment above this function exists because the sentence once promised a plain
+   * comparison while `evaluateRefutation` applied a separability bar, and a player held to a
+   * condition nobody showed them has been held to nothing. Naming the bar is what makes the claim
+   * falsifiable, and refutation here is terminal.
+   *
+   * `ההשערה הופרכה` is also unchanged. Until the tri-state verdict exists, a test that merely
+   * fails to support a claim marks it refuted -- so any plainer phrasing would read as evidence
+   * that the pattern is gone, which is more than the mechanism can say.
+   */
   const bar = `בפער של לפחות ${PREREGISTERED_SEPARABILITY_K} שגיאות תקן`;
   return pattern.predicts_overconfidence
-    ? `בדריל של עמדות מ-${pattern.scope}, אם הפער בין הביטחון המוצהר לדיוק בפועל לא יהיה גדול יותר מאשר בשאר ההחלטות ${bar} — ההשערה הופרכה.`
-    : `בדריל של עמדות מ-${pattern.scope}, אם הביטחון המוצהר לא יהיה נמוך מהדיוק בפועל יותר מאשר בשאר ההחלטות ${bar} — ההשערה הופרכה.`;
+    ? `בבדיקה חדשה על עמדות מ-${pattern.scope}, אם הפער בין כמה שאמרת שאתה בטוח לבין מה שיצא בפועל לא יהיה גדול יותר מאשר בשאר ההחלטות ${bar} — ההשערה הופרכה.`
+    : `בבדיקה חדשה על עמדות מ-${pattern.scope}, אם מה שאמרת לא יהיה נמוך ממה שיצא בפועל יותר מאשר בשאר ההחלטות ${bar} — ההשערה הופרכה.`;
 }
 
 export function deriveClaim(

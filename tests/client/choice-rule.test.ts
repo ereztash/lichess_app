@@ -50,15 +50,27 @@ const missed: RevealInputs = { ...rejected, candidatesConsidered: ["f8c5", "d7d6
 describe("the reading itself", () => {
   it("names the choice rule when the engine's move was on the board", () => {
     const one = theOneThing(rejected)!;
+    expect(one.kind).toBe("chose-past-it");
     expect(one.text).toContain("g8f6");
     expect(one.text).toContain("f8c5");
-    expect(one.text).toMatch(/מה שהכריע ביניהם/);
+    /*
+     * THE READING NOW LIVES IN `note`, and the split is what this assertion follows.
+     *
+     * `text` is the chess event -- which move was on the board, which was played, what it cost.
+     * "the difficulty was choosing, not finding" is a reading OF that event, and it moved to its
+     * own field so the two do not render with the same certainty. The invariant is unchanged: the
+     * reading is present exactly when the board record licenses it, which is what the next test
+     * holds from the other side.
+     */
+    expect(one.note).toMatch(/לבחור/);
   });
 
   it("says nothing of the kind when the move was never placed", () => {
     // The same numbers, the same confidence. Only the record of what was on the board differs,
     // and it is the only thing that licenses the sentence.
-    expect(theOneThing(missed)!.text).not.toMatch(/מה שהכריע ביניהם/);
+    const one = theOneThing(missed)!;
+    expect(one.kind).not.toBe("chose-past-it");
+    expect(`${one.text} ${one.note ?? ""}`).not.toMatch(/הנחת על הלוח|לבחור בינו/);
   });
 
   it("carries a basis that states how many moves the count is out of", () => {
@@ -75,8 +87,9 @@ describe("the reading itself", () => {
      */
     const both = { ...rejected, confidence: CONFIDENCE_LEVELS };
     const one = theOneThing(both)!;
-    expect(one.text).toMatch(/מה שהכריע ביניהם/);
-    expect(one.text).not.toMatch(/אמרת ביטחון/);
+    expect(one.kind).toBe("chose-past-it");
+    expect(one.note).toMatch(/לבחור/);
+    expect(`${one.text} ${one.note ?? ""}`).not.toMatch(/אמרת שאתה בטוח/);
   });
 
   it("stays silent inside engine noise, however the moves were recorded", () => {

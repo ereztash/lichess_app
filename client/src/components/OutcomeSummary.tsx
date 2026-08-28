@@ -31,12 +31,25 @@ import type { OutcomeKind, OutcomeStatement } from "@/lib/outcome-summary";
  * and this must not invent a synonym for it -- so `tested-claim` and `hypothesis` are absent here
  * and read `statement.gradeWord`.
  */
+/**
+ * What each kind is called on screen.
+ *
+ * `תיאור`, `תוצאה` and `עוד אין מספיק` are already the words a player would use and are left alone.
+ * The other two were the ones exposing the machinery:
+ *
+ *   `לא נקרא` said the reading failed without saying what a reader should conclude, which is
+ *   nothing. `לא הצלחנו לקרוא` names the failure as the product's rather than the record's.
+ *
+ *   `עקביות פנימית` is a statistical term for a split-half check. `אותו דבר בשתי המחציות` says
+ *   exactly what was compared and claims no more: it is still two halves of ONE sitting, still
+ *   not a test across time, and the statement itself carries that caveat.
+ */
 const KIND_LABEL: Record<Exclude<OutcomeKind, "tested-claim" | "hypothesis">, string> = {
   "record-description": "תיאור",
   "no-pattern": "תוצאה",
   insufficient: "עוד אין מספיק",
-  unreadable: "לא נקרא",
-  "same-twice": "עקביות פנימית",
+  unreadable: "לא הצלחנו לקרוא",
+  "same-twice": "אותו דבר בשתי המחציות",
 };
 
 function label(statement: OutcomeStatement): string {

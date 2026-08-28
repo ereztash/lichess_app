@@ -38,19 +38,37 @@ const renderPanel = (inputs = INPUTS, analysis: EngineLine | null = ANALYSIS) =>
 const headings = (container: HTMLElement) =>
   [...container.querySelectorAll("h3, summary")].map((el) => el.textContent?.trim() ?? "");
 
+/**
+ * The four blocks in the order they render, identified by what they ARE rather than by what they
+ * are called.
+ *
+ * This used to read the heading text. The order is the invariant section 4.2 fixes -- limits
+ * before any number -- and the wording of a heading is not: rewriting `מה אי אפשר להסיק מכאן` into
+ * player language broke three assertions that had nothing to say about ordering. Keying on the
+ * block class means the next rewrite cannot make these tests fail for the wrong reason, and
+ * cannot make them pass while the blocks move either.
+ */
+const blocks = (container: HTMLElement) =>
+  [...container.querySelectorAll(".reveal-block, details.reveal-secondary")].map((el) =>
+    [...el.classList].find((name) => name.startsWith("reveal-") && name !== "reveal-block"),
+  );
+
 describe("the reveal order is what section 4.2 says it is", () => {
   it("puts what cannot be inferred first, before anything else", () => {
     const { container } = renderPanel();
-    expect(headings(container)[0]).toContain("מה אי אפשר להסיק");
+    expect(blocks(container)[0]).toBe("reveal-limits");
   });
 
   it("orders limits, then one thing, then next question, then the numbers", () => {
     const { container } = renderPanel();
-    const order = headings(container);
-    expect(order[0]).toContain("מה אי אפשר להסיק");
-    expect(order[1]).toContain("הדבר האחד");
-    expect(order[2]).toContain("השאלה הבאה");
-    expect(order[3]).toContain("מספרים");
+    expect(blocks(container)).toEqual([
+      "reveal-limits",
+      "reveal-one-thing",
+      "reveal-question",
+      "reveal-secondary",
+    ]);
+    // Four headings render, so no block is reachable without one to introduce it.
+    expect(headings(container)).toHaveLength(4);
   });
 
   it("keeps the evaluation collapsed, not on the surface", () => {
@@ -83,7 +101,7 @@ describe("the reveal order is what section 4.2 says it is", () => {
     // the best move while naming a different one is a state the product cannot produce, and a
     // fixture that describes an impossible record proves nothing about a real one.
     const quiet = { ...INPUTS, cpLoss: 4, chosenWasBest: true, confidence: EVEN_ODDS_LEVEL, bestMove: "g8f6" };
-    expect(headings(renderPanel(quiet).container)[0]).toContain("מה אי אפשר להסיק");
+    expect(blocks(renderPanel(quiet).container)[0]).toBe("reveal-limits");
   });
 
   it("never renders a number without its provenance", () => {
