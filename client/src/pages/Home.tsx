@@ -194,7 +194,26 @@ export default function Home() {
    * change, so a field it does not carry is erased on the first render after the restore -- here,
    * before the player has made the decision the handoff exists for.
    */
-  const [firstDecisionPly, setFirstDecisionPly] = useState<number | null>(null);
+  /*
+   * ZERO, NOT NULL, AND THE DEFAULT IS THE WHOLE DEFECT THIS FIXES.
+   *
+   * `newGame` sets this to 0 and says why; the front door's handoff sets it to the ply it means.
+   * But the board this component renders before either of them runs is ALSO a live game at the
+   * opening position -- it is what `/play` shows anyone who arrives without pressing anything --
+   * and it was the one live game whose opening decision was not a first decision. Walked in
+   * Chromium from an empty profile: the atom came back `purpose: "play"`, `confidence: null`,
+   * because `currentPly + 1 === firstDecisionPly` compared `0 === null`.
+   *
+   * What that cost is not a tap. `first` is in `ALWAYS`, so the question is put and the decision
+   * is scoreable; drawn as `play` it goes to `ASK_RATE` and six arrivals in seven record a
+   * decision nothing can read -- on a screen the front door reached having promised "תבחרו מהלך
+   * ותגידו כמה אתם בטוחים", and with `scored` left at zero, which is the state the front door
+   * shows `FirstDecision` for. The newcomer is returned to the door they just came through.
+   *
+   * The default board and `newGame`'s board are the same board, so they carry the same value. A
+   * loaded game is not -- see `importPgn` and `loadLichessGame`, which clear it.
+   */
+  const [firstDecisionPly, setFirstDecisionPly] = useState<number | null>(0);
   const [orientation, setOrientation] = useState<Orientation>("w");
   const [selectedSquare, setSelectedSquare] = useState<string>();
   const [analysis, setAnalysis] = useState<EngineLine | null>(null);
@@ -1415,6 +1434,17 @@ export default function Home() {
       setPgnInput(pgn);
       closePositionSource();
       setSource("imported");
+      /*
+       * CLEARED, because a loaded game has no first decision of its own.
+       *
+       * `first` names the one position a handoff put in front of the player to produce their
+       * first scoreable decision, and `Record` sets it to the ply it means when it means it.
+       * Loading a PGN over the default board would otherwise leave the board's own 0 standing,
+       * and a player who rewound to the start of someone else's game would have that decision
+       * stamped as the front door's handoff. Null is the honest value: this game was not handed
+       * over, so no ply in it is the first decision.
+       */
+      setFirstDecisionPly(null);
       gameId.current = `pgn-${Date.now()}`;
       // No opponent for a loaded game: the other side's moves are already in the PGN.
       setOpponent(null);
@@ -1477,6 +1507,8 @@ export default function Home() {
       setPgnInput(game.pgn);
       closePositionSource();
       setSource("finished");
+      // Cleared for the reason `importPgn` gives: a game loaded here was not handed over.
+      setFirstDecisionPly(null);
       gameId.current = `lichess-${game.id}`;
       setOpponent(null);
       answeredFen.current = null;

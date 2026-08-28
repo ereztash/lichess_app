@@ -222,3 +222,37 @@ describe("the record says the player authored it, so the player has to have answ
     expect(atom?.feedback?.would_choose_again).toBe(true);
   });
 });
+
+describe("the hardest thing on the reveal is not also the biggest thing on it", () => {
+  /*
+   * MEASURED. Built app, Chromium, 390x844, first reveal from an empty profile: this section was
+   * 877px of a 3315px page -- 26%, the largest single element on it, and twice the height of the
+   * whole reveal panel above it. Nine fields asking for a falsifiable rule, open by default, on
+   * decision number one, seven hundred pixels below the reveal's own sentence saying "זו החלטה
+   * אחת שנרשמה. שום דבר כאן אינו דפוס".
+   *
+   * NOTHING IS GATED AND NOTHING WAS REMOVED. A rule written from one decision is a hypothesis,
+   * and the product grades it by testing it forward on new decisions -- which is exactly what it
+   * is for. What was wrong was the weight.
+   */
+  it("opens closed, with the offer still fully on screen", () => {
+    const { container } = render(<LearningRuleComposer sourceDecisionId={ID} onSaved={() => {}} />);
+    const details = container.querySelector("details.learning-composer-body");
+    expect(details, "the composer's fields are not behind a disclosure").not.toBeNull();
+    expect(details!.hasAttribute("open"), "the composer still opens expanded").toBe(false);
+    // The summary IS the heading it replaced, so the offer costs the same screen it always did.
+    expect(details!.querySelector("summary")?.textContent).toContain("נסחו כלל שאפשר להפריך");
+  });
+
+  it("keeps every field, so this is a weight change and not a removal", () => {
+    const { container } = render(<LearningRuleComposer sourceDecisionId={ID} onSaved={() => {}} />);
+    const fields = container.querySelectorAll(
+      ".learning-composer-fields textarea, .learning-composer-fields input",
+    );
+    expect(fields.length, "fields were dropped rather than folded").toBeGreaterThan(5);
+    expect(
+      container.querySelector(".learning-composer-fields .learning-save"),
+      "the save control left the disclosure and now sits alone",
+    ).not.toBeNull();
+  });
+});

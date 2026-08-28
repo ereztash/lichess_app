@@ -56,6 +56,8 @@ const at = (overrides: Partial<LoopInputs> = {}): LoopPosition =>
     drill: null,
     recorded: 0,
     scored: 0,
+    awaitingReveal: 0,
+    withoutConfidence: 0,
     claimGrade: null,
     scoredStillNeeded: 0,
     narrowedTo: null,

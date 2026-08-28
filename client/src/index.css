@@ -1355,8 +1355,11 @@ button:not(:disabled) {
   color: var(--edge-soft);
   font-size: var(--panel-label);
 }
+/* One rank down from `--panel-display`, so that on a screen carrying a reveal the largest thing
+   is the product's own sentence rather than the number every other chess tool also shows. Still
+   the largest element in the analysis column, which is the job it actually has. */
 .score-number {
-  font: 700 var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-heading) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .engine-status {
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -2665,15 +2668,35 @@ button:not(:disabled) {
   flex-direction: column;
   gap: 0.3rem;
 }
+/* First on the screen and smallest on it: an ordering claim and a weight claim are different
+   claims, and this block was making both. Still fully legible, still before the finding. */
 .reveal-limits li {
-  font-size: var(--panel-body);
+  font-size: var(--panel-label);
   line-height: 1.5;
-  opacity: 0.88;
+  opacity: 0.8;
 }
+/*
+ * THE SENTENCE THIS SCREEN EXISTS TO SAY, AND IT WAS THE FOURTH-LARGEST THING ON IT.
+ *
+ * Measured on the built app in Chromium at 390x844, first reveal from an empty profile, page
+ * 3315px tall: `.reveal-panel` 436px of it, of which the limits block took 180 and this sentence
+ * took 92 -- the disclaimer twice the size of the finding it disclaims. The engine's evaluation
+ * digit, in `.analysis-hero` below, was 186px on its own at `--panel-display`.
+ *
+ * So the epistemic order was right and the weight was inverted: the player read three paragraphs
+ * of what the decision cannot say, then one small line of what it can, then a large number any
+ * engine would have given them. `--panel-display` is documented as "the one largest thing on a
+ * screen, and there is one" -- on a screen carrying a reveal, this is that thing, and
+ * `.score-number` steps down to `--panel-heading` so there is still only one.
+ *
+ * NOTHING MOVED. The blocks are in the same order, the limits still come first, and no sentence
+ * changed. Weight is the only thing that changed, which is the only lever that does not touch
+ * what the reader is entitled to believe.
+ */
 .one-thing-text {
   margin: 0;
-  font-size: var(--panel-data);
-  line-height: 1.55;
+  font-size: var(--panel-display);
+  line-height: 1.35;
   font-weight: 600;
 }
 /*
@@ -2945,6 +2968,23 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+}
+/*
+ * The composer's nine fields, behind their own disclosure.
+ *
+ * The section keeps its border and padding; the `<details>` stays a plain block so its own
+ * closed-state behaviour is not fighting a layout mode, and one wrapper inside it holds the
+ * fields. The summary IS the heading it replaced, so nothing was added to the screen.
+ */
+.learning-composer-body > summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+.learning-composer-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-block-start: 0.65rem;
 }
 .learning-heading span {
   display: block;

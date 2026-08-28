@@ -71,6 +71,41 @@ const RecordDashboard = lazy(() =>
   import("@/components/RecordDashboard").then((m) => ({ default: m.RecordDashboard })),
 );
 
+/**
+ * Hand a bank position to the board.
+ *
+ * ONE COPY, TWO CALLERS, and the second caller is the reason it was lifted out of
+ * `AnchorRunControl`. The bank is now reachable from two places -- the returning player's control
+ * inside the record layer, and the cold arrival who has no account to import from -- and a second
+ * transcription of this handoff is a second chance for the two routes to disagree about what a
+ * bank decision is. `firstDecisionPly: null` in particular is load-bearing: an anchor is always
+ * asked on its own purpose, and stamping it `first` as well would put two names on one decision.
+ */
+async function handOverBankPosition(
+  answered: readonly string[],
+  navigate: (to: string) => void,
+): Promise<"served" | "set-complete"> {
+  const next = await nextAnchor(answered);
+  if (!next) return "set-complete";
+  /*
+   * The same handoff a first decision uses. The board restores from this store on mount, so an
+   * anchor position arrives by the path a returning player's own game already takes.
+   */
+  writePosition({
+    sans: [...next.sans],
+    ply: next.ply,
+    source: "finished",
+    // An anchor position is one decision, so the coached loop -- the same as the handoff above.
+    revealTiming: "per-decision",
+    firstDecisionPly: null,
+    orientation: next.sans.length % 2 === 0 ? "w" : "b",
+    opponent: null,
+    gameId: `anchor-${next.id}`,
+  });
+  navigate("/play");
+  return "served";
+}
+
 function FirstDecision({ knownUsername }: { knownUsername?: string }) {
   const [, navigate] = useLocation();
   const [username, setUsername] = useState(knownUsername ?? "");
@@ -202,6 +237,44 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         העמדה נבחרת בלי להסתכל על מה שיצא מהמהלך שלכם — לא רצה עליה מנוע ולא נבדקה שום תוצאה.
         המשחקים נמשכים מ-{SOURCE_LABEL[source]} ולא נשמרים כאן.
       </p>
+
+      {/*
+        * THE ROUTE FOR SOMEONE WITH NO ACCOUNT TO IMPORT FROM, and the reason it is here rather
+        * than left to the header's `ללוח`.
+        *
+        * Walked in Chromium from an empty profile. `ללוח` is a bare `navigate("/play")`: it lands
+        * on the opening position of a new live game, which is a position where NO reveal branch
+        * can fire. `theOneThing` needs either a centipawn loss at or over the material threshold
+        * or a stated confidence to say anything at all, and the starting position gives a loss of
+        * zero. So the first thing this product ever said to an account-less arrival was "אין כאן
+        * דבר שהמדידה תומכת באמירתו" -- true, correct, and not what they came for.
+        *
+        * The bank is the set of positions that exist to be decided on, it is already served by
+        * `AnchorRunControl` through the same handoff, and it was gated behind `scored > 0` --
+        * that is, behind exactly the state this screen means "not yet". Opening it here adds no
+        * capability and no position; it removes a gate from in front of the one route that works.
+        *
+        * SECOND, NOT FIRST. The player's own game is still the better first decision -- it is
+        * their position, and the note above says why that matters -- so this stays below it and
+        * says what it is rather than competing for the same click.
+        */}
+      <div className="first-decision-alt">
+        <p>
+          אין לכם חשבון באף אחד מהם, או שלא בא לכם למסור שם משתמש? אפשר להתחיל מעמדה מהסט המשותף —
+          אותן עמדות שכולם עונים עליהן.
+        </p>
+        <button
+          type="button"
+          className="ghost-control"
+          disabled={busy}
+          onClick={() => {
+            setError(null);
+            void handOverBankPosition([], navigate);
+          }}
+        >
+          עמדה מהסט המשותף
+        </button>
+      </div>
     </section>
   );
 }
@@ -222,30 +295,10 @@ function AnchorRunControl({ answered }: { answered: readonly string[] }) {
 
   async function start() {
     setBusy(true);
-    const next = await nextAnchor(answered);
-    if (!next) {
+    if ((await handOverBankPosition(answered, navigate)) === "set-complete") {
       setDone(true);
       setBusy(false);
-      return;
     }
-    /*
-     * The same handoff a first decision uses. The board restores from this store on mount, so an
-     * anchor position arrives by the path a returning player's own game already takes.
-     */
-    writePosition({
-      sans: [...next.sans],
-      ply: next.ply,
-      source: "finished",
-      // An anchor position is one decision, so the coached loop -- the same as the handoff above.
-      revealTiming: "per-decision",
-      // Not the front door's first decision: an anchor is always asked on its own purpose, and
-      // stamping it `first` too would put two names on one decision.
-      firstDecisionPly: null,
-      orientation: next.sans.length % 2 === 0 ? "w" : "b",
-      opponent: null,
-      gameId: `anchor-${next.id}`,
-    });
-    navigate("/play");
   }
 
   if (done) {

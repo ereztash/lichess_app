@@ -112,6 +112,8 @@ describe("the sentence the app already computed reaches the top of the page", ()
       drill: null,
       recorded: 12,
       scored: 7,
+      awaitingReveal: 5,
+      withoutConfidence: 0,
       claimGrade: null,
       scoredStillNeeded: 53,
       narrowedTo: null,

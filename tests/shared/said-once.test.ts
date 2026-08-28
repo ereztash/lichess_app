@@ -90,6 +90,9 @@ function ribbonText(view: ClaimView): string {
     drill: null,
     recorded: view.recorded,
     scored: view.scored,
+    // Read off the view, exactly as `useLoopPosition` reads them.
+    awaitingReveal: view.awaitingReveal,
+    withoutConfidence: view.withoutConfidence,
     claimGrade: view.claim?.grade ?? null,
     scoredStillNeeded: remainingBeforeClaim({
       scored: view.scored,

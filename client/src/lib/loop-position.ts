@@ -47,9 +47,24 @@ export type ClaimGrade = "hypothesis" | "replicated" | "refuted";
 export interface LoopInputs {
   /** A drill is running right now, and its progress. */
   drill: { completed: number; total: number } | null;
-  /** Decisions on the record, and how many of them the engine has answered. */
+  /** Decisions on the record, and how many of them this reading is computed over. */
   recorded: number;
   scored: number;
+  /**
+   * The two reasons the rest are not in `scored`, taken from the record rather than subtracted.
+   *
+   * THIS USED TO BE `Math.max(0, recorded - scored)` AND THE SENTENCE IT FED WAS FALSE. The
+   * difference is not one thing: some of those decisions are waiting for the engine, and the
+   * rest were revealed on positions where the confidence question was never put, so nothing will
+   * ever score them. Walked in Chromium from an empty profile -- one decision, revealed, engine
+   * verdict in the store -- and the strip said "1 כבר רשומות וממתינות לחשיפה" nine seconds after
+   * the reveal had rendered on screen.
+   *
+   * Under a sampled ask rule the second group is most of the record, so this is not an edge:
+   * it is the ordinary state of every player's strip.
+   */
+  awaitingReveal: number;
+  withoutConfidence: number;
   /** The grade of the claim currently on offer, or null when there is no claim. */
   claimGrade: ClaimGrade | null;
   /**
@@ -145,8 +160,16 @@ export function remainingBeforeClaim(input: {
 }
 
 export function loopPosition(inputs: LoopInputs): LoopPosition {
-  const { drill, recorded, scored, claimGrade, scoredStillNeeded, narrowedTo } = inputs;
-  const awaiting = Math.max(0, recorded - scored);
+  const {
+    drill,
+    recorded,
+    scored,
+    claimGrade,
+    scoredStillNeeded,
+    narrowedTo,
+    awaitingReveal: awaiting,
+    withoutConfidence,
+  } = inputs;
 
   if (drill) {
     return {
@@ -202,7 +225,23 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   }
 
   if (scoredStillNeeded > 0) {
+    /*
+     * TWO SENTENCES BECAUSE THERE ARE TWO STATES, and folding them was the defect.
+     *
+     * A decision waiting for the engine is a wait: it ends by itself, and saying so is useful.
+     * A decision recorded where the confidence question was not put is not waiting for anything,
+     * and telling the player it is describes a problem they cannot act on -- while hiding the one
+     * they can, which is that the floor is counted in a unit that only some decisions reach.
+     *
+     * The second sentence says WHY rather than how many are left, because how many are left
+     * depends on a draw and the product does not know it in advance. What it does know is the
+     * rule, and the rule is what makes the number on the left of it interpretable.
+     */
     const waiting = awaiting > 0 ? ` ${awaiting} כבר רשומות וממתינות לחשיפה.` : "";
+    const passed =
+      withoutConfidence > 0
+        ? ` ${withoutConfidence} נרשמו בעמדות שבהן לא נשאלה שאלת הביטחון, ולכן אינן נספרות כאן.`
+        : "";
 
     if (narrowedTo) {
       /*
@@ -212,7 +251,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        */
       return {
         step: "record",
-        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}`,
+        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}${passed}`,
         basis: `${scored} החלטות שנמדדו ברשומה · החיפוש מצומצם`,
         /*
          * Nowhere to send anyone. An import has already narrowed the search, so the one thing
@@ -238,7 +277,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     return {
       step: "record",
       headline:
-        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting} ` +
+        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed} ` +
         `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם סוג אחד שנבדל מהשאר.`,
       basis: `${scored} נמדדו מתוך ${recorded} שנרשמו`,
       /*

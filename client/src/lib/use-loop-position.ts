@@ -55,6 +55,13 @@ export function useLoopPosition(drill: DrillProgress): LoopView {
       drill,
       recorded: data?.recorded ?? 0,
       scored,
+      /*
+       * From the view rather than from `recorded - scored`. Zero when the record has not answered
+       * is a silence: the strip says nothing about a wait it cannot see, which is the one honest
+       * thing to say before the counts arrive.
+       */
+      awaitingReveal: data?.awaitingReveal ?? 0,
+      withoutConfidence: data?.withoutConfidence ?? 0,
       claimGrade: data?.claim?.grade ?? null,
       scoredStillNeeded: stillNeeded,
       narrowedTo: narrowing?.scope ?? null,

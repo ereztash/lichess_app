@@ -140,6 +140,127 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
     expect(summary.withoutConfidence).toBe(0);
   });
 
+  it("carries the OTHER front door -- the board with no handoff at all -- to the same place", () => {
+    /*
+     * THE ROUTE THIS GATE DID NOT WALK, AND IT IS THE ONE MOST ARRIVALS TAKE.
+     *
+     * `Record`'s header carries `ללוח`, a bare `navigate("/play")` with no handoff written. It is
+     * the first interactive element on the front door and the only one that does not require a
+     * username, so it is the whole route for anyone without an account. The board it lands on is
+     * a live game at the opening position -- and that board went through neither `newGame` (which
+     * sets `firstDecisionPly` to 0 and says why) nor the handoff (which sets it to the ply it
+     * means). It ran on the component's own `useState` initial value.
+     *
+     * Walked in Chromium from an empty profile: the stored atom came back `purpose: "play"`,
+     * `confidence: null`, and the record read `0 נמדדו מתוך 1 שנרשמו`. Every local invariant was
+     * satisfied. The gate above was green. It is the same liveness failure this file was written
+     * for, one door along -- which is why the fix is a second walk rather than a second assertion
+     * inside the first.
+     *
+     * THE TWO DEFAULTS ARE READ OFF THE SOURCE, not restated here, for the reason the clock
+     * assertion below gives: a stated fact drifts. What the rule compares is `currentPly + 1`
+     * against `firstDecisionPly`, so both halves have to come from the file that renders them or
+     * the comparison is a fixture agreeing with itself.
+     */
+    const source = ts.createSourceFile(
+      "Home.tsx",
+      readFileSync(HOME, "utf8"),
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+
+    /** The literal a `useState` is initialised with, for one destructured state name. */
+    const initialOf = (name: string): number | null | undefined => {
+      let found: number | null | undefined;
+      const walk = (node: ts.Node): void => {
+        if (
+          ts.isVariableDeclaration(node) &&
+          ts.isArrayBindingPattern(node.name) &&
+          node.name.elements.some(
+            (el) => ts.isBindingElement(el) && ts.isIdentifier(el.name) && el.name.text === name,
+          ) &&
+          node.initializer &&
+          ts.isCallExpression(node.initializer)
+        ) {
+          const [arg] = node.initializer.arguments;
+          if (!arg) found = undefined;
+          else if (arg.kind === ts.SyntaxKind.NullKeyword) found = null;
+          else if (ts.isNumericLiteral(arg)) found = Number(arg.text);
+          else if (ts.isPrefixUnaryExpression(arg) && ts.isNumericLiteral(arg.operand)) {
+            found = arg.operator === ts.SyntaxKind.MinusToken
+              ? -Number(arg.operand.text)
+              : Number(arg.operand.text);
+          }
+        }
+        ts.forEachChild(node, walk);
+      };
+      walk(source);
+      return found;
+    };
+
+    const currentPly = initialOf("currentPly");
+    const firstDecisionPly = initialOf("firstDecisionPly");
+    expect(typeof currentPly, "no currentPly state in Home; this assertion went blind").toBe(
+      "number",
+    );
+
+    // `Home` derives it exactly this way, and nothing else in the component decides it.
+    const decisionPly = (currentPly as number) + 1;
+    const purpose: DecisionPurpose = decisionPly === firstDecisionPly ? "first" : "play";
+    expect(
+      purpose,
+      "the board every account-less arrival lands on calls its opening decision ordinary play",
+    ).toBe("first");
+
+    const gameId = "live-1787903252462";
+    const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    expect(
+      confidenceIsAsked({ purpose, gameId, fen: START, ply: decisionPly }),
+      "the account-less route asked nothing, so its one decision measures nothing",
+    ).toBe(true);
+
+    /*
+     * AND THE SAME POSITION UNDER THE OTHER PURPOSE IS THE CONTROL, in the same test rather than
+     * in a mutation: this exact game, position and ply is one the draw passes over. So the
+     * assertion above is not passing because the sampler happened to say yes here -- it is
+     * passing because `first` is in `ALWAYS`.
+     */
+    expect(
+      confidenceIsAsked({ purpose: "play", gameId, fen: START, ply: decisionPly }),
+      "the draw says yes on this position anyway; the assertion above proves nothing",
+    ).toBe(false);
+
+    const event = buildCommitEvent(
+      "11111111-1111-4111-8111-222222222222",
+      { gameId, fen: START, ply: decisionPly, clockMsRemaining: null, purpose },
+      { ...emptyDraft(), chosenMove: "e2e4", confidence: 5 },
+      12.4,
+      "per-decision",
+    );
+    const atom = {
+      ...event,
+      result: {
+        engine_eval_cp: 33,
+        engine_best_move: "e2e4",
+        engine_depth: 14,
+        engine_source: "local_sf18" as const,
+        cp_loss: 0,
+      },
+      feedback: null,
+      probe: event.probe ?? null,
+      reveal_timing: event.reveal_timing ?? null,
+      bounded_action: { ...event.bounded_action, confidence_scale: CONFIDENCE_LEVELS },
+    } as unknown as DecisionAtom;
+
+    const summary = scoreDecisions([atom], [event.decision_id]);
+    expect(
+      summary.scored,
+      "one decision through the account-less door and the record still reads empty",
+    ).toHaveLength(1);
+    expect(summary.withoutConfidence).toBe(0);
+  });
+
   it("holds the shared bank behind exactly the condition the chain above satisfies", () => {
     /*
      * The gate's own premise, asserted rather than assumed. If `Record` ever stops keying the

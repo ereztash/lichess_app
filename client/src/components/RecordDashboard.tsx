@@ -107,13 +107,32 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
   } = reading;
 
   if (scored === 0) {
+    /*
+     * THE EMPTY STATE HAS TWO CAUSES AND USED TO NAME ONLY ONE.
+     *
+     * "עוד לא נחשפה אף החלטה" was printed whenever `scored` was zero, and `scored` is not the
+     * revealed count -- it is the revealed count that also carries a stated confidence. Walked
+     * in Chromium from an empty profile: one decision, committed, revealed, the engine's verdict
+     * rendered on the same screen, and this panel said no decision had been revealed. The player
+     * is told to do the thing they have already done.
+     *
+     * The second sentence is about the protocol, not about them, and it does not tell them to
+     * keep going: nothing they do makes a decision already recorded without the question
+     * scoreable. What it does is make the first number they will ever see here interpretable.
+     */
+    const reason =
+      reading.withoutConfidence > 0
+        ? `${reading.withoutConfidence} החלטות נחשפו, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
+          "שאלת הביטחון נשאלת תמיד בסט המשותף ובתרגול, ובחלק מההחלטות במשחק חופשי. " +
+          "פער כיול נקרא רק מהחלטות שנשאלו."
+        : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם.";
     return (
       <section className="analysis-section record-dashboard">
         <div className="section-heading">
           <span>הרשומה שלך</span>
           <Gauge size={14} />
         </div>
-        <NotMeasured reason="עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם." />
+        <NotMeasured reason={reason} />
       </section>
     );
   }
