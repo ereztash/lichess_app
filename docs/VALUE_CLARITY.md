@@ -141,7 +141,7 @@ it is recorded below.
 | 2 — Differentiated promise | **CLEAR** | REQUIRED | `shared/promise.ts` is imported by the front door and the card builder, so those two cannot drift; the three ideas are asserted **per meta tag**; prohibited vocabulary is a shared list checked on the joined copy. |
 | 3 — Action → payoff causality | **CLEAR** | REQUIRED | The commitment screen states the reason, not only the rule; no mind-claiming verbs in it; the candidate-list asymmetry stated in the direction the record runs. |
 | 4 — Reveal salience and boundary | **CLEAR** | REQUIRED | `ONE_THING_EVIDENCE` labels each branch and is proved by **ablation** rather than read back; silence renders no label and keeps its sentence; both classes typeset identically. |
-| 5 — Continuation economics | **CLEAR** | REQUIRED | One constant, identical across five outcomes and three record sizes, no digit, no unlock vocabulary, post-commit only, and the CTA names the experiment in the proposition's own words. |
+| 5 — Continuation economics | **CLEAR** | REQUIRED | One constant, identical across five outcomes and three record sizes, no digit, no unlock vocabulary, post-commit only; the CTA names the experiment in the proposition's own words and renders directly under it. |
 
 **Verdict: REPO-CLEAR / FIELD REQUIRED.** Every remaining uncertainty under all five lenses is a
 question about what a person understands, and no further edit in this repository can shrink it.
@@ -154,6 +154,20 @@ The unfurl's three ideas were first asserted on `description`, `og:description`,
 reddened only the construct check, not the anchors — the other three tags were carrying the missing
 idea. No surface ever reads the four joined: Twitter reads one, iMessage another, a screen reader
 the alt. Each is now asserted on its own, and the same control now names the exact missing idea.
+
+### Found by re-auditing the rendered screen rather than the constants
+
+Both were invisible in the source and obvious in Chromium — worth keeping in mind, because the lens
+tables above are written against constants and two of this pass's findings were properties of what
+those constants render *next to*.
+
+- **The evidence line echoed the line under it.** `EVIDENCE_LABEL` opened "נשען על"; `OneThing.basis`
+  renders immediately below, prefixed "מבוסס על:". Two consecutive lines starting with near-synonyms
+  for *rests on*, saying different things — the class of evidence, and the measurement detail. The
+  same referent collision the constant had already been renamed once to avoid, back as layout.
+- **The reason to continue was 1,200 px from the way to act on it.** The proposition renders around
+  y=1200 of a 2,715 px page at 390×844; the only post-reveal control was in the page header at y=0,
+  which is not sticky, with the whole engine analysis column in between.
 
 ### Checked and deliberately not changed
 
