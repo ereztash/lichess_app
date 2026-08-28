@@ -23,14 +23,24 @@ describe("GATE-GRADE: a claim never renders above its grade", () => {
   });
 
   it("says what would refute it, on screen, next to the claim", () => {
+    /*
+     * THE CONDITION ITSELF, and the block that introduces it -- not the wording of its heading.
+     * What section 3.3 requires is that a claim cannot be read without the thing that would sink
+     * it; the label above it is copy, and keying a gate to copy makes the gate fail on a rewrite
+     * that changed nothing about the guarantee.
+     */
     const { container } = render(<ClaimCard claim={N1_HYPOTHESIS} othersWithheld={0} />);
-    expect(container.textContent).toContain("מה יפריך את זה");
-    expect(container.textContent).toContain(N1_HYPOTHESIS.refutation_condition);
+    const block = container.querySelector(".claim-refutation");
+    expect(block, "the refutation condition has no block of its own").not.toBeNull();
+    expect(block!.textContent).toContain(N1_HYPOTHESIS.refutation_condition);
   });
 
   it("says how many other patterns were withheld rather than showing them all", () => {
     const { container } = render(<ClaimCard claim={N1_HYPOTHESIS} othersWithheld={2} />);
-    expect(container.textContent).toContain("עוד 2 דפוסים");
+    // The COUNT is the guarantee: they are counted rather than listed. The noun is copy.
+    const withheld = container.querySelector(".claim-withheld");
+    expect(withheld, "nothing says how many were withheld").not.toBeNull();
+    expect(withheld!.textContent).toContain("2");
   });
 
   it("uses the finding word only once a prospective drill has been survived", () => {

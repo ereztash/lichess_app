@@ -2676,6 +2676,19 @@ button:not(:disabled) {
   line-height: 1.55;
   font-weight: 600;
 }
+/*
+ * What the event points at, one step quieter than the event itself.
+ *
+ * Lighter than `.one-thing-text` because it is a reading rather than a record: the line above is
+ * what happened, this is what it may be about. Equal weight would let the interpretation borrow
+ * the certainty of the fact.
+ */
+.one-thing-note {
+  margin: 0.3rem 0 0;
+  font-size: var(--panel-body);
+  line-height: 1.55;
+  opacity: 0.82;
+}
 /* R1: the sentence never appears without the measurement that produced it. */
 .one-thing-basis {
   margin: 0.35rem 0 0;

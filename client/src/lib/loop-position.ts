@@ -24,11 +24,22 @@ import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
 export const LOOP_STEPS = ["record", "detect", "drill", "grade"] as const;
 export type LoopStep = (typeof LOOP_STEPS)[number];
 
+/**
+ * What each step is called on screen, in a chess player's words rather than the loop's.
+ *
+ * THE STEPS THEMSELVES DO NOT MOVE. `LoopStep` is still record -> detect -> drill -> grade, and
+ * every rule that reads it is untouched; this is the label, and only the label. A player does not
+ * need to learn that the product calls their moves "רישום" before it will tell them where they are.
+ *
+ * "תשובה" RATHER THAN A FINISH LINE. The four are not a progress bar and not every record reaches
+ * a pattern -- `loopPosition` has a state that says so in as many words, and it is a result rather
+ * than a failure to advance.
+ */
 export const STEP_LABELS: Record<LoopStep, string> = {
-  record: "רישום",
-  detect: "דפוס",
-  drill: "דריל",
-  grade: "דירוג",
+  record: "מהלכים",
+  detect: "מה חוזר",
+  drill: "בדיקה",
+  grade: "תשובה",
 };
 
 export type ClaimGrade = "hypothesis" | "replicated" | "refuted";

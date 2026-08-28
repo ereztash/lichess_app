@@ -105,8 +105,15 @@ describe("heuristic 10: the product explains itself", () => {
      * there is a record worth looking at, i.e. weeks in. The explanation arrived after the thing
      * it explains.
      */
+    /*
+     * THE PHENOMENON, NOT THE TERM FOR IT. This asserted `/כיול/` -- the internal word -- and the
+     * help text taught it in a sentence whose only job was to teach it. A player needs to
+     * understand the thing being measured; they do not need to pass a vocabulary test, and the
+     * heuristic this test is named for is that the product explains ITSELF, not its jargon.
+     */
     render(<WhatThisIs onClose={() => {}} />);
-    expect(screen.getByText(/כיול/)).toBeTruthy();
+    expect(screen.getByText(/כמה שהיית בטוח/)).toBeTruthy();
+    expect(screen.getByText(/מה שקרה בפועל/)).toBeTruthy();
   });
 
   it("explains WHY the engine stays silent, which is the rule that confuses people", async () => {

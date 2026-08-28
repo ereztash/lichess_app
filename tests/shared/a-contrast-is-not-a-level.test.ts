@@ -107,10 +107,15 @@ describe("a bucket that separates upward while the player is underconfident in i
   it("says the comparison it actually made, and prints both pairs of numbers", () => {
     const statement = statementFor(opening!);
     // The contrast — the thing that cleared the separability bar.
-    expect(statement).toContain("ביחס לדיוק בפועל מאשר בשאר ההחלטות");
-    // Both levels on the screen, so the absolute direction is visible rather than asserted.
-    expect(statement).toContain("50% מול דיוק 55%");
-    expect(statement).toContain("35% מול דיוק 65%");
+    // The comparison, in whatever words: the claim is a contrast between two groups, not a level.
+    expect(statement).toContain("ביחס למה שיצא בפועל");
+    expect(statement).toContain("מאשר בשאר ההחלטות");
+    /*
+     * Both pairs on the screen, so the absolute direction is visible rather than asserted. The
+     * words around them moved into player language; the four numbers and their pairing did not.
+     */
+    expect(statement).toContain("אמרת 50% ויצא 55%");
+    expect(statement).toContain("אמרת 35% ויצא 65%");
     // And a reader who finishes "higher relative to accuracy here" as "I am overconfident here"
     // is told, in the same paragraph, that this is not what was measured.
     expect(statement).toContain("ההשוואה היא בין שתי הקבוצות");

@@ -37,7 +37,7 @@ export function ClaimPanel({
 
   if (query.isLoading) {
     return (
-      <section id="claim-panel" className="claim-panel" aria-label="דפוסים">
+      <section id="claim-panel" className="claim-panel" aria-label="מה חוזר">
         <p className="claim-loading">
           <Loader2 size={14} /> קורא את הרשומה…
         </p>
@@ -48,9 +48,9 @@ export function ClaimPanel({
   if (query.isError) {
     // R2: a record we could not read must not look like a record with nothing in it.
     return (
-      <section id="claim-panel" className="claim-panel" aria-label="דפוסים">
+      <section id="claim-panel" className="claim-panel" aria-label="מה חוזר">
         <h3>
-          <FlaskConical size={14} /> דפוסים
+          <FlaskConical size={14} /> מה חוזר
         </h3>
         <NotMeasured reason={`לא ניתן לקרוא את רשומת ההחלטות: ${query.errorMessage}`} />
       </section>
@@ -61,16 +61,16 @@ export function ClaimPanel({
   if (!data) return null;
 
   return (
-    <section id="claim-panel" className="claim-panel" aria-label="דפוסים">
+    <section id="claim-panel" className="claim-panel" aria-label="מה חוזר">
       <h3>
-        <FlaskConical size={14} /> דפוסים
+        <FlaskConical size={14} /> מה חוזר
       </h3>
 
       <div className="claim-progress">
-        <Value label="החלטות ברשומה" provenance={{ kind: "player", unit: "נרשמו" }}>
+        <Value label="מהלכים שנרשמו" provenance={{ kind: "player", unit: "נרשמו" }}>
           {data.recorded}
         </Value>
-        <Value label="מתוכן נחשפו" provenance={{ kind: "player", unit: "יש להן פסק מנוע" }}>
+        <Value label="מתוכם נבדקו מול המנוע" provenance={{ kind: "player", unit: "יש להן פסק מנוע" }}>
           {data.scored}
         </Value>
       </div>
@@ -103,7 +103,14 @@ export function ClaimPanel({
               className="claim-run-drill"
               onClick={() => onRunDrill(data.claim!.claim_id)}
             >
-              הריצו דריל — בדיקה קדימה שיכולה להפריך
+              {/*
+                * "בדיקה חדשה" and nothing stronger. Today's drill is not yet split into a
+                * Prospective Claim Test and a Learning Drill -- it both teaches and grades -- so
+                * calling it a proof, a validation or an experiment would claim a separation the
+                * implementation does not have. What is true of it is that it collects new
+                * decisions, and that those decisions can knock the pattern down.
+                */}
+              בדיקה חדשה — החלטות חדשות שיכולות להפיל את זה
             </button>
           )}
           {data.claim.grade === "refuted" && (

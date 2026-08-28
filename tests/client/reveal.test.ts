@@ -78,7 +78,9 @@ describe("the one thing to work on is one thing, or nothing", () => {
 
   it("prefers the calibration gap over the move when confidence was high and loss was real", () => {
     const one = theOneThing(from({ cpLoss: 180, chosenWasBest: false, confidence: CONFIDENCE_LEVELS }));
-    expect(one?.text).toContain("הפער בין הביטחון לתוצאה");
+    // The branch, not its wording: the confidence reading now sits in `note` beside the event.
+    expect(one?.kind).toBe("confident-and-wrong");
+    expect(one?.note).toContain("בטוח");
     expect(one?.basis).toContain(`ביטחון ${CONFIDENCE_LEVELS}/${CONFIDENCE_LEVELS}`);
   });
 

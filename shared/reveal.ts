@@ -213,7 +213,23 @@ export type OneThingKind =
 
 export interface OneThing {
   kind: OneThingKind;
+  /**
+   * WHAT HAPPENED, and only that. A chess event in chess words: which move was on the board,
+   * which one was played, what it cost.
+   *
+   * SEPARATED FROM `note` BELOW, because one sentence carrying both the event and what to make of
+   * it is a sentence a reader cannot disagree with by halves. The event is a fact of this record;
+   * what is worth looking at is a reading of it, and the two deserve different confidence.
+   */
   text: string;
+  /**
+   * What that event points at, when the branch has the standing to point at anything.
+   *
+   * NULL IS ORDINARY. A branch that can only report the event says only the event. Nothing here
+   * recommends work: `theOneThing` measures one decision, and "spend your week on this" is a claim
+   * about a player that one decision cannot support.
+   */
+  note: string | null;
   /** What measurement produced this sentence. Rendered with it, never without. */
   basis: string;
 }
@@ -242,7 +258,22 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP && rejectedTheBest) {
     return {
       kind: "chose-past-it",
-      text: `${inputs.bestMove} היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ. ראית את המהלך; מה שהכריע ביניהם הוא מה שכדאי להסתכל עליו, לא הראייה.`,
+      /*
+       * "הנחת על הלוח" AND NOT "ראית", and the correction is the point of this rewrite.
+       *
+       * The comment above already said the phrasing should be "you recorded it" rather than "you
+       * saw it" -- and the sentence underneath it said `ראית את המהלך`. What the record holds is
+       * board interaction: this move was put on the board before the commit. That is strictly less
+       * than seeing, and much less than considering. A player who drags a piece to test a square
+       * and drags it back has recorded the move without having judged it.
+       *
+       * The weaker sentence is also the more useful one. "The engine's move was already among the
+       * ones you put on the board" is a concrete chess event a player can check against their own
+       * memory of the position; "you saw it" is a claim about their mind that the record cannot
+       * make, and one they may simply know to be false.
+       */
+      text: `${inputs.bestMove} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ.`,
+      note: "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר.",
       basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
@@ -270,21 +301,28 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   ) {
     return {
       kind: "confident-and-wrong",
-      text: `אמרת ביטחון ${inputs.confidence} מתוך ${inputs.confidenceScale}, וההחלטה עלתה ${inputs.cpLoss} ס״פ. הפער בין הביטחון לתוצאה הוא מה שכדאי להסתכל עליו, לא המהלך.`,
+      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${inputs.cpLoss} ס״פ.`,
+      note: "היית בטוח כאן יותר ממה שהתוצאה הצדיקה. זה על הביטחון, לא על המהלך.",
       basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
     return {
       kind: "outplayed",
-      text: `המהלך ${inputs.chosenMove} עלה ${inputs.cpLoss} ס״פ מול ${inputs.bestMove}. שווה להבין מה ${inputs.bestMove} רואה שהוא לא.`,
+      text: `${inputs.chosenMove} עלה ${inputs.cpLoss} ס״פ מול ${inputs.bestMove}.`,
+      note: `מה ${inputs.bestMove} עושה בעמדה הזאת ש-${inputs.chosenMove} לא עושה?`,
       basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
   if (noisy && stated !== null && stated <= UNSURE_ENOUGH_TO_NAME) {
     return {
       kind: "trusted-it-too-little",
-      text: `בחרת נכון בתוך רעש ההערכה, אבל אמרת ביטחון ${inputs.confidence} מתוך ${inputs.confidenceScale}. ייתכן שאתה יודע כאן יותר ממה שאתה סומך על עצמו.`,
+      text: `בחרת מהלך תקין, ואמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale} בלבד.`,
+      /*
+       * "ייתכן" stays. One decision cannot say a player systematically under-trusts themselves --
+       * that is a claim the detector needs MIN_BUCKET_N decisions before it will make.
+       */
+      note: "ייתכן שידעת כאן יותר ממה שסמכת על עצמך.",
       basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
