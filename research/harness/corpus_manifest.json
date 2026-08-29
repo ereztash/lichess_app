@@ -1,0 +1,51 @@
+{
+  "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-02.pgn.zst",
+  "month": "2026-02",
+  "prefixBytes": 24000000,
+  "gamesRead": 72854,
+  "gamesAdmissible": 46295,
+  "distinctPlayers": 39231,
+  "playersWithFullWindow": 237,
+  "playersChosen": 5,
+  "gamesPerPlayer": 12,
+  "selection": "first N by username, fixed before anything was scored",
+  "players": [
+    {
+      "playerId": "9f3e649e06572494",
+      "games": 12,
+      "speeds": [
+        "bullet",
+        "ultrabullet"
+      ]
+    },
+    {
+      "playerId": "d518fb260bad10a3",
+      "games": 12,
+      "speeds": [
+        "bullet"
+      ]
+    },
+    {
+      "playerId": "77688005b3153818",
+      "games": 12,
+      "speeds": [
+        "bullet"
+      ]
+    },
+    {
+      "playerId": "fd31a43e141e2cfe",
+      "games": 12,
+      "speeds": [
+        "blitz"
+      ]
+    },
+    {
+      "playerId": "778c5b87b5d981ad",
+      "games": 12,
+      "speeds": [
+        "bullet"
+      ]
+    }
+  ],
+  "corpusSha256": "c67b17b6b98cdaa93305bf1e348cc21688fc04726636d9a70f254710fcdb2668"
+}

@@ -80,7 +80,7 @@ describe("a search bounded by nodes", () => {
     expect(clear).toBeLessThan(go);
   });
 
-  it("leaves the application's depth search exactly as it was", async () => {
+  it("keeps the application's depth search a depth search", async () => {
     const { worker, engine } = client();
     const pending = engine.analyze(FEN, 14);
     await tick();
@@ -89,7 +89,37 @@ describe("a search bounded by nodes", () => {
     await pending;
 
     expect(worker.goCommands).toEqual(["go depth 14"]);
-    expect(worker.sent).not.toContain("ucinewgame");
+  });
+
+  it("starts every search from an empty table, whatever bounds it", async () => {
+    /*
+     * The defect this holds, MEASURED through the product's own import path on 5 real Lichess
+     * players (`scripts/run_import_harness.ts`): with the table carried from one position to the
+     * next, importing the same 12 games in reverse order moved a bucket's accuracy rate by up to
+     * 11.8 percentage points. The evaluation was a function of the position AND of whatever had
+     * been searched before it, which is not a measurement of the position.
+     *
+     * Asserted on every path, because the one that shipped this was the ordinary one.
+     */
+    const { worker, engine } = client();
+    for (const run of [
+      () => engine.analyze(FEN, 12),
+      () => engine.analyzeAlternatives(FEN, 12, 2),
+      () => engine.analyzeNodes(FEN, 5000, 1),
+    ]) {
+      const pending = run();
+      await tick();
+      worker.reply("info depth 12 multipv 1 score cp 8 nodes 1000 pv e2e4");
+      worker.reply("bestmove e2e4");
+      await pending;
+    }
+
+    const clears = worker.sent.filter((m) => m === "ucinewgame").length;
+    expect(clears, "one clear per search").toBe(3);
+    // And each clear precedes the search it belongs to, rather than trailing the previous one.
+    for (const go of worker.goCommands) {
+      expect(worker.sent.lastIndexOf("ucinewgame", worker.sent.indexOf(go))).toBeGreaterThan(-1);
+    }
   });
 
   it("keeps MultiPV sticky-safe: a one-line node search resets the option it inherited", async () => {

@@ -96,11 +96,22 @@ export class UciEngine {
     return this.run(request.fen, `go nodes ${request.nodes}${moves}`, request.multipv ?? 1);
   }
 
-  private async run(fen: string, go: string, multipv: number): Promise<SearchResult> {
+  private async run(
+    fen: string,
+    go: string,
+    multipv: number,
+    clearHash = true,
+  ): Promise<SearchResult> {
     while (this.busy) await new Promise<void>((r) => this.queue.push(r));
     this.busy = true;
     try {
-      this.send("ucinewgame");
+      /*
+       * Clearing is right for a budgeted trajectory and WRONG for a harness that has to mirror the
+       * product: `StockfishClient.analyze` never sends `ucinewgame`, so a real import searches a
+       * game's positions with a table warmed by the positions before them. A harness that cleared
+       * would be measuring a different engine from the one the player runs.
+       */
+      if (clearHash) this.send("ucinewgame");
       await this.ready();
       this.send(`setoption name MultiPV value ${multipv}`);
       this.send(`position fen ${fen}`);
@@ -145,8 +156,8 @@ export class UciEngine {
    * A depth-bounded search, for the ONE question that needs one: how many nodes does the depth the
    * product searches to actually cost? Everything else in this study is node-bounded by design.
    */
-  async searchDepth(fen: string, depth: number): Promise<SearchResult> {
-    return this.run(fen, `go depth ${depth}`, 1);
+  async searchDepth(fen: string, depth: number, clearHash = true): Promise<SearchResult> {
+    return this.run(fen, `go depth ${depth}`, 1, clearHash);
   }
 
   quit() {

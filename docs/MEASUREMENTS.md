@@ -222,11 +222,13 @@ A position bank drawn from games the player has never seen would remove this. Th
   bucket is also worst calibrated there. If they routinely are not, the bridge shortens the wait
   and points at the wrong place, and the refutation condition on every registration is what would
   eventually say so -- on a real record, which does not exist yet.
-- **The import diagnostic against a real Lichess account.** Every part of the path is tested with
-  synthetic games and a stub engine -- PGN clock extraction, colour matching, batch scoring,
-  bucketing, the screen. No real username has been searched, no real PGN scored, and the
-  end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
-  the logic; what nobody has watched is the run.
+- **The import diagnostic against a real Lichess account.** Partly closed. `scripts/run_import_harness.ts`
+  runs `runImportDiagnostic` -- the same function the import screen calls -- over **60 real games
+  from 5 real Lichess players** with a real engine at the import's own depth 12, and dumps every
+  intermediate. See "What a real import actually did" below. **Still unmeasured:** the browser
+  itself. The harness uses a native Stockfish 17.1, not the Stockfish 18 Lite WASM build the
+  product ships, and the end-to-end wall clock of a real import in a real browser has still not
+  been observed. The games and the pipeline are real; the runtime is not.
 - ~~**A think time that was never measured, counted as zero seconds.**~~ **FIXED.**
   `secondsSpentAt` returns null when a think time cannot be derived, and its own comment says why:
   "a first move recorded as 0 seconds is a fabricated data point in the bucket this product cares
@@ -432,6 +434,48 @@ the move that was not played, which is why the reveal now asks for two.
 (30) is reported as a preference rather than a reason: the engine broke a tie between two moves
 it does not really distinguish. The panel already said differences under 30 cp say nothing here;
 it had never applied that to the move it was itself recommending.
+
+### What a real import actually did, and the number that moved when nothing did
+
+**The first run of this product's import path on real games.** `scripts/run_import_harness.ts`
+calls `runImportDiagnostic` with a real engine at depth 12, over a frozen corpus of 60 real Lichess
+games (5 players, 12 games each, CC0 open database, `research/harness/corpus_manifest.json`), and
+dumps all 1,762 decisions with their eval, centipawn loss, phase, clock, think time and forced flag.
+
+Three runs per player answer three different questions.
+
+| question | run | result |
+| --- | --- | --- |
+| Does the harness repeat itself? | the corpus twice, two engine processes | **identical**, both the reading and all 1,762 rows |
+| Does the reading depend on the ORDER the games arrived in? | the same games reversed | **yes** — on every one of the 5 players |
+| Is the transposition table the cause? | both orders, table cleared per position | **order-independence restored**, on every player |
+
+**The size of it.** Reversing the order of a player's games — same games, same player, same engine,
+same depth, same n in every bucket — moved a bucket's accuracy rate by up to **11.8 percentage
+points**:
+
+| player | largest bucket shift |
+| --- | ---: |
+| 9f3e649e… | 11.81 pp |
+| fd31a43e… | 10.18 pp |
+| d518fb26… | 8.12 pp |
+| 778c5b87… | 3.01 pp |
+| 77688005… | 2.75 pp |
+
+**Why.** `StockfishClient.analyze` sent no `ucinewgame`, so the transposition table survived from
+one position to the next and a position's evaluation depended on everything searched before it.
+That is not a measurement of the position. It matters here more than it would elsewhere, because
+`worstBucketVerdict` asks a weakest bucket to clear roughly 25 points at n = 30 before the screen
+may name it — and an artefact of nearly 12 points is approaching half of that bar.
+
+**Fixed**, by clearing before every search on every path. **What that costs, measured on the same
+runs rather than assumed: 1.43x the import's engine time** (1.36x–1.49x across the five players).
+One run each on one machine, so the ratio is the figure to read and the seconds are not a benchmark.
+
+**What this does not say.** The corpus is 5 players chosen by the first-N-by-username rule fixed
+before anything was scored, not a sample of the product's users; and the engine is native
+Stockfish 17.1, not the WASM build the browser runs. The order effect is structural — a shared
+table is a shared table — but its magnitude on the shipped engine has not been measured.
 
 ### What a full import costs, and who pays it
 

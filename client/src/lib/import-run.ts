@@ -57,6 +57,18 @@ export interface ImportRunResult {
   diagnostic: ImportDiagnostic;
   /** Games whose PGN produced no positions at all, so they contributed nothing. */
   unreadable: number;
+  /**
+   * The per-game evidence the diagnostic was computed from.
+   *
+   * The run already builds this and used to drop it on the floor, which made the reading the only
+   * output: a number with no way to ask what it was made of. Handed back so a harness can call
+   * `decisionsFromGame` on the same inputs and dump every intermediate -- eval, cpLoss, phase,
+   * clock, forced -- rather than re-deriving them from a second copy of the pipeline that could
+   * disagree with this one.
+   *
+   * Nothing in the UI reads it; it costs one reference to an array that already exists.
+   */
+  inputs: ImportedGameInput[];
   /** True when the run was stopped early. The diagnostic then covers only what was scored. */
   aborted: boolean;
 }
@@ -148,6 +160,7 @@ export async function runImportDiagnostic(
 
   return {
     diagnostic: diagnoseImportedGames(inputs),
+    inputs,
     unreadable: games.length - readable.length,
     aborted: options.signal?.aborted === true,
   };

@@ -128,12 +128,10 @@ export class StockfishClient {
    * blitz-computation research needs to vary. `go nodes N` is the same amount of thinking by
    * construction.
    *
-   * THE HASH IS CLEARED FIRST, and only on this path. Without `ucinewgame` a 50-node search that
-   * follows a 400,000-node search of the same position reads the deep answer straight out of the
-   * transposition table: every budget then agrees, the trajectory looks perfectly stable, and the
-   * budget has become a label rather than a constraint. The depth path deliberately does not clear
-   * it -- the application searches a stream of DIFFERENT positions from one game, where a warm
-   * table is a saving and not a contaminant.
+   * The hash is cleared first, as it now is on every path (see `search`). It matters most here:
+   * without `ucinewgame` a 50-node search that follows a 400,000-node search of the same position
+   * reads the deep answer straight out of the transposition table, every budget then agrees, the
+   * trajectory looks perfectly stable, and the budget has become a label rather than a constraint.
    */
   async analyzeNodes(fen: string, nodes: number, multiPv = 1): Promise<EngineLine[]> {
     return this.search(fen, { kind: "nodes", value: nodes }, multiPv);
@@ -165,8 +163,28 @@ export class StockfishClient {
       }, 12000) as unknown as number;
       this.current = { resolve, reject, timer, fen };
       this.worker?.postMessage("stop");
-      // Node-budgeted searches only; see analyzeNodes. The depth path must keep its warm table.
-      if (limit.kind === "nodes") this.worker?.postMessage("ucinewgame");
+      /*
+       * EVERY SEARCH STARTS FROM AN EMPTY TABLE, and this is a measurement decision rather than a
+       * performance one.
+       *
+       * Without it, a position's evaluation depends on which positions were searched before it:
+       * the transposition table survives from one `go` to the next, so an import of the same games
+       * in a different order produces different evaluations, different centipawn losses, and a
+       * different accuracy rate for the same player.
+       *
+       * MEASURED, on 5 real Lichess players, 12 real games each, through this product's own import
+       * path (`scripts/run_import_harness.ts`): reversing the order of the games moved a bucket's
+       * accuracy rate by up to 11.8 PERCENTAGE POINTS, on every player tested. Clearing the table
+       * before each position restored order-independence exactly, on every player tested. The
+       * product's own `worstBucketVerdict` asks a weakest bucket to clear roughly 25 points at
+       * n = 30, so the artefact was approaching half the bar it has to beat.
+       *
+       * WHAT IT COSTS, measured on the same runs rather than assumed: 1.43x the import's engine
+       * time (1.36x-1.49x across the five). That is the price of a number that means the same
+       * thing twice, and it is the same trade this file already makes elsewhere -- the timeout
+       * keeps partial results, the FEN travels with the line, a bound is not a score.
+       */
+      this.worker?.postMessage("ucinewgame");
       /*
        * Set every time, including back down to 1. The option is sticky on the worker, so a
        * reveal that asked for two lines would otherwise leave every later single-line search

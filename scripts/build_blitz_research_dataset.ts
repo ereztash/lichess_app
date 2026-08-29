@@ -252,7 +252,7 @@ export function eligiblePlies(chunk: string, header: GameHeader): DecisionEvent[
 // Streaming
 // ---------------------------------------------------------------------------------------------
 
-async function fetchPrefix(month: string, bytes: number, dir: string): Promise<string> {
+export async function fetchPrefix(month: string, bytes: number, dir: string): Promise<string> {
   const path = `${dir}/lichess_${month}.prefix.zst`;
   if (existsSync(path) && statSync(path).size >= bytes) return path;
   const url = `${BASE_URL}/lichess_db_standard_rated_${month}.pgn.zst`;
@@ -303,7 +303,7 @@ export function zstdFrameOffsets(buf: Buffer): number[] {
  * rather than discarded -- otherwise one game in every 32 MiB would be silently corrupted, and the
  * corruption would land on whichever game happened to be there.
  */
-async function* games(path: string): AsyncGenerator<string> {
+export async function* pgnGames(path: string): AsyncGenerator<string> {
   const buf = readFileSync(path);
   const offsets = zstdFrameOffsets(buf);
   let carry = "";
@@ -333,7 +333,7 @@ interface Counters {
 async function indexMonth(path: string, counters: Counters) {
   const byPlayer = new Map<string, string[]>();
   const headers = new Map<string, GameHeader>();
-  for await (const chunk of games(path)) {
+  for await (const chunk of pgnGames(path)) {
     counters.read += 1;
     const result = qualifyGame(chunk);
     if (typeof result === "string") {
@@ -423,7 +423,7 @@ async function main() {
   const events: DecisionEvent[] = [];
   const perGame = mulberry32(SEED ^ 0x5eed);
   for (const month of [dev, hold]) {
-    for await (const chunk of games(paths[month])) {
+    for await (const chunk of pgnGames(paths[month])) {
       const header = qualifyGame(chunk);
       if (typeof header === "string") continue;
       const pick = selected.get(header.gameId);
