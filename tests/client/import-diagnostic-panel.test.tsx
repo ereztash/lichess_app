@@ -38,6 +38,9 @@ function reading(
     buckets,
     scored: buckets.reduce((sum, b) => sum + b.n, 0),
     forced: 0,
+    eligible: buckets.reduce((sum, b) => sum + b.n, 0),
+    withoutTime: 0,
+    withoutClock: 0,
     missingClockData: false,
     timeBucketSpeed: null,
     excludedForSpeed: 0,
@@ -169,6 +172,9 @@ describe("the observation, and when there is none", () => {
           buckets: [],
           scored: 0,
           forced: 0,
+          eligible: 0,
+          withoutTime: 0,
+          withoutClock: 0,
           missingClockData: true,
           timeBucketSpeed: null,
           excludedForSpeed: 0,
@@ -189,12 +195,36 @@ describe("the observation, and when there is none", () => {
   });
 });
 
-describe("the forced moves that were dropped", () => {
-  it("says how many, out of how many", () => {
-    render(<ImportDiagnosticPanel diagnostic={reading([{}], { scored: 812, forced: 47 })} />);
-    const note = screen.getByText(/\u05de\u05d4\u05dc\u05da \u05d7\u05d5\u05e7\u05d9 \u05d0\u05d7\u05d3 \u05d1\u05dc\u05d1\u05d3/);
-    expect(note.textContent).toContain("47");
-    expect(note.textContent).toContain("812");
+describe("the denominator every rate on this screen was computed over", () => {
+  it("shows the arithmetic rather than asserting it", () => {
+    render(
+      <ImportDiagnosticPanel
+        diagnostic={reading([{}], { scored: 812, forced: 47, eligible: 765 })}
+      />,
+    );
+    const ledger = screen.getByText(/\u05de\u05d4\u05dc\u05db\u05d9\u05dd \u05e9\u05e0\u05e7\u05e8\u05d0\u05d5/).closest("ul")!;
+    // Read, subtracted, and left: a reader can check the subtraction, which is the whole point of
+    // putting a denominator on a screen instead of describing one.
+    expect(ledger.textContent).toContain("812");
+    expect(ledger.textContent).toContain("47");
+    expect(ledger.textContent).toContain("765");
+  });
+
+  it("does not present a missing measurement as another subtraction", () => {
+    /*
+     * A decision with no derivable think time is still a decision, and it still counts in the
+     * phase buckets. What it cannot enter is a bucket that READS the time -- or the comparison
+     * set that bucket is judged against. Listing it as "−9" under the total would restate the
+     * exact confusion this ledger exists to remove.
+     */
+    render(
+      <ImportDiagnosticPanel
+        diagnostic={reading([{}], { scored: 812, forced: 47, eligible: 765, withoutTime: 9 })}
+      />,
+    );
+    const row = screen.getByText(/\u05d1\u05dc\u05d9 \u05d6\u05de\u05df \u05d7\u05e9\u05d9\u05d1\u05d4/);
+    expect(row.textContent).not.toMatch(/[-\u2212]/);
+    expect(row.closest("li")!.className).toContain("of-which");
   });
 
   it("refuses to imply the rate is now clean", () => {
@@ -204,10 +234,10 @@ describe("the forced moves that were dropped", () => {
      * the inflation and are still counted. Saying only the first half reads as "fixed".
      */
     render(<ImportDiagnosticPanel diagnostic={reading([{}], { scored: 812, forced: 47 })} />);
-    const note = screen.getByText(/\u05de\u05d4\u05dc\u05da \u05d7\u05d5\u05e7\u05d9 \u05d0\u05d7\u05d3 \u05d1\u05dc\u05d1\u05d3/);
-    expect(note.textContent, "does not disclaim the book moves it leaves in").toMatch(
-      /\u05de\u05d4\u05dc\u05db\u05d9 \u05e1\u05e4\u05e8/,
-    );
+    expect(
+      screen.getByText(/\u05de\u05d4\u05dc\u05db\u05d9 \u05e1\u05e4\u05e8/).textContent,
+      "does not disclaim the book moves it leaves in",
+    ).toMatch(/\u05de\u05d4\u05dc\u05db\u05d9 \u05e1\u05e4\u05e8/);
   });
 
   it("says nothing when no position was forced", () => {

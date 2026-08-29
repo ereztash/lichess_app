@@ -101,13 +101,29 @@ function ranks(values: readonly number[]): number[] {
  * positions.
  */
 export function effortFollowsDoubt(decisions: readonly ScoredDecision[]): Control {
-  const n = decisions.length;
+  if (decisions.length === 0) return EMPTY;
+
+  /*
+   * Only the decisions whose time was actually measured, and `n` counts those rather than the
+   * record.
+   *
+   * A live record has a figure for every decision, so this changes nothing there. It matters for
+   * anything reading an imported record, where the previous behaviour would have ranked a column
+   * of invented zeros against real confidences -- and zeros all tie, so they would have dragged
+   * the whole rank correlation toward whatever confidence those unmeasured decisions happened to
+   * carry. Reporting `n` as the record's size while correlating something else would also have
+   * put the wrong denominator beside the coefficient.
+   */
+  const timed = decisions.filter(
+    (d): d is ScoredDecision & { secondsTaken: number } => d.secondsTaken !== null,
+  );
+  const n = timed.length;
   if (n === 0) return EMPTY;
   if (n < MIN_BUCKET_N)
     return { n, rho: null, standardError: null, reason: "too-few", readable: false };
 
-  const times = decisions.map((d) => d.secondsTaken);
-  const said = decisions.map((d) => d.confidence);
+  const times = timed.map((d) => d.secondsTaken);
+  const said = timed.map((d) => d.confidence);
   if (new Set(times).size < 2)
     return { n, rho: null, standardError: null, reason: "flat-time", readable: false };
   if (new Set(said).size < 2)

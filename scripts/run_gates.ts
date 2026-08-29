@@ -281,6 +281,22 @@ export const GATES: Gate[] = [
       ),
   },
   {
+    id: "GATE-MEASURE",
+    rule: "R1",
+    description: "A measurement that was never made changes no bucket, and no comparison set.",
+    run: () =>
+      runVitestFile(
+        "tests/gates/measurement.test.ts",
+        "unmeasured decisions enter neither a bucket nor its baseline",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/measurement.control.test.ts",
+        "a missing think time read as zero",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-GRADE",
     rule: "3.3",
     description: "No claim renders above its grade.",

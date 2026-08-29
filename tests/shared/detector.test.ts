@@ -108,7 +108,11 @@ describe("shuffling preserves the marginals and destroys the relationship", () =
 
   it("preserves the multiset of context labels", () => {
     const shuffled = shuffleLabels(record, seededRandom(5));
-    const times = (list: ScoredDecision[]) => list.map((d) => d.secondsTaken).sort((a, b) => a - b);
+    // Nulls sort with the numbers rather than being dropped: the multiset this asserts on is the
+    // one the shuffle permutes, and MISSINGNESS is part of it. A control that quietly discarded
+    // the unmeasured decisions would permute a different record from the one the detector reads.
+    const times = (list: ScoredDecision[]) =>
+      list.map((d) => (d.secondsTaken === null ? -1 : d.secondsTaken)).sort((a, b) => a - b);
     expect(times(shuffled)).toEqual(times(record));
   });
 

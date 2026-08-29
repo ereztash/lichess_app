@@ -198,19 +198,59 @@ export function ImportDiagnosticPanel({
       </ul>
 
       {/*
-        * Said out loud for the same reason as the speed restriction below: excluding these
-        * lowers every n, and a smaller n with no explanation reads as "not enough games yet".
+        * THE DENOMINATOR, ON THE SCREEN, AS ARITHMETIC.
         *
-        * The second sentence is the honest half. This removes a handful of moves a game and
-        * leaves opening book and every recapture that is forced in practice but not in law --
-        * which is most of the inflation. Saying only the first half would let the reader take
-        * the rate for corrected.
+        * This used to be one sentence about forced moves. The trouble with a sentence is that a
+        * reader cannot check it: every rate above is a fraction of a number this panel never
+        * showed, and "excluding these lowers every n" is exactly the kind of remark that reads as
+        * reassurance rather than as a figure.
+        *
+        * THE TWO GROUPS ARE NOT THE SAME KIND OF EXCLUSION and the layout says so. Forced moves
+        * leave the reading entirely -- the player chose nothing, so no bucket may count them. The
+        * two below them are still decisions and still count in the phase buckets; what they lack
+        * is the field a TIME bucket reads, so those buckets leave them out, and so does the rest
+        * of the record those buckets are compared against. Presenting them as another subtraction
+        * would be a fourth wrong number on a panel about wrong numbers.
+        */}
+      <ul className="import-ledger">
+        <li>
+          <span>מהלכים שנקראו</span>
+          <b>{diagnostic.scored}</b>
+        </li>
+        {diagnostic.forced > 0 && (
+          <li>
+            <span>פחות עמדות עם מהלך חוקי אחד בלבד</span>
+            <b>−{diagnostic.forced}</b>
+          </li>
+        )}
+        <li className="import-ledger-total">
+          <span>החלטות שהסוגים נקראו עליהן</span>
+          <b>{diagnostic.eligible}</b>
+        </li>
+        {diagnostic.withoutTime > 0 && (
+          <li className="import-ledger-of-which">
+            <span>מהן בלי זמן חשיבה שניתן להפיק — מחוץ לסוגי הזמן ולהשוואה מולם</span>
+            <b>{diagnostic.withoutTime}</b>
+          </li>
+        )}
+        {diagnostic.withoutClock > 0 && (
+          <li className="import-ledger-of-which">
+            <span>מהן בלי קריאת שעון — מחוץ לסוג השעון ולהשוואה מולו</span>
+            <b>{diagnostic.withoutClock}</b>
+          </li>
+        )}
+      </ul>
+
+      {/*
+        * The honest half, kept. The exclusion above removes a handful of moves a game and leaves
+        * opening book and every recapture that is forced in practice but not in law -- which is
+        * most of the inflation. Saying only the first half would let a reader take the rate for
+        * corrected.
         */}
       {diagnostic.forced > 0 && (
         <p className="pv-note">
-          {diagnostic.forced} מתוך {diagnostic.scored} ההחלטות היו עמדות עם מהלך חוקי אחד בלבד, ולכן
-          לא נספרו באף סוג — לא בחרתם בהן דבר. זה לא מנקה מהלכי ספר בפתיחה ולא לקיחות-חזרה שיש
-          להן חלופה חוקית, והם עדיין מעלים את שיעורי הדיוק.
+          עמדה עם מהלך חוקי אחד אינה החלטה, ולכן היא לא נספרת. זה עדיין לא מנקה מהלכי ספר בפתיחה
+          ולא לקיחות-חזרה שיש להן חלופה חוקית, והם עדיין מעלים את שיעורי הדיוק.
         </p>
       )}
 

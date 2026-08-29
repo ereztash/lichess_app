@@ -227,6 +227,22 @@ A position bank drawn from games the player has never seen would remove this. Th
   bucketing, the screen. No real username has been searched, no real PGN scored, and the
   end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
   the logic; what nobody has watched is the run.
+- ~~**A think time that was never measured, counted as zero seconds.**~~ **FIXED.**
+  `secondsSpentAt` returns null when a think time cannot be derived, and its own comment says why:
+  "a first move recorded as 0 seconds is a fabricated data point in the bucket this product cares
+  most about". The import path then wrote `seconds ?? 0` one line later. The comment beside it
+  defended the coercion on the grounds that the time buckets are reported unmeasurable for an
+  import carrying **no** clocks -- which covers the whole-import case and misses the per-decision
+  one. The player's FIRST MOVE has no previous reading of their own clock, so it is null in every
+  import that works, and `0 < 45`. Measured on the repository's own fixture: 100 decisions in
+  `fast-under-45s` where 99 were measured.
+  The second half was quieter and older. `outside` is everything the predicate rejected, so
+  guarding the predicate alone moved the unmeasured decision into the **comparison set** the
+  bucket is tested against -- and `clock-under-1m` had that shape from the start, counting a
+  decision with no clock as a decision made with over a minute left.
+  `BucketableDecision.secondsTaken` is now `number | null`, a bucket declares which fields it
+  reads, and a decision missing one of them enters neither side. Held by `GATE-MEASURE`, whose
+  positive control is the split as it shipped.
 - **What the accuracy rate over an import actually counts.** Nearly every one of the player's
   moves, including book and any recapture that has a legal alternative. Positions offering
   exactly one legal move are now excluded and counted, but that is a small correction (see

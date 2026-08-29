@@ -89,7 +89,8 @@ describe("ranks, because seconds are not normally distributed", () => {
     expect(spearman, "one outlier moved the rank correlation").toBeLessThan(-0.3);
 
     const pearson = (rows: ScoredDecision[]) => {
-      const x = rows.map((r) => r.secondsTaken);
+      // Every row in this fixture carries a time; the filter is what the type now requires.
+      const x = rows.flatMap((r) => (r.secondsTaken === null ? [] : [r.secondsTaken]));
       const y = rows.map((r) => r.confidence);
       const m = (v: number[]) => v.reduce((t, n) => t + n, 0) / v.length;
       const mx = m(x);
