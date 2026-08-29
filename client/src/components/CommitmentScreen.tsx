@@ -142,19 +142,11 @@ export function CommitmentScreen({
   const [showProblems, setShowProblems] = useState(false);
   const [openStep, setOpenStep] = useState<StepId | null>("chosenMove");
   /*
-   * The clock reading at the moment confidence was STATED, not the live one.
-   *
-   * A tension that says "you said 5/5 after six seconds" is about the moment they said it. Read
-   * off the ticking counter instead, the sentence rewrites itself every second and then deletes
-   * itself at ten -- a question that vanishes while it is being read.
-   */
-  const [confidenceStatedAt, setConfidenceStatedAt] = useState<number | null>(null);
-  /*
    * Time-to-decide starts when the position is presented, not when typing starts.
    *
-   * Read twice and rendered never: once at commit for `secondsTaken`, once when confidence is
-   * stated. There is deliberately no state derived from it on a timer -- see the module note on
-   * why this screen shows no clock.
+   * Read at commit for `secondsTaken` and by the attempt log, and rendered never. Nothing on this
+   * screen branches on it either -- see the module note on why the clock is neither shown to the
+   * player nor read by the question layer.
    */
   const startedAt = useRef<number>(Date.now());
 
@@ -162,7 +154,6 @@ export function CommitmentScreen({
     startedAt.current = Date.now();
     setDraft(emptyDraft());
     setShowProblems(false);
-    setConfidenceStatedAt(null);
     setOpenStep("chosenMove");
   }, [position.fen, position.ply]);
 
@@ -192,8 +183,8 @@ export function CommitmentScreen({
   const asksReads = STEPS.includes("known");
   const problems = draftProblems(live, position);
   const ready = isCommittable(live, position);
-  /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
-  const tension = foremostTension(live, confidenceStatedAt);
+  /* Derived from what the player said and nothing else -- not the engine, and not the clock. */
+  const tension = foremostTension(live);
 
   const done: Record<StepId, boolean> = {
     chosenMove: Boolean(chosenMove),
@@ -523,7 +514,6 @@ export function CommitmentScreen({
                 aria-label={`ביטחון ${level} ${CONFIDENCE_LABELS[level - 1]}`}
                 aria-pressed={draft.confidence === level}
                 onClick={() => {
-                  setConfidenceStatedAt((Date.now() - startedAt.current) / 1000);
                   setDraft((d) => ({ ...d, confidence: level }));
                   /*
                    * Closes rather than advancing: this is the last requirement, so what comes

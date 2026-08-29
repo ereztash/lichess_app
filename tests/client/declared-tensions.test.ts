@@ -12,7 +12,6 @@
 import { describe, expect, it } from "vitest";
 import {
   CERTAIN,
-  FAST_DECISION_SECONDS,
   HIGH_CONFIDENCE_ASSERTION,
   HIGH_CONFIDENCE_LEVEL,
   MANY_UNKNOWNS,
@@ -60,38 +59,38 @@ describe("the checks reference options that exist", () => {
 
 describe("an ordinary decision states no tension", () => {
   it("says nothing about a moderate confidence with one open question", () => {
-    expect(declaredTensions(draft(), 40)).toEqual([]);
+    expect(declaredTensions(draft())).toEqual([]);
   });
 
   it("says nothing before a confidence has been chosen", () => {
-    expect(declaredTensions(draft({ confidence: null }), 40)).toEqual([]);
+    expect(declaredTensions(draft({ confidence: null }))).toEqual([]);
   });
 
   it("says nothing about high confidence on its own", () => {
-    expect(declaredTensions(draft({ confidence: CERTAIN, unknownTags: [] }), 40)).toEqual([]);
+    expect(declaredTensions(draft({ confidence: CERTAIN, unknownTags: [] }))).toEqual([]);
   });
 
   it("says nothing about many open questions at a low confidence", () => {
     // The point of the unknown field is that it is allowed to be a lot. Answering it honestly
     // must never be what draws a question.
     const many = UNKNOWN_OPTIONS.slice(0, MANY_UNKNOWNS + 1).map((o) => o.label);
-    expect(declaredTensions(draft({ unknownTags: many, confidence: 2 }), 40)).toEqual([]);
+    expect(declaredTensions(draft({ unknownTags: many, confidence: 2 }))).toEqual([]);
   });
 
   it("says nothing about a fast decision at a moderate confidence", () => {
-    expect(declaredTensions(draft({ confidence: EVEN_ODDS_LEVEL }), 2)).toEqual([]);
+    expect(declaredTensions(draft({ confidence: EVEN_ODDS_LEVEL }))).toEqual([]);
   });
 
   it("says nothing about a fast top-of-scale decision with nothing left open", () => {
     // A confident recapture, decided in four seconds, is a real thing and not a contradiction.
-    expect(declaredTensions(draft({ confidence: CERTAIN, unknownTags: [] }), 4)).toEqual([]);
+    expect(declaredTensions(draft({ confidence: CERTAIN, unknownTags: [] }))).toEqual([]);
   });
 });
 
 describe("two readings that cannot both describe one position", () => {
   it("asks which one it is, without needing a confidence at all", () => {
     const both = [label(KNOWN_OPTIONS, "center-closed"), label(KNOWN_OPTIONS, "center-open")];
-    const found = declaredTensions(draft({ knownTags: both, confidence: null }), 40);
+    const found = declaredTensions(draft({ knownTags: both, confidence: null }));
     expect(found).toHaveLength(1);
     expect(found[0].question).toContain(label(KNOWN_OPTIONS, "center-closed"));
     expect(found[0].question).toContain(label(KNOWN_OPTIONS, "center-open"));
@@ -104,8 +103,8 @@ describe("two readings that cannot both describe one position", () => {
       unknownTags: UNKNOWN_OPTIONS.slice(0, MANY_UNKNOWNS + 1).map((o) => o.label),
       confidence: CERTAIN,
     });
-    expect(declaredTensions(loud, 2).length).toBeGreaterThan(1);
-    expect(foremostTension(loud, 2)!.id).toMatch(/^exclusive-read:/);
+    expect(declaredTensions(loud).length).toBeGreaterThan(1);
+    expect(foremostTension(loud)!.id).toMatch(/^exclusive-read:/);
   });
 });
 
@@ -116,7 +115,6 @@ describe("certainty alongside a stated blind spot", () => {
         unknownTags: [label(UNKNOWN_OPTIONS, "theory")],
         confidence: HIGH_CONFIDENCE_LEVEL,
       }),
-      40,
     );
     expect(found.map((t) => t.id)).toContain("certainty-without-familiarity");
   });
@@ -124,7 +122,6 @@ describe("certainty alongside a stated blind spot", () => {
   it("asks what the confidence is in when the plan is unknown", () => {
     const found = declaredTensions(
       draft({ unknownTags: [label(UNKNOWN_OPTIONS, "plan")], confidence: HIGH_CONFIDENCE_LEVEL }),
-      40,
     );
     expect(found.map((t) => t.id)).toContain("certainty-without-plan");
   });
@@ -135,24 +132,50 @@ describe("certainty alongside a stated blind spot", () => {
         unknownTags: [label(UNKNOWN_OPTIONS, "theory"), label(UNKNOWN_OPTIONS, "plan")],
         confidence: HIGH_CONFIDENCE_LEVEL - 1,
       }),
-      40,
     );
     expect(found).toEqual([]);
   });
 });
 
-describe("top of the scale, decided fast, with something open", () => {
-  it("asks once, and quotes the clock reading it was given", () => {
-    const found = declaredTensions(draft({ confidence: CERTAIN }), 6);
-    expect(found.map((t) => t.id)).toContain("fast-certainty");
-    expect(found.find((t) => t.id === "fast-certainty")!.question).toContain("6 שניות");
+/**
+ * The layer cannot see the clock, and these are the assertions that keep it that way.
+ *
+ * `fast-certainty` used to fire only on a draft under ten seconds old. `secondsTaken` is a
+ * detector variable -- `fast-under-45s` in shared/detector.ts -- so that question was a treatment
+ * applied to one arm of the very measurement the screen exists to take, and nothing recorded who
+ * received it. Nothing replaced it: the substantive contradictions it caught are caught by the
+ * time-free rules, at any speed.
+ */
+describe("no rule fires on how long the decision took", () => {
+  it("no longer asks the question that was asked only of fast deciders", () => {
+    const certain = draft({ confidence: CERTAIN });
+    expect(declaredTensions(certain).map((t) => t.id)).not.toContain("fast-certainty");
   });
 
-  it("stops at the threshold", () => {
-    const deliberated = draft({ confidence: CERTAIN });
-    expect(declaredTensions(deliberated, FAST_DECISION_SECONDS).map((t) => t.id)).not.toContain(
-      "fast-certainty",
-    );
+  it("never quotes a duration in a question or a basis", () => {
+    /*
+     * The signature is the real guarantee -- there is no clock left to pass. This pins the other
+     * half: no rule may reach a duration by some other route and print it at the player.
+     */
+    const drafts = [
+      draft({ confidence: CERTAIN }),
+      draft({
+        confidence: CERTAIN,
+        unknownTags: UNKNOWN_OPTIONS.slice(0, MANY_UNKNOWNS + 1).map((o) => o.label),
+      }),
+      draft({
+        knownTags: [label(KNOWN_OPTIONS, "center-closed"), label(KNOWN_OPTIONS, "center-open")],
+        confidence: CERTAIN,
+      }),
+      draft({ confidence: CONFIDENCE_LEVELS, unknownTags: [label(UNKNOWN_OPTIONS, "theory")] }),
+    ];
+    for (const one of drafts) {
+      for (const tension of declaredTensions(one)) {
+        for (const text of [tension.question, tension.basis]) {
+          expect(text, `a tension quoted a duration: "${text}"`).not.toMatch(/שניות|דקות/);
+        }
+      }
+    }
   });
 });
 
@@ -163,7 +186,7 @@ describe("every question carries the selections that produced it", () => {
       unknownTags: UNKNOWN_OPTIONS.slice(0, MANY_UNKNOWNS + 1).map((o) => o.label),
       confidence: CERTAIN,
     });
-    const found = declaredTensions(loud, 3);
+    const found = declaredTensions(loud);
     expect(found.length).toBeGreaterThan(0);
     for (const tension of found) {
       expect(tension.basis.trim(), `${tension.id} has no basis`).not.toBe("");
@@ -182,7 +205,7 @@ describe("every question carries the selections that produced it", () => {
       ],
       confidence: CERTAIN,
     });
-    const found = declaredTensions(loud, 3);
+    const found = declaredTensions(loud);
     expect(found.length).toBeGreaterThan(0);
     for (const tension of found) {
       expect(tension.question.trim().endsWith("?"), `${tension.id} is phrased as a finding`).toBe(
@@ -224,7 +247,6 @@ describe("the tensions fire on what the player asserted, not on a button number"
     expect(normaliseConfidence(EVEN_ODDS_LEVEL, CONFIDENCE_LEVELS)).toBe(0.5);
     const found = declaredTensions(
       draft({ unknownTags: threeUnknowns, confidence: EVEN_ODDS_LEVEL }),
-      5,
     );
     expect(found.map((t) => t.id)).not.toContain("certainty-without-familiarity");
     expect(found.map((t) => t.id)).not.toContain("certainty-with-open-questions");
@@ -234,9 +256,7 @@ describe("the tensions fire on what the player asserted, not on a button number"
     // The whole point of `CERTAIN`. It was silent here.
     const found = declaredTensions(
       draft({ unknownTags: threeUnknowns, confidence: CONFIDENCE_LEVELS }),
-      5,
     );
-    expect(found.map((t) => t.id)).toContain("fast-certainty");
     expect(found.map((t) => t.id)).toContain("certainty-with-open-questions");
   });
 
@@ -245,7 +265,6 @@ describe("the tensions fire on what the player asserted, not on a button number"
       const asserted = normaliseConfidence(level, CONFIDENCE_LEVELS);
       const ids = declaredTensions(
         draft({ unknownTags: [label(UNKNOWN_OPTIONS, "theory")], confidence: level }),
-        40,
       ).map((t) => t.id);
       const shouldAsk = asserted >= HIGH_CONFIDENCE_ASSERTION;
       expect(ids.includes("certainty-without-familiarity"), `level ${level} asserts ${asserted}`).toBe(
@@ -256,14 +275,11 @@ describe("the tensions fire on what the player asserted, not on a button number"
 
   it("never prints a denominator that is not the scale on the screen", () => {
     for (let level = 1; level <= CONFIDENCE_LEVELS; level += 1) {
-      for (const seconds of [3, 40]) {
-        for (const tension of declaredTensions(
-          draft({ unknownTags: threeUnknowns, confidence: level }),
-          seconds,
-        )) {
-          expect(tension.question, tension.question).not.toContain("מתוך 5");
-          expect(tension.basis, tension.basis).not.toMatch(/\/5\b/);
-        }
+      for (const tension of declaredTensions(
+        draft({ unknownTags: threeUnknowns, confidence: level }),
+      )) {
+        expect(tension.question, tension.question).not.toContain("מתוך 5");
+        expect(tension.basis, tension.basis).not.toMatch(/\/5\b/);
       }
     }
   });
