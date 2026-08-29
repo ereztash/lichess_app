@@ -111,7 +111,12 @@ function arg(name: string, fallback: string): string {
   return i >= 0 ? process.argv[i + 1] : fallback;
 }
 
-async function pool<T>(items: T[], workers: number, run: (item: T, engine: UciEngine) => Promise<void>, engines: UciEngine[]) {
+async function pool<T>(
+  items: T[],
+  workers: number,
+  run: (item: T, engine: UciEngine) => Promise<void>,
+  engines: UciEngine[],
+) {
   let next = 0;
   await Promise.all(
     Array.from({ length: workers }, async (_, w) => {
@@ -126,7 +131,10 @@ async function pool<T>(items: T[], workers: number, run: (item: T, engine: UciEn
 }
 
 async function main() {
-  const binary = arg("engine", "/tmp/claude-0/-home-user-lichess-app/d8f48042-7db8-53cd-b32f-934c2bf91937/scratchpad/stockfish/stockfish-ubuntu-x86-64-avx2");
+  const binary = arg(
+    "engine",
+    "/tmp/claude-0/-home-user-lichess-app/d8f48042-7db8-53cd-b32f-934c2bf91937/scratchpad/stockfish/stockfish-ubuntu-x86-64-avx2",
+  );
   const workers = Number(arg("workers", "4"));
   const dataDir = arg("data", "research/blitz/data");
   const tag = arg("tag", "saturation");
@@ -149,11 +157,20 @@ async function main() {
   const screen = shuffled.slice(0, PRESCREEN);
   process.stderr.write(`prescreen ${screen.length} positions at ${PRESCREEN_NODES} nodes\n`);
   const band = new Map<string, string>();
-  await pool(screen, workers, async (event, engine) => {
-    const result = await engine.search({ fen: event.fenBefore, nodes: PRESCREEN_NODES, multipv: 1 });
-    const cp = result.lines[0]?.scoreCp ?? 0;
-    band.set(`${event.gameId}:${event.ply}`, evalBand(cp));
-  }, engines);
+  await pool(
+    screen,
+    workers,
+    async (event, engine) => {
+      const result = await engine.search({
+        fen: event.fenBefore,
+        nodes: PRESCREEN_NODES,
+        multipv: 1,
+      });
+      const cp = result.lines[0]?.scoreCp ?? 0;
+      band.set(`${event.gameId}:${event.ply}`, evalBand(cp));
+    },
+    engines,
+  );
 
   // Stratified draw: fill cells round-robin so a rare cell is not crowded out by a common one.
   const cells = new Map<string, DecisionEvent[]>();
@@ -181,25 +198,40 @@ async function main() {
   }
   process.stderr.write(`sampled ${sample.length} positions over ${order.length} strata\n`);
 
-  const rows: Array<{ key: string; event: DecisionEvent; budgets: BudgetRow[]; productDepthNodes: number }> = [];
-  await pool(sample, workers, async (event, engine) => {
-    const budgets: BudgetRow[] = [];
-    const atProductDepth = await engine.searchDepth(event.fenBefore, PRODUCT_DEPTH);
-    for (const nodes of grid) {
-      const result = await engine.search({ fen: event.fenBefore, nodes, multipv: MULTIPV });
-      const values: Record<string, number> = {};
-      for (const line of result.lines) if (line.pv[0]) values[line.pv[0]] = lineValue(line);
-      budgets.push({
-        nodes,
-        actualNodes: result.nodes,
-        depth: result.depth,
-        bestMove: result.lines[0]?.pv[0] ?? result.bestMove,
-        value: result.lines[0] ? lineValue(result.lines[0]) : Number.NaN,
-        values,
+  const rows: Array<{
+    key: string;
+    event: DecisionEvent;
+    budgets: BudgetRow[];
+    productDepthNodes: number;
+  }> = [];
+  await pool(
+    sample,
+    workers,
+    async (event, engine) => {
+      const budgets: BudgetRow[] = [];
+      const atProductDepth = await engine.searchDepth(event.fenBefore, PRODUCT_DEPTH);
+      for (const nodes of grid) {
+        const result = await engine.search({ fen: event.fenBefore, nodes, multipv: MULTIPV });
+        const values: Record<string, number> = {};
+        for (const line of result.lines) if (line.pv[0]) values[line.pv[0]] = lineValue(line);
+        budgets.push({
+          nodes,
+          actualNodes: result.nodes,
+          depth: result.depth,
+          bestMove: result.lines[0]?.pv[0] ?? result.bestMove,
+          value: result.lines[0] ? lineValue(result.lines[0]) : Number.NaN,
+          values,
+        });
+      }
+      rows.push({
+        key: `${event.gameId}:${event.ply}`,
+        event,
+        budgets,
+        productDepthNodes: atProductDepth.nodes,
       });
-    }
-    rows.push({ key: `${event.gameId}:${event.ply}`, event, budgets, productDepthNodes: atProductDepth.nodes });
-  }, engines);
+    },
+    engines,
+  );
 
   engines.forEach((e) => e.quit());
 
@@ -241,7 +273,9 @@ async function main() {
     productDepth: PRODUCT_DEPTH,
     productDepthNodes: {
       mean: rows.reduce((s2, r) => s2 + r.productDepthNodes, 0) / rows.length,
-      median: [...rows].map((r) => r.productDepthNodes).sort((a, b) => a - b)[Math.floor(rows.length / 2)],
+      median: [...rows].map((r) => r.productDepthNodes).sort((a, b) => a - b)[
+        Math.floor(rows.length / 2)
+      ],
     },
     meanDepthByBudget: grid.map((nodes, i) => ({
       nodes,
@@ -249,11 +283,29 @@ async function main() {
       meanActualNodes: rows.reduce((s, r) => s + r.budgets[i].actualNodes, 0) / rows.length,
     })),
   };
-  const jsonl = rows.map((r) => JSON.stringify({ key: r.key, elo: r.event.elo, phase: r.event.phase, fen: r.event.fenBefore, clockBeforeSeconds: r.event.clockBeforeSeconds, baseSeconds: r.event.baseSeconds, productDepthNodes: r.productDepthNodes, budgets: r.budgets })).join("\n") + "\n";
+  const jsonl =
+    rows
+      .map((r) =>
+        JSON.stringify({
+          key: r.key,
+          elo: r.event.elo,
+          phase: r.event.phase,
+          fen: r.event.fenBefore,
+          clockBeforeSeconds: r.event.clockBeforeSeconds,
+          baseSeconds: r.event.baseSeconds,
+          productDepthNodes: r.productDepthNodes,
+          budgets: r.budgets,
+        }),
+      )
+      .join("\n") + "\n";
   writeFileSync(`${dataDir}/${tag}.jsonl`, jsonl);
   writeFileSync(
     `${dataDir}/${tag}_summary.json`,
-    JSON.stringify({ ...summary, sha256: createHash("sha256").update(jsonl).digest("hex") }, null, 2),
+    JSON.stringify(
+      { ...summary, sha256: createHash("sha256").update(jsonl).digest("hex") },
+      null,
+      2,
+    ),
   );
   process.stdout.write(`${JSON.stringify(summary, null, 2)}\n`);
 }

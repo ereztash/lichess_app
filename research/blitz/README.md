@@ -63,11 +63,11 @@ SHA-256 of the output, and those manifests are quoted in the results document.
 
 ## Files
 
-| file | what it is |
-| --- | --- |
-| `search-trajectory.ts` | the preregistered §6.3 metrics. Research-only; the product does not import it |
-| `dataset.py` | loads the artifacts and their manifests |
-| `statistics.py` | Wilson intervals, Cohen's κ, Spearman, Gini — each with why it beats the obvious alternative |
-| `bootstrap.py` | cluster bootstrap by game; the naive version is kept only to show how much narrower the wrong analysis would have been |
-| `plots.py` | two hand-rolled SVGs, so a negative result is legible |
-| `run_analysis.py` | the gate, the consequence analyses, and the refusal to run H1/H2 |
+| file                   | what it is                                                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `search-trajectory.ts` | the preregistered §6.3 metrics. Research-only; the product does not import it                                          |
+| `dataset.py`           | loads the artifacts and their manifests                                                                                |
+| `statistics.py`        | Wilson intervals, Cohen's κ, Spearman, Gini — each with why it beats the obvious alternative                           |
+| `bootstrap.py`         | cluster bootstrap by game; the naive version is kept only to show how much narrower the wrong analysis would have been |
+| `plots.py`             | two hand-rolled SVGs, so a negative result is legible                                                                  |
+| `run_analysis.py`      | the gate, the consequence analyses, and the refusal to run H1/H2                                                       |

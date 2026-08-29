@@ -84,7 +84,11 @@ function arg(name: string, fallback: string): string {
   return i >= 0 ? process.argv[i + 1] : fallback;
 }
 
-async function pool<T>(items: T[], engines: UciEngine[], run: (item: T, engine: UciEngine) => Promise<void>) {
+async function pool<T>(
+  items: T[],
+  engines: UciEngine[],
+  run: (item: T, engine: UciEngine) => Promise<void>,
+) {
   let next = 0;
   await Promise.all(
     engines.map(async (engine) => {
@@ -166,13 +170,23 @@ async function main() {
     }
 
     const references: LabelRow["references"] = [];
-    let reference: DeepReference = { nodes: PRIMARY_REFERENCE, bestMove: null, bestValue: null, ranked: [] };
+    let reference: DeepReference = {
+      nodes: PRIMARY_REFERENCE,
+      bestMove: null,
+      bestValue: null,
+      ranked: [],
+    };
     /* One uniform score per move, cached: the same move asked for twice is the same search. */
     const deepValue = new Map<string, number | null>();
     const scoreDeep = async (move: string, nodes: number) => {
       const cacheKey = `${nodes}:${move}`;
       if (deepValue.has(cacheKey)) return deepValue.get(cacheKey)!;
-      const result = await engine.search({ fen: event.fenBefore, nodes, multipv: 1, searchmoves: [move] });
+      const result = await engine.search({
+        fen: event.fenBefore,
+        nodes,
+        multipv: 1,
+        searchmoves: [move],
+      });
       const value = result.lines[0] ? lineValue(result.lines[0]) : null;
       deepValue.set(cacheKey, value);
       return value;
@@ -181,9 +195,19 @@ async function main() {
     for (const nodes of REFERENCE_BUDGETS) {
       const ranked = await engine.search({ fen: event.fenBefore, nodes, multipv: MULTIPV });
       const bestMove = ranked.lines[0]?.pv[0] ?? ranked.bestMove;
-      const ranked_ = ranked.lines.map((line) => line.pv[0]).filter((move): move is string => !!move);
+      const ranked_ = ranked.lines
+        .map((line) => line.pv[0])
+        .filter((move): move is string => !!move);
       if (!bestMove) {
-        references.push({ nodes, bestMove: null, bestValue: null, playedValue: null, rawLoss: null, loss: null, inaccurate: null });
+        references.push({
+          nodes,
+          bestMove: null,
+          bestValue: null,
+          playedValue: null,
+          rawLoss: null,
+          loss: null,
+          inaccurate: null,
+        });
         continue;
       }
       /*

@@ -88,7 +88,10 @@ export function mulberry32(seed: number): () => number {
 }
 
 export function playerId(username: string): string {
-  return createHash("sha1").update(`${PLAYER_SALT}:${username.toLowerCase()}`).digest("hex").slice(0, 16);
+  return createHash("sha1")
+    .update(`${PLAYER_SALT}:${username.toLowerCase()}`)
+    .digest("hex")
+    .slice(0, 16);
 }
 
 const tagOf = (chunk: string, name: string) =>
@@ -125,7 +128,11 @@ export function qualifyGame(chunk: string): GameHeader | Rejection {
   if (!tagOf(chunk, "Event").includes("Rated Blitz")) return "not-rated-blitz";
   if (tagOf(chunk, "Termination") !== "Normal") return "termination";
   const control = parseTimeControl(timeControlHeader(chunk));
-  if (!control || !ALLOWED_BASE.has(control.baseSeconds) || control.incrementSeconds > MAX_INCREMENT)
+  if (
+    !control ||
+    !ALLOWED_BASE.has(control.baseSeconds) ||
+    control.incrementSeconds > MAX_INCREMENT
+  )
     return "time-control";
   const whiteElo = Number(tagOf(chunk, "WhiteElo"));
   const blackElo = Number(tagOf(chunk, "BlackElo"));
@@ -276,7 +283,11 @@ export function zstdFrameOffsets(buf: Buffer): number[] {
   const ZSTD = 0xfd2fb528;
   const offsets: number[] = [];
   const magic = Buffer.from([0x50, 0x2a, 0x4d, 0x18]);
-  for (let at = buf.indexOf(magic); at >= 0 && at + 16 <= buf.length; at = buf.indexOf(magic, at + 1)) {
+  for (
+    let at = buf.indexOf(magic);
+    at >= 0 && at + 16 <= buf.length;
+    at = buf.indexOf(magic, at + 1)
+  ) {
     if (buf.readUInt32LE(at) !== SKIPPABLE) continue;
     if (buf.readUInt32LE(at + 4) !== 4) continue;
     if (buf.readUInt32LE(at + 12) !== ZSTD) continue;
@@ -392,7 +403,10 @@ async function main() {
   const selected = new Map<string, { month: string; stratum: "recurring" | "general" }>();
   for (const id of chosenPlayers) {
     for (const month of [dev, hold]) {
-      for (const gameId of (index[month].byPlayer.get(id) ?? []).slice(0, GAMES_PER_PLAYER_PER_MONTH))
+      for (const gameId of (index[month].byPlayer.get(id) ?? []).slice(
+        0,
+        GAMES_PER_PLAYER_PER_MONTH,
+      ))
         selected.set(gameId, { month, stratum: "recurring" });
     }
   }

@@ -42,7 +42,13 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 function client() {
   const worker = new FakeWorker();
-  return { worker, engine: new StockfishClient(() => {}, () => worker) };
+  return {
+    worker,
+    engine: new StockfishClient(
+      () => {},
+      () => worker,
+    ),
+  };
 }
 
 describe("a search bounded by nodes", () => {
@@ -100,7 +106,9 @@ describe("a search bounded by nodes", () => {
     await second;
 
     expect(
-      worker.sent.filter((m) => m.startsWith("setoption name MultiPV")).map((m) => m.split(" ").pop()),
+      worker.sent
+        .filter((m) => m.startsWith("setoption name MultiPV"))
+        .map((m) => m.split(" ").pop()),
     ).toEqual(["3", "1"]);
   });
 });

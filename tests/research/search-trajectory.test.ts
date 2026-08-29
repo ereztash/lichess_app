@@ -105,7 +105,14 @@ describe("how the chosen move moved", () => {
   });
 
   it("orders by budget, so a caller that hands them over shuffled gets the same answer", () => {
-    const shuffled = [observations[4], observations[0], observations[3], observations[1], observations[2], observations[5]];
+    const shuffled = [
+      observations[4],
+      observations[0],
+      observations[3],
+      observations[1],
+      observations[2],
+      observations[5],
+    ];
     expect(convergenceNodes(shuffled)).toBe(1_000);
     expect(moveInstability(shuffled)).toBe(3);
   });

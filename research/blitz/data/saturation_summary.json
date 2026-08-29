@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T22:19:59.044Z",
+  "generatedAt": "2026-08-29T22:54:15.359Z",
   "engine": "stockfish-ubuntu-x86-64-avx2",
   "engineOptions": {
     "Threads": 1,
@@ -95,6 +95,11 @@
       ]
     }
   ],
+  "productDepth": 12,
+  "productDepthNodes": {
+    "mean": 18531.97,
+    "median": 12992
+  },
   "meanDepthByBudget": [
     {
       "nodes": 25000,
@@ -127,5 +132,5 @@
       "meanActualNodes": 787082.5366666666
     }
   ],
-  "sha256": "236e03c69f33d90d68fb34036b3d17fbbe472442ff8ad07df471f417fe8a1de8"
+  "sha256": "efcabd6d370effe7088ef0034bc61c5a8a760199bb53d09910b307c1bfaaeddd"
 }

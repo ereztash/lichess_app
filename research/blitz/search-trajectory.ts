@@ -123,7 +123,9 @@ export function remainingComputationValue(
 
 /** How many times the chosen move changed between adjacent observed budgets. */
 export function moveInstability(observations: readonly BudgetObservation[]): number {
-  const moves = byBudget(observations).filter((o) => o.chosenMove !== null).map((o) => o.chosenMove);
+  const moves = byBudget(observations)
+    .filter((o) => o.chosenMove !== null)
+    .map((o) => o.chosenMove);
   let switches = 0;
   for (let i = 1; i < moves.length; i += 1) if (moves[i] !== moves[i - 1]) switches += 1;
   return switches;

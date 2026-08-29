@@ -334,7 +334,7 @@
       "n": 300
     },
     "400000v800000": {
-      "mean": 0.00836685589296654,
+      "mean": 0.008366855892966539,
       "p50": 0.0048552505180462086,
       "p75": 0.010850005691128622,
       "p90": 0.020593353704295325,
@@ -542,6 +542,13 @@
       }
     }
   },
+  "productDepthCost": {
+    "depth": 12,
+    "nodes": {
+      "mean": 18531.97,
+      "median": 12992
+    }
+  },
   "stop": {
     "code": "STOP-D",
     "stage": "deep reference",
@@ -665,7 +672,7 @@
       "p99": 0.2637653865981396
     },
     "spearmanRcvVsCandidateGap": -0.08779431328285509,
-    "referenceNoiseScale": 0.00836685589296654
+    "referenceNoiseScale": 0.008366855892966539
   },
   "determinismControl": {
     "repeatedPositions": 0,

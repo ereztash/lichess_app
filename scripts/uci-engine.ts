@@ -90,7 +90,9 @@ export class UciEngine {
    * would then be a label rather than a constraint.
    */
   async search(request: SearchRequest): Promise<SearchResult> {
-    const moves = request.searchmoves?.length ? ` searchmoves ${request.searchmoves.join(" ")}` : "";
+    const moves = request.searchmoves?.length
+      ? ` searchmoves ${request.searchmoves.join(" ")}`
+      : "";
     return this.run(request.fen, `go nodes ${request.nodes}${moves}`, request.multipv ?? 1);
   }
 
