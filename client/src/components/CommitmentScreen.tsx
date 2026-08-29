@@ -35,6 +35,22 @@
  * button, every option is one tap away, and the whole shape of the ask is visible from the first
  * frame, which a wizard that reveals steps one by one would not be.
  *
+ * NO CLOCK IS SHOWN WHILE THE DECISION IS BEING MADE, and that is a measurement rule rather
+ * than a matter of taste.
+ *
+ * A running seconds counter used to sit in this header. `secondsTaken` is not incidental
+ * telemetry -- it is a detector variable, and `fast-under-45s` (`shared/detector.ts`) is the
+ * bucket the product's own worked example is written about. Showing a player the number being
+ * read off them invites them to manage it, and a bucket whose members were told their time as
+ * they decided is no longer a fact about the player: it is a fact about the player and the
+ * counter. The README states the rule for the adaptation layer -- the interface may not react to
+ * decision speed, because that puts the intervention inside the measurement -- and the screen
+ * where the variable is actually generated has more reason to obey it than any other, not less.
+ *
+ * The clock is still READ: `startedAt` is stamped when the position is presented and the elapsed
+ * time is computed at commit. What went is the display, not the recording -- nobody is told the
+ * number while it is still theirs to change.
+ *
  * WHAT DOES NOT AUTO-ADVANCE, and why the inconsistency is deliberate. Choosing a move is one
  * act, so the move step advances by itself. The two read steps are multi-select -- their own hint
  * says "choose as many as you like" -- and advancing on the first tap would make one tap the
@@ -46,7 +62,7 @@ import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
 import { recordAttempt } from "@/lib/progress-record";
 import { confidenceIsAsked, readsAreAsked, type DecisionContext } from "@shared/confidence-asked";
 import { useEffect, useRef, useState } from "react";
-import { Check, CircleAlert, Pencil, Timer } from "lucide-react";
+import { Check, CircleAlert, Pencil } from "lucide-react";
 import {
   draftProblems,
   emptyDraft,
@@ -133,9 +149,14 @@ export function CommitmentScreen({
    * itself at ten -- a question that vanishes while it is being read.
    */
   const [confidenceStatedAt, setConfidenceStatedAt] = useState<number | null>(null);
-  // Time-to-decide starts when the position is presented, not when typing starts.
+  /*
+   * Time-to-decide starts when the position is presented, not when typing starts.
+   *
+   * Read twice and rendered never: once at commit for `secondsTaken`, once when confidence is
+   * stated. There is deliberately no state derived from it on a timer -- see the module note on
+   * why this screen shows no clock.
+   */
   const startedAt = useRef<number>(Date.now());
-  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     startedAt.current = Date.now();
@@ -143,16 +164,7 @@ export function CommitmentScreen({
     setShowProblems(false);
     setConfidenceStatedAt(null);
     setOpenStep("chosenMove");
-    setElapsed(0);
   }, [position.fen, position.ply]);
-
-  useEffect(() => {
-    const timer = window.setInterval(
-      () => setElapsed(Math.floor((Date.now() - startedAt.current) / 1000)),
-      1000,
-    );
-    return () => window.clearInterval(timer);
-  }, []);
 
   const live: DraftDecision = { ...draft, chosenMove, candidatesConsidered };
   /* What this position asks for. Absent steps are not optional ones -- see `stepsFor`. */
@@ -181,7 +193,7 @@ export function CommitmentScreen({
   const problems = draftProblems(live, position);
   const ready = isCommittable(live, position);
   /* Derived from what the player said and nothing else -- no engine input reaches this screen. */
-  const tension = foremostTension(live, confidenceStatedAt ?? elapsed);
+  const tension = foremostTension(live, confidenceStatedAt);
 
   const done: Record<StepId, boolean> = {
     chosenMove: Boolean(chosenMove),
@@ -391,9 +403,6 @@ export function CommitmentScreen({
           <p className="commitment-kicker">החלטה</p>
           <h2>מה העמדה הזו דורשת?</h2>
         </div>
-        <span className="commitment-timer" aria-label={`זמן שחלף ${elapsed} שניות`}>
-          <Timer size={14} /> {elapsed}s
-        </span>
       </header>
 
       <p className="commitment-intro">

@@ -97,11 +97,14 @@ function selected(tags: string[], options: typeof KNOWN_OPTIONS, id: string): bo
  * Every tension this draft states, most specific first. Empty is the normal case and is not a
  * state the interface has to fill.
  *
- * `secondsElapsed` is the time the position has been on screen, which the commitment screen is
- * already counting for the record. It is passed in rather than read from a clock here so the
- * function stays pure.
+ * `secondsElapsed` is the reading at the moment confidence was STATED, and null until it is --
+ * the commitment screen no longer keeps a live counter for anything to fall back on. It is passed
+ * in rather than read from a clock here so the function stays pure.
  */
-export function declaredTensions(draft: DraftDecision, secondsElapsed: number): DeclaredTension[] {
+export function declaredTensions(
+  draft: DraftDecision,
+  secondsElapsed: number | null,
+): DeclaredTension[] {
   const tensions: DeclaredTension[] = [];
   const confidence = draft.confidence;
   const unknownCount = draft.unknownTags.length;
@@ -131,7 +134,12 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
 
   // 2. Top of the scale, quickly, with something still open. A fast confident recapture is a
   //    real thing, which is why the check also wants a stated unknown before it says anything.
-  if (confidence === CERTAIN && secondsElapsed < FAST_DECISION_SECONDS && unknownCount > 0) {
+  if (
+    confidence === CERTAIN &&
+    secondsElapsed !== null &&
+    secondsElapsed < FAST_DECISION_SECONDS &&
+    unknownCount > 0
+  ) {
     tensions.push({
       id: "fast-certainty",
       question: `אמרת ביטחון ${CERTAIN} מתוך ${CONFIDENCE_LEVELS} אחרי ${Math.floor(secondsElapsed)} שניות, ולצידו ${unknownCount === 1 ? "דבר אחד שאי אפשר להעריך" : `${unknownCount} דברים שאי אפשר להעריך`}. זו ההחלטה שאתה מתכוון לרשום?`,
@@ -183,7 +191,7 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
 /** The one to show. Null is the normal case. */
 export function foremostTension(
   draft: DraftDecision,
-  secondsElapsed: number,
+  secondsElapsed: number | null,
 ): DeclaredTension | null {
   return declaredTensions(draft, secondsElapsed)[0] ?? null;
 }
