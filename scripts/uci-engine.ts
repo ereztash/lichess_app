@@ -90,13 +90,18 @@ export class UciEngine {
    * would then be a label rather than a constraint.
    */
   async search(request: SearchRequest): Promise<SearchResult> {
+    const moves = request.searchmoves?.length ? ` searchmoves ${request.searchmoves.join(" ")}` : "";
+    return this.run(request.fen, `go nodes ${request.nodes}${moves}`, request.multipv ?? 1);
+  }
+
+  private async run(fen: string, go: string, multipv: number): Promise<SearchResult> {
     while (this.busy) await new Promise<void>((r) => this.queue.push(r));
     this.busy = true;
     try {
       this.send("ucinewgame");
       await this.ready();
-      this.send(`setoption name MultiPV value ${request.multipv ?? 1}`);
-      this.send(`position fen ${request.fen}`);
+      this.send(`setoption name MultiPV value ${multipv}`);
+      this.send(`position fen ${fen}`);
       const lines = new Map<number, EngineLine>();
       let nodes = 0;
       let depth = 0;
@@ -116,7 +121,7 @@ export class UciEngine {
           // Aspiration-window bounds are not evaluations; a bound read as a score is a fabricated
           // number that moves with the search window rather than with the position.
           if (line.includes(" lowerbound") || line.includes(" upperbound")) return;
-          const parsed = parseAnyInfo(line, request.fen);
+          const parsed = parseAnyInfo(line, fen);
           if (!parsed) return;
           const seen = Number(line.match(/\bnodes\s+(\d+)/)?.[1] ?? 0);
           if (seen > nodes) nodes = seen;
@@ -125,14 +130,21 @@ export class UciEngine {
           const held = lines.get(index);
           if (!held || parsed.depth >= held.depth) lines.set(index, parsed);
         });
-        const moves = request.searchmoves?.length ? ` searchmoves ${request.searchmoves.join(" ")}` : "";
-        this.send(`go nodes ${request.nodes}${moves}`);
+        this.send(go);
       });
       return result;
     } finally {
       this.busy = false;
       this.queue.shift()?.();
     }
+  }
+
+  /**
+   * A depth-bounded search, for the ONE question that needs one: how many nodes does the depth the
+   * product searches to actually cost? Everything else in this study is node-bounded by design.
+   */
+  async searchDepth(fen: string, depth: number): Promise<SearchResult> {
+    return this.run(fen, `go depth ${depth}`, 1);
   }
 
   quit() {

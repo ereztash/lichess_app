@@ -343,12 +343,338 @@
       "n": 300
     }
   },
+  "gate1FailureModes": {
+    "strict": {
+      "25000": {
+        "absent": 15,
+        "moveWorse": 18,
+        "positionValue": 61,
+        "unstable": 85,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.7666666666666667
+      },
+      "50000": {
+        "absent": 17,
+        "moveWorse": 12,
+        "positionValue": 64,
+        "unstable": 88,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.7633333333333333
+      },
+      "100000": {
+        "absent": 11,
+        "moveWorse": 10,
+        "positionValue": 56,
+        "unstable": 68,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.81
+      },
+      "200000": {
+        "absent": 12,
+        "moveWorse": 8,
+        "positionValue": 49,
+        "unstable": 61,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.8366666666666667
+      },
+      "400000": {
+        "absent": 13,
+        "moveWorse": 8,
+        "positionValue": 63,
+        "unstable": 75,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.7933333333333333
+      }
+    },
+    "tolerant": {
+      "25000": {
+        "absent": 15,
+        "moveWorse": 5,
+        "positionValue": 30,
+        "unstable": 46,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.8966666666666666
+      },
+      "50000": {
+        "absent": 17,
+        "moveWorse": 4,
+        "positionValue": 21,
+        "unstable": 39,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.9266666666666666
+      },
+      "100000": {
+        "absent": 11,
+        "moveWorse": 2,
+        "positionValue": 17,
+        "unstable": 30,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.9366666666666666
+      },
+      "200000": {
+        "absent": 12,
+        "moveWorse": 1,
+        "positionValue": 17,
+        "unstable": 29,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.9433333333333334
+      },
+      "400000": {
+        "absent": 13,
+        "moveWorse": 2,
+        "positionValue": 15,
+        "unstable": 28,
+        "n": 300,
+        "rateIfAbsentForgiven": 0.95
+      }
+    },
+    "exactBestMoveCriterion": {
+      "25000": {
+        "sameBestMove": 0.6833333333333333,
+        "sameBestMoveAndValue": 0.55,
+        "n": 300
+      },
+      "50000": {
+        "sameBestMove": 0.71,
+        "sameBestMoveAndValue": 0.5533333333333333,
+        "n": 300
+      },
+      "100000": {
+        "sameBestMove": 0.7633333333333333,
+        "sameBestMoveAndValue": 0.6233333333333333,
+        "n": 300
+      },
+      "200000": {
+        "sameBestMove": 0.73,
+        "sameBestMoveAndValue": 0.6066666666666667,
+        "n": 300
+      },
+      "400000": {
+        "sameBestMove": 0.7833333333333333,
+        "sameBestMoveAndValue": 0.6233333333333333,
+        "n": 300
+      }
+    }
+  },
+  "gate1ByStratum": {
+    "pair": "400000 vs 800000",
+    "groups": {
+      "elo:1500-1799": {
+        "stable": 56,
+        "n": 76,
+        "rate": 0.7368421052631579,
+        "ci": [
+          0.628185431389001,
+          0.8227073362910053
+        ]
+      },
+      "elo:1800-2099": {
+        "stable": 59,
+        "n": 83,
+        "rate": 0.7108433734939759,
+        "ci": [
+          0.6057057654384659,
+          0.7973268825090616
+        ]
+      },
+      "elo:<1500": {
+        "stable": 58,
+        "n": 77,
+        "rate": 0.7532467532467533,
+        "ci": [
+          0.6464643724401389,
+          0.8359605177154248
+        ]
+      },
+      "elo:>=2100": {
+        "stable": 52,
+        "n": 64,
+        "rate": 0.8125,
+        "ci": [
+          0.7002540844522482,
+          0.889354651190779
+        ]
+      },
+      "phase:endgame": {
+        "stable": 57,
+        "n": 83,
+        "rate": 0.6867469879518072,
+        "ci": [
+          0.5805842734789477,
+          0.7763875004174338
+        ]
+      },
+      "phase:middlegame": {
+        "stable": 107,
+        "n": 145,
+        "rate": 0.7379310344827587,
+        "ci": [
+          0.6608740646535612,
+          0.8027060097342443
+        ]
+      },
+      "phase:opening": {
+        "stable": 61,
+        "n": 72,
+        "rate": 0.8472222222222222,
+        "ci": [
+          0.7467749821453957,
+          0.9124938096522456
+        ]
+      },
+      "value:level": {
+        "stable": 107,
+        "n": 127,
+        "rate": 0.84251968503937,
+        "ci": [
+          0.7692434526599884,
+          0.8956826870387006
+        ]
+      },
+      "value:unbalanced": {
+        "stable": 118,
+        "n": 173,
+        "rate": 0.6820809248554913,
+        "ci": [
+          0.609377502593181,
+          0.7468735152668701
+        ]
+      }
+    }
+  },
   "stop": {
     "code": "STOP-D",
     "stage": "deep reference",
     "consequence": "H1 and H2 were not run. Both models read V_deep(best move) in their predictors AND in their outcome, so an unstable reference does not only attenuate an effect -- the shared error term manufactures correlation between predictor and outcome."
   },
-  "labelStability": null,
-  "trajectoryDescription": null,
-  "determinismControl": null
+  "labelStability": {
+    "decisions": 700,
+    "games": 350,
+    "inaccurateRate": {
+      "400k": 0.28,
+      "800k": 0.29428571428571426
+    },
+    "flips": 38,
+    "flipRate": 0.054285714285714284,
+    "flipRateClusterCi": [
+      0.03857142857142857,
+      0.07142857142857142
+    ],
+    "flipRateNaiveCi": [
+      0.03857142857142857,
+      0.07142857142857142
+    ],
+    "kappa": 0.8674295283282166,
+    "lossSpearman": 0.8572082100459096,
+    "aucCeiling": 0.927577532329704,
+    "sensitivity": 0.883495145631068,
+    "specificity": 0.97165991902834,
+    "referenceIncoherence": {
+      "400k": {
+        "count": 67,
+        "rate": 0.09571428571428571,
+        "ci": [
+          0.07607416292870357,
+          0.11976762874715076
+        ],
+        "worstMargin": -0.03172958036047785
+      },
+      "800k": {
+        "count": 49,
+        "rate": 0.07,
+        "ci": [
+          0.05335151224356216,
+          0.09134240752474936
+        ],
+        "worstMargin": -0.04211255081551318
+      }
+    },
+    "definitionSensitivity": {
+      "note": "how much the label moves when the REFERENCE DEFINITION changes, holding the budget fixed at 400k -- to be read against the budget sensitivity above",
+      "rankingDisagreementRate": 0.2642857142857143,
+      "incoherenceVsMultipvBest": 0.09571428571428571,
+      "incoherenceVsUniformArgmax": 0.014285714285714285,
+      "labelFlips": 11,
+      "labelFlipRate": 0.015714285714285715,
+      "labelFlipCi": [
+        0.008796771492359842,
+        0.02791830758225013
+      ],
+      "kappa": 0.9616831545213879,
+      "aucCeiling": 0.9734299516908212
+    },
+    "clusteringDesignEffect": {
+      "note": "the clustered interval is the one the preregistration requires. It is reported beside the naive one to show what clustering cost -- here, almost nothing, because label flips turn out not to be correlated within a game.",
+      "clusterCi": [
+        0.03857142857142857,
+        0.07142857142857142
+      ],
+      "naiveCi": [
+        0.03857142857142857,
+        0.07142857142857142
+      ],
+      "withinGameFlipCorrelation": -0.0561194321191153
+    }
+  },
+  "trajectoryDescription": {
+    "decisions": 700,
+    "remainingComputationValue": {
+      "mean": 0.004867167504567342,
+      "p50": 0.0,
+      "p75": 0.0,
+      "p90": 0.01801483582128971,
+      "p95": 0.030177643261819088,
+      "p99": 0.058628162683925344,
+      "shareBelowReferenceNoise": 0.84,
+      "gini": 0.8818758621516682
+    },
+    "remainingComputationValueArea": {
+      "mean": 0.010944528744740502,
+      "p50": 0.004683938219210513,
+      "p75": 0.01398608142705518,
+      "p90": 0.02765703022563912,
+      "p95": 0.042682757924069156,
+      "p99": 0.08386726577729628
+    },
+    "moveInstability": {
+      "mean": 2.1614285714285715,
+      "shareZero": 0.20285714285714285,
+      "p50": 2.0,
+      "p75": 3.0,
+      "p90": 4.0,
+      "p95": 5.0,
+      "p99": 6.0
+    },
+    "convergenceNodes": {
+      "50": 0.20285714285714285,
+      "100": 0.002857142857142857,
+      "200": 0.014285714285714285,
+      "500": 0.05142857142857143,
+      "1000": 0.06571428571428571,
+      "2000": 0.09285714285714286,
+      "5000": 0.1442857142857143,
+      "10000": 0.18571428571428572,
+      "20000": 0.24
+    },
+    "candidateGap": {
+      "mean": 0.029901349017677468,
+      "p50": 0.011028272265698358,
+      "p75": 0.031007460312507257,
+      "p90": 0.06961970094288039,
+      "p95": 0.12804942665708063,
+      "p99": 0.2637653865981396
+    },
+    "spearmanRcvVsCandidateGap": -0.08779431328285509,
+    "referenceNoiseScale": 0.00836685589296654
+  },
+  "determinismControl": {
+    "repeatedPositions": 0,
+    "mismatches": 0
+  },
+  "replicationControl": {
+    "comparedDecisions": 60,
+    "metricMismatches": 0,
+    "trajectoryMoveMismatches": 0,
+    "examples": []
+  }
 }

@@ -44,6 +44,17 @@ const SAMPLE = 300;
 const PRESCREEN = 1500;
 const PRESCREEN_NODES = 50_000;
 const MULTIPV = 3;
+/**
+ * The depth the product's own import path searches to, measured here in NODES on the same
+ * positions.
+ *
+ * It is recorded for one reason: the results document has to say what a stable reference would
+ * COST, and "depth 12" and "800,000 nodes" are not comparable quantities. Depth is not a unit of
+ * computation -- the same depth costs a few thousand nodes in a locked position and millions in a
+ * sharp one -- so the ratio between what the product spends and what a reference would need can
+ * only be stated once both are in nodes.
+ */
+const PRODUCT_DEPTH = 12;
 
 export function eloBand(elo: number): string {
   if (elo < 1500) return "<1500";
@@ -170,9 +181,10 @@ async function main() {
   }
   process.stderr.write(`sampled ${sample.length} positions over ${order.length} strata\n`);
 
-  const rows: Array<{ key: string; event: DecisionEvent; budgets: BudgetRow[] }> = [];
+  const rows: Array<{ key: string; event: DecisionEvent; budgets: BudgetRow[]; productDepthNodes: number }> = [];
   await pool(sample, workers, async (event, engine) => {
     const budgets: BudgetRow[] = [];
+    const atProductDepth = await engine.searchDepth(event.fenBefore, PRODUCT_DEPTH);
     for (const nodes of grid) {
       const result = await engine.search({ fen: event.fenBefore, nodes, multipv: MULTIPV });
       const values: Record<string, number> = {};
@@ -186,7 +198,7 @@ async function main() {
         values,
       });
     }
-    rows.push({ key: `${event.gameId}:${event.ply}`, event, budgets });
+    rows.push({ key: `${event.gameId}:${event.ply}`, event, budgets, productDepthNodes: atProductDepth.nodes });
   }, engines);
 
   engines.forEach((e) => e.quit());
@@ -226,13 +238,18 @@ async function main() {
       tolerantRate: c.stableTolerant / rows.length,
       tolerantCi: wilson(c.stableTolerant, rows.length),
     })),
+    productDepth: PRODUCT_DEPTH,
+    productDepthNodes: {
+      mean: rows.reduce((s2, r) => s2 + r.productDepthNodes, 0) / rows.length,
+      median: [...rows].map((r) => r.productDepthNodes).sort((a, b) => a - b)[Math.floor(rows.length / 2)],
+    },
     meanDepthByBudget: grid.map((nodes, i) => ({
       nodes,
       meanDepth: rows.reduce((s, r) => s + r.budgets[i].depth, 0) / rows.length,
       meanActualNodes: rows.reduce((s, r) => s + r.budgets[i].actualNodes, 0) / rows.length,
     })),
   };
-  const jsonl = rows.map((r) => JSON.stringify({ key: r.key, elo: r.event.elo, phase: r.event.phase, fen: r.event.fenBefore, clockBeforeSeconds: r.event.clockBeforeSeconds, baseSeconds: r.event.baseSeconds, budgets: r.budgets })).join("\n") + "\n";
+  const jsonl = rows.map((r) => JSON.stringify({ key: r.key, elo: r.event.elo, phase: r.event.phase, fen: r.event.fenBefore, clockBeforeSeconds: r.event.clockBeforeSeconds, baseSeconds: r.event.baseSeconds, productDepthNodes: r.productDepthNodes, budgets: r.budgets })).join("\n") + "\n";
   writeFileSync(`${dataDir}/${tag}.jsonl`, jsonl);
   writeFileSync(
     `${dataDir}/${tag}_summary.json`,
