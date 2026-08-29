@@ -1,0 +1,354 @@
+{
+  "provenance": {
+    "months": {
+      "dev": "2026-01",
+      "holdout": "2026-04"
+    },
+    "prefixBytes": 48000000,
+    "gamesRead": {
+      "2026-01": 149515,
+      "2026-04": 146610
+    },
+    "gamesQualified": {
+      "2026-01": 49925,
+      "2026-04": 48090
+    },
+    "gameRejections": {
+      "2026-01": {
+        "termination": 17290,
+        "not-rated-blitz": 79961,
+        "too-short": 1920,
+        "time-control": 284,
+        "clock-not-monotone": 124,
+        "no-clocks": 11
+      },
+      "2026-04": {
+        "not-rated-blitz": 79178,
+        "termination": 16956,
+        "time-control": 474,
+        "too-short": 1772,
+        "clock-not-monotone": 134,
+        "no-clocks": 6
+      }
+    },
+    "decisions": 10200,
+    "games": 1700,
+    "players": 2343,
+    "recurringPlayers": 300,
+    "datasetSha256": "f2d4300792bb8043154601b7e6e4cd6bc71b39d77e3a3326cb4cd3a6303103e3",
+    "seed": 20260829
+  },
+  "gate1": {
+    "passed": false,
+    "code": "STOP-D",
+    "budget": null,
+    "tolerance": null,
+    "bestStrict": {
+      "budget": 200000,
+      "rate": 0.7966666666666666
+    },
+    "bestTolerant": {
+      "budget": 400000,
+      "rate": 0.9066666666666666
+    },
+    "target": 0.95,
+    "epsilonStrict": 0.013804291029315463,
+    "epsilonTolerant": 0.027608582058630926,
+    "checks": [
+      {
+        "budget": 25000,
+        "against": 50000,
+        "n": 300,
+        "strictRate": 0.7166666666666667,
+        "strictCi": [
+          0.6631845423956875,
+          0.7646699712719605
+        ],
+        "tolerantRate": 0.8466666666666667,
+        "tolerantCi": [
+          0.8015330360133669,
+          0.8830341858548697
+        ]
+      },
+      {
+        "budget": 50000,
+        "against": 100000,
+        "n": 300,
+        "strictRate": 0.7066666666666667,
+        "strictCi": [
+          0.6527928854718686,
+          0.7553144967957339
+        ],
+        "tolerantRate": 0.87,
+        "tolerantCi": [
+          0.827218699236838,
+          0.9034251625648376
+        ]
+      },
+      {
+        "budget": 100000,
+        "against": 200000,
+        "n": 300,
+        "strictRate": 0.7733333333333333,
+        "strictCi": [
+          0.7226736931316665,
+          0.8170812318029046
+        ],
+        "tolerantRate": 0.9,
+        "tolerantCi": [
+          0.8608327216490345,
+          0.9290525343527771
+        ]
+      },
+      {
+        "budget": 200000,
+        "against": 400000,
+        "n": 300,
+        "strictRate": 0.7966666666666666,
+        "strictCi": [
+          0.747504723102555,
+          0.8383268417654551
+        ],
+        "tolerantRate": 0.9033333333333333,
+        "tolerantCi": [
+          0.864617489059097,
+          0.9318501440760628
+        ]
+      },
+      {
+        "budget": 400000,
+        "against": 800000,
+        "n": 300,
+        "strictRate": 0.75,
+        "strictCi": [
+          0.6980473999132475,
+          0.7956308850878847
+        ],
+        "tolerantRate": 0.9066666666666666,
+        "tolerantCi": [
+          0.8684138011961097,
+          0.9346362090723985
+        ]
+      }
+    ],
+    "meanDepthByBudget": [
+      {
+        "nodes": 25000,
+        "meanDepth": 13.26,
+        "meanActualNodes": 25000.146666666667
+      },
+      {
+        "nodes": 50000,
+        "meanDepth": 15.896666666666667,
+        "meanActualNodes": 49920.06
+      },
+      {
+        "nodes": 100000,
+        "meanDepth": 18.17,
+        "meanActualNodes": 99454.71333333333
+      },
+      {
+        "nodes": 200000,
+        "meanDepth": 20.703333333333333,
+        "meanActualNodes": 198256.9
+      },
+      {
+        "nodes": 400000,
+        "meanDepth": 23.53,
+        "meanActualNodes": 394943.0233333333
+      },
+      {
+        "nodes": 800000,
+        "meanDepth": 26.60333333333333,
+        "meanActualNodes": 787082.5366666666
+      }
+    ]
+  },
+  "gate1Extended": {
+    "note": "post-hoc, outside the preregistered grid; cannot rescue the gate, only says whether the curve is climbing or flat",
+    "checks": [
+      {
+        "budget": 25000,
+        "against": 50000,
+        "n": 300,
+        "strictRate": 0.7166666666666667,
+        "strictCi": [
+          0.6631845423956875,
+          0.7646699712719605
+        ],
+        "tolerantRate": 0.8466666666666667,
+        "tolerantCi": [
+          0.8015330360133669,
+          0.8830341858548697
+        ]
+      },
+      {
+        "budget": 50000,
+        "against": 100000,
+        "n": 300,
+        "strictRate": 0.7066666666666667,
+        "strictCi": [
+          0.6527928854718686,
+          0.7553144967957339
+        ],
+        "tolerantRate": 0.87,
+        "tolerantCi": [
+          0.827218699236838,
+          0.9034251625648376
+        ]
+      },
+      {
+        "budget": 100000,
+        "against": 200000,
+        "n": 300,
+        "strictRate": 0.7733333333333333,
+        "strictCi": [
+          0.7226736931316665,
+          0.8170812318029046
+        ],
+        "tolerantRate": 0.9,
+        "tolerantCi": [
+          0.8608327216490345,
+          0.9290525343527771
+        ]
+      },
+      {
+        "budget": 200000,
+        "against": 400000,
+        "n": 300,
+        "strictRate": 0.7966666666666666,
+        "strictCi": [
+          0.747504723102555,
+          0.8383268417654551
+        ],
+        "tolerantRate": 0.9033333333333333,
+        "tolerantCi": [
+          0.864617489059097,
+          0.9318501440760628
+        ]
+      },
+      {
+        "budget": 400000,
+        "against": 800000,
+        "n": 300,
+        "strictRate": 0.75,
+        "strictCi": [
+          0.6980473999132475,
+          0.7956308850878847
+        ],
+        "tolerantRate": 0.9066666666666666,
+        "tolerantCi": [
+          0.8684138011961097,
+          0.9346362090723985
+        ]
+      },
+      {
+        "budget": 800000,
+        "against": 1600000,
+        "n": 300,
+        "strictRate": 0.83,
+        "strictCi": [
+          0.7833848085580866,
+          0.8682705276434078
+        ],
+        "tolerantRate": 0.94,
+        "tolerantCi": [
+          0.90715983751747,
+          0.9617139440845226
+        ]
+      }
+    ],
+    "meanDepthByBudget": [
+      {
+        "nodes": 25000,
+        "meanDepth": 13.26,
+        "meanActualNodes": 25000.146666666667
+      },
+      {
+        "nodes": 50000,
+        "meanDepth": 15.896666666666667,
+        "meanActualNodes": 49920.06
+      },
+      {
+        "nodes": 100000,
+        "meanDepth": 18.17,
+        "meanActualNodes": 99454.71333333333
+      },
+      {
+        "nodes": 200000,
+        "meanDepth": 20.703333333333333,
+        "meanActualNodes": 198256.9
+      },
+      {
+        "nodes": 400000,
+        "meanDepth": 23.53,
+        "meanActualNodes": 394943.0233333333
+      },
+      {
+        "nodes": 800000,
+        "meanDepth": 26.60333333333333,
+        "meanActualNodes": 787082.5366666666
+      },
+      {
+        "nodes": 1600000,
+        "meanDepth": 29.006666666666668,
+        "meanActualNodes": 1564086.7166666666
+      }
+    ]
+  },
+  "referenceNoise": {
+    "25000v50000": {
+      "mean": 0.011084169860086196,
+      "p50": 0.005497442469101943,
+      "p75": 0.012559587517859905,
+      "p90": 0.02768035109214348,
+      "p95": 0.04628585887723746,
+      "p99": 0.08224367556050245,
+      "n": 300
+    },
+    "50000v100000": {
+      "mean": 0.010051000712759868,
+      "p50": 0.006260244507325152,
+      "p75": 0.012684382040832151,
+      "p90": 0.02207360194669388,
+      "p95": 0.03169774368833203,
+      "p99": 0.059196676985125124,
+      "n": 300
+    },
+    "100000v200000": {
+      "mean": 0.008784556660082486,
+      "p50": 0.005304375179253196,
+      "p75": 0.011041038385548152,
+      "p90": 0.02235478862183994,
+      "p95": 0.028383022955279683,
+      "p99": 0.0560948445824523,
+      "n": 300
+    },
+    "200000v400000": {
+      "mean": 0.008474591875827112,
+      "p50": 0.005217074023205814,
+      "p75": 0.010935422191538285,
+      "p90": 0.019480868326274717,
+      "p95": 0.02819760077151806,
+      "p99": 0.06077677095688453,
+      "n": 300
+    },
+    "400000v800000": {
+      "mean": 0.00836685589296654,
+      "p50": 0.0048552505180462086,
+      "p75": 0.010850005691128622,
+      "p90": 0.020593353704295325,
+      "p95": 0.02711222317365994,
+      "p99": 0.04238513129580679,
+      "n": 300
+    }
+  },
+  "stop": {
+    "code": "STOP-D",
+    "stage": "deep reference",
+    "consequence": "H1 and H2 were not run. Both models read V_deep(best move) in their predictors AND in their outcome, so an unstable reference does not only attenuate an effect -- the shared error term manufactures correlation between predictor and outcome."
+  },
+  "labelStability": null,
+  "trajectoryDescription": null,
+  "determinismControl": null
+}

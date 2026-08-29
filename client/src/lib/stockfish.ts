@@ -35,6 +35,9 @@ const defaultWorkerFactory: WorkerFactory = () => {
   return new Worker(`${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)}`) as unknown as WorkerLike;
 };
 
+/** What bounds a search: the depth the application asks for, or the node budget research asks for. */
+type SearchLimit = { kind: "depth"; value: number } | { kind: "nodes"; value: number };
+
 export class StockfishClient {
   private worker: WorkerLike | null = null;
   private readyPromise: Promise<void> | null = null;
@@ -93,7 +96,7 @@ export class StockfishClient {
     return this.readyPromise;
   }
   async analyze(fen: string, depth = 14): Promise<EngineLine> {
-    const [best] = await this.search(fen, depth, 1);
+    const [best] = await this.search(fen, { kind: "depth", value: depth }, 1);
     return best ?? emptyLine(fen);
   }
 
@@ -113,15 +116,41 @@ export class StockfishClient {
    * without the measurement. See docs/MEASUREMENTS.md.
    */
   async analyzeAlternatives(fen: string, depth = 14, count = 2): Promise<EngineLine[]> {
-    return this.search(fen, depth, count);
+    return this.search(fen, { kind: "depth", value: depth }, count);
   }
 
-  private async search(fen: string, depth: number, multipv: number): Promise<EngineLine[]> {
+  /**
+   * A search bounded by NODES rather than by depth. Additive: nothing above changes.
+   *
+   * Depth is not a unit of computation. The same `go depth 14` costs a few thousand nodes in a
+   * locked position and millions in a sharp one, so a set of depth-bounded searches cannot be read
+   * as "the same amount of thinking, applied to different positions" -- which is exactly what the
+   * blitz-computation research needs to vary. `go nodes N` is the same amount of thinking by
+   * construction.
+   *
+   * THE HASH IS CLEARED FIRST, and only on this path. Without `ucinewgame` a 50-node search that
+   * follows a 400,000-node search of the same position reads the deep answer straight out of the
+   * transposition table: every budget then agrees, the trajectory looks perfectly stable, and the
+   * budget has become a label rather than a constraint. The depth path deliberately does not clear
+   * it -- the application searches a stream of DIFFERENT positions from one game, where a warm
+   * table is a saving and not a contaminant.
+   */
+  async analyzeNodes(fen: string, nodes: number, multiPv = 1): Promise<EngineLine[]> {
+    return this.search(fen, { kind: "nodes", value: nodes }, multiPv);
+  }
+
+  private async search(fen: string, limit: SearchLimit, multipv: number): Promise<EngineLine[]> {
     await this.start();
     if (!this.worker) throw new Error("Stockfish worker unavailable");
     this.stopCurrent();
     this.lines.clear();
-    this.onStatus({ mode: "thinking", detail: `מחשב קו לעומק ${depth}` });
+    this.onStatus({
+      mode: "thinking",
+      detail:
+        limit.kind === "depth"
+          ? `מחשב קו לעומק ${limit.value}`
+          : `מחשב קו בתקציב ${limit.value} צמתים`,
+    });
     return new Promise<EngineLine[]>((resolve, reject) => {
       const timer = setTimeout(() => {
         if (!this.current) return;
@@ -136,6 +165,8 @@ export class StockfishClient {
       }, 12000) as unknown as number;
       this.current = { resolve, reject, timer, fen };
       this.worker?.postMessage("stop");
+      // Node-budgeted searches only; see analyzeNodes. The depth path must keep its warm table.
+      if (limit.kind === "nodes") this.worker?.postMessage("ucinewgame");
       /*
        * Set every time, including back down to 1. The option is sticky on the worker, so a
        * reveal that asked for two lines would otherwise leave every later single-line search
@@ -143,7 +174,9 @@ export class StockfishClient {
        */
       this.worker?.postMessage(`setoption name MultiPV value ${multipv}`);
       this.worker?.postMessage(`position fen ${fen}`);
-      this.worker?.postMessage(`go depth ${depth}`);
+      this.worker?.postMessage(
+        limit.kind === "depth" ? `go depth ${limit.value}` : `go nodes ${limit.value}`,
+      );
     });
   }
 

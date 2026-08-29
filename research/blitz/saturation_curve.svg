@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" width="640" height="320" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">
+<title>Deep-reference stability against node budget</title>
+<rect width="640" height="320" fill="#fbfbfa"/>
+<text x="52" y="22" font-size="13" font-weight="600" fill="#1a1a19">Deep-reference stability against node budget</text>
+<line x1="52" y1="268" x2="624" y2="268" stroke="#8a8a85"/>
+<line x1="52" y1="34" x2="52" y2="268" stroke="#8a8a85"/>
+<text x="624" y="298" text-anchor="end" fill="#57564f">node budget (log scale)</text>
+<text x="52" y="298" fill="#57564f">stable share</text>
+<line x1="52" y1="62.8" x2="624" y2="62.8" stroke="#b3261e" stroke-dasharray="5 4"/>
+<text x="620" y="56.8" text-anchor="end" fill="#b3261e">preregistered bar 95%</text>
+<polyline points="52.0,109.9 164.8,99.3 277.6,85.6 390.4,84.1 503.2,82.6 616.0,67.4" fill="none" stroke="#3a6ea5" stroke-width="2"/>
+<circle cx="52.0" cy="109.9" r="3" fill="#3a6ea5"/>
+<circle cx="164.8" cy="99.3" r="3" fill="#3a6ea5"/>
+<circle cx="277.6" cy="85.6" r="3" fill="#3a6ea5"/>
+<circle cx="390.4" cy="84.1" r="3" fill="#3a6ea5"/>
+<circle cx="503.2" cy="82.6" r="3" fill="#3a6ea5"/>
+<circle cx="616.0" cy="67.4" r="3" fill="#3a6ea5"/>
+<text x="610.0" y="59.4" text-anchor="end" fill="#3a6ea5">tolerant epsilon</text>
+<polyline points="52.0,169.2 164.8,173.8 277.6,143.4 390.4,132.7 503.2,154.0 616.0,117.5" fill="none" stroke="#1a1a19" stroke-width="2"/>
+<circle cx="52.0" cy="169.2" r="3" fill="#1a1a19"/>
+<circle cx="164.8" cy="173.8" r="3" fill="#1a1a19"/>
+<circle cx="277.6" cy="143.4" r="3" fill="#1a1a19"/>
+<circle cx="390.4" cy="132.7" r="3" fill="#1a1a19"/>
+<circle cx="503.2" cy="154.0" r="3" fill="#1a1a19"/>
+<circle cx="616.0" cy="117.5" r="3" fill="#1a1a19"/>
+<text x="610.0" y="109.5" text-anchor="end" fill="#1a1a19">strict epsilon (primary)</text>
+<text x="52.0" y="282" text-anchor="middle" fill="#57564f">25k</text>
+<text x="164.8" y="282" text-anchor="middle" fill="#57564f">50k</text>
+<text x="277.6" y="282" text-anchor="middle" fill="#57564f">100k</text>
+<text x="390.4" y="282" text-anchor="middle" fill="#57564f">200k</text>
+<text x="503.2" y="282" text-anchor="middle" fill="#57564f">400k</text>
+<text x="616.0" y="282" text-anchor="middle" fill="#57564f">800k</text>
+<text x="44" y="272.0" text-anchor="end" fill="#57564f">0.5</text>
+<text x="44" y="226.4" text-anchor="end" fill="#57564f">0.6</text>
+<text x="44" y="180.8" text-anchor="end" fill="#57564f">0.7</text>
+<text x="44" y="135.2" text-anchor="end" fill="#57564f">0.8</text>
+<text x="44" y="89.6" text-anchor="end" fill="#57564f">0.9</text>
+<text x="44" y="44.0" text-anchor="end" fill="#57564f">1.0</text>
+</svg>
