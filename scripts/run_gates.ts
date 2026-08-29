@@ -405,6 +405,23 @@ export const GATES: Gate[] = [
     },
   },
   {
+    id: "GATE-SHUFFLE-REAL",
+    rule: "6",
+    description:
+      "The same control, on records with the shape real decisions have rather than a uniform one.",
+    run: async () => {
+      const { shuffleVerdict, realShapedRecord } =
+        await import("../tests/fixtures/shuffle-scenario");
+      const { DEFAULT_THRESHOLDS } = await import("../shared/detector");
+      return shuffleVerdict(realShapedRecord, DEFAULT_THRESHOLDS, pass, fail);
+    },
+    positiveControl: async () => {
+      const { shuffleVerdict, realShapedRecord, PERMISSIVE_THRESHOLDS } =
+        await import("../tests/fixtures/shuffle-scenario");
+      return shuffleVerdict(realShapedRecord, PERMISSIVE_THRESHOLDS, pass, fail);
+    },
+  },
+  {
     id: "GATE-REACHABILITY",
     rule: "4.6",
     description:

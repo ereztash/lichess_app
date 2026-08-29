@@ -102,14 +102,45 @@ async function main() {
   }
 
   /*
-   * Sorted by name rather than by "most games", so the selection cannot be read as picking the
-   * players whose readings looked most interesting. The first N with a full window is a rule that
-   * was fixed before anything was scored.
+   * STRATIFIED BY TIME CLASS, and the first version of this was not -- which is the whole reason
+   * the stratification is here.
+   *
+   * "The first N players by username with a full window" sounds neutral and is not: a player with
+   * a dozen games inside a short slice of one month is a player who finishes games quickly, so
+   * every one of the first five was a bullet or ultrabullet player. In the corpus that produced,
+   * 100% of decisions took under 45 seconds -- so `fast-under-45s` held everything, its comparison
+   * set was empty, and `slow-over-2m` could never fill. A control built on that corpus would have
+   * been validating the detector on a world where two of its six buckets do not exist.
+   *
+   * Within a class the rule is still the neutral one: sorted by username, first N. The order the
+   * classes are drawn in is fixed here rather than by how many players each turned out to have.
    */
-  const chosen = [...byPlayer.entries()]
+  const CLASS_ORDER = ["classical", "rapid", "blitz", "bullet", "ultrabullet"];
+  const dominant = (games: HarnessGame[]) => {
+    const counts = new Map<string, number>();
+    for (const g of games) counts.set(g.speed ?? "unknown", (counts.get(g.speed ?? "unknown") ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  };
+  const eligible = [...byPlayer.entries()]
     .filter(([, games]) => games.length >= wantedGames)
-    .sort(([a], [b]) => (a < b ? -1 : 1))
-    .slice(0, wantedPlayers);
+    .sort(([a], [b]) => (a < b ? -1 : 1));
+  const byClass = new Map<string, Array<[string, HarnessGame[]]>>();
+  for (const entry of eligible) {
+    const key = dominant(entry[1]);
+    (byClass.get(key) ?? byClass.set(key, []).get(key)!).push(entry);
+  }
+  const chosen: Array<[string, HarnessGame[]]> = [];
+  for (let round = 0; chosen.length < wantedPlayers; round += 1) {
+    let added = 0;
+    for (const key of [...CLASS_ORDER, ...[...byClass.keys()].filter((k) => !CLASS_ORDER.includes(k))]) {
+      const pool = byClass.get(key);
+      if (pool && round < pool.length && chosen.length < wantedPlayers) {
+        chosen.push(pool[round]);
+        added += 1;
+      }
+    }
+    if (!added) break;
+  }
 
   const players = chosen.map(([username, games]) => ({
     playerId: playerId(username),
@@ -126,7 +157,12 @@ async function main() {
     playersWithFullWindow: [...byPlayer.values()].filter((g) => g.length >= wantedGames).length,
     playersChosen: players.length,
     gamesPerPlayer: wantedGames,
-    selection: "first N by username, fixed before anything was scored",
+    selection:
+      "stratified by the player's dominant time class, then first N by username within each -- " +
+      "both rules fixed before anything was scored",
+    classesAvailable: Object.fromEntries(
+      [...byClass.entries()].map(([k, v]) => [k, v.length]),
+    ),
   };
   const body = JSON.stringify({ players, provenance }, null, 2);
   writeFileSync(`${outDir}/corpus.json`, body);

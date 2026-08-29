@@ -1,51 +1,67 @@
 {
   "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-02.pgn.zst",
   "month": "2026-02",
-  "prefixBytes": 24000000,
-  "gamesRead": 72854,
-  "gamesAdmissible": 46295,
-  "distinctPlayers": 39231,
-  "playersWithFullWindow": 237,
-  "playersChosen": 5,
-  "gamesPerPlayer": 12,
-  "selection": "first N by username, fixed before anything was scored",
+  "prefixBytes": 48000000,
+  "gamesRead": 146215,
+  "gamesAdmissible": 92330,
+  "distinctPlayers": 63917,
+  "playersWithFullWindow": 4322,
+  "playersChosen": 6,
+  "gamesPerPlayer": 8,
+  "selection": "stratified by the player's dominant time class, then first N by username within each -- both rules fixed before anything was scored",
+  "classesAvailable": {
+    "rapid": 488,
+    "blitz": 2381,
+    "bullet": 1428,
+    "ultrabullet": 23,
+    "classical": 2
+  },
   "players": [
     {
-      "playerId": "9f3e649e06572494",
-      "games": 12,
+      "playerId": "743bb0e0830185be",
+      "games": 8,
       "speeds": [
-        "bullet",
-        "ultrabullet"
+        "blitz",
+        "classical",
+        "rapid"
       ]
     },
     {
-      "playerId": "d518fb260bad10a3",
-      "games": 12,
+      "playerId": "8b033ad948e594d0",
+      "games": 8,
       "speeds": [
-        "bullet"
+        "rapid"
       ]
     },
     {
-      "playerId": "77688005b3153818",
-      "games": 12,
-      "speeds": [
-        "bullet"
-      ]
-    },
-    {
-      "playerId": "fd31a43e141e2cfe",
-      "games": 12,
+      "playerId": "fcf1b502ad98d066",
+      "games": 8,
       "speeds": [
         "blitz"
       ]
     },
     {
-      "playerId": "778c5b87b5d981ad",
-      "games": 12,
+      "playerId": "d4c645424efbf311",
+      "games": 8,
       "speeds": [
         "bullet"
       ]
+    },
+    {
+      "playerId": "9f3e649e06572494",
+      "games": 8,
+      "speeds": [
+        "ultrabullet"
+      ]
+    },
+    {
+      "playerId": "4ceee8ee8ad2ff98",
+      "games": 8,
+      "speeds": [
+        "blitz",
+        "classical"
+      ]
     }
   ],
-  "corpusSha256": "c67b17b6b98cdaa93305bf1e348cc21688fc04726636d9a70f254710fcdb2668"
+  "corpusSha256": "c319a2309974c035edb6c251604b1fbf0e19629d8240c39459c7b12e4ad11393"
 }

@@ -435,6 +435,44 @@ the move that was not played, which is why the reveal now asks for two.
 it does not really distinguish. The panel already said differences under 30 cp say nothing here;
 it had never applied that to the move it was itself recommending.
 
+### The thresholds, against the shape real records have
+
+**The question this answers.** Every threshold in the detector -- `MIN_BUCKET_N = 30`,
+`SEPARABILITY_K = 3.75`, the 2% false-positive ceiling -- was set by a shuffled-label control on
+records drawn from a UNIFORM world: phase uniform over three, seconds uniform over 0-200, clock
+uniform over five minutes. Real online chess is not that world, and this document has said for a
+long time that against real data every threshold is UNVERIFIED.
+
+**The corpus.** The 1,572 non-forced decisions from the import harness above (6 real players
+stratified by dominant time class -- rapid, blitz, bullet, ultrabullet -- 8 games each), frozen as
+`tests/fixtures/real-shape.json`. Whole `(phase, seconds, clock, accurate)` tuples are resampled,
+so the joint structure survives; confidence is supplied by the control, drawn independently,
+because nobody asked those players how sure they were and nobody ever can.
+
+| | uniform records | real-shaped records |
+| --- | ---: | ---: |
+| worst false-positive rate, current thresholds | 0.7% | **0.0%** |
+| worst false-positive rate, the permissive thresholds this build started with | 30.0% | 19.3% |
+| buckets ever comparable, at n = 1200 | 6 / 6 | **4 / 6** |
+
+**No threshold moved, and none needed to.** The 2% ceiling holds on real shapes with room to
+spare, which is what had to be established before anything was retuned.
+
+**The second row is the finding, and it is not good news.** `fast-under-45s` and `slow-over-2m` are
+never comparable on a real record at any size tested. On these decisions the median think time is
+**2 seconds**, **99.9%** fall under 45, and **0.06%** exceed two minutes -- so one side or the other
+never reaches `MIN_BUCKET_N` and the detector skips the bucket silently. A third of the search space
+does not exist in the world the product runs in, and part of the reason the false-positive rate is
+lower on real shapes is exactly that fewer comparisons are being made. `GATE-SHUFFLE-REAL` prints
+the coverage next to the rate so the two are never read apart.
+
+**What this does not license.** It does not license changing 45 to 3, or to any number learned from
+this corpus. Six players are not a population, and a cut point fitted to the records that revealed
+the problem is the definition of overfitting. What it says is that the two time buckets are
+currently dead weight on real records, and that any replacement -- a think time normalised by the
+base clock, say -- has to be chosen on development data, frozen, and then put through this same
+control on a holdout before it goes near production.
+
 ### What a real import actually did, and the number that moved when nothing did
 
 **The first run of this product's import path on real games.** `scripts/run_import_harness.ts`

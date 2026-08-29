@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T23:40:55.719Z",
+  "generatedAt": "2026-08-29T23:51:07.952Z",
   "engine": "stockfish-ubuntu-x86-64-avx2",
   "engineOptions": {
     "Threads": 1,
@@ -10,456 +10,49 @@
   "corpus": {
     "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-02.pgn.zst",
     "month": "2026-02",
-    "prefixBytes": 24000000,
-    "gamesRead": 72854,
-    "gamesAdmissible": 46295,
-    "distinctPlayers": 39231,
-    "playersWithFullWindow": 237,
-    "playersChosen": 5,
-    "gamesPerPlayer": 12,
-    "selection": "first N by username, fixed before anything was scored"
+    "prefixBytes": 48000000,
+    "gamesRead": 146215,
+    "gamesAdmissible": 92330,
+    "distinctPlayers": 63917,
+    "playersWithFullWindow": 4322,
+    "playersChosen": 6,
+    "gamesPerPlayer": 8,
+    "selection": "stratified by the player's dominant time class, then first N by username within each -- both rules fixed before anything was scored",
+    "classesAvailable": {
+      "rapid": 488,
+      "blitz": 2381,
+      "bullet": 1428,
+      "ultrabullet": 23,
+      "classical": 2
+    }
   },
-  "players": 5,
-  "decisions": 1762,
+  "players": 6,
+  "decisions": 1587,
   "reproducibility": {
     "repeats": true,
     "repeatsPerDecision": true,
     "orderIndependent": false,
     "orderIndependentWithClearedHash": true,
-    "largestBucketShiftPp": 11.80973209404046,
-    "clearedCostRatio": 1.4257324380476348
+    "largestBucketShiftPp": 14.30107526881721,
+    "clearedCostRatio": 1.3922478843104666
   },
   "perPlayer": [
     {
-      "playerId": "9f3e649e06572494",
-      "games": 12,
+      "playerId": "743bb0e0830185be",
+      "games": 8,
       "reading": {
-        "scored": 250,
-        "forced": 3,
-        "eligible": 247,
-        "withoutTime": 5,
-        "withoutClock": 5,
-        "timeBucketSpeed": "ultrabullet",
-        "excludedForSpeed": 23,
-        "buckets": [
-          {
-            "key": "fast-under-45s",
-            "n": 219,
-            "accurateRate": 0.7945205479452054,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "slow-over-2m",
-            "n": 0,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          },
-          {
-            "key": "phase-opening",
-            "n": 117,
-            "accurateRate": 0.6923076923076923,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "phase-middlegame",
-            "n": 120,
-            "accurateRate": 0.8083333333333333,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "phase-endgame",
-            "n": 10,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          },
-          {
-            "key": "clock-under-1m",
-            "n": 219,
-            "accurateRate": 0.7945205479452054,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-winning",
-            "n": 183,
-            "accurateRate": 0.8306010928961749,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-level",
-            "n": 59,
-            "accurateRate": 0.559322033898305,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-losing",
-            "n": 5,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          }
-        ]
-      },
-      "repeats": true,
-      "repeatsPerDecision": true,
-      "orderIndependent": false,
-      "orderIndependentWithClearedHash": true,
-      "warmMs": 5095,
-      "clearedMs": 7272,
-      "clearedCostRatio": 1.4272816486751718,
-      "largestBucketShiftPp": 11.80973209404046,
-      "orderDifferences": [
-        {
-          "key": "fast-under-45s",
-          "forward": {
-            "key": "fast-under-45s",
-            "n": 219,
-            "accurateRate": 0.7945205479452054,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "fast-under-45s",
-            "n": 219,
-            "accurateRate": 0.821917808219178,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "phase-opening",
-          "forward": {
-            "key": "phase-opening",
-            "n": 117,
-            "accurateRate": 0.6923076923076923,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "phase-opening",
-            "n": 117,
-            "accurateRate": 0.7606837606837606,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "phase-middlegame",
-          "forward": {
-            "key": "phase-middlegame",
-            "n": 120,
-            "accurateRate": 0.8083333333333333,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "phase-middlegame",
-            "n": 120,
-            "accurateRate": 0.8,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "clock-under-1m",
-          "forward": {
-            "key": "clock-under-1m",
-            "n": 219,
-            "accurateRate": 0.7945205479452054,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "clock-under-1m",
-            "n": 219,
-            "accurateRate": 0.821917808219178,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-winning",
-          "forward": {
-            "key": "standing-winning",
-            "n": 183,
-            "accurateRate": 0.8306010928961749,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-winning",
-            "n": 180,
-            "accurateRate": 0.8277777777777777,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-level",
-          "forward": {
-            "key": "standing-level",
-            "n": 59,
-            "accurateRate": 0.559322033898305,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-level",
-            "n": 62,
-            "accurateRate": 0.6774193548387096,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        }
-      ]
-    },
-    {
-      "playerId": "d518fb260bad10a3",
-      "games": 12,
-      "reading": {
-        "scored": 450,
-        "forced": 5,
-        "eligible": 445,
-        "withoutTime": 3,
-        "withoutClock": 3,
-        "timeBucketSpeed": "bullet",
-        "excludedForSpeed": 0,
-        "buckets": [
-          {
-            "key": "fast-under-45s",
-            "n": 442,
-            "accurateRate": 0.5610859728506787,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "slow-over-2m",
-            "n": 0,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          },
-          {
-            "key": "phase-opening",
-            "n": 120,
-            "accurateRate": 0.5583333333333333,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "phase-middlegame",
-            "n": 289,
-            "accurateRate": 0.5259515570934256,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "phase-endgame",
-            "n": 36,
-            "accurateRate": 0.8888888888888888,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "clock-under-1m",
-            "n": 387,
-            "accurateRate": 0.5478036175710594,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-winning",
-            "n": 81,
-            "accurateRate": 0.5061728395061729,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-level",
-            "n": 146,
-            "accurateRate": 0.4931506849315068,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-losing",
-            "n": 218,
-            "accurateRate": 0.6330275229357798,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        ]
-      },
-      "repeats": true,
-      "repeatsPerDecision": true,
-      "orderIndependent": false,
-      "orderIndependentWithClearedHash": true,
-      "warmMs": 16266,
-      "clearedMs": 22948,
-      "clearedCostRatio": 1.410795524406738,
-      "largestBucketShiftPp": 8.117363939281752,
-      "orderDifferences": [
-        {
-          "key": "fast-under-45s",
-          "forward": {
-            "key": "fast-under-45s",
-            "n": 442,
-            "accurateRate": 0.5610859728506787,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "fast-under-45s",
-            "n": 442,
-            "accurateRate": 0.583710407239819,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "phase-opening",
-          "forward": {
-            "key": "phase-opening",
-            "n": 120,
-            "accurateRate": 0.5583333333333333,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "phase-opening",
-            "n": 120,
-            "accurateRate": 0.5833333333333334,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "phase-middlegame",
-          "forward": {
-            "key": "phase-middlegame",
-            "n": 289,
-            "accurateRate": 0.5259515570934256,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "phase-middlegame",
-            "n": 289,
-            "accurateRate": 0.5467128027681661,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "phase-endgame",
-          "forward": {
-            "key": "phase-endgame",
-            "n": 36,
-            "accurateRate": 0.8888888888888888,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "phase-endgame",
-            "n": 36,
-            "accurateRate": 0.9166666666666666,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "clock-under-1m",
-          "forward": {
-            "key": "clock-under-1m",
-            "n": 387,
-            "accurateRate": 0.5478036175710594,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "clock-under-1m",
-            "n": 387,
-            "accurateRate": 0.5736434108527132,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-winning",
-          "forward": {
-            "key": "standing-winning",
-            "n": 81,
-            "accurateRate": 0.5061728395061729,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-winning",
-            "n": 77,
-            "accurateRate": 0.5324675324675324,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-level",
-          "forward": {
-            "key": "standing-level",
-            "n": 146,
-            "accurateRate": 0.4931506849315068,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-level",
-            "n": 148,
-            "accurateRate": 0.5743243243243243,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-losing",
-          "forward": {
-            "key": "standing-losing",
-            "n": 218,
-            "accurateRate": 0.6330275229357798,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-losing",
-            "n": 220,
-            "accurateRate": 0.6136363636363636,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        }
-      ]
-    },
-    {
-      "playerId": "77688005b3153818",
-      "games": 12,
-      "reading": {
-        "scored": 326,
+        "scored": 222,
         "forced": 1,
-        "eligible": 325,
-        "withoutTime": 6,
-        "withoutClock": 6,
-        "timeBucketSpeed": "bullet",
-        "excludedForSpeed": 0,
+        "eligible": 221,
+        "withoutTime": 4,
+        "withoutClock": 4,
+        "timeBucketSpeed": "blitz",
+        "excludedForSpeed": 129,
         "buckets": [
           {
             "key": "fast-under-45s",
-            "n": 319,
-            "accurateRate": 0.64576802507837,
+            "n": 90,
+            "accurateRate": 0.7,
             "measurable": true,
             "unmeasurableReason": null
           },
@@ -472,50 +65,50 @@
           },
           {
             "key": "phase-opening",
-            "n": 120,
-            "accurateRate": 0.6166666666666667,
+            "n": 80,
+            "accurateRate": 0.6375,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "phase-middlegame",
-            "n": 198,
-            "accurateRate": 0.6515151515151515,
+            "n": 105,
+            "accurateRate": 0.6857142857142857,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "phase-endgame",
-            "n": 7,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
+            "n": 36,
+            "accurateRate": 0.8611111111111112,
+            "measurable": true,
+            "unmeasurableReason": null
           },
           {
             "key": "clock-under-1m",
-            "n": 279,
-            "accurateRate": 0.6666666666666666,
+            "n": 39,
+            "accurateRate": 0.8461538461538461,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "standing-winning",
-            "n": 143,
-            "accurateRate": 0.7342657342657343,
+            "n": 120,
+            "accurateRate": 0.725,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "standing-level",
-            "n": 118,
-            "accurateRate": 0.5338983050847458,
+            "n": 58,
+            "accurateRate": 0.6551724137931034,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "standing-losing",
-            "n": 64,
-            "accurateRate": 0.65625,
+            "n": 43,
+            "accurateRate": 0.6744186046511628,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -525,24 +118,24 @@
       "repeatsPerDecision": true,
       "orderIndependent": false,
       "orderIndependentWithClearedHash": true,
-      "warmMs": 11555,
-      "clearedMs": 15717,
-      "clearedCostRatio": 1.3601903937689312,
-      "largestBucketShiftPp": 2.750520368718401,
+      "warmMs": 5868,
+      "clearedMs": 8599,
+      "clearedCostRatio": 1.4654055896387184,
+      "largestBucketShiftPp": 5.5555555555555465,
       "orderDifferences": [
         {
           "key": "fast-under-45s",
           "forward": {
             "key": "fast-under-45s",
-            "n": 319,
-            "accurateRate": 0.64576802507837,
+            "n": 90,
+            "accurateRate": 0.7,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "fast-under-45s",
-            "n": 319,
-            "accurateRate": 0.6614420062695925,
+            "n": 90,
+            "accurateRate": 0.6444444444444445,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -551,14 +144,14 @@
           "key": "phase-opening",
           "forward": {
             "key": "phase-opening",
-            "n": 120,
-            "accurateRate": 0.6166666666666667,
+            "n": 80,
+            "accurateRate": 0.6375,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "phase-opening",
-            "n": 120,
+            "n": 80,
             "accurateRate": 0.625,
             "measurable": true,
             "unmeasurableReason": null
@@ -568,15 +161,32 @@
           "key": "phase-middlegame",
           "forward": {
             "key": "phase-middlegame",
-            "n": 198,
-            "accurateRate": 0.6515151515151515,
+            "n": 105,
+            "accurateRate": 0.6857142857142857,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "phase-middlegame",
-            "n": 198,
-            "accurateRate": 0.6717171717171717,
+            "n": 105,
+            "accurateRate": 0.7333333333333333,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-endgame",
+          "forward": {
+            "key": "phase-endgame",
+            "n": 36,
+            "accurateRate": 0.8611111111111112,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-endgame",
+            "n": 36,
+            "accurateRate": 0.8333333333333334,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -585,15 +195,15 @@
           "key": "clock-under-1m",
           "forward": {
             "key": "clock-under-1m",
-            "n": 279,
-            "accurateRate": 0.6666666666666666,
+            "n": 39,
+            "accurateRate": 0.8461538461538461,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "clock-under-1m",
-            "n": 279,
-            "accurateRate": 0.6881720430107527,
+            "n": 39,
+            "accurateRate": 0.7948717948717948,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -602,244 +212,37 @@
           "key": "standing-winning",
           "forward": {
             "key": "standing-winning",
-            "n": 143,
-            "accurateRate": 0.7342657342657343,
+            "n": 120,
+            "accurateRate": 0.725,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "standing-winning",
-            "n": 144,
-            "accurateRate": 0.7430555555555556,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-level",
-          "forward": {
-            "key": "standing-level",
-            "n": 118,
-            "accurateRate": 0.5338983050847458,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-level",
-            "n": 114,
-            "accurateRate": 0.5614035087719298,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-losing",
-          "forward": {
-            "key": "standing-losing",
-            "n": 64,
-            "accurateRate": 0.65625,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-losing",
-            "n": 67,
-            "accurateRate": 0.6567164179104478,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        }
-      ]
-    },
-    {
-      "playerId": "fd31a43e141e2cfe",
-      "games": 12,
-      "reading": {
-        "scored": 339,
-        "forced": 1,
-        "eligible": 338,
-        "withoutTime": 6,
-        "withoutClock": 6,
-        "timeBucketSpeed": "blitz",
-        "excludedForSpeed": 0,
-        "buckets": [
-          {
-            "key": "fast-under-45s",
-            "n": 332,
-            "accurateRate": 0.6626506024096386,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "slow-over-2m",
-            "n": 0,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          },
-          {
-            "key": "phase-opening",
             "n": 120,
             "accurateRate": 0.75,
             "measurable": true,
             "unmeasurableReason": null
-          },
-          {
-            "key": "phase-middlegame",
-            "n": 205,
-            "accurateRate": 0.6146341463414634,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "phase-endgame",
-            "n": 13,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          },
-          {
-            "key": "clock-under-1m",
-            "n": 17,
-            "accurateRate": null,
-            "measurable": false,
-            "unmeasurableReason": "too-few"
-          },
-          {
-            "key": "standing-winning",
-            "n": 145,
-            "accurateRate": 0.6275862068965518,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-level",
-            "n": 148,
-            "accurateRate": 0.6959459459459459,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          {
-            "key": "standing-losing",
-            "n": 45,
-            "accurateRate": 0.6888888888888889,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        ]
-      },
-      "repeats": true,
-      "repeatsPerDecision": true,
-      "orderIndependent": false,
-      "orderIndependentWithClearedHash": true,
-      "warmMs": 14682,
-      "clearedMs": 20677,
-      "clearedCostRatio": 1.4083231167415884,
-      "largestBucketShiftPp": 10.180878552971572,
-      "orderDifferences": [
-        {
-          "key": "fast-under-45s",
-          "forward": {
-            "key": "fast-under-45s",
-            "n": 332,
-            "accurateRate": 0.6626506024096386,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "fast-under-45s",
-            "n": 332,
-            "accurateRate": 0.677710843373494,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "phase-middlegame",
-          "forward": {
-            "key": "phase-middlegame",
-            "n": 205,
-            "accurateRate": 0.6146341463414634,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "phase-middlegame",
-            "n": 205,
-            "accurateRate": 0.6341463414634146,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-winning",
-          "forward": {
-            "key": "standing-winning",
-            "n": 145,
-            "accurateRate": 0.6275862068965518,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-winning",
-            "n": 143,
-            "accurateRate": 0.6503496503496503,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-level",
-          "forward": {
-            "key": "standing-level",
-            "n": 148,
-            "accurateRate": 0.6959459459459459,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-level",
-            "n": 152,
-            "accurateRate": 0.6842105263157895,
-            "measurable": true,
-            "unmeasurableReason": null
-          }
-        },
-        {
-          "key": "standing-losing",
-          "forward": {
-            "key": "standing-losing",
-            "n": 45,
-            "accurateRate": 0.6888888888888889,
-            "measurable": true,
-            "unmeasurableReason": null
-          },
-          "reversed": {
-            "key": "standing-losing",
-            "n": 43,
-            "accurateRate": 0.7906976744186046,
-            "measurable": true,
-            "unmeasurableReason": null
           }
         }
       ]
     },
     {
-      "playerId": "778c5b87b5d981ad",
-      "games": 12,
+      "playerId": "8b033ad948e594d0",
+      "games": 8,
       "reading": {
-        "scored": 397,
-        "forced": 3,
-        "eligible": 394,
-        "withoutTime": 6,
-        "withoutClock": 6,
-        "timeBucketSpeed": "bullet",
+        "scored": 473,
+        "forced": 0,
+        "eligible": 473,
+        "withoutTime": 5,
+        "withoutClock": 5,
+        "timeBucketSpeed": "rapid",
         "excludedForSpeed": 0,
         "buckets": [
           {
             "key": "fast-under-45s",
-            "n": 388,
-            "accurateRate": 0.6443298969072165,
+            "n": 468,
+            "accurateRate": 0.6816239316239316,
             "measurable": true,
             "unmeasurableReason": null
           },
@@ -852,50 +255,50 @@
           },
           {
             "key": "phase-opening",
-            "n": 119,
-            "accurateRate": 0.7394957983193278,
+            "n": 80,
+            "accurateRate": 0.6,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "phase-middlegame",
-            "n": 234,
-            "accurateRate": 0.6068376068376068,
+            "n": 230,
+            "accurateRate": 0.6434782608695652,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "phase-endgame",
-            "n": 41,
-            "accurateRate": 0.6341463414634146,
+            "n": 163,
+            "accurateRate": 0.7852760736196319,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "clock-under-1m",
-            "n": 349,
-            "accurateRate": 0.6303724928366762,
-            "measurable": true,
-            "unmeasurableReason": null
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
           },
           {
             "key": "standing-winning",
-            "n": 114,
-            "accurateRate": 0.5526315789473685,
+            "n": 103,
+            "accurateRate": 0.6310679611650486,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "standing-level",
-            "n": 243,
-            "accurateRate": 0.691358024691358,
+            "n": 173,
+            "accurateRate": 0.6878612716763006,
             "measurable": true,
             "unmeasurableReason": null
           },
           {
             "key": "standing-losing",
-            "n": 37,
-            "accurateRate": 0.6756756756756757,
+            "n": 197,
+            "accurateRate": 0.7106598984771574,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -905,24 +308,24 @@
       "repeatsPerDecision": true,
       "orderIndependent": false,
       "orderIndependentWithClearedHash": true,
-      "warmMs": 18824,
-      "clearedMs": 28086,
-      "clearedCostRatio": 1.4920314492137696,
-      "largestBucketShiftPp": 3.010905642484596,
+      "warmMs": 15232,
+      "clearedMs": 21176,
+      "clearedCostRatio": 1.3902310924369747,
+      "largestBucketShiftPp": 2.500000000000002,
       "orderDifferences": [
         {
           "key": "fast-under-45s",
           "forward": {
             "key": "fast-under-45s",
-            "n": 388,
-            "accurateRate": 0.6443298969072165,
+            "n": 468,
+            "accurateRate": 0.6816239316239316,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "fast-under-45s",
-            "n": 388,
-            "accurateRate": 0.6494845360824743,
+            "n": 468,
+            "accurateRate": 0.6923076923076923,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -931,15 +334,15 @@
           "key": "phase-opening",
           "forward": {
             "key": "phase-opening",
-            "n": 119,
-            "accurateRate": 0.7394957983193278,
+            "n": 80,
+            "accurateRate": 0.6,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "phase-opening",
-            "n": 119,
-            "accurateRate": 0.7647058823529411,
+            "n": 80,
+            "accurateRate": 0.575,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -948,32 +351,32 @@
           "key": "phase-middlegame",
           "forward": {
             "key": "phase-middlegame",
-            "n": 234,
-            "accurateRate": 0.6068376068376068,
+            "n": 230,
+            "accurateRate": 0.6434782608695652,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "phase-middlegame",
-            "n": 234,
-            "accurateRate": 0.6025641025641025,
+            "n": 230,
+            "accurateRate": 0.6608695652173913,
             "measurable": true,
             "unmeasurableReason": null
           }
         },
         {
-          "key": "clock-under-1m",
+          "key": "phase-endgame",
           "forward": {
-            "key": "clock-under-1m",
-            "n": 349,
-            "accurateRate": 0.6303724928366762,
+            "key": "phase-endgame",
+            "n": 163,
+            "accurateRate": 0.7852760736196319,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
-            "key": "clock-under-1m",
-            "n": 349,
-            "accurateRate": 0.6275071633237822,
+            "key": "phase-endgame",
+            "n": 163,
+            "accurateRate": 0.803680981595092,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -982,15 +385,15 @@
           "key": "standing-winning",
           "forward": {
             "key": "standing-winning",
-            "n": 114,
-            "accurateRate": 0.5526315789473685,
+            "n": 103,
+            "accurateRate": 0.6310679611650486,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "standing-winning",
-            "n": 111,
-            "accurateRate": 0.5225225225225225,
+            "n": 107,
+            "accurateRate": 0.6261682242990654,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -999,15 +402,15 @@
           "key": "standing-level",
           "forward": {
             "key": "standing-level",
-            "n": 243,
-            "accurateRate": 0.691358024691358,
+            "n": 173,
+            "accurateRate": 0.6878612716763006,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "standing-level",
-            "n": 247,
-            "accurateRate": 0.7125506072874493,
+            "n": 167,
+            "accurateRate": 0.6946107784431138,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -1016,15 +419,775 @@
           "key": "standing-losing",
           "forward": {
             "key": "standing-losing",
-            "n": 37,
-            "accurateRate": 0.6756756756756757,
+            "n": 197,
+            "accurateRate": 0.7106598984771574,
             "measurable": true,
             "unmeasurableReason": null
           },
           "reversed": {
             "key": "standing-losing",
-            "n": 36,
+            "n": 199,
+            "accurateRate": 0.7336683417085427,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        }
+      ]
+    },
+    {
+      "playerId": "fcf1b502ad98d066",
+      "games": 8,
+      "reading": {
+        "scored": 244,
+        "forced": 1,
+        "eligible": 243,
+        "withoutTime": 3,
+        "withoutClock": 3,
+        "timeBucketSpeed": "blitz",
+        "excludedForSpeed": 0,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 239,
+            "accurateRate": 0.6192468619246861,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.6875,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 149,
+            "accurateRate": 0.5570469798657718,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 14,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-winning",
+            "n": 31,
+            "accurateRate": 0.6129032258064516,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 118,
+            "accurateRate": 0.6271186440677966,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 94,
+            "accurateRate": 0.6170212765957447,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      },
+      "repeats": true,
+      "repeatsPerDecision": true,
+      "orderIndependent": false,
+      "orderIndependentWithClearedHash": true,
+      "warmMs": 10530,
+      "clearedMs": 14189,
+      "clearedCostRatio": 1.3474833808167141,
+      "largestBucketShiftPp": 2.500000000000002,
+      "orderDifferences": [
+        {
+          "key": "fast-under-45s",
+          "forward": {
+            "key": "fast-under-45s",
+            "n": 239,
+            "accurateRate": 0.6192468619246861,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "fast-under-45s",
+            "n": 239,
+            "accurateRate": 0.6150627615062761,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-opening",
+          "forward": {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.6875,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.7125,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-middlegame",
+          "forward": {
+            "key": "phase-middlegame",
+            "n": 149,
+            "accurateRate": 0.5570469798657718,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-middlegame",
+            "n": 149,
+            "accurateRate": 0.5436241610738255,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-winning",
+          "forward": {
+            "key": "standing-winning",
+            "n": 31,
+            "accurateRate": 0.6129032258064516,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-winning",
+            "n": 29,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          }
+        },
+        {
+          "key": "standing-level",
+          "forward": {
+            "key": "standing-level",
+            "n": 118,
+            "accurateRate": 0.6271186440677966,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-level",
+            "n": 121,
+            "accurateRate": 0.6033057851239669,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-losing",
+          "forward": {
+            "key": "standing-losing",
+            "n": 94,
+            "accurateRate": 0.6170212765957447,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-losing",
+            "n": 93,
+            "accurateRate": 0.6344086021505376,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        }
+      ]
+    },
+    {
+      "playerId": "d4c645424efbf311",
+      "games": 8,
+      "reading": {
+        "scored": 235,
+        "forced": 1,
+        "eligible": 234,
+        "withoutTime": 6,
+        "withoutClock": 6,
+        "timeBucketSpeed": "bullet",
+        "excludedForSpeed": 0,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 228,
+            "accurateRate": 0.6271929824561403,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.675,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 129,
+            "accurateRate": 0.627906976744186,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 25,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 208,
+            "accurateRate": 0.6105769230769231,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-winning",
+            "n": 75,
+            "accurateRate": 0.5866666666666667,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 87,
+            "accurateRate": 0.7011494252873564,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 72,
+            "accurateRate": 0.6111111111111112,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      },
+      "repeats": true,
+      "repeatsPerDecision": true,
+      "orderIndependent": false,
+      "orderIndependentWithClearedHash": true,
+      "warmMs": 8249,
+      "clearedMs": 11846,
+      "clearedCostRatio": 1.436052854891502,
+      "largestBucketShiftPp": 7.0048309178743935,
+      "orderDifferences": [
+        {
+          "key": "fast-under-45s",
+          "forward": {
+            "key": "fast-under-45s",
+            "n": 228,
+            "accurateRate": 0.6271929824561403,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "fast-under-45s",
+            "n": 228,
+            "accurateRate": 0.6403508771929824,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-middlegame",
+          "forward": {
+            "key": "phase-middlegame",
+            "n": 129,
+            "accurateRate": 0.627906976744186,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-middlegame",
+            "n": 129,
+            "accurateRate": 0.6356589147286822,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "clock-under-1m",
+          "forward": {
+            "key": "clock-under-1m",
+            "n": 208,
+            "accurateRate": 0.6105769230769231,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "clock-under-1m",
+            "n": 208,
+            "accurateRate": 0.6201923076923077,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-winning",
+          "forward": {
+            "key": "standing-winning",
+            "n": 75,
+            "accurateRate": 0.5866666666666667,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-winning",
+            "n": 78,
+            "accurateRate": 0.6025641025641025,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-level",
+          "forward": {
+            "key": "standing-level",
+            "n": 87,
+            "accurateRate": 0.7011494252873564,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-level",
+            "n": 87,
             "accurateRate": 0.6666666666666666,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-losing",
+          "forward": {
+            "key": "standing-losing",
+            "n": 72,
+            "accurateRate": 0.6111111111111112,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-losing",
+            "n": 69,
+            "accurateRate": 0.6811594202898551,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        }
+      ]
+    },
+    {
+      "playerId": "9f3e649e06572494",
+      "games": 8,
+      "reading": {
+        "scored": 157,
+        "forced": 2,
+        "eligible": 155,
+        "withoutTime": 3,
+        "withoutClock": 3,
+        "timeBucketSpeed": "ultrabullet",
+        "excludedForSpeed": 0,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 152,
+            "accurateRate": 0.7631578947368421,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 78,
+            "accurateRate": 0.6923076923076923,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 77,
+            "accurateRate": 0.8441558441558441,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 152,
+            "accurateRate": 0.7631578947368421,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-winning",
+            "n": 125,
+            "accurateRate": 0.816,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 30,
+            "accurateRate": 0.5666666666666667,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          }
+        ]
+      },
+      "repeats": true,
+      "repeatsPerDecision": true,
+      "orderIndependent": false,
+      "orderIndependentWithClearedHash": true,
+      "warmMs": 2823,
+      "clearedMs": 4513,
+      "clearedCostRatio": 1.5986539142755933,
+      "largestBucketShiftPp": 14.30107526881721,
+      "orderDifferences": [
+        {
+          "key": "fast-under-45s",
+          "forward": {
+            "key": "fast-under-45s",
+            "n": 152,
+            "accurateRate": 0.7631578947368421,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "fast-under-45s",
+            "n": 152,
+            "accurateRate": 0.7894736842105263,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-opening",
+          "forward": {
+            "key": "phase-opening",
+            "n": 78,
+            "accurateRate": 0.6923076923076923,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-opening",
+            "n": 78,
+            "accurateRate": 0.7564102564102564,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-middlegame",
+          "forward": {
+            "key": "phase-middlegame",
+            "n": 77,
+            "accurateRate": 0.8441558441558441,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-middlegame",
+            "n": 77,
+            "accurateRate": 0.8311688311688312,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "clock-under-1m",
+          "forward": {
+            "key": "clock-under-1m",
+            "n": 152,
+            "accurateRate": 0.7631578947368421,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "clock-under-1m",
+            "n": 152,
+            "accurateRate": 0.7894736842105263,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-winning",
+          "forward": {
+            "key": "standing-winning",
+            "n": 125,
+            "accurateRate": 0.816,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-winning",
+            "n": 124,
+            "accurateRate": 0.8145161290322581,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-level",
+          "forward": {
+            "key": "standing-level",
+            "n": 30,
+            "accurateRate": 0.5666666666666667,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-level",
+            "n": 31,
+            "accurateRate": 0.7096774193548387,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        }
+      ]
+    },
+    {
+      "playerId": "4ceee8ee8ad2ff98",
+      "games": 8,
+      "reading": {
+        "scored": 256,
+        "forced": 10,
+        "eligible": 246,
+        "withoutTime": 4,
+        "withoutClock": 4,
+        "timeBucketSpeed": "blitz",
+        "excludedForSpeed": 99,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 145,
+            "accurateRate": 0.6413793103448275,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.65,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 145,
+            "accurateRate": 0.5793103448275863,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 21,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 1,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-winning",
+            "n": 91,
+            "accurateRate": 0.5274725274725275,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 75,
+            "accurateRate": 0.5866666666666667,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 80,
+            "accurateRate": 0.775,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      },
+      "repeats": true,
+      "repeatsPerDecision": true,
+      "orderIndependent": false,
+      "orderIndependentWithClearedHash": true,
+      "warmMs": 9645,
+      "clearedMs": 12557,
+      "clearedCostRatio": 1.3019180922757905,
+      "largestBucketShiftPp": 4.719298245614034,
+      "orderDifferences": [
+        {
+          "key": "fast-under-45s",
+          "forward": {
+            "key": "fast-under-45s",
+            "n": 145,
+            "accurateRate": 0.6413793103448275,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "fast-under-45s",
+            "n": 145,
+            "accurateRate": 0.6137931034482759,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-opening",
+          "forward": {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.65,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-opening",
+            "n": 80,
+            "accurateRate": 0.625,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "phase-middlegame",
+          "forward": {
+            "key": "phase-middlegame",
+            "n": 145,
+            "accurateRate": 0.5793103448275863,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "phase-middlegame",
+            "n": 145,
+            "accurateRate": 0.5517241379310345,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-winning",
+          "forward": {
+            "key": "standing-winning",
+            "n": 91,
+            "accurateRate": 0.5274725274725275,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-winning",
+            "n": 90,
+            "accurateRate": 0.4888888888888889,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-level",
+          "forward": {
+            "key": "standing-level",
+            "n": 75,
+            "accurateRate": 0.5866666666666667,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-level",
+            "n": 76,
+            "accurateRate": 0.5394736842105263,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        },
+        {
+          "key": "standing-losing",
+          "forward": {
+            "key": "standing-losing",
+            "n": 80,
+            "accurateRate": 0.775,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          "reversed": {
+            "key": "standing-losing",
+            "n": 80,
+            "accurateRate": 0.8125,
             "measurable": true,
             "unmeasurableReason": null
           }
@@ -1032,5 +1195,5 @@
       ]
     }
   ],
-  "evidenceSha256": "9c573860adc74ad8c9db644c4b9e36a58175b3b13c31346d513f532c1b090645"
+  "evidenceSha256": "ce261d8203282f32d382883acd7ddf0f788c1c7301ad5f59bb038d0f81f26892"
 }
