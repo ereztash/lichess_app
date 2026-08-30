@@ -83,6 +83,17 @@ this branch and in PR #40. Anything built on `main` would not see it.
 | **Gap** | The prospective discipline is real and already enforced, but the only protocol is a static-position drill, and the freeze boundary is a decision index rather than a timestamp. A time-pressure claim validated by a static FEN drill is exactly what INV-10 forbids. |
 | **Evidence** | `evidence-policy.ts:174-186`, `record-service.ts:1364,1485`, `drill.ts:50-285` |
 
+**Resolved in part, and one part deliberately left open.** PR-13 supplies `ValidationProtocol` and
+`TimedHoldout` (`shared/validation-protocol.ts`), including the timestamp boundary. It also made
+visible that the gap is not a missing feature but a **disagreement**: `beginDrill` builds a static
+drill for `fast-under-45s` today, with a reason written in its own comment, and `protocolFor` sends
+that bucket to a holdout. Reproduced by running the repository's drill-loop test:
+`DRILLED_CLAIM: claim-fast-under-45s | protocol INV-10 requires: timed-holdout`. Nothing in the
+product was changed on this; see **ADR-003**, which states both positions, names the three ways it
+can go, and picks none — enforcing it would strip the only prospective test the product can run on
+the bucket that holds 99.7% of a blitz player's decisions. `tests/shared/a-rule-the-product-breaks.test.ts`
+holds the contradiction still, and goes red on either resolution.
+
 ### 1.8 `Home.tsx` — **already fenced**
 
 2,357 lines and 55 `useState`, against a committed ratchet of 2,400 / 55 that *only ever goes down*
