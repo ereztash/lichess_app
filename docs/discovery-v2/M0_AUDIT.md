@@ -15,7 +15,7 @@ counts its `results/*.json` records. Nothing was recalled and nothing was estima
 | --- | --- | --- |
 | **Q1** | Do decision-level and game-clustered inference give the same conclusion? | **PASS, with a bound** — and the obvious repair is **refuted** |
 | **Q2** | Is feature materialization free of future leakage under a point-in-time contract? | **PASS on what ships, FAIL on what enforces it** |
-| **Q3** | Is every claim sent to a protocol that can reproduce the condition it names? | **FAIL** — established, and the choice is not this document's |
+| **Q3** | Is every claim sent to a protocol that can reproduce the condition it names? | **FAIL on `main`** — and the owner's resolution is in flight in [#42](https://github.com/ereztash/lichess_app/pull/42) |
 | **Q4** | Does the six-bucket detector survive the harness V2 would be judged by? | **HALF** — error control passes by a wide margin, power fails by a wide margin |
 
 **Discovery V2 does not start.** Not because the instrument is broken in the way the plan expected,
@@ -168,11 +168,38 @@ unchanged and passes. A seventh bucket added without deciding how it can be vali
 
 **Not changed, deliberately.** ADR-003 states three defensible resolutions — enforce INV-10, narrow
 it to `clock-under-1m`, or grade by protocol — argues all three, and says the choice *"belongs to
-whoever owns the product"* because it decides which claims the product can ever grade. Nothing here
-settles it. What is settled is that whichever is chosen is now an edit to one table, against a
-classification that exists as a value, instead of an argument reconstructed from scratch.
+whoever owns the product"* because it decides which claims the product can ever grade. Nothing in
+this audit settles it.
 
-**Q3 remains FAIL until that choice is made.**
+### The owner has since settled it, and it is not merged yet
+
+[#42](https://github.com/ereztash/lichess_app/pull/42) — *"A grade names the protocol that produced
+it"* — takes **option 3**. A forward test carries the protocol it ran under; a protocol the claim
+does not require may speak about the claim but never close it, in either direction. The drill still
+runs, its result is still recorded, and the grade still moves — what changes is authority, not
+existence.
+
+That is the right resolution and this audit does not second-guess it. Two notes for whoever reads
+both changes together:
+
+**They disagree about `UNKNOWN`, and the disagreement is correct.** #42 grades an unclassified
+bucket by the old rule, because a claim nothing may close *"flips between `replicated` and
+`refuted` with every drill, forever"* — found by a test rather than by reading.
+`shared/discovery/claim-class.ts` sends `UNKNOWN` to `no-verdict`. Both are right about their own
+question, because the questions differ: #42 asks *may this stored claim ever be closed*, where
+refusing forever is worse than the old rule; `claim-class.ts` asks *may this candidate be frozen at
+all*, where `freeze` refuses an unclassifiable hypothesis before it becomes a claim. A hypothesis
+that never enters the system never has a grade to flip. The rule that would be wrong is applying
+either answer to the other's question.
+
+**Q3 is FAIL on `main` and closes when #42 merges.** The V2 gate below treats it as decided.
+
+### What #42 does not touch, and Q4 found
+
+Protocol matching is about **whether the condition can be reproduced**. It says nothing about
+whether the subgroup a claim names is the region the effect is actually in — and Q4 measures the
+chain validating the wrong subgroup 11% of the time on an effect no bucket can express. Two
+different problems; only one of them now has an answer.
 
 ---
 
@@ -294,8 +321,13 @@ that merely overlaps it** — because Q4 shows the current judge cannot.
 | --- | --- |
 | Q1 | closed, with an open **number** — the ICC of a real record |
 | Q2 | closed by contract; the `game-features.ts` surface is **open** until it is declared or deleted |
-| Q3 | **OPEN**, and it is a product decision. ADR-003 owns it. |
+| Q3 | decided by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42); closes on merge |
 | Q4 | closed, and it changes the brief |
 
-**Discovery V2 does not begin until Q3 is decided.** The mechanism is built; the choice is not
-this document's to make.
+**Discovery V2 begins when #42 merges, and it begins on a different brief than the one it was
+commissioned with.** Not a wider search for more claims — the chain already emits almost none, and
+none of them false in 8,000 null records. A vocabulary that can name what is there, and an
+attribution test that can tell a named region from a bucket that merely overlaps it.
+
+The next node to open is **D04, candidate search**, with `pysubgroup` as the oracle and the
+attribution failure — not the false-positive rate — as the thing it has to beat.

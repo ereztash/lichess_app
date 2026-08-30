@@ -1,8 +1,9 @@
 # D20 — what protocol may judge this claim?
 
 **Mode:** `PORT_AFTER_EQUIVALENCE` for the mechanism.
-**Status:** the mechanism is decided. **The product choice it enables is OPEN and belongs to
-`docs/blitz/ADR-003.md`.**
+**Status:** the mechanism is decided. The product choice it enables was **taken by the owner in
+[#42](https://github.com/ereztash/lichess_app/pull/42)** (ADR-003 option 3) while this node was
+being written, and closes when that merges.
 **Depends on:** `shared/discovery/claim-class.ts`, `shared/validation-protocol.ts`,
 `docs/blitz/ADR-003-a-rule-the-product-breaks.md`, `docs/discovery-v2/M0_AUDIT.md` §Q3.
 
@@ -103,11 +104,31 @@ second list of keys, and **answers exactly what it answered before**; its existi
 unchanged and passes. A seventh bucket added without deciding how it can be validated now
 classifies `UNKNOWN` and gets no verdict, rather than defaulting to the only protocol on the shelf.
 
-**The three-way choice is untouched.** It decides which claims the product can ever grade, which is
-a product decision wearing an engineering change's clothes, and this repository's rule is that one
-must not ride inside the other. What has changed is that the classification is now a **value** the
-grading path can consult, so whichever option is chosen is an edit to one table rather than an
-argument reconstructed from scratch.
+**The three-way choice was not this node's to make**, and it has since been made.
+[#42](https://github.com/ereztash/lichess_app/pull/42) takes option 3: a forward test carries the
+protocol it ran under, and a protocol the claim does not require may speak about the claim but
+never close it -- in either direction, because a player who calibrates fine with no clock running
+has not shown they calibrate fine under one. `requiredProtocolFor` there reads `protocolFor`, which
+this node left answering exactly what it answered before, so the two compose.
+
+### Where this node and #42 disagree about `UNKNOWN`, and why both are right
+
+#42 grades a claim on an unclassified bucket **by the old rule**, and says why: a claim nothing may
+close *"flips between `replicated` and `refuted` with every drill, forever"*. This node sends
+`UNKNOWN` to `no-verdict`.
+
+They are answering different questions, and the answers do not transfer.
+
+| | question | wrong answer |
+| --- | --- | --- |
+| #42 | may this **stored claim** ever be closed? | refusing forever -- the claim never settles |
+| here | may this **candidate** be frozen at all? | freezing it -- it promises a verdict nothing can give |
+
+`freeze` refuses an unclassifiable hypothesis **before it becomes a claim**, so a hypothesis this
+node turns away never acquires a grade that could flip. The failure mode #42 found by test does not
+exist upstream of the freeze. Applying either answer to the other's question is what would be
+wrong, and this table is here so that a reader who meets both modules does not conclude one of them
+is a bug.
 
 ## REVERSAL CONDITION
 
@@ -118,5 +139,10 @@ argument reconstructed from scratch.
 - **The mechanism reverses** if `UNKNOWN` starts firing on subgroups that are obviously testable.
   That would mean the registry is under-declared rather than the claims being unclassifiable, and
   the fix is the registry, not the table.
-- **This node closes** when the product owner picks (a), (b) or (c) — ideally after the measurement
-  named under UNCERTAINTY, and never by default because one of them was easier to implement.
+- **This node closes when #42 merges.** The owner picked (c), and picked it against the argument
+  rather than by default — which is what the ADR asked for. What it did NOT have is the measurement
+  named under UNCERTAINTY, and (c) is the option least damaged by that: it lets a timed holdout
+  speak later in either direction, so if drill-speed and clock-speed turn out to be the same event
+  the drill's verdict was never thrown away, and if they turn out to differ nothing was closed on
+  the wrong one. That measurement is still worth making, and it is now a refinement rather than a
+  precondition.
