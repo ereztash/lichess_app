@@ -90,6 +90,51 @@ this branch and in PR #40. Anything built on `main` would not see it.
 as another state machine inside `Home.tsx` is not merely advice here: **a fifty-sixth `useState`
 fails the build.** An isolated route is the only option the repository permits.
 
+### 1.9 The clock-reachability guard — **watched one file, and the blitz work built a second**
+
+*Not found by this audit. Created by it, and found afterwards — recorded here because the gap table
+is the honest place for it.*
+
+`shared/live-acquisition.ts:44` states a fact in a constant:
+
+```ts
+export const LIVE_DECISION_CARRIES_CLOCK = false;
+```
+
+`isRegistrableBucket` reads it and refuses to preregister `clock-under-1m`, because a bucket the
+live loop can never fill turns a preregistration into a countdown that never ends. The constant is
+a *stated* fact — `shared/` cannot import the client — and its own comment names the guard that
+keeps it honest:
+
+> *if a clocked live game is ever built, the test that asserts every construction site passes null
+> goes red and names this constant as what to change.*
+
+**The guard read `Home.tsx` and nothing else** (`tests/gates/reachability.test.ts`), which was
+complete when it was written: `Home` was the only place a game was played. PR-6b added `/blitz`, a
+second live game **with a real clock**, on its own route — exactly as §1.8 requires. The promise was
+scoped to a file rather than to the client, so the clocked game was built somewhere the guard could
+not see.
+
+**Measured, not argued.** Adding a `clockMsRemaining: 30_000` to `client/src/pages/Blitz.tsx` and
+running the guard as it stood: **8 passed, 0 failed.** The same mutation against the generalised
+guard fails, naming `pages/Blitz.tsx:51`.
+
+**Nothing is wrong in the product today**, and that is why this is worth writing down rather than
+only fixing. `/blitz` decisions stop at the post-game analyser and never enter the record store, so
+the constant is still true. **PR-11 is the change that will break it, deliberately** — and on that
+day `isRegistrableBucket` would go on refusing `clock-under-1m` on a premise that had quietly
+stopped holding, with no assertion anywhere going red.
+
+So the fix is two assertions, not one:
+
+| | what it holds |
+| --- | --- |
+| the field, client-wide | no module under `client/src` builds a decision with a non-null clock |
+| the wiring | no client module that plays the clocked game also commits decisions |
+
+The second exists because the first watches a *field name*, and a blitz decision could reach the
+record under any name. Both name the constant when they fail.
+
 ## 2. Stop conditions, as of this commit
 
 | | status |

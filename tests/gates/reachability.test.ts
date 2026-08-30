@@ -28,7 +28,7 @@
  *      saying "40 more decisions" forever.
  */
 import { describe, expect, it, beforeEach } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import ts from "typescript";
 import { BUCKETINGS, MIN_BUCKET_N } from "@shared/detector";
@@ -46,6 +46,90 @@ import { readPosition, writePosition } from "@/lib/session-position";
 import { confidenceIsAsked, type DecisionPurpose } from "@shared/confidence-asked";
 
 const HOME = resolve(__dirname, "../../client/src/pages/Home.tsx");
+const CLIENT_SRC = resolve(__dirname, "../../client/src");
+
+/** Every TypeScript module the client ships, as paths relative to `client/src`. */
+function clientSources(dir = CLIENT_SRC, prefix = ""): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) found.push(...clientSources(resolve(dir, entry.name), rel));
+    else if (/\.tsx?$/.test(entry.name)) found.push(rel);
+  }
+  return found.sort();
+}
+
+const parsed = new Map<string, ts.SourceFile>();
+function parseClient(file: string): ts.SourceFile {
+  const cached = parsed.get(file);
+  if (cached) return cached;
+  const source = ts.createSourceFile(
+    file,
+    readFileSync(resolve(CLIENT_SRC, file), "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  parsed.set(file, source);
+  return source;
+}
+
+/**
+ * Every `clockMsRemaining:` the client WRITES, wherever it writes it.
+ *
+ * A property assignment only -- the field's declaration in `decision-session.ts` is a signature
+ * and the reads that pass it along name it on the right of the colon, neither of which builds a
+ * decision.
+ */
+function clockSitesUnderClient(): { file: string; line: number; isNull: boolean }[] {
+  const sites: { file: string; line: number; isNull: boolean }[] = [];
+  for (const file of clientSources()) {
+    const source = parseClient(file);
+    const walk = (node: ts.Node): void => {
+      if (
+        ts.isPropertyAssignment(node) &&
+        ts.isIdentifier(node.name) &&
+        node.name.text === "clockMsRemaining"
+      ) {
+        sites.push({
+          file,
+          line: source.getLineAndCharacterOfPosition(node.getStart()).line + 1,
+          isNull: node.initializer.kind === ts.SyntaxKind.NullKeyword,
+        });
+      }
+      ts.forEachChild(node, walk);
+    };
+    walk(source);
+  }
+  return sites;
+}
+
+/** Client modules that import a module specifier -- read from the import list, not the text. */
+function clientModulesImporting(specifier: string): string[] {
+  return clientSources().filter((file) =>
+    parseClient(file).statements.some(
+      (statement) =>
+        ts.isImportDeclaration(statement) &&
+        ts.isStringLiteral(statement.moduleSpecifier) &&
+        statement.moduleSpecifier.text === specifier,
+    ),
+  );
+}
+
+/** Whether a client module names an identifier -- so a mention in a comment does not count. */
+function clientModuleUses(file: string, name: string): boolean {
+  let found = false;
+  const walk = (node: ts.Node): void => {
+    if (found) return;
+    if (ts.isIdentifier(node) && node.text === name) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(node, walk);
+  };
+  walk(parseClient(file));
+  return found;
+}
 
 /**
  * The position the front door hands over: a real game, past the opening, from the player's own
@@ -388,46 +472,66 @@ describe("GATE-REACHABILITY: no bucket is promised a test that cannot run", () =
     ).toBeGreaterThan(1);
   });
 
-  it("grounds the clock claim in what the board actually constructs", () => {
+  it("grounds the clock claim in every place the client builds a decision, not one file", () => {
     /*
-     * WHY THIS IS READ OFF THE FILE. `shared/` cannot import the client, so
-     * LIVE_DECISION_CARRIES_CLOCK is a stated fact -- and a stated fact drifts. This holds it to
-     * the two places `Home` builds a decision's position. Wire a real clock into either and this
-     * goes red naming the constant to change, which is the only way that constant stops being a
-     * comment somebody has to remember.
+     * WHY THIS IS READ OFF THE FILES. `shared/` cannot import the client, so
+     * LIVE_DECISION_CARRIES_CLOCK is a stated fact -- and a stated fact drifts. Wire a real clock
+     * into any decision the client builds and this goes red naming the constant to change, which
+     * is the only way that constant stops being a comment somebody has to remember.
+     *
+     * AND IT READ ONE FILE, WHICH IS THE DEFECT THIS VERSION CLOSES. The guard walked `Home.tsx`
+     * alone, because when it was written `Home` was the only place a game was played. `/blitz` is
+     * a second one and it runs a real clock. The constant's own comment promises the escape hatch
+     * -- "if a clocked live game is ever built, the test goes red" -- but the promise was scoped
+     * to a FILE rather than to the client, so building the clocked game somewhere else was enough
+     * to walk past it in silence. Nothing was wrong in `Home`; the guard was looking at the wrong
+     * thing, which is how a stated fact goes stale without any assertion failing.
      */
-    const source = ts.createSourceFile(
-      "Home.tsx",
-      readFileSync(HOME, "utf8"),
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX,
-    );
+    const sites = clockSitesUnderClient();
 
-    const clocks: { line: number; isNull: boolean }[] = [];
-    const walk = (node: ts.Node): void => {
-      if (
-        ts.isPropertyAssignment(node) &&
-        ts.isIdentifier(node.name) &&
-        node.name.text === "clockMsRemaining"
-      ) {
-        clocks.push({
-          line: source.getLineAndCharacterOfPosition(node.getStart()).line + 1,
-          isNull: node.initializer.kind === ts.SyntaxKind.NullKeyword,
-        });
-      }
-      ts.forEachChild(node, walk);
-    };
-    walk(source);
+    const inHome = sites.filter((site) => site.file === "pages/Home.tsx");
+    expect(inHome.length, "no decision position built in Home; this assertion went blind").toBe(2);
 
-    expect(clocks.length, "no decision position built in Home; this assertion went blind").toBe(2);
-    const clocked = clocks.filter((c) => !c.isNull);
+    const clocked = sites.filter((site) => !site.isNull);
     if (LIVE_DECISION_CARRIES_CLOCK) {
-      expect(clocked.length, "the constant says live decisions carry a clock; none does").toBeGreaterThan(0);
+      expect(
+        clocked.length,
+        "the constant says live decisions carry a clock; none does",
+      ).toBeGreaterThan(0);
     } else {
       expect(
-        clocked.map((c) => c.line),
-        "Home now builds a clocked decision -- flip LIVE_DECISION_CARRIES_CLOCK",
+        clocked.map((site) => `${site.file}:${site.line}`),
+        "the client now builds a clocked decision -- flip LIVE_DECISION_CARRIES_CLOCK",
+      ).toEqual([]);
+    }
+  });
+
+  it("keeps the clocked game out of the record while the constant says decisions have no clock", () => {
+    /*
+     * THE FIELD NAME IS NOT THE ONLY WAY THIS FACT GOES STALE, and the assertion above watches
+     * only the field.
+     *
+     * `LIVE_DECISION_CARRIES_CLOCK` is false because every decision that reaches the record is
+     * built by a board with no clock. `/blitz` has a clock; what keeps the constant true is that
+     * its decisions stop at the post-game analyser and never enter the record store. That is a
+     * fact about WIRING, it was held nowhere, and it is not incidental -- PR-11 is the change that
+     * will break it deliberately, and on the day it does, `isRegistrableBucket` starts refusing
+     * `clock-under-1m` on a premise that has stopped being true.
+     *
+     * So this asserts the wiring rather than the field: a client module that plays the clocked
+     * game does not also commit decisions. Connect the two and this goes red naming the constant,
+     * whatever the field ends up being called.
+     */
+    const players = clientModulesImporting("@shared/blitz-game-core");
+    expect(
+      players,
+      "no client module plays the clocked game; this assertion went blind",
+    ).not.toEqual([]);
+
+    if (!LIVE_DECISION_CARRIES_CLOCK) {
+      expect(
+        players.filter((file) => clientModuleUses(file, "useCommitDecision")),
+        "a clocked game now writes into the record -- flip LIVE_DECISION_CARRIES_CLOCK",
       ).toEqual([]);
     }
   });
