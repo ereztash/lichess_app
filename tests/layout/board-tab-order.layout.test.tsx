@@ -17,6 +17,9 @@
  * to a handler is something jsdom implements faithfully. That half stays in
  * `tests/client/a-board-nobody-could-hear.test.tsx`, where it is measured rather than inferred.
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { Chess } from "chess.js";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -111,4 +114,69 @@ describe("crossing the board with the Tab key", () => {
     await page.close();
     expect(landed).toEqual({ role: "gridcell", square: "a8" });
   }, 60_000);
+});
+
+/**
+ * The live region is hidden from the EYE and not from the accessibility tree, and those are
+ * different hidings that look identical in a test.
+ *
+ * THE SILENT FAILURE THIS EXISTS TO CATCH. Every announcement assertion in the sibling suite
+ * reads `textContent`, which is present whatever the CSS does. If `.sr-only` were ever
+ * "simplified" to `display: none` or `visibility: hidden`, the board would go mute for every
+ * screen reader on earth and all six of those tests would still be green -- because a node
+ * removed from the accessibility tree still has text in it.
+ *
+ * It has to be measured in a browser: this is a COMPUTED style, produced by a stylesheet, and the
+ * whole point is which of several visually-identical hidings the class actually uses.
+ */
+describe("what the board says out loud is hidden from the eye only", () => {
+  it("keeps the announcer in the accessibility tree while giving it no visual footprint", async () => {
+    const css = readFileSync(resolve(__dirname, "../../client/src/index.css"), "utf8");
+    const markup = renderToStaticMarkup(
+      <ChessBoard
+        board={board}
+        orientation="w"
+        legalTargets={[]}
+        onSelect={() => undefined}
+        onMove={() => undefined}
+      />,
+    );
+    const page = await browser.newPage({ viewport: { width: 900, height: 900 } });
+    await page.setContent(
+      `<!doctype html><html lang="he"><head><style>${css}</style></head>
+       <body>${markup}<p class="board-announcer-probe sr-only">על הלוח: e2 אל e4.</p></body></html>`,
+    );
+    const seen = await page.locator(".board-announcer-probe").evaluate((node) => {
+      const style = getComputedStyle(node);
+      const box = node.getBoundingClientRect();
+      return {
+        display: style.display,
+        visibility: style.visibility,
+        width: box.width,
+        height: box.height,
+      };
+    });
+    await page.close();
+
+    // Present to a reader: neither of the two hidings that remove a node from the tree.
+    expect(seen.display).not.toBe("none");
+    expect(seen.visibility).not.toBe("hidden");
+    // Absent to the eye: the clip-path pattern leaves a 1px box, not a line of text.
+    expect(seen.width).toBeLessThanOrEqual(2);
+    expect(seen.height).toBeLessThanOrEqual(2);
+  }, 60_000);
+
+  it("puts the region on the board itself, polite, with the sr-only class", async () => {
+    const markup = renderToStaticMarkup(
+      <ChessBoard
+        board={board}
+        orientation="w"
+        legalTargets={[]}
+        onSelect={() => undefined}
+        onMove={() => undefined}
+      />,
+    );
+    expect(markup).toContain('aria-live="polite"');
+    expect(markup).toContain("sr-only board-announcer");
+  });
 });
