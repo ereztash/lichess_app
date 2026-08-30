@@ -49,20 +49,19 @@ for r in elig:
 # ---- the five candidates, section 4. Frozen: section 8 forbids adding a sixth. ----------------
 LICHESS = [0.1, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 40, 60]
 
-def start_clock(rs):
-    """Starting clock per game, inferred as the largest remaining seen in it.
+"""The starting clock per game, read from the PGN TimeControl header via the manifest.
 
-    An inference, not a field: the PGN's first clock comment is already one move in. It is the same
-    inference for every candidate, so it cannot favour one.
-    """
-    s = {}
-    for r in rs:
-        if r["clockMsRemaining"] is not None:
-            k = r["gameId"]
-            s[k] = max(s.get(k, 0), r["clockMsRemaining"])
-    return s
+It used to be INFERRED as the largest clock remaining among ELIGIBLE decisions -- and review found
+that wrong, because eligible excludes book, book is the opening, and the opening is where the clock
+is fullest. In 63 of 75 games the inferred start was below the real one, by up to 86 seconds, which
+inflates `remaining / start` and pushes decisions toward the full-clock end. Seven held-out
+decisions changed time-pressure bucket once it was fixed.
 
-STARTS = start_clock(elig)
+Taking the maximum over ALL scored rows would have recovered 180 s and 300 s -- and 301, 302, 304
+and 306 for the `300+3` games, where the clock climbs past its own start. So the inference is gone
+rather than widened: `baseClockMs` is the header's base seconds, and a game missing one stops the
+study."""
+STARTS = {g: ms for g, ms in manifest["baseClockMs"].items()}
 
 def cut(edges):
     def f(r):
@@ -77,7 +76,10 @@ def fit_quantiles(train):
     return [xs[int(q * len(xs))] for q in (0.25, 0.50, 0.75)]
 
 def pressure(r):
-    c, st = r["clockMsRemaining"], STARTS.get(r["gameId"])
+    c = r["clockMsRemaining"]
+    if r["gameId"] not in STARTS:
+        sys.exit(f"no base clock for game {r['gameId']} -- the manifest and the evidence disagree")
+    st = STARTS[r["gameId"]]
     if c is None or not st: return None
     pct = 100 * c / st
     for i, e in enumerate([25, 50, 75]):
@@ -103,27 +105,51 @@ def assign(rs, fn):
     return out
 
 def merge_small(pairs):
-    """A bucket under MIN_BUCKET is not a rate. Merge into the nearest large neighbour, below first.
+    """A bucket under MIN_BUCKET is not a rate. Merge until every bucket clears the floor.
 
-    The `or` chain this replaces had a defect found before any result existed and worth naming:
-    `max(...) or min(...)` treats bucket **0** as absent, because 0 is falsy in Python. Bucket 0 is
-    the fastest bucket in every candidate here and, on a distribution whose median is two seconds,
-    the largest -- so the bug misrouted small buckets away from the one neighbour they almost always
-    belonged to. Verified in isolation: with 50 decisions in bucket 0, three in bucket 1 and 50 in
-    bucket 2, the small bucket merged UPWARD into 2.
+    TWO DEFECTS HAVE LIVED IN THIS FUNCTION, and both mattered.
+
+    The first was found blind, before any result existed: `max(...) or min(...)` treats bucket **0**
+    as absent, because 0 is falsy in Python. Bucket 0 is the fastest bucket in every candidate and,
+    on a distribution whose median is three seconds, one of the largest -- so small buckets were
+    pushed away from the one neighbour they almost always belonged to.
+
+    The second was found by review AFTER the study was published, and it is the worse one. The fix
+    for the first merged a small bucket into the nearest LARGE neighbour -- and when NO bucket
+    reaches the floor there is no large neighbour, so the whole rule silently switched off and every
+    tiny bucket was reported as its own rate. That is exactly the case §6's within-cell control runs
+    in: on 46 held-out `opening/winning` decisions the Lichess scale produced buckets of 1, 1, 2, 3,
+    5, 7, 8, 8 and 11, none of them merged, and the 30.41pp "survives" this file reported was
+    computed on them. A floor that stops applying precisely where the data is thinnest is not a
+    floor.
+
+    So the merge is now iterative and unconditional: repeatedly fold the smallest bucket into its
+    nearer neighbour until every bucket clears MIN_BUCKET, or one bucket is left and the cell is
+    reported as not comparable.
     """
-    c = collections.Counter(b for b, _ in pairs)
-    keep = sorted(c)
-    big = [x for x in keep if c[x] >= MIN_BUCKET]
-    remap = {}
-    for b in keep:
-        if c[b] >= MIN_BUCKET:
-            remap[b] = b
-            continue
-        below = [x for x in big if x < b]
-        above = [x for x in big if x > b]
-        remap[b] = below[-1] if below else (above[0] if above else b)
+    counts = collections.Counter(b for b, _ in pairs)
+    remap = {b: b for b in counts}
+    live = dict(counts)
+    while len(live) > 1 and min(live.values()) < MIN_BUCKET:
+        keys = sorted(live)
+        # The smallest bucket, ties broken by position so the pass is deterministic.
+        victim = min(keys, key=lambda b: (live[b], b))
+        i = keys.index(victim)
+        below = keys[i - 1] if i > 0 else None
+        above = keys[i + 1] if i < len(keys) - 1 else None
+        if below is None:
+            target = above
+        elif above is None:
+            target = below
+        else:
+            # Fold into the smaller neighbour, so merging does not manufacture one huge bucket;
+            # ties go downward, matching the old "below first" convention.
+            target = below if live[below] <= live[above] else above
+        live[target] += live.pop(victim)
+        for k, v in remap.items():
+            if v == victim: remap[k] = target
     return [(remap[b], a) for b, a in pairs]
+
 
 def spread(pairs):
     """Weighted SD of bucket accuracy, in percentage points. The measure, section 5."""

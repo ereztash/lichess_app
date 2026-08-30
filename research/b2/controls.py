@@ -28,11 +28,42 @@ A control that stays green when it should go red is a failed control, and so is 
 
 Run: python3 research/b2/controls.py
 """
-import json, os, random, re, subprocess, sys, tempfile
+import collections, json, os, random, re, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ANALYSE = os.path.join(HERE, "analyse.py")
 GAMES, SEED = 75, 7
+
+
+def merge_floor_check():
+    """The bucket floor must hold where the data is thinnest, which is where it used to switch off.
+
+    Review found that the merge folded a small bucket into the nearest LARGE neighbour -- so when NO
+    bucket reached the floor there was no target, nothing merged, and §6's within-cell control
+    reported rates on buckets of one and two decisions. This asserts the case directly, because a
+    floor that only applies when it is not needed is worse than no floor.
+    """
+    src = open(ANALYSE).read()
+    ns = {"collections": collections, "MIN_BUCKET": 20}
+    exec(src[src.index("def merge_small(pairs):"):src.index("def spread(pairs):")], ns)
+    merge = ns["merge_small"]
+    bad = []
+    cases = {
+        "every bucket small": [(i % 6, True) for i in range(30)],
+        "one tiny between two large": [(0, True)] * 50 + [(1, False)] * 3 + [(2, True)] * 50,
+        "a long thin tail": [(0, True)] * 40 + [(i, False) for i in range(1, 12)],
+    }
+    for name, pairs in cases.items():
+        after = collections.Counter(b for b, _ in merge(pairs))
+        ok = len(after) == 1 or all(v >= 20 for v in after.values())
+        print(f"    merge floor  {name:28} -> {dict(sorted(after.items()))}{'' if ok else '   <-- UNDER THE FLOOR'}")
+        if not ok:
+            bad.append(f"merge_small left a bucket under the floor on '{name}': {dict(after)}")
+    # And the fold must still prefer the lower neighbour on a tie, as the docstring claims.
+    tie = merge([(0, True)] * 25 + [(1, False)] * 3 + [(2, True)] * 25)
+    if sorted(set(b for b, _ in tie)) != [0, 2]:
+        bad.append(f"merge_small stopped folding a tie downward: {sorted(set(b for b, _ in tie))}")
+    return bad
 
 
 def build(root):
@@ -42,6 +73,7 @@ def build(root):
     games = [f"G{i:03d}" for i in range(GAMES)]
     json.dump({"halves": {g: ("derivation" if i % 2 == 0 else "heldout") for i, g in enumerate(games)},
                "recencyRank": {g: i for i, g in enumerate(games)},
+               "baseClockMs": {g: 180_000 for g in games},
                "preregisteredN": 40, "amendedN": GAMES},
               open(os.path.join(root, "research/b2/corpus_manifest.json"), "w"))
     with open(os.path.join(root, "research/b2/decision_evidence.jsonl"), "w") as f:
@@ -70,7 +102,7 @@ def run(root, control=None):
 
 
 def main():
-    failures = []
+    failures = merge_floor_check()
     with tempfile.TemporaryDirectory() as root:
         build(root)
 

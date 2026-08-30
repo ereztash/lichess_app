@@ -682,10 +682,11 @@ separates accuracy by **0.00 pp**. Median think time **3 s**, 99.6% under 45, an
 over 120. `slow-over-2m` is not sparse on a blitz record. It is empty.
 
 **And the replacement is not obviously better, for reasons the study had to measure to find.**
-§7's table returns OBSERVATION -- the Lichess encoding scale separates 10.33 pp against a 6.73 pp
-random-boundary null -- and §6's controls then say most of that separation is position type:
-permuting the outcome within phase x standing leaves **32%** of shuffles still clearing the null
-against a calibrated 3.5%, and the separation collapses in **five of six** phase x standing cells.
+§7's table returns OBSERVATION -- the Lichess encoding scale separates 10.33 pp against a 7.06 pp
+random-boundary null -- and §6's controls then say that separation is position type: permuting the
+outcome within phase x standing leaves **28.5%** of shuffles still clearing the null against a
+calibrated 3.5%, and the separation collapses in **every one of the eight** phase x standing cells
+where the comparison can be made at all.
 The winner also beats the runners-up by **0.6 pp**, on data with **no sub-second resolution** --
 every one of the 1,578 eligible think times is a whole number of seconds, so the Lichess scale's
 boundaries at 0.1 and 0.5 s, which are why it was chosen, could never have separated anything.

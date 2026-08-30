@@ -56,10 +56,10 @@
     }
    },
    "lichess encoding buckets": {
-    "heldout_spread": 11.335738062292904,
-    "heldout_null95": 8.853899304256021,
-    "derivation_spread": 11.894137336230656,
-    "derivation_null95": 8.440161719034748,
+    "heldout_spread": 11.381560277054547,
+    "heldout_null95": 9.344396410720082,
+    "derivation_spread": 11.949563189249892,
+    "derivation_null95": 8.93153088449924,
     "beats_null": true,
     "rates": {
      "0": [
@@ -95,8 +95,12 @@
       59.25925925925926
      ],
      "11": [
-      56,
-      53.57142857142857
+      34,
+      55.88235294117647
+     ],
+     "15": [
+      22,
+      50.0
      ]
     }
    },
@@ -126,170 +130,114 @@
     }
    },
    "time pressure (clock %)": {
-    "heldout_spread": 3.3918620670825668,
-    "heldout_null95": 6.714014495717668,
-    "derivation_spread": 1.6691317173124367,
-    "derivation_null95": 5.821868979375484,
+    "heldout_spread": 3.6919234865840576,
+    "heldout_null95": 6.680484979879895,
+    "derivation_spread": 1.950381992046923,
+    "derivation_null95": 5.987048724026308,
     "beats_null": false,
     "rates": {
      "0": [
-      64,
-      70.3125
+      66,
+      71.21212121212122
      ],
      "1": [
-      49,
-      65.3061224489796
+      47,
+      63.829787234042556
      ],
      "2": [
-      82,
-      62.19512195121951
+      83,
+      62.65060240963855
      ],
      "3": [
-      249,
-      60.6425702811245
+      248,
+      60.483870967741936
      ]
     }
    }
   },
   "verdict": "OBSERVATION",
-  "verdict_reason": "lichess encoding buckets beats raw seconds and its own random-boundary null on both halves (11.34pp vs raw 0.00pp, null 8.85pp)",
+  "verdict_reason": "lichess encoding buckets beats raw seconds and its own random-boundary null on both halves (11.38pp vs raw 0.00pp, null 9.34pp)",
   "controls": {
    "unstratified_permutation_survival": {
     "raw seconds (the shipped cut)": 0.0,
     "log seconds": 0.065,
-    "lichess encoding buckets": 0.045,
+    "lichess encoding buckets": 0.05,
     "the player's own quartiles": 0.075,
-    "time pressure (clock %)": 0.03
+    "time pressure (clock %)": 0.04
    },
    "stratified_permutation_survival": {
     "raw seconds (the shipped cut)": 0.0,
     "log seconds": 0.205,
-    "lichess encoding buckets": 0.18,
+    "lichess encoding buckets": 0.17,
     "the player's own quartiles": 0.175,
     "time pressure (clock %)": 0.165
    },
    "within_phase_standing": {
     "middlegame/level": {
      "n": 96,
-     "buckets": 13,
-     "spread": 16.50176366176746,
-     "null95": 22.09783744973804,
+     "buckets": 4,
+     "spread": 10.97463932588827,
+     "null95": 13.880577870513905,
      "rates": {
-      "0": [
-       2,
-       50.0
-      ],
       "3": [
-       12,
-       75.0
-      ],
-      "5": [
-       13,
-       84.61538461538461
+       27,
+       77.77777777777777
       ],
       "6": [
-       11,
-       45.45454545454545
-      ],
-      "7": [
-       6,
-       66.66666666666667
-      ],
-      "8": [
-       11,
-       54.54545454545455
-      ],
-      "9": [
-       10,
-       60.0
+       28,
+       53.57142857142857
       ],
       "10": [
-       10,
-       40.0
+       20,
+       50.0
       ],
       "11": [
-       14,
-       57.142857142857146
-      ],
-      "12": [
-       3,
-       33.333333333333336
-      ],
-      "13": [
-       2,
-       100.0
-      ],
-      "14": [
-       1,
-       100.0
-      ],
-      "15": [
-       1,
-       100.0
+       21,
+       61.904761904761905
       ]
      }
     },
-    "middlegame/losing": {
-     "n": 51,
-     "buckets": 10,
-     "spread": 16.7491232094099,
-     "null95": 24.31029914714878,
+    "middlegame/winning": {
+     "n": 117,
+     "buckets": 4,
+     "spread": 5.526199118084948,
+     "null95": 12.89986389547863,
      "rates": {
-      "3": [
-       9,
-       88.88888888888889
-      ],
       "5": [
-       10,
-       60.0
-      ],
-      "6": [
-       8,
-       87.5
+       37,
+       59.45945945945946
       ],
       "7": [
-       3,
-       66.66666666666667
-      ],
-      "8": [
-       2,
-       100.0
+       32,
+       50.0
       ],
       "9": [
-       8,
-       62.5
-      ],
-      "10": [
-       5,
-       80.0
+       22,
+       45.45454545454545
       ],
       "11": [
-       4,
-       75.0
-      ],
-      "12": [
-       1,
-       0.0
-      ],
-      "13": [
-       1,
-       100.0
+       26,
+       57.69230769230769
       ]
      }
     },
     "opening/level": {
      "n": 95,
-     "buckets": 2,
-     "spread": 11.123157832923022,
-     "null95": 8.953342649909292,
+     "buckets": 3,
+     "spread": 11.707242304577195,
+     "null95": 11.869049750606628,
      "rates": {
       "3": [
        36,
        80.55555555555556
       ],
       "5": [
-       59,
-       57.6271186440678
+       22,
+       63.63636363636363
+      ],
+      "6": [
+       37,
+       54.054054054054056
       ]
      }
     }
@@ -351,10 +299,10 @@
     }
    },
    "lichess encoding buckets": {
-    "heldout_spread": 10.331664631267232,
-    "heldout_null95": 6.731991047692221,
-    "derivation_spread": 8.949885169656904,
-    "derivation_null95": 6.98864353169357,
+    "heldout_spread": 10.33237000327693,
+    "heldout_null95": 7.059999771269782,
+    "derivation_spread": 8.962185623356852,
+    "derivation_null95": 7.294103137131905,
     "beats_null": true,
     "rates": {
      "0": [
@@ -390,8 +338,12 @@
       56.09756097560975
      ],
      "11": [
-      95,
-      47.36842105263158
+      63,
+      47.61904761904762
+     ],
+     "13": [
+      32,
+      46.875
      ]
     }
    },
@@ -421,47 +373,47 @@
     }
    },
    "time pressure (clock %)": {
-    "heldout_spread": 4.019500000270632,
-    "heldout_null95": 4.8215699504899465,
-    "derivation_spread": 3.4702806363998273,
-    "derivation_null95": 4.741304467453718,
+    "heldout_spread": 4.238849084479636,
+    "heldout_null95": 4.8192973200083,
+    "derivation_spread": 4.415957049178925,
+    "derivation_null95": 4.8016610838137765,
     "beats_null": false,
     "rates": {
      "0": [
-      110,
-      71.81818181818181
+      112,
+      72.32142857142857
      ],
      "1": [
-      79,
-      60.75949367088607
+      78,
+      60.256410256410255
      ],
      "2": [
-      175,
-      58.857142857142854
+      178,
+      58.98876404494382
      ],
      "3": [
-      442,
-      60.85972850678733
+      438,
+      60.730593607305934
      ]
     }
    }
   },
   "verdict": "OBSERVATION",
-  "verdict_reason": "lichess encoding buckets beats raw seconds and its own random-boundary null on both halves (10.33pp vs raw 0.00pp, null 6.73pp)",
+  "verdict_reason": "lichess encoding buckets beats raw seconds and its own random-boundary null on both halves (10.33pp vs raw 0.00pp, null 7.06pp)",
   "controls": {
    "unstratified_permutation_survival": {
     "raw seconds (the shipped cut)": 0.0,
     "log seconds": 0.03,
     "lichess encoding buckets": 0.035,
     "the player's own quartiles": 0.05,
-    "time pressure (clock %)": 0.055
+    "time pressure (clock %)": 0.05
    },
    "stratified_permutation_survival": {
     "raw seconds (the shipped cut)": 0.0,
     "log seconds": 0.42,
-    "lichess encoding buckets": 0.32,
+    "lichess encoding buckets": 0.285,
     "the player's own quartiles": 0.36,
-    "time pressure (clock %)": 0.32
+    "time pressure (clock %)": 0.31
    },
    "within_phase_standing": {
     "endgame/winning": {
@@ -482,9 +434,9 @@
     },
     "middlegame/level": {
      "n": 162,
-     "buckets": 4,
-     "spread": 8.913603884120041,
-     "null95": 10.744553743505648,
+     "buckets": 6,
+     "spread": 9.627731225734614,
+     "null95": 12.874510324354752,
      "rates": {
       "3": [
        24,
@@ -495,8 +447,16 @@
        62.5
       ],
       "6": [
-       80,
-       50.0
+       22,
+       54.54545454545455
+      ],
+      "8": [
+       28,
+       53.57142857142857
+      ],
+      "9": [
+       30,
+       43.333333333333336
       ],
       "11": [
        34,
@@ -506,9 +466,9 @@
     },
     "middlegame/losing": {
      "n": 122,
-     "buckets": 3,
-     "spread": 4.972943023592548,
-     "null95": 10.03206006018706,
+     "buckets": 4,
+     "spread": 6.959117543550727,
+     "null95": 11.584639584996808,
      "rates": {
       "3": [
        27,
@@ -519,16 +479,20 @@
        73.91304347826087
       ],
       "6": [
-       72,
-       63.888888888888886
+       34,
+       70.58823529411765
+      ],
+      "9": [
+       38,
+       57.89473684210526
       ]
      }
     },
     "middlegame/winning": {
      "n": 197,
-     "buckets": 5,
-     "spread": 8.647082999446347,
-     "null95": 10.853159892622873,
+     "buckets": 6,
+     "spread": 8.648037066027143,
+     "null95": 11.72363715487177,
      "rates": {
       "3": [
        33,
@@ -547,16 +511,20 @@
        56.75675675675676
       ],
       "9": [
-       68,
-       48.529411764705884
+       39,
+       48.717948717948715
+      ],
+      "11": [
+       29,
+       48.275862068965516
       ]
      }
     },
     "opening/level": {
      "n": 187,
-     "buckets": 3,
-     "spread": 6.568410900183348,
-     "null95": 8.914070131290536,
+     "buckets": 4,
+     "spread": 7.1488364662246715,
+     "null95": 10.03441734330101,
      "rates": {
       "3": [
        65,
@@ -567,52 +535,12 @@
        61.53846153846154
       ],
       "6": [
-       70,
-       57.142857142857146
-      ]
-     }
-    },
-    "opening/winning": {
-     "n": 46,
-     "buckets": 9,
-     "spread": 30.4052752821235,
-     "null95": 27.144139533256688,
-     "rates": {
-      "3": [
-       11,
-       81.81818181818181
-      ],
-      "5": [
-       8,
-       37.5
-      ],
-      "6": [
-       8,
-       50.0
-      ],
-      "7": [
-       3,
-       0.0
-      ],
-      "8": [
-       2,
-       100.0
+       43,
+       53.48837209302326
       ],
       "9": [
-       7,
-       57.142857142857146
-      ],
-      "11": [
-       5,
-       0.0
-      ],
-      "13": [
-       1,
-       0.0
-      ],
-      "15": [
-       1,
-       0.0
+       27,
+       62.96296296296296
       ]
      }
     }

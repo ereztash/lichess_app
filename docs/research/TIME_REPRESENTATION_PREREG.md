@@ -216,3 +216,50 @@ size without saying that.
 - Neither corpus may be selected after seeing its numbers, and no third corpus size exists.
 - §8 applies unchanged to both. No threshold moves, no added candidates, no re-running, no dropping
   games.
+
+---
+
+## 10. Amendment 2 — the analysis was re-run after review found three defects in it
+
+**Written and committed 2026-08-30T12:45Z, after the result was published.** This is the amendment
+that most easily becomes a second chance, so it says exactly what was done and prints both answers.
+
+### What was not re-run
+
+**The scoring run.** §8 forbids re-running for a better answer, and one corpus scored once is the
+thing that rule protects. `research/b2/decision_evidence.jsonl` is byte-identical, its sha256 is
+unchanged, and no game entered or left the corpus. The engine was not started again.
+
+### What was re-run, and why
+
+The **analysis over that fixed evidence**, after automated review of the pull request found three
+implementation defects. Each was verified against the evidence before anything was changed, and each
+was real:
+
+- **(a)** The bucket floor stopped applying when *no* bucket reached it, which is exactly the case
+  §6's within-cell control runs in. The `opening/winning` cell's reported **30.41 pp "survives"** was
+  computed on buckets of 1, 1, 2, 3, 5, 7, 8, 8 and 11 decisions against a stated floor of 20.
+- **(b)** The starting clock for `time pressure` was inferred from *eligible* decisions, which exclude
+  book — and book is the opening, where the clock is fullest. 63 of 75 games had an understated start.
+- **(c)** The exclusion ledger listed 36 rows twice, so its arithmetic did not close.
+
+§8's prohibitions are on **moving thresholds, adding candidates, dropping data, swapping the outcome
+or the measure, and re-running to get a nicer number.** None of those happened. `MIN_BUCKET` is still
+20, the five candidates in §4 are still the five, the measure in §5 is unchanged, and the corpus is
+untouched. What changed is that the floor now actually applies and the clock denominator is read from
+the PGN header instead of guessed.
+
+### The rule that keeps this from being a second chance
+
+- **Both analyses are printed side by side** in `TIME_REPRESENTATION_RESULTS.md` §7, permanently. The
+  as-published numbers are not deleted, corrected in place, or moved to a footnote.
+- **The correction is not allowed to be the interesting part.** It changed no verdict: OBSERVATION on
+  both corpora, same winner, same ordering of every candidate.
+- **What it did change, it changed against the result's own favour.** The study's central caution —
+  that the separation is position type — went from *five of six cells collapse, one survives* to
+  *eight of eight collapse, no survivor*. A correction that had gone the other way would need this
+  paragraph far more, so it is stated for the case where it is uncomfortable and not only for this one.
+- **A regression for each defect is now in `research/b2/controls.py`**, so the floor cannot switch
+  itself off again silently.
+- **No third analysis run.** If a further defect is found, it is fixed, declared here, and both prior
+  answers stay printed.
