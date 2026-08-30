@@ -263,3 +263,77 @@ the PGN header instead of guessed.
   itself off again silently.
 - **No third analysis run.** If a further defect is found, it is fixed, declared here, and both prior
   answers stay printed.
+
+---
+
+## 11. Amendment 3 — the corpus rule was applied to prose, and dropped 42 rated games
+
+**Written and committed 2026-08-30T13:05Z.** The two amendments above concern the analysis. This one
+concerns the **corpus**, which is worse, and it exists because the account holder asked whether the
+engine had been run on every game it could.
+
+### What was wrong
+
+§3 says *"Rated, standard chess only."* `build_corpus.py` implemented that by testing the PGN's
+free-text `Event` header:
+
+```python
+if "rated" not in event: drop("unrated")
+```
+
+A Lichess **arena** game's Event is `Hourly SuperBlitz Arena`. The substring `rated` does not appear
+in it. So every arena game the account had played was dropped and counted as unrated — **42 rated
+blitz games, more than a third of the corpus.** They are rated: all 42 carry `WhiteRatingDiff`,
+which Lichess writes only for a rated game. They are standard. They are blitz by the site's own
+time-control definition. §3 admits every one of them.
+
+**The study ran on 75 games when 117 qualified**, and `TIME_REPRESENTATION_RESULTS.md` went as far
+as calling the exclusion a success: *"The rule caught them and counted them."* It had caught rated
+games and mislabelled them.
+
+### Why this survived when three analysis defects did not
+
+`analyse.py` was committed, so review read it and found three real bugs within the hour.
+`build_corpus.py` lived in a scratch directory and was never committed, so nobody read it at all —
+and it was the thing deciding **which games existed**. Every downstream control in this study
+operates on the corpus it is given; none of them can see a game that was never in it.
+
+Putting the builder in the repository is the actual fix. The rule change is the consequence.
+
+### The corrected rule — structural, never prose
+
+| | |
+| --- | --- |
+| rated | `WhiteRatingDiff` or `BlackRatingDiff` present. Lichess writes a rating delta **only** for a rated game, so its presence is the fact and the `Event` line is decoration. |
+| blitz | the **time control**, by Lichess's own definition: estimated duration `base + 40 × increment`, blitz is `179 < est ≤ 479` s. `180+0` → 180, `300+0` → 300, `300+3` → 420. |
+| standard | the `Variant` header. |
+| clock | `%clk` annotations actually present in the movetext. |
+
+The `Event` string is still parsed — but only to **report** a disagreement with the structure, never
+to decide one. That check is what would have caught this on the day the file was written.
+
+Rebuilt: **117 games**, 3 excluded for too few clock readings, no other exclusion at all.
+
+### What this does to §8, stated plainly
+
+§8 says *"One corpus, built once by the rule in §3."* That presumes the rule was applied. It was not
+— the corpus was built by a rule about **strings**, which §3 never mentions. Correcting it is not
+re-running for a better answer; it is running §3 for the first time. Nothing else moved:
+`MIN_BUCKET` is still 20, the five candidates in §4 are still five, the measure in §5 is unchanged,
+and no game was dropped after being seen.
+
+### The rule that keeps this from being a third chance
+
+- **All three results are printed together** — 40, 75 and 117 — in `TIME_REPRESENTATION_RESULTS.md`.
+  The 75-game run's own artifacts are preserved unmodified in `research/b2/as-published-75/`,
+  including the sha256 of its decision evidence.
+- **The 117-game result is the one §3 actually specifies**, so it becomes the result, and the
+  preregistered-40 analysis is recomputed on the corrected newest 40. Both prior corpora were built
+  by a rule §3 does not contain, and that is said rather than glossed.
+- **Whatever it says, it is reported.** If the corrected corpus reverses the verdict, the reversal is
+  the finding. If it changes nothing, that is the finding. The expectation — that 42 more games from
+  the same account, the same time controls and the same period will not move much — is written down
+  here, **before the run finished**, so it can be wrong on the record.
+- **What is already known without the engine holds on all 117**, and got stronger: 2,950 think times,
+  median 2 s, 99.7% under 45 s, **zero** over 120 s, and **zero** non-integer values. §1's central
+  observation about the shipped cut needs no scoring and does not depend on this amendment.
