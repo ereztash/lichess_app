@@ -201,6 +201,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
 | [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) · [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — נרשם מראש, נמדד, ולא אומץ | אנגלית |
+| [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
 | [`docs/discovery-v2/M0_AUDIT.md`](docs/discovery-v2/M0_AUDIT.md) | ארבע שאלות על מכשיר המדידה עצמו, לפני שנבנה מנוע discovery חדש — ומה שנמצא הפך את הכיוון | אנגלית |
 | [`docs/decisions/`](docs/decisions/README.md) | פנקס ההכרעות: מה נבחר, מה נדחה, איזה מימוש חיצוני כבר קיים, ומה יהפוך כל הכרעה | אנגלית |
 | [`docs/ACTION_PLAN.md`](docs/ACTION_PLAN.md) | מה נעשה הלאה, באיזה סדר, ובאילו תנאי עצירה | אנגלית |
