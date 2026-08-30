@@ -422,6 +422,28 @@ export const GATES: Gate[] = [
     },
   },
   {
+    id: "GATE-WORST-BUCKET",
+    rule: "6",
+    description:
+      "The weakest-bucket comparison names no bucket on records where the outcome is permuted.",
+    run: async () => {
+      const { worstBucketVerdictReport, IMPORT_RECORDS, verdictAt } =
+        await import("../tests/fixtures/worst-bucket-scenario");
+      return worstBucketVerdictReport(IMPORT_RECORDS, verdictAt(2), pass, fail);
+    },
+    positiveControl: async () => {
+      const { worstBucketVerdictReport, IMPORT_RECORDS, verdictAt, PERMISSIVE_STANDARD_ERRORS } =
+        await import("../tests/fixtures/worst-bucket-scenario");
+      // The same code at the textbook one-standard-error bar, which finds weakness in noise.
+      return worstBucketVerdictReport(
+        IMPORT_RECORDS,
+        verdictAt(PERMISSIVE_STANDARD_ERRORS),
+        pass,
+        fail,
+      );
+    },
+  },
+  {
     id: "GATE-REACHABILITY",
     rule: "4.6",
     description:

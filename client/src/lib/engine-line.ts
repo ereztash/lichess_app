@@ -55,6 +55,21 @@ export interface WorkerLike {
 }
 export type WorkerFactory = () => WorkerLike;
 
+/**
+ * What a search rejects with when a later search took the engine away from it.
+ *
+ * NAMED, AND EXPORTED FROM HERE, because two modules have to agree about it and neither should be
+ * matching on a sentence. `StockfishClient` throws it; `analyzePositions` has to tell it apart from
+ * a real engine failure, because the two want opposite handling -- a superseded search should be
+ * asked again, and a dead worker should not be asked 1,600 times.
+ */
+export const ANALYSIS_SUPERSEDED = "Analysis superseded";
+
+/** Whether this failure is a search that was taken away rather than an engine that broke. */
+export function isSuperseded(error: unknown): boolean {
+  return error instanceof Error && error.message === ANALYSIS_SUPERSEDED;
+}
+
 /** A result is stale the moment the position it describes is no longer the position on screen. */
 export function isStale(line: EngineLine | null, currentFen: string): boolean {
   return line !== null && line.fen !== currentFen;

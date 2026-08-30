@@ -434,6 +434,68 @@ the move that was not played, which is why the reveal now asks for two.
 it does not really distinguish. The panel already said differences under 30 cp say nothing here;
 it had never applied that to the move it was itself recommending.
 
+### Is "your weakest area" calibrated? Measured, in both directions
+
+**Two reasons to doubt it, pushing opposite ways.** `worstBucketVerdict` ranks up to **nine
+overlapping buckets**, takes the lowest, and tests it against the second lowest using the textbook
+standard error for two **independent** proportions. The minimum of nine noisy rates is
+systematically low, which inflates the gap; and the buckets share decisions -- one move is in
+`phase-middlegame`, `fast-under-45s` and `standing-level` at once -- which makes the rates covary
+and shrinks the true variance below what the formula assumes. Neither can be reasoned to a
+conclusion, so both were measured together.
+
+**The null.** Each decision keeps its own phase, seconds, clock and standing -- so every bucket keeps
+its real size and its real overlap -- and only the **outcome** is permuted. Bucket membership is then
+unrelated to accuracy by construction, so any "separable" verdict is a false positive. Records are
+resampled from 1,572 real decisions. `GATE-WORST-BUCKET`.
+
+| bar | false-positive rate, worst of n = 200/400/800/1600 |
+| --- | ---: |
+| **two standard errors — what the product applies** | **0.7%** (ceiling 2%) |
+| one standard error — the textbook bar for a named comparison | 6.7% |
+
+**It does not over-claim.** The doubling to two standard errors is doing real work rather than
+decorating the formula: the obvious bar a reasonable person might have picked fires three times too
+often.
+
+**And it is nearly silent.** A control that cannot fail proves nothing, so the other half was
+measured too: one bucket was made genuinely worse by a known amount and the verdict re-run.
+
+| true gap in one bucket | n = 200 | n = 400 | n = 800 |
+| ---: | ---: | ---: | ---: |
+| 10 pp | 0% | 1% | 8% |
+| 20 pp | 1% | 9% | 61% |
+| 30 pp | 7% | 44% | 95% |
+
+When it does fire it names the right bucket essentially always -- the "fires" and "names the right
+one" columns agree to within a point -- so it has no directional error. It simply almost never
+speaks. At n = 200, the size a real 8-to-20-game import produces, a player whose middlegame really is
+**20 points** worse than everything else is told "these buckets are not distinguishable" **99% of
+the time**.
+
+**On the six real players of the import harness, every one lands there.** Bars of 13.0 to 19.5
+points against measured gaps of 1.0 to 7.9:
+
+| player | eligible | readable buckets | worst | gap | bar |
+| --- | ---: | ---: | --- | ---: | ---: |
+| 743bb0e0… | 202 | 8 / 9 | `phase-opening` | 2.7 pp | 19.5 pp |
+| 8b033ad9… | 451 | 7 / 9 | `phase-opening` | 7.9 pp | 16.2 pp |
+| fcf1b502… | 220 | 6 / 9 | `phase-middlegame` | 1.1 pp | 13.0 pp |
+| d4c64542… | 207 | 7 / 9 | `phase-opening` | 1.0 pp | 17.7 pp |
+| 9f3e649e… | 143 | 5 / 9 | `phase-opening` | 7.9 pp | 13.3 pp |
+| 4ceee8ee… | 225 | 6 / 9 | `standing-winning` | 1.2 pp | 17.1 pp |
+
+**So the bridge over the cold start does not fire on a real import.** That is the finding, and no
+threshold was moved in response to it: lowering the bar buys the 6.7% false-positive rate above,
+which is the thing the bar exists to prevent. What changed instead is what the screen says. "These
+buckets are not distinguishable" now arrives with the size the games can resolve and, under the
+stated assumption that the rates hold, how much larger a sample a gap that size would need. A
+refusal with no number invites the reader to supply the least flattering one.
+
+**What this leaves open, as a decision rather than a defect.** Either the import window grows by a
+large factor, or the comparison changes shape -- fewer buckets ranked, or a pre-named one rather
+than the minimum of nine. Both are choices about the product, and neither is a threshold to nudge.
+
 ### What excluding book positions did to the rate
 
 **The book is measured, not asserted.** A position is book when at least **0.1% of the reference
