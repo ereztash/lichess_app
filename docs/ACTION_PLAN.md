@@ -241,15 +241,16 @@ one — so `fast-under-45s` is not a bucket, it is the record. Inside blitz alon
 *Done. The result is [`docs/research/TIME_REPRESENTATION_RESULTS.md`](research/TIME_REPRESENTATION_RESULTS.md),
 and no cut moved.* 75 rated blitz games, 1,787 decisions scored on the shipped WASM engine, one run.
 
-§7 returns **OBSERVATION** on both corpora — the Lichess encoding scale separates 10.33 pp against a
-7.06 pp random-boundary null — so `STOP-B2` as written did not fire. Adopting nothing was never
+§7 returns **OBSERVATION** on both corpora — the Lichess encoding scale separates 11.76 pp against a
+5.61 pp random-boundary null — so `STOP-B2` as written did not fire. Adopting nothing was never
 conditional on it firing: §7's own last row says an observation changes nothing until it is re-tested
 against a record carrying stated confidence, and no such record exists.
 
 **Three things make the win smaller than the table.** §6's controls fail in two directions —
-permuting the outcome within phase × standing leaves **28.5%** of shuffles still clearing the null
-against a calibrated 3.5%, and the separation **collapses in all eight** phase × standing cells where
-the comparison can be made, so it is position type. The winner beats the runners-up by **0.6 pp**. And every one of the
+permuting the outcome within phase × standing leaves **16.0%** of shuffles still clearing the null
+against a calibrated 6.0%, so a real part of it is position type. **Not all of it**: on the corrected
+117-game corpus **three of seven** cells survive, all three of them middlegame. The 75-game run
+reported eight of eight collapsing, and that was a corpus missing 42 rated games. The winner beats the runners-up by **0.6 pp**. And every one of the
 1,578 eligible think times is a **whole number of seconds**, so the Lichess scale's sub-second
 boundaries — the reason it was chosen — could never have separated anything.
 
