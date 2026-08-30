@@ -348,9 +348,9 @@ run on the planted worlds, with a stated ceiling on the wrong-subgroup rate.
 | | |
 | --- | --- |
 | type | correctness |
-| state | **blocked** — needs one line from a browser console |
+| state | **open**, no longer blocked — two defects found and fixed; the reporter's own case unconfirmed |
 | severity | P1 |
-| basis | **verified** to the boundary of what this environment can reach |
+| basis | **verified by running the built bundle in a browser**, not by inspection |
 
 Reported live. The games import correctly; the failure is in `scan()`
 (`client/src/components/ImportGames.tsx:173`), the Stockfish stage.
@@ -362,10 +362,50 @@ verbatim while **both** of the engine's own failure messages are Hebrew, the err
 must be a non-Hebrew one — which narrows it to `"Analysis superseded"` or
 `"Stockfish worker unavailable"`. They need opposite fixes.
 
-**Blocked on:** the console line beginning `[failure]`, which `readableFailureText` writes.
-
 **Gate:** the scan either completes or reports a cause a reader can act on; no path reaches the
 generic fallback with an English error behind it.
+
+### It stopped being blocked, because the console line was reproducible here
+
+This session has Chromium. `npm run build` output was served on localhost **with the response
+headers read out of `vercel.json`**, so the CSP, COOP and MIME types are the deployment's own, and
+the scan was driven over 12 real Lichess games.
+
+**It completed, in ~40 s.** So the engine, the worker, the wasm, the CSP, the MIME types and the
+import are all sound on this build. That is a negative result and it is the useful kind: it removes
+the whole class the diagnosis would otherwise have started from.
+
+### Two defects the run did find
+
+**1. The engine's 15-second budget was a download budget.** Measured on the built asset in that same
+browser: once the bytes are local the engine answers `uciok` in **282 ms** — 37 ms to fetch the
+7,295,411-byte wasm, 5 ms to compile. So the bound was never about the engine thinking. It was about
+5.6 MB gzipped arriving, which inside 15 s needs **3.0 Mbit/s sustained**; at 1 Mbit/s that payload
+takes 45 s and at 500 kbit/s it takes 90 s. Raised to 60 s, with the arithmetic written beside the
+constant.
+
+**2. A client that failed once was dead for the life of the page — and this is the real one.**
+`start()` memoised `readyPromise` and nothing cleared it on failure, while `Home.tsx` keeps **one**
+client in a ref for the whole page. So the first readiness failure became that client's permanent
+answer: every later search awaited the same rejected promise and failed instantly, with no worker
+built and no request sent. The message said *"check your network connection and try again"* and
+trying again was the one thing that could not help. `fail()` now drops the promise and terminates
+the worker it gave up on.
+
+**Gate:** `tests/client/an-engine-that-gave-up-once.test.ts`. Restore the cached rejection and 2
+assertions go red; restore the 15-second bound and 1 does.
+
+### What is still not established, said plainly
+
+**Which error the reporter actually hit.** Their screen showed the *fallback*, and `readableFailure`
+passes Hebrew through verbatim — so whatever threw had a non-Hebrew or empty message, which neither
+engine failure has. The two fixes above are real defects on the path, but nothing here proves either
+one is theirs.
+
+So the diagnostic gap is closed instead of guessed at: the scan's failure now renders the raw text
+behind a closed `<details>`, the way the commit path already does. A player who hits it again can
+say *which* stop it was without being asked to open a console — which was the thing this row was
+blocked on, and was always the wrong thing to ask.
 
 ---
 
