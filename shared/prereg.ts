@@ -187,5 +187,76 @@ export function isTestable(
   hypothesis: PreregisteredHypothesis,
   totalDecisionsNow: number,
 ): boolean {
-  return isRegistrableBucket(hypothesis.bucket_key) && totalDecisionsNow > hypothesis.decisions_before;
+  return (
+    isRegistrableBucket(hypothesis.bucket_key) && totalDecisionsNow > hypothesis.decisions_before
+  );
+}
+
+/**
+ * The path an imported reading is allowed to travel, and how far it has actually come.
+ *
+ * WHY THIS IS A TYPE AND NOT A SENTENCE ON A SCREEN. An import measures accuracy over games that
+ * are already over. It cannot measure a calibration gap -- nobody was asked how sure they were --
+ * so it can never produce a finding about the player. What it can do is NAME A PLACE TO LOOK, and
+ * everything that makes that naming worth anything happens afterwards and elsewhere: registering
+ * it before the data exist, collecting decisions that carry a stated confidence, and testing the
+ * bucket on those and not on the ones that suggested it.
+ *
+ * A screen that shows the reading and stops invites the reading to be the answer. This makes the
+ * remaining stages part of what is on screen, including the ones this screen cannot reach.
+ */
+export const IMPORT_PIPELINE = [
+  { key: "measured", label: "המשחקים נמדדו" },
+  { key: "candidate", label: "נמצא מועמד לבדיקה" },
+  { key: "registered", label: "נרשם מראש" },
+  { key: "collecting", label: "נאספות החלטות חדשות עם ביטחון מוצהר" },
+  { key: "tested", label: "ההשערה שוחזרה, הופרכה או לא הוכרעה" },
+] as const;
+
+export type ImportStageKey = (typeof IMPORT_PIPELINE)[number]["key"];
+
+export interface ImportProgress {
+  /** The last stage actually reached. */
+  reached: ImportStageKey;
+  /**
+   * The stage this reading cannot get past, and why -- or null when nothing is blocking it.
+   *
+   * A blocked pipeline is not a pipeline waiting. `not-separable` is a finding: these games cannot
+   * tell the buckets apart, and more of the same games is the remedy only if the gap is real.
+   */
+  blockedReason: string | null;
+}
+
+/**
+ * How far this import got, from the outcome the bridge already computed.
+ *
+ * `registered` is the caller's: the bridge knows whether a hypothesis is on record, and this module
+ * must not guess it from an outcome that describes only what the import saw.
+ */
+export function importProgress(outcome: PreregOutcome, registered: boolean): ImportProgress {
+  if (registered) return { reached: "collecting", blockedReason: null };
+  switch (outcome.kind) {
+    case "registered":
+      return { reached: "candidate", blockedReason: null };
+    case "nothing-readable":
+      return {
+        reached: "measured",
+        blockedReason: "אף סוג לא הגיע למספר ההחלטות שנדרש כדי לקרוא אותו.",
+      };
+    case "only-one-readable":
+      return {
+        reached: "measured",
+        blockedReason: "רק סוג אחד נקרא, ושיעור לבדו אינו השוואה.",
+      };
+    case "not-separable":
+      return {
+        reached: "measured",
+        blockedReason: "הסוגים קרובים זה לזה יותר מטעות הדגימה שלהם, ולכן אין מועמד לבחור בו.",
+      };
+    case "not-registrable":
+      return {
+        reached: "candidate",
+        blockedReason: "הסוג הנמוך ביותר נקרא רק ממשחקים שנגמרו, ואין לו מקבילה בלולאה החיה.",
+      };
+  }
 }

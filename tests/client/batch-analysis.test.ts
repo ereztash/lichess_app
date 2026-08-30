@@ -15,7 +15,7 @@ import {
   toWhitePerspective,
 } from "../../client/src/lib/batch-analysis";
 import { analyzeEval } from "../../shared/eval-analysis";
-import type { EngineLine } from "../../client/src/lib/engine-line";
+import { ANALYSIS_SUPERSEDED, type EngineLine } from "../../client/src/lib/engine-line";
 import { PROGRESS_INTERVAL_MS } from "../../client/src/lib/progress-throttle";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -195,5 +195,56 @@ describe("end to end: an engine-scored game reaches eval-analysis", () => {
     const last = analysis.playerMoveEvals.at(-1);
     expect(last?.classification).toBe("blunder");
     expect(analysis.blunders).toBe(1);
+  });
+});
+
+describe("one engine, six callers, and a scan that must survive them", () => {
+  /*
+   * MEASURED FROM A REAL FAILURE. A scan of 20 games ended on "the scan stopped before it measured
+   * anything" -- the import screen's fallback sentence, which appears only when the thrown error
+   * was not written for the player. Two errors in this path are not: "Stockfish worker
+   * unavailable" and "Analysis superseded". The second is thrown whenever a NEW search takes the
+   * engine from one in flight, and the page has six other call sites sharing that one engine.
+   *
+   * So a single evaluation anywhere on the page -- an eval bar, a reveal -- rejected the position
+   * being scored, and the rejection escaped `runImportDiagnostic` and lost minutes of engine work
+   * over one position that could have been asked again.
+   */
+  const superseded = () => new Error(ANALYSIS_SUPERSEDED);
+
+  it("asks the same position again rather than losing the whole scan", async () => {
+    const calls: string[] = [];
+    let interrupted = false;
+    const analyze = async (fen: string): Promise<EngineLine> => {
+      calls.push(fen);
+      if (!interrupted && fen === "b") {
+        interrupted = true;
+        throw superseded();
+      }
+      return { scoreCp: 10, depth: 12, pv: ["e2e4"], fen };
+    };
+
+    const scores = await analyzePositions(["a", "b", "c"], analyze);
+    expect(scores).toHaveLength(3);
+    expect(calls).toEqual(["a", "b", "b", "c"]);
+  });
+
+  it("says what interrupted it, in the player's language, when it keeps happening", async () => {
+    const analyze = async (): Promise<EngineLine> => {
+      throw superseded();
+    };
+    // The fallback sentence appears only for a message not written for the player, so the point of
+    // this one is that it IS: the screen stops saying "something went wrong" and names the cause.
+    await expect(analyzePositions(["a"], analyze)).rejects.toThrow(/מבלי לצאת מהמסך/);
+  });
+
+  it("does not ask a broken engine sixteen hundred times", async () => {
+    let calls = 0;
+    const analyze = async (): Promise<EngineLine> => {
+      calls += 1;
+      throw new Error("Stockfish worker unavailable");
+    };
+    await expect(analyzePositions(["a", "b", "c"], analyze)).rejects.toThrow(/worker unavailable/);
+    expect(calls, "a failure that is not a supersede is not retried").toBe(1);
   });
 });

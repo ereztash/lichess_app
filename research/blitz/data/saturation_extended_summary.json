@@ -1,0 +1,152 @@
+{
+  "generatedAt": "2026-08-29T22:26:29.470Z",
+  "engine": "stockfish-ubuntu-x86-64-avx2",
+  "engineOptions": {
+    "Threads": 1,
+    "Hash": 16,
+    "multiPv": 3
+  },
+  "budgets": [
+    25000,
+    50000,
+    100000,
+    200000,
+    400000,
+    800000,
+    1600000
+  ],
+  "positions": 300,
+  "strata": 56,
+  "epsilonStrict": 0.013804291029315463,
+  "epsilonTolerant": 0.027608582058630926,
+  "checks": [
+    {
+      "budget": 25000,
+      "against": 50000,
+      "n": 300,
+      "strictRate": 0.7166666666666667,
+      "strictCi": [
+        0.6631845423956875,
+        0.7646699712719605
+      ],
+      "tolerantRate": 0.8466666666666667,
+      "tolerantCi": [
+        0.8015330360133669,
+        0.8830341858548697
+      ]
+    },
+    {
+      "budget": 50000,
+      "against": 100000,
+      "n": 300,
+      "strictRate": 0.7066666666666667,
+      "strictCi": [
+        0.6527928854718686,
+        0.7553144967957339
+      ],
+      "tolerantRate": 0.87,
+      "tolerantCi": [
+        0.827218699236838,
+        0.9034251625648376
+      ]
+    },
+    {
+      "budget": 100000,
+      "against": 200000,
+      "n": 300,
+      "strictRate": 0.7733333333333333,
+      "strictCi": [
+        0.7226736931316665,
+        0.8170812318029046
+      ],
+      "tolerantRate": 0.9,
+      "tolerantCi": [
+        0.8608327216490345,
+        0.9290525343527771
+      ]
+    },
+    {
+      "budget": 200000,
+      "against": 400000,
+      "n": 300,
+      "strictRate": 0.7966666666666666,
+      "strictCi": [
+        0.747504723102555,
+        0.8383268417654551
+      ],
+      "tolerantRate": 0.9033333333333333,
+      "tolerantCi": [
+        0.864617489059097,
+        0.9318501440760628
+      ]
+    },
+    {
+      "budget": 400000,
+      "against": 800000,
+      "n": 300,
+      "strictRate": 0.75,
+      "strictCi": [
+        0.6980473999132475,
+        0.7956308850878847
+      ],
+      "tolerantRate": 0.9066666666666666,
+      "tolerantCi": [
+        0.8684138011961097,
+        0.9346362090723985
+      ]
+    },
+    {
+      "budget": 800000,
+      "against": 1600000,
+      "n": 300,
+      "strictRate": 0.83,
+      "strictCi": [
+        0.7833848085580866,
+        0.8682705276434078
+      ],
+      "tolerantRate": 0.94,
+      "tolerantCi": [
+        0.90715983751747,
+        0.9617139440845226
+      ]
+    }
+  ],
+  "meanDepthByBudget": [
+    {
+      "nodes": 25000,
+      "meanDepth": 13.26,
+      "meanActualNodes": 25000.146666666667
+    },
+    {
+      "nodes": 50000,
+      "meanDepth": 15.896666666666667,
+      "meanActualNodes": 49920.06
+    },
+    {
+      "nodes": 100000,
+      "meanDepth": 18.17,
+      "meanActualNodes": 99454.71333333333
+    },
+    {
+      "nodes": 200000,
+      "meanDepth": 20.703333333333333,
+      "meanActualNodes": 198256.9
+    },
+    {
+      "nodes": 400000,
+      "meanDepth": 23.53,
+      "meanActualNodes": 394943.0233333333
+    },
+    {
+      "nodes": 800000,
+      "meanDepth": 26.60333333333333,
+      "meanActualNodes": 787082.5366666666
+    },
+    {
+      "nodes": 1600000,
+      "meanDepth": 29.006666666666668,
+      "meanActualNodes": 1564086.7166666666
+    }
+  ],
+  "sha256": "bf77cf3dd21c7a2ee88b736c8a01ca1a91fb0071e7a67f926fb1b6549e75efd7"
+}

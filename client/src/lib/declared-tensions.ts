@@ -15,8 +15,19 @@
  *   position would be exactly the manufactured certainty the reveal layer refuses to produce.
  * - It never blocks. These are not `draftProblems`: a decision that states a tension is still a
  *   complete decision, and the record wants it recorded rather than tidied up first.
- * - It is display-only. Nothing here is written to the atom, and `shared/detector.ts` never
- *   reads `known` or `unknown` at all, so no bucket, claim or gate can move because of it.
+ * - It is display-only, AND it reads nothing the detector measures. Nothing here is written to
+ *   the atom, and `shared/detector.ts` never reads `known` or `unknown` at all, so no bucket,
+ *   claim or gate can move because of it. That guarantee used to be stated over the two read
+ *   fields alone, and one rule slipped through the gap: `fast-certainty` fired only on a draft
+ *   under ten seconds old, and `secondsTaken` IS a detector variable -- `fast-under-45s` is the
+ *   bucket the product's worked example is written about. A question shown only to fast deciders
+ *   is a treatment applied to one arm of the measurement the screen exists to take, its exposure
+ *   was recorded nowhere, so it could not be stratified out of the analysis afterwards either.
+ *   The rule is gone and the parameter with it: every input here is now something the player
+ *   SAID. What it used to catch, the time-free rules still catch -- certainty against an unknown
+ *   opening, against an unknown plan, or against three open questions -- at any speed. What is
+ *   no longer asked is the case of a top-of-scale confidence beside one or two unknowns that are
+ *   neither, which was only ever asked because it arrived quickly.
  * - One at a time. Three of these can be true at once; showing all three is the dashboard the
  *   product exists to not be. The list is ordered, and the screen renders the head of it.
  */
@@ -73,8 +84,6 @@ export const HIGH_CONFIDENCE_LEVEL = (() => {
 })();
 /** This many open questions alongside a stated certainty is worth one question back. */
 export const MANY_UNKNOWNS = 3;
-/** Under this many seconds, a top-of-scale confidence was not deliberated over. */
-export const FAST_DECISION_SECONDS = 10;
 
 /**
  * Reads that cannot both describe one position. Ids rather than labels so the wording stays a
@@ -97,11 +106,10 @@ function selected(tags: string[], options: typeof KNOWN_OPTIONS, id: string): bo
  * Every tension this draft states, most specific first. Empty is the normal case and is not a
  * state the interface has to fill.
  *
- * `secondsElapsed` is the time the position has been on screen, which the commitment screen is
- * already counting for the record. It is passed in rather than read from a clock here so the
- * function stays pure.
+ * It takes no clock, and see the module note on why that is a rule rather than a simplification:
+ * the one rule that read the time fired selectively on the population the detector measures.
  */
-export function declaredTensions(draft: DraftDecision, secondsElapsed: number): DeclaredTension[] {
+export function declaredTensions(draft: DraftDecision): DeclaredTension[] {
   const tensions: DeclaredTension[] = [];
   const confidence = draft.confidence;
   const unknownCount = draft.unknownTags.length;
@@ -129,17 +137,7 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
    */
   const asserted = normaliseConfidence(confidence, CONFIDENCE_LEVELS);
 
-  // 2. Top of the scale, quickly, with something still open. A fast confident recapture is a
-  //    real thing, which is why the check also wants a stated unknown before it says anything.
-  if (confidence === CERTAIN && secondsElapsed < FAST_DECISION_SECONDS && unknownCount > 0) {
-    tensions.push({
-      id: "fast-certainty",
-      question: `אמרת ביטחון ${CERTAIN} מתוך ${CONFIDENCE_LEVELS} אחרי ${Math.floor(secondsElapsed)} שניות, ולצידו ${unknownCount === 1 ? "דבר אחד שאי אפשר להעריך" : `${unknownCount} דברים שאי אפשר להעריך`}. זו ההחלטה שאתה מתכוון לרשום?`,
-      basis: `ביטחון ${CERTAIN}/${CONFIDENCE_LEVELS} · ${Math.floor(secondsElapsed)} שניות · ${unknownCount} סימוני "לא יודע"`,
-    });
-  }
-
-  // 3. Certainty alongside not knowing the position at all.
+  // 2. Certainty alongside not knowing the position at all.
   const theory = labelOf(UNKNOWN_OPTIONS, "theory");
   if (
     asserted >= HIGH_CONFIDENCE_ASSERTION &&
@@ -153,7 +151,7 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
     });
   }
 
-  // 4. Certainty in a move alongside not knowing what the position is for.
+  // 3. Certainty in a move alongside not knowing what the position is for.
   const plan = labelOf(UNKNOWN_OPTIONS, "plan");
   if (
     asserted >= HIGH_CONFIDENCE_ASSERTION &&
@@ -167,7 +165,7 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
     });
   }
 
-  // 5. The count-based one, last: it is the least specific, and it fires for drafts the three
+  // 4. The count-based one, last: it is the least specific, and it fires for drafts the three
   //    above already described better.
   if (confidence === CERTAIN && unknownCount >= MANY_UNKNOWNS) {
     tensions.push({
@@ -181,9 +179,6 @@ export function declaredTensions(draft: DraftDecision, secondsElapsed: number): 
 }
 
 /** The one to show. Null is the normal case. */
-export function foremostTension(
-  draft: DraftDecision,
-  secondsElapsed: number,
-): DeclaredTension | null {
-  return declaredTensions(draft, secondsElapsed)[0] ?? null;
+export function foremostTension(draft: DraftDecision): DeclaredTension | null {
+  return declaredTensions(draft)[0] ?? null;
 }

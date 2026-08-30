@@ -10,3 +10,15 @@ dist/
 
 # emitted by tests/server/serverless-entry.test.ts
 .entry-check/
+
+# Research engine output: hundreds of megabytes of search results, rebuildable from the manifests
+# beside them (seed, engine, options, budgets, sha256). The manifests and summaries ARE committed --
+# they are the provenance record and are what the results document quotes.
+research/blitz/data/*.jsonl
+__pycache__/
+
+# Research harness output: real PGNs and per-decision engine evidence, rebuildable from the
+# manifests beside them.
+research/harness/corpus.json
+research/harness/*.jsonl
+research/harness/*.zst

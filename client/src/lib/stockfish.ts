@@ -1,4 +1,5 @@
 import {
+  ANALYSIS_SUPERSEDED,
   emptyLine,
   // Moved to engine-line.ts, which has no asset imports, so the self-check can run the same
   // parser the application runs instead of keeping a second copy of it.
@@ -34,6 +35,9 @@ const defaultWorkerFactory: WorkerFactory = () => {
   //   #<raw wasm>,worker -> silent
   return new Worker(`${ENGINE_JS}#${encodeURIComponent(ENGINE_WASM)}`) as unknown as WorkerLike;
 };
+
+/** What bounds a search: the depth the application asks for, or the node budget research asks for. */
+type SearchLimit = { kind: "depth"; value: number } | { kind: "nodes"; value: number };
 
 export class StockfishClient {
   private worker: WorkerLike | null = null;
@@ -93,7 +97,7 @@ export class StockfishClient {
     return this.readyPromise;
   }
   async analyze(fen: string, depth = 14): Promise<EngineLine> {
-    const [best] = await this.search(fen, depth, 1);
+    const [best] = await this.search(fen, { kind: "depth", value: depth }, 1);
     return best ?? emptyLine(fen);
   }
 
@@ -113,15 +117,39 @@ export class StockfishClient {
    * without the measurement. See docs/MEASUREMENTS.md.
    */
   async analyzeAlternatives(fen: string, depth = 14, count = 2): Promise<EngineLine[]> {
-    return this.search(fen, depth, count);
+    return this.search(fen, { kind: "depth", value: depth }, count);
   }
 
-  private async search(fen: string, depth: number, multipv: number): Promise<EngineLine[]> {
+  /**
+   * A search bounded by NODES rather than by depth. Additive: nothing above changes.
+   *
+   * Depth is not a unit of computation. The same `go depth 14` costs a few thousand nodes in a
+   * locked position and millions in a sharp one, so a set of depth-bounded searches cannot be read
+   * as "the same amount of thinking, applied to different positions" -- which is exactly what the
+   * blitz-computation research needs to vary. `go nodes N` is the same amount of thinking by
+   * construction.
+   *
+   * The hash is cleared first, as it now is on every path (see `search`). It matters most here:
+   * without `ucinewgame` a 50-node search that follows a 400,000-node search of the same position
+   * reads the deep answer straight out of the transposition table, every budget then agrees, the
+   * trajectory looks perfectly stable, and the budget has become a label rather than a constraint.
+   */
+  async analyzeNodes(fen: string, nodes: number, multiPv = 1): Promise<EngineLine[]> {
+    return this.search(fen, { kind: "nodes", value: nodes }, multiPv);
+  }
+
+  private async search(fen: string, limit: SearchLimit, multipv: number): Promise<EngineLine[]> {
     await this.start();
     if (!this.worker) throw new Error("Stockfish worker unavailable");
     this.stopCurrent();
     this.lines.clear();
-    this.onStatus({ mode: "thinking", detail: `מחשב קו לעומק ${depth}` });
+    this.onStatus({
+      mode: "thinking",
+      detail:
+        limit.kind === "depth"
+          ? `מחשב קו לעומק ${limit.value}`
+          : `מחשב קו בתקציב ${limit.value} צמתים`,
+    });
     return new Promise<EngineLine[]>((resolve, reject) => {
       const timer = setTimeout(() => {
         if (!this.current) return;
@@ -137,13 +165,37 @@ export class StockfishClient {
       this.current = { resolve, reject, timer, fen };
       this.worker?.postMessage("stop");
       /*
+       * EVERY SEARCH STARTS FROM AN EMPTY TABLE, and this is a measurement decision rather than a
+       * performance one.
+       *
+       * Without it, a position's evaluation depends on which positions were searched before it:
+       * the transposition table survives from one `go` to the next, so an import of the same games
+       * in a different order produces different evaluations, different centipawn losses, and a
+       * different accuracy rate for the same player.
+       *
+       * MEASURED, on 5 real Lichess players, 12 real games each, through this product's own import
+       * path (`scripts/run_import_harness.ts`): reversing the order of the games moved a bucket's
+       * accuracy rate by up to 11.8 PERCENTAGE POINTS, on every player tested. Clearing the table
+       * before each position restored order-independence exactly, on every player tested. The
+       * product's own `worstBucketVerdict` asks a weakest bucket to clear roughly 25 points at
+       * n = 30, so the artefact was approaching half the bar it has to beat.
+       *
+       * WHAT IT COSTS, measured on the same runs rather than assumed: 1.43x the import's engine
+       * time (1.36x-1.49x across the five). That is the price of a number that means the same
+       * thing twice, and it is the same trade this file already makes elsewhere -- the timeout
+       * keeps partial results, the FEN travels with the line, a bound is not a score.
+       */
+      this.worker?.postMessage("ucinewgame");
+      /*
        * Set every time, including back down to 1. The option is sticky on the worker, so a
        * reveal that asked for two lines would otherwise leave every later single-line search
        * -- the eval bar, batch analysis -- quietly running MultiPV 2 and paying for it.
        */
       this.worker?.postMessage(`setoption name MultiPV value ${multipv}`);
       this.worker?.postMessage(`position fen ${fen}`);
-      this.worker?.postMessage(`go depth ${depth}`);
+      this.worker?.postMessage(
+        limit.kind === "depth" ? `go depth ${limit.value}` : `go nodes ${limit.value}`,
+      );
     });
   }
 
@@ -210,7 +262,7 @@ export class StockfishClient {
   private stopCurrent() {
     if (!this.current) return;
     clearTimeout(this.current.timer);
-    this.current.reject(new Error("Analysis superseded"));
+    this.current.reject(new Error(ANALYSIS_SUPERSEDED));
     this.current = null;
     // This search still owes a bestmove. Count it so it cannot resolve the next request.
     this.owedBestMoves += 1;

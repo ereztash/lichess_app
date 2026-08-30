@@ -409,6 +409,71 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   font-weight: 700;
 }
+/*
+ * The pipeline strip on the import panel.
+ *
+ * The unreached stages are dimmed rather than removed: the point of the strip is that the reading
+ * is the FIRST step, and a list that ended at the current step would say the opposite.
+ */
+.import-pipeline {
+  margin-top: 12px;
+}
+.import-pipeline ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.import-pipeline li {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--panel-label);
+}
+.import-pipeline li.ahead {
+  opacity: 0.45;
+}
+.import-pipeline li[aria-current="step"] {
+  font-weight: 700;
+}
+.import-pipeline-mark {
+  text-align: center;
+}
+
+/*
+ * The denominator ledger on the import panel.
+ *
+ * Two columns rather than prose, because the point is that a reader can add it up. The
+ * "of which" rows are indented and dimmed: they are not a further subtraction from the total
+ * above them, and a row that looked like one would misstate the arithmetic it exists to show.
+ */
+.import-ledger {
+  margin: 10px 0 0;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.18);
+  font-size: var(--panel-label);
+}
+.import-ledger li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
+}
+.import-ledger li b {
+  font-variant-numeric: tabular-nums;
+}
+.import-ledger .import-ledger-total {
+  font-weight: 700;
+}
+.import-ledger .import-ledger-of-which {
+  padding-inline-start: 1.1rem;
+  opacity: 0.7;
+  border-bottom: none;
+}
 .bucket-list {
   margin-top: 8px;
   border-top: 1px solid rgba(var(--ink-rgb), 0.18);
@@ -2071,14 +2136,6 @@ button:not(:disabled) {
 .commitment-header h2 {
   font-size: var(--panel-title);
   margin: 0.15rem 0 0;
-}
-.commitment-timer {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: var(--panel-body);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
 }
 .commitment-intro {
   font-size: var(--panel-body);

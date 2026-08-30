@@ -20,6 +20,7 @@ import {
   type ImportDiagnostic,
   type ImportedGameInput,
 } from "@shared/import-diagnostic";
+import { bookLookup, NO_BOOK, type BookLookup } from "@shared/opening-book";
 import { clockSecondsFromPgn, timeControlHeader } from "@shared/pgn-clock";
 
 /** Only the fields this needs, so a test does not have to build a whole ImportedGame. */
@@ -57,6 +58,20 @@ export interface ImportRunResult {
   diagnostic: ImportDiagnostic;
   /** Games whose PGN produced no positions at all, so they contributed nothing. */
   unreadable: number;
+  /**
+   * The per-game evidence the diagnostic was computed from.
+   *
+   * The run already builds this and used to drop it on the floor, which made the reading the only
+   * output: a number with no way to ask what it was made of. Handed back so a harness can call
+   * `decisionsFromGame` on the same inputs and dump every intermediate -- eval, cpLoss, phase,
+   * clock, forced -- rather than re-deriving them from a second copy of the pipeline that could
+   * disagree with this one.
+   *
+   * Nothing in the UI reads it; it costs one reference to an array that already exists.
+   */
+  inputs: ImportedGameInput[];
+  /** The book the run used, so a caller auditing the inputs can reproduce the same exclusions. */
+  isBook: BookLookup;
   /** True when the run was stopped early. The diagnostic then covers only what was scored. */
   aborted: boolean;
 }
@@ -105,12 +120,36 @@ function prepare(game: AnalysableGame, username: string): Prepared | null {
   };
 }
 
+/**
+ * The book, fetched the first time a scan asks for one and kept afterwards.
+ *
+ * DYNAMIC ON PURPOSE, and for the same reason the engine's wasm is: 833 keys is about nine
+ * kilobytes and the entry chunk's budget has roughly two to spare. A scan is behind a user action,
+ * so the download happens while the player is already waiting on an engine.
+ *
+ * A failure to load is not a failure to scan. The run continues with no book, excludes nothing on
+ * those grounds, and the diagnostic reports `bookLoaded: false` -- so a rate is never read as
+ * corrected when nothing corrected it.
+ */
+let cachedBook: BookLookup | null = null;
+export async function loadBook(): Promise<BookLookup> {
+  if (cachedBook) return cachedBook;
+  try {
+    const { BOOK_KEYS } = await import("@shared/opening-book-keys");
+    cachedBook = bookLookup(BOOK_KEYS);
+  } catch {
+    return NO_BOOK;
+  }
+  return cachedBook;
+}
+
 export async function runImportDiagnostic(
   games: AnalysableGame[],
   username: string,
   analyze: (fen: string, depth: number) => Promise<EngineLine>,
   options: ImportRunOptions = {},
 ): Promise<ImportRunResult> {
+  const isBook = await loadBook();
   const prepared = games.map((g) => prepare(g, username));
   const readable = prepared.filter((p): p is Prepared => p !== null);
   const total = readable.reduce((sum, p) => sum + p.fens.length, 0);
@@ -147,7 +186,9 @@ export async function runImportDiagnostic(
   }
 
   return {
-    diagnostic: diagnoseImportedGames(inputs),
+    diagnostic: diagnoseImportedGames(inputs, isBook),
+    inputs,
+    isBook,
     unreadable: games.length - readable.length,
     aborted: options.signal?.aborted === true,
   };

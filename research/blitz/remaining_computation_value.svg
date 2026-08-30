@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320" width="640" height="320" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">
+<title>Value still on the table after 20,000 nodes</title>
+<rect width="640" height="320" fill="#fbfbfa"/>
+<text x="52" y="22" font-size="13" font-weight="600" fill="#1a1a19">Value still on the table after 20,000 nodes</text>
+<line x1="52" y1="268" x2="624" y2="268" stroke="#8a8a85"/>
+<line x1="52" y1="34" x2="52" y2="268" stroke="#8a8a85"/>
+<text x="624" y="298" text-anchor="end" fill="#57564f">remaining computation value (winning chances)</text>
+<text x="52" y="298" fill="#57564f">decisions</text>
+<rect x="52.0" y="40.0" width="17.8" height="228.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="70.8" y="255.5" width="17.8" height="12.5" fill="#3a6ea5" opacity="0.85"/>
+<rect x="89.6" y="260.6" width="17.8" height="7.4" fill="#3a6ea5" opacity="0.85"/>
+<rect x="108.4" y="256.7" width="17.8" height="11.3" fill="#3a6ea5" opacity="0.85"/>
+<rect x="127.2" y="264.5" width="17.8" height="3.5" fill="#3a6ea5" opacity="0.85"/>
+<rect x="146.0" y="264.9" width="17.8" height="3.1" fill="#3a6ea5" opacity="0.85"/>
+<rect x="164.8" y="264.9" width="17.8" height="3.1" fill="#3a6ea5" opacity="0.85"/>
+<rect x="183.6" y="267.2" width="17.8" height="0.8" fill="#3a6ea5" opacity="0.85"/>
+<rect x="202.4" y="266.4" width="17.8" height="1.6" fill="#3a6ea5" opacity="0.85"/>
+<rect x="221.2" y="267.6" width="17.8" height="0.4" fill="#3a6ea5" opacity="0.85"/>
+<rect x="240.0" y="267.2" width="17.8" height="0.8" fill="#3a6ea5" opacity="0.85"/>
+<rect x="258.8" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="277.6" y="267.6" width="17.8" height="0.4" fill="#3a6ea5" opacity="0.85"/>
+<rect x="296.4" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="315.2" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="334.0" y="267.6" width="17.8" height="0.4" fill="#3a6ea5" opacity="0.85"/>
+<rect x="352.8" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="371.6" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="390.4" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="409.2" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="428.0" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="446.8" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="465.6" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="484.4" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="503.2" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="522.0" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="540.8" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="559.6" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="578.4" y="268.0" width="17.8" height="0.0" fill="#3a6ea5" opacity="0.85"/>
+<rect x="597.2" y="267.6" width="17.8" height="0.4" fill="#3a6ea5" opacity="0.85"/>
+<text x="624" y="282" text-anchor="end" fill="#57564f">0.208</text>
+<text x="52" y="282" fill="#57564f">0</text>
+<text x="44" y="44" text-anchor="end" fill="#57564f">583</text>
+</svg>

@@ -204,3 +204,45 @@ describe("a question about the player's own declarations", () => {
     expect(screen.queryByRole("status", { name: "שאלה על ההצהרה שלך" })).toBeNull();
   });
 });
+
+/**
+ * The clock is read and never shown (module note in `CommitmentScreen.tsx`).
+ *
+ * `secondsTaken` is a detector variable -- `fast-under-45s` in `shared/detector.ts` is the bucket
+ * the product's own worked example is written about -- so a player shown their own elapsed time
+ * while deciding is a player invited to manage the number being read off them. The two halves
+ * below are one rule: the display is gone AND the measurement is not, because deleting the
+ * counter and the recording together would have passed the first assertion for the wrong reason.
+ */
+describe("the decision is timed without the player being shown the time", () => {
+  it("renders no elapsed-seconds readout, however long the position is on screen", () => {
+    vi.useFakeTimers();
+    try {
+      const { container } = renderScreen({ chosenMove: "g8f6" });
+      // Well past both thresholds that read this variable: the tension's 10s and the bucket's 45s.
+      vi.advanceTimersByTime(63_000);
+      const markup = container.innerHTML;
+      /*
+       * Matched on the shape of a readout rather than on a class name. A rebuilt counter under a
+       * new class would slip past `.commitment-timer`, and the rule is about what the player can
+       * read, not about which selector carried it.
+       */
+      expect(markup, "the commitment screen is showing a seconds readout").not.toMatch(/\b\d+\s*s\b/);
+      expect(markup).not.toContain("זמן שחלף");
+      expect(container.querySelector(".commitment-timer")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("still hands the elapsed time to onCommit", async () => {
+    const onCommit = vi.fn();
+    renderScreen({ chosenMove: "g8f6", onCommit });
+    answerEveryStep({ known: "המרכז פתוח", unknown: "לא יודע איך הוא יענה", confidence: 3 });
+    await userEvent.click(screen.getByRole("button", { name: /רשמו את ההחלטה/ }));
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    const secondsTaken = onCommit.mock.calls[0][1];
+    expect(typeof secondsTaken).toBe("number");
+    expect(secondsTaken).toBeGreaterThanOrEqual(0);
+  });
+});

@@ -20,8 +20,13 @@
  */
 import { useState } from "react";
 import { PREREGISTERED_THRESHOLDS, MIN_BUCKET_N, SEPARABILITY_K } from "@shared/detector";
-import { hypothesisFromImport, type PreregOutcome } from "@shared/prereg";
-import type { ImportDiagnostic } from "@shared/import-diagnostic";
+import { hypothesisFromImport, importProgress, type PreregOutcome } from "@shared/prereg";
+import { ImportPipeline } from "./ImportPipeline";
+import {
+  resolutionFactor,
+  RESOLUTION_FACTOR_CEILING,
+  type ImportDiagnostic,
+} from "@shared/import-diagnostic";
 import { useRegisterHypothesis } from "@/lib/record-api";
 import { readableFailureText } from "@/lib/commit-error";
 import { Proportion } from "./Value";
@@ -50,7 +55,15 @@ export function PreregisterBridge({
     games,
   });
 
-  if (outcome.kind === "nothing-readable") return null;
+  /*
+   * The pipeline goes above every branch, INCLUDING the ones that used to render nothing.
+   *
+   * `nothing-readable` returned null, so on the reading where the player is furthest from a
+   * finding the screen said least about what a finding would take. Absence is not an explanation.
+   */
+  const pipeline = <ImportPipeline progress={importProgress(outcome, registered !== null)} />;
+
+  if (outcome.kind === "nothing-readable") return pipeline;
 
   if (outcome.kind === "only-one-readable") {
     /*
@@ -62,32 +75,59 @@ export function PreregisterBridge({
      * dressed as two measurements.
      */
     return (
-      <p className="prereg-note">
-        רק סוג אחד נקרא מהמשחקים האלה, ושיעור לבדו אינו השוואה — אין למה להיות גרוע ממנו. כדי
-        לרשום מראש צריך שני סוגים עם מספיק החלטות לפחות, כדי שיהיה אפשר להראות שהנמוך מביניהם באמת נבדל.
-      </p>
+      <>
+        {pipeline}
+        <p className="prereg-note">
+          רק סוג אחד נקרא מהמשחקים האלה, ושיעור לבדו אינו השוואה — אין למה להיות גרוע ממנו. כדי
+          לרשום מראש צריך שני סוגים עם מספיק החלטות לפחות, כדי שיהיה אפשר להראות שהנמוך מביניהם באמת
+          נבדל.
+        </p>
+      </>
     );
   }
 
   if (outcome.kind === "not-separable") {
-    // Deliberately not a disabled button. There is nothing to wait for here -- more games would
-    // sharpen the rates, but the answer "these buckets are not distinguishable" is the finding.
+    /*
+     * Deliberately not a disabled button. There is nothing to wait for here -- the answer "these
+     * buckets are not distinguishable" is the finding.
+     *
+     * WHAT WAS MISSING, and it is the difference between a refusal and a measurement. The sentence
+     * gave the gap and the bar and stopped, which leaves the reader with no way to tell whether
+     * they are one game short or a hundred -- and a reader with no number fills it in with the
+     * least flattering guess. MEASURED on 6 real players' imports: every one of them lands here,
+     * with bars of 13 to 19.5 points against gaps of 1 to 8. So this is not the rare branch; on a
+     * real import it is the only branch, and it has to say what this many games can actually
+     * resolve.
+     */
+    const factor = resolutionFactor(outcome);
     return (
-      <p className="prereg-note">
-        אין סוג אחד שאפשר לרשום מראש: הפרש הדיוק בין הנמוך ביותר לזה שאחריו הוא{" "}
-        {Math.round(outcome.separation * 100)} נקודות אחוז, והבר שהוא צריך לעבור — שתי שגיאות
-        תקן של ההפרש — הוא {Math.round(outcome.threshold * 100)} נקודות אחוז. לרשום את הנמוך
-        מביניהם היה להלביש ניחוש כהשערה.
-      </p>
+      <>
+        {pipeline}
+        <p className="prereg-note">
+          אין סוג אחד שאפשר לרשום מראש: הפרש הדיוק בין הנמוך ביותר לזה שאחריו הוא{" "}
+          {Math.round(outcome.separation * 100)} נקודות אחוז, והבר שהוא צריך לעבור — שתי שגיאות תקן
+          של ההפרש — הוא {Math.round(outcome.threshold * 100)} נקודות אחוז. כלומר מה שהמשחקים האלה
+          מסוגלים להפריד הוא {Math.round(outcome.threshold * 100)} נקודות, וההפרש שנמדד קטן מזה.{" "}
+          {factor === null
+            ? "שני הסוגים הנמוכים יצאו שווים, ואין הפרש שאפשר להגדיל אליו את המדגם."
+            : factor > RESOLUTION_FACTOR_CEILING
+              ? "כדי שהפרש בגודל הזה ייקרא נדרש מדגם גדול בהרבה ממה שייבוא יכול לספק."
+              : `אם השיעורים האלה יישארו במקומם, יידרשו בערך פי ${Math.round(factor)} החלטות כדי שהפרש בגודל הזה ייקרא — וזו הנחה על השיעורים, לא תחזית שההפרש יישאר.`}{" "}
+          לרשום את הנמוך מביניהם היה להלביש ניחוש כהשערה.
+        </p>
+      </>
     );
   }
 
   if (outcome.kind === "not-registrable") {
     return (
-      <p className="prereg-note">
-        הסוג הנמוך ביותר נקרא רק מתוך משחקים שכבר שוחקו, ואין לו מקבילה בלולאה החיה —
-        הערכת המנוע על העמדה שעמדתם מולה קיימת רק במשחק שנגמר. אי אפשר לרשום אותו מראש.
-      </p>
+      <>
+        {pipeline}
+        <p className="prereg-note">
+          הסוג הנמוך ביותר נקרא רק מתוך משחקים שכבר שוחקו, ואין לו מקבילה בלולאה החיה — הערכת המנוע
+          על העמדה שעמדתם מולה קיימת רק במשחק שנגמר. אי אפשר לרשום אותו מראש.
+        </p>
+      </>
     );
   }
 
@@ -95,20 +135,24 @@ export function PreregisterBridge({
 
   if (registered) {
     return (
-      <p className="prereg-registered">
-        נרשם מראש: <strong>{registered}</strong>. מכאן הגלאי בודק את הסוג הזה בלבד, על החלטות
-        שנרשמו <em>אחרי</em> הרגע הזה. ייבוא נוסף ירשום השערה חדשה במקומה, והישנה תישאר ברשומה.
-      </p>
+      <>
+        {pipeline}
+        <p className="prereg-registered">
+          נרשם מראש: <strong>{registered}</strong>. מכאן הגלאי בודק את הסוג הזה בלבד, על החלטות
+          שנרשמו <em>אחרי</em> הרגע הזה. ייבוא נוסף ירשום השערה חדשה במקומה, והישנה תישאר ברשומה.
+        </p>
+      </>
     );
   }
 
   return (
     <div className="prereg-offer">
+      {pipeline}
       <p>
         המשחקים האלה מצביעים על <strong>{hypothesis.scope}</strong> כמקום לבדוק בו —{" "}
         <Proportion value={hypothesis.evidence.accurate_rate} n={hypothesis.evidence.n} /> דיוק,
-        נמוך ב-{Math.round(hypothesis.evidence.separation * 100)} נקודות אחוז מהסוג הבא — יותר
-        מהבר של שתי שגיאות תקן, שהוא {Math.round(hypothesis.evidence.threshold * 100)} נקודות אחוז.
+        נמוך ב-{Math.round(hypothesis.evidence.separation * 100)} נקודות אחוז מהסוג הבא — יותר מהבר
+        של שתי שגיאות תקן, שהוא {Math.round(hypothesis.evidence.threshold * 100)} נקודות אחוז.
       </p>
       {/*
        * What it buys, and what it costs, in the only unit that matters to someone deciding whether
@@ -126,8 +170,8 @@ export function PreregisterBridge({
        */}
       <p className="prereg-buys">
         אם תרשמו את זה עכשיו — לפני שנרשמה החלטה חיה אחת — הגלאי יבדוק את הסוג הזה בלבד במקום שישה,
-        ולכן יספיקו {PREREGISTERED_THRESHOLDS.minBucketN * 2} החלטות מדודות במקום{" "}
-        {MIN_BUCKET_N * 2}. הסף של הפער עצמו יורד מ-{SEPARABILITY_K} ל-
+        ולכן יספיקו {PREREGISTERED_THRESHOLDS.minBucketN * 2} החלטות מדודות במקום {MIN_BUCKET_N * 2}
+        . הסף של הפער עצמו יורד מ-{SEPARABILITY_K} ל-
         {PREREGISTERED_THRESHOLDS.separabilityK} שגיאות תקן — בדיקה של סוג אחד שנרשם מראש היא
         הזדמנות אחת ולא שש, ולכן היא לא צריכה את אותו בר.
       </p>

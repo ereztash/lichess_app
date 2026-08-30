@@ -244,8 +244,64 @@ export interface ScoredDecision extends BucketableDecision {
  */
 export interface BucketableDecision {
   phase: DecisionAtom["entry_state"]["phase"];
-  secondsTaken: number;
+  /**
+   * How long the decision took, or NULL when nothing measured it.
+   *
+   * NULLABLE SINCE THE DEFECT BELOW. A live decision always has a real figure -- the clock starts
+   * when the position is presented -- so the live path never passes null and its schema still
+   * forbids one. An IMPORTED decision often has no figure at all: `secondsSpentAt` needs the same
+   * player's previous clock reading, which does not exist for their first move and does not exist
+   * when the PGN's TimeControl header is missing. It correctly returned null, and the import path
+   * then wrote `seconds ?? 0`.
+   *
+   * A zero is not a missing measurement. It is a measurement of zero, and it satisfies
+   * `secondsTaken < 45` -- so every imported game silently contributed at least one invented
+   * decision to `fast-under-45s`, the bucket this product cares most about, and that bucket could
+   * then be pre-registered as the player's weakness on the strength of it.
+   */
+  secondsTaken: number | null;
   clockMsRemaining: number | null;
+}
+
+/**
+ * Whether this decision carries the fields this bucket reads.
+ *
+ * THE HALF OF THE FIX THAT IS EASY TO MISS. Guarding the predicate keeps a decision with no
+ * measurement out of the bucket -- and puts it straight into the COMPARISON set, because `outside`
+ * is everything the predicate rejected. "We could not measure how long this took" then becomes
+ * "this took more than 45 seconds", which is the same fabrication pointing the other way, and it
+ * moves the baseline the bucket is judged against.
+ *
+ * `clock-under-1m` had exactly that shape from the start: its predicate has always checked
+ * `clockMsRemaining !== null`, so a decision with no clock was counted as a decision made with
+ * over a minute left.
+ *
+ * So a decision missing a field belongs to NEITHER side. That is what this is for, and it is why
+ * the requirement is declared on the bucketing rather than left to each predicate.
+ */
+export function bucketable(bucketing: Bucketing, decision: BucketableDecision): boolean {
+  if (bucketing.requiresTime && decision.secondsTaken === null) return false;
+  if (bucketing.requiresClock && decision.clockMsRemaining === null) return false;
+  return true;
+}
+
+/**
+ * The two sides a bucketing divides a record into: inside the bucket, and the rest it is compared
+ * against.
+ *
+ * Exported so the gate can assert on the SPLIT ITSELF rather than on a copy of it. Both sides are
+ * drawn from the decisions this bucket can actually read; a decision with no think time is not
+ * "fast" and not "slow", and putting it in either side would move a number.
+ */
+export function splitByBucket<T extends BucketableDecision>(
+  bucketing: Bucketing,
+  decisions: readonly T[],
+): { inside: T[]; outside: T[] } {
+  const readable = decisions.filter((d) => bucketable(bucketing, d));
+  return {
+    inside: readable.filter(bucketing.predicate),
+    outside: readable.filter((d) => !bucketing.predicate(d)),
+  };
 }
 
 /**
@@ -342,6 +398,14 @@ export interface Bucketing {
    */
   requiresClock?: true;
   /**
+   * True when the predicate reads `secondsTaken`, which an imported game may not carry for a
+   * given decision even when the rest of the game has clocks.
+   *
+   * Declared here rather than inferred from the key, because a seventh bucket must be made to
+   * answer the question rather than default to "reads nothing that can be missing".
+   */
+  requiresTime?: true;
+  /**
    * The phase a drill position must classify as for it to be inside this bucket -- and, by its
    * absence, whether a drill can be built for this bucket AT ALL.
    *
@@ -371,12 +435,14 @@ export const BUCKETINGS: Bucketing[] = [
   {
     key: "fast-under-45s",
     scope: "החלטות תחת פחות מ-45 שניות",
-    predicate: (d) => d.secondsTaken < 45,
+    predicate: (d) => d.secondsTaken !== null && d.secondsTaken < 45,
+    requiresTime: true,
   },
   {
     key: "slow-over-2m",
     scope: "החלטות אחרי יותר משתי דקות",
-    predicate: (d) => d.secondsTaken > 120,
+    predicate: (d) => d.secondsTaken !== null && d.secondsTaken > 120,
+    requiresTime: true,
   },
   {
     key: "phase-opening",
@@ -474,8 +540,7 @@ export function detect(
   }
   const candidates: CandidatePattern[] = [];
   for (const bucketing of searched) {
-    const inside = decisions.filter(bucketing.predicate);
-    const outside = decisions.filter((d) => !bucketing.predicate(d));
+    const { inside, outside } = splitByBucket(bucketing, decisions);
     if (inside.length < thresholds.minBucketN || outside.length < thresholds.minBucketN) continue;
 
     const insideSummary = summarise(inside);

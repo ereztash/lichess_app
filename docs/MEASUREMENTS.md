@@ -222,19 +222,36 @@ A position bank drawn from games the player has never seen would remove this. Th
   bucket is also worst calibrated there. If they routinely are not, the bridge shortens the wait
   and points at the wrong place, and the refutation condition on every registration is what would
   eventually say so -- on a real record, which does not exist yet.
-- **The import diagnostic against a real Lichess account.** Every part of the path is tested with
-  synthetic games and a stub engine -- PGN clock extraction, colour matching, batch scoring,
-  bucketing, the screen. No real username has been searched, no real PGN scored, and the
-  end-to-end wall clock on a real 20-game import has not been observed. What the tests cover is
-  the logic; what nobody has watched is the run.
-- **What the accuracy rate over an import actually counts.** Nearly every one of the player's
-  moves, including book and any recapture that has a legal alternative. Positions offering
-  exactly one legal move are now excluded and counted, but that is a small correction (see
-  below) and the bulk of the inflation remains: `phase-opening` is `ply <= 20`, mostly book, so
-  it stays closer to measuring recall than decisions. Separating a real choice from a
-  practically-forced one needs an opening book or a second engine line per position, and the
-  cost of the second is the entry below. **This is a known defect in a number currently on
-  screen, not a missing feature.**
+- **The import diagnostic against a real Lichess account.** Partly closed. `scripts/run_import_harness.ts`
+  runs `runImportDiagnostic` -- the same function the import screen calls -- over **60 real games
+  from 5 real Lichess players** with a real engine at the import's own depth 12, and dumps every
+  intermediate. See "What a real import actually did" below. **Still unmeasured:** the browser
+  itself. The harness uses a native Stockfish 17.1, not the Stockfish 18 Lite WASM build the
+  product ships, and the end-to-end wall clock of a real import in a real browser has still not
+  been observed. The games and the pipeline are real; the runtime is not.
+- ~~**A think time that was never measured, counted as zero seconds.**~~ **FIXED.**
+  `secondsSpentAt` returns null when a think time cannot be derived, and its own comment says why:
+  "a first move recorded as 0 seconds is a fabricated data point in the bucket this product cares
+  most about". The import path then wrote `seconds ?? 0` one line later. The comment beside it
+  defended the coercion on the grounds that the time buckets are reported unmeasurable for an
+  import carrying **no** clocks -- which covers the whole-import case and misses the per-decision
+  one. The player's FIRST MOVE has no previous reading of their own clock, so it is null in every
+  import that works, and `0 < 45`. Measured on the repository's own fixture: 100 decisions in
+  `fast-under-45s` where 99 were measured.
+  The second half was quieter and older. `outside` is everything the predicate rejected, so
+  guarding the predicate alone moved the unmeasured decision into the **comparison set** the
+  bucket is tested against -- and `clock-under-1m` had that shape from the start, counting a
+  decision with no clock as a decision made with over a minute left.
+  `BucketableDecision.secondsTaken` is now `number | null`, a bucket declares which fields it
+  reads, and a decision missing one of them enters neither side. Held by `GATE-MEASURE`, whose
+  positive control is the split as it shipped.
+- **What the accuracy rate over an import actually counts.** Partly corrected. Positions with one
+  legal move were already excluded; **book positions now are too**, by a book measured from 73,279
+  real games rather than asserted -- see "What excluding book positions did" below. **What is still
+  counted:** recaptures that have a legal alternative, and any position simply too rare to clear the
+  book's one-in-a-thousand rule. Separating those from a real choice needs a second engine line per
+  position, and the cost of that is the entry below, still unmeasured. **The number on screen is
+  better than it was and is not yet clean.**
 - **What a second engine line costs.** The reveal now asks for two lines from one search
   (MultiPV 2) so it can say what the engine's choice is actually worth. The two lines share a
   search tree, so the cost is somewhere between 1x and 2x a single-line search and probably
@@ -416,6 +433,184 @@ the move that was not played, which is why the reveal now asks for two.
 (30) is reported as a preference rather than a reason: the engine broke a tie between two moves
 it does not really distinguish. The panel already said differences under 30 cp say nothing here;
 it had never applied that to the move it was itself recommending.
+
+### Is "your weakest area" calibrated? Measured, in both directions
+
+**Two reasons to doubt it, pushing opposite ways.** `worstBucketVerdict` ranks up to **nine
+overlapping buckets**, takes the lowest, and tests it against the second lowest using the textbook
+standard error for two **independent** proportions. The minimum of nine noisy rates is
+systematically low, which inflates the gap; and the buckets share decisions -- one move is in
+`phase-middlegame`, `fast-under-45s` and `standing-level` at once -- which makes the rates covary
+and shrinks the true variance below what the formula assumes. Neither can be reasoned to a
+conclusion, so both were measured together.
+
+**The null.** Each decision keeps its own phase, seconds, clock and standing -- so every bucket keeps
+its real size and its real overlap -- and only the **outcome** is permuted. Bucket membership is then
+unrelated to accuracy by construction, so any "separable" verdict is a false positive. Records are
+resampled from 1,572 real decisions. `GATE-WORST-BUCKET`.
+
+| bar | false-positive rate, worst of n = 200/400/800/1600 |
+| --- | ---: |
+| **two standard errors — what the product applies** | **0.7%** (ceiling 2%) |
+| one standard error — the textbook bar for a named comparison | 6.7% |
+
+**It does not over-claim.** The doubling to two standard errors is doing real work rather than
+decorating the formula: the obvious bar a reasonable person might have picked fires three times too
+often.
+
+**And it is nearly silent.** A control that cannot fail proves nothing, so the other half was
+measured too: one bucket was made genuinely worse by a known amount and the verdict re-run.
+
+| true gap in one bucket | n = 200 | n = 400 | n = 800 |
+| ---: | ---: | ---: | ---: |
+| 10 pp | 0% | 1% | 8% |
+| 20 pp | 1% | 9% | 61% |
+| 30 pp | 7% | 44% | 95% |
+
+When it does fire it names the right bucket essentially always -- the "fires" and "names the right
+one" columns agree to within a point -- so it has no directional error. It simply almost never
+speaks. At n = 200, the size a real 8-to-20-game import produces, a player whose middlegame really is
+**20 points** worse than everything else is told "these buckets are not distinguishable" **99% of
+the time**.
+
+**On the six real players of the import harness, every one lands there.** Bars of 13.0 to 19.5
+points against measured gaps of 1.0 to 7.9:
+
+| player | eligible | readable buckets | worst | gap | bar |
+| --- | ---: | ---: | --- | ---: | ---: |
+| 743bb0e0… | 202 | 8 / 9 | `phase-opening` | 2.7 pp | 19.5 pp |
+| 8b033ad9… | 451 | 7 / 9 | `phase-opening` | 7.9 pp | 16.2 pp |
+| fcf1b502… | 220 | 6 / 9 | `phase-middlegame` | 1.1 pp | 13.0 pp |
+| d4c64542… | 207 | 7 / 9 | `phase-opening` | 1.0 pp | 17.7 pp |
+| 9f3e649e… | 143 | 5 / 9 | `phase-opening` | 7.9 pp | 13.3 pp |
+| 4ceee8ee… | 225 | 6 / 9 | `standing-winning` | 1.2 pp | 17.1 pp |
+
+**So the bridge over the cold start does not fire on a real import.** That is the finding, and no
+threshold was moved in response to it: lowering the bar buys the 6.7% false-positive rate above,
+which is the thing the bar exists to prevent. What changed instead is what the screen says. "These
+buckets are not distinguishable" now arrives with the size the games can resolve and, under the
+stated assumption that the rates hold, how much larger a sample a gap that size would need. A
+refusal with no number invites the reader to supply the least flattering one.
+
+**What this leaves open, as a decision rather than a defect.** Either the import window grows by a
+large factor, or the comparison changes shape -- fewer buckets ranked, or a pre-named one rather
+than the minimum of nine. Both are choices about the product, and neither is a threshold to nudge.
+
+### What excluding book positions did to the rate
+
+**The book is measured, not asserted.** A position is book when at least **0.1% of the reference
+games -- one in a thousand -- reached it** within the first 30 plies. 73,279 real Lichess games
+(CC0, 2026-03) produced 1,522,179 distinct positions; **833** clear that bar. The rule was fixed
+before its effect on any rate was computed. At half the rate the book would hold 1,732 positions;
+at double it, 408.
+
+Keys are 32-bit FNV-1a over `positionKey`, so a transposition into a book position is the same
+entry. **Collisions measured against all 1,522,179 positions the corpus produced: zero.**
+
+**It is a claim about the position, never about the move.** A player who leaves theory in a book
+position has made a decision, and excluding on what they played would condition on the outcome.
+
+**The effect, on the 6 real players of the import harness** (1,587 decisions):
+
+| | |
+| --- | ---: |
+| share of scored moves excluded as book | **7.8%** |
+| mean change across 39 readable bucket readings | **−1.00 pp** |
+| largest fall | **−9.01 pp** (`phase-opening`, 67.5% → 58.5%) |
+| largest rise | +1.31 pp |
+
+**The direction is the one the defect predicted.** `phase-opening` falls hardest and on almost every
+player, because that bucket was the one holding the theory: its n drops from 80 to between 53 and 66
+and its accuracy drops with it. The opening was not the player's strong phase so much as the phase
+where the rate was counting recall.
+
+**What it costs.** Every bucket's n falls by 7.8%, and `phase-opening` by a quarter, which pushes it
+towards `MIN_BUCKET_N`. That is the real price of the correction and it is paid in silence rather
+than in a wrong number.
+
+**What is still not excluded.** Recaptures with a legal alternative, and any position too rare for
+the book. A second engine line per position would reach them, and its cost in the import path is
+still unmeasured.
+
+### The thresholds, against the shape real records have
+
+**The question this answers.** Every threshold in the detector -- `MIN_BUCKET_N = 30`,
+`SEPARABILITY_K = 3.75`, the 2% false-positive ceiling -- was set by a shuffled-label control on
+records drawn from a UNIFORM world: phase uniform over three, seconds uniform over 0-200, clock
+uniform over five minutes. Real online chess is not that world, and this document has said for a
+long time that against real data every threshold is UNVERIFIED.
+
+**The corpus.** The 1,572 non-forced decisions from the import harness above (6 real players
+stratified by dominant time class -- rapid, blitz, bullet, ultrabullet -- 8 games each), frozen as
+`tests/fixtures/real-shape.json`. Whole `(phase, seconds, clock, accurate)` tuples are resampled,
+so the joint structure survives; confidence is supplied by the control, drawn independently,
+because nobody asked those players how sure they were and nobody ever can.
+
+| | uniform records | real-shaped records |
+| --- | ---: | ---: |
+| worst false-positive rate, current thresholds | 0.7% | **0.0%** |
+| worst false-positive rate, the permissive thresholds this build started with | 30.0% | 19.3% |
+| buckets ever comparable, at n = 1200 | 6 / 6 | **4 / 6** |
+
+**No threshold moved, and none needed to.** The 2% ceiling holds on real shapes with room to
+spare, which is what had to be established before anything was retuned.
+
+**The second row is the finding, and it is not good news.** `fast-under-45s` and `slow-over-2m` are
+never comparable on a real record at any size tested. On these decisions the median think time is
+**2 seconds**, **99.9%** fall under 45, and **0.06%** exceed two minutes -- so one side or the other
+never reaches `MIN_BUCKET_N` and the detector skips the bucket silently. A third of the search space
+does not exist in the world the product runs in, and part of the reason the false-positive rate is
+lower on real shapes is exactly that fewer comparisons are being made. `GATE-SHUFFLE-REAL` prints
+the coverage next to the rate so the two are never read apart.
+
+**What this does not license.** It does not license changing 45 to 3, or to any number learned from
+this corpus. Six players are not a population, and a cut point fitted to the records that revealed
+the problem is the definition of overfitting. What it says is that the two time buckets are
+currently dead weight on real records, and that any replacement -- a think time normalised by the
+base clock, say -- has to be chosen on development data, frozen, and then put through this same
+control on a holdout before it goes near production.
+
+### What a real import actually did, and the number that moved when nothing did
+
+**The first run of this product's import path on real games.** `scripts/run_import_harness.ts`
+calls `runImportDiagnostic` with a real engine at depth 12, over a frozen corpus of 60 real Lichess
+games (5 players, 12 games each, CC0 open database, `research/harness/corpus_manifest.json`), and
+dumps all 1,762 decisions with their eval, centipawn loss, phase, clock, think time and forced flag.
+
+Three runs per player answer three different questions.
+
+| question | run | result |
+| --- | --- | --- |
+| Does the harness repeat itself? | the corpus twice, two engine processes | **identical**, both the reading and all 1,762 rows |
+| Does the reading depend on the ORDER the games arrived in? | the same games reversed | **yes** — on every one of the 5 players |
+| Is the transposition table the cause? | both orders, table cleared per position | **order-independence restored**, on every player |
+
+**The size of it.** Reversing the order of a player's games — same games, same player, same engine,
+same depth, same n in every bucket — moved a bucket's accuracy rate by up to **11.8 percentage
+points**:
+
+| player | largest bucket shift |
+| --- | ---: |
+| 9f3e649e… | 11.81 pp |
+| fd31a43e… | 10.18 pp |
+| d518fb26… | 8.12 pp |
+| 778c5b87… | 3.01 pp |
+| 77688005… | 2.75 pp |
+
+**Why.** `StockfishClient.analyze` sent no `ucinewgame`, so the transposition table survived from
+one position to the next and a position's evaluation depended on everything searched before it.
+That is not a measurement of the position. It matters here more than it would elsewhere, because
+`worstBucketVerdict` asks a weakest bucket to clear roughly 25 points at n = 30 before the screen
+may name it — and an artefact of nearly 12 points is approaching half of that bar.
+
+**Fixed**, by clearing before every search on every path. **What that costs, measured on the same
+runs rather than assumed: 1.43x the import's engine time** (1.36x–1.49x across the five players).
+One run each on one machine, so the ratio is the figure to read and the seconds are not a benchmark.
+
+**What this does not say.** The corpus is 5 players chosen by the first-N-by-username rule fixed
+before anything was scored, not a sample of the product's users; and the engine is native
+Stockfish 17.1, not the WASM build the browser runs. The order effect is structural — a shared
+table is a shared table — but its magnitude on the shipped engine has not been measured.
 
 ### What a full import costs, and who pays it
 
