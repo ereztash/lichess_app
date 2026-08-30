@@ -44,14 +44,15 @@ to enforce R3 — the engine must not speak before a decision is recorded — an
 to answer the question below. They are evidence about how the two programs are combined, not a
 finding that the combination is settled.
 
-> **Open, and it is the owner's decision, not a defect this file can close.** Whether shipping a
-> GPL-3.0 engine alongside this application makes the application itself a work that must be
-> offered under the GPL is a question about *how* the two are combined, and reasonable readings
-> differ on message-passing to a separate program. This repository currently has **no `LICENSE`
-> file at all**, which under copyright default means the application's own code is all rights
-> reserved. Those two facts sit badly together, and settling them is a choice for the owner with
-> advice this file cannot substitute for. What is recorded here is what the build conveys and what
-> travels with it — nothing above depends on how that question is answered.
+> **Settled by the owner, and settled the conservative way.** Whether shipping a GPL-3.0 engine
+> alongside this application makes the application itself a work that must be offered under the GPL
+> is a question about *how* the two are combined, and reasonable readings differ on message-passing
+> to a separate program. This file used to record that the repository had **no `LICENSE` at all** —
+> all rights reserved by copyright default — and that the two facts sat badly together.
+>
+> The project is now **[GPL-3.0-or-later](LICENSE)**, the same terms as the engine it conveys.
+> That does not answer the combination question; it makes the answer stop mattering, because this
+> distribution complies under either reading. Nothing above depended on it either way.
 
 ---
 

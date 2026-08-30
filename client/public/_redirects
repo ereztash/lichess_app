@@ -1,0 +1,7 @@
+# Single-page app fallback for a static host.
+#
+# /play is a client route, not a file. Without this line a refresh on it -- or a pasted link to
+# it -- is a 404 from the host, which is the first thing a stranger would hit.
+#
+# 200 rather than 301: the URL must stay /play so the router sees it.
+/*    /index.html   200

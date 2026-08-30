@@ -1,0 +1,18 @@
+# Static-host headers, for a deployment with no server behind it.
+#
+# Netlify and Cloudflare Pages read this file; Vercel reads vercel.json instead and already
+# carries the same set. It is duplicated rather than shared because neither host can read the
+# other's format, and a header that exists on one host and not the other is worse than none:
+# the CSP below is what lets the engine run at all.
+#
+#   wasm-unsafe-eval   the engine is 7.1 MB of WebAssembly and will not instantiate without it
+#   worker-src 'self'  it runs in a Web Worker
+#   connect-src        the two public game archives the browser reads directly, and nothing else
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; style-src-elem 'self'; style-src-attr 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self' https://lichess.org https://api.chess.com; worker-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Strict-Transport-Security: max-age=31536000
