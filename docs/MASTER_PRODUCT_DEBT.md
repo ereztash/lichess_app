@@ -194,7 +194,7 @@ never say anything.
 | | |
 | --- | --- |
 | type | ops |
-| state | **open → closing with this file** |
+| state | **fixed** |
 | severity | P1 |
 | basis | **verified** — see the supersedes table above |
 
@@ -207,9 +207,9 @@ never say anything.
 | | |
 | --- | --- |
 | type | correctness |
-| state | **open** |
+| state | **fixed** |
 | severity | P1 |
-| basis | **verified** — `client/src/lib/local-record-store.ts:206` is `{ ...empty(), ...(JSON.parse(raw) as Partial<Persisted>) }`; `:654` says a row "is never migrated" |
+| basis | **verified** — was `client/src/lib/local-record-store.ts:206`, `{ ...empty(), ...(JSON.parse(raw) as Partial<Persisted>) }` inside a `try` whose `catch` returned `empty()` |
 
 `decision-lab.record.v1` grows by having new keys filled in from `empty()`. That silently converts
 four different situations into one:
@@ -224,6 +224,29 @@ game is still perfectly readable; only the calibration is not.
 **Gate:** a fixture of every historical schema loads and yields **exactly the meaning it had when it
 was written**, and a field that cannot be interpreted is marked `unreadable` rather than defaulted —
 with the game around it still readable.
+
+**Closed by** `LOCAL_RECORD_VERSION`, fifteen typed per-key reads, and a `localRecordHealth()` that
+distinguishes the four states the shallow merge collapsed into one.
+
+**The sharpest case turned out not to be the confidence scale.** It was this: a blob that would not
+parse read as empty, and *then the next write overwrote it*. One damaged byte plus one ordinary
+commit destroyed everything the player had — the only place in this product where a record could be
+destroyed rather than merely mis-read. A damaged record now keeps its bytes: the session downgrades
+to memory (the same downgrade a full quota already triggers, reached by another route), so the
+product stays usable, `localRecordDurability()` reports `session-only`, and a later build still has
+something to repair.
+
+**A fourth state nobody had named:** a record written by a *newer* build. No damage at all — load a
+cached older bundle and the shallow merge keeps what it recognises, drops what it does not, and
+saves the smaller record back over the larger one. It is refused for exactly that reason.
+
+**Per-key, not per-blob.** A `claims` key holding a string costs the claims and nothing else, and
+the key is named in `unreadableKeys`. Losing the whole record because one key is damaged is the same
+failure as reading a damaged record as an empty one, one layer along.
+
+**Gate:** `tests/client/four-things-that-are-not-an-empty-record.test.ts`. Restore the shallow merge
+and **12 of its 13 assertions go red**; the one that survives is the empty-browser case, which is
+the only one the old code got right.
 
 ### R-06 · A blitz game and its decisions are written without a transaction
 

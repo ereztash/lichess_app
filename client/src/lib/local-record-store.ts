@@ -85,6 +85,8 @@ export function setLocalRecordIdentity(openId: string | null | undefined): void 
   if (next === identity) return;
   identity = next;
   session = null;
+  /* The health belongs to the record that was read, not to the browser. */
+  health = { kind: "absent" };
 }
 
 /** Test seam, and the reset every test that touches identity needs. */
@@ -131,6 +133,53 @@ type Persisted = {
   /** Append-only, newest last. See shared/import-diagnostic.ts. */
   importReadings: StoredImportDiagnostic[];
 };
+
+/**
+ * WHICH SHAPE THIS BLOB IS IN, written into every save from now on.
+ *
+ * IT USED TO BE INFERRED FROM WHICH KEYS WERE PRESENT, and that is only a version number if every
+ * future change happens to add a key. A change that alters what an EXISTING key means -- the one
+ * kind of change that actually needs a migration -- would be invisible, and the record would be
+ * read under the new meaning with no way to tell it was written under the old one.
+ *
+ * VERSION 0 IS EVERY SAVE THIS PRODUCT HAS EVER WRITTEN. It has no `version` key at all, which is
+ * exactly how it is recognised, and its shape is a strict subset of version 1's -- so the upgrade
+ * is the per-key read below and nothing else. That is worth stating because it is the last version
+ * for which that will be true: a version 2 that re-means a key has to write the transformation out.
+ */
+export const LOCAL_RECORD_VERSION = 1;
+
+/**
+ * What happened when this browser's record was last read. Four outcomes, and they used to be one.
+ *
+ *   absent      no key. Nobody has played in this browser under this identity.
+ *   loaded      read, with the version it was written under and any key that could not be
+ *               interpreted named. `unreadableKeys` is normally empty.
+ *   unreadable  the blob is there and this build cannot read it. NOT the same as absent, and the
+ *               difference is the whole of this type: `read()` used to return `empty()` here, so a
+ *               damaged record rendered as a new player -- and then the next `write()` OVERWROTE
+ *               it, which is the only place in this product where a player's record could be
+ *               destroyed rather than merely mis-read.
+ *
+ * `written-by-a-newer-build` is the case that is not damage at all. A player who loads a cached
+ * older bundle would otherwise have their newer record shallow-merged into an older shape and
+ * saved back, silently discarding whatever the newer build knew. Refusing to read it keeps it.
+ */
+export type LocalRecordHealth =
+  | { kind: "absent" }
+  | { kind: "loaded"; version: number; unreadableKeys: string[] }
+  | {
+      kind: "unreadable";
+      because: "not-json" | "not-an-object" | "written-by-a-newer-build";
+      version: number | null;
+    };
+
+let health: LocalRecordHealth = { kind: "absent" };
+
+/** What happened the last time the record was read. See `LocalRecordHealth`. */
+export function localRecordHealth(): LocalRecordHealth {
+  return health;
+}
 
 const empty = (): Persisted => ({
   decisions: [],
@@ -198,15 +247,123 @@ export function localRecordDurability(): RecordDurability {
   return probeWritable() ? "persistent" : "session-only";
 }
 
+/**
+ * One key of the blob, or the empty value for it, with the failure NAMED rather than swallowed.
+ *
+ * THE SHALLOW MERGE THIS REPLACES PASSED ANYTHING THROUGH. `{ ...empty(), ...JSON.parse(raw) }`
+ * takes whatever the stored key holds, so `decisions: "oops"` reached every reader as a string
+ * where an array was declared, and the first `.filter` on it threw somewhere far away with nothing
+ * pointing back here. Checking the container's kind is the cheapest check that turns that into a
+ * named, local fact.
+ *
+ * IT DOES NOT VALIDATE THE ELEMENTS, and that is deliberate rather than unfinished. A decision row
+ * from an older build is legitimately missing fields, and every reader below already resolves each
+ * absence to what it meant at the time -- `confidenceScale ?? LEGACY`, `purpose` absent being a
+ * fourth state rather than `play`. A schema check here would refuse exactly the rows this file
+ * exists to keep readable.
+ */
+function container<T>(
+  stored: Record<string, unknown>,
+  key: string,
+  isRight: (v: unknown) => boolean,
+  fallback: T,
+  unreadable: string[],
+): T {
+  if (!(key in stored) || stored[key] === undefined) return fallback;
+  if (!isRight(stored[key])) {
+    unreadable.push(key);
+    return fallback;
+  }
+  return stored[key] as T;
+}
+
+const isArray = (v: unknown) => Array.isArray(v);
+const isMap = (v: unknown) => typeof v === "object" && v !== null && !Array.isArray(v);
+
+/**
+ * Every key, read one at a time, so a key that cannot be interpreted costs that key and no more.
+ *
+ * THE GATE ON R-05 IS "the game around it still readable", and this is where that holds: a
+ * `claims` key holding a string leaves the decisions, the reveals and the blitz games exactly as
+ * they were, and names `claims` so a screen can say which part is missing. Losing the whole record
+ * because one key is damaged is the same failure as reading a damaged record as an empty one, one
+ * layer along.
+ */
+function parse(stored: Record<string, unknown>, unreadable: string[]): Persisted {
+  const base = empty();
+  const arr = <K extends keyof Persisted>(key: K): Persisted[K] =>
+    container(stored, key as string, isArray, base[key], unreadable);
+  const map = <K extends keyof Persisted>(key: K): Persisted[K] =>
+    container(stored, key as string, isMap, base[key], unreadable);
+  return {
+    decisions: arr("decisions"),
+    reveals: map("reveals"),
+    feedbacks: map("feedbacks"),
+    counterfactuals: map("counterfactuals"),
+    claims: map("claims"),
+    drills: map("drills"),
+    drillResults: arr("drillResults"),
+    blitzGames: arr("blitzGames"),
+    blitzDecisions: arr("blitzDecisions"),
+    learningRules: map("learningRules"),
+    learningTransfers: map("learningTransfers"),
+    learningTransferObservations: map("learningTransferObservations"),
+    learningTransferResults: arr("learningTransferResults"),
+    preregs: arr("preregs"),
+    importReadings: arr("importReadings"),
+  };
+}
+
+/**
+ * WHAT AN UNREADABLE BLOB COSTS, AND WHAT IT MUST NOT COST.
+ *
+ * The record stays on disk untouched: every read and write from here on goes to memory, which is
+ * the same downgrade a full quota already triggers, reached by a different route. So the session is
+ * usable, `localRecordDurability()` already says "session-only" out loud, and nothing this build
+ * writes can overwrite a record a later build -- or a repair -- might still be able to read.
+ */
+function refuse(because: Extract<LocalRecordHealth, { kind: "unreadable" }>["because"], version: number | null): Persisted {
+  health = { kind: "unreadable", because, version };
+  session = empty();
+  return session;
+}
+
 function read(): Persisted {
   if (session !== null) return session;
+  let raw: string | null;
   try {
-    const raw = localStorage.getItem(storageKey());
-    if (!raw) return empty();
-    return { ...empty(), ...(JSON.parse(raw) as Partial<Persisted>) };
+    raw = localStorage.getItem(storageKey());
   } catch {
+    /* Reading threw, which a privacy setting can do. Not a damaged record: nothing was read. */
+    health = { kind: "absent" };
     return empty();
   }
+  if (!raw) {
+    health = { kind: "absent" };
+    return empty();
+  }
+  let stored: unknown;
+  try {
+    stored = JSON.parse(raw);
+  } catch {
+    return refuse("not-json", null);
+  }
+  if (!isMap(stored)) return refuse("not-an-object", null);
+  const blob = stored as Record<string, unknown>;
+  /*
+   * ABSENT MEANS VERSION 0, which is every save written before this field existed, and a `version`
+   * that is not a number means the blob is not one of ours whatever else it looks like.
+   */
+  const stamped = blob.version;
+  const version = stamped === undefined ? 0 : stamped;
+  if (typeof version !== "number" || !Number.isInteger(version) || version < 0) {
+    return refuse("not-an-object", null);
+  }
+  if (version > LOCAL_RECORD_VERSION) return refuse("written-by-a-newer-build", version);
+  const unreadable: string[] = [];
+  const state = parse(blob, unreadable);
+  health = { kind: "loaded", version, unreadableKeys: unreadable };
+  return state;
 }
 
 function write(state: Persisted): void {
@@ -215,7 +372,13 @@ function write(state: Persisted): void {
     return;
   }
   try {
-    localStorage.setItem(storageKey(), JSON.stringify(state));
+    /*
+     * THE VERSION IS WRITTEN HERE AND NOWHERE ELSE, so there is no path that saves an unstamped
+     * blob. It is not on `Persisted` because it is a fact about the STORED FORM rather than about
+     * the record: putting it on the type would let a caller pass one in, and a caller that could
+     * choose the version could write a lie about which shape it had just produced.
+     */
+    localStorage.setItem(storageKey(), JSON.stringify({ ...state, version: LOCAL_RECORD_VERSION }));
   } catch {
     // Downgrade in place, carrying this write. A quota that fills mid-session must not lose the
     // decision that filled it, and from here on every read comes from memory -- so what the
@@ -237,6 +400,7 @@ export function localRecordAvailable(): boolean {
 /** Test seam. Clears the in-memory fallback so a case can start from a known backing. */
 export function resetSessionFallbackForTests(): void {
   session = null;
+  health = { kind: "absent" };
 }
 
 /**

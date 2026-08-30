@@ -281,10 +281,41 @@ const INDEX = "dist/public/index.html";
  * of the entry. `engine-identity.ts` exists to keep it that way: `Blitz.tsx` needs the engine's
  * identity statically, at the moment it writes a record, and importing it from `stockfish.ts`
  * would have pulled the wasm into the module graph to read one string.
+ *
+ * ---
+ *
+ * 674 -> 676 and 209 -> 210: R-03's engine build, and R-05's versioned local record.
+ *
+ * Two changes, measured separately by building after each:
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before both                         672.3      208.2       745.1
+ *     + the engine build on the verdict   673.3      208.6       746.0   +1.0 / +0.4 / +0.9
+ *     + the versioned local record        674.2      209.1       746.9   +0.9 / +0.5 / +0.9
+ *
+ * THE FIRST ROW IS NOT THE FIELD. One optional string on a zod object is nothing; what costs is
+ * the wall it lets the product build -- `readableInstrument`, the third component of the stratum
+ * key with its encoder, the `withoutInstrument` branch in `scoreDecisions`, and the sentence the
+ * ribbon renders when the count is not zero. All of it is on the entry route by construction:
+ * `commitDecision` and `currentClaim` run in the browser on the local-record deployment, so a
+ * refusal that arrived in a later chunk would let through exactly the rows it exists to refuse.
+ *
+ * THE SECOND ROW IS THE PARSER. `read()` was a spread and a `catch` that returned an empty record;
+ * it is now a version check, fifteen typed container reads and four named failure states. It
+ * cannot be deferred because the store is constructed on the entry route -- and more to the point,
+ * the thing it prevents happens on the FIRST read of a damaged record, before anything else could
+ * have loaded.
+ *
+ * THE INITIAL-DOWNLOAD CEILING DID NOT MOVE. It measures 746.9 kB against 747 and did not fire, so
+ * it keeps its number and 0.1 kB of headroom -- the rule three raises above, applied when it is
+ * inconvenient: widening a ceiling that has not been crossed is loosening a budget for free.
+ *
+ * WHAT WAS CHECKED RATHER THAN ASSUMED: the chunk set is unchanged again, and the wasm is still
+ * held out of the entry.
  */
-const ENTRY_RAW_KB = 674;
+const ENTRY_RAW_KB = 676;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 209;
+const ENTRY_GZIP_KB = 210;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
