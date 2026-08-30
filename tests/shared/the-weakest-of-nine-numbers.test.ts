@@ -49,8 +49,10 @@ describe("the bar the product applies", () => {
   it("names nothing when the outcome carries no relation to the buckets", () => {
     // A short version of the gate, so a regression fails here first and reads as a sentence.
     const report = worstBucketControl(IMPORT_RECORDS[1], 60, 12345);
-    expect(report.runsWithComparison, "a rate of zero means nothing with nothing to get wrong")
-      .toBeGreaterThan(50);
+    expect(
+      report.runsWithComparison,
+      "a rate of zero means nothing with nothing to get wrong",
+    ).toBeGreaterThan(50);
     expect(report.falsePositiveRate).toBeLessThanOrEqual(0.02);
   });
 

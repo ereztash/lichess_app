@@ -410,6 +410,40 @@ button:not(:disabled) {
   font-weight: 700;
 }
 /*
+ * The pipeline strip on the import panel.
+ *
+ * The unreached stages are dimmed rather than removed: the point of the strip is that the reading
+ * is the FIRST step, and a list that ended at the current step would say the opposite.
+ */
+.import-pipeline {
+  margin-top: 12px;
+}
+.import-pipeline ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.import-pipeline li {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--panel-label);
+}
+.import-pipeline li.ahead {
+  opacity: 0.45;
+}
+.import-pipeline li[aria-current="step"] {
+  font-weight: 700;
+}
+.import-pipeline-mark {
+  text-align: center;
+}
+
+/*
  * The denominator ledger on the import panel.
  *
  * Two columns rather than prose, because the point is that a reader can add it up. The

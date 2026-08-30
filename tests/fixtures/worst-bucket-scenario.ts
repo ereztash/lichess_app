@@ -167,5 +167,7 @@ export function worstBucketVerdictReport<R>(
     ? fail(
         `weakest bucket named on permuted outcomes: ${asPct} of records at n=${worstN} (max ${ceiling}); ${coverage}`,
       )
-    : pass(`permuted outcomes name a weakest bucket ${asPct} of the time (max ${ceiling}); ${coverage}`);
+    : pass(
+        `permuted outcomes name a weakest bucket ${asPct} of the time (max ${ceiling}); ${coverage}`,
+      );
 }
