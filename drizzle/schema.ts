@@ -184,6 +184,16 @@ export const decisionReveals = mysqlTable("decision_reveals", {
   engineBestMove: varchar("engine_best_move", { length: 6 }).notNull(),
   engineDepth: int("engine_depth").notNull(),
   engineSource: mysqlEnum("engine_source", ENGINE_SOURCES).notNull(),
+  /**
+   * WHICH BUILD OF THAT SOURCE. Nullable, and null is never backfilled to a build.
+   *
+   * `engine_source` names a family and the family is not the instrument: `docs/ACTION_PLAN.md` B1
+   * measured 13.61% of decisions flipping verdict between two engines that would both have written
+   * `local_sf18` here. A row from before this column existed could have come from either, so there
+   * is no value that would be true to write into it -- see `shared/decision-atom.ts` on the field,
+   * and `scoreDecisions` for what a reading does with the absence.
+   */
+  engineBuild: varchar("engine_build", { length: 64 }),
   cpLoss: int("cp_loss").notNull(),
   revealedAt: timestamp("revealed_at").defaultNow().notNull(),
 });

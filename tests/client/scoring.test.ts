@@ -31,6 +31,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
     engine_best_move: "e2e4",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: 10,
   },
   feedback: null,
@@ -104,6 +105,7 @@ describe("silence says WHICH kind of not-enough it is", () => {
          counts is no longer one thing, and this test is about the half that is a wait. */
       awaitingReveal: recorded - scored,
       withoutConfidence: 0,
+      withoutInstrument: 0,
       readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60 - scored,

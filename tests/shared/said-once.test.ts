@@ -67,6 +67,7 @@ async function commit(store: MemoryRecordStore, id: string, index: number, revea
       engine_best_move: "a1b1",
       engine_depth: 18,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       // Cycles on the index rather than on the phase, so no bucketing carries structure.
       cp_loss: index % 3 === 0 ? 10 : 90,
     });
@@ -96,6 +97,7 @@ function ribbonText(view: ClaimView): string {
     // Read off the view, exactly as `useLoopPosition` reads them.
     awaitingReveal: view.awaitingReveal,
     withoutConfidence: view.withoutConfidence,
+    withoutInstrument: view.withoutInstrument,
     readElsewhere: view.readElsewhere,
     claimGrade: view.claim?.grade ?? null,
     scoredStillNeeded: remainingBeforeClaim({

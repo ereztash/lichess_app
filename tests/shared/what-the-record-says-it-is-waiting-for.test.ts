@@ -88,6 +88,7 @@ async function record(
       engine_best_move: "e2e4",
       engine_depth: 14,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       cp_loss: 0,
     });
   }
@@ -179,6 +180,7 @@ describe("the sentence the player reads carries the same distinction", () => {
       scored: 0,
       awaitingReveal: 0,
       withoutConfidence: 4,
+      withoutInstrument: 0,
       readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60,

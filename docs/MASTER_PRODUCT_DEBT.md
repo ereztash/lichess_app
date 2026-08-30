@@ -92,9 +92,9 @@ about a game nobody observed.
 | | |
 | --- | --- |
 | type | evidence |
-| state | **open** |
+| state | **fixed** |
 | severity | **P0** |
-| basis | **verified** — `resultSchema` (`shared/decision-atom.ts`) stores `engine_eval_cp`, `engine_best_move`, `engine_depth`, `engine_source`, `cp_loss`; a grep for `engine_version` / `engine_build` over `shared server drizzle` returns nothing |
+| basis | **verified** — was `resultSchema` (`shared/decision-atom.ts`) storing `engine_eval_cp`, `engine_best_move`, `engine_depth`, `engine_source`, `cp_loss`, with a grep for `engine_version` / `engine_build` over `shared server drizzle` returning nothing |
 
 `engine_source` names *which family* answered (`local_sf18` / `lichess_cloud`). It does not name the
 build, and nothing records the requested search limit against the depth actually reached, the
@@ -122,10 +122,30 @@ the wire schema refuses a `complete` game that cannot name what scored it; and
 `shared/blitz-strata.ts` refuses to pool two builds or two depths, with an unrecorded instrument
 excluded as `instrument-unrecorded` rather than dropped.
 
-*The untimed loop, still open:* `resultSchema` in `shared/decision-atom.ts` stores `engine_depth`
-and `engine_source` and **no build**, so an observation from the main loop still cannot say which
-binary produced its `cp_loss`, and nothing refuses to read one that cannot. This is the half the
-gate above is written against, and it is the half that holds the larger population.
+*The untimed loop, done:* `resultSchema` gained `engine_build`, `decision_reveals` gained the
+column, and `Home.tsx` supplies it from the same content hash. `engine_build` is part of the verdict
+for the replay check, so a second reveal from a different binary is a `CONFLICT` rather than a
+replay. `StratumKey` in `shared/evidence-policy.ts` gained the build as a third axis, so two
+recorded builds are two populations; and `scoreDecisions` — *"the one place a missing confidence is
+handled"* — refuses a verdict that names no engine and counts it as `withoutInstrument`.
+
+**Gate:** `tests/shared/a-verdict-that-cannot-name-its-engine.test.ts`, checked by breaking it three
+ways: remove the scorer's refusal and 2 assertions go red; drop the build from the stratum key and 2
+do; sort strata by row count instead of by scoreable rows and 1 does.
+
+### What this costs, because it is not small and it is not a bug
+
+**Every decision revealed before today becomes unreadable for calibration**, which on an existing
+record is all of them. That is the intended price. `shared/evidence-policy.ts` made the same trade
+when it was written — *"a source does not become eligible because excluding it leaves too little
+data"* — and the same sentence applies to an instrument nobody wrote down.
+
+Three things bound it. The cost is **temporary**: every decision taken from here on carries its
+build, so the record refills. It is **partial**: only the calibration is refused. The decisions
+remain readable as history — `forDescriptiveHistory` is unchanged, and the record page still shows
+the player everything they did. And it is **named, not silent**: the count reaches the screen as
+`withoutInstrument` with its own sentence on the loop ribbon, so a player whose claim went quiet
+reads why rather than reading "0 נמדדו" and concluding they have not played.
 
 ### R-04 · A blitz game records nothing about its opponent
 

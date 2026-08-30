@@ -23,6 +23,7 @@ const inputs = (overrides: Partial<LoopInputs> = {}): LoopInputs => ({
      says so. They used to be derived from `recorded - scored`, which no test could turn off. */
   awaitingReveal: 0,
   withoutConfidence: 0,
+  withoutInstrument: 0,
   readElsewhere: 0,
   claimGrade: null,
   scoredStillNeeded: 60,

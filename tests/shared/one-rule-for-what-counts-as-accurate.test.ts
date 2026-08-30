@@ -177,6 +177,7 @@ describe("what counts as accurate is one rule", () => {
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: CP_LOSS,
       });
     };

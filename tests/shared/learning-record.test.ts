@@ -41,6 +41,7 @@ const RESULT: DecisionResult = {
   engine_best_move: "e2e4",
   engine_depth: 18,
   engine_source: "local_sf18",
+  engine_build: "sf18-test-build",
   cp_loss: 10,
 };
 

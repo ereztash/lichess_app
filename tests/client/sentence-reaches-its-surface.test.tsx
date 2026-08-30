@@ -58,6 +58,7 @@ const at = (overrides: Partial<LoopInputs> = {}): LoopPosition =>
     scored: 0,
     awaitingReveal: 0,
     withoutConfidence: 0,
+    withoutInstrument: 0,
     readElsewhere: 0,
     claimGrade: null,
     scoredStillNeeded: 0,

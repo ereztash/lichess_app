@@ -75,6 +75,7 @@ async function record(
     engine_best_move: "d4d5",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: options.accurate ? 0 : 300,
   });
 }

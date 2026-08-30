@@ -68,6 +68,7 @@ async function seed(count: number, reveal = true) {
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         // Fast decisions are usually wrong; slow ones usually fine. "Usually" on both sides:
         // an always-wrong bucket has no variance and cannot estimate its own error.
         cp_loss: fast ? (i % 8 === 0 ? 5 : i % 4 === 0 ? 200 : 150) : i % 3 === 0 ? 120 : 5,

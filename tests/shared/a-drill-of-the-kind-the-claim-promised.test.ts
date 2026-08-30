@@ -200,6 +200,7 @@ async function decide(
     engine_best_move: "e2e4",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: o.cpLoss,
   });
 }
@@ -367,6 +368,7 @@ describe("the decisions the drill is graded against are the ones it registered",
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: i === 6 ? 5 : 250,
       });
     }

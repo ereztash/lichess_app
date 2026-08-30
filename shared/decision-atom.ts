@@ -122,6 +122,29 @@ export const resultSchema = z.object({
   engine_best_move: z.string().min(4).max(6),
   engine_depth: z.number().int().min(1),
   engine_source: z.enum(ENGINE_SOURCES),
+  /*
+   * WHICH BUILD OF THAT SOURCE, AND IT IS NOT A REFINEMENT OF `engine_source`.
+   *
+   * `engine_source` names a family -- `local_sf18` or `lichess_cloud` -- and the family is not the
+   * instrument. `docs/ACTION_PLAN.md` §B1 measured a change WITHIN the local family: 13.61% of
+   * decisions flipped verdict (216 of 1,587) between the engine that produced this project's
+   * published numbers and the engine that ships, and 1 bucket of 38 was stable to display
+   * resolution. So two rows agreeing on `engine_source` are not two rows from one instrument, and a
+   * calibration gap computed across the difference is an artefact of the difference.
+   *
+   * TAKEN FROM THE ASSET'S CONTENT HASH, not from `package.json`: the dependency range is
+   * `^18.0.8`, so the binary can change without any version string a build could embed changing
+   * with it. `client/src/lib/engine-identity.ts` derives it from the URL Vite hashes, which moves
+   * when and only when the wasm actually differs.
+   *
+   * OPTIONAL, AND ABSENT IS NEVER RESOLVED TO A BUILD. Rows written before this field existed do
+   * not have it -- the same shape and the same rule as `confidence_scale` above, with one
+   * difference that matters: `confidence_scale` has a true default, because absence itself dates
+   * the row to the five-level scale. Absence here dates the row to nothing. Any build could have
+   * produced it, so the honest resolution is not a value but a refusal, and `scoreDecisions` makes
+   * it one.
+   */
+  engine_build: z.string().min(1).max(64).optional(),
   cp_loss: z.number().int().min(0),
 });
 

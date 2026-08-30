@@ -82,6 +82,7 @@ async function revealedDecision(store: MemoryRecordStore) {
     engine_best_move: "g1f3",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: 220,
   });
 }

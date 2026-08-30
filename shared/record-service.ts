@@ -425,6 +425,13 @@ export async function reveal(
       existing.result.engine_best_move === result.engine_best_move &&
       existing.result.engine_depth === result.engine_depth &&
       existing.result.engine_source === result.engine_source &&
+      /*
+       * THE BUILD IS PART OF THE VERDICT, so a second reveal from a different binary is a CONFLICT
+       * rather than a replay. The retry above re-sends the identical payload and still matches; what
+       * this refuses is a row revealed once by one engine and again by another, which is two claims
+       * about one decision and not one claim sent twice.
+       */
+      existing.result.engine_build === result.engine_build &&
       existing.result.cp_loss === result.cp_loss;
     if (!sameVerdict) {
       throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
@@ -1464,6 +1471,18 @@ export type ClaimView = {
   awaitingReveal: number;
   withoutConfidence: number;
   /**
+   * Revealed decisions whose verdict names no engine build, so nothing can read it.
+   *
+   * SEPARATE FROM `readElsewhere`, and the ribbon says so in different words. `readElsewhere`
+   * means a decision is counted under another heading with its own denominator -- the shared bank,
+   * a drill, an imported game. This means the decision belongs to this reading and cannot be used
+   * by it: `engine_source` names a family, B1 measured 13.61% of verdicts flipping between two
+   * engines inside one family, and "accurate" is undefined for a row that cannot say which spoke.
+   * Folding it into `readElsewhere` would tell the player their decision is being read somewhere,
+   * which is the one thing that is not true of it.
+   */
+  withoutInstrument: number;
+  /**
    * Decisions on the record that this reading does not cover, because another one does.
    *
    * THE THIRD REASON, and it only became visible when the front door started handing cold
@@ -1536,6 +1555,22 @@ export async function currentClaim(
   const wideStrata = forDiscovery(atoms, ids);
   const wide = discoverySearchPopulation(wideStrata);
   const full = scoreDecisions(wide.chosen?.atoms ?? [], wide.chosen?.ids ?? []);
+  /*
+   * WAITING IS COUNTED ACROSS EVERY STRATUM, and only this one number is.
+   *
+   * An unrevealed decision has no verdict, so nothing yet says which engine will score it -- it
+   * sits in the `legacy` build stratum, which is almost never the one the detector searches. Taken
+   * from `full` this number would read 0 on a healthy record, and the ribbon's "N already recorded
+   * and waiting to be revealed" would vanish exactly when it is the thing the player should act on.
+   *
+   * Every OTHER count here stays scoped to the searched stratum on purpose: `scored`,
+   * `withoutConfidence` and `withoutInstrument` describe the population a claim would come from,
+   * and summing them across regimes would describe a population nothing is allowed to search.
+   */
+  const awaitingAnywhere = wideStrata.reduce(
+    (n, s) => n + s.atoms.reduce((m, a) => m + (a.result ? 0 : 1), 0),
+    0,
+  );
 
   /*
    * THE BRIDGE, AND THE RULE THAT KEEPS IT FROM COMPOUNDING (shared/prereg.ts).
@@ -1587,8 +1622,9 @@ export async function currentClaim(
       reason,
       recorded: atoms.length,
       scored: full.scored.length,
-      awaitingReveal: full.awaitingReveal,
+      awaitingReveal: awaitingAnywhere,
       withoutConfidence: full.withoutConfidence,
+      withoutInstrument: full.withoutInstrument,
       readElsewhere: atoms.length - full.total,
       prereg: narrowing,
       preregScored: narrowing ? summary.scored.length : null,
@@ -1616,8 +1652,9 @@ export async function currentClaim(
         reason: null,
         recorded: atoms.length,
         scored: full.scored.length,
-        awaitingReveal: full.awaitingReveal,
+        awaitingReveal: awaitingAnywhere,
         withoutConfidence: full.withoutConfidence,
+        withoutInstrument: full.withoutInstrument,
         readElsewhere: atoms.length - full.total,
         prereg: narrowing,
         preregScored: narrowing ? summary.scored.length : null,
@@ -1631,8 +1668,9 @@ export async function currentClaim(
     reason: selection ? null : emptySearchReason(narrowing),
     recorded: atoms.length,
     scored: full.scored.length,
-    awaitingReveal: full.awaitingReveal,
+    awaitingReveal: awaitingAnywhere,
     withoutConfidence: full.withoutConfidence,
+    withoutInstrument: full.withoutInstrument,
     readElsewhere: atoms.length - full.total,
     prereg: narrowing,
     preregScored: narrowing ? summary.scored.length : null,

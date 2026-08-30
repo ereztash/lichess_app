@@ -127,6 +127,12 @@ function toAtom(
           engine_best_move: reveal.engineBestMove,
           engine_depth: reveal.engineDepth,
           engine_source: reveal.engineSource,
+          /*
+           * `undefined` AND NOT `null`, and the two are not interchangeable here. The field is
+           * `.optional()` rather than `.nullable()` on purpose -- absent means the row predates the
+           * column, and a null would be a stored value saying the build was nothing.
+           */
+          engine_build: reveal.engineBuild ?? undefined,
           cp_loss: reveal.cpLoss,
         }
       : null,
@@ -267,6 +273,8 @@ export class DrizzleRecordStore implements RecordStore {
       engineBestMove: result.engine_best_move,
       engineDepth: result.engine_depth,
       engineSource: result.engine_source,
+      /* Null only when the caller did not name one, which no current caller does. */
+      engineBuild: result.engine_build ?? null,
       cpLoss: result.cp_loss,
     });
   }

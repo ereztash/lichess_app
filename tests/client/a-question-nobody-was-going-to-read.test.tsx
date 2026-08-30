@@ -245,6 +245,7 @@ describe("nothing downstream reads a null as a number", () => {
       engine_best_move: "g8f6",
       engine_depth: 18,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       // Accurate at 0 loss, plainly inaccurate at 300.
       cp_loss: accurate ? 0 : 300,
     },

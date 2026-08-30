@@ -50,6 +50,7 @@ beforeEach(async () => {
     engine_best_move: "d2d4",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: 40,
   });
 });

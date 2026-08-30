@@ -342,6 +342,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
         engine_best_move: "a1b1",
         engine_depth: 12,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: index % 3 === 0 ? 5 : 90,
       });
     }

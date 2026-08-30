@@ -213,6 +213,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
         engine_best_move: "e1g1",
         engine_depth: 18,
         engine_source: "local_sf18" as const,
+        engine_build: "sf18-test-build",
         cp_loss: 0,
       },
       feedback: null,
@@ -338,6 +339,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
         engine_best_move: "e2e4",
         engine_depth: 14,
         engine_source: "local_sf18" as const,
+        engine_build: "sf18-test-build",
         cp_loss: 0,
       },
       feedback: null,
@@ -408,6 +410,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       engine_best_move: "b5b4",
       engine_depth: 18,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       cp_loss: 0,
     });
 

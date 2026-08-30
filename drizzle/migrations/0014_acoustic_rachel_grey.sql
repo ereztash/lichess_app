@@ -1,0 +1,1 @@
+ALTER TABLE `decision_reveals` ADD `engine_build` varchar(64);

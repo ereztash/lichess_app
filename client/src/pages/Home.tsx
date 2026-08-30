@@ -132,6 +132,7 @@ import {
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
 // Values (isStale, EngineLine) come from @/lib/engine-line, which has no asset imports.
 import type { StockfishClient } from "@/lib/stockfish";
+import { engineBuildId } from "@/lib/engine-identity";
 /*
  * Imported statically, and that is correct here: opponent.ts reaches chess.js and nothing else.
  * It does NOT import the engine -- it takes the search in as an argument -- so it adds no edge
@@ -1021,6 +1022,12 @@ export default function Home() {
             engine_best_move: bestMove,
             engine_depth: inputs.depth,
             engine_source: "local_sf18" as const,
+            /*
+             * WHICH BINARY, not just which family. `local_sf18` was the whole answer until now, and
+             * ACTION_PLAN B1 measured 13.61% of decisions flipping verdict between two engines that
+             * would both have written it.
+             */
+            engine_build: engineBuildId(),
             cp_loss: cpLoss,
           },
           alternative_cp_loss: alternativeCpLoss,

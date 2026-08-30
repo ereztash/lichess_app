@@ -52,6 +52,7 @@ const atom = (over: { probe?: Probe | null; cpLoss?: number } = {}): DecisionAto
     engine_best_move: "e2e4",
     engine_depth: 14,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: over.cpLoss ?? 10,
   },
   feedback: null,
