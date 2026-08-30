@@ -20,6 +20,10 @@ import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/deci
 import { assembleProbe } from "@shared/counterfactual";
 import { MissingClaimDirection } from "@shared/drill";
 import type { RevealTiming } from "@shared/reveal-timing";
+import type {
+  AnalysisTiming,
+  MeasurementProtocol,
+} from "@shared/measurement-protocol";
 import type { DecisionPurpose } from "@shared/confidence-asked";
 import type {
   LearningRule,
@@ -581,6 +585,9 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
       state.counterfactuals?.[row.decisionId],
     ),
     reveal_timing: row.revealTiming ?? null,
+    measurement_protocol: row.measurementProtocol ?? null,
+    protocol_version: row.protocolVersion ?? null,
+    analysis_timing: row.analysisTiming ?? null,
     result: state.reveals[row.decisionId] ?? null,
     feedback: feedback
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -616,6 +623,10 @@ type StoredDecision = Omit<
   legalMoves?: number | null;
   /** Absent on rows written before the deferred game existed. Absent is not `per-decision`. */
   revealTiming?: RevealTiming | null;
+  /* Optional on the STORED shape, because rows written by an older build genuinely lack them. */
+  measurementProtocol?: MeasurementProtocol | null;
+  protocolVersion?: number | null;
+  analysisTiming?: AnalysisTiming | null;
 };
 
 

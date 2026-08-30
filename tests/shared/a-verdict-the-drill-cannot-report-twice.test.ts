@@ -88,6 +88,9 @@ async function record(
     probeAssignment: "not-probed",
     legalMoves: 20,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   });
   await store.recordReveal(id, {
     engine_eval_cp: 10,
@@ -188,6 +191,9 @@ describe("a drill grades the positions it registered, or none", () => {
       probeAssignment: "not-probed",
       legalMoves: 20,
       revealTiming: "per-decision",
+      measurementProtocol: null,
+      protocolVersion: null,
+      analysisTiming: null,
     });
 
     const outcome = await service

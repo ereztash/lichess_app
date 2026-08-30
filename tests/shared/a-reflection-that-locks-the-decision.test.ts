@@ -73,6 +73,9 @@ async function revealedDecision(store: MemoryRecordStore) {
     probeAssignment: "not-probed",
     legalMoves: 30,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   });
   await store.recordReveal(SOURCE, {
     engine_eval_cp: 20,

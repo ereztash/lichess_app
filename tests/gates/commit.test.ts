@@ -93,6 +93,10 @@ const commit = (decisionId: string) =>
     bounded_action: { seconds_taken: 8, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
     probe: null,
     reveal_timing: null,
+    /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+    measurement_protocol: null,
+    protocol_version: null,
+    analysis_timing: null,
     result: null,
     feedback: null,
   });
@@ -170,6 +174,10 @@ describe("GATE-COMMIT: the engine does not speak before the decision is recorded
       bounded_action: { seconds_taken: 3, confidence: 2, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: [] },
       probe: null,
       reveal_timing: null,
+      /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+      measurement_protocol: null,
+      protocol_version: null,
+      analysis_timing: null,
       result: null,
       feedback: null,
     });

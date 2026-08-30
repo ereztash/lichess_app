@@ -48,6 +48,9 @@ const decision = (id: string): CommitDecisionInput =>
     probeAssignment: "not-probed",
     probeLegalMoves: 20,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   }) as unknown as CommitDecisionInput;
 
 beforeEach(() => {

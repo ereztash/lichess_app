@@ -106,6 +106,13 @@ function toAtom(
       },
     ),
     reveal_timing: decision.revealTiming,
+    /*
+     * Read back exactly as stored, null included. A row from before these columns existed says
+     * nothing about its conditions, and `assemble` is not the place to decide what it probably was.
+     */
+    measurement_protocol: decision.measurementProtocol ?? null,
+    protocol_version: decision.protocolVersion ?? null,
+    analysis_timing: decision.analysisTiming ?? null,
     result: reveal
       ? {
           engine_eval_cp: reveal.engineEvalCp,
@@ -1092,6 +1099,9 @@ export class MemoryRecordStore implements RecordStore {
       },
       probe: assembleProbe(row, this.counterfactuals.get(row.decisionId)),
       reveal_timing: row.revealTiming,
+      measurement_protocol: row.measurementProtocol ?? null,
+      protocol_version: row.protocolVersion ?? null,
+      analysis_timing: row.analysisTiming ?? null,
       result,
       feedback: feedback
         ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }

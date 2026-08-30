@@ -17,6 +17,7 @@ import {
   type ImportFailure,
   type ImportResult,
   type ImportedGame,
+  type TimeControlMs,
 } from "./game-source";
 
 /*
@@ -32,6 +33,30 @@ function playerName(side: { user?: { name?: string }; aiLevel?: number } | undef
   if (side?.user?.name) return side.user.name;
   if (typeof side?.aiLevel === "number") return `Stockfish level ${side.aiLevel}`;
   return "אלמוני";
+}
+
+/**
+ * `clock: { initial, increment, totalTime }`, in SECONDS, which the endpoint returns and this
+ * adapter used to drop on the floor.
+ *
+ * It was not that the value was unavailable -- the request already asks for clocks so the PGN
+ * carries `[%clk]`, and this object arrives beside it in every response. Eleven fields were mapped
+ * and this one was not, so `speed: "blitz"` was the whole of what a 3+0 and a 5+5 game had to
+ * distinguish them downstream.
+ *
+ * A correspondence game carries `daysPerTurn` and no `clock` at all, which is why absence is null
+ * rather than an error: it is a game this product cannot use, not a response it failed to parse.
+ */
+function timeControlFrom(raw: Record<string, unknown>): TimeControlMs {
+  const clock = raw.clock as { initial?: unknown; increment?: unknown } | undefined;
+  const initial = clock?.initial;
+  const increment = clock?.increment;
+  return {
+    initialMs: typeof initial === "number" && Number.isFinite(initial) ? initial * 1000 : null,
+    /* Zero is a real answer here and null is not: 3+0 has an increment, and it is nought. */
+    incrementMs:
+      typeof increment === "number" && Number.isFinite(increment) ? increment * 1000 : null,
+  };
 }
 
 function toGame(raw: Record<string, unknown>): ImportedGame | null {
@@ -53,6 +78,7 @@ function toGame(raw: Record<string, unknown>): ImportedGame | null {
     blackRating: typeof players.black?.rating === "number" ? players.black.rating : null,
     status,
     speed: typeof raw.speed === "string" ? raw.speed : "unknown",
+    timeControl: timeControlFrom(raw),
     rated: raw.rated === true,
     playedAt: typeof raw.createdAt === "number" ? raw.createdAt : 0,
     opening: opening?.name ?? null,

@@ -71,6 +71,13 @@
       "when": 1787866348305,
       "tag": "0009_opposite_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1788102539931,
+      "tag": "0010_hot_roughhouse",
+      "breakpoints": true
     }
   ]
 }

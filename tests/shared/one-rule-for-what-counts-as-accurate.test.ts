@@ -168,6 +168,9 @@ describe("what counts as accurate is one rule", () => {
         probeAssignment: "not-probed",
         legalMoves: 12,
         revealTiming: "per-decision",
+        measurementProtocol: null,
+        protocolVersion: null,
+        analysisTiming: null,
       });
       await store.recordReveal(id, {
         engine_eval_cp: EVAL_CP,

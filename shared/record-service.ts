@@ -16,6 +16,10 @@ import { selectClaim } from "./claim-derivation.js";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
 import { probeEligibility } from "./counterfactual.js";
 import type { RevealTiming } from "./reveal-timing.js";
+import type {
+  AnalysisTiming,
+  MeasurementProtocol,
+} from "./measurement-protocol.js";
 import {
   accurateDecision,
   BUCKETINGS,
@@ -59,7 +63,12 @@ import { readCounterfactuals } from "./counterfactual-reading.js";
 import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
-import { forAnchorReference, forDescriptiveHistory, forDiscovery } from "./evidence-policy.js";
+import {
+  discoverySearchPopulation,
+  forAnchorReference,
+  forDescriptiveHistory,
+  forDiscovery,
+} from "./evidence-policy.js";
 import { isAnchorFen } from "./anchor-set.js";
 import { readsAreAsked } from "./confidence-asked.js";
 import { isRegistrableBucket, isTestable, type PreregisteredHypothesis } from "./prereg.js";
@@ -145,6 +154,16 @@ export type CommitEvent = {
   } | null;
   /** Which reveal timing produced this decision. Null from a client that predates the setting. */
   reveal_timing: RevealTiming | null;
+  /**
+   * The conditions this decision was produced under. Null from a client that predates the field.
+   *
+   * NOT DEFAULTED HERE, and that is the point. A server that filled in `instrumented-standard` for
+   * an unstamped client would be manufacturing the very fact the field exists to record, and the
+   * manufactured value is indistinguishable afterwards from one a client actually reported.
+   */
+  measurement_protocol: MeasurementProtocol | null;
+  protocol_version: number | null;
+  analysis_timing: AnalysisTiming | null;
   result: null;
   feedback: null;
 };
@@ -310,6 +329,9 @@ export async function commitDecision(
     probeAssignment: probe?.assignment ?? null,
     legalMoves: probe?.legal_moves ?? null,
     revealTiming: input.reveal_timing,
+    measurementProtocol: input.measurement_protocol,
+    protocolVersion: input.protocol_version,
+    analysisTiming: input.analysis_timing,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.
@@ -1449,8 +1471,15 @@ export async function currentClaim(
    * counts raw rows as they stood at registration, so slicing a filtered array by it would take
    * the wrong prefix and silently move the boundary a registered hypothesis is measured from.
    */
-  const wide = forDiscovery(atoms, ids);
-  const full = scoreDecisions(wide.atoms, wide.ids);
+  /*
+   * ONE STRATUM, NOT THE WHOLE ADMITTED SET. `forDiscovery` now returns populations grouped by the
+   * conditions that make decisions comparable -- protocol and reveal timing -- and there is no
+   * function that flattens them back. A record with a single regime, which is every record written
+   * before reveal timing existed, yields one stratum and behaves exactly as before.
+   */
+  const wideStrata = forDiscovery(atoms, ids);
+  const wide = discoverySearchPopulation(wideStrata);
+  const full = scoreDecisions(wide.chosen?.atoms ?? [], wide.chosen?.ids ?? []);
 
   /*
    * THE BRIDGE, AND THE RULE THAT KEEPS IT FROM COMPOUNDING (shared/prereg.ts).
@@ -1481,11 +1510,13 @@ export async function currentClaim(
   const summary = narrowing
     ? (() => {
         // Slice the raw record by the raw count it was taken against, THEN admit. See above.
-        const after = forDiscovery(
-          atoms.slice(narrowing.decisions_before),
-          ids.slice(narrowing.decisions_before),
+        const after = discoverySearchPopulation(
+          forDiscovery(
+            atoms.slice(narrowing.decisions_before),
+            ids.slice(narrowing.decisions_before),
+          ),
         );
-        return scoreDecisions(after.atoms, after.ids);
+        return scoreDecisions(after.chosen?.atoms ?? [], after.chosen?.ids ?? []);
       })()
     : full;
   const thresholds = narrowing ? PREREGISTERED_THRESHOLDS : DEFAULT_THRESHOLDS;

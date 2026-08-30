@@ -79,6 +79,9 @@ async function recordPosition(
     probeAssignment: "not-probed",
     legalMoves: 20,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   });
   await store.recordReveal(id, result);
 }
@@ -155,6 +158,9 @@ describe("verified learning record", () => {
       probeAssignment: "not-probed",
       legalMoves: 20,
       revealTiming: "per-decision",
+      measurementProtocol: null,
+      protocolVersion: null,
+      analysisTiming: null,
     });
     await expect(
       service.createLearningRule(

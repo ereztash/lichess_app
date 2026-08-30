@@ -41,7 +41,15 @@ import {
 import { Chess } from "chess.js";
 import { classifyPhase } from "./phase.js";
 import { NO_BOOK, type BookLookup } from "./opening-book.js";
-import { clockMsRemainingAt, hasClockData, secondsSpentAt, parseTimeControl } from "./pgn-clock.js";
+import {
+  clockMsRemainingAt,
+  hasClockData,
+  opponentClockMsRemainingAt,
+  parseTimeControl,
+  secondsSpentAt,
+  toTimeControlMs,
+  type TimeControlMs,
+} from "./pgn-clock.js";
 
 /** One of the player's past moves, reduced to what a bucket may look at, plus whether it held. */
 /**
@@ -76,6 +84,36 @@ export interface ImportedDecision extends BucketableDecision {
   standing: Standing;
   /** Lichess's time class for the game this came from: bullet, blitz, rapid, classical. */
   speed: string | null;
+  /**
+   * The OPPONENT's clock while this decision was being made, or null.
+   *
+   * The same choice `clockMsRemaining` makes, applied to the other side: the reading as it stood
+   * while the player was deciding, which is a condition of the decision rather than a consequence.
+   *
+   * WHAT IT IS FOR. A player two minutes down on a three-minute clock and one two minutes up are in
+   * different environments, and until this field existed the record could not tell them apart at
+   * all -- both read as the same `clockMsRemaining`. The readings were always present in the PGN;
+   * nothing had ever asked for them.
+   */
+  opponentClockMsRemaining: number | null;
+  /**
+   * The clock this game was played on, carried on every decision rather than looked up.
+   *
+   * NOT REDUNDANCY, and the reason is a defect this repository already made. `clockMsRemaining`
+   * alone cannot say what FRACTION of the clock is left, and the fraction is the quantity a
+   * time-pressure reading actually wants. The 117-game time-representation study needed it, the
+   * decision rows did not carry it, so the starting clock was INFERRED -- as the largest reading
+   * among eligible decisions -- and review found that wrong: eligible excludes book, book is the
+   * opening, and the opening is where the clock is fullest. Sixty-three of seventy-five games had
+   * an understated start.
+   *
+   * The fix there was to put the header's value in a corpus manifest. This puts it where it should
+   * have been: on the decision, so no analysis has to reconstruct it and none can reconstruct it
+   * differently. It also makes the clock AFTER the move exactly recoverable -- own-after equals
+   * own-before minus the time spent plus the increment -- so that reading is derived rather than
+   * stored twice.
+   */
+  timeControl: TimeControlMs;
   /**
    * The position offered exactly one legal move, so the player chose nothing.
    *
@@ -278,7 +316,9 @@ export function decisionsFromGame(
   /* Injected rather than imported: the key set is loaded on demand, and shared/ stays free of it. */
   isBook: BookLookup = NO_BOOK,
 ): ImportedDecision[] {
-  const increment = parseTimeControl(game.timeControl)?.incrementSeconds ?? 0;
+  const parsedTimeControl = parseTimeControl(game.timeControl);
+  const increment = parsedTimeControl?.incrementSeconds ?? 0;
+  const timeControl = toTimeControlMs(parsedTimeControl);
   const clocks = hasClockData(game.clockTimes);
   const out: ImportedDecision[] = [];
 
@@ -332,6 +372,8 @@ export function decisionsFromGame(
       phase: classifyPhase(fenBefore, ply),
       secondsTaken: seconds,
       clockMsRemaining: clocks ? clockMsRemainingAt(game.clockTimes, ply) : null,
+      opponentClockMsRemaining: clocks ? opponentClockMsRemainingAt(game.clockTimes, ply) : null,
+      timeControl,
       cpLoss,
       /*
        * The record's rule, against the evaluation this position actually stood at.

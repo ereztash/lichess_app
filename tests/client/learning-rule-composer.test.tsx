@@ -38,6 +38,10 @@ beforeEach(async () => {
     bounded_action: { seconds_taken: 10, confidence: 3, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
     probe: null,
     reveal_timing: null,
+    /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+    measurement_protocol: null,
+    protocol_version: null,
+    analysis_timing: null,
     result: null,
     feedback: null,
   });

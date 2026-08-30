@@ -41,7 +41,9 @@ import {
   UNFINISHED,
   type ImportResult,
   type ImportedGame,
+  type TimeControlMs,
 } from "./game-source";
+import { parseTimeControl, toTimeControlMs } from "@shared/pgn-clock";
 
 const CHESSCOM_ORIGIN = SOURCE_ORIGIN.chesscom;
 
@@ -70,6 +72,25 @@ type RawGame = {
   white?: RawSide;
   black?: RawSide;
 };
+
+/**
+ * `time_control`, which this adapter already declared in its raw type and never read.
+ *
+ * Three grammars arrive under one key, and only two of them are a clock this product can use:
+ *
+ *   "180"       three minutes, no increment. The increment is nought, and nought is a MEASUREMENT.
+ *   "180+2"     three minutes plus two. Same grammar as a PGN's `[TimeControl]`, which is why the
+ *               parser is the one `shared/pgn-clock.ts` already owns rather than a second one here
+ *               that could drift away from it.
+ *   "1/259200"  daily correspondence -- one move per N seconds. There is no starting clock and no
+ *               increment, so both are null. Reading the numerator as a base time would put a
+ *               correspondence game in the "1 second" bucket.
+ *
+ * Anything else is a string nobody has seen, and it becomes null rather than a guess.
+ */
+function timeControlFrom(raw: string | undefined): TimeControlMs {
+  return toTimeControlMs(parseTimeControl(raw));
+}
 
 /** The trailing segment of the game URL, which is the only id Chess.com exposes for a live game. */
 function gameId(url: string): string | null {
@@ -146,6 +167,7 @@ function toGame(raw: RawGame): ImportedGame | null {
     blackRating: typeof raw.black?.rating === "number" ? raw.black.rating : null,
     status,
     speed: typeof raw.time_class === "string" ? raw.time_class : "unknown",
+    timeControl: timeControlFrom(raw.time_control),
     rated: raw.rated === true,
     // Seconds at the source; milliseconds everywhere in this app, as Lichess already hands them.
     playedAt: typeof raw.end_time === "number" ? raw.end_time * 1000 : 0,

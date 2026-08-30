@@ -81,6 +81,10 @@ const commit = {
   },
   probe: null,
   reveal_timing: null,
+  /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+  measurement_protocol: null,
+  protocol_version: null,
+  analysis_timing: null,
   result: null,
   feedback: null,
 };

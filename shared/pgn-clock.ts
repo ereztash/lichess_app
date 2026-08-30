@@ -31,6 +31,37 @@ export interface TimeControl {
 }
 
 /**
+ * The same fact in milliseconds, with "nobody said" expressible -- the shape everything downstream
+ * of the parser carries.
+ *
+ * TWO TYPES RATHER THAN ONE, and the difference is not units. `TimeControl` is what a PARSE
+ * produced: it exists only when a header was read successfully, so neither field can be absent.
+ * `TimeControlMs` is what a RECORD carries, and a record has to be able to say that its source
+ * supplied nothing -- a Lichess correspondence game has no clock object, a Chess.com daily game
+ * writes "1/259200" whose numerator is not a starting clock. Collapsing the two would force the
+ * parser to invent a null it never has, or the record to invent a number it was never given.
+ *
+ * MILLISECONDS BECAUSE EVERY OTHER CLOCK FIELD IN THIS APP IS. `clockMsRemaining` already is, and a
+ * record carrying one clock in seconds and another in milliseconds is a subtraction waiting to be
+ * wrong by a factor of a thousand.
+ */
+export interface TimeControlMs {
+  /** Starting clock per player. Null when nothing supplied a usable one. */
+  initialMs: number | null;
+  /** Added after each move. Zero for 3+0; null when nothing said. */
+  incrementMs: number | null;
+}
+
+/** Nothing known about the clock. Named once so no caller invents its own empty. */
+export const NO_TIME_CONTROL: TimeControlMs = { initialMs: null, incrementMs: null };
+
+/** A successful parse, in the units a record stores. A failed parse stays `NO_TIME_CONTROL`. */
+export function toTimeControlMs(parsed: TimeControl | null): TimeControlMs {
+  if (!parsed) return NO_TIME_CONTROL;
+  return { initialMs: parsed.baseSeconds * 1000, incrementMs: parsed.incrementSeconds * 1000 };
+}
+
+/**
  * `[TimeControl "300+3"]` -> { base: 300, increment: 3 }.
  *
  * Returns null for the values a PGN uses when there is no usable clock: "-" (no time control),
@@ -90,6 +121,36 @@ export function secondsSpentAt(
 export function clockMsRemainingAt(clockTimes: number[], ply: number): number | null {
   if (ply < 2) return null;
   const facing = clockTimes[ply - 2];
+  return Number.isFinite(facing) ? facing * 1000 : null;
+}
+
+/**
+ * Milliseconds left on the OPPONENT's clock while the player was deciding at `ply`, or null.
+ *
+ * IT WAS ALWAYS IN THE ARRAY. `clockTimes` interleaves both players -- index i is the time
+ * remaining after ply i, whoever moved -- so the opponent's readings sit at the alternating
+ * indices and nothing has ever read them. That is the whole of what was missing: not a field the
+ * source withheld, a field nobody asked the data for.
+ *
+ * THE INDEX, argued rather than asserted. The player is about to move at `ply`, so the position
+ * in front of them was produced by the opponent's move at `ply - 1`, and the opponent's clock at
+ * that moment is the reading taken after it: `clockTimes[ply - 1]`.
+ *
+ * At ply 1 that index is 0, which is the STARTING clock -- and it is correct, not a fallback: the
+ * opponent has not moved, so their whole clock is in front of them. It is NaN when the PGN carried
+ * no parseable TimeControl header, and NaN becomes null here as it does everywhere else in this
+ * file.
+ *
+ * SAME CHOICE AS `clockMsRemainingAt`, for the same reason: this is the clock as it stood while
+ * the decision was being made -- a condition of the decision, not a consequence of it.
+ *
+ * WHAT IT MAKES DERIVABLE, and why that matters beyond completeness: the difference between the
+ * two clocks. A player two minutes down on a three-minute clock is in a different environment from
+ * one two minutes up, and until now the record could not tell those apart at all.
+ */
+export function opponentClockMsRemainingAt(clockTimes: number[], ply: number): number | null {
+  if (ply < 1) return null;
+  const facing = clockTimes[ply - 1];
   return Number.isFinite(facing) ? facing * 1000 : null;
 }
 

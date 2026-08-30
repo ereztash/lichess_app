@@ -47,6 +47,10 @@ function event(probe: CommitEvent["probe"], id = nextId()): CommitEvent {
     },
     probe,
     reveal_timing: null,
+    /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+    measurement_protocol: null,
+    protocol_version: null,
+    analysis_timing: null,
     result: null,
     feedback: null,
   };
@@ -104,6 +108,10 @@ describe("the arm is on the decision, not on the answer", () => {
       decision: "h8h7",
       probe: { ...armed("ineligible"), legal_moves: 1 },
       reveal_timing: null,
+      /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+      measurement_protocol: null,
+      protocol_version: null,
+      analysis_timing: null,
     });
     expect((await store.getAtom(id))?.probe?.assignment).toBe("ineligible");
   });
@@ -303,6 +311,10 @@ describe("the service refuses an arm that contradicts itself", () => {
       },
       probe: { ...armed("probed"), legal_moves: 1 },
       reveal_timing: null,
+      /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+      measurement_protocol: null,
+      protocol_version: null,
+      analysis_timing: null,
       result: null,
       feedback: null,
     };

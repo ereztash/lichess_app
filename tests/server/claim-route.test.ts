@@ -58,6 +58,9 @@ async function seed(count: number, reveal = true) {
       probeAssignment: "not-probed",
       legalMoves: 20,
       revealTiming: "per-decision",
+      measurementProtocol: null,
+      protocolVersion: null,
+      analysisTiming: null,
     });
     if (reveal) {
       await store.recordReveal(id, {

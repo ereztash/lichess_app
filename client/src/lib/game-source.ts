@@ -58,6 +58,23 @@ export const SOURCE_PLACEHOLDER: Record<GameSource, string> = {
   chesscom: "chess.com username",
 };
 
+/*
+ * The clock the game was played on lives in `shared/pgn-clock.ts` and is re-exported here.
+ *
+ * IT WAS DEFINED IN BOTH PLACES FOR ONE COMMIT AND THAT WAS ONE TOO MANY. `shared/` cannot import
+ * from `client/`, and the decision record -- which is shared -- needs the same fact the adapters
+ * produce. Two structurally identical types with two names is how one of them gains a field the
+ * other does not, and the failure surfaces as a silent widening somewhere downstream.
+ *
+ * SEPARATE FROM `speed`, AND NOT DERIVABLE FROM IT. Both sites label 3+0, 3+2, 5+0 and 5+5 as
+ * "blitz", and those are four different environments: at 5+5 a player who spends five seconds a
+ * move never loses time at all, and at 3+0 the same player has burned two thirds of their clock by
+ * move twenty. An analysis that pools them is pooling four experiments, and `speed` is the field
+ * that lets it happen without anyone noticing.
+ */
+import type { TimeControlMs } from "@shared/pgn-clock";
+export { NO_TIME_CONTROL, type TimeControlMs } from "@shared/pgn-clock";
+
 export type ImportedGame = {
   id: string;
   white: string;
@@ -66,7 +83,10 @@ export type ImportedGame = {
   blackRating: number | null;
   /** The site's own terminal status: "draw", "mate", "resign", "outoftime", "timeout", ... */
   status: string;
+  /** The site's own coarse label: "blitz", "rapid", "bullet". Metadata, not a unit of analysis. */
   speed: string;
+  /** Base and increment, which `speed` does not determine. Required so an adapter cannot omit it. */
+  timeControl: TimeControlMs;
   rated: boolean;
   playedAt: number;
   opening: string | null;

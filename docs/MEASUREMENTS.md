@@ -669,6 +669,44 @@ currently dead weight on real records, and that any replacement -- a think time 
 base clock, say -- has to be chosen on development data, frozen, and then put through this same
 control on a holdout before it goes near production.
 
+#### That replacement was preregistered, measured, and is not being adopted
+
+`docs/research/TIME_REPRESENTATION_PREREG.md`, then `_RESULTS.md`: five candidate representations
+fitted on a derivation half and reported on a held-out half, over **117 rated blitz games** of one
+account, **3,067 decisions scored** on the shipped WASM engine.
+
+TWO SCORING RUNS, and the second one is the point. The first ran on 75 games because the corpus
+builder decided rated-ness by testing whether the string "rated" appeared in the PGN's `Event`
+header -- and a Lichess arena game's Event is `Hourly SuperBlitz Arena`, so **42 rated blitz games
+were dropped and counted as unrated**. Amendment 3 in the preregistration; the 75-game run is kept
+unmodified in `research/b2/as-published-75/`.
+
+**It confirms the paragraph above and sharpens it.** On blitz specifically, `raw seconds` does not
+merely go uncomparable -- it puts **every one of the 1,308 held-out decisions in a single bucket**
+and separates accuracy by **0.00 pp**. Median think time **2 s**, 99.7% under 45, and **zero**
+decisions over 120. `slow-over-2m` is not sparse on a blitz record. It is empty.
+
+**And the replacement is not obviously better, for reasons the study had to measure to find.**
+§7's table returns OBSERVATION -- the Lichess encoding scale separates 11.76 pp against a 5.61 pp
+random-boundary null -- and §6's controls then say a real part of that separation is position type:
+permuting the outcome within phase x standing leaves **16.0%** of shuffles still clearing the null
+against a calibrated 6.0%.
+NOT ALL OF IT, and the 75-game run got this wrong. On 75 games the separation collapsed in every one
+of the eight comparable phase x standing cells, and this document said the bound was total. On the
+117 games section 3 actually admits, **three of seven cells survive -- all three middlegame cells**,
+while every opening cell and the endgame cell collapse. `opening/level` holds 279 held-out decisions,
+more than two of the survivors, and collapses at 5.18 pp against a 9.17 pp null, so bucket size is
+not what separates the two groups.
+The winner still beats the runners-up by only **0.69 pp**, on data with **no sub-second resolution**
+-- every one of the 2,720 eligible think times is a whole number of seconds, so the Lichess scale's
+boundaries at 0.1 and 0.5 s, which are why it was chosen, could never have separated anything.
+
+**So nothing moved, and the reason is the one stated in advance.** The buckets exist to compare a
+CALIBRATION GAP, and an imported record carries no stated confidence -- `shared/import-diagnostic.ts`
+says so in its own words. Accuracy is a proxy. A representation that wins on the proxy has to be
+re-tested against a live record carrying stated confidence before any cut moves, and that record does
+not exist yet.
+
 ### What a real import actually did, and the number that moved when nothing did
 
 > **This section is history, and is kept on purpose.** Every figure in it was produced by a native

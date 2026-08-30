@@ -24,3 +24,5 @@ research/harness/*.jsonl
 research/harness/*.zst
 research/harness-shipped/corpus.json
 research/harness-shipped/*.jsonl
+research/b2/corpus.json
+research/b2/*.jsonl

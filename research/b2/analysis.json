@@ -1,0 +1,620 @@
+{
+ "control": null,
+ "seed": 20260830,
+ "nulls": 1000,
+ "permutations": 200,
+ "minBucket": 20,
+ "decisionsScored": 3067,
+ "eligible": 2720,
+ "preregistered": {
+  "label": "PREREGISTERED CORPUS -- the newest 40 games (section 3). This is the result.",
+  "games": 40,
+  "decisions": 1021,
+  "derivation": 536,
+  "heldout": 485,
+  "candidates": {
+   "raw seconds (the shipped cut)": {
+    "heldout_spread": 0.0,
+    "heldout_null95": 0.0,
+    "derivation_spread": 0.0,
+    "derivation_null95": 0.0,
+    "beats_null": false,
+    "rates": {
+     "0": [
+      485,
+      63.09278350515464
+     ]
+    }
+   },
+   "log seconds": {
+    "heldout_spread": 10.85661107998171,
+    "heldout_null95": 6.227764559938162,
+    "derivation_spread": 7.107150070311544,
+    "derivation_null95": 6.322982555747064,
+    "beats_null": true,
+    "rates": {
+     "1": [
+      119,
+      77.3109243697479
+     ],
+     "2": [
+      178,
+      66.85393258426966
+     ],
+     "3": [
+      107,
+      48.598130841121495
+     ],
+     "4": [
+      81,
+      53.08641975308642
+     ]
+    }
+   },
+   "lichess encoding buckets": {
+    "heldout_spread": 13.031298952136055,
+    "heldout_null95": 8.160861212861535,
+    "derivation_spread": 8.215000697318693,
+    "derivation_null95": 8.0836383736002,
+    "beats_null": true,
+    "rates": {
+     "3": [
+      119,
+      77.3109243697479
+     ],
+     "5": [
+      102,
+      69.6078431372549
+     ],
+     "6": [
+      76,
+      63.1578947368421
+     ],
+     "7": [
+      32,
+      53.125
+     ],
+     "8": [
+      36,
+      30.555555555555557
+     ],
+     "9": [
+      39,
+      61.53846153846154
+     ],
+     "10": [
+      28,
+      42.857142857142854
+     ],
+     "11": [
+      53,
+      58.490566037735846
+     ]
+    }
+   },
+   "the player's own quartiles": {
+    "heldout_spread": 10.768062570294248,
+    "heldout_null95": 5.431268731086127,
+    "derivation_spread": 7.029569431222689,
+    "derivation_null95": 5.8785356655128025,
+    "beats_null": true,
+    "rates": {
+     "1": [
+      119,
+      77.3109243697479
+     ],
+     "2": [
+      178,
+      66.85393258426966
+     ],
+     "3": [
+      188,
+      50.53191489361702
+     ]
+    }
+   },
+   "time pressure (clock %)": {
+    "heldout_spread": 4.124252511450693,
+    "heldout_null95": 5.924135513607523,
+    "derivation_spread": 7.85639003809902,
+    "derivation_null95": 5.831530455611652,
+    "beats_null": false,
+    "rates": {
+     "0": [
+      52,
+      73.07692307692308
+     ],
+     "1": [
+      68,
+      63.23529411764706
+     ],
+     "2": [
+      109,
+      57.79816513761468
+     ],
+     "3": [
+      256,
+      63.28125
+     ]
+    }
+   }
+  },
+  "verdict": "OBSERVATION",
+  "verdict_reason": "lichess encoding buckets beats raw seconds and its own random-boundary null on both halves (13.03pp vs raw 0.00pp, null 8.16pp)",
+  "controls": {
+   "unstratified_permutation_survival": {
+    "raw seconds (the shipped cut)": 0.0,
+    "log seconds": 0.025,
+    "lichess encoding buckets": 0.04,
+    "the player's own quartiles": 0.035,
+    "time pressure (clock %)": 0.08
+   },
+   "stratified_permutation_survival": {
+    "raw seconds (the shipped cut)": 0.0,
+    "log seconds": 0.115,
+    "lichess encoding buckets": 0.08,
+    "the player's own quartiles": 0.12,
+    "time pressure (clock %)": 0.1
+   },
+   "within_phase_standing": {
+    "middlegame/level": {
+     "n": 123,
+     "buckets": 4,
+     "spread": 6.561870026111293,
+     "null95": 12.522119289365765,
+     "rates": {
+      "3": [
+       22,
+       72.72727272727273
+      ],
+      "5": [
+       22,
+       68.18181818181819
+      ],
+      "6": [
+       39,
+       61.53846153846154
+      ],
+      "10": [
+       40,
+       55.0
+      ]
+     }
+    },
+    "middlegame/losing": {
+     "n": 119,
+     "buckets": 3,
+     "spread": 8.276702004515412,
+     "null95": 10.700882227171986,
+     "rates": {
+      "5": [
+       46,
+       73.91304347826087
+      ],
+      "8": [
+       37,
+       54.054054054054056
+      ],
+      "9": [
+       36,
+       66.66666666666667
+      ]
+     }
+    },
+    "middlegame/winning": {
+     "n": 92,
+     "buckets": 3,
+     "spread": 14.660583624648815,
+     "null95": 12.672209204726869,
+     "rates": {
+      "3": [
+       24,
+       70.83333333333333
+      ],
+      "5": [
+       28,
+       53.57142857142857
+      ],
+      "14": [
+       40,
+       35.0
+      ]
+     }
+    },
+    "opening/level": {
+     "n": 89,
+     "buckets": 3,
+     "spread": 2.03662528122811,
+     "null95": 11.781228476859273,
+     "rates": {
+      "3": [
+       26,
+       73.07692307692308
+      ],
+      "5": [
+       25,
+       76.0
+      ],
+      "9": [
+       38,
+       71.05263157894737
+      ]
+     }
+    }
+   }
+  },
+  "winner": "lichess encoding buckets"
+ },
+ "amended": {
+  "label": "AMENDED CORPUS -- all 117 qualifying games (Amendment 1). Reported beside the preregistered result, never instead of it.",
+  "games": 116,
+  "decisions": 2720,
+  "derivation": 1412,
+  "heldout": 1308,
+  "candidates": {
+   "raw seconds (the shipped cut)": {
+    "heldout_spread": 0.0,
+    "heldout_null95": 0.0,
+    "derivation_spread": 0.0,
+    "derivation_null95": 0.0,
+    "beats_null": false,
+    "rates": {
+     "0": [
+      1308,
+      61.08562691131498
+     ]
+    }
+   },
+   "log seconds": {
+    "heldout_spread": 11.742163166253498,
+    "heldout_null95": 4.429939307811425,
+    "derivation_spread": 8.671918806405705,
+    "derivation_null95": 4.303552935955665,
+    "beats_null": true,
+    "rates": {
+     "0": [
+      54,
+      75.92592592592592
+     ],
+     "1": [
+      290,
+      75.51724137931035
+     ],
+     "2": [
+      439,
+      65.60364464692483
+     ],
+     "3": [
+      308,
+      50.0
+     ],
+     "4": [
+      177,
+      42.93785310734463
+     ],
+     "5": [
+      40,
+      52.5
+     ]
+    }
+   },
+   "lichess encoding buckets": {
+    "heldout_spread": 11.761303494304892,
+    "heldout_null95": 5.6143182558015345,
+    "derivation_spread": 9.363205218824236,
+    "derivation_null95": 5.528391446174613,
+    "beats_null": true,
+    "rates": {
+     "0": [
+      54,
+      75.92592592592592
+     ],
+     "3": [
+      290,
+      75.51724137931035
+     ],
+     "5": [
+      260,
+      65.76923076923077
+     ],
+     "6": [
+      179,
+      65.36312849162012
+     ],
+     "7": [
+      93,
+      51.61290322580645
+     ],
+     "8": [
+      106,
+      50.0
+     ],
+     "9": [
+      109,
+      48.62385321100918
+     ],
+     "10": [
+      73,
+      47.945205479452056
+     ],
+     "11": [
+      96,
+      40.625
+     ],
+     "12": [
+      22,
+      45.45454545454545
+     ],
+     "13": [
+      26,
+      50.0
+     ]
+    }
+   },
+   "the player's own quartiles": {
+    "heldout_spread": 11.07382760667824,
+    "heldout_null95": 3.7328080780294455,
+    "derivation_spread": 8.282712708170871,
+    "derivation_null95": 3.627394223813986,
+    "beats_null": true,
+    "rates": {
+     "0": [
+      54,
+      75.92592592592592
+     ],
+     "1": [
+      290,
+      75.51724137931035
+     ],
+     "2": [
+      532,
+      63.1578947368421
+     ],
+     "3": [
+      432,
+      46.99074074074074
+     ]
+    }
+   },
+   "time pressure (clock %)": {
+    "heldout_spread": 3.768347360710157,
+    "heldout_null95": 3.770378592909835,
+    "derivation_spread": 4.425239485804488,
+    "derivation_null95": 3.672911014647793,
+    "beats_null": false,
+    "rates": {
+     "0": [
+      162,
+      67.28395061728395
+     ],
+     "1": [
+      187,
+      60.962566844919785
+     ],
+     "2": [
+      266,
+      54.51127819548872
+     ],
+     "3": [
+      693,
+      62.19336219336219
+     ]
+    }
+   }
+  },
+  "verdict": "OBSERVATION",
+  "verdict_reason": "lichess encoding buckets beats raw seconds and its own random-boundary null on both halves (11.76pp vs raw 0.00pp, null 5.61pp)",
+  "controls": {
+   "unstratified_permutation_survival": {
+    "raw seconds (the shipped cut)": 0.0,
+    "log seconds": 0.055,
+    "lichess encoding buckets": 0.06,
+    "the player's own quartiles": 0.08,
+    "time pressure (clock %)": 0.07
+   },
+   "stratified_permutation_survival": {
+    "raw seconds (the shipped cut)": 0.0,
+    "log seconds": 0.185,
+    "lichess encoding buckets": 0.16,
+    "the player's own quartiles": 0.19,
+    "time pressure (clock %)": 0.095
+   },
+   "within_phase_standing": {
+    "endgame/winning": {
+     "n": 44,
+     "buckets": 2,
+     "spread": 7.652537700978056,
+     "null95": 15.098250058686444,
+     "rates": {
+      "3": [
+       21,
+       76.19047619047619
+      ],
+      "5": [
+       23,
+       60.869565217391305
+      ]
+     }
+    },
+    "middlegame/level": {
+     "n": 250,
+     "buckets": 8,
+     "spread": 13.928978136713111,
+     "null95": 11.689326134862432,
+     "rates": {
+      "3": [
+       36,
+       77.77777777777777
+      ],
+      "5": [
+       33,
+       69.6969696969697
+      ],
+      "6": [
+       43,
+       62.7906976744186
+      ],
+      "7": [
+       22,
+       50.0
+      ],
+      "8": [
+       29,
+       55.172413793103445
+      ],
+      "9": [
+       22,
+       45.45454545454545
+      ],
+      "10": [
+       21,
+       38.095238095238095
+      ],
+      "11": [
+       44,
+       38.63636363636363
+      ]
+     }
+    },
+    "middlegame/losing": {
+     "n": 288,
+     "buckets": 7,
+     "spread": 11.88615771072225,
+     "null95": 10.449808384052108,
+     "rates": {
+      "3": [
+       46,
+       78.26086956521739
+      ],
+      "5": [
+       57,
+       70.17543859649123
+      ],
+      "6": [
+       42,
+       73.80952380952381
+      ],
+      "8": [
+       46,
+       47.82608695652174
+      ],
+      "9": [
+       33,
+       54.54545454545455
+      ],
+      "10": [
+       23,
+       56.52173913043478
+      ],
+      "11": [
+       41,
+       48.78048780487805
+      ]
+     }
+    },
+    "middlegame/winning": {
+     "n": 274,
+     "buckets": 7,
+     "spread": 12.849810046007526,
+     "null95": 10.567154221560717,
+     "rates": {
+      "3": [
+       50,
+       78.0
+      ],
+      "5": [
+       55,
+       61.81818181818182
+      ],
+      "6": [
+       28,
+       60.714285714285715
+      ],
+      "7": [
+       24,
+       41.666666666666664
+      ],
+      "8": [
+       30,
+       46.666666666666664
+      ],
+      "9": [
+       50,
+       46.0
+      ],
+      "11": [
+       37,
+       43.24324324324324
+      ]
+     }
+    },
+    "opening/level": {
+     "n": 279,
+     "buckets": 6,
+     "spread": 5.179709123914438,
+     "null95": 9.165126003898918,
+     "rates": {
+      "3": [
+       107,
+       72.89719626168224
+      ],
+      "5": [
+       69,
+       69.56521739130434
+      ],
+      "6": [
+       39,
+       64.1025641025641
+      ],
+      "7": [
+       21,
+       61.904761904761905
+      ],
+      "9": [
+       23,
+       69.56521739130434
+      ],
+      "11": [
+       20,
+       55.0
+      ]
+     }
+    },
+    "opening/losing": {
+     "n": 58,
+     "buckets": 2,
+     "spread": 6.076787731467599,
+     "null95": 13.125861499970014,
+     "rates": {
+      "3": [
+       23,
+       69.56521739130434
+      ],
+      "5": [
+       35,
+       57.142857142857146
+      ]
+     }
+    },
+    "opening/winning": {
+     "n": 55,
+     "buckets": 2,
+     "spread": 9.265431358167318,
+     "null95": 12.931609233701154,
+     "rates": {
+      "3": [
+       24,
+       54.166666666666664
+      ],
+      "6": [
+       31,
+       35.483870967741936
+      ]
+     }
+    }
+   }
+  },
+  "winner": "lichess encoding buckets"
+ },
+ "agree": true
+}

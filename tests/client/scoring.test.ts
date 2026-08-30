@@ -22,6 +22,10 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   bounded_action: { seconds_taken: 30, confidence: 4, confidence_scale: CONFIDENCE_LEVELS, candidate_moves_considered: ["e2e4"] },
   probe: null,
   reveal_timing: null,
+  /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+  measurement_protocol: null,
+  protocol_version: null,
+  analysis_timing: null,
   result: {
     engine_eval_cp: 20,
     engine_best_move: "e2e4",

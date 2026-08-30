@@ -281,6 +281,9 @@ describe("the game survives the tab", () => {
     // The arm is part of the position now: a game resumed into the other one is a different
     // condition, and the record stores which was in force per decision.
     revealTiming: "per-decision" as const,
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
     firstDecisionPly: null,
   };
 

@@ -15,6 +15,10 @@ import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-at
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
+import {
+  ANALYSIS_TIMINGS,
+  MEASUREMENT_PROTOCOLS,
+} from "../shared/measurement-protocol.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
 
@@ -128,6 +132,31 @@ export const decisions = mysqlTable(
      * between the two modes would show a coached arm that is enormous and perfectly measured.
      */
     revealTiming: mysqlEnum("reveal_timing", REVEAL_TIMINGS),
+    /**
+     * The conditions this decision was produced under -- whether a clock was running, whether an
+     * engine was, whether anybody was asked anything.
+     *
+     * NULLABLE, AND NULL IS NOT `instrumented-standard`. Every row written before this column
+     * existed WAS made in the untimed commitment loop, because that was the only loop -- so the
+     * backfill would even be factually right, and it is still forbidden. It would assert that a
+     * condition was RECORDED when nobody recorded one, and the first comparison between protocols
+     * would show a standard arm that is enormous and perfectly measured. Same argument as
+     * `revealTiming` above and `probeAssignment` above that; the third time this repository has
+     * had to make it.
+     */
+    measurementProtocol: mysqlEnum("measurement_protocol", MEASUREMENT_PROTOCOLS),
+    /**
+     * Which version of that protocol. A protocol whose rules change is a different protocol for
+     * analysis even when its name is the same: move the sampling rate, or the moment the question
+     * appears, and the rows before and after are two populations.
+     */
+    protocolVersion: int("protocol_version"),
+    /**
+     * WHEN THE ENGINE RAN, which is not when the player was TOLD. `reveal_timing: "end-of-game"`
+     * does not mean the engine was quiet -- today it runs in both reveal modes and only the telling
+     * differs -- so this cannot be derived from the column above it.
+     */
+    analysisTiming: mysqlEnum("analysis_timing", ANALYSIS_TIMINGS),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("decisions_game_idx").on(table.gameId)],

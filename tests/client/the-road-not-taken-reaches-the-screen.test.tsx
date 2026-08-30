@@ -43,6 +43,10 @@ const atom = (over: { probe?: Probe | null; cpLoss?: number } = {}): DecisionAto
   bounded_action: { seconds_taken: 5, confidence: 4, confidence_scale: 7, candidate_moves_considered: [] },
   probe: over.probe === undefined ? probe() : over.probe,
   reveal_timing: "per-decision",
+  /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+  measurement_protocol: null,
+  protocol_version: null,
+  analysis_timing: null,
   result: {
     engine_eval_cp: 15,
     engine_best_move: "e2e4",
