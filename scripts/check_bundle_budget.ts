@@ -131,8 +131,44 @@ const INDEX = "dist/public/index.html";
  * board is on the entry route and the accessible name is computed at render: a name that arrives
  * after the first paint is a name a reader has already read past. Same shape as the promise copy
  * two raises above -- the bytes are on screen at the moment they matter or they are useless.
+ *
+ *
+ * THE RAW CEILINGS, 661 -> 662 AND 734 -> 735, FOR THE BLITZ MEASUREMENT RECORD. Four commits of
+ * the blitz integration crossed them by 0.3 kB and 0.1 kB, and the growth was ATTRIBUTED PER
+ * COMMIT rather than accepted as a lump, by building each one and measuring the entry chunk:
+ *
+ *     before any of it   675,455 B
+ *     time control       675,836 B   +381   a nullable base/increment pair, and the two adapters
+ *                                           that finally read what both sites were already sending
+ *     both clocks        676,019 B   +183   one derivation, and the time control on each decision
+ *     protocol           676,585 B   +566   three schema fields and two enums, which zod needs as
+ *                                           runtime arrays to validate against
+ *     strata             677,206 B   +621   grouping the discovery population so two regimes
+ *                                           cannot pool
+ *     feature layer      677,206 B     +0
+ *
+ * THE LAST ROW IS THE INTERESTING ONE. `shared/blitz-features.ts` is nine features and about two
+ * hundred lines, and it costs the entry chunk NOTHING, because nothing imports it yet and it
+ * shakes out whole. It is the check that the other four numbers are the real cost of shipped
+ * behaviour rather than of code that merely exists: if dead modules were riding along, that row
+ * would not be zero.
+ *
+ * WHY IT CANNOT BE DEFERRED. It is not a screen and it is not copy -- it is the SHAPE OF EVERY
+ * DECISION THE PRODUCT WRITES. `decisionAtomSchema` validates at commit, on the entry route, and a
+ * validator that arrives after the first decision would let through exactly the rows it exists to
+ * refuse. The enum arrays are the same fact: zod checks a value against them at runtime, so they
+ * are data the entry chunk has to hold, not code a later chunk could bring.
+ *
+ * THE GZIP CEILING DID NOT MOVE. It measures 205.1 kB against 206 and did not fire, so it keeps
+ * its number and 0.9 kB of headroom -- the rule two raises above, applied to my own change:
+ * raising a ceiling that has not been crossed is loosening a budget for free. Gzipped is also
+ * what a person on a slow link actually waits for, and this whole 1.75 kB of source compresses
+ * into well under a kilobyte of it.
+ *
+ * WHAT WAS CHECKED RATHER THAN ASSUMED. The property the budget protects is unchanged: the 7.1 MB
+ * of WebAssembly is still held out of the entry, and no new chunk was created or merged away.
  */
-const ENTRY_RAW_KB = 661;
+const ENTRY_RAW_KB = 662;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 206;
 /**
@@ -141,7 +177,7 @@ const ENTRY_GZIP_KB = 206;
  * Separate from the entry ceiling because a stylesheet growing past a megabyte would be invisible
  * to a JavaScript-only budget, and `index.css` is already 3,693 lines.
  */
-const INITIAL_RAW_KB = 734;
+const INITIAL_RAW_KB = 735;
 
 interface Asset {
   name: string;
