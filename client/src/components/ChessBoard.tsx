@@ -288,7 +288,16 @@ export function ChessBoard({
                  */
                 data-square={square}
                 aria-label={squareLabel(square, piece)}
-                aria-selected={isSelected}
+                /*
+                 * PRESENT ONLY WHEN TRUE, and that is a reading decision rather than a tidiness
+                 * one. `aria-selected="false"` on all sixty-three other squares makes a reader
+                 * append "not selected" to every square it moves over, which is sixty-three
+                 * repetitions of a fact the player can infer from the one square that does say
+                 * "selected". The attribute is supported on `gridcell` and its default is
+                 * undefined, so leaving it off where it is false is the specified state, not a
+                 * gap.
+                 */
+                aria-selected={isSelected || undefined}
                 tabIndex={square === focusSquare ? 0 : -1}
                 onFocus={() => setFocusSquare(square)}
                 onKeyDown={(e) => onSquareKeyDown(e, square)}

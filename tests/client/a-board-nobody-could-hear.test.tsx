@@ -27,10 +27,12 @@
  */
 import { act, fireEvent, render } from "@testing-library/react";
 import { Chess } from "chess.js";
+import { computeAccessibleName } from "dom-accessibility-api";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
 
 import { ChessBoard, squareLabel } from "../../client/src/components/ChessBoard";
+import { PIECES } from "../../client/src/lib/game-data";
 
 const game = new Chess();
 const board = game.board();
@@ -335,5 +337,64 @@ describe("the board says out loud what the player did", () => {
     const region = announcer(container);
     expect(region).toHaveAttribute("aria-live", "polite");
     expect(region.className).toContain("sr-only");
+  });
+});
+
+/**
+ * The claim this whole change rests on, measured rather than reasoned.
+ *
+ * Everything above asserts the VALUE of `aria-label`. That is only worth something if an
+ * `aria-label` really does beat the element's contents when a reader computes what to say -- and
+ * that is a claim about the accessible-name algorithm, not about this component. jsdom does not
+ * implement it, but `dom-accessibility-api` does, and it is the same implementation Testing
+ * Library uses for `getByRole({ name })`.
+ *
+ * So the old markup is rebuilt here and run through it. If the algorithm ever stopped behaving
+ * this way, the defect would have been imaginary and these tests would be guarding nothing.
+ */
+describe("an aria-label really does silence the contents", () => {
+  const cell = (label: string | null, glyph: string) => {
+    const el = document.createElement("button");
+    el.setAttribute("role", "gridcell");
+    if (label !== null) el.setAttribute("aria-label", label);
+    el.textContent = glyph;
+    document.body.append(el);
+    return el;
+  };
+
+  it("announced the coordinate and never the piece, exactly as shipped", () => {
+    expect(computeAccessibleName(cell("e2", "♟"))).toBe("e2");
+  });
+
+  it("would not have been saved by reading the contents either", () => {
+    /*
+     * The fallback that does not exist: both colours render the same character, so even a reader
+     * that fell through to the contents would have got one string for a white pawn and a black
+     * one. Nothing about the piece was recoverable from this DOM.
+     */
+    expect(computeAccessibleName(cell(null, PIECES.w.p))).toBe(
+      computeAccessibleName(cell(null, PIECES.b.p)),
+    );
+  });
+
+  it("now says the square and what stands on it", () => {
+    expect(computeAccessibleName(cell(squareLabel("e2", { type: "p", color: "w" }), "♟"))).toBe(
+      "e2, רגלי לבן",
+    );
+  });
+
+  it("computes that name off the real board, not off a hand-built node", () => {
+    const { container } = render(<ChessBoard {...base} />);
+    expect(computeAccessibleName(at(container, "g8"))).toBe("g8, פרש שחור");
+    expect(computeAccessibleName(at(container, "e5"))).toBe("e5, ריקה");
+  });
+});
+
+describe("selection is announced once, not denied sixty-three times", () => {
+  it("marks only the selected square, and leaves the rest without the attribute", () => {
+    const { container } = render(<ChessBoard {...base} selectedSquare="e2" legalTargets={[]} />);
+    expect(at(container, "e2")).toHaveAttribute("aria-selected", "true");
+    const declared = squares(container).filter((e) => e.hasAttribute("aria-selected"));
+    expect(declared).toHaveLength(1);
   });
 });
