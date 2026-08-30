@@ -39,6 +39,8 @@ function reading(
     scored: buckets.reduce((sum, b) => sum + b.n, 0),
     forced: 0,
     eligible: buckets.reduce((sum, b) => sum + b.n, 0),
+    book: 0,
+    bookLoaded: true,
     withoutTime: 0,
     withoutClock: 0,
     missingClockData: false,
@@ -173,6 +175,8 @@ describe("the observation, and when there is none", () => {
           scored: 0,
           forced: 0,
           eligible: 0,
+          book: 0,
+          bookLoaded: true,
           withoutTime: 0,
           withoutClock: 0,
           missingClockData: true,
@@ -229,15 +233,34 @@ describe("the denominator every rate on this screen was computed over", () => {
 
   it("refuses to imply the rate is now clean", () => {
     /*
-     * The half that keeps this honest. Excluding single-legal-move positions removes a handful
-     * of moves a game; opening book and recaptures that have a legal alternative are the bulk of
-     * the inflation and are still counted. Saying only the first half reads as "fixed".
+     * The half that keeps this honest, and it survives the book rather than being retired by it.
+     * Forced positions and book positions are both out now; recaptures that have a legal
+     * alternative, and positions simply too rare to be book, are still counted. Saying only what
+     * WAS excluded reads as "fixed".
      */
-    render(<ImportDiagnosticPanel diagnostic={reading([{}], { scored: 812, forced: 47 })} />);
+    render(
+      <ImportDiagnosticPanel
+        diagnostic={reading([{}], { scored: 812, forced: 47, book: 190, bookLoaded: true })}
+      />,
+    );
     expect(
-      screen.getByText(/\u05de\u05d4\u05dc\u05db\u05d9 \u05e1\u05e4\u05e8/).textContent,
-      "does not disclaim the book moves it leaves in",
-    ).toMatch(/\u05de\u05d4\u05dc\u05db\u05d9 \u05e1\u05e4\u05e8/);
+      screen.getByText(/\u05dc\u05e7\u05d9\u05d7\u05d5\u05ea-\u05d7\u05d6\u05e8\u05d4/).textContent,
+      "does not disclaim what it still counts",
+    ).toMatch(/\u05dc\u05e7\u05d9\u05d7\u05d5\u05ea-\u05d7\u05d6\u05e8\u05d4/);
+  });
+
+  it("says when no book was loaded, instead of showing a zero that reads as none found", () => {
+    /*
+     * "0 book positions excluded" and "no book was available" are different facts and only one of
+     * them means the rate has been corrected. A zero in the ledger would read as the first.
+     */
+    render(
+      <ImportDiagnosticPanel
+        diagnostic={reading([{}], { scored: 812, forced: 47, book: 0, bookLoaded: false })}
+      />,
+    );
+    expect(screen.getByText(/\u05e1\u05e4\u05e8 \u05d4\u05e4\u05ea\u05d9\u05d7\u05d5\u05ea \u05dc\u05d0 \u05e0\u05d8\u05e2\u05df/)).toBeTruthy();
+    expect(screen.queryByText(/\u05e4\u05d7\u05d5\u05ea \u05e2\u05de\u05d3\u05d5\u05ea \u05e1\u05e4\u05e8/)).toBeNull();
   });
 
   it("says nothing when no position was forced", () => {

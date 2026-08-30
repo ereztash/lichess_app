@@ -242,6 +242,8 @@ describe("the lowest number is not automatically a finding", () => {
     })),
     scored: rates.reduce((sum, [, n]) => sum + n, 0),
     eligible: rates.reduce((sum, [, n]) => sum + n, 0),
+    book: 0,
+    bookLoaded: true,
     withoutTime: 0,
     withoutClock: 0,
     forced: 0,

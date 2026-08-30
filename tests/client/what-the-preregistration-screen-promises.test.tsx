@@ -55,6 +55,8 @@ const diagnostic = (buckets: ReturnType<typeof bucket>[]): ImportDiagnostic => (
   scored: MIN_BUCKET_N * 9,
   forced: 0,
   eligible: MIN_BUCKET_N * 9,
+  book: 0,
+  bookLoaded: true,
   withoutTime: 0,
   withoutClock: 0,
   missingClockData: false,

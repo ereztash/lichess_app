@@ -245,14 +245,13 @@ A position bank drawn from games the player has never seen would remove this. Th
   `BucketableDecision.secondsTaken` is now `number | null`, a bucket declares which fields it
   reads, and a decision missing one of them enters neither side. Held by `GATE-MEASURE`, whose
   positive control is the split as it shipped.
-- **What the accuracy rate over an import actually counts.** Nearly every one of the player's
-  moves, including book and any recapture that has a legal alternative. Positions offering
-  exactly one legal move are now excluded and counted, but that is a small correction (see
-  below) and the bulk of the inflation remains: `phase-opening` is `ply <= 20`, mostly book, so
-  it stays closer to measuring recall than decisions. Separating a real choice from a
-  practically-forced one needs an opening book or a second engine line per position, and the
-  cost of the second is the entry below. **This is a known defect in a number currently on
-  screen, not a missing feature.**
+- **What the accuracy rate over an import actually counts.** Partly corrected. Positions with one
+  legal move were already excluded; **book positions now are too**, by a book measured from 73,279
+  real games rather than asserted -- see "What excluding book positions did" below. **What is still
+  counted:** recaptures that have a legal alternative, and any position simply too rare to clear the
+  book's one-in-a-thousand rule. Separating those from a real choice needs a second engine line per
+  position, and the cost of that is the entry below, still unmeasured. **The number on screen is
+  better than it was and is not yet clean.**
 - **What a second engine line costs.** The reveal now asks for two lines from one search
   (MultiPV 2) so it can say what the engine's choice is actually worth. The two lines share a
   search tree, so the cost is somewhere between 1x and 2x a single-line search and probably
@@ -434,6 +433,42 @@ the move that was not played, which is why the reveal now asks for two.
 (30) is reported as a preference rather than a reason: the engine broke a tie between two moves
 it does not really distinguish. The panel already said differences under 30 cp say nothing here;
 it had never applied that to the move it was itself recommending.
+
+### What excluding book positions did to the rate
+
+**The book is measured, not asserted.** A position is book when at least **0.1% of the reference
+games -- one in a thousand -- reached it** within the first 30 plies. 73,279 real Lichess games
+(CC0, 2026-03) produced 1,522,179 distinct positions; **833** clear that bar. The rule was fixed
+before its effect on any rate was computed. At half the rate the book would hold 1,732 positions;
+at double it, 408.
+
+Keys are 32-bit FNV-1a over `positionKey`, so a transposition into a book position is the same
+entry. **Collisions measured against all 1,522,179 positions the corpus produced: zero.**
+
+**It is a claim about the position, never about the move.** A player who leaves theory in a book
+position has made a decision, and excluding on what they played would condition on the outcome.
+
+**The effect, on the 6 real players of the import harness** (1,587 decisions):
+
+| | |
+| --- | ---: |
+| share of scored moves excluded as book | **7.8%** |
+| mean change across 39 readable bucket readings | **−1.00 pp** |
+| largest fall | **−9.01 pp** (`phase-opening`, 67.5% → 58.5%) |
+| largest rise | +1.31 pp |
+
+**The direction is the one the defect predicted.** `phase-opening` falls hardest and on almost every
+player, because that bucket was the one holding the theory: its n drops from 80 to between 53 and 66
+and its accuracy drops with it. The opening was not the player's strong phase so much as the phase
+where the rate was counting recall.
+
+**What it costs.** Every bucket's n falls by 7.8%, and `phase-opening` by a quarter, which pushes it
+towards `MIN_BUCKET_N`. That is the real price of the correction and it is paid in silence rather
+than in a wrong number.
+
+**What is still not excluded.** Recaptures with a legal alternative, and any position too rare for
+the book. A second engine line per position would reach them, and its cost in the import path is
+still unmeasured.
 
 ### The thresholds, against the shape real records have
 

@@ -26,7 +26,12 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { runImportDiagnostic, type AnalysableGame } from "../client/src/lib/import-run.js";
-import { decisionsFromGame, type ImportDiagnostic } from "../shared/import-diagnostic.js";
+import {
+  decisionsFromGame,
+  diagnoseImportedGames,
+  type ImportDiagnostic,
+} from "../shared/import-diagnostic.js";
+import { NO_BOOK } from "../shared/opening-book.js";
 import type { EngineLine } from "../client/src/lib/engine-line.js";
 import { UciEngine } from "./uci-engine.js";
 
@@ -64,6 +69,8 @@ function fingerprint(diagnostic: ImportDiagnostic) {
   return {
     scored: diagnostic.scored,
     forced: diagnostic.forced,
+    book: diagnostic.book,
+    bookLoaded: diagnostic.bookLoaded,
     eligible: diagnostic.eligible,
     withoutTime: diagnostic.withoutTime,
     withoutClock: diagnostic.withoutClock,
@@ -84,7 +91,12 @@ async function runOnce(
   username: string,
   binary: string,
   clearHash = false,
-): Promise<{ diagnostic: ImportDiagnostic; rows: unknown[]; elapsedMs: number }> {
+): Promise<{
+  diagnostic: ImportDiagnostic;
+  withoutBook: ImportDiagnostic;
+  rows: unknown[];
+  elapsedMs: number;
+}> {
   const engine = await UciEngine.spawn(binary, { Threads: 1, Hash: 16 });
   const started = Date.now();
   try {
@@ -95,7 +107,7 @@ async function runOnce(
      * run instead of a second opinion about it.
      */
     const rows = result.inputs.flatMap((input, gameIndex) =>
-      decisionsFromGame(input).map((d) => ({
+      decisionsFromGame(input, result.isBook).map((d) => ({
         gameIndex,
         gameId: games[gameIndex]?.id ?? null,
         ply: d.ply,
@@ -106,10 +118,21 @@ async function runOnce(
         accurate: d.accurate,
         standing: d.standing,
         forced: d.forced,
+        book: d.book,
         speed: d.speed,
       })),
     );
-    return { diagnostic: result.diagnostic, rows, elapsedMs: Date.now() - started };
+    /*
+     * The same inputs read twice, once with the book and once without. No extra engine work: the
+     * evaluations are identical and only the denominator differs, which is exactly the comparison
+     * "what does excluding book cost and buy" needs.
+     */
+    return {
+      diagnostic: result.diagnostic,
+      withoutBook: diagnoseImportedGames(result.inputs, NO_BOOK),
+      rows,
+      elapsedMs: Date.now() - started,
+    };
   } finally {
     engine.quit();
   }
@@ -149,6 +172,23 @@ async function main() {
       playerId: player.playerId,
       games: player.games.length,
       reading: fingerprint(a.diagnostic),
+      readingWithoutBook: fingerprint(a.withoutBook),
+      /* What the book changed, per bucket, in percentage points of accuracy. */
+      bookEffectPp: fingerprint(a.diagnostic).buckets.flatMap((bucket, i) => {
+        const before = fingerprint(a.withoutBook).buckets[i];
+        return bucket.accurateRate !== null && before?.accurateRate != null
+          ? [
+              {
+                key: bucket.key,
+                nBefore: before.n,
+                nAfter: bucket.n,
+                rateBefore: before.accurateRate,
+                rateAfter: bucket.accurateRate,
+                deltaPp: (bucket.accurateRate - before.accurateRate) * 100,
+              },
+            ]
+          : [];
+      }),
       repeats: fa === fb,
       repeatsPerDecision: rowsA === rowsB,
       orderIndependent: fa === fc,

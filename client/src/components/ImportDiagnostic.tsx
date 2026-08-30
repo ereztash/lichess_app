@@ -223,6 +223,12 @@ export function ImportDiagnosticPanel({
             <b>−{diagnostic.forced}</b>
           </li>
         )}
+        {diagnostic.bookLoaded && (
+          <li>
+            <span>פחות עמדות ספר — עמדות שמשחק אחד מכל אלף מגיע אליהן</span>
+            <b>−{diagnostic.book}</b>
+          </li>
+        )}
         <li className="import-ledger-total">
           <span>החלטות שהסוגים נקראו עליהן</span>
           <b>{diagnostic.eligible}</b>
@@ -247,12 +253,11 @@ export function ImportDiagnosticPanel({
         * most of the inflation. Saying only the first half would let a reader take the rate for
         * corrected.
         */}
-      {diagnostic.forced > 0 && (
-        <p className="pv-note">
-          עמדה עם מהלך חוקי אחד אינה החלטה, ולכן היא לא נספרת. זה עדיין לא מנקה מהלכי ספר בפתיחה
-          ולא לקיחות-חזרה שיש להן חלופה חוקית, והם עדיין מעלים את שיעורי הדיוק.
-        </p>
-      )}
+      <p className="pv-note">
+        {diagnostic.bookLoaded
+          ? "עמדה עם מהלך חוקי אחד אינה החלטה, ועמדת ספר היא עמדה שמגיעים אליה מוכנים — שתיהן אינן נספרות. מה שעדיין נספר הוא לקיחות-חזרה שיש להן חלופה חוקית ועמדות שאינן שכיחות מספיק לספר, והן עדיין מעלות את שיעורי הדיוק."
+          : "ספר הפתיחות לא נטען בסריקה הזו, ולכן שום עמדת ספר לא הוצאה מהמניין. שיעורי הדיוק כאן כוללים גם מהלכי תיאוריה."}
+      </p>
 
       {/*
         * The restriction, said out loud. Narrowing the clock buckets to one time class without
