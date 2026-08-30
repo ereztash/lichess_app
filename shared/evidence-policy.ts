@@ -26,6 +26,8 @@
  */
 import type { DecisionAtom } from "./decision-atom.js";
 import type { DecisionPurpose } from "./confidence-asked.js";
+import type { RevealTiming } from "./reveal-timing.js";
+import { protocolOf, type ProtocolKey } from "./measurement-protocol.js";
 
 /**
  * The version of this policy, carried by anything whose meaning depends on it.
@@ -35,7 +37,7 @@ import type { DecisionPurpose } from "./confidence-asked.js";
  * Anything that stores a finding stores this number beside it, and a comparison across two
  * versions has to say it is making one.
  */
-export const EVIDENCE_POLICY_VERSION = 2;
+export const EVIDENCE_POLICY_VERSION = 3;
 
 /**
  * The analyses that read observations. One entry per consumer, not per screen: two screens
@@ -251,6 +253,55 @@ function admit(
 }
 
 /**
+ * WHY DISCOVERY RETURNS STRATA AND NOT A SET, which is the shape change this module needed.
+ *
+ * THE TABLE ABOVE ASKS A QUESTION ABOUT A ROW: may this consumer read this decision? That is the
+ * right question for a purpose -- a drill decision is inadmissible on its own, one at a time. It is
+ * the WRONG question for a protocol or a reveal timing, because those describe an incompatibility
+ * BETWEEN decisions. No single row is "pooled". A set is.
+ *
+ * So the axis cannot be a seventh column in the table, and asking it row by row would always answer
+ * yes: every `play` decision is individually fine, and forty of them from two different regimes are
+ * not one population. `reveal-timing.ts` has said this since it was written -- *"the two are not
+ * poolable, and every decision records which was in force"* -- and until now nothing enforced it.
+ * The recording happened. The wall did not exist.
+ *
+ * A STRATUM IS A SET THAT IS SAFE TO POOL, and there is deliberately no function on this module
+ * that flattens strata back into one. Refusing to provide the operation is stronger than
+ * documenting that it is wrong: the old shape let a caller pool by doing nothing at all, which is
+ * how this defect survived a policy module written specifically to prevent it.
+ */
+export interface StratumKey {
+  /** What the decision recorded about its conditions, or `legacy` when it recorded nothing. */
+  protocol: ProtocolKey;
+  /**
+   * Which reveal timing was in force, or `legacy`.
+   *
+   * NULL IS ITS OWN STRATUM AND NOT A THIRD MODE. A row that never recorded a timing is not
+   * evidence that the timing was absent; it is a row from before the field existed, and pooling it
+   * with either mode would assert a condition nobody wrote down.
+   */
+  revealTiming: RevealTiming | typeof LEGACY_CONTEXT;
+}
+
+/** One stratum: a set of decisions that share the conditions that make them comparable. */
+export interface Stratum extends EvidenceSet {
+  key: StratumKey;
+}
+
+/** A stratum key as a single string, so it can index a map and appear in a message. */
+export function stratumId(key: StratumKey): string {
+  return `${key.protocol}/${key.revealTiming}`;
+}
+
+function stratumKeyOf(atom: DecisionAtom): StratumKey {
+  return {
+    protocol: protocolOf(atom.measurement_protocol),
+    revealTiming: atom.reveal_timing ?? LEGACY_CONTEXT,
+  };
+}
+
+/**
  * The population the detector may search.
  *
  * ONLY `admitted`. A `scoped` cell is not a weaker yes -- it means the decisions may be read
@@ -258,8 +309,56 @@ function admit(
  * the observations are reportable under their own heading, which is a description rather than a
  * search. Both collapse to "not here".
  */
-export function forDiscovery(atoms: readonly DecisionAtom[], ids: readonly string[]): EvidenceSet {
-  return admit("discovery", atoms, ids, (admission) => admission.kind === "admitted");
+export function forDiscovery(
+  atoms: readonly DecisionAtom[],
+  ids: readonly string[],
+): Stratum[] {
+  const admitted = admit("discovery", atoms, ids, (a) => a.kind === "admitted");
+  const byId = new Map<string, Stratum>();
+  admitted.atoms.forEach((atom, index) => {
+    const key = stratumKeyOf(atom);
+    const id = stratumId(key);
+    const stratum = byId.get(id) ?? { key, atoms: [], ids: [] };
+    stratum.atoms.push(atom);
+    stratum.ids.push(admitted.ids[index] ?? `decision-${index}`);
+    byId.set(id, stratum);
+  });
+  /* Largest first, so a caller that takes the head is taking the biggest comparable population. */
+  return [...byId.values()].sort((a, b) => b.atoms.length - a.atoms.length || stratumId(a.key).localeCompare(stratumId(b.key)));
+}
+
+/**
+ * WHICH STRATUM THE DETECTOR ACTUALLY SEARCHES, and the reason this is a separate function.
+ *
+ * Splitting the population is an ENGINEERING fix: the old code pooled regimes and could not have
+ * done otherwise, and nothing about the split expresses an opinion. Choosing among the strata is a
+ * SCIENTIFIC decision, and this repository's rule is that one must not ride along inside the other.
+ *
+ * THE RULE IS "THE LARGEST", AND ITS ONE VIRTUE IS THAT IT IGNORES THE ANSWER. It is chosen before
+ * anything is scored, from sizes alone, so it cannot select the regime that happens to contain a
+ * finding. It changes today's behaviour as little as a non-pooling rule can: a record with one
+ * regime is unaffected, which is every record written before reveal timing existed.
+ *
+ * WHAT IT IS NOT. It is not an argument that the largest regime is the right one to study. There is
+ * a real case that discovery should prefer `end-of-game` -- a decision taken twenty moves into a
+ * coached game was made by somebody being told, twenty times, how their last move scored, and
+ * `reveal-timing.ts` says exactly that. Adopting that preference would silence the detector for
+ * most players, because the coached mode is the default. That trade is a decision about what the
+ * product measures, it belongs to whoever owns the product, and it is deliberately not smuggled in
+ * here. When it is made, it changes this function and bumps EVIDENCE_POLICY_VERSION.
+ *
+ * A TIE IS BROKEN BY NAME, not by order of arrival, so the same record always yields the same
+ * search rather than one that depends on the order rows were written.
+ */
+export function discoverySearchPopulation(strata: readonly Stratum[]): {
+  chosen: Stratum | null;
+  setAside: { id: string; n: number }[];
+} {
+  const [chosen = null, ...rest] = strata;
+  return {
+    chosen,
+    setAside: rest.map((s) => ({ id: stratumId(s.key), n: s.atoms.length })),
+  };
 }
 
 /**

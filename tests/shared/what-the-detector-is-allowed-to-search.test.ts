@@ -371,9 +371,14 @@ describe("the policy is one table, and every consumer has to ask it", () => {
       { purpose: "anchor" },
       { purpose: "play" },
     ] as unknown as DecisionAtom[];
-    const set = forDiscovery(atoms, ["a", "b", "c", "d"]);
-    expect(set.atoms).toHaveLength(2);
-    expect(set.ids, "the ids no longer belong to the atoms beside them").toEqual(["b", "d"]);
+    /*
+     * These four share their conditions -- none records a protocol or a reveal timing -- so they
+     * form one stratum, and the lockstep property is asserted inside it.
+     */
+    const strata = forDiscovery(atoms, ["a", "b", "c", "d"]);
+    expect(strata).toHaveLength(1);
+    expect(strata[0].atoms).toHaveLength(2);
+    expect(strata[0].ids, "the ids no longer belong to the atoms beside them").toEqual(["b", "d"]);
   });
 
   it("carries a version, because a finding is only a finding under one policy", () => {
