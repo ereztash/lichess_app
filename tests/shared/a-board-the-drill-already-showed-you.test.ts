@@ -114,6 +114,7 @@ describe("through the service, a drill is not built on a board already answered"
       phase: "middlegame",
       clockMsRemaining: 120_000,
       purpose: "play",
+      drillId: null,
       secondsTaken: 20,
       chosenMove: "e1g1",
       candidateMovesConsidered: ["e1g1"],

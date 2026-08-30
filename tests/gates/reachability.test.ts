@@ -385,6 +385,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
         clock_ms_remaining: null,
       },
       purpose: "anchor",
+      drill_id: null,
       known: "המרכז סגור",
       unknown: "לא רואה את הווריאציה עד הסוף",
       known_parts: { tapped: ["המרכז סגור"], typed: "" },

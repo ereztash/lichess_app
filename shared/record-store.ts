@@ -50,6 +50,14 @@ export interface CommitDecisionInput {
    * would file every drill of that era as free play.
    */
   purpose: DecisionPurpose | null;
+  /**
+   * The drill this decision belongs to, or null on every other purpose.
+   *
+   * NULLABLE RATHER THAN OPTIONAL, so that every write site has to say which it is. A field that
+   * could be omitted would let a drill decision reach storage with no binding by forgetting a
+   * line, which is precisely the failure the binding exists to close.
+   */
+  drillId: string | null;
   secondsTaken: number;
   chosenMove: string;
   candidateMovesConsidered: string[];

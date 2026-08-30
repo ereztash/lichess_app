@@ -20,6 +20,7 @@
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
+import { registerDrill } from "../fixtures/registered-drill";
 import { remainingBeforeClaim } from "../../client/src/lib/loop-position";
 import { MIN_BUCKET_N } from "../../shared/detector";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
@@ -89,6 +90,15 @@ async function record(
       clock_ms_remaining: null,
     },
     purpose: options.purpose,
+    /*
+     * A `drill` decision names its drill, because the service resolves the label rather than
+     * trusting it (R-07). One drill over both fixture positions, which is what a real run is: the
+     * drill registers its positions before it starts and every decision inside it names it.
+     */
+    drill_id:
+      options.purpose === "drill"
+        ? await registerDrill(store, [ENDGAME, MIDDLEGAME], "drill-detector-fixture")
+        : null,
     known: "המרכז פתוח",
     unknown: "לא יודע איך הוא יענה",
     known_parts: { tapped: ["המרכז פתוח"], typed: "" },
@@ -286,6 +296,7 @@ describe("a label with nothing behind it is not provenance", () => {
         clock_ms_remaining: null,
       },
       purpose: "anchor",
+      drill_id: null,
       known: "המרכז פתוח",
       unknown: "לא יודע איך הוא יענה",
       known_parts: { tapped: ["המרכז פתוח"], typed: "" },

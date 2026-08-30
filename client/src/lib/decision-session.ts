@@ -35,6 +35,15 @@ export interface PositionUnderDecision {
    * the check that says what is still missing, and the event that gets written.
    */
   purpose: DecisionPurpose;
+  /**
+   * The drill this position was drawn for, when `purpose` is `drill`.
+   *
+   * OPTIONAL HERE AND NULLABLE ON THE WIRE, which is the one place the two differ on purpose: a
+   * caller for a position that is not a drill should not have to write `drillId: null`, and the
+   * event that leaves this function must say `null` rather than omit the key, because the boundary
+   * distinguishes "not a drill" from "a drill that named nothing".
+   */
+  drillId?: string | null;
 }
 
 export interface DraftDecision {
@@ -222,6 +231,14 @@ export function buildCommitEvent(
      * afterwards. Sending it is what lets the boundary check the exemption it is exercising.
      */
     purpose: position.purpose,
+    /*
+     * WHAT MAKES THE LINE ABOVE CHECKABLE. `purpose` is the one atom field the server cannot
+     * re-derive, and `drill` is the value where that matters most -- it is the label that keeps a
+     * decision out of discovery. Sending the drill's id lets the boundary resolve it against a
+     * drill that was written down before the decision was made and confirm the position is one of
+     * the ones that drill registered.
+     */
+    drill_id: position.drillId ?? null,
     known: statedKnown(draft),
     unknown: statedUnknown(draft),
     /*

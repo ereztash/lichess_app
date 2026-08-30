@@ -63,6 +63,7 @@ async function revealedDecision(store: MemoryRecordStore) {
     phase: "middlegame",
     clockMsRemaining: 120_000,
     purpose: "play",
+    drillId: null,
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4"],

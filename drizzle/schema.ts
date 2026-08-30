@@ -75,6 +75,21 @@ export const decisions = mysqlTable(
      * measurement, exactly as `reveal_timing` does.
      */
     purpose: mysqlEnum("purpose", DECISION_PURPOSES),
+    /**
+     * The drill this decision belongs to, and the reason the column above can be checked.
+     *
+     * `purpose` is the one atom field the server cannot re-derive -- the phase comes back from the
+     * FEN and the legal-move count from the position, precisely so a wrong label cannot bias what
+     * the record is divided by, and "why was this position here" has no such re-derivation. This
+     * is the binding that replaces the trust: `commitDecision` resolves it against a drill that was
+     * stored BEFORE the decision was made (R5) and requires that drill to contain this position.
+     *
+     * NULLABLE, AND NULL IS NOT A DEFAULT. It is null on every purpose but `drill`, and on every
+     * row written before this column existed. No foreign key: the drills live in `prospective_drills`
+     * and this record is append-only, so a constraint that could refuse a write is a constraint that
+     * could lose a decision. The check is at the boundary, where it can produce a sentence.
+     */
+    drillId: varchar("drill_id", { length: 64 }),
     secondsTaken: int("seconds_taken").notNull(),
     chosenMove: varchar("chosen_move", { length: 6 }).notNull(),
     candidateMovesConsidered: json("candidate_moves_considered").$type<string[]>().notNull(),

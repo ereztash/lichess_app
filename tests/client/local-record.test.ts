@@ -15,6 +15,7 @@ import {
   resetSessionFallbackForTests,
 } from "../../client/src/lib/local-record-store";
 import * as service from "../../shared/record-service";
+import { registerDrill } from "../fixtures/registered-drill";
 
 const FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -143,7 +144,15 @@ describe("the browser-side record", () => {
      */
     const store = new LocalRecordStore();
     const id = "14141414-1414-4414-8414-141414141414";
-    await service.commitDecision(store, { ...event(id), purpose: "drill" });
+    /*
+     * The drill is registered because the service now resolves the label rather than trusting it
+     * (R-07). It is beside the point of this case, which is what happens to a row whose purpose is
+     * later STRIPPED -- and stripping it is done below, on the stored blob, exactly as an older
+     * build would have left it.
+     */
+    const sent = { ...event(id), purpose: "drill" as const };
+    const drillId = await registerDrill(store, [sent.entry_state.fen]);
+    await service.commitDecision(store, { ...sent, drill_id: drillId });
 
     const stored = JSON.parse(localStorage.getItem("decision-lab.record.v1")!);
     expect(stored.decisions[0].purpose, "the purpose never reached storage").toBe("drill");

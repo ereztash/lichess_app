@@ -162,6 +162,8 @@ describe("the schema keeps a guard where min(1) used to be", () => {
      * inheriting one silently.
      */
     purpose: "first" as const,
+    /* Null on every purpose but `drill`; the binding's own cases live in the R-07 file. */
+    drill_id: null,
     known: "",
     unknown: "",
     known_parts: null,
@@ -260,6 +262,7 @@ describe("the schema keeps a guard where min(1) used to be", () => {
   it("still accepts an ordinary decision that answered both", () => {
     const full = atom({
       purpose: "play",
+      drill_id: null,
       known: "המרכז פתוח",
       unknown: "לא יודע איך הוא יענה",
       known_parts: { tapped: ["המרכז פתוח"], typed: "" },

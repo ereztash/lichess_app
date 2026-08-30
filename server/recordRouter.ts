@@ -81,6 +81,12 @@ export const commitEventSchema = z.object({
    * decision cannot claim the first-decision exemption, and `service.commitDecision` refuses it.
    */
   purpose: z.enum(DECISION_PURPOSES).nullable().optional(),
+  /**
+   * The drill this decision belongs to. Optional for the same reason `purpose` is: a client that
+   * predates the field sends nothing, and null is stored. `service.commitDecision` is where the
+   * absence costs something -- a decision claiming `drill` without one is refused there.
+   */
+  drill_id: z.string().min(1).max(64).nullable().optional(),
   /*
    * `min(1)` IS GONE FROM BOTH, AND THIS IS THE LINE THAT MADE THE EXEMPTION REAL.
    *

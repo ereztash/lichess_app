@@ -144,6 +144,7 @@ describe("finishDrill refuses rather than grading what it could not measure", ()
         phase: "endgame",
         clockMsRemaining: 120_000,
         purpose: "play",
+        drillId: null,
         secondsTaken: 30,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],

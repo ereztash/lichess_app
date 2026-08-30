@@ -1,0 +1,1 @@
+ALTER TABLE `decisions` ADD `drill_id` varchar(64);

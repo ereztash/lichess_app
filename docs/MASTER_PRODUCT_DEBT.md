@@ -281,9 +281,9 @@ does not. Left as its own question rather than folded into this one.
 | | |
 | --- | --- |
 | type | evidence |
-| state | **open** |
+| state | **fixed** (for `drill`; `transfer` still carries it — see below) |
 | severity | P1 |
-| basis | **verified** — `shared/decision-atom.ts:213`: *"This is a claim by the client … and a reading that treats it as verified is reading more than the field carries"* |
+| basis | **verified** — was `shared/decision-atom.ts:213`: *"This is a claim by the client … and a reading that treats it as verified is reading more than the field carries"* |
 
 Everything else on the atom is re-derived server-side — the phase from the FEN, the legal-move count
 from the position — *precisely so a wrong label cannot bias what the record is divided by*.
@@ -292,6 +292,36 @@ all (`shared/evidence-policy.ts`).
 
 **Gate:** a decision claiming `drill` carries a `drill_id` the server can resolve to a drill that
 actually contains it; an unresolvable claim is refused at the boundary.
+
+**Closed by** `drill_id` on the atom, immediately after `purpose` in `ATOM_FIELDS` because it is
+what turns that label into a claim somebody can check. `commitDecision` verifies three things, and
+the third is the one that matters: that an id was sent, that it names a drill this record holds, and
+**that the drill contains this position**. The first two alone would let any drill id launder any
+decision — a player could answer forty free-play positions carrying one stale drill id and have
+every one of them excluded from discovery.
+
+**Why `drill` and not the other five.** It is the label that moves a decision *across* the wall
+`shared/evidence-policy.ts` draws. Discovery refuses a drill decision outright, because a drill
+selects positions *because of* a weakness and names what is being tested before collecting the
+evidence. Mislabel a drill decision `play` and the attempt to fix a weakness manufactures the next
+one; mislabel a free-play decision `drill` and it is silently dropped from the population it belongs
+to. One field, both directions.
+
+**A failed binding refuses rather than downgrades.** Storing it as `play` would put the drill's
+output into discovery — the exact harm. Storing it as `drill` unbound would keep the trust the check
+exists to remove.
+
+It also gives `EVIDENCE_POLICY` something it has been asking for: that table already files a drill
+decision as `scoped(to: "matching-test")`, and until now nothing could say which test was the
+matching one.
+
+**Gate:** `tests/shared/a-label-with-nothing-behind-it.test.ts`. Remove the position check and the
+assertion written for it goes red on its own.
+
+**What is still the client's word:** `transfer`. A transfer decision names no transfer. It is the
+smaller hole — a transfer's observations are written through `recordTransferObservation`, which
+knows which transfer it is inside, whereas a drill decision arrives through the ordinary commit —
+but it is a hole, and it is named here rather than papered over.
 
 ### R-08 · Attribution: a validated claim can name the wrong subgroup
 

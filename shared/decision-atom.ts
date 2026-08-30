@@ -34,6 +34,12 @@ export const ATOM_FIELDS = [
    * decision.
    */
   "purpose",
+  /*
+   * IMMEDIATELY AFTER `purpose`, because it is what turns that label into a claim somebody can
+   * check. `purpose` is the one atom field the server cannot re-derive; this is the binding that
+   * lets it try. Anywhere else in the list and the two would read as unrelated facts.
+   */
+  "drill_id",
   "known",
   "unknown",
   "known_parts",
@@ -237,6 +243,27 @@ export const decisionAtomSchema = z.object({
    * reading that treats it as verified is reading more than the field carries.
    */
   purpose: z.enum(DECISION_PURPOSES).nullable(),
+  /**
+   * WHICH DRILL THIS DECISION BELONGS TO, and the reason it exists is the paragraph above it.
+   *
+   * `purpose` is the one field the boundary had to take on trust, and `drill` is the value where
+   * that costs the most: a decision labelled `drill` is refused by discovery, and a drill decision
+   * labelled `play` enters it -- which is the closed loop `shared/evidence-policy.ts` was written
+   * to prevent, reachable by mislabelling one field. Nothing on the wire proved either way.
+   *
+   * WITH THIS, THE SERVER CAN CHECK. `commitDecision` resolves the id against the stored drill and
+   * requires that drill to actually contain this position, so `drill` stops being the client's
+   * word and becomes a binding to an object that was written down BEFORE the decision was made
+   * (R5: a drill stores its refutation condition and its positions before it runs).
+   *
+   * NULL ON EVERY OTHER PURPOSE, and refused if it is not: a decision that names a drill and does
+   * not claim to be one is making two statements that cannot both be true.
+   *
+   * IT IS ALSO WHAT `EVIDENCE_POLICY` HAS BEEN ASKING FOR. That table already files a drill
+   * decision as `scoped(to: "matching-test")` -- readable against its own drill's verdict and no
+   * other claim's -- and until now nothing could say which drill was the matching one.
+   */
+  drill_id: z.string().min(1).max(64).nullable(),
   /**
    * What the player can name about this position. <=200 chars.
    *

@@ -794,6 +794,8 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
     },
     // `?? null` for the same reason as every other field below: a row this build did not write.
     purpose: row.purpose ?? null,
+    /* Absent on rows an earlier build wrote, which is the same fact as never having been a drill. */
+    drill_id: row.drillId ?? null,
     known: row.statedRead,
     unknown: row.statedUnknown,
     known_parts: row.statedReadParts ?? null,
@@ -840,6 +842,15 @@ type StoredDecision = Omit<
    * ordinary move would invent the one fact it does not hold.
    */
   purpose?: DecisionPurpose | null;
+  /**
+   * Absent on every row this store already holds, and absent is the same as null here.
+   *
+   * Unlike `purpose`, there is no fourth state to preserve: a row from before the binding existed
+   * either was a drill decision or was not, and either way nothing recorded the drill. Reading the
+   * absence as "no binding" is the true statement, and it is the one the boundary refuses to
+   * accept from a NEW write.
+   */
+  drillId?: string | null;
   /**
    * Absent on rows an earlier build wrote, and absent is a FOURTH STATE rather than a control
    * arm: those decisions were never randomised into anything.

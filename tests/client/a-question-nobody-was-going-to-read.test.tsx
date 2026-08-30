@@ -223,6 +223,7 @@ describe("nothing downstream reads a null as a number", () => {
   const atom = (confidence: number | null, accurate: boolean): DecisionAtom => ({
     entry_state: { game_id: "g", fen: FEN, ply: 7, phase: "middlegame", clock_ms_remaining: null },
     purpose: "play",
+    drill_id: null,
     known: "k",
     unknown: "u",
     known_parts: null,

@@ -121,6 +121,13 @@ export type CommitEvent = {
    * so an empty read arriving without one is refused below.
    */
   purpose?: DecisionPurpose | null;
+  /**
+   * The drill this decision belongs to, when it claims to be a drill decision.
+   *
+   * Optional so a client that predates it can still write; the price is paid in `commitDecision`,
+   * which refuses a decision claiming `drill` without one rather than storing an unbindable claim.
+   */
+  drill_id?: string | null;
   known: string;
   unknown: string;
   /**
@@ -230,15 +237,70 @@ export async function commitDecision(
    * payload (set version and position) that section 2 of the constitution specifies, so that a
    * bank answer identifies its slot rather than being guessed at from the board.
    *
-   * `drill` AND `transfer` CANNOT BE CHECKED AT ALL YET. Nothing on the commit event references
-   * the drill or the transfer it belongs to, so there is no binding to verify. That is a gap and
-   * it is named rather than papered over: until the context carries `drill_id` / `transfer_id`,
-   * those two labels are the subject's word.
+   * `drill` IS NOW CHECKED, `transfer` STILL IS NOT. The event carries `drill_id` and the block
+   * below resolves it; a transfer decision still names no transfer, so that one label remains the
+   * subject's word. Named rather than papered over, and it is the smaller hole of the two: a
+   * transfer's own observations are written through `recordTransferObservation`, which knows which
+   * transfer it is inside, whereas a drill decision arrives through the ordinary commit.
    */
   if (input.purpose === "anchor" && !isAnchorFen(input.entry_state.fen)) {
     throw new RecordError(
       "BAD_REQUEST",
       "ההחלטה נשלחה כאילו היא עמדה מהסט המשותף, אבל העמדה אינה בסט — ורק עמדות הסט נמדדות בו.",
+    );
+  }
+  /*
+   * WHY `drill` IS THE LABEL WORTH BINDING, out of six.
+   *
+   * It is the one that moves a decision ACROSS the wall `shared/evidence-policy.ts` draws. A
+   * decision labelled `drill` is refused by discovery, because a drill selects positions BECAUSE
+   * of a weakness and tells the player what is being tested before collecting the evidence -- so
+   * reading its output as discovery lets the attempt to fix a weakness manufacture the next one.
+   * A drill decision mislabelled `play` walks straight into that loop, and a free-play decision
+   * mislabelled `drill` is quietly excluded from the population it belongs to. One field, both
+   * directions, and until now nothing on the wire could tell either way.
+   *
+   * THREE THINGS ARE CHECKED, AND THE THIRD IS THE ONE THAT MATTERS. That an id was sent; that it
+   * names a drill this record holds; and that THAT DRILL CONTAINS THIS POSITION. The first two
+   * alone would let any drill id launder any decision -- a player could answer forty free-play
+   * positions carrying a stale drill id and have every one of them excluded from discovery. The
+   * third makes the claim a claim about a specific position that was written down, under R5,
+   * before the decision was made.
+   *
+   * A DRILL DECISION IS REFUSED, NOT DOWNGRADED. Storing it as `play` because the binding failed
+   * would put the drill's output into the discovery population, which is the exact harm; storing
+   * it as `drill` with no binding would keep the trust this block exists to remove. Refusing is
+   * the only outcome that does not quietly assert something nobody checked.
+   */
+  if (input.purpose === "drill") {
+    if (!input.drill_id) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כהחלטת תרגול אבל בלי לומר לאיזה תרגול — ותווית שאין מאחוריה תרגול אינה נבדקת.",
+      );
+    }
+    const drill = await store.getDrill(input.drill_id);
+    if (!drill) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כהחלטת תרגול, אבל התרגול שהיא מצביעה עליו אינו ברשומה.",
+      );
+    }
+    if (!drill.spec.fens.includes(input.entry_state.fen)) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כהחלטת תרגול, אבל העמדה אינה אחת מהעמדות שהתרגול רשם לפני שהתחיל.",
+      );
+    }
+  } else if (input.drill_id) {
+    /*
+     * TWO STATEMENTS THAT CANNOT BOTH BE TRUE, and refusing is cheaper than deciding which to
+     * believe. Dropping the id would silently keep a decision that thought it was part of a drill;
+     * keeping it would file a `play` decision under a drill and let a later reading scope it there.
+     */
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה מצביעה על תרגול אבל אינה מסומנת כהחלטת תרגול. שתי האמירות אינן יכולות להתקיים יחד.",
     );
   }
   /*
@@ -318,6 +380,8 @@ export async function commitDecision(
      * nobody recorded one.
      */
     purpose: input.purpose ?? null,
+    /* Verified above, not taken on trust. Null on every purpose but `drill`. */
+    drillId: input.drill_id ?? null,
     secondsTaken: Math.round(input.bounded_action.seconds_taken),
     chosenMove: input.decision,
     candidateMovesConsidered: input.bounded_action.candidate_moves_considered,
