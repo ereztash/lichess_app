@@ -13,6 +13,14 @@
  * fail to compile.
  */
 
+import {
+  decidesClaim,
+  requiredProtocolFor,
+  LEGACY_VALIDATION,
+  type ValidationKey,
+} from "./claim-grade-protocol.js";
+import type { ProtocolKind } from "./validation-protocol.js";
+
 export const CLAIM_GRADES = ["hypothesis", "replicated", "refuted"] as const;
 export type ClaimGrade = (typeof CLAIM_GRADES)[number];
 
@@ -45,6 +53,15 @@ export interface ProspectiveDrillResult {
   predicted: boolean;
   /** What actually happened. */
   observed: boolean;
+  /**
+   * The protocol this forward test ran under, stored on the result rather than inferred later.
+   *
+   * INFERRING IT AT READ TIME WOULD ANSWER FOR TODAY'S RULE, NOT THE ONE THE TEST RAN UNDER, which
+   * is the whole failure `reveal_timing` and `measurement_protocol` were added to prevent. A drill
+   * reported before this field existed carries `LEGACY_VALIDATION`, which is not a protocol and is
+   * not backfilled to one.
+   */
+  protocol: ValidationKey;
   recorded_at: string;
 }
 
@@ -115,6 +132,15 @@ export interface Claim {
    */
   predicts_overconfidence: boolean | null;
   prospective_tests: ProspectiveDrillResult[];
+  /**
+   * Which protocol produced the grade above, or null while the claim is still a hypothesis.
+   *
+   * DERIVED BY `evaluateClaim` ALONGSIDE THE GRADE AND NEVER STORED SEPARATELY, for the reason the
+   * grade itself is derived: two fields written by two writes are two chances to disagree, and a
+   * claim reading `replicated` under a protocol that did not produce it is worse than either field
+   * alone being wrong.
+   */
+  graded_under: ValidationKey | null;
   created_at: string;
   last_evaluated_at: string;
 }
@@ -146,6 +172,7 @@ export function formHypothesis(input: {
     refutation_condition: input.refutation_condition,
     predicts_overconfidence: input.predicts_overconfidence,
     prospective_tests: [],
+    graded_under: null,
     created_at: input.created_at,
     last_evaluated_at: input.created_at,
   };
@@ -198,6 +225,7 @@ export function evaluateClaim(claim: Claim, results: ProspectiveDrillResult[]): 
   let folded: Claim = {
     ...claim,
     grade: "hypothesis",
+    graded_under: null,
     prospective_tests: [],
     last_evaluated_at: claim.created_at,
   };
@@ -209,17 +237,74 @@ function applyDrillResult(claim: Claim, result: ProspectiveDrillResult): Claim {
   if (result.claim_id !== claim.claim_id) {
     throw new Error("drill result belongs to a different claim");
   }
-  if (claim.grade === "refuted") {
-    // Refutation is terminal. A refuted claim is data, not a draft to be revived.
-    return { ...claim, prospective_tests: [...claim.prospective_tests, result] };
-  }
-  const survived = result.observed === result.predicted;
-  return {
+  const append = (next: Partial<Claim> = {}): Claim => ({
     ...claim,
-    grade: survived ? "replicated" : "refuted",
+    ...next,
     prospective_tests: [...claim.prospective_tests, result],
+  });
+
+  /*
+   * WHETHER THE STANDING GRADE WAS REACHED BY A PROTOCOL ENTITLED TO REACH IT (ADR-003).
+   *
+   * `decidesClaim` is asked about the protocol the STANDING grade came from, not about today's
+   * requirement for this bucket, so the answer is a fact about how this claim was actually graded.
+   */
+  const standingDecided =
+    claim.graded_under !== null && decidesClaim(claim.graded_under, claim.claim_id);
+
+  if (claim.grade === "refuted" && standingDecided) {
+    // Refutation is terminal. A refuted claim is data, not a draft to be revived.
+    return append();
+  }
+
+  /*
+   * AN OFF-PROTOCOL RESULT MAY NOT OVERWRITE A VERDICT REACHED ON PROTOCOL. A timed holdout has
+   * measured the claim under the conditions it is about; a later clockless drill has not, and
+   * letting it speak last would let the weaker evidence be the one on screen.
+   */
+  if (standingDecided && !decidesClaim(result.protocol, claim.claim_id)) return append();
+
+  const survived = result.observed === result.predicted;
+  return append({
+    grade: survived ? "replicated" : "refuted",
+    graded_under: result.protocol,
     last_evaluated_at: result.recorded_at,
-  };
+  });
+}
+
+/**
+ * Whether this claim's grade may be spoken as a finished verdict, or only as what one protocol saw.
+ *
+ * THE RENDER PATH NEEDS THIS AND THE GRADE ALONE CANNOT ANSWER IT. `replicated` reached by a
+ * position drill on a claim about the clock is a real measurement of something -- it is not a
+ * measurement of the thing the claim says, and a screen that prints the same word for both has
+ * told the player the drill settled a question it cannot reach.
+ */
+export function gradeIsSettled(claim: Claim): boolean {
+  if (claim.grade === "hypothesis") return false;
+  return claim.graded_under !== null && decidesClaim(claim.graded_under, claim.claim_id);
+}
+
+/**
+ * The protocol a forward test actually ran under, when it was a protocol at all.
+ *
+ * Null for a hypothesis and for a legacy grade -- the second is not a protocol and must not be
+ * printed as one, which is the whole reason `LEGACY_VALIDATION` is a separate key.
+ */
+export function testedUnder(claim: Claim): ProtocolKind | null {
+  if (claim.graded_under === null || claim.graded_under === LEGACY_VALIDATION) return null;
+  return claim.graded_under;
+}
+
+/**
+ * The protocol that still has to speak before this claim's grade is settled, or null if none does.
+ *
+ * Null covers two different situations that need no distinction here: the grade is already settled,
+ * or the claim is a hypothesis with no forward test behind it at all.
+ */
+export function awaitingProtocol(claim: Claim): ProtocolKind | null {
+  if (claim.grade === "hypothesis" || gradeIsSettled(claim)) return null;
+  return requiredProtocolFor(claim.claim_id);
 }
 
 /**

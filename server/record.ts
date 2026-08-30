@@ -29,6 +29,7 @@ import {
   type InsertDecision,
 } from "../drizzle/schema.js";
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
+import { LEGACY_VALIDATION } from "../shared/claim-grade-protocol.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
 import { assembleProbe } from "../shared/counterfactual.js";
@@ -414,6 +415,7 @@ export class DrizzleRecordStore implements RecordStore {
       supportingDecisionIds: claim.supporting_decision_ids,
       n: claim.n,
       grade: claim.grade,
+      gradedUnder: claim.graded_under,
       refutationCondition: claim.refutation_condition,
       /*
        * THE TWO TIMESTAMPS ARE WRITTEN, NOT LEFT TO THE DATABASE, and the second one was a real
@@ -454,6 +456,17 @@ export class DrizzleRecordStore implements RecordStore {
       supporting_decision_ids: row.supportingDecisionIds,
       n: row.n,
       grade: row.grade,
+      /*
+       * A GRADED ROW WITH NO PROTOCOL IS LEGACY, NOT A DRILL (ADR-003).
+       *
+       * The column is null for every claim graded before it existed, and `position-drill` is the
+       * tempting reading because it is what those grades in fact came from. Writing it here would
+       * assert that a protocol was RECORDED when none was, and the first comparison between
+       * protocols would show a drill arm containing the entire history. `LEGACY_VALIDATION` still
+       * decides the claim -- see `decidesClaim` -- so nothing already settled comes unsettled.
+       */
+      graded_under:
+        row.gradedUnder ?? (row.grade === "hypothesis" ? null : LEGACY_VALIDATION),
       refutation_condition: row.refutationCondition,
       predicts_overconfidence: row.predictsOverconfidence,
       prospective_tests: results.map((r) => ({
@@ -463,6 +476,8 @@ export class DrizzleRecordStore implements RecordStore {
         decision_ids: r.decisionIds,
         predicted: r.predicted,
         observed: r.observed,
+        // Same rule as the claim's own protocol above, and for the same reason.
+        protocol: r.protocol ?? LEGACY_VALIDATION,
         recorded_at: r.recordedAt.toISOString(),
       })),
       created_at: row.createdAt.toISOString(),
@@ -523,6 +538,7 @@ export class DrizzleRecordStore implements RecordStore {
       refutationCondition: drill?.refutationCondition ?? "",
       predicted: result.predicted,
       observed: result.observed,
+      protocol: result.protocol,
       /*
        * WRITTEN, not left to `defaultNow()`. Same divergence as the claim's two timestamps above:
        * MemoryRecordStore kept what the service reported and MySQL kept when the row happened to
@@ -953,6 +969,16 @@ export class MemoryRecordStore implements RecordStore {
     if (!claim) return null;
     return {
       ...claim,
+      /*
+       * THE SAME LEGACY MAPPING DrizzleRecordStore APPLIES, and it has to be here or the two
+       * stores disagree on a claim graded before `graded_under` existed: MySQL would read it as
+       * LEGACY_VALIDATION and memory would read it as null, so `gradeIsSettled` would answer
+       * differently depending on which store the caller happened to be on. Every test in this
+       * repository except the database ones runs against this store, so that divergence would
+       * have been invisible in exactly the direction that matters.
+       */
+      graded_under:
+        claim.graded_under ?? (claim.grade === "hypothesis" ? null : LEGACY_VALIDATION),
       prospective_tests: this.drillResultRows.filter((r) => r.claim_id === claimId),
     };
   }

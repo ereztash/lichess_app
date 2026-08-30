@@ -97,6 +97,7 @@ describe("through the service, a drill is not built on a board already answered"
     grade: "hypothesis",
     refutation_condition: "אם הפער לא יהיה גדול יותר מאשר בשאר ההחלטות — ההשערה הופרכה.",
     predicts_overconfidence: true,
+    graded_under: null,
     prospective_tests: [],
     created_at: "2026-01-01T00:00:00.000Z",
     last_evaluated_at: "2026-01-01T00:00:00.000Z",

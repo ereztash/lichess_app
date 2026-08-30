@@ -11,6 +11,7 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
+import { VALIDATION_KEYS } from "../shared/claim-grade-protocol.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
@@ -235,6 +236,19 @@ export const claims = mysqlTable("claims", {
   supportingDecisionIds: json("supporting_decision_ids").$type<string[]>().notNull(),
   n: int("n").notNull(),
   grade: mysqlEnum("grade", CLAIM_GRADES).notNull(),
+  /*
+   * WHICH PROTOCOL PRODUCED THE GRADE (ADR-003). A position drill and a timed holdout are not
+   * interchangeable evidence, and `replicated` means a different thing under each, so the grade
+   * alone cannot be read back honestly.
+   *
+   * NULLABLE ON PURPOSE, and null is NOT "position drill". Rows graded before this column existed
+   * did not record a protocol; `getClaim` maps a graded row with no protocol to LEGACY_VALIDATION,
+   * which still decides the claim. The tempting backfill is `position-drill` and it would even be
+   * factually right -- a position drill was the only protocol there was -- and it is forbidden for
+   * the reason `measurement_protocol` gives about its own: a fact nobody wrote down is not a fact
+   * the record may claim.
+   */
+  gradedUnder: mysqlEnum("graded_under", VALIDATION_KEYS),
   refutationCondition: text("refutation_condition").notNull(),
   /*
    * WHICH SIDE THE REFUTATION CONDITION IS ON. See the field note on `Claim` in shared/claim.ts:
@@ -293,6 +307,9 @@ export const drillResults = mysqlTable("drill_results", {
   refutationCondition: text("refutation_condition").notNull(),
   predicted: boolean("predicted").notNull(),
   observed: boolean("observed").notNull(),
+  /** The protocol this forward test ran under. Null on a row written before ADR-003, and read
+   * back as LEGACY_VALIDATION rather than assumed to be a drill. */
+  protocol: mysqlEnum("protocol", VALIDATION_KEYS),
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
 export type DrillResultRow = typeof drillResults.$inferSelect;

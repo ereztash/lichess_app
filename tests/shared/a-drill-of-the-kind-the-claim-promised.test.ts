@@ -74,6 +74,7 @@ function claimFor(key: string, scope: string): Claim {
     grade: "hypothesis",
     refutation_condition: `בדריל של עמדות מ-${scope}, אם הפער לא יהיה גדול יותר — ההשערה הופרכה.`,
     predicts_overconfidence: true,
+    graded_under: null,
     prospective_tests: [],
     created_at: "2026-01-01T00:00:00.000Z",
     last_evaluated_at: "2026-01-01T00:00:00.000Z",
@@ -262,6 +263,7 @@ describe("a claim about how you decided, not about which positions", () => {
     }
     await store.saveDrillResult({
       kind: "prospective_drill_result",
+      protocol: "position-drill",
       drill_id: `drill-${FAST_CLAIM.claim_id}`,
       claim_id: FAST_CLAIM.claim_id,
       decision_ids: ids,

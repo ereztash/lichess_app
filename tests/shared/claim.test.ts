@@ -57,6 +57,7 @@ describe("only a prospective drill can raise a grade", () => {
   const claim = deriveClaim(pattern, { claim_id: "c1", created_at: now });
   const result = (over: Partial<ProspectiveDrillResult> = {}): ProspectiveDrillResult => ({
     kind: "prospective_drill_result",
+    protocol: "position-drill",
     drill_id: "dr1",
     claim_id: "c1",
     decision_ids: ["x1", "x2"],

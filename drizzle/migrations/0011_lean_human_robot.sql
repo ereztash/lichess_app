@@ -1,0 +1,2 @@
+ALTER TABLE `claims` ADD `graded_under` enum('position-drill','timed-holdout','legacy');--> statement-breakpoint
+ALTER TABLE `drill_results` ADD `protocol` enum('position-drill','timed-holdout','legacy');

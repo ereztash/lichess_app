@@ -148,6 +148,8 @@ export function completeDrill(
     decision_ids: observations.map((o) => o.decision_id),
     predicted: started.predicted,
     observed,
+    // A drill of this module is a position drill by construction; there is no other kind here.
+    protocol: "position-drill",
     recorded_at: options.recorded_at,
   };
 }
@@ -298,6 +300,8 @@ export function completeDrillAgainstBaseline(
     decision_ids: decisions.map((d) => d.decision_id),
     predicted: started.predicted,
     observed: verdict.observed,
+    // As above: this module closes position drills. A timed holdout is graded elsewhere.
+    protocol: "position-drill",
     recorded_at: options.recorded_at,
   };
 }

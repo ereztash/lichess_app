@@ -439,12 +439,14 @@ describeDb("DrizzleRecordStore against MySQL", () => {
       refutation_condition: "פער הביטחון לא ישוחזר בבדיקה קדימה",
       // "בטוחים יותר משאתם מדויקים" -- overconfidence, so the flag agrees with the sentence.
       predicts_overconfidence: true,
+      graded_under: null,
       prospective_tests: [],
       created_at: CREATED_AT,
       last_evaluated_at: CREATED_AT,
     };
     const result = {
       kind: "prospective_drill_result" as const,
+      protocol: "position-drill" as const,
       drill_id: "drill-timestamps",
       claim_id: claim.claim_id,
       decision_ids: ["dd-1", "dd-2", "dd-3"],

@@ -259,6 +259,7 @@ describe("a claim that never recorded its direction", () => {
     grade: "hypothesis",
     refutation_condition: "אם הביטחון לא יהיה נמוך מהדיוק יותר מאשר בשאר ההחלטות — ההשערה הופרכה.",
     predicts_overconfidence: null,
+    graded_under: null,
     prospective_tests: [],
     created_at: "2026-01-01T00:00:00.000Z",
     last_evaluated_at: "2026-01-01T00:00:00.000Z",

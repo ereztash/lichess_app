@@ -167,8 +167,34 @@ const INDEX = "dist/public/index.html";
  *
  * WHAT WAS CHECKED RATHER THAN ASSUMED. The property the budget protects is unchanged: the 7.1 MB
  * of WebAssembly is still held out of the entry, and no new chunk was created or merged away.
+ *
+ * ---
+ *
+ * 662 -> 663, and 735 -> 736 below: ADR-003, a grade naming the protocol that produced it.
+ *
+ * SPLIT BY MEASUREMENT RATHER THAN BY GUESS, by building twice -- once with the card's change and
+ * once with the card reverted and nothing else:
+ *
+ *     entry raw, before the change        661.6 kB
+ *     entry raw, card reverted            662.1 kB     +0.5
+ *     entry raw, card included            662.8 kB     +0.7
+ *
+ * THE FIRST 0.5 kB IS NOT THE SCREEN. `shared/claim.ts` gained `gradeIsSettled`, `awaitingProtocol`
+ * and `testedUnder` plus two branches in the grading fold, and it now imports
+ * `claim-grade-protocol.ts` -- and the client already imports `claim.ts`, so that arrives whether
+ * or not anything renders it. It cannot be deferred for the same reason `decisionAtomSchema`
+ * cannot: it is the rule that decides whether a verdict is settled, and a rule that arrives after
+ * the claim it governs has already been shown is a rule that did not run.
+ *
+ * THE OTHER 0.7 kB IS THE SCREEN, and it is the part a player sees: the protocol words and the
+ * sentence that names which test would close the question. `PROTOCOL_WORD` and `validation-protocol`
+ * reach the entry chunk here for the first time -- until this change PR-13's module was pure and
+ * unreferenced, and shook out whole.
+ *
+ * THE GZIP CEILING DID NOT MOVE, again. 205.6 kB against 206, so it did not fire and it keeps its
+ * number: raising a ceiling that has not been crossed is loosening a budget for free.
  */
-const ENTRY_RAW_KB = 662;
+const ENTRY_RAW_KB = 663;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 206;
 /**
@@ -176,8 +202,11 @@ const ENTRY_GZIP_KB = 206;
  *
  * Separate from the entry ceiling because a stylesheet growing past a megabyte would be invisible
  * to a JavaScript-only budget, and `index.css` is already 3,693 lines.
+ *
+ * 735 -> 736 with the entry ceiling above, and for the same 1.2 kB: no stylesheet grew. Measured
+ * at 734.9 kB with the card reverted, which is why this one fires only with the screen included.
  */
-const INITIAL_RAW_KB = 735;
+const INITIAL_RAW_KB = 736;
 
 interface Asset {
   name: string;
