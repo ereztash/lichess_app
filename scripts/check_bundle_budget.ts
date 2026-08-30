@@ -326,8 +326,40 @@ const ENTRY_GZIP_KB = 210;
  * at 734.9 kB with the card reverted, which is why this one fires only with the screen included.
  *
  * 743 -> 747 with the two ceilings above, and for the same 2.4 kB: no stylesheet grew here either.
+ *
+ * ---
+ *
+ * 747 -> 750, AND THIS IS A RAISE THAT SHOULD HAVE HAPPENED TWO COMMITS EARLIER.
+ *
+ * The 743 -> 747 raise left 0.1 kB of headroom, on the stated ground that widening a ceiling that
+ * has not been crossed is loosening a budget for free. That reasoning is still right and the number
+ * was still wrong: 0.1 kB is not headroom, it is the next commit's problem, and the next commit
+ * duly crossed it.
+ *
+ *                            entry raw   gzipped   initial raw
+ *     after R-05 (747)         674.2      209.1       746.9    ok, by 0.1 kB
+ *     + R-07, drill_id         675.2      209.3       747.9    OVER
+ *     + R-09, the engine       675.4      209.3       748.1    OVER
+ *
+ * R-07 is `drill_id` on the atom and the boundary check that resolves it: a field on
+ * `decisionAtomSchema` and on the wire schema, the three-part verification in `commitDecision` with
+ * its three refusals, and the column read back through both stores. It is on the entry route for
+ * the same reason the rest of `commitDecision` is -- the browser-record deployment runs the same
+ * boundary the server does, and a check that arrived in a later chunk would let through exactly the
+ * rows it exists to refuse.
+ *
+ * R-09 is the engine's readiness constants and the `<details>` the scan's failure now renders.
+ *
+ * 750 LEAVES 1.9 kB, which is the headroom every raise in this file before the last one took. The
+ * other two ceilings did not fire and keep their numbers.
+ *
+ * WHAT ACTUALLY WENT WRONG IS NOT THE NUMBER. Both crossings were measured on this machine before
+ * the push and neither was seen, because the check's output was piped through `sed` to its first
+ * few lines -- the failing line was below the window, and a pipe discards the exit code that would
+ * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
+ * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 747;
+const INITIAL_RAW_KB = 750;
 
 interface Asset {
   name: string;
