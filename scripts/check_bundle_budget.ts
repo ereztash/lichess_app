@@ -193,8 +193,26 @@ const INDEX = "dist/public/index.html";
  *
  * THE GZIP CEILING DID NOT MOVE, again. 205.6 kB against 206, so it did not fire and it keeps its
  * number: raising a ceiling that has not been crossed is loosening a budget for free.
+ *
+ * ---
+ *
+ * 663 -> 664: PR-11, the blitz route keeping what it measured.
+ *
+ *     entry raw, after ADR-003     662.8 kB
+ *     entry raw, with the store    663.2 kB     +0.4
+ *
+ * ALL OF IT IS `LocalRecordStore`. `shared/blitz-record.ts` is types and one pure function, and the
+ * function has no caller in the entry path yet -- what arrives is the client store's three new
+ * methods and its two new state keys. It cannot be deferred because the store is constructed on the
+ * entry route: a record store that arrives late is a record store that was not there when the first
+ * thing needed writing.
+ *
+ * THE OTHER TWO CEILINGS DID NOT FIRE. Initial download measured 735.9 kB against 736 and gzip
+ * 205.7 against 206, so both keep their numbers -- the same rule as the two raises above, applied
+ * when it is inconvenient: 0.1 kB of headroom is still headroom, and widening it "while I am here"
+ * is how a budget stops being one.
  */
-const ENTRY_RAW_KB = 663;
+const ENTRY_RAW_KB = 664;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 206;
 /**

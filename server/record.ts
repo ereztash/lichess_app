@@ -17,6 +17,8 @@ import {
   decisionFeedback,
   decisionReveals,
   decisions,
+  blitzDecisions,
+  blitzGames,
   drillResults,
   drills,
   learningRules,
@@ -30,6 +32,11 @@ import {
 } from "../drizzle/schema.js";
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
 import { LEGACY_VALIDATION } from "../shared/claim-grade-protocol.js";
+import type {
+  StoredBlitzDecision,
+  StoredBlitzGame,
+  StoredBlitzRecord,
+} from "../shared/blitz-record.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
 import { assembleProbe } from "../shared/counterfactual.js";
@@ -524,6 +531,54 @@ export class DrizzleRecordStore implements RecordStore {
     };
   }
 
+  async saveBlitzRecord(record: StoredBlitzRecord): Promise<void> {
+    const db = await this.db();
+    const { game, decisions } = record;
+    await db.insert(blitzGames).values({
+      gameId: game.gameId,
+      playedAs: game.playedAs,
+      initialMs: game.timeControl.initialMs,
+      incrementMs: game.timeControl.incrementMs,
+      outcome: game.outcome,
+      startedAt: new Date(game.startedAt),
+      finishedAt: new Date(game.finishedAt),
+      measurementProtocol: game.measurementProtocol,
+      protocolVersion: game.protocolVersion,
+      analysisTiming: game.analysisTiming,
+      samplingPolicyVersion: game.samplingPolicyVersion,
+      askRate: game.askRate,
+    });
+    /*
+     * The decisions go in one statement rather than a loop of them. There is no transaction here
+     * -- the same absence `saveClaim` and `saveDrillResult` live with -- so a single multi-row
+     * insert is the closest thing to atomicity available, and the game row goes first so a partial
+     * failure leaves a game with no decisions rather than orphan decisions with no conditions.
+     */
+    if (decisions.length > 0) await db.insert(blitzDecisions).values(decisions);
+  }
+
+  async listBlitzGames(): Promise<StoredBlitzGame[]> {
+    const db = await this.db();
+    return (await db.select().from(blitzGames)).map((row) => ({
+      gameId: row.gameId,
+      playedAs: row.playedAs,
+      timeControl: { initialMs: row.initialMs, incrementMs: row.incrementMs },
+      outcome: row.outcome,
+      startedAt: row.startedAt.toISOString(),
+      finishedAt: row.finishedAt.toISOString(),
+      measurementProtocol: row.measurementProtocol as "instrumented-blitz",
+      protocolVersion: row.protocolVersion,
+      analysisTiming: row.analysisTiming as "after-play",
+      samplingPolicyVersion: row.samplingPolicyVersion,
+      askRate: row.askRate,
+    }));
+  }
+
+  async listBlitzDecisions(): Promise<StoredBlitzDecision[]> {
+    const db = await this.db();
+    return await db.select().from(blitzDecisions);
+  }
+
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
     const db = await this.db();
     const [drill] = await db
@@ -999,6 +1054,26 @@ export class MemoryRecordStore implements RecordStore {
       throw new Error("append-only: drill already reported");
     }
     this.drillResultRows.push(result);
+  }
+
+  private readonly blitzGameRows: StoredBlitzGame[] = [];
+  private readonly blitzDecisionRows: StoredBlitzDecision[] = [];
+
+  async saveBlitzRecord(record: StoredBlitzRecord): Promise<void> {
+    if (this.blitzGameRows.some((g) => g.gameId === record.game.gameId)) {
+      // The composite primary key does the same thing in MySQL; this makes the two stores agree.
+      throw new Error("append-only: blitz game already stored");
+    }
+    this.blitzGameRows.push(structuredClone(record.game));
+    this.blitzDecisionRows.push(...structuredClone(record.decisions));
+  }
+
+  async listBlitzGames(): Promise<StoredBlitzGame[]> {
+    return structuredClone(this.blitzGameRows);
+  }
+
+  async listBlitzDecisions(): Promise<StoredBlitzDecision[]> {
+    return structuredClone(this.blitzDecisionRows);
   }
 
   async saveLearningRule(rule: LearningRule): Promise<void> {

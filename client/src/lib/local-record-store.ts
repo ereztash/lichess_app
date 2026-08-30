@@ -16,6 +16,11 @@
 import type { PreregisteredHypothesis } from "@shared/prereg";
 import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
+import type {
+  StoredBlitzDecision,
+  StoredBlitzGame,
+  StoredBlitzRecord,
+} from "@shared/blitz-record";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "@shared/decision-atom";
 import { assembleProbe } from "@shared/counterfactual";
 import { MissingClaimDirection } from "@shared/drill";
@@ -107,6 +112,15 @@ type Persisted = {
   claims: Record<string, Claim>;
   drills: Record<string, StoredDrill>;
   drillResults: ProspectiveDrillResult[];
+  /**
+   * Blitz games and their decisions, kept apart from `decisions` (docs/blitz/ADR-004).
+   *
+   * OPTIONAL ON THE TYPE for the same reason `counterfactuals` is: this store reads JSON an
+   * earlier build wrote, and those saves have no such key. Absent is read as empty, which is
+   * true -- that build never played a blitz game it could keep.
+   */
+  blitzGames?: StoredBlitzGame[];
+  blitzDecisions?: StoredBlitzDecision[];
   learningRules: Record<string, LearningRule>;
   learningTransfers: Record<string, LearningTransfer>;
   /** Keyed `transferId#position`, mirroring the composite primary key in the database. */
@@ -126,6 +140,8 @@ const empty = (): Persisted => ({
   claims: {},
   drills: {},
   drillResults: [],
+  blitzGames: [],
+  blitzDecisions: [],
   learningRules: {},
   learningTransfers: {},
   learningTransferObservations: {},
@@ -407,6 +423,31 @@ export class LocalRecordStore implements RecordStore {
       }
       state.drillResults.push(result);
     });
+  }
+
+  async saveBlitzRecord(record: StoredBlitzRecord): Promise<void> {
+    return update((state) => {
+      const games = (state.blitzGames ??= []);
+      const decisions = (state.blitzDecisions ??= []);
+      if (games.some((g) => g.gameId === record.game.gameId)) {
+        throw new Error("append-only: blitz game already stored");
+      }
+      /*
+       * BOTH PUSHES INSIDE ONE `update`, so the write that persists them is one write. A game
+       * stored without its decisions would put the conditions on record with nothing they describe,
+       * and a later count of games would include it.
+       */
+      games.push(record.game);
+      decisions.push(...record.decisions);
+    });
+  }
+
+  async listBlitzGames(): Promise<StoredBlitzGame[]> {
+    return read().blitzGames ?? [];
+  }
+
+  async listBlitzDecisions(): Promise<StoredBlitzDecision[]> {
+    return read().blitzDecisions ?? [];
   }
 
   async saveLearningRule(rule: LearningRule): Promise<void> {

@@ -44,4 +44,11 @@ export const RECORD_TABLES = [
   "learning_transfer_results",
   "import_readings",
   "preregistered_hypotheses",
+  /*
+   * Blitz is its own kind of record (docs/blitz/ADR-004), and being a separate table changes
+   * nothing about whose games they are. Single-tenant by the same gate as everything above: no
+   * owner column, no owner predicate, `ownerProcedure` the only door.
+   */
+  "blitz_games",
+  "blitz_decisions",
 ] as const;

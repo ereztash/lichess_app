@@ -1,5 +1,6 @@
 import {
   boolean,
+  double,
   index,
   int,
   json,
@@ -12,6 +13,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { VALIDATION_KEYS } from "../shared/claim-grade-protocol.js";
+import type { BlitzOutcome, Side } from "../shared/blitz-game-core.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
@@ -448,3 +450,64 @@ export const preregisteredHypotheses = mysqlTable("preregistered_hypotheses", {
   refutationCondition: text("refutation_condition").notNull(),
   registeredAt: timestamp("registered_at").notNull(),
 });
+
+/**
+ * A blitz game somebody actually played, and every decision in it.
+ *
+ * SEPARATE FROM `decision_atoms` ON PURPOSE -- see `docs/blitz/ADR-004`. The atom requires two
+ * stated reads that are not nullable, nobody writes prose during a three-minute game, and an empty
+ * string for them would read afterwards as "asked, and answered with silence".
+ *
+ * The conditions ride on the GAME rather than being re-derived at read time, so a later reader can
+ * tell which regime produced a row without knowing what the constants happened to be that week.
+ */
+export const blitzGames = mysqlTable("blitz_games", {
+  gameId: varchar("game_id", { length: 64 }).primaryKey(),
+  /** Which side the person played. The core runs both, so this cannot be inferred from the rows. */
+  playedAs: mysqlEnum("played_as", ["w", "b"]).$type<Side>().notNull(),
+  initialMs: int("initial_ms").notNull(),
+  incrementMs: int("increment_ms").notNull(),
+  outcome: json("outcome").$type<BlitzOutcome>().notNull(),
+  startedAt: timestamp("started_at").notNull(),
+  finishedAt: timestamp("finished_at").notNull(),
+  measurementProtocol: mysqlEnum("measurement_protocol", MEASUREMENT_PROTOCOLS).notNull(),
+  protocolVersion: int("protocol_version").notNull(),
+  /** INV-4 as data: the engine ran after the game, or the game was not analysed. */
+  analysisTiming: mysqlEnum("analysis_timing", ANALYSIS_TIMINGS).notNull(),
+  samplingPolicyVersion: int("sampling_policy_version").notNull(),
+  askRate: double("ask_rate").notNull(),
+});
+export type BlitzGameRow = typeof blitzGames.$inferSelect;
+
+export const blitzDecisions = mysqlTable(
+  "blitz_decisions",
+  {
+    gameId: varchar("game_id", { length: 64 }).notNull(),
+    ply: int("ply").notNull(),
+    side: mysqlEnum("side", ["w", "b"]).$type<Side>().notNull(),
+    san: varchar("san", { length: 16 }).notNull(),
+    fenBefore: varchar("fen_before", { length: 120 }).notNull(),
+    /** Frozen at commit by the game core (INV-1). Nothing downstream may add to it. */
+    thinkMs: int("think_ms").notNull(),
+    clockBeforeMs: int("clock_before_ms").notNull(),
+    opponentClockBeforeMs: int("opponent_clock_before_ms").notNull(),
+    wasAsked: boolean("was_asked").notNull(),
+    /** The probability in force when the sampler chose, so the regime is reconstructable. */
+    samplingProbability: double("sampling_probability").notNull(),
+    /*
+     * THE FOUR NULLABLE COLUMNS, AND NOT ONE OF THEM MAY DEFAULT TO ZERO.
+     *
+     * A decision nobody questioned has no confidence and no latency; one answered instantly has a
+     * small latency. Storing the first as the second makes the mean of either column a fiction and
+     * hides exactly the population the sampler exists to describe. The engine's two columns are
+     * null when the evaluator could not answer for one of the two positions -- which is a fact
+     * about the search, not a cp-loss of zero.
+     */
+    confidence: int("confidence"),
+    instrumentationLatencyMs: int("instrumentation_latency_ms"),
+    cpLoss: int("cp_loss"),
+    standingCp: int("standing_cp"),
+  },
+  (table) => [primaryKey({ columns: [table.gameId, table.ply] })],
+);
+export type BlitzDecisionRow = typeof blitzDecisions.$inferSelect;

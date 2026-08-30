@@ -12,6 +12,8 @@ import type { FinishedGame, AnalysedDecision } from "../../shared/blitz-post-gam
 import type { InstrumentedDecision } from "../../shared/blitz-instrument";
 import { BLITZ_ASK_RATE, BLITZ_SAMPLING_POLICY_VERSION } from "../../shared/blitz-instrument";
 import { CURRENT_PROTOCOL_VERSION } from "../../shared/measurement-protocol";
+import { MemoryRecordStore } from "../../server/record";
+import { LIVE_DECISION_CARRIES_CLOCK } from "../../shared/live-acquisition";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -131,6 +133,50 @@ describe("a game that does not vanish with the tab", () => {
 
     it("refuses a game with no decisions instead of storing an empty one", () => {
       expect(toStoredRecord(game([]), [], [], META)).toEqual({ refused: "no-decisions" });
+    });
+  });
+
+  describe("the store keeps it, and keeps it apart", () => {
+    const record = () => stored() as StoredBlitzRecord;
+
+    it("round-trips a game and its decisions", async () => {
+      const store = new MemoryRecordStore();
+      await store.saveBlitzRecord(record());
+      expect(await store.listBlitzGames()).toHaveLength(1);
+      const back = await store.listBlitzDecisions();
+      expect(back).toHaveLength(3);
+      expect(back[1].confidence).toBeNull();
+      expect(back[0].confidence).toBe(5);
+    });
+
+    it("refuses to store the same game twice", async () => {
+      const store = new MemoryRecordStore();
+      await store.saveBlitzRecord(record());
+      await expect(store.saveBlitzRecord(record())).rejects.toThrow(/append-only/);
+    });
+
+    it("does not put a blitz decision into the decision record", async () => {
+      /*
+       * ADR-004 as an assertion. The atom table is where the commitment loop's decisions live, and
+       * a blitz decision has no stated reads to put in it. Storing a game must leave `listAtoms`
+       * exactly as it found it -- otherwise the two loops silently share a population.
+       */
+      const store = new MemoryRecordStore();
+      const before = (await store.listAtoms()).length;
+      await store.saveBlitzRecord(record());
+      expect(await store.listAtoms()).toHaveLength(before);
+      expect(await store.listDecisionIds()).toHaveLength(0);
+    });
+
+    it("leaves LIVE_DECISION_CARRIES_CLOCK false, because the atoms still carry no clock", () => {
+      /*
+       * A PREDICTION I GOT WRONG, KEPT AS A TEST. I told the account holder that landing this step
+       * would flip the constant and redden two assertions in the reachability gate. That was true
+       * of the design where blitz decisions BECOME atoms, and ADR-004 chose the other one: the
+       * detector reads atoms, atoms still have no clock, so `clock-under-1m` is still unfillable by
+       * anything the detector can see and refusing to preregister it is still correct.
+       */
+      expect(LIVE_DECISION_CARRIES_CLOCK).toBe(false);
     });
   });
 });
