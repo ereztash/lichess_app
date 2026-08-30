@@ -58,6 +58,30 @@ describe("inside, outside, and cannot be read", () => {
     expect(evaluatePredicate(fast, { secondsTaken: Number.NaN })).toBe("unreadable");
   });
 
+  it("refuses a type mismatch on EQUALITY too, in both directions", () => {
+    /*
+     * The narrower version of the same defect, and it hid behind the numeric branch. `eq` returned
+     * `value === bound` and `neq` its negation, so a numeric feature holding the STRING "12"
+     * answered false to `= 12` and TRUE to `!= 12` -- landing outside an equality subgroup and
+     * INSIDE an inequality one. Broken data contaminating both sides of the comparison, which is
+     * exactly what the unreadable state exists to prevent.
+     */
+    const isTwelve: Predicate = { atoms: [{ feature_id: "secondsTaken", op: "eq", value: 12 }] };
+    const isNotTwelve: Predicate = { atoms: [{ feature_id: "secondsTaken", op: "neq", value: 12 }] };
+    expect(evaluatePredicate(isTwelve, { secondsTaken: "12" })).toBe("unreadable");
+    expect(evaluatePredicate(isNotTwelve, { secondsTaken: "12" })).toBe("unreadable");
+  });
+
+  it("still compares two values of the same type, which is what a category feature needs", () => {
+    // The type check cannot demand a number: `phase = "endgame"` is the ordinary use of `eq`.
+    const endgame: Predicate = { atoms: [{ feature_id: "phase", op: "eq", value: "endgame" }] };
+    expect(evaluatePredicate(endgame, { phase: "endgame" })).toBe("inside");
+    expect(evaluatePredicate(endgame, { phase: "opening" })).toBe("outside");
+    const notEndgame: Predicate = { atoms: [{ feature_id: "phase", op: "neq", value: "endgame" }] };
+    expect(evaluatePredicate(notEndgame, { phase: "opening" })).toBe("inside");
+    expect(evaluatePredicate(notEndgame, { phase: "endgame" })).toBe("outside");
+  });
+
   it("lets absence itself be the subgroup", () => {
     const noClock: Predicate = { atoms: [{ feature_id: "clockMsRemaining", op: "is-null" }] };
     expect(evaluatePredicate(noClock, {})).toBe("inside");

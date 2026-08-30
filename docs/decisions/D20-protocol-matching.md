@@ -92,11 +92,24 @@ decisions under 45 seconds against game decisions under 45 seconds, on the same 
 
 **Alternative 2 for the mechanism, and nothing for the choice.**
 
-`shared/discovery/claim-class.ts` derives the class from what a subgroup *reads*: each feature
-carries a `condition_kind`, and a predicate's class follows by a precedence in which the strictest
-requirement wins — one unclassified term makes the whole claim `UNKNOWN`, a model output beside a
-phase still needs the model pinned, and a board plus a clock is `POSITION_X_ENVIRONMENT` rather than
-either half.
+`shared/discovery/claim-class.ts` derives what a subgroup needs from what it *reads*: each feature
+carries a `condition_kind`, each kind imposes one **requirement** on a protocol, and a predicate's
+requirements are the **union** over its features. The protocol is then the cheapest one whose
+declared capabilities cover the whole set — and `no-verdict` when none does.
+
+**THE UNION IS A CORRECTION, AND THE FIRST VERSION GOT IT WRONG.** It picked one *class* by
+precedence — model-derived beats sequence beats the rest — and this file's own DECISION paragraph
+said why that was meant to be safe: *"a model output beside a phase still needs the model pinned."*
+It does. It also needs the positions matched, and precedence kept the pin and dropped the board, so
+`phase AND humanMoveProbability` dispatched to a model-version-locked holdout that never matches a
+position. The prose described a conjunction; the code implemented a priority. **Caught by a review
+bot on the pull request that introduced it**, which is the only reason it is a paragraph here
+rather than a claim about a player.
+
+The class label survives as a *name* — it is what `classifyBucketKey` returns for the six shipped
+keys, each of which has exactly one kind, and it is what D20's table is written against. It is no
+longer what dispatches. Anything choosing a protocol from the label alone for a mixed predicate
+reintroduces the defect, and the module says so where the label is defined.
 
 `UNKNOWN` dispatches to `no-verdict`, which is a protocol in the table rather than an absence.
 Leaving it out and returning null would let a caller read "we have not classified this" as "the

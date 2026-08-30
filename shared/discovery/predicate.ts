@@ -89,8 +89,22 @@ export function evaluatePredicate(predicate: Predicate, row: MaterialisedRow): M
  */
 function compare(value: unknown, atom: PredicateAtom): boolean | null {
   const bound = atom.value;
-  if (atom.op === "eq") return value === bound;
-  if (atom.op === "neq") return value !== bound;
+  if (atom.op === "eq" || atom.op === "neq") {
+    /*
+     * EQUALITY IS UNREADABLE ACROSS TYPES TOO, and the first version of this function forgot it.
+     * `eq` returned `value === bound` and `neq` its negation, so a numeric feature holding the
+     * STRING "12" answered false to `= 12` and true to `!= 12` -- filing a decision with broken
+     * data outside an equality subgroup and INSIDE an inequality one, contaminating both sides of
+     * the very comparison this function's own note says it refuses to contaminate. Reported by a
+     * review bot on the pull request that introduced it.
+     *
+     * The type check cannot demand a number here, because `eq` is what a CATEGORY feature is
+     * compared with -- `phase = "endgame"` is the ordinary case. What it can demand is that the
+     * two sides are commensurable at all.
+     */
+    if (typeof value !== typeof bound) return null;
+    return atom.op === "eq" ? value === bound : value !== bound;
+  }
   if (typeof value !== "number" || typeof bound !== "number") return null;
   if (!Number.isFinite(value)) return null;
   switch (atom.op) {

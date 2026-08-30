@@ -21,6 +21,9 @@ import {
   classifyPredicate,
   conditionKindOfBucket,
   protocolForClass,
+  protocolForPredicate,
+  protocolSatisfies,
+  requirementsForKinds,
 } from "@shared/discovery/claim-class";
 import type { FeatureSpec } from "@shared/discovery/feature-contract";
 import type { Predicate } from "@shared/discovery/predicate";
@@ -70,13 +73,60 @@ describe("classifying a subgroup by what it reads", () => {
     expect(protocolForClass(claimClass).protocol).toBe("timed-matching-condition");
   });
 
-  it("lets the strictest requirement win, so a pin is never lost to a board", () => {
-    // A model output beside a phase still needs the model version pinned. Classifying it as
-    // POSITION would drop the only requirement that makes it reproducible.
+  it("labels a mixed predicate by its strictest kind", () => {
     expect(classifyPredicate(predicate("phase", "humanMoveProbability"), REGISTRY).claimClass).toBe(
       "MODEL_DERIVED",
     );
     expect(classifyPredicate(predicate("phase", "eventRun"), REGISTRY).claimClass).toBe("SEQUENCE");
+  });
+
+  it("KEEPS EVERY REQUIREMENT A MIXED PREDICATE IMPOSES, and does not dispatch on the label", () => {
+    /*
+     * The defect this replaces. The label is chosen by precedence, so `phase AND
+     * humanMoveProbability` is called MODEL_DERIVED -- and dispatching on that label alone sent it
+     * to a model-version-locked holdout, which pins the model and never matches the position. The
+     * predicate needs BOTH. A union cannot drop a term; a precedence can, and did.
+     */
+    const mixed = classifyPredicate(predicate("phase", "humanMoveProbability"), REGISTRY);
+    expect(mixed.requirements).toEqual(["match-position-class", "pin-the-model-version"]);
+    expect(protocolForClass(mixed.claimClass).protocol).toBe("model-version-locked-holdout");
+    // ...and the protocol actually dispatched refuses, because nothing in the table does both.
+    expect(mixed.protocol).toBe("no-verdict");
+  });
+
+  it("refuses rather than approximating when no protocol covers the whole predicate", () => {
+    // Not "close enough". When D17 opens and a protocol that both pins a model and matches
+    // positions exists, adding one row makes this testable and nothing else changes.
+    expect(protocolForPredicate(predicate("clockShare", "eventRun"), REGISTRY)).toBe("no-verdict");
+  });
+
+  it("still finds the protocol that DOES cover a mixed predicate", () => {
+    const both = classifyPredicate(predicate("phase", "clockShare"), REGISTRY);
+    expect(both.requirements).toEqual(["match-position-class", "reproduce-clock-condition"]);
+    expect(both.protocol).toBe("timed-matching-condition");
+  });
+
+  it("takes the union of requirements, never a winner", () => {
+    expect(requirementsForKinds(["POSITION", "ENVIRONMENT", "MODEL_DERIVED"]).requirements).toEqual([
+      "match-position-class",
+      "reproduce-clock-condition",
+      "pin-the-model-version",
+    ]);
+    expect(requirementsForKinds(["POSITION", null]).unknown).toBe(true);
+    expect(requirementsForKinds([]).unknown).toBe(true);
+  });
+
+  it("knows which protocol can do what, declared rather than inferred from its name", () => {
+    expect(protocolSatisfies("timed-matching-condition", ["match-position-class"])).toBe(true);
+    expect(protocolSatisfies("natural-timed-holdout", ["match-position-class"])).toBe(false);
+    // A game played forward is not a game whose positions anyone chose.
+    expect(protocolSatisfies("future-complete-games", ["match-position-class"])).toBe(false);
+    expect(protocolSatisfies("no-verdict", ["match-position-class"])).toBe(false);
+  });
+
+  it("gives a single-kind predicate the cheapest protocol that suffices", () => {
+    expect(protocolForPredicate(predicate("phase"), REGISTRY)).toBe("matched-unseen-positions");
+    expect(protocolForPredicate(predicate("clockShare"), REGISTRY)).toBe("natural-timed-holdout");
   });
 
   it("makes one unclassified term make the whole claim unknown", () => {

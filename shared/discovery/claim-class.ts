@@ -100,12 +100,123 @@ export const PROTOCOL_FOR_CLASS: Readonly<
 };
 
 /**
- * Classify a set of condition kinds.
+ * WHAT A PROTOCOL HAS TO DO, one obligation per condition kind.
  *
- * PRECEDENCE, AND WHY IT RUNS IN THIS ORDER. Each rule below answers "what is the strictest thing
- * this claim needs?", and strictness is what has to win: a predicate mixing a model output with a
- * phase needs the model pinned AND the positions matched, and the row that names the pin is the
- * one that would otherwise be lost.
+ * THE LEVEL THE FIRST VERSION OF THIS FILE WAS MISSING, and it cost a real defect. `classifyKinds`
+ * picked ONE class by precedence -- model-derived beats sequence beats the rest -- and this file's
+ * own comment said why that was meant to be safe: *"a predicate mixing a model output with a phase
+ * needs the model pinned AND the positions matched, and the row that names the pin is the one that
+ * would otherwise be lost."* The comment describes a CONJUNCTION. The code implemented a PRIORITY,
+ * so it kept the pin and lost the positions -- the same substitution INV-10 forbids, arrived at
+ * from the other side. Reported by a review bot on the pull request that introduced it.
+ *
+ * A requirement is not a protocol. It is the thing a protocol must be able to do, and a predicate's
+ * requirements are the UNION over its features. Nothing about a union can silently drop a term.
+ */
+export const PROTOCOL_REQUIREMENTS = [
+  /** Present the same class of board again. */
+  "match-position-class",
+  /** Have the clock condition actually hold while the decision is made. */
+  "reproduce-clock-condition",
+  /** Observe an ordered run of decisions, which exists only in a game played forward. */
+  "observe-a-complete-game-forward",
+  /** Hold the model version the subgroup was defined under. */
+  "pin-the-model-version",
+] as const;
+export type ProtocolRequirement = (typeof PROTOCOL_REQUIREMENTS)[number];
+
+const REQUIREMENT_OF_KIND: Readonly<Record<ConditionKind, ProtocolRequirement>> = {
+  POSITION: "match-position-class",
+  ENVIRONMENT: "reproduce-clock-condition",
+  SEQUENCE: "observe-a-complete-game-forward",
+  MODEL_DERIVED: "pin-the-model-version",
+};
+
+/**
+ * What each protocol can actually do.
+ *
+ * DECLARED AS A CAPABILITY SET RATHER THAN INFERRED FROM THE NAME, so that adding a protocol means
+ * stating what it reproduces. `future-complete-games` deliberately does NOT claim
+ * `match-position-class`: a game played forward is not a game whose positions anyone chose.
+ */
+const PROTOCOL_SATISFIES: Readonly<Record<ValidationProtocolKind, readonly ProtocolRequirement[]>> = {
+  "matched-unseen-positions": ["match-position-class"],
+  "natural-timed-holdout": ["reproduce-clock-condition"],
+  "timed-matching-condition": ["match-position-class", "reproduce-clock-condition"],
+  "future-complete-games": ["observe-a-complete-game-forward"],
+  "model-version-locked-holdout": ["pin-the-model-version"],
+  /** Satisfies nothing, which is what makes it the answer when nothing else does. */
+  "no-verdict": [],
+};
+
+/** Whether this protocol can do everything this claim needs. */
+export function protocolSatisfies(
+  protocol: ValidationProtocolKind,
+  requirements: readonly ProtocolRequirement[],
+): boolean {
+  const satisfied = new Set(PROTOCOL_SATISFIES[protocol]);
+  return requirements.every((requirement) => satisfied.has(requirement));
+}
+
+/**
+ * The requirements a set of condition kinds imposes. A UNION, never a winner.
+ *
+ * `null` in the list means a feature nobody has classified, and it makes the whole set unknown --
+ * one unclassified term makes the claim untestable, because nothing can say what reproducing it
+ * would involve.
+ */
+export function requirementsForKinds(kinds: readonly (ConditionKind | null)[]): {
+  requirements: ProtocolRequirement[];
+  unknown: boolean;
+} {
+  if (kinds.length === 0 || kinds.some((kind) => kind === null)) {
+    return { requirements: [], unknown: true };
+  }
+  const required = new Set<ProtocolRequirement>();
+  for (const kind of kinds as ConditionKind[]) required.add(REQUIREMENT_OF_KIND[kind]);
+  return {
+    requirements: PROTOCOL_REQUIREMENTS.filter((requirement) => required.has(requirement)),
+    unknown: false,
+  };
+}
+
+/**
+ * The protocol that can do EVERYTHING a claim needs, or `no-verdict`.
+ *
+ * REFUSES RATHER THAN APPROXIMATES. A predicate over a phase and a model output needs both the
+ * positions matched and the model pinned, and no protocol in the table does both -- so the honest
+ * answer is that this product cannot test that claim yet, not that a model-locked holdout is close
+ * enough. When D17 opens and such a protocol exists, adding a row here makes the claim testable and
+ * nothing else has to change.
+ *
+ * The first protocol in declaration order that covers the set, so the answer is deterministic and
+ * the cheapest sufficient protocol wins over a stricter one that would also do.
+ */
+export function protocolSatisfying(requirements: readonly ProtocolRequirement[]): ValidationProtocolKind {
+  if (requirements.length === 0) return "no-verdict";
+  for (const protocol of PROTOCOL_ORDER) {
+    if (protocolSatisfies(protocol, requirements)) return protocol;
+  }
+  return "no-verdict";
+}
+
+/** Cheapest first, so a claim needing one thing is not sent to a protocol that does two. */
+const PROTOCOL_ORDER: readonly ValidationProtocolKind[] = [
+  "matched-unseen-positions",
+  "natural-timed-holdout",
+  "future-complete-games",
+  "model-version-locked-holdout",
+  "timed-matching-condition",
+];
+
+/**
+ * Classify a set of condition kinds into the taxonomy's headline label.
+ *
+ * THE LABEL IS A NAME, NOT THE DISPATCH. It answers "what kind of claim is this" for a reader and
+ * for the six shipped bucket keys, each of which has exactly one kind. It is NOT what decides the
+ * protocol -- `protocolSatisfying(requirementsForKinds(...))` is, and the difference is the defect
+ * described above. Anything choosing a protocol from this label alone for a MIXED predicate is
+ * reintroducing it.
  *
  *   1. anything unclassified  -> UNKNOWN. One unknown term makes the whole claim untestable.
  *   2. any model-derived      -> MODEL_DERIVED
@@ -135,7 +246,18 @@ export function classifyKinds(kinds: readonly (ConditionKind | null)[]): ClaimCl
 export function classifyPredicate(
   predicate: Predicate,
   registry: readonly FeatureSpec[],
-): { claimClass: ClaimClass; unclassified: string[] } {
+): {
+  claimClass: ClaimClass;
+  unclassified: string[];
+  /** Everything a protocol must be able to do for this predicate. A union over its features. */
+  requirements: ProtocolRequirement[];
+  /**
+   * THE ANSWER CALLERS SHOULD USE. Derived from the requirement SET, not from `claimClass` -- a
+   * mixed predicate's label names only its strictest kind, and dispatching on the label is how the
+   * other kind's requirement gets dropped.
+   */
+  protocol: ValidationProtocolKind;
+} {
   const byId = new Map(registry.map((spec) => [spec.id, spec]));
   const unclassified: string[] = [];
   const kinds: (ConditionKind | null)[] = [];
@@ -148,7 +270,21 @@ export function classifyPredicate(
     }
     kinds.push(spec.condition_kind);
   }
-  return { claimClass: classifyKinds(kinds), unclassified };
+  const { requirements, unknown } = requirementsForKinds(kinds);
+  return {
+    claimClass: classifyKinds(kinds),
+    unclassified,
+    requirements,
+    protocol: unknown ? "no-verdict" : protocolSatisfying(requirements),
+  };
+}
+
+/** The protocol a predicate needs, or `no-verdict`. The one call a freeze or a judge should make. */
+export function protocolForPredicate(
+  predicate: Predicate,
+  registry: readonly FeatureSpec[],
+): ValidationProtocolKind {
+  return classifyPredicate(predicate, registry).protocol;
 }
 
 /** The protocol a claim of this class requires, with the reason it requires it. */

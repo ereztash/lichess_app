@@ -22,8 +22,32 @@ import {
   hypothesisId,
   type FrozenHypothesis,
 } from "@shared/discovery/hypothesis-manifest";
+import type { FeatureSpec } from "@shared/discovery/feature-contract";
 import { canonicalJson } from "@shared/discovery/manifest-hash";
 import { sha256Hex } from "@shared/discovery/sha256";
+
+const feature = (id: string, kind: FeatureSpec["condition_kind"]): FeatureSpec => ({
+  id,
+  version: 1,
+  type: "number",
+  role: "PREDICTOR",
+  source_class: "DETERMINISTIC",
+  missingness_policy: "exclude-decision",
+  discovery_eligible: true,
+  validation_eligible: false,
+  semantic_confidence: "definitional",
+  license_origin: "this repository",
+  condition_kind: kind,
+});
+
+/** The registry `freeze` re-derives the required protocol from. It is never optional. */
+const REGISTRY: FeatureSpec[] = [
+  feature("clockShare", "ENVIRONMENT"),
+  feature("materialAdvantage", "POSITION"),
+  feature("phase", "POSITION"),
+  feature("humanMoveProbability", "MODEL_DERIVED"),
+  feature("mystery", null),
+];
 
 const MANIFEST: FrozenHypothesis = {
   schema_version: HYPOTHESIS_SCHEMA_VERSION,
@@ -50,7 +74,7 @@ const MANIFEST: FrozenHypothesis = {
 
 describe("the identity of a frozen hypothesis", () => {
   it("is a sha-256 digest of the canonical manifest", () => {
-    const id = freeze(MANIFEST).hypothesis_id;
+    const id = freeze(MANIFEST, REGISTRY).hypothesis_id;
     expect(id).toMatch(/^[0-9a-f]{64}$/);
     expect(id).toBe(sha256Hex(canonicalJson({ ...MANIFEST, predicate: MANIFEST.predicate })));
   });
@@ -141,44 +165,86 @@ describe("what may not be frozen at all", () => {
       },
       feature_versions: { clockShare: 1, materialAdvantage: 1, phase: 1 },
     };
-    expect(freezeProblems(deep)).toContainEqual(expect.stringContaining("depth 3"));
-    expect(() => freeze(deep)).toThrow();
+    expect(freezeProblems(deep, REGISTRY)).toContainEqual(expect.stringContaining("depth 3"));
+    expect(() => freeze(deep, REGISTRY)).toThrow();
   });
 
-  it("refuses a hypothesis whose class admits no protocol", () => {
-    // `no-verdict` is what `claim-class.ts` returns for a claim nothing here knows how to test.
-    // Freezing one would promise a verdict that no protocol can deliver.
-    const untestable: FrozenHypothesis = { ...MANIFEST, validation_protocol: "no-verdict" };
-    expect(freezeProblems(untestable)).toContainEqual(expect.stringContaining("no protocol"));
+  it("refuses a hypothesis whose predicate no protocol can reproduce", () => {
+    // A feature nobody has classified makes the whole claim untestable. Freezing it would promise
+    // a verdict that no protocol can deliver.
+    const untestable: FrozenHypothesis = {
+      ...MANIFEST,
+      predicate: { atoms: [{ feature_id: "mystery", op: "lt", value: 1 }] },
+      feature_versions: { mystery: 1 },
+    };
+    expect(freezeProblems(untestable, REGISTRY)).toContainEqual(expect.stringContaining("no protocol"));
+  });
+
+  it("REFUSES A PROTOCOL THAT REMOVES THE CONDITION THE CLAIM IS ABOUT", () => {
+    /*
+     * The worst defect this module has had. `validation_protocol` used to be taken on trust and
+     * checked only against `no-verdict`, so an ENVIRONMENT predicate could be frozen declaring
+     * `matched-unseen-positions` -- a hashed, immutable record whose stated validation removes the
+     * one condition the claim is about. INV-10 violated in writing, at the moment the product
+     * commits to how the claim will be judged.
+     */
+    const substituted: FrozenHypothesis = {
+      ...MANIFEST,
+      predicate: { atoms: [{ feature_id: "clockShare", op: "lt", value: 0.37 }] },
+      feature_versions: { clockShare: 1 },
+      validation_protocol: "matched-unseen-positions",
+    };
+    expect(freezeProblems(substituted, REGISTRY)).toContainEqual(
+      expect.stringContaining("needs natural-timed-holdout"),
+    );
+    expect(() => freeze(substituted, REGISTRY)).toThrow();
+  });
+
+  it("accepts the protocol the predicate actually needs", () => {
+    const honest: FrozenHypothesis = {
+      ...MANIFEST,
+      predicate: { atoms: [{ feature_id: "clockShare", op: "lt", value: 0.37 }] },
+      feature_versions: { clockShare: 1 },
+      validation_protocol: "natural-timed-holdout",
+    };
+    expect(freezeProblems(honest, REGISTRY)).toEqual([]);
+  });
+
+  it("re-derives the protocol rather than believing the manifest, even when both are plausible", () => {
+    // `natural-timed-holdout` is a real protocol and this is a real predicate. It is still wrong
+    // for THIS predicate, which names a board as well as a clock.
+    expect(
+      freezeProblems({ ...MANIFEST, validation_protocol: "natural-timed-holdout" }, REGISTRY),
+    ).toContainEqual(expect.stringContaining("needs timed-matching-condition"));
   });
 
   it("refuses a predicate that reads a feature with no recorded formula version", () => {
     const unversioned: FrozenHypothesis = { ...MANIFEST, feature_versions: { clockShare: 1 } };
-    expect(freezeProblems(unversioned)).toContainEqual(
+    expect(freezeProblems(unversioned, REGISTRY)).toContainEqual(
       expect.stringContaining("no feature version recorded for materialAdvantage"),
     );
   });
 
   it("refuses a claim with no floor, because a claim with no floor cannot fail", () => {
-    expect(freezeProblems({ ...MANIFEST, minimum_meaningful_effect: 0 })).toContainEqual(
+    expect(freezeProblems({ ...MANIFEST, minimum_meaningful_effect: 0 }, REGISTRY)).toContainEqual(
       expect.stringContaining("minimum_meaningful_effect"),
     );
   });
 
   it("refuses a budget that has nothing left to spend", () => {
     expect(
-      freezeProblems({ ...MANIFEST, error_budget: { alpha: 0.05, spent_before: 0.05 } }),
+      freezeProblems({ ...MANIFEST, error_budget: { alpha: 0.05, spent_before: 0.05 } }, REGISTRY),
     ).toContainEqual(expect.stringContaining("spent_before"));
   });
 });
 
 describe("a stored record that no longer says what its id names", () => {
   it("is intact when nothing moved", () => {
-    expect(frozenIsIntact(freeze(MANIFEST))).toBe(true);
+    expect(frozenIsIntact(freeze(MANIFEST, REGISTRY))).toBe(true);
   });
 
   it("is not intact when a field changed underneath the id", () => {
-    const record = freeze(MANIFEST);
+    const record = freeze(MANIFEST, REGISTRY);
     expect(frozenIsIntact({ ...record, minimum_meaningful_effect: 0.06 })).toBe(false);
   });
 });

@@ -31,7 +31,8 @@
  * inherit the evidence collected against the old one. That is the invariant this module exists for,
  * and `tests/discovery/one-byte-is-a-different-hypothesis.test.ts` is what holds it.
  */
-import type { ValidationProtocolKind } from "./claim-class.js";
+import { protocolForPredicate, type ValidationProtocolKind } from "./claim-class.js";
+import type { FeatureSpec } from "./feature-contract.js";
 import { canonicalJson } from "./manifest-hash.js";
 import { canonicalPredicate, predicateProblems, type Predicate } from "./predicate.js";
 import { sha256Hex } from "./sha256.js";
@@ -116,11 +117,18 @@ export function hypothesisId(manifest: FrozenHypothesis): string {
  * Freeze a hypothesis: canonicalise, check, hash.
  *
  * REFUSES RATHER THAN REPAIRS. A predicate too deep, a protocol that cannot produce a verdict, a
- * feature the predicate reads with no version recorded -- each of those is a hypothesis that
- * should not be frozen, and freezing a repaired version of it would freeze something nobody wrote.
+ * feature the predicate reads with no version recorded, a protocol that does not match what the
+ * predicate is about -- each of those is a hypothesis that should not be frozen, and freezing a
+ * repaired version of it would freeze something nobody wrote.
+ *
+ * THE REGISTRY IS REQUIRED, and that is the fix for the worst defect this module has had. See
+ * `freezeProblems`.
  */
-export function freeze(manifest: FrozenHypothesis): FrozenHypothesisRecord {
-  const problems = freezeProblems(manifest);
+export function freeze(
+  manifest: FrozenHypothesis,
+  registry: readonly FeatureSpec[],
+): FrozenHypothesisRecord {
+  const problems = freezeProblems(manifest, registry);
   if (problems.length > 0) {
     throw new Error(`this hypothesis cannot be frozen: ${problems.join("; ")}`);
   }
@@ -131,16 +139,39 @@ export function freeze(manifest: FrozenHypothesis): FrozenHypothesisRecord {
   return { ...canonical, hypothesis_id: hypothesisId(canonical) };
 }
 
-/** Every reason this manifest may not be frozen. Reasons, not a boolean. */
-export function freezeProblems(manifest: FrozenHypothesis): string[] {
+/**
+ * Every reason this manifest may not be frozen. Reasons, not a boolean.
+ *
+ * THE PROTOCOL IS RE-DERIVED, NEVER BELIEVED, and this is the defect that made the registry a
+ * required argument. The first version checked only that `validation_protocol` was not
+ * `no-verdict`, so a caller could freeze an ENVIRONMENT predicate declaring
+ * `matched-unseen-positions` -- a formally valid, hashed, immutable record whose stated validation
+ * removes the one condition the claim is about. That is INV-10 violated in writing, at the exact
+ * moment the product is supposed to be committing to how a claim will be judged, and every later
+ * verdict would inherit it. Reported by a review bot on the pull request that introduced it.
+ *
+ * A manifest cannot be trusted about its own protocol for the same reason `commitDecision`
+ * re-derives the phase from the FEN rather than trusting the client's label.
+ */
+export function freezeProblems(
+  manifest: FrozenHypothesis,
+  registry: readonly FeatureSpec[],
+): string[] {
   const problems = [...predicateProblems(manifest.predicate)];
+  const required = protocolForPredicate(manifest.predicate, registry);
+  if (required === "no-verdict") {
+    problems.push(
+      "no protocol in this product reproduces everything this predicate names, so it cannot be frozen",
+    );
+  } else if (manifest.validation_protocol !== required) {
+    problems.push(
+      `validation_protocol is ${manifest.validation_protocol} but this predicate needs ${required}`,
+    );
+  }
   if (manifest.schema_version !== HYPOTHESIS_SCHEMA_VERSION) {
     problems.push(
       `schema_version ${manifest.schema_version} is not this build's ${HYPOTHESIS_SCHEMA_VERSION}`,
     );
-  }
-  if (manifest.validation_protocol === "no-verdict") {
-    problems.push("its class admits no protocol, so freezing it would promise a verdict nothing can give");
   }
   if (!(manifest.minimum_meaningful_effect > 0)) {
     problems.push("minimum_meaningful_effect must be positive: a claim with no floor cannot fail");

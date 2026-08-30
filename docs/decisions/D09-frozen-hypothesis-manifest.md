@@ -102,10 +102,19 @@ this is the field most likely to move out.
 **Alternative 3.** `hypothesis_id = SHA256(canonicalJson(manifest))`, with the predicate
 canonicalised before hashing so two orderings of one conjunction cannot make two ids.
 
-`freeze` **refuses rather than repairs**: a conjunction deeper than the declared maximum, a class
-that admits no protocol, a feature the predicate reads with no recorded formula version, a claim
-with no minimum meaningful effect, a budget with nothing left to spend. Freezing a repaired version
-would freeze something nobody wrote.
+`freeze` **refuses rather than repairs**: a conjunction deeper than the declared maximum, a
+predicate no protocol can reproduce, a feature the predicate reads with no recorded formula version,
+a claim with no minimum meaningful effect, a budget with nothing left to spend. Freezing a repaired
+version would freeze something nobody wrote.
+
+**THE PROTOCOL IS RE-DERIVED, NEVER BELIEVED, and that is a correction.** The first version took
+`validation_protocol` on trust and checked only that it was not `no-verdict` — so a caller could
+freeze an ENVIRONMENT predicate declaring `matched-unseen-positions`: a hashed, immutable record
+whose stated validation removes the one condition the claim is about. INV-10 violated *in writing*,
+at the exact moment the product commits to how a claim will be judged, with every later verdict
+inheriting it. `freeze` now takes the feature registry and re-derives the required protocol from the
+predicate, for the same reason `commitDecision` re-derives the phase from the FEN rather than
+trusting the client's label. **Caught by a review bot on the pull request that introduced it.**
 
 `derivation_game_ids_hash` names the games without carrying them, so a later reader can prove the
 validation games were not among the ones that suggested the claim.
