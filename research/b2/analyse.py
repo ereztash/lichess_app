@@ -234,6 +234,16 @@ def study(subset, label):
     rng = random.Random(SEED)
     deriv = [r for r in subset if r["half"] == "derivation"]
     held = [r for r in subset if r["half"] == "heldout"]
+    """A decision that lands in neither half is a silent dropout, so it is counted and refused.
+
+    `gameId` comes from the harness and the halves come from the manifest, and nothing forces the
+    two to agree -- the harness writes `games[gameIndex]?.id ?? null`. If they ever stop agreeing,
+    the study would quietly shrink and still print a verdict.
+    """
+    stray = len(subset) - len(deriv) - len(held)
+    if stray:
+        sys.exit(f"{stray} eligible decisions map to no half -- the evidence and the manifest "
+                 f"disagree about game ids, and a study that drops them silently is not a study")
     print(f"\n{'=' * 86}\n{label}\n{'=' * 86}")
     print(f"games {len({r['gameId'] for r in subset}):>4}   eligible decisions {len(subset):>5}"
           f"   derivation {len(deriv):>5}   held-out {len(held):>5}")
