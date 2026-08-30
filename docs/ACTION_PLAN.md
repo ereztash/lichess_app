@@ -256,6 +256,34 @@ of.
 *So it is scheduled behind everything else*, and when it happens it is a mechanical extraction with
 the existing tests as the invariant — not a redesign.
 
+### C1 was attempted, and the extraction this section assumed does not exist
+
+Checked rather than assumed:
+
+| | |
+| --- | ---: |
+| one component, `Home()` | lines 180 – 2,358 |
+| `useState` calls, all in one 200-line block | **55** |
+| declarations closing over them | 45 |
+| `useMemo` blocks that are pure computation | 3, totalling **20 lines** |
+
+Twenty lines out of 2,358 is the whole of what can move without changing behaviour. Everything else
+closes over one of fifty-five pieces of state in a single scope, so every real split is a
+**redesign** — custom hooks (which changes where hooks are called), context, or threading fifteen
+props into each panel. That is precisely the "large diff with no falsifiable claim" this section
+was already sceptical of, and it is not something to be 95% sure of.
+
+**What was done instead**: `tests/client/the-file-that-only-ever-grew.test.ts`, a ratchet in the
+same shape as the bundle budget and for the reason stated there — growth past a line should be a
+decision somebody makes on purpose, in a diff. The file reached 2,358 lines because every single
+change to it was small.
+
+Unlike the bundle ceiling, **these numbers only ever go down.** Shipping more code can be worth it;
+a fifty-sixth piece of state in this component cannot be. Raising either ceiling means the refactor
+got further away, so the ceiling is the wrong thing to change.
+
+**The redesign itself is a decision for the owner, not a task to be picked up quietly.**
+
 ---
 
 ## 6. What this plan deliberately does not do
@@ -296,12 +324,12 @@ Written before the work, so they cannot be adjusted to fit a result.
 DONE     A1  board: name, roving focus, live region
 DONE     B1  engine parity  ->  STOP-B1, Δ = 13.6 pp against a 13.0 pp bar
 
-now      A2  overlay focus trap and restore
-         A3  GATE-KEYBOARD
+DONE     A2  overlay focus trap and restore
+DONE     A3  GATE-KEYBOARD  ->  found a third live instance on its first run
 
 BLOCKED  B2  time representation        STOP-B1 fired
          B3  MultiPV cost               STOP-B1 fired
          B4  prospective effectiveness  STOP-B1 fired, and recruitment
 
-later    C1  Home.tsx extraction        (never depended on B1)
+HELD     C1  Home.tsx  ->  no mechanical extraction exists; ratcheted instead
 ```
