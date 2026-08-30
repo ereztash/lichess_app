@@ -43,6 +43,19 @@ const INDEX = "dist/public/index.html";
  * STILL JUST ABOVE THE BUILD, which is the property that makes this a ratchet: 648 leaves 5 kB, so
  * the next hundred is visible on the day it arrives.
  *
+ *
+ * RAISED AGAIN, 652 -> 656 / 202 -> 204 / 724 -> 728, FOR THE DENOMINATOR LEDGER AND THE BOOK.
+ * The property this budget protects is unchanged and was checked rather than assumed: the engine
+ * is still reached by a dynamic import, the chart library is still its own chunk, and the opening
+ * book's 833 keys -- 9.0 kB, the largest single thing this change adds -- are in a chunk of their
+ * own (`opening-book-keys-*.js`) fetched when a player asks for a scan, exactly as the wasm is.
+ *
+ * MEASURED, NOT ESTIMATED. Entry raw 649.6 kB before, 651.9 kB after; gzipped 201.3 kB before,
+ * 202.0 kB after. The 2.3 kB is the import panel's exclusion ledger -- the arithmetic that says
+ * what the accuracy rate's denominator actually is -- plus the sentence that says what is still
+ * counted, and the book plumbing in `import-diagnostic.ts`. Those bytes are the correction to a
+ * number the ledger in docs/MEASUREMENTS.md called a known defect on screen, so trimming them
+ * further would mean deleting the disclosure rather than deleting bytes.
  * RAISED AGAIN, 648 -> 652, FOR THE ACQUISITION EVIDENCE LEDGER, and all three ceilings moved this
  * time because all three were crossed. Measured: 645.0 kB before, 650.8 kB after, 649.2 kB once
  * the value-reconstruction prompt was moved behind a dynamic import -- it renders on the second
@@ -63,16 +76,16 @@ const INDEX = "dist/public/index.html";
  * The gzip ceiling went 200 -> 202 (201.2 measured) and the initial-download ceiling 720 -> 724
  * (720.6 measured), for the same code and the same reason.
  */
-const ENTRY_RAW_KB = 652;
+const ENTRY_RAW_KB = 656;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 202;
+const ENTRY_GZIP_KB = 204;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
  * Separate from the entry ceiling because a stylesheet growing past a megabyte would be invisible
  * to a JavaScript-only budget, and `index.css` is already 3,693 lines.
  */
-const INITIAL_RAW_KB = 724;
+const INITIAL_RAW_KB = 728;
 
 interface Asset {
   name: string;

@@ -281,6 +281,22 @@ export const GATES: Gate[] = [
       ),
   },
   {
+    id: "GATE-MEASURE",
+    rule: "R1",
+    description: "A measurement that was never made changes no bucket, and no comparison set.",
+    run: () =>
+      runVitestFile(
+        "tests/gates/measurement.test.ts",
+        "unmeasured decisions enter neither a bucket nor its baseline",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/measurement.control.test.ts",
+        "a missing think time read as zero",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-GRADE",
     rule: "3.3",
     description: "No claim renders above its grade.",
@@ -386,6 +402,23 @@ export const GATES: Gate[] = [
         await import("../tests/fixtures/shuffle-scenario");
       // Same predicate, the thresholds this build started with. They found structure in noise.
       return shuffleVerdict(noiseRecord, PERMISSIVE_THRESHOLDS, pass, fail);
+    },
+  },
+  {
+    id: "GATE-SHUFFLE-REAL",
+    rule: "6",
+    description:
+      "The same control, on records with the shape real decisions have rather than a uniform one.",
+    run: async () => {
+      const { shuffleVerdict, realShapedRecord } =
+        await import("../tests/fixtures/shuffle-scenario");
+      const { DEFAULT_THRESHOLDS } = await import("../shared/detector");
+      return shuffleVerdict(realShapedRecord, DEFAULT_THRESHOLDS, pass, fail);
+    },
+    positiveControl: async () => {
+      const { shuffleVerdict, realShapedRecord, PERMISSIVE_THRESHOLDS } =
+        await import("../tests/fixtures/shuffle-scenario");
+      return shuffleVerdict(realShapedRecord, PERMISSIVE_THRESHOLDS, pass, fail);
     },
   },
   {

@@ -409,6 +409,37 @@ button:not(:disabled) {
   font-size: var(--panel-label);
   font-weight: 700;
 }
+/*
+ * The denominator ledger on the import panel.
+ *
+ * Two columns rather than prose, because the point is that a reader can add it up. The
+ * "of which" rows are indented and dimmed: they are not a further subtraction from the total
+ * above them, and a row that looked like one would misstate the arithmetic it exists to show.
+ */
+.import-ledger {
+  margin: 10px 0 0;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.18);
+  font-size: var(--panel-label);
+}
+.import-ledger li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
+}
+.import-ledger li b {
+  font-variant-numeric: tabular-nums;
+}
+.import-ledger .import-ledger-total {
+  font-weight: 700;
+}
+.import-ledger .import-ledger-of-which {
+  padding-inline-start: 1.1rem;
+  opacity: 0.7;
+  border-bottom: none;
+}
 .bucket-list {
   margin-top: 8px;
   border-top: 1px solid rgba(var(--ink-rgb), 0.18);

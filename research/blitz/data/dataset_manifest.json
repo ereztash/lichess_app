@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-08-29T22:16:34.015Z",
+  "seed": 20260829,
+  "playerSalt": "blitz-computation-2026",
+  "months": {
+    "dev": "2026-01",
+    "holdout": "2026-04"
+  },
+  "prefixBytes": 48000000,
+  "targetGames": 1700,
+  "pliesPerGame": 6,
+  "maxRecurringPlayers": 300,
+  "counters": {
+    "2026-01": {
+      "read": 149515,
+      "qualified": 49925,
+      "rejected": {
+        "termination": 17290,
+        "not-rated-blitz": 79961,
+        "too-short": 1920,
+        "time-control": 284,
+        "clock-not-monotone": 124,
+        "no-clocks": 11
+      }
+    },
+    "2026-04": {
+      "read": 146610,
+      "qualified": 48090,
+      "rejected": {
+        "not-rated-blitz": 79178,
+        "termination": 16956,
+        "time-control": 474,
+        "too-short": 1772,
+        "clock-not-monotone": 134,
+        "no-clocks": 6
+      }
+    }
+  },
+  "recurringCandidates": 1747,
+  "recurringChosen": 300,
+  "gamesSelected": 1700,
+  "events": 10200,
+  "distinctGames": 1700,
+  "distinctPlayers": 2343,
+  "datasetSha256": "f2d4300792bb8043154601b7e6e4cd6bc71b39d77e3a3326cb4cd3a6303103e3"
+}

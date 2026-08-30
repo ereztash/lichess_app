@@ -31,9 +31,16 @@
  * Those buckets are import-only and DELIBERATELY cannot produce a claim -- claims come from the
  * detector running over the record, and nothing here reaches it.
  */
-import { accurateDecision, BUCKETINGS, MIN_BUCKET_N, type BucketableDecision } from "./detector.js";
+import {
+  accurateDecision,
+  bucketable,
+  BUCKETINGS,
+  MIN_BUCKET_N,
+  type BucketableDecision,
+} from "./detector.js";
 import { Chess } from "chess.js";
 import { classifyPhase } from "./phase.js";
+import { NO_BOOK, type BookLookup } from "./opening-book.js";
 import { clockMsRemainingAt, hasClockData, secondsSpentAt, parseTimeControl } from "./pgn-clock.js";
 
 /** One of the player's past moves, reduced to what a bucket may look at, plus whether it held. */
@@ -81,6 +88,19 @@ export interface ImportedDecision extends BucketableDecision {
    * sense except the legal one, which are the bulk of the inflation. See docs/MEASUREMENTS.md.
    */
   forced: boolean;
+  /**
+   * The position is one the reference corpus says players arrive at prepared.
+   *
+   * A SEPARATE EXCLUSION FROM `forced`, and a much larger one. `forced` removes a handful of moves
+   * a game; book is most of what this repository's ledger calls the inflation -- `phase-opening` is
+   * `ply <= 20`, mostly theory, so it measures recall rather than decisions.
+   *
+   * It is a fact about the POSITION, never about the move: a player who leaves theory here has
+   * made a decision rather than avoided one, and conditioning on what they played would condition
+   * on the outcome. False when no book was loaded, which the counters report so a rate is never
+   * read as corrected when nothing corrected it.
+   */
+  book: boolean;
 }
 
 /**
@@ -140,6 +160,34 @@ export interface ImportDiagnostic {
   buckets: ImportedBucketReading[];
   /** Player moves that could be scored at all, forced ones included. */
   scored: number;
+  /**
+   * What is left after every exclusion below -- the denominator the buckets are actually drawn
+   * from.
+   *
+   * Reported as a field rather than left to the reader's subtraction: `scored` is the number a
+   * screen reaches for when it wants to sound like it measured a lot, and it is not the number
+   * any rate on that screen was computed over.
+   */
+  eligible: number;
+  /**
+   * Of the scored moves, how many were in a book position and not already forced.
+   *
+   * Counted separately from `forced` because the two exclusions are different sizes and a reader
+   * comparing this run with an older one needs to see which of them moved. Zero when no book was
+   * loaded, which is not the same as "no book positions" and is why the panel says which.
+   */
+  book: number;
+  /** True when a book was supplied at all. A run without one excludes nothing and must say so. */
+  bookLoaded: boolean;
+  /**
+   * Of the eligible decisions, how many carry no derivable think time, and no derivable clock.
+   *
+   * These are not zeroes and they are not slow decisions. They are absences, and both time
+   * buckets and the clock bucket exclude them from the bucket AND from the rest of the record it
+   * is compared against.
+   */
+  withoutTime: number;
+  withoutClock: number;
   /**
    * Of those, how many offered exactly one legal move.
    *
@@ -225,7 +273,11 @@ function cpLossAt(evalScores: number[], ply: number): number | null {
 }
 
 /** The player's own decisions in one imported game, reduced to what a bucket may see. */
-export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
+export function decisionsFromGame(
+  game: ImportedGameInput,
+  /* Injected rather than imported: the key set is loaded on demand, and shared/ stays free of it. */
+  isBook: BookLookup = NO_BOOK,
+): ImportedDecision[] {
   const increment = parseTimeControl(game.timeControl)?.incrementSeconds ?? 0;
   const clocks = hasClockData(game.clockTimes);
   const out: ImportedDecision[] = [];
@@ -252,10 +304,18 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
     if (!loadable(fenBefore)) continue;
 
     /*
-     * secondsTaken is 0 when there are no clocks, and that is not a measurement -- it is the
-     * absence of one. It cannot be null because BucketableDecision types it as a number, so the
-     * time buckets are instead reported unmeasurable for the whole import below. A zero here
-     * would quietly land every decision in "under 45 seconds".
+     * Null where nothing measured it, and null all the way through now that `BucketableDecision`
+     * admits one.
+     *
+     * This used to be written out as `seconds ?? 0`, defended on the grounds that the time buckets
+     * are reported unmeasurable for an import with NO clocks at all. That defence covered the
+     * whole-import case and missed the per-decision one: `secondsSpentAt` also returns null when
+     * the clocks are present but this particular reading is not derivable -- the player's FIRST
+     * MOVE has no previous reading of their own clock, and neither does the move after it when the
+     * TimeControl header is missing, which is what makes the starting clock NaN.
+     *
+     * So every imported game with clocks contributed at least one invented "0 seconds" decision,
+     * and 0 < 45.
      */
     const seconds = clocks ? secondsSpentAt(game.clockTimes, ply, increment) : null;
 
@@ -270,7 +330,7 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
     out.push({
       ply,
       phase: classifyPhase(fenBefore, ply),
-      secondsTaken: seconds ?? 0,
+      secondsTaken: seconds,
       clockMsRemaining: clocks ? clockMsRemainingAt(game.clockTimes, ply) : null,
       cpLoss,
       /*
@@ -289,6 +349,7 @@ export function decisionsFromGame(game: ImportedGameInput): ImportedDecision[] {
       standing: standingFrom(facing),
       speed: game.speed ?? null,
       forced: onlyLegalMove(fenBefore),
+      book: isBook(fenBefore),
     });
   }
   return out;
@@ -337,17 +398,20 @@ function dominantSpeed(decisions: ImportedDecision[]): {
  *
  * A screen that omits what it could not measure looks like a screen that measured everything.
  */
-export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnostic {
+export function diagnoseImportedGames(
+  games: ImportedGameInput[],
+  isBook: BookLookup = NO_BOOK,
+): ImportDiagnostic {
   const anyClock = games.some((g) => hasClockData(g.clockTimes));
-  const decisions = games.flatMap(decisionsFromGame);
+  const decisions = games.flatMap((game) => decisionsFromGame(game, isBook));
   const { speed: timeBucketSpeed, mix: speedMix } = dominantSpeed(decisions);
 
   /*
    * Every bucket reads only positions where the player actually chose something. A move with one
    * legal reply is scored accurate by the rules in this file, and counting it credits the player
-   * for something they did not do.
+   * for something they did not do; a book position credits them for what everybody plays.
    */
-  const chosen = decisions.filter((d) => !d.forced);
+  const chosen = decisions.filter((d) => !d.forced && !d.book);
 
   /*
    * The clock-derived buckets read only the dominant time class. Everything else -- the phase
@@ -363,9 +427,11 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
      * predicate would be reading a zero this module invented. Report no n for it rather than a
      * count of decisions that were never really placed there.
      */
-    const timeDerived = bucketing.requiresClock === true || usesTime(bucketing.key);
+    const timeDerived = bucketing.requiresClock === true || bucketing.requiresTime === true;
     const unfillable = timeDerived && !anyClock;
-    const pool = timeDerived ? chosen.filter(sameSpeed) : chosen;
+    const pool = (timeDerived ? chosen.filter(sameSpeed) : chosen).filter((d) =>
+      bucketable(bucketing, d),
+    );
     const inside = unfillable ? [] : pool.filter(bucketing.predicate);
     const measurable = !unfillable && inside.length >= MIN_BUCKET_N;
 
@@ -396,23 +462,23 @@ export function diagnoseImportedGames(games: ImportedGameInput[]): ImportDiagnos
   return {
     buckets,
     scored: decisions.length,
-    forced: decisions.length - chosen.length,
+    /*
+     * Counted directly, not as `decisions.length - chosen.length`. That subtraction was correct
+     * while forced positions were the only exclusion; the moment book joined them it silently
+     * became "excluded for any reason", so the ledger on screen stopped adding up and the two
+     * exclusions could not be told apart.
+     */
+    forced: decisions.filter((d) => d.forced).length,
+    eligible: chosen.length,
+    book: decisions.filter((d) => d.book && !d.forced).length,
+    bookLoaded: isBook !== NO_BOOK,
+    withoutTime: chosen.filter((d) => d.secondsTaken === null).length,
+    withoutClock: chosen.filter((d) => d.clockMsRemaining === null).length,
     missingClockData: !anyClock,
     timeBucketSpeed,
     excludedForSpeed,
     speedMix,
   };
-}
-
-/**
- * Which buckets read a time field.
- *
- * `requiresClock` marks the one that needs the clock REMAINING. Two more read secondsTaken, which
- * is equally underivable without `[%clk]`, and they are named here rather than inferred so that
- * adding a seventh bucket forces a decision instead of silently defaulting.
- */
-function usesTime(key: string): boolean {
-  return key === "fast-under-45s" || key === "slow-over-2m";
 }
 
 /**

@@ -108,7 +108,10 @@ describe("the increment is added back", () => {
     const without = decisionsFromGame(
       game({ plies: 10, withClocks: true, timeControl: "300", secondsPerMove: 20 }),
     );
-    expect(withIncrement[1].secondsTaken).toBe(without[1].secondsTaken + 3);
+    // Non-null on both: index 1 is the player's SECOND decision, and only the first has no
+    // previous reading of the same player's clock to be derived from.
+    expect(without[1].secondsTaken).not.toBeNull();
+    expect(withIncrement[1].secondsTaken).toBe((without[1].secondsTaken as number) + 3);
   });
 
   it("treats a time control it cannot parse as no increment rather than guessing", () => {
@@ -238,6 +241,11 @@ describe("the lowest number is not automatically a finding", () => {
       unmeasurableReason: null,
     })),
     scored: rates.reduce((sum, [, n]) => sum + n, 0),
+    eligible: rates.reduce((sum, [, n]) => sum + n, 0),
+    book: 0,
+    bookLoaded: true,
+    withoutTime: 0,
+    withoutClock: 0,
     forced: 0,
     missingClockData: false,
     timeBucketSpeed: null,
@@ -399,12 +407,17 @@ describe("a 45-second move is not one thing across time classes", () => {
      * had not applied.
      *
      * 200 blitz plies is 100 White decisions; the 40 rapid plies add 20 more. Every move here
-     * takes 20 seconds, so all of them land in "under 45 seconds".
+     * takes 20 seconds, so all of them land in "under 45 seconds" -- except the FIRST, which has
+     * no previous reading of the player's own clock and therefore has no measured time at all.
+     * 99, not 100: the hundredth was the invented zero.
      */
     const d = diagnoseImportedGames([withSpeed("blitz", 200), withSpeed("rapid", 40)]);
     const fast = d.buckets.find((b) => b.key === "fast-under-45s")!;
-    expect(fast.n).toBe(100);
+    expect(fast.n).toBe(99);
     expect(d.scored).toBe(120);
+    // One per game, and both are reported rather than netted off a bucket that looks full.
+    expect(d.withoutTime).toBe(2);
+    expect(d.eligible).toBe(120);
   });
 
   it("leaves the phase and position buckets reading every game", () => {
