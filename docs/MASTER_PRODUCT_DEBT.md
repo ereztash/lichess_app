@@ -40,7 +40,9 @@ observation whose engine version is absent fails to load, and a fixture proves i
 | `docs/decisions/` | the discovery-v2 confidence ledger | the reversal condition on each node |
 
 **None of them is a list of what is open.** This file is. Where a row below comes from one of them,
-it cites it.
+it cites it — and where a row was *only* cited rather than checked, `basis` says `asserted` and the
+row is worth less than it looks. All three rows that carried that mark have since been read against
+the tree; two of them turned out to describe defects that were already repaired.
 
 > `PRODUCTION_READINESS_LEDGER.md` opens with a "Source of truth" table naming branch
 > `claude/mati-user-experience-components-d7549y` and PR #24. Both are long merged. That staleness
@@ -493,28 +495,73 @@ asks whether an `=` appears anywhere after the word `levels`, and so fired on th
 of the parameter added *after* it. The property it guards was untouched; the pattern now names
 `levels` and nothing else.
 
+> **These three were the register's only `asserted` rows, and checking them changed two.** They were
+> transcribed from `ACTION_PLAN.md` and never read against the tree. Two of them describe defects
+> that had already been repaired — `ACTION_PLAN.md` even records one of them as `DONE A2` — and the
+> third is real but is not open in the sense "open" implies. This is what the `basis` field is for:
+> a register that cannot tell "I read this line" from "someone told me" becomes the four trackers it
+> replaced, and here it would have carried three phantom debts into the UX work.
+
 ### R-11 · The board declares `role="grid"` and does not implement it
 
 | | |
 | --- | --- |
 | type | UX |
-| state | **open** |
+| state | **fixed** — was already fixed when this row was written |
 | severity | P2 (raised from the P0 the review claimed — see `ACTION_PLAN.md` §1.1) |
-| basis | **asserted** — from `ACTION_PLAN.md`, not re-checked here |
+| basis | **verified** — `client/src/components/ChessBoard.tsx:152` `onSquareKeyDown` |
 
-**Gate:** `GATE-KEYBOARD`, which the plan already specifies.
+`ChessBoard` implements the WAI-ARIA grid pattern: all four arrows, `Home`/`End` per rank and
+`Ctrl`+either for the whole board, focus **clamped rather than wrapped** (*"focus that reappears on
+the far file after ArrowRight on h4 is focus that has silently changed rank"*), roving `tabindex`,
+and an `aria-live` announcer that says what the **player** did and never what the engine knows —
+because a region that spoke an evaluation would be a fourth path around R3.
+
+**Gate:** `GATE-KEYBOARD`, passing, with two positive controls that go red
+(`GridWithNoKeys.tsx`, `ModalWithNoTrap.tsx`), plus `a-board-nobody-could-hear.test.tsx`.
 
 ### R-12 · `Overlay` has no focus trap and does not restore focus
 
 | | |
 | --- | --- |
-| type | UX · state | open · severity | P2 · basis | **asserted** (`ACTION_PLAN.md`) |
+| type | UX |
+| state | **fixed** — `ACTION_PLAN.md` records it as `DONE A2`, and the code agrees |
+| severity | P2 |
+| basis | **verified** — `client/src/components/Overlay.tsx`, focus trap and opener restore |
+
+Focus enters the panel, `Tab` and `Shift`+`Tab` cycle inside it, focus **already outside** is pulled
+back (the listener is on `document` for exactly that case), and the opener is restored on close —
+after the dialog leaves the screen, because restoring while it is still up re-captures the wrong
+element. The focusable selector is a real one rather than `input, textarea, button`, which is *"not
+a list of focusable things, it is a list of three of them"*.
+
+**Gate:** `a-dialog-that-gives-focus-back.test.tsx`, 11 cases including the wrap in both directions
+and the disabled-control skip.
 
 ### R-13 · `Home.tsx` is one 108 kB component
 
 | | |
 | --- | --- |
-| type | ops · state | open · severity | P2 · basis | **asserted** (`ACTION_PLAN.md` §5, where a first extraction attempt is recorded as having failed) |
+| type | ops |
+| state | **open, and deliberately governed** — a ratchet, not a refactor, with the argument written down |
+| severity | P2 |
+| basis | **verified** — 2,378 lines, 55 `useState`, under a committed ceiling that only goes down |
+
+Real, and not the kind of open the word usually means. `ACTION_PLAN.md` scheduled C1 as *"a
+mechanical extraction with the existing tests as the invariant — not a redesign"*, and
+`the-file-that-only-ever-grew.test.ts` records that **there is no mechanical extraction**: of 2,358
+lines, 20 are pure computation that can move: everything else closes over one of fifty-five pieces
+of state in a single scope. Every real split is therefore a redesign — custom hooks, context, or
+fifteen props per panel — across the most-tested surface in the repository, with no falsifiable
+claim attached.
+
+So the honest treatment is the one that shipped: a ceiling, in the same shape as the bundle budget.
+**And unlike the bundle budget it may only go down** — there is no version of "this component needs
+a fifty-sixth piece of state" that is better than putting it somewhere else, so raising the ceiling
+would mean the refactor got further away.
+
+**Gate:** `the-file-that-only-ever-grew.test.ts` — 2,400 lines and 55 `useState`, both at 22 and 0
+of headroom respectively.
 
 ---
 
@@ -562,9 +609,15 @@ premised on a measurement that was made and came back the other way.
 
 ## What the gate on Step 0 requires before any Step 1 work begins
 
-The plan's rule is that no new work starts until every existing P0/P1 is in this register. Three
-rows are **asserted** rather than verified (R-11, R-12, R-13), and all three are P2 — so the P0/P1
-set is fully verified and the gate is met.
+The plan's rule is that no new work starts until every existing P0/P1 is in this register. The gate
+was met when this file was written: the P0/P1 set was fully verified, and the only three `asserted`
+rows were P2.
+
+**Those three have since been checked, and the check was worth running.** R-11 and R-12 were already
+fixed — `ACTION_PLAN.md` records one of them as `DONE A2` — and R-13 is real but is governed by a
+ratchet with a written argument rather than waiting for someone. Carrying them forward as open would
+have put three phantom debts into the UX work, which is precisely what the `basis` field exists to
+prevent.
 
 Two things are worth saying plainly before Step 1:
 
