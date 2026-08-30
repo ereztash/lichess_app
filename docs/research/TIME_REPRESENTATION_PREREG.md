@@ -151,3 +151,68 @@ record carrying stated confidence before any cut moves. That record does not exi
 - **No swapping the outcome or the measure** to find significance. Accuracy, as defined in
   `shared/detector.ts`, and the spread in §5.
 - **No new candidate added after seeing the data.** The five in §4 are the five.
+
+---
+
+## 9. Amendment 1 — the corpus is 75 games, not 40
+
+**Written and committed 2026-08-30T12:04Z**, while the scoring run was still mid-flight and before
+any number this study produces existed. `research/b2/` at the moment of writing held `corpus.json`,
+`corpus_manifest.json` and `analyse.py` and nothing else: no `decision_evidence.jsonl`, no
+`harness_report.json`, no separation, no null, no verdict. `analyse.py` has never been executed on
+any corpus. The amendment is therefore blind in the only sense that matters — it cannot have been
+chosen for its answer, because there was no answer to choose it for.
+
+### What changed
+
+§3 fixed **"the most recent 40 completed games."** The account holds more than that. Applying §3's
+own conditions to the full export — 120 games, 45 excluded as unrated, none excluded for any other
+reason — leaves **75 qualifying games**, and the study runs on all 75.
+
+### Why 40 was there in the first place
+
+It was a number written before the data existed. §3 anticipated a **shortage** and said what to do
+about one: *"If fewer than 40 games qualify, the study runs on what there is and the shortfall is
+reported; the rule is not relaxed to reach 40."* It never anticipated a surplus and says nothing
+about one. 40 was not a supply limit, a power calculation, or a boundary anything depends on; it
+was a guess at how many blitz games a person has.
+
+### Why enlarging is safe here, specifically
+
+Because the preregistered analysis survives intact rather than being replaced. The newest 40 are a
+**strict subset** of the 75 under the same newest-first ordering, and §3 assigns halves by
+**recency index** — alternating, so game *i* is derivation when *i* is even. That index is identical
+in both corpora, and it was checked rather than assumed: every one of the 75 games' half assignment
+equals its index parity, and the newest 40 split 20 derivation / 20 held-out exactly as they would
+have in a 40-game corpus. One scoring run over 75 games therefore yields **both** analyses from
+**identical per-decision rows** — the preregistered 40-game study and an amended 75-game one — with
+no second engine pass and no opportunity for the two to disagree about anything but sample.
+
+### What it costs, which is not nothing
+
+The 35 added games are **not** a neutral enlargement. They are the older slab, and the account
+changed across the window:
+
+| | preregistered 40 | added 35 | amended 75 |
+| --- | ---: | ---: | ---: |
+| span | 10 Jul – 29 Aug | 28 May – 28 Jun | 28 May – 29 Aug |
+| rating (own), median | 1569 | **1647** | 1622 |
+| rating range | 1516–1634 | 1590–1665 | 1516–1665 |
+| 3+0 share | 20/40 = 50% | **30/35 = 86%** | 50/75 = 67% |
+
+So the amended corpus is a **different mixture** — older, stronger, and far more 3+0 — not the same
+player sampled more deeply. Any difference between the two analyses may be composition rather than
+statistical power, and no sentence produced by this study may attribute such a difference to sample
+size without saying that.
+
+### The rule that stops this being a second attempt, fixed now
+
+- **The preregistered 40-game analysis is the result.** It is computed and reported whatever it says.
+- The 75-game analysis is reported **beside** it, always, including when it is the less interesting
+  of the two.
+- **If the two reach different verdicts under §7, the preregistered verdict stands** and the
+  disagreement is reported as instability — the same treatment §7 already prescribes for a winner
+  that differs between halves.
+- Neither corpus may be selected after seeing its numbers, and no third corpus size exists.
+- §8 applies unchanged to both. No threshold moves, no added candidates, no re-running, no dropping
+  games.
