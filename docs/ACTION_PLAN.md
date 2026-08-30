@@ -146,11 +146,18 @@ lint rule nobody can satisfy.
 
 ### B1 · Measure the shipped engine (this is PR9 of the earlier plan)
 
-*The question.* Does `stockfish-18-lite-single` at depth 14 agree with the native binary at depth 12
-on the verdicts we have published?
+*The question.* Does `stockfish-18-lite-single` agree with the native binary on the verdicts we have
+published?
 
-*The method.* Re-run `run_import_harness.ts` over the same 48 games and six players against the
-shipped WASM build, at the depth the product actually uses. Compare at the decision level, not the
+> **Corrected before the run.** This section first said the product searches at depth 14. It does
+> not: `analyzePositions` defaults to `options.depth ?? 12` and the import path takes that default,
+> so the recorded run and the product use the same depth. Depth 14 is `StockfishClient.analyze`'s
+> default, used by other call sites. That leaves **build as the only variable**, which is a better
+> test than the one described here. The preregistration is
+> [`docs/research/ENGINE_PARITY_PREREG.md`](research/ENGINE_PARITY_PREREG.md).
+
+*The method.* Re-run the product's own `runImportDiagnostic` over the same 48 games and six players
+against the shipped WASM build, at the same depth and options the baseline used. Compare at the decision level, not the
 aggregate level: how many of the 1,587 decisions change side of the accuracy threshold, and what
 that does to each of the six buckets.
 
