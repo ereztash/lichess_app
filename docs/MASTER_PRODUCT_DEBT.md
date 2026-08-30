@@ -110,27 +110,31 @@ across a version bump — and nothing currently stops that pooling.
 `unreadable` rather than dropped; and a fixture from before the field existed loads with its
 calibration marked unreadable while the rest of the game stays readable.
 
-**Half of it is recorded now, and the gate is untouched — stated plainly because the two are easy
-to confuse.** Blitz games carry `analysis_engine`, `analysis_engine_build`, `analysis_depth` and
-`analysed_at`, taken from the content hash of the wasm rather than from `package.json` (the range
-is `^18.0.8`, so the binary can change without any version string a build could embed changing with
-it: `client/src/lib/engine-identity.ts`).
-`tests/client/the-tab-closed-during-the-analysis.test.tsx` asserts the screen actually supplies
-them, and the wire schema refuses a `complete` game that cannot name what scored it.
+**Closed for blitz, open for the untimed loop — and the split is the honest statement, because the
+two paths store their observations in different tables.**
 
-**What is still open** is everything the gate asks for and the whole untimed path: `resultSchema` in
-`shared/decision-atom.ts` is unchanged, and *nothing anywhere refuses to load an observation whose
-build is absent*. Recording a field is not the same as a reading that respects it, and until the
-second exists this row is open.
+*Blitz, done:* `blitz_games` carries `analysis_engine`, `analysis_engine_build`, `analysis_depth`
+and `analysed_at`, taken from the content hash of the wasm rather than from `package.json` (the
+range is `^18.0.8`, so the binary can change without any version string a build could embed changing
+with it: `client/src/lib/engine-identity.ts`).
+`tests/client/the-tab-closed-during-the-analysis.test.tsx` asserts the screen actually supplies them;
+the wire schema refuses a `complete` game that cannot name what scored it; and
+`shared/blitz-strata.ts` refuses to pool two builds or two depths, with an unrecorded instrument
+excluded as `instrument-unrecorded` rather than dropped.
+
+*The untimed loop, still open:* `resultSchema` in `shared/decision-atom.ts` stores `engine_depth`
+and `engine_source` and **no build**, so an observation from the main loop still cannot say which
+binary produced its `cp_loss`, and nothing refuses to read one that cannot. This is the half the
+gate above is written against, and it is the half that holds the larger population.
 
 ### R-04 · A blitz game records nothing about its opponent
 
 | | |
 | --- | --- |
 | type | evidence |
-| state | **open** |
+| state | **fixed** |
 | severity | **P0** |
-| basis | **verified** — `drizzle/schema.ts` `blitzGames` carries `playedAs`, `initialMs`, `incrementMs`, `outcome`, timestamps, protocol, timing, sampling; there is no opponent column |
+| basis | **verified** — was `drizzle/schema.ts` `blitzGames` carrying `playedAs`, `initialMs`, `incrementMs`, `outcome`, timestamps, protocol, timing, sampling and no opponent column |
 
 Every blitz claim is therefore a claim about *playing one colour against whatever the build used at
 that moment*, stated as a claim about the player. If the opponent engine's depth changes between
@@ -140,16 +144,26 @@ builds, the population changes and nothing records that it did.
 that spans two different opponent policies reports them as separate strata rather than pooling them
 — the wall `shared/evidence-policy.ts` already draws for protocol and reveal timing.
 
-**The first clause is done; the second is not.** `blitz_games` now carries `opponent_kind`,
-`opponent_engine`, `opponent_engine_build` and `opponent_depth`, written on the **pending** record
-rather than the scored one — deliberately, because the opponent is a fact about the game, known when
-it ends, while the analysis is a fact about a later search. Attaching it to the scored write would
-have made it conditional on an engine finishing, so every game abandoned mid-analysis would carry no
-opponent — and those are exactly the rows most likely to be abandoned.
+**Closed in two steps, and both clauses are done.**
 
-**What is still open** is the pooling wall: nothing yet reports two opponent policies as separate
-strata, so a reading that spans a depth change still pools it silently. Same shape as the open half
-of R-03, and the two should close together.
+*Recording:* `blitz_games` carries `opponent_kind`, `opponent_engine`, `opponent_engine_build` and
+`opponent_depth`, written on the **pending** record rather than the scored one — deliberately,
+because the opponent is a fact about the game, known when it ends, while the analysis is a fact
+about a later search. Attaching it to the scored write would have made it conditional on an engine
+finishing, so every game abandoned mid-analysis would carry no opponent — and those are exactly the
+rows most likely to be abandoned.
+
+*The wall:* `shared/blitz-strata.ts` is the only way to read blitz decisions for a calibration
+reading, and it returns **strata**, never a set. Two opponent policies are two strata; there is no
+function on the module that flattens them, for the reason `evidence-policy.ts` gives about its own
+shape — refusing to provide the operation is stronger than documenting that it is wrong.
+
+**Gate:** `tests/shared/two-opponents-are-not-one-population.test.ts`, and it was checked by
+breaking the wall three ways rather than by trusting it. Drop the opponent from the stratum key and
+1 assertion goes red; drop the analyser and 3 do; let an unscored game count as readable and 2 do.
+It also asserts the other direction — colour, outcome and time control are **not** conditions of the
+measurement, and a wall that split on them would give every stratum n=1 and a detector that can
+never say anything.
 
 ---
 
