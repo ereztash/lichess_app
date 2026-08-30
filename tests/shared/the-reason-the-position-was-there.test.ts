@@ -57,6 +57,10 @@ const event = (over: Partial<CommitEvent> = {}): CommitEvent => ({
   },
   probe: { assignment: "not-probed", legal_moves: 20, alternative: null, answered: false, alternative_cp_loss: null },
   reveal_timing: "per-decision",
+  /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+  measurement_protocol: null,
+  protocol_version: null,
+  analysis_timing: null,
   result: null,
   feedback: null,
   ...over,

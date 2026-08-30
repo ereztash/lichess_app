@@ -30,6 +30,10 @@ function event(id: string) {
     // by a client that does not run the probe. Null here is a fourth state, never a control.
     probe: null,
     reveal_timing: null,
+    /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+    measurement_protocol: null,
+    protocol_version: null,
+    analysis_timing: null,
     result: null,
     feedback: null,
   } satisfies service.CommitEvent;

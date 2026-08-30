@@ -190,6 +190,9 @@ async function decide(
     probeAssignment: "not-probed",
     legalMoves: 12,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   });
   await store.recordReveal(id, {
     engine_eval_cp: 10,
@@ -353,6 +356,9 @@ describe("the decisions the drill is graded against are the ones it registered",
         probeAssignment: "not-probed",
         legalMoves: 12,
         revealTiming: "per-decision",
+        measurementProtocol: null,
+        protocolVersion: null,
+        analysisTiming: null,
       });
       await store.recordReveal(id, {
         engine_eval_cp: 10,

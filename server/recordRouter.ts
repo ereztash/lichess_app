@@ -8,6 +8,10 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
+import {
+  ANALYSIS_TIMINGS,
+  MEASUREMENT_PROTOCOLS,
+} from "../shared/measurement-protocol.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import { statedPartsSchema } from "../shared/decision-atom.js";
 import {
@@ -112,6 +116,18 @@ export const commitEventSchema = z.object({
    */
   probe: probeSchema.nullable(),
   reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
+  /*
+   * NULLABLE ON THE WIRE, AND NOT DEFAULTED ON ARRIVAL. A client that predates these fields sends
+   * nothing, and its decisions are still perfectly good data -- what they are not is data that
+   * recorded its own conditions. Filling in `instrumented-standard` at the boundary would make an
+   * unstamped row indistinguishable from a stamped one for ever afterwards.
+   *
+   * `.default(null)` rather than `.optional()`: an older client's payload still parses, and the
+   * stored value is an explicit null rather than an absent key that a later reader has to guess at.
+   */
+  measurement_protocol: z.enum(MEASUREMENT_PROTOCOLS).nullable().default(null),
+  protocol_version: z.number().int().positive().nullable().default(null),
+  analysis_timing: z.enum(ANALYSIS_TIMINGS).nullable().default(null),
   result: z.null(),
   feedback: z.null(),
 });

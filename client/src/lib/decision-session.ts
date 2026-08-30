@@ -13,6 +13,7 @@ import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import type { DecisionAtom, StatedParts } from "@shared/decision-atom";
 import { assignProbe } from "@shared/counterfactual";
 import type { RevealTiming } from "@shared/reveal-timing";
+import { CURRENT_PROTOCOL_VERSION } from "@shared/measurement-protocol";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
@@ -293,6 +294,18 @@ export function buildCommitEvent(
       alternative_cp_loss: null,
     },
     reveal_timing: revealTiming,
+    /*
+     * THIS PATH IS THE UNTIMED COMMITMENT LOOP, and it says so rather than leaving the field for
+     * somebody downstream to infer. It is the only protocol this function can produce: there is no
+     * clock here, and the engine runs after every decision in both reveal modes -- which is why
+     * `analysis_timing` is `during-play` even when the verdict is withheld until the end.
+     *
+     * A blitz decision will not come through here. When it has its own path, it stamps its own
+     * protocol, and a row that came from this function can never be mistaken for one that did not.
+     */
+    measurement_protocol: "instrumented-standard",
+    protocol_version: CURRENT_PROTOCOL_VERSION,
+    analysis_timing: "during-play",
     result: null,
     feedback: null,
   };

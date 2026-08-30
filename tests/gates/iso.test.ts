@@ -26,6 +26,9 @@ async function reportFields(): Promise<string[]> {
     probeAssignment: "not-probed",
     legalMoves: 20,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   });
   const atom = await store.getAtom(decisionId);
   return Object.keys(atom!);

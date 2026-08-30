@@ -69,6 +69,9 @@ async function probedDecision(store: MemoryRecordStore) {
     probeAssignment: "probed",
     legalMoves: 30,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
   });
   // The question is put and answered BEFORE the reveal -- that window is what R3 defines.
   await service.recordCounterfactual(store, ID, "g1f3");

@@ -215,6 +215,9 @@ export const GATES: Gate[] = [
         probeAssignment: "not-probed",
         legalMoves: 20,
         revealTiming: "per-decision",
+        measurementProtocol: "instrumented-standard",
+        protocolVersion: 1,
+        analysisTiming: "during-play",
       });
       const atom = await store.getAtom(id);
       return isoPredicate(

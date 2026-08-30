@@ -47,6 +47,9 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     probeAssignment: "not-probed",
     legalMoves: 20,
     revealTiming: "per-decision",
+    measurementProtocol: null,
+    protocolVersion: null,
+    analysisTiming: null,
     ...overrides,
   };
 }

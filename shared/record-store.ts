@@ -25,6 +25,10 @@ import type {
 import type { Phase } from "./phase.js";
 import type { DecisionPurpose } from "./confidence-asked.js";
 import type { RevealTiming } from "./reveal-timing.js";
+import type {
+  AnalysisTiming,
+  MeasurementProtocol,
+} from "./measurement-protocol.js";
 
 export interface CommitDecisionInput {
   decisionId: string;
@@ -77,6 +81,12 @@ export interface CommitDecisionInput {
   legalMoves: number | null;
   /** Which reveal timing was in force. Null on rows written before the deferred game existed. */
   revealTiming: RevealTiming | null;
+  /** The conditions the decision was produced under. Null on rows written before it was recorded. */
+  measurementProtocol: MeasurementProtocol | null;
+  /** Which version of that protocol. Null wherever the protocol is. */
+  protocolVersion: number | null;
+  /** When the engine ran, which is not when the player was told. */
+  analysisTiming: AnalysisTiming | null;
 }
 
 export interface FeedbackInput {

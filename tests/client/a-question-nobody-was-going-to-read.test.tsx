@@ -236,6 +236,10 @@ describe("nothing downstream reads a null as a number", () => {
     },
     probe: null,
     reveal_timing: null,
+    /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+    measurement_protocol: null,
+    protocol_version: null,
+    analysis_timing: null,
     result: {
       engine_eval_cp: 0,
       engine_best_move: "g8f6",

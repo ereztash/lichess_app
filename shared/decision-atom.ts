@@ -17,6 +17,10 @@ import { z } from "zod";
 import { CONFIDENCE_LEVELS } from "./confidence.js";
 import { DECISION_PURPOSES, readsAreAsked } from "./confidence-asked.js";
 import { REVEAL_TIMINGS } from "./reveal-timing.js";
+import {
+  ANALYSIS_TIMINGS,
+  MEASUREMENT_PROTOCOLS,
+} from "./measurement-protocol.js";
 
 export const ATOM_FIELDS = [
   "entry_state",
@@ -38,6 +42,13 @@ export const ATOM_FIELDS = [
   "bounded_action",
   "probe",
   "reveal_timing",
+  /*
+   * AFTER `reveal_timing`, because it is the rest of the same fact: both say what the world was
+   * like while the decision was being made, and neither is anything the player did.
+   */
+  "measurement_protocol",
+  "protocol_version",
+  "analysis_timing",
   "result",
   "feedback",
 ] as const;
@@ -265,6 +276,26 @@ export const decisionAtomSchema = z.object({
    * coached arm that is enormous and perfectly measured.
    */
   reveal_timing: z.enum(REVEAL_TIMINGS).nullable(),
+  /**
+   * The conditions this decision was produced under -- see shared/measurement-protocol.ts.
+   *
+   * NULLABLE FOR THE REASON DIRECTLY ABOVE, and the temptation here is stronger. Every row written
+   * before this field existed really was made in the untimed commitment loop, so backfilling
+   * `instrumented-standard` would be FACTUALLY correct -- and it is still refused. It would assert
+   * that a condition was recorded when nobody recorded one, and a comparison between protocols
+   * would open with a standard arm of thousands against a blitz arm of none.
+   */
+  measurement_protocol: z.enum(MEASUREMENT_PROTOCOLS).nullable(),
+  /** Which version of that protocol produced it. Null wherever the protocol itself is null. */
+  protocol_version: z.number().int().positive().nullable(),
+  /**
+   * When the ENGINE ran, which is not when the player was told.
+   *
+   * Not derivable from `reveal_timing`: today the engine runs in both reveal modes and only the
+   * telling differs, so `end-of-game` says nothing about whether the engine was quiet. For an
+   * instrumented blitz game that distinction is the whole measurement.
+   */
+  analysis_timing: z.enum(ANALYSIS_TIMINGS).nullable(),
   result: resultSchema.nullable(),
   feedback: feedbackSchema.nullable(),
 }).superRefine((atom, ctx) => {

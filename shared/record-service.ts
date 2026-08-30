@@ -16,6 +16,10 @@ import { selectClaim } from "./claim-derivation.js";
 import type { DecisionAtom, DecisionResult, ProbeAssignment } from "./decision-atom.js";
 import { probeEligibility } from "./counterfactual.js";
 import type { RevealTiming } from "./reveal-timing.js";
+import type {
+  AnalysisTiming,
+  MeasurementProtocol,
+} from "./measurement-protocol.js";
 import {
   accurateDecision,
   BUCKETINGS,
@@ -145,6 +149,16 @@ export type CommitEvent = {
   } | null;
   /** Which reveal timing produced this decision. Null from a client that predates the setting. */
   reveal_timing: RevealTiming | null;
+  /**
+   * The conditions this decision was produced under. Null from a client that predates the field.
+   *
+   * NOT DEFAULTED HERE, and that is the point. A server that filled in `instrumented-standard` for
+   * an unstamped client would be manufacturing the very fact the field exists to record, and the
+   * manufactured value is indistinguishable afterwards from one a client actually reported.
+   */
+  measurement_protocol: MeasurementProtocol | null;
+  protocol_version: number | null;
+  analysis_timing: AnalysisTiming | null;
   result: null;
   feedback: null;
 };
@@ -310,6 +324,9 @@ export async function commitDecision(
     probeAssignment: probe?.assignment ?? null,
     legalMoves: probe?.legal_moves ?? null,
     revealTiming: input.reveal_timing,
+    measurementProtocol: input.measurement_protocol,
+    protocolVersion: input.protocol_version,
+    analysisTiming: input.analysis_timing,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.

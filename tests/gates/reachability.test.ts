@@ -59,6 +59,9 @@ const HANDOFF = {
   opponent: null,
   gameId: "lichess-first",
   revealTiming: "per-decision" as const,
+  measurementProtocol: null,
+  protocolVersion: null,
+  analysisTiming: null,
   firstDecisionPly: 6,
 };
 
@@ -131,6 +134,10 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       feedback: null,
       probe: event.probe ?? null,
       reveal_timing: event.reveal_timing ?? null,
+      /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+      measurement_protocol: null,
+      protocol_version: null,
+      analysis_timing: null,
       bounded_action: { ...event.bounded_action, confidence_scale: CONFIDENCE_LEVELS },
     } as unknown as DecisionAtom;
 
@@ -252,6 +259,10 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       feedback: null,
       probe: event.probe ?? null,
       reveal_timing: event.reveal_timing ?? null,
+      /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+      measurement_protocol: null,
+      protocol_version: null,
+      analysis_timing: null,
       bounded_action: { ...event.bounded_action, confidence_scale: CONFIDENCE_LEVELS },
     } as unknown as DecisionAtom;
 
@@ -301,6 +312,10 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       },
       probe: null,
       reveal_timing: "per-decision",
+      /* Legacy-shaped on purpose: this fixture predates the protocol fields and claims nothing. */
+      measurement_protocol: null,
+      protocol_version: null,
+      analysis_timing: null,
       result: null,
       feedback: null,
     });
