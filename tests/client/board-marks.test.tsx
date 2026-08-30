@@ -26,7 +26,7 @@ const base = {
   onMove: () => undefined,
 };
 const squareNamed = (container: HTMLElement, name: string) =>
-  container.querySelector(`[aria-label="${name}"]`)!;
+  container.querySelector(`[data-square="${name}"]`)!;
 
 describe("the player's proposed move", () => {
   it("is visible on the board", () => {
@@ -38,7 +38,7 @@ describe("the player's proposed move", () => {
   it("marks only its own two squares", () => {
     const { container } = render(<ChessBoard {...base} chosenMove={{ from: "e2", to: "e4" }} />);
     const marked = [...container.querySelectorAll(".chosen-from, .chosen-to")].map((e) =>
-      e.getAttribute("aria-label"),
+      e.getAttribute("data-square"),
     );
     expect(marked.sort()).toEqual(["e2", "e4"]);
   });
@@ -77,18 +77,40 @@ describe("the two are distinguishable", () => {
 });
 
 describe("squares say which square they are", () => {
-  it("labels all sixty-four", () => {
+  /*
+   * These used to read the coordinate off `aria-label`, which conflated two things: which square
+   * this IS, and what it is CALLED OUT LOUD. They are now separate attributes, and the assertions
+   * below split with them -- identity from `data-square`, naming from `aria-label`.
+   */
+  it("gives all sixty-four a distinct identity", () => {
     const { container } = render(<ChessBoard {...base} />);
-    const labels = [...container.querySelectorAll(".board-square")].map((e) =>
-      e.getAttribute("aria-label"),
+    const ids = [...container.querySelectorAll(".board-square")].map((e) =>
+      e.getAttribute("data-square"),
     );
-    expect(labels).toHaveLength(64);
-    expect(new Set(labels).size).toBe(64);
-    expect(labels).toContain("a1");
-    expect(labels).toContain("h8");
+    expect(ids).toHaveLength(64);
+    expect(new Set(ids).size).toBe(64);
+    expect(ids).toContain("a1");
+    expect(ids).toContain("h8");
   });
 
-  it("keeps its labels when the board is flipped", () => {
+  it("opens every accessible name with the square's own coordinate", () => {
+    /*
+     * Stronger than the two spot checks it replaces, and it is the property axe's
+     * label-content-name-mismatch depends on: a1 and the first rank carry VISIBLE file and rank
+     * text, so the name has to contain it. Leading with the coordinate guarantees that for all
+     * sixty-four rather than for the two that happened to be asserted.
+     */
+    const { container } = render(<ChessBoard {...base} />);
+    const squares = [...container.querySelectorAll(".board-square")];
+    expect(squares).toHaveLength(64);
+    for (const square of squares) {
+      const id = square.getAttribute("data-square")!;
+      expect(square.getAttribute("aria-label")).toMatch(new RegExp(`^${id}[,\\s]`));
+    }
+    expect(new Set(squares.map((e) => e.getAttribute("aria-label"))).size).toBe(64);
+  });
+
+  it("keeps its names when the board is flipped", () => {
     const white = render(<ChessBoard {...base} />);
     const black = render(<ChessBoard {...base} orientation="b" />);
     const read = (c: HTMLElement) =>

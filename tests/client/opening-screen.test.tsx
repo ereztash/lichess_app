@@ -58,7 +58,18 @@ function renderHome() {
   );
 }
 
-const square = (name: string) => screen.getByRole("gridcell", { name });
+/*
+ * Queried by ACCESSIBLE NAME rather than by a data attribute, deliberately: that is the string a
+ * screen reader reads, so a test that finds the square the way a reader does is worth more than
+ * one that finds it the way the DOM does.
+ *
+ * Matched on the coordinate PREFIX because the name is no longer only the coordinate -- e2 is
+ * now "e2, רגלי לבן". The coordinate still opens every name (a1 and the first rank carry visible
+ * file and rank text, and axe asks that the visible text appear in the name), and `^e2,` matches
+ * exactly one square, so this is not a loosening that could match two.
+ */
+const square = (name: string) =>
+  screen.getByRole("gridcell", { name: new RegExp(`^${name},`) });
 /*
  * "white pawn" and "black pawn", not a glyph.
  *
