@@ -16,38 +16,38 @@
  * second group testable by the first.
  */
 import type { RequiredTimeControl } from "./blitz-game-core.js";
+import { classifyBucketKey, type ClaimClass } from "./discovery/claim-class.js";
 import type { MeasurementProtocol } from "./measurement-protocol.js";
-
-/**
- * Which buckets name a condition a static position can reproduce.
- *
- * `standing-*` is here deliberately: a standing is the engine's verdict on the position, and a
- * position where the player is losing can be presented again. `clock-under-1m` is not, and neither
- * are the two think-time buckets -- a clock is not a property of a board.
- */
-const POSITION_BUCKETS = new Set([
-  "phase-opening",
-  "phase-middlegame",
-  "phase-endgame",
-  "standing-winning",
-  "standing-level",
-  "standing-losing",
-]);
-
-const ENVIRONMENT_BUCKETS = new Set(["fast-under-45s", "slow-over-2m", "clock-under-1m"]);
 
 export type ProtocolKind = "position-drill" | "timed-holdout";
 
 /**
  * The protocol a claim about this bucket requires.
  *
+ * THE TWO KEY LISTS THAT USED TO LIVE HERE HAVE MOVED, and the move is the point rather than
+ * tidiness. They said which of the six shipped buckets name a board and which name a clock; the
+ * moment a subgroup is a predicate a search produced rather than one of six names, that question
+ * has to be answered from what the subgroup READS. `shared/discovery/claim-class.ts` answers it
+ * for both shapes from one table, so "a clock is not a property of a board" is written down once.
+ *
+ * THIS FUNCTION'S ANSWERS ARE UNCHANGED, deliberately: the same nine keys map to the same two
+ * protocols, and anything else still returns null. `tests/shared/a-clock-claim-a-drill-cannot-
+ * test.test.ts` is what says so.
+ *
  * RETURNS NULL FOR A BUCKET NOBODY HAS CLASSIFIED, rather than guessing at a drill. A new bucket
  * added without deciding how it can be validated is a bucket whose claims cannot be validated, and
  * saying so is better than quietly testing a clock with a chessboard.
  */
 export function protocolFor(bucketKey: string): ProtocolKind | null {
-  if (POSITION_BUCKETS.has(bucketKey)) return "position-drill";
-  if (ENVIRONMENT_BUCKETS.has(bucketKey)) return "timed-holdout";
+  const claimClass: ClaimClass = classifyBucketKey(bucketKey);
+  if (claimClass === "POSITION") return "position-drill";
+  if (claimClass === "ENVIRONMENT") return "timed-holdout";
+  /*
+   * EVERY OTHER CLASS IS NULL HERE, INCLUDING THE ONES THAT ARE NOT `UNKNOWN`. A sequence claim or
+   * a model-derived one needs a protocol this module does not implement, and returning the nearest
+   * one it does implement would be the substitution INV-10 forbids. `protocolForClass` in
+   * `claim-class.ts` names what each of them actually needs.
+   */
   return null;
 }
 
