@@ -46,6 +46,7 @@ export const N1_HYPOTHESIS: Claim = {
   refutation_condition: "בבדיקה חדשה, אם הפער לא יהיה גדול יותר — ההשערה הופרכה.",
   // "גבוה מהתוצאות" -- the statement above names overconfidence, so the flag matches the prose.
   predicts_overconfidence: true,
+  graded_under: null,
   prospective_tests: [],
   created_at: "2026-08-21T00:00:00Z",
   last_evaluated_at: "2026-08-21T00:00:00Z",

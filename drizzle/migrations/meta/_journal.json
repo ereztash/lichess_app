@@ -78,6 +78,20 @@
       "when": 1788102539931,
       "tag": "0010_hot_roughhouse",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1788110523849,
+      "tag": "0011_lean_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1788115483456,
+      "tag": "0012_redundant_sally_floyd",
+      "breakpoints": true
     }
   ]
 }

@@ -85,14 +85,18 @@ this branch and in PR #40. Anything built on `main` would not see it.
 
 **Resolved in part, and one part deliberately left open.** PR-13 supplies `ValidationProtocol` and
 `TimedHoldout` (`shared/validation-protocol.ts`), including the timestamp boundary. It also made
-visible that the gap is not a missing feature but a **disagreement**: `beginDrill` builds a static
-drill for `fast-under-45s` today, with a reason written in its own comment, and `protocolFor` sends
-that bucket to a holdout. Reproduced by running the repository's drill-loop test:
-`DRILLED_CLAIM: claim-fast-under-45s | protocol INV-10 requires: timed-holdout`. Nothing in the
-product was changed on this; see **ADR-003**, which states both positions, names the three ways it
-can go, and picks none — enforcing it would strip the only prospective test the product can run on
-the bucket that holds 99.7% of a blitz player's decisions. `tests/shared/a-rule-the-product-breaks.test.ts`
-holds the contradiction still, and goes red on either resolution.
+visible that the gap was not a missing feature but a **disagreement**: `beginDrill` built a static
+drill for `fast-under-45s`, with a reason written in its own comment, and `protocolFor` sent that
+bucket to a holdout. Reproduced by running the repository's drill-loop test:
+`DRILLED_CLAIM: claim-fast-under-45s | protocol INV-10 requires: timed-holdout`.
+
+**Closed by ADR-003, option 3, decided by the repository's owner.** A forward test now carries the
+protocol it ran under; a protocol the claim does not require may move the grade but never lock it,
+and the card names both the test that ran and the test that would settle the question. The drill is
+NOT withdrawn — that was option 1, and it would have stripped the only prospective test available
+on the bucket holding 99.7% of a blitz player's decisions.
+`tests/shared/a-rule-the-product-breaks.test.ts` now holds the resolution's two halves: the drill is
+still built, and the grade it produces is not settled.
 
 ### 1.8 `Home.tsx` — **already fenced**
 

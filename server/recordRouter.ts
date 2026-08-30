@@ -6,6 +6,7 @@
  * than the DOM -- a DOM-only check passes happily while the answer sits in the props.
  */
 import { TRPCError } from "@trpc/server";
+import { storedBlitzRecordSchema } from "../shared/blitz-record.js";
 import { z } from "zod";
 import { REVEAL_TIMINGS } from "../shared/reveal-timing.js";
 import {
@@ -413,5 +414,18 @@ export function buildRecordRouter(store: RecordStore) {
       .mutation(({ input }) => guard(() => service.saveImportReading(store, input))),
 
     importReading: ownerProcedure.query(() => guard(() => store.getImportDiagnostic())),
+
+    /**
+     * One finished, analysed blitz game.
+     *
+     * The schema is the shared one, not a copy: a second spelling of these fields on the server is
+     * how a client and a server come to disagree about which of them may be null.
+     */
+    saveBlitzGame: ownerProcedure
+      .input(storedBlitzRecordSchema)
+      .mutation(({ input }) => guard(() => service.saveBlitzGame(store, input))),
+
+    blitzDecisions: ownerProcedure.query(() => guard(() => store.listBlitzDecisions())),
+    blitzGames: ownerProcedure.query(() => guard(() => store.listBlitzGames())),
   });
 }
