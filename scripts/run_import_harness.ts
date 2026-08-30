@@ -50,6 +50,15 @@ import { UciEngine } from "./uci-engine.js";
 /** The depth `analyzePositions` defaults to, which is what a real import searches at. */
 const IMPORT_DEPTH = 12;
 
+/**
+ * What the engine called itself, rather than what the file was called.
+ *
+ * `binary.split("/").pop()` is fine while the binary IS the engine and worthless the moment it is
+ * a wrapper: the first canonical run against the shipped WebAssembly build recorded `sf-wasm.sh`,
+ * which names a shell script. The engine says its own name during the handshake.
+ */
+let engineName = "unknown";
+
 interface Corpus {
   players: Array<{ playerId: string; username: string; games: AnalysableGame[] }>;
   provenance: Record<string, unknown>;
@@ -111,6 +120,7 @@ async function runOnce(
   elapsedMs: number;
 }> {
   const engine = await UciEngine.spawn(binary, { Threads: 1, Hash: 16 });
+  engineName = engine.name;
   const started = Date.now();
   try {
     const result = await runImportDiagnostic(games, username, analyzerFor(engine, clearHash));
@@ -264,7 +274,8 @@ async function main() {
   writeFileSync(`${dataDir}/decision_evidence.jsonl`, evidence);
   const manifest = {
     generatedAt: new Date().toISOString(),
-    engine: binary.split("/").pop(),
+    engine: engineName,
+    engineInvokedAs: binary.split("/").pop(),
     engineOptions: { Threads: 1, Hash: 16, clearHashBetweenPositions: true },
     importDepth: IMPORT_DEPTH,
     corpus: corpus.provenance,

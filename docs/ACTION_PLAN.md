@@ -198,10 +198,22 @@ Wall clock: 94 seconds for all six players. The plan estimated this would be exp
 Result: [`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md).
 `docs/MEASUREMENTS.md` is marked in five places. **No threshold was moved.**
 
-**Consequence for this plan: B2, B3 and B4 are blocked and stay blocked.** They were already gated
-on B1 for the stated reason that choosing from numbers a different engine produced is choosing on
-noise of unknown size. That reason is now a measurement rather than a worry, and the stop rule says
-the plan halts here until it is decided what the record is worth.
+**Consequence for this plan: B2, B3 and B4 were blocked.** They were gated on B1 for the stated
+reason that choosing from numbers a different engine produced is choosing on noise of unknown size.
+
+### ✅ RESOLVED BY RE-MEASURING, not by relabelling
+
+The owner's call, and the more expensive of the two options the stop rule left open. The record was
+re-measured on `Stockfish 18 Lite WASM` in the product's own configuration:
+`research/harness-shipped/`, 1,587 decisions, order-independent, overall accuracy **71.6%**.
+
+The change decomposes into **bias from the engine** (13.61% of verdicts, +4.4 pp, all one way) and
+**noise from clearing the hash** (11.22% of verdicts, +0.1 pp, symmetric). The weakest-bucket
+verdict still fires on none of the six players; the book exclusion is identical at 7.8% on both
+engines.
+
+**B2 and B3 are unblocked** — the numbers they would choose from are now the product's. B4 remains
+blocked on recruitment, which was always its second gate. Neither is started here.
 
 ### B2 · How time is represented (PR7)
 
@@ -327,9 +339,11 @@ DONE     B1  engine parity  ->  STOP-B1, Δ = 13.6 pp against a 13.0 pp bar
 DONE     A2  overlay focus trap and restore
 DONE     A3  GATE-KEYBOARD  ->  found a third live instance on its first run
 
-BLOCKED  B2  time representation        STOP-B1 fired
-         B3  MultiPV cost               STOP-B1 fired
-         B4  prospective effectiveness  STOP-B1 fired, and recruitment
+DONE     B1b re-measured on the shipped engine  ->  that record is canonical now
+
+open     B2  time representation        unblocked
+         B3  MultiPV cost               unblocked
+BLOCKED  B4  prospective effectiveness  needs a person, over weeks
 
 HELD     C1  Home.tsx  ->  no mechanical extraction exists; ratcheted instead
 ```

@@ -142,6 +142,68 @@ Per §5 and §6 of the preregistration:
 - **Nothing about the browser.** This ran the shipped build under Node. The wall clock, the memory
   and the behaviour of that same wasm inside a real browser tab are still unmeasured.
 
+## The decision, and what was done about it
+
+**The record was re-measured on the shipped engine.** That was the owner's call between the two
+options §5 left open, and it is the more expensive one.
+
+`research/harness-shipped/` is the canonical record now: `Stockfish 18 Lite WASM`, depth 12, hash
+cleared before every position — the product's own configuration — over the same 48 games and six
+players. 1,587 decisions, sha256 `d70998ba…`, verified. It repeats, it repeats per decision, and in
+that configuration it is **order-independent**.
+
+### The change, decomposed rather than lumped
+
+Three of the four cells of a 2×2 exist, so "the record changed" can be split into its causes:
+
+| | verdict flips | → accurate | → inaccurate | overall accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| **engine** (hash held constant) | 13.61% | 143 | 73 | 67.0% → 71.5% |
+| **hash clearing** (engine held constant) | 11.22% | 90 | 88 | 71.5% → 71.6% |
+| **total** | **14.74%** | 153 | 81 | 67.0% → **71.6%** |
+
+**They are different in kind, and only the decomposition shows it.** Clearing the hash moves 11% of
+individual verdicts and the aggregate by a tenth of a point: symmetric, unbiased, noise. Changing
+the engine moves 13.6% and the aggregate by 4.4 points, all one way: bias. Reported as one number,
+"14.74% of decisions changed", the two would have been indistinguishable.
+
+### What the re-measurement did and did not move
+
+| | |
+| --- | --- |
+| largest bucket shift, old record → new | **12.5 pp** (`d4c64542…` / standing-losing, 61.1% → 73.6%) |
+| buckets that stopped being readable | 1 (`fcf1b502…` / standing-winning, n 31 → 24) |
+| separability bars | 13.0–19.5 → **12.3–17.8**, against gaps 1.0–7.9 → **0.6–6.3** |
+| weakest-bucket verdict fires | **on none of the six**, on either engine |
+| book exclusion | **124 / 7.8% on both** — a check that passed |
+| order effect on the warm pair | 7.0 pp native → **6.9 pp shipped** |
+| cost of clearing the hash | 1.41× native → **1.42× shipped** |
+
+The book figure is the one worth pausing on. Book is a claim about the *position*, so a different
+engine must not move it — and it did not, to the decision. A number that stayed identical across a
+change this large is evidence the two runs are comparable at all.
+
+### Three things this run corrected on its own
+
+- **The harness published the wrong run.** Its canonical pass left the transposition table warm and
+  its manifest recorded `clearHashBetweenPositions: false` as a fact about the product. Neither had
+  been true since the order-dependence fix shipped. It had gone on publishing the old behaviour as
+  the reading — the same class of defect it exists to find, turned on itself.
+- **Provenance was the filename, not the engine.** `binary.split("/").pop()` is fine while the
+  binary is the engine and worthless when it is a wrapper: this run went into its own artifact as
+  `sf-wasm.sh`. The harness now takes the engine's `id name` from the handshake it already
+  performs. That artifact predates the fix; the engine was verified separately as
+  `Stockfish 18 Lite WASM`.
+- **The README carried a figure nothing supported.** It quoted **14.3 pp** for the order effect.
+  The native run over this corpus reports **7.0** (per player: 5.95, 6.90, 3.51, 7.00, 6.06, 3.90)
+  and the earlier five-player corpus reported 11.81. 14.3 matched neither.
+
+### Still unmeasured
+
+**The browser.** This drove the shipped build under Node. The wall clock, the memory and the
+behaviour of that same wasm inside a real tab remain unobserved — and the clearing cost measured
+here, 1.42×, is a ratio on this machine and not a prediction about a phone.
+
 ## Reproducing it
 
 ```bash
