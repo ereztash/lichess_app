@@ -143,6 +143,8 @@ export type CommitEvent = {
     confidence: number | null;
     /** Which scale that confidence was stated on. Optional in the type, refused below if absent. */
     confidence_scale?: number;
+    /** Which grid that scale was. See `shared/confidence.ts`. */
+    confidence_grid_version?: number;
     candidate_moves_considered: string[];
   };
   /**
@@ -391,6 +393,13 @@ export async function commitDecision(
     statedUnknownParts: input.unknown_parts ?? null,
     confidence: input.bounded_action.confidence,
     confidenceScale,
+    /*
+     * NOT REFUSED WHEN ABSENT, unlike the scale above, and the asymmetry is the same one
+     * `normaliseConfidence` makes: a missing scale could be a live client that forgot, so reading
+     * it either way would be a coin toss over what somebody said. A missing grid version cannot
+     * be -- only one has ever shipped -- so absence dates the row rather than hiding a choice.
+     */
+    confidenceGridVersion: input.bounded_action.confidence_grid_version ?? null,
     probeAssignment: probe?.assignment ?? null,
     legalMoves: probe?.legal_moves ?? null,
     revealTiming: input.reveal_timing,

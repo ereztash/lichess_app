@@ -9,7 +9,7 @@
  *
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
-import { CONFIDENCE_LEVELS } from "@shared/confidence";
+import { CONFIDENCE_LEVELS, CONFIDENCE_GRID_VERSION } from "@shared/confidence";
 import type { DecisionAtom, StatedParts } from "@shared/decision-atom";
 import { assignProbe } from "@shared/counterfactual";
 import type { RevealTiming } from "@shared/reveal-timing";
@@ -276,6 +276,12 @@ export function buildCommitEvent(
        * two different probabilities depending only on which build a player was using.
        */
       confidence_scale: CONFIDENCE_LEVELS,
+      /*
+       * AND WHICH GRID THAT SCALE IS. Sent from the constant rather than left absent, so the row
+       * says what it was stated on instead of being dated by inference. Absence is only readable
+       * while exactly one version has shipped; a stamp stays readable afterwards.
+       */
+      confidence_grid_version: CONFIDENCE_GRID_VERSION,
       /*
        * TOUCH ORDER IS THE DATA, and this line used to destroy it.
        *

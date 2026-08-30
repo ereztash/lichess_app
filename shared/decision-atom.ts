@@ -119,6 +119,20 @@ export const boundedActionSchema = z.object({
    * a fact about that row's age, resolved once where stored rows are read, never defaulted here.
    */
   confidence_scale: z.number().int().min(2).max(CONFIDENCE_LEVELS).optional(),
+  /*
+   * WHICH GRID THAT SCALE WAS, and the level count does not say.
+   *
+   * `confidence_scale` records SEVEN. Seven levels could be `.05 .20 .35 .50 .65 .80 .95` or any
+   * other seven numbers, and `shared/confidence.ts` says in its own note that two open questions --
+   * Juslin's scale-end effect, and whether the map should be linear in log odds rather than in
+   * probability -- would move those numbers while leaving the count at seven. Every stored
+   * `level 6, scale 7` would then assert the new value instead of the 0.80 the player said, with
+   * nothing in the row able to tell: the count still matches and the word is still "בטוח".
+   *
+   * Optional for the same reason `confidence_scale` is, and resolved the same way: absence dates
+   * the row, and only one grid version has ever shipped.
+   */
+  confidence_grid_version: z.number().int().positive().optional(),
   candidate_moves_considered: z.array(z.string().min(4).max(6)).max(8),
 });
 

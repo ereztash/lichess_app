@@ -58,6 +58,8 @@ export interface CommitDecisionInput {
    * line, which is precisely the failure the binding exists to close.
    */
   drillId: string | null;
+  /** Which grid the confidence level was stated on, or null on a row that did not say. */
+  confidenceGridVersion?: number | null;
   secondsTaken: number;
   chosenMove: string;
   candidateMovesConsidered: string[];

@@ -128,6 +128,15 @@ export const decisions = mysqlTable(
      */
     confidenceScale: int("confidence_scale"),
     /**
+     * WHICH GRID that scale was. Nullable, and null means version 1.
+     *
+     * The level count is not the scale: seven levels could be any seven probabilities, and
+     * `shared/confidence.ts` names two open questions that would move them while leaving the
+     * count at seven. A stored `level 6, scale 7` would then assert a value the player never
+     * said, with nothing in the row able to tell.
+     */
+    confidenceGridVersion: int("confidence_grid_version"),
+    /**
      * Which arm of the counterfactual probe this decision was randomised into.
      *
      * NULLABLE, AND NULL IS NOT A CONTROL. A row written before the probe existed was never

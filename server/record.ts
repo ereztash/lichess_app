@@ -106,6 +106,9 @@ function toAtom(
       seconds_taken: decision.secondsTaken,
       confidence: decision.confidence,
       ...(decision.confidenceScale === null ? {} : { confidence_scale: decision.confidenceScale }),
+      ...(decision.confidenceGridVersion === null
+        ? {}
+        : { confidence_grid_version: decision.confidenceGridVersion }),
       candidate_moves_considered: decision.candidateMovesConsidered,
     },
     probe: assembleProbe(
@@ -260,6 +263,7 @@ export class DrizzleRecordStore implements RecordStore {
       statedUnknownParts: input.statedUnknownParts,
       confidence: input.confidence,
       confidenceScale: input.confidenceScale,
+      confidenceGridVersion: input.confidenceGridVersion ?? null,
       probeAssignment: input.probeAssignment,
       legalMoves: input.legalMoves,
       revealTiming: input.revealTiming,
@@ -1301,6 +1305,9 @@ export class MemoryRecordStore implements RecordStore {
         seconds_taken: row.secondsTaken,
         confidence: row.confidence,
         ...(row.confidenceScale === null ? {} : { confidence_scale: row.confidenceScale }),
+        ...(row.confidenceGridVersion == null
+          ? {}
+          : { confidence_grid_version: row.confidenceGridVersion }),
         candidate_moves_considered: row.candidateMovesConsidered,
       },
       probe: assembleProbe(row, this.counterfactuals.get(row.decisionId)),

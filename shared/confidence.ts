@@ -56,17 +56,63 @@ export const CONFIDENCE_LEVELS = 7;
 export const LEGACY_CONFIDENCE_LEVELS = 5;
 
 /**
- * What each level asserts, per scale.
+ * WHICH GRID A LEVEL WAS STATED ON, and why the level count is not enough to say.
+ *
+ * The module note above opens with the rule this constant exists to keep: the scale is three
+ * things that must never drift apart -- how many levels, what probability each asserts, and what
+ * word sits under it. The record stores exactly one of the three. `confidence_scale` says SEVEN,
+ * and seven levels could be `.05 .20 .35 .50 .65 .80 .95` or any other seven numbers.
+ *
+ * THE VALUES WERE CHOSEN BY MEASUREMENT AND COULD BE RE-CHOSEN. The table above ends with two
+ * questions it explicitly does not answer -- Juslin's scale-end effect, and whether the map from an
+ * ordinal word to a probability should be linear at all rather than linear in log odds. Either
+ * would move these numbers while leaving the count at seven. Every stored `level 6, scale 7` would
+ * then quietly assert the new value instead of the 0.80 the player actually said, and nothing in
+ * the row could tell: the count still matches, the word is still "בטוח", and every reading changes.
+ *
+ * That is the same failure `confidence_scale` was added to prevent, one level down, and the same
+ * rule applies -- a stored number whose meaning depends on a setting is not a measurement unless
+ * the setting is stored beside it.
+ *
+ * BUMP THIS WHENEVER A VALUE IN `GRID_HISTORY[current]` CHANGES, and never when a scale is merely
+ * added: adding a grid for a level count nobody has used cannot re-mean a stored row.
+ * `tests/shared/a-grid-that-moved-under-a-stored-level.test.ts` pins every published grid, so a
+ * value edited without a bump fails the build with a message rather than rewriting the record.
+ */
+export const CONFIDENCE_GRID_VERSION = 1;
+
+/**
+ * The version a row that does not carry one was written under.
+ *
+ * ABSENCE DATES THE ROW, exactly as it does for `confidence_scale`. Every decision stored before
+ * this field existed was stated on the grids below as version 1 defines them, because those are the
+ * only grids that have ever shipped. That is a fact about the history of this file rather than a
+ * default, and it stops being true the moment version 2 exists -- at which point rows carrying no
+ * version are still version 1 and the new ones say so.
+ */
+export const LEGACY_CONFIDENCE_GRID_VERSION = 1;
+
+/**
+ * What each level asserts, per scale, PER VERSION OF THE GRID.
  *
  * Written out rather than derived from a formula, because the two scales do not share one. The
  * old scale ran to the ends and the new one is inset; a single expression covering both would
  * have to encode that difference anyway, less legibly, and the old row is a historical fact that
  * should be readable as one.
+ *
+ * A VERSION IS APPENDED, NEVER EDITED. The rows stored under version 1 are only readable while
+ * version 1's numbers are still here, so changing one is not a correction -- it is a rewrite of
+ * what a player said, which is the one thing the record may never do.
  */
-const GRIDS: Readonly<Record<number, readonly number[]>> = {
-  [LEGACY_CONFIDENCE_LEVELS]: [0, 0.25, 0.5, 0.75, 1],
-  [CONFIDENCE_LEVELS]: [0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95],
+const GRID_HISTORY: Readonly<Record<number, Readonly<Record<number, readonly number[]>>>> = {
+  1: {
+    [LEGACY_CONFIDENCE_LEVELS]: [0, 0.25, 0.5, 0.75, 1],
+    [CONFIDENCE_LEVELS]: [0.05, 0.2, 0.35, 0.5, 0.65, 0.8, 0.95],
+  },
 };
+
+/** Every grid this build can read, for the pinning test and for anything that has to enumerate. */
+export const PUBLISHED_GRIDS = GRID_HISTORY;
 
 /**
  * The word under each level of the CURRENT scale.
@@ -127,8 +173,27 @@ export const CONFIDENCE_CHOICES: readonly number[] = Array.from(
  * every downstream number is a probability, and a probability read off the wrong grid is wrong
  * quietly, in a direction nobody can see.
  */
-export function normaliseConfidence(level: number, levels: number): number {
-  const grid = GRIDS[levels];
+export function normaliseConfidence(
+  level: number,
+  levels: number,
+  /**
+   * The grid the level was stated on.
+   *
+   * DEFAULTED, UNLIKE `levels`, and the asymmetry is deliberate. A missing scale could belong to a
+   * fresh decision that forgot to pass one, so defaulting it would silently misread a live row.
+   * A missing grid version cannot: only one version has ever shipped, so every row without one --
+   * stored or fresh -- was stated on version 1. The day that stops being true is the day the
+   * constant moves, and rows written after it will carry their own.
+   */
+  gridVersion: number = LEGACY_CONFIDENCE_GRID_VERSION,
+): number {
+  const grids = GRID_HISTORY[gridVersion];
+  if (!grids) {
+    throw new RangeError(
+      `confidence was stated on grid version ${gridVersion}, which this build cannot read`,
+    );
+  }
+  const grid = grids[levels];
   if (!grid) {
     throw new RangeError(
       `confidence was stated on a ${levels}-level scale, which this build cannot read`,

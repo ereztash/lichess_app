@@ -97,6 +97,12 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
       confidence: normaliseConfidence(
         atom.bounded_action.confidence,
         atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
+        /*
+         * AND WHICH GRID THAT SCALE WAS. Same rule one level down: the count says how many rungs,
+         * not what each asserts. Absent means version 1, which is a fact about the row's age --
+         * `normaliseConfidence` owns that resolution so it cannot be made twice, differently.
+         */
+        atom.bounded_action.confidence_grid_version,
       ),
       /*
        * Judged on what the move COST, not on how many centipawns it shed. Thirty centipawns is

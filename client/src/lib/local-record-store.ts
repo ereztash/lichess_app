@@ -805,6 +805,9 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
       seconds_taken: row.secondsTaken,
       confidence: row.confidence,
       ...(row.confidenceScale === undefined ? {} : { confidence_scale: row.confidenceScale }),
+      ...(row.confidenceGridVersion == null
+        ? {}
+        : { confidence_grid_version: row.confidenceGridVersion }),
       candidate_moves_considered: row.candidateMovesConsidered,
     },
     probe: assembleProbe(
@@ -833,6 +836,8 @@ type StoredDecision = Omit<
   "confidenceScale" | "probeAssignment" | "legalMoves" | "revealTiming" | "purpose"
 > & {
   confidenceScale?: number;
+  /** Which grid that scale was. Absent on every row written before it existed: version 1. */
+  confidenceGridVersion?: number | null;
   /**
    * Absent on rows written before the purpose was recorded, and absent is not `play`.
    *

@@ -457,9 +457,9 @@ blocked on, and was always the wrong thing to ask.
 | | |
 | --- | --- |
 | type | correctness |
-| state | **open** |
+| state | **fixed** |
 | severity | P2 |
-| basis | **verified** — `confidence_scale` **is** stored (`shared/decision-atom.ts:115`, `drizzle/schema.ts:113`) |
+| basis | **verified** — `confidence_scale` **was** stored and the grid was not (`shared/decision-atom.ts:115`, `drizzle/schema.ts:113`) |
 
 **Narrower than the plan states.** The level and the scale are both carried, and a row without a
 scale is resolved by its age rather than defaulted. What is *not* carried is a version for the
@@ -470,6 +470,28 @@ re-mean.
 
 **Gate:** the grid is versioned and stored beside the level; a fixture written under one grid keeps
 its original probability after the grid changes.
+
+**Closed by** `CONFIDENCE_GRID_VERSION` and a `GRID_HISTORY` keyed by version, with
+`confidence_grid_version` stored on the decision. `normaliseConfidence` reads the grid the level was
+stated on, refuses a version this build does not know rather than falling back to the current one,
+and treats absence as version 1 — a fact about the row's age, since only one version has shipped.
+
+**The module said this about itself.** `shared/confidence.ts` opens with *"the scale is three things
+that must never drift apart"* and closes by naming two open questions — Juslin's scale-end effect,
+and whether the map should be linear in log odds rather than in probability — either of which would
+move the seven numbers while leaving the count at seven. The record stored one of the three.
+
+**Gate:** `tests/shared/a-grid-that-moved-under-a-stored-level.test.ts`, which **pins every
+published grid by writing the numbers out again**. That duplication is the mechanism rather than a
+smell: a test importing the values and comparing them to themselves passes whatever they become.
+Move a published probability without bumping the version and 2 assertions go red; make
+`normaliseConfidence` ignore the version it is handed and 1 does.
+
+**One existing test had to become more exact, not weaker.** `confidence-scale.test.ts` asserted by
+source regex that `levels` has no default, using `normaliseConfidence\([^)]*levels[^)]*=` — which
+asks whether an `=` appears anywhere after the word `levels`, and so fired on the deliberate default
+of the parameter added *after* it. The property it guards was untouched; the pattern now names
+`levels` and nothing else.
 
 ### R-11 · The board declares `role="grid"` and does not implement it
 
