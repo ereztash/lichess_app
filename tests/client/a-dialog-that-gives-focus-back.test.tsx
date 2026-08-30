@@ -186,11 +186,16 @@ describe("focus comes back out", () => {
     expect(document.activeElement).toBe(trigger);
   });
 
-  it("does not send focus to the body when the opener is gone", () => {
+  it("survives an opener that has been removed, and says where focus actually lands", () => {
     /*
-     * A dialog that replaces the thing that launched it is ordinary. `focus()` on a detached node
-     * silently sends focus to <body>, which is the failure this whole test file is about, so the
-     * restore is guarded on the node still being in the document.
+     * REWRITTEN AFTER A CONTROL CAUGHT IT. This first asserted only that unmounting did not throw,
+     * which is true whether or not the restore is guarded -- so the control that removed the guard
+     * stayed green and the test was proving nothing.
+     *
+     * What is asserted now is the real behaviour: focusing a detached node is a no-op, so focus
+     * ends up on <body>. That is not a failure to prevent, it is where focus goes when the thing
+     * it should return to no longer exists. Recording it is worth more than a guard that reads
+     * like safety and does nothing, which is why the guard itself was deleted.
      */
     const opener = document.createElement("button");
     document.body.append(opener);
@@ -202,6 +207,7 @@ describe("focus comes back out", () => {
     );
     opener.remove();
     expect(() => unmount()).not.toThrow();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it("does NOT restore mid-life when the parent hands it a new onClose", () => {
@@ -216,7 +222,7 @@ describe("focus comes back out", () => {
     document.body.append(trigger);
     trigger.focus();
 
-    const { rerender } = render(
+    const { rerender, unmount } = render(
       <Overlay label="בדיקה" onClose={() => undefined}>
         <button>בפנים</button>
       </Overlay>,
@@ -231,6 +237,47 @@ describe("focus comes back out", () => {
     );
     expect(document.activeElement?.textContent).toBe("בפנים");
 
+    unmount();
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.remove();
+  });
+
+  it("does not touch the opener at all until it closes", () => {
+    /*
+     * THE ASSERTION THAT ACTUALLY CATCHES A MERGED EFFECT, and it took two controls to find.
+     *
+     * The first attempt checked where focus ENDED UP after a re-render, and a merged version
+     * passes it: React runs the cleanup before re-running the effect, so focus goes trigger ->
+     * "בפנים" and lands back where it started, and the second capture reads the trigger correctly
+     * because the cleanup had just focused it. Every end-state assertion is blind to this.
+     *
+     * What is not blind to it is COUNTING. A merged effect calls `trigger.focus()` once per
+     * re-render; a split one never calls it until the dialog closes. The cost of the merged
+     * version is exactly that transient -- invisible on screen, and announced out loud by a screen
+     * reader every time the parent re-renders.
+     */
+    const trigger = document.createElement("button");
+    document.body.append(trigger);
+    trigger.focus();
+    const focused = vi.spyOn(trigger, "focus");
+
+    const { rerender, unmount } = render(
+      <Overlay label="בדיקה" onClose={() => undefined}>
+        <button>בפנים</button>
+      </Overlay>,
+    );
+    for (let i = 0; i < 3; i += 1) {
+      rerender(
+        <Overlay label="בדיקה" onClose={() => undefined}>
+          <button>בפנים</button>
+        </Overlay>,
+      );
+    }
+    expect(focused, "focus was pulled back to the opener while the dialog was open").not.toHaveBeenCalled();
+
+    unmount();
+    expect(focused).toHaveBeenCalledOnce();
     trigger.remove();
   });
 });

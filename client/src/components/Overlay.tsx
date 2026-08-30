@@ -58,17 +58,20 @@ export function Overlay({ label, onClose, children }: OverlayProps) {
    * would restore focus to the opener while the dialog was still on screen, then re-capture the
    * opener as whatever had focus by then.
    *
-   * THE GUARD ON THE WAY OUT. The element that opened the panel may not exist any more -- a
-   * dialog that replaces the thing that launched it is ordinary. Calling `focus()` on a detached
-   * node silently sends focus to `<body>`, which is the failure this is meant to prevent, so it
-   * is only called on a node still in the document.
+   * WHAT IS NOT GUARDED HERE, AND WHY NOT. An earlier version tested `opener.isConnected` before
+   * restoring, on the reasoning that the element which opened the panel may have been removed
+   * meanwhile -- a dialog replacing the thing that launched it is ordinary. A positive control
+   * proved that reasoning wrong: it mutated the guard away and every test stayed green, because
+   * focusing a detached node is a no-op in a browser and in jsdom alike, and focus ends up on
+   * `<body>` with the guard or without it. It was decoration that read like safety, so it is gone.
+   * The optional chain stays, because `document.activeElement` really can be null.
    */
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
     // Focus moves into the panel, so the keyboard is where the eye is.
     (focusables()[0] ?? panel.current)?.focus();
     return () => {
-      if (opener?.isConnected && typeof opener.focus === "function") opener.focus();
+      opener?.focus();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
