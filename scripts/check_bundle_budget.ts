@@ -235,10 +235,56 @@ const INDEX = "dist/public/index.html";
  *
  * WHAT WAS CHECKED RATHER THAN ASSUMED: the 7.1 MB of WebAssembly is still held out of the entry,
  * and no chunk was created or merged away.
+ *
+ * ---
+ *
+ * 670 -> 674, 208 -> 209, 743 -> 747: R-02, the blitz record written BEFORE the engine runs.
+ *
+ * All three fired, which is unusual and is the honest reading of a change that touches the record's
+ * shape rather than one screen: the previous raise left 0.0 / 0.3 / 0.3 kB of headroom, so anything
+ * at all would have crossed them. Split by building four times, adding one layer each time:
+ *
+ *                                          entry raw   gzipped   initial raw
+ *     before this change                     670.0      207.7       742.7
+ *     + the record's two-phase shape         671.3      208.0       744.1   +1.3 / +0.3 / +1.4
+ *     + the client store and the hook        671.7      208.1       744.4   +0.4 / +0.1 / +0.3
+ *     + the screen's two writes              672.3      208.2       745.1   +0.6 / +0.1 / +0.7
+ *
+ * ROW ONE IS THE WIRE SCHEMA, AND IT CANNOT BE DEFERRED. `BLITZ_ANALYSIS_STATES` is a runtime array
+ * -- zod checks values against it, so it is data the chunk has to hold rather than code a later one
+ * could bring -- plus two provenance objects and four refinements that say a scored game names what
+ * scored it and when, and an unscored one carries no cp-loss. Same argument `decisionAtomSchema`
+ * made two raises above: the local record path runs the same validator the server does, and a
+ * validator that arrives after the first write is a validator that did not run.
+ *
+ * ROW TWO IS `LocalRecordStore.attachBlitzAnalysis` and its hook. The store is constructed on the
+ * entry route; one that arrives late was not there when the thing needed writing.
+ *
+ * ROW THREE IS NOT THE SCREEN, AND THAT IS WORTH SAYING BECAUSE IT LOOKS LIKE IT. `/blitz` is a
+ * lazy route, and its own additions did land in its own chunk -- checked, not assumed: the refusal
+ * copy and `engine-identity` are in `Blitz-*.js` and absent from the entry. What crossed into the
+ * entry is `toPendingRecord` and `attachAnalysis` becoming REACHABLE: `shared/blitz-record.ts` is
+ * shared between the entry (through `record-service`) and the lazy route, so Rollup keeps the
+ * module in the common ancestor and the two new functions ride into the entry with it.
+ * `analysisState:"pending"` appears in the entry chunk and in no other. That is the same mechanism
+ * `shared/blitz-features.ts` demonstrated from the other side, where an unreferenced module cost
+ * zero: what is measured here is the cost of shipped behaviour, not of code that merely exists.
+ *
+ * WHAT THE 2.3 kB BUYS, and it is the only reason to raise rather than trim: a game used to be
+ * analysed and only then written, so a player who closed the tab during the search lost the moves,
+ * both clocks and the think times -- which are frozen at commit and reconstructible from nothing.
+ * The loss was invisible from the data, because a game never written leaves nothing to count, and
+ * it was not random: the games most likely to be dropped are long ones on slow devices.
+ *
+ * WHAT WAS CHECKED RATHER THAN ASSUMED. The chunk set is byte-for-byte the same list before and
+ * after -- nothing created, nothing merged away -- and the 7.1 MB of WebAssembly is still held out
+ * of the entry. `engine-identity.ts` exists to keep it that way: `Blitz.tsx` needs the engine's
+ * identity statically, at the moment it writes a record, and importing it from `stockfish.ts`
+ * would have pulled the wasm into the module graph to read one string.
  */
-const ENTRY_RAW_KB = 670;
+const ENTRY_RAW_KB = 674;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 208;
+const ENTRY_GZIP_KB = 209;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -247,8 +293,10 @@ const ENTRY_GZIP_KB = 208;
  *
  * 735 -> 736 with the entry ceiling above, and for the same 1.2 kB: no stylesheet grew. Measured
  * at 734.9 kB with the card reverted, which is why this one fires only with the screen included.
+ *
+ * 743 -> 747 with the two ceilings above, and for the same 2.4 kB: no stylesheet grew here either.
  */
-const INITIAL_RAW_KB = 743;
+const INITIAL_RAW_KB = 747;
 
 interface Asset {
   name: string;

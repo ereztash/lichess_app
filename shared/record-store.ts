@@ -140,6 +140,19 @@ export interface RecordStore {
    * include it. Append-only -- a game is played once and analysed once.
    */
   saveBlitzRecord(record: StoredBlitzRecord): Promise<void>;
+  /**
+   * Fill in the engine's verdict on a game that is already stored.
+   *
+   * THE ONE PERMITTED UPDATE IN AN APPEND-ONLY RECORD, and it is narrow on purpose: it writes the
+   * analysis columns and nothing else, once, and only over a game whose state is `pending`.
+   * Nothing the player did is mutable -- the moves, the clocks, the think times and the stated
+   * confidences are exactly as they were written when the game ended.
+   *
+   * It exists because the game is now stored BEFORE the engine runs, so that a tab closed during
+   * analysis cannot lose it. Something has to be able to come back afterwards and say what the
+   * engine found.
+   */
+  attachBlitzAnalysis(record: StoredBlitzRecord): Promise<void>;
   listBlitzGames(): Promise<StoredBlitzGame[]>;
   listBlitzDecisions(): Promise<StoredBlitzDecision[]>;
 

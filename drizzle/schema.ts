@@ -14,6 +14,7 @@ import {
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { VALIDATION_KEYS } from "../shared/claim-grade-protocol.js";
 import type { BlitzOutcome, Side } from "../shared/blitz-game-core.js";
+import { BLITZ_ANALYSIS_STATES } from "../shared/blitz-record.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
@@ -476,6 +477,45 @@ export const blitzGames = mysqlTable("blitz_games", {
   analysisTiming: mysqlEnum("analysis_timing", ANALYSIS_TIMINGS).notNull(),
   samplingPolicyVersion: int("sampling_policy_version").notNull(),
   askRate: double("ask_rate").notNull(),
+  /*
+   * WHETHER THE ENGINE HAS SCORED THIS GAME, AS A STATE RATHER THAN AS AN ABSENCE.
+   *
+   * The game is now written BEFORE the analysis runs, so that a tab closed mid-analysis cannot
+   * lose it. That makes a null `cp_loss` ambiguous for the first time: it used to mean only "the
+   * evaluator could not answer for one of the two positions", and it would now ALSO mean "nothing
+   * has asked it yet". Those are different facts about a decision and must not share an encoding.
+   *
+   * `legacy-unknown` IS A SEPARATE VALUE AND IS NEVER BACKFILLED TO `complete`. Rows written
+   * before this column existed were in fact analysed before they were stored -- but nothing
+   * recorded that, and writing `complete` into them would assert a fact this build did not
+   * observe. It is the argument `measurement-protocol.ts` makes for its own legacy key, and
+   * `claim-grade-protocol.ts` for `LEGACY_VALIDATION`.
+   */
+  analysisState: mysqlEnum("analysis_state", BLITZ_ANALYSIS_STATES).notNull(),
+  /** When the engine finished. Null wherever the state is not `complete`. */
+  analysedAt: timestamp("analysed_at"),
+  /*
+   * WHAT SCORED IT. Null wherever the state is not `complete`.
+   *
+   * `docs/ACTION_PLAN.md` B1 measured 13.61% of decisions flipping verdict between the engine that
+   * produced this project's published numbers and the engine it ships. A record that cannot say
+   * which engine scored it cannot be pooled across a version bump, and nothing else here records
+   * one.
+   */
+  analysisEngine: varchar("analysis_engine", { length: 64 }),
+  analysisEngineBuild: varchar("analysis_engine_build", { length: 64 }),
+  analysisDepth: int("analysis_depth"),
+  /*
+   * WHO THE PLAYER WAS PLAYING. Null only on rows written before this was recorded.
+   *
+   * Without it every blitz claim is a claim about playing one colour against whatever the build
+   * used that week, stated as a claim about the player. If the opponent's search policy changes
+   * between builds the population changes, and nothing recorded that it did.
+   */
+  opponentKind: varchar("opponent_kind", { length: 32 }),
+  opponentEngine: varchar("opponent_engine", { length: 64 }),
+  opponentEngineBuild: varchar("opponent_engine_build", { length: 64 }),
+  opponentDepth: int("opponent_depth"),
 });
 export type BlitzGameRow = typeof blitzGames.$inferSelect;
 

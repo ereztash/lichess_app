@@ -55,21 +55,37 @@ it cites it.
 | | |
 | --- | --- |
 | type | correctness | 
-| state | **open** |
+| state | **fixed** |
 | severity | **P0** |
-| basis | **verified** — `client/src/pages/Blitz.tsx:166` runs `analyseFinishedGame`, `:216` calls `saveGame.mutateAsync`, and the save's effect depends on `analysis` |
+| basis | **verified** — was `client/src/pages/Blitz.tsx:166` running `analyseFinishedGame` with the save's effect depending on `analysis`; now two effects, the pending write first |
 
-The order is play → analyse every position with Stockfish → *then* persist. A player who closes the
-tab during analysis loses the whole game: it was never written. Nothing about the game is
+The order was play → analyse every position with Stockfish → *then* persist. A player who closed the
+tab during analysis lost the whole game: it was never written. Nothing about the game was
 recoverable, including the think times, which cannot be reconstructed from anything else.
 
 `shared/blitz-post-game.ts` is emphatic that the engine must run *after* the game, and it is right —
-but "the record is complete before the first evaluation exists" is true of the **in-memory** state,
+but "the record is complete before the first evaluation exists" was true of the **in-memory** state,
 not of anything durable.
 
 **Gate:** a test that finishes a game, begins analysis, simulates the tab closing, reloads, and
 finds the game present with its decisions and its think times intact — and which fails if the save
 is moved back after the analysis.
+
+**Closed by** a two-phase write. `toPendingRecord` assembles the record the moment the game ends and
+`attachBlitzAnalysis` fills the verdict in afterwards, against a `WHERE analysis_state = 'pending'`
+that makes the second write a no-op if it has already happened.
+
+`tests/client/the-tab-closed-during-the-analysis.test.tsx` is the gate, and it was run against the
+old ordering to check it: with the write behind the analysis and the analyser's search never
+returning, **all four assertions go red**. There is no way to make them pass except by writing the
+game before the engine starts.
+
+**What the fix had to add to stay honest.** A null `cpLoss` used to mean one thing — the evaluator
+could not answer. Writing early would have made it mean two, which is the failure this repository is
+built around, so the game now carries `analysis_state`. Rows written before today get
+`legacy-unknown` and are never backfilled to a real state: see the hand-written note at the top of
+`drizzle/migrations/0013_watery_infant_terrible.sql` for why `pending` and `complete` are both lies
+about a game nobody observed.
 
 ### R-03 · No engine version is stored, and the engine is already known to change verdicts
 
@@ -94,6 +110,19 @@ across a version bump — and nothing currently stops that pooling.
 `unreadable` rather than dropped; and a fixture from before the field existed loads with its
 calibration marked unreadable while the rest of the game stays readable.
 
+**Half of it is recorded now, and the gate is untouched — stated plainly because the two are easy
+to confuse.** Blitz games carry `analysis_engine`, `analysis_engine_build`, `analysis_depth` and
+`analysed_at`, taken from the content hash of the wasm rather than from `package.json` (the range
+is `^18.0.8`, so the binary can change without any version string a build could embed changing with
+it: `client/src/lib/engine-identity.ts`).
+`tests/client/the-tab-closed-during-the-analysis.test.tsx` asserts the screen actually supplies
+them, and the wire schema refuses a `complete` game that cannot name what scored it.
+
+**What is still open** is everything the gate asks for and the whole untimed path: `resultSchema` in
+`shared/decision-atom.ts` is unchanged, and *nothing anywhere refuses to load an observation whose
+build is absent*. Recording a field is not the same as a reading that respects it, and until the
+second exists this row is open.
+
 ### R-04 · A blitz game records nothing about its opponent
 
 | | |
@@ -110,6 +139,17 @@ builds, the population changes and nothing records that it did.
 **Gate:** the opponent's type, engine, build and search policy are stored per game, and a reading
 that spans two different opponent policies reports them as separate strata rather than pooling them
 — the wall `shared/evidence-policy.ts` already draws for protocol and reveal timing.
+
+**The first clause is done; the second is not.** `blitz_games` now carries `opponent_kind`,
+`opponent_engine`, `opponent_engine_build` and `opponent_depth`, written on the **pending** record
+rather than the scored one — deliberately, because the opponent is a fact about the game, known when
+it ends, while the analysis is a fact about a later search. Attaching it to the scored write would
+have made it conditional on an engine finishing, so every game abandoned mid-analysis would carry no
+opponent — and those are exactly the rows most likely to be abandoned.
+
+**What is still open** is the pooling wall: nothing yet reports two opponent policies as separate
+strata, so a reading that spans a depth change still pools it silently. Same shape as the open half
+of R-03, and the two should close together.
 
 ---
 
@@ -156,16 +196,28 @@ with the game around it still readable.
 | | |
 | --- | --- |
 | type | correctness |
-| state | **open** |
+| state | **fixed** (for blitz; `saveClaim` and `saveDrillResult` still carry it — see below) |
 | severity | P1 |
-| basis | **verified** — `server/record.ts:551–557`, whose own comment reads *"There is no transaction here — the same absence `saveClaim` and `saveDrillResult` live with"* |
+| basis | **verified** — was `server/record.ts:551–557`, whose own comment read *"There is no transaction here — the same absence `saveClaim` and `saveDrillResult` live with"* |
 
-The game row is inserted, then the decisions. The code deliberately orders it so that a partial
-failure leaves a game with no decisions rather than orphans — which is the better of two bad
-outcomes, not a good one. The same absence exists in `saveClaim` and `saveDrillResult`.
+The game row was inserted, then the decisions. The code deliberately ordered it so that a partial
+failure left a game with no decisions rather than orphans — which is the better of two bad
+outcomes, not a good one: a game with no decisions is indistinguishable from a game whose decisions
+were all filtered out, and every field on the row is present and plausible.
 
 **Gate:** failure injected between the two writes leaves **nothing** persisted, proven by a test
 that fails if the writes are un-wrapped.
+
+**Closed by** `db.transaction` around both inserts, with
+`tests/server/a-game-and-its-decisions-are-one-write.test.ts` as the gate. The failure is *injected,
+not mocked*: two decisions claiming the same ply violate the composite primary key, so the second
+insert fails inside the real driver at exactly the point the tear used to happen. It is skipped
+without a `DATABASE_URL` and runs in CI against MySQL 8 — a test that silently passes when it did
+not run is the failure this repository is built around, so the skip is loud.
+
+**What is still open, narrowed:** `saveClaim` and `saveDrillResult` are still un-wrapped. They are
+single-row writes, so there is no tear between two statements to inject — the row goes in or it
+does not. Left as its own question rather than folded into this one.
 
 ### R-07 · `purpose` is a claim by the client that the server cannot check
 

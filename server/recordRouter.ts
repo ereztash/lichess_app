@@ -425,6 +425,11 @@ export function buildRecordRouter(store: RecordStore) {
       .input(storedBlitzRecordSchema)
       .mutation(({ input }) => guard(() => service.saveBlitzGame(store, input))),
 
+    /** The second half of the two-phase write. See `RecordStore.attachBlitzAnalysis`. */
+    attachBlitzAnalysis: ownerProcedure
+      .input(storedBlitzRecordSchema)
+      .mutation(({ input }) => guard(() => service.attachBlitzAnalysis(store, input))),
+
     blitzDecisions: ownerProcedure.query(() => guard(() => store.listBlitzDecisions())),
     blitzGames: ownerProcedure.query(() => guard(() => store.listBlitzGames())),
   });

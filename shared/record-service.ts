@@ -1415,6 +1415,36 @@ export async function saveBlitzGame(
   return { stored: true, decisions: input.decisions.length };
 }
 
+/**
+ * Attach the engine's verdict to a game that is already on the record.
+ *
+ * REFUSES ANYTHING THAT IS NOT A PENDING GAME, and the three refusals are different facts. A game
+ * nobody stored cannot be scored; a game already scored must not be re-scored, because a second
+ * verdict over the same decisions is a second measurement wearing the first one's timestamp; and a
+ * record that fails the wire schema is refused here exactly as it is on the way in.
+ */
+export async function attachBlitzAnalysis(
+  store: RecordStore,
+  input: StoredBlitzRecord,
+): Promise<{ attached: boolean; reason?: string }> {
+  const parsed = storedBlitzRecordSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new RecordError("BAD_REQUEST", `הניתוח לא נשמר: ${parsed.error.issues[0]?.message}`);
+  }
+  if (input.game.analysisState !== "complete") {
+    throw new RecordError("BAD_REQUEST", "הניתוח לא נשמר: המשחק לא סומן כמנותח.");
+  }
+  const stored = (await store.listBlitzGames()).find((g) => g.gameId === input.game.gameId);
+  if (!stored) return { attached: false, reason: "no-such-game" };
+  /*
+   * ALREADY SCORED IS A NO-OP AND NOT AN ERROR, for the reason `saveBlitzGame` gives about repeats:
+   * a retry after a lost response is the ordinary case, and it must not read as a failure.
+   */
+  if (stored.analysisState !== "pending") return { attached: false, reason: "not-pending" };
+  await store.attachBlitzAnalysis(input);
+  return { attached: true };
+}
+
 export type ClaimView = {
   claim: Claim | null;
   othersWithheld: number;

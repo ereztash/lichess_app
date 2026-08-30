@@ -442,6 +442,26 @@ export class LocalRecordStore implements RecordStore {
     });
   }
 
+  /** The same narrow update the two server stores perform. One `update`, so it is one write. */
+  async attachBlitzAnalysis(record: StoredBlitzRecord): Promise<void> {
+    return update((state) => {
+      const game = (state.blitzGames ??= []).find((g) => g.gameId === record.game.gameId);
+      if (!game || game.analysisState !== "pending") return;
+      game.analysisState = record.game.analysisState;
+      game.analysedAt = record.game.analysedAt;
+      game.analysis = record.game.analysis;
+      for (const d of record.decisions) {
+        const row = (state.blitzDecisions ??= []).find(
+          (r) => r.gameId === d.gameId && r.ply === d.ply,
+        );
+        if (row) {
+          row.cpLoss = d.cpLoss;
+          row.standingCp = d.standingCp;
+        }
+      }
+    });
+  }
+
   async listBlitzGames(): Promise<StoredBlitzGame[]> {
     return read().blitzGames ?? [];
   }

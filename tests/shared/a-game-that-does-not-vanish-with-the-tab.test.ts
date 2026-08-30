@@ -69,11 +69,24 @@ const instrumentedFor = (sans: string[]): InstrumentedDecision[] =>
 const analysedFor = (sans: string[]): AnalysedDecision[] =>
   sans.map((san, i) => ({ ...coreDecision(i + 1, san), cpLoss: i * 10, standingCp: 40 - i }));
 
+/*
+ * THE PROVENANCE IS PART OF THE META NOW, and it is not decoration on a fixture.
+ *
+ * `toStoredRecord` produces a `complete` game, and a complete game that cannot say what scored it
+ * or when is a row whose cp-losses belong to no particular engine at no particular depth. Two
+ * builds of Stockfish disagree about the same position by more than the effects this product
+ * measures, so pooling their rows is not a small error -- it is the measurement.
+ *
+ * `ScoredBlitzRecordMeta` makes both required, which is why this fixture stopped compiling rather
+ * than stopped validating. That is the whole reason the type exists.
+ */
 const META = {
   gameId: "g1",
   playedAs: "w" as const,
   startedAt: "2026-08-30T18:00:00Z",
   finishedAt: "2026-08-30T18:03:20Z",
+  analysis: { engine: "stockfish", build: "18-lite-single", depth: 12 },
+  analysedAt: "2026-08-30T18:03:29Z",
 };
 
 const SANS = ["e4", "e5", "Nf3", "Nc6"];

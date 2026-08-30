@@ -27,6 +27,7 @@ import { Chess } from "chess.js";
 import { ChessBoard } from "@/components/ChessBoard";
 import { chooseOpponentMove, DEFAULT_OPPONENT_DEPTH } from "@/lib/opponent";
 import type { StockfishClient } from "@/lib/stockfish";
+import { ENGINE_NAME, engineBuildId } from "@/lib/engine-identity";
 import {
   commit,
   hasFlagged,
@@ -47,8 +48,8 @@ import {
   type InstrumentSession,
 } from "@shared/blitz-instrument";
 import { analyseFinishedGame, isFinished, type AnalysedDecision } from "@shared/blitz-post-game";
-import { toStoredRecord, isRefusal } from "@shared/blitz-record";
-import { useSaveBlitzGame } from "@/lib/record-api";
+import { toPendingRecord, attachAnalysis, isRefusal } from "@shared/blitz-record";
+import { useAttachBlitzAnalysis, useSaveBlitzGame } from "@/lib/record-api";
 
 const CONTROLS: { label: string; tc: RequiredTimeControl }[] = [
   { label: "3+0", tc: { initialMs: 180_000, incrementMs: 0 } },
@@ -64,6 +65,17 @@ function clockText(ms: number): string {
 }
 
 const PLAYER: Side = "w";
+
+/**
+ * HOW DEEP THE POST-GAME SEARCH GOES, named because it is now written down as well as used.
+ *
+ * It was a literal inside the `analyze` call, which was fine while nothing else needed to know it.
+ * The stored record now carries the depth that produced its cp-losses, and a record claiming a
+ * depth the search did not use is worse than a record claiming nothing: the two would be
+ * indistinguishable afterwards, and every comparison across builds would silently pool them.
+ * One constant, read by the call and by the provenance, so they cannot drift apart.
+ */
+const ANALYSIS_DEPTH = 12;
 
 /**
  * Why a played game was not kept, in words rather than in the join's own vocabulary.
@@ -96,12 +108,32 @@ export default function Blitz() {
    * `Date.now()` here and `performance.now()` everywhere the clock is computed: a wall-clock
    * reading is what a timestamp IS, and it is never subtracted from another to make a duration.
    */
-  const played = useRef<{ gameId: string; startedAt: string; finishedAt: string | null }>({
+  const played = useRef<{
+    gameId: string;
+    startedAt: string;
+    finishedAt: string | null;
+    /*
+     * `saved` IS THIS TAB'S ANSWER TO "HAS THE PENDING WRITE GONE OUT?", AND ONLY THAT.
+     *
+     * It is not an idempotency guard -- `saveBlitzGame` owns that, and owns it across reloads, a
+     * second tab and a retried request, which a ref cannot see. What it stops is narrower and real:
+     * this effect runs on every state change while the game is finished, and without the flag it
+     * would fire a second identical mutation before the first response lands. It is also the
+     * ordering constraint the analysis write reads -- an `attach` that overtakes its own insert
+     * matches zero rows and reports a game that was never stored.
+     *
+     * It goes back to `false` if the write fails, because then it is again true that no pending
+     * record exists, and the notice tells the player exactly that.
+     */
+    saved: boolean;
+  }>({
     gameId: "",
     startedAt: "",
     finishedAt: null,
+    saved: false,
   });
   const saveGame = useSaveBlitzGame();
+  const attachGameAnalysis = useAttachBlitzAnalysis();
 
   /* Two clients, never one. See the module note. */
   const opponentEngine = useRef<StockfishClient | null>(null);
@@ -155,6 +187,48 @@ export default function Blitz() {
     };
   }, [game, session, ensure]);
 
+  /*
+   * THE GAME IS ON THE RECORD BEFORE THE ENGINE STARTS, and this ordering is the whole point.
+   *
+   * It used to be the other way round: analyse every position, then write. A player who closed the
+   * tab during the analysis lost the entire game -- the moves, both clocks, and the think times,
+   * which nothing can reconstruct from anything else, because they were frozen at commit and exist
+   * nowhere but in that record.
+   *
+   * The write is `pending`: no cp-loss, and a state that says so, because a null cp-loss on its own
+   * would now mean two different things. `attachBlitzAnalysis` fills the verdict in afterwards.
+   *
+   * NOT CANCELLABLE, for the reason the second write already gives below: a component unmounting
+   * between the game ending and the write is exactly the case this exists to survive.
+   */
+  useEffect(() => {
+    if (!isFinished(game) || played.current.saved) return;
+    const { gameId, startedAt } = played.current;
+    if (!gameId) return;
+    played.current.finishedAt ??= new Date().toISOString();
+    const pending = toPendingRecord(game, session.decisions, {
+      gameId,
+      playedAs: PLAYER,
+      startedAt,
+      finishedAt: played.current.finishedAt,
+      opponent: {
+        kind: "engine",
+        engine: ENGINE_NAME,
+        build: engineBuildId(),
+        depth: DEFAULT_OPPONENT_DEPTH,
+      },
+    });
+    if (isRefusal(pending)) {
+      setNotice(REFUSAL_NOTICE[pending.refused]);
+      return;
+    }
+    played.current.saved = true;
+    void saveGame.mutateAsync(pending).catch(() => {
+      played.current.saved = false;
+      setNotice("המשחק הסתיים אבל לא נשמר. הוא ייעלם עם הדף.");
+    });
+  }, [game, session, saveGame]);
+
   /* The engine speaks for the first time here, and not one moment earlier. */
   useEffect(() => {
     if (!isFinished(game) || analysis !== null) return;
@@ -164,7 +238,7 @@ export default function Blitz() {
     void (async () => {
       const engine = await ensure(analysisEngine);
       const scored = await analyseFinishedGame(game, async (fen) => {
-        const line = await engine.analyze(fen, 12);
+        const line = await engine.analyze(fen, ANALYSIS_DEPTH);
         return line.scoreCp ?? null;
       });
       if (!cancelled && Array.isArray(scored)) setAnalysis(scored);
@@ -189,34 +263,43 @@ export default function Blitz() {
    * it is a line nobody can ever safely delete.
    */
   useEffect(() => {
-    if (!isFinished(game) || analysis === null) return;
+    if (!isFinished(game) || analysis === null || !played.current.saved) return;
     const { gameId, startedAt, finishedAt } = played.current;
     if (!gameId || !finishedAt) return;
-    const record = toStoredRecord(game, session.decisions, analysis, {
+    const pending = toPendingRecord(game, session.decisions, {
       gameId,
       playedAs: PLAYER,
       startedAt,
       finishedAt,
     });
+    if (isRefusal(pending)) return;
+    const record = attachAnalysis(pending, analysis, PLAYER, {
+      engine: ENGINE_NAME,
+      build: engineBuildId(),
+      depth: ANALYSIS_DEPTH,
+    }, new Date().toISOString());
     if (isRefusal(record)) {
       /*
-       * A REFUSAL IS A BUG UPSTREAM, AND IT IS SAID OUT LOUD. The three sources disagreed about
-       * which plies happened, and storing a best-effort join would produce rows where a confidence
+       * A REFUSAL IS A BUG UPSTREAM, AND IT IS SAID OUT LOUD. The sources disagreed about which
+       * plies happened, and storing a best-effort join would produce rows where a confidence
        * belongs to one move and a cp-loss to another -- undetectable afterwards, because every row
-       * would look complete. Losing the game is the cheaper mistake.
+       * would look complete.
+       *
+       * WHAT IT COSTS IS NO LONGER THE GAME. The record was written before the engine ran, so a
+       * refusal here leaves it stored and `pending` -- complete in everything the player did, and
+       * honest about not having been scored. It used to mean the game was never written at all.
        */
       setNotice(REFUSAL_NOTICE[record.refused]);
       return;
     }
     /*
      * THE EXCEPTION'S OWN MESSAGE DOES NOT GO ON SCREEN. It is English, it names internals, and a
-     * player reading it learns nothing they can act on. What they need to know is the one thing
-     * that is true whatever went wrong: the game they just played was not kept.
+     * player reading it learns nothing they can act on.
      */
-    void saveGame.mutateAsync(record).catch(() => {
-      setNotice("המשחק הסתיים ונותח, אבל לא נשמר. הניתוח שלמעלה עדיין נכון, והוא ייעלם עם הדף.");
+    void attachGameAnalysis.mutateAsync(record).catch(() => {
+      setNotice("הניתוח לא נשמר. המשחק עצמו נשמר, והניתוח שלמעלה עדיין נכון.");
     });
-  }, [game, analysis, session, saveGame]);
+  }, [game, analysis, session, attachGameAnalysis]);
 
   const onMove = (from: string, to: string) => {
     if (game.phase !== "running" || game.active !== PLAYER || awaitingAnswer(session)) return;
@@ -238,6 +321,7 @@ export default function Blitz() {
       gameId: `blitz-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       startedAt: new Date().toISOString(),
       finishedAt: null,
+      saved: false,
     };
     setGame({ phase: "running", timeControl: tc, fen: new Chess().fen(), active: "w",
       clocksAtTurnStart: { w: tc.initialMs, b: tc.initialMs }, turnStartedAtMs: performance.now(),

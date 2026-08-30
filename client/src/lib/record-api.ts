@@ -530,6 +530,22 @@ export function useSaveBlitzGame() {
   };
 }
 
+/**
+ * The second write: the engine's verdict over a game that is already stored.
+ *
+ * Separate from `useSaveBlitzGame` because they are different operations with different
+ * guarantees -- the first refuses a repeat, the second refuses anything that is not pending.
+ */
+export function useAttachBlitzAnalysis() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.attachBlitzAnalysis.useMutation();
+  return {
+    mutateAsync: async (input: StoredBlitzRecord) =>
+      !local ? await server.mutateAsync(input) : await service.attachBlitzAnalysis(store, input),
+  };
+}
+
 /** The newest kept reading, or null. `null` and "still loading" are different states (4.5). */
 export function useImportReading(): { reading: StoredImportDiagnostic | null; loading: boolean } {
   const { local } = useRecordMode();

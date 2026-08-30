@@ -531,30 +531,84 @@ export class DrizzleRecordStore implements RecordStore {
     };
   }
 
+  /**
+   * A GAME AND ITS DECISIONS ARE ONE WRITE, OR THEY ARE NOT A WRITE.
+   *
+   * This used to be two inserts with no transaction, and the comment that stood here said so:
+   * *"There is no transaction here -- the same absence `saveClaim` and `saveDrillResult` live
+   * with -- so a single multi-row insert is the closest thing to atomicity available, and the game
+   * row goes first so a partial failure leaves a game with no decisions rather than orphan
+   * decisions with no conditions."*
+   *
+   * THAT ORDERING WAS THE BETTER OF TWO BAD OUTCOMES, NOT A GOOD ONE. A game row with no decisions
+   * is a game that was played and measured nothing, and it is indistinguishable from a game whose
+   * decisions were all filtered out -- `listBlitzGames` returns it, a reading counts it, and its
+   * denominator is a fiction nothing downstream can detect. The failure it was chosen to avoid,
+   * orphan decisions, is the one a foreign key would have caught anyway.
+   *
+   * `saveClaim` and `saveDrillResult` still live with the absence. They write one row each, so
+   * there is nothing to tear; what they share is the lack of a transaction ACROSS two stores,
+   * which is a different problem and is not solved here.
+   */
   async saveBlitzRecord(record: StoredBlitzRecord): Promise<void> {
     const db = await this.db();
     const { game, decisions } = record;
-    await db.insert(blitzGames).values({
-      gameId: game.gameId,
-      playedAs: game.playedAs,
-      initialMs: game.timeControl.initialMs,
-      incrementMs: game.timeControl.incrementMs,
-      outcome: game.outcome,
-      startedAt: new Date(game.startedAt),
-      finishedAt: new Date(game.finishedAt),
-      measurementProtocol: game.measurementProtocol,
-      protocolVersion: game.protocolVersion,
-      analysisTiming: game.analysisTiming,
-      samplingPolicyVersion: game.samplingPolicyVersion,
-      askRate: game.askRate,
+    await db.transaction(async (tx) => {
+      await tx.insert(blitzGames).values({
+        gameId: game.gameId,
+        playedAs: game.playedAs,
+        initialMs: game.timeControl.initialMs,
+        incrementMs: game.timeControl.incrementMs,
+        outcome: game.outcome,
+        startedAt: new Date(game.startedAt),
+        finishedAt: new Date(game.finishedAt),
+        measurementProtocol: game.measurementProtocol,
+        protocolVersion: game.protocolVersion,
+        analysisTiming: game.analysisTiming,
+        samplingPolicyVersion: game.samplingPolicyVersion,
+        askRate: game.askRate,
+        analysisState: game.analysisState,
+        analysedAt: game.analysedAt === null ? null : new Date(game.analysedAt),
+        analysisEngine: game.analysis?.engine ?? null,
+        analysisEngineBuild: game.analysis?.build ?? null,
+        analysisDepth: game.analysis?.depth ?? null,
+        opponentKind: game.opponent?.kind ?? null,
+        opponentEngine: game.opponent?.engine ?? null,
+        opponentEngineBuild: game.opponent?.build ?? null,
+        opponentDepth: game.opponent?.depth ?? null,
+      });
+      if (decisions.length > 0) await tx.insert(blitzDecisions).values(decisions);
     });
-    /*
-     * The decisions go in one statement rather than a loop of them. There is no transaction here
-     * -- the same absence `saveClaim` and `saveDrillResult` live with -- so a single multi-row
-     * insert is the closest thing to atomicity available, and the game row goes first so a partial
-     * failure leaves a game with no decisions rather than orphan decisions with no conditions.
-     */
-    if (decisions.length > 0) await db.insert(blitzDecisions).values(decisions);
+  }
+
+
+  /** See `RecordStore.attachBlitzAnalysis`: the analysis columns, once, over a pending game. */
+  async attachBlitzAnalysis(record: StoredBlitzRecord): Promise<void> {
+    const db = await this.db();
+    const { game, decisions } = record;
+    await db.transaction(async (tx) => {
+      await tx
+        .update(blitzGames)
+        .set({
+          analysisState: game.analysisState,
+          analysedAt: game.analysedAt === null ? null : new Date(game.analysedAt),
+          analysisEngine: game.analysis?.engine ?? null,
+          analysisEngineBuild: game.analysis?.build ?? null,
+          analysisDepth: game.analysis?.depth ?? null,
+        })
+        /*
+         * THE STATE IS PART OF THE PREDICATE, so two attaches racing cannot both win. The second
+         * one matches no rows and changes nothing, which is the same guarantee `saveBlitzGame`
+         * gets from reading before it writes -- except this one holds across processes.
+         */
+        .where(and(eq(blitzGames.gameId, game.gameId), eq(blitzGames.analysisState, "pending")));
+      for (const d of decisions) {
+        await tx
+          .update(blitzDecisions)
+          .set({ cpLoss: d.cpLoss, standingCp: d.standingCp })
+          .where(and(eq(blitzDecisions.gameId, d.gameId), eq(blitzDecisions.ply, d.ply)));
+      }
+    });
   }
 
   async listBlitzGames(): Promise<StoredBlitzGame[]> {
@@ -571,6 +625,29 @@ export class DrizzleRecordStore implements RecordStore {
       analysisTiming: row.analysisTiming as "after-play",
       samplingPolicyVersion: row.samplingPolicyVersion,
       askRate: row.askRate,
+      analysisState: row.analysisState,
+      analysedAt: row.analysedAt === null ? null : row.analysedAt.toISOString(),
+      /*
+       * ASSEMBLED ONLY WHEN ALL THREE PARTS ARE THERE. A half-recorded provenance is not a
+       * provenance: an engine name with no build cannot answer the question the column exists for,
+       * which is whether two games were scored by the same thing.
+       */
+      analysis:
+        row.analysisEngine !== null && row.analysisEngineBuild !== null && row.analysisDepth !== null
+          ? { engine: row.analysisEngine, build: row.analysisEngineBuild, depth: row.analysisDepth }
+          : null,
+      opponent:
+        row.opponentKind !== null &&
+        row.opponentEngine !== null &&
+        row.opponentEngineBuild !== null &&
+        row.opponentDepth !== null
+          ? {
+              kind: row.opponentKind,
+              engine: row.opponentEngine,
+              build: row.opponentEngineBuild,
+              depth: row.opponentDepth,
+            }
+          : null,
     }));
   }
 
@@ -1066,6 +1143,22 @@ export class MemoryRecordStore implements RecordStore {
     }
     this.blitzGameRows.push(structuredClone(record.game));
     this.blitzDecisionRows.push(...structuredClone(record.decisions));
+  }
+
+  /** The same narrow update the MySQL store performs, so the two cannot disagree about it. */
+  async attachBlitzAnalysis(record: StoredBlitzRecord): Promise<void> {
+    const game = this.blitzGameRows.find((g) => g.gameId === record.game.gameId);
+    if (!game || game.analysisState !== "pending") return;
+    game.analysisState = record.game.analysisState;
+    game.analysedAt = record.game.analysedAt;
+    game.analysis = structuredClone(record.game.analysis);
+    for (const d of record.decisions) {
+      const row = this.blitzDecisionRows.find((r) => r.gameId === d.gameId && r.ply === d.ply);
+      if (row) {
+        row.cpLoss = d.cpLoss;
+        row.standingCp = d.standingCp;
+      }
+    }
   }
 
   async listBlitzGames(): Promise<StoredBlitzGame[]> {
