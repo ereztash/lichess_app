@@ -25,6 +25,7 @@ import {
   findDenominatorlessPercents,
   findFakeValues,
   findStaticEngineImports,
+  findUnimplementedAriaPatterns,
   sourceFiles,
   type Finding,
 } from "./gate-scan";
@@ -459,6 +460,41 @@ export const GATES: Gate[] = [
         "a front door that draws, and registrability by membership alone",
         "vitest.controls.config.ts",
       ),
+  },
+  {
+    id: "GATE-KEYBOARD",
+    rule: "4.7",
+    description: "No element declares an ARIA pattern the file it lives in does not implement.",
+    run: async () => {
+      /*
+       * BOTH HALVES OF THIS GATE WERE LIVE WHEN IT WAS WRITTEN, which is the argument for it.
+       * `.board-grid` declared `role="grid"` and the component handled no key, so assistive
+       * technology switched into grid mode and offered arrow navigation that did nothing.
+       * `Overlay` declared `aria-modal="true"` and let Tab walk into the document it had just
+       * told the reader was not there. Neither was caught by anything: every other gate here
+       * reads code for a claim about MEASUREMENT, and these are claims about INTERACTION.
+       */
+      const findings = findUnimplementedAriaPatterns(sourceFiles("client/src"));
+      if (findings.length) {
+        return fail(
+          `ARIA pattern declared but not implemented: ${findings
+            .map((f) => `${f.file}:${f.line} (${f.text})`)
+            .join("; ")}`,
+        );
+      }
+      return pass("every declared keyboard pattern has a handler in the file that declares it");
+    },
+    positiveControl: async () => {
+      const findings = findUnimplementedAriaPatterns(sourceFiles("tests/fixtures/aria"));
+      if (findings.length) {
+        return fail(
+          `${findings.length} unimplemented pattern(s): ${findings
+            .map((f) => `${f.file}:${f.line}`)
+            .join(", ")}`,
+        );
+      }
+      return pass("the broken fixtures went unnoticed");
+    },
   },
   {
     id: "GATE-NOTICE",

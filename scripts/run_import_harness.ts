@@ -12,16 +12,28 @@
  * the inputs that run built, so every dumped row is the row the product used rather than a
  * re-derivation that could disagree with it.
  *
- * THREE RUNS, because "reproducible" is three different questions:
- *   A  the reading.
- *   B  the identical corpus again, in a second engine process -- does the harness repeat itself?
- *   C  the same games in REVERSE ORDER. The product does not clear the transposition table between
- *      positions (`StockfishClient.analyze` sends no `ucinewgame`), so a game's evaluations are
- *      computed against a table warmed by whatever came before. If C differs from A, a player's
- *      reading depends on the order their games came back in, which is a property of the product
- *      and not of their chess.
+ * FIVE RUNS, because "reproducible" is several different questions, and because the answer to one
+ * of them changed the product.
  *
- * Run: npx tsx scripts/run_import_harness.ts [--engine PATH] [--players N] [--games N]
+ *   A  the reading, with the transposition table cleared before every position -- which is what
+ *      `StockfishClient` does now, on every search path.
+ *   B  the identical corpus again, in a second engine process. Does the harness repeat itself?
+ *   C  the same games in REVERSE ORDER, still cleared. Must match A, or the reading is not a
+ *      reading.
+ *   D, E  the HISTORICAL CONTROL: the same forward and reversed pair with the table left warm, as
+ *      the product once left it. `StockfishClient.analyze` used to send no `ucinewgame`, so a
+ *      game's evaluations were computed against a table warmed by whatever came before, and this
+ *      harness measured a player's accuracy moving by up to 14.3 percentage points on game order
+ *      alone. The fix shipped. The control stays, because a fix whose evidence has been deleted is
+ *      a fix nobody can check.
+ *
+ * A AND D USED TO BE THE OTHER WAY ROUND, and that was a defect of exactly the kind this file
+ * exists to find: the fix landed in `StockfishClient`, the uncleared runs stopped describing the
+ * product that day, and this harness went on publishing them as the reading. Its manifest even
+ * recorded `clearHashBetweenPositions: false` as a fact about the product while the product was
+ * clearing on every search.
+ *
+ * Run: npx tsx scripts/run_import_harness.ts [--engine PATH] [--data DIR]
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -38,6 +50,15 @@ import { UciEngine } from "./uci-engine.js";
 /** The depth `analyzePositions` defaults to, which is what a real import searches at. */
 const IMPORT_DEPTH = 12;
 
+/**
+ * What the engine called itself, rather than what the file was called.
+ *
+ * `binary.split("/").pop()` is fine while the binary IS the engine and worthless the moment it is
+ * a wrapper: the first canonical run against the shipped WebAssembly build recorded `sf-wasm.sh`,
+ * which names a shell script. The engine says its own name during the handshake.
+ */
+let engineName = "unknown";
+
 interface Corpus {
   players: Array<{ playerId: string; username: string; games: AnalysableGame[] }>;
   provenance: Record<string, unknown>;
@@ -51,10 +72,11 @@ function arg(name: string, fallback: string): string {
 /**
  * An `analyze` with a real engine behind it, shaped exactly like the one the app injects.
  *
- * `clearHash` is the CONTROL, not a setting. False mirrors the product: `StockfishClient.analyze`
- * sends no `ucinewgame`, so every position in an import is searched against a transposition table
- * warmed by the positions before it. True is the counterfactual that identifies the cause -- if
- * order dependence survives clearing, the table is not what produced it.
+ * `clearHash` is TRUE for the product and false for the historical control, and those roles were
+ * swapped at some point after the fix shipped. `StockfishClient` now posts `ucinewgame` on every
+ * search path, so true is what an import actually does. False is kept as the counterfactual that
+ * identifies the cause: if order dependence had survived clearing, the table was not what produced
+ * it.
  */
 function analyzerFor(engine: UciEngine, clearHash: boolean) {
   return async (fen: string, depth: number): Promise<EngineLine> => {
@@ -98,6 +120,7 @@ async function runOnce(
   elapsedMs: number;
 }> {
   const engine = await UciEngine.spawn(binary, { Threads: 1, Hash: 16 });
+  engineName = engine.name;
   const started = Date.now();
   try {
     const result = await runImportDiagnostic(games, username, analyzerFor(engine, clearHash));
@@ -153,12 +176,27 @@ async function main() {
   for (const player of corpus.players) {
     process.stderr.write(`${player.playerId}: ${player.games.length} games\n`);
     const reversed = [...player.games].reverse();
-    const a = await runOnce(player.games, player.username, binary);
-    const b = await runOnce(player.games, player.username, binary);
-    const c = await runOnce(reversed, player.username, binary);
-    /* The control: the same two orders, with the table cleared before every position. */
-    const d = await runOnce(player.games, player.username, binary, true);
-    const e = await runOnce(reversed, player.username, binary, true);
+    /*
+     * THE CANONICAL RUN CLEARS THE HASH, because the product does.
+     *
+     * It did not always. `StockfishClient.analyze` sent no `ucinewgame`, this harness measured
+     * that, and a player's accuracy turned out to depend on the order their games arrived in by up
+     * to 14.3 percentage points. The fix landed: the client now posts `ucinewgame` on EVERY search
+     * path. So the uncleared runs stopped describing the product on the day that shipped, and this
+     * file went on treating them as the reading for a while afterwards -- which is the same class
+     * of defect it was written to find.
+     *
+     * `a` and `b` are the product, twice, in two processes. `c` is the product with the games
+     * reversed. `d` and `e` are the HISTORICAL control: the old uncleared behaviour, kept because
+     * it is what establishes that the transposition table was the cause, and a fix whose evidence
+     * has been deleted is a fix nobody can check.
+     */
+    const a = await runOnce(player.games, player.username, binary, true);
+    const b = await runOnce(player.games, player.username, binary, true);
+    const c = await runOnce(reversed, player.username, binary, true);
+    /* The historical control: the same two orders, with the table left warm as it once was. */
+    const d = await runOnce(player.games, player.username, binary);
+    const e = await runOnce(reversed, player.username, binary);
 
     const fa = JSON.stringify(fingerprint(a.diagnostic));
     const fb = JSON.stringify(fingerprint(b.diagnostic));
@@ -191,22 +229,28 @@ async function main() {
       }),
       repeats: fa === fb,
       repeatsPerDecision: rowsA === rowsB,
+      /* The product's own configuration, so this one must hold or the reading is not a reading. */
       orderIndependent: fa === fc,
-      /* Same question, with the transposition table cleared between positions. */
-      orderIndependentWithClearedHash: fd === fe,
+      /* The historical control: without clearing, this is the pair that came apart. */
+      orderIndependentWithWarmHash: fd === fe,
       /* How far the two orders' accuracy rates moved, per bucket, in percentage points. */
       /*
        * What clearing costs, measured rather than assumed -- the same discipline the MultiPV note
        * in stockfish.ts asks for. Both numbers are one run each on one machine, so the ratio is
        * the figure to read, not the seconds.
        */
-      warmMs: a.elapsedMs,
-      clearedMs: d.elapsedMs,
-      clearedCostRatio: d.elapsedMs / a.elapsedMs,
+      warmMs: d.elapsedMs,
+      clearedMs: a.elapsedMs,
+      clearedCostRatio: a.elapsedMs / d.elapsedMs,
+      /*
+       * The order effect is a fact about the WARM pair, which is where it exists. Measured on the
+       * cleared pair it is zero by construction, and reporting that as "the order effect" would
+       * turn the fix into evidence that there had never been anything to fix.
+       */
       largestBucketShiftPp: Math.max(
         0,
-        ...fingerprint(a.diagnostic).buckets.map((bucket, i) => {
-          const other = fingerprint(c.diagnostic).buckets[i];
+        ...fingerprint(d.diagnostic).buckets.map((bucket, i) => {
+          const other = fingerprint(e.diagnostic).buckets[i];
           return bucket.accurateRate !== null && other?.accurateRate != null
             ? Math.abs(bucket.accurateRate - other.accurateRate) * 100
             : 0;
@@ -214,10 +258,10 @@ async function main() {
       ),
       /* Where order changed something, name the field rather than only the verdict. */
       orderDifferences:
-        fa === fc
+        fd === fe
           ? []
-          : fingerprint(a.diagnostic).buckets.flatMap((bucket, i) => {
-              const other = fingerprint(c.diagnostic).buckets[i];
+          : fingerprint(d.diagnostic).buckets.flatMap((bucket, i) => {
+              const other = fingerprint(e.diagnostic).buckets[i];
               return bucket.n !== other.n || bucket.accurateRate !== other.accurateRate
                 ? [{ key: bucket.key, forward: bucket, reversed: other }]
                 : [];
@@ -230,8 +274,9 @@ async function main() {
   writeFileSync(`${dataDir}/decision_evidence.jsonl`, evidence);
   const manifest = {
     generatedAt: new Date().toISOString(),
-    engine: binary.split("/").pop(),
-    engineOptions: { Threads: 1, Hash: 16, clearHashBetweenPositions: false },
+    engine: engineName,
+    engineInvokedAs: binary.split("/").pop(),
+    engineOptions: { Threads: 1, Hash: 16, clearHashBetweenPositions: true },
     importDepth: IMPORT_DEPTH,
     corpus: corpus.provenance,
     players: report.length,
@@ -240,7 +285,7 @@ async function main() {
       repeats: report.every((r) => r.repeats),
       repeatsPerDecision: report.every((r) => r.repeatsPerDecision),
       orderIndependent: report.every((r) => r.orderIndependent),
-      orderIndependentWithClearedHash: report.every((r) => r.orderIndependentWithClearedHash),
+      orderIndependentWithWarmHash: report.every((r) => r.orderIndependentWithWarmHash),
       largestBucketShiftPp: Math.max(...report.map((r) => Number(r.largestBucketShiftPp))),
       /*
        * What clearing costs, measured rather than assumed -- the same discipline the MultiPV note

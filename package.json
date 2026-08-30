@@ -2,6 +2,7 @@
   "name": "stockfish-chess-studio",
   "version": "1.0.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -54,6 +55,7 @@
     "@types/node": "^24.7.0",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
+    "axe-core": "^4.13.0",
     "drizzle-kit": "^0.31.10",
     "jsdom": "^25.0.1",
     "prettier": "^3.9.6",

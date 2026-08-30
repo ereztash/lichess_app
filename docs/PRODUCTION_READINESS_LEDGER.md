@@ -819,8 +819,10 @@ feeds the same predicate an undeclared typeface and a wrong version, and goes re
 
 **Two things this cycle deliberately does NOT do.**
 
-It does not pick a licence for the project. There is no `LICENSE` file, so by copyright default the
-application's own code is all rights reserved — which sits badly beside a GPL-3.0 engine in the
+The project's own licence is now **GPL-3.0-or-later** (`LICENSE`), matching the engine it conveys,
+which closes the tension recorded below rather than answering the combination question. Before that
+there was no `LICENSE` file, so by copyright default the application's own code was all rights
+reserved — which sat badly beside a GPL-3.0 engine in the
 same build. Whether that combination makes the application a work that must itself be offered under
 the GPL is a question about how the two programs are combined, and reasonable readings differ on
 message-passing to a separate program. It is the owner's decision with advice this repository
@@ -1904,7 +1906,7 @@ Evidence-backed, against the state at `03d8f96`. A score does not rise because m
 | — | Three positions is below every single-case standard consulted; no control positions | **High** | open, and now **stated on screen** rather than silently assumed |
 | — | Multi-user separation: `user_id` on 12 tables, every query, index and cache key | High | **product decision for the operator**, not a defect fix |
 | 7 | `Home.tsx` past 1,900 lines, `index.css` past 3,800 | Low | open. `runReveal` was extracted from `onCommit` in cycle 25 — a real decoupling, since the counterfactual probe needed a second caller for the engine half — and the file still grew. The coupling that matters is `onCommit` serving three decision modes plus a probe stage |
-| — | The project has no `LICENSE` file, and ships a GPL-3.0 engine | **Medium** | **open, and it is the owner's decision.** Cycle 32 closed everything that does not depend on the answer: the licence texts and corresponding source now travel with what the build conveys. What is left is whether the application's own code is offered under the GPL, all rights reserved, or something else — a question this repository cannot settle for its owner |
+| — | The project HAD no licence file while shipping a GPL-3.0 engine | **Medium** | **CLOSED.** The project is licensed **GPL-3.0-or-later**, the same terms as the engine it conveys. That does not resolve whether message-passing to a separate program combines the two — it makes the question stop mattering, because the distribution complies under either reading. Cycle 32 had already closed everything that did not depend on the answer |
 | — | The chart's inline styles are not exercised under the CSP | Low | open, and the grant is wider than proven. `style-src 'unsafe-inline'` is measured to be REQUIRED for React style attributes, but the harness loads an empty record, so the recharts path was never rendered under the policy. Narrowing further would need a seeded record in the browser harness |
 | — | ~~The fold's write can destroy `retired`~~; the learning queue's DISPLAY still prints the stored grade | ~~High~~ **Low** | **the write half is closed in cycle 39**: all three stores refuse to move a rule off `retired`, and `beginLearningTransfer` derives the grade before deciding on it. What is left is cosmetic — `LearningQueue.tsx` renders `rule.grade` and enables its button off the stored `next_due_at`, so a row can say `השערה` about a refuted rule until something touches it. The click is refused with a reason and repairs the record |
 | — | ~~`beginLearningTransfer` is check-then-act with no uniqueness~~ | ~~High~~ | **the damage is closed in cycle 42**: an orphan preregistration is never resumed, so two transfers over one set of boards can no longer replicate a rule. The race itself remains — there is still no unique index on `rule_id`, so a lost race still writes a second row; it is now inert |

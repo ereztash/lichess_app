@@ -110,10 +110,31 @@ const INDEX = "dist/public/index.html";
  * merge: the 7.1 MB of WebAssembly is still held out of the entry, and the chart library, the
  * opening book's keys, the game review and the value-reconstruction prompt are each still in a
  * chunk of their own.
+ *
+ *
+ * THE GZIP CEILING, 204 -> 206, FOR A BOARD A SCREEN READER CAN READ. It was left at 204 with
+ * 0.4 kB of headroom one commit ago, on the stated ground that raising a ceiling that had not
+ * fired is loosening a budget for free. It has now fired, on the next change, which is the
+ * ratchet behaving exactly as designed rather than a ceiling set too tight.
+ *
+ * MEASURED: entry raw 657.2 -> 659.0 kB, gzipped 203.6 -> 204.3, initial download 729.9 -> 731.7.
+ * The raw ceilings were NOT crossed and do not move; 206 leaves 1.7 kB, the same headroom the
+ * 202 -> 204 raise took.
+ *
+ * WHAT THE 0.7 kB BUYS. Every gridcell used to carry `aria-label={square}`, and an `aria-label`
+ * beats the element's contents in the accessible-name computation -- so a screen reader announced
+ * "e4" and never "e4, white knight", on all sixty-four squares. The added weight is the piece
+ * vocabulary, an arrow-key handler for the `role="grid"` this board had already declared, and one
+ * `aria-live` region.
+ *
+ * IT CANNOT BE DEFERRED, which is the argument for the raise rather than for another split. The
+ * board is on the entry route and the accessible name is computed at render: a name that arrives
+ * after the first paint is a name a reader has already read past. Same shape as the promise copy
+ * two raises above -- the bytes are on screen at the moment they matter or they are useless.
  */
 const ENTRY_RAW_KB = 661;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 204;
+const ENTRY_GZIP_KB = 206;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *

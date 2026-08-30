@@ -6,6 +6,75 @@ UNVERIFIED.
 
 ## What this must not be read as
 
+> ### The record is now measured on the engine the product ships
+>
+> `scripts/run_import_harness.ts` drove a **native** `stockfish-ubuntu-x86-64-avx2` for most of this
+> document's history. The product ships **`Stockfish 18 Lite WASM`** (`stockfish-18-lite-single`).
+> The two were compared, they did not agree, and the record has been re-measured on the shipped one.
+>
+> **The canonical record** — `research/harness-shipped/`, sha256 `d70998ba…`, verified:
+>
+> | | |
+> | --- | --- |
+> | engine | `Stockfish 18 Lite WASM`, its own `id name` over UCI |
+> | options | `Threads 1`, `Hash 16`, **hash cleared before every position** — what `StockfishClient` does |
+> | depth | 12 · 48 games · 6 real players · **1,587 decisions** |
+> | repeats, and per decision | yes |
+> | **order-independent** | **yes**, in the product's own configuration |
+> | overall accuracy | **71.6%** |
+>
+> **What changed, decomposed rather than lumped.** Three of the four cells of a 2×2 exist, so the
+> change to the published record splits into its two causes:
+>
+> | | verdict flips | → accurate | → inaccurate | overall accuracy |
+> | --- | ---: | ---: | ---: | ---: |
+> | **engine** (hash held constant) | 13.61% | 143 | 73 | 67.0% → **71.5%** |
+> | **hash clearing** (engine held constant) | 11.22% | 90 | 88 | 71.5% → **71.6%** |
+> | **total** (old record → new) | **14.74%** | 153 | 81 | 67.0% → **71.6%** |
+>
+> They are different in kind. Clearing the hash moves 11% of individual verdicts and the aggregate
+> by a tenth of a point — it is **noise**, symmetric in both directions. Changing the engine moves
+> 13.6% and the aggregate by 4.4 points, all one way: the shipped build is weaker, so its best move
+> is weaker, so the player's move looks closer to it. It **flatters the player, systematically.**
+>
+> The largest single bucket shift between the old record and the new is **12.5 pp**
+> (`d4c64542…` / standing-losing, 61.1% → 73.6%), and one bucket stopped being readable at all
+> (`fcf1b502…` / standing-winning, n 31 → 24, below the floor).
+>
+> **What did NOT change, and it is a check that passed.** The book exclusion is **124 of 1,587,
+> 7.8%**, identical on both engines — book is a claim about the position, not about the evaluation,
+> so a different engine must not move it, and it did not.
+>
+> Preregistered as `STOP-B1` in
+> [`research/ENGINE_PARITY_PREREG.md`](research/ENGINE_PARITY_PREREG.md), result in
+> [`research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md). **No threshold was
+> moved at any point.**
+>
+> ### Three things measured in a real browser for the first time
+>
+> All three run on every `npm test`, against the **built** assets in real Chromium.
+>
+> | | |
+> | --- | --- |
+> | **engine throughput** | 459 ms to load, 46 ms median depth-12 search, 636,190 nps, ~1.2 min for a 1,587-position import. A handset figure is explicitly *not* measured — see the note further down. |
+> | **axe-core 4, both routes** | **zero violations** on `/` and on `/play` with all 64 board squares rendered. Its first proper run found one: `aria-allowed-role` on `.context-ribbon`, which declared `role="status"` on an `<aside>` whose implicit role is `complementary`. Fixed by changing the element, not the role. |
+> | **a stranger with no server** | The built app on a static host answering **503 to every `/api/*` call**: board renders, 32 pieces, no error boundary, no unhandled errors, the screen says the record is local, and the 7.1 MB engine wasm is fetchable. |
+>
+> That last one settles a question that had been assumed rather than checked. `OWNER_OPEN_ID` gates
+> the **server-side record only** — `configuration.ts` says so itself: *"the record stays in the
+> browser and the database is never written to. Nothing fails, it just doesn't happen."* The whole
+> decision loop is client-side. **What stops a stranger using this is the licence and the
+> deployment, not the code.**
+>
+> **What is still not measured: a screen reader.** axe finds the machine-checkable third of WCAG.
+> It cannot say whether a label is a good label or whether an announcement arrives at a useful
+> moment. No NVDA, JAWS or VoiceOver session has been run against this product.
+
+> Figures below that predate the re-measurement and are still labelled with the native engine are
+> **history**, kept deliberately: the order-dependence finding in particular is a fact about the
+> product as it was, and deleting it would turn a shipped fix into evidence that there had never
+> been anything to fix.
+
 **This product has never been run against a real player's record.** Every number in this
 document comes from synthetic data or from the test suite. Nothing here supports a statement
 about anyone's chess.
@@ -226,9 +295,32 @@ A position bank drawn from games the player has never seen would remove this. Th
   runs `runImportDiagnostic` -- the same function the import screen calls -- over **60 real games
   from 5 real Lichess players** with a real engine at the import's own depth 12, and dumps every
   intermediate. See "What a real import actually did" below. **Still unmeasured:** the browser
-  itself. The harness uses a native Stockfish 17.1, not the Stockfish 18 Lite WASM build the
-  product ships, and the end-to-end wall clock of a real import in a real browser has still not
-  been observed. The games and the pipeline are real; the runtime is not.
+  itself. **The engine half is CLOSED.** The harness drove a native `stockfish-ubuntu-x86-64-avx2`;
+  the product ships `Stockfish 18 Lite WASM`. Compared on the same corpus at the same depth,
+  **13.61% of decisions changed verdict** and the shipped build read 4.4 points more accurate —
+  preregistered `STOP-B1`. The record was then **re-measured on the shipped engine**, in the
+  product's own configuration, and that is now the canonical record
+  ([`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md)).
+  **The browser is now measured too.** `tests/layout/engine-in-a-real-browser.layout.test.ts`
+  serves the BUILT assets over HTTP and constructs the engine Worker exactly as
+  `client/src/lib/stockfish.ts` does, in real Chromium:
+
+  | | |
+  | --- | ---: |
+  | engine, by its own `id name` | `Stockfish 18 Lite WASM` |
+  | load + UCI handshake | **459 ms** |
+  | depth-12 search, median | **46 ms** (15–106) |
+  | nodes per second, median | **636,190** |
+  | a 1,587-position import | **~1.2 minutes** of engine time |
+  | JS heap after the run | 4.4 MB |
+
+  **A handset figure is NOT measured, and the attempt to fake one is recorded.** CDP's
+  `Emulation.setCPUThrottlingRate` throttles the page's MAIN thread while the engine runs in a
+  Worker, so a first pass reported 46 / 44 / 45 ms at 1× / 4× / 6× — three numbers that look like
+  "the engine is CPU-insensitive" and are an artefact of slowing a thread the work is not on.
+  Engine *load* did move, 443 → 522 ms, because that part is main-thread. Playwright's
+  `newCDPSession` refuses a Worker, so the worker cannot be throttled from this harness. The nodes
+  per second above is the honest substitute: divide a device's own into it.
 - ~~**A think time that was never measured, counted as zero seconds.**~~ **FIXED.**
   `secondsSpentAt` returns null when a think time cannot be derived, and its own comment says why:
   "a first move recorded as 0 seconds is a fabricated data point in the bucket this product cares
@@ -473,6 +565,11 @@ speaks. At n = 200, the size a real 8-to-20-game import produces, a player whose
 **20 points** worse than everything else is told "these buckets are not distinguishable" **99% of
 the time**.
 
+> **Re-measured.** These bars were computed on a native Stockfish, and were also the source of the
+> 13.0 pp tolerance that `STOP-B1` fired against. On the canonical record they are **12.3 to 17.8**
+> against gaps of **0.6 to 6.3** — so the conclusion is unchanged and stronger: the weakest-bucket
+> verdict **fires on none of the six real players**, on either engine.
+
 **On the six real players of the import harness, every one lands there.** Bars of 13.0 to 19.5
 points against measured gaps of 1.0 to 7.9:
 
@@ -510,7 +607,9 @@ entry. **Collisions measured against all 1,522,179 positions the corpus produced
 **It is a claim about the position, never about the move.** A player who leaves theory in a book
 position has made a decision, and excluding on what they played would condition on the outcome.
 
-**The effect, on the 6 real players of the import harness** (1,587 decisions):
+**The effect, on the 6 real players of the import harness** (1,587 decisions). *Measured on the
+native engine; the shipped-engine record gives the identical **124 / 7.8%**, because book is a
+claim about the position and not about the evaluation.*
 
 | | |
 | --- | ---: |
@@ -571,6 +670,23 @@ base clock, say -- has to be chosen on development data, frozen, and then put th
 control on a holdout before it goes near production.
 
 ### What a real import actually did, and the number that moved when nothing did
+
+> **This section is history, and is kept on purpose.** Every figure in it was produced by a native
+> Stockfish on a warm transposition table — which is what the product did at the time. It has since
+> been re-measured on the shipped engine with the hash cleared; that run is the canonical record and
+> is summarised at the head of this document. On the shipped engine the same warm-pair order effect
+> measures **6.9 pp**, and the product's own configuration is **order-independent**.
+>
+> Deleting this section would turn a shipped fix into evidence that there had never been anything
+> to fix, which is why it stays.
+>
+> Two stale numbers in it, both found by checking rather than by trusting. The `forced` counts in
+> `research/harness/harness_report.json` are the superseded `decisions.length - chosen.length`
+> derivation, which absorbed the book exclusion; the evidence rows and `eligible` are unaffected.
+> And the README quoted **14.3 pp** for the order effect for a long time — a figure no artifact in
+> this repository supports. The native run over this corpus reports **7.0 pp** (per player: 5.95,
+> 6.90, 3.51, 7.00, 6.06, 3.90); the earlier five-player corpus reported 11.81. 14.3 belonged to
+> neither and is gone.
 
 **The first run of this product's import path on real games.** `scripts/run_import_harness.ts`
 calls `runImportDiagnostic` with a real engine at depth 12, over a frozen corpus of 60 real Lichess

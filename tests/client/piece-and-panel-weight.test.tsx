@@ -121,8 +121,8 @@ describe("one silhouette per piece, both colours", () => {
         onMove={() => {}}
       />,
     );
-    const white = document.querySelector('[aria-label="e2"] .piece');
-    const black = document.querySelector('[aria-label="e7"] .piece');
+    const white = document.querySelector('[data-square="e2"] .piece');
+    const black = document.querySelector('[data-square="e7"] .piece');
     expect(white!.textContent, "e2 and e7 no longer share a silhouette").toBe(black!.textContent);
     expect(white!.className, "the white pawn is not marked as White's").toContain("piece-w");
     expect(black!.className, "the black pawn is not marked as Black's").toContain("piece-b");

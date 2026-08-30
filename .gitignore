@@ -22,3 +22,5 @@ __pycache__/
 research/harness/corpus.json
 research/harness/*.jsonl
 research/harness/*.zst
+research/harness-shipped/corpus.json
+research/harness-shipped/*.jsonl

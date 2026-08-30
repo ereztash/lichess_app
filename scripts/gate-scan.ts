@@ -161,3 +161,76 @@ export function findInvalidParagraphs(files: string[]): Finding[] {
   }
   return findings;
 }
+
+/**
+ * A DECLARED ARIA PATTERN THAT NOTHING IMPLEMENTS.
+ *
+ * WHAT THIS CATCHES, from the case that produced it. `.board-grid` carried `role="grid"` and the
+ * component handled no key at all. That role is a PROMISE: assistive technology switches into grid
+ * mode on the strength of it and offers the reader arrow-key navigation, which then does nothing.
+ * A declared pattern with no implementation is worse than no pattern, because the reader has been
+ * told the wrong thing about how to drive the page. The same shape was live on `Overlay`, where
+ * `aria-modal="true"` told a reader the rest of the document was not there while Tab walked
+ * straight out into it.
+ *
+ * Neither was caught by anything. Every other gate here reads code for a claim about MEASUREMENT;
+ * this one reads it for a claim about INTERACTION, and the two failures look nothing alike.
+ *
+ * WHY IT SCANS FOR A HANDLER RATHER THAN CHECKING BEHAVIOUR. A gate cannot press a key. What it can
+ * do is refuse the specific state both defects were in: the role present, and no keyboard handling
+ * anywhere in the file that declares it. That is a weak test of a strong rule, and it is deliberate
+ * -- the behaviour is held by `tests/client/a-board-nobody-could-hear.test.tsx`,
+ * `tests/client/a-dialog-that-gives-focus-back.test.tsx` and the real-browser Tab count in
+ * `tests/layout/board-tab-order.layout.test.tsx`. This gate exists so the NEXT interactive surface
+ * cannot ship the same way without someone writing those.
+ *
+ * THE ROLE LIST IS THE APG'S, NOT A GUESS. Every role below is one the WAI-ARIA Authoring Practices
+ * specify keyboard navigation for. Roles that carry no such expectation -- `status`, `note`,
+ * `gridcell` on its own -- are absent on purpose: a gate that fires on honest code is a gate people
+ * learn to route around.
+ */
+const KEYBOARD_ROLES = [
+  "grid",
+  "treegrid",
+  "listbox",
+  "tree",
+  "menu",
+  "menubar",
+  "tablist",
+  "radiogroup",
+  "toolbar",
+];
+
+/** Anything that would let a key reach the component. */
+const HANDLES_KEYS = /\bonKeyDown\b|\bonKeyUp\b|["']keydown["']|["']keyup["']/;
+
+export function findUnimplementedAriaPatterns(files: string[]): Finding[] {
+  const findings: Finding[] = [];
+  const roleAttr = new RegExp(`role=["'](${KEYBOARD_ROLES.join("|")})["']`, "g");
+  for (const file of files) {
+    const source = read(file);
+    if (HANDLES_KEYS.test(source)) continue;
+    for (const match of source.matchAll(roleAttr)) {
+      const line = source.slice(0, match.index).split("\n").length;
+      findings.push({
+        file,
+        line,
+        text: `${match[1]} declared, no keyboard handler in this file`,
+      });
+    }
+    /*
+     * A modal dialog is the other half. `aria-modal="true"` asserts the rest of the document is
+     * gone; without a key handler nothing keeps Tab inside, so the assertion is false the moment
+     * the reader acts on it.
+     */
+    for (const match of source.matchAll(/aria-modal=\{?["']?true["']?\}?/g)) {
+      const line = source.slice(0, match.index).split("\n").length;
+      findings.push({
+        file,
+        line,
+        text: "aria-modal declared, no keyboard handler to keep focus inside",
+      });
+    }
+  }
+  return findings;
+}

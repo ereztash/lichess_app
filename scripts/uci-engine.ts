@@ -50,13 +50,27 @@ export class UciEngine {
     private handler: ((line: string) => void) | null,
   ) {}
 
+  /**
+   * WHAT THE ENGINE CALLS ITSELF, taken from its `id name` during the UCI handshake.
+   *
+   * The harness used to record provenance as `binary.split("/").pop()` -- the filename of whatever
+   * was executed. That is fine while the binary IS the engine and worthless the moment it is a
+   * wrapper: the first canonical run against the shipped WebAssembly build went into the record as
+   * `sf-wasm.sh`, which names a shell script and not a chess engine. An engine will tell you who it
+   * is if you listen to the handshake you are already performing.
+   */
+  name = "unknown";
+
   static async spawn(binary: string, options: Record<string, string | number> = {}) {
     const child = spawn(binary, [], { stdio: ["pipe", "pipe", "ignore"] });
     let handler: ((line: string) => void) | null = null;
     const reader = createInterface({ input: child.stdout, crlfDelay: Infinity });
     reader.on("line", (line) => handler?.(line));
     const engine = new UciEngine(child, (h) => (handler = h), handler);
-    await engine.command("uci", (line) => line === "uciok");
+    await engine.command("uci", (line) => {
+      if (line.startsWith("id name ")) engine.name = line.slice("id name ".length).trim();
+      return line === "uciok";
+    });
     for (const [name, value] of Object.entries(options))
       child.stdin.write(`setoption name ${name} value ${value}\n`);
     await engine.ready();

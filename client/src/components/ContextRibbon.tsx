@@ -124,23 +124,29 @@ export function ContextRibbon({
    * The sentence is real, not a skeleton. `role="status"` announces it, which is the honest thing
    * for a region whose whole job is to say where the record stands, and it is the same words the
    * front door uses while it reads.
+   *
+   * A `div` AND NOT AN `aside`, which is what it was until axe said otherwise. `<aside>` carries an
+   * implicit `complementary` role, and `status` is not a role it is allowed to take -- so the
+   * element and the attribute were making two different claims about the same node. The live region
+   * is the point here and the landmark was not, so the element gave way rather than the role.
+   * Caught by `tests/layout/axe-on-the-built-app.layout.test.ts` on its first run against `/play`.
    */
   if (loop.loading) {
     return (
-      <aside
+      <div
         className="context-ribbon is-reading"
         role="status"
         aria-busy="true"
         aria-label="איפה הרשומה עומדת"
       >
         <p className="context-loop">קורא את הרשומה…</p>
-      </aside>
+      </div>
     );
   }
   if (!loop.position && !reorientation) return null;
 
   return (
-    <aside className="context-ribbon" role="status" aria-label="איפה הרשומה עומדת">
+    <div className="context-ribbon" role="status" aria-label="איפה הרשומה עומדת">
       {loop.position && (
         <>
           <p className="context-loop">{loop.position.headline}</p>
@@ -188,6 +194,6 @@ export function ContextRibbon({
           הבנתי
         </button>
       )}
-    </aside>
+    </div>
   );
 }
