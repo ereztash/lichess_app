@@ -26,6 +26,7 @@
  * question is whether this comparison is calibrated on the records it will actually meet.
  */
 import { readFileSync } from "node:fs";
+import { NO_TIME_CONTROL } from "../../shared/pgn-clock.js";
 import { fileURLToPath } from "node:url";
 import { seededRandom, MAX_SHUFFLED_FALSE_POSITIVE_RATE } from "../../shared/detector";
 import {
@@ -58,6 +59,14 @@ export function realImportRecord(n: number, seed: number): ImportedDecision[] {
       accurate: accurate === 1,
       standing: REAL_SHAPE.standings[standingIndex],
       speed: "blitz",
+      /*
+       * The resampled shape carries the player's own clock and never carried the opponent's, so
+       * this fixture cannot invent one. Null is the honest value and it is also the safe one: the
+       * shuffle gate this fixture feeds reads phase, standing, time and accuracy, so a fabricated
+       * opponent clock would be an unread number that a later gate might start reading.
+       */
+      opponentClockMsRemaining: null,
+      timeControl: NO_TIME_CONTROL,
       forced: false,
       book: false,
     };

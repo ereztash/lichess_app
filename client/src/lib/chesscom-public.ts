@@ -41,10 +41,9 @@ import {
   UNFINISHED,
   type ImportResult,
   type ImportedGame,
-  NO_TIME_CONTROL,
   type TimeControlMs,
 } from "./game-source";
-import { parseTimeControl } from "@shared/pgn-clock";
+import { parseTimeControl, toTimeControlMs } from "@shared/pgn-clock";
 
 const CHESSCOM_ORIGIN = SOURCE_ORIGIN.chesscom;
 
@@ -90,9 +89,7 @@ type RawGame = {
  * Anything else is a string nobody has seen, and it becomes null rather than a guess.
  */
 function timeControlFrom(raw: string | undefined): TimeControlMs {
-  const parsed = parseTimeControl(raw);
-  if (!parsed) return NO_TIME_CONTROL;
-  return { initialMs: parsed.baseSeconds * 1000, incrementMs: parsed.incrementSeconds * 1000 };
+  return toTimeControlMs(parseTimeControl(raw));
 }
 
 /** The trailing segment of the game URL, which is the only id Chess.com exposes for a live game. */
