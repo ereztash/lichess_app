@@ -177,6 +177,32 @@ writing, committed, before the first comparison.
 *Size.* Large in engine time, small in code. The harness already exists; what is missing is a UCI
 adapter for the WASM build so `UciEngine.spawn` can drive it.
 
+### ⛔ B1 RAN, AND IT STOPPED THE PLAN
+
+Preregistered at `4be38ce`, run, and the outcome rule fired on its own terms.
+
+| | |
+| --- | ---: |
+| decisions whose verdict flips | **13.61%** (216 of 1,587) |
+| overall accuracy, native → shipped | **67.0% → 71.5%** |
+| **Δ**, largest bucket shift | **13.6 pp** |
+| T2, the preregistered bar | 13.0 pp |
+| buckets stable to display resolution | **1 of 38** |
+
+The shipped engine is weaker, so its best move is weaker, so the player's move looks closer to it.
+It **flatters the player by about 4.5 points, systematically** — not noise, and not a mate-score
+artefact (19 decisions carry those, and 208 of the 216 flips are ordinary positions).
+
+Wall clock: 94 seconds for all six players. The plan estimated this would be expensive; it was not.
+
+Result: [`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md).
+`docs/MEASUREMENTS.md` is marked in five places. **No threshold was moved.**
+
+**Consequence for this plan: B2, B3 and B4 are blocked and stay blocked.** They were already gated
+on B1 for the stated reason that choosing from numbers a different engine produced is choosing on
+noise of unknown size. That reason is now a measurement rather than a worry, and the stop rule says
+the plan halts here until it is decided what the record is worth.
+
 ### B2 · How time is represented (PR7)
 
 *The question.* `secondsTaken` is a raw number of seconds, and the buckets cut it at 45 s and 120 s.
@@ -191,8 +217,9 @@ record — are each defensible and they are not the same variable.
 output is a document saying which representation separates the outcome best, on held-out data, and
 by how much over the raw-seconds baseline.
 
-*Blocked by B1.* Choosing a representation from numbers a different engine produced is choosing on
-noise of unknown size.
+*Blocked by B1 — and B1 has now fired `STOP-B1`.* Choosing a representation from numbers a different
+engine produced is choosing on noise of unknown size, and that size is now measured at 13.61% of
+decisions. This does not start.
 
 ### B3 · What MultiPV costs, and what "practically forced" is worth (PR8)
 
@@ -203,7 +230,7 @@ needs MultiPV — which costs engine time the import does not currently spend.
 *The output.* A measurement of the cost in seconds per game, and of how many additional moves leave
 the denominator, before any decision to ship it.
 
-*Blocked by B1.* Same reason.
+*Blocked by B1, which fired `STOP-B1`.* Same reason. This does not start.
 
 ### B4 · Prospective effectiveness (PR10)
 
@@ -266,15 +293,15 @@ Written before the work, so they cannot be adjusted to fit a result.
 ## 8. Order
 
 ```
-now      A1  board: name, roving focus, live region        ─┐
-         B1  engine parity, tolerance registered first     ─┘  parallel
+DONE     A1  board: name, roving focus, live region
+DONE     B1  engine parity  ->  STOP-B1, Δ = 13.6 pp against a 13.0 pp bar
 
-then     A2  overlay focus trap and restore
+now      A2  overlay focus trap and restore
          A3  GATE-KEYBOARD
 
-then     B2  time representation        (blocked by B1)
-         B3  MultiPV cost               (blocked by B1)
+BLOCKED  B2  time representation        STOP-B1 fired
+         B3  MultiPV cost               STOP-B1 fired
+         B4  prospective effectiveness  STOP-B1 fired, and recruitment
 
-later    C1  Home.tsx extraction
-         B4  prospective effectiveness  (blocked by B1 and by recruitment)
+later    C1  Home.tsx extraction        (never depended on B1)
 ```

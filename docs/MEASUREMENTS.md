@@ -6,6 +6,31 @@ UNVERIFIED.
 
 ## What this must not be read as
 
+> ### ⚠ Every harness-derived number below was measured on an engine the product does not ship
+>
+> `scripts/run_import_harness.ts` drove **`stockfish-ubuntu-x86-64-avx2`**, a native full-strength
+> Stockfish. The product ships **`stockfish-18-lite-single.wasm`**. The two were compared on the
+> same 48 games, the same 1,587 decisions, the same depth 12 and the same options, and they do not
+> agree:
+>
+> | | |
+> | --- | ---: |
+> | decisions whose `accurate` verdict flips | **13.61%** |
+> | overall accuracy, native → shipped | **67.0% → 71.5%** |
+> | largest shift in a bucket's accuracy rate | **13.6 pp** |
+> | buckets stable to the product's own display resolution | **1 of 38** |
+>
+> The shipped engine is weaker, so its best move is weaker, so the player's move looks closer to
+> it. It **flatters the player by about 4.5 points, systematically.**
+>
+> This is preregistered `STOP-B1`. No threshold was moved in response. Full result:
+> [`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md); the tolerance was
+> fixed in writing beforehand in
+> [`docs/research/ENGINE_PARITY_PREREG.md`](research/ENGINE_PARITY_PREREG.md).
+>
+> Where a figure below came from the harness, read it as a fact about the native engine, not about
+> what a player's browser will compute.
+
 **This product has never been run against a real player's record.** Every number in this
 document comes from synthetic data or from the test suite. Nothing here supports a statement
 about anyone's chess.
@@ -226,9 +251,15 @@ A position bank drawn from games the player has never seen would remove this. Th
   runs `runImportDiagnostic` -- the same function the import screen calls -- over **60 real games
   from 5 real Lichess players** with a real engine at the import's own depth 12, and dumps every
   intermediate. See "What a real import actually did" below. **Still unmeasured:** the browser
-  itself. The harness uses a native Stockfish 17.1, not the Stockfish 18 Lite WASM build the
-  product ships, and the end-to-end wall clock of a real import in a real browser has still not
-  been observed. The games and the pipeline are real; the runtime is not.
+  itself. **The engine half of this is now MEASURED, and it did not come out well.** The harness
+  drove a native `stockfish-ubuntu-x86-64-avx2`; the product ships `stockfish-18-lite-single.wasm`.
+  Run over the same corpus at the same depth, **13.61% of decisions change verdict**, overall
+  accuracy reads **67.0% native against 71.5% shipped**, and the largest bucket shift is **13.6 pp**
+  — over the 13.0 pp bar the product itself uses to call a difference a difference. Preregistered
+  `STOP-B1`; see [`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md).
+  **Still unmeasured:** the browser. This ran the shipped build under Node, so the wall clock and
+  the behaviour of that wasm inside a real tab remain unobserved. The games and the pipeline are
+  real; the runtime is half real.
 - ~~**A think time that was never measured, counted as zero seconds.**~~ **FIXED.**
   `secondsSpentAt` returns null when a think time cannot be derived, and its own comment says why:
   "a first move recorded as 0 seconds is a fabricated data point in the bucket this product cares
@@ -473,6 +504,12 @@ speaks. At n = 200, the size a real 8-to-20-game import produces, a player whose
 **20 points** worse than everything else is told "these buckets are not distinguishable" **99% of
 the time**.
 
+> **Engine caveat.** These bars were computed on a native Stockfish. They are also the source of
+> the 13.0 pp tolerance that `STOP-B1` fired against — see
+> [`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md). No verdict flips
+> on either engine: the gaps stay at 1.0-7.9 against bars of 13.0-19.5 both ways. What the parity
+> run establishes is that the margin is thinner than these numbers imply.
+
 **On the six real players of the import harness, every one lands there.** Bars of 13.0 to 19.5
 points against measured gaps of 1.0 to 7.9:
 
@@ -510,7 +547,8 @@ entry. **Collisions measured against all 1,522,179 positions the corpus produced
 **It is a claim about the position, never about the move.** A player who leaves theory in a book
 position has made a decision, and excluding on what they played would condition on the outcome.
 
-**The effect, on the 6 real players of the import harness** (1,587 decisions):
+**The effect, on the 6 real players of the import harness** (1,587 decisions, *native engine — see
+the engine caveat at the head of this document*):
 
 | | |
 | --- | ---: |
@@ -571,6 +609,15 @@ base clock, say -- has to be chosen on development data, frozen, and then put th
 control on a holdout before it goes near production.
 
 ### What a real import actually did, and the number that moved when nothing did
+
+> **Engine caveat.** Every figure in this section was produced by a native Stockfish, not by the
+> build the product ships. Re-run on `stockfish-18-lite-single`, 13.61% of these decisions change
+> verdict and the largest bucket rate moves 13.6 pp. See
+> [`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md).
+>
+> The `forced` counts in `research/harness/harness_report.json` are also stale: they are the
+> superseded `decisions.length - chosen.length` derivation, which absorbed the book exclusion. The
+> evidence rows and `eligible` are unaffected.
 
 **The first run of this product's import path on real games.** `scripts/run_import_harness.ts`
 calls `runImportDiagnostic` with a real engine at depth 12, over a frozen corpus of 60 real Lichess

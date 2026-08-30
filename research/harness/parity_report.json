@@ -1,0 +1,460 @@
+{
+  "generatedAt": "2026-08-30T08:33:16.372Z",
+  "engine": "/tmp/claude-0/-home-user-lichess-app/d8f48042-7db8-53cd-b32f-934c2bf91937/scratchpad/sf-wasm.sh",
+  "engineName": "stockfish-18-lite-single (the build the product ships)",
+  "engineOptions": {
+    "Threads": 1,
+    "Hash": 16,
+    "clearHashBetweenPositions": false
+  },
+  "importDepth": 12,
+  "decisions": 1587,
+  "elapsedMs": 94326,
+  "perPlayer": [
+    {
+      "playerId": "743bb0e0830185be",
+      "reading": {
+        "scored": 222,
+        "forced": 1,
+        "book": 19,
+        "eligible": 202,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 84,
+            "accurateRate": 0.6785714285714286,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 61,
+            "accurateRate": 0.6065573770491803,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 105,
+            "accurateRate": 0.7523809523809524,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 36,
+            "accurateRate": 0.8333333333333334,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 39,
+            "accurateRate": 0.7948717948717948,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-winning",
+            "n": 117,
+            "accurateRate": 0.7777777777777778,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 45,
+            "accurateRate": 0.6,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 40,
+            "accurateRate": 0.7,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      }
+    },
+    {
+      "playerId": "8b033ad948e594d0",
+      "reading": {
+        "scored": 473,
+        "forced": 0,
+        "book": 22,
+        "eligible": 451,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 451,
+            "accurateRate": 0.7228381374722838,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 58,
+            "accurateRate": 0.6724137931034483,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 230,
+            "accurateRate": 0.6608695652173913,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 163,
+            "accurateRate": 0.8282208588957055,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-winning",
+            "n": 103,
+            "accurateRate": 0.6601941747572816,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 156,
+            "accurateRate": 0.717948717948718,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 192,
+            "accurateRate": 0.7604166666666666,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      }
+    },
+    {
+      "playerId": "fcf1b502ad98d066",
+      "reading": {
+        "scored": 244,
+        "forced": 1,
+        "book": 23,
+        "eligible": 220,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 219,
+            "accurateRate": 0.6621004566210046,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 57,
+            "accurateRate": 0.6842105263157895,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 149,
+            "accurateRate": 0.6241610738255033,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 14,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-winning",
+            "n": 25,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-level",
+            "n": 112,
+            "accurateRate": 0.625,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 83,
+            "accurateRate": 0.7108433734939759,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      }
+    },
+    {
+      "playerId": "d4c645424efbf311",
+      "reading": {
+        "scored": 235,
+        "forced": 1,
+        "book": 27,
+        "eligible": 207,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 207,
+            "accurateRate": 0.6714975845410628,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 53,
+            "accurateRate": 0.6226415094339622,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 129,
+            "accurateRate": 0.6744186046511628,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 25,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 203,
+            "accurateRate": 0.6699507389162561,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-winning",
+            "n": 69,
+            "accurateRate": 0.6956521739130435,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 68,
+            "accurateRate": 0.6029411764705882,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 70,
+            "accurateRate": 0.7142857142857143,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      }
+    },
+    {
+      "playerId": "9f3e649e06572494",
+      "reading": {
+        "scored": 157,
+        "forced": 2,
+        "book": 12,
+        "eligible": 143,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 143,
+            "accurateRate": 0.8461538461538461,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 66,
+            "accurateRate": 0.8333333333333334,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 77,
+            "accurateRate": 0.8571428571428571,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 143,
+            "accurateRate": 0.8461538461538461,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-winning",
+            "n": 122,
+            "accurateRate": 0.8524590163934426,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 21,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-losing",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          }
+        ]
+      }
+    },
+    {
+      "playerId": "4ceee8ee8ad2ff98",
+      "reading": {
+        "scored": 256,
+        "forced": 10,
+        "book": 21,
+        "eligible": 225,
+        "buckets": [
+          {
+            "key": "fast-under-45s",
+            "n": 137,
+            "accurateRate": 0.6204379562043796,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "slow-over-2m",
+            "n": 0,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "phase-opening",
+            "n": 59,
+            "accurateRate": 0.6271186440677966,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-middlegame",
+            "n": 145,
+            "accurateRate": 0.5862068965517241,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "phase-endgame",
+            "n": 21,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "clock-under-1m",
+            "n": 1,
+            "accurateRate": null,
+            "measurable": false,
+            "unmeasurableReason": "too-few"
+          },
+          {
+            "key": "standing-winning",
+            "n": 82,
+            "accurateRate": 0.5,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-level",
+            "n": 63,
+            "accurateRate": 0.6190476190476191,
+            "measurable": true,
+            "unmeasurableReason": null
+          },
+          {
+            "key": "standing-losing",
+            "n": 80,
+            "accurateRate": 0.75,
+            "measurable": true,
+            "unmeasurableReason": null
+          }
+        ]
+      }
+    }
+  ],
+  "evidenceSha256": "b8159913ae5e63545d8982b0602572049b2e382c48e6ebf470c291384a43336b"
+}
