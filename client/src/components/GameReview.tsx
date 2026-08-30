@@ -16,6 +16,18 @@ import {
 import { analyzeEval, type MoveEval } from "@shared/eval-analysis";
 import { Rate, Score } from "./Value";
 
+/**
+ * The two views, in the order they appear, so the tab strip and the arrow keys read one list.
+ *
+ * A handler that indexed into JSX would drift the moment a third view arrived. This is the list;
+ * the strip renders it and the keys walk it.
+ */
+const TABS = [
+  { key: "curve", icon: Activity, label: "מהלך העמדה" },
+  { key: "loss", icon: Sigma, label: "אובדן לפי מהלך" },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+
 type Props = {
   /** White-perspective centipawns per ply, produced by the local engine. */
   evalScores: number[];
@@ -52,7 +64,28 @@ function severityVar(c: MoveEval["classification"]): string {
  * it is showing.
  */
 export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
-  const [tab, setTab] = useState<"curve" | "loss">("curve");
+  const [tab, setTab] = useState<TabKey>("curve");
+
+  /**
+   * Arrows walk the strip, Home and End jump to its ends, and focus follows the selection.
+   *
+   * `aria-selected` follows focus here rather than waiting for Enter, which the APG allows when
+   * revealing a panel is cheap. Both panels are already computed -- `curve` and `losses` are
+   * memoised above -- so arrowing across costs a re-render and nothing else.
+   */
+  const onTabKeyDown = (event: React.KeyboardEvent) => {
+    const at = TABS.findIndex((t) => t.key === tab);
+    let next = at;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (at + 1) % TABS.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp")
+      next = (at - 1 + TABS.length) % TABS.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = TABS.length - 1;
+    else return;
+    event.preventDefault();
+    setTab(TABS[next].key);
+    document.getElementById(`review-tab-${TABS[next].key}`)?.focus();
+  };
   const analysis = useMemo(
     () => analyzeEval(evalScores, playerColor, totalPlies),
     [evalScores, playerColor, totalPlies],
@@ -122,17 +155,37 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
         </div>
       </div>
 
-      <div className="review-tabs" role="tablist">
-        <button role="tab" aria-selected={tab === "curve"} onClick={() => setTab("curve")}>
-          <Activity size={13} /> מהלך העמדה
-        </button>
-        <button role="tab" aria-selected={tab === "loss"} onClick={() => setTab("loss")}>
-          <Sigma size={13} /> אובדן לפי מהלך
-        </button>
+      {/*
+        * A REAL TABLIST, not the word.
+        *
+        * This declared `role="tablist"` with two `role="tab"` buttons and handled no key, which is
+        * the same defect `GATE-KEYBOARD` was written for on the board: the role tells assistive
+        * technology that the arrow keys move between tabs, and nothing moved. It was found by that
+        * gate on its first run.
+        *
+        * The pattern, as the APG specifies it: one tab stop for the whole list, arrows between the
+        * tabs, `aria-controls` pointing at the panel each one opens, and a `tabpanel` that names
+        * the tab it belongs to. Two tabs make the wrap trivial -- either arrow toggles.
+        */}
+      <div className="review-tabs" role="tablist" aria-label="תצוגות הניתוח">
+        {TABS.map(({ key, icon: Icon, label }) => (
+          <button
+            key={key}
+            id={`review-tab-${key}`}
+            role="tab"
+            aria-selected={tab === key}
+            aria-controls={`review-panel-${key}`}
+            tabIndex={tab === key ? 0 : -1}
+            onKeyDown={onTabKeyDown}
+            onClick={() => setTab(key)}
+          >
+            <Icon size={13} /> {label}
+          </button>
+        ))}
       </div>
 
       {tab === "curve" ? (
-        <>
+        <div role="tabpanel" id="review-panel-curve" aria-labelledby="review-tab-curve">
           {/* One series split at zero: above the line White stands better, below it Black does. */}
           <p className="chart-legend" dir="rtl">
             <i style={{ background: "var(--c-white-edge)" }} /> יתרון ללבן
@@ -176,9 +229,9 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </>
+        </div>
       ) : (
-        <>
+        <div role="tabpanel" id="review-panel-loss" aria-labelledby="review-tab-loss">
           <p className="chart-legend" dir="rtl">
             <i style={{ background: "var(--c-sev-1)" }} /> אי־דיוק
             <i style={{ background: "var(--c-sev-2)" }} /> טעות
@@ -209,7 +262,7 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </>
+        </div>
       )}
 
       {worst.length > 0 && (
