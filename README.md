@@ -104,6 +104,17 @@
 "דיוק" נמדד ב**אובדן סיכויי ניצחון**, לא בסנטי-פונים: 30 סנטי-פון בעמדה שקולה הם 2.8 נקודות
 ניצחון, ובעמדה מוכרעת 0.3.
 
+### ובבליץ, החיתוך של המוצר לא חותך כלום
+
+75 משחקי בליץ מדורגים של חשבון אחד, **1,787 החלטות** על המנוע הנשלח. החיתוך ב-45 ו-120 שניות מכניס
+את **כל 806** ההחלטות שנשמרו לצד לדלי **אחד**, ומפריד דיוק ב-**0.00 נקודות**. חציון זמן החשיבה 3
+שניות, 99.6% מתחת ל-45, ו**אפס** מעל 120.
+
+בתוך הדלי היחיד הזה הדיוק נופל מ-**81%** בהחלטות של אפס שניות ל-**47%** מעשר שניות ומעלה. אבל
+הבקרות שנרשמו מראש אומרות שרוב ההפרדה הזאת היא **סוג העמדה**, לא הזמן: כשמערבבים את התוצאה בתוך שלב
+ומעמד, שליש מהערבובים עדיין עוברים את הרף, וההפרדה קורסת ב-**חמישה מתוך שישה** תאים. לכן **שום סף
+לא זז**. [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md).
+
 המספרים, הקורפוסים והשיטה: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
 
 ## הרצה
@@ -186,7 +197,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/COMPETITIVE_BENCHMARK.md`](docs/COMPETITIVE_BENCHMARK.md) | מה כלים אחרים עושים, ומה לא | אנגלית |
 | [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
-| [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — רישום מראש | אנגלית |
+| [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) · [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — נרשם מראש, נמדד, ולא אומץ | אנגלית |
 | [`docs/ACTION_PLAN.md`](docs/ACTION_PLAN.md) | מה נעשה הלאה, באיזה סדר, ובאילו תנאי עצירה | אנגלית |
 | [`docs/STATIC_DEPLOYMENT.md`](docs/STATIC_DEPLOYMENT.md) | לפרוס בלי שרת בכלל, ומה נשמר ומה נאבד | אנגלית |
 

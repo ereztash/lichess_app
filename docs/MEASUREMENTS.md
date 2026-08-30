@@ -669,6 +669,33 @@ currently dead weight on real records, and that any replacement -- a think time 
 base clock, say -- has to be chosen on development data, frozen, and then put through this same
 control on a holdout before it goes near production.
 
+#### That replacement was preregistered, measured, and is not being adopted
+
+`docs/research/TIME_REPRESENTATION_PREREG.md`, then `_RESULTS.md`: five candidate representations
+fitted on a derivation half and reported on a held-out half, over **75 rated blitz games** of one
+account, **1,787 decisions scored** on the shipped WASM engine. One run, as the preregistration
+required.
+
+**It confirms the paragraph above and sharpens it.** On blitz specifically, `raw seconds` does not
+merely go uncomparable -- it puts **every one of the 806 held-out decisions in a single bucket** and
+separates accuracy by **0.00 pp**. Median think time **3 s**, 99.6% under 45, and **zero** decisions
+over 120. `slow-over-2m` is not sparse on a blitz record. It is empty.
+
+**And the replacement is not obviously better, for reasons the study had to measure to find.**
+§7's table returns OBSERVATION -- the Lichess encoding scale separates 10.33 pp against a 6.73 pp
+random-boundary null -- and §6's controls then say most of that separation is position type:
+permuting the outcome within phase x standing leaves **32%** of shuffles still clearing the null
+against a calibrated 3.5%, and the separation collapses in **five of six** phase x standing cells.
+The winner also beats the runners-up by **0.6 pp**, on data with **no sub-second resolution** --
+every one of the 1,578 eligible think times is a whole number of seconds, so the Lichess scale's
+boundaries at 0.1 and 0.5 s, which are why it was chosen, could never have separated anything.
+
+**So nothing moved, and the reason is the one stated in advance.** The buckets exist to compare a
+CALIBRATION GAP, and an imported record carries no stated confidence -- `shared/import-diagnostic.ts`
+says so in its own words. Accuracy is a proxy. A representation that wins on the proxy has to be
+re-tested against a live record carrying stated confidence before any cut moves, and that record does
+not exist yet.
+
 ### What a real import actually did, and the number that moved when nothing did
 
 > **This section is history, and is kept on purpose.** Every figure in it was produced by a native
