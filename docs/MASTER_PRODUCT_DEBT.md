@@ -328,9 +328,9 @@ but it is a hole, and it is named here rather than papered over.
 | | |
 | --- | --- |
 | type | research |
-| state | **open** |
+| state | **measured and deferred** — the test exists and is gated; it is not wired in, and the trigger is written down |
 | severity | P1 |
-| basis | **verified by measurement** — `docs/discovery-v2/M0_AUDIT.md` §Q4, 11,600 simulated records |
+| basis | **verified by measurement** — `docs/discovery-v2/M0_AUDIT.md` §Q4 (11,600 records) and `q5_attribution.py` (3,600 more) |
 
 On a world where the true effect lives in a region no bucket can express (`fast AND endgame`), the
 shipped chain **validates a claim naming the wrong subgroup on 11% of records**. The judge cannot
@@ -342,6 +342,47 @@ records). **Attribution is not**, and no amount of tightening the false-positive
 
 **Gate:** an attribution test that distinguishes the named region from a bucket that overlaps it,
 run on the planted worlds, with a stated ceiling on the wrong-subgroup rate.
+
+**Built:** `shared/discovery/attribution.ts` — homogeneity within the claimed bucket. Split it by
+each of the other bucketings and ask whether the gap inside is homogeneous; if some division carries
+the whole thing, the claim is not attributable to the name it was frozen under. It **withholds and
+names**, and does not rename: renaming would choose a region after seeing the outcome, on the data
+the claim is being judged against, which is the post-hoc move R5 exists to forbid.
+
+**Measured:** `research/discovery-oracle/q5_attribution.py`, 3,600 records over nine planted worlds,
+with the choice rule declared before the run. `ATTRIBUTION_K = 2.5` — worst false veto 5.6%, mean
+caught 9.2%.
+
+### The finding is not the threshold
+
+**At the record size the product actually sees this is a wash**: 7% of misattributions caught for 6%
+of true claims withheld, on a chain Q4 already measured as silent more than half the time. Holding
+the derivation half at 20 games and growing only the validation half shows why:
+
+| validation games | false veto (k=3.0) | caught (k=3.0) |
+| --- | --- | --- |
+| 20 | 0.0472 | **0.0000** |
+| 60 | 0.0130 | **0.2283** |
+| 140 | 0.0150 | **0.4729** |
+
+**The test is not weak. The record is small.** Same bottleneck Q4 found one level up: a bucket is a
+fraction of the record and each split halves it again.
+
+**So it is `DEFER`, not `done`** — implemented, gated, measured, and deliberately not called from
+any claim path, because at 20 validation games it would make an already-silent product quieter for
+almost nothing. The trigger that turns it on is a fact about a record rather than a judgement, so it
+can be evaluated automatically: **60 validation games.** Full reasoning and three other reversal
+conditions in `docs/decisions/D08-attribution.md`.
+
+**Gate:** `tests/discovery/a-bucket-that-only-contains-the-answer.test.ts`, which asserts the
+direction of the trade rather than the value of `k` — the value belongs to the measurement.
+
+**A defect it turned up on the way,** unrelated to attribution and now fixed:
+`gapDifferenceStandardError`'s guard against a degenerate bucket was **dead code**. Sixty doubles
+each exactly 0.8 average to 0.7999999999999993, so a perfectly uniform sample has a variance of
+6.1e-31 rather than 0, and the `<= 0` test never fired — while that function's own comment records
+the case firing on up to 13% of records against a 2% ceiling. `summarise` now answers "did this
+sample vary at all" structurally. Gate: `tests/shared/a-bucket-that-never-varied.test.ts`.
 
 ### R-09 · The engine scan fails on the deployed preview
 

@@ -119,11 +119,38 @@ export const MIN_SPLIT_N = 15;
  *
  * MULTIPLICITY IS REAL HERE. Five other bucketings are tried against every claim, so under a truly
  * homogeneous bucket there are five chances to veto it. That inflation is in the conservative
- * direction, and it is measured rather than assumed: the false-veto rate on the clean plants and
- * the caught-misattribution rate on the interaction plant are both in
- * `research/discovery-oracle/results/`, and this constant is set from them.
+ * direction, and it is measured rather than assumed.
+ *
+ * MEASURED: `research/discovery-oracle/q5_attribution.py`, 3,600 records over nine planted worlds,
+ * with the choice rule declared before the run -- the smallest `k` whose worst false-veto rate over
+ * the clean plants stays inside a 10% ceiling.
+ *
+ *       k    worst false veto    mean caught
+ *     1.5          0.3556           0.3944
+ *     2.0          0.1222           0.2528
+ *     2.5          0.0556           0.0917      <- chosen by the declared rule
+ *     3.0          0.0102           0.0000
+ *
+ * 2.5 RATHER THAN THE 3.0 THIS STARTED AT, and the rule picked it rather than the table being read
+ * for a preference: at 3.0 the veto catches nothing at all on these records.
+ *
+ * WHICH IS THE REAL FINDING, and it is not about `k`. At the record size the product actually sees
+ * -- 20 validation games -- this test catches 7% of misattributed claims while withholding 6% of
+ * true ones, which is a wash. Holding the derivation half at 20 games and growing only the
+ * validation half shows why:
+ *
+ *     validation games      false veto (k=3.0)      caught (k=3.0)
+ *            20                   0.0472               0.0000
+ *            60                   0.0130               0.2283
+ *           140                   0.0150               0.4729
+ *
+ * The test is not weak. The record is small. At 60 validation games it stops a fifth of the
+ * misattributions for a 1.3% cost, and at 140 nearly half.
+ *
+ * SO THIS IS NOT YET WIRED INTO THE CLAIM PATH, and that is a decision with a reversal condition
+ * rather than an omission: see `docs/decisions/D08-attribution.md`.
  */
-export const ATTRIBUTION_K = 3.0;
+export const ATTRIBUTION_K = 2.5;
 
 /**
  * The decisions of the claimed bucket, or null when the bucketing does not exist.

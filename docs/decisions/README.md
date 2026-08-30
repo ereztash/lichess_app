@@ -48,6 +48,7 @@ What a piece of work is allowed to become, given what is known about it:
 | [D01](D01-point-in-time-feature-contract.md) | how do we know a feature was available? | `PORT_AFTER_EQUIVALENCE` | decided |
 | [D02](D02-the-unit-of-inference.md) | is a decision an observation? | `REJECT` (clustered judge) | decided, one number open |
 | [D03](D03-what-a-search-may-read.md) | which features may a search read? | `PORT_AFTER_EQUIVALENCE` | decided |
+| [D08](D08-attribution.md) | can anything tell the named region from a bucket that overlaps it? | `DEFER` | built and measured; not wired in, trigger written down |
 | [D09](D09-frozen-hypothesis-manifest.md) | what does freezing a hypothesis mean? | `PORT_AFTER_EQUIVALENCE` | decided |
 | [D20](D20-protocol-matching.md) | what protocol may judge this claim? | `PORT_AFTER_EQUIVALENCE` | closed — the product choice was taken by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42), merged |
 

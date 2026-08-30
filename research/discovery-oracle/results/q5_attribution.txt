@@ -1,0 +1,52 @@
+Q5 -- attribution: can anything tell the named region from a bucket that overlaps it?
+
+400 records per plant, 40 games each, 20 to derive and the rest to validate.
+
+PER PLANT
+plant                     delta  validated  on-target  unreadable  readable
+clean-middlegame           0.18     0.4500        178           1       179
+weak-middlegame            0.07     0.0000          0           0         0
+clean-fast                 0.18     0.1000         40           0        40
+weak-fast                  0.07     0.0000          0           0         0
+interaction-only           0.22     0.0900          0           0        36
+sparse-low-clock           0.22     0.4900        196           0       196
+one-game-only              0.22     0.0000          0           0         0
+every-game-first-moves     0.20     0.0050          0           2         0
+proxy-correlated           0.20     0.0250          0           0        10
+
+THE TRADE  (false veto = a true claim withheld; caught = a misattributed claim stopped)
+    k  worst false veto  mean false veto  worst caught  mean caught
+  1.5            0.3556           0.3202        0.3889       0.3944
+  2.0            0.1222           0.0914        0.2000       0.2528
+  2.5            0.0556           0.0388        0.0833       0.0917
+  3.0            0.0102           0.0034        0.0000       0.0000
+  3.5            0.0000           0.0000        0.0000       0.0000
+  4.0            0.0000           0.0000        0.0000       0.0000
+  5.0            0.0000           0.0000        0.0000       0.0000
+
+Ceiling on the worst false-veto rate, declared before the run: 0.10
+CHOSEN k = 2.5  (worst false veto 0.0556, mean caught 0.0917)
+
+IS IT THE TEST OR THE RECORD?  Derivation held at 20 games; only the validation half grows.
+ games  validation     k  worst false veto  mean caught
+    40          20   1.5            0.3645       0.2407
+    40          20   2.0            0.1575       0.1111
+    40          20   2.5            0.0630       0.0741
+    40          20   3.0            0.0472       0.0000
+    40          20   3.5            0.0093       0.0000
+    40          20   4.0            0.0093       0.0000
+    40          20   5.0            0.0093       0.0000
+    80          60   1.5            0.4675       0.7292
+    80          60   2.0            0.1948       0.5820
+    80          60   2.5            0.0519       0.3715
+    80          60   3.0            0.0130       0.2283
+    80          60   3.5            0.0065       0.1957
+    80          60   4.0            0.0000       0.1196
+    80          60   5.0            0.0000       0.0543
+   160         140   1.5            0.4286       0.7250
+   160         140   2.0            0.1955       0.6500
+   160         140   2.5            0.0602       0.5437
+   160         140   3.0            0.0150       0.4729
+   160         140   3.5            0.0000       0.4104
+   160         140   4.0            0.0000       0.3125
+   160         140   5.0            0.0000       0.1354

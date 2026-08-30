@@ -29,6 +29,7 @@ import { createInterface } from "node:readline";
 
 import { CONFIDENCE_LEVELS, normaliseConfidence } from "../shared/confidence";
 import { readVariables } from "../shared/bucket-variable";
+import { attribution } from "../shared/discovery/attribution";
 import {
   BUCKETINGS,
   DEFAULT_THRESHOLDS,
@@ -199,10 +200,56 @@ function handle(line: RecordLine): unknown {
     confirmation.fired &&
     Math.sign(confirmation.gapDifference) === Math.sign(selected.gapDifference);
 
+  /*
+   * THE ATTRIBUTION STATISTIC, AND NOT ITS VERDICT.
+   *
+   * `attribution()` takes a `k` and answers yes or no. What crosses this pipe is the underlying
+   * quantity -- the largest |z| over the readable splits of the claimed bucket -- so Python can
+   * sweep every candidate threshold from ONE run of the chain. Emitting a verdict would fix `k`
+   * here and make the sweep a sweep of re-runs, each one paying for the whole search again.
+   *
+   * It is the same split this repository already makes elsewhere: `discoverySearchPopulation`
+   * separates the engineering fix from the scientific choice so that one cannot ride inside the
+   * other. Reporting the statistic and choosing the threshold in the experiment is that rule
+   * applied to the harness.
+   *
+   * ON THE VALIDATION HALF, which is the only half it may read. Run on the derivation games it
+   * would be asking whether the search that chose this bucket could have chosen a narrower one --
+   * a question about the search, inheriting the search's own selection.
+   *
+   * `k = 0` makes every readable split "break", which is how the report is coaxed into ranking
+   * them by |z| regardless of any threshold. The number this reads off is `worst.z`.
+   */
+  const attributionReport = selected === null ? null : attribution(selected.key, validation, 0);
+  const readableSplits = attributionReport?.splits.filter((s) => s.unreadable === null) ?? [];
+  const worst = readableSplits
+    .slice()
+    .sort((a, b) => Math.abs(b.z ?? 0) - Math.abs(a.z ?? 0))[0];
+
   return {
     id: line.id,
     world: line.world,
     derivation: report(derivation, DEFAULT_THRESHOLDS, 0, line.masks === true),
+    /*
+     * Null when no claim was formed, or when the claimed bucket was too small to split, or when
+     * every split of it was one-sided. Those are three different silences and Python counts them
+     * apart: "we could not look" must not be read as "we looked and it was fine".
+     */
+    attribution:
+      attributionReport === null
+        ? null
+        : {
+            n: attributionReport.n,
+            readable: readableSplits.length,
+            maxAbsZ: worst?.z === undefined || worst.z === null ? null : Math.abs(worst.z),
+            splitBy: worst?.key ?? null,
+            /* True when the split's own inside is the more overconfident half: the region carrying it. */
+            carriesExcess: worst ? worst.gapDifference > 0 : null,
+            unreadableBecause:
+              attributionReport.verdict.kind === "unreadable"
+                ? attributionReport.verdict.because
+                : null,
+          },
     cleared: patterns.map((p) => p.key),
     findings: findings.length,
     selected: selected === null ? null : selected.key,
