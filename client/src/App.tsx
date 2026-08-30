@@ -1,5 +1,5 @@
 import NotFound from "@/pages/NotFound";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Route, Switch } from "wouter";
 import {
   beginVisit,
@@ -12,6 +12,13 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Record from "./pages/Record";
+/*
+ * LAZY, AND FOR A MEASURED REASON. The blitz screen pulls in the game core, the instrument and the
+ * post-game analyser, and none of it is on the path of somebody arriving at the record. The entry
+ * chunk is under a ratchet that was crossed once already in this work; a route that nobody has
+ * opened has no business in the bytes everybody downloads.
+ */
+const Blitz = lazy(() => import("./pages/Blitz"));
 /*
  * THE RECORD IS THE FRONT DOOR; the board is a room in the house.
  *
@@ -26,6 +33,11 @@ function Router() {
     <Switch>
       <Route path="/" component={Record} />
       <Route path="/play" component={Home} />
+      <Route path="/blitz">
+        <Suspense fallback={<p role="status">טוען…</p>}>
+          <Blitz />
+        </Suspense>
+      </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
