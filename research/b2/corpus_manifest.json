@@ -1,0 +1,63 @@
+{
+ "source": "lichess.org export, supplied by the account owner",
+ "account": "erez281",
+ "rule": "TIME_REPRESENTATION_PREREG.md section 3, applied without deviation",
+ "gamesInFile": 120,
+ "qualifying": 75,
+ "taken": 40,
+ "shortfall": 0,
+ "exclusions": {
+  "unrated": 45
+ },
+ "timeControls": {
+  "180+0": 20,
+  "300+3": 8,
+  "300+0": 12
+ },
+ "dateRange": [
+  "2026.07.10 21:57:17",
+  "2026.08.29 20:07:36"
+ ],
+ "halves": {
+  "KXFZanHQ": "derivation",
+  "TqbkNIaK": "heldout",
+  "1x5PEj6H": "derivation",
+  "O6DzQ2Wo": "heldout",
+  "otPBGJ1V": "derivation",
+  "YIUKYo5q": "heldout",
+  "vREVyh4I": "derivation",
+  "2yoa7sW8": "heldout",
+  "QicWI0mo": "derivation",
+  "22Ou13vB": "heldout",
+  "Zj57PEsN": "derivation",
+  "jxejz7eE": "heldout",
+  "ypJ8jNWr": "derivation",
+  "4HGQpt5h": "heldout",
+  "7vzokqTU": "derivation",
+  "XaiCSzfW": "heldout",
+  "kbdQjSMZ": "derivation",
+  "IN16M1cb": "heldout",
+  "schwmDKJ": "derivation",
+  "I3ckt4ue": "heldout",
+  "2Bb3YbRb": "derivation",
+  "xZrDfBRX": "heldout",
+  "qzV3MdrO": "derivation",
+  "JDymuCjS": "heldout",
+  "YoWMTvWz": "derivation",
+  "OsOQjkSA": "heldout",
+  "Z7u3G5rL": "derivation",
+  "A1Rkr6Cr": "heldout",
+  "2Q27PWXj": "derivation",
+  "QHiXdQhB": "heldout",
+  "dfl7AnAG": "derivation",
+  "3PRhNzhY": "heldout",
+  "lWKyeQSz": "derivation",
+  "XIOKlTr9": "heldout",
+  "YVYXN9IX": "derivation",
+  "HDlAup3g": "heldout",
+  "BxOLM5wC": "derivation",
+  "3gcIBDJG": "heldout",
+  "ObQScK6D": "derivation",
+  "8EXh2Uvr": "heldout"
+ }
+}
