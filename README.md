@@ -161,6 +161,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/COMPETITIVE_BENCHMARK.md`](docs/COMPETITIVE_BENCHMARK.md) | מה כלים אחרים עושים, ומה לא | אנגלית |
 | [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
+| [`docs/ACTION_PLAN.md`](docs/ACTION_PLAN.md) | מה נעשה הלאה, באיזה סדר, ובאילו תנאי עצירה | אנגלית |
 
 המחקר על מסלול חיפוש בתקציבי צמתים הוכרע **`RESEARCH ONLY`**: שום דבר ממנו לא הגיע למוצר, וההשערות
 לא הופרכו — הן לא היו ניתנות לבדיקה עם המכשיר הזה.
