@@ -186,6 +186,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/COMPETITIVE_BENCHMARK.md`](docs/COMPETITIVE_BENCHMARK.md) | מה כלים אחרים עושים, ומה לא | אנגלית |
 | [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
+| [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — רישום מראש | אנגלית |
 | [`docs/ACTION_PLAN.md`](docs/ACTION_PLAN.md) | מה נעשה הלאה, באיזה סדר, ובאילו תנאי עצירה | אנגלית |
 | [`docs/STATIC_DEPLOYMENT.md`](docs/STATIC_DEPLOYMENT.md) | לפרוס בלי שרת בכלל, ומה נשמר ומה נאבד | אנגלית |
 

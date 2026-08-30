@@ -229,9 +229,20 @@ record — are each defensible and they are not the same variable.
 output is a document saying which representation separates the outcome best, on held-out data, and
 by how much over the raw-seconds baseline.
 
-*Blocked by B1 — and B1 has now fired `STOP-B1`.* Choosing a representation from numbers a different
-engine produced is choosing on noise of unknown size, and that size is now measured at 13.61% of
-decisions. This does not start.
+*Unblocked, and started.* The record was re-measured on the shipped engine, so the numbers a
+representation would be chosen from are now the product's own.
+
+**Preregistered in [`docs/research/TIME_REPRESENTATION_PREREG.md`](research/TIME_REPRESENTATION_PREREG.md),
+committed before the corpus was built.** What forced it: on the canonical record the median think
+time is **2 seconds**, 99.9% of decisions fall under the 45-second cut and 0.1% over the 120-second
+one — so `fast-under-45s` is not a bucket, it is the record. Inside blitz alone, accuracy runs
+**78.1% → 46.3%** from 0–1 s to 8 s+, thirty-two points hidden inside a single shipped bucket.
+
+Three limits are stated in the preregistration rather than discovered later. It **cannot study the
+calibration gap** — imported games carry no stated confidence, so the outcome is accuracy, a proxy
+for what the product actually reports. It **cannot separate thinking from difficulty** — hard
+positions take longer and fail more. And **even a clean win moves nothing**: a representation that
+succeeds here must be re-tested against a live record carrying confidence, which does not exist yet.
 
 ### B3 · What MultiPV costs, and what "practically forced" is worth (PR8)
 
