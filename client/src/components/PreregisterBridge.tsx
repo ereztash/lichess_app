@@ -21,7 +21,11 @@
 import { useState } from "react";
 import { PREREGISTERED_THRESHOLDS, MIN_BUCKET_N, SEPARABILITY_K } from "@shared/detector";
 import { hypothesisFromImport, type PreregOutcome } from "@shared/prereg";
-import type { ImportDiagnostic } from "@shared/import-diagnostic";
+import {
+  resolutionFactor,
+  RESOLUTION_FACTOR_CEILING,
+  type ImportDiagnostic,
+} from "@shared/import-diagnostic";
 import { useRegisterHypothesis } from "@/lib/record-api";
 import { readableFailureText } from "@/lib/commit-error";
 import { Proportion } from "./Value";
@@ -70,14 +74,32 @@ export function PreregisterBridge({
   }
 
   if (outcome.kind === "not-separable") {
-    // Deliberately not a disabled button. There is nothing to wait for here -- more games would
-    // sharpen the rates, but the answer "these buckets are not distinguishable" is the finding.
+    /*
+     * Deliberately not a disabled button. There is nothing to wait for here -- the answer "these
+     * buckets are not distinguishable" is the finding.
+     *
+     * WHAT WAS MISSING, and it is the difference between a refusal and a measurement. The sentence
+     * gave the gap and the bar and stopped, which leaves the reader with no way to tell whether
+     * they are one game short or a hundred -- and a reader with no number fills it in with the
+     * least flattering guess. MEASURED on 6 real players' imports: every one of them lands here,
+     * with bars of 13 to 19.5 points against gaps of 1 to 8. So this is not the rare branch; on a
+     * real import it is the only branch, and it has to say what this many games can actually
+     * resolve.
+     */
+    const factor = resolutionFactor(outcome);
     return (
       <p className="prereg-note">
         אין סוג אחד שאפשר לרשום מראש: הפרש הדיוק בין הנמוך ביותר לזה שאחריו הוא{" "}
         {Math.round(outcome.separation * 100)} נקודות אחוז, והבר שהוא צריך לעבור — שתי שגיאות
-        תקן של ההפרש — הוא {Math.round(outcome.threshold * 100)} נקודות אחוז. לרשום את הנמוך
-        מביניהם היה להלביש ניחוש כהשערה.
+        תקן של ההפרש — הוא {Math.round(outcome.threshold * 100)} נקודות אחוז. כלומר מה שהמשחקים
+        האלה מסוגלים להפריד הוא {Math.round(outcome.threshold * 100)} נקודות, וההפרש שנמדד קטן
+        מזה.{" "}
+        {factor === null
+          ? "שני הסוגים הנמוכים יצאו שווים, ואין הפרש שאפשר להגדיל אליו את המדגם."
+          : factor > RESOLUTION_FACTOR_CEILING
+            ? "כדי שהפרש בגודל הזה ייקרא נדרש מדגם גדול בהרבה ממה שייבוא יכול לספק."
+            : `אם השיעורים האלה יישארו במקומם, יידרשו בערך פי ${Math.round(factor)} החלטות כדי שהפרש בגודל הזה ייקרא — וזו הנחה על השיעורים, לא תחזית שההפרש יישאר.`}{" "}
+        לרשום את הנמוך מביניהם היה להלביש ניחוש כהשערה.
       </p>
     );
   }

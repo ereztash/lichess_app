@@ -18,6 +18,12 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 
 const PHASES = ["opening", "middlegame", "endgame"] as const;
+/*
+ * The import-only buckets split on this, and the weakest-bucket comparison ranks all nine together.
+ * A null control that left it out would be permuting a record with a different overlap structure
+ * from the one the product actually compares -- which is the whole thing that control is for.
+ */
+const STANDINGS = ["losing", "level", "winning"] as const;
 
 function arg(name: string, fallback: string): string {
   const i = process.argv.indexOf(`--${name}`);
@@ -44,12 +50,14 @@ function main() {
     r.secondsTaken,
     r.clockMsRemaining,
     r.accurate ? 1 : 0,
+    STANDINGS.indexOf(r.standing),
   ]);
 
   const body = JSON.stringify(
     {
-      schema: ["phaseIndex", "secondsTaken", "clockMsRemaining", "accurate"],
+      schema: ["phaseIndex", "secondsTaken", "clockMsRemaining", "accurate", "standingIndex"],
       phases: PHASES,
+      standings: STANDINGS,
       source: {
         corpus: report.corpus,
         engine: report.engine,

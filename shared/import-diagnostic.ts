@@ -404,6 +404,23 @@ export function diagnoseImportedGames(
 ): ImportDiagnostic {
   const anyClock = games.some((g) => hasClockData(g.clockTimes));
   const decisions = games.flatMap((game) => decisionsFromGame(game, isBook));
+  return diagnosticFromDecisions(decisions, { anyClock, bookLoaded: isBook !== NO_BOOK });
+}
+
+/**
+ * The reading, from decisions that already exist.
+ *
+ * Split out of `diagnoseImportedGames` so a null control can run the PRODUCT'S bucket arithmetic
+ * over a record it has permuted, rather than a second copy of that arithmetic which could drift
+ * from this one. `worstBucketVerdict` ranks nine overlapping buckets and picks the lowest two, and
+ * whether that comparison is calibrated is a question about THIS code, so the control has to reach
+ * it and not a reimplementation. See tests/fixtures/worst-bucket-scenario.ts.
+ */
+export function diagnosticFromDecisions(
+  decisions: ImportedDecision[],
+  source: { anyClock: boolean; bookLoaded: boolean },
+): ImportDiagnostic {
+  const { anyClock } = source;
   const { speed: timeBucketSpeed, mix: speedMix } = dominantSpeed(decisions);
 
   /*
@@ -471,7 +488,7 @@ export function diagnoseImportedGames(
     forced: decisions.filter((d) => d.forced).length,
     eligible: chosen.length,
     book: decisions.filter((d) => d.book && !d.forced).length,
-    bookLoaded: isBook !== NO_BOOK,
+    bookLoaded: source.bookLoaded,
     withoutTime: chosen.filter((d) => d.secondsTaken === null).length,
     withoutClock: chosen.filter((d) => d.clockMsRemaining === null).length,
     missingClockData: !anyClock,
@@ -552,7 +569,18 @@ export type WorstBucketVerdict =
  * deliberately hard to clear. A bucket that clears it is a real difference in the player's games.
  * A bucket that does not is a screen that should say nothing, and the caller must let it.
  */
-export function worstBucketVerdict(diagnostic: ImportDiagnostic): WorstBucketVerdict | null {
+export function worstBucketVerdict(
+  diagnostic: ImportDiagnostic,
+  /**
+   * How many standard errors the separation must clear. Two by default, which is the bar this
+   * screen has always applied.
+   *
+   * A parameter only so a null control can run the SAME code at a bar that is known to be too
+   * permissive, and show that the control is capable of going red. Nothing in the product passes
+   * anything but the default -- a test asserts that.
+   */
+  standardErrors = 2,
+): WorstBucketVerdict | null {
   const readable = measurableBuckets(diagnostic);
   if (!readable.length) return null;
 
@@ -570,10 +598,38 @@ export function worstBucketVerdict(diagnostic: ImportDiagnostic): WorstBucketVer
 
   const variance = (p: number, n: number) => (p * (1 - p)) / n;
   const threshold =
-    2 * Math.sqrt(variance(worst.accurateRate, worst.n) + variance(runnerUp.accurateRate, runnerUp.n));
+    standardErrors *
+    Math.sqrt(variance(worst.accurateRate, worst.n) + variance(runnerUp.accurateRate, runnerUp.n));
   const separation = runnerUp.accurateRate - worst.accurateRate;
 
   return separation > threshold
     ? { worst, runnerUp, separation, threshold, separable: true }
     : { worst, runnerUp, separation, threshold, separable: false };
 }
+
+/**
+ * How many times this import's size the reading would need for its own gap to clear its own bar.
+ *
+ * WHY A SCREEN NEEDS THIS. "The buckets are not distinguishable" is a true sentence and an opaque
+ * one: it does not say whether the player is one game short or a hundred, and a reader with no
+ * number fills the gap with the least flattering guess. The threshold falls as 1/sqrt(n), so
+ * scaling every bucket by k scales the bar by 1/sqrt(k), and the factor that would close the gap is
+ * `(threshold / separation)^2`.
+ *
+ * THE ASSUMPTION, WHICH IS LOAD-BEARING AND MUST BE SAID WHEREVER THIS IS PRINTED: it holds only if
+ * the rates stay where they are. They are estimates from exactly the sample that is too small, so
+ * this is the size at which a gap THIS BIG would become readable -- not a prediction that the gap
+ * will still be there. A separation of zero has no such size and returns null rather than Infinity.
+ */
+export function resolutionFactor(reading: { separation: number; threshold: number }): number | null {
+  if (reading.separation <= 0 || reading.threshold <= 0) return null;
+  return (reading.threshold / reading.separation) ** 2;
+}
+
+/**
+ * Above this the factor stops being a number a person can act on and becomes a way of saying no.
+ *
+ * Printing "you would need 300 times as many games" invites the reader to average it down to
+ * something imaginable. The screen says the honest thing instead: more than an import can supply.
+ */
+export const RESOLUTION_FACTOR_CEILING = 50;
