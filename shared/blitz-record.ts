@@ -21,6 +21,7 @@
  * reads that nobody writes during a three-minute game, and an empty string for them would read
  * afterwards as "asked, and answered with silence".
  */
+import { z } from "zod";
 import type { BlitzDecision, RequiredTimeControl, Side } from "./blitz-game-core.js";
 import type { FinishedGame, AnalysedDecision } from "./blitz-post-game.js";
 import type { InstrumentedDecision } from "./blitz-instrument.js";
@@ -99,14 +100,27 @@ export function toStoredRecord(
   analysed: readonly AnalysedDecision[],
   meta: { gameId: string; playedAs: Side; startedAt: string; finishedAt: string },
 ): StoredBlitzRecord | JoinRefusal {
-  const core: readonly BlitzDecision[] = game.decisions;
+  /*
+   * THE PLAYER'S DECISIONS, NOT THE GAME'S, AND THIS WAS A DEFECT THE UNIT TESTS COULD NOT SEE.
+   *
+   * The core records a decision for every move, both sides -- it runs the whole board. The engine
+   * scores every one of them, for the same reason. The instrument records only the PLAYER'S, since
+   * `recordCommitted` is called from the move handler and the opponent does not go through it. So
+   * the three sources are two lengths, and requiring all three to match rejected every real game.
+   *
+   * Found end to end, not here: every fixture in the unit tests fed all three sources the same
+   * plies, which is the one thing a real game never does. Filtering to the player is also the
+   * dataset the study wants -- a calibration record is about the person, not their opponent.
+   */
+  const core: readonly BlitzDecision[] = game.decisions.filter((d) => d.side === meta.playedAs);
+  const mine: readonly AnalysedDecision[] = analysed.filter((d) => d.side === meta.playedAs);
   if (core.length === 0) return { refused: "no-decisions" };
-  if (core.length !== instrumented.length || core.length !== analysed.length) {
+  if (core.length !== instrumented.length || core.length !== mine.length) {
     return {
       refused: "counts-disagree",
       core: core.length,
       instrument: instrumented.length,
-      analysis: analysed.length,
+      analysis: mine.length,
     };
   }
 
@@ -114,7 +128,7 @@ export function toStoredRecord(
   for (let i = 0; i < core.length; i += 1) {
     const c = core[i];
     const inst = instrumented[i];
-    const an = analysed[i];
+    const an = mine[i];
     /*
      * MATCHED ON PLY AND ON THE MOVE ITSELF, not on position in the array. Equal lengths are not
      * the same fact as the same decisions: a dropped row and a duplicated one leave the count
@@ -162,3 +176,77 @@ export function toStoredRecord(
 }
 
 export const isRefusal = (r: StoredBlitzRecord | JoinRefusal): r is JoinRefusal => "refused" in r;
+
+/**
+ * The wire shape, validated rather than trusted.
+ *
+ * THE JOIN RUNS ON THE CLIENT because that is where all three sources are, and a server that took
+ * the three separately would have to reproduce the join and could disagree with the one the player
+ * saw. What crosses the wire is therefore already assembled -- which is exactly why it is checked
+ * here rather than accepted: an assembled object is one a caller could have assembled wrongly.
+ *
+ * `nullable()` on the four is load-bearing. `optional()` would let a client that simply omitted a
+ * confidence be indistinguishable from one reporting that none was given.
+ */
+export const storedBlitzDecisionSchema = z.object({
+  gameId: z.string().min(1).max(64),
+  ply: z.number().int().positive(),
+  side: z.enum(["w", "b"]),
+  san: z.string().min(2).max(16),
+  fenBefore: z.string().min(10).max(120),
+  thinkMs: z.number().int().nonnegative(),
+  clockBeforeMs: z.number().int(),
+  opponentClockBeforeMs: z.number().int(),
+  wasAsked: z.boolean(),
+  samplingProbability: z.number().min(0).max(1),
+  confidence: z.number().int().nullable(),
+  instrumentationLatencyMs: z.number().int().nonnegative().nullable(),
+  cpLoss: z.number().int().nullable(),
+  standingCp: z.number().int().nullable(),
+});
+
+export const storedBlitzRecordSchema = z
+  .object({
+    game: z.object({
+      gameId: z.string().min(1).max(64),
+      playedAs: z.enum(["w", "b"]),
+      timeControl: z.object({
+        initialMs: z.number().int().positive(),
+        incrementMs: z.number().int().nonnegative(),
+      }),
+      /*
+       * THE UNION SPELLED OUT, not `{ kind: string }` with the rest waved through. A passthrough
+       * here would accept `{ kind: "flag" }` with no loser and store a decisive game that names
+       * nobody as having lost it, which nothing downstream could repair.
+       */
+      outcome: z.discriminatedUnion("kind", [
+        z.object({ kind: z.literal("flag"), loser: z.enum(["w", "b"]) }),
+        z.object({ kind: z.literal("checkmate"), loser: z.enum(["w", "b"]) }),
+        z.object({
+          kind: z.literal("draw"),
+          reason: z.enum(["stalemate", "insufficient", "threefold", "fifty-move"]),
+        }),
+        z.object({ kind: z.literal("resignation"), loser: z.enum(["w", "b"]) }),
+      ]),
+      startedAt: z.string().min(1),
+      finishedAt: z.string().min(1),
+      /*
+       * LITERALS, NOT THE FULL ENUMS. This route stores blitz games, and INV-4 says the engine ran
+       * after the game or the game was not analysed. A client reporting `during-play` here is not a
+       * variant to record, it is a client that violated the invariant, and the honest answer is to
+       * refuse the row rather than to store the claim.
+       */
+      measurementProtocol: z.literal("instrumented-blitz"),
+      protocolVersion: z.number().int().positive(),
+      analysisTiming: z.literal("after-play"),
+      samplingPolicyVersion: z.number().int().nonnegative(),
+      askRate: z.number().min(0).max(1),
+    }),
+    decisions: z.array(storedBlitzDecisionSchema).min(1),
+  })
+  .refine((r) => r.decisions.every((d) => d.gameId === r.game.gameId), {
+    message: "a decision names a different game than the one it arrived with",
+  })
+  .refine((r) => new Set(r.decisions.map((d) => d.ply)).size === r.decisions.length, {
+    message: "two decisions claim the same ply",
+  });

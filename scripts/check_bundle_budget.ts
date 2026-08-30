@@ -211,10 +211,34 @@ const INDEX = "dist/public/index.html";
  * 205.7 against 206, so both keep their numbers -- the same rule as the two raises above, applied
  * when it is inconvenient: 0.1 kB of headroom is still headroom, and widening it "while I am here"
  * is how a budget stops being one.
+ *
+ * ---
+ *
+ * 664 -> 670, and this time the GZIP ceiling moves too, which none of the four raises above did.
+ *
+ * PR-11's wiring: the route now keeps the game it just played. Split by building twice, once with
+ * the shared wire schema in `record-service` and once with it only on the tRPC route:
+ *
+ *                         entry raw    gzipped
+ *     before this step      664.0        205.7
+ *     wiring, no schema     666.4        206.5     +2.4 / +0.8
+ *     wiring, with schema   669.5        207.5     +5.5 / +1.9
+ *
+ * SO THE SCHEMA IS ABOUT HALF OF IT, AND IT IS KEPT ON PURPOSE. Validating only on the server would
+ * have saved 3.1 kB and given the local path a weaker guarantee than the server path -- which is
+ * precisely the divergence class this repository keeps paying for: the two stores disagreeing about
+ * a null was a real defect twice in one day. One schema, both paths, one guarantee.
+ *
+ * The remaining 2.4 kB is the hook, the service function, and the save effect with its written
+ * refusal notices. None of it defers: a record store and its writer that arrive after the game has
+ * ended are a record store that was not there when the thing needed writing.
+ *
+ * WHAT WAS CHECKED RATHER THAN ASSUMED: the 7.1 MB of WebAssembly is still held out of the entry,
+ * and no chunk was created or merged away.
  */
-const ENTRY_RAW_KB = 664;
+const ENTRY_RAW_KB = 670;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 206;
+const ENTRY_GZIP_KB = 208;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -224,7 +248,7 @@ const ENTRY_GZIP_KB = 206;
  * 735 -> 736 with the entry ceiling above, and for the same 1.2 kB: no stylesheet grew. Measured
  * at 734.9 kB with the card reverted, which is why this one fires only with the screen included.
  */
-const INITIAL_RAW_KB = 736;
+const INITIAL_RAW_KB = 743;
 
 interface Asset {
   name: string;
