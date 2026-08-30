@@ -56,6 +56,7 @@ import { classifyPhase } from "./phase.js";
 import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
+import { storedBlitzRecordSchema, type StoredBlitzRecord } from "./blitz-record.js";
 import type { DecisionPurpose } from "./confidence-asked.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
 import type { StatedParts } from "./decision-atom.js";
@@ -1387,6 +1388,31 @@ async function gradeClaimFromRecord(store: RecordStore, claimId: string): Promis
   const graded = evaluateClaim(claim, claim.prospective_tests);
   await store.saveClaim(graded);
   return graded;
+}
+
+/**
+ * Store one finished, analysed blitz game.
+ *
+ * THE JOIN ALREADY HAPPENED ON THE CLIENT (`toStoredRecord`), and this validates the result rather
+ * than trusting it -- an assembled object is one a caller could have assembled wrongly. What it
+ * adds beyond the schema is the one thing a schema cannot see: whether this game is already on
+ * record. The stores are append-only and both raise on a repeat, and a lost response makes a retry
+ * inevitable, so the repeat is reported as the no-op it is rather than as a failure.
+ */
+export async function saveBlitzGame(
+  store: RecordStore,
+  input: StoredBlitzRecord,
+): Promise<{ stored: boolean; decisions: number }> {
+  const parsed = storedBlitzRecordSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new RecordError("BAD_REQUEST", `המשחק לא נשמר: ${parsed.error.issues[0]?.message}`);
+  }
+  const already = await store.listBlitzGames();
+  if (already.some((g) => g.gameId === input.game.gameId)) {
+    return { stored: false, decisions: input.decisions.length };
+  }
+  await store.saveBlitzRecord(input);
+  return { stored: true, decisions: input.decisions.length };
 }
 
 export type ClaimView = {

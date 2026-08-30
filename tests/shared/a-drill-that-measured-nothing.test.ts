@@ -67,12 +67,14 @@ describe("a verdict with no standard error is not a verdict", () => {
       grade: "hypothesis",
       refutation_condition: "r",
       predicts_overconfidence: true,
+      graded_under: null,
       prospective_tests: [],
       created_at: "2026-01-01T00:00:00.000Z",
       last_evaluated_at: "2026-01-01T00:00:00.000Z",
     };
     const fromNothing: ProspectiveDrillResult = {
       kind: "prospective_drill_result",
+      protocol: "position-drill",
       drill_id: "measured-nothing",
       claim_id: claim.claim_id,
       decision_ids: IDENTICAL.map((d) => d.decision_id),
@@ -115,6 +117,7 @@ describe("finishDrill refuses rather than grading what it could not measure", ()
     grade: "hypothesis",
     refutation_condition: "בדריל של עמדות מ-החלטות בסיום … — ההשערה הופרכה.",
     predicts_overconfidence: true,
+    graded_under: null,
     prospective_tests: [],
     created_at: "2026-01-01T00:00:00.000Z",
     last_evaluated_at: "2026-01-01T00:00:00.000Z",

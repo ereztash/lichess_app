@@ -122,6 +122,7 @@ describe("the claim surface stays exactly as strong as its grade", () => {
   const graded = (survived: boolean) => {
     const result: ProspectiveDrillResult = {
       kind: "prospective_drill_result",
+      protocol: "position-drill",
       drill_id: "d1",
       claim_id: N1_HYPOTHESIS.claim_id,
       decision_ids: ["x1", "x2"],

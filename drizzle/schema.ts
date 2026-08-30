@@ -1,5 +1,6 @@
 import {
   boolean,
+  double,
   index,
   int,
   json,
@@ -11,6 +12,8 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 import { CLAIM_GRADES } from "../shared/claim.js";
+import { VALIDATION_KEYS } from "../shared/claim-grade-protocol.js";
+import type { BlitzOutcome, Side } from "../shared/blitz-game-core.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
@@ -235,6 +238,19 @@ export const claims = mysqlTable("claims", {
   supportingDecisionIds: json("supporting_decision_ids").$type<string[]>().notNull(),
   n: int("n").notNull(),
   grade: mysqlEnum("grade", CLAIM_GRADES).notNull(),
+  /*
+   * WHICH PROTOCOL PRODUCED THE GRADE (ADR-003). A position drill and a timed holdout are not
+   * interchangeable evidence, and `replicated` means a different thing under each, so the grade
+   * alone cannot be read back honestly.
+   *
+   * NULLABLE ON PURPOSE, and null is NOT "position drill". Rows graded before this column existed
+   * did not record a protocol; `getClaim` maps a graded row with no protocol to LEGACY_VALIDATION,
+   * which still decides the claim. The tempting backfill is `position-drill` and it would even be
+   * factually right -- a position drill was the only protocol there was -- and it is forbidden for
+   * the reason `measurement_protocol` gives about its own: a fact nobody wrote down is not a fact
+   * the record may claim.
+   */
+  gradedUnder: mysqlEnum("graded_under", VALIDATION_KEYS),
   refutationCondition: text("refutation_condition").notNull(),
   /*
    * WHICH SIDE THE REFUTATION CONDITION IS ON. See the field note on `Claim` in shared/claim.ts:
@@ -293,6 +309,9 @@ export const drillResults = mysqlTable("drill_results", {
   refutationCondition: text("refutation_condition").notNull(),
   predicted: boolean("predicted").notNull(),
   observed: boolean("observed").notNull(),
+  /** The protocol this forward test ran under. Null on a row written before ADR-003, and read
+   * back as LEGACY_VALIDATION rather than assumed to be a drill. */
+  protocol: mysqlEnum("protocol", VALIDATION_KEYS),
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
 export type DrillResultRow = typeof drillResults.$inferSelect;
@@ -431,3 +450,64 @@ export const preregisteredHypotheses = mysqlTable("preregistered_hypotheses", {
   refutationCondition: text("refutation_condition").notNull(),
   registeredAt: timestamp("registered_at").notNull(),
 });
+
+/**
+ * A blitz game somebody actually played, and every decision in it.
+ *
+ * SEPARATE FROM `decision_atoms` ON PURPOSE -- see `docs/blitz/ADR-004`. The atom requires two
+ * stated reads that are not nullable, nobody writes prose during a three-minute game, and an empty
+ * string for them would read afterwards as "asked, and answered with silence".
+ *
+ * The conditions ride on the GAME rather than being re-derived at read time, so a later reader can
+ * tell which regime produced a row without knowing what the constants happened to be that week.
+ */
+export const blitzGames = mysqlTable("blitz_games", {
+  gameId: varchar("game_id", { length: 64 }).primaryKey(),
+  /** Which side the person played. The core runs both, so this cannot be inferred from the rows. */
+  playedAs: mysqlEnum("played_as", ["w", "b"]).$type<Side>().notNull(),
+  initialMs: int("initial_ms").notNull(),
+  incrementMs: int("increment_ms").notNull(),
+  outcome: json("outcome").$type<BlitzOutcome>().notNull(),
+  startedAt: timestamp("started_at").notNull(),
+  finishedAt: timestamp("finished_at").notNull(),
+  measurementProtocol: mysqlEnum("measurement_protocol", MEASUREMENT_PROTOCOLS).notNull(),
+  protocolVersion: int("protocol_version").notNull(),
+  /** INV-4 as data: the engine ran after the game, or the game was not analysed. */
+  analysisTiming: mysqlEnum("analysis_timing", ANALYSIS_TIMINGS).notNull(),
+  samplingPolicyVersion: int("sampling_policy_version").notNull(),
+  askRate: double("ask_rate").notNull(),
+});
+export type BlitzGameRow = typeof blitzGames.$inferSelect;
+
+export const blitzDecisions = mysqlTable(
+  "blitz_decisions",
+  {
+    gameId: varchar("game_id", { length: 64 }).notNull(),
+    ply: int("ply").notNull(),
+    side: mysqlEnum("side", ["w", "b"]).$type<Side>().notNull(),
+    san: varchar("san", { length: 16 }).notNull(),
+    fenBefore: varchar("fen_before", { length: 120 }).notNull(),
+    /** Frozen at commit by the game core (INV-1). Nothing downstream may add to it. */
+    thinkMs: int("think_ms").notNull(),
+    clockBeforeMs: int("clock_before_ms").notNull(),
+    opponentClockBeforeMs: int("opponent_clock_before_ms").notNull(),
+    wasAsked: boolean("was_asked").notNull(),
+    /** The probability in force when the sampler chose, so the regime is reconstructable. */
+    samplingProbability: double("sampling_probability").notNull(),
+    /*
+     * THE FOUR NULLABLE COLUMNS, AND NOT ONE OF THEM MAY DEFAULT TO ZERO.
+     *
+     * A decision nobody questioned has no confidence and no latency; one answered instantly has a
+     * small latency. Storing the first as the second makes the mean of either column a fiction and
+     * hides exactly the population the sampler exists to describe. The engine's two columns are
+     * null when the evaluator could not answer for one of the two positions -- which is a fact
+     * about the search, not a cp-loss of zero.
+     */
+    confidence: int("confidence"),
+    instrumentationLatencyMs: int("instrumentation_latency_ms"),
+    cpLoss: int("cp_loss"),
+    standingCp: int("standing_cp"),
+  },
+  (table) => [primaryKey({ columns: [table.gameId, table.ply] })],
+);
+export type BlitzDecisionRow = typeof blitzDecisions.$inferSelect;

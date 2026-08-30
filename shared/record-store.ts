@@ -8,6 +8,11 @@
  * carrying either side's dependencies. Types only: no runtime imports beyond other shared types.
  */
 import type { Claim, DrillSpec, ProspectiveDrillResult } from "./claim.js";
+import type {
+  StoredBlitzDecision,
+  StoredBlitzGame,
+  StoredBlitzRecord,
+} from "./blitz-record.js";
 import type { PreregisteredHypothesis } from "./prereg.js";
 import type { StoredImportDiagnostic } from "./import-diagnostic.js";
 import type {
@@ -125,6 +130,18 @@ export interface RecordStore {
   getDrill(drillId: string): Promise<StoredDrill | null>;
   /** Record a drill result. Append-only: a drill reports once. */
   saveDrillResult(result: ProspectiveDrillResult): Promise<void>;
+
+  // --- Blitz, which is its own kind of record (docs/blitz/ADR-004) ----------------------
+  /**
+   * Store one finished, analysed blitz game and its decisions together.
+   *
+   * ONE CALL FOR BOTH, because a game whose decisions failed to write is worse than no game: the
+   * conditions would be on record with nothing they describe, and a later count of games would
+   * include it. Append-only -- a game is played once and analysed once.
+   */
+  saveBlitzRecord(record: StoredBlitzRecord): Promise<void>;
+  listBlitzGames(): Promise<StoredBlitzGame[]>;
+  listBlitzDecisions(): Promise<StoredBlitzDecision[]>;
 
   // --- Verified learning ---------------------------------------------------------------
   saveLearningRule(rule: LearningRule): Promise<void>;

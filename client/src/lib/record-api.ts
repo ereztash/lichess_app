@@ -11,6 +11,7 @@
  * degraded: the board takes a move and then cannot record the decision.
  */
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import type { StoredBlitzRecord } from "@shared/blitz-record";
 import { useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import {
@@ -509,6 +510,23 @@ export function useSaveImportReading() {
       await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.importReading });
       return out;
     },
+  };
+}
+
+/**
+ * Keep one finished, analysed blitz game.
+ *
+ * SAME LOCAL/SERVER SPLIT AS EVERY OTHER WRITE HERE. A blitz game is not a special case of storage
+ * just because it is a special case of measurement, and giving it its own path would mean a player
+ * in local mode silently kept nothing.
+ */
+export function useSaveBlitzGame() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.saveBlitzGame.useMutation();
+  return {
+    mutateAsync: async (input: StoredBlitzRecord) =>
+      !local ? await server.mutateAsync(input) : await service.saveBlitzGame(store, input),
   };
 }
 

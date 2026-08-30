@@ -17,6 +17,8 @@ import {
   decisionFeedback,
   decisionReveals,
   decisions,
+  blitzDecisions,
+  blitzGames,
   drillResults,
   drills,
   learningRules,
@@ -29,6 +31,12 @@ import {
   type InsertDecision,
 } from "../drizzle/schema.js";
 import type { Claim, ProspectiveDrillResult } from "../shared/claim.js";
+import { LEGACY_VALIDATION } from "../shared/claim-grade-protocol.js";
+import type {
+  StoredBlitzDecision,
+  StoredBlitzGame,
+  StoredBlitzRecord,
+} from "../shared/blitz-record.js";
 import type { DrillSpec } from "../shared/claim.js";
 import type { DecisionAtom, DecisionResult } from "../shared/decision-atom.js";
 import { assembleProbe } from "../shared/counterfactual.js";
@@ -414,6 +422,7 @@ export class DrizzleRecordStore implements RecordStore {
       supportingDecisionIds: claim.supporting_decision_ids,
       n: claim.n,
       grade: claim.grade,
+      gradedUnder: claim.graded_under,
       refutationCondition: claim.refutation_condition,
       /*
        * THE TWO TIMESTAMPS ARE WRITTEN, NOT LEFT TO THE DATABASE, and the second one was a real
@@ -454,6 +463,17 @@ export class DrizzleRecordStore implements RecordStore {
       supporting_decision_ids: row.supportingDecisionIds,
       n: row.n,
       grade: row.grade,
+      /*
+       * A GRADED ROW WITH NO PROTOCOL IS LEGACY, NOT A DRILL (ADR-003).
+       *
+       * The column is null for every claim graded before it existed, and `position-drill` is the
+       * tempting reading because it is what those grades in fact came from. Writing it here would
+       * assert that a protocol was RECORDED when none was, and the first comparison between
+       * protocols would show a drill arm containing the entire history. `LEGACY_VALIDATION` still
+       * decides the claim -- see `decidesClaim` -- so nothing already settled comes unsettled.
+       */
+      graded_under:
+        row.gradedUnder ?? (row.grade === "hypothesis" ? null : LEGACY_VALIDATION),
       refutation_condition: row.refutationCondition,
       predicts_overconfidence: row.predictsOverconfidence,
       prospective_tests: results.map((r) => ({
@@ -463,6 +483,8 @@ export class DrizzleRecordStore implements RecordStore {
         decision_ids: r.decisionIds,
         predicted: r.predicted,
         observed: r.observed,
+        // Same rule as the claim's own protocol above, and for the same reason.
+        protocol: r.protocol ?? LEGACY_VALIDATION,
         recorded_at: r.recordedAt.toISOString(),
       })),
       created_at: row.createdAt.toISOString(),
@@ -509,6 +531,54 @@ export class DrizzleRecordStore implements RecordStore {
     };
   }
 
+  async saveBlitzRecord(record: StoredBlitzRecord): Promise<void> {
+    const db = await this.db();
+    const { game, decisions } = record;
+    await db.insert(blitzGames).values({
+      gameId: game.gameId,
+      playedAs: game.playedAs,
+      initialMs: game.timeControl.initialMs,
+      incrementMs: game.timeControl.incrementMs,
+      outcome: game.outcome,
+      startedAt: new Date(game.startedAt),
+      finishedAt: new Date(game.finishedAt),
+      measurementProtocol: game.measurementProtocol,
+      protocolVersion: game.protocolVersion,
+      analysisTiming: game.analysisTiming,
+      samplingPolicyVersion: game.samplingPolicyVersion,
+      askRate: game.askRate,
+    });
+    /*
+     * The decisions go in one statement rather than a loop of them. There is no transaction here
+     * -- the same absence `saveClaim` and `saveDrillResult` live with -- so a single multi-row
+     * insert is the closest thing to atomicity available, and the game row goes first so a partial
+     * failure leaves a game with no decisions rather than orphan decisions with no conditions.
+     */
+    if (decisions.length > 0) await db.insert(blitzDecisions).values(decisions);
+  }
+
+  async listBlitzGames(): Promise<StoredBlitzGame[]> {
+    const db = await this.db();
+    return (await db.select().from(blitzGames)).map((row) => ({
+      gameId: row.gameId,
+      playedAs: row.playedAs,
+      timeControl: { initialMs: row.initialMs, incrementMs: row.incrementMs },
+      outcome: row.outcome,
+      startedAt: row.startedAt.toISOString(),
+      finishedAt: row.finishedAt.toISOString(),
+      measurementProtocol: row.measurementProtocol as "instrumented-blitz",
+      protocolVersion: row.protocolVersion,
+      analysisTiming: row.analysisTiming as "after-play",
+      samplingPolicyVersion: row.samplingPolicyVersion,
+      askRate: row.askRate,
+    }));
+  }
+
+  async listBlitzDecisions(): Promise<StoredBlitzDecision[]> {
+    const db = await this.db();
+    return await db.select().from(blitzDecisions);
+  }
+
   async saveDrillResult(result: ProspectiveDrillResult): Promise<void> {
     const db = await this.db();
     const [drill] = await db
@@ -523,6 +593,7 @@ export class DrizzleRecordStore implements RecordStore {
       refutationCondition: drill?.refutationCondition ?? "",
       predicted: result.predicted,
       observed: result.observed,
+      protocol: result.protocol,
       /*
        * WRITTEN, not left to `defaultNow()`. Same divergence as the claim's two timestamps above:
        * MemoryRecordStore kept what the service reported and MySQL kept when the row happened to
@@ -953,6 +1024,16 @@ export class MemoryRecordStore implements RecordStore {
     if (!claim) return null;
     return {
       ...claim,
+      /*
+       * THE SAME LEGACY MAPPING DrizzleRecordStore APPLIES, and it has to be here or the two
+       * stores disagree on a claim graded before `graded_under` existed: MySQL would read it as
+       * LEGACY_VALIDATION and memory would read it as null, so `gradeIsSettled` would answer
+       * differently depending on which store the caller happened to be on. Every test in this
+       * repository except the database ones runs against this store, so that divergence would
+       * have been invisible in exactly the direction that matters.
+       */
+      graded_under:
+        claim.graded_under ?? (claim.grade === "hypothesis" ? null : LEGACY_VALIDATION),
       prospective_tests: this.drillResultRows.filter((r) => r.claim_id === claimId),
     };
   }
@@ -973,6 +1054,26 @@ export class MemoryRecordStore implements RecordStore {
       throw new Error("append-only: drill already reported");
     }
     this.drillResultRows.push(result);
+  }
+
+  private readonly blitzGameRows: StoredBlitzGame[] = [];
+  private readonly blitzDecisionRows: StoredBlitzDecision[] = [];
+
+  async saveBlitzRecord(record: StoredBlitzRecord): Promise<void> {
+    if (this.blitzGameRows.some((g) => g.gameId === record.game.gameId)) {
+      // The composite primary key does the same thing in MySQL; this makes the two stores agree.
+      throw new Error("append-only: blitz game already stored");
+    }
+    this.blitzGameRows.push(structuredClone(record.game));
+    this.blitzDecisionRows.push(...structuredClone(record.decisions));
+  }
+
+  async listBlitzGames(): Promise<StoredBlitzGame[]> {
+    return structuredClone(this.blitzGameRows);
+  }
+
+  async listBlitzDecisions(): Promise<StoredBlitzDecision[]> {
+    return structuredClone(this.blitzDecisionRows);
   }
 
   async saveLearningRule(rule: LearningRule): Promise<void> {

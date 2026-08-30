@@ -47,6 +47,8 @@ import {
   type InstrumentSession,
 } from "@shared/blitz-instrument";
 import { analyseFinishedGame, isFinished, type AnalysedDecision } from "@shared/blitz-post-game";
+import { toStoredRecord, isRefusal } from "@shared/blitz-record";
+import { useSaveBlitzGame } from "@/lib/record-api";
 
 const CONTROLS: { label: string; tc: RequiredTimeControl }[] = [
   { label: "3+0", tc: { initialMs: 180_000, incrementMs: 0 } },
@@ -63,6 +65,22 @@ function clockText(ms: number): string {
 
 const PLAYER: Side = "w";
 
+/**
+ * Why a played game was not kept, in words rather than in the join's own vocabulary.
+ *
+ * Every one of these is a bug upstream, not something the player did, so none of them asks them to
+ * try anything: they say what happened to the game and stop.
+ */
+const REFUSAL_NOTICE: Record<string, string> = {
+  "counts-disagree":
+    "המשחק הסתיים ונותח, אבל לא נשמר: המהלכים, השאלות והניתוח לא הסכימו על כמה החלטות היו.",
+  "plies-disagree":
+    "המשחק הסתיים ונותח, אבל לא נשמר: השאלות והניתוח לא הצביעו על אותם מהלכים.",
+  "moves-disagree":
+    "המשחק הסתיים ונותח, אבל לא נשמר: המנוע ניתח מהלך אחר מזה ששוחק.",
+  "no-decisions": "לא היו החלטות במשחק הזה, אז אין מה לשמור.",
+};
+
 export default function Blitz() {
   const [game, setGame] = useState<BlitzState>({ phase: "idle" });
   const [session, setSession] = useState<InstrumentSession>(newSession());
@@ -70,6 +88,20 @@ export default function Blitz() {
   const [selected, setSelected] = useState<string | undefined>();
   const [analysis, setAnalysis] = useState<AnalysedDecision[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /*
+   * WHEN THE GAME HAPPENED, IN A REF RATHER THAN STATE. Nothing renders these, so state would only
+   * buy re-renders during a timed game -- which is the one place in this product where a wasted
+   * render is a measurement error rather than a nuisance.
+   *
+   * `Date.now()` here and `performance.now()` everywhere the clock is computed: a wall-clock
+   * reading is what a timestamp IS, and it is never subtracted from another to make a duration.
+   */
+  const played = useRef<{ gameId: string; startedAt: string; finishedAt: string | null }>({
+    gameId: "",
+    startedAt: "",
+    finishedAt: null,
+  });
+  const saveGame = useSaveBlitzGame();
 
   /* Two clients, never one. See the module note. */
   const opponentEngine = useRef<StockfishClient | null>(null);
@@ -126,6 +158,8 @@ export default function Blitz() {
   /* The engine speaks for the first time here, and not one moment earlier. */
   useEffect(() => {
     if (!isFinished(game) || analysis !== null) return;
+    // Stamped before the search starts, so a slow engine does not lengthen the game it analysed.
+    played.current.finishedAt ??= new Date().toISOString();
     let cancelled = false;
     void (async () => {
       const engine = await ensure(analysisEngine);
@@ -139,6 +173,50 @@ export default function Blitz() {
       cancelled = true;
     };
   }, [game, analysis, ensure]);
+
+  /*
+   * THE GAME IS KEPT, ONCE, AFTER THE ENGINE HAS SPOKEN.
+   *
+   * Separate from the effect above rather than tacked onto its end, because that one is cancellable
+   * and this must not be: a component unmounting between the analysis arriving and the write would
+   * silently discard a played game.
+   *
+   * ONCE IS THE SERVICE'S JOB, NOT A REF HERE, and this had a component-level guard until a
+   * mutation showed it did nothing. `saveBlitzGame` reads the record before writing and reports a
+   * repeat as the no-op it is, which is the guarantee that actually holds -- across a reload, a
+   * second tab, and a retry after a lost response, none of which a ref in this component survives.
+   * A second mechanism that no test could distinguish from its own absence is not defence in depth,
+   * it is a line nobody can ever safely delete.
+   */
+  useEffect(() => {
+    if (!isFinished(game) || analysis === null) return;
+    const { gameId, startedAt, finishedAt } = played.current;
+    if (!gameId || !finishedAt) return;
+    const record = toStoredRecord(game, session.decisions, analysis, {
+      gameId,
+      playedAs: PLAYER,
+      startedAt,
+      finishedAt,
+    });
+    if (isRefusal(record)) {
+      /*
+       * A REFUSAL IS A BUG UPSTREAM, AND IT IS SAID OUT LOUD. The three sources disagreed about
+       * which plies happened, and storing a best-effort join would produce rows where a confidence
+       * belongs to one move and a cp-loss to another -- undetectable afterwards, because every row
+       * would look complete. Losing the game is the cheaper mistake.
+       */
+      setNotice(REFUSAL_NOTICE[record.refused]);
+      return;
+    }
+    /*
+     * THE EXCEPTION'S OWN MESSAGE DOES NOT GO ON SCREEN. It is English, it names internals, and a
+     * player reading it learns nothing they can act on. What they need to know is the one thing
+     * that is true whatever went wrong: the game they just played was not kept.
+     */
+    void saveGame.mutateAsync(record).catch(() => {
+      setNotice("המשחק הסתיים ונותח, אבל לא נשמר. הניתוח שלמעלה עדיין נכון, והוא ייעלם עם הדף.");
+    });
+  }, [game, analysis, session, saveGame]);
 
   const onMove = (from: string, to: string) => {
     if (game.phase !== "running" || game.active !== PLAYER || awaitingAnswer(session)) return;
@@ -156,6 +234,11 @@ export default function Blitz() {
     setNotice(null);
     setAnalysis(null);
     setSession(newSession());
+    played.current = {
+      gameId: `blitz-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+    };
     setGame({ phase: "running", timeControl: tc, fen: new Chess().fen(), active: "w",
       clocksAtTurnStart: { w: tc.initialMs, b: tc.initialMs }, turnStartedAtMs: performance.now(),
       decisions: [], ply: 0 });

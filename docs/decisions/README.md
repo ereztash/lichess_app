@@ -49,13 +49,13 @@ What a piece of work is allowed to become, given what is known about it:
 | [D02](D02-the-unit-of-inference.md) | is a decision an observation? | `REJECT` (clustered judge) | decided, one number open |
 | [D03](D03-what-a-search-may-read.md) | which features may a search read? | `PORT_AFTER_EQUIVALENCE` | decided |
 | [D09](D09-frozen-hypothesis-manifest.md) | what does freezing a hypothesis mean? | `PORT_AFTER_EQUIVALENCE` | decided |
-| [D20](D20-protocol-matching.md) | what protocol may judge this claim? | `PORT_AFTER_EQUIVALENCE` | mechanism decided; the product choice was taken by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42) |
+| [D20](D20-protocol-matching.md) | what protocol may judge this claim? | `PORT_AFTER_EQUIVALENCE` | closed — the product choice was taken by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42), merged |
 
 ### Not yet opened, and the trigger for each
 
 | node | opens when |
 | --- | --- |
-| D04 candidate search (`pysubgroup`) | [#42](https://github.com/ereztash/lichess_app/pull/42) merges. Its brief is the **attribution** failure Q4 measured, not the false-positive rate |
+| D04 candidate search (`pysubgroup`) | **now** — M0 has passed. Its brief is the **attribution** failure Q4 measured, not the false-positive rate |
 | D06 stability selection | a candidate search exists to be resampled |
 | D07 redundancy / MDL | family collapse leaves measurable redundancy |
 | D10 online error control | the product needs to emit more than one claim per player |

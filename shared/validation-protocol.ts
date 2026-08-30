@@ -19,7 +19,14 @@ import type { RequiredTimeControl } from "./blitz-game-core.js";
 import { classifyBucketKey, type ClaimClass } from "./discovery/claim-class.js";
 import type { MeasurementProtocol } from "./measurement-protocol.js";
 
-export type ProtocolKind = "position-drill" | "timed-holdout";
+export const PROTOCOL_KINDS = ["position-drill", "timed-holdout"] as const;
+export type ProtocolKind = (typeof PROTOCOL_KINDS)[number];
+
+/** What each protocol is called on screen. Beside the union, so adding a kind fails to compile. */
+export const PROTOCOL_WORD: Record<ProtocolKind, string> = {
+  "position-drill": "דריל עמדות",
+  "timed-holdout": "בדיקה תחת שעון",
+};
 
 /**
  * The protocol a claim about this bucket requires.

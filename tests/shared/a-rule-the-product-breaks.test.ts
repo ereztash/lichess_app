@@ -1,23 +1,28 @@
 /**
- * INV-10 IS WRITTEN DOWN AND THE DRILL LOOP CONTRADICTS IT. This file holds the contradiction
- * still so that resolving it has to be deliberate.
+ * ADR-003, RESOLVED: THE DRILL STILL RUNS, AND IT NO LONGER CLOSES A QUESTION IT CANNOT REACH.
  *
- * `protocolFor` (PR-13) says a claim about `fast-under-45s` needs a timed holdout, because a drill
- * removes the clock the claim is about. `beginDrill` builds one anyway, and `finishDrill` grades
- * the claim from it -- `refuted` is terminal. Both positions are argued in the tree, neither is
- * obviously wrong, and `docs/blitz/ADR-003-a-rule-the-product-breaks.md` states them side by side
- * and refuses to pick.
+ * This file was written while the decision was open, to hold the contradiction still: `protocolFor`
+ * said a claim about `fast-under-45s` needs a timed holdout, `beginDrill` built a static drill for
+ * it anyway, and `finishDrill` graded it TERMINALLY. Three resolutions were on the table and this
+ * file was expected to go red on whichever was chosen.
  *
- * SO THIS IS NOT A TEST OF CORRECT BEHAVIOUR. It asserts what the product DOES, next to what the
- * rule SAYS, and goes red the moment either moves -- which is the point. An open decision that
- * nothing watches is a decision that gets made by accident, six months later, by whoever touches
- * the file next.
+ * IT DID NOT, AND THAT IS THE CHOSEN RESOLUTION SHOWING ITS SHAPE. Two of the three -- refusing the
+ * drill, or narrowing INV-10 to the clock bucket -- would have reddened it. The third does not,
+ * because it deliberately keeps the drill: the capability is not withdrawn, the player's work is
+ * not discarded, and what changes is the AUTHORITY of the result rather than whether it exists.
+ *
+ * So the assertions below are no longer a contradiction being watched. They are the two halves of
+ * the resolution, and both have to hold: the drill is still built for an environment bucket, and
+ * the grade it produces is not settled. Break either and this goes red -- the first if the
+ * capability is quietly withdrawn after all, the second if a clockless drill starts closing clock
+ * claims again.
  */
 import { describe, expect, it } from "vitest";
 import { protocolFor } from "../../shared/validation-protocol";
 import { deriveClaim } from "../../shared/claim-derivation";
 import type { CandidatePattern } from "../../shared/detector";
 import { beginDrill } from "../../shared/record-service";
+import { awaitingProtocol, evaluateClaim, gradeIsSettled } from "../../shared/claim";
 import { MemoryRecordStore } from "../../server/record";
 
 const ADR = "see docs/blitz/ADR-003-a-rule-the-product-breaks.md";
@@ -59,28 +64,51 @@ async function drillOutcome(key: string) {
   );
 }
 
-describe("a rule the product breaks", () => {
+describe("a rule the product no longer breaks", () => {
   it("routes every environment bucket to a holdout, which is INV-10 as PR-13 wrote it", () => {
     expect(protocolFor("fast-under-45s")).toBe("timed-holdout");
     expect(protocolFor("slow-over-2m")).toBe("timed-holdout");
     expect(protocolFor("clock-under-1m")).toBe("timed-holdout");
   });
 
-  it("drills them anyway, and this assertion records that rather than approving it", async () => {
+  it("still builds the drill, because the resolution does not withdraw the capability", async () => {
     for (const key of ["fast-under-45s", "slow-over-2m"]) {
       const { drill, reason } = await drillOutcome(key);
       expect(
         drill,
-        `${key} produced no drill -- if INV-10 is now enforced, this file and ADR-003 are stale (${reason})`,
+        `${key} produced no drill -- the capability was withdrawn after all; ${ADR} (${reason})`,
       ).not.toBeNull();
-      expect(
-        protocolFor(key),
-        `${key} is drilled by the product and INV-10 sends it to a holdout; ${ADR}`,
-      ).toBe("timed-holdout");
     }
   });
 
-  it("has no such disagreement on a position bucket, so the contradiction is specific", async () => {
+  it("but the grade that drill produces is not settled, and says which test would settle it", () => {
+    for (const key of ["fast-under-45s", "slow-over-2m", "clock-under-1m"]) {
+      const claim = deriveClaim(patternFor(key), {
+        claim_id: `claim-${key}`,
+        created_at: "2026-08-30T00:00:00Z",
+      });
+      const graded = evaluateClaim(claim, [
+        {
+          kind: "prospective_drill_result",
+          protocol: "position-drill",
+          drill_id: `d-${key}`,
+          claim_id: claim.claim_id,
+          decision_ids: ["x1"],
+          predicted: true,
+          observed: true,
+          recorded_at: "2026-08-31T00:00:00Z",
+        },
+      ]);
+      expect(graded.prospective_tests, `${key} discarded the drill result`).toHaveLength(1);
+      expect(
+        gradeIsSettled(graded),
+        `a clockless drill settled ${key}, which is the defect ADR-003 removed`,
+      ).toBe(false);
+      expect(awaitingProtocol(graded)).toBe("timed-holdout");
+    }
+  });
+
+  it("leaves a position bucket alone, so the narrowing is specific", async () => {
     const { drill } = await drillOutcome("phase-opening");
     expect(drill).not.toBeNull();
     expect(protocolFor("phase-opening")).toBe("position-drill");

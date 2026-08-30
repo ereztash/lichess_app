@@ -1,6 +1,8 @@
-# ADR-003 — INV-10 is written down, and the product's drill loop contradicts it
+# ADR-003 — a grade names the protocol that produced it
 
-**Status:** **open.** The contradiction is established; the resolution is not this ADR's to make.
+**Status:** **accepted** (option 3 below), decided by the repository's owner. The contradiction this
+file opened with is resolved; the argument is kept because the resolution only makes sense against
+it.
 **Depends on:** ADR-001 (INV-10), `shared/validation-protocol.ts`, `docs/blitz/AUDIT.md` §1.7.
 
 ## What was found, and how
@@ -50,7 +52,7 @@ graded — terminally — on decisions where speed is preference. That is the su
 written to forbid, and `fast-under-45s` is the bucket B2 showed holds **99.7% of a blitz player's
 decisions**, so it is not a corner case.
 
-## Why this ADR does not decide it
+## Why this was the owner's call and not the implementer's
 
 Refusing environment buckets in `beginDrill` is a **two-line change**. Its cost is not.
 
@@ -66,23 +68,75 @@ plan's rule is that thresholds, buckets, sampling and claim rules do not move wi
 explanation, a preregistration and a test. **It is also not resolvable from the repository**: both
 positions are already written there, by people who had thought about it.
 
-## What was done instead
+## The decision: option 3, and what it does and does not change
 
-Nothing in the product changed. `protocolFor` exists, is tested, and returns `timed-holdout` for
-all three environment buckets — so the moment anything routes a claim through it, the
-contradiction surfaces as a value rather than as a discrepancy nobody looks for.
+**A forward test now carries the protocol it ran under, and a protocol the claim does not require
+may speak about the claim but never close it.**
 
-## The three ways this can go, so the decision is a choice and not a discovery
+| | before | after |
+| --- | --- | --- |
+| a clockless drill on `fast-under-45s` | runs, grades, **terminally** | runs, grades, **does not settle** |
+| the drill result | stored | stored, unchanged |
+| a later timed holdout | refused — the claim is closed | decides, in either direction |
+| a later drill after a holdout has spoken | overwrites it | recorded, does not overwrite |
+| on screen | "עמד בבדיקה אחת לפחות" | names the drill, and names the test that would close it |
 
-1. **Enforce INV-10 as written.** `beginDrill` refuses environment buckets through the `reason`
-   channel it already has. Honest, and it costs the product its prospective test on the buckets
-   that matter most, for as long as no timed holdout has filled.
-2. **Narrow INV-10 to `clock-under-1m`.** Accept the first position for the two think-time
-   buckets. Cheap, keeps the loop working — and it is an amendment to a ratified invariant, so it
-   needs to be written as one, not absorbed.
-3. **Grade by protocol.** A position drill may raise a claim about a think-time bucket only to a
-   grade that names the protocol it was tested under, with a timed holdout required for the
-   grade above it. This is the only option that does not throw one position away, and it is the
-   most work: it touches grading, which is terminal.
+Nothing is withdrawn. The drill still runs, its result is still recorded, the player's work is not
+discarded, and the grade still moves. What changed is **authority**, not existence — which is why
+`tests/shared/a-rule-the-product-breaks.test.ts` did *not* go red on this resolution when it would
+have on either of the others.
 
-None of the three is preferable on the evidence in this repository. That is the finding.
+**The asymmetry the old rule had was the real defect.** `refuted` is terminal and `beginDrill`
+refuses a refuted claim forever, so a clockless drill could do the one thing that cannot be undone
+to a claim about playing under a clock. A protocol that removes the condition must not be able to
+close the question in *either* direction: a player who calibrates fine with no clock running has
+not shown they calibrate fine under one, and a player who slips with no clock has not shown the
+clock is why.
+
+### Two things that had to be decided while implementing it, and were not obvious
+
+**A legacy result still decides.** Every drill reported before the protocol column existed was
+graded terminally and the player was told the outcome. `evaluateClaim` is a fold over stored
+results, so making legacy non-authoritative would not merely change the rule going forward — it
+would silently re-grade already-decided claims on the next read, with nothing recording that it had
+happened. Carrying an old verdict that is now *named* as old is better than rewriting one somebody
+has already seen. `LEGACY_VALIDATION` is a separate key, never backfilled to `position-drill`, on
+the same argument `measurement-protocol.ts` makes for its own.
+
+**An unclassified bucket keeps the old rule, and the first implementation got this backwards.** It
+read `protocolFor`'s null as "nothing may decide this", which sounds like the same caution
+`protocolFor` exercises and is not: that function refuses to *name* a protocol, this one decides
+whether a question may ever be *closed*. A bucket nothing can settle is a claim that flips between
+`replicated` and `refuted` with every drill, forever. Found by a test rather than by reading —
+`tests/shared/claim.test.ts` asserts a refuted claim stays refuted, and it went red on a fixture
+whose claim id is not one of the six buckets. The narrowing now applies only where a protocol is
+**known** to remove the condition.
+
+### Two mutations stayed green, and both were gaps rather than approvals
+
+**Deleting the guard against an off-protocol result overwriting an on-protocol one changed
+nothing.** Every sequence under test stood at `refuted`, where the terminal branch returns first
+and the guard is unreachable. It is live only when the standing grade is `replicated`. That case is
+now tested.
+
+**Retagging every result `shared/drill.ts` builds as a timed holdout left all 2,123 tests
+passing.** That one string is where the whole mechanism gets its input; had it been wrong, every
+clockless drill would have claimed to be a holdout and gone on settling clock claims — the exact
+defect this ADR removes, reintroduced with nothing going red. Both construction sites are now
+pinned, and so is the consequence.
+
+## The three ways it could have gone
+
+1. **Enforce INV-10 as written.** `beginDrill` refuses environment buckets. Honest, and it costs
+   the product its prospective test on the buckets that matter most for as long as no timed holdout
+   has filled — which needs blitz games that do not exist yet.
+2. **Narrow INV-10 to `clock-under-1m`.** Cheap, keeps the loop working, and an amendment to a
+   ratified invariant that would have to be written as one.
+3. **Grade by protocol.** ← chosen. The only option that throws neither position away, and the most
+   work, because it touches grading, which is terminal.
+
+Option 3 is also the one continuous with how this repository already works: `evidence-policy.ts`
+returns strata keyed by protocol and refuses to flatten them, and `measurement-protocol.ts` records
+what the world was like while a decision was made. Evidence has carried its protocol here for some
+time. This extends that to the one place it had not reached, which is where a measurement becomes a
+verdict.

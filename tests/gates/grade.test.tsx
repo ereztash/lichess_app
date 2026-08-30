@@ -46,6 +46,7 @@ describe("GATE-GRADE: a claim never renders above its grade", () => {
   it("uses the finding word only once a prospective drill has been survived", () => {
     const result: ProspectiveDrillResult = {
       kind: "prospective_drill_result",
+      protocol: "position-drill",
       drill_id: "dr1",
       claim_id: N1_HYPOTHESIS.claim_id,
       decision_ids: ["x1", "x2"],
@@ -59,9 +60,57 @@ describe("GATE-GRADE: a claim never renders above its grade", () => {
     expect(container.textContent).toContain("שוחזר");
   });
 
+  it("names the protocol instead of claiming a question is settled that the test could not reach", () => {
+    /*
+     * ADR-003, ON SCREEN. `replicated` reached by a position drill on a claim about the CLOCK is a
+     * real measurement of something, and it is not a measurement of what the claim says. Printing
+     * the settled sentence -- "עמד בבדיקה אחת לפחות על החלטות חדשות, שיכלה להפיל אותו" -- would
+     * tell the player a clockless drill closed a question about playing under a clock. Rendering
+     * above the grade is exactly what this gate is for; the grade just got a second dimension.
+     */
+    const clockClaim = { ...N1_HYPOTHESIS, claim_id: "claim-fast-under-45s" };
+    const offProtocol = evaluateClaim(clockClaim, [
+      {
+        kind: "prospective_drill_result",
+        protocol: "position-drill",
+        drill_id: "dr-clock",
+        claim_id: clockClaim.claim_id,
+        decision_ids: ["z1"],
+        predicted: true,
+        observed: true,
+        recorded_at: "2026-08-22T00:00:00Z",
+      },
+    ]);
+    const { container } = render(<ClaimCard claim={offProtocol} othersWithheld={0} />);
+    expect(container.textContent).not.toContain("עמד בבדיקה אחת לפחות");
+    expect(container.textContent).toContain("דריל עמדות");
+    expect(container.textContent).toContain("בדיקה תחת שעון");
+  });
+
+  it("keeps the settled sentence for a claim its own protocol did close", () => {
+    // The assertion above must not be satisfied by never printing the sentence at all.
+    const boardClaim = { ...N1_HYPOTHESIS, claim_id: "claim-phase-endgame" };
+    const onProtocol = evaluateClaim(boardClaim, [
+      {
+        kind: "prospective_drill_result",
+        protocol: "position-drill",
+        drill_id: "dr-board",
+        claim_id: boardClaim.claim_id,
+        decision_ids: ["z1"],
+        predicted: true,
+        observed: true,
+        recorded_at: "2026-08-22T00:00:00Z",
+      },
+    ]);
+    const { container } = render(<ClaimCard claim={onProtocol} othersWithheld={0} />);
+    expect(container.textContent).toContain("עמד בבדיקה אחת לפחות");
+    expect(container.textContent).not.toContain("בדיקה תחת שעון");
+  });
+
   it("keeps a refuted claim forever rather than deleting it", () => {
     const failed: ProspectiveDrillResult = {
       kind: "prospective_drill_result",
+      protocol: "position-drill",
       drill_id: "dr2",
       claim_id: N1_HYPOTHESIS.claim_id,
       decision_ids: ["y1"],

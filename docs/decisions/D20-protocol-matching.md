@@ -1,9 +1,9 @@
 # D20 — what protocol may judge this claim?
 
 **Mode:** `PORT_AFTER_EQUIVALENCE` for the mechanism.
-**Status:** the mechanism is decided. The product choice it enables was **taken by the owner in
-[#42](https://github.com/ereztash/lichess_app/pull/42)** (ADR-003 option 3) while this node was
-being written, and closes when that merges.
+**Status:** **closed.** The mechanism is decided here; the product choice it enables was taken by
+the owner in [#42](https://github.com/ereztash/lichess_app/pull/42) (ADR-003 option 3) while this
+node was being written, and merged into `main` on 2026-08-30.
 **Depends on:** `shared/discovery/claim-class.ts`, `shared/validation-protocol.ts`,
 `docs/blitz/ADR-003-a-rule-the-product-breaks.md`, `docs/discovery-v2/M0_AUDIT.md` §Q3.
 
@@ -14,7 +14,10 @@ environment. "Your calibration slips under time pressure" is not tested by showi
 position with no clock running: the drill removes the one condition the claim is about, and then
 reports a verdict on it.
 
-The product does this today, and the grade is terminal.
+The product did this, and the grade was terminal. That is what ADR-003 recorded and what this node
+was opened against; [#42](https://github.com/ereztash/lichess_app/pull/42) has since changed it on
+`main`. The statement is left in the present tense of when it was true, because the rest of this
+file is an argument about a defect that existed.
 
 ## ALTERNATIVES
 
@@ -104,7 +107,7 @@ second list of keys, and **answers exactly what it answered before**; its existi
 unchanged and passes. A seventh bucket added without deciding how it can be validated now
 classifies `UNKNOWN` and gets no verdict, rather than defaulting to the only protocol on the shelf.
 
-**The three-way choice was not this node's to make**, and it has since been made.
+**The three-way choice was not this node's to make**, and it has since been made and merged.
 [#42](https://github.com/ereztash/lichess_app/pull/42) takes option 3: a forward test carries the
 protocol it ran under, and a protocol the claim does not require may speak about the claim but
 never close it -- in either direction, because a player who calibrates fine with no clock running
@@ -139,7 +142,7 @@ is a bug.
 - **The mechanism reverses** if `UNKNOWN` starts firing on subgroups that are obviously testable.
   That would mean the registry is under-declared rather than the claims being unclassifiable, and
   the fix is the registry, not the table.
-- **This node closes when #42 merges.** The owner picked (c), and picked it against the argument
+- **This node is closed by #42, which merged.** The owner picked (c), and picked it against the argument
   rather than by default — which is what the ADR asked for. What it did NOT have is the measurement
   named under UNCERTAINTY, and (c) is the option least damaged by that: it lets a timed holdout
   speak later in either direction, so if drill-speed and clock-speed turn out to be the same event

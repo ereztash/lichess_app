@@ -15,12 +15,13 @@ counts its `results/*.json` records. Nothing was recalled and nothing was estima
 | --- | --- | --- |
 | **Q1** | Do decision-level and game-clustered inference give the same conclusion? | **PASS, with a bound** — and the obvious repair is **refuted** |
 | **Q2** | Is feature materialization free of future leakage under a point-in-time contract? | **PASS on what ships, FAIL on what enforces it** |
-| **Q3** | Is every claim sent to a protocol that can reproduce the condition it names? | **FAIL on `main`** — and the owner's resolution is in flight in [#42](https://github.com/ereztash/lichess_app/pull/42) |
+| **Q3** | Is every claim sent to a protocol that can reproduce the condition it names? | **WAS FAIL, now CLOSED** — the owner resolved it in [#42](https://github.com/ereztash/lichess_app/pull/42), merged |
 | **Q4** | Does the six-bucket detector survive the harness V2 would be judged by? | **HALF** — error control passes by a wide margin, power fails by a wide margin |
 
-**Discovery V2 does not start.** Not because the instrument is broken in the way the plan expected,
-but because Q3 is a live contradiction with an owner, and because Q4 changes what Discovery V2 is
-*for*: the six-bucket detector's problem is not that it speaks too often. It is that it is silent.
+**All four are now answered, and Q4 changes what Discovery V2 is *for*.** Not because the instrument
+is broken in the way the plan expected — it is not — but because the six-bucket detector's problem
+turns out to be the opposite of the one the plan came to fix. It does not speak too often. It is
+silent.
 
 ---
 
@@ -171,13 +172,18 @@ it to `clock-under-1m`, or grade by protocol — argues all three, and says the 
 whoever owns the product"* because it decides which claims the product can ever grade. Nothing in
 this audit settles it.
 
-### The owner has since settled it, and it is not merged yet
+### The owner settled it while this audit was being written, and it has merged
 
 [#42](https://github.com/ereztash/lichess_app/pull/42) — *"A grade names the protocol that produced
-it"* — takes **option 3**. A forward test carries the protocol it ran under; a protocol the claim
-does not require may speak about the claim but never close it, in either direction. The drill still
-runs, its result is still recorded, and the grade still moves — what changes is authority, not
-existence.
+it"* — took **option 3**, and merged into `main` on 2026-08-30. A forward test carries the protocol
+it ran under; a protocol the claim does not require may speak about the claim but never close it, in
+either direction. The drill still runs, its result is still recorded, and the grade still moves —
+what changed is authority, not existence.
+
+**So the contradiction this question was asked about no longer exists on `main`.** What follows is
+kept as written rather than rewritten in hindsight: the audit found the failure, said the choice
+belonged to the owner, and the owner made it. Deleting the finding because it was fixed would
+remove the reason the fix happened.
 
 That is the right resolution and this audit does not second-guess it. Two notes for whoever reads
 both changes together:
@@ -192,7 +198,7 @@ all*, where `freeze` refuses an unclassifiable hypothesis before it becomes a cl
 that never enters the system never has a grade to flip. The rule that would be wrong is applying
 either answer to the other's question.
 
-**Q3 is FAIL on `main` and closes when #42 merges.** The V2 gate below treats it as decided.
+**Q3 is closed.** It failed when this audit was run, and `main` no longer carries the failure.
 
 ### What #42 does not touch, and Q4 found
 
@@ -321,13 +327,13 @@ that merely overlaps it** — because Q4 shows the current judge cannot.
 | --- | --- |
 | Q1 | closed, with an open **number** — the ICC of a real record |
 | Q2 | closed by contract; the `game-features.ts` surface is **open** until it is declared or deleted |
-| Q3 | decided by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42); closes on merge |
+| Q3 | **closed** — resolved by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42), merged into `main` |
 | Q4 | closed, and it changes the brief |
 
-**Discovery V2 begins when #42 merges, and it begins on a different brief than the one it was
-commissioned with.** Not a wider search for more claims — the chain already emits almost none, and
-none of them false in 8,000 null records. A vocabulary that can name what is there, and an
-attribution test that can tell a named region from a bucket that merely overlaps it.
+**M0 has passed, and Discovery V2 begins on a different brief than the one it was commissioned
+with.** Not a wider search for more claims — the chain already emits almost none, and none of them
+false in 8,000 null records. A vocabulary that can name what is there, and an attribution test that
+can tell a named region from a bucket that merely overlaps it.
 
 The next node to open is **D04, candidate search**, with `pysubgroup` as the oracle and the
 attribution failure — not the false-positive rate — as the thing it has to beat.
