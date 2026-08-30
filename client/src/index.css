@@ -2072,14 +2072,6 @@ button:not(:disabled) {
   font-size: var(--panel-title);
   margin: 0.15rem 0 0;
 }
-.commitment-timer {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: var(--panel-body);
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
-}
 .commitment-intro {
   font-size: var(--panel-body);
   line-height: 1.5;
