@@ -211,6 +211,76 @@ export type OneThingKind =
   /** Chose well inside the noise, having asserted at most UNSURE_ENOUGH_TO_NAME. */
   | "trusted-it-too-little";
 
+/**
+ * Which kind of evidence a branch rests on -- and the reason this exists at all.
+ *
+ * THE QUESTION A PLAYER CANNOT ANSWER WITHOUT IT. `theOneThing` returns four branches into the
+ * same block, in the same typeface, at the same weight. Two of them are things no engine report
+ * could contain, because they read something the player recorded before any evaluation existed.
+ * One of them -- `outplayed` -- is an engine comparison, exactly what Game Review has been giving
+ * players for years. Rendered identically, the reader has no way to tell which one they received,
+ * so the reveal cannot answer "is this something an engine could not have told me?", and neither
+ * can a trial that asks them.
+ *
+ * THE TEST, STATED AS A RULE RATHER THAN AS TASTE. A branch is `process` iff its FIRING CONDITION
+ * reads an input the player supplied before the engine spoke AND which a PGN plus an engine could
+ * not reconstruct afterwards. The chosen move does not count: it is in the PGN. What counts is the
+ * stated confidence and the moves placed on the board, neither of which survives anywhere but
+ * here.
+ *
+ * NOT A SECOND CLASSIFIER, and the distinction matters. Nothing is computed here. This is a
+ * statement about conditions that are already written, twenty lines below, and
+ * `tests/shared/what-a-reveal-rests-on.test.ts` proves it by ablation rather than by restating it:
+ * strip the pre-engine inputs from a decision and every `process` branch must stop firing, while
+ * every `engine` branch must fire exactly as before. A table that had drifted from the conditions
+ * would fail that.
+ *
+ * NAMED `EVIDENCE` AND NOT `BASIS` on purpose: `OneThing.basis` already exists on the interface
+ * below and means something else -- the human-readable measurement detail rendered under the
+ * sentence. Two fields called basis, meaning "the numbers behind this" and "the class of thing
+ * this rests on", is the referent confusion this file has been bitten by before.
+ */
+export type RevealEvidence =
+  /** Rests on something the player recorded before the engine spoke. Unreconstructable later. */
+  | "process"
+  /** Rests on the engine's comparison alone. A retrospective analysis could produce it. */
+  | "engine";
+
+export const ONE_THING_EVIDENCE: Record<OneThingKind, RevealEvidence> = {
+  /** Fires on `candidatesConsidered.includes(bestMove)` -- moves placed on the board. */
+  "chose-past-it": "process",
+  /** Fires on `stated >= CONFIDENT_ENOUGH_TO_NAME` -- a confidence asserted before the reveal. */
+  "confident-and-wrong": "process",
+  /** Fires on cpLoss alone. Chosen move, best move, evaluation: all of it is in the PGN. */
+  outplayed: "engine",
+  /** Fires on `stated <= UNSURE_ENOUGH_TO_NAME` -- again the pre-reveal confidence. */
+  "trusted-it-too-little": "process",
+};
+
+/**
+ * What the reader is told the sentence rests on, in the two symmetrical directions.
+ *
+ * NEITHER LINE APOLOGISES AND NEITHER BOASTS. `engine` is not a miss, a failure, or a lesser
+ * result -- it is the honest report that on this decision the record held nothing the engine did
+ * not already have. Saying so is what makes the other line believable; a product that called every
+ * reveal unique would be telling the player nothing, and a product that apologised for the
+ * ordinary case would be teaching them to want a branch the instrument cannot promise.
+ */
+export const EVIDENCE_LABEL: Record<RevealEvidence, string> = {
+  /*
+   * "המשפט הזה יצא מ..." AND NOT "נשען על...", which is what the first version said.
+   *
+   * Caught by looking at the rendered screen rather than at the constant. The very next line in
+   * the panel is `OneThing.basis`, prefixed "מבוסס על:" -- so the reveal showed two consecutive
+   * lines opening with near-synonyms for "rests on", saying two genuinely different things: this
+   * one is the CLASS of evidence, that one is the measurement detail. A reader has to work out
+   * that they are not the same statement, which is the referent collision this pair was already
+   * renamed once to avoid, reappearing as layout instead of as an identifier.
+   */
+  process: "המשפט הזה יצא ממה שנרשם ממך לפני שהמנוע דיבר — ניתוח משחק רגיל לא מחזיק את זה.",
+  engine: "המשפט הזה יצא מהשוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.",
+};
+
 export interface OneThing {
   kind: OneThingKind;
   /**
@@ -233,6 +303,50 @@ export interface OneThing {
   /** What measurement produced this sentence. Rendered with it, never without. */
   basis: string;
 }
+
+/**
+ * Why another decision is worth taking, said once and said the same way every time.
+ *
+ * THE SENTENCE THAT WAS MISSING, AND WHAT WAS STANDING IN FOR IT. The only reason to continue that
+ * this product stated anywhere was the measurement floor -- "עוד N החלטות מדודות עד שאפשר לומר
+ * משהו" in `loop-position.ts`. That sentence is correct and it belongs to the record: it says what
+ * a CLAIM requires before a detector may speak. It says nothing about what the PLAYER gets from
+ * the next decision, and read as motivation it is a countdown to a locked thing, which is the
+ * mechanic this product refuses.
+ *
+ * So the two are kept apart on purpose. The floor stays in the record with its denominators. This
+ * is the other half: what one more decision adds BEFORE any claim exists, which is a separate
+ * observation -- the only thing that can turn "this happened" into "this happens".
+ *
+ * IT IS A CONSTANT AND THAT IS THE DESIGN. Not a function of the reveal kind, the acquisition
+ * angle, how many decisions are on record, or anything the player did. A proposition that got
+ * warmer after a `chose-past-it` and cooler after silence would be measuring the player and
+ * answering them, and the trial would then be reading its own copy back. Every reveal gets this
+ * sentence; a test asserts all five outcomes render it identically.
+ *
+ * NO NUMBER APPEARS IN IT. A digit here is a countdown whatever the surrounding words say.
+ *
+ * AND IT SAYS "עמדה אחרת ורגע אחר" RATHER THAN THE WORD FOR IT. The first draft read "תצפית
+ * נפרדת", which is exactly right and is method vocabulary; `the-player-sees-chess.test.ts` caught
+ * it on the reveal, which is what that test is for. Independence is the whole content of this
+ * sentence, so it is said in the two things that actually make a decision independent of this one
+ * -- a different position and a different moment -- in words a player already owns.
+ */
+export const CONTINUATION_PROPOSITION =
+  "החלטה אחת אומרת מה קרה בה, ולא יותר. החלטה נוספת היא עמדה אחרת ורגע אחר — וזה מה שמאפשר לשאול אם מה שקרה כאן חוזר, או שקרה פעם אחת.";
+
+/**
+ * The button, named for the experiment rather than for the movement.
+ *
+ * "ההחלטה הבאה" describes where the click goes. This describes what taking it is FOR, which is the
+ * only thing that makes the proposition above actionable rather than decorative -- and it is the
+ * same words, so a reader who understood the sentence recognises the button as its consequence.
+ *
+ * PHRASED SO IT CAN COME BACK FALSE. "לבדוק אם" is a question. "לגלות את הדפוס שלך" would be a
+ * promise that a pattern exists and will appear, which no build can make: the branches that carry
+ * one fire only when the record happens to contain the evidence.
+ */
+export const CONTINUATION_CTA = "לבדוק אם זה חוזר";
 
 /**
  * SECTION 4.2 STEP 2: the one thing to work on. One. Not a list.

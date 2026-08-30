@@ -2769,11 +2769,58 @@ button:not(:disabled) {
   line-height: 1.55;
   opacity: 0.82;
 }
+/*
+ * Which kind of evidence the sentence rests on -- the one line that tells a reader whether they
+ * received something an engine could not have produced.
+ *
+ * SET APART BY A RULE, NOT BY COLOUR. It is not a third sentence about the position; it is a
+ * statement about the two above it, so it sits under a hairline the way `.reveal-build-limit`
+ * does for the same reason. `--panel-label` keeps it legible without competing with the finding,
+ * and the two evidence classes are deliberately typeset IDENTICALLY: making `process` louder
+ * would turn an honest classification into a reward, and the reader would learn to want a branch
+ * the instrument cannot promise them.
+ */
+.one-thing-evidence {
+  margin: 0.55rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--panel-label);
+  line-height: 1.5;
+  opacity: 0.82;
+}
 /* R1: the sentence never appears without the measurement that produced it. */
 .one-thing-basis {
   margin: 0.35rem 0 0;
   font-size: var(--panel-fine);
   opacity: 0.66;
+}
+/*
+ * The one reason to continue, under everything derived from this position.
+ *
+ * QUIETER THAN THE FINDING AND LOUDER THAN THE FOOTNOTES, because that is what it is: not a
+ * measurement, not a disclaimer, and not a call to action dressed as one. `--panel-label` with a
+ * hairline above puts it in the same register as `.reveal-build-limit`, which is the other thing
+ * on this panel that is true of every position rather than of this one.
+ */
+.reveal-continuation {
+  margin: 0.9rem 0 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--panel-label);
+  line-height: 1.55;
+  opacity: 0.86;
+}
+/*
+ * The way to act on the sentence above it, next to the sentence above it.
+ *
+ * It lived only in the page header, which is not sticky: measured at 390x844, the proposition sits
+ * around y=1200 of a 2715px page and the header button at y=0, with engine analysis in between.
+ * Full width because at this point in the page it is the only thing being offered, and there is
+ * nothing for it to sit beside.
+ */
+.reveal-continue {
+  margin-top: 0.85rem;
+  width: 100%;
 }
 /* A property of the build, not of the position. Set apart from the per-position limits. */
 .reveal-build-limit {
@@ -3631,6 +3678,37 @@ button:not(:disabled) {
  */
 .record-page-claim {
   margin: 0;
+  max-inline-size: 46rem;
+  font-size: var(--panel-body);
+  line-height: 1.55;
+  color: var(--muted);
+}
+/*
+ * The cold front door's three sentences: problem, mechanism, possible payoff.
+ *
+ * WEIGHTED IN THAT ORDER, because the order is the claim. The problem is what a visitor is
+ * deciding whether they have; it reads at full strength. The mechanism is why this can say
+ * anything about it. The payoff is hedged in its own words and is weighted to match -- a line
+ * that says "sometimes" must not be the loudest thing on the screen.
+ *
+ * All three fit above the fold at 390x844 together with both entry controls; that is the
+ * constraint they were written to, and `tests/client/the-cold-front-door.test.tsx` holds the
+ * ordering rather than the pixels.
+ */
+.record-page-problem {
+  margin: 0;
+  max-inline-size: 46rem;
+  font-size: var(--panel-title);
+  line-height: 1.45;
+}
+.record-page-mechanism {
+  margin: 0.5rem 0 0;
+  max-inline-size: 46rem;
+  font-size: var(--panel-body);
+  line-height: 1.55;
+}
+.record-page-payoff {
+  margin: 0.45rem 0 0;
   max-inline-size: 46rem;
   font-size: var(--panel-body);
   line-height: 1.55;

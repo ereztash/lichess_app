@@ -15,8 +15,12 @@ import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
   BUILD_LIMIT,
+  CONTINUATION_CTA,
+  CONTINUATION_PROPOSITION,
   ENGINE_NOISE_CP,
+  EVIDENCE_LABEL,
   MATERIAL_LOSS_CP,
+  ONE_THING_EVIDENCE,
   inferenceLimits,
   nextQuestion,
   silenceBasis,
@@ -43,6 +47,14 @@ interface RevealPanelProps {
    * a test is not a reveal a player was shown.
    */
   decisionId?: string | null;
+  /**
+   * Take another decision. Absent wherever there is not one to take.
+   *
+   * Optional because most callers of this panel are tests rendering it in isolation, and a reveal
+   * with no way forward is a valid screen -- the transfer run has its own control, and a panel
+   * shown for inspection has none.
+   */
+  onContinue?: () => void;
 }
 
 export function RevealPanel({
@@ -51,6 +63,7 @@ export function RevealPanel({
   fen,
   statedKnown,
   decisionId = null,
+  onContinue,
 }: RevealPanelProps) {
   const limits = inferenceLimits(inputs);
   const oneThing = theOneThing(inputs);
@@ -123,6 +136,23 @@ export function RevealPanel({
               * second is a reading of it. A branch with nothing to point at renders nothing.
               */}
             {oneThing.note && <p className="one-thing-note">{oneThing.note}</p>}
+            {/*
+              * WHICH OF TWO THINGS THIS IS, and the block was unreadable without it.
+              *
+              * Four branches render here in the same typeface at the same weight. Two of them read
+              * something the player recorded before any evaluation existed and could not be
+              * reconstructed from a PGN afterwards; `outplayed` is an engine comparison, which is
+              * what every game report has always given. Undistinguished, a reader has no way to
+              * answer "could an engine have told me this?" -- which is the question this whole
+              * product's difference lives or dies on -- and neither does a trial that asks them.
+              *
+              * Derived from the branch already computed. No second classifier, and nothing stored:
+              * `ONE_THING_EVIDENCE` is a statement about firing conditions that already exist, and
+              * the ablation test proves it rather than restating it.
+              */}
+            <p className="one-thing-evidence" data-evidence={ONE_THING_EVIDENCE[oneThing.kind]}>
+              {EVIDENCE_LABEL[ONE_THING_EVIDENCE[oneThing.kind]]}
+            </p>
             <p className="one-thing-basis">מבוסס על: {oneThing.basis}</p>
           </>
         ) : (
@@ -205,6 +235,45 @@ export function RevealPanel({
           </div>
         </div>
       </details>
+
+      {/*
+        * WHY ANOTHER DECISION, and it is deliberately not inside any of the four blocks.
+        *
+        * The only reason to continue that this product stated anywhere lived in the record: "עוד N
+        * החלטות מדודות עד שאפשר לומר משהו". That sentence is true and it is about what a CLAIM
+        * needs before a detector may speak. Read as motivation it is a countdown to a locked
+        * thing, which is the mechanic this product refuses -- and it never answered the question a
+        * player actually has after a reveal, which is what the NEXT decision gives THEM.
+        *
+        * OUTSIDE THE BLOCKS BECAUSE IT IS NOT A MEASUREMENT. Everything above is derived from this
+        * position. This is a constant: the same sentence after every one of the five outcomes,
+        * with no digit in it and no variation by reveal kind, by how many decisions are on record,
+        * or by anything the player did. A proposition that warmed up after a good branch would be
+        * measuring the player and answering them, and the trial would be reading its own copy
+        * back.
+        */}
+      <p className="reveal-continuation">{CONTINUATION_PROPOSITION}</p>
+      {/*
+        * THE BUTTON GOES WHERE THE REASON IS, and the measurement is why.
+        *
+        * The post-reveal control lived only in the page header, which is not sticky. Walked in
+        * Chromium at 390x844: the proposition sits around y=1200 of a 2715px page and the header
+        * button is at y=0. So the one sentence that says why another decision is worth taking was
+        * twelve hundred pixels from the only way to take one, and everything between them is
+        * engine analysis. A reason the reader cannot act on where they read it is a reason that
+        * did not reach them.
+        *
+        * THE HEADER BUTTON STAYS, and the duplicate label is deliberate. It is the control that
+        * exists while the panel is scrolled away, and -- the reason that decided it -- it is also
+        * the only way forward in the window where the decision is committed but the engine has
+        * not answered yet, where this panel does not render at all. Removing it there would turn
+        * a slow analysis into a dead end.
+        */}
+      {onContinue && (
+        <button type="button" className="primary-control reveal-continue" onClick={onContinue}>
+          {CONTINUATION_CTA}
+        </button>
+      )}
     </section>
   );
 }

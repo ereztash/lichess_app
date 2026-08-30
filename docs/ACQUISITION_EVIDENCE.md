@@ -227,10 +227,19 @@ simply not occur — and then nobody's continuation means anything.
 - **Possible payoff.** A reveal that is about the decision rather than only about the move.
 - **Prohibited.** "We analyse your thinking." Nothing here observes thinking; it observes what was written down before the answer arrived.
 
-**Semantic continuity.** The first in-product screen leads with *"כל כלי שחמט אחר אומר לכם מה עשיתם
-לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים"*, and the share card carries the same sentence. No
-angle may promise more than that sentence does. There is no landing page in this repository and
-none was built; the acquisition message lives outside it and is held to this contract.
+**Semantic continuity.** The promise lives in `shared/promise.ts`; the front door and
+`scripts/build_share_card.ts` import it, `client/index.html` carries the one copy no compiler can
+keep in step, and `tests/client/the-link-someone-was-sent.test.ts` asserts the same three ideas on
+every stage:
+
+> מנוע יכול להגיד איזה מהלך היה טוב יותר. הוא לא יודע מה קרה אצלכם בדרך לבחירה. כאן ההחלטה נרשמת
+> לפני שהמנוע מדבר.
+
+No angle may promise more than that does. It used to lead with the construct — *"זה מודד מתי לא
+ידעתם שאתם לא יודעים"* — which is true and is not a problem a chess player recognises having before
+someone names it; the construct now arrives further down the page, as a consequence. There is no
+landing page in this repository and none was built; the acquisition message lives outside it and is
+held to this contract.
 
 ---
 

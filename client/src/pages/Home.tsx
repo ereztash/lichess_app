@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { retryOnce } from "@/lib/retry-once";
 import { Chess } from "chess.js";
 import {
@@ -15,6 +15,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { lazyChunk } from "@/lib/lazy-chunk";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,18 +70,18 @@ import { Overlay } from "@/components/Overlay";
  * browser's whole history and never again -- so in the overwhelmingly common visit it is code
  * downloaded and not run. Static, it put the entry chunk over budget on its own.
  */
-const ValueReconstruction = lazy(() =>
+const ValueReconstruction = lazyChunk(() =>
   import("@/components/ValueReconstruction").then((m) => ({ default: m.ValueReconstruction })),
 );
 
-const GameReview = lazy(() =>
+const GameReview = lazyChunk(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReview })),
 );
-const GameReviewProgress = lazy(() =>
+const GameReviewProgress = lazyChunk(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReviewProgress })),
 );
 /* Same reason: recharts stays out of the initial graph. */
-const RecordDashboard = lazy(() =>
+const RecordDashboard = lazyChunk(() =>
   import("@/components/RecordDashboard").then((m) => ({ default: m.RecordDashboard })),
 );
 import type { ImportedGame } from "@/lib/lichess-public";
@@ -121,7 +122,7 @@ import {
   type CommitEvent,
   type SessionStage,
 } from "@/lib/decision-session";
-import type { RevealInputs } from "@shared/reveal";
+import { CONTINUATION_CTA, type RevealInputs } from "@shared/reveal";
 import {
   commitFailureText,
   readableFailureText,
@@ -1781,8 +1782,17 @@ export default function Home() {
           {stage === "revealed" &&
             revealedDecisionId &&
             (!learningTransfer || learningTransferStage === "running") && (
+              /*
+               * NAMED FOR THE EXPERIMENT, NOT FOR THE MOVEMENT. "ההחלטה הבאה" says where the
+               * click goes. `CONTINUATION_CTA` says what taking it is for, in the same words as
+               * the proposition at the foot of the reveal -- so a reader who understood that
+               * sentence recognises this button as its consequence rather than as a way out of
+               * the screen. The transfer run keeps its own label: those positions are a
+               * pre-registered set being worked through, and "לבדוק אם זה חוזר" would describe
+               * the wrong experiment.
+               */
               <button className="primary-control" onClick={nextDecision}>
-                {learningTransfer ? "העמדה הבאה" : "ההחלטה הבאה"}
+                {learningTransfer ? "העמדה הבאה" : CONTINUATION_CTA}
               </button>
             )}
           {/*
@@ -2215,6 +2225,13 @@ export default function Home() {
                      a funnel stage, and an id that does not name a committed decision cannot be
                      joined to one. */
                   decisionId={revealedDecisionId}
+                  /* Same condition the header control uses: a transfer run works through a
+                     pre-registered set and has its own way forward. */
+                  onContinue={
+                    revealedDecisionId && (!learningTransfer || learningTransferStage === "running")
+                      ? nextDecision
+                      : undefined
+                  }
                 />
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>

@@ -257,7 +257,9 @@ describe("the record is the front door", () => {
     expect(page, "the dashboard is imported eagerly by the front door").not.toMatch(
       /^import \{[^}]*RecordDashboard/m,
     );
-    expect(page).toMatch(/lazy\(\s*\(\)\s*=>\s*import\("@\/components\/RecordDashboard"\)/);
+    /* `lazyChunk` is `lazy` with the stale-deploy case handled; the import is still dynamic,
+       which is the property that keeps the chart library off this page. */
+    expect(page).toMatch(/lazy(?:Chunk)?\(\s*\(\)\s*=>\s*import\("@\/components\/RecordDashboard"\)/);
   });
 
   it("hands the position over through the store the board already restores from", () => {

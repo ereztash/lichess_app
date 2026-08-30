@@ -31,12 +31,20 @@ export type LoopStep = (typeof LOOP_STEPS)[number];
  * every rule that reads it is untouched; this is the label, and only the label. A player does not
  * need to learn that the product calls their moves "רישום" before it will tell them where they are.
  *
+ * "החלטות" AND NOT "מהלכים", WHICH IS WHAT IT SAID. Both are a player's words, so the vocabulary
+ * pass that produced the first one was not wrong to reject "רישום" -- it just landed on the unit
+ * this product spends every other surface distinguishing itself from. A move report is what
+ * Game Review, Insights and every accuracy tool already gives; what is counted here is decisions,
+ * each with a confidence and a candidate list attached, and the front door leads with exactly that
+ * contrast. Naming the first step after the other unit undoes that on the one strip that shows a
+ * player where they are.
+ *
  * "תשובה" RATHER THAN A FINISH LINE. The four are not a progress bar and not every record reaches
  * a pattern -- `loopPosition` has a state that says so in as many words, and it is a result rather
  * than a failure to advance.
  */
 export const STEP_LABELS: Record<LoopStep, string> = {
-  record: "מהלכים",
+  record: "החלטות",
   detect: "מה חוזר",
   drill: "בדיקה",
   grade: "תשובה",

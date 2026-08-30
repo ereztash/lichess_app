@@ -9,18 +9,28 @@
     <title>Decision Lab — החלטה, ואז חשיפה</title>
 
     <!--
-      WHAT THE DESCRIPTION USED TO PROMISE, AND WHY IT CHANGED.
+      THE PROMISE, AND WHY THIS FILE HOLDS THE ONE COPY NOTHING COMPILES.
 
-      It read "אתם מחליטים וכותבים את הקריאה שלכם, ורק אז המנוע מדבר". The middle clause stopped
-      being true when the ask rule became a sample: the two read fields are asked on the same
-      decisions the confidence question is, which on ordinary play is a minority of them. What is
-      invariant -- on every decision, in every loop, with no exception anywhere in the product --
-      is the ordering: the decision is committed before the engine says anything. That is what
-      this now says, and it is the same sentence the front door leads with.
+      Every sentence below is `PROMISE` / `PROMISE_SHORT` from `shared/promise.ts`, which is where
+      the front door and the share-card builder read theirs. This file cannot import it -- it is
+      static HTML, read by crawlers before any script runs -- so it carries the only copy in the
+      repository that a compiler will not keep in step. `the-link-someone-was-sent.test.ts` keeps
+      it in step instead, and fails the moment the two disagree.
+
+      IT USED TO LEAD WITH THE CONSTRUCT: "זה מודד מתי לא ידעתם שאתם לא יודעים". That sentence is
+      true, and "not knowing that you did not know" is not a problem a chess player recognises
+      having before someone names it for them. The chain now names the problem in board terms --
+      what an engine can say, and the thing it structurally cannot reach -- and the construct
+      arrives later on the page, as a consequence rather than as an introduction.
+
+      An earlier version also promised "אתם מחליטים וכותבים את הקריאה שלכם". The middle clause
+      stopped being true when the ask rule became a sample. What is invariant, on every decision
+      and in every loop, is the ordering: the decision is committed before the engine says
+      anything. That is the third sentence here, and it is the third sentence on the front door.
     -->
     <meta
       name="description"
-      content="כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים — אתם מחליטים, ורק אז המנוע מדבר."
+      content="מנוע יכול להגיד איזה מהלך היה טוב יותר. הוא לא יודע מה קרה אצלכם בדרך לבחירה. כאן ההחלטה נרשמת לפני שהמנוע מדבר."
     />
 
     <!--
@@ -31,10 +41,11 @@
       description above. For a trial whose entry vector IS a message with a link in it, that is
       the first screen of the funnel and it was empty.
 
-      THE WORDING IS A DISTINCTION, NOT A DIAGNOSIS. It says what the tool can tell apart, never
-      what it will find: `chose-past-it` may not occur on any given decision, and a card promising
-      "we will show you the move you saw and rejected" would make the experiment unfalsifiable --
-      every player arriving expecting a result the instrument cannot guarantee.
+      THE WORDING IS A DISTINCTION, NOT A DIAGNOSIS. It says what this records and what an engine
+      cannot reach, never what it will find: `chose-past-it` may not occur on any given decision,
+      and a card promising "we will show you the move you saw and rejected" would make the
+      experiment unfalsifiable -- every player arriving expecting a result the instrument cannot
+      guarantee.
     -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Decision Lab" />
@@ -42,20 +53,20 @@
     <meta property="og:title" content="Decision Lab — החלטה, ואז חשיפה" />
     <meta
       property="og:description"
-      content="כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים."
+      content="מנוע יכול להגיד איזה מהלך היה טוב יותר. הוא לא יודע מה קרה אצלכם בדרך לבחירה. כאן ההחלטה נרשמת לפני שהמנוע מדבר."
     />
     <meta property="og:image" content="/share-card.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Decision Lab — החלטה, ואז חשיפה. כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון."
+      content="Decision Lab — החלטה, ואז חשיפה. מנוע יכול להגיד איזה מהלך היה טוב יותר; הוא לא יודע מה קרה אצלכם בדרך לבחירה. כאן ההחלטה נרשמת לפני שהמנוע מדבר."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Decision Lab — החלטה, ואז חשיפה" />
     <meta
       name="twitter:description"
-      content="כל כלי שחמט אחר אומר לכם מה עשיתם לא נכון. זה מודד מתי לא ידעתם שאתם לא יודעים."
+      content="מנוע יכול להגיד איזה מהלך היה טוב יותר. הוא לא יודע מה קרה אצלכם בדרך לבחירה. כאן ההחלטה נרשמת לפני שהמנוע מדבר."
     />
     <meta name="twitter:image" content="/share-card.png" />
   </head>

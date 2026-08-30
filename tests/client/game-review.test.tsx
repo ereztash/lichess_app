@@ -77,6 +77,8 @@ describe("the R3 gate", () => {
     // Same weight mistake the engine import was. A static import here would ship ~100KB of chart
     // library to a screen that has not decided anything yet.
     expect(home).not.toMatch(/^import .*recharts/m);
-    expect(home).toMatch(/lazy\(\(\)\s*=>\s*\n?\s*import\("@\/components\/GameReview"\)/);
+    /* `lazyChunk` is `lazy` with the stale-deploy case handled; what this asserts is that the
+       import is still dynamic, which is what keeps recharts out of the initial graph. */
+    expect(home).toMatch(/lazy(?:Chunk)?\(\(\)\s*=>\s*\n?\s*import\("@\/components\/GameReview"\)/);
   });
 });
