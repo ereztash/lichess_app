@@ -1,4 +1,5 @@
 import {
+  ANALYSIS_SUPERSEDED,
   emptyLine,
   // Moved to engine-line.ts, which has no asset imports, so the self-check can run the same
   // parser the application runs instead of keeping a second copy of it.
@@ -261,7 +262,7 @@ export class StockfishClient {
   private stopCurrent() {
     if (!this.current) return;
     clearTimeout(this.current.timer);
-    this.current.reject(new Error("Analysis superseded"));
+    this.current.reject(new Error(ANALYSIS_SUPERSEDED));
     this.current = null;
     // This search still owes a bestmove. Count it so it cannot resolve the next request.
     this.owedBestMoves += 1;

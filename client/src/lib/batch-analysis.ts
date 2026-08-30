@@ -10,7 +10,7 @@
  * WHITE's perspective, one entry per position starting with the initial one, mate as ±10000.
  */
 import { Chess } from "chess.js";
-import { MATE_SCORE, comparableCp, type EngineLine } from "@/lib/engine-line";
+import { MATE_SCORE, comparableCp, isSuperseded, type EngineLine } from "@/lib/engine-line";
 import { PROGRESS_INTERVAL_MS, throttleProgress } from "@/lib/progress-throttle";
 
 /**
@@ -90,6 +90,45 @@ export function toWhitePerspective(line: EngineLine, fen: string): number {
  * and importing it here would put the engine back into the initial module graph -- the exact R3
  * regression GATE-COMMIT exists to catch. It also lets this be tested without a wasm host.
  */
+/**
+ * One position, asked twice if the engine was taken away in between.
+ *
+ * THE DEFECT THIS EXISTS FOR. The page holds ONE engine and six call sites share it -- the eval
+ * bar, the reveal, the opponent, the game review, this batch. `StockfishClient.search` supersedes:
+ * a new search rejects the one in flight with `ANALYSIS_SUPERSEDED`. So a single evaluation
+ * anywhere on the page during a 1,600-position import rejected the position being scored, and the
+ * rejection propagated all the way out of `runImportDiagnostic` -- losing the ENTIRE scan after
+ * minutes of engine time, over one position that could simply have been asked again.
+ *
+ * Worse, it lost it silently. That message is English, and the import screen's failure text passes
+ * Hebrew through and replaces anything else with "the scan stopped before it measured anything" --
+ * a sentence that names neither the cause nor the remedy. See client/src/lib/commit-error.ts.
+ *
+ * ONCE, AND ONLY FOR THIS. A loop would fight whatever keeps taking the engine; a retry on every
+ * failure would ask a dead worker sixteen hundred times. A second supersede means something on the
+ * page is analysing continuously, which is a real condition the caller has to hear about -- so it
+ * is reported in the player's language rather than as the raw sentence.
+ */
+async function scoreOne(
+  analyze: (fen: string, depth: number) => Promise<EngineLine>,
+  fen: string,
+  depth: number,
+): Promise<EngineLine> {
+  try {
+    return await analyze(fen, depth);
+  } catch (error) {
+    if (!isSuperseded(error)) throw error;
+    try {
+      return await analyze(fen, depth);
+    } catch (again) {
+      if (!isSuperseded(again)) throw again;
+      throw new Error(
+        "הסריקה נקטעה: משהו אחר בעמוד ביקש מהמנוע לחשב באמצע. אפשר להריץ אותה שוב מבלי לצאת מהמסך.",
+      );
+    }
+  }
+}
+
 export async function analyzePositions(
   fens: string[],
   analyze: (fen: string, depth: number) => Promise<EngineLine>,
@@ -106,7 +145,7 @@ export async function analyzePositions(
 
   for (let i = 0; i < fens.length; i++) {
     if (options.signal?.aborted) break;
-    const line = await analyze(fens[i], depth);
+    const line = await scoreOne(analyze, fens[i], depth);
     scores.push(toWhitePerspective(line, fens[i]));
     progress.report({ done: i + 1, total: fens.length });
   }
