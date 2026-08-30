@@ -50,6 +50,26 @@ UNVERIFIED.
 > [`research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md). **No threshold was
 > moved at any point.**
 >
+> ### Three things measured in a real browser for the first time
+>
+> All three run on every `npm test`, against the **built** assets in real Chromium.
+>
+> | | |
+> | --- | --- |
+> | **engine throughput** | 459 ms to load, 46 ms median depth-12 search, 636,190 nps, ~1.2 min for a 1,587-position import. A handset figure is explicitly *not* measured — see the note further down. |
+> | **axe-core 4, both routes** | **zero violations** on `/` and on `/play` with all 64 board squares rendered. Its first proper run found one: `aria-allowed-role` on `.context-ribbon`, which declared `role="status"` on an `<aside>` whose implicit role is `complementary`. Fixed by changing the element, not the role. |
+> | **a stranger with no server** | The built app on a static host answering **503 to every `/api/*` call**: board renders, 32 pieces, no error boundary, no unhandled errors, the screen says the record is local, and the 7.1 MB engine wasm is fetchable. |
+>
+> That last one settles a question that had been assumed rather than checked. `OWNER_OPEN_ID` gates
+> the **server-side record only** — `configuration.ts` says so itself: *"the record stays in the
+> browser and the database is never written to. Nothing fails, it just doesn't happen."* The whole
+> decision loop is client-side. **What stops a stranger using this is the licence and the
+> deployment, not the code.**
+>
+> **What is still not measured: a screen reader.** axe finds the machine-checkable third of WCAG.
+> It cannot say whether a label is a good label or whether an announcement arrives at a useful
+> moment. No NVDA, JAWS or VoiceOver session has been run against this product.
+
 > Figures below that predate the re-measurement and are still labelled with the native engine are
 > **history**, kept deliberately: the order-dependence finding in particular is a fact about the
 > product as it was, and deleting it would turn a shipped fix into evidence that there had never
@@ -281,9 +301,26 @@ A position bank drawn from games the player has never seen would remove this. Th
   preregistered `STOP-B1`. The record was then **re-measured on the shipped engine**, in the
   product's own configuration, and that is now the canonical record
   ([`docs/research/ENGINE_PARITY_RESULTS.md`](research/ENGINE_PARITY_RESULTS.md)).
-  **Still unmeasured: the browser.** That run drove the shipped build under Node, so the wall
-  clock, the memory and the behaviour of the same wasm inside a real tab remain unobserved. The
-  games, the pipeline and now the engine are real; the runtime is not.
+  **The browser is now measured too.** `tests/layout/engine-in-a-real-browser.layout.test.ts`
+  serves the BUILT assets over HTTP and constructs the engine Worker exactly as
+  `client/src/lib/stockfish.ts` does, in real Chromium:
+
+  | | |
+  | --- | ---: |
+  | engine, by its own `id name` | `Stockfish 18 Lite WASM` |
+  | load + UCI handshake | **459 ms** |
+  | depth-12 search, median | **46 ms** (15–106) |
+  | nodes per second, median | **636,190** |
+  | a 1,587-position import | **~1.2 minutes** of engine time |
+  | JS heap after the run | 4.4 MB |
+
+  **A handset figure is NOT measured, and the attempt to fake one is recorded.** CDP's
+  `Emulation.setCPUThrottlingRate` throttles the page's MAIN thread while the engine runs in a
+  Worker, so a first pass reported 46 / 44 / 45 ms at 1× / 4× / 6× — three numbers that look like
+  "the engine is CPU-insensitive" and are an artefact of slowing a thread the work is not on.
+  Engine *load* did move, 443 → 522 ms, because that part is main-thread. Playwright's
+  `newCDPSession` refuses a Worker, so the worker cannot be throttled from this harness. The nodes
+  per second above is the honest substitute: divide a device's own into it.
 - ~~**A think time that was never measured, counted as zero seconds.**~~ **FIXED.**
   `secondsSpentAt` returns null when a think time cannot be derived, and its own comment says why:
   "a first move recorded as 0 seconds is a fabricated data point in the bucket this product cares
