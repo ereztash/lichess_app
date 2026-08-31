@@ -77,7 +77,14 @@ is moved back after the analysis.
 `attachBlitzAnalysis` fills the verdict in afterwards, against a `WHERE analysis_state = 'pending'`
 that makes the second write a no-op if it has already happened.
 
-`tests/client/the-tab-closed-during-the-analysis.test.tsx` is the gate, and it was run against the
+**And it is anchored in a real browser now, which is the rung the claim needed all along.**
+`tests/layout/what-the-record-holds-after-a-game.layout.test.ts` plays a game in Chromium, closes the tab
+while the analysis is in flight, opens a new one on the same profile, and compares the think times
+that come back with the ones that went in. A jsdom test can show the write is CALLED before the
+analysis starts; it cannot show anything is there afterwards, because there is no afterwards — no
+reload, no second page, no storage that outlives the test. R-19 is what that gap cost.
+
+`tests/client/the-tab-closed-during-the-analysis.test.tsx` is the jsdom gate, and it was run against the
 old ordering to check it: with the write behind the analysis and the analyser's search never
 returning, **all four assertions go red**. There is no way to make them pass except by writing the
 game before the engine starts.
@@ -126,7 +133,15 @@ duration. It rounds at the **source** rather than at the store, so the value the
 the value that is written; and it rounds rather than floors, because flooring biases every
 observation down by half a millisecond, which is a measurement error rather than a type error.
 
-**Gate:** `tests/shared/a-clock-that-does-not-tick-in-whole-milliseconds.test.ts`, whose property
+**Gate:** `tests/layout/what-the-record-holds-after-a-game.layout.test.ts` — a game played by a
+real clock in a real browser, with every stored `thinkMs` read back out of `localStorage` and
+required to be a whole millisecond. That is the only clock that can falsify this: the shared suites
+build integers by hand and every jsdom suite mocks `performance.now()` to whole milliseconds, which
+is exactly why three green layers missed it. Restoring the unrounded subtraction turns all four
+cases in that file red, because nothing is stored at all.
+
+**Also gated at the level below**, and it is the cheaper of the two to run:
+`tests/shared/a-clock-that-does-not-tick-in-whole-milliseconds.test.ts`, whose property
 cases draw fractional readings rather than assuming whole ones. Reverting `durationMs` turns four of
 its eight cases and all four R-02 cases red.
 
@@ -172,7 +187,12 @@ replay. `StratumKey` in `shared/evidence-policy.ts` gained the build as a third 
 recorded builds are two populations; and `scoreDecisions` — *"the one place a missing confidence is
 handled"* — refuses a verdict that names no engine and counts it as `withoutInstrument`.
 
-**Gate:** `tests/shared/a-verdict-that-cannot-name-its-engine.test.ts`, checked by breaking it three
+**Gate:** `tests/layout/what-the-record-holds-after-a-game.layout.test.ts` — a game analysed by
+the real engine, with `analysis.build` read back out of storage. There is no engine in jsdom, so
+until this the field was only ever asserted on a row somebody typed; blanking the build turns that
+case red and no other.
+
+**Also gated at the level below:** `tests/shared/a-verdict-that-cannot-name-its-engine.test.ts`, checked by breaking it three
 ways: remove the scorer's refusal and 2 assertions go red; drop the build from the stratum key and 2
 do; sort strata by row count instead of by scoreable rows and 1 does.
 
@@ -221,7 +241,11 @@ reading, and it returns **strata**, never a set. Two opponent policies are two s
 function on the module that flattens them, for the reason `evidence-policy.ts` gives about its own
 shape — refusing to provide the operation is stronger than documenting that it is wrong.
 
-**Gate:** `tests/shared/two-opponents-are-not-one-population.test.ts`, and it was checked by
+**Gate:** `tests/layout/what-the-record-holds-after-a-game.layout.test.ts` — a real game's
+stored row, with all four opponent fields read back out of `localStorage`. Nulling the opponent
+turns that case red and no other.
+
+**Also gated at the level below:** `tests/shared/two-opponents-are-not-one-population.test.ts`, and it was checked by
 breaking the wall three ways rather than by trusting it. Drop the opponent from the stratum key and
 1 assertion goes red; drop the analyser and 3 do; let an unscored game count as readable and 2 do.
 It also asserts the other direction — colour, outcome and time control are **not** conditions of the
@@ -487,7 +511,14 @@ were found by probing a real MariaDB side by side, which needs a database no uni
 **And the fix was already written twenty lines below.** `saveLearningRule`'s `SET` clause names
 exactly the four fields `sameLearningRule` compares. Same file, same rule, stated correctly once.
 
-**Gate:** `tests/server/a-grade-that-forgot-which-protocol-reached-it.test.ts`, and it needs no
+**Gate:** `tests/server/drizzle-store.test.ts` — the fold run against a **real MySQL-compatible
+database**, with `graded_under` read back. The block beside it round-tripped a claim the TEST had
+graded by hand, so the field never changed and both stores agreed about a value neither had been
+asked to write; this one grades through `evaluateClaim`, which is what the product runs. Removing
+`gradedUnder` from the `SET` clause turns it red with *expected 'legacy' to be 'position-drill'* —
+the defect, reproduced on a database.
+
+**And the rule, one level down:** `tests/server/a-grade-that-forgot-which-protocol-reached-it.test.ts`, and it needs no
 database, because the rule is not "MySQL returns the right row" — it is *"the `SET` clause names
 every field the fold may change"*. The fold is **run**, its changed fields are collected from its
 actual output rather than from a hand-written list, and the clause is read from the source. A field

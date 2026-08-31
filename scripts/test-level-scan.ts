@@ -247,9 +247,37 @@ const SEVERITY_EXPECTS: Record<string, LevelId> = {
   P1: "L2",
 };
 
+/**
+ * The rung a registered gate stands on.
+ *
+ * A `**Gate:**` LINE MAY NAME A GATE RATHER THAN A FILE, and the first version of this resolver
+ * could not read one -- so R-01, whose gate is `GATE-REGISTER-RECONCILED` and which runs over the
+ * real documents on every build, was reported as having no evidence at all. A measurement that
+ * cannot see a working check reports a gap that is not there, which is the same class of error as
+ * the misses this whole file is about, pointed at itself.
+ *
+ * A gate that delegates to a vitest file inherits that file's rung. A gate that scans source or
+ * documents is L2: it holds artefacts against each other, which is exactly what L2 means, and no
+ * scan of a file has met a runtime.
+ */
+function gateLevels(root: string, files: TestFile[]): Map<string, LevelId> {
+  const runner = readFileSync(join(root, "scripts/run_gates.ts"), "utf8");
+  const levelOf = new Map(files.map((f) => [f.file, f.level]));
+  const out = new Map<string, LevelId>();
+  for (const block of runner.split(/\n  \{\n/).slice(1)) {
+    const id = /\bid:\s*"(GATE-[A-Z0-9-]+)"/.exec(block)?.[1];
+    if (!id) continue;
+    const run = block.split("positiveControl")[0];
+    const delegated = /runVitestFile\(\s*"([^"]+)"/.exec(run)?.[1];
+    out.set(id, delegated ? (levelOf.get(delegated) ?? "L2") : "L2");
+  }
+  return out;
+}
+
 export function claimAnchors(root: string, files: TestFile[]): ClaimAnchor[] {
   const debt = readFileSync(join(root, "docs/MASTER_PRODUCT_DEBT.md"), "utf8");
   const levelOf = new Map(files.map((f) => [f.file.split("/").pop()!, f.level]));
+  const gates = gateLevels(root, files);
   const out: ClaimAnchor[] = [];
 
   const sections = debt.split(/^### (R-\d+) · /m);
@@ -263,13 +291,17 @@ export function claimAnchors(root: string, files: TestFile[]): ClaimAnchor[] {
         m[1].split("/").pop()!,
       ),
     );
-    const gates = [...named]
-      .filter((base) => levelOf.has(base))
-      .map((base) => ({ file: base, level: levelOf.get(base)! }));
-    const anchor = gates.length
-      ? gates.map((g) => g.level).sort().at(-1)!
-      : null;
-    out.push({ id, severity, title, gates, anchor });
+    const namedGates = [...body.matchAll(/`(GATE-[A-Z0-9-]+)`/g)].map((m) => m[1]);
+    const evidence = [
+      ...[...named]
+        .filter((base) => levelOf.has(base))
+        .map((base) => ({ file: base, level: levelOf.get(base)! })),
+      ...namedGates
+        .filter((id) => gates.has(id))
+        .map((id) => ({ file: id, level: gates.get(id)! })),
+    ];
+    const anchor = evidence.length ? evidence.map((g) => g.level).sort().at(-1)! : null;
+    out.push({ id, severity, title, gates: evidence, anchor });
   }
   return out;
 }
@@ -277,15 +309,25 @@ export function claimAnchors(root: string, files: TestFile[]): ClaimAnchor[] {
 /**
  * The number of under-anchored rows this build is allowed to have.
  *
- * A RATCHET, NOT A CEILING, and it may only go down. Seven when this was written -- and a gate that
- * failed on all seven would have been red on the day it was added, with seven pieces of unplanned
- * work between it and green. That is how a check gets deleted. Holding the number instead makes the
- * debt visible and monotonic: a NEW P0 row proven only in jsdom fails this, and closing any of the
- * seven lowers it.
+ * SEVEN WHEN THIS WAS WRITTEN, AND ZERO NOW, which is what a ratchet is for. It started as a
+ * ratchet rather than a bar because a gate red on the day it is added -- with seven pieces of
+ * unplanned work between it and green -- gets deleted rather than met.
  *
- * Same shape as `LINE_CEILING` in `the-file-that-only-ever-grew.test.ts`, for the same reason.
+ * WHAT THE SEVEN TURNED OUT TO BE, because the difference matters:
+ *
+ *   TWO were this scanner's fault. R-01's gate is `GATE-REGISTER-RECONCILED` and R-09's is
+ *   `GATE-ENGINE-FAILURE-DISTINCT`; both run on every build, and the resolver could only read
+ *   `*.test.ts` filenames. A measurement that cannot see a working check reports a gap that is not
+ *   there -- the same class of error as the misses this file is about, pointed at itself.
+ *
+ *   FIVE WERE REAL. The four P0 rows -- every row saying a record can be lost or made wrong -- are
+ *   now proven in a real browser, reading the record out of `localStorage` rather than off the
+ *   screen. R-20, a MySQL-only defect, is proven against a real database.
+ *
+ * AT ZERO IT IS A BAR, and that is the point of having reached it: the next P0 row proven only in
+ * jsdom fails immediately, with nothing to argue about.
  */
-export const UNDER_ANCHORED_CEILING = 7;
+export const UNDER_ANCHORED_CEILING = 0;
 
 /** Rows whose severity implies more reality than their gate ever ran against. */
 export function findUnderAnchoredClaims(anchors: ClaimAnchor[]): ClaimAnchor[] {

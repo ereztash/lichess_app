@@ -52,15 +52,15 @@ without one is a number pretending to be an argument, and the scan refuses it.
 ## Where the tests actually are
 
 ```
-L1 pure          80   32.5%
-L2 contract      85   34.6%
-L3 render        70   28.5%
+L1 pure          73   29.4%
+L2 contract      83   33.5%
+L3 render        76   30.6%
 L4 store          5    2.0%
-L5 browser       10    4.1%
+L5 browser       11    4.4%
 L6 deployment     0    0.0%
 ```
 
-**15 of 246 — 6.1% — run against anything the product actually meets.** The other 94% run against
+**16 of 248 — 6.5% — run against anything the product actually meets.** The other 93% run against
 hand-built inputs in a simulated environment. That is not an indictment: L1 and L2 are where a rule
 is stated precisely and cheaply, and a repository with no L1 tests is worse off. It is a statement
 about what the suite can and cannot be read as evidence for.
@@ -75,34 +75,56 @@ be lost or made wrong*, which is a claim about a real runtime, so their proof ha
 **P1** rows say *the record cannot be trusted to mean what it says*, which is a contract and is
 provable at L2. P2 carries no floor.
 
-```
-R-02 P0  L3   <- P0 implies L4     R-20 P1  L1   <- P1 implies L2
-R-19 P0  L2   <- P0 implies L4     R-09 P1  L1   <- P1 implies L2
-R-03 P0  L3   <- P0 implies L4     R-01 P1  --   <- P1 implies L2
-R-04 P0  L2   <- P0 implies L4
-```
+It started at **seven**. It is **zero**, and the difference between the two halves of that is worth
+keeping.
 
-**All four P0 rows** — every row about losing or corrupting a record — are proven at L2 or L3. Not
-one has ever been checked against a real store or a real browser. And R-19 exists *because* R-02's
-L3 proof could not see that nothing was being stored at all: the row above it in this table is the
-reason the row below it had to be written.
+**Two were this scanner's fault.** R-01's gate is `GATE-REGISTER-RECONCILED`; R-09's is
+`GATE-ENGINE-FAILURE-DISTINCT`. Both run on every build. The resolver could only read `*.test.ts`
+filenames, so it scored two working checks as no evidence at all — a measurement that cannot see a
+working check reports a gap that is not there, which is this file's own subject pointed at itself.
+Those two were fixed by teaching the resolver to follow a `GATE-*` id through `run_gates.ts`.
 
-R-20 and R-09 are the same story from today. R-20 is a **MySQL-only** defect closed by a test that
-reads the `SET` clause from source — the right test for the rule, and not a test of the store.
-R-09's row is about a **deployment** and its gate is a unit test.
+**Five were real, and closing them was the work.**
 
-## The gate, and why it is a ratchet
+| row | was | is | what closed it |
+| --- | --- | --- | --- |
+| R-02 | L3 | **L5** | a game played in Chromium, the tab closed mid-analysis, a new page opened on the same profile, think times compared across the reload |
+| R-19 | L2 | **L5** | every stored `thinkMs` read out of `localStorage` after a game played by a **real clock** |
+| R-03 | L3 | **L5** | `analysis.build` read back after the **real engine** scored a real game |
+| R-04 | L2 | **L5** | all four opponent fields read out of the row a real game wrote |
+| R-20 | L1 | **L4** | the fold run against a **real MySQL-compatible database**, `graded_under` read back |
 
-`GATE-CLAIM-ANCHOR` holds the count of under-anchored rows and **only lets it go down**. Seven today.
+The four P0 rows share one new file, `what-the-record-holds-after-a-game.layout.test.ts`, and it
+reads the record rather than the screen — the distinction that hid defect 1, where the page rendered
+from the copy the component was holding and said *"המשחק עצמו נשמר"* while the store had refused
+every game.
 
-A gate that failed on all seven would be red on the day it was written, and the only way to green
-would be seven pieces of work nobody had planned — which is how a check gets deleted. A ratchet is
-the same shape `the-file-that-only-ever-grew` uses on `Home.tsx`, and it makes the same promise:
-**the number is visible, and it cannot grow.** A new P0 row proven only in jsdom fails it.
+**Each fails for its own reason, which is what makes them four tests rather than one copied four
+times.** Nulling the opponent turns only R-04 red; blanking the engine build turns only R-03 red;
+restoring the unrounded clock turns all four red, correctly, because then nothing is stored at all.
+
+R-20's L4 case is the more instructive one. The block beside it already round-tripped a claim
+through MySQL and compared it with memory — and it graded the claim **by hand**, so `graded_under`
+never changed, both stores returned null, and `toEqual` was satisfied by two stores agreeing about a
+value neither had been asked to write. The new case grades through `evaluateClaim`, which is what the
+product runs. Removing `gradedUnder` from the `SET` clause turns it red with *expected 'legacy' to be
+'position-drill'*.
+
+## The gate
+
+`GATE-CLAIM-ANCHOR` held the count and only ever let it go down. **At zero it is a bar**, which is
+the point of having reached it: the next P0 row proven only in jsdom fails immediately, with nothing
+to argue about.
+
+It began as a ratchet because a gate red on the day it is written — with seven pieces of unplanned
+work between it and green — gets deleted rather than met. Same shape `the-file-that-only-ever-grew`
+uses on `Home.tsx`, and it ended somewhere that one cannot.
 
 ## What this does not claim
 
 That a higher rung is better. Defect 5 needed L3 to ask a better question, not L5. That a level can
 be read off a file with certainty — the derivation is a heuristic and its misses are worth writing
-down, as one is above. And that closing all seven gaps is the goal: some are correct as they stand,
-and each one closed should be closed because someone decided it, not to make a number go to zero.
+down, as two are above. And that zero means finished: it means no row currently claims more than its
+proof ran against, on a floor this file chose (**P0 → L4**, **P1 → L2**) and could have chosen
+differently. **L6 is still zero**, and R-09's strongest evidence — the engine running on the actual
+deployment — remains a thing that was done once and does not re-run.
