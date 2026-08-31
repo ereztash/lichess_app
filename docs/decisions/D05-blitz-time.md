@@ -1,11 +1,14 @@
 # D05 — the time buckets are wrong for the route built to measure time pressure
 
-**Mode:** `DEFER` — the defect is measured end to end and the false advice it produced is fixed; the
-replacement bucket is not chosen, and the conditions for choosing one are written down below.
+**Mode:** `DEFER` — the defect is measured end to end and the false advice it produced is fixed. One
+candidate has now been declared, measured and **rejected** by its own rule; it fixed readability and
+its recovery test turned out to be unanswerable, so the next rule is declared below rather than the
+next candidate being chosen.
 **Evidence level:** E1 — measured on the shipped detector through the same harness as Q4, on
 simulated worlds. No real blitz record exists yet.
-**Depends on:** `research/discovery-oracle/q6_blitz_time.py`, `shared/detector.ts` (`BUCKETINGS`),
-`docs/MASTER_PRODUCT_DEBT.md` R-18.
+**Depends on:** `research/discovery-oracle/q6_blitz_time.py`,
+`research/discovery-oracle/q8_relative_time.py`, `shared/detector.ts` (`BUCKETINGS`),
+`shared/blitz-time-candidate.ts`, `docs/MASTER_PRODUCT_DEBT.md` R-18.
 
 ## CLAIM
 
@@ -171,6 +174,139 @@ would move the node to alternative 4 with an argument instead of a preference.
 Report a third number and choose on it. Search a seventh bucket. Move a cut. Or ship anything: the
 six in `hypothesis-manifest.ts` are frozen, and a passing candidate earns the right to be *proposed*
 for that manifest, which is its own decision with its own hash change.
+
+## THE RESULT
+
+`research/discovery-oracle/q8_relative_time.py`. Both arms on the same worlds and the same seeds —
+400 records per world, 40 games each, split 20/20 by game, blitz controls only. Full output in
+`research/discovery-oracle/results/q8_relative_time.txt`.
+
+### VERDICT: REJECTED
+
+| condition, as declared above | measured | required | |
+| --- | --- | --- | --- |
+| 1 · false-claim rate on blitz nulls | 0.0000, upper 95% **0.0024** | ≤ 0.02 | **PASS** |
+| 2 · `clean-fast` validated-on-target | **0.0000** | ≥ 0.209 | **FAIL** |
+
+Both had to hold. The rule said *neither number moves after the run* and *rejection is a result, not
+a failure*. **Alternative 3 as tested is rejected**, and nothing in the rest of this section converts
+that into a pass.
+
+### What the candidate did prove, and it is the half R-18 is actually about
+
+**Readability, outright.** The two dead buckets come alive, on the same worlds that killed them:
+
+| | shipped | candidate |
+| --- | --- | --- |
+| fast bucket usable (`MIN_BUCKET_N` on both sides) | `fast-under-45s` **0.2725** | `fast-relative` **0.9956** |
+| slow bucket usable | `slow-over-2m` **0.0037** | `slow-relative` **1.0000** |
+| non-empty, slow bucket | 0.5844 | 1.0000 |
+
+`slow-over-2m` does not even divide 42% of blitz records; `slow-relative` divides all of them and is
+measurable on all of them. The four working buckets are unchanged in both arms, so this is the
+redefinition and not a different world.
+
+**And condition 1 is a real result, not a formality.** `SEPARABILITY_K = 3.75` was measured on
+*those six searched together*; the redefined six earn the 0.02 ceiling in their own right — 0 false
+claims in 1,600 blitz null records, upper 95% 0.0024. A bucket that fills by finding things that are
+not there would have failed here, and this one does not.
+
+### CONDITION 2 WAS NOT A QUESTION EITHER ARM COULD ANSWER
+
+This is measured by `region_probe` in the same file, not argued, and it is a defect in the harness
+rather than in the candidate.
+
+A bucket can only recover an effect that is **inside** it, contrasted against material that is
+**outside** it. `clean-fast` plants its effect in `seconds < 45` — and on a 3+0 record that is
+nearly the entire record. Measured on the derivation half of the same 400 records each arm was
+scored on:
+
+| arm | target bucket | planted share | inside the bucket | outside decisions, median | planted **and** outside, at least |
+| --- | --- | --- | --- | --- | --- |
+| shipped | `fast-under-45s` | 0.9692 | 0.9692 | **15** | 0.0000 |
+| candidate | `fast-relative` | 0.9692 | 0.1834 | 431 | **0.7858** |
+
+Two different failures, and neither is about the candidate's definition:
+
+- **shipped** — the bucket *is* the region, exactly (`inside` equals `planted` to four places, because
+  `fast-under-45s` and the plant are the same predicate). The contrast is perfectly aimed and there
+  is nothing to aim it at: a median of **15** decisions on the far side against `MIN_BUCKET_N = 30`.
+- **candidate** — the bucket is a genuine tail, usable on 99.6% of records, and at least **79%** of
+  the record is planted *and* outside it. The effect is on both sides of the line, and no bucketing
+  of any kind separates a constant.
+
+The floor in the last column needs no crosstab and therefore no second copy of the bucket predicates
+in Python: if a share `p` of the record is planted and a share `b` of it is inside the bucket, then
+at least `p − b` of it is planted and outside, whatever the overlap. `p` comes from the world
+generator's own mask and `b` from the TypeScript bridge's `sides`, so each number is produced by the
+one place that owns it.
+
+**So condition 2 could not have been passed by any bucket**, including a perfect one. It is scored
+`FAIL` because that is what the rule says, and the rule is not edited after the fact — but it does
+not license the sentence *"a relative bucket does not recover blitz effects"*. That sentence is
+still unmeasured.
+
+### WHAT THIS DOES TO Q6, WHICH IS THE SAME DEFECT ONE FILE EARLIER
+
+Q6 concluded *"the world is fine, the bucket is not"* from two rows: `fast-under-45s` usable on 27%
+of records, and `clean-fast` recovered at 0.00% against the middlegame's 41.75%. The probe splits
+those two apart.
+
+- **The `usable` column stands, and it is the stronger evidence.** It is measured on **null** worlds
+  with no plant at all, so nothing about a plant's coverage can touch it. `fast-under-45s` divides
+  every blitz record and can be measured on 27% of them: that is R-18, entire, and it needs no
+  planted effect to be true.
+- **The recovery row does not stand as stated.** 0.00% has two sufficient causes — the bucket is
+  unreadable, *and* the plant fills 97% of the record so nothing could have read it. Q6 could not
+  tell them apart and did not know it had to. The row is not wrong; the inference drawn from it was
+  over-strong.
+
+This is the same failure class as the five in `tests/LEVELS.md`: **an instrument that is right about
+what it looks at, read as evidence about something else.** It is written here rather than quietly
+repaired because Q6's number is cited in `docs/MASTER_PRODUCT_DEBT.md` R-18 and in this file above.
+
+### THE SECOND RULE, DECLARED BEFORE ITS RUN
+
+Same discipline, same ordering: this subsection is committed before the harness that tests it
+produces a number. Condition 2 failed as a *test*, so the honest next step is to repair the test —
+not to re-score the old run, and not to write a rule that fits numbers already seen.
+
+**The new plant.** `relative-fast` — the same effect strength as `clean-fast` (delta 0.180, so the
+middlegame control is comparable at the same strength), planted where
+
+> `thinkMs / clockBeforeMs < 1/40`
+
+**Why 1/40 and why it is not fitted.** It is the midpoint, in value, between the candidate's own cut
+(`1/60`) and an even pace across the product's thirty-move horizon (`1/30`): `(1/60 + 1/30) / 2 =
+1/40` exactly. It was chosen to be a region **neither arm names**, and the two consequences are
+stated here rather than discovered later:
+
+- `fast-relative` (`< 1/60`) is a strict **subset** of the plant. The candidate can name part of the
+  region and not all of it — a handicap, deliberately, so the run is not the candidate marking its
+  own homework.
+- `fast-under-45s` is a gross **superset**: on a blitz record it covers 97% of the decisions,
+  including every planted one and almost everything else.
+
+**How each arm is scored.** Against its own fast bucket — `fast-under-45s` for shipped,
+`fast-relative` for the candidate — because the product question is *does a time-pressure effect get
+reported as time pressure*, and neither key is the region.
+
+**What would reject it.** In this order, and the first is a gate on the run rather than on the
+candidate:
+
+1. **The run reports `answerable` first, from the same probe.** If the new plant is not a genuine
+   subset — unplanted material below `MIN_BUCKET_N`, or more of the record planted-and-outside than
+   is unplanted at all — the run reports **no verdict**, and the finding is that the harness failed
+   again. A verdict read off an unanswerable question is the mistake this whole section is about.
+2. **The false-claim rate on blitz nulls at or under 0.02**, upper 95%, from this run's own nulls.
+   Unchanged, and re-measured rather than carried over.
+3. **The candidate's validated-on-target on the new plant at least half of `clean-middlegame`'s on
+   the same run.** Same shape as before, and against *this run's* control rather than Q6's number.
+
+**What the second run may not do.** Move the cut. Move 1/40. Search a seventh bucket. Report a third
+number and choose on it. Or ship anything — the six in `hypothesis-manifest.ts` are frozen, and a
+passing candidate earns the right to be *proposed*, which is its own decision with its own hash
+change.
 
 ## REVERSAL CONDITION
 

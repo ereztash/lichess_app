@@ -559,10 +559,24 @@ export function detect(
    * most ordinary result this function has.
    */
   onlyBucketKey?: string | null,
+  /**
+   * The buckets to search, when they are not the shipped six.
+   *
+   * ADDITIVE AND UNUSED BY THE PRODUCT. Nothing in `client/` or `server/` passes this, so every
+   * shipped path still searches `BUCKETINGS` and the manifest hash that freezes those six is
+   * untouched. It exists for one caller: the research oracle, which has to be able to measure a
+   * CANDIDATE bucket set before anyone may argue for changing the frozen one.
+   *
+   * WHY A PARAMETER RATHER THAN A SECOND FUNCTION. A copy of this loop would be a second definition
+   * of what clearing means, and the whole architecture of the audit is that no rule it judges has
+   * two definitions -- `research/discovery-oracle/README.md` says so in as many words. A candidate
+   * measured by a near-copy of the detector is a measurement of the near-copy.
+   */
+  searchSpace: readonly Bucketing[] = BUCKETINGS,
 ): CandidatePattern[] {
   const searched = onlyBucketKey
-    ? BUCKETINGS.filter((bucketing) => bucketing.key === onlyBucketKey)
-    : BUCKETINGS;
+    ? searchSpace.filter((bucketing) => bucketing.key === onlyBucketKey)
+    : searchSpace;
   if (onlyBucketKey && !searched.length) {
     throw new Error(`detect: no bucketing named "${onlyBucketKey}"`);
   }

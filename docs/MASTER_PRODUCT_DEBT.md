@@ -827,6 +827,40 @@ bucket as readable when it had one decision on each side put `fast-under-45s` at
 true and says nothing: `detect` needs thirty on both. The gap between 1.0000 and 0.2725 is the
 finding.
 
+**A candidate was declared, measured and rejected** — `research/discovery-oracle/q8_relative_time.py`,
+both arms on the same worlds and the same seeds. The candidate is `thinkMs / clockBeforeMs`, cut at
+half and double an even pace across the product's own thirty-move horizon. Its rule was committed in
+`docs/decisions/D05-blitz-time.md` before the harness produced a number.
+
+**It fixes readability outright:**
+
+| | shipped | candidate |
+| --- | --- | --- |
+| fast bucket usable | `fast-under-45s` **0.2725** | `fast-relative` **0.9956** |
+| slow bucket usable | `slow-over-2m` **0.0037** | `slow-relative` **1.0000** |
+| slow bucket non-empty | 0.5844 | 1.0000 |
+
+and it earns the false-claim ceiling in its own right — 0 in 1,600 blitz nulls, upper 95% 0.0024
+against 0.02 — which matters because `SEPARABILITY_K = 3.75` was measured on *those six searched
+together* and a redefined set is a different multiplicity.
+
+**And its recovery condition turned out to be a question no bucket could answer.** The rule also
+required `clean-fast` recovery at half the middlegame's rate; it scored 0.0000, so the declared
+verdict is **REJECTED** and stands. But `region_probe` in the same file measures why: `clean-fast`
+plants its effect in `seconds < 45`, which on a 3+0 record is **96.9%** of the decisions. The shipped
+bucket *is* that region and has a median of **15** decisions on the far side against
+`MIN_BUCKET_N = 30`; the candidate bucket is a genuine 18% tail with at least **79%** of the record
+planted *and* outside it. An effect present almost everywhere is not a pattern, and no bucketing
+separates a constant.
+
+**Which reaches back into the table above.** The `usable` column there is measured on **null** worlds
+with no plant and stands unchanged — that is this row's finding and it needs no planted effect. The
+recovery row (`clean-fast` 0.0000 against the middlegame's 0.4175) has two sufficient causes and
+cannot tell them apart, so it does not by itself establish that the bucket rather than the fixture is
+at fault. Same failure class as the five in `tests/LEVELS.md`: an instrument right about what it
+looks at, read as evidence about something else. D05 carries the repaired rule, declared before its
+run.
+
 **Still open, and deliberately not fixed here:** the thresholds themselves. Replacing 45 seconds with
 a fraction of the clock is master-plan §18 and it cannot be done by editing a constant —
 `SEPARABILITY_K = 3.75` is a measurement of *those six buckets searched together*, so a seventh or a

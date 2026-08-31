@@ -99,10 +99,21 @@ export interface VariableReading {
  * being half the game. The level that sits furthest from the rest IN STANDARD ERRORS is the one
  * the variable is actually about.
  */
-export function readVariables(candidates: CandidatePattern[]): VariableReading {
+export function readVariables(
+  candidates: CandidatePattern[],
+  /**
+   * The variables to read, when they are not the shipped three.
+   *
+   * Additive, unused by the product, and here for the same one caller as `detect`'s `searchSpace`:
+   * a candidate bucket set whose levels are not the shipped keys would otherwise be read as no
+   * variable at all and silently dropped, which would make a candidate look unreadable for a reason
+   * that has nothing to do with the candidate.
+   */
+  variables: readonly BucketVariable[] = VARIABLES,
+): VariableReading {
   const findings: VariableFinding[] = [];
 
-  for (const variable of VARIABLES) {
+  for (const variable of variables) {
     const cleared = candidates.filter((c) => variable.levels.includes(c.key));
     if (cleared.length === 0) continue;
 

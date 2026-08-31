@@ -1,0 +1,54 @@
+Q8 / D05 -- does a relative time bucket recover what the absolute one cannot?
+
+400 records per world, 40 games each, 20 to derive. Blitz controls only.
+Both arms on the same worlds and the same seeds. Rule declared in D05 before this ran.
+
+bucket                        arm  non-empty    usable   cleared
+clock-under-1m            shipped     1.0000    1.0000    0.0000
+fast-under-45s            shipped     1.0000    0.2725    0.0006
+phase-endgame             shipped     1.0000    1.0000    0.0000
+phase-middlegame          shipped     1.0000    1.0000    0.0000
+phase-opening             shipped     1.0000    1.0000    0.0000
+slow-over-2m              shipped     0.5844    0.0037    0.0000
+
+clock-under-1m          candidate     1.0000    1.0000    0.0000
+fast-relative           candidate     1.0000    0.9956    0.0000
+phase-endgame           candidate     1.0000    1.0000    0.0000
+phase-middlegame        candidate     1.0000    1.0000    0.0000
+phase-opening           candidate     1.0000    1.0000    0.0000
+slow-relative           candidate     1.0000    1.0000    0.0000
+
+plant                         arm   recall  on target  validated on target
+clean-middlegame          shipped   0.5775     0.5650               0.4175
+clean-fast                shipped   0.0025     0.0025               0.0000
+clean-middlegame        candidate   0.5775     0.5650               0.4175
+clean-fast              candidate   0.0000     0.0000               0.0000
+
+THE TWO CONDITIONS, DECLARED BEFORE THE RUN
+  1. false-claim on blitz nulls  0.0000 (upper 95% 0.0024)  ceiling 0.02   -> PASS
+  2. clean-fast validated-on-target  0.0000   bar 0.2087 (half of Q6's middlegame 0.4175)   -> FAIL
+
+  the control, this run's own middlegame: 0.4175
+  shipped arm's clean-fast, same worlds:  0.0000
+
+VERDICT: REJECTED
+
+CONDITION 2 WAS NOT A VALID TEST, and this is measured, not argued.
+A bucket can only recover an effect that is INSIDE it. `clean-fast` plants its effect in
+`seconds < 45`, and on a 3+0 record that is nearly the whole record -- so there is little
+or nothing outside to contrast against, in either arm and for any bucketing whatsoever.
+
+       arm target bucket     planted   inside  outside n  planted & outside, at least
+   shipped fast-under-45s     0.9692   0.9692         15                       0.0000
+ candidate fast-relative      0.9692   0.1834        431                       0.7858
+
+  shipped   the bucket IS the region (0.97 inside), so the
+            contrast is right and there is nothing to contrast WITH: a median of
+            15 decisions outside against MIN_BUCKET_N=30.
+  candidate the bucket is a real tail (0.18 inside, usable on
+            99.6% of records), and at least 0.79 of the record is planted and
+            outside it. The effect is on both sides, so no bucketing separates it.
+
+Two different failures, neither of them about the candidate's definition. Condition 2 could
+not have been passed by any bucket, and a valid replacement needs a plant whose region is a
+genuine subset of a blitz record under a relative definition -- declared before its run.
