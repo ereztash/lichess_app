@@ -85,10 +85,20 @@ def main() -> int:
     )
 
     print("1. WHAT THE SHIPPED BAR CLEARS BY CHANCE")
-    print("   A rule is graded on >= 2 successes in 3 positions. At per-item rate p:\n")
-    print(f"   {'p':>6} {'P(graded replicated)':>22}")
+    print(
+        "   A sitting passes on >= 2 successes in 3 positions. `replicated` needs TWO PASSING\n"
+        "   DAYS -- `gradeLearningRule` counts distinct completion dates -- so the null for the\n"
+        "   GRADE is the square of the null for a sitting. D23 published the sitting column as if\n"
+        "   it were the grade; it is not.\n"
+    )
+    print(f"   {'p':>6} {'P(one sitting)':>16} {'P(replicated)':>15}")
     for p in (0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.75, 0.80, 0.90):
-        print(f"   {p:>6.2f} {at_least(TRANSFER_MINIMUM_SUCCESSES, TRANSFER_POSITION_COUNT, p):>22.4f}")
+        sitting = at_least(TRANSFER_MINIMUM_SUCCESSES, TRANSFER_POSITION_COUNT, p)
+        print(f"   {p:>6.2f} {sitting:>16.4f} {sitting * sitting:>15.4f}")
+    print(
+        "\n   INDEPENDENCE IS ASSUMED AND IS FALSE. The two sittings are the same player on the\n"
+        "   same rule, so the true null is HIGHER than the square. The square is a lower bound."
+    )
 
     print("\n2. AND p IS A PRODUCT OF TWO THINGS, NEITHER OF WHICH IS RULE USE")
     print("   `record-service.ts` scores a success as: recall word-overlap floor cleared AND the")

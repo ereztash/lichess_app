@@ -71,7 +71,7 @@ And the per-item rate is itself a product of two things (see [L3](#l3)):
 | 0.80 | 0.70 | 0.560 | **0.590** |
 | 0.90 | 0.80 | 0.720 | **0.809** |
 
-**Confirmed.** Across the plausible range the grade arrives **47–81%** of the time. Nothing in the
+**Confirmed, with the number corrected by D24.** The table above is the probability of passing ONE SITTING. `replicated` requires two separate passing days, so the null is P(pass)² — **9–65%** across the same range. Nothing in the
 repository estimates the base rate, so nothing can subtract it. `docs/measurement/`'s own rule —
 *accuracy may never be reported alone* — has an analogue here that was never applied: **a pass rate
 may never be reported without the rate the same bar returns when nothing was learned.**
