@@ -58,6 +58,13 @@ export interface CommitDecisionInput {
    * line, which is precisely the failure the binding exists to close.
    */
   drillId: string | null;
+  /**
+   * The transfer check this decision belongs to, or null on every other purpose.
+   *
+   * NULLABLE RATHER THAN OPTIONAL for `drillId`'s reason: every write site has to say which it is,
+   * so a transfer decision cannot reach storage unbound by forgetting a line.
+   */
+  transferId: string | null;
   /** Which grid the confidence level was stated on, or null on a row that did not say. */
   confidenceGridVersion?: number | null;
   secondsTaken: number;

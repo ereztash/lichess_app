@@ -84,6 +84,7 @@ async function record(
     clockMsRemaining: 120_000,
     purpose: "play",
     drillId: null,
+    transferId: null,
     secondsTaken: 60,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4"],

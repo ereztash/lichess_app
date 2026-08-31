@@ -97,6 +97,8 @@ function toAtom(
     purpose: decision.purpose,
     /* Null on every purpose but `drill`, and on rows written before the binding existed. */
     drill_id: decision.drillId ?? null,
+    /* The same, for `transfer`. */
+    transfer_id: decision.transferId ?? null,
     known: decision.statedRead,
     unknown: decision.statedUnknown,
     known_parts: decision.statedReadParts ?? null,
@@ -254,6 +256,7 @@ export class DrizzleRecordStore implements RecordStore {
       clockMsRemaining: input.clockMsRemaining,
       purpose: input.purpose,
       drillId: input.drillId,
+      transferId: input.transferId,
       secondsTaken: input.secondsTaken,
       chosenMove: input.chosenMove,
       candidateMovesConsidered: input.candidateMovesConsidered,
@@ -1296,6 +1299,7 @@ export class MemoryRecordStore implements RecordStore {
       },
       purpose: row.purpose,
       drill_id: row.drillId ?? null,
+      transfer_id: row.transferId ?? null,
       known: row.statedRead,
       unknown: row.statedUnknown,
       known_parts: row.statedReadParts ?? null,

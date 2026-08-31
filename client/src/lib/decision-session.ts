@@ -52,6 +52,32 @@ export interface PositionUnderDecision {
    * distinguishes "not a drill" from "a drill that named nothing".
    */
   drillId?: string | null;
+  /** The transfer this position was drawn for, when `purpose` is `transfer`. Same rule as above. */
+  transferId?: string | null;
+}
+
+/**
+ * Which named test this decision belongs to, if any.
+ *
+ * ONE RULE FOR TWO IDS, because they are one fact and the boundary refuses them as one. `drill` and
+ * `transfer` are the two purposes `EVIDENCE_POLICY` reads as evidence about a named test rather
+ * than about the player, and `commitDecision` binds each: the id must resolve to a stored test that
+ * named this position before the decision was made.
+ *
+ * READ OFF THE PURPOSE, NEVER OFF A SECOND FLAG. The purpose is decided by one ordered rule in
+ * `decisionPurposeFor`, and a caller that consulted `inDrill` here could disagree with it -- a
+ * transfer check taken while a drill is open would send a `transfer` decision carrying a drill id,
+ * which the boundary refuses as two statements that cannot both be true. Deriving both from the
+ * one purpose makes that pair unrepresentable rather than merely refused.
+ */
+export function namedTest(
+  purpose: DecisionPurpose,
+  open: { drillId?: string | null; transferId?: string | null },
+): { drillId: string | null; transferId: string | null } {
+  return {
+    drillId: purpose === "drill" ? (open.drillId ?? null) : null,
+    transferId: purpose === "transfer" ? (open.transferId ?? null) : null,
+  };
 }
 
 export interface DraftDecision {
@@ -270,6 +296,13 @@ export function buildCommitEvent(
      * the ones that drill registered.
      */
     drill_id: position.drillId ?? null,
+    /*
+     * And the same for the other label that decides how a decision may be read. A transfer check
+     * names the transfer it belongs to, so the boundary can confirm the position is one the
+     * transfer registered before the run started rather than any board the player happened to be
+     * on while a transfer was open.
+     */
+    transfer_id: position.transferId ?? null,
     known: statedKnown(draft),
     unknown: statedUnknown(draft),
     /*

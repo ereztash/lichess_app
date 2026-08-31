@@ -341,7 +341,7 @@ does not. Left as its own question rather than folded into this one.
 | | |
 | --- | --- |
 | type | evidence |
-| state | **fixed** (for `drill`; `transfer` still carries it — see below) |
+| state | **fixed** — `drill` first, `transfer` one wave later |
 | severity | P1 |
 | basis | **verified** — was `shared/decision-atom.ts:213`: *"This is a claim by the client … and a reading that treats it as verified is reading more than the field carries"* |
 
@@ -378,10 +378,44 @@ matching one.
 **Gate:** `tests/shared/a-label-with-nothing-behind-it.test.ts`. Remove the position check and the
 assertion written for it goes red on its own.
 
-**What is still the client's word:** `transfer`. A transfer decision names no transfer. It is the
-smaller hole — a transfer's observations are written through `recordTransferObservation`, which
-knows which transfer it is inside, whereas a drill decision arrives through the ordinary commit —
-but it is a hole, and it is named here rather than papered over.
+### `transfer`, and why the reason it waited was wrong
+
+The first pass called this the smaller hole, because *"a transfer's observations are written through
+`recordTransferObservation`, which knows which transfer it is inside"*. That call does resolve the
+transfer and does check the position — and it is a **second** call, made after the decision has
+already been committed, which nothing obliges a client to make. The decision itself was stored
+carrying the label with no binding, and it is the **decision** that `EVIDENCE_POLICY` reads.
+
+The harm is the drill's, in both directions. Discovery refuses a `transfer` decision outright —
+*"taken while deliberately applying a rule; that is the intervention working"* — so a free-play
+decision mislabelled `transfer` is dropped from the population it belongs to, and a transfer check
+mislabelled `play` walks the intervention into the evidence meant to test it.
+
+**Closed by** `transfer_id`, beside `drill_id` in `ATOM_FIELDS` because it is the same fact about
+the other label. `commitDecision` checks the same three things, and the third is again the one that
+matters: that an id was sent, that it names a transfer this record holds, and that **that transfer
+named this position in advance**. The first two alone would let one open transfer launder every
+decision a player takes while it is open.
+
+It also answers what `scoped(to: "matching-transfer")` has been asking, in the words the drill row
+used: `EVIDENCE_POLICY` already files a transfer decision as readable against its own transfer's
+verdict and no other claim's, and until now nothing on the row could say which transfer was the
+matching one. `NAMED_IN_ADVANCE` in that file — *"a transfer is graded on the positions it named in
+advance"* — was a comment until this check existed.
+
+**Matched by position, not by string,** and the two rules had to agree: `recordLearningTransferObservation`
+finds its slot with `samePosition`, which ignores the move counters. A boundary comparing raw FENs
+would let a decision pass one check and fail the other, and the run would stall between two rules
+that each think they are right.
+
+**And the pair is unrepresentable rather than merely refused.** The boundary refuses a decision
+carrying both ids — one decision is inside one test — but the screen also cannot build one:
+`namedTest` in `client/src/lib/decision-session.ts` derives both from the one `purpose`, so a
+transfer check taken while a drill is open never constructs the drill's id.
+
+**Gate:** `tests/shared/a-label-with-nothing-behind-it.test.ts` — send `purpose=transfer`, a
+`transfer_id` that resolves, and a position that transfer never registered; the server refuses and
+stores nothing. Removing the binding turns six of the eight transfer cases red.
 
 ### R-08 · Attribution: a validated claim can name the wrong subgroup
 

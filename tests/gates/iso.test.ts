@@ -17,6 +17,7 @@ async function reportFields(): Promise<string[]> {
     clockMsRemaining: null,
     purpose: "play",
     drillId: null,
+    transferId: null,
     secondsTaken: 9,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],

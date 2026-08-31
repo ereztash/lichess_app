@@ -23,6 +23,7 @@ import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
 import { registerDrill } from "../fixtures/registered-drill";
+import { registerTransfer } from "../fixtures/registered-transfer";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
 import { classifyPhase } from "../../shared/phase";
@@ -58,6 +59,11 @@ async function record(
      */
     drill_id:
       options.purpose === "drill" ? await registerDrill(store, [options.fen], `drill-${options.fen}`) : null,
+    /* And a transfer check names its transfer, for the same reason and by the same lazy binding. */
+    transfer_id:
+      options.purpose === "transfer"
+        ? await registerTransfer(store, [options.fen], `transfer-${options.fen}`)
+        : null,
     known: "המרכז פתוח",
     unknown: "לא יודע איך הוא יענה",
     known_parts: { tapped: ["המרכז פתוח"], typed: "" },

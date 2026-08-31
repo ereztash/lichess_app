@@ -359,6 +359,7 @@ export const GATES: Gate[] = [
         clockMsRemaining: null,
         purpose: "play",
         drillId: null,
+        transferId: null,
         secondsTaken: 5,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],

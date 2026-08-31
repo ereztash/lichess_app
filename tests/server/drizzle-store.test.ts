@@ -38,6 +38,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     clockMsRemaining: 120_000,
     purpose: "play",
     drillId: null,
+    transferId: null,
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],

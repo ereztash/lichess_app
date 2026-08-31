@@ -49,6 +49,7 @@ async function seed(count: number, reveal = true) {
       clockMsRemaining: 120_000,
       purpose: "play",
       drillId: null,
+      transferId: null,
       secondsTaken: fast ? 10 : 200,
       chosenMove: "e2e4",
       candidateMovesConsidered: ["e2e4"],

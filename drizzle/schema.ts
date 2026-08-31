@@ -90,6 +90,15 @@ export const decisions = mysqlTable(
      * could lose a decision. The check is at the boundary, where it can produce a sentence.
      */
     drillId: varchar("drill_id", { length: 64 }),
+    /**
+     * Atom `transfer_id`. The transfer check this decision belongs to.
+     *
+     * Same shape and same reasoning as `drill_id` above, for the other label that decides whether
+     * a decision may be read as evidence about the player. Nullable, no default, no foreign key:
+     * the transfers live in `learning_transfers` and this record is append-only, so a constraint
+     * that could refuse a write is a constraint that could lose a decision.
+     */
+    transferId: varchar("transfer_id", { length: 64 }),
     secondsTaken: int("seconds_taken").notNull(),
     chosenMove: varchar("chosen_move", { length: 6 }).notNull(),
     candidateMovesConsidered: json("candidate_moves_considered").$type<string[]>().notNull(),

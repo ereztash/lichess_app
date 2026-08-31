@@ -7,6 +7,7 @@ import {
   emptyDraft,
   engineMayRun,
   isCommittable,
+  namedTest,
   type DraftDecision,
   type PositionUnderDecision,
   type SessionStage,
@@ -184,5 +185,49 @@ describe("cp loss across two searches handles the perspective flip", () => {
 
   it("never reports a negative loss", () => {
     expect(cpLossFromSearches(cp(40), cp(-300))).toBe(0);
+  });
+});
+
+describe("which named test a decision belongs to", () => {
+  /*
+   * THE PAIR THAT MUST NOT BE REPRESENTABLE. `commitDecision` refuses a decision carrying both a
+   * drill id and a transfer id -- one decision is inside one test, and `EVIDENCE_POLICY` scopes
+   * each to its own, so a decision claiming both would leave a later reading to choose silently.
+   *
+   * Refusing it at the boundary is necessary and not sufficient: the screen still has to be unable
+   * to produce it. Both ids come off the ONE purpose here, so a transfer check taken while a drill
+   * is open cannot send the drill's id -- not because a second check catches it, but because the
+   * value is never constructed. That is the difference between an invariant and a guard.
+   */
+  const OPEN = { drillId: "drill-7", transferId: "transfer-9" };
+
+  it("names the drill on a drill decision and nothing else", () => {
+    expect(namedTest("drill", OPEN)).toEqual({ drillId: "drill-7", transferId: null });
+  });
+
+  it("names the transfer on a transfer decision and nothing else", () => {
+    expect(namedTest("transfer", OPEN)).toEqual({ drillId: null, transferId: "transfer-9" });
+  });
+
+  it("never returns both, whatever is open", () => {
+    for (const purpose of ["play", "first", "anchor", "import", "drill", "transfer"] as const) {
+      const named = namedTest(purpose, OPEN);
+      expect(
+        named.drillId === null || named.transferId === null,
+        `${purpose} sent a drill id and a transfer id, which the boundary refuses`,
+      ).toBe(true);
+    }
+  });
+
+  it("names nothing on the purposes that claim nothing", () => {
+    for (const purpose of ["play", "first", "anchor", "import"] as const) {
+      expect(namedTest(purpose, OPEN)).toEqual({ drillId: null, transferId: null });
+    }
+  });
+
+  it("returns null rather than undefined when nothing is open", () => {
+    /* The wire distinguishes "not a drill" from "a drill that named nothing"; both are null here. */
+    expect(namedTest("drill", {})).toEqual({ drillId: null, transferId: null });
+    expect(namedTest("transfer", {})).toEqual({ drillId: null, transferId: null });
   });
 });

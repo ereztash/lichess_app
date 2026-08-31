@@ -88,6 +88,12 @@ export const commitEventSchema = z.object({
    * absence costs something -- a decision claiming `drill` without one is refused there.
    */
   drill_id: z.string().min(1).max(64).nullable().optional(),
+  /**
+   * The transfer check this decision belongs to. Optional for `drill_id`'s reason, and refused for
+   * `drill_id`'s reason: a decision claiming `transfer` without one is refused in
+   * `service.commitDecision`, where the refusal can name a transfer and produce a sentence.
+   */
+  transfer_id: z.string().min(1).max(64).nullable().optional(),
   /*
    * `min(1)` IS GONE FROM BOTH, AND THIS IS THE LINE THAT MADE THE EXEMPTION REAL.
    *

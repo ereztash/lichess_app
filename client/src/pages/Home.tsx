@@ -128,6 +128,7 @@ import {
   cpLossOfFinalMove,
   engineMayRun,
   makingEvidence,
+  namedTest,
   type DraftDecision,
   type CommitEvent,
   type SessionStage,
@@ -1222,20 +1223,11 @@ export default function Home() {
             ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
             clockMsRemaining: null,
             purpose: decisionPurpose,
-            /*
-             * WHAT MAKES THE LINE ABOVE CHECKABLE. `purpose` is the one atom field the server
-             * cannot re-derive, and `drill` is the value that decides whether a decision enters
-             * discovery at all. Sending the drill's id lets the boundary resolve it against a drill
-             * this record holds and confirm the position is one that drill registered before it
-             * started -- so the label stops being this client's word.
-             *
-             * `decisionPurpose` rather than `inDrill`, deliberately: the purpose is decided by one
-             * ordered rule in `decisionPurposeFor`, and reading a second flag here would let the
-             * two disagree -- a transfer check that also has a drill open would send a `transfer`
-             * decision carrying a drill id, which the boundary refuses as two statements that
-             * cannot both be true.
-             */
-            drillId: decisionPurpose === "drill" ? (drill?.drill_id ?? null) : null,
+            /* What makes the line above checkable. One rule for both ids -- see `namedTest`. */
+            ...namedTest(decisionPurpose, {
+              drillId: drill?.drill_id,
+              transferId: learningTransfer?.transfer_id,
+            }),
           },
           draft,
           secondsTaken,

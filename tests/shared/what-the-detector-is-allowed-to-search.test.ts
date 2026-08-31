@@ -21,6 +21,7 @@ import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
 import { registerDrill } from "../fixtures/registered-drill";
+import { registerTransfer } from "../fixtures/registered-transfer";
 import { remainingBeforeClaim } from "../../client/src/lib/loop-position";
 import { MIN_BUCKET_N } from "../../shared/detector";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
@@ -49,6 +50,8 @@ const FLOOR = MIN_BUCKET_N * 2;
  */
 const ENDGAME = "8/5k2/8/8/3K4/8/5P2/8 w - - 0 60";
 const MIDDLEGAME = "r2q1rk1/pp2bppp/2n1bn2/3pp3/3PP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 0 12";
+/** The third position a preregistered transfer must name. No decision in this file lands on it. */
+const UNANSWERED = "8/8/4k3/8/8/4K3/4P3/8 w - - 0 55";
 /*
  * Past the opening boundary, because `classifyPhase` reads the ply as well as the board and the
  * service re-derives the phase from both. At ply 0 the middlegame fixture classifies as an opening
@@ -98,6 +101,16 @@ async function record(
     drill_id:
       options.purpose === "drill"
         ? await registerDrill(store, [ENDGAME, MIDDLEGAME], "drill-detector-fixture")
+        : null,
+    /*
+     * A `transfer` decision names its transfer, for the drill's reason and by the drill's shape.
+     * Three positions, because `TRANSFER_POSITION_COUNT` is three and a transfer holding two is a
+     * run the product cannot preregister -- the third is simply never answered here, which is what
+     * a transfer looks like partway through.
+     */
+    transfer_id:
+      options.purpose === "transfer"
+        ? await registerTransfer(store, [ENDGAME, MIDDLEGAME, UNANSWERED], "transfer-detector-fixture")
         : null,
     known: "המרכז פתוח",
     unknown: "לא יודע איך הוא יענה",
@@ -319,6 +332,7 @@ describe("a label with nothing behind it is not provenance", () => {
       },
       purpose: "anchor",
       drill_id: null,
+      transfer_id: null,
       known: "המרכז פתוח",
       unknown: "לא יודע איך הוא יענה",
       known_parts: { tapped: ["המרכז פתוח"], typed: "" },
