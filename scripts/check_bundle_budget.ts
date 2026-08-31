@@ -445,10 +445,29 @@ const INDEX = "dist/public/index.html";
  * in somebody's browser. That is what the bytes buy.
  *
  * 691 AND 769 LEAVE 1.9 kB AND 2.0 kB. The gzip ceiling did not fire and keeps its number.
+ *
+ * ---
+ *
+ * 691 -> 673, 215 -> 211 AND 769 -> 751: THE FIRST TIME THIS FILE HAS EVER GONE DOWN.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              690.3      214.4       768.5
+ *     RecordExplorer behind a lazy chunk   671.1      208.9       749.3   -19.2 / -5.5 / -19.2
+ *
+ * P1.7 put the reveal's toolbox -- the engine's panel, the claim panel, the learning queue, the
+ * Lichess layers, the dashboard and the whole-game review -- behind one control the player presses.
+ * A surface that renders only on a press has no business in the chunk every arrival downloads,
+ * which is the argument this file already made about `RecordDashboard` and `recharts`, applied to
+ * the four panels that were sitting beside it.
+ *
+ * THE CEILINGS COME DOWN WITH IT, and that is the whole point of the exercise. A ratchet that only
+ * ever moves one way is a ratchet that records defeats; leaving 19 kB of slack in it would mean the
+ * next twenty accidental kilobytes cost nothing to ship. The same headroom as every raise above --
+ * 1.9 kB, 2.1 kB and 1.7 kB -- measured from where the build actually is.
  */
-const ENTRY_RAW_KB = 691;
+const ENTRY_RAW_KB = 673;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 215;
+const ENTRY_GZIP_KB = 211;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -492,7 +511,7 @@ const ENTRY_GZIP_KB = 215;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 769;
+const INITIAL_RAW_KB = 751;
 
 interface Asset {
   name: string;

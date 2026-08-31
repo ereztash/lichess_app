@@ -105,6 +105,25 @@ same act twice under two different labels.
 
 **Gate:** `GATE-ONE-PRIMARY-ACTION`, `GATE-NO-DUPLICATE-ACTION`.
 
+### The reveal column was the worst case, and it is a path now
+
+Nine sections at once: the reveal, the value question, the engine's lines, a rule composer, a drill
+runner, the whole-game review, the claim panel, the learning queue, the record dashboard and the
+Lichess layers. Every one is worth having and none of them is what a player opened that screen for.
+**A column of nine sections does not offer nine things; it offers a search.**
+
+`REVEAL` keeps what the decision showed and the two things that act on it — the rule composer,
+because burying the one thing the product wants done with a finding breaks its own loop, and a
+running drill or transfer, because a run in progress is `TEST`. Everything else is `RecordExplorer`,
+behind one quiet control. `EXPLORE` may show all of it at once precisely because nothing is at stake
+in it: the decision is committed, revealed and stored, and the engine has already spoken.
+
+**It also took 19 kB off every arrival.** Those four panels were in the entry chunk, downloaded by
+everyone including the overwhelmingly common visitor who never opened one. A surface that renders
+only on a press belongs behind a lazy chunk, which is the argument the bundle budget already made
+about the dashboard. The ceilings came *down* with it — the first time that file has ever moved in
+that direction.
+
 ---
 
 ## LAW 3 — State decides, screen renders

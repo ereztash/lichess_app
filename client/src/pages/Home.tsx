@@ -75,6 +75,17 @@ const ValueReconstruction = lazyChunk(() =>
   import("@/components/ValueReconstruction").then((m) => ({ default: m.ValueReconstruction })),
 );
 
+/*
+ * THE TOOLBOX IS NOT ON THE PATH, SO IT IS NOT IN THE BUNDLE EITHER (P1.7). It renders when a
+ * player presses a control and never otherwise -- exactly the condition this file already applies
+ * to the dashboard and the game review -- and it carries four panels with it (the engine's, the
+ * claim panel, the learning queue, the Lichess layers) that the entry chunk was shipping to
+ * arrivals who never open one. Measured: 19.2 kB raw off the entry.
+ */
+const RecordExplorer = lazyChunk(() =>
+  import("@/components/RecordExplorer").then((m) => ({ default: m.RecordExplorer })),
+);
+
 const GameReview = lazyChunk(() =>
   import("@/components/GameReview").then((m) => ({ default: m.GameReview })),
 );
@@ -294,6 +305,14 @@ export default function Home() {
   const [revealFen, setRevealFen] = useState<string>("");
   const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
   /*
+   * `EXPLORE`: the player asked to see the rest of the record (P1.7).
+   *
+   * RESET WHENEVER A NEW REVEAL ARRIVES, in the effect below, and not in the six places that put
+   * the stage back to `deciding`. A player who explored after one decision should meet the NEXT
+   * reveal as a reveal -- the mode is a thing they are in, not a preference they set.
+   */
+  const [exploring, setExploring] = useState(false);
+  /*
    * Which of the two reveal failures happened, or null. Both used to leave the session in
    * `stage === "revealed"` with no control that advances -- a soft lock whose only escape
    * was abandoning the game.
@@ -443,6 +462,16 @@ export default function Home() {
     stage === "deciding" &&
     activeGame.moves().length > 0 &&
     (opponent === null || activeGame.turn() === opponent.playerColor);
+
+  /*
+   * A NEW REVEAL CLOSES `EXPLORE` (P1.7).
+   *
+   * KEYED ON THE REVEALED DECISION AND NOT ON THE STAGE, because the stage goes back to `deciding`
+   * from six different places and this would have had to be added to all of them -- which is the
+   * kind of thing that gets added to five. A reveal is identified by the decision it is about, so
+   * a new id is exactly the event "there is something new to read".
+   */
+  useEffect(() => setExploring(false), [revealedDecisionId]);
 
   useEffect(() => {
     // Not before the handoff has been read: see `restoreSettled`.
@@ -2282,15 +2311,6 @@ export default function Home() {
                 * control that advances: the header's is gated on a reveal that was stored.
                 */}
               {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
-              <AnalysisPanel
-                analysis={analysis}
-                alternative={alternative}
-                status={engineStatus}
-                fen={activeFen}
-                activeMove={activeMove}
-                material={material}
-                onAnalyze={() => void runAnalysis()}
-              />
               {learningTransfer && learningTransferPanel}
               {VERIFIED_LEARNING_ENABLED &&
                 !learningTransfer &&
@@ -2314,79 +2334,60 @@ export default function Home() {
                   onFinish={closeDrill}
                 />
               )}
-              {/*
-                THE GATE. The whole-game review is offered only at reveal -- after a decision in
-                this game has been committed and the engine has already spoken about it. Showing
-                it on import would put the machine first, which is the one thing this product is
-                built not to do.
-              */}
-              {stage === "revealed" && (
-                <>
-                  {reviewProgress ? (
-                    <Suspense fallback={null}>
-                      <GameReviewProgress done={reviewProgress.done} total={reviewProgress.total} />
-                    </Suspense>
-                  ) : reviewScores ? (
-                    <Suspense fallback={null}>
-                      <GameReview
-                        evalScores={reviewScores}
-                        playerColor={orientation}
-                        totalPlies={history.length}
-                      />
-                    </Suspense>
-                  ) : (
-                    <section className="analysis-section game-review">
-                      <div className="section-heading">
-                        <span>סקירת משחק</span>
-                      </div>
-                      <p className="layer-intro">
-                        המנוע יעבור על כל העמדות במשחק וימדוד כמה עלה כל מהלך. זה רץ מקומית ולוקח
-                        זמן — ולכן זה כפתור, לא משהו שקורה מעצמו.
-                      </p>
-                      {reviewError && <p className="layer-error">{reviewError}</p>}
-                      <button className="layer-action" onClick={() => void runGameReview()}>
-                        <Activity size={14} /> נתחו את המשחק כולו
-                      </button>
-                    </section>
-                  )}
-                </>
-              )}
 
               {/*
-                The record dashboard, next to the game review because both are reflection: this
-                one measures the decisions, that one measures the positions. It needs no R3 gate
-                -- it reads decisions already committed and revealed, so by construction it
-                cannot speak before the player has.
-              */}
-              {/*
-                * THE READINGS OF THE RECORD, ALL IN THE ONE STAGE THAT MAY SHOW THEM.
+                * THE REVEAL IS A PATH, AND THIS IS THE ONE STEP OFF IT (LAW 2, P1.7).
                 *
-                * The claim panel and the learning queue used to sit on the `deciding` branch,
-                * which is the only stage where they could contaminate what was being recorded.
-                * Here they are what the player came to the reveal for: the decision is on the
-                * record, the engine has answered it, and what is worth doing next is a question
-                * this evidence can now legitimately inform.
+                * Above this line is what the decision just made turned out to be, and the two
+                * things that act on it. Below it was everything else the product knows -- the
+                * engine's lines, the whole-game review, the claim panel, the learning queue, the
+                * record dashboard, the Lichess layers -- rendered at the same time, in the same
+                * column, at the same weight. A column of nine sections does not offer nine things;
+                * it offers a search.
+                *
+                * SECONDARY, AND IT SAYS WHAT IS BEHIND IT. The primary action of a reveal is the
+                * next decision, and it is in the header. This is a way to look at the record, and
+                * `EXPLORE` is the one mode with nothing at stake -- the decision is committed,
+                * revealed and stored, so nothing on the far side of this button can change what
+                * any of it said.
                 */}
-              <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
-              {VERIFIED_LEARNING_ENABLED && (
-                <LearningQueue
-                  onStart={(ruleId) => void beginLearningTransfer(ruleId)}
-                  busy={learningTransfer !== null}
-                  error={learningTransferError}
+              <button
+                type="button"
+                className="explore-toggle"
+                aria-expanded={exploring}
+                onClick={() => setExploring((open) => !open)}
+              >
+                {exploring ? "חזרה לתוצאה" : "מה עוד יש כאן"}
+              </button>
+              {exploring && (
+                <Suspense fallback={<p role="status">טוען…</p>}>
+                <RecordExplorer
+                  position={{ fen: activeFen, activeMove, material }}
+                  engine={{
+                    analysis,
+                    alternative,
+                    status: engineStatus,
+                    onAnalyze: () => void runAnalysis(),
+                  }}
+                  review={{
+                    progress: reviewProgress,
+                    scores: reviewScores,
+                    error: reviewError,
+                    orientation,
+                    totalPlies: history.length,
+                    onRun: () => void runGameReview(),
+                  }}
+                  record={recordReading.data}
+                  lichess={{ source, enabled: isAuthenticated, onConnect: openLichess }}
+                  claims={{ onRunDrill: beginDrill, drillError: drillError ?? undefined }}
+                  learning={{
+                    onStart: (ruleId) => void beginLearningTransfer(ruleId),
+                    busy: learningTransfer !== null,
+                    error: learningTransferError ?? undefined,
+                  }}
                 />
-              )}
-              {recordReading.data && (
-                <Suspense fallback={null}>
-                  <RecordDashboard reading={recordReading.data} />
                 </Suspense>
               )}
-
-              <LichessLayersPanel
-                fen={activeFen}
-                source={source}
-                enabled={isAuthenticated}
-                onConnect={openLichess}
-              />
             </>
           )}
         </aside>

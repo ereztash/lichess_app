@@ -12,6 +12,8 @@
  * eighty are different statements.
  */
 import { readFileSync } from "node:fs";
+import { makingEvidence } from "@/lib/decision-session";
+import { DECISION_STAGES } from "@shared/decision-stage";
 import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -58,11 +60,39 @@ describe("the R3 gate", () => {
   const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
 
   it("renders the review only at reveal, never on load", () => {
-    const gate = home.indexOf('stage === "revealed" && (');
-    const review = home.indexOf("<GameReview");
-    expect(gate).toBeGreaterThan(-1);
-    // The component appears INSIDE the guard, not before it.
-    expect(review).toBeGreaterThan(gate);
+    /*
+     * THE GUARD IS THE SURFACE NOW. The review used to sit in `Home.tsx` behind
+     * `stage === "revealed" && (`; P1.7 moved it into `RecordExplorer`, which `Home` renders in one
+     * place -- after the branch that separates the evidence-producing stages from the reveal, and
+     * behind a control the player presses. So the guard is not a condition wrapping a component in
+     * a 2,400-line file; it is the only place the component exists.
+     *
+     * AND `focus` IS THAT CONDITION, ASSERTED RATHER THAN SPELLED OUT. `makingEvidence(stage)` is
+     * false in exactly one stage, so the branch below it IS `stage === "revealed"` -- checked
+     * against the function instead of against a string this file would have to keep in step.
+     */
+    expect(home.indexOf("<GameReview"), "the review is back in the page").toBe(-1);
+    const explorer = readFileSync(
+      resolve(process.cwd(), "client/src/components/RecordExplorer.tsx"),
+      "utf8",
+    );
+    expect(explorer).toMatch(/<GameReview/);
+
+    const branch = home.indexOf(") : focus ? (");
+    const rendered = home.indexOf("<RecordExplorer");
+    expect(branch, "the focus branch is gone").toBeGreaterThan(-1);
+    expect(rendered, "the explorer renders before the reveal").toBeGreaterThan(branch);
+    /*
+     * BOUNDED, BECAUSE THE SUSPENSE BOUNDARY SITS BETWEEN THEM. The explorer is a lazy
+     * chunk -- a surface that renders only on a press has no business in the bytes every
+     * arrival downloads -- so `{exploring && (` is followed by a `<Suspense>` and then the
+     * component. The span is capped so this cannot quietly start matching across the file.
+     */
+    expect(home).toMatch(/\{exploring && \([\s\S]{0,200}?<RecordExplorer/);
+
+    for (const stage of DECISION_STAGES) {
+      expect(makingEvidence(stage), stage).toBe(stage !== "revealed");
+    }
   });
 
   it("never starts the review by itself", () => {

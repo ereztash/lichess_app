@@ -3440,6 +3440,31 @@ button:not(:disabled) {
   background: transparent;
   padding: 8px 14px;
 }
+/*
+ * THE ONE STEP OFF THE REVEAL (P1.7). Deliberately quiet: the primary action of a reveal is the
+ * next decision, which lives in the header and is painted as such. This is a way to look at the
+ * record, and a toolbox door painted like a call to action is a toolbox that is not behind a door.
+ */
+.explore-toggle {
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px;
+  border: 1px dashed var(--hairline-strong);
+  background: transparent;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--ink);
+  cursor: pointer;
+}
+.explore-toggle:hover {
+  border-style: solid;
+}
+/* The sections inside keep their own borders; this only stacks them and marks where they start. */
+.record-explorer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.25);
+}
 .opponent-thinking {
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);

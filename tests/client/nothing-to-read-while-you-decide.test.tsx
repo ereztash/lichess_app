@@ -187,17 +187,45 @@ describe("the surfaces a serverless render cannot reach", () => {
     expect(home.match(/\) : focus \? \(/g) ?? []).toHaveLength(1);
   });
 
+  /*
+   * THEY ARE NOT IN THE PAGE ANY MORE, WHICH IS A STRONGER FACT THAN BEING LATE IN IT.
+   *
+   * P1.7 moved all four into `RecordExplorer`, which `Home` renders in one place: inside the branch
+   * below, and behind a control the player has to press. So "after the reveal" is no longer a
+   * position in a file that a merge could move -- it is the only place the component exists.
+   */
+  const explorer = readFileSync(
+    resolve(__dirname, "../../client/src/components/RecordExplorer.tsx"),
+    "utf8",
+  );
+
   it.each([["LearningQueue"], ["RecordDashboard"], ["LichessLayersPanel"], ["ClaimPanel"]])(
-    "renders <%s> only after the reveal has been reached",
+    "keeps <%s> out of the page entirely, and inside the explorer",
     (component) => {
-      const uses = [...home.matchAll(new RegExp(`<${component}[\\s/>]`, "g"))].map((m) => m.index!);
-      expect(uses, `<${component}> is not in the page at all`).toHaveLength(1);
+      const tag = new RegExp(`<${component}[\\s/>]`, "g");
       expect(
-        uses[0],
-        `<${component}> renders while the player is still producing evidence`,
-      ).toBeGreaterThan(split);
+        [...home.matchAll(tag)],
+        `<${component}> is back in Home.tsx, where a merge can move it above the branch`,
+      ).toHaveLength(0);
+      expect([...explorer.matchAll(tag)], `<${component}> is in neither file`).toHaveLength(1);
     },
   );
+
+  it("renders the explorer once, after the branch, and only when it is asked for", () => {
+    const uses = [...home.matchAll(/<RecordExplorer[\s/>]/g)].map((m) => m.index!);
+    expect(uses, "the explorer is rendered more than once, or not at all").toHaveLength(1);
+    expect(uses[0], "the explorer renders while the player is producing evidence").toBeGreaterThan(
+      split,
+    );
+    /* And behind the toggle, not merely below it: `EXPLORE` is a mode the player enters. */
+    /*
+     * BOUNDED, BECAUSE THE SUSPENSE BOUNDARY SITS BETWEEN THEM. The explorer is a lazy
+     * chunk -- a surface that renders only on a press has no business in the bytes every
+     * arrival downloads -- so `{exploring && (` is followed by a `<Suspense>` and then the
+     * component. The span is capped so this cannot quietly start matching across the file.
+     */
+    expect(home).toMatch(/\{exploring && \([\s\S]{0,200}?<RecordExplorer/);
+  });
 
   it("keeps the toolbox behind the same branch, by the same reading", () => {
     const rail = home.indexOf('<aside className="control-rail">');
