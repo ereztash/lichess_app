@@ -62,7 +62,7 @@ import { CONFIDENCE_CHOICES, CONFIDENCE_LABELS } from "@shared/confidence";
 import { recordAttempt } from "@/lib/progress-record";
 import { confidenceIsAsked, readsAreAsked, type DecisionContext } from "@shared/confidence-asked";
 import { useEffect, useRef, useState } from "react";
-import { Check, CircleAlert, Pencil } from "lucide-react";
+import { Check, CircleAlert, CircleDashed, Pencil } from "lucide-react";
 import {
   draftProblems,
   emptyDraft,
@@ -601,7 +601,23 @@ export function CommitmentScreen({
         disabled={pending}
         aria-describedby={ready ? undefined : "commit-blocked"}
       >
-        <Check size={16} />{" "}
+        {/*
+          * THE ICON FOLLOWS THE STATE, and it did not.
+          *
+          * `<Check />` rendered unconditionally, so the button that says *"חסר: בחרו מהלך על הלוח"*
+          * wore a TICK -- the one glyph that means the opposite. On the screen it sits directly
+          * under the last unanswered step, so the icon and the position both said "done" while the
+          * words said "missing", and a reader resolves that contradiction in favour of the picture.
+          *
+          * `CircleDashed` rather than `CircleAlert`: nothing is broken, and the sentence below this
+          * button says so in as many words -- *"החלטה חלקית לא נרשמת — זה הכלל, לא תקלה"*. An outline
+          * not yet filled is what is true.
+          *
+          * NO TEST SAW IT, and the reason is worth keeping: `commit-blocked.test.tsx` asserts
+          * `button.textContent` matches `/חסר:/`, which was true throughout. An icon contributes no
+          * text, so a test that reads the string is blind to half of what the button says.
+          */}
+        {ready || pending ? <Check size={16} /> : <CircleDashed size={16} />}{" "}
         {pending
           ? "רושם החלטה…"
           : ready

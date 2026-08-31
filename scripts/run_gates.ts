@@ -873,6 +873,26 @@ export const GATES: Gate[] = [
       ),
   },
   {
+    id: "GATE-CLAIM-ANCHOR",
+    rule: "L2",
+    description: "A debt row may not claim more reality than its proof ever ran against.",
+    /*
+     * ONE WAVE SHIPPED FIVE DEFECTS THAT 246 GREEN TESTS DID NOT SEE, and not one of the five was a
+     * wrong test: each looked at a faithful shadow of the thing and was read as evidence about the
+     * thing. `tests/LEVELS.md` is the ladder and the five worked examples; this is the part that
+     * runs. A ratchet rather than a bar, because seven rows are under-anchored today and a gate
+     * that is red on the day it is written gets deleted rather than met.
+     */
+    run: () =>
+      runVitestFile("tests/gates/claim-anchor.test.ts", "no claim outruns the rung its proof stands on"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/claim-anchor.control.test.ts",
+        "a P0 proven at L1, and a level asserted with no reason",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-REGISTER-RECONCILED",
     rule: "R-01",
     description: "The four registers agree with the tree and with each other.",
