@@ -590,3 +590,118 @@ export function blitzEventsIn(
       a.ply - b.ply,
   );
 }
+
+/**
+ * SOMETHING THE PRODUCT IS ALREADY LOOKING AT, supplied by whoever knows.
+ *
+ * A PARAMETER AND NOT A LOOKUP, because what counts as "already being checked" is going to change
+ * as the claim path is wired: today it is a bucket the record's own reading keeps returning;
+ * tomorrow it is a frozen hypothesis with a drill against it. A reading that looked it up would
+ * have to be rewritten at each of those steps, and every screen with it.
+ *
+ * IT CARRIES ITS OWN AUTHORITY, which is the point. §24's third state -- "this happened again
+ * exactly where we are already looking" -- says something very different when the thing being
+ * looked at is a retrospective description than when it is a pre-registered hypothesis, and the
+ * screen must not have to guess which.
+ */
+export interface WatchedBucket {
+  /** A `BUCKETINGS` key. A bucket nothing can express is a bucket no decision can join. */
+  key: string;
+  scope: string;
+  authority: EvidenceAuthority;
+  /** Decisions already in it, before this game. Carried so the screen can say what changed. */
+  soFar: number;
+}
+
+/**
+ * Why one game had nothing to conclude. Three causes, and they lead somewhere different.
+ *
+ *   not-scored        the engine has not run on this game. Nothing about it is readable yet.
+ *   no-decisions      the game holds no decisions by this player at all.
+ *   engine-only       there were costly moves and nothing the record could add to them. This is
+ *                     the ordinary case, and it is the one worth naming rather than blanking.
+ */
+export const POST_GAME_SILENCES = ["not-scored", "no-decisions", "engine-only"] as const;
+export type PostGameSilence = (typeof POST_GAME_SILENCES)[number];
+
+/**
+ * WHAT ONE FINISHED GAME IS ALLOWED TO SAY, in §24's three states.
+ *
+ * WHAT DECIDES BETWEEN A AND B IS NOT SIZE, IT IS WHETHER THE ENGINE COULD HAVE SAID IT. A game
+ * whose worst moment is a 900-centipawn blunder gets state A; a game whose worst moment is a
+ * 200-centipawn move the player called "בטוח" gets state B. That ordering looks backwards next to
+ * a cp-loss column and it is the whole product: the first is what Game Review has given players
+ * for a decade, and the second is the only thing in the record that a PGN and an engine could not
+ * reconstruct afterwards.
+ *
+ * STATE A IS NOT AN EMPTY STATE. It names why, and it still offers the decisions worth seeing --
+ * §24 is explicit that "there were two interesting decisions to look at" belongs there. What it
+ * refuses to do is turn them into a sentence about the player.
+ *
+ * NOTHING HERE IS EVER MORE THAN `one-event`. Not the lead, not the state-C match. One game is one
+ * game, and `authorityOfRecordReading` says so from the count rather than from a promise.
+ */
+export type PostGameReading =
+  | { state: "nothing-to-conclude"; because: PostGameSilence; worthSeeing: BlitzEvent[] }
+  | { state: "one-event"; lead: BlitzEvent; alsoWorthSeeing: BlitzEvent[] }
+  | {
+      state: "joins-what-we-are-watching";
+      lead: BlitzEvent;
+      alsoWorthSeeing: BlitzEvent[];
+      watching: WatchedBucket;
+      /** Readable decisions this game added to that bucket. Never zero in this state. */
+      added: number;
+      /** `soFar + added`, computed here so no screen adds two numbers it was handed. */
+      nowUnderWatch: number;
+    };
+
+/**
+ * The post-game reading for one finished game.
+ *
+ * THE ORDER OF THE THREE CHECKS IS THE ORDER OF WHAT THE PLAYER GAINS. Joining something already
+ * under watch is worth more than a fresh event, because it is the only thing on this screen that
+ * points forward; a fresh event is worth more than a list; a list is worth more than a blank.
+ */
+export function readBlitzGame(
+  game: StoredBlitzGame,
+  decisions: readonly StoredBlitzDecision[],
+  watching?: WatchedBucket,
+): PostGameReading {
+  const mine = decisions.filter((d) => d.gameId === game.gameId);
+  if (mine.length === 0) {
+    return { state: "nothing-to-conclude", because: "no-decisions", worthSeeing: [] };
+  }
+  if (game.analysisState !== "complete") {
+    return { state: "nothing-to-conclude", because: "not-scored", worthSeeing: [] };
+  }
+
+  const events = blitzEventsIn(game, mine);
+  const leadIndex = events.findIndex((e) => BLITZ_EVENT_EVIDENCE[e.kind] === "process");
+  if (leadIndex === -1) {
+    /*
+     * EVERY EVENT HERE IS AN ENGINE COMPARISON. They are worth seeing and they are not a finding:
+     * the record held nothing the engine did not already have. Saying that plainly is what makes
+     * the other state believable.
+     */
+    return { state: "nothing-to-conclude", because: "engine-only", worthSeeing: events };
+  }
+  const lead = events[leadIndex];
+  const alsoWorthSeeing = events.filter((_, i) => i !== leadIndex);
+
+  if (watching) {
+    const bucketing = BUCKETINGS.find((b) => b.key === watching.key);
+    const scored = mine.map(toScored).filter((d): d is ScoredDecision => d !== null);
+    const added = bucketing ? splitByBucket(bucketing, scored).inside.length : 0;
+    if (added > 0) {
+      return {
+        state: "joins-what-we-are-watching",
+        lead,
+        alsoWorthSeeing,
+        watching,
+        added,
+        nowUnderWatch: watching.soFar + added,
+      };
+    }
+  }
+  return { state: "one-event", lead, alsoWorthSeeing };
+}

@@ -312,8 +312,43 @@ const INDEX = "dist/public/index.html";
  *
  * WHAT WAS CHECKED RATHER THAN ASSUMED: the chunk set is unchanged again, and the wasm is still
  * held out of the entry.
+ *
+ * ---
+ *
+ * 676 -> 678 and 750 -> 754: R-17's confidence columns, then the evidence language and the
+ * post-game screen.
+ *
+ * MEASURED IN THREE LAYERS, by building the client at each:
+ *
+ *                                       entry raw   initial raw
+ *     the client as the previous commit
+ *     left it                             676.4        749.1
+ *     + the evidence and post-game CSS     676.4        752.0   +0.0 / +2.9
+ *     + the PostGame component tree        676.8        752.4   +0.4 / +0.4
+ *
+ * THE FIRST ROW IS A CONFESSION. 676.4 is the tree WITHOUT any of this commit's client changes,
+ * and 676 is the ceiling -- so the previous commit crossed the entry budget and shipped, because
+ * `bundle:budget` was not run before committing it. The same process error that produced the CI
+ * failure on d312107, where the failing line was below a `sed` window. It is 0.4 kB of
+ * `shared/blitz-record.ts`: two zod refines, `blitzConfidenceOf`, and the two legacy constants --
+ * all of it on the entry route because `Blitz.tsx` assembles the record it validates.
+ *
+ * THE CSS IS THE REAL COST AND IT IS THE COST OF §11. Five evidence levels each need a visibly
+ * different treatment, or the distinction they exist to make is not made -- a hypothesis rendered
+ * with the weight of a tested finding has been promoted by layout. That is 2.9 kB of selectors and
+ * the comments that say why each one is there, and it is not compressible into fewer rules without
+ * giving two levels the same appearance.
+ *
+ * THE COMPONENT TREE IS 0.4 kB FOR SIX MODULES, which is the part worth noting because it looks
+ * wrong. `blitz-reading`, `blitz-words`, `plain-reading`, `evidence-authority`, `FindingCard` and
+ * `EvidenceMark` together add 0.4 kB to the entry, because almost all of what they contain is
+ * comment and type -- both of which minify to nothing -- and because they reuse `detector.ts`,
+ * `confidence.ts` and `reveal.ts` rather than restating a single threshold.
+ *
+ * 678 AND 754 LEAVE 1.2 kB AND 1.6 kB. Both are within the headroom every raise in this file has
+ * taken, and neither ceiling is widened past what was actually measured.
  */
-const ENTRY_RAW_KB = 676;
+const ENTRY_RAW_KB = 678;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 210;
 /**
@@ -359,7 +394,7 @@ const ENTRY_GZIP_KB = 210;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 750;
+const INITIAL_RAW_KB = 754;
 
 interface Asset {
   name: string;

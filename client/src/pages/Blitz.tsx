@@ -48,7 +48,14 @@ import {
   type InstrumentSession,
 } from "@shared/blitz-instrument";
 import { analyseFinishedGame, isFinished, type AnalysedDecision } from "@shared/blitz-post-game";
-import { toPendingRecord, attachAnalysis, isRefusal } from "@shared/blitz-record";
+import {
+  toPendingRecord,
+  attachAnalysis,
+  isRefusal,
+  type StoredBlitzRecord,
+} from "@shared/blitz-record";
+import { readBlitzGame, type BlitzEvent } from "@shared/blitz-reading";
+import { PostGame } from "@/components/PostGame";
 import { useAttachBlitzAnalysis, useSaveBlitzGame } from "@/lib/record-api";
 
 const CONTROLS: { label: string; tc: RequiredTimeControl }[] = [
@@ -100,6 +107,20 @@ export default function Blitz() {
   const [selected, setSelected] = useState<string | undefined>();
   const [analysis, setAnalysis] = useState<AnalysedDecision[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  /*
+   * THE RECORD THIS SCREEN JUST WROTE, HELD SO THE POST-GAME CAN READ IT.
+   *
+   * NOT REFETCHED FROM THE SERVER, and the reason is not latency. The reading must describe the
+   * game the player just finished, and a refetch would describe whatever the store returns --
+   * which, if the write failed, is the previous game or nothing, presented as this one. Holding the
+   * object that was actually assembled means the screen and the write agree by construction.
+   *
+   * IT IS SET TWICE ON PURPOSE: once `pending`, so a player whose engine never answers still gets
+   * a screen that says the engine never answered, and once `complete` when the analysis lands.
+   */
+  const [stored, setStored] = useState<StoredBlitzRecord | null>(null);
+  /** A position the player asked to look at, from the post-game list. Null while none is open. */
+  const [reviewing, setReviewing] = useState<BlitzEvent | null>(null);
   /*
    * WHEN THE GAME HAPPENED, IN A REF RATHER THAN STATE. Nothing renders these, so state would only
    * buy re-renders during a timed game -- which is the one place in this product where a wasted
@@ -223,6 +244,7 @@ export default function Blitz() {
       return;
     }
     played.current.saved = true;
+    setStored(pending);
     void saveGame.mutateAsync(pending).catch(() => {
       played.current.saved = false;
       setNotice("המשחק הסתיים אבל לא נשמר. הוא ייעלם עם הדף.");
@@ -296,6 +318,7 @@ export default function Blitz() {
      * THE EXCEPTION'S OWN MESSAGE DOES NOT GO ON SCREEN. It is English, it names internals, and a
      * player reading it learns nothing they can act on.
      */
+    setStored(record);
     void attachGameAnalysis.mutateAsync(record).catch(() => {
       setNotice("הניתוח לא נשמר. המשחק עצמו נשמר, והניתוח שלמעלה עדיין נכון.");
     });
@@ -316,6 +339,8 @@ export default function Blitz() {
   const startGame = (tc: RequiredTimeControl) => {
     setNotice(null);
     setAnalysis(null);
+    setStored(null);
+    setReviewing(null);
     setSession(newSession());
     played.current = {
       gameId: `blitz-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -391,9 +416,49 @@ export default function Blitz() {
         <section className="blitz-over">
           <h2>המשחק נגמר</h2>
           <p>{describeOutcome(game.outcome)}</p>
-          <p>{analysis ? `${analysis.length} החלטות נותחו אחרי המשחק.` : "מנתח…"}</p>
-          <button type="button" onClick={() => setGame({ phase: "idle" })}>
-            משחק חדש
+          {/*
+            * THE COUNT USED TO BE THE WHOLE SCREEN. It is now one row inside the disclosure, and
+            * what stands in its place is a reading -- see `PostGame`. While the engine is still
+            * running there is genuinely nothing to read, and saying "מנתח…" is the honest state
+            * rather than a placeholder: the record already exists and is already safe.
+            */}
+          {stored === null ? (
+            <p role="status">שומר…</p>
+          ) : (
+            <PostGame
+              game={stored.game}
+              reading={readBlitzGame(stored.game, stored.decisions)}
+              analysed={stored.decisions.length}
+              onSeePosition={setReviewing}
+              onPlayAgain={() => setGame({ phase: "idle" })}
+            />
+          )}
+          {analysis === null && stored !== null && <p role="status">מנתח…</p>}
+        </section>
+      )}
+
+      {/*
+        * THE POSITION THE PLAYER ASKED TO SEE, on its own board rather than by rewinding the game's.
+        *
+        * A SEPARATE BOARD, AND THAT IS NOT WASTE. The game's board shows the final position and is
+        * what the outcome sentence refers to; replacing its FEN to show a mid-game position would
+        * make the two disagree, and a player who then pressed "new game" would have been looking at
+        * something the screen no longer described.
+        */}
+      {reviewing && (
+        <section className="blitz-review" aria-label="העמדה שביקשת לראות" dir="rtl">
+          <h3>
+            מהלך {reviewing.ply}: {reviewing.san}
+          </h3>
+          <ChessBoard
+            board={new Chess(reviewing.fen).board()}
+            orientation={PLAYER}
+            legalTargets={[]}
+            onSelect={() => {}}
+            onMove={() => {}}
+          />
+          <button type="button" onClick={() => setReviewing(null)}>
+            סגור
           </button>
         </section>
       )}

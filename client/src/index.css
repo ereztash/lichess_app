@@ -4662,3 +4662,220 @@ button:not(:disabled) {
   line-height: 1.6;
   color: var(--muted);
 }
+
+/*
+ * THE EVIDENCE LANGUAGE (§11), AND THE FINDING CARD THAT CARRIES IT (§14, §15).
+ *
+ * THE FIVE LEVELS GET FIVE VISIBLY DIFFERENT TREATMENTS, and that is the whole point of the block.
+ * A hypothesis rendered with the weight of a tested finding has been promoted by layout, without
+ * anyone having written a stronger sentence -- which is the failure `OutcomeSummary` already
+ * guards against for claims, widened here to everything the product says.
+ *
+ * THE ORDER OF WEIGHT IS NOT THE ORDER OF STRENGTH. `refuted` is not faint: it is the strongest
+ * evidence this product ever produces about a proposition, pointing the other way, and §22 is
+ * explicit that both settled outcomes are successes. It gets a settled colour, not a warning one.
+ */
+.evidence-mark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--panel-fine);
+}
+.evidence-mark__mark {
+  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: -0.05em;
+}
+.evidence-mark__word {
+  letter-spacing: 0.02em;
+}
+.evidence-mark[data-authority="one-event"],
+.evidence-mark[data-authority="recurred"] {
+  color: var(--muted);
+}
+.evidence-mark[data-authority="hypothesis"] {
+  color: var(--accent-soft);
+}
+.evidence-mark[data-authority="tested"] {
+  color: var(--blue);
+  font-weight: 600;
+}
+.evidence-mark[data-authority="refuted"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.evidence-mark__explain {
+  flex-basis: 100%;
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.evidence-mark__explain > summary {
+  cursor: pointer;
+}
+.evidence-mark__explain > p {
+  margin: 4px 0 0;
+  line-height: 1.6;
+}
+
+/*
+ * THE CARD. Headline, example, evidence, action -- in that order, and the order is §7's argument:
+ * the concrete case before anything aggregate.
+ */
+.finding {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.finding__headline {
+  margin: 0;
+  font-size: var(--panel-title);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.finding__example {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.finding__authority {
+  /*
+   * ON ITS OWN ROW, ABOVE THE ACTION. A mark tucked beside the headline reads as a tag on the
+   * sentence; on its own line it reads as an answer to "how much does this count", which is the
+   * question it is there to answer.
+   */
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+  padding-top: 8px;
+}
+.finding__button {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+  /* 44px is the target size the platform guidance asks for; the padding above reaches it. */
+  min-height: 44px;
+}
+.finding__because {
+  margin: 6px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.finding__why > summary {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.finding__why-body {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.finding__restraint {
+  margin: 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* THE POST-GAME SCREEN (§24). */
+.post-game {
+  display: grid;
+  gap: 12px;
+  max-width: 42rem;
+}
+.post-game__facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.post-game__fact {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.post-game__fact-label {
+  min-width: 5.5rem;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.post-game__fact-value {
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+.post-game__note {
+  margin: 8px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.post-game__why {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 6px 0 0;
+}
+.post-game__why > dt {
+  color: var(--muted);
+}
+.post-game__why > dd {
+  margin: 0;
+}
+.post-game__others > summary {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.post-game__others-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.post-game__others-list button {
+  font: inherit;
+  text-align: start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--blue);
+  cursor: pointer;
+  min-height: 44px;
+}
+.post-game__others-detail {
+  display: block;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.post-game__again {
+  font: inherit;
+  justify-self: start;
+  padding: 8px 14px;
+  min-height: 44px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.blitz-review {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  max-width: 28rem;
+}
