@@ -136,6 +136,51 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
     await page.close();
   }, 120_000);
 
+  it("setup: four controls that are four boxes, each reading its own label", async () => {
+    /*
+     * THE DEFECT THIS IS FOR, AND WHY EVERYTHING ELSE IN THIS FILE MISSED IT. `/blitz` had exactly
+     * one rule in `index.css` -- `.blitz-review` -- so the route shipped as unstyled flow content:
+     * four `<button>` elements with no box and no spacing between them. Under the document's RTL
+     * direction the four labels merged into one numeric run and the bidi algorithm laid its
+     * segments out right to left, so a player was offered `5+55+03+23+0` where four controls were
+     * meant to be.
+     *
+     * AXE HAS NO OPINION ABOUT THIS. The accessible names were right, the contrast was right, the
+     * roles were right. A screen can be entirely unstyled and pass every automated check this
+     * repository owns, which is what the three cases below this one had been doing.
+     *
+     * SO THE ASSERTIONS ARE GEOMETRIC AND THEY ARE BOTH HALVES. The boxes must not overlap -- that
+     * is the layout -- and each label must sit in an element that declares its direction, which is
+     * what stops the reordering coming back the next time something is placed beside one.
+     */
+    const page = await openBlitz(width);
+    const boxes = await page.locator(".blitz-control").evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { text: (el.textContent ?? "").trim(), x: r.x, y: r.y, w: r.width, h: r.height };
+      }),
+    );
+    expect(boxes.length, "the time controls did not render").toBeGreaterThan(1);
+
+    for (const box of boxes) {
+      /* A control below the tap floor is one a thumb cannot reliably hit; zero is one that has no box. */
+      expect(box.w, `${box.text} is ${box.w}px wide`).toBeGreaterThanOrEqual(44);
+      expect(box.h, `${box.text} is ${box.h}px tall`).toBeGreaterThanOrEqual(44);
+    }
+    for (let i = 0; i < boxes.length; i += 1) {
+      for (let j = i + 1; j < boxes.length; j += 1) {
+        const [a, b] = [boxes[i], boxes[j]];
+        const apart = a.x + a.w <= b.x + 0.5 || b.x + b.w <= a.x + 0.5 ||
+          a.y + a.h <= b.y + 0.5 || b.y + b.h <= a.y + 0.5;
+        expect(apart, `${a.text} and ${b.text} occupy the same pixels`).toBe(true);
+      }
+    }
+
+    /* Every label is a Latin run and every Latin run declares its direction. */
+    expect(await page.locator(".blitz-control > span[dir='ltr']").count()).toBe(boxes.length);
+    await page.close();
+  }, 120_000);
+
   it("playing: a board, a clock for each side, and a way out", async () => {
     const page = await openBlitz(width);
     await page.getByRole("button", { name: "3+0" }).click();
@@ -143,6 +188,27 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
 
     /* THE FLOOR. A page with no board has not reached the state this case is named for. */
     expect(await page.locator(".board-square").count()).toBe(64);
+    /*
+     * AND IT IS A BOARD RATHER THAN A THUMBNAIL. `.board-stage` carries `grid-column: 2` because on
+     * `/play` it shares a grid with the evaluation bar; blitz has no evaluation bar -- the engine
+     * does not run until the game is over -- so the pin named a column that did not exist, the
+     * browser made an implicit one sized to content, and the board came out 120px wide with the
+     * clocks beside it. A count of 64 squares was true the whole time.
+     */
+    const board = await page.locator(".board-stage").boundingBox();
+    const column = await page.locator("main.blitz").boundingBox();
+    expect(board, "no board box at all").not.toBeNull();
+    expect(column, "no blitz column at all").not.toBeNull();
+    /*
+     * MEASURED AGAINST ITS OWN COLUMN AND NOT AGAINST THE VIEWPORT. The column is capped at 34rem
+     * on purpose -- a board wider than that is a board a player's eyes have to travel -- so a
+     * fraction of the WINDOW would fail on a desktop for the correct behaviour. What went wrong
+     * was the board taking a third of the space it was given, and that is the ratio to hold.
+     */
+    expect(
+      board!.width / column!.width,
+      `the board is ${board!.width}px inside a ${column!.width}px column`,
+    ).toBeGreaterThan(0.8);
     expect(await page.getByLabel("השעון שלך").count()).toBe(1);
     expect(await page.getByLabel("שעון היריב").count()).toBe(1);
     expect(await page.getByRole("button", { name: "פרישה" }).count()).toBe(1);
@@ -192,6 +258,37 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
     expect(await page.locator(".finding__headline").count()).toBe(1);
     /* And it is the unscored sentence, not a headline about a move nothing has evaluated. */
     expect(await page.locator(".finding__headline").textContent()).toContain("המנוע עוד לא עבר");
+
+    /*
+     * AND THE GAME IS ON THE RECORD, which the card above is NOT evidence of.
+     *
+     * This assertion exists because its absence hid a total failure of the feature. `Blitz.tsx` used
+     * to render the post-game reading from the record it had just assembled in component state, so
+     * the card appeared whether or not the store had taken it -- and the store was taking none of
+     * them: `performance.now()` is a double, the think time came out fractional, and
+     * `storedBlitzRecordSchema` requires an int. Every game played in a real browser was refused,
+     * this audit went green on every run, and the screen said "המשחק עצמו נשמר".
+     *
+     * Read out of `localStorage` rather than off the screen ON PURPOSE. A browser check that asks
+     * the page whether the page saved something is asking the wrong party.
+     */
+    const record = await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((k) => k.startsWith("decision-lab.record."));
+      return key === undefined ? null : (localStorage.getItem(key) ?? null);
+    });
+    expect(record, "no record was written to this browser at all").not.toBeNull();
+    const state = JSON.parse(record as string) as {
+      blitzGames?: { gameId: string; analysisState: string }[];
+      blitzDecisions?: { gameId: string; thinkMs: number }[];
+    };
+    expect(state.blitzGames ?? [], "the game the player just finished was not stored").toHaveLength(
+      1,
+    );
+    expect((state.blitzDecisions ?? []).length).toBeGreaterThan(0);
+    /* The think time is the measurement, and it survived the round trip as a whole millisecond. */
+    for (const decision of state.blitzDecisions ?? []) {
+      expect(Number.isInteger(decision.thinkMs), `${decision.thinkMs}`).toBe(true);
+    }
 
     const audit = await axe(page);
     expect(audit.rulesRun, "axe audited an empty document").toBeGreaterThan(10);

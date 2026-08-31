@@ -81,8 +81,26 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  *
  * BUMP THIS when anything changes about HOW a decision is produced. Not when a bug is fixed in
  * something that reads one.
+ *
+ * ---
+ *
+ * 1 -> 2: LAW 1's decision focus. The instrumented-standard loop used to render `<ClaimPanel>` and
+ * `<LearningQueue>` on the branch a decision is made on, so a player stated how sure they were with
+ * findings about their own past decisions -- their own calibration among them -- beside the
+ * question. At the counterfactual stage the whole reveal column rendered, dashboard included. Both
+ * are gone.
+ *
+ * IT IS THE STIMULUS THAT CHANGED, WHICH IS WHAT THIS FIELD IS FOR. The examples in the paragraph
+ * above are a sampling rate and the moment a question appears; what is on screen while the answer
+ * is given is the same kind of fact. A confidence stated in front of a panel describing that
+ * player's calibration and a confidence stated in front of a board are two measurements, and
+ * nothing in the row itself distinguishes them -- which is exactly why the version has to.
+ *
+ * WHICH DIRECTION IT MOVES THE NUMBERS IS NOT KNOWN, and this is not a claim that the old rows are
+ * wrong. It is a claim that they are not the same population, which is a weaker and much safer
+ * thing to say.
  */
-export const CURRENT_PROTOCOL_VERSION = 1;
+export const CURRENT_PROTOCOL_VERSION = 2;
 
 /**
  * What analysis timing a protocol is allowed to have.

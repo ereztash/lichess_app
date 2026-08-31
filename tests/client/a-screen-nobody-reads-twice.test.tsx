@@ -272,6 +272,39 @@ describe("a screen nobody reads twice", () => {
       expect(glance()).not.toContain("עוד לא הצטבר מספיק");
     });
 
+    it("does not answer an unscored record with another game (P1.5)", () => {
+      /*
+       * THE ONE BLOCKER PLAYING DOES NOT ANSWER. The games are stored and the engine has not been
+       * over them; another game adds to the backlog that IS the blocker. The screen offered one
+       * anyway -- "שחק עוד משחק" -- because every blocker had to fill in a button label.
+       *
+       * IT ONLY BECAME HONEST TO SAY "WAIT" WHEN WAITING STARTED WORKING. Before the analysis queue
+       * (LAW 4), leaving the blitz screen cancelled the search, so a pending game was one nothing
+       * would ever finish.
+       */
+      const pending = game({ analysisState: "pending", analysedAt: null, analysis: null });
+      reading.current = readBlitzOf(
+        [pending],
+        thinRun("g1", 20).map((d) => ({ ...d, cpLoss: null, standingCp: null })),
+      );
+      show(true);
+      expect(document.querySelector(".finding__action")).toBeNull();
+      expect(glance()).not.toContain("שחק עוד משחק");
+      /* And it says what is happening instead, with the count that is the diagnosis. */
+      expect(document.querySelector(".resume__waiting")?.textContent).toContain("ממתין לניתוח");
+    });
+
+    it("still offers a game for the blockers that a game really does answer", () => {
+      /*
+       * THE OTHER HALF, WITHOUT WHICH THE CASE ABOVE IS SATISFIED BY REMOVING EVERY BUTTON. A thin
+       * record is answered by playing, and it must still say so.
+       */
+      reading.current = readBlitzOf([game()], thinRun("g1", 6));
+      show(true);
+      expect(document.querySelector(".finding__action")).not.toBeNull();
+      expect(document.querySelector(".resume__waiting")).toBeNull();
+    });
+
     it("says nothing separated when nothing separated, rather than calling it a shortage", () => {
       reading.current = readBlitzOf([game()], thinRun("g1", MIN_BUCKET_N * 4));
       show(true);

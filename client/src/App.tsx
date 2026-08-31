@@ -1,6 +1,7 @@
 import NotFound from "@/pages/NotFound";
 import { lazy, Suspense, useEffect } from "react";
 import { Route, Switch } from "wouter";
+import { useBlitzAnalysis } from "@/lib/use-blitz-analysis";
 import {
   beginVisit,
   previousVisitStartedAt,
@@ -28,6 +29,19 @@ const Blitz = lazy(() => import("./pages/Blitz"));
  * and a first decision to set up. A board is where a decision is taken; it is not where a player
  * finds out what is being measured about them.
  */
+/**
+ * Runs the pending-analysis queue and renders nothing.
+ *
+ * A COMPONENT RATHER THAN A CALL IN `App`, because the hook it wraps subscribes to progress and a
+ * progress update at the root would re-render the whole tree. Here the re-render stops at an empty
+ * fragment. The screens that want to SHOW progress call the same hook themselves and get the same
+ * page-level runner.
+ */
+function BlitzAnalysisKeeper() {
+  useBlitzAnalysis();
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
@@ -107,6 +121,15 @@ export default function App() {
         * player meets first.
         */}
       <ThemeProvider defaultTheme="light" switchable>
+        {/*
+          * LAW 4 AT THE ROOT: a pending analysis is finished by whichever page load finds it.
+          *
+          * HERE RATHER THAN ON THE BLITZ SCREEN, which is the whole point. The screen that started
+          * the analysis is exactly the one a player leaves, so a resume owned by that screen is a
+          * resume that never happens. At the root it costs one small query — the games, not the
+          * decisions — and it runs on the front door, the board, and anywhere else.
+          */}
+        <BlitzAnalysisKeeper />
         <Router />
       </ThemeProvider>
     </ErrorBoundary>

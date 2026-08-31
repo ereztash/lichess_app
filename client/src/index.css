@@ -3440,6 +3440,31 @@ button:not(:disabled) {
   background: transparent;
   padding: 8px 14px;
 }
+/*
+ * THE ONE STEP OFF THE REVEAL (P1.7). Deliberately quiet: the primary action of a reveal is the
+ * next decision, which lives in the header and is painted as such. This is a way to look at the
+ * record, and a toolbox door painted like a call to action is a toolbox that is not behind a door.
+ */
+.explore-toggle {
+  width: 100%;
+  margin-top: 12px;
+  padding: 9px;
+  border: 1px dashed var(--hairline-strong);
+  background: transparent;
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--ink);
+  cursor: pointer;
+}
+.explore-toggle:hover {
+  border-style: solid;
+}
+/* The sections inside keep their own borders; this only stacks them and marks where they start. */
+.record-explorer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.25);
+}
 .opponent-thinking {
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--blue);
@@ -4872,6 +4897,195 @@ button:not(:disabled) {
   background: transparent;
   color: var(--muted);
   cursor: pointer;
+}
+/*
+ * THE BLITZ ROUTE, WHICH HAD ONE RULE IN THIS FILE AND NEEDED FIFTEEN.
+ *
+ * WHAT SHIPPED. `/blitz` rendered as unstyled flow content: an `<h1>`, a paragraph, and four
+ * `<button>` elements with no box, no spacing and no direction. Under the document's `dir="rtl"`
+ * the four labels -- `3+0`, `3+2`, `5+0`, `5+5` -- had nothing between them, so the bidi algorithm
+ * saw one long numeric run and laid its segments out right-to-left. The player was offered
+ * `5+55+03+23+0`: one unreadable string where four controls were meant to be.
+ *
+ * TWO DEFECTS, AND ONLY ONE OF THEM IS CSS. The layout is missing, and every Latin run on this
+ * screen is unmarked. `dir="ltr"` on the runs is the repository's own fix -- `Home.tsx` already
+ * carries it for `7. Bb3`, which rendered as `Bb3 .7` for the same reason -- and it is what keeps
+ * a clock, a time control or a confidence digit readable no matter what sits beside it.
+ *
+ * WHY NOTHING CAUGHT IT. `every-blitz-state.layout.test.ts` opens this route in a real browser and
+ * audits it with axe, and axe has no opinion about a control that reads as gibberish: the accessible
+ * name is correct, the contrast is fine, the roles are right. `cumulative-layout-shift` measures
+ * `/` and `/play` and has never seen this route. A screen can be entirely unstyled and pass every
+ * automated check this repository owns.
+ */
+/*
+ * P1.8: the composer's second stage, and what stands where it will be.
+ *
+ * The falsification boxes are ABSENT until the rule is stated -- you cannot say what would refute a
+ * rule before you have written it -- and an unexplained gap reads as a rendering fault, so a line
+ * says which half is coming.
+ */
+.learning-composer-next {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  border-inline-start: 2px solid var(--edge-soft);
+  padding-inline-start: 10px;
+  margin: 2px 0;
+}
+/*
+ * P1.9: everything that is not due, folded into one line the player can open.
+ *
+ * A retrieval schedule of 1/3/7/21 days means almost nothing is due on almost any visit, so the
+ * ordinary state of this section was N rows of a control that could not be pressed.
+ */
+.learning-none-due {
+  font-size: var(--panel-body);
+  color: var(--muted);
+  margin: 0;
+}
+.learning-waiting > summary {
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px 0;
+}
+.blitz-setup,
+.blitz {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  display: grid;
+  gap: 14px;
+}
+.blitz-setup h1 {
+  font-size: var(--panel-heading);
+  margin: 0;
+}
+.blitz-setup p {
+  font-size: var(--panel-body);
+  color: var(--muted);
+  margin: 0;
+  max-width: 32rem;
+}
+/* Wraps rather than scrolls: four controls at a 44px tap floor do not fit a 390px phone in a row. */
+.blitz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.blitz-control {
+  min-width: var(--tap-floor);
+  min-height: var(--tap-floor);
+  padding: 10px 18px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: var(--cream);
+  color: var(--ink);
+  font: var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.blitz-control:hover {
+  background: var(--chip-hover);
+}
+/*
+ * THE ONE PLAYED LAST TIME (P1.10). Filled rather than merely marked: LAW 2 asks for one primary
+ * action per state, and "the same again" is that action once there has been a first game.
+ */
+.blitz-control--again {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--on-blue);
+}
+.blitz-control--again:hover {
+  background: var(--blue);
+  filter: brightness(1.08);
+}
+.blitz-control__again {
+  font-size: var(--panel-fine);
+  opacity: 0.85;
+}
+.blitz-clocks {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font: var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+/*
+ * THE BOARD IS THE ONLY THING IN ITS ROW HERE, AND `.board-stage` DOES NOT ASSUME THAT.
+ *
+ * It carries `grid-column: 2` because on `/play` it shares a `.board-assembly` grid with the
+ * evaluation bar, and pinning it stops the board falling into the bar's 28px column when the bar
+ * is absent. Blitz has no evaluation bar at all -- the engine does not run until the game is over,
+ * which is the protocol rather than a layout choice -- so the pin points at a column that does not
+ * exist, the browser creates an implicit one sized to content, and the board came out 120px wide
+ * on a 390px phone with the clocks sitting beside it.
+ */
+.blitz > .board-stage {
+  grid-column: auto;
+}
+.blitz-resign {
+  justify-self: start;
+  min-height: var(--tap-floor);
+  padding: 8px 16px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.blitz-board-mode {
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--blue);
+  margin: 0;
+}
+.blitz-board-back {
+  justify-self: start;
+  padding: 8px 14px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+.blitz-confidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.blitz-confidence p {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--panel-body);
+}
+.blitz-confidence button {
+  min-width: var(--tap-floor);
+  min-height: var(--tap-floor);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: var(--cream);
+  color: var(--ink);
+  font: var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  cursor: pointer;
+}
+.blitz-over {
+  display: grid;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(var(--ink-rgb), 0.25);
+}
+.blitz-over h2 {
+  font-size: var(--panel-title);
+  margin: 0;
+}
+.blitz-analysing,
+.blitz-analysing-note {
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+  margin: 0;
 }
 .blitz-review {
   display: grid;

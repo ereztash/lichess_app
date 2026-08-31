@@ -226,6 +226,38 @@ export type TrialEvent =
        * string so that nobody can mistake a coder's label for something the player said.
        */
       answer: string | null;
+    }
+  /**
+   * WHAT `deriveNextAction` WOULD HAVE PROPOSED, BESIDE WHAT THE SCREEN ACTUALLY OFFERED.
+   *
+   * SHADOW MODE, AND IT CHANGES NOTHING ON SCREEN. `shared/next-action.ts` claims to know what a
+   * player should do next; the honest thing to do with such a claim is to watch it disagree with
+   * the screens for a while before handing it any of them. This event is that watching, and it is
+   * the only thing standing between the derivation and ownership of the front door.
+   *
+   * IT RECORDS `agrees` RATHER THAN LEAVING IT DERIVABLE, for the same reason a cp-loss carries the
+   * build that produced it: the mapping between a proposal and a screen's own vocabulary lives in
+   * the shadow code of ONE build, and a later reader comparing the two strings would be applying a
+   * mapping that may since have changed.
+   *
+   * `blind` IS THE FIELD THAT MAKES A DISAGREEMENT READABLE. The derivation takes inputs a given
+   * surface may not have -- the front door cannot see a half-finished drill, because that lives in
+   * another screen's component state -- and a disagreement caused by a missing input is not the
+   * same finding as one caused by the screen being wrong. Naming the gaps is what keeps the two
+   * apart, and the list is a fact about the SURFACE rather than about the player.
+   */
+  | {
+      name: "next_action_shadow";
+      at: string;
+      /** Which screen the comparison was made on. */
+      surface: "resume";
+      /** The derivation's answer, as its own kind. */
+      proposed: string;
+      /** What the screen offers instead, in the screen's own vocabulary. Never a label. */
+      offered: string;
+      agrees: boolean;
+      /** Inputs this surface could not supply, so a disagreement can be read correctly. */
+      blind: string[];
     };
 
 export type TrialEventName = TrialEvent["name"];

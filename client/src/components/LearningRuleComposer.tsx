@@ -47,15 +47,23 @@ export function LearningRuleComposer({
 
   const set = (key: keyof typeof fields, value: string) =>
     setFields((current) => ({ ...current, [key]: value }));
-  const ready =
+  /**
+   * THE RULE ITSELF: what you now believe, when it applies, and what you will do (P1.8).
+   *
+   * SPLIT FROM `ready` RATHER THAN DUPLICATED. Two definitions of "complete" is the defect this
+   * repository spends its gates on -- `ready` is still the whole of it, and this is its first half
+   * named so the screen can act on it. Neither can drift from the other because the second is
+   * written in terms of the first.
+   */
+  const ruleStated =
     mechanism !== null &&
     wouldChooseAgain !== null &&
-    fields.revisedRead.trim() &&
-    fields.trigger.trim() &&
-    fields.missedSignal.trim() &&
-    fields.actionRule.trim() &&
-    fields.predictedOutcome.trim() &&
-    fields.refutationCondition.trim();
+    Boolean(fields.revisedRead.trim()) &&
+    Boolean(fields.trigger.trim()) &&
+    Boolean(fields.missedSignal.trim()) &&
+    Boolean(fields.actionRule.trim());
+  const ready =
+    ruleStated && fields.predictedOutcome.trim() && fields.refutationCondition.trim();
 
   /**
    * The reflection the record already held, when this save kept it instead of the one on screen.
@@ -217,30 +225,52 @@ export function LearningRuleComposer({
           maxLength={300}
         />
       </label>
-      <label>
-        <span>מתי הכלל לא תקף? (רשות)</span>
-        <input
-          value={fields.exceptionRule}
-          onChange={(event) => set("exceptionRule", event.target.value)}
-          maxLength={200}
-        />
-      </label>
-      <label>
-        <span>איזו תוצאה אתם מצפים לראות?</span>
-        <textarea
-          value={fields.predictedOutcome}
-          onChange={(event) => set("predictedOutcome", event.target.value)}
-          maxLength={300}
-        />
-      </label>
-      <label>
-        <span>איזו תוצאה תפריך את הכלל?</span>
-        <textarea
-          value={fields.refutationCondition}
-          onChange={(event) => set("refutationCondition", event.target.value)}
-          maxLength={500}
-        />
-      </label>
+      {/*
+        * THE SECOND STAGE, AND THE ORDER IS THE ARGUMENT (P1.8).
+        *
+        * YOU CANNOT SAY WHAT WOULD REFUTE A RULE BEFORE YOU HAVE WRITTEN THE RULE. These three
+        * boxes ask for the falsification -- what you expect, and what result would prove you wrong
+        * -- and they used to sit open beside the first field, asking a player to falsify something
+        * they had not yet stated. The heading of this whole section is "נסחו כלל שאפשר להפריך",
+        * and this is the part that makes it refutable; putting it first inverted the sentence.
+        *
+        * ABSENT AND NOT DISABLED, which is LAW 2's rule and the one `Home.tsx`'s control rail
+        * follows: a greyed-out box still says "there is a thing here you could be doing", and what
+        * is being removed is exactly that. What stands in its place says which half is missing --
+        * an empty gap reads as a rendering fault, and the next person fills it back in.
+        */}
+      {ruleStated ? (
+        <>
+          <label>
+            <span>מתי הכלל לא תקף? (רשות)</span>
+            <input
+              value={fields.exceptionRule}
+              onChange={(event) => set("exceptionRule", event.target.value)}
+              maxLength={200}
+            />
+          </label>
+          <label>
+            <span>איזו תוצאה אתם מצפים לראות?</span>
+            <textarea
+              value={fields.predictedOutcome}
+              onChange={(event) => set("predictedOutcome", event.target.value)}
+              maxLength={300}
+            />
+          </label>
+          <label>
+            <span>איזו תוצאה תפריך את הכלל?</span>
+            <textarea
+              value={fields.refutationCondition}
+              onChange={(event) => set("refutationCondition", event.target.value)}
+              maxLength={500}
+            />
+          </label>
+        </>
+      ) : (
+        <p className="learning-composer-next">
+          אחרי שהכלל ינוסח, תישאלו מה אתם מצפים שיקרה ומה יפריך אותו — זה מה שהופך אותו להשערה.
+        </p>
+      )}
 
       {error && (
         <p className="learning-error" role="alert">

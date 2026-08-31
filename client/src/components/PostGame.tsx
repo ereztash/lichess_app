@@ -154,16 +154,23 @@ export function PostGame({
         </details>
       )}
 
-      <button type="button" className="post-game__again" onClick={onPlayAgain}>
-        משחק חדש
-      </button>
       {/*
-        * THE SECOND BUTTON IS OUTSIDE THE CARD, AND THAT IS THE 1-1-1-1 LAW HOLDING RATHER THAN
-        * BEING WORKED AROUND. "New game" is navigation -- it is on this screen the way a back
-        * button is -- and the card's single action is the one the reading actually recommends.
-        * Putting both inside would ask the reader to choose, which is a decision the product was
-        * supposed to have made.
+        * ONE PRIMARY ACTION, AND THE SECOND CONTROL APPEARS ONLY WHEN IT IS A DIFFERENT ACT (LAW 2).
+        *
+        * This was unconditional, and when the reading's own action was "play another game" the
+        * screen offered the same act twice under two labels — the card's primary and this one. Two
+        * controls that resolve one state is not a choice; it is the product failing to make one.
+        *
+        * `onClick` COMPARISON WOULD NOT DO IT: both handlers are `onPlayAgain`, and comparing
+        * function identity would couple this component to how the caller happened to pass them.
+        * The reading's own state is what says whether a position is being offered, so that is what
+        * is asked.
         */}
+      {lead !== null && (
+        <button type="button" className="post-game__again" onClick={onPlayAgain}>
+          משחק חדש
+        </button>
+      )}
     </section>
   );
 }

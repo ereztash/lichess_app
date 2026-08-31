@@ -57,10 +57,25 @@ export type ResumeKnowledge =
     }
   | { kind: "nothing-yet"; because: BlitzBlocker; needs: BlitzShortfall | null };
 
-export interface ResumeNext {
-  label: string;
-  because: string;
-}
+/**
+ * WHAT TO DO NEXT, AND SOMETIMES IT IS NOT A THING TO DO.
+ *
+ * A UNION RATHER THAN A LABEL, because one of the five blockers is not answered by an action at
+ * all. `nothing-scored` means the games are stored and the engine has not been over them, and the
+ * screen's answer to it was *"שחק עוד משחק"* -- play another game -- which grows the backlog that
+ * IS the blocker. A button was offered because the type had a `label` in it and every blocker had
+ * to fill one in.
+ *
+ * IT ONLY BECAME TRUE TO SAY "WAIT" IN THE COMMIT THAT MADE WAITING WORK. Before the analysis queue
+ * (LAW 4), leaving the blitz screen cancelled the search, so a pending game was one nothing would
+ * ever finish and telling a player to wait for it would have been telling them to wait for nothing.
+ * The queue resumes from any page load, so the sentence below is now a description of something
+ * that happens.
+ */
+export type ResumeNext =
+  | { kind: "play"; label: string; because: string }
+  /** `games` is how many are waiting, because a count that climbs across visits is the symptom. */
+  | { kind: "wait"; because: string; games: number };
 
 export interface ResumeReading {
   changed: ResumeChange | null;
@@ -104,24 +119,24 @@ function widest(patterns: readonly BlitzPattern[]): BlitzPattern | null {
  * stored and unscored, because that number climbing across visits IS the symptom, and a player
  * watching it climb learns more than any message the product could compose about its own engine.
  */
-const NEXT_STEP: Readonly<Record<BlitzBlocker, ResumeNext>> = {
+const NEXT_STEP: Readonly<Record<Exclude<BlitzBlocker, "nothing-scored">, ResumeNext>> = {
   "no-games": {
+    kind: "play",
     label: "שחק משחק קצר",
     because: "משחק אחד נותן מספיק החלטות כדי להתחיל למדוד משהו.",
   },
-  "nothing-scored": {
-    label: "שחק עוד משחק",
-    because: "המשחקים שמורים והמנוע עוד לא עבר עליהם. הניתוח רץ בסוף כל משחק.",
-  },
   "nothing-asked": {
+    kind: "play",
     label: "שחק עוד משחק",
     because: "שאלת הביטחון עולה על חלק קטן מההחלטות, אז לוקח כמה משחקים עד שנאספות תשובות.",
   },
   "too-few-readable": {
+    kind: "play",
     label: "שחק עוד משחק",
     because: "עוד החלטות מדודות הן מה שמאפשר את הבדיקה הראשונה.",
   },
   "no-split-yet": {
+    kind: "play",
     /*
      * THE ONE PLACE THE NEXT STEP IS NOT OBVIOUS, because this is not a shortage -- it is an
      * answer. The six divisions were all tested and none separated. Another game does not open a
@@ -140,9 +155,30 @@ const NEXT_STEP: Readonly<Record<BlitzBlocker, ResumeNext>> = {
 
 /** When something WAS found, the next step is the forward test, and it says so. */
 const NEXT_WHEN_FOUND: ResumeNext = {
+  kind: "play",
   label: "שחק עוד משחק",
   because: "מצאנו את זה במשחקים קודמים. עכשיו צריך לבדוק אם זה חוזר, בלי לשנות את ההגדרה.",
 };
+
+/**
+ * THE ONE BLOCKER THAT IS NOT ANSWERED BY PLAYING, and the sentence says why in the player's terms.
+ *
+ * IT NAMES THE COUNT BECAUSE THE COUNT IS THE DIAGNOSIS. A number that climbs across visits says
+ * the queue is not getting through the backlog, and a player watching it climb learns more than any
+ * message the product could compose about its own engine. The old sentence carried the same
+ * argument and then attached a button that made the number go up.
+ *
+ * "EVEN IF YOU LEAVE" IS A PROMISE THE PRODUCT CAN NOW KEEP. It could not before the analysis
+ * queue: leaving the blitz screen cancelled the search.
+ */
+function nextWhileUnscored(games: number): ResumeNext {
+  return {
+    kind: "wait",
+    games,
+    because:
+      "המשחקים שמורים והמנוע עובר עליהם. זה ממשיך גם אם תצא מהמסך, ולא צריך לשחק עוד משחק בשביל זה.",
+  };
+}
 
 export function readResume(
   reading: BlitzReading,
@@ -174,10 +210,14 @@ export function readResume(
     };
   }
 
+  const because = reading.standing.because;
   return {
     changed,
-    knows: { kind: "nothing-yet", because: reading.standing.because, needs: reading.standing.needs },
-    next: NEXT_STEP[reading.standing.because],
+    knows: { kind: "nothing-yet", because, needs: reading.standing.needs },
+    next:
+      because === "nothing-scored"
+        ? nextWhileUnscored(games.filter((g) => g.analysisState === "pending").length)
+        : NEXT_STEP[because],
   };
 }
 

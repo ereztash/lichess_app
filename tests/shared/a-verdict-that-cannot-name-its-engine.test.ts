@@ -236,8 +236,9 @@ describe("a verdict that cannot name its engine", () => {
        * build containing the separator could otherwise produce the id of a different regime, which
        * is silent pooling arriving through the identifier of the module that prevents it.
        */
-      const forged = stratumId({ protocol: "legacy", revealTiming: "legacy", engineBuild: "a/b" });
-      const real = stratumId({ protocol: "legacy", revealTiming: "legacy", engineBuild: "a" });
+      const base = { protocol: "legacy", protocolVersion: "legacy", revealTiming: "legacy" } as const;
+      const forged = stratumId({ ...base, engineBuild: "a/b" });
+      const real = stratumId({ ...base, engineBuild: "a" });
       expect(forged).not.toBe(`${real}/b`);
       expect(forged).toContain("a%2Fb");
     });

@@ -3,7 +3,6 @@ import { retryOnce } from "@/lib/retry-once";
 import { Chess } from "chess.js";
 import {
   Activity,
-  ArrowRight,
   Clipboard,
   FlipVertical2,
   HelpCircle,
@@ -18,7 +17,6 @@ import { useLocation } from "wouter";
 import { lazyChunk } from "@/lib/lazy-chunk";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Textarea } from "@/components/ui/textarea";
 import { RecordModeNotice } from "@/components/RecordModeNotice";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
@@ -50,14 +48,15 @@ import { effectiveTiming, mayShowVerdictNow, type RevealTiming } from "@shared/r
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
-import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
+import { SavedReadingOverlay } from "@/components/ImportDiagnostic";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import {
-  POSITION_SOURCES,
-  PositionSourceMenu,
+  PgnDrawer,
+  PositionSourceOverlay,
   type PositionSourceId,
 } from "@/components/PositionSource";
 import { SelfCheck } from "@/components/SelfCheck";
+import { useNewGameSetup } from "@/lib/use-new-game-setup";
 import { WhatThisIs } from "@/components/WhatThisIs";
 import { Overlay } from "@/components/Overlay";
 /*
@@ -72,6 +71,17 @@ import { Overlay } from "@/components/Overlay";
  */
 const ValueReconstruction = lazyChunk(() =>
   import("@/components/ValueReconstruction").then((m) => ({ default: m.ValueReconstruction })),
+);
+
+/*
+ * THE TOOLBOX IS NOT ON THE PATH, SO IT IS NOT IN THE BUNDLE EITHER (P1.7). It renders when a
+ * player presses a control and never otherwise -- exactly the condition this file already applies
+ * to the dashboard and the game review -- and it carries four panels with it (the engine's, the
+ * claim panel, the learning queue, the Lichess layers) that the entry chunk was shipping to
+ * arrivals who never open one. Measured: 19.2 kB raw off the entry.
+ */
+const RecordExplorer = lazyChunk(() =>
+  import("@/components/RecordExplorer").then((m) => ({ default: m.RecordExplorer })),
 );
 
 const GameReview = lazyChunk(() =>
@@ -118,6 +128,7 @@ import {
   cpLossFromSearches,
   cpLossOfFinalMove,
   engineMayRun,
+  makingEvidence,
   type DraftDecision,
   type CommitEvent,
   type SessionStage,
@@ -292,6 +303,14 @@ export default function Home() {
   const [revealFen, setRevealFen] = useState<string>("");
   const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
   /*
+   * `EXPLORE`: the player asked to see the rest of the record (P1.7).
+   *
+   * RESET WHENEVER A NEW REVEAL ARRIVES, in the effect below, and not in the six places that put
+   * the stage back to `deciding`. A player who explored after one decision should meet the NEXT
+   * reveal as a reveal -- the mode is a thing they are in, not a preference they set.
+   */
+  const [exploring, setExploring] = useState(false);
+  /*
    * Which of the two reveal failures happened, or null. Both used to leave the session in
    * `stage === "revealed"` with no control that advances -- a soft lock whose only escape
    * was abandoning the game.
@@ -341,10 +360,8 @@ export default function Home() {
   const [positionChoice, setPositionChoice] = useState<PositionSourceId | null>(null);
   const [showSelfCheck, setShowSelfCheck] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [setupColor, setSetupColor] = useState<"w" | "b">("w");
-  const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
-  /** Chosen before the game starts, and applied to it -- not to the game already on the board. */
-  const [setupRevealTiming, setSetupRevealTiming] = useState<RevealTiming>("per-decision");
+  /* The three answers a new game needs, remembered between games (P1.11). See the hook for why. */
+  const setup = useNewGameSetup();
   /**
    * Decisions committed in the current game, counted here rather than read from the record.
    *
@@ -443,6 +460,16 @@ export default function Home() {
     stage === "deciding" &&
     activeGame.moves().length > 0 &&
     (opponent === null || activeGame.turn() === opponent.playerColor);
+
+  /*
+   * A NEW REVEAL CLOSES `EXPLORE` (P1.7).
+   *
+   * KEYED ON THE REVEALED DECISION AND NOT ON THE STAGE, because the stage goes back to `deciding`
+   * from six different places and this would have had to be added to all of them -- which is the
+   * kind of thing that gets added to five. A reveal is identified by the decision it is about, so
+   * a new id is exactly the event "there is something new to read".
+   */
+  useEffect(() => setExploring(false), [revealedDecisionId]);
 
   useEffect(() => {
     // Not before the handoff has been read: see `restoreSettled`.
@@ -1744,6 +1771,33 @@ export default function Home() {
   const recordMode = useRecordMode();
 
   const deciding = stage === "deciding" || stage === "committing";
+  /*
+   * DECISION FOCUS (LAW 1). True in every stage except the reveal -- deciding, the write in
+   * flight, and the counterfactual question in between.
+   *
+   * WHAT IT TURNS OFF, and why each one is not a nicety. `ClaimPanel` and `LearningQueue` are
+   * readings of the record, shown while the player states how sure they are about a move; the
+   * control rail is four ways to abandon the position under decision, at the same weight as each
+   * other; and at `committed` -- the counterfactual stage -- the whole reveal column used to
+   * render, dashboard and all, because the chain below branched on `deciding` and `deciding` is
+   * false there. So the product asked "what would you have played instead?" with a panel of the
+   * player's own accuracy rates beside the question.
+   *
+   * The argument was already in this file, one branch down, for the one condition where a player
+   * had explicitly asked for silence:
+   *
+   *   REPLACES the claim panel and the learning queue for the duration, rather than joining them.
+   *
+   * It is every decision this product measures, not just that one.
+   */
+  const focus = makingEvidence(stage);
+  /*
+   * A PRE-REGISTERED RUN IS UNDER WAY, which makes the mode `TEST` rather than `DECIDE` or
+   * `REVEAL` (P1.12). The set was chosen in advance to test one thing, and four of eight positions
+   * tests nothing -- so what the screen may show between two of them is what it may show while
+   * evidence is being produced, not what it may show once a decision is finished.
+   */
+  const runInProgress = learningTransfer !== null || (drill !== null && drillStage === "running");
   /**
    * A live game the player chose to have the engine stay quiet through.
    *
@@ -1874,7 +1928,7 @@ export default function Home() {
          * no drill is started, because starting one from a sentence would be the ribbon acting
          * on the record it is describing.
          */
-        onGoTo={(target) => {
+        onGoTo={focus ? undefined : (target) => {
           if (target === "import") {
             openPositionSource("username");
             return;
@@ -1905,6 +1959,19 @@ export default function Home() {
           * the loudest thing on the page, and what it offers is discarding the position the
           * product exists to measure. The blue belongs to the commitment panel's submit.
           */}
+        {/*
+          * NOT ON SCREEN WHILE A DECISION IS OPEN (LAW 1, LAW 2).
+          *
+          * Every control in this rail answers "give me something else": another position, another
+          * account, a reading from another day. Offered beside an open decision they are four
+          * equal-weight ways to discard the thing being measured -- and the panel's submit, which
+          * is the one primary action of this state, has to compete with them for the eye.
+          *
+          * ABSENT RATHER THAN DISABLED. A disabled control still says "there is a thing here you
+          * could be doing", which is the cost this removes. It comes back at the reveal, where
+          * choosing what to do next is exactly what the player is there for.
+          */}
+        {!focus && (
         <aside className="control-rail">
           <div className="rail-label">כלי עבודה</div>
           <button
@@ -1956,6 +2023,7 @@ export default function Home() {
             }}
           />
         </aside>
+        )}
 
         <section className="board-workspace">
           <div className="workspace-meta">
@@ -2001,107 +2069,54 @@ export default function Home() {
             * way back that does not close the door. Nothing nests, so nothing has to be unstacked.
             */}
           {showPositionSource && (
-            <Overlay
-              label={
-                POSITION_SOURCES.find((entry) => entry.id === positionChoice)?.label ?? "עמדה אחרת"
-              }
+            <PositionSourceOverlay
+              choice={positionChoice}
+              onChoose={choosePositionSource}
+              onBack={() => setPositionChoice(null)}
               onClose={closePositionSource}
             >
-              {positionChoice === null ? (
-                <PositionSourceMenu
-                  onChoose={choosePositionSource}
+              {positionChoice === "new" && (
+                <NewGameSetup
+                  color={setup.color}
+                  depth={setup.depth}
+                  revealTiming={setup.revealTiming}
+                  onColor={setup.setColor}
+                  onDepth={setup.setDepth}
+                  onRevealTiming={setup.setRevealTiming}
+                  onStart={() => {
+                    setup.remember();
+                    newGame(setup.color, setup.depth, setup.revealTiming);
+                  }}
+                  onCancel={closePositionSource}
+                />
+              )}
+              {positionChoice === "username" && (
+                <ImportGames
+                  keepReading={saveImportReading.mutateAsync}
+                  onLoad={loadLichessGame}
+                  onClose={closePositionSource}
+                  analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+                  /* The account the record already knows about, so it is not asked for twice. */
+                  lastUsername={importReading.reading?.username}
+                />
+              )}
+              {positionChoice === "pgn" && (
+                <PgnDrawer
+                  value={pgnInput}
+                  onChange={setPgnInput}
+                  onLoad={() => importPgn(pgnInput)}
+                  onSample={() => setPgnInput(DEFAULT_PGN)}
                   onClose={closePositionSource}
                 />
-              ) : (
-                <>
-                  {/* ArrowRight, not Left: back is towards the start of the line, and the line
-                      runs right-to-left. */}
-                  <button
-                    type="button"
-                    className="position-source-back"
-                    onClick={() => setPositionChoice(null)}
-                  >
-                    <ArrowRight size={16} aria-hidden="true" />
-                    <span>כל המקורות</span>
-                  </button>
-                  {positionChoice === "new" && (
-                    <NewGameSetup
-                      color={setupColor}
-                      depth={setupDepth}
-                      revealTiming={setupRevealTiming}
-                      onColor={setSetupColor}
-                      onDepth={setSetupDepth}
-                      onRevealTiming={setSetupRevealTiming}
-                      onStart={() => newGame(setupColor, setupDepth, setupRevealTiming)}
-                      onCancel={closePositionSource}
-                    />
-                  )}
-                  {positionChoice === "username" && (
-                    <ImportGames
-                      keepReading={saveImportReading.mutateAsync}
-                      onLoad={loadLichessGame}
-                      onClose={closePositionSource}
-                      analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
-                      /* The account the record already knows about, so it is not asked for twice. */
-                      lastUsername={importReading.reading?.username}
-                    />
-                  )}
-                  {positionChoice === "pgn" && (
-                    <section className="pgn-drawer">
-                      <div className="drawer-heading">
-                        <div>
-                          <span>הדבקת PGN</span>
-                          <b>IMPORT</b>
-                        </div>
-                        <button onClick={closePositionSource}>סגור</button>
-                      </div>
-                      <Textarea
-                        value={pgnInput}
-                        onChange={(e) => setPgnInput(e.target.value)}
-                        dir="ltr"
-                      />
-                      <div className="drawer-actions">
-                        <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
-                          טען למשחק
-                        </button>
-                        {/*
-                         * The demo game used to BE the opening screen, which is what made the app
-                         * unplayable. It is still worth having -- it is the shortest way to see
-                         * the review and timeline against a finished game -- so it lives here,
-                         * where loading it is something the player chooses.
-                         */}
-                        <button
-                          className="ghost-control"
-                          onClick={() => setPgnInput(DEFAULT_PGN)}
-                        >
-                          הדביקו משחק לדוגמה
-                        </button>
-                      </div>
-                    </section>
-                  )}
-                </>
               )}
-            </Overlay>
+            </PositionSourceOverlay>
           )}
 
           {showReading && importReading.reading && (
-            <Overlay label="הקריאה השמורה" onClose={() => setShowReading(false)}>
-              {/*
-                * The same panel, reopened. Not a summary of it and not a second rendering of the
-                * same numbers in a smaller font: section 4.5 says two states must not render
-                * alike, and the converse holds too -- the same reading in two places must not
-                * render as two different findings. What is added is the provenance, because a
-                * rate reopened later with no scan date behind it stops being a measurement.
-                */}
-              <ImportDiagnosticPanel
-                diagnostic={importReading.reading.diagnostic}
-                provenance={{
-                  username: importReading.reading.username,
-                  games: importReading.reading.games,
-                  scannedAt: importReading.reading.scanned_at,
-                }}
-              />
-            </Overlay>
+            <SavedReadingOverlay
+              reading={importReading.reading}
+              onClose={() => setShowReading(false)}
+            />
           )}
 
           <div className="board-assembly">
@@ -2223,17 +2238,20 @@ export default function Home() {
               over={activeGame.isGameOver()}
               onSeeRecord={() => navigate("/")}
             />
-          ) : deciding ? (
-            <>
-              <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
-              {VERIFIED_LEARNING_ENABLED && (
-                <LearningQueue
-                  onStart={(ruleId) => void beginLearningTransfer(ruleId)}
-                  busy={learningTransfer !== null}
-                  error={learningTransferError}
-                />
-              )}
-            </>
+          ) : focus ? (
+            /*
+             * THE INSTRUMENT AND NOTHING ELSE (LAW 1).
+             *
+             * Two states end up here and both used to render a reading of the record. `deciding`
+             * showed the claim panel and the learning queue -- findings about the player's own
+             * decisions, on screen while they state how sure they are about this one. `committed`,
+             * the counterfactual stage, fell through to the reveal column below and got the whole
+             * of it: the analysis panel, the record dashboard, the Lichess layers.
+             *
+             * Both readings are still reachable, at the reveal, which is the stage where the
+             * engine has already spoken and a reading can no longer change what is recorded.
+             */
+            null
           ) : (
             <>
               {revealInputs && committedDraft ? (
@@ -2279,15 +2297,6 @@ export default function Home() {
                 * control that advances: the header's is gated on a reveal that was stored.
                 */}
               {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
-              <AnalysisPanel
-                analysis={analysis}
-                alternative={alternative}
-                status={engineStatus}
-                fen={activeFen}
-                activeMove={activeMove}
-                material={material}
-                onAnalyze={() => void runAnalysis()}
-              />
               {learningTransfer && learningTransferPanel}
               {VERIFIED_LEARNING_ENABLED &&
                 !learningTransfer &&
@@ -2311,62 +2320,72 @@ export default function Home() {
                   onFinish={closeDrill}
                 />
               )}
-              {/*
-                THE GATE. The whole-game review is offered only at reveal -- after a decision in
-                this game has been committed and the engine has already spoken about it. Showing
-                it on import would put the machine first, which is the one thing this product is
-                built not to do.
-              */}
-              {stage === "revealed" && (
-                <>
-                  {reviewProgress ? (
-                    <Suspense fallback={null}>
-                      <GameReviewProgress done={reviewProgress.done} total={reviewProgress.total} />
-                    </Suspense>
-                  ) : reviewScores ? (
-                    <Suspense fallback={null}>
-                      <GameReview
-                        evalScores={reviewScores}
-                        playerColor={orientation}
-                        totalPlies={history.length}
-                      />
-                    </Suspense>
-                  ) : (
-                    <section className="analysis-section game-review">
-                      <div className="section-heading">
-                        <span>סקירת משחק</span>
-                      </div>
-                      <p className="layer-intro">
-                        המנוע יעבור על כל העמדות במשחק וימדוד כמה עלה כל מהלך. זה רץ מקומית ולוקח
-                        זמן — ולכן זה כפתור, לא משהו שקורה מעצמו.
-                      </p>
-                      {reviewError && <p className="layer-error">{reviewError}</p>}
-                      <button className="layer-action" onClick={() => void runGameReview()}>
-                        <Activity size={14} /> נתחו את המשחק כולו
-                      </button>
-                    </section>
-                  )}
-                </>
-              )}
 
               {/*
-                The record dashboard, next to the game review because both are reflection: this
-                one measures the decisions, that one measures the positions. It needs no R3 gate
-                -- it reads decisions already committed and revealed, so by construction it
-                cannot speak before the player has.
-              */}
-              {recordReading.data && (
-                <Suspense fallback={null}>
-                  <RecordDashboard reading={recordReading.data} />
+                * THE REVEAL IS A PATH, AND THIS IS THE ONE STEP OFF IT (LAW 2, P1.7).
+                *
+                * Above this line is what the decision just made turned out to be, and the two
+                * things that act on it. Below it was everything else the product knows -- the
+                * engine's lines, the whole-game review, the claim panel, the learning queue, the
+                * record dashboard, the Lichess layers -- rendered at the same time, in the same
+                * column, at the same weight. A column of nine sections does not offer nine things;
+                * it offers a search.
+                *
+                * SECONDARY, AND IT SAYS WHAT IS BEHIND IT. The primary action of a reveal is the
+                * next decision, and it is in the header. This is a way to look at the record, and
+                * `EXPLORE` is the one mode with nothing at stake -- the decision is committed,
+                * revealed and stored, so nothing on the far side of this button can change what
+                * any of it said.
+                */}
+              {/*
+                * NOT DURING A RUN (P1.12). A drill or a transfer in progress is `TEST`, not
+                * `REVEAL` -- and `MODE_CONTRACT.TEST` forbids prior evidence for the same reason
+                * `DECIDE` does: the positions in a run are pre-registered to test one thing, and a
+                * player who reads the record dashboard between position three and position four
+                * has been shown their own measurements in the middle of producing more.
+                *
+                * `EXPLORE` is safe at an ordinary reveal precisely because nothing is at stake
+                * there. In a run something is: the run's own verdict.
+                */}
+              {!runInProgress && (
+                <button
+                  type="button"
+                  className="explore-toggle"
+                  aria-expanded={exploring}
+                  onClick={() => setExploring((open) => !open)}
+                >
+                  {exploring ? "חזרה לתוצאה" : "מה עוד יש כאן"}
+                </button>
+              )}
+              {exploring && !runInProgress && (
+                <Suspense fallback={<p role="status">טוען…</p>}>
+                <RecordExplorer
+                  position={{ fen: activeFen, activeMove, material }}
+                  engine={{
+                    analysis,
+                    alternative,
+                    status: engineStatus,
+                    onAnalyze: () => void runAnalysis(),
+                  }}
+                  review={{
+                    progress: reviewProgress,
+                    scores: reviewScores,
+                    error: reviewError,
+                    orientation,
+                    totalPlies: history.length,
+                    onRun: () => void runGameReview(),
+                  }}
+                  record={recordReading.data}
+                  lichess={{ source, enabled: isAuthenticated, onConnect: openLichess }}
+                  claims={{ onRunDrill: beginDrill, drillError: drillError ?? undefined }}
+                  learning={{
+                    onStart: (ruleId) => void beginLearningTransfer(ruleId),
+                    busy: learningTransfer !== null,
+                    error: learningTransferError ?? undefined,
+                  }}
+                />
                 </Suspense>
               )}
-
-              <LichessLayersPanel
-                fen={activeFen}
-                source={source}
-                enabled={isAuthenticated}
-                onConnect={openLichess}
-              />
             </>
           )}
         </aside>

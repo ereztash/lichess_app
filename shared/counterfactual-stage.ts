@@ -17,7 +17,13 @@
  * asserts exactly that. Moving the probe to any other stage fails that assertion, which is the
  * only way such a move can happen without somebody noticing.
  *
- * Lives in `shared/` rather than beside `SessionStage` because the rule is about the measurement
- * and not about the screen; the string is deliberately one of `SessionStage`'s own members.
+ * Lives in `shared/` rather than beside the screen because the rule is about the measurement and
+ * not about the screen. It used to say here that the string is "deliberately one of
+ * `SessionStage`'s own members" -- which was true, and was a comment where it should have been a
+ * type. `DecisionStage` moved to `shared/decision-stage.ts` so the annotation below checks it: a
+ * rename that left this naming a stage nothing reaches is now a compile error rather than a screen
+ * a player finds.
  */
-export const PROBE_STAGE = "committed" as const;
+import type { DecisionStage } from "./decision-stage.js";
+
+export const PROBE_STAGE: DecisionStage = "committed";

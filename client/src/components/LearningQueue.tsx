@@ -23,6 +23,26 @@ export function LearningQueue({
   }
   if (!rules.length) return null;
 
+  /*
+   * WHAT IS DUE, AND WHAT IS MERELY ON THE LIST (P1.9).
+   *
+   * THE QUEUE LISTED EVERY RULE, each with a test button that was disabled on most of them. A
+   * retrieval schedule of 1/3/7/21 days means that on any given visit almost nothing is due -- so
+   * the common shape of this section was N rows of a control the player could not press, which is
+   * exactly what LAW 2 means by "absent, not disabled": a greyed-out button still says there is
+   * something here you could be doing, and the player has to read each row to find out there is
+   * not.
+   *
+   * THE DELAY IS THE MEASUREMENT, so this is not merely tidier. `RETRIEVAL_INTERVAL_DAYS` exists
+   * to make the interval the thing under test; a screen that keeps every rule permanently in view
+   * is rehearsing the cue on every visit, which is the same argument that keeps the action rule
+   * itself off these rows.
+   */
+  const isDue = (rule: (typeof rules)[number]) =>
+    rule.next_due_at !== null && new Date(rule.next_due_at) <= new Date();
+  const due = rules.filter(isDue);
+  const waiting = rules.filter((rule) => !isDue(rule));
+
   return (
     <section className="learning-queue" aria-label="תור למידה">
       <header className="learning-heading">
@@ -32,7 +52,32 @@ export function LearningQueue({
           <h3>תור למידה</h3>
         </div>
       </header>
-      {rules.map((rule) => {
+      {due.length === 0 && (
+        /*
+         * ONE LINE INSTEAD OF N ROWS. The nearest date is what a player would have read every row
+         * to work out, and `null` means a schedule that has ended rather than one that is late.
+         */
+        <p className="learning-none-due">{nothingDueSentence(waiting)}</p>
+      )}
+      {renderRules(due)}
+      {waiting.length > 0 && (
+        <details className="learning-waiting">
+          <summary>
+            {waiting.length === 1 ? "כלל אחד ממתין למועד" : `${waiting.length} כללים ממתינים למועד`}
+          </summary>
+          {renderRules(waiting)}
+        </details>
+      )}
+      {error && (
+        <p className="learning-error" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+
+  function renderRules(shown: typeof rules) {
+    return shown.map((rule) => {
         /*
          * NULL IS THE END OF THE SCHEDULE, NOT PERMISSION. `gradeLearningRule` sets `next_due_at`
          * to null once the last retrieval interval has passed, and this read `!next_due_at` as
@@ -40,9 +85,9 @@ export function LearningQueue({
          * The service refuses it now too; both had the same hole and either alone would have left
          * a screen that offers something the server declines.
          */
-        const due = rule.next_due_at !== null && new Date(rule.next_due_at) <= new Date();
+        const dueNow = isDue(rule);
         return (
-          <article key={rule.rule_id} className="learning-rule-row">
+          <article key={rule.rule_id} className="learning-rule-row" data-rule={rule.rule_id}>
             <div>
               <span className={`learning-grade ${rule.grade}`}>{rule.grade}</span>
               <p>{rule.trigger}</p>
@@ -70,13 +115,13 @@ export function LearningQueue({
                 <button
                   type="button"
                   title={
-                    due
+                    dueNow
                       ? "התחלת בדיקת העברה"
                       : rule.next_due_at === null
                         ? "לוח החזרות של הכלל הזה הסתיים"
                         : "הבדיקה תיפתח במועד החזרה"
                   }
-                  disabled={busy || !due}
+                  disabled={busy || !dueNow}
                   onClick={() => onStart(rule.rule_id)}
                 >
                   <FlaskConical size={14} /> בדיקה
@@ -92,12 +137,25 @@ export function LearningQueue({
             </div>
           </article>
         );
-      })}
-      {error && (
-        <p className="learning-error" role="alert">
-          {error}
-        </p>
-      )}
-    </section>
-  );
+      });
+  }
+}
+
+/**
+ * When the next test opens, in one sentence.
+ *
+ * A SCHEDULE THAT HAS ENDED IS NOT A SCHEDULE THAT IS LATE, and the two produce different
+ * sentences: `next_due_at === null` means the last retrieval interval has passed and there is
+ * nothing more to ask, which `gradeLearningRule` sets deliberately and the service refuses to
+ * start a test against.
+ */
+function nothingDueSentence(waiting: { next_due_at: string | null }[]): string {
+  const dates = waiting
+    .map((rule) => rule.next_due_at)
+    .filter((at): at is string => at !== null)
+    .map((at) => new Date(at).getTime())
+    .filter((at) => Number.isFinite(at));
+  if (dates.length === 0) return "לוח החזרות של כל הכללים הסתיים — אין בדיקה שממתינה.";
+  const next = new Date(Math.min(...dates)).toLocaleDateString("he-IL");
+  return `אין בדיקה פתוחה כרגע. הבאה נפתחת ב-${next}.`;
 }

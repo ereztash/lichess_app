@@ -25,7 +25,10 @@
  * named source -- read this array, so a fifth source cannot appear in one and not the other, and
  * a test can count them without a hand-maintained number.
  */
-import { FileUp, Plus, Upload, UserSearch } from "lucide-react";
+import { ArrowRight, FileUp, Plus, Upload, UserSearch } from "lucide-react";
+import type { ReactNode } from "react";
+import { Overlay } from "./Overlay";
+import { Textarea } from "@/components/ui/textarea";
 
 export type PositionSourceId = "new" | "pgn" | "username" | "file";
 
@@ -131,5 +134,104 @@ export function PositionSourceMenu({
         העמדה שעל הלוח נשארת כפי שהיא עד שתבחרו אחת מאלה.
       </p>
     </section>
+  );
+}
+
+/**
+ * The `pgn` source's own body, beside the menu that offers it.
+ *
+ * MOVED OUT OF `Home.tsx` UNDER ITS RATCHET, and to the file the menu already lives in rather than
+ * to a new one: this is the third of the four sources rendering its own surface, and the argument
+ * for the door being here is the argument for its rooms being here too. `new` and `username` were
+ * already components; `file` is an `<input>`; this was the one still spelled out in the page.
+ */
+export function PgnDrawer({
+  value,
+  onChange,
+  onLoad,
+  onSample,
+  onClose,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  onLoad: () => void;
+  /** Fills the box with the demo game. Not a load: the player still presses the button. */
+  onSample: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <section className="pgn-drawer">
+      <div className="drawer-heading">
+        <div>
+          <span>הדבקת PGN</span>
+          <b>IMPORT</b>
+        </div>
+        <button onClick={onClose}>סגור</button>
+      </div>
+      <Textarea value={value} onChange={(e) => onChange(e.target.value)} dir="ltr" />
+      <div className="drawer-actions">
+        <button className="drawer-confirm" onClick={onLoad}>
+          טען למשחק
+        </button>
+        {/*
+         * The demo game used to BE the opening screen, which is what made the app unplayable. It is
+         * still worth having -- it is the shortest way to see the review and timeline against a
+         * finished game -- so it lives here, where loading it is something the player chooses.
+         */}
+        <button className="ghost-control" onClick={onSample}>
+          הדביקו משחק לדוגמה
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * THE DOOR AND ITS FOUR ROOMS, AS ONE SURFACE.
+ *
+ * `showNewGame`, `showPgn` and `showImport` were once three sibling overlays, and reaching a second
+ * meant closing the first from a rail button that had to remember to. This is a single surface
+ * whose body is either the menu or the chosen source, with a way back that does not close the door.
+ * Nothing nests, so nothing has to be unstacked.
+ *
+ * MOVED OUT OF `Home.tsx` UNDER ITS RATCHET, and to the file that already owns the menu, the source
+ * table and the PGN drawer. What stayed behind in the page is the state -- which door is open and
+ * which room is showing -- because that is the page's, and the handlers, because they act on the
+ * page's game.
+ */
+export function PositionSourceOverlay({
+  choice,
+  onChoose,
+  onBack,
+  onClose,
+  children,
+}: {
+  /** Which source is showing, or null for the menu. */
+  choice: PositionSourceId | null;
+  onChoose: (id: PositionSourceId) => void;
+  /** Back to the menu, which is NOT the same as closing the door. */
+  onBack: () => void;
+  onClose: () => void;
+  /** The chosen source's own body, rendered by the page that owns what it acts on. */
+  children: ReactNode;
+}) {
+  return (
+    <Overlay
+      label={POSITION_SOURCES.find((entry) => entry.id === choice)?.label ?? "עמדה אחרת"}
+      onClose={onClose}
+    >
+      {choice === null ? (
+        <PositionSourceMenu onChoose={onChoose} onClose={onClose} />
+      ) : (
+        <>
+          {/* ArrowRight, not Left: back is towards the start of the line, and the line runs RTL. */}
+          <button type="button" className="position-source-back" onClick={onBack}>
+            <ArrowRight size={16} aria-hidden="true" />
+            <span>כל המקורות</span>
+          </button>
+          {children}
+        </>
+      )}
+    </Overlay>
   );
 }

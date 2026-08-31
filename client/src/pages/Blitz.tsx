@@ -47,16 +47,17 @@ import {
   recordCommitted,
   type InstrumentSession,
 } from "@shared/blitz-instrument";
-import { analyseFinishedGame, isFinished, type AnalysedDecision } from "@shared/blitz-post-game";
-import {
-  toPendingRecord,
-  attachAnalysis,
-  isRefusal,
-  type StoredBlitzRecord,
-} from "@shared/blitz-record";
+import { isFinished } from "@shared/blitz-post-game";
+import { toPendingRecord, isRefusal } from "@shared/blitz-record";
 import { readBlitzGame, type BlitzEvent } from "@shared/blitz-reading";
 import { PostGame } from "@/components/PostGame";
-import { useAttachBlitzAnalysis, useSaveBlitzGame } from "@/lib/record-api";
+import { useSaveBlitzGame } from "@/lib/record-api";
+import { useBlitzAnalysis, useStoredBlitzRecord } from "@/lib/use-blitz-analysis";
+import { rememberTimeControl, rememberedTimeControl } from "@/lib/remembered-setup";
+
+/** Two time controls are the same one when both halves agree. Compared, never referenced. */
+const sameControl = (a: RequiredTimeControl, b: RequiredTimeControl) =>
+  a.initialMs === b.initialMs && a.incrementMs === b.incrementMs;
 
 const CONTROLS: { label: string; tc: RequiredTimeControl }[] = [
   { label: "3+0", tc: { initialMs: 180_000, incrementMs: 0 } },
@@ -105,20 +106,15 @@ export default function Blitz() {
   const [session, setSession] = useState<InstrumentSession>(newSession());
   const [, setPaint] = useState(0);
   const [selected, setSelected] = useState<string | undefined>();
-  const [analysis, setAnalysis] = useState<AnalysedDecision[] | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   /*
-   * THE RECORD THIS SCREEN JUST WROTE, HELD SO THE POST-GAME CAN READ IT.
+   * WHETHER THE PENDING WRITE HAS GONE OUT, AND NOTHING MORE.
    *
-   * NOT REFETCHED FROM THE SERVER, and the reason is not latency. The reading must describe the
-   * game the player just finished, and a refetch would describe whatever the store returns --
-   * which, if the write failed, is the previous game or nothing, presented as this one. Holding the
-   * object that was actually assembled means the screen and the write agree by construction.
-   *
-   * IT IS SET TWICE ON PURPOSE: once `pending`, so a player whose engine never answers still gets
-   * a screen that says the engine never answered, and once `complete` when the analysis lands.
+   * The RECORD is read back from the store (`useStoredBlitzRecord` below), not held here. A screen
+   * that kept its own copy would be the one thing in the product still able to say `pending` about
+   * a game the queue had finished — see the note where the engine used to run.
    */
-  const [stored, setStored] = useState<StoredBlitzRecord | null>(null);
+  const [written, setWritten] = useState(false);
   /** A position the player asked to look at, from the post-game list. Null while none is open. */
   const [reviewing, setReviewing] = useState<BlitzEvent | null>(null);
   /*
@@ -153,12 +149,20 @@ export default function Blitz() {
     finishedAt: null,
     saved: false,
   });
+  /*
+   * THE RECORD AS THE STORE HAS IT, and the queue's progress beside it.
+   *
+   * Two different facts and the screen needs both: the record says whether the engine has spoken,
+   * and the progress says whether it is speaking right now. `analysisState: "pending"` is the same
+   * stored value for "the queue has not reached this game" and "the queue is scoring it as we
+   * speak", and those are two different sentences to a player.
+   */
+  const analysis = useBlitzAnalysis();
+  const stored = useStoredBlitzRecord(written ? played.current.gameId : null);
   const saveGame = useSaveBlitzGame();
-  const attachGameAnalysis = useAttachBlitzAnalysis();
 
-  /* Two clients, never one. See the module note. */
+  /* The opponent's engine, and only that: the analysis engine lives in the queue now. */
   const opponentEngine = useRef<StockfishClient | null>(null);
-  const analysisEngine = useRef<StockfishClient | null>(null);
 
   /* Repaint only. The authoritative reading is computed from marks at render time. */
   useEffect(() => {
@@ -244,86 +248,25 @@ export default function Blitz() {
       return;
     }
     played.current.saved = true;
-    setStored(pending);
+    setWritten(true);
     void saveGame.mutateAsync(pending).catch(() => {
       played.current.saved = false;
       setNotice("המשחק הסתיים אבל לא נשמר. הוא ייעלם עם הדף.");
     });
   }, [game, session, saveGame]);
 
-  /* The engine speaks for the first time here, and not one moment earlier. */
-  useEffect(() => {
-    if (!isFinished(game) || analysis !== null) return;
-    // Stamped before the search starts, so a slow engine does not lengthen the game it analysed.
-    played.current.finishedAt ??= new Date().toISOString();
-    let cancelled = false;
-    void (async () => {
-      const engine = await ensure(analysisEngine);
-      const scored = await analyseFinishedGame(game, async (fen) => {
-        const line = await engine.analyze(fen, ANALYSIS_DEPTH);
-        return line.scoreCp ?? null;
-      });
-      if (!cancelled && Array.isArray(scored)) setAnalysis(scored);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [game, analysis, ensure]);
-
   /*
-   * THE GAME IS KEPT, ONCE, AFTER THE ENGINE HAS SPOKEN.
+   * THE ENGINE DOES NOT RUN HERE ANY MORE (LAW 4).
    *
-   * Separate from the effect above rather than tacked onto its end, because that one is cancellable
-   * and this must not be: a component unmounting between the analysis arriving and the write would
-   * silently discard a played game.
+   * It used to, in an effect with a `cancelled` flag — so navigating away cancelled the search, and
+   * the screen offering the navigation was `PostGame` saying "play another game". What followed was
+   * a stored game marked `pending` that nothing would ever finish.
    *
-   * ONCE IS THE SERVICE'S JOB, NOT A REF HERE, and this had a component-level guard until a
-   * mutation showed it did nothing. `saveBlitzGame` reads the record before writing and reports a
-   * repeat as the no-op it is, which is the guarantee that actually holds -- across a reload, a
-   * second tab, and a retry after a lost response, none of which a ref in this component survives.
-   * A second mechanism that no test could distinguish from its own absence is not defence in depth,
-   * it is a line nobody can ever safely delete.
+   * `useBlitzAnalysis` owns it now: a page-level queue over the STORED record, which is why a later
+   * page load, a second tab or a screen that never saw the game played can all finish it. This
+   * screen reports its progress and reads the result back through `useStoredBlitzRecord`, which
+   * makes the record — not the component — the answer to "has this been scored".
    */
-  useEffect(() => {
-    if (!isFinished(game) || analysis === null || !played.current.saved) return;
-    const { gameId, startedAt, finishedAt } = played.current;
-    if (!gameId || !finishedAt) return;
-    const pending = toPendingRecord(game, session.decisions, {
-      gameId,
-      playedAs: PLAYER,
-      startedAt,
-      finishedAt,
-    });
-    if (isRefusal(pending)) return;
-    const record = attachAnalysis(pending, analysis, PLAYER, {
-      engine: ENGINE_NAME,
-      build: engineBuildId(),
-      depth: ANALYSIS_DEPTH,
-    }, new Date().toISOString());
-    if (isRefusal(record)) {
-      /*
-       * A REFUSAL IS A BUG UPSTREAM, AND IT IS SAID OUT LOUD. The sources disagreed about which
-       * plies happened, and storing a best-effort join would produce rows where a confidence
-       * belongs to one move and a cp-loss to another -- undetectable afterwards, because every row
-       * would look complete.
-       *
-       * WHAT IT COSTS IS NO LONGER THE GAME. The record was written before the engine ran, so a
-       * refusal here leaves it stored and `pending` -- complete in everything the player did, and
-       * honest about not having been scored. It used to mean the game was never written at all.
-       */
-      setNotice(REFUSAL_NOTICE[record.refused]);
-      return;
-    }
-    /*
-     * THE EXCEPTION'S OWN MESSAGE DOES NOT GO ON SCREEN. It is English, it names internals, and a
-     * player reading it learns nothing they can act on.
-     */
-    setStored(record);
-    void attachGameAnalysis.mutateAsync(record).catch(() => {
-      setNotice("הניתוח לא נשמר. המשחק עצמו נשמר, והניתוח שלמעלה עדיין נכון.");
-    });
-  }, [game, analysis, session, attachGameAnalysis]);
-
   const onMove = (from: string, to: string) => {
     if (game.phase !== "running" || game.active !== PLAYER || awaitingAnswer(session)) return;
     const at = performance.now();
@@ -337,9 +280,14 @@ export default function Blitz() {
   };
 
   const startGame = (tc: RequiredTimeControl) => {
+    /*
+     * REMEMBERED AT THE START AND NOT AT THE END, because a game that is abandoned mid-way was
+     * still a choice the player made about how they wanted to play. Writing it on the finish would
+     * forget every game that did not reach one, which is the set most likely to be a fast retry.
+     */
+    rememberTimeControl(tc);
     setNotice(null);
-    setAnalysis(null);
-    setStored(null);
+    setWritten(false);
     setReviewing(null);
     setSession(newSession());
     played.current = {
@@ -354,6 +302,12 @@ export default function Blitz() {
   };
 
   if (game.phase === "idle") {
+    /*
+     * READ AT RENDER AND NOT HELD IN STATE. It changes only when this screen writes it, and holding
+     * a copy would be the same "the screen is the source of truth" mistake the analysis queue was
+     * built to undo -- one browser, one value, read where it is used.
+     */
+    const remembered = rememberedTimeControl();
     return (
       <main className="blitz-setup">
         <h1>משחק בליץ</h1>
@@ -361,19 +315,56 @@ export default function Blitz() {
           המהלך נרשם ראשון, השעון נעצר, ורק אחר כך נשאלת שאלת הביטחון — אם בכלל. המנוע לא רץ עד סוף
           המשחק.
         </p>
+        {/*
+          * THE ONE YOU PLAYED LAST TIME IS THE LOUD ONE (P1.10, LAW 2).
+          *
+          * Three buttons at one weight is the product asking a question whose answer has not
+          * changed since the last game. Marking the remembered one removes the decision without
+          * removing the choice: all three are still here, in the same place, one tap each.
+          *
+          * ABSENT ON A FIRST VISIT rather than defaulted to the first entry. "Nothing chosen yet"
+          * and "3+0 chosen" are different facts, and painting one as the other would put a weight
+          * on a control the player has never picked.
+          */}
         <div className="blitz-controls">
-          {CONTROLS.map(({ label, tc }) => (
-            <button key={label} type="button" onClick={() => startGame(tc)}>
-              {label}
-            </button>
-          ))}
+          {CONTROLS.map(({ label, tc }) => {
+            const again = remembered !== null && sameControl(remembered, tc);
+            return (
+              <button
+                key={label}
+                type="button"
+                className={again ? "blitz-control blitz-control--again" : "blitz-control"}
+                onClick={() => startGame(tc)}
+              >
+                {/*
+                  * `dir="ltr"` ON THE RUN, AND IT IS A CORRECTNESS FIX RATHER THAN A TIDY-UP.
+                  *
+                  * `3+0` is digits and a plus in a document that runs right to left. On its own it
+                  * resolves correctly; beside three more with nothing between them it does not --
+                  * the four merge into one numeric run and the bidi algorithm lays its segments out
+                  * right to left, so the player was offered `5+55+03+23+0`. `Home.tsx` already
+                  * carries this exact fix for `7. Bb3`, which rendered as `Bb3 .7`.
+                  *
+                  * MARKED HERE RATHER THAN TRUSTED TO THE SPACING. The layout that now separates
+                  * these controls would hide the problem; it would not solve it, and the next
+                  * element placed beside one of them would bring it straight back.
+                  */}
+                <span dir="ltr">{label}</span>
+                {again && <span className="blitz-control__again">שוב</span>}
+              </button>
+            );
+          })}
         </div>
       </main>
     );
   }
 
   const now = performance.now();
-  const board = new Chess(game.fen).board();
+  /*
+   * THE ONE BOARD'S TWO MODES (LAW 11). `final` is the game's own position; `review` is a position
+   * from the record the player asked to look at. Same element, same place on the page, one FEN.
+   */
+  const boardSquares = new Chess(reviewing ? reviewing.fen : game.fen).board();
   const legal =
     selected && game.phase === "running"
       ? new Chess(game.fen).moves({ square: selected as never, verbose: true }).map((m) => m.to)
@@ -381,19 +372,45 @@ export default function Blitz() {
 
   return (
     <main className="blitz">
+      {/* Two clocks side by side, both Latin runs: `3:00` beside `2:47` merges the same way. */}
       <div className="blitz-clocks">
-        <span aria-label="שעון היריב">{clockText(remainingMs(game, "b", now))}</span>
-        <span aria-label="השעון שלך">{clockText(remainingMs(game, "w", now))}</span>
+        <span dir="ltr" aria-label="שעון היריב">
+          {clockText(remainingMs(game, "b", now))}
+        </span>
+        <span dir="ltr" aria-label="השעון שלך">
+          {clockText(remainingMs(game, "w", now))}
+        </span>
       </div>
 
+      {/*
+        * ONE BOARD, ONE STORY (LAW 11).
+        *
+        * It used to be two: the game's final position, and a second `<ChessBoard>` in a review
+        * section beneath it showing move 23. The note that justified the second one argued that
+        * replacing the first board's FEN would make the outcome sentence disagree with what was on
+        * screen — a real problem, solved with the wrong instrument. The board does not need a twin;
+        * it needs a MODE, and the sentence above it follows the mode instead of assuming the final
+        * position.
+        */}
+      {reviewing && (
+        <p className="blitz-board-mode" role="status">
+          {/* The ply and the SAN are one Latin run inside a Hebrew sentence: `23: Nf3`, not `Nf3 :23`. */}
+          מהלך <span dir="ltr">{reviewing.ply}: {reviewing.san}</span>
+        </p>
+      )}
       <ChessBoard
-        board={board}
+        board={boardSquares}
         orientation={PLAYER}
-        selectedSquare={selected}
-        legalTargets={legal}
-        onSelect={setSelected}
-        onMove={onMove}
+        selectedSquare={reviewing ? undefined : selected}
+        legalTargets={reviewing ? [] : legal}
+        onSelect={reviewing ? () => {} : setSelected}
+        onMove={reviewing ? () => {} : onMove}
       />
+      {reviewing && (
+        <button type="button" className="blitz-board-back" onClick={() => setReviewing(null)}>
+          חזרה לעמדה הסופית
+        </button>
+      )}
 
       {awaitingAnswer(session) && (
         <div className="blitz-confidence" role="group" aria-label="כמה אתה בטוח במהלך">
@@ -412,59 +429,64 @@ export default function Blitz() {
 
       {notice && <p role="status">{notice}</p>}
 
-      {game.phase === "finished" && (
+      {game.phase === "finished" && !reviewing && (
         <section className="blitz-over">
           <h2>המשחק נגמר</h2>
           <p>{describeOutcome(game.outcome)}</p>
           {/*
-            * THE COUNT USED TO BE THE WHOLE SCREEN. It is now one row inside the disclosure, and
-            * what stands in its place is a reading -- see `PostGame`. While the engine is still
-            * running there is genuinely nothing to read, and saying "מנתח…" is the honest state
-            * rather than a placeholder: the record already exists and is already safe.
+            * FINISHED → WAIT_ANALYSIS → RESULT, as three states rather than one screen with holes.
+            *
+            * `undefined` is the rows still loading, `null` is a game the store does not have, and a
+            * record whose `analysisState` is `pending` is a game the queue has not reached. The
+            * last of those is the state every game passes through, and the old screen showed it as
+            * "מנתח…" whether or not anything was actually running.
             */}
-          {stored === null ? (
+          {stored === undefined ? (
             <p role="status">שומר…</p>
+          ) : stored === null ? (
+            /*
+             * WRITTEN AND NOT READABLE. The pending write refused, and `notice` above already says
+             * why in the player's own terms. Repeating it here would be the same sentence twice.
+             */
+            null
           ) : (
-            <PostGame
-              game={stored.game}
-              reading={readBlitzGame(stored.game, stored.decisions)}
-              analysed={stored.decisions.length}
-              onSeePosition={setReviewing}
-              onPlayAgain={() => setGame({ phase: "idle" })}
-            />
+            <>
+              {/*
+                * THE QUEUE'S PROGRESS, AND ONLY WHILE IT IS THIS GAME. A player watching "3 of 24"
+                * against a game they did not just play would be watching somebody else's backlog.
+                */}
+              {analysis.scoring === stored.game.gameId && (
+                <p className="blitz-analysing" role="status">
+                  מנתח את המשחק… {analysis.done} מתוך {analysis.of}
+                </p>
+              )}
+              <PostGame
+                game={stored.game}
+                reading={readBlitzGame(stored.game, stored.decisions)}
+                analysed={stored.decisions.length}
+                onSeePosition={setReviewing}
+                onPlayAgain={() => setGame({ phase: "idle" })}
+              />
+              {/*
+                * LAW 4, SAID OUT LOUD. The old screen could not offer this, because leaving
+                * cancelled the search. It can now, and saying so is the difference between a player
+                * who waits because they were told to and one who waits because they are guessing.
+                */}
+              {analysis.scoring === stored.game.gameId && (
+                <p className="blitz-analysing-note">אפשר להמשיך. המשחק ינותח גם אם תצא מכאן.</p>
+              )}
+            </>
           )}
-          {analysis === null && stored !== null && <p role="status">מנתח…</p>}
-        </section>
-      )}
-
-      {/*
-        * THE POSITION THE PLAYER ASKED TO SEE, on its own board rather than by rewinding the game's.
-        *
-        * A SEPARATE BOARD, AND THAT IS NOT WASTE. The game's board shows the final position and is
-        * what the outcome sentence refers to; replacing its FEN to show a mid-game position would
-        * make the two disagree, and a player who then pressed "new game" would have been looking at
-        * something the screen no longer described.
-        */}
-      {reviewing && (
-        <section className="blitz-review" aria-label="העמדה שביקשת לראות" dir="rtl">
-          <h3>
-            מהלך {reviewing.ply}: {reviewing.san}
-          </h3>
-          <ChessBoard
-            board={new Chess(reviewing.fen).board()}
-            orientation={PLAYER}
-            legalTargets={[]}
-            onSelect={() => {}}
-            onMove={() => {}}
-          />
-          <button type="button" onClick={() => setReviewing(null)}>
-            סגור
-          </button>
         </section>
       )}
 
       {game.phase === "running" && (
-        <button type="button" onClick={() => setGame(resign(game, PLAYER))}>
+        /* The way out of a game, at the weight of a way out: the primary action is the board. */
+        <button
+          type="button"
+          className="blitz-resign"
+          onClick={() => setGame(resign(game, PLAYER))}
+        >
           פרישה
         </button>
       )}

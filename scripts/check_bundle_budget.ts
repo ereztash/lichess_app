@@ -369,10 +369,125 @@ const INDEX = "dist/public/index.html";
  * about.
  *
  * 686, 213 AND 764 LEAVE 1.8 kB, 1.2 kB AND 2.2 kB, the same headroom as every raise above.
+ *
+ * ---
+ *
+ * 686 -> 689 and 764 -> 767: LAW 4's analysis queue, run from the root.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              684.7      212.0       762.3
+ *     + everything but the root keeper     685.2      212.2       762.8   +0.5 / +0.2 / +0.5
+ *     + <BlitzAnalysisKeeper /> in App     687.6      212.8       765.2   +2.4 / +0.6 / +2.4
+ *
+ * MEASURED BY BUILDING BOTH LAYERS, because 2.4 of the 2.9 kB is one component and it was worth
+ * knowing that before raising anything. `BlitzAnalysisKeeper` renders nothing; what it costs is
+ * `use-blitz-analysis.ts` and the query wiring for the stored blitz GAMES, now on the entry route.
+ *
+ * AND IT IS THE FEATURE, not a module dragging something in. A pending analysis is finished by
+ * whichever page load finds it, and the screen that starts one is exactly the screen a player
+ * leaves -- so the resume has to live somewhere every route already is. What deliberately did NOT
+ * come with it: `blitz-analysis-runner.ts`, `blitz-analysis-queue.ts` and the engine are behind a
+ * dynamic import that only fires once a game is actually pending, so a record with no blitz games
+ * pays for the check and nothing else. The hook asks the cheap question first for the same reason
+ * -- the games, not the decisions.
+ *
+ * THE REMAINING 0.5 kB is `record-api.ts`: `BLITZ_KEYS` and the `invalidateBlitz` helper the two
+ * blitz mutations now share, so a write always marks both sides' caches stale.
+ *
+ * 689 AND 767 LEAVE 1.4 kB AND 1.8 kB. The gzip ceiling did not fire and keeps its number, which
+ * is the rule this file has followed every time: a ratchet nobody widened is a ratchet.
+ *
+ * ---
+ *
+ * 213 -> 215: LAW 1's decision focus, which cost 0.6 kB gzipped and ZERO raw.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              687.6      212.8       765.2
+ *     + the focus branch and the rail      687.6      213.4       765.2   +0.0 / +0.6 / +0.0
+ *     + two components out of Home.tsx     687.8      213.4       765.4   +0.2 / +0.0 / +0.2
+ *
+ * MEASURED THE SAME WAY AS THE RAISE ABOVE, and the split is the whole point: the ceiling that
+ * fired is the one the change did not add a single raw byte to.
+ *
+ * WHY THAT IS NOT A MEASUREMENT ERROR. Almost everything LAW 1 added is comment, and comments do
+ * not ship -- hence +0.0 raw. What the change does to the code is MOVE it: `<ClaimPanel>` and
+ * `<LearningQueue>` went from the `deciding` branch to the reveal branch, about two hundred lines
+ * away, and the control rail picked up a conditional. gzip back-references reach 32 kB; code that
+ * used to sit near its own near-duplicate now sits outside that window, so the same bytes compress
+ * worse. It is a real cost and it is worth exactly what it says: 0.6 kB to stop the product from
+ * showing a player their own calibration while it records how sure they are.
+ *
+ * The two extractions -- `PgnDrawer` to `PositionSource.tsx`, `SavedReadingOverlay` to
+ * `ImportDiagnostic.tsx` -- are `Home.tsx` going back under its 2,400-line ratchet. They cost
+ * 0.2 kB raw of props plumbing and nothing gzipped, and both files were already in the entry, so
+ * nothing moved between chunks.
+ *
+ * 215 LEAVES 1.6 kB, the headroom every raise above has taken. The other two did not fire.
+ *
+ * ---
+ *
+ * 689 -> 691 and 767 -> 769: the configuration a player already chose (P1.10, P1.11).
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              688.0      213.6       765.9
+ *     + the resume wait and the cold door  688.2      213.6       766.1   +0.2 / +0.0 / +0.2
+ *     + remembered setup, both surfaces    689.1      213.9       767.0   +0.9 / +0.3 / +0.9
+ *
+ * SPLIT THE SAME WAY AS THE TWO RAISES ABOVE, by building each half. The first row is P1.5 and
+ * P1.6 -- a blocker that stopped being answered with a button, and a control that stops being
+ * offered on a record where the route behind it can say nothing -- and both are conditions rather
+ * than code, so they cost almost nothing.
+ *
+ * THE 0.9 kB IS VALIDATION, NOT STORAGE. `remembered-setup.ts` reads two values and checks every
+ * field of each before returning one: a colour that is one of two, a depth that is a positive
+ * integer, a timing that is one of two, a clock that is a positive integer. The alternative is a
+ * cast, and a cast would put a `NaN` clock on a board from a value an older build of this app left
+ * in somebody's browser. That is what the bytes buy.
+ *
+ * 691 AND 769 LEAVE 1.9 kB AND 2.0 kB. The gzip ceiling did not fire and keeps its number.
+ *
+ * ---
+ *
+ * 691 -> 673, 215 -> 211 AND 769 -> 751: THE FIRST TIME THIS FILE HAS EVER GONE DOWN.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              690.3      214.4       768.5
+ *     RecordExplorer behind a lazy chunk   671.1      208.9       749.3   -19.2 / -5.5 / -19.2
+ *
+ * P1.7 put the reveal's toolbox -- the engine's panel, the claim panel, the learning queue, the
+ * Lichess layers, the dashboard and the whole-game review -- behind one control the player presses.
+ * A surface that renders only on a press has no business in the chunk every arrival downloads,
+ * which is the argument this file already made about `RecordDashboard` and `recharts`, applied to
+ * the four panels that were sitting beside it.
+ *
+ * THE CEILINGS COME DOWN WITH IT, and that is the whole point of the exercise. A ratchet that only
+ * ever moves one way is a ratchet that records defeats; leaving 19 kB of slack in it would mean the
+ * next twenty accidental kilobytes cost nothing to ship. The same headroom as every raise above --
+ * 1.9 kB, 2.1 kB and 1.7 kB -- measured from where the build actually is.
+ *
+ * ---
+ *
+ * 751 -> 753: a stylesheet for a route that never had one.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              671.1      208.9       749.3
+ *     + the blitz route's CSS              671.1      208.9       751.5   +0.0 / +0.0 / +2.2
+ *
+ * ENTRY RAW AND GZIP DID NOT MOVE, WHICH IS THE WHOLE SHAPE OF THIS ONE: it is 2.2 kB of
+ * stylesheet and no JavaScript at all. `/blitz` had exactly one rule in `index.css` and shipped as
+ * unstyled flow content -- four time-control buttons with no box and no spacing, which under the
+ * document's RTL direction merged into one numeric run and rendered as `5+55+03+23+0`, and a board
+ * that came out 120px wide because `.board-stage` pins itself to a column blitz does not have.
+ *
+ * IT IS THE ONLY RAISE IN THIS FILE THAT BUYS A SCREEN RATHER THAN A FEATURE. Everything above
+ * bought something the product can now do; this bought a route that a player could already reach
+ * and could not read.
+ *
+ * 753 LEAVES 1.5 kB. The other two ceilings did not move and keep their numbers.
  */
-const ENTRY_RAW_KB = 686;
+const ENTRY_RAW_KB = 673;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 213;
+const ENTRY_GZIP_KB = 211;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -416,7 +531,7 @@ const ENTRY_GZIP_KB = 213;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 764;
+const INITIAL_RAW_KB = 753;
 
 interface Asset {
   name: string;

@@ -26,6 +26,8 @@ import {
   type ImportDiagnostic as Diagnostic,
 } from "@shared/import-diagnostic";
 import type { ReactNode } from "react";
+import { Overlay } from "./Overlay";
+import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import { NotMeasured, Proportion } from "./Value";
 
 /** Why a bucket shows no rate. Two kinds, and only one of them is a wait. */
@@ -290,5 +292,37 @@ export function ImportDiagnosticPanel({
         שתרשמו החלטות. זו תצפית על {diagnostic.scored} החלטות שכבר קיבלתם, ולא אבחנה עליכם.
       </p>
     </section>
+  );
+}
+
+/**
+ * A reading already paid for, reopened.
+ *
+ * NOT A SUMMARY OF THE PANEL AND NOT A SECOND RENDERING OF THE SAME NUMBERS IN A SMALLER FONT:
+ * §4.5 says two states must not render alike, and the converse holds too -- the same reading in
+ * two places must not render as two different findings. So it is the panel itself. What is added
+ * is the provenance, because a rate reopened later with no scan date behind it stops being a
+ * measurement and becomes a number.
+ *
+ * Moved out of `Home.tsx` under its ratchet, to the file that owns the panel it reopens.
+ */
+export function SavedReadingOverlay({
+  reading,
+  onClose,
+}: {
+  reading: StoredImportDiagnostic;
+  onClose: () => void;
+}) {
+  return (
+    <Overlay label="הקריאה השמורה" onClose={onClose}>
+      <ImportDiagnosticPanel
+        diagnostic={reading.diagnostic}
+        provenance={{
+          username: reading.username,
+          games: reading.games,
+          scannedAt: reading.scanned_at,
+        }}
+      />
+    </Overlay>
   );
 }

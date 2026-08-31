@@ -29,6 +29,19 @@ import {
   sourceFiles,
   type Finding,
 } from "./gate-scan";
+import {
+  findPendingWorkLeaks,
+  findReadingsOutsideTheirSurface,
+  findScreensWithTwoBoards,
+  findSurfacesThatAskAgain,
+} from "./inertia-scan";
+import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
+import {
+  deriveNextAction,
+  producesEvidence,
+  type NextAction,
+  type ProductState,
+} from "../shared/next-action";
 
 export type GateStatus = "PASS" | "FAIL" | "NOT-MEASURED";
 export interface GateResult {
@@ -105,6 +118,82 @@ function runVitestFile(file: string, label: string, config?: string): GateResult
     .map((line) => line.trim())
     .find((line) => line.includes("superseded search") || line.includes("AssertionError"));
   return fail(reason?.slice(0, 110) ?? `${label} failed (vitest exited ${result.status})`);
+}
+
+/** Where the inertial controls live. Never scanned by a gate's real run. */
+const INERTIA_FIXTURES = "tests/fixtures/inertia";
+
+/** One shape for all four scanning gates: findings mean red, and each names its own file. */
+const fromFindings = (findings: Finding[], clean: string): GateResult =>
+  findings.length
+    ? fail(findings.map((f) => `${f.file}:${f.line} ${f.text}`).join("; ").slice(0, 200))
+    : pass(clean);
+
+const readingsOutside = (roots: string[]) =>
+  fromFindings(
+    findReadingsOutsideTheirSurface(roots),
+    "every reading of the record renders from a surface whose mode permits one",
+  );
+
+const twoBoards = (roots: string[]) =>
+  fromFindings(findScreensWithTwoBoards(roots), "one board per screen");
+
+const asksAgain = (roots: string[]) =>
+  fromFindings(
+    findSurfacesThatAskAgain(roots),
+    "both configured surfaces read what the player already chose, and keep it",
+  );
+
+const pendingWork = (roots: string[], rootFile: string) =>
+  fromFindings(
+    findPendingWorkLeaks(roots, rootFile),
+    "no screen owns a cancellable pass, and the root resumes what is pending",
+  );
+
+/**
+ * WHETHER AN ACTION COULD ACTUALLY RESOLVE THE BLOCKER IT IS OFFERED FOR.
+ *
+ * ONE BLOCKER IS NOT ANSWERED BY PLAYING, and it is the one the product answered with "play
+ * another game" for the whole of its life: `nothing-scored` means the games are stored and the
+ * engine has not been over them, so another game grows the backlog that IS the blocker. Every
+ * other blocker in `BLITZ_BLOCKERS` is a shortage of record, which more record does fix.
+ *
+ * THE PREDICATE IS ABOUT THE DIRECTION, NOT THE LABEL. It asks whether the proposed action
+ * produces more evidence, and refuses that answer for the one blocker where more evidence is
+ * exactly what is already waiting.
+ */
+function nextActionResolves(derive: (state: ProductState) => NextAction): GateResult {
+  const base: ProductState = {
+    pendingAnalyses: 0,
+    analysisRunning: false,
+    drill: null,
+    transfer: null,
+    unseenEvent: null,
+    untestedRule: null,
+    blitzStanding: null,
+    decisionsOnRecord: 40,
+    anchor: { answered: 8, total: 8 },
+  };
+  for (const because of BLITZ_BLOCKERS) {
+    const standing: BlitzStanding = { may: false, because, readable: 4, needs: null };
+    const unscored = because === "nothing-scored";
+    const action = derive({
+      ...base,
+      blitzStanding: standing,
+      /* The state each blocker actually describes: unscored games exist only for that one. */
+      pendingAnalyses: unscored ? 3 : 0,
+      decisionsOnRecord: because === "no-games" ? 0 : 40,
+    });
+    if (unscored && producesEvidence(action)) {
+      return fail(
+        `${because} is answered with "${action.kind}", which adds to the backlog that is the blocker`,
+      );
+    }
+    if (!unscored && !producesEvidence(action)) {
+      return fail(`${because} is a shortage of record and is answered with "${action.kind}"`);
+    }
+  }
+  return pass(`all ${BLITZ_BLOCKERS.length} blockers are answered by something that resolves them`);
 }
 
 /**
@@ -554,6 +643,70 @@ export const GATES: Gate[] = [
       }
       return fail(gaps.map((gap) => `${gap.reason}: ${gap.detail}`).join("; "));
     },
+  },
+
+  /*
+   * THE INERTIAL GATES (docs/INERTIAL_UX_LAWS.md).
+   *
+   * A DIFFERENT KIND OF CLAIM FROM THE FIFTEEN ABOVE, and the same kind underneath. Every gate
+   * before this point reads code for a claim about a MEASUREMENT. These read code for a claim
+   * about a STATE: which surfaces may exist while a player is in one.
+   *
+   * LAW 1 IS WHY THEY BELONG HERE RATHER THAN IN A TEST FILE. A confidence stated in front of a
+   * panel describing that player's calibration is not a measurement of what they believed -- so
+   * "which panel is on screen while a decision is open" is a validity question wearing a layout
+   * question's clothes. And it is violated by ADDING something, anywhere, at any time: a test
+   * asserts that a screen is right today, a gate asserts that no screen has become wrong.
+   *
+   * `GATE-EXPOSURE-CONTEXT` IS DELIBERATELY ABSENT. `docs/decisions/D21-feedback-exposure.md`
+   * found that decisions taken after a player has seen feedback pool with decisions taken before,
+   * that no field could separate them, and that choosing between the three possible contracts
+   * before any measurement would be exactly the blind change the audit exists to prevent. A gate
+   * over a schema nobody has chosen would be a gate over nothing.
+   */
+  {
+    id: "GATE-DECISION-FOCUS",
+    rule: "LAW 1",
+    description:
+      "A reading of the record renders only from a surface whose mode permits prior evidence.",
+    run: () => readingsOutside(["client/src"]),
+    positiveControl: () => readingsOutside([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-ONE-BOARD-ONE-STORY",
+    rule: "LAW 11",
+    description: "No screen renders two boards, because two boards is two answers to 'where am I'.",
+    run: () => twoBoards(["client/src"]),
+    positiveControl: () => twoBoards([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-REUSE-CONFIG",
+    rule: "LAW 8",
+    description: "A surface that starts a run reads the answer the player already gave, and keeps it.",
+    run: () => asksAgain(["client/src"]),
+    positiveControl: () => asksAgain([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-PENDING-WORK-LIVENESS",
+    rule: "LAW 4",
+    description:
+      "No screen owns a whole-game analysis it can cancel, and the root picks up what is pending.",
+    run: () => pendingWork(["client/src"], "client/src/App.tsx"),
+    positiveControl: () => pendingWork([INERTIA_FIXTURES], `${INERTIA_FIXTURES}/App.tsx`),
+  },
+  {
+    id: "GATE-NEXT-ACTION-RESOLVES-BLOCKER",
+    rule: "LAW 3",
+    description: "Every blocker's proposed next action is one that could actually resolve it.",
+    run: () => nextActionResolves(deriveNextAction),
+    positiveControl: () =>
+      /*
+       * THE DERIVATION AS IT USED TO BE, WHICH IS `readResume`'s TABLE. Every blocker answered by
+       * "play another game" -- including `nothing-scored`, where the games are stored and the
+       * engine has not been over them, so another game grows the backlog that IS the blocker.
+       * The control is not a contrived function; it is the mapping this product shipped.
+       */
+      nextActionResolves(() => ({ kind: "play-blitz", because: "nothing-scored", needs: null })),
   },
 ];
 
