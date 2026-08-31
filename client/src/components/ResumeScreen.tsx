@@ -31,8 +31,7 @@ import { lastSeenReading, rememberReadingSeen } from "@/lib/last-seen";
 import { readResume } from "@shared/resume-reading";
 import { changedSentence, knowsSentence, patternCounts } from "@shared/blitz-words";
 import { authorityOfRecordReading } from "@shared/evidence-authority";
-import { useDecisionCount, useRecordReading } from "@/lib/record-api";
-import { resumeProductState, useNextActionShadow } from "@/lib/next-action-shadow";
+import { useNextActionShadow, useProductState } from "@/lib/next-action-shadow";
 import { useBlitzAnalysis } from "@/lib/use-blitz-analysis";
 
 export function ResumeScreen({
@@ -67,24 +66,12 @@ export function ResumeScreen({
    * browser. What it buys is the only evidence that could justify letting the derivation own this
    * screen -- see `docs/INERTIAL_UX_LAWS.md` LAW 3.
    */
-  const decisions = useDecisionCount();
-  const record = useRecordReading();
   /*
    * THE SAME PAGE-LEVEL QUEUE THE ROOT ALREADY MOUNTS, read for its progress. Two screens calling
    * this hook get one runner, which is what lets the resume screen and the blitz post-game report
    * the same pass without either of them owning it.
    */
   const analysis = useBlitzAnalysis();
-  useNextActionShadow(
-    data
-      ? resumeProductState({
-          reading: data.reading,
-          games: data.games,
-          decisionsOnRecord: decisions.data?.decisions ?? 0,
-          record: record.data,
-        })
-      : null,
-  );
 
   /*
    * READ ONCE, ON THE FIRST RENDER, AND HELD.
@@ -100,6 +87,8 @@ export function ResumeScreen({
     captured.current = true;
     since.current = lastSeenReading();
   }
+
+  useNextActionShadow("resume", useProductState());
 
   /*
    * THE WRITE HAPPENS AFTER THE READING IS ON SCREEN, not before. A screen that stamped itself as

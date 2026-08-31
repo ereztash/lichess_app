@@ -54,6 +54,7 @@ What a piece of work is allowed to become, given what is known about it:
 | [D20](D20-protocol-matching.md) | what protocol may judge this claim? | `PORT_AFTER_EQUIVALENCE` | closed — the product choice was taken by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42), merged |
 | [D21](D21-feedback-exposure.md) | is a decision taken after feedback the same measurement as one taken before? | `DEFER` on the contract | open — two findings fixed, the third written down with three options and a trigger |
 | [D04](D04-candidate-search.md) | can a search find a region the six buckets cannot express? | `PSEUDOCODE_ORACLE` | measured, not rejected — 0% → 33.5% correct attribution at 0.0010 false-claim; depth is an open trade |
+| [D22](D22-next-action-ownership.md) | may a derivation decide what the player is sent to next? | `DEFER` | the correspondence is stated once and tested; the shadow's own two fabricated inputs are fixed; no screen handed over |
 
 ### D04, whose trigger fired and which has now been measured
 

@@ -27,7 +27,9 @@ import { trpc } from "@/lib/trpc";
 import { ResumeScreen } from "@/components/ResumeScreen";
 import { LocalRecordStore } from "@/lib/local-record-store";
 import { clearProgress } from "@/lib/progress-record";
-import { RESUME_BLIND_SPOTS, RESUME_OFFERS, resumeProductState } from "@/lib/next-action-shadow";
+import { RESUME_BLIND_SPOTS, offeredAct, productStateFor } from "@/lib/next-action-shadow";
+import { actFor, agreesWith } from "@shared/next-action";
+import { PRIMARY_ACTIONS, primaryAction } from "@shared/primary-action";
 import { deriveNextAction } from "@shared/next-action";
 import type { BlitzReading } from "@shared/blitz-reading";
 import type { StoredBlitzGame } from "@shared/blitz-record";
@@ -59,7 +61,9 @@ const game = (gameId: string, analysisState: StoredBlitzGame["analysisState"]): 
     samplingPolicyVersion: BLITZ_SAMPLING_POLICY_VERSION,
   }) as unknown as StoredBlitzGame;
 
-const stateFrom = (over: Parameters<typeof resumeProductState>[0]) => resumeProductState(over);
+type StateInput = Parameters<typeof productStateFor>[0];
+const stateFrom = (over: Omit<StateInput, "analysisRunning"> & { analysisRunning?: boolean }) =>
+  productStateFor({ analysisRunning: false, ...over });
 
 beforeEach(() => {
   localStorage.clear();
@@ -83,16 +87,26 @@ describe("what the front door can and cannot supply", () => {
     expect(state.pendingAnalyses).toBe(1);
   });
 
-  it("says the queue is not running rather than guessing that it is", () => {
+  it("takes whether the queue is running from the caller instead of making it up", () => {
     /*
-     * A BACKLOG IS NOT A PASS. Whether the runner is mid-search is a fact about a subscription this
-     * screen does not hold, and reporting `true` because games are pending would be the shadow
-     * inventing an input -- the one thing it must not do.
+     * A BACKLOG IS NOT A PASS, AND THIS FIELD USED TO BE HARD-CODED `false` WITH A COMMENT SAYING
+     * the front door did not subscribe to the runner. `ResumeScreen` called `useBlitzAnalysis()`
+     * three lines above the call to this function. It did subscribe.
+     *
+     * The defect is not academic: `wait-analysis` carries `scoring` to the player, and it is the
+     * difference between "eleven games are waiting" and "eleven are waiting and one is being scored
+     * right now". Every shadow row written before this said the second was never true.
      */
-    expect(
-      stateFrom({ reading: reading(), games: [game("a", "pending")], decisionsOnRecord: 1, record: undefined })
-        .analysisRunning,
-    ).toBe(false);
+    const inputs = {
+      reading: reading(),
+      games: [game("a", "pending")],
+      decisionsOnRecord: 1,
+      record: undefined,
+    };
+    expect(stateFrom({ ...inputs, analysisRunning: false }).analysisRunning).toBe(false);
+    expect(stateFrom({ ...inputs, analysisRunning: true }).analysisRunning).toBe(true);
+    const derived = deriveNextAction(stateFrom({ ...inputs, analysisRunning: true }));
+    expect(derived).toMatchObject({ kind: "wait-analysis", scoring: true });
   });
 
   it("leaves every input it cannot see null, and names all four", () => {
@@ -134,7 +148,14 @@ describe("the disagreement it exists to record", () => {
     const action = deriveNextAction(state);
     expect(action).toMatchObject({ kind: "wait-analysis", games: 2 });
     expect(action.kind === "play-blitz" || action.kind === "play-first-decision").toBe(false);
-    expect(RESUME_OFFERS).toBe("play");
+    /*
+     * AND THE SCREEN AGREES WITH IT BY GOING QUIET. `wait-analysis` maps to no act at all, so a
+     * screen rendering no primary control is the correct answer here rather than a missing one --
+     * which is exactly what P1.5 made the front door do on `nothing-scored`.
+     */
+    expect(actFor("wait-analysis")).toBeNull();
+    expect(agreesWith("wait-analysis", null)).toBe(true);
+    expect(agreesWith("wait-analysis", "play-blitz")).toBe(false);
   });
 
   it("agrees with the screen where the blocker really is answered by playing", () => {
@@ -230,7 +251,13 @@ describe("on the screen, it changes nothing", () => {
     await waitFor(() => expect(shadowRows().length).toBe(1));
     const [row] = shadowRows();
     expect(row.surface).toBe("resume");
-    expect(row.offered).toBe(RESUME_OFFERS);
+    /*
+     * WHATEVER THE MARKUP SAYS, INCLUDING NOTHING. `offered` was the constant `"play"` -- a word in
+     * no vocabulary, recorded whether or not the screen rendered a control. It is now read off
+     * `data-primary-action`, so it is either one of the closed acts or `null`.
+     */
+    expect(row.offered === null || PRIMARY_ACTIONS.includes(row.offered)).toBe(true);
+    expect(row.agrees).toBe(agreesWith(row.proposed, row.offered));
     expect(typeof row.proposed).toBe("string");
     expect(typeof row.agrees).toBe("boolean");
     expect([...row.blind].sort()).toEqual([...RESUME_BLIND_SPOTS].sort());
