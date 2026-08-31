@@ -124,6 +124,24 @@ describe("one weakness, one finding", () => {
     expect(document.body.textContent).toMatch(/ולא ממצא נוסף/);
   });
 
+  it("says it once, below the list, and names the variable it is about", () => {
+    /*
+     * IT USED TO SIT INSIDE EVERY ROW THAT HAD A MIRROR, word for word -- so a record with mirrors
+     * on all three variables printed the same sentence three times and none of the three said
+     * anything the other two did not. `GATE-SAID-ONCE` cannot catch this one: the sentence was a
+     * literal in the row, but the fix could equally have been to delete it.
+     *
+     * NAMING THE VARIABLE IS WHAT THE MOVE COULD HAVE COST. A note below the list that did not say
+     * which finding it applied to would be less specific than three copies were, which is the
+     * trade a grouping has to not make.
+     */
+    show(withMirror());
+    const notes = document.querySelectorAll(".profile-panel__mirror");
+    expect(notes).toHaveLength(1);
+    expect(notes[0].closest(".profile-panel__variable"), "the note is inside a row").toBeNull();
+    expect(notes[0].textContent).toContain("שלב המשחק");
+  });
+
   it("states the direction as the comparison it measured, never as a label about the player", () => {
     /*
      * THE PRINCIPLE WAS RIGHT AND THE STRING IT ASSERTED WAS AN INSTANCE OF WHAT IT FORBADE.

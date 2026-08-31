@@ -28,6 +28,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PostGame } from "@/components/PostGame";
+import { WhatIsUnclear } from "@/components/WhatIsUnclear";
+import { UNCLEAR_SENTENCE, type Unclear } from "@shared/record-order";
 import { readBlitzGame } from "@shared/blitz-reading";
 import { CONFIDENCE_GRID_VERSION, CONFIDENCE_LEVELS } from "@shared/confidence";
 import { CURRENT_PROTOCOL_VERSION } from "@shared/measurement-protocol";
@@ -215,5 +217,110 @@ describe("the list that said one thing six times", () => {
     expect(details().every((line) => line.includes("המהלך:"))).toBe(true);
     const bands = new Set(details().map((line) => line.slice(line.indexOf("המהלך:"))));
     expect(bands.size, "the fixture does not actually hold two bands").toBeGreaterThan(1);
+  });
+});
+
+
+/**
+ * THE SAME DEFECT ON THE RECORD PAGE, WHICH IS WHERE IT IS WORSE.
+ *
+ * `whatIsUnclear` produces one item per bucket and there are three causes for an unmeasurable one,
+ * so a small record puts all six buckets under `too-few-in-bucket` and a blitz record puts two
+ * under `split-does-not-divide`. The screen rendered the cause sentence INSIDE EVERY ROW.
+ *
+ * Six copies of *"צד אחד של החלוקה עוד לא הגיע למספר שממנו אפשר להעריך שגיאה"*, or two copies of a
+ * hundred-character sentence about a line nothing crossed, with a bucket name and a count the only
+ * things differing. It is the post-game list again, on longer sentences and on a page a player
+ * returns to.
+ *
+ * THE ANSWER IS NOT THE SAME ONE. In the post-game list every row shared the fact, so it went
+ * above the list. Here there can be two or three causes at once, so the rule applies at the right
+ * granularity: group by the reason, say each reason once, and put the splits it blocks under it.
+ * The grouping is itself a statement the flat list could not make -- these are blocked for the same
+ * reason -- and nothing a reader could act on moves.
+ */
+const unclear = (what: string, over: Partial<Unclear> = {}): Unclear => ({
+  what,
+  because: "too-few-in-bucket",
+  needs: 8,
+  waitingHelps: true,
+  ...over,
+});
+
+/** A blitz record on the small side: four splits short of the floor, two lines nothing crossed. */
+const A_BLITZ_RECORD: Unclear[] = [
+  unclear("החלוקה לפי שלב — פתיחה", { needs: 8 }),
+  unclear("החלוקה לפי שלב — אמצע", { needs: 12 }),
+  unclear("החלוקה לפי שלב — סיום", { needs: 5 }),
+  unclear("שעון מתחת לדקה", { needs: 21 }),
+  unclear("החלטות מתחת ל-45 שניות", {
+    because: "split-does-not-divide",
+    needs: null,
+    waitingHelps: false,
+  }),
+  unclear("החלטות מעל שתי דקות", {
+    because: "split-does-not-divide",
+    needs: null,
+    waitingHelps: false,
+  }),
+];
+
+const reasons = () => [...document.querySelectorAll(".unclear__because")].map((n) => n.textContent);
+const splits = () => [...document.querySelectorAll(".unclear__item")].map((n) => n.textContent);
+
+describe("what the record cannot say, said once per reason", () => {
+  it("renders every split, so nothing was dropped to make the list shorter", () => {
+    render(<WhatIsUnclear items={A_BLITZ_RECORD} />);
+    expect(splits()).toHaveLength(A_BLITZ_RECORD.length);
+    for (const item of A_BLITZ_RECORD) {
+      expect(splits().some((line) => line?.includes(item.what)), item.what).toBe(true);
+    }
+  });
+
+  it("says each reason once, not once per split it blocks", () => {
+    render(<WhatIsUnclear items={A_BLITZ_RECORD} />);
+    const said = reasons();
+    expect(new Set(said).size, `a reason is repeated: ${said.join(" | ")}`).toBe(said.length);
+    expect(said).toHaveLength(2);
+    expect(said).toContain(UNCLEAR_SENTENCE["too-few-in-bucket"]);
+    expect(said).toContain(UNCLEAR_SENTENCE["split-does-not-divide"]);
+  });
+
+  it("keeps each split's own count beside it", () => {
+    /*
+     * THE THING GROUPING COULD HAVE COST. Four splits share a reason and need 8, 12, 5 and 21 more
+     * decisions; a grouping that put the reason above them and lost the numbers would have traded
+     * one defect for a worse one.
+     */
+    render(<WhatIsUnclear items={A_BLITZ_RECORD} />);
+    const needs = [...document.querySelectorAll(".unclear__needs")].map((n) => n.textContent);
+    expect(needs).toEqual(["עוד 8 החלטות", "עוד 12 החלטות", "עוד 5 החלטות", "עוד 21 החלטות"]);
+  });
+
+  it("still draws a wait differently from a dead end", () => {
+    /*
+     * THE DISTINCTION THE COMPONENT EXISTS FOR, and the one most at risk from a change to its
+     * markup: one of these is a thing the player can change and the other is not.
+     */
+    render(<WhatIsUnclear items={A_BLITZ_RECORD} />);
+    const waiting = [...document.querySelectorAll(".unclear__group")].map((n) =>
+      n.getAttribute("data-waiting"),
+    );
+    expect(waiting).toEqual(["true", "false"]);
+    expect(screen.getByText("אלה ייפתחו עם עוד החלטות מדודות:")).toBeTruthy();
+    expect(screen.getByText("אלה לא ייפתחו מעוד משחקים:")).toBeTruthy();
+  });
+
+  it("does not group two reasons under one sentence", () => {
+    /*
+     * THE OPPOSITE FAILURE, and the one a grouping invites: a screen that decided two causes were
+     * close enough to share a line would be dropping the distinction `UNCLEAR_SENTENCE` exists to
+     * carry -- and `split-does-not-divide` and `too-few-in-bucket` send a player to two different
+     * places.
+     */
+    render(<WhatIsUnclear items={A_BLITZ_RECORD} />);
+    const groups = [...document.querySelectorAll(".unclear__group")];
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.querySelectorAll(".unclear__item").length)).toEqual([4, 2]);
   });
 });

@@ -72,6 +72,19 @@ describe("the queue shows the cue and withholds the answer", () => {
     show([rule({})]);
     expect(screen.getByText(/מהזיכרון|מוסתר/)).toBeTruthy();
   });
+
+  it("says it once for the queue, not once per rule in it", () => {
+    /*
+     * IT WAS A `<small>` INSIDE THE ROW. Six due rules printed this identical sentence six times,
+     * and it is a statement about the PROTOCOL -- true of every rule in the list and about none of
+     * them in particular. `GATE-SAID-ONCE` scans for the shape; this checks the rendering, because
+     * a scan that finds no literal in a `.map()` body is equally satisfied by the sentence being
+     * deleted.
+     */
+    show([rule({ rule_id: "a" }), rule({ rule_id: "b" }), rule({ rule_id: "c" })]);
+    expect(document.querySelectorAll(".learning-rule-row")).toHaveLength(3);
+    expect(screen.getAllByText(/הכלל עצמו מוסתר/)).toHaveLength(1);
+  });
 });
 
 describe("a finished schedule is finished", () => {

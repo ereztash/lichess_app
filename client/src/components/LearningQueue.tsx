@@ -52,6 +52,25 @@ export function LearningQueue({
           <h3>תור למידה</h3>
         </div>
       </header>
+      {/*
+        * THE ACTION RULE IS NOT ON ANY ROW, and its absence is the measurement.
+        *
+        * A row used to print it inches from the button that starts a test of whether the player
+        * can recall it. What that measures is working memory over a few seconds; the 1/3/7/21 day
+        * schedule exists precisely to make the DELAY the thing under test, and a visible answer
+        * deletes the delay.
+        *
+        * The TRIGGER stays on each row, because showing the cue is what a retrieval test is.
+        * Saying the rule is withheld on purpose stays too -- an unexplained absence reads as a
+        * rendering fault, and the next person restores it.
+        *
+        * SAID ONCE, HERE, AND NOT ON EVERY ROW. It was a `<small>` inside the row, so a queue of
+        * six rules printed this identical sentence six times. It is a statement about the PROTOCOL
+        * and it is the same for every rule in the list; a sentence repeated in every row of a list
+        * carries no information in any of them, and it is the reason `WhatIsUnclear` groups and
+        * the post-game list says its cost band above the rows rather than inside them.
+        */}
+      <p className="learning-withheld">הכלל עצמו מוסתר — הבדיקה היא על שליפה מהזיכרון</p>
       {due.length === 0 && (
         /*
          * ONE LINE INSTEAD OF N ROWS. The nearest date is what a player would have read every row
@@ -91,19 +110,6 @@ export function LearningQueue({
             <div>
               <span className={`learning-grade ${rule.grade}`}>{rule.grade}</span>
               <p>{rule.trigger}</p>
-              {/*
-                * THE ACTION RULE IS NOT HERE, and its absence is the measurement.
-                *
-                * This row used to print it inches from the button that starts a test of whether
-                * the player can recall it. What that measures is working memory over a few
-                * seconds; the 1/3/7/21 day schedule exists precisely to make the DELAY the thing
-                * under test, and a visible answer deletes the delay.
-                *
-                * The TRIGGER stays, because showing the cue is what a retrieval test is. Saying
-                * the rule is withheld on purpose stays too -- an unexplained absence reads as a
-                * rendering fault, and the next person restores it.
-                */}
-              <small className="learning-withheld">הכלל עצמו מוסתר — הבדיקה היא על שליפה מהזיכרון</small>
               <small>
                 {rule.next_due_at
                   ? `בדיקה מתוזמנת: ${new Date(rule.next_due_at).toLocaleDateString("he-IL")}`

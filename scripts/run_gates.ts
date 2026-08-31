@@ -893,6 +893,31 @@ export const GATES: Gate[] = [
       ),
   },
   {
+    id: "GATE-SAID-ONCE",
+    rule: "LAW 2",
+    description: "A sentence identical in every row of a list belongs above the list, not in it.",
+    /*
+     * FOUND BY A PERSON LOOKING AT A SCREENSHOT and by none of 2,712 green tests: six rows in a
+     * post-game disclosure each reading "במהלך X המהלך היה מחיר גדול" with "המהלך: מחיר גדול"
+     * beneath. Thirteen statements of one fact, on the screen a reader opens precisely to choose
+     * between the rows. Three more screens had the same shape.
+     *
+     * THE WEAKER OF TWO INSTRUMENTS, AND `said-once-scan.ts` MEASURES BY HOW MUCH: it catches two
+     * of those four, because the other two render a function call and whether that varies is not a
+     * fact about the markup. The render assertions in
+     * `tests/client/six-rows-that-said-one-thing.test.tsx` hold those two. This is the half that
+     * runs over every screen on every build, including the ones nobody thought to render.
+     */
+    run: () =>
+      runVitestFile("tests/gates/said-once.test.ts", "a sentence that is the same in every row"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/said-once.control.test.ts",
+        "notices a list that says one thing once per row",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-REGISTER-RECONCILED",
     rule: "R-01",
     description: "The four registers agree with the tree and with each other.",

@@ -134,6 +134,56 @@ export interface Unclear {
   waitingHelps: boolean;
 }
 
+/** Everything blocked for one reason, so the reason is said once rather than once per row. */
+export interface UnclearGroup {
+  because: UnclearCause;
+  /** The sentence for this cause, resolved here so a renderer cannot pick a different one. */
+  sentence: string;
+  /** Whether more decisions are the answer. Constant within a group by construction. */
+  waitingHelps: boolean;
+  items: Unclear[];
+}
+
+/**
+ * The same list, gathered by the reason.
+ *
+ * WHY THIS EXISTS, AND IT IS THE SECOND TIME IN THIS REPOSITORY. `whatIsUnclear` produces one item
+ * per bucket and there are three causes for an unmeasurable one, so a small record puts all six
+ * buckets under `too-few-in-bucket` and a blitz record puts two under `split-does-not-divide` --
+ * and the screen rendered the cause sentence IN EVERY ROW. Six copies of
+ * *"צד אחד של החלוקה עוד לא הגיע למספר שממנו אפשר להעריך שגיאה"*, or two copies of a
+ * hundred-character sentence about a line nothing crossed, with only a bucket name and a count
+ * differing between them.
+ *
+ * The post-game list had the same shape and `sharedCostBand` is its answer: a fact shared by every
+ * row belongs in the one place that is rendered once. Here it is not shared by EVERY row -- there
+ * can be two or three causes at once -- so grouping is the same rule at the right granularity.
+ *
+ * AND THE GROUPING IS ITSELF INFORMATION. "These three splits are blocked for the same reason" is a
+ * statement about the record that the flat list could only have made by being read carefully.
+ *
+ * ORDER IS PRESERVED, both between groups and inside them. `whatIsUnclear` sorts by what the reader
+ * can do about it -- waits before dead ends, fewest decisions first -- and a grouping that re-sorted
+ * would be quietly overriding that with something the reader never asked for.
+ */
+export function groupUnclear(items: readonly Unclear[]): UnclearGroup[] {
+  const groups: UnclearGroup[] = [];
+  for (const item of items) {
+    const existing = groups.find((group) => group.because === item.because);
+    if (existing) {
+      existing.items.push(item);
+      continue;
+    }
+    groups.push({
+      because: item.because,
+      sentence: UNCLEAR_SENTENCE[item.because],
+      waitingHelps: item.waitingHelps,
+      items: [item],
+    });
+  }
+  return groups;
+}
+
 /**
  * EVERYTHING THE RECORD CANNOT YET SAY, nearest first.
  *
