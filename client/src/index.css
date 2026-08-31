@@ -4924,3 +4924,84 @@ button:not(:disabled) {
 .resume--pending {
   min-height: 13rem;
 }
+
+/*
+ * §25's SECOND AND THIRD SECTIONS: what is still unclear, and what is being checked.
+ *
+ * NEITHER IS A CARD. `.finding` is for something the product is SAYING about the player; these are
+ * a list of things it is declining to say and one thing it has committed to checking, and giving
+ * either the card's border and weight would give a refusal the appearance of a finding.
+ */
+.unclear,
+.under-test {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.unclear__title,
+.under-test__title {
+  margin: 0;
+  font-size: var(--panel-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.unclear__lead {
+  margin: 6px 0 0;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.unclear__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.unclear__item {
+  display: grid;
+  gap: 2px;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--edge-soft);
+}
+/*
+ * A DEAD END IS DRAWN DIFFERENTLY FROM A WAIT, and the difference is not decoration: one of them
+ * is a thing the player can change and the other is not, and a list that rendered both the same
+ * would be inviting somebody to keep playing to unlock something that cannot unlock.
+ */
+.unclear__item[data-waiting="false"] {
+  border-inline-start-style: dashed;
+  opacity: 0.85;
+}
+.unclear__what {
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+.unclear__because,
+.unclear__needs {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.unclear__needs {
+  font-variant-numeric: tabular-nums;
+}
+.under-test__statement {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.under-test__terms {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: var(--panel-fine);
+}
+.under-test__terms > dt {
+  color: var(--muted);
+}
+.under-test__terms > dd {
+  margin: 0;
+  color: var(--ink);
+}

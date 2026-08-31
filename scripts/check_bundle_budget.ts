@@ -347,10 +347,32 @@ const INDEX = "dist/public/index.html";
  *
  * 678 AND 754 LEAVE 1.2 kB AND 1.6 kB. Both are within the headroom every raise in this file has
  * taken, and neither ceiling is widened past what was actually measured.
+ *
+ * ---
+ *
+ * 678 -> 686, 210 -> 213 and 754 -> 764: §25's two new sections on the front door.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              677.3      209.9       753.9
+ *     + the two sections and their CSS     684.2      211.8       761.8   +6.9 / +1.9 / +7.9
+ *
+ * WHAT WAS CHECKED FIRST, because the last three raises in this file all turned out to be a module
+ * dragging something in rather than the feature's own weight: `record-order.ts` imports
+ * `MIN_BUCKET_N` and `MIN_STABILITY_HALF` as VALUES, which looked like it might pull `detector.ts`
+ * and `stability.ts` into the entry. Building with both replaced by literals moved the entry by
+ * 0.0 kB -- they were already there. This growth is the feature.
+ *
+ * AND MOST OF IT IS HEBREW. 1.6 kB of it is CSS; the rest is `UNCLEAR_SENTENCE`, seven sentences
+ * explaining why seven different things cannot be read, at two bytes a character. That is the
+ * section's entire content: the page already knew all seven facts and rendered them as cells
+ * reading "not enough data", and what is new is saying which of them a player can do something
+ * about.
+ *
+ * 686, 213 AND 764 LEAVE 1.8 kB, 1.2 kB AND 2.2 kB, the same headroom as every raise above.
  */
-const ENTRY_RAW_KB = 678;
+const ENTRY_RAW_KB = 686;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 210;
+const ENTRY_GZIP_KB = 213;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -394,7 +416,7 @@ const ENTRY_GZIP_KB = 210;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 754;
+const INITIAL_RAW_KB = 764;
 
 interface Asset {
   name: string;

@@ -55,6 +55,9 @@ import { PROMISE, PROMISE_RETURNING } from "@shared/promise";
 import { nextAnchor } from "@/lib/anchor-run";
 import { writePosition } from "@/lib/session-position";
 import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
+import { WhatIsUnclear } from "@/components/WhatIsUnclear";
+import { WhatIsUnderTest } from "@/components/WhatIsUnderTest";
+import { whatIsUnclear, whatIsUnderTest } from "@shared/record-order";
 import { visitsOnRecord } from "@/lib/progress-record";
 
 /**
@@ -528,9 +531,29 @@ export default function Record() {
               readingUnreadable: reading.isError,
             })}
           />
+          {/*
+            * §25's ORDER, AND IT IS AN ORDER OF VALUE TO A DECISION rather than of visualization
+            * type. What is clearest now, then what is still unclear, then what is being checked,
+            * then everything else. The dashboard below is unchanged and is still the whole record;
+            * what changed is that a returning player no longer has to start there.
+            *
+            * THE SECOND SECTION IS THE ADDITION THAT MATTERS. "What is still unclear" is the most
+            * common true statement this product can make -- the M0 audit measured the chain as
+            * silent on most records most of the time -- and it was scattered across the panels
+            * below as individual cells reading "not enough data", with no way to tell which of them
+            * a player could do anything about.
+            */}
+          <WhatIsUnclear items={reading.data ? whatIsUnclear(reading.data) : []} />
+          <WhatIsUnderTest test={whatIsUnderTest(claimView.data?.claim)} />
+
           {reading.data && (
             <>
               <AnchorRunControl answered={reading.data.anchorAnswered} />
+              {/*
+                * EVERYTHING ELSE, LAST. Not demoted and not hidden: the sections above make no
+                * measurement of their own and add nothing this does not already contain -- they are
+                * the same record, read in the order a decision needs it.
+                */}
               <Suspense fallback={null}>
                 <RecordDashboard reading={reading.data} />
               </Suspense>

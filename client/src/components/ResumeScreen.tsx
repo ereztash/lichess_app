@@ -25,6 +25,7 @@
  */
 import { useEffect, useRef } from "react";
 import { FindingCard } from "./FindingCard";
+import { SCREEN_QUESTIONS } from "@shared/screen-questions";
 import { useBlitzReading } from "@/lib/blitz-reading-api";
 import { lastSeenReading, rememberReadingSeen } from "@/lib/last-seen";
 import { readResume } from "@shared/resume-reading";
@@ -90,7 +91,7 @@ export function ResumeScreen({
   const knows = knowsSentence(resume.knows);
 
   return (
-    <section className="resume" aria-label="מה השתנה, מה ידוע, ומה הלאה" dir="rtl">
+    <section className="resume" aria-label={SCREEN_QUESTIONS.resume} dir="rtl">
       {/*
         * WHAT CHANGED GOES ABOVE THE CARD AND NOT INSIDE IT. It is not a finding and it carries no
         * evidence level: "four new games were analysed" is a fact about the record's size, and

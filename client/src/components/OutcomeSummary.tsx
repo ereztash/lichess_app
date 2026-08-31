@@ -23,6 +23,7 @@
  * without anyone writing a stronger sentence.
  */
 import type { OutcomeKind, OutcomeStatement } from "@/lib/outcome-summary";
+import { SCREEN_QUESTIONS } from "@shared/screen-questions";
 
 /**
  * What each kind is called on screen.
@@ -66,8 +67,13 @@ export function OutcomeSummary({ statements }: { statements: readonly OutcomeSta
   if (statements.length === 0) return null;
 
   return (
-    <section className="outcome-summary" aria-label="מה יצא מזה עד עכשיו" dir="rtl">
-      <h3 className="outcome-summary__title">מה יצא מזה עד עכשיו</h3>
+    <section className="outcome-summary" aria-label={SCREEN_QUESTIONS.outcome} dir="rtl">
+      {/*
+        * THE HEADING IS THE REGION LABEL, from one place. It was a literal beside
+        * `aria-label`, which is the same sentence written twice -- and the way that fails is that
+        * somebody improves one of them.
+        */}
+      <h3 className="outcome-summary__title">{SCREEN_QUESTIONS.outcome}?</h3>
       <ol className="outcome-summary__list">
         {statements.map((statement) => (
           <li

@@ -19,6 +19,7 @@
  * makes the screen testable without a browser.
  */
 import { FindingCard } from "./FindingCard";
+import { SCREEN_QUESTIONS } from "@shared/screen-questions";
 import { eventFacts, eventHeadline, postGameWords } from "@shared/blitz-words";
 import type { BlitzEvent, PostGameReading } from "@shared/blitz-reading";
 import type { StoredBlitzGame } from "@shared/blitz-record";
@@ -89,7 +90,7 @@ export function PostGame({
     reading.state === "nothing-to-conclude" ? reading.worthSeeing : reading.alsoWorthSeeing;
 
   return (
-    <section className="post-game" aria-label="מה קרה במשחק הזה" dir="rtl">
+    <section className="post-game" aria-label={SCREEN_QUESTIONS.postGame} dir="rtl">
       <FindingCard
         headline={words.headline}
         example={
