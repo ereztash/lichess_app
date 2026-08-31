@@ -13,10 +13,36 @@ claim that an engine correction is learning, or that completing the flow improve
 5. A transfer test is persisted before any position is shown. It contains exactly three unseen
    positions, the rule snapshot, and the refutation condition.
 6. Before each decision the player recalls the rule without seeing its action text. After reveal,
-   they report whether they applied it.
-7. A position succeeds only when recall is non-empty, application is reported, and centipawn loss
-   is at most 30. Fewer than two successes refutes the rule. Successful tests on two distinct
-   dates replicate it.
+   they report whether they applied it. **That report is recorded and is not part of the success
+   condition** — see below.
+7. A position succeeds when the recalled text clears `scoreRecall`'s word-overlap floor **and** the
+   decision is accurate by the record's own rule, `accurateDecision`, which is win-probability loss
+   against the evaluation the position stood at. A test is `observed` at
+   `TRANSFER_MINIMUM_SUCCESSES = 2` successes of `TRANSFER_POSITION_COUNT = 3`.
+8. Grading is symmetric. Successful tests on **two distinct dates** replicate the rule; failed tests
+   on **two distinct dates** refute it. A rule that fails once stays in the queue and returns at the
+   next retrieval interval.
+
+> **What this paragraph used to say, and why it is written out rather than quietly corrected.**
+>
+> It said a position succeeds when "recall is non-empty, application is reported, and centipawn loss
+> is at most 30", and that "fewer than two successes refutes the rule". Four claims, and every one
+> of them named a rule the code had already left:
+>
+> - **"centipawn loss is at most 30"** is `ACCURATE_CP_LOSS`, the rule `shared/detector.ts` records
+>   as abandoned: thirty centipawns is 2.76 points of winning chances at a level position and 0.28
+>   at +10.00. `finishLearningTransfer` migrated to `accurateDecision`, and at an evaluation of
+>   +10.00 the two disagree by 182 centipawns.
+> - **"application is reported"** was never a success condition in the code. `applied_rule` is
+>   stored and read by nothing that grades.
+> - **"recall is non-empty"** is weaker than the shipped rule, which is a word-overlap floor.
+> - **"fewer than two successes refutes the rule"** described the asymmetry that
+>   `shared/learning-record.ts` was rewritten to remove: one bad sitting used to grade a rule
+>   `refuted` permanently while replication needed two separate days.
+>
+> A document that describes a terminal grade by the wrong rule is worse than no document, because
+> the grade it describes is one nothing can revive. `tests/shared/what-the-documents-still-say.test.ts`
+> now holds this file and the code together.
 
 Refuted and retired rules remain in the record. Authored text is append-only; grading and the
 retrieval schedule are the only mutable fields.

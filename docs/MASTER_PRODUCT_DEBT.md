@@ -723,3 +723,55 @@ clean coaching-scale effect, and **0%** when the truth is something its six buck
 redesign that assumes a pattern card will usually have a pattern in it will mostly render the empty
 state. That is not an argument against the redesign — the empty state is the most common screen and
 deserves the most care — but the plan should say which screen it is really designing.
+
+---
+
+## Where the master plan stands
+
+The plan's own execution order has nineteen rows. This is where each one is, and the three
+categories are not the same kind of "not done".
+
+| # | work | state |
+| --: | --- | --- |
+| 1 | debt ledger + freeze | **done** — this file |
+| 2 | confidence / engine / opponent provenance | **done** — R-03, R-04, R-10, R-17 |
+| 3 | migrations | **done** — R-05 |
+| 4 | DB atomicity | **done** — R-06 |
+| 5 | persist before analysis | **done** — R-02 |
+| 6 | `BlitzReading` | **done** — `shared/blitz-reading.ts` |
+| 7 | a design language for evidence | **done** — `shared/evidence-authority.ts` |
+| 8 | entry / resume redesign | **done** — `ResumeScreen`, §12/§13/§28 |
+| 9 | post-game redesign | **done** — `PostGame`, §24 |
+| 10 | Record redesign | **done** — §25 order, §26 asserted as an absence |
+| 11 | reactivity experiment | **blocked on people** |
+| 12 | sampling calibration | **blocked on 11** |
+| 13 | a confidence-bearing corpus | **blocked on people** |
+| 14 | Discovery V2 integration | **partly done** — blitz reads through the shared detector and
+never gets its own; the thresholds are R-18 |
+| 15 | freeze + prospective validation | **half** — the freeze exists (`hypothesis-manifest.ts`);
+the prospective half needs new games |
+| 16 | learning / action | **governed** — `mayPrescribe` is true for exactly one evidence level,
+and nothing on any screen can reach it yet |
+| 17 | browser / state / a11y gates | **done** — §29, four blitz states in real Chromium |
+| 18 | value field test | **blocked on people** |
+| 19 | effectiveness study | **blocked on people** |
+
+**"Blocked on people" is not a hedge and it is not the same as unfinished.** Rows 11, 13, 18 and 19
+each require evidence from real players over time: whether being asked changes the game being
+measured, whether a corpus large enough to test anything exists, whether somebody who used the
+product can say what they learned, and whether any of it changes a later decision. No amount of code
+produces any of those, and writing something that looked like them would be the manufactured
+certainty this whole plan is against.
+
+**What is buildable and still open** is one thing: R-18's second half. The time thresholds are wrong
+for blitz, the fix is relative time, and it cannot be done by editing a constant — `SEPARABILITY_K`
+is a measurement of *those six buckets searched together*, so a redefined bucket needs its own
+false-positive rate from `research/discovery-oracle/` before it may be searched. Until that
+measurement exists, the shipped behaviour is the honest one: say the split cannot divide this
+record, and do not ask for decisions that cannot help.
+
+**The prediction in the section above turned out to be right, and the product now says so.** The
+representation work was warned that it would mostly render an empty state. It does — and the empty
+state is now five distinguishable states with a named cause and, where one exists, a number drawn
+from the gate that is actually blocking. That is what "the empty state deserves the most care" turned
+into.
