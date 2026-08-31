@@ -1,0 +1,24 @@
+{
+  "pgn": "data/lichess_db_standard_rated_2013-01.pgn.zst",
+  "seed": 20260831,
+  "per_game": 3,
+  "games_seen": 60834,
+  "games_used": 60000,
+  "positions_sampled": 167881,
+  "records_written": 57504,
+  "predicate_version": "1.0.0",
+  "corpus_selection": {
+    "selected_by": "every rated standard game in the month, no tactical filter",
+    "excluded": [
+      "games with no rating on either side (unrated or provisional-missing)",
+      "positions before ply 2, which are book by construction rather than by choice",
+      "positions where the side to move is in check -- a forced-reply position is not a free choice, and B would be measuring legality rather than discrimination"
+    ],
+    "NOT_excluded": [
+      "positions with no capture available",
+      "positions the engine dislikes",
+      "blunders, mouse-slips, flagged games, or any outcome-conditioned property",
+      "anything at all involving a Lichess theme or puzzle label"
+    ]
+  }
+}

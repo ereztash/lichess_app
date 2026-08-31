@@ -1,0 +1,806 @@
+{
+  "inputs": {
+    "games_records": 57504,
+    "puzzle_records": 77978,
+    "seed": 20260831,
+    "sample": 4000
+  },
+  "F1_circular_selection": {
+    "question": "Does the frozen board predicate fire in a population that was never selected by a tactical label, and does it mean the same thing as the label where both exist?",
+    "game_corpus_trigger_rates": {
+      "positive": {
+        "k": 11752,
+        "n": 57504,
+        "p": 0.2043683917640512,
+        "ci95": [
+          0.20109232241911823,
+          0.20768395827509578
+        ]
+      },
+      "negative": {
+        "k": 45752,
+        "n": 57504,
+        "p": 0.7956316082359488,
+        "ci95": [
+          0.7923160417249041,
+          0.7989076775808818
+        ]
+      },
+      "note": "denominator is classifiable positions only; positions with 0 capturable non-pawn pieces or 2+ loose targets were never written out"
+    },
+    "puzzle_corpus_trigger_rates": {
+      "positive": {
+        "k": 17521,
+        "n": 77978,
+        "p": 0.22469157967631898,
+        "ci95": [
+          0.2217756345123914,
+          0.2276346497402441
+        ]
+      },
+      "negative": {
+        "k": 60457,
+        "n": 77978,
+        "p": 0.7753084203236811,
+        "ci95": [
+          0.772365350259756,
+          0.7782243654876085
+        ]
+      }
+    },
+    "predicate_vs_hangingPiece_theme": {
+      "cross_tab": {
+        "pred_pos_theme_pos": 3997,
+        "pred_pos_theme_neg": 13524,
+        "pred_neg_theme_pos": 1,
+        "pred_neg_theme_neg": 60456
+      },
+      "sensitivity_theme_given_pred": {
+        "k": 3997,
+        "n": 17521,
+        "p": 0.22812624850179783,
+        "ci95": [
+          0.22197272526929843,
+          0.23439896598752866
+        ]
+      },
+      "recall_pred_given_theme": {
+        "k": 3997,
+        "n": 3998,
+        "p": 0.9997498749374687,
+        "ci95": [
+          0.9985844255028855,
+          0.9999558465558582
+        ]
+      },
+      "cohens_kappa": 0.3142303559522873
+    },
+    "solution_agreement_on_predicate_positives": {
+      "solution_is_capture_of_the_loose_target": {
+        "k": 7433,
+        "n": 17521,
+        "p": 0.42423377661092404,
+        "ci95": [
+          0.41693300112561016,
+          0.43156776934640384
+        ]
+      },
+      "what_this_measures": "on a curated tactic, how often the curated answer IS the action the candidate rule class names. Anything well below 1 means `capture(target)` is not the correct response even inside items the predicate calls T+."
+    },
+    "hangingPiece_items_the_predicate_calls_negative_or_unknown": {
+      "k": 1,
+      "n": 3998,
+      "p": 0.0002501250625312656,
+      "ci95": [
+        4.415344414163602e-05,
+        0.0014155744971142098
+      ]
+    }
+  },
+  "F2_exchangeability_games": {
+    "corpus": "games",
+    "n_t_plus": 11752,
+    "n_t_minus": 45752,
+    "standardized_mean_differences": {
+      "n_legal_moves": {
+        "t_plus_mean": 33.21596324029952,
+        "t_minus_mean": 37.01420702920091,
+        "smd": -0.48617014222494104
+      },
+      "n_legal_captures": {
+        "t_plus_mean": 2.986300204220558,
+        "t_minus_mean": 2.930888267179577,
+        "smd": 0.03781710190151744
+      },
+      "n_checks_available": {
+        "t_plus_mean": 1.210347174948945,
+        "t_minus_mean": 1.2021332400769364,
+        "smd": 0.004934777091116784
+      },
+      "n_mate_in_1": {
+        "t_plus_mean": 0.02110279101429544,
+        "t_minus_mean": 0.010535058576674243,
+        "smd": 0.07943571833707884
+      },
+      "n_forcing_moves": {
+        "t_plus_mean": 3.7868447923757658,
+        "t_minus_mean": 3.6221367371918167,
+        "smd": 0.07988091723724662
+      },
+      "piece_count": {
+        "t_plus_mean": 23.60730088495575,
+        "t_minus_mean": 25.191029900332225,
+        "smd": -0.31230329875916124
+      },
+      "material_balance": {
+        "t_plus_mean": -1.8292205582028591,
+        "t_minus_mean": -0.05586641021157545,
+        "smd": -0.4865543494093152
+      },
+      "total_material": {
+        "t_plus_mean": 56.21451667801225,
+        "t_minus_mean": 61.99501661129568,
+        "smd": -0.39280260735285405
+      },
+      "fullmove_number": {
+        "t_plus_mean": 19.101004084411166,
+        "t_minus_mean": 17.420375065570905,
+        "smd": 0.17997874131696528
+      },
+      "target_value": {
+        "t_plus_mean": 3.968515997277059,
+        "t_minus_mean": 3.6488022381535234,
+        "smd": 0.2042334158496497
+      },
+      "n_targets": {
+        "t_plus_mean": 1.3319434989788972,
+        "t_minus_mean": 1.194701870956461,
+        "smd": 0.2878028735185647
+      },
+      "attacker_count": {
+        "t_plus_mean": 1.2952688904016338,
+        "t_minus_mean": 1.1087602727749606,
+        "smd": 0.47481462176188566
+      }
+    },
+    "phase_distribution": {
+      "t_plus": {
+        "middlegame": 0.7514465622872702,
+        "opening": 0.20107215793056502,
+        "endgame": 0.04748127978216474
+      },
+      "t_minus": {
+        "opening": 0.2517704144081133,
+        "middlegame": 0.7308095820947718,
+        "endgame": 0.01742000349711488
+      }
+    },
+    "target_piece_distribution": {
+      "t_plus": {
+        "n": 0.3193498978897209,
+        "q": 0.09913206262763785,
+        "b": 0.39465622872702516,
+        "r": 0.18686181075561606
+      },
+      "t_minus": {
+        "n": 0.5375939849624061,
+        "q": 0.05564784053156146,
+        "r": 0.1574575974820773,
+        "b": 0.24930057702395525
+      }
+    },
+    "interpretation_note": "An SMD is reported, not judged. This program has no literature-justified cut point for 'balanced' in this design, and inventing one here is exactly the move the epistemic rule forbids."
+  },
+  "F2_exchangeability_puzzles": {
+    "corpus": "puzzles",
+    "n_t_plus": 17521,
+    "n_t_minus": 60457,
+    "standardized_mean_differences": {
+      "n_legal_moves": {
+        "t_plus_mean": 33.29627304377604,
+        "t_minus_mean": 36.270208577997586,
+        "smd": -0.3318819419733566
+      },
+      "n_legal_captures": {
+        "t_plus_mean": 3.2978140517093775,
+        "t_minus_mean": 3.306647700018195,
+        "smd": -0.005516506714033546
+      },
+      "n_checks_available": {
+        "t_plus_mean": 1.9503452999258033,
+        "t_minus_mean": 2.360719188844964,
+        "smd": -0.21497487941943116
+      },
+      "n_mate_in_1": {
+        "t_plus_mean": 0.2647679926944809,
+        "t_minus_mean": 0.1487338108076815,
+        "smd": 0.2933824224040784
+      },
+      "n_forcing_moves": {
+        "t_plus_mean": 4.477370013127104,
+        "t_minus_mean": 4.7898506376432834,
+        "smd": -0.13795917754681014
+      },
+      "piece_count": {
+        "t_plus_mean": 19.77877975001427,
+        "t_minus_mean": 20.351059430669732,
+        "smd": -0.11812180517664642
+      },
+      "material_balance": {
+        "t_plus_mean": -3.671251640888077,
+        "t_minus_mean": -1.9985444200009925,
+        "smd": -0.722939893236398
+      },
+      "total_material": {
+        "t_plus_mean": 47.8424747445922,
+        "t_minus_mean": 50.77539408174405,
+        "smd": -0.20258045166206035
+      },
+      "fullmove_number": {
+        "t_plus_mean": 27.18018377946464,
+        "t_minus_mean": 26.910746480969944,
+        "smd": 0.02620564434739639
+      },
+      "target_value": {
+        "t_plus_mean": 4.134067690200331,
+        "t_minus_mean": 4.583505632102155,
+        "smd": -0.22845623015953917
+      },
+      "n_targets": {
+        "t_plus_mean": 1.512984418697563,
+        "t_minus_mean": 1.3363547645433944,
+        "smd": 0.29623979176125675
+      },
+      "puzzle_rating": {
+        "t_plus_mean": 1396.0705439187261,
+        "t_minus_mean": 1526.2338190780224,
+        "smd": -0.2499970010571347
+      },
+      "nb_plays": {
+        "t_plus_mean": 1578.0853261800125,
+        "t_minus_mean": 2004.2288403327984,
+        "smd": -0.08621095150040081
+      },
+      "popularity": {
+        "t_plus_mean": 85.82786370640945,
+        "t_minus_mean": 86.78783267446285,
+        "smd": -0.0691181202135575
+      }
+    },
+    "phase_distribution": {
+      "t_plus": {
+        "middlegame": 0.8798584555676046,
+        "endgame": 0.0929170709434393,
+        "opening": 0.02722447348895611
+      },
+      "t_minus": {
+        "middlegame": 0.9214979241444332,
+        "opening": 0.02484410407396993,
+        "endgame": 0.053657971781596835
+      }
+    },
+    "target_piece_distribution": {
+      "t_plus": {
+        "q": 0.08041778437303806,
+        "n": 0.2777809485759945,
+        "r": 0.3257804919810513,
+        "b": 0.3160207750699161
+      },
+      "t_minus": {
+        "r": 0.35572390293927914,
+        "b": 0.2172287741700713,
+        "q": 0.14534297103726615,
+        "n": 0.2817043518533834
+      }
+    },
+    "interpretation_note": "An SMD is reported, not judged. This program has no literature-justified cut point for 'balanced' in this design, and inventing one here is exactly the move the epistemic rule forbids."
+  },
+  "F2b_matched_sdt": {
+    "strata_used": 1670,
+    "n_matched_pairs": 11077,
+    "sdt": {
+      "hit_rate": 0.7833995306011915,
+      "false_alarm_rate": 0.23095324065715833,
+      "d_prime": 1.5194371240687674,
+      "criterion_c": -0.024007377035712096,
+      "beta": 0.964179594939095,
+      "a_prime": 0.8558857512974067,
+      "b_double_prime_d": -0.022830890865429786,
+      "correction": "loglinear",
+      "signal_trials": 11077,
+      "noise_trials": 11077,
+      "hits": 8678,
+      "false_alarms": 2558
+    },
+    "residual_balance": {
+      "n_legal_moves": {
+        "t_plus_mean": 33.50275345310102,
+        "t_minus_mean": 36.38837230297012,
+        "smd": -0.3499825972966176
+      },
+      "n_legal_captures": {
+        "t_plus_mean": 3.009298546537871,
+        "t_minus_mean": 3.0012638801119436,
+        "smd": 0.005349364107109645
+      },
+      "n_checks_available": {
+        "t_plus_mean": 1.1859709307574253,
+        "t_minus_mean": 1.1510336733772681,
+        "smd": 0.02024378379419091
+      },
+      "n_mate_in_1": {
+        "t_plus_mean": 0.020312358941951793,
+        "t_minus_mean": 0.011194366705786765,
+        "smd": 0.06062737836295621
+      },
+      "n_forcing_moves": {
+        "t_plus_mean": 3.7882098040985825,
+        "t_minus_mean": 3.6606481899431254,
+        "smd": 0.05967437950614696
+      },
+      "piece_count": {
+        "t_plus_mean": 23.895188227859528,
+        "t_minus_mean": 24.005326351900333,
+        "smd": -0.02149350818874664
+      },
+      "material_balance": {
+        "t_plus_mean": -1.8242303872889771,
+        "t_minus_mean": -0.14164484968854382,
+        "smd": -0.3929307797030128
+      },
+      "total_material": {
+        "t_plus_mean": 57.03629141464295,
+        "t_minus_mean": 58.67897445156631,
+        "smd": -0.10713614624361605
+      },
+      "fullmove_number": {
+        "t_plus_mean": 18.61162769702988,
+        "t_minus_mean": 19.259727363004423,
+        "smd": -0.06896340027265845
+      },
+      "target_value": {
+        "t_plus_mean": 3.845896903493726,
+        "t_minus_mean": 3.845896903493726,
+        "smd": 0.0
+      },
+      "n_targets": {
+        "t_plus_mean": 1.3333032409497156,
+        "t_minus_mean": 1.2072763383587615,
+        "smd": 0.24313928202078405
+      },
+      "attacker_count": {
+        "t_plus_mean": 1.3045951069784238,
+        "t_minus_mean": 1.1165478017513768,
+        "smd": 0.4024324973924964
+      }
+    },
+    "matching_keys": [
+      "phase",
+      "target_value",
+      "n_legal_captures (capped 6)",
+      "n_checks_available (capped 4)",
+      "piece_count//4 (capped 7)",
+      "actor rating band"
+    ]
+  },
+  "F3_F4_alternative_pathways": {
+    "sample_seed": 20260831,
+    "sample_size_requested": 4000,
+    "t_plus": {
+      "n": 4000,
+      "see_missing": 0,
+      "mate_in_1_also_available": {
+        "k": 75,
+        "n": 4000,
+        "p": 0.01875,
+        "ci95": [
+          0.014984915978605573,
+          0.02343858209384564
+        ]
+      },
+      "target_capture_also_gives_check": {
+        "k": 265,
+        "n": 4000,
+        "p": 0.06625,
+        "ci95": [
+          0.05895077095266208,
+          0.07438157666069005
+        ]
+      },
+      "larger_capture_available_elsewhere": {
+        "k": 293,
+        "n": 4000,
+        "p": 0.07325,
+        "ci95": [
+          0.06557853456312807,
+          0.0817403803509884
+        ]
+      },
+      "see_negative": {
+        "k": 0,
+        "n": 4000,
+        "p": 0.0,
+        "ci95": [
+          0.0,
+          0.000959478516832434
+        ]
+      },
+      "see_zero_or_better": {
+        "k": 4000,
+        "n": 4000,
+        "p": 1.0,
+        "ci95": [
+          0.9990405214831674,
+          0.9999999999999999
+        ]
+      },
+      "see_median": 330
+    },
+    "t_minus": {
+      "n": 4000,
+      "see_missing": 0,
+      "mate_in_1_also_available": {
+        "k": 42,
+        "n": 4000,
+        "p": 0.0105,
+        "ci95": [
+          0.007777592228137958,
+          0.014161737239840993
+        ]
+      },
+      "target_capture_also_gives_check": {
+        "k": 799,
+        "n": 4000,
+        "p": 0.19975,
+        "ci95": [
+          0.18765036478855257,
+          0.21242580206080525
+        ]
+      },
+      "larger_capture_available_elsewhere": {
+        "k": 0,
+        "n": 4000,
+        "p": 0.0,
+        "ci95": [
+          0.0,
+          0.000959478516832434
+        ]
+      },
+      "see_negative": {
+        "k": 2536,
+        "n": 4000,
+        "p": 0.634,
+        "ci95": [
+          0.6189497086899558,
+          0.6487931510675331
+        ]
+      },
+      "see_zero_or_better": {
+        "k": 1464,
+        "n": 4000,
+        "p": 0.366,
+        "ci95": [
+          0.35120684893246684,
+          0.38105029131004414
+        ]
+      },
+      "see_median": -10
+    },
+    "the_two_construct_breaking_rates": {
+      "t_plus_where_taking_is_not_clearly_the_act": {
+        "any_of_mate_or_bigger_capture_or_negative_see": null,
+        "components": {
+          "mate_in_1_also_available": {
+            "k": 75,
+            "n": 4000,
+            "p": 0.01875,
+            "ci95": [
+              0.014984915978605573,
+              0.02343858209384564
+            ]
+          },
+          "larger_capture_available_elsewhere": {
+            "k": 293,
+            "n": 4000,
+            "p": 0.07325,
+            "ci95": [
+              0.06557853456312807,
+              0.0817403803509884
+            ]
+          },
+          "see_negative": {
+            "k": 0,
+            "n": 4000,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.000959478516832434
+            ]
+          }
+        }
+      },
+      "t_minus_where_taking_is_materially_sound": {
+        "k": 1464,
+        "n": 4000,
+        "p": 0.366,
+        "ci95": [
+          0.35120684893246684,
+          0.38105029131004414
+        ]
+      }
+    }
+  },
+  "F3_composite_contamination": {
+    "n": 4000,
+    "any_competing_explanation": {
+      "k": 568,
+      "n": 4000,
+      "p": 0.142,
+      "ci95": [
+        0.13152605312060145,
+        0.15316093349745052
+      ]
+    },
+    "flag_combinations": {
+      "bigger_capture": 263,
+      "capture_is_check": 209,
+      "mate_in_1": 33,
+      "capture_is_check+mate_in_1": 33,
+      "bigger_capture+capture_is_check": 21,
+      "bigger_capture+mate_in_1": 7,
+      "bigger_capture+capture_is_check+mate_in_1": 2
+    },
+    "what_this_is": "the share of T+ items where SOMETHING other than the taught relationship can produce, or should prevent, the scored action"
+  },
+  "F5_F10_sdt": {
+    "overall": {
+      "hit_rate": 0.7852037777588701,
+      "false_alarm_rate": 0.22196358708718553,
+      "d_prime": 1.555467704237147,
+      "criterion_c": -0.012155407318127753,
+      "beta": 0.9812702790854265,
+      "a_prime": 0.8603106128806217,
+      "b_double_prime_d": -0.01182626054048183,
+      "correction": "loglinear",
+      "signal_trials": 11752,
+      "noise_trials": 45752,
+      "hits": 9228,
+      "false_alarms": 10155,
+      "hit_rate_raw": {
+        "k": 9228,
+        "n": 11752,
+        "p": 0.7852280462899932,
+        "ci95": [
+          0.7777106309763578,
+          0.79255904669606
+        ]
+      },
+      "false_alarm_rate_raw": {
+        "k": 10155,
+        "n": 45752,
+        "p": 0.22195751005420528,
+        "ci95": [
+          0.21817302424609256,
+          0.2257886840224316
+        ]
+      },
+      "capture_propensity": {
+        "k": 19383,
+        "n": 57504,
+        "p": 0.337072203672788,
+        "ci95": [
+          0.3332195169295339,
+          0.340946658001295
+        ]
+      }
+    },
+    "by_actor_rating_band": {
+      "0-1200": {
+        "hit_rate": 0.7510460251046025,
+        "false_alarm_rate": 0.19626639757820383,
+        "d_prime": 1.5328182671321657,
+        "criterion_c": 0.0886240179642721,
+        "beta": 1.1455037695384165,
+        "a_prime": 0.8572322649008306,
+        "b_double_prime_d": 0.08479299885975661,
+        "correction": "loglinear",
+        "signal_trials": 238,
+        "noise_trials": 990,
+        "hits": 179,
+        "false_alarms": 194,
+        "hit_rate_raw": {
+          "k": 179,
+          "n": 238,
+          "p": 0.7521008403361344,
+          "ci95": [
+            0.6935281838676295,
+            0.802664365305052
+          ]
+        },
+        "false_alarm_rate_raw": {
+          "k": 194,
+          "n": 990,
+          "p": 0.19595959595959597,
+          "ci95": [
+            0.17242831456713015,
+            0.2218413557706782
+          ]
+        },
+        "capture_propensity": {
+          "k": 373,
+          "n": 1228,
+          "p": 0.30374592833876224,
+          "ci95": [
+            0.27866932718953275,
+            0.33004659862430574
+          ]
+        }
+      },
+      "1200-1400": {
+        "hit_rate": 0.7439686369119421,
+        "false_alarm_rate": 0.2194321206743567,
+        "d_prime": 1.4297417523605551,
+        "criterion_c": 0.059241665660768106,
+        "beta": 1.0883908084438128,
+        "a_prime": 0.8442613471220388,
+        "b_double_prime_d": 0.053067192820941925,
+        "correction": "loglinear",
+        "signal_trials": 1657,
+        "noise_trials": 5634,
+        "hits": 1233,
+        "false_alarms": 1236,
+        "hit_rate_raw": {
+          "k": 1233,
+          "n": 1657,
+          "p": 0.7441158720579361,
+          "ci95": [
+            0.7225574208862523,
+            0.7645450216344553
+          ]
+        },
+        "false_alarm_rate_raw": {
+          "k": 1236,
+          "n": 5634,
+          "p": 0.21938232161874335,
+          "ci95": [
+            0.20876945632012445,
+            0.23037761017425884
+          ]
+        },
+        "capture_propensity": {
+          "k": 2469,
+          "n": 7291,
+          "p": 0.33863667535317515,
+          "ci95": [
+            0.3278611857404579,
+            0.34958211885439444
+          ]
+        }
+      },
+      "1400-1600": {
+        "hit_rate": 0.7738511779799393,
+        "false_alarm_rate": 0.2270095046264241,
+        "d_prime": 1.5003215984685603,
+        "criterion_c": -0.0014292254263436055,
+        "beta": 0.9978579995878818,
+        "a_prime": 0.8535215349271179,
+        "b_double_prime_d": -0.0013428863403593659,
+        "correction": "loglinear",
+        "signal_trials": 4286,
+        "noise_trials": 15886,
+        "hits": 3317,
+        "false_alarms": 3606,
+        "hit_rate_raw": {
+          "k": 3317,
+          "n": 4286,
+          "p": 0.7739150723285114,
+          "ci95": [
+            0.7611498665564636,
+            0.7861896902234418
+          ]
+        },
+        "false_alarm_rate_raw": {
+          "k": 3606,
+          "n": 15886,
+          "p": 0.22699232028200933,
+          "ci95": [
+            0.22054479903243462,
+            0.2335718486753688
+          ]
+        },
+        "capture_propensity": {
+          "k": 6923,
+          "n": 20172,
+          "p": 0.34319849296053934,
+          "ci95": [
+            0.3366769429956804,
+            0.3497797548007574
+          ]
+        }
+      },
+      "1600-1800": {
+        "hit_rate": 0.8017195767195767,
+        "false_alarm_rate": 0.2222041612483745,
+        "d_prime": 1.612549706825316,
+        "criterion_c": -0.041504530475373,
+        "beta": 0.9352624270335298,
+        "a_prime": 0.8669786228841012,
+        "b_double_prime_d": -0.04178539339259494,
+        "correction": "loglinear",
+        "signal_trials": 3779,
+        "noise_trials": 15379,
+        "hits": 3030,
+        "false_alarms": 3417,
+        "hit_rate_raw": {
+          "k": 3030,
+          "n": 3779,
+          "p": 0.8017994178354062,
+          "ci95": [
+            0.7887854727477891,
+            0.8142003884630001
+          ]
+        },
+        "false_alarm_rate_raw": {
+          "k": 3417,
+          "n": 15379,
+          "p": 0.2221860979257429,
+          "ci95": [
+            0.21568558417727324,
+            0.2288253701577178
+          ]
+        },
+        "capture_propensity": {
+          "k": 6447,
+          "n": 19158,
+          "p": 0.33651738177262763,
+          "ci95": [
+            0.3298596168483871,
+            0.34324069726755885
+          ]
+        }
+      },
+      "1800-3500": {
+        "hit_rate": 0.8195761293920804,
+        "false_alarm_rate": 0.21649287894201424,
+        "d_prime": 1.69784355274248,
+        "criterion_c": -0.06482914342611146,
+        "beta": 0.8957716591396581,
+        "a_prime": 0.8763926231754688,
+        "b_double_prime_d": -0.06851329254211622,
+        "correction": "loglinear",
+        "signal_trials": 1792,
+        "noise_trials": 7863,
+        "hits": 1469,
+        "false_alarms": 1702,
+        "hit_rate_raw": {
+          "k": 1469,
+          "n": 1792,
+          "p": 0.8197544642857143,
+          "ci95": [
+            0.8012787588620575,
+            0.8368621551250112
+          ]
+        },
+        "false_alarm_rate_raw": {
+          "k": 1702,
+          "n": 7863,
+          "p": 0.21645682309551062,
+          "ci95": [
+            0.2074935701524637,
+            0.22569700025383507
+          ]
+        },
+        "capture_propensity": {
+          "k": 3171,
+          "n": 9655,
+          "p": 0.32843086483687206,
+          "ci95": [
+            0.31913270886047246,
+            0.3378654968042731
+          ]
+        }
+      }
+    },
+    "reading_rule": "d' rising with rating while c stays put is a discrimination gradient. H and F rising together with d' flat is a criterion gradient and is NOT evidence of discrimination. Both patterns produce higher accuracy on T+."
+  }
+}

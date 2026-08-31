@@ -1,0 +1,27 @@
+{
+  "question": "How much of the trigger state is decided by which definition of 'unprotected' the study happened to adopt?",
+  "n_t_plus_under_direct_attack_definition": 11752,
+  "t_plus_that_lichess_would_call_DEFENDED_via_ray_defence": {
+    "k": 75,
+    "n": 11752,
+    "p": 0.0063818924438393465,
+    "ci95": [
+      0.005094681889354817,
+      0.007991714239017652
+    ]
+  },
+  "t_minus_defended_only_by_pinned_pieces": {
+    "k": 66,
+    "n": 20000,
+    "p": 0.0033,
+    "ci95": [
+      0.0025949193533599327,
+      0.004195856274457476
+    ]
+  },
+  "why_this_matters": "A trigger state that moves when the definition moves is not a fact about the board in the sense the construct needs. Whichever definition is adopted has to be frozen, versioned and reported -- and a result obtained under one is not evidence about the other.",
+  "definitions": {
+    "direct": "no enemy piece directly attacks the target's square (predicates.py v1.0.0)",
+    "lichess": "direct, plus: no defender is revealed by removing any one of our sliding attackers (lichess-puzzler tagger/util.py is_defended)"
+  }
+}

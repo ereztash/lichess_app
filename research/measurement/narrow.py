@@ -159,9 +159,18 @@ def narrowings() -> dict:
             lambda r: base_pos(r) and quiet(r) and no_bigger(r) and r["target_value"] >= 3,
             lambda r: base_neg(r) and quiet(r) and costly(r) and r["target_value"] >= 3,
         ),
+        # N5 needs a field the puzzle scan does not record. A MISSING FIELD EXCLUDES THE ITEM
+        # rather than defaulting to a value: a filter that silently admits items it cannot
+        # evaluate is how a narrowing appears to keep more data than it does. `puzzle_narrow`
+        # therefore reports N5 with n = 0 on the puzzle corpus, and that zero is the honest
+        # answer, not a gap. 
         "N5_N3_plus_single_attacker": (
-            lambda r: base_pos(r) and quiet(r) and no_bigger(r) and r["attacker_count"] == 1,
-            lambda r: base_neg(r) and quiet(r) and costly(r) and r["attacker_count"] == 1,
+            # A MISSING FIELD EXCLUDES THE ITEM rather than defaulting to a value. The puzzle
+            # scan does not record `attacker_count`, so this narrowing reports n = 0 on that
+            # corpus -- which is the honest answer. A filter that silently admits items it
+            # cannot evaluate is how a narrowing appears to keep more data than it does.
+            lambda r: base_pos(r) and quiet(r) and no_bigger(r) and r.get("attacker_count") == 1,
+            lambda r: base_neg(r) and quiet(r) and costly(r) and r.get("attacker_count") == 1,
         ),
     }
 
