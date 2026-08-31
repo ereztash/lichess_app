@@ -1,11 +1,16 @@
 # Is there a rule class where knowledge → action is identifiable at all?
 
-**Answer: yes — one, out of ten candidates and two anchors. It is a defensive threat-recognition
-rule, not a capture rule.**
+**Answer: yes — one, out of fifteen candidates and two anchors. It is a defensive
+threat-recognition rule, not a capture rule.**
 
-**Result: `RC-06 answer-the-mate-threat` is ELIGIBLE. All nine other candidates score BELOW the
+**Result: `RC-06 answer-the-mate-threat` is ELIGIBLE. All fourteen other candidates score BELOW the
 refuted incumbent.**
 
+> **Round 3 retracted round 2's headline.** Five candidates designed to round 2's own design rule
+> did not beat the incumbent, and adding them **reversed** which cell correlates with separation
+> (see [round 3](#round-3--designing-to-the-rule-breaks-the-rule)). The correlations below describe
+> the rule classes that had been tried when they were computed — **not chess**.
+>
 > **Round 2 changed the explanation, not the winner.** Five more candidates were built to test the
 > mechanism round 1 proposed — that severity protects the prescription. **Severity holds on the
 > positive side and turns out to be the less important half.** What decides whether a rule class is
@@ -324,6 +329,101 @@ eligible rule class after ten candidates.
 
 ---
 
+## Round 3 — designing to the rule breaks the rule
+
+Round 2 ended with a design rule extracted from its own twelve rule classes: separation is decided
+by the noise cell, and an inert noise cell comes from a **narrow, committal** prescription
+(`prescription_size | T−` vs `B_valid | T−`: ρ = +0.811, *p* = 0.0014). Because
+`prescription_size` is computable from the board with no engine, that promised a **cheap
+pre-screen**: predict a candidate's noise cell before spending a single search on it.
+
+Five candidates were built to that brief, with the prediction written into
+`rule_classes.py::PREDICTIONS` as **H3** before the run.
+
+### H3: the noise cells came out as predicted
+
+| | candidate | `presc \| T−` < .140 | `B_valid \| T−` < .230 | `B_valid \| T+` | separation |
+| --- | --- | --- | --- | --- | --- |
+| RC-13 | underpromote-to-knight | ✅ .049 | ✅ **.004** | **.030** | +.026 |
+| RC-14 | capture-the-mating-piece | ✅ .038 | ❌ .500 | .642 | +.142 |
+| RC-18 | move-the-piece-that-must-move | ✅ .048 | ✅ .164 | .632 | **+.468** |
+| RC-20 | defend-the-piece-in-place | ❌ .163 | ❌ .324 | .228 | **−.096** |
+| RC-21 | push-the-unstoppable-passer | ✅ .052 | ✅ .096 | .164 | +.068 |
+
+Three of five hit both targets. `RC-13` produced **the most inert noise cell in the whole register
+— .004** — and a positive cell of **.030**, which does not even clear its own chance rate; it is
+the only candidate in fifteen to fail **G4**.
+
+### And none of it bought separation
+
+**Narrowing B lowers both cells at once.** The cleanest demonstration is the winner, narrowed:
+
+| RC-06 → RC-14, same threat, same corpus, same engine | | |
+| --- | --- | --- |
+| `prescription_size \| T+` | .317 | → **.045** |
+| `B_valid \| T+` | .968 | → .642 |
+| `B_valid \| T−` | .200 | → **.500** |
+| **separation** | **+.768** | → **+.142** |
+
+Narrowing "stop the mate somehow" to "capture the piece that would give it" destroyed **both**
+halves. On T+ the engine often answers a different way — blocking, king move, counter-check. On T−
+capturing the checking piece is frequently just a good capture on its own merits.
+
+### The retraction
+
+Adding five points chosen *for* inert noise cells changed the sample the round-2 correlations were
+computed over, and the conclusion moved with it:
+
+| | round 2 (n = 12) | round 3 (n = 17) |
+| --- | --- | --- |
+| `presc \| T−` vs `B_valid \| T−` | ρ = +0.811, *p* = 0.0014 | ρ = +0.547, *p* = 0.023 |
+| `presc \| T−` vs **separation** | ρ = −0.713, *p* = 0.009 | ρ = −0.316, *p* = **0.216** |
+| `B_valid \| T−` vs **separation** | **ρ = −0.811, *p* = 0.001** | ρ = −0.277, *p* = **0.282** |
+| `B_valid \| T+` vs **separation** | ρ = +0.476, *p* = 0.118 | **ρ = +0.659, *p* = 0.004** |
+
+**The two bottom rows swapped.** Round 2 reported that the noise cell decides and the positive cell
+does not; on seventeen rule classes it is the positive cell that reaches significance and the noise
+cell that does not.
+
+> **Neither correlation is a law about chess.** Both were estimated over a handful of rule classes
+> somebody chose, and choosing the next five by one of them was enough to reverse it. What these
+> numbers describe is *the candidates tried*, and round 2's headline — "the noise cell decides" —
+> was over-claimed. It is corrected here rather than left standing.
+
+The relationship that has survived every batch is duller and more useful: **`B_valid | T+` and
+`B_valid | T−` move together** (ρ = +0.402), so a prescription cannot usually be made inert on one
+side without costing the other. `RC-06` is unusual precisely because it is high on one and low on
+the other, and nothing in fifteen candidates has reproduced that combination.
+
+### Two results worth keeping regardless
+
+**`RC-20` has a negative separation (−.096)** — the first rule class in the register where the
+prescribed act is *more* often correct when the trigger is absent. Defending a hanging minor where
+it stands is rarely what the engine plays; it prefers to move it, trade, or counter-attack.
+
+**`RC-21` is the program's own thesis in one number.** The rule of the square is a named, exactly
+defined, genuinely true piece of chess knowledge — and pushing the unstoppable passer is the
+engine's best move only **16.4%** of the time, because a player with an unstoppable passer is
+usually winning in several ways at once and the pawn can wait. It is the cleanest instance yet of:
+
+> **T can be objectively true without having a single correct B.**
+
+### The one repair that worked, and by how little
+
+`RC-11 → RC-18` was a controlled repair: identical noise cell, positive trigger narrowed to the
+cases where defending *cannot* help because the attacker is cheaper.
+
+| | `B_valid \| T+` | `B_valid \| T−` | separation |
+| --- | --- | --- | --- |
+| RC-11 move-the-threatened-minor | .596 | .144 | +.452 |
+| RC-18 move-the-piece-that-must-move | **.632** | .164 | **+.468** |
+
+**+.036.** Real, in the predicted direction, and nowhere near the incumbent floor of +.600. Even
+when defending is provably useless, *which square to move to* is still a choice the rule does not
+make.
+
+---
+
 ## Where this leaves the program
 
 The stop rule was: before a human pilot, find at least one candidate where, on a large unfiltered
@@ -343,10 +443,11 @@ first iteration was a failure of that rule class and not a proof that the paradi
 1. ~~More defensive, severity-protected candidates~~ — **DONE, and they all failed.** Round 2
    built five, including the most severe material threat there is, and none reached the incumbent.
    That negative is what produced the noise-cell finding.
-2. **Candidates chosen by their noise cell**, which is the inverted strategy round 2 earned. The
-   question to ask of a candidate first is no longer "how severe is the trigger" but **"when the
-   trigger is absent, is the prescribed action clearly wrong?"** `RC-11`'s noise cell (.144, median
-   cost +94 cp) shows the shape to look for; its positive cell shows it is not sufficient alone.
+2. ~~Candidates chosen by their noise cell~~ — **DONE, and the strategy did not work.** Round 3
+   built five to that brief. Three hit their predicted noise cell, none beat the incumbent, one
+   scored a negative separation, and the correlation the strategy was derived from did not survive
+   its own candidates. **Selecting on one cell costs the other**; the two move together
+   (ρ = +0.402).
 3. **Exchangeability for RC-06.** Max |SMD| 0.573 remains the live blocker on the only eligible
    candidate. Matching, or Sheridan-style minimal transformation (Frame C in the protocol),
    measured rather than assumed.
@@ -354,9 +455,20 @@ first iteration was a failure of that rule class and not a proof that the paradi
    a human pilot. A multiple-baseline design ([`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md) §2.2) needs at
    least three independently measurable rule classes; after ten candidates there is **one**.
 
-**The negative that round 2 produced is worth more than another candidate would have been.** Ten
-rule classes across six families now sit below a rule class already shown to be uninterpretable,
-and the one that does not is distinguished mainly by a property nobody was looking for. If the
-noise-cell strategy also fails, the conclusion available is the strong one: **rule use is not
-identifiable from the final move alone**, and the program has to move to process evidence or a
-different paradigm.
+**Fifteen rule classes across eight families now sit below a rule class already shown to be
+uninterpretable, and `RC-06` remains the only one that does not.** Three selection strategies have
+been tried — browse the families, follow severity, follow the noise cell — and the last two were
+derived from measurements that did not survive the candidates they produced.
+
+**That is the finding this program should now be reporting.** It is no longer "we have not found
+the right rule class yet". It is:
+
+> Across fifteen board-definable rule classes in eight families, exactly one has a trigger that
+> determines a correct action sharply enough to be worth measuring, and no design rule extracted so
+> far predicts which. `RC-06` may be a genuine exception or a single draw from a distribution whose
+> tail we happened to sample first; **fifteen candidates cannot tell those apart.**
+
+The next honest move is therefore **not** a sixteenth candidate. It is to take the one that passed
+and attack it: exchangeability for `RC-06` (max |SMD| 0.573) is the live blocker, and if it fails
+that, the strong negative is available — **rule use is not identifiable from the final move alone**,
+and the program moves to process evidence or a different paradigm.

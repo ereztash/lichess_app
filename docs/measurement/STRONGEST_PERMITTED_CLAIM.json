@@ -1,5 +1,5 @@
 {
-  "claim_version": "1.2.0",
+  "claim_version": "1.3.0",
   "decided_at": "2026-08-31",
   "repository_main_sha": "68d61c216c6932455cc61bbe33eb65e7042a6bd7",
   "board_predicate_version": "1.0.0",
@@ -123,8 +123,14 @@
     "evidence_level_required_for_production": "E5",
     "a_rule_class_with_identifiable_knowledge_to_action_exists": true,
     "that_rule_class_is": "RC-06 answer-the-mate-threat",
-    "candidates_screened": 10,
-    "eligible_after_ten_candidates": "RC-06 answer-the-mate-threat, still the only one"
+    "candidates_screened": 15,
+    "eligible_after_ten_candidates": "RC-06 answer-the-mate-threat, still the only one",
+    "eligible_after_fifteen_candidates": "RC-06 answer-the-mate-threat, still the only one",
+    "selection_strategies_tried_and_failed": [
+      "browse families",
+      "follow severity",
+      "follow the noise cell"
+    ]
   },
   "second_iteration_rule_class_search": {
     "question": "is knowledge-to-action identifiable in ANY rule class?",
@@ -208,5 +214,65 @@
     "eligible": 1,
     "defect_caught_by_a_guard": "RC-12 first scored B_valid|T+ = 0.976 with prescription_size 0.969, which cannot be true. Cause: a double null move counted OUR promotions instead of the opponent's. Fixed, it scores 0.456/0.416, separation +0.040.",
     "search_strategy_now_inverted": "Choose candidates by their noise cell first -- 'when the trigger is absent, is the prescribed action clearly wrong?' -- and check severity second."
+  },
+  "fourth_iteration_noise_cell_first": {
+    "question": "can candidates be selected by the noise-cell rule round 2 derived?",
+    "answer": "no. Three of five hit their predicted noise cell, none beat the incumbent, and the correlation the strategy came from did not survive its own candidates.",
+    "preregistered_before_the_run": "research/measurement/rule_classes.py::PREDICTIONS -> H3_noise_cell_by_design",
+    "H3_verdict": "PARTIAL. presc|T- < 0.140 for 4 of 5; B_valid|T- < 0.230 for 3 of 5. Narrow prescriptions do produce inert noise cells -- and cost the positive cell at the same time.",
+    "the_retraction": {
+      "what_round_2_claimed": "separation is decided by the noise cell, not the positive cell",
+      "round_2_n12": {
+        "b_valid_t_minus_vs_separation": {
+          "rho": -0.811,
+          "p": 0.001
+        },
+        "b_valid_t_plus_vs_separation": {
+          "rho": 0.476,
+          "p": 0.118
+        }
+      },
+      "round_3_n17": {
+        "b_valid_t_minus_vs_separation": {
+          "rho": -0.277,
+          "p": 0.282
+        },
+        "b_valid_t_plus_vs_separation": {
+          "rho": 0.659,
+          "p": 0.004
+        }
+      },
+      "verdict": "THE TWO SWAPPED. Choosing five candidates by one of these correlations was enough to reverse which one reaches significance. Neither is a law about chess; both describe the rule classes that had been tried when they were computed. Round 2's headline was over-claimed and is retracted here.",
+      "what_survives": "B_valid|T+ and B_valid|T- move together (rho = +0.402), so a prescription cannot usually be made inert on one side without costing the other. RC-06 is unusual for being high on one and low on the other, and nothing in fifteen candidates has reproduced that combination."
+    },
+    "narrowing_the_winner_destroyed_it": {
+      "RC-06_to_RC-14": {
+        "prescription_size_t_plus": [
+          0.317,
+          0.045
+        ],
+        "b_valid_t_plus": [
+          0.968,
+          0.642
+        ],
+        "b_valid_t_minus": [
+          0.2,
+          0.5
+        ],
+        "separation": [
+          0.768,
+          0.142
+        ]
+      }
+    },
+    "two_results_worth_keeping": {
+      "RC-20_negative_separation": -0.096,
+      "RC-21_rule_of_the_square": "a named, exactly defined, genuinely true chess rule whose prescribed act is the engine's best move only 16.4% of the time -- the cleanest instance of T being objectively true without a single correct B"
+    },
+    "candidates_tried": 15,
+    "families": 8,
+    "eligible": 1,
+    "the_finding_now_available": "Across fifteen board-definable rule classes in eight families, exactly one has a trigger that determines a correct action sharply enough to be worth measuring, and no design rule extracted so far predicts which. Fifteen candidates cannot distinguish RC-06 being a genuine exception from it being one draw from a tail we happened to sample first.",
+    "next_move": "Not a sixteenth candidate. Attack RC-06: exchangeability, max |SMD| 0.573. If it fails that, the strong negative is available -- rule use is not identifiable from the final move alone."
   }
 }
