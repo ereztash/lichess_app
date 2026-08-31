@@ -563,7 +563,7 @@ sample vary at all" structurally. Gate: `tests/shared/a-bucket-that-never-varied
 | | |
 | --- | --- |
 | type | correctness |
-| state | **open**, no longer blocked — two defects found and fixed; the reporter's own case unconfirmed |
+| state | **fixed** — run on the deployment, and the report can now name which of six causes it was |
 | severity | P1 |
 | basis | **verified by running the built bundle in a browser**, not by inspection |
 
@@ -617,10 +617,71 @@ passes Hebrew through verbatim — so whatever threw had a non-Hebrew or empty m
 engine failure has. The two fixes above are real defects on the path, but nothing here proves either
 one is theirs.
 
-So the diagnostic gap is closed instead of guessed at: the scan's failure now renders the raw text
-behind a closed `<details>`, the way the commit path already does. A player who hits it again can
-say *which* stop it was without being asked to open a console — which was the thing this row was
-blocked on, and was always the wrong thing to ask.
+So the diagnostic gap was closed instead of guessed at: the scan's failure renders the raw text
+behind a closed `<details>`, the way the commit path already does.
+
+### That was not enough, and the run against the real deployment is what showed it
+
+A disclosure lets a reader paste something. It does not let anyone say what to **do** — and the six
+causes that reach that one sentence have nothing in common: two are the deployment's to fix, two the
+browser's, one the network's, and one is a game.
+
+**The scan was then run against the deployed app itself**, not against `npm run build` on localhost
+with the headers replayed out of `vercel.json`. The origin, the bytes and every response header were
+the edge's own. Two things came out of it.
+
+**1. The engine is sound on the deployment, and now that is measured rather than inferred.** Every
+step passed on the real origin: `application/javascript` for the loader, `application/wasm` and a
+valid signature for 7,295,411 bytes, `uciok` in 1.0 s, `readyok`, `bestmove e2e4` at depth 8, and an
+`info score` line. The CSP, the COOP and the MIME types are the deployment's and they are right.
+
+**2. The self-check reported a pass on a worker the browser had just refused.** The console said
+*"Refused to create a worker from `blob:…`"* and the check said *"אפשר ליצור Worker"*. Two defects,
+one line:
+
+- **A CSP-refused worker does not throw.** Measured on the deployment: `new Worker(url)` under a
+  `worker-src` that excludes the URL's scheme **returns a Worker**, and an `error` event with an
+  **empty message** arrives afterwards. `createWorker(url).terminate()` inside a `try` sees a
+  success. The probe now waits for the worker to **speak**; construction proves nothing.
+- **It probed the wrong scheme.** The probe built a `blob:` script to isolate *"can a worker be
+  created at all"* from *"can the engine's script be fetched"* — and this deployment's
+  `worker-src 'self'` forbids `blob:` and allows the engine's own same-origin script. The check was
+  asking about a scheme the product never uses and reporting the answer as if it were about the
+  engine. Both are probed now, and the same-origin one decides.
+
+The empty message turns out to be the **signature of a policy refusal**: a script that will not
+parse arrives with a real `SyntaxError`, and a worker the CSP refused arrives with nothing. Same
+event, two causes, and the message is what separates them — so it separates two codes.
+
+### Nine codes, because six causes with one sentence is the whole of this row
+
+`shared/engine-failure.ts` is the closed vocabulary. The test for two codes rather than one is
+whether the same person would do the same thing: `worker-refused` and `wasm-refused` are both
+almost always one CSP header and are two codes, because one is fixed by `worker-src` and the other
+by `'wasm-unsafe-eval'`, and no message can say which unless the code did.
+
+`asset-mistyped` is its own code because it is invisible from the app's side — the bytes arrive, the
+status is 200, and the browser refuses to execute them anyway, since `x-content-type-options:
+nosniff` on this deployment turns the content type from advice into a requirement. Both engine
+assets are now checked for it, magic bytes first so a proxy that swapped the body is not reported as
+a header problem.
+
+**There is no `unknown` code.** A generic one would collect exactly the cases this list exists to
+separate, so a failure that fits none of the nine surfaces as the raw error with the fact that
+nothing classified it — a smaller lie than filing it under a name.
+
+**And one thing the scan had computed since it existed and never shown**: `unreadable`, the games
+whose PGN produced no positions. A scan of twenty games that could read fourteen reported rates over
+fourteen while the reader was looking at twenty. Nothing was wrong with the numbers; the denominator
+was not the one the reader had in mind. It is on the panel now, and absent when it is zero.
+
+**Gate:** `GATE-ENGINE-FAILURE-DISTINCT` — no two causes render the same sentence, and no classified
+cause reaches the generic fallback. Its control is the renderer that shipped.
+
+**What is still not established, and now it can be asked:** which cause the original reporter hit.
+Nothing here can recover that — the screen they saw could not say. What has changed is that the next
+report will name one of nine, and the two most likely candidates for theirs, `worker-refused` and
+`engine-timeout`, are now told apart by the product rather than by a guess.
 
 ---
 

@@ -26,14 +26,21 @@ function healthyEnv(overrides: Partial<CheckEnv> = {}): CheckEnv {
       if (url.endsWith(".wasm")) {
         return response(VALID_WASM, { headers: { "content-type": "application/wasm" } });
       }
-      if (url.endsWith(".js")) return response("// engine");
+      /*
+       * THE TYPE IS PART OF HEALTHY, and it was missing: `Response` defaults to `text/plain`, so
+       * this fixture described a deployment whose engine script a browser would refuse to execute.
+       * It passed only because nothing checked the type.
+       */
+      if (url.endsWith(".js")) {
+        return response("// engine", { headers: { "content-type": "application/javascript" } });
+      }
       return response("{}", { status: 401 });
     }) as unknown as typeof fetch,
     engineUrls: async () => ({ js: "/assets/engine.js", wasm: "/assets/engine.wasm" }),
     hasWorker: () => true,
     createWorker: () => fakeWorker("healthy"),
-    objectUrl: () => "blob:probe",
-    revokeObjectUrl: () => {},
+    /* A browser that starts workers from both sources. Cases below narrow it. */
+    probeWorker: async () => ({ spoke: true, observed: "ענה" }),
     storage: () => ({ available: true, durability: "persistent" }),
     now: () => 0,
     ...overrides,
@@ -193,7 +200,9 @@ describe("a network that answers with something other than the engine", () => {
             headers: { "content-type": "text/html" },
           });
         }
-        if (url.endsWith(".js")) return response("// engine");
+        if (url.endsWith(".js")) {
+          return response("// engine", { headers: { "content-type": "application/javascript" } });
+        }
         return response("{}", { status: 401 });
       }) as unknown as typeof fetch,
     });
@@ -235,7 +244,7 @@ describe("a browser that will not run Workers", () => {
     const env = healthyEnv({ hasWorker: () => false, createWorker: () => fakeWorker("silent") });
     const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
     expect(byId(results, "worker").status).toBe("fail");
-    expect(byId(results, "worker").detail).toMatch(/Workers/);
+    expect(byId(results, "worker").detail).toContain("worker-unsupported");
     // The engine's files are fine here. Reporting them as broken would send the fix to the
     // wrong place -- policy, not the deployment.
     expect(byId(results, "engine-js").status).toBe("pass");
@@ -244,14 +253,118 @@ describe("a browser that will not run Workers", () => {
 
   it("reports a construction that is refused rather than missing", async () => {
     const env = healthyEnv({
-      createWorker: () => {
-        throw new DOMException("Refused to create a worker", "SecurityError");
-      },
+      probeWorker: async () => ({ spoke: false, observed: "שגיאה: SecurityError" }),
     });
     const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
-    // The constructor exists and the construction failed: a CSP worker-src, not an old browser.
+    // The constructor exists and the worker never spoke: a CSP worker-src, not an old browser.
     expect(byId(results, "worker").status).toBe("fail");
+    expect(byId(results, "worker").detail).toContain("worker-refused");
     expect(byId(results, "worker").detail).toContain("SecurityError");
+  });
+
+  it("FAILS on a worker that was constructed and refused, which is how the refusal really arrives", async () => {
+    /*
+     * THE DEFECT THIS FILE MISSED, AND THE DEPLOYED ORIGIN FOUND. The old check was
+     * `createWorker(url).terminate()` inside a `try`, and the case above -- a constructor that
+     * THROWS -- is the only shape it could see. Measured on the deployment: under a `worker-src`
+     * that excludes the URL's scheme Chromium does not throw. The constructor returns a Worker, an
+     * `error` event with an EMPTY message arrives afterwards, and the old check reported PASS while
+     * the console said *"Refused to create a worker from 'blob:…'"*.
+     *
+     * So the empty message is the fixture. A check that only knows how to fail loudly is a check
+     * that passes quietly.
+     */
+    const env = healthyEnv({
+      probeWorker: async (from) =>
+        from === "same-origin"
+          ? { spoke: false, observed: "נדחה בלי הודעה (חתימה של מדיניות אבטחה)" }
+          : { spoke: false, observed: "נדחה בלי הודעה (חתימה של מדיניות אבטחה)" },
+    });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
+    expect(byId(results, "worker").status, "a refused worker reported as a pass").toBe("fail");
+    expect(byId(results, "worker").detail).toContain("worker-refused");
+  });
+
+  it("passes on a policy that forbids blob: and allows the source the engine uses", async () => {
+    /*
+     * THE DEPLOYMENT'S ACTUAL POLICY. `worker-src 'self'` forbids `blob:` and allows the engine's
+     * own same-origin script, so the honest answer is a PASS with the blob fact recorded beside
+     * it. The old probe asked only about `blob:` -- a scheme nothing in this product uses -- and
+     * would now have to fail, which would send a reader after a header that is not the problem.
+     */
+    const env = healthyEnv({
+      probeWorker: async (from) =>
+        from === "same-origin"
+          ? { spoke: true, observed: "ענה" }
+          : { spoke: false, observed: "נדחה בלי הודעה (חתימה של מדיניות אבטחה)" },
+    });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
+    expect(byId(results, "worker").status).toBe("pass");
+    expect(byId(results, "worker").detail).toContain("blob");
+  });
+});
+
+describe("an asset that arrives and cannot be executed", () => {
+  it("names the content type rather than reporting a missing file", async () => {
+    /*
+     * `x-content-type-options: nosniff` is set on this deployment, so a script served as
+     * `text/plain` is refused rather than sniffed -- and the refusal reaches the app as an engine
+     * that never started, which is indistinguishable from a 404 without the type in the report.
+     */
+    const env = healthyEnv({
+      fetch: vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith(".wasm")) {
+          return response(VALID_WASM, { headers: { "content-type": "application/wasm" } });
+        }
+        if (url.endsWith(".js")) {
+          return response("// engine", { headers: { "content-type": "text/plain" } });
+        }
+        return response("{}", { status: 401 });
+      }) as unknown as typeof fetch,
+    });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
+    expect(byId(results, "engine-js").status).toBe("fail");
+    expect(byId(results, "engine-js").detail).toContain("asset-mistyped");
+    expect(byId(results, "engine-js").detail).toContain("text/plain");
+  });
+
+  it("names the type on a wasm that is real and mislabelled", async () => {
+    const env = healthyEnv({
+      fetch: vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith(".wasm")) {
+          return response(VALID_WASM, { headers: { "content-type": "application/octet-stream" } });
+        }
+        if (url.endsWith(".js")) {
+          return response("// engine", { headers: { "content-type": "application/javascript" } });
+        }
+        return response("{}", { status: 401 });
+      }) as unknown as typeof fetch,
+    });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
+    expect(byId(results, "engine-wasm").status).toBe("fail");
+    expect(byId(results, "engine-wasm").detail).toContain("asset-mistyped");
+  });
+
+  it("still reports a swapped body as a swapped body, not as a header", async () => {
+    /* The order matters: magic bytes first, so a proxy that replaced the file is not misfiled. */
+    const env = healthyEnv({
+      fetch: vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith(".wasm")) {
+          return response("<html>blocked</html>", { headers: { "content-type": "text/html" } });
+        }
+        if (url.endsWith(".js")) {
+          return response("// engine", { headers: { "content-type": "application/javascript" } });
+        }
+        return response("{}", { status: 401 });
+      }) as unknown as typeof fetch,
+    });
+    const results = await runSelfCheck(env, { engineTimeoutMs: 60 });
+    expect(byId(results, "engine-wasm").status).toBe("fail");
+    expect(byId(results, "engine-wasm").detail).not.toContain("asset-mistyped");
+    expect(byId(results, "engine-wasm").detail).toContain("0061736d");
   });
 });
 

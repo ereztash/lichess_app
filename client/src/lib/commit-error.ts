@@ -20,6 +20,8 @@
 /** Any Hebrew letter. A message that has one was written for the player. */
 const HEBREW = /[֐-׿]/;
 
+import { ENGINE_REMEDY, failureCode } from "@shared/engine-failure";
+
 export interface CommitFailureText {
   /** Always Hebrew, always says the decision was not recorded. */
   message: string;
@@ -62,4 +64,25 @@ export function readableFailureText(error: unknown, fallback: string): string {
   const { message, detail } = readableFailure(error, fallback);
   if (detail) console.error("[failure]", detail);
   return message;
+}
+
+/**
+ * The scan's failure, said by cause rather than by symptom.
+ *
+ * WHY THE ORDINARY `readableFailure` WAS NOT ENOUGH HERE, AND R-09 IS THE EVIDENCE. That function
+ * has exactly two answers: pass a Hebrew message through, or show one fallback sentence with the
+ * raw text behind a disclosure. Six different causes reach the scan's catch, the fixes for them
+ * have nothing in common, and the reporter's screen showed the fallback — so the one thing the
+ * report could not say was which of the six it was.
+ *
+ * A CODE IS NOT A PREFIX. The remedy sentence differs per code and names an act, and the code
+ * itself is carried in the detail so a pasted report is greppable. Where nothing classified the
+ * error, that is stated rather than filed under a name: `readableFailure`'s behaviour is kept
+ * exactly, because inventing a seventh cause is worse than admitting to none.
+ */
+export function scanFailureText(error: unknown, fallback: string): CommitFailureText {
+  const code = failureCode(error);
+  if (!code) return readableFailure(error, fallback);
+  const raw = error instanceof Error ? error.message.trim() : String(error);
+  return { message: ENGINE_REMEDY[code], detail: `[${code}] ${raw}` };
 }

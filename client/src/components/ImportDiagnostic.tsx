@@ -99,6 +99,7 @@ export function ImportDiagnosticPanel({
   bridge,
   kept = true,
   provenance,
+  unreadable = 0,
 }: {
   diagnostic: Diagnostic;
   /**
@@ -127,6 +128,17 @@ export function ImportDiagnosticPanel({
    * a provider it has nothing to do with. The slot keeps the placement without the coupling.
    */
   bridge?: ReactNode;
+  /**
+   * Games whose PGN produced no positions, so they are in the total and not in the reading.
+   *
+   * COMPUTED SINCE THE RUN EXISTED AND SHOWN BY NOBODY. `runImportDiagnostic` has always returned
+   * `unreadable`, and the screen dropped it — so a scan of twenty games that could read fourteen
+   * reported rates over fourteen while the player was looking at twenty. Nothing was wrong with
+   * the numbers; the denominator was not the one the reader had in mind, which is the failure this
+   * whole file's rules exist to prevent. Absent when it is zero: a line saying nothing was lost is
+   * noise on every honest scan.
+   */
+  unreadable?: number;
 }) {
   return (
     <section className="import-diagnostic">
@@ -164,6 +176,12 @@ export function ImportDiagnosticPanel({
         <p className="import-not-kept">
           הסריקה נעצרה באמצע, ולכן הקריאה הזו לא נשמרת. היא מתארת רק את המשחקים שהספיקו להיסרק.
           סריקה שתרוץ עד הסוף תישמר ותהיה זמינה שוב מהתפריט.
+        </p>
+      )}
+
+      {Boolean(unreadable) && (
+        <p className="import-unreadable">
+          {unreadable} מהמשחקים לא נקראו ולא נכללים בקריאה. השאר נסרקו כרגיל.
         </p>
       )}
 

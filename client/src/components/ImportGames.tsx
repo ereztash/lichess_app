@@ -16,7 +16,7 @@ import { ImportDiagnosticPanel } from "./ImportDiagnostic";
 import { PreregisterBridge } from "./PreregisterBridge";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
-import { readableFailure } from "@/lib/commit-error";
+import { scanFailureText } from "@/lib/commit-error";
 
 type Props = {
   onLoad: (game: ImportedGame) => void;
@@ -124,6 +124,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
    * disclosure for exactly this reason; this is the same treatment on the screen that needed it.
    */
   const [scanFailure, setScanFailure] = useState<{ message: string; detail?: string } | null>(null);
+  const [unreadable, setUnreadable] = useState(0);
   /** Whether the reading on screen was persisted. False for a scan the player stopped. */
   const [kept, setKept] = useState(true);
   const abort = useRef<AbortController | null>(null);
@@ -151,6 +152,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
     abort.current = controller;
     setScanFailure(null);
     setDiagnostic(null);
+    setUnreadable(0);
     setProgress({ done: 0, total: 0, gamesDone: 0, games: games.length });
     try {
       const result = await runImportDiagnostic(games, username, analyze, {
@@ -158,6 +160,8 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
         onProgress: setProgress,
       });
       setDiagnostic(result.diagnostic);
+      /* Carried to the panel so the denominator the reader sees is the one the rates were built on. */
+      setUnreadable(result.unreadable);
       /*
        * KEPT ONLY IF IT FINISHED (R2).
        *
@@ -182,7 +186,12 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
     } catch (error) {
       // R2: a scan that did not finish must not leave a reading on screen that looks finished.
       setDiagnostic(null);
-      setScanFailure(readableFailure(error, "הסריקה נעצרה לפני שהספיקה למדוד משהו."));
+      /*
+       * BY CAUSE, NOT BY SYMPTOM. This was `readableFailure`, whose fallback is one sentence for
+       * everything that is not already Hebrew -- and R-09 arrived as exactly that sentence, so the
+       * report it produced could not say which of six causes had stopped the scan.
+       */
+      setScanFailure(scanFailureText(error, "הסריקה נעצרה לפני שהספיקה למדוד משהו."));
     } finally {
       setProgress(null);
       abort.current = null;
@@ -334,6 +343,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
         <ImportDiagnosticPanel
           diagnostic={diagnostic}
           kept={kept}
+          unreadable={unreadable}
           bridge={<PreregisterBridge diagnostic={diagnostic} games={games?.length ?? 0} />}
         />
       )}

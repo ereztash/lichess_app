@@ -837,6 +837,26 @@ export const GATES: Gate[] = [
     positiveControl: () => toolboxBehindItsDoor([INERTIA_FIXTURES]),
   },
   {
+    id: "GATE-ENGINE-FAILURE-DISTINCT",
+    rule: "R-09",
+    description: "No two causes of an engine failure render the same sentence.",
+    /*
+     * R-09 WAS BLOCKED ON EXACTLY THIS. The scan failed on a deployment, two real defects on that
+     * path were found and fixed, and neither could be shown to be the reporter's -- because the
+     * screen they saw was one fallback sentence that six different causes reach, with fixes that
+     * have nothing in common. A disclosure holding the raw text lets a reader paste something; it
+     * does not let anyone say what to do.
+     */
+    run: () =>
+      runVitestFile("tests/gates/engine-failure.test.ts", "each cause of an engine failure says its own thing"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/engine-failure.control.test.ts",
+        "six causes rendering the one sentence the scan shipped with",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-REGISTER-RECONCILED",
     rule: "R-01",
     description: "The four registers agree with the tree and with each other.",
