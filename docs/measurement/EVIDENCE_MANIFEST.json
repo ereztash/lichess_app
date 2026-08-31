@@ -1,0 +1,229 @@
+{
+  "manifest_version": "1.0.0",
+  "produced_by": "Decision Lab measurement-falsification research, 2026-08-31",
+  "repository_state": {
+    "main_sha": "68d61c216c6932455cc61bbe33eb65e7042a6bd7",
+    "main_verify": {
+      "command": "npm run verify",
+      "exit_code": 0,
+      "test_files": "240 passed | 2 skipped (242)",
+      "tests": "2646 passed | 25 skipped (2671)",
+      "gates": "20 pass, 0 fail, 0 not-measured",
+      "positive_controls": "20 gates: 0 pass, 20 fail (all controls red, as required)",
+      "bundle": "entry raw 671.5 kB / 673 kB; initial raw 752.3 kB / 753 kB; within budget"
+    },
+    "pr_45": {
+      "number": 45,
+      "state": "open",
+      "draft": true,
+      "merged": false,
+      "head_sha": "67e2621d71bc9ed122de578b191be395f6d81229",
+      "base_sha": "68d61c216c6932455cc61bbe33eb65e7042a6bd7",
+      "mergeable_state": "unstable",
+      "changed_files": 115,
+      "additions": 9314,
+      "deletions": 197,
+      "note": "PR body claims 2,698 tests and 26/26 gates. Those are the PR's numbers, not main's; main measured here is 2,646 tests and 20 gates. Nothing was merged during this research."
+    },
+    "inherited_claim_29_of_29": {
+      "status": "NOT PRESENT IN THE REPOSITORY AT ANY COMMIT",
+      "searches_run": [
+        "git log --all -S hangingPiece  -> 0 commits",
+        "git log --all -S '29/29'       -> 0 commits",
+        "git grep -il unprotected HEAD  -> 0 files"
+      ],
+      "consequence": "reproduced from the described design rather than from an artifact; see research/measurement/narrow.py::reproduce_29"
+    }
+  },
+  "evidence_hierarchy": {
+    "A": "standards / consensus / systematic reviews / meta-analyses",
+    "B": "peer-reviewed validated experimental paradigms",
+    "C": "peer-reviewed individual studies",
+    "D": "official reference / open-source implementations tied to published methods",
+    "E": "mature open-source implementations without direct validation evidence",
+    "F": "blog posts / tutorials / product claims",
+    "rule": "D-F may justify implementation choices. They cannot establish construct validity."
+  },
+  "sources": [
+    {
+      "id": "STANDARDS-2014",
+      "tier": "A",
+      "citation": "American Educational Research Association, American Psychological Association, & National Council on Measurement in Education (2014). Standards for Educational and Psychological Testing. Washington, DC: AERA.",
+      "url": "https://www.aera.net/publications/books/standards-for-educational-psychological-testing-2014-edition",
+      "used_for": "the definition of validity as support for a proposed interpretation and use, and the five sources of validity evidence",
+      "used_in": ["INTERPRETATION_USE_ARGUMENT.md", "CONSTRUCT_DECISION.md"]
+    },
+    {
+      "id": "KANE",
+      "tier": "A",
+      "citation": "Kane, M. T. (2013). Validating the interpretations and uses of test scores. Journal of Educational Measurement, 50(1), 1-73. See also Kane (2006), Educational Measurement (4th ed.).",
+      "used_for": "the argument-based structure of the interpretation/use argument and the rule that a higher inference may not be accepted while a lower one is unresolved",
+      "used_in": ["INTERPRETATION_USE_ARGUMENT.md"]
+    },
+    {
+      "id": "COOK-2015",
+      "tier": "A",
+      "citation": "Cook, D. A., Brydges, R., Ginsburg, S., & Hatala, R. (2015). A contemporary approach to validity arguments: a practical guide to Kane's framework. Medical Education, 49(6), 560-575.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/25989405/",
+      "used_for": "the operational four-inference chain (scoring, generalisation, extrapolation, implications) and the instruction to target the most questionable assumptions",
+      "used_in": ["INTERPRETATION_USE_ARGUMENT.md"]
+    },
+    {
+      "id": "STANISLAW-TODOROV-1999",
+      "tier": "B",
+      "citation": "Stanislaw, H., & Todorov, N. (1999). Calculation of signal detection theory measures. Behavior Research Methods, Instruments, & Computers, 31(1), 137-149.",
+      "url": "https://link.springer.com/article/10.3758/BF03207704",
+      "used_for": "d-prime, criterion c, beta, A-prime, B-double-prime-D; the yes/no vs 2AFC distinction",
+      "used_in": ["research/measurement/sdt.py", "research/measurement/sdt.ts", "ANALYSIS_PLAN.md"]
+    },
+    {
+      "id": "HAUTUS-1995",
+      "tier": "C",
+      "citation": "Hautus, M. J. (1995). Corrections for extreme proportions and their biasing effects on estimated values of d'. Behavior Research Methods, Instruments, & Computers, 27(1), 46-51.",
+      "used_for": "the loglinear correction, applied to every table rather than only to extreme ones",
+      "used_in": ["research/measurement/sdt.py", "research/measurement/sdt.ts"]
+    },
+    {
+      "id": "BROWN-CAI-DASGUPTA-2001",
+      "tier": "C",
+      "citation": "Brown, L. D., Cai, T. T., & DasGupta, A. (2001). Interval estimation for a binomial proportion. Statistical Science, 16(2), 101-133.",
+      "used_for": "Wilson score intervals in place of Wald for rates near 0 and 1",
+      "used_in": ["research/measurement/sdt.py", "research/measurement/sdt.ts"]
+    },
+    {
+      "id": "WWC-SCD-5",
+      "tier": "A",
+      "citation": "What Works Clearinghouse (2022). Procedures and Standards Handbook, Version 5.0, Chapter VI: single-case design standards. Institute of Education Sciences, U.S. Department of Education.",
+      "url": "https://ies.ed.gov/ncee/wwc/SingleCaseTraining5",
+      "used_for": "at least three demonstrations of effect at three different points in time; visual analysis on level, trend, variability, overlap, immediacy and consistency; systematic manipulation of the independent variable",
+      "used_in": ["ANALYSIS_PLAN.md", "FALSIFICATION_REGISTER.md#F8"]
+    },
+    {
+      "id": "SHERIDAN-REINGOLD-2014",
+      "tier": "C",
+      "citation": "Sheridan, H., & Reingold, E. M. (2014). Expert vs. novice differences in the detection of relevant information during a chess game: evidence from eye movements. Frontiers in Psychology, 5, 941.",
+      "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4142462/",
+      "used_for": "the minimised-board check-detection paradigm; expert advantage in fixating relevant pieces within the first five fixations",
+      "used_in": ["EXISTING_MEASURE_AUDIT.md", "FALSIFICATION_REGISTER.md#F10"]
+    },
+    {
+      "id": "REINGOLD-SHERIDAN-2021",
+      "tier": "C",
+      "citation": "Reingold, E. M., & Sheridan, H. (2021). Chess expertise reflects domain-specific perceptual processing: evidence from eye movements. Journal of Expertise, 6(1).",
+      "url": "https://www.journalofexpertise.org/articles/volume6_issue1/JoE_6_1_Reingold_Sheridan.pdf",
+      "used_for": "expertise effects in rapid recognition of chess configurations",
+      "used_in": ["EXISTING_MEASURE_AUDIT.md"]
+    },
+    {
+      "id": "DHAMI-2004",
+      "tier": "A",
+      "citation": "Dhami, M. K., Hertwig, R., & Hoffrage, U. (2004). The role of representative design in an ecological approach to cognition. Psychological Bulletin, 130(6), 959-988.",
+      "url": "http://library.mpib-berlin.mpg.de/ft/md/MD_Role_2004.pdf",
+      "used_for": "Brunswik's representative design; stimuli must be sampled from the environment the inference is about",
+      "used_in": ["ECOLOGICAL_EXTRAPOLATION_GAP.md", "ITEM_BANK_PROTOCOL.md"]
+    },
+    {
+      "id": "BARNETT-CECI-2002",
+      "tier": "A",
+      "citation": "Barnett, S. M., & Ceci, S. J. (2002). When and where do we apply what we learn? A taxonomy for far transfer. Psychological Bulletin, 128(4), 612-637.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/12081085/",
+      "used_for": "the nine content and context dimensions along which transfer distance is specified; the finding that far transfer becomes less likely as the gap widens",
+      "used_in": ["ECOLOGICAL_EXTRAPOLATION_GAP.md"]
+    },
+    {
+      "id": "QBE-META-2014",
+      "tier": "A",
+      "citation": "Rodrigues, A. M., O'Brien, N., French, D. P., Glidewell, L., & Sniehotta, F. F. (2015). The question-behavior effect: genuine effect or spurious phenomenon? A systematic review of randomized controlled trials with meta-analyses. Health Psychology, 34(1), 61-78.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/25133835/",
+      "used_for": "a small overall question-behaviour effect (SMD approx 0.09) -- the empirical basis for treating measurement itself as a possible intervention",
+      "used_in": ["FALSIFICATION_REGISTER.md#F7", "ANALYSIS_PLAN.md"]
+    },
+    {
+      "id": "MERE-MEASUREMENT-2025",
+      "tier": "A",
+      "citation": "Systematic review and meta-analysis of the mere-measurement effect of patient-reported outcomes (2025). Quality of Life Research.",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12064450/",
+      "used_for": "a second, independent meta-analytic estimate that being measured changes the measured behaviour",
+      "used_in": ["FALSIFICATION_REGISTER.md#F7"]
+    },
+    {
+      "id": "EINSTEIN-MCDANIEL-2005",
+      "tier": "C",
+      "citation": "Einstein, G. O., & McDaniel, M. A. (2005). Prospective memory: multiple retrieval processes. Current Directions in Psychological Science, 14(6), 286-290. See also McDaniel & Einstein (2000), Applied Cognitive Psychology, 14, S127-S144.",
+      "used_for": "the monitoring vs spontaneous-retrieval distinction; the design requirement that an uncued measure must not signal that the rule is being tested",
+      "used_in": ["EXISTING_MEASURE_AUDIT.md", "ECOLOGICAL_EXTRAPOLATION_GAP.md"]
+    },
+    {
+      "id": "DE-LEEUW-2023",
+      "tier": "D",
+      "citation": "de Leeuw, J. R., Gilbert, R. A., & Luchterhandt, B. (2023). jsPsych: enabling an open-source collaborative ecosystem of behavioral experiments. Journal of Open Source Software, 8(85), 5351. Originally de Leeuw (2015), Behavior Research Methods, 47(1), 1-12.",
+      "url": "https://github.com/jspsych/jsPsych",
+      "used_for": "browser-based trial sequencing, randomisation, response capture and data export",
+      "used_in": ["EXISTING_MEASURE_AUDIT.md", "GO_NO_GO.md"]
+    },
+    {
+      "id": "PEIRCE-2019",
+      "tier": "D",
+      "citation": "Peirce, J., Gray, J. R., Simpson, S., MacAskill, M., Hoechenberger, R., Sogo, H., Kastman, E., & Lindelov, J. K. (2019). PsychoPy2: experiments in behavior made easy. Behavior Research Methods, 51(1), 195-203.",
+      "url": "https://link.springer.com/article/10.3758/s13428-018-01193-y",
+      "used_for": "sub-millisecond stimulus and response timing where timing is the measurement",
+      "used_in": ["EXISTING_MEASURE_AUDIT.md"]
+    },
+    {
+      "id": "SINGLECASEES",
+      "tier": "D",
+      "citation": "Pustejovsky, J. E., Chen, M., Grekov, P., & Swan, D. M. (2024). SingleCaseES: a calculator for single-case effect size indices (R package v0.7.3).",
+      "url": "https://github.com/jepusto/SingleCaseES",
+      "used_for": "within-case non-overlap and parametric effect sizes with standard errors, for any future single-case learning study",
+      "used_in": ["ANALYSIS_PLAN.md"]
+    },
+    {
+      "id": "SCAN",
+      "tier": "D",
+      "citation": "Wilbert, J., & Lueke, T. scan: Single-Case Data Analyses for Single and Multiple Baseline Designs (R package). See Wilbert, J., Analyzing single-case data with R and scan.",
+      "url": "https://jazznbass.github.io/scan/",
+      "used_for": "multiple-baseline handling, overlap indices, randomisation tests, plotting",
+      "used_in": ["ANALYSIS_PLAN.md"]
+    },
+    {
+      "id": "PYTHON-CHESS",
+      "tier": "E",
+      "citation": "Fiekas, N. python-chess: a chess library for Python.",
+      "url": "https://github.com/niklasf/python-chess",
+      "used_for": "move generation, legality, attack maps, PGN and FEN parsing in every scan in research/measurement/",
+      "used_in": ["research/measurement/*.py"]
+    },
+    {
+      "id": "STOCKFISH",
+      "tier": "D",
+      "citation": "The Stockfish developers. Stockfish 17.1 (official release, ubuntu-x86-64-avx2).",
+      "url": "https://github.com/official-stockfish/Stockfish",
+      "used_for": "engine adjudication as ONE oracle among several, at a recorded node budget; never as ground truth",
+      "used_in": ["research/measurement/oracles.py", "FALSIFICATION_REGISTER.md#F4"]
+    },
+    {
+      "id": "LICHESS-PUZZLER",
+      "tier": "E",
+      "citation": "ornicar/lichess-puzzler -- the generator, validator and tagger behind the Lichess puzzle database.",
+      "url": "https://github.com/ornicar/lichess-puzzler",
+      "used_for": "the actual definitions of is_defended (with ray defence) and of the hangingPiece theme, both read from source rather than inferred; and the engine-uniqueness selection rule in generator.py",
+      "used_in": ["FALSIFICATION_REGISTER.md#F1", "FALSIFICATION_REGISTER.md#F4", "ITEM_BANK_PROTOCOL.md"]
+    },
+    {
+      "id": "LICHESS-DB",
+      "tier": "E",
+      "citation": "Lichess open database: lichess_db_standard_rated_2013-01.pgn.zst (17,761,302 bytes) and lichess_db_puzzle.csv.zst (304,384,407 bytes, last-modified 2026-08-02).",
+      "url": "https://database.lichess.org/",
+      "used_for": "the unlabelled game population (60,000 games, 167,881 sampled positions) and the labelled puzzle population (6,100,960 rows, every 40th sampled)",
+      "used_in": ["FALSIFICATION_REGISTER.md"]
+    },
+    {
+      "id": "CPW-SEE",
+      "tier": "E",
+      "citation": "Chess Programming Wiki: Static Exchange Evaluation -- The Swap Algorithm.",
+      "url": "https://www.chessprogramming.org/Static_Exchange_Evaluation",
+      "used_for": "the swap-off algorithm reproduced in research/measurement/oracles.py::see, with its x-ray limitation recorded in the docstring",
+      "used_in": ["research/measurement/oracles.py"]
+    }
+  ]
+}
