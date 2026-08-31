@@ -578,6 +578,18 @@ export const blitzDecisions = mysqlTable(
      * about the search, not a cp-loss of zero.
      */
     confidence: int("confidence"),
+    /*
+     * WHAT THAT CONFIDENCE WAS STATED ON. Added after `decisions` had carried both for a release,
+     * which is exactly how long this table stored a bare integer that only the shipped constant
+     * could interpret.
+     *
+     * NULLABLE AND NEVER BACKFILLED, the same rule as `confidence_grid_version` on `decisions`: a
+     * row written before the column existed is dated by the absence, and writing 7 into it would
+     * assert that this build observed the scale, which it did not. `blitzConfidenceOf` is the one
+     * reader allowed to date such a row, and it reports that it did.
+     */
+    confidenceScale: int("confidence_scale"),
+    confidenceGridVersion: int("confidence_grid_version"),
     instrumentationLatencyMs: int("instrumentation_latency_ms"),
     cpLoss: int("cp_loss"),
     standingCp: int("standing_cp"),

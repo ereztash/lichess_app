@@ -32,6 +32,7 @@ import {
 } from "../../shared/blitz-strata";
 import * as strataModule from "../../shared/blitz-strata";
 import type { StoredBlitzDecision, StoredBlitzGame } from "../../shared/blitz-record";
+import { CONFIDENCE_GRID_VERSION, CONFIDENCE_LEVELS } from "@shared/confidence";
 import { CURRENT_PROTOCOL_VERSION } from "../../shared/measurement-protocol";
 
 const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -72,6 +73,8 @@ const decision = (
   wasAsked: true,
   samplingProbability: 0.15,
   confidence: 5,
+  confidenceScale: CONFIDENCE_LEVELS,
+  confidenceGridVersion: CONFIDENCE_GRID_VERSION,
   instrumentationLatencyMs: 800,
   cpLoss: 30,
   standingCp: 40,

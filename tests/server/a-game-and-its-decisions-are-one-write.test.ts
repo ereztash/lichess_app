@@ -54,6 +54,9 @@ const decision = (ply: number) => ({
   wasAsked: false,
   samplingProbability: 0.1,
   confidence: null,
+  /* Unasked, so there is no scale: a scale with no confidence names an instrument nobody used. */
+  confidenceScale: null,
+  confidenceGridVersion: null,
   instrumentationLatencyMs: null,
   cpLoss: null,
   standingCp: null,

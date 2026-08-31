@@ -217,8 +217,19 @@ describe("a game that does not vanish with the tab", () => {
       const missing = wire();
       delete (missing.decisions[0] as Partial<{ confidence: number | null }>).confidence;
       expect(storedBlitzRecordSchema.safeParse(missing).success).toBe(false);
+      /*
+       * THE SCALE GOES WITH IT (R-17). A confidence and the scale it was stated on are one fact in
+       * three columns: a null confidence beside a populated scale describes an instrument nobody
+       * used, and the schema now refuses it. Nulling only the confidence here would be testing that
+       * refusal by accident while claiming to test `nullable()`.
+       */
       const nulled = wire();
-      nulled.decisions[0] = { ...nulled.decisions[0], confidence: null };
+      nulled.decisions[0] = {
+        ...nulled.decisions[0],
+        confidence: null,
+        confidenceScale: null,
+        confidenceGridVersion: null,
+      };
       expect(storedBlitzRecordSchema.safeParse(nulled).success).toBe(true);
     });
   });
