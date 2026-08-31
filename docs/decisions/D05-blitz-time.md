@@ -98,6 +98,80 @@ candidates measured on the same worlds, with the best kept, is a search with fou
 correction — the post-hoc choice D08 refuses inside validation, arriving here as a research method.
 The choice rule has to be declared first.
 
+## THE CHOICE RULE, DECLARED BEFORE THE RUN
+
+Reversal condition 1 below is the intended path and it asks for two things in this order: the rule
+first, then one run. This section is the rule. It was written and committed before the harness that
+tests it produced a single number, which is the only thing that makes the number worth reading — and
+it is the discipline `q5_attribution.py` used for `ATTRIBUTION_K`.
+
+### The candidate
+
+**Alternative 3: `thinkFractionOfClockBefore`**, which `shared/blitz-features.ts` already computes as
+`thinkMs / clockBeforeMs`. Point-in-time safe by construction: it reads the clock the player had
+when the position appeared, and nothing later.
+
+Chosen over the other five for stated reasons rather than by measuring all six, which would be the
+four-comparison search this node already refuses:
+
+- **2 (move the seconds)** is a number picked to make a bucket fill, and it breaks the untimed loop
+  where 45 seconds is a real division.
+- **4 (against the fair share the clock implies)** needs an estimate of moves remaining, which is a
+  model, and a model is a second thing to be wrong about.
+- **5 (this player's own percentile)** leaks: a percentile over the record includes decisions taken
+  after the one being described.
+- **6 (a bucket set per time control)** multiplies the search space by the number of time controls,
+  which is the multiplicity problem this whole node is about.
+- **1 (leave it)** is the status quo the defect describes.
+
+### The thresholds, and why they are not fitted
+
+The product already derives a per-move budget from a **thirty-move planning horizon** — the world
+generator's `budget = max(initial / 1000 / 30, 1.5)` carries the same constant and the same
+sentence. A player spending evenly across that horizon spends **1/30 ≈ 0.0333** of the clock they
+have on each decision. So:
+
+| bucket | cut | what it is |
+| --- | --- | --- |
+| `fast-relative` | `thinkFractionOfClockBefore < 1/60` | **half** an even share |
+| `slow-relative` | `thinkFractionOfClockBefore > 1/15` | **double** an even share |
+
+Halving and doubling one constant the product already uses. Neither number was chosen by looking at
+how full the resulting bucket is, and **neither moves after the run** — if the candidate fails, the
+finding is that alternative 3 is refuted, and the next candidate is 4.
+
+D05's own objection to alternative 3 stands and is not answered by this: *the share a decision costs
+rises through a game even at a perfectly even pace, so a fixed threshold is not a fixed meaning.* A
+decision late in a game is nearer the fast cut than the same deliberation early in one. That is a
+real weakness of the candidate and it is why the measurement below is a test rather than a
+formality.
+
+### What would reject it
+
+Both must hold. The run measures the **new six** — the four working buckets, plus these two in place
+of `fast-under-45s` and `slow-over-2m` — through the same chain and the same worlds as Q4 and Q6.
+
+1. **The false-claim rate on blitz null records must stay at or under 0.02**, upper 95% CI. This is
+   not a formality: `SEPARABILITY_K = 3.75` is a measurement of *those six buckets searched
+   together*, so a redefined set is a different multiplicity and has to earn the threshold again.
+   Over the ceiling and the candidate is rejected outright — a bucket that fills by finding things
+   that are not there is worse than a bucket that cannot be read.
+2. **`clean-fast` validated-on-target must reach at least half of what `clean-middlegame` reaches on
+   the same worlds** — so against Q6's 0.4175, a bar of **0.209**. Half rather than parity because a
+   fast bucket is a tail and a phase bucket is a third of the record: requiring parity would be
+   requiring the bucket to beat its own size. Below the bar and the candidate has not fixed the
+   defect, whatever else it improved.
+
+Rejection is a result, not a failure. R-18's point is that the *thresholds* are wrong; a measurement
+showing that a relative threshold is wrong too is worth as much as one showing it is right, and
+would move the node to alternative 4 with an argument instead of a preference.
+
+### What the run may not do
+
+Report a third number and choose on it. Search a seventh bucket. Move a cut. Or ship anything: the
+six in `hypothesis-manifest.ts` are frozen, and a passing candidate earns the right to be *proposed*
+for that manifest, which is its own decision with its own hash change.
+
 ## REVERSAL CONDITION
 
 Any one of these reopens it, and the first is the intended path:
