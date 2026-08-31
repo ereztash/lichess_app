@@ -163,6 +163,20 @@ describe("nothing reads it back", () => {
     "client/src/pages/Home.tsx",
     "client/src/components/RevealPanel.tsx",
     "client/src/components/ValueReconstruction.tsx",
+    /*
+     * THE FRONT DOOR, ADDED FOR ONE OF THE THREE READS THIS FILE ALREADY SANCTIONS.
+     *
+     * `Record.tsx` calls `visitsOnRecord()` and does exactly one thing with the answer: it stops
+     * repeating an explanation to somebody who has already seen it (master plan §13). That is the
+     * "how many visits" read named above -- about the protocol, not the player -- and the chess is
+     * identical whatever it returns: no position, no reveal, no measurement and no sentence about
+     * the player's play depends on it.
+     *
+     * WHAT IT MAY NOT GROW INTO is the reason this note is here rather than a bare string. The
+     * moment this page reads an ATTEMPT, a funnel stage or a completion count, it is adapting to
+     * how far along the player is, and the count read is not a licence for the rest of the log.
+     */
+    "client/src/pages/Record.tsx",
   ]);
 
   function sources(dir: string): string[] {
@@ -183,6 +197,28 @@ describe("nothing reads it back", () => {
 
     for (const file of importers)
       expect(ALLOWED.has(file), `${file} imports the trial log, which nothing may read`).toBe(true);
+  });
+
+  /**
+   * THE MODULE THE RESUME SCREEN USES INSTEAD, held to the same shape as the rule it sits beside.
+   *
+   * The first version of the resume screen read `previousVisitStartedAt()` out of the trial log to
+   * answer "what changed since last time", and the assertion above fired on it. The replacement is
+   * `client/src/lib/last-seen.ts`: one timestamp, written by the screen that reads it, feeding one
+   * navigational sentence.
+   *
+   * THIS CASE EXISTS BECAUSE THAT IS ALSO WHAT ROUTING AROUND A GUARD LOOKS LIKE. The difference is
+   * real -- nothing it returns can reach a measurement -- and a difference nobody checks is a
+   * difference that lasts until the next commit. So the same import-graph assertion applies: one
+   * screen, and nothing under `shared/`.
+   */
+  it("keeps the resume screen's own memory to one screen, and out of the measurements", () => {
+    const importers = ["client/src", "shared", "server"]
+      .flatMap((dir) => sources(resolve(root, dir)))
+      .filter((file) => /from\s+["'][^"']*last-seen/.test(readFileSync(file, "utf8")))
+      .map((file) => relative(root, file).replaceAll("\\", "/"));
+
+    expect(importers).toEqual(["client/src/components/ResumeScreen.tsx"]);
   });
 
   it("is not reachable from the shared measurements at all", () => {

@@ -109,8 +109,15 @@ export function FindingCard({
         * `EvidenceMark` because it is a statement about the whole card -- a card whose authority
         * cannot prescribe must not carry a "try this next time", and saying so out loud is what
         * stops the next screen from adding one.
+        *
+        * ONLY ON A CARD THAT HAS AN EXAMPLE, and that condition was added after reading the
+        * rendered screen rather than the code. A card saying "you have not played a game yet"
+        * followed by "this is not a reason to change anything in your play" is a non-sequitur, and
+        * it was 62 of that card's 175 characters. The restraint exists to stop somebody acting on
+        * evidence that cannot support action; a card with no concrete case is not offering anything
+        * to act on, so there is nothing to restrain.
         */}
-      {!AUTHORITY[authority].mayPrescribe && (
+      {example !== null && !AUTHORITY[authority].mayPrescribe && (
         <p className="finding__restraint">
           זו עדיין לא סיבה לשנות משהו במשחק. לשם כך צריך בדיקה קדימה.
         </p>

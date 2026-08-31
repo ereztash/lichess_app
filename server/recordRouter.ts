@@ -28,6 +28,7 @@ import {
   TRANSFER_POSITION_COUNT,
 } from "../shared/learning-record.js";
 import * as service from "../shared/record-service.js";
+import { blitzRecordReading } from "../shared/blitz-record-reading.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
@@ -438,5 +439,12 @@ export function buildRecordRouter(store: RecordStore) {
 
     blitzDecisions: ownerProcedure.query(() => guard(() => store.listBlitzDecisions())),
     blitzGames: ownerProcedure.query(() => guard(() => store.listBlitzGames())),
+    /*
+     * THE READING, NOT THE ROWS, AND BOTH ENDPOINTS STAY. The two above are the raw tables and are
+     * what a test or an export wants; this is the statement a screen renders, computed by the same
+     * function the local deployment calls, so the two modes cannot come to disagree about what the
+     * record says.
+     */
+    blitzReading: ownerProcedure.query(() => guard(() => blitzRecordReading(store))),
   });
 }

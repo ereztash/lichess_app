@@ -220,3 +220,138 @@ export function postGameWords(reading: PostGameReading): PostGameWords {
 
 /** Re-exported so a card can render the level's own explanation without a second import. */
 export const authorityMeaning = (authority: EvidenceAuthority): string => AUTHORITY[authority].means;
+
+/**
+ * THE RESUME SCREEN'S THREE SENTENCES (§13, §28).
+ *
+ * ONE FUNCTION PER QUESTION, because the three answers have different lifetimes: what changed is
+ * about a visit, what is known is about a record, and what to do next is about a gate. A single
+ * composer would have to take all three and would then be the only place any of them could be
+ * changed.
+ *
+ * NO PARAGRAPH ANYWHERE. §28's acceptance criterion is that a returning player answers all three
+ * within seconds without reading prose, so every sentence below is one clause plus at most one
+ * number, and `tests/client/a-screen-nobody-reads-twice` holds a character budget over the three
+ * of them together.
+ */
+import type { BlitzPattern } from "./blitz-reading.js";
+import type { ResumeChange, ResumeKnowledge } from "./resume-reading.js";
+
+/**
+ * WHAT CHANGED, or null when there is nothing to report.
+ *
+ * NULL WHEN NOTHING IS NEW, and that is not the same as a first visit -- the caller already
+ * separated those by passing null for `change` itself. A returning player with no new games gets
+ * no line here rather than "0 משחקים חדשים", which is a sentence whose only content is a zero.
+ *
+ * THE TWO NUMBERS APPEAR TOGETHER ONLY WHEN THEY DISAGREE. On a healthy record every new game is
+ * scored and "4 משחקים חדשים, 4 נותחו" is the same fact twice. When they diverge, the gap is the
+ * whole message, and it is what a broken analysis path looks like from the outside.
+ */
+export function changedSentence(change: ResumeChange | null): string | null {
+  if (change === null || change.newGames === 0) return null;
+  const games =
+    change.newGames === 1 ? "משחק אחד חדש" : `${change.newGames} משחקים חדשים`;
+  if (change.newlyScored === change.newGames) {
+    return `${games} מאז הפעם הקודמת, וכולם נותחו.`;
+  }
+  if (change.newlyScored === 0) {
+    return `${games} מאז הפעם הקודמת. אף אחד מהם עוד לא נותח.`;
+  }
+  return `${games} מאז הפעם הקודמת, ${change.newlyScored} מהם נותחו.`;
+}
+
+/**
+ * WHAT ONE RETROSPECTIVE PATTERN SAYS, AS A HEADLINE.
+ *
+ * SPLIT FROM THE COUNTS, AND THE SPLIT WAS FOUND BY PRINTING THE SCREEN. One function produced both
+ * and the resume card rendered it twice -- once as the headline and once as the example -- for 371
+ * characters of which half was a duplicate. No assertion about wording would have caught that; a
+ * character budget did, and only because somebody looked at what it was counting.
+ *
+ * IT NAMES THE DIRECTION AND THE SCOPE, AND CLAIMS NOTHING ELSE. A calibration gap difference says
+ * that inside this bucket the stated confidence sits further from the outcomes than it does outside
+ * it -- that, scoped, is the whole sentence. "You commit too fast" would be an explanation, and
+ * this measurement contains no explanation: it cannot tell haste from misreading from a genuinely
+ * harder position.
+ *
+ * NO HEDGE WORD. "לפעמים" and "נוטה" and "אולי" are the vocabulary a sentence reaches for when it
+ * is doing the work the evidence mark is supposed to do. The mark under this line says `חוזר
+ * ברשומה`, which is exact; a hedge on top of it would be the same caution said twice and less
+ * precisely.
+ */
+export function patternHeadline(pattern: BlitzPattern): string {
+  return pattern.predictsOverconfidence
+    ? `ב${pattern.scope}, הביטחון שלך גבוה יותר ממה שהתוצאות מראות.`
+    : `ב${pattern.scope}, הביטחון שלך נמוך יותר ממה שהתוצאות מראות.`;
+}
+
+/**
+ * THE SAME PATTERN AS TWO COUNTS, in §10's shape: both sides, and no percentage.
+ *
+ * "48 מתוך 60, מול 30 מתוך 60" RATHER THAN "80% מול 50%". The second is more precise and less
+ * understood, and the precision is spurious at these sizes anyway -- a tenth of a percent on nine
+ * observations is a decimal place the record cannot support.
+ *
+ * THE SECOND CLAUSE IS WITHHELD WHEN `comparable` IS FALSE. "48 of 60 here, against 0 of 0
+ * elsewhere" is not a comparison; it reads as a total contrast, which is the strongest possible
+ * claim, drawn from no observations. The first clause is still true and is still said.
+ *
+ * THE DIRECTION DECIDES THE VERB. An overconfidence pattern counts times the player said they were
+ * sure and were not; an underconfidence pattern counts times they said they were unsure and were
+ * right. Counting the same event for both would describe one of them backwards, which is the
+ * defect `predicts_overconfidence` was added to the claim to prevent one layer up.
+ */
+export function patternCounts(pattern: BlitzPattern): string {
+  const { inside, outside } = pattern.countable;
+  const said = pattern.predictsOverconfidence
+    ? "אמרת שאתה בטוח והמהלך עלה לך"
+    : "אמרת שאתה לא בטוח והמהלך היה בסדר";
+  const here = `${said} ב-${inside.hit} מתוך ${inside.of} מהפעמים.`;
+  if (!pattern.comparable) return here;
+  return `${here} בשאר ההחלטות: ${outside.hit} מתוך ${outside.of}.`;
+}
+
+/**
+ * WHY THERE IS NOTHING TO SAY YET, per blocker, with the number when there is one.
+ *
+ * §13 VERBATIM WHERE IT APPLIES: "לא הצטבר עדיין מספיק מידע. עוד שני משחקים יאפשרו בדיקה ראשונה."
+ * The two comes from `BlitzShortfall.games`, which comes from the bucketing that is actually
+ * blocking, converted at the rate this record has observed. When there is no rate the clause is
+ * dropped rather than filled with a guess -- a number a player plans around is worse invented than
+ * absent.
+ *
+ * THE GAMES FIGURE IS A FLOOR AND THE SENTENCE SAYS SO. New decisions do not all land in the thin
+ * side of a split, so "at least" is not hedging; it is the only honest reading of a number computed
+ * as if they did.
+ */
+export function nothingYetSentence(knows: Extract<ResumeKnowledge, { kind: "nothing-yet" }>): string {
+  switch (knows.because) {
+    case "no-games":
+      return "עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.";
+    case "nothing-scored":
+      return "יש משחקים שמורים, והמנוע עוד לא עבר על אף אחד מהם.";
+    case "nothing-asked":
+      return "עוד לא נשאלת על אף החלטה, אז אין ביטחון להשוות מולו.";
+    case "no-split-yet":
+      /*
+       * NOT A SHORTAGE. Every division was tested and none separated, which is an answer and is the
+       * most common one the M0 audit measured. Calling it "not enough data" would be false, and
+       * showing nothing at all is what the product did before this screen existed.
+       */
+      return "בדקנו את כל החלוקות שיש לנו, ואף אחת מהן לא הפרידה בין ההחלטות שלך.";
+    case "too-few-readable": {
+      const start = "עוד לא הצטבר מספיק כדי לבדוק משהו.";
+      const games = knows.needs?.games;
+      if (games === undefined || games === null) return start;
+      return games === 1
+        ? `${start} עוד משחק אחד לפחות יאפשר בדיקה ראשונה.`
+        : `${start} עוד ${games} משחקים לפחות יאפשרו בדיקה ראשונה.`;
+    }
+  }
+}
+
+/** The one sentence for `knows`, whichever kind it is. */
+export function knowsSentence(knows: ResumeKnowledge): string {
+  return knows.kind === "one-thing" ? patternHeadline(knows.pattern) : nothingYetSentence(knows);
+}

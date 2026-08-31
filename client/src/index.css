@@ -4879,3 +4879,48 @@ button:not(:disabled) {
   margin-top: 16px;
   max-width: 28rem;
 }
+
+/* THE RESUME SCREEN (§13, §28): three answers, above everything. */
+.resume {
+  display: grid;
+  gap: 10px;
+  max-width: 42rem;
+  margin: 0 0 20px;
+}
+.resume__changed {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.resume__counts {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.resume__why {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 6px 0 0;
+}
+.resume__why > dt,
+.resume__excluded > dt {
+  color: var(--muted);
+}
+.resume__why > dd,
+.resume__excluded > dd {
+  margin: 0;
+}
+.resume__excluded {
+  display: contents;
+}
+/*
+ * THE RESERVED BLOCK, so the topmost element of the front door does not arrive late and push the
+ * page down. Matched to the rendered card's height: headline, one counts line, the evidence row,
+ * the button with its sentence, and the closed disclosure.
+ */
+.resume--pending {
+  min-height: 13rem;
+}
