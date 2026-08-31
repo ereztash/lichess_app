@@ -20,6 +20,45 @@
     "ceiling_separation": 0.832,
     "floor_separation": 0.6000000000000001
   },
+  "hypotheses": {
+    "preregistered": {
+      "H1_severity": "B_valid | T+ declines monotonically down the severity ladder: RC-06 mate > RC-07 queen > RC-08 rook > RC-09 minor. If it does not, severity is not what protects the prescription and the explanation given for RC-06 is wrong.",
+      "H2_outcome_over_method": "RC-09 (outcome: the threat is gone) scores above RC-11 (method: move the piece), on an identical trigger and an identical noise cell. This is the controlled version of the confounded RC-04 vs RC-06 comparison."
+    },
+    "H1_severity": {
+      "rungs": [
+        {
+          "id": "RC-06",
+          "at_stake": "mate",
+          "b_valid_t_plus": 0.968
+        },
+        {
+          "id": "RC-07",
+          "at_stake": "queen",
+          "b_valid_t_plus": 0.8
+        },
+        {
+          "id": "RC-08",
+          "at_stake": "rook",
+          "b_valid_t_plus": 0.704
+        },
+        {
+          "id": "RC-09",
+          "at_stake": "minor",
+          "b_valid_t_plus": 0.648
+        }
+      ],
+      "monotone_decreasing": true,
+      "span": 0.31999999999999995,
+      "reading": "monotone decreasing supports the account that severity protects the prescription. Any inversion falsifies it, and the size of the inversion says how badly."
+    },
+    "H2_outcome_over_method": {
+      "outcome_RC_09": 0.648,
+      "method_RC_11": 0.596,
+      "difference": 0.052000000000000046,
+      "controlled": "identical trigger, identical corpus, identical noise cell; only the shape of B differs. The RC-04 vs RC-06 contrast that suggested this was confounded by both."
+    }
+  },
   "rule_classes": {
     "RC-00": {
       "name": "mate-in-one",
@@ -1231,6 +1270,884 @@
         "B is a predicate over the resulting position, so the satisfying set can be large. `prescription_size` is the guard: a rule satisfied by most legal moves scores well on C4 for no good reason."
       ],
       "position_between_anchors": 0.7241379310344829
+    },
+    "RC-07": {
+      "name": "answer-the-queen-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "prescription": "if the opponent can win your queen, stop them",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 200,
+            "n": 250,
+            "p": 0.8,
+            "ci95": [
+              0.7460429604530917,
+              0.8448767311971342
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 5,
+            "n": 250,
+            "p": 0.02,
+            "ci95": [
+              0.008572197944651562,
+              0.045956295414986886
+            ]
+          },
+          "cp_loss_median": 0,
+          "cp_loss_q1_q3": [
+            -11,
+            16
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 18,
+            "n": 245,
+            "p": 0.07346938775510205,
+            "ci95": [
+              0.04697477475278341,
+              0.11313350296283972
+            ]
+          },
+          "prescription_size_mean": 0.15743404357009755,
+          "prescription_size_median": 0.15217391304347827
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 108,
+            "n": 250,
+            "p": 0.432,
+            "ci95": [
+              0.372082059413591,
+              0.4939761438123577
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 9,
+            "n": 250,
+            "p": 0.036,
+            "ci95": [
+              0.019053062687361854,
+              0.06699114756028864
+            ]
+          },
+          "cp_loss_median": 14,
+          "cp_loss_q1_q3": [
+            -1,
+            76
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 52,
+            "n": 241,
+            "p": 0.2157676348547718,
+            "ci95": [
+              0.16850834375261614,
+              0.27194621952421266
+            ]
+          },
+          "prescription_size_mean": 0.18037266035131258,
+          "prescription_size_median": 0.18181818181818182
+        },
+        "separation_b_valid": 0.36800000000000005,
+        "contextual_exception_rate_t_plus": 0.19999999999999996
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 9,
+          "n": 250,
+          "p": 0.036,
+          "ci95": [
+            0.019053062687361854,
+            0.06699114756028864
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.8616619750603698,
+        "n_legal_captures": 1.0268126070228372,
+        "n_checks_available": 0.411428722638005,
+        "n_forcing_moves": 0.8489410557466416,
+        "piece_count": 0.2509587897854949,
+        "material_balance": 0.22344538517511295,
+        "total_material": 0.45185032217552834,
+        "fullmove_number": -0.16933266568984437
+      },
+      "c6_max_abs_smd": 1.0268126070228372,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only, and it is the same source as RC-04's: the chess-expertise threat-detection task (count the pieces forming a threat relationship) establishes that threat relations are perceptually available to experts within the first three seconds. Nothing found measures whether they then answer the threat.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 9298,
+          "n": 167881,
+          "p": 0.05538446876061019,
+          "ci95": [
+            0.05430045790108809,
+            0.05648882731809633
+          ]
+        },
+        "t_minus": {
+          "k": 19738,
+          "n": 167881,
+          "p": 0.11757137496202667,
+          "ci95": [
+            0.11603931995409117,
+            0.11912093170260157
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.8389611786213571,
+        "false_alarm_rate": 0.4369268959927048,
+        "d_prime": 1.1489626964585886,
+        "criterion_c": -0.4157160525518211,
+        "n_t_plus": 9298,
+        "n_t_minus": 19738,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 1.1429129785623717,
+            "criterion_c": -0.2327178500942032,
+            "n_t_plus": 215,
+            "n_t_minus": 542
+          },
+          "1200-1400": {
+            "d_prime": 1.176880528331713,
+            "criterion_c": -0.37708122526034604,
+            "n_t_plus": 1402,
+            "n_t_minus": 2753
+          },
+          "1400-1600": {
+            "d_prime": 1.1668982616346042,
+            "criterion_c": -0.3935127382289727,
+            "n_t_plus": 3441,
+            "n_t_minus": 7175
+          },
+          "1600-1800": {
+            "d_prime": 1.1213682407858612,
+            "criterion_c": -0.4412926415298389,
+            "n_t_plus": 2885,
+            "n_t_minus": 6323
+          },
+          "1800-3500": {
+            "d_prime": 1.141748321983181,
+            "criterion_c": -0.48440441788856303,
+            "n_t_plus": 1355,
+            "n_t_minus": 2945
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "H1's top material rung. The mechanism predicts it scores below the mate rung and above the rook rung; anything else falsifies the severity account of why RC-06 worked.",
+        "The noise cell is shared with every other rung of the ladder -- T- is always 'the only thing at stake is a pawn' -- so the rungs differ from one another in exactly one thing, which is what makes H1 a comparison rather than four separate studies."
+      ],
+      "position_between_anchors": -1.0000000000000007
+    },
+    "RC-08": {
+      "name": "answer-the-rook-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "prescription": "if the opponent can win your rook, stop them",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 176,
+            "n": 250,
+            "p": 0.704,
+            "ci95": [
+              0.6446705128026907,
+              0.7571548775194629
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 4,
+            "n": 250,
+            "p": 0.016,
+            "ci95": [
+              0.006239123654412256,
+              0.04041044048322319
+            ]
+          },
+          "cp_loss_median": 6,
+          "cp_loss_q1_q3": [
+            -6,
+            40
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 39,
+            "n": 246,
+            "p": 0.15853658536585366,
+            "ci95": [
+              0.11819326908465821,
+              0.20938068177060376
+            ]
+          },
+          "prescription_size_mean": 0.18752747193658809,
+          "prescription_size_median": 0.16129032258064516
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 93,
+            "n": 250,
+            "p": 0.372,
+            "ci95": [
+              0.3144454410853008,
+              0.43342882381060277
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 14,
+            "n": 250,
+            "p": 0.056,
+            "ci95": [
+              0.03364733819454402,
+              0.09179151816312153
+            ]
+          },
+          "cp_loss_median": 21,
+          "cp_loss_q1_q3": [
+            -1,
+            78
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 48,
+            "n": 236,
+            "p": 0.2033898305084746,
+            "ci95": [
+              0.15697702487322646,
+              0.25930438752562346
+            ]
+          },
+          "prescription_size_mean": 0.17852461475231352,
+          "prescription_size_median": 0.18421052631578946
+        },
+        "separation_b_valid": 0.33199999999999996,
+        "contextual_exception_rate_t_plus": 0.29600000000000004
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 14,
+          "n": 250,
+          "p": 0.056,
+          "ci95": [
+            0.03364733819454402,
+            0.09179151816312153
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.143461885638171,
+        "n_legal_captures": 0.2663973946990451,
+        "n_checks_available": 0.17548054932410648,
+        "n_forcing_moves": 0.2825421493517863,
+        "piece_count": -0.3534915245439781,
+        "material_balance": -0.013798533292776093,
+        "total_material": -0.2782717932670734,
+        "fullmove_number": 0.35946931948816113
+      },
+      "c6_max_abs_smd": 0.35946931948816113,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only, and it is the same source as RC-04's: the chess-expertise threat-detection task (count the pieces forming a threat relationship) establishes that threat relations are perceptually available to experts within the first three seconds. Nothing found measures whether they then answer the threat.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 6454,
+          "n": 167881,
+          "p": 0.03844389776091398,
+          "ci95": [
+            0.03753468767650044,
+            0.03937423082350069
+          ]
+        },
+        "t_minus": {
+          "k": 19738,
+          "n": 167881,
+          "p": 0.11757137496202667,
+          "ci95": [
+            0.11603931995409117,
+            0.11912093170260157
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.6841982958946553,
+        "false_alarm_rate": 0.4369268959927048,
+        "d_prime": 0.6382365571622217,
+        "criterion_c": -0.16035298290363764,
+        "n_t_plus": 6454,
+        "n_t_minus": 19738,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 0.5400043694263139,
+            "criterion_c": 0.06873645447382572,
+            "n_t_plus": 162,
+            "n_t_minus": 542
+          },
+          "1200-1400": {
+            "d_prime": 0.554741247080049,
+            "criterion_c": -0.06601158463451408,
+            "n_t_plus": 922,
+            "n_t_minus": 2753
+          },
+          "1400-1600": {
+            "d_prime": 0.6399511717797741,
+            "criterion_c": -0.1300391933015576,
+            "n_t_plus": 2314,
+            "n_t_minus": 7175
+          },
+          "1600-1800": {
+            "d_prime": 0.6459669534310168,
+            "criterion_c": -0.20359199785241666,
+            "n_t_plus": 2116,
+            "n_t_minus": 6323
+          },
+          "1800-3500": {
+            "d_prime": 0.7270655343391997,
+            "criterion_c": -0.2770630240665724,
+            "n_t_plus": 940,
+            "n_t_minus": 2945
+          }
+        },
+        "d_prime_monotone_in_rating": true
+      },
+      "caveats": [
+        "H1's middle rung.",
+        "The noise cell is shared with every other rung of the ladder -- T- is always 'the only thing at stake is a pawn' -- so the rungs differ from one another in exactly one thing, which is what makes H1 a comparison rather than four separate studies."
+      ],
+      "position_between_anchors": -1.1551724137931045
+    },
+    "RC-09": {
+      "name": "answer-the-minor-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "prescription": "if the opponent can win a knight or bishop, stop them",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 162,
+            "n": 250,
+            "p": 0.648,
+            "ci95": [
+              0.5869640447438548,
+              0.7045563364702568
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 3,
+            "n": 250,
+            "p": 0.012,
+            "ci95": [
+              0.004089245839774545,
+              0.034681389075857876
+            ]
+          },
+          "cp_loss_median": 5,
+          "cp_loss_q1_q3": [
+            -4,
+            32
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 31,
+            "n": 247,
+            "p": 0.12550607287449392,
+            "ci95": [
+              0.08984375833819629,
+              0.17263901963802458
+            ]
+          },
+          "prescription_size_mean": 0.15213137667601903,
+          "prescription_size_median": 0.14285714285714285
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 113,
+            "n": 250,
+            "p": 0.452,
+            "ci95": [
+              0.39149635753474277,
+              0.513956491801221
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 9,
+            "n": 250,
+            "p": 0.036,
+            "ci95": [
+              0.019053062687361854,
+              0.06699114756028864
+            ]
+          },
+          "cp_loss_median": 13,
+          "cp_loss_q1_q3": [
+            -3,
+            59
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 42,
+            "n": 241,
+            "p": 0.17427385892116182,
+            "ci95": [
+              0.13159365214313534,
+              0.22717544591863192
+            ]
+          },
+          "prescription_size_mean": 0.19180880409812745,
+          "prescription_size_median": 0.19047619047619047
+        },
+        "separation_b_valid": 0.196,
+        "contextual_exception_rate_t_plus": 0.352
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 9,
+          "n": 250,
+          "p": 0.036,
+          "ci95": [
+            0.019053062687361854,
+            0.06699114756028864
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.5393197163044211,
+        "n_legal_captures": 0.4235670553079884,
+        "n_checks_available": -0.0006208313508649894,
+        "n_forcing_moves": 0.29533905234494073,
+        "piece_count": 0.33383136666054036,
+        "material_balance": 0.22082630210884827,
+        "total_material": 0.3496320427071103,
+        "fullmove_number": -0.24727342472630323
+      },
+      "c6_max_abs_smd": 0.5393197163044211,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only, and it is the same source as RC-04's: the chess-expertise threat-detection task (count the pieces forming a threat relationship) establishes that threat relations are perceptually available to experts within the first three seconds. Nothing found measures whether they then answer the threat.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 16047,
+          "n": 167881,
+          "p": 0.09558556358372895,
+          "ci95": [
+            0.09418831789968178,
+            0.09700131717455472
+          ]
+        },
+        "t_minus": {
+          "k": 19738,
+          "n": 167881,
+          "p": 0.11757137496202667,
+          "ci95": [
+            0.11603931995409117,
+            0.11912093170260157
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.6944479062811565,
+        "false_alarm_rate": 0.4369268959927048,
+        "d_prime": 0.6672632299258324,
+        "criterion_c": -0.174866319285443,
+        "n_t_plus": 16047,
+        "n_t_minus": 19738,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 0.7705524001115389,
+            "criterion_c": -0.046537560868786826,
+            "n_t_plus": 421,
+            "n_t_minus": 542
+          },
+          "1200-1400": {
+            "d_prime": 0.5945376962295313,
+            "criterion_c": -0.08590980920925524,
+            "n_t_plus": 2204,
+            "n_t_minus": 2753
+          },
+          "1400-1600": {
+            "d_prime": 0.7022396032469904,
+            "criterion_c": -0.16118340903516581,
+            "n_t_plus": 5924,
+            "n_t_minus": 7175
+          },
+          "1600-1800": {
+            "d_prime": 0.6533808446665206,
+            "criterion_c": -0.20729894347016853,
+            "n_t_plus": 5141,
+            "n_t_minus": 6323
+          },
+          "1800-3500": {
+            "d_prime": 0.6652091006704435,
+            "criterion_c": -0.24613480723219427,
+            "n_t_plus": 2357,
+            "n_t_minus": 2945
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "H1's bottom rung, and half of H2's controlled pair: RC-11 has this exact trigger and a different prescription.",
+        "Knight and bishop share a value here, so this rung is both minors together. Separating them would have made two rungs at the same severity, which is not a rung.",
+        "The noise cell is shared with every other rung of the ladder -- T- is always 'the only thing at stake is a pawn' -- so the rungs differ from one another in exactly one thing, which is what makes H1 a comparison rather than four separate studies."
+      ],
+      "position_between_anchors": -1.741379310344829
+    },
+    "RC-11": {
+      "name": "move-the-threatened-minor",
+      "family": "prescription-shape control",
+      "role": "candidate",
+      "prescription": "if a knight or bishop of yours can be won, move it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 149,
+            "n": 250,
+            "p": 0.596,
+            "ci95": [
+              0.5341642139406014,
+              0.6549300873874709
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 3,
+            "n": 250,
+            "p": 0.012,
+            "ci95": [
+              0.004089245839774545,
+              0.034681389075857876
+            ]
+          },
+          "cp_loss_median": 7,
+          "cp_loss_q1_q3": [
+            -5,
+            55
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 45,
+            "n": 247,
+            "p": 0.18218623481781376,
+            "ci95": [
+              0.1390377090944327,
+              0.2350692970799818
+            ]
+          },
+          "prescription_size_mean": 0.1791861248429714,
+          "prescription_size_median": 0.175
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 36,
+            "n": 250,
+            "p": 0.144,
+            "ci95": [
+              0.10586196391903242,
+              0.19291333532269944
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 68,
+            "n": 250,
+            "p": 0.272,
+            "ci95": [
+              0.22059935523679833,
+              0.33030167910902997
+            ]
+          },
+          "cp_loss_median": 94,
+          "cp_loss_q1_q3": [
+            9,
+            241
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 85,
+            "n": 182,
+            "p": 0.46703296703296704,
+            "ci95": [
+              0.3959799294437809,
+              0.5394489519261599
+            ]
+          },
+          "prescription_size_mean": 0.04236270874450347,
+          "prescription_size_median": 0.034482758620689655
+        },
+        "separation_b_valid": 0.45199999999999996,
+        "contextual_exception_rate_t_plus": 0.404
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 68,
+          "n": 250,
+          "p": 0.272,
+          "ci95": [
+            0.22059935523679833,
+            0.33030167910902997
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.5393197163044211,
+        "n_legal_captures": 0.4235670553079884,
+        "n_checks_available": -0.0006208313508649894,
+        "n_forcing_moves": 0.29533905234494073,
+        "piece_count": 0.33383136666054036,
+        "material_balance": 0.22082630210884827,
+        "total_material": 0.3496320427071103,
+        "fullmove_number": -0.24727342472630323
+      },
+      "c6_max_abs_smd": 0.5393197163044211,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "None. This is a control, not a construct: its literature is RC-09's.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 16047,
+          "n": 167881,
+          "p": 0.09558556358372895,
+          "ci95": [
+            0.09418831789968178,
+            0.09700131717455472
+          ]
+        },
+        "t_minus": {
+          "k": 19738,
+          "n": 167881,
+          "p": 0.11757137496202667,
+          "ci95": [
+            0.11603931995409117,
+            0.11912093170260157
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.6066488035892323,
+        "false_alarm_rate": 0.1662444906023608,
+        "d_prime": 1.239707854916062,
+        "criterion_c": 0.34925873373881117,
+        "n_t_plus": 16047,
+        "n_t_minus": 19738,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 1.3419221727892992,
+            "criterion_c": 0.482749640716093,
+            "n_t_plus": 421,
+            "n_t_minus": 542
+          },
+          "1200-1400": {
+            "d_prime": 1.2510385685149414,
+            "criterion_c": 0.448394571487419,
+            "n_t_plus": 2204,
+            "n_t_minus": 2753
+          },
+          "1400-1600": {
+            "d_prime": 1.2605929489623604,
+            "criterion_c": 0.39242801916042114,
+            "n_t_plus": 5924,
+            "n_t_minus": 7175
+          },
+          "1600-1800": {
+            "d_prime": 1.2138677078757334,
+            "criterion_c": 0.29098589240189665,
+            "n_t_plus": 5141,
+            "n_t_minus": 6323
+          },
+          "1800-3500": {
+            "d_prime": 1.2370861267346016,
+            "criterion_c": 0.2596534806137844,
+            "n_t_plus": 2357,
+            "n_t_minus": 2945
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "H2'S CONTROL, AND ITS ONLY REASON FOR EXISTING. Identical trigger to RC-09, identical corpus, identical noise cell; the ONE thing that differs is that B names a method (move the piece) instead of an outcome (the threat is gone). RC-04 scored .708 with a method and RC-06 scored .968 with an outcome, but those also differed in trigger, so that comparison could not separate the two explanations. This pair can.",
+        "A LOW SCORE HERE IS NOT A FAILURE OF THIS CANDIDATE. It is the measurement H2 asked for, and the difference from RC-09 is the result whichever way it goes."
+      ],
+      "position_between_anchors": -0.6379310344827596
+    },
+    "RC-12": {
+      "name": "stop-the-promotion",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "prescription": "if the opponent can safely promote a pawn, prevent it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 114,
+            "n": 250,
+            "p": 0.456,
+            "ci95": [
+              0.39539104866179015,
+              0.5179407298961768
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 61,
+            "n": 250,
+            "p": 0.244,
+            "ci95": [
+              0.19489634565082414,
+              0.300852184140983
+            ]
+          },
+          "cp_loss_median": 9,
+          "cp_loss_q1_q3": [
+            0,
+            85
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 43,
+            "n": 189,
+            "p": 0.2275132275132275,
+            "ci95": [
+              0.17352256585046583,
+              0.29236031419201464
+            ]
+          },
+          "prescription_size_mean": 0.12884373909155378,
+          "prescription_size_median": 0.125
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 104,
+            "n": 250,
+            "p": 0.416,
+            "ci95": [
+              0.3566223071073427,
+              0.477920179230594
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 8,
+            "n": 250,
+            "p": 0.032,
+            "ci95": [
+              0.016302169731072406,
+              0.061863111294575085
+            ]
+          },
+          "cp_loss_median": 13,
+          "cp_loss_q1_q3": [
+            0,
+            79
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 54,
+            "n": 242,
+            "p": 0.2231404958677686,
+            "ci95": [
+              0.1752411156198233,
+              0.2796924676305298
+            ]
+          },
+          "prescription_size_mean": 0.19468969632933292,
+          "prescription_size_median": 0.2
+        },
+        "separation_b_valid": 0.040000000000000036,
+        "contextual_exception_rate_t_plus": 0.544
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 8,
+          "n": 250,
+          "p": 0.032,
+          "ci95": [
+            0.016302169731072406,
+            0.061863111294575085
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -1.2665446539594425,
+        "n_legal_captures": -0.5352609099303575,
+        "n_checks_available": 0.35828628745308755,
+        "n_forcing_moves": -0.08072375869253956,
+        "piece_count": -1.705836058578641,
+        "material_balance": -0.29096177699699716,
+        "total_material": -1.5896532536325683,
+        "fullmove_number": 1.8723475314046236
+      },
+      "c6_max_abs_smd": 1.8723475314046236,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "None found. Declared absent rather than padded.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 602,
+          "n": 167881,
+          "p": 0.003585873326939916,
+          "ci95": [
+            0.003311071634583063,
+            0.003883393264623179
+          ]
+        },
+        "t_minus": {
+          "k": 19677,
+          "n": 167881,
+          "p": 0.11720802234916398,
+          "ci95": [
+            0.11567804160172467,
+            0.11875552145796729
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.47512437810945274,
+        "false_alarm_rate": 0.437722329505031,
+        "d_prime": 0.09435207598831499,
+        "criterion_c": 0.10957043574193497,
+        "n_t_plus": 602,
+        "n_t_minus": 19677,
+        "by_rating_band": {
+          "1400-1600": {
+            "d_prime": 0.219963415054962,
+            "criterion_c": 0.07713787862101436,
+            "n_t_plus": 228,
+            "n_t_minus": 7147
+          },
+          "1600-1800": {
+            "d_prime": 0.013317565833987133,
+            "criterion_c": 0.11074812891041744,
+            "n_t_plus": 192,
+            "n_t_minus": 6301
+          }
+        },
+        "d_prime_monotone_in_rating": null
+      },
+      "caveats": [
+        "A SEPARATE SEVERITY-PROTECTED FAMILY rather than a rung: what is at stake is a queen, but the threat is a promotion rather than a capture, so it tests whether the mechanism is about severity itself or only about material already on the board.",
+        "Base rate expected to be low, as RC-05's was. C9 is the criterion this is likeliest to fail, and a low base rate is a measurement rather than a disqualification."
+      ],
+      "position_between_anchors": -2.4137931034482776
     }
   },
   "structurally_rejected": [

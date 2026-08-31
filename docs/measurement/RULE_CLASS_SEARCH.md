@@ -1,10 +1,16 @@
 # Is there a rule class where knowledge → action is identifiable at all?
 
-**Answer: yes — one, out of five candidates and two anchors. It is a defensive threat-recognition
+**Answer: yes — one, out of ten candidates and two anchors. It is a defensive threat-recognition
 rule, not a capture rule.**
 
-**Result: `RC-06 answer-the-mate-threat` is ELIGIBLE. Every other candidate scores BELOW the
+**Result: `RC-06 answer-the-mate-threat` is ELIGIBLE. All nine other candidates score BELOW the
 refuted incumbent.**
+
+> **Round 2 changed the explanation, not the winner.** Five more candidates were built to test the
+> mechanism round 1 proposed — that severity protects the prescription. **Severity holds on the
+> positive side and turns out to be the less important half.** What decides whether a rule class is
+> usable is its *noise* cell: Spearman(separation, `B_valid | T−`) = **−0.811, p = 0.001, n = 12**,
+> against **+0.476, p = 0.118** for the positive cell. See [round 2](#round-2--the-severity-ladder).
 
 ---
 
@@ -206,6 +212,118 @@ asks. Recapture was implemented and measured — and then failed G5 on its merit
 
 ---
 
+## Round 2 — the severity ladder
+
+Round 1 explained its own result with a mechanism: an offensive rule competes with the whole board
+and is wrong whenever something better exists, while a defensive rule against mate has no
+competition because the alternative is losing. **A mechanism that only explains the data it was
+derived from is a story**, so it was written into
+`research/measurement/rule_classes.py::PREDICTIONS` as two falsifiable claims *before* the second
+screen ran:
+
+- **H1 — severity.** `B_valid | T+` declines monotonically down a severity ladder:
+  mate > queen > rook > minor.
+- **H2 — outcome over method.** `RC-09` (outcome: *the threat is gone*) scores above `RC-11`
+  (method: *move the piece*), on an identical trigger and an identical noise cell. This is the
+  controlled version of the `RC-04` vs `RC-06` contrast, which differed in **both** trigger and
+  prescription and therefore could not separate the two explanations.
+
+Five new candidates, appended after `RC-06` so every seeded draw for the published seven is
+unchanged. **They reproduce exactly** — same 180,000 positions, same 12,119 in check, identical
+trigger counts and identical `B_valid` on all seven.
+
+Three rungs share one noise cell — *the only thing at stake is a pawn* — so they differ from each
+other in exactly one thing.
+
+### H1: confirmed
+
+| rung | at stake | `B_valid \| T+` |
+| --- | --- | --- |
+| RC-06 | **mate** | **.968** |
+| RC-07 | queen | .800 |
+| RC-08 | rook | .704 |
+| RC-09 | minor | .648 |
+
+Monotone decreasing, span **0.32**. Severity does protect the prescription.
+
+### H2: split, and the naive reading is refuted
+
+| | `B_valid \| T+` | `B_valid \| T−` | separation |
+| --- | --- | --- | --- |
+| **RC-09** outcome — *the threat is gone* | **.648** | .452 | +.196 |
+| **RC-11** method — *move the piece* | .596 | **.144** | **+.452** |
+
+The outcome prescription is more often **correct** (+.052) and far less **specific**. Answering a
+pawn threat *by any means* is the engine's own best move **45.2%** of the time; *moving the pawn*
+is best only **14.4%**. On `RC-11`'s noise cell the median cost of following the rule is **+94 cp**
+and 46.7% of the time it loses ≥100 cp — a real error, which is what a noise cell has to be.
+
+**So "outcome prescriptions beat method prescriptions", inferred in round 1 from the confounded
+`RC-04` vs `RC-06` pair, is not supported by the controlled test.** It wins one half and loses the
+other, and the half it loses is the one that matters.
+
+### The finding: the noise cell decides, not the trigger
+
+Across all twelve rule classes:
+
+| | Spearman ρ with separation | *p* | n |
+| --- | --- | --- | --- |
+| `B_valid \| T+` — how often the rule is right when it fires | +0.476 | 0.118 | 12 |
+| **`B_valid \| T−` — how often it is right when it should not fire** | **−0.811** | **0.001** | 12 |
+
+Decomposing `RC-06`'s advantage over `RC-07`, the most severe material rung:
+
+```
+Δ B_valid|T+   =  .968 − .800  =  0.168
+Δ B_valid|T−   =  .432 − .200  =  0.232      ← 58% of the total
+Δ separation                    =  0.400
+```
+
+**More than half of the winner's margin comes from its noise cell.** `RC-06` is sharp not mainly
+because answering a *mate* threat is usually right, but because answering a mere *check* threat is
+usually wrong (.200) — where answering even a pawn threat is often right (.432).
+
+The refined mechanism, which round 1 got half right:
+
+> **Severity protects the prescription on the positive side and does nothing for the negative
+> side. A rule class is usable only when the trigger is severe AND its absence is genuinely inert
+> — when *not* acting is actually correct once the trigger is gone.**
+
+Both halves are necessary and the table now contains a clean demonstration of each failing alone:
+`RC-07` has a decent positive cell (.800) and a bad noise cell (.432); `RC-11` has the second-best
+noise cell in the table (.144) and a weak positive cell (.596). Neither is eligible.
+
+**This inverts the search strategy.** Round 1's advice was to look for severe triggers. That is
+now the *lesser* criterion. The next candidates should be chosen by their noise cell first: find
+triggers whose **absence makes the prescribed action clearly wrong**, then check severity.
+
+### A defect the guard caught
+
+`RC-12 stop-the-promotion` first scored `B_valid | T+` = .976 with a `prescription_size` of
+**.969** — 97% of legal moves appearing to answer the threat, which cannot be true. The cause was a
+double null move: the helper that asks "can the opponent promote safely" was called *after* our
+move was pushed, handing the turn back to us so it counted **our** promotions. Fixed, it scores
+**.456 / .416, separation +.040** — no discrimination at all.
+
+**The guard that exists to stop a vacuous prescription from scoring well is what surfaced a bug in
+the prescription itself.** Without `prescription_size` this would have entered the table as the
+second-best candidate.
+
+### Round 2 results in full
+
+| | rule class | B_valid T+ | B_valid T− | separation | anchor | chance T+ | base rate | max \|SMD\| |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| RC-07 | answer-the-queen-threat | .800 | .432 | +.368 | −1.00 | .157 | 5.54% | 1.027 |
+| RC-08 | answer-the-rook-threat | .704 | .372 | +.332 | −1.16 | .188 | 3.84% | **0.359** |
+| RC-09 | answer-the-minor-threat | .648 | .452 | +.196 | −1.74 | .152 | 9.56% | 0.539 |
+| RC-11 | move-the-threatened-minor | .596 | **.144** | +.452 | −0.64 | .179 | 9.56% | 0.539 |
+| RC-12 | stop-the-promotion | .456 | .416 | +.040 | −2.41 | .129 | 0.36% | 1.872 |
+
+**None passes G5.** All five score below the refuted incumbent, and `RC-06` remains the only
+eligible rule class after ten candidates.
+
+---
+
 ## Where this leaves the program
 
 The stop rule was: before a human pilot, find at least one candidate where, on a large unfiltered
@@ -222,17 +340,23 @@ first iteration was a failure of that rule class and not a proof that the paradi
 
 **Next, in order — and none of it is a product feature:**
 
-1. **Exchangeability for RC-06.** Max |SMD| 0.573 is the live blocker. Matching, or Sheridan-style
-   minimal transformation (Frame C in the protocol), measured rather than assumed.
-2. **More defensive, severity-protected candidates**, chosen by the mechanism this screen exposed
-   rather than by browsing families: stop a mate in two, stop the loss of a queen, answer a
-   discovered attack. If several pass, a multiple-baseline design across rule classes
-   ([`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md) §2.2) becomes possible — and that design needs at least
-   three independently measurable rule classes, which one candidate cannot supply.
-3. **Only then** the measurement-reactivity arm ([F7](FALSIFICATION_REGISTER.md#f7)), and only then
-   a human pilot.
+1. ~~More defensive, severity-protected candidates~~ — **DONE, and they all failed.** Round 2
+   built five, including the most severe material threat there is, and none reached the incumbent.
+   That negative is what produced the noise-cell finding.
+2. **Candidates chosen by their noise cell**, which is the inverted strategy round 2 earned. The
+   question to ask of a candidate first is no longer "how severe is the trigger" but **"when the
+   trigger is absent, is the prescribed action clearly wrong?"** `RC-11`'s noise cell (.144, median
+   cost +94 cp) shows the shape to look for; its positive cell shows it is not sufficient alone.
+3. **Exchangeability for RC-06.** Max |SMD| 0.573 remains the live blocker on the only eligible
+   candidate. Matching, or Sheridan-style minimal transformation (Frame C in the protocol),
+   measured rather than assumed.
+4. **Only then** the measurement-reactivity arm ([F7](FALSIFICATION_REGISTER.md#f7)), and only then
+   a human pilot. A multiple-baseline design ([`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md) §2.2) needs at
+   least three independently measurable rule classes; after ten candidates there is **one**.
 
-**And if the next round of candidates all fail**, that is the important negative: it would say the
-one that passed did so because mate is uniquely severe, that rule use is not identifiable from the
-final move alone in general, and that the program has to move to process evidence or a different
-paradigm.
+**The negative that round 2 produced is worth more than another candidate would have been.** Ten
+rule classes across six families now sit below a rule class already shown to be uninterpretable,
+and the one that does not is distinguished mainly by a property nobody was looking for. If the
+noise-cell strategy also fails, the conclusion available is the strong one: **rule use is not
+identifiable from the final move alone**, and the program has to move to process evidence or a
+different paradigm.

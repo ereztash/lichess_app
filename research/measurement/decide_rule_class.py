@@ -118,6 +118,10 @@ def decide(screen: dict) -> dict:
         },
         "corpus": screen["corpus"],
         "engine": screen["engine"],
+        # CARRIED THROUGH VERBATIM so the published decision file holds the predictions and their
+        # outcome together. A prediction stored somewhere other than beside its result is a
+        # prediction that can be quietly forgotten when it fails.
+        "hypotheses": screen.get("hypotheses"),
         "rows": rows,
         "eligible_ranked": [r["id"] for r in eligible],
         "recommended": eligible[0]["id"] if eligible else None,

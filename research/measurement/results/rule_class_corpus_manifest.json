@@ -6,7 +6,7 @@
   "games_used": 60000,
   "positions_sampled": 180000,
   "positions_in_check": 12119,
-  "records_written": 332913,
+  "records_written": 496432,
   "rule_class_version": "1.0.0",
   "trigger_counts": {
     "RC-00": {
@@ -36,6 +36,26 @@
     "RC-06": {
       "positive": 2080,
       "negative": 80332
+    },
+    "RC-07": {
+      "positive": 9717,
+      "negative": 22373
+    },
+    "RC-08": {
+      "positive": 7432,
+      "negative": 22373
+    },
+    "RC-09": {
+      "positive": 16982,
+      "negative": 22373
+    },
+    "RC-11": {
+      "positive": 16982,
+      "negative": 22373
+    },
+    "RC-12": {
+      "positive": 602,
+      "negative": 22312
     }
   },
   "note": "one record per (position, rule class that fired). A position can appear under several rule classes; they are different items and are never pooled."

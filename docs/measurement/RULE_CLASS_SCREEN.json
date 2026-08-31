@@ -18,6 +18,45 @@
     "workers": 4,
     "build": "Stockfish 17.1"
   },
+  "hypotheses": {
+    "preregistered": {
+      "H1_severity": "B_valid | T+ declines monotonically down the severity ladder: RC-06 mate > RC-07 queen > RC-08 rook > RC-09 minor. If it does not, severity is not what protects the prescription and the explanation given for RC-06 is wrong.",
+      "H2_outcome_over_method": "RC-09 (outcome: the threat is gone) scores above RC-11 (method: move the piece), on an identical trigger and an identical noise cell. This is the controlled version of the confounded RC-04 vs RC-06 comparison."
+    },
+    "H1_severity": {
+      "rungs": [
+        {
+          "id": "RC-06",
+          "at_stake": "mate",
+          "b_valid_t_plus": 0.968
+        },
+        {
+          "id": "RC-07",
+          "at_stake": "queen",
+          "b_valid_t_plus": 0.8
+        },
+        {
+          "id": "RC-08",
+          "at_stake": "rook",
+          "b_valid_t_plus": 0.704
+        },
+        {
+          "id": "RC-09",
+          "at_stake": "minor",
+          "b_valid_t_plus": 0.648
+        }
+      ],
+      "monotone_decreasing": true,
+      "span": 0.31999999999999995,
+      "reading": "monotone decreasing supports the account that severity protects the prescription. Any inversion falsifies it, and the size of the inversion says how badly."
+    },
+    "H2_outcome_over_method": {
+      "outcome_RC_09": 0.648,
+      "method_RC_11": 0.596,
+      "difference": 0.052000000000000046,
+      "controlled": "identical trigger, identical corpus, identical noise cell; only the shape of B differs. The RC-04 vs RC-06 contrast that suggested this was confounded by both."
+    }
+  },
   "rows": [
     {
       "id": "RC-00",
@@ -221,6 +260,151 @@
         "player_d_prime_monotone_in_rating": true
       },
       "verdict": "ELIGIBLE"
+    },
+    {
+      "id": "RC-07",
+      "name": "answer-the-queen-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.8,
+        "b_valid_t_minus": 0.432,
+        "chance_rate_t_plus": 0.15743404357009755,
+        "lift_over_chance_t_plus": 0.6425659564299024,
+        "separation": 0.36800000000000005,
+        "position_between_anchors": -1.0000000000000007,
+        "base_rate_t_plus": 0.05538446876061019,
+        "max_abs_smd": 1.0268126070228372,
+        "contextual_exception_rate_t_plus": 0.19999999999999996,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.07346938775510205,
+        "player_d_prime": 1.1489626964585886,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-08",
+      "name": "answer-the-rook-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.704,
+        "b_valid_t_minus": 0.372,
+        "chance_rate_t_plus": 0.18752747193658809,
+        "lift_over_chance_t_plus": 0.5164725280634119,
+        "separation": 0.33199999999999996,
+        "position_between_anchors": -1.1551724137931045,
+        "base_rate_t_plus": 0.03844389776091398,
+        "max_abs_smd": 0.35946931948816113,
+        "contextual_exception_rate_t_plus": 0.29600000000000004,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.15853658536585366,
+        "player_d_prime": 0.6382365571622217,
+        "player_d_prime_monotone_in_rating": true
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-09",
+      "name": "answer-the-minor-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.648,
+        "b_valid_t_minus": 0.452,
+        "chance_rate_t_plus": 0.15213137667601903,
+        "lift_over_chance_t_plus": 0.49586862332398096,
+        "separation": 0.196,
+        "position_between_anchors": -1.741379310344829,
+        "base_rate_t_plus": 0.09558556358372895,
+        "max_abs_smd": 0.5393197163044211,
+        "contextual_exception_rate_t_plus": 0.352,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.12550607287449392,
+        "player_d_prime": 0.6672632299258324,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-11",
+      "name": "move-the-threatened-minor",
+      "family": "prescription-shape control",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.596,
+        "b_valid_t_minus": 0.144,
+        "chance_rate_t_plus": 0.1791861248429714,
+        "lift_over_chance_t_plus": 0.4168138751570286,
+        "separation": 0.45199999999999996,
+        "position_between_anchors": -0.6379310344827596,
+        "base_rate_t_plus": 0.09558556358372895,
+        "max_abs_smd": 0.5393197163044211,
+        "contextual_exception_rate_t_plus": 0.404,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.18218623481781376,
+        "player_d_prime": 1.239707854916062,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-12",
+      "name": "stop-the-promotion",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.456,
+        "b_valid_t_minus": 0.416,
+        "chance_rate_t_plus": 0.12884373909155378,
+        "lift_over_chance_t_plus": 0.32715626090844624,
+        "separation": 0.040000000000000036,
+        "position_between_anchors": -2.4137931034482776,
+        "base_rate_t_plus": 0.003585873326939916,
+        "max_abs_smd": 1.8723475314046236,
+        "contextual_exception_rate_t_plus": 0.544,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.2275132275132275,
+        "player_d_prime": 0.09435207598831499,
+        "player_d_prime_monotone_in_rating": null
+      },
+      "verdict": "FAILS-A-GATE"
     }
   ],
   "eligible_ranked": [

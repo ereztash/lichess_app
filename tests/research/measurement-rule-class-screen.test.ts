@@ -37,6 +37,19 @@ interface Screen {
   rows: Row[];
   eligible_ranked: string[];
   recommended: string | null;
+  hypotheses?: {
+    preregistered: Record<string, string>;
+    H1_severity: {
+      rungs: { id: string; at_stake: string; b_valid_t_plus: number | null }[];
+      monotone_decreasing: boolean | null;
+      span: number | null;
+    };
+    H2_outcome_over_method: {
+      outcome_RC_09: number | null;
+      method_RC_11: number | null;
+      difference: number | null;
+    };
+  };
 }
 
 const screen = JSON.parse(
@@ -140,6 +153,50 @@ describe("eligibility follows from the gates, and the gates follow from the meas
     for (let i = 1; i < scores.length; i += 1) {
       expect(scores[i - 1]).toBeGreaterThanOrEqual(scores[i]);
     }
+  });
+});
+
+describe("the preregistered hypotheses, and that their verdicts follow from their own numbers", () => {
+  it("carries the predictions beside their result", () => {
+    if (!screen.hypotheses) return;
+    expect(Object.keys(screen.hypotheses.preregistered)).toContain("H1_severity");
+    expect(Object.keys(screen.hypotheses.preregistered)).toContain("H2_outcome_over_method");
+  });
+
+  it("H1's monotonicity verdict is recomputed here, not trusted", () => {
+    /*
+     * The severity ladder's whole value is that it was predicted before it was measured. That is
+     * worth nothing if the reported verdict can drift from the reported rungs, so the verdict is
+     * derived again from the same numbers the document quotes.
+     */
+    const h = screen.hypotheses?.H1_severity;
+    if (!h) return;
+    const values = h.rungs.map((r) => r.b_valid_t_plus);
+    if (values.some((v) => v === null)) {
+      expect(h.monotone_decreasing).toBeNull();
+      return;
+    }
+    const nums = values as number[];
+    const monotone = nums.every((v, i) => i === 0 || nums[i - 1] >= v);
+    expect(h.monotone_decreasing).toBe(monotone);
+    expect(h.span).toBeCloseTo(Math.max(...nums) - Math.min(...nums), 10);
+  });
+
+  it("H2's difference is the subtraction it claims to be", () => {
+    const h = screen.hypotheses?.H2_outcome_over_method;
+    if (!h || h.outcome_RC_09 === null || h.method_RC_11 === null) return;
+    expect(h.difference).toBeCloseTo(h.outcome_RC_09 - h.method_RC_11, 10);
+  });
+
+  it("the ladder's rungs are ordered by severity, not by result", () => {
+    /*
+     * The rungs are declared mate > queen > rook > minor in the source, BEFORE any number is
+     * known. Re-sorting them by their scores after the fact would turn a falsifiable prediction
+     * into a description, so the declared order is pinned here.
+     */
+    const h = screen.hypotheses?.H1_severity;
+    if (!h) return;
+    expect(h.rungs.map((r) => r.at_stake)).toEqual(["mate", "queen", "rook", "minor"]);
   });
 });
 

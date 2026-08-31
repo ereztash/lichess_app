@@ -443,6 +443,188 @@ def _threat_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> boo
         board.pop()
 
 
+# ---------------------------------------------------------------- the severity ladder
+#
+# WHY THESE EXIST, AND WHAT THEY ARE A TEST OF RATHER THAN A SEARCH.
+#
+# The first screen found exactly one eligible rule class, `RC-06 answer-the-mate-threat`, and the
+# explanation offered for why the four capture families failed was structural: an OFFENSIVE rule
+# competes with the whole rest of the board and is wrong whenever something better exists, while a
+# DEFENSIVE rule against mate has no competition, because the alternative is losing. Severity
+# protects the prescription.
+#
+# That is a mechanism, and a mechanism that only explains the data it was derived from is a story.
+# So it is stated here as a prediction that these rule classes can falsify:
+#
+#   H1  SEVERITY.  `B_valid | T+` declines monotonically as the severity of the answered threat
+#       declines: mate > queen > rook > minor. If it does not, severity is not what protects the
+#       prescription and the explanation for RC-06 is wrong.
+#
+#   H2  OUTCOME vs METHOD.  `RC-04 save-the-attacked-piece` prescribed a METHOD -- "move that
+#       piece" -- and scored .708. `RC-06` prescribed an OUTCOME -- "the threat is gone" -- and
+#       scored .968. Those differ in trigger AND in prescription shape, so the comparison is
+#       confounded. `RC-11` fixes that: the same trigger as `RC-09`, the same corpus, the same
+#       noise cell, and only the prescription shape changed.
+#
+# ONE NOISE CELL FOR THE WHOLE LADDER. Every tier's T- is "the only thing the opponent threatens
+# is a pawn", so the tiers differ from each other in exactly one thing -- what is at stake on the
+# positive side -- and are directly comparable. The false alarm is spending your move to save a
+# pawn.
+#
+# NO SEE AND NO ENGINE ANYWHERE IN HERE. "Threatened" is attacker/defender geometry: the opponent
+# attacks the piece, and either nothing defends it or something cheaper attacks it. That is the
+# same relation `RC-04` uses, computed from our side instead of theirs.
+
+
+def _in_bad_spot(board: chess.Board, square: int, color: chess.Color) -> bool:
+    """A piece of `color` on `square` that the opponent can profitably take, by geometry alone."""
+    piece = board.piece_at(square)
+    if piece is None or piece.color != color or piece.piece_type == chess.KING:
+        return False
+    attackers = board.attackers(not color, square)
+    if not attackers:
+        return False
+    defenders = board.attackers(color, square)
+    cheaper = any(
+        ATTACKER_ORDER[board.piece_at(a).piece_type] < VALUES[piece.piece_type]  # type: ignore[union-attr]
+        for a in attackers
+    )
+    return cheaper or not defenders
+
+
+def _designated_threat(board: chess.Board) -> Optional[tuple[int, int]]:
+    """
+    The most valuable piece of ours the opponent can win, as (square, value).
+
+    MOST VALUABLE, TIE-BROKEN BY SQUARE INDEX, so the designated piece is deterministic and does
+    not depend on dictionary ordering. When several things hang at once the rule is about the
+    biggest one; the rest are recorded by the tier's own trigger refusing to fire.
+    """
+    us = board.turn
+    best = None
+    for sq, piece in board.piece_map().items():
+        if piece.color != us or piece.piece_type == chess.KING:
+            continue
+        if _in_bad_spot(board, sq, us):
+            key = (VALUES[piece.piece_type], -sq)
+            if best is None or key > best[0]:
+                best = (key, sq, VALUES[piece.piece_type])
+    return (best[1], best[2]) if best else None
+
+
+def _threat_answered(board: chess.Board, move: chess.Move, square: int) -> bool:
+    """
+    Did the move stop the opponent from winning that piece?
+
+    THE PIECE IS FOLLOWED, NOT THE SQUARE, and the difference is the whole point. Checking whether
+    the ORIGINAL square is still attacked would score "I moved my hanging rook to another square
+    where it also hangs" as a success, because the old square is empty. Following the piece to
+    `move.to_square` catches that. A piece that is gone entirely -- traded off, or promoted -- is
+    an answered threat: the opponent cannot win what no longer exists.
+    """
+    target = board.piece_at(square)
+    if target is None:
+        return False
+    colour, kind = target.color, target.piece_type
+    new_square = move.to_square if move.from_square == square else square
+    board.push(move)
+    try:
+        piece = board.piece_at(new_square)
+        if piece is None or piece.color != colour or piece.piece_type != kind:
+            return True
+        return not _in_bad_spot(board, new_square, colour)
+    finally:
+        board.pop()
+
+
+def _tier_trigger(value: int):
+    """A trigger for one rung of the ladder. T+ at this value, T- when only a pawn is at stake."""
+
+    def trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+        hit = _designated_threat(board)
+        if hit is None:
+            return None
+        _square, worth = hit
+        if worth == value:
+            return "positive"
+        if worth == VALUES[chess.PAWN]:
+            return "negative"
+        return None
+
+    return trigger
+
+
+def _tier_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    """The outcome prescription: whatever was at stake is no longer winnable."""
+    hit = _designated_threat(board)
+    return hit is not None and _threat_answered(board, move, hit[0])
+
+
+def _tier_satisfies_by_moving(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    """The method prescription: the piece was moved. H2's whole content is this line."""
+    hit = _designated_threat(board)
+    return hit is not None and move.from_square == hit[0]
+
+
+# ---------------------------------------------------------------- RC-12  stop the promotion
+
+def _safe_promotions_for_mover(board: chess.Board) -> int:
+    """
+    Promotions available to WHOEVER IS TO MOVE, onto a square the other side does not attack.
+
+    SPLIT OUT FROM THE NULL-MOVE WRAPPER BELOW, AND THE SPLIT IS A BUG FIX. The first version had
+    one function that always null-moved. `_promotion_stop_satisfies` called it AFTER pushing our
+    move -- at which point it is already the opponent's turn -- so the extra null move handed the
+    turn back to us and the function counted OUR promotions instead of theirs. The symptom was
+    `prescription_size` of 0.969 on T+: nearly every legal move appeared to answer the threat,
+    which is not a thing that can be true. The guard that exists to stop a vacuous prescription
+    from scoring well is what surfaced it.
+    """
+    return sum(
+        1
+        for m in board.legal_moves
+        if m.promotion == chess.QUEEN and not board.attackers(not board.turn, m.to_square)
+    )
+
+
+def _their_safe_promotions(board: chess.Board) -> int:
+    """The same question about the opponent, asked on a board where it is OUR turn."""
+    if board.is_check():
+        return 0
+    board.push(chess.Move.null())
+    try:
+        return _safe_promotions_for_mover(board)
+    finally:
+        board.pop()
+
+
+def _promotion_stop_trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+    if _their_safe_promotions(board) > 0:
+        return "positive"
+    hit = _designated_threat(board)
+    if hit is not None and hit[1] == VALUES[chess.PAWN]:
+        return "negative"
+    return None
+
+
+def _promotion_stop_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    """
+    Branches on the trigger, for the reason `_threat_satisfies` branches: on a T- item the
+    opponent never had a promotion, so "they still have none" would be satisfied by almost every
+    legal move and the false-alarm cell would be degenerate.
+    """
+    positive = _their_safe_promotions(board) > 0
+    if positive:
+        board.push(move)
+        try:
+            # No null move here: after our move it is ALREADY their turn.
+            return _safe_promotions_for_mover(board) == 0
+        finally:
+            board.pop()
+    hit = _designated_threat(board)
+    return hit is not None and _threat_answered(board, move, hit[0])
+
+
 # ---------------------------------------------------------------- the register
 
 RULE_CLASSES: list[RuleClass] = [
@@ -599,6 +781,97 @@ RULE_CLASSES: list[RuleClass] = [
             "on C4 for no good reason.",
         ],
     ),
+    RuleClass(
+        id="RC-07",
+        name="answer-the-queen-threat",
+        family="severity ladder: defensive threat answering",
+        role="candidate",
+        trigger=_tier_trigger(VALUES[chess.QUEEN]),
+        satisfies=_tier_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if the opponent can win your queen, stop them",
+        literature=(
+            "MODERATE, detection only, and it is the same source as RC-04's: the chess-expertise threat-detection task (count the pieces forming a threat relationship) establishes that threat relations are perceptually available to experts within the first three seconds. Nothing found measures whether they then answer the threat."
+        ),
+        caveats=[
+            "H1's top material rung. The mechanism predicts it scores below the mate rung and above the rook rung; anything else falsifies the severity account of why RC-06 worked.",
+            "The noise cell is shared with every other rung of the ladder -- T- is always 'the only thing at stake is a pawn' -- so the rungs differ from one another in exactly one thing, which is what makes H1 a comparison rather than four separate studies.",
+        ],
+    ),
+    RuleClass(
+        id="RC-08",
+        name="answer-the-rook-threat",
+        family="severity ladder: defensive threat answering",
+        role="candidate",
+        trigger=_tier_trigger(VALUES[chess.ROOK]),
+        satisfies=_tier_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if the opponent can win your rook, stop them",
+        literature=(
+            "MODERATE, detection only, and it is the same source as RC-04's: the chess-expertise threat-detection task (count the pieces forming a threat relationship) establishes that threat relations are perceptually available to experts within the first three seconds. Nothing found measures whether they then answer the threat."
+        ),
+        caveats=[
+            "H1's middle rung.",
+            "The noise cell is shared with every other rung of the ladder -- T- is always 'the only thing at stake is a pawn' -- so the rungs differ from one another in exactly one thing, which is what makes H1 a comparison rather than four separate studies.",
+        ],
+    ),
+    RuleClass(
+        id="RC-09",
+        name="answer-the-minor-threat",
+        family="severity ladder: defensive threat answering",
+        role="candidate",
+        trigger=_tier_trigger(VALUES[chess.KNIGHT]),
+        satisfies=_tier_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if the opponent can win a knight or bishop, stop them",
+        literature=(
+            "MODERATE, detection only, and it is the same source as RC-04's: the chess-expertise threat-detection task (count the pieces forming a threat relationship) establishes that threat relations are perceptually available to experts within the first three seconds. Nothing found measures whether they then answer the threat."
+        ),
+        caveats=[
+            "H1's bottom rung, and half of H2's controlled pair: RC-11 has this exact trigger and a different prescription.",
+            'Knight and bishop share a value here, so this rung is both minors together. Separating them would have made two rungs at the same severity, which is not a rung.',
+            "The noise cell is shared with every other rung of the ladder -- T- is always 'the only thing at stake is a pawn' -- so the rungs differ from one another in exactly one thing, which is what makes H1 a comparison rather than four separate studies.",
+        ],
+    ),
+    RuleClass(
+        id="RC-11",
+        name="move-the-threatened-minor",
+        family="prescription-shape control",
+        role="candidate",
+        trigger=_tier_trigger(VALUES[chess.KNIGHT]),
+        satisfies=_tier_satisfies_by_moving,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if a knight or bishop of yours can be won, move it",
+        literature=(
+            "None. This is a control, not a construct: its literature is RC-09's."
+        ),
+        caveats=[
+            "H2'S CONTROL, AND ITS ONLY REASON FOR EXISTING. Identical trigger to RC-09, identical corpus, identical noise cell; the ONE thing that differs is that B names a method (move the piece) instead of an outcome (the threat is gone). RC-04 scored .708 with a method and RC-06 scored .968 with an outcome, but those also differed in trigger, so that comparison could not separate the two explanations. This pair can.",
+            'A LOW SCORE HERE IS NOT A FAILURE OF THIS CANDIDATE. It is the measurement H2 asked for, and the difference from RC-09 is the result whichever way it goes.',
+        ],
+    ),
+    RuleClass(
+        id="RC-12",
+        name="stop-the-promotion",
+        family="severity ladder: defensive threat answering",
+        role="candidate",
+        trigger=_promotion_stop_trigger,
+        satisfies=_promotion_stop_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if the opponent can safely promote a pawn, prevent it",
+        literature=(
+            'None found. Declared absent rather than padded.'
+        ),
+        caveats=[
+            'A SEPARATE SEVERITY-PROTECTED FAMILY rather than a rung: what is at stake is a queen, but the threat is a promotion rather than a capture, so it tests whether the mechanism is about severity itself or only about material already on the board.',
+            "Base rate expected to be low, as RC-05's was. C9 is the criterion this is likeliest to fail, and a low base rate is a measurement rather than a disqualification.",
+        ],
+    ),
 ]
 
 BY_ID = {rc.id: rc for rc in RULE_CLASSES}
@@ -613,6 +886,22 @@ BY_ID = {rc.id: rc for rc in RULE_CLASSES}
 #: SAW something, none asks whether the seeing governed the move. C8 support therefore never
 #: transfers to the half of the construct this program cares about, in any family tried.
 LITERATURE_COVERS_DETECTION_NOT_ACTION = True
+
+#: The two predictions the second batch of candidates exists to falsify, written down BEFORE the
+#: screen ran. `screen_rule_classes.py` reports them and does not decide them; a mechanism that
+#: only explains the data it was derived from is a story, and this is what makes it a claim.
+PREDICTIONS = {
+    "H1_severity": (
+        "B_valid | T+ declines monotonically down the severity ladder: "
+        "RC-06 mate > RC-07 queen > RC-08 rook > RC-09 minor. If it does not, severity is not "
+        "what protects the prescription and the explanation given for RC-06 is wrong."
+    ),
+    "H2_outcome_over_method": (
+        "RC-09 (outcome: the threat is gone) scores above RC-11 (method: move the piece), on an "
+        "identical trigger and an identical noise cell. This is the controlled version of the "
+        "confounded RC-04 vs RC-06 comparison."
+    ),
+}
 
 STRUCTURALLY_REJECTED = [
     {

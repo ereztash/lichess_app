@@ -45,7 +45,13 @@ import chess
 import chess.engine
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from rule_classes import BY_ID, RULE_CLASSES, STRUCTURALLY_REJECTED, Context  # noqa: E402
+from rule_classes import (  # noqa: E402
+    BY_ID,
+    PREDICTIONS,
+    RULE_CLASSES,
+    STRUCTURALLY_REJECTED,
+    Context,
+)
 from sdt import Counts, compute, wilson_interval, standardized_mean_difference  # noqa: E402
 
 #: Mate scores are not centipawns. `mate_score` encodes them as a ceiling so that a difference is
@@ -349,6 +355,46 @@ def main() -> None:
         # 0 = at the refuted incumbent, 1 = at the sharpest rule class chess allows.
         r["position_between_anchors"] = (sep - floor) / (ceiling - floor)
 
+    def b_plus(rid: str):
+        r = report.get(rid, {})
+        c4 = r.get("c4_prescriptive_validity")
+        return c4["t_plus"]["b_valid"]["p"] if c4 else None
+
+    # H1 AND H2 ARE REPORTED, NOT DECIDED. The ordering is computed from the same numbers every
+    # other row uses; whether it holds is a fact about the run, and a monotone ordering that
+    # happens to match a prediction written beforehand is worth exactly as much as the
+    # preregistration that preceded it -- which is why `PREDICTIONS` lives in the source.
+    ladder = [("RC-06", "mate"), ("RC-07", "queen"), ("RC-08", "rook"), ("RC-09", "minor")]
+    rungs = [{"id": rid, "at_stake": label, "b_valid_t_plus": b_plus(rid)} for rid, label in ladder]
+    observed = [r["b_valid_t_plus"] for r in rungs if r["b_valid_t_plus"] is not None]
+    h1_holds = (
+        all(a >= b for a, b in zip(observed, observed[1:])) if len(observed) == len(ladder) else None
+    )
+
+    outcome, method = b_plus("RC-09"), b_plus("RC-11")
+    hypotheses_block = {
+        "preregistered": PREDICTIONS,
+        "H1_severity": {
+            "rungs": rungs,
+            "monotone_decreasing": h1_holds,
+            "span": (max(observed) - min(observed)) if observed else None,
+            "reading": (
+                "monotone decreasing supports the account that severity protects the "
+                "prescription. Any inversion falsifies it, and the size of the inversion says "
+                "how badly."
+            ),
+        },
+        "H2_outcome_over_method": {
+            "outcome_RC_09": outcome,
+            "method_RC_11": method,
+            "difference": (None if outcome is None or method is None else outcome - method),
+            "controlled": (
+                "identical trigger, identical corpus, identical noise cell; only the shape of B "
+                "differs. The RC-04 vs RC-06 contrast that suggested this was confounded by both."
+            ),
+        },
+    }
+
     out = {
         "screen_version": "1.0.0",
         "engine": {"nodes": a.nodes, "workers": a.workers,
@@ -364,6 +410,7 @@ def main() -> None:
         },
         "anchors": {"ceiling": "RC-00", "floor": "RC-01",
                     "ceiling_separation": ceiling, "floor_separation": floor},
+        "hypotheses": hypotheses_block,
         "rule_classes": report,
         "structurally_rejected": STRUCTURALLY_REJECTED,
         "determinism": (

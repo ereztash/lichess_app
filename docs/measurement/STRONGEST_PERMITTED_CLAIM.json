@@ -1,5 +1,5 @@
 {
-  "claim_version": "1.1.0",
+  "claim_version": "1.2.0",
   "decided_at": "2026-08-31",
   "repository_main_sha": "68d61c216c6932455cc61bbe33eb65e7042a6bd7",
   "board_predicate_version": "1.0.0",
@@ -122,7 +122,9 @@
     "evidence_level_reached": "E1-E2",
     "evidence_level_required_for_production": "E5",
     "a_rule_class_with_identifiable_knowledge_to_action_exists": true,
-    "that_rule_class_is": "RC-06 answer-the-mate-threat"
+    "that_rule_class_is": "RC-06 answer-the-mate-threat",
+    "candidates_screened": 10,
+    "eligible_after_ten_candidates": "RC-06 answer-the-mate-threat, still the only one"
   },
   "second_iteration_rule_class_search": {
     "question": "is knowledge-to-action identifiable in ANY rule class?",
@@ -149,8 +151,62 @@
     "corrections_to_the_first_iteration": [
       "F10 read the incumbent's non-monotone player d' as a defect of that rule class. The CEILING anchor's d' is also non-monotone (1.946, 2.040, 2.187, 2.085) at prescriptive validity 1.000, so non-monotonicity is not diagnostic.",
       "ITEM_BANK_PROTOCOL rejected the recapture family because T reads a prior move. That was too strict -- history before the player's turn is available before behaviour -- and recapture was measured, then failed on its merits (B_valid|T+ = 0.660).",
-      "GO_NO_GO section 7 proposed an item-bank adjudication study as the next step. The owner overrode it; the rule-class search ran instead."
+      "GO_NO_GO section 7 proposed an item-bank adjudication study as the next step. The owner overrode it; the rule-class search ran instead.",
+      "Round 1's mechanism -- 'severity protects the prescription' -- was written as a full explanation. The controlled ladder shows it explains only the positive cell; the negative cell carries 58% of the winner's margin and correlates with separation at rho = -0.811, p = 0.001."
     ],
     "no_trade_off_claimed": "Spearman(separation, max |SMD|) = 0.536, p = 0.215, n = 7. Not evidence. Recorded as a hypothesis, not a finding."
+  },
+  "third_iteration_severity_ladder": {
+    "question": "does severity protect the prescription, as round 1 claimed?",
+    "answer": "half of it. Severity holds on the positive side and is the less important half.",
+    "preregistered_before_the_run": "research/measurement/rule_classes.py::PREDICTIONS",
+    "H1_severity": {
+      "prediction": "B_valid|T+ declines monotonically: mate > queen > rook > minor",
+      "observed": [
+        0.968,
+        0.8,
+        0.704,
+        0.648
+      ],
+      "monotone_decreasing": true,
+      "span": 0.32,
+      "verdict": "CONFIRMED"
+    },
+    "H2_outcome_over_method": {
+      "prediction": "an outcome prescription beats a method prescription on an identical trigger",
+      "observed": {
+        "outcome_RC_09_t_plus": 0.648,
+        "method_RC_11_t_plus": 0.596,
+        "outcome_RC_09_t_minus": 0.452,
+        "method_RC_11_t_minus": 0.144,
+        "outcome_separation": 0.196,
+        "method_separation": 0.452
+      },
+      "verdict": "SPLIT -- the naive reading is REFUTED. The outcome prescription is more often correct (+0.052) and far less specific; the method prescription wins on separation by 0.256."
+    },
+    "the_finding": {
+      "statement": "Separation is driven by the noise cell, not by the positive cell.",
+      "spearman_separation_vs_b_valid_t_plus": {
+        "rho": 0.476,
+        "p": 0.118,
+        "n": 12
+      },
+      "spearman_separation_vs_b_valid_t_minus": {
+        "rho": -0.811,
+        "p": 0.001,
+        "n": 12
+      },
+      "decomposition_RC06_vs_RC07": {
+        "delta_t_plus": 0.168,
+        "delta_t_minus": 0.232,
+        "delta_separation": 0.4,
+        "noise_cell_share": 0.58
+      }
+    },
+    "corrected_mechanism": "Severity protects the prescription on the positive side and does nothing for the negative side. A rule class is usable only when the trigger is severe AND its absence is genuinely inert -- when not acting is actually correct once the trigger is gone.",
+    "candidates_tried": 10,
+    "eligible": 1,
+    "defect_caught_by_a_guard": "RC-12 first scored B_valid|T+ = 0.976 with prescription_size 0.969, which cannot be true. Cause: a double null move counted OUR promotions instead of the opponent's. Fixed, it scores 0.456/0.416, separation +0.040.",
+    "search_strategy_now_inverted": "Choose candidates by their noise cell first -- 'when the trigger is absent, is the prescribed action clearly wrong?' -- and check severity second."
   }
 }
