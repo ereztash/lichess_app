@@ -50,8 +50,8 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "instrumented-blitz/legacy/legacy",
-      "instrumented-standard/legacy/legacy",
+      "instrumented-blitz@legacy/legacy/legacy",
+      "instrumented-standard@legacy/legacy/legacy",
     ]);
     for (const s of strata) expect(s.atoms).toHaveLength(1);
   });
@@ -68,8 +68,50 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "legacy/end-of-game/legacy",
-      "legacy/per-decision/legacy",
+      "legacy@legacy/end-of-game/legacy",
+      "legacy@legacy/per-decision/legacy",
+    ]);
+  });
+
+  it("keeps two decisions that differ ONLY in the version of one protocol apart", () => {
+    /*
+     * THE AXIS THAT WAS STAMPED ON EVERY ROW AND READ BY NOTHING.
+     *
+     * `measurement-protocol.ts` has said since it was written that a protocol whose rules change is
+     * a different protocol for analysis even when its name is the same -- and until this case
+     * existed, `stratumKeyOf` did not look at the field that says so. Two decisions taken under two
+     * versions of `instrumented-standard` pooled into one population, which is the same defect the
+     * two cases above fix for the protocol's NAME, one level down.
+     *
+     * It is not hypothetical any more. Version 2 is the decision focus: v1 stated its confidence
+     * with a panel describing the player's own calibration beside the question, and v2 does not.
+     */
+    const strata = strataOf([
+      decision({ measurement_protocol: "instrumented-standard", protocol_version: 1 }),
+      decision({ measurement_protocol: "instrumented-standard", protocol_version: 2 }),
+    ]);
+    expect(strata).toHaveLength(2);
+    expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
+      "instrumented-standard@1/legacy/legacy",
+      "instrumented-standard@2/legacy/legacy",
+    ]);
+    for (const s of strata) expect(s.atoms).toHaveLength(1);
+  });
+
+  it("treats an unversioned row as its own regime rather than as version one", () => {
+    /*
+     * The same argument this file already makes about a null protocol and a null reveal timing. A
+     * row that recorded no version is not evidence that it ran under the first one; it is a row from
+     * before the field existed, and calling it v1 would assert a condition nobody wrote down.
+     */
+    const strata = strataOf([
+      decision({ measurement_protocol: "instrumented-standard", protocol_version: 1 }),
+      decision({ measurement_protocol: "instrumented-standard", protocol_version: null }),
+    ]);
+    expect(strata).toHaveLength(2);
+    expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
+      "instrumented-standard@1/legacy/legacy",
+      "instrumented-standard@legacy/legacy/legacy",
     ]);
   });
 
@@ -117,7 +159,7 @@ describe("two regimes are not one population", () => {
     expect(chosen?.key.revealTiming).toBe("per-decision");
     expect(chosen?.atoms).toHaveLength(3);
     // Not silently gone: named, counted, and available to whatever explains a population.
-    expect(setAside).toEqual([{ id: "legacy/end-of-game/legacy", n: 1 }]);
+    expect(setAside).toEqual([{ id: "legacy@legacy/end-of-game/legacy", n: 1 }]);
   });
 
   it("chooses the same regime every time, whatever order the rows arrived in", () => {

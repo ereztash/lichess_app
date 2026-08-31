@@ -275,6 +275,28 @@ export interface StratumKey {
   /** What the decision recorded about its conditions, or `legacy` when it recorded nothing. */
   protocol: ProtocolKey;
   /**
+   * WHICH VERSION OF THAT PROTOCOL PRODUCED IT, or `legacy`.
+   *
+   * THE FIELD WAS ALREADY STAMPED ON EVERY ROW AND NOTHING READ IT. `measurement-protocol.ts` has
+   * said since it was written that "if the confidence sampling rate moves, or the moment the
+   * question appears moves, then the protocol before and after are two populations. The version is
+   * what lets a later reader tell them apart" -- and this key, the one thing in the product that
+   * decides what may be pooled, did not carry it. The recording happened; the wall did not exist.
+   * That is the same sentence this module already writes about reveal timing, one axis up.
+   *
+   * `shared/blitz-strata.ts` GOT THIS RIGHT AND WAS NEVER GENERALISED. `BlitzStratumKey` carries
+   * `protocolVersion` and `samplingPolicyVersion`, with the argument spelled out: "an axis that is
+   * free while it is constant is the only kind that ever gets added, and the day one of them moves
+   * is the day pooling across it would have been silent." The version moved to 2 in the commit that
+   * added this axis, on the standard loop -- so this is that day, and until now the split would in
+   * fact have been silent.
+   *
+   * LEGACY IS ITS OWN STRATUM, not version 1. A row that recorded no version is not evidence that
+   * it ran under the first one; it is a row from before the field existed, and the whole argument
+   * against backfilling `measurement_protocol` applies unchanged to its version.
+   */
+  protocolVersion: number | typeof LEGACY_CONTEXT;
+  /**
    * Which reveal timing was in force, or `legacy`.
    *
    * NULL IS ITS OWN STRATUM AND NOT A THIRD MODE. A row that never recorded a timing is not
@@ -305,12 +327,16 @@ export interface Stratum extends EvidenceSet {
 /** A stratum key as a single string, so it can index a map and appear in a message. */
 export function stratumId(key: StratumKey): string {
   /*
-   * THE BUILD IS PERCENT-ENCODED AND THE OTHER TWO ARE NOT, which is not an inconsistency. Protocol
-   * and reveal timing are closed enums, so no value of either can contain the separator. The build
-   * is free text out of a record, and two regimes sharing an id would be silent pooling arriving
-   * through the identifier of the module that exists to prevent it.
+   * THE BUILD IS PERCENT-ENCODED AND THE OTHERS ARE NOT, which is not an inconsistency. Protocol
+   * and reveal timing are closed enums and the version is a positive integer or `legacy`, so no
+   * value of any of them can contain a separator. The build is free text out of a record, and two
+   * regimes sharing an id would be silent pooling arriving through the identifier of the module
+   * that exists to prevent it.
+   *
+   * THE VERSION IS JOINED TO ITS PROTOCOL WITH `@` RATHER THAN A FOURTH `/` SEGMENT, because it
+   * qualifies that protocol and means nothing without it: `legacy@legacy` is one fact, not two.
    */
-  return `${key.protocol}/${key.revealTiming}/${encodeURIComponent(key.engineBuild)}`;
+  return `${key.protocol}@${key.protocolVersion}/${key.revealTiming}/${encodeURIComponent(key.engineBuild)}`;
 }
 
 /**
@@ -333,6 +359,7 @@ export function readableInstrument(atom: DecisionAtom): boolean {
 function stratumKeyOf(atom: DecisionAtom): StratumKey {
   return {
     protocol: protocolOf(atom.measurement_protocol),
+    protocolVersion: atom.protocol_version ?? LEGACY_CONTEXT,
     revealTiming: atom.reveal_timing ?? LEGACY_CONTEXT,
     engineBuild: atom.result?.engine_build ?? LEGACY_CONTEXT,
   };

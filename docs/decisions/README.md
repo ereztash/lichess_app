@@ -52,6 +52,7 @@ What a piece of work is allowed to become, given what is known about it:
 | [D05](D05-blitz-time.md) | are the time buckets readable on the route built to measure time pressure? | `DEFER` | measured, deferred on the CHOICE with the choice rule written down |
 | [D09](D09-frozen-hypothesis-manifest.md) | what does freezing a hypothesis mean? | `PORT_AFTER_EQUIVALENCE` | decided |
 | [D20](D20-protocol-matching.md) | what protocol may judge this claim? | `PORT_AFTER_EQUIVALENCE` | closed — the product choice was taken by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42), merged |
+| [D21](D21-feedback-exposure.md) | is a decision taken after feedback the same measurement as one taken before? | `DEFER` on the contract | open — two findings fixed, the third written down with three options and a trigger |
 
 ### Not yet opened, and the trigger for each
 

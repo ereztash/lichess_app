@@ -276,6 +276,31 @@ a schema before the audit is exactly the blind change the audit exists to preven
 
 **Gate:** `GATE-EXPOSURE-CONTEXT`.
 
+### Status: audited, and the answer is worse than the question assumed
+
+The audit is [`docs/decisions/D21-feedback-exposure.md`](decisions/D21-feedback-exposure.md).
+
+**They are pooled, completely, and no field in the record could separate them.** No atom field
+orders decisions or counts prior exposure; `entry_state` gives position within a *game*, not within
+a record; `gapsByGame` groups by game and games are unordered there. Decision #1 and decision #200
+— the second taken by somebody who has seen 199 reveals and at least one claim about their own
+calibration — are one population.
+
+Two smaller things were found on the way and are fixed, because neither required choosing anything:
+
+- `protocol_version` was stamped on every row and read by nothing. `StratumKey` carried protocol,
+  reveal timing and engine build, and not the version — while `measurement-protocol.ts` had said
+  since it was written that a protocol whose rules change is two populations. `blitz-strata.ts` got
+  this right and was never generalised. It is an axis now.
+- LAW 1's decision focus changed the stimulus and the version had not moved. It is 2.
+
+**The contract for exposure itself is deliberately not chosen.** D21 records three options — an
+epoch, a per-claim flag, a count of prior reveals — with the asymmetry that decides between them
+(only the third is re-derivable for existing rows) and the measurement that would trigger the work.
+`GATE-EXPOSURE-CONTEXT` stays unregistered until there is something for it to hold. Until then
+Discovery may not widen on the assumption that exposure is uniform: it is not uniform and it is not
+recorded.
+
 ---
 
 ## What is on hold, and why holding is the decision
