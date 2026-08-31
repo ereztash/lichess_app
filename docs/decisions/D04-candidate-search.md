@@ -120,6 +120,25 @@ why `PREREGISTERED_SEPARABILITY_K` is 3.25 and `SEPARABILITY_K` is 3.75. Reading
   `results/q7_candidate_search.json`; if the on-target rates move sharply with the threshold, the
   line was a choice and not a separation.
 
+## WHAT D08 SAW WHEN THE TWO WERE RUN TOGETHER
+
+`research/discovery-oracle/q10_veto_after_search.py` runs this search and the shipped chain on the
+**same** records, because D08's second reversal condition was written as a prediction about this
+node. Two things in it belong here rather than there.
+
+**The depth trade gets its clearest reading yet, from a direction this node did not look.** On
+`interaction-only` the chain's wrong claim is `phase-endgame` every time, and attribution names
+`fast-under-45s` as the division that breaks it. At **depth 2** the search's region is built from the
+same cut on 5 of those 8 records — the two agree. At **depth 1 the agreement is zero, in every
+world**: a one-term search names one half of a two-term region and the veto names the other. So
+depth 1 is not merely weaker on `interaction-only`; it is systematically naming a different half of
+the truth, and the 0.2225 → 0.3350 in the table above understates what changes between the depths.
+
+**And the search's benefit is larger than the on-target rate says.** On `interaction-only` the search
+is on target on a further **24.25%** of records where the shipped chain said nothing at all. Those
+records carry no claim to be right or wrong about, so no scorecard in this node counts them; they are
+the difference between a product that is silent and one that has something to pre-register.
+
 ## WHAT IS EXPLICITLY NOT DECIDED
 
 That the search ships. E3 permits a candidate for porting and nothing more, and D06 (stability

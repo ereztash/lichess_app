@@ -1,0 +1,240 @@
+{
+  "seed": 20260902,
+  "records_per_plant": 400,
+  "attribution_k": 2.5,
+  "on_target_jaccard": 0.6,
+  "depths": [
+    1,
+    2
+  ],
+  "worlds": {
+    "clean-middlegame": {
+      "expressible": "phase-middlegame",
+      "kind": "clean",
+      "by_depth": {
+        "1": {
+          "right_no_veto": 133,
+          "right_veto": 12,
+          "wrong_veto": 2,
+          "wrong_no_veto": 31,
+          "chain_validated": 178,
+          "attribution_unreadable": 0,
+          "search_on_target": 237,
+          "chain_silent_search_on_target": 92,
+          "records": 400,
+          "agreement": {
+            "vetoed": 14,
+            "search_had_region": 14,
+            "expressible": 7,
+            "same_feature": 0,
+            "same_side": 0,
+            "named": {
+              "slow-over-2m": 7,
+              "fast-under-45s": 4,
+              "clock-under-1m": 2,
+              "phase-middlegame": 1
+            },
+            "claimed": {
+              "phase-middlegame": 13,
+              "fast-under-45s": 1
+            }
+          }
+        },
+        "2": {
+          "right_no_veto": 94,
+          "right_veto": 8,
+          "wrong_veto": 6,
+          "wrong_no_veto": 70,
+          "chain_validated": 178,
+          "attribution_unreadable": 0,
+          "search_on_target": 149,
+          "chain_silent_search_on_target": 47,
+          "records": 400,
+          "agreement": {
+            "vetoed": 14,
+            "search_had_region": 14,
+            "expressible": 7,
+            "same_feature": 3,
+            "same_side": 2,
+            "named": {
+              "slow-over-2m": 7,
+              "fast-under-45s": 4,
+              "clock-under-1m": 2,
+              "phase-middlegame": 1
+            },
+            "claimed": {
+              "phase-middlegame": 13,
+              "fast-under-45s": 1
+            }
+          }
+        }
+      }
+    },
+    "clean-fast": {
+      "expressible": "fast-under-45s",
+      "kind": "clean",
+      "by_depth": {
+        "1": {
+          "right_no_veto": 35,
+          "right_veto": 0,
+          "wrong_veto": 2,
+          "wrong_no_veto": 24,
+          "chain_validated": 61,
+          "attribution_unreadable": 0,
+          "search_on_target": 99,
+          "chain_silent_search_on_target": 64,
+          "records": 400,
+          "agreement": {
+            "vetoed": 2,
+            "search_had_region": 2,
+            "expressible": 2,
+            "same_feature": 0,
+            "same_side": 0,
+            "named": {
+              "clock-under-1m": 2
+            },
+            "claimed": {
+              "fast-under-45s": 2
+            }
+          }
+        },
+        "2": {
+          "right_no_veto": 16,
+          "right_veto": 0,
+          "wrong_veto": 2,
+          "wrong_no_veto": 43,
+          "chain_validated": 61,
+          "attribution_unreadable": 0,
+          "search_on_target": 31,
+          "chain_silent_search_on_target": 15,
+          "records": 400,
+          "agreement": {
+            "vetoed": 2,
+            "search_had_region": 2,
+            "expressible": 2,
+            "same_feature": 0,
+            "same_side": 0,
+            "named": {
+              "clock-under-1m": 2
+            },
+            "claimed": {
+              "fast-under-45s": 2
+            }
+          }
+        }
+      }
+    },
+    "interaction-only": {
+      "expressible": null,
+      "kind": "misattributing",
+      "by_depth": {
+        "1": {
+          "right_no_veto": 22,
+          "right_veto": 4,
+          "wrong_veto": 4,
+          "wrong_no_veto": 19,
+          "chain_validated": 49,
+          "attribution_unreadable": 0,
+          "search_on_target": 91,
+          "chain_silent_search_on_target": 65,
+          "records": 400,
+          "agreement": {
+            "vetoed": 8,
+            "search_had_region": 8,
+            "expressible": 8,
+            "same_feature": 0,
+            "same_side": 0,
+            "named": {
+              "clock-under-1m": 2,
+              "fast-under-45s": 6
+            },
+            "claimed": {
+              "phase-endgame": 8
+            }
+          }
+        },
+        "2": {
+          "right_no_veto": 29,
+          "right_veto": 5,
+          "wrong_veto": 3,
+          "wrong_no_veto": 12,
+          "chain_validated": 49,
+          "attribution_unreadable": 0,
+          "search_on_target": 131,
+          "chain_silent_search_on_target": 97,
+          "records": 400,
+          "agreement": {
+            "vetoed": 8,
+            "search_had_region": 8,
+            "expressible": 8,
+            "same_feature": 5,
+            "same_side": 5,
+            "named": {
+              "clock-under-1m": 2,
+              "fast-under-45s": 6
+            },
+            "claimed": {
+              "phase-endgame": 8
+            }
+          }
+        }
+      }
+    },
+    "proxy-correlated": {
+      "expressible": null,
+      "kind": "misattributing",
+      "by_depth": {
+        "1": {
+          "right_no_veto": 6,
+          "right_veto": 0,
+          "wrong_veto": 2,
+          "wrong_no_veto": 4,
+          "chain_validated": 12,
+          "attribution_unreadable": 0,
+          "search_on_target": 22,
+          "chain_silent_search_on_target": 16,
+          "records": 400,
+          "agreement": {
+            "vetoed": 2,
+            "search_had_region": 2,
+            "expressible": 2,
+            "same_feature": 0,
+            "same_side": 0,
+            "named": {
+              "phase-endgame": 1,
+              "phase-middlegame": 1
+            },
+            "claimed": {
+              "fast-under-45s": 2
+            }
+          }
+        },
+        "2": {
+          "right_no_veto": 1,
+          "right_veto": 0,
+          "wrong_veto": 2,
+          "wrong_no_veto": 9,
+          "chain_validated": 12,
+          "attribution_unreadable": 0,
+          "search_on_target": 4,
+          "chain_silent_search_on_target": 3,
+          "records": 400,
+          "agreement": {
+            "vetoed": 2,
+            "search_had_region": 2,
+            "expressible": 2,
+            "same_feature": 0,
+            "same_side": 0,
+            "named": {
+              "phase-endgame": 1,
+              "phase-middlegame": 1
+            },
+            "claimed": {
+              "fast-under-45s": 2
+            }
+          }
+        }
+      }
+    }
+  }
+}

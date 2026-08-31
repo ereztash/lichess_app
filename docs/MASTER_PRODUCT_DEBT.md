@@ -533,7 +533,7 @@ to say it needs no transaction is what surfaced the thing on the same line that 
 | | |
 | --- | --- |
 | type | research |
-| state | **measured and deferred** — the test exists and is gated; it is not wired in, and the trigger is written down |
+| state | **measured and deferred** — the test exists and is gated; it is not wired in, the trigger is written down, and one reversal condition has now fired and been measured |
 | severity | P1 |
 | basis | **verified by measurement** — `docs/discovery-v2/M0_AUDIT.md` §Q4 (11,600 records) and `q5_attribution.py` (3,600 more) |
 
@@ -578,6 +578,47 @@ any claim path, because at 20 validation games it would make an already-silent p
 almost nothing. The trigger that turns it on is a fact about a record rather than a judgement, so it
 can be evaluated automatically: **60 validation games.** Full reasoning and three other reversal
 conditions in `docs/decisions/D08-attribution.md`.
+
+### One of those conditions has now fired and been measured
+
+D08's second reversal condition was *"the vocabulary gains conjunctions (D04) — the misattribution
+this node exists for largely stops happening"*. D04 built that search, so
+`research/discovery-oracle/q10_veto_after_search.py` runs **both pipelines on the same 400 records
+per world** and counts what happens to each claim.
+
+**The prediction was wrong and the finding is better than it.** The misattribution does not stop:
+the chain validates a wrong name on 12.25% of `interaction-only` records before the search exists
+and 12.25% after, because the search is a separate pipeline and does not touch the chain. That
+sentence conflated *the region becomes expressible* with *the shipped chain stops naming the wrong
+one*, and only a ported, wired-in search produces the first.
+
+What changes is the set of outcomes available once the chain has gone wrong. Pooled over the two
+misattributing worlds — 61 validated claims, every one of them a wrong name:
+
+| depth | search on target, no veto | on target, **vetoed** | off target, **vetoed** | off target, no veto |
+| --- | --- | --- | --- | --- |
+| 1 | 28 | 4 | 6 | 23 |
+| 2 | 30 | 5 | 5 | 21 |
+
+- the veto silences **8.2%** of wrong names, unchanged by the search as it must be;
+- on **57%** of them a right name now exists — before D04 the only alternative to a wrong sentence
+  was silence, and on more than half of these records it no longer is;
+- **34%** survive with no right name available, and that is what the veto's remaining job is
+  bounded by;
+- the false-veto cost is unchanged: **16 of 239** true claims withheld on the clean worlds, 6.69%
+  against Q5's 5.6% worst case.
+
+**And the veto points where the search looks.** On `interaction-only` every vetoed claim named
+`phase-endgame`, six of eight were split by `fast-under-45s`, and at depth 2 five of eight name the
+same cut the search's region is built from — `phase==2 AND seconds<45.0`, the planted region. The
+cheap TypeScript test that already ships names the conjunct the expensive Python oracle supplies.
+At depth 1 that agreement is zero everywhere, because a one-term search names one half of a two-term
+region and the veto names the other.
+
+**None of this turns the veto on.** The trigger is still 60 validation games. What it does is put a
+ceiling on what the veto can be worth, and add a fifth reversal condition to D08: if a search is
+ever ported, the question becomes whether a withheld claim should be replaced by the search's region
+rather than by silence.
 
 **Gate:** `tests/discovery/a-bucket-that-only-contains-the-answer.test.ts`, which asserts the
 direction of the trade rather than the value of `k` — the value belongs to the measurement.
