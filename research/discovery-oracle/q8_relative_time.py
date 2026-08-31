@@ -168,8 +168,13 @@ def region_probe(drawn: list[dict], results: list[dict], target: str) -> dict:
     }
 
 
-def arm(candidate: bool) -> dict:
-    """Every world, one arm, scored the way Q4 and Q6 score."""
+def arm(candidate: bool, plants=BLITZ_PLANTS, probe_plant: str = "clean-fast") -> dict:
+    """Every world, one arm, scored the way Q4 and Q6 score.
+
+    PARAMETERISED FOR Q9, WHICH RUNS THE REPAIRED PLANT THROUGH THIS SAME FUNCTION. A second copy of
+    the arm loop is how the two runs would come to disagree about something neither of them is
+    about -- which is the failure this file spent its own result section describing.
+    """
     name = "candidate" if candidate else "shipped"
     pooled_validated = 0
     pooled_n = 0
@@ -187,8 +192,8 @@ def arm(candidate: bool) -> dict:
             for field in ("nonempty", "usable", "cleared", "n"):
                 live[field] += row[field]
 
-    plants = []
-    for i, plant in enumerate(BLITZ_PLANTS):
+    scorecards = []
+    for i, plant in enumerate(plants):
         spec = replace(BASE, name=f"BLITZ-{plant.name}", time_controls=BLITZ_CONTROLS)
         results, drawn = run_world(spec, RECORDS_PER_WORLD, SEED + 100 + i, candidate, plant)
         """
@@ -205,13 +210,11 @@ def arm(candidate: bool) -> dict:
         comparable, and the report says so rather than the comment quietly not saying it.
         """
         scored = planted_scorecard(
-            replace(plant, expressible_as=TARGET[name])
-            if plant.name == "clean-fast"
-            else plant,
+            replace(plant, expressible_as=TARGET[name]) if plant.name == probe_plant else plant,
             results,
         )
-        plants.append(scored)
-        if plant.name == "clean-fast":
+        scorecards.append(scored)
+        if plant.name == probe_plant:
             probe = region_probe(drawn, results, TARGET[name])
 
     low, high = wilson(pooled_validated, pooled_n)
@@ -222,7 +225,7 @@ def arm(candidate: bool) -> dict:
         "false_claim_rate": pooled_validated / max(pooled_n, 1),
         "false_claim_upper": high,
         "bucket_liveness": liveness,
-        "plants": plants,
+        "plants": scorecards,
         "region_probe": probe,
     }
 

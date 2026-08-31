@@ -49,7 +49,7 @@ What a piece of work is allowed to become, given what is known about it:
 | [D02](D02-the-unit-of-inference.md) | is a decision an observation? | `REJECT` (clustered judge) | decided, one number open |
 | [D03](D03-what-a-search-may-read.md) | which features may a search read? | `PORT_AFTER_EQUIVALENCE` | decided |
 | [D08](D08-attribution.md) | can anything tell the named region from a bucket that overlaps it? | `DEFER` | built and measured; not wired in, trigger written down |
-| [D05](D05-blitz-time.md) | are the time buckets readable on the route built to measure time pressure? | `DEFER` | one candidate declared, measured and **rejected** by its own rule — readability fixed, recovery untested because the harness could not pose the question |
+| [D05](D05-blitz-time.md) | are the time buckets readable on the route built to measure time pressure? | `DEFER` | one candidate declared and **rejected** twice by its own rule — readability fixed outright, recovery a fifth of the bar where the shipped bucket reaches zero |
 | [D09](D09-frozen-hypothesis-manifest.md) | what does freezing a hypothesis mean? | `PORT_AFTER_EQUIVALENCE` | decided |
 | [D20](D20-protocol-matching.md) | what protocol may judge this claim? | `PORT_AFTER_EQUIVALENCE` | closed — the product choice was taken by the owner in [#42](https://github.com/ereztash/lichess_app/pull/42), merged |
 | [D21](D21-feedback-exposure.md) | is a decision taken after feedback the same measurement as one taken before? | `DEFER` on the contract | open — two findings fixed, the third written down with three options and a trigger |

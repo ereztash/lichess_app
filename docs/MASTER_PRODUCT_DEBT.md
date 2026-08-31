@@ -767,7 +767,7 @@ itself rests on an inference about age.
 | | |
 | --- | --- |
 | type | correctness · evidence |
-| state | **half fixed** — the false advice is gone; the thresholds themselves are §18 and are open |
+| state | **measured and deferred** — the false advice is gone; the replacement is measured twice, rejected by its own declared rule both times, and deliberately not chosen |
 | severity | **P1** |
 | basis | **verified, by measurement** — `tests/shared/a-line-nobody-crossed.test.ts` |
 
@@ -860,6 +860,33 @@ cannot tell them apart, so it does not by itself establish that the bucket rathe
 at fault. Same failure class as the five in `tests/LEVELS.md`: an instrument right about what it
 looks at, read as evidence about something else. D05 carries the repaired rule, declared before its
 run.
+
+**The recovery question was then asked again on a plant that could answer it** —
+`research/discovery-oracle/q9_answerable_plant.py`, the rule for it committed before the file
+existed. The plant is `thinkMs / clockBeforeMs < 1/40`, the midpoint in value between the candidate's
+own cut (1/60) and an even pace (1/30), so it is a strict superset of `fast-relative` and a small
+subset of `fast-under-45s` and **neither arm is handed its own answer**. It covers 27% of a blitz
+record, leaves 380 unplanted decisions to contrast against, and the run reports that answerability
+before anything else.
+
+On the same worlds, same seeds, same scoring code:
+
+| | shipped | candidate |
+| --- | --- | --- |
+| any-bucket recall | 0.0500 | **0.1775** |
+| named the fast bucket | **0.0000** | 0.1225 |
+| validated on target | **0.0000** | 0.0475 |
+
+**`fast-under-45s` recovers a relative-time effect exactly never**, on a plant built to be
+recoverable, with the middlegame control scoring 0.4225 on the same records. That is this row stated
+at its strongest, and it is the first time it has been said with a plant that could have come out
+otherwise. The candidate reaches 4.75% — real, and a fifth of the declared bar of 0.2112, so the
+verdict is **REJECTED** a second time and stands.
+
+The cut does not now move to 1/40: fitting a threshold to a plant this harness drew is the post-hoc
+move D08 refuses one level up. What the number argues for instead is D04 — a bucket with a declared
+cut can only be near the truth by luck, and the search that finds where the line is takes correct
+attribution from 0% to 33.5% where a better constant is worth about five points.
 
 **Still open, and deliberately not fixed here:** the thresholds themselves. Replacing 45 seconds with
 a fraction of the clock is master-plan §18 and it cannot be done by editing a constant —
@@ -1088,7 +1115,7 @@ categories are not the same kind of "not done".
 | 12 | sampling calibration | **blocked on 11** |
 | 13 | a confidence-bearing corpus | **blocked on people** |
 | 14 | Discovery V2 integration | **partly done** — blitz reads through the shared detector and
-never gets its own; the thresholds are R-18 |
+never gets its own; the thresholds are R-18, measured twice and deferred |
 | 15 | freeze + prospective validation | **half** — the freeze exists (`hypothesis-manifest.ts`);
 the prospective half needs new games |
 | 16 | learning / action | **governed** — `mayPrescribe` is true for exactly one evidence level,
@@ -1104,12 +1131,15 @@ product can say what they learned, and whether any of it changes a later decisio
 produces any of those, and writing something that looked like them would be the manufactured
 certainty this whole plan is against.
 
-**What is buildable and still open** is one thing: R-18's second half. The time thresholds are wrong
-for blitz, the fix is relative time, and it cannot be done by editing a constant — `SEPARABILITY_K`
-is a measurement of *those six buckets searched together*, so a redefined bucket needs its own
-false-positive rate from `research/discovery-oracle/` before it may be searched. Until that
-measurement exists, the shipped behaviour is the honest one: say the split cannot divide this
-record, and do not ask for decisions that cannot help.
+**R-18's second half has now been measured rather than left open.** The time thresholds are wrong
+for blitz and the candidate fix is relative time; it could not be done by editing a constant, because
+`SEPARABILITY_K` is a measurement of *those six buckets searched together*, so a redefined bucket
+needed its own false-positive rate from `research/discovery-oracle/` before it might be searched. It
+has one: 0 false claims in 1,600 blitz nulls, upper 95% 0.0024. It also has a recovery number, twice,
+and both are below the bar its own rule declared in advance. So the bucket is **not** replaced, the
+shipped behaviour stays the honest one — say the split cannot divide this record, and do not ask for
+decisions that cannot help — and the next thing that moves this is D04's depth trade or a real blitz
+record, not a third constant. `docs/decisions/D05-blitz-time.md` carries both runs.
 
 ### Three states the browser walk cannot reach, and why that is not a coverage gap to close
 

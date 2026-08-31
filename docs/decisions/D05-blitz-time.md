@@ -1,14 +1,16 @@
 # D05 — the time buckets are wrong for the route built to measure time pressure
 
 **Mode:** `DEFER` — the defect is measured end to end and the false advice it produced is fixed. One
-candidate has now been declared, measured and **rejected** by its own rule; it fixed readability and
-its recovery test turned out to be unanswerable, so the next rule is declared below rather than the
-next candidate being chosen.
+candidate has been declared, measured and **rejected**, twice: once on a test that turned out to be
+unanswerable, then again on a repaired one. It fixes readability outright and reaches a fifth of the
+declared recovery bar where the shipped bucket reaches zero. No bucket is chosen, and the reason the
+next step is not a third constant is measured rather than asserted.
 **Evidence level:** E1 — measured on the shipped detector through the same harness as Q4, on
-simulated worlds. No real blitz record exists yet.
+simulated worlds. No real blitz record exists yet, and reversal condition 2 is about exactly that.
 **Depends on:** `research/discovery-oracle/q6_blitz_time.py`,
-`research/discovery-oracle/q8_relative_time.py`, `shared/detector.ts` (`BUCKETINGS`),
-`shared/blitz-time-candidate.ts`, `docs/MASTER_PRODUCT_DEBT.md` R-18.
+`research/discovery-oracle/q8_relative_time.py`, `research/discovery-oracle/q9_answerable_plant.py`,
+`shared/detector.ts` (`BUCKETINGS`), `shared/blitz-time-candidate.ts`,
+`docs/MASTER_PRODUCT_DEBT.md` R-18.
 
 ## CLAIM
 
@@ -307,6 +309,92 @@ candidate:
 number and choose on it. Or ship anything — the six in `hypothesis-manifest.ts` are frozen, and a
 passing candidate earns the right to be *proposed*, which is its own decision with its own hash
 change.
+
+## THE SECOND RESULT
+
+`research/discovery-oracle/q9_answerable_plant.py`, run against the rule committed above in
+`1774b66` before the file existed. Same two arms, same worlds, same seeds, same scoring code —
+`run_world`, `arm` and `region_probe` are imported from Q8 rather than copied, because two arm loops
+that can disagree about something neither run is about is the failure this node's first result
+section is entirely about. Full output in
+`research/discovery-oracle/results/q9_answerable_plant.txt`.
+
+### Condition 1, reported first: the plant is a genuine subset
+
+| arm | target bucket | planted share | inside the bucket | unplanted decisions | planted **and** outside, at least | answerable |
+| --- | --- | --- | --- | --- | --- | --- |
+| shipped | `fast-under-45s` | 0.2722 | 0.9681 | 380 | 0.0000 | **yes** |
+| candidate | `fast-relative` | 0.2722 | 0.1867 | 380 | 0.0856 | **yes** |
+
+A median derivation half holds 522 decisions and `MIN_BUCKET_N` is 30. The plant covers 27% of the
+record instead of `clean-fast`'s 97%; there are **380** unplanted decisions to contrast against
+instead of 16; and only 8.6% of the record is planted-and-outside the candidate's bucket instead of
+79%. **This is a question either arm could have answered yes to**, which is what makes the rest of
+the table evidence about buckets rather than about the fixture.
+
+### VERDICT: REJECTED — and this time the rejection is about the candidate
+
+| condition, as declared | measured | required | |
+| --- | --- | --- | --- |
+| 1 · the plant is a genuine subset | answerable, both arms | — | **PASS** |
+| 2 · false-claim rate on blitz nulls | 0.0000, upper 95% **0.0024** | ≤ 0.02 | **PASS** |
+| 3 · `relative-fast` validated-on-target | **0.0475** | ≥ 0.2112 | **FAIL** |
+
+The bar is half of *this run's own* middlegame control, 0.4225. That control has now been drawn four
+times — 0.4475 on Q4's mixed controls, 0.4175 in Q6 and Q8, 0.4225 here on a different draw of the
+same world — so the worlds are stable and the bar is not an artefact of one seed.
+
+### What the two arms actually did, on the same plant
+
+| | shipped | candidate |
+| --- | --- | --- |
+| any-bucket recall | 0.0500 | **0.1775** |
+| named the fast bucket | **0.0000** | 0.1225 |
+| validated on target | **0.0000** | 0.0475 |
+| named something else, right direction | 0.0325 | 0.0325 |
+
+**The shipped bucket recovers a relative-time effect exactly never**, on a plant built to be
+recoverable, with 380 unplanted decisions to contrast against and the middlegame scoring 0.4225 on
+the same records. That is R-18 stated at its strongest, and it is the first time it has been said
+with a plant that could have come out otherwise.
+
+**The candidate recovers it 4.75% of the time**, which is a real improvement over zero and a fifth of
+what the rule asked for. It also names the fast bucket 12.25% of the time and fails to validate more
+than half of those, which is the prospective half doing its job.
+
+### Why 4.75% and not more, and why the cut does not now move
+
+`fast-relative` is `< 1/60` and the plant is `< 1/40`, so **the candidate's bucket is a strict subset
+of the region it is being asked to name** — it holds 18.67% of the record against the plant's 27.22%.
+That handicap was declared before the run and on purpose: a plant sitting exactly on the candidate's
+own cut would have been the candidate marking its own homework. So 0.0475 is a *lower bound* on what
+a cut aligned with a real effect would reach.
+
+**And the cut still does not move.** "Try 1/40 as the bucket" is fitting a threshold to a plant this
+file drew, which is the post-hoc move D08 refuses one level up and D05 refuses in alternative 2. The
+declared rule said the cut may not move after the run, and it does not.
+
+**What the number actually argues for is D04.** A bucket with a declared cut can only ever be near
+the truth by luck; the mechanism that finds where the line is, instead of guessing it, is the
+candidate search — which recovers `phase==endgame AND seconds<45` exactly, taking correct attribution
+from 0% to 33.5% at a 0.0010 false-claim rate. D05's alternatives 3 and 4 are both "pick a better
+constant". Q9 is the measurement that says picking a better constant is worth about five points where
+the search is worth thirty-three.
+
+### Where this leaves alternative 3
+
+**Rejected at these cuts, and not refuted as an idea.** Precisely:
+
+- as a *readability* fix it works and the evidence is strong — 0.2725 → 0.9956 usable, 0.0037 →
+  1.0000, at no cost to the false-claim rate in either run;
+- as a *recovery* fix it reaches a fifth of the declared bar with its bucket covering two thirds of
+  the planted region, and the shipped bucket reaches zero;
+- moving to alternative 4 (the fair share the clock implies) would be swapping one declared constant
+  for another declared constant plus a model of moves remaining, and Q9 is the reason to expect that
+  to buy little.
+
+The node stays `DEFER`. The next thing that changes it is D04's depth trade being settled, or a real
+blitz record, not a third constant.
 
 ## REVERSAL CONDITION
 
