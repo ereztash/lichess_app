@@ -1,0 +1,232 @@
+{
+  "decision_version": "1.0.0",
+  "anchors": {
+    "ceiling": "RC-00",
+    "ceiling_separation": 0.832,
+    "floor": "RC-01",
+    "floor_separation": 0.6000000000000001,
+    "scale": "position_between_anchors: 0 = the refuted incumbent, 1 = the ceiling"
+  },
+  "corpus": {
+    "positions_sampled": 180000,
+    "positions_in_check": 12119,
+    "games": 60000,
+    "source": "data/lichess_db_standard_rated_2013-01.pgn.zst"
+  },
+  "engine": {
+    "nodes": 200000,
+    "workers": 4,
+    "build": "Stockfish 17.1"
+  },
+  "rows": [
+    {
+      "id": "RC-00",
+      "name": "mate-in-one",
+      "family": "immediate mate threats",
+      "role": "ceiling-anchor",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": true
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 1.0,
+        "b_valid_t_minus": 0.168,
+        "chance_rate_t_plus": 0.11023148974425423,
+        "lift_over_chance_t_plus": 0.8897685102557458,
+        "separation": 0.832,
+        "position_between_anchors": 1.0,
+        "base_rate_t_plus": 0.00695730904628874,
+        "max_abs_smd": 1.4545237227913606,
+        "contextual_exception_rate_t_plus": 0.0,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.0,
+        "player_d_prime": 2.088405994275247,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "ANCHOR"
+    },
+    {
+      "id": "RC-01",
+      "name": "loose-piece",
+      "family": "elementary tactical safety relations",
+      "role": "incumbent-floor",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.784,
+        "b_valid_t_minus": 0.184,
+        "chance_rate_t_plus": 0.04618482014993361,
+        "lift_over_chance_t_plus": 0.7378151798500664,
+        "separation": 0.6000000000000001,
+        "position_between_anchors": 0.0,
+        "base_rate_t_plus": 0.07000196567806959,
+        "max_abs_smd": 0.4865543494093152,
+        "contextual_exception_rate_t_plus": 0.21599999999999997,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.14,
+        "player_d_prime": 1.555467704237147,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "ANCHOR"
+    },
+    {
+      "id": "RC-02",
+      "name": "recapture",
+      "family": "recapture decisions",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.66,
+        "b_valid_t_minus": 0.26,
+        "chance_rate_t_plus": 0.049661694567909594,
+        "lift_over_chance_t_plus": 0.6103383054320904,
+        "separation": 0.4,
+        "position_between_anchors": -0.8620689655172421,
+        "base_rate_t_plus": 0.11667192833018626,
+        "max_abs_smd": 0.7418593912184439,
+        "contextual_exception_rate_t_plus": 0.33999999999999997,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.244,
+        "player_d_prime": 1.3397950853240959,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-03",
+      "name": "capture-the-checker",
+      "family": "responding to check / escaping check",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.956,
+        "b_valid_t_minus": 0.68,
+        "chance_rate_t_plus": 0.543009523809524,
+        "lift_over_chance_t_plus": 0.4129904761904759,
+        "separation": 0.2759999999999999,
+        "position_between_anchors": -1.3965517241379326,
+        "base_rate_t_plus": 0.1697334763594356,
+        "max_abs_smd": 0.4615811918112086,
+        "contextual_exception_rate_t_plus": 0.04400000000000004,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.024,
+        "player_d_prime": 1.2592233468875875,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-04",
+      "name": "save-the-attacked-piece",
+      "family": "forced defensive responses",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.708,
+        "b_valid_t_minus": 0.296,
+        "chance_rate_t_plus": 0.24033275447336305,
+        "lift_over_chance_t_plus": 0.4676672455266369,
+        "separation": 0.412,
+        "position_between_anchors": -0.8103448275862078,
+        "base_rate_t_plus": 0.1292522679755303,
+        "max_abs_smd": 0.24857909904226475,
+        "contextual_exception_rate_t_plus": 0.29200000000000004,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.144,
+        "player_d_prime": 1.1069876811534494,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-05",
+      "name": "safe-promotion",
+      "family": "promotion-race decisions",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.568,
+        "b_valid_t_minus": 0.124,
+        "chance_rate_t_plus": 0.0530101187809389,
+        "lift_over_chance_t_plus": 0.5149898812190611,
+        "separation": 0.44399999999999995,
+        "position_between_anchors": -0.6724137931034493,
+        "base_rate_t_plus": 0.0022039420780195496,
+        "max_abs_smd": 0.8062055310441797,
+        "contextual_exception_rate_t_plus": 0.43200000000000005,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.16,
+        "player_d_prime": 1.2803099157309452,
+        "player_d_prime_monotone_in_rating": null
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-06",
+      "name": "answer-the-mate-threat",
+      "family": "threat recognition",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": true
+      },
+      "eligible": true,
+      "measurements": {
+        "b_valid_t_plus": 0.968,
+        "b_valid_t_minus": 0.2,
+        "chance_rate_t_plus": 0.3173069971618108,
+        "lift_over_chance_t_plus": 0.6506930028381892,
+        "separation": 0.768,
+        "position_between_anchors": 0.7241379310344829,
+        "base_rate_t_plus": 0.012389728438596388,
+        "max_abs_smd": 0.5725352788187477,
+        "contextual_exception_rate_t_plus": 0.03200000000000003,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.028925619834710745,
+        "player_d_prime": 1.3487588648824858,
+        "player_d_prime_monotone_in_rating": true
+      },
+      "verdict": "ELIGIBLE"
+    }
+  ],
+  "eligible_ranked": [
+    "RC-06"
+  ],
+  "recommended": "RC-06",
+  "eligibility_is_not_sufficiency": "Passing all five gates means the trigger predicts a correct action better than chance and more sharply than the refuted incumbent. It does NOT mean T+ and T- are exchangeable, and it does not mean a human study is warranted. Exchangeability is reported per candidate as max_abs_smd and is not a gate here because no literature-justified cut point exists for it in this design.",
+  "if_nothing_is_eligible": "That is a finding, not a failure of the search: it would say rule use is not identifiable from the final move alone in any family tried, and the program would have to move to process evidence or a different paradigm."
+}

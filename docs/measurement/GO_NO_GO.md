@@ -3,6 +3,11 @@
 **Decision: NO-GO for production. NO-GO for a human pilot of the construct as stated. GO for one
 narrow, specified next step.**
 
+> **Superseded in part, 2026-08-31.** §7's proposed next step was overridden by the owner and
+> replaced by a rule-class search, which found one eligible candidate. See
+> [`RULE_CLASS_SEARCH.md`](RULE_CLASS_SEARCH.md). The NO-GO decisions below are unchanged; what
+> changed is what happens next, and §7 now records the override.
+
 Repository state this decision was taken against: `main` at
 `68d61c216c6932455cc61bbe33eb65e7042a6bd7`, `npm run verify` clean (2,646 tests, 20/20 gates,
 20/20 positive controls red, bundle within budget). PR #45 open, draft, unmerged. **Nothing was
@@ -153,13 +158,22 @@ Two inferences are refuted. Recruiting humans now would spend their time produci
 [F3](FALSIFICATION_REGISTER.md#f3) and [F2](FALSIFICATION_REGISTER.md#f2) already show cannot be
 interpreted.
 
-**One narrower pilot is justified, and it is not a pilot of the product.** It is an **item-bank
-adjudication study**: 200–300 T+ items, ≥ 2 independent strong-player adjudicators, one question per
-item — *"is taking the designated piece the move here, and if not, why not?"* It supplies the
-`human_adjudication` field that is `UNKNOWN` everywhere, and it is the only thing that can decide
-whether the 15.0% engine-blunder rate reflects positions where the rule genuinely does not apply or
-positions where the engine sees deeper than the rule. **It measures the instrument, not a learner,
-and no participant is asked to learn anything.**
+**This section proposed an item-bank adjudication study — 200–300 T+ items, two strong-player
+adjudicators — and the owner overrode it. The override was correct.** Even 95% agreement between
+two grandmasters would only have produced a better detector of *when it is worth taking an
+unprotected piece*, which is already a different construct, and the effort would have gone into
+rescuing a rule class instead of asking whether a sharper one exists.
+
+**What ran instead: a search for behaviourally identifiable rule classes**, reported in
+[`RULE_CLASS_SEARCH.md`](RULE_CLASS_SEARCH.md). Seven rule classes on the same 60,000 unfiltered
+games, with the prescribed action graded by an engine that never saw the rule. **One candidate
+passed: `RC-06 answer-the-mate-threat`**, at `B_valid | T+` = .968 against `B_valid | T−` = .200 —
+72% of the way from this refuted incumbent to the sharpest rule class chess allows. Four of the
+five candidates scored *below* the incumbent.
+
+**Still NO for a human pilot.** RC-06's T+ and T− items differ by max |SMD| 0.573, so
+[F2](FALSIFICATION_REGISTER.md#f2) applies to it unchanged, and a multiple-baseline design needs at
+least three independently measurable rule classes where there is currently one.
 
 ---
 
@@ -192,16 +206,21 @@ Machine-readable — `docs/measurement/STRONGEST_PERMITTED_CLAIM.json`.
 
 ## What happens next, in order
 
-1. **Item-bank adjudication study** (§7). Cheap, human-in-the-loop, decides whether narrowing is
-   possible at all. **The only sanctioned next step.**
-2. **Search for a rule class with cleaner T and B**, per the reversal condition in
-   [`CONSTRUCT_DECISION.md`](CONSTRUCT_DECISION.md). Likely a better use of a cycle than repairing
-   this one.
-3. **Simulation of the operating characteristics** of *d′* at realistic per-person trial counts, to
-   replace the three **[NO JUSTIFIED THRESHOLD]** entries in
-   [`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md) that simulation can actually close.
-4. **Only then**, a measurement-only reactivity arm ([F7](FALSIFICATION_REGISTER.md#f7)).
-5. **Only after all of the above**, a learning study under WWC SCD v5.
+1. ~~Item-bank adjudication study~~ — **overridden by the owner and not run.** See §7.
+2. **Search for a rule class with cleaner T and B** — **DONE.**
+   [`RULE_CLASS_SEARCH.md`](RULE_CLASS_SEARCH.md): one eligible candidate,
+   `RC-06 answer-the-mate-threat`, and a mechanism that says why the capture families failed —
+   an offensive rule competes with the whole board, a defensive rule against mate does not,
+   because the alternative is losing.
+3. **Exchangeability for RC-06.** Max |SMD| 0.573 is now the live blocker, and it is the same
+   blocker as [F2](FALSIFICATION_REGISTER.md#f2). Matching, or minimal transformation, measured.
+4. **More defensive, severity-protected candidates**, chosen by that mechanism rather than by
+   browsing families. Three independently measurable rule classes are the precondition for the
+   multiple-baseline design in [`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md) §2.2.
+5. **Simulation of the operating characteristics** of *d′* at realistic per-person trial counts, to
+   close the **[NO JUSTIFIED THRESHOLD]** entries simulation can close.
+6. **Only then**, a measurement-only reactivity arm ([F7](FALSIFICATION_REGISTER.md#f7)).
+7. **Only after all of the above**, a learning study under WWC SCD v5.
 
 **Not on this list, and deliberately:** building a behavioural-transfer feature. The research
 artifacts look substantial; that is not a reason, and this document is what stops it from becoming

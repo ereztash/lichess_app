@@ -1,0 +1,1251 @@
+{
+  "screen_version": "1.0.0",
+  "engine": {
+    "nodes": 200000,
+    "workers": 4,
+    "build": "Stockfish 17.1"
+  },
+  "sample_per_cell": 250,
+  "engine_failures": 0,
+  "seed": 20260831,
+  "corpus": {
+    "positions_sampled": 180000,
+    "positions_in_check": 12119,
+    "games": 60000,
+    "source": "data/lichess_db_standard_rated_2013-01.pgn.zst"
+  },
+  "anchors": {
+    "ceiling": "RC-00",
+    "floor": "RC-01",
+    "ceiling_separation": 0.832,
+    "floor_separation": 0.6000000000000001
+  },
+  "rule_classes": {
+    "RC-00": {
+      "name": "mate-in-one",
+      "family": "immediate mate threats",
+      "role": "ceiling-anchor",
+      "prescription": "if a move mates, play it; a check that is not mate is the error",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "existential-over-legal-moves",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 250,
+            "n": 250,
+            "p": 1.0,
+            "ci95": [
+              0.9848661527503766,
+              1.0
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 0,
+          "cp_loss_q1_q3": [
+            0,
+            0
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "prescription_size_mean": 0.11023148974425423,
+          "prescription_size_median": 0.09090909090909091
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 42,
+            "n": 250,
+            "p": 0.168,
+            "ci95": [
+              0.12675788778063776,
+              0.21929098679311218
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 277,
+          "cp_loss_q1_q3": [
+            23,
+            526
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 151,
+            "n": 250,
+            "p": 0.604,
+            "ci95": [
+              0.5422409376574205,
+              0.6626112221146577
+            ]
+          },
+          "prescription_size_mean": 0.058791513134804234,
+          "prescription_size_median": 0.041666666666666664
+        },
+        "separation_b_valid": 0.832,
+        "contextual_exception_rate_t_plus": 0.0
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.6532734349061652,
+        "n_legal_captures": 0.39725191509041285,
+        "n_checks_available": 1.4545237227913606,
+        "n_forcing_moves": 1.1993312594721501,
+        "piece_count": -0.4272856798137983,
+        "material_balance": 0.8805116325118452,
+        "total_material": -0.33549416995485454,
+        "fullmove_number": 0.42738688655796714
+      },
+      "c6_max_abs_smd": 1.4545237227913606,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "STRONG, and only for the detection half. Mating tasks are a validated expertise-sensitive paradigm: Kuchelmeister et al. (2024), 'Expertise-dependent visuocognitive performance of chess players in mating tasks', Frontiers in Psychology 15:1294424, ran n-mate tasks on a real board with eye tracking across novice/intermediate/expert. Sheridan & Reingold (2014) use the same logic on minimised boards. Every one of these measures whether the player SEES the mate; none measures whether they then play it.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 1168,
+          "n": 167881,
+          "p": 0.00695730904628874,
+          "ci95": [
+            0.006570823156735072,
+            0.007366358888412714
+          ]
+        },
+        "t_minus": {
+          "k": 78419,
+          "n": 167881,
+          "p": 0.4671106319357164,
+          "ci95": [
+            0.46472478936876527,
+            0.4694979796748455
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.8601368691189051,
+        "false_alarm_rate": 0.15685411884723285,
+        "d_prime": 2.088405994275247,
+        "criterion_c": -0.03673147816344957,
+        "n_t_plus": 1168,
+        "n_t_minus": 78419,
+        "by_rating_band": {
+          "1200-1400": {
+            "d_prime": 1.9457798296054651,
+            "criterion_c": 0.0014420463226246794,
+            "n_t_plus": 165,
+            "n_t_minus": 9975
+          },
+          "1400-1600": {
+            "d_prime": 2.0403377463006427,
+            "criterion_c": -0.023687761719612843,
+            "n_t_plus": 434,
+            "n_t_minus": 28101
+          },
+          "1600-1800": {
+            "d_prime": 2.186847580733721,
+            "criterion_c": -0.07492360030854706,
+            "n_t_plus": 374,
+            "n_t_minus": 26017
+          },
+          "1800-3500": {
+            "d_prime": 2.0851117974878197,
+            "criterion_c": 0.0023529331930109976,
+            "n_t_plus": 170,
+            "n_t_minus": 12655
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "C3 is `existential-over-legal-moves`: T is 'a mating move exists', so C4 is nearly definitional and the construct is 'did you SEE it', not 'does knowledge control the act'. This is why it is an ANCHOR and not a product candidate.",
+        "B is 'gave check', which on T+ is satisfied by non-mating checks too. That is deliberate: it keeps the same B on both sides of the contrast, which is what makes the T- cell a false-alarm cell rather than a different measurement."
+      ],
+      "position_between_anchors": 1.0
+    },
+    "RC-01": {
+      "name": "loose-piece",
+      "family": "elementary tactical safety relations",
+      "role": "incumbent-floor",
+      "prescription": "if exactly one enemy piece is capturable and undefended, take it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 196,
+            "n": 250,
+            "p": 0.784,
+            "ci95": [
+              0.7288955001859427,
+              0.8305084745762712
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 1,
+          "cp_loss_q1_q3": [
+            -10,
+            17
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 35,
+            "n": 250,
+            "p": 0.14,
+            "ci95": [
+              0.10241566325298423,
+              0.1884807067667446
+            ]
+          },
+          "prescription_size_mean": 0.04618482014993361,
+          "prescription_size_median": 0.037037037037037035
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 46,
+            "n": 250,
+            "p": 0.184,
+            "ci95": [
+              0.14087481495903226,
+              0.2366897765027297
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 152,
+          "cp_loss_q1_q3": [
+            20,
+            458
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 139,
+            "n": 250,
+            "p": 0.556,
+            "ci95": [
+              0.49402378531370017,
+              0.616281223794342
+            ]
+          },
+          "prescription_size_mean": 0.030775573912974703,
+          "prescription_size_median": 0.027777777777777776
+        },
+        "separation_b_valid": 0.6000000000000001,
+        "contextual_exception_rate_t_plus": 0.21599999999999997
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.48617014222494104,
+        "n_legal_captures": 0.03781710190151744,
+        "n_checks_available": 0.004934777091116784,
+        "n_forcing_moves": 0.07988091723724662,
+        "piece_count": -0.31230329875916124,
+        "material_balance": -0.4865543494093152,
+        "total_material": -0.39280260735285405,
+        "fullmove_number": 0.17997874131696528
+      },
+      "c6_max_abs_smd": 0.4865543494093152,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "No validated instrument. The practitioner heuristic 'loose pieces drop off' is tier F. See docs/measurement/EXISTING_MEASURE_AUDIT.md.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 11752,
+          "n": 167881,
+          "p": 0.07000196567806959,
+          "ci95": [
+            0.06879124099662437,
+            0.07123236909206632
+          ]
+        },
+        "t_minus": {
+          "k": 45752,
+          "n": 167881,
+          "p": 0.2725263728474336,
+          "ci95": [
+            0.2704016519524461,
+            0.2746615040055244
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.7852037777588701,
+        "false_alarm_rate": 0.22196358708718553,
+        "d_prime": 1.555467704237147,
+        "criterion_c": -0.012155407318127753,
+        "n_t_plus": 11752,
+        "n_t_minus": 45752,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 1.5328182671321657,
+            "criterion_c": 0.0886240179642721,
+            "n_t_plus": 238,
+            "n_t_minus": 990
+          },
+          "1200-1400": {
+            "d_prime": 1.4297417523605551,
+            "criterion_c": 0.059241665660768106,
+            "n_t_plus": 1657,
+            "n_t_minus": 5634
+          },
+          "1400-1600": {
+            "d_prime": 1.5003215984685603,
+            "criterion_c": -0.0014292254263436055,
+            "n_t_plus": 4286,
+            "n_t_minus": 15886
+          },
+          "1600-1800": {
+            "d_prime": 1.612549706825316,
+            "criterion_c": -0.041504530475373,
+            "n_t_plus": 3779,
+            "n_t_minus": 15379
+          },
+          "1800-3500": {
+            "d_prime": 1.69784355274248,
+            "criterion_c": -0.06482914342611146,
+            "n_t_plus": 1792,
+            "n_t_minus": 7863
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "Already refuted as a measurement in docs/measurement/FALSIFICATION_REGISTER.md. Re-measured here under the identical harness so every candidate is compared with the incumbent by the same instrument rather than across two studies."
+      ],
+      "position_between_anchors": 0.0
+    },
+    "RC-02": {
+      "name": "recapture",
+      "family": "recapture decisions",
+      "role": "candidate",
+      "prescription": "if the opponent just captured on a square you attack, take back there",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 165,
+            "n": 250,
+            "p": 0.66,
+            "ci95": [
+              0.5992527876077032,
+              0.7159043812724175
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 7,
+          "cp_loss_q1_q3": [
+            -4,
+            95
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 61,
+            "n": 250,
+            "p": 0.244,
+            "ci95": [
+              0.19489634565082414,
+              0.300852184140983
+            ]
+          },
+          "prescription_size_mean": 0.049661694567909594,
+          "prescription_size_median": 0.043478260869565216
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 65,
+            "n": 250,
+            "p": 0.26,
+            "ci95": [
+              0.20954936702346566,
+              0.31771487965635353
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 148,
+          "cp_loss_q1_q3": [
+            9,
+            443
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 131,
+            "n": 250,
+            "p": 0.524,
+            "ci95": [
+              0.46219676292977036,
+              0.5850768124022478
+            ]
+          },
+          "prescription_size_mean": 0.03383464306197196,
+          "prescription_size_median": 0.029411764705882353
+        },
+        "separation_b_valid": 0.4,
+        "contextual_exception_rate_t_plus": 0.33999999999999997
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.2881692793767585,
+        "n_legal_captures": 0.06749664565473637,
+        "n_checks_available": -0.17451386758721504,
+        "n_forcing_moves": -0.004641678522978454,
+        "piece_count": -0.19080596979675393,
+        "material_balance": -0.7418593912184439,
+        "total_material": -0.14745321882997997,
+        "fullmove_number": 0.07326394715058068
+      },
+      "c6_max_abs_smd": 0.7418593912184439,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "No dedicated validated paradigm found. Recapture is the canonical worked example in static-exchange treatments (Chess Programming Wiki, SEE) and in every introductory text; that is tier E/F support for the CONSTRUCT existing, not for a measure of it.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 19587,
+          "n": 167881,
+          "p": 0.11667192833018626,
+          "ci95": [
+            0.11514501663473677,
+            0.11821638292118357
+          ]
+        },
+        "t_minus": {
+          "k": 30745,
+          "n": 167881,
+          "p": 0.18313567348300283,
+          "ci95": [
+            0.18129273930553527,
+            0.184993108862427
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.7282264651827649,
+        "false_alarm_rate": 0.23198139595394524,
+        "d_prime": 1.3397950853240959,
+        "criterion_c": 0.06243963646481543,
+        "n_t_plus": 19587,
+        "n_t_minus": 30745,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 1.4071881304458873,
+            "criterion_c": 0.22853359839585666,
+            "n_t_plus": 448,
+            "n_t_minus": 668
+          },
+          "1200-1400": {
+            "d_prime": 1.3755500914516792,
+            "criterion_c": 0.11829846775158759,
+            "n_t_plus": 2563,
+            "n_t_minus": 3890
+          },
+          "1400-1600": {
+            "d_prime": 1.313364502232143,
+            "criterion_c": 0.06068933989989783,
+            "n_t_plus": 6906,
+            "n_t_minus": 10928
+          },
+          "1600-1800": {
+            "d_prime": 1.3247355734164654,
+            "criterion_c": 0.04289240329425731,
+            "n_t_plus": 6431,
+            "n_t_minus": 10179
+          },
+          "1800-3500": {
+            "d_prime": 1.3971681470064343,
+            "criterion_c": 0.04099539147548409,
+            "n_t_plus": 3239,
+            "n_t_minus": 5080
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "T reads the previous move, so it is a property of a position PLUS one ply of history, not of a position alone. docs/measurement/ITEM_BANK_PROTOCOL.md rejected this family on that ground; the rejection was too strict -- history before the player's turn is available before behaviour, which is what C1 asks -- and this candidate is the correction."
+      ],
+      "position_between_anchors": -0.8620689655172421
+    },
+    "RC-03": {
+      "name": "capture-the-checker",
+      "family": "responding to check / escaping check",
+      "role": "candidate",
+      "prescription": "when a single piece checks you and nothing defends it, capture it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 239,
+            "n": 250,
+            "p": 0.956,
+            "ci95": [
+              0.9229414729274126,
+              0.9752564583809309
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 0,
+          "cp_loss_q1_q3": [
+            -8,
+            8
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 6,
+            "n": 250,
+            "p": 0.024,
+            "ci95": [
+              0.011044626630631514,
+              0.051362795951009954
+            ]
+          },
+          "prescription_size_mean": 0.543009523809524,
+          "prescription_size_median": 0.5
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 170,
+            "n": 250,
+            "p": 0.68,
+            "ci95": [
+              0.619825530285745,
+              0.7347262847043906
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 8,
+          "cp_loss_q1_q3": [
+            -6,
+            60
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 49,
+            "n": 250,
+            "p": 0.196,
+            "ci95": [
+              0.15154950681109253,
+              0.2496518723166785
+            ]
+          },
+          "prescription_size_mean": 0.39638571428571445,
+          "prescription_size_median": 0.3333333333333333
+        },
+        "separation_b_valid": 0.2759999999999999,
+        "contextual_exception_rate_t_plus": 0.04400000000000004
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.22949926096670156,
+        "n_legal_captures": 0.43508871287489315,
+        "n_checks_available": -0.2412276477291565,
+        "n_forcing_moves": 0.4274918600328524,
+        "piece_count": 0.15746985375679373,
+        "material_balance": -0.4615811918112086,
+        "total_material": -0.0004170468438177427,
+        "fullmove_number": -0.2542894740813343
+      },
+      "c6_max_abs_smd": 0.4615811918112086,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "STRONGEST IN THIS TABLE, and again only for detection. Check detection is the most-replicated chess-perception task: Sheridan & Reingold (2014) minimised-board check and double-check detection; Rosch & Vogel (2022), 'Expertise-dependent perceptual performance in chess tasks with varying complexity', Frontiers in Psychology 13:986787, report a check/no-check priming RT task with an expert congruency advantage and expert immunity to a distractor cost novices pay.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 2057,
+          "n": 12119,
+          "p": 0.1697334763594356,
+          "ci95": [
+            0.16315470088441658,
+            0.17652156775543765
+          ]
+        },
+        "t_minus": {
+          "k": 1286,
+          "n": 12119,
+          "p": 0.1061143658717716,
+          "ci95": [
+            0.1007552219189965,
+            0.11172314618902202
+          ]
+        },
+        "denominator_is": "in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.9443634596695821,
+        "false_alarm_rate": 0.6305361305361306,
+        "d_prime": 1.2592233468875875,
+        "criterion_c": -0.9628853086869431,
+        "n_t_plus": 2057,
+        "n_t_minus": 1286,
+        "by_rating_band": {
+          "1200-1400": {
+            "d_prime": 1.246053561686267,
+            "criterion_c": -0.8021768031018893,
+            "n_t_plus": 304,
+            "n_t_minus": 210
+          },
+          "1400-1600": {
+            "d_prime": 1.364881839175312,
+            "criterion_c": -0.9461335084306501,
+            "n_t_plus": 763,
+            "n_t_minus": 475
+          },
+          "1600-1800": {
+            "d_prime": 1.1371162545501594,
+            "criterion_c": -1.0372309963847501,
+            "n_t_plus": 636,
+            "n_t_minus": 401
+          },
+          "1800-3500": {
+            "d_prime": 1.2878167808374839,
+            "criterion_c": -1.1664894516153719,
+            "n_t_plus": 298,
+            "n_t_minus": 157
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "Needs positions where the side to move IS in check -- exactly the positions every corpus here excludes, because a forced reply is not a free choice. Its base rate under the shared exclusion is zero by construction and the screen records it as UNTESTED, not as failed."
+      ],
+      "position_between_anchors": -1.3965517241379326
+    },
+    "RC-04": {
+      "name": "save-the-attacked-piece",
+      "family": "forced defensive responses",
+      "role": "candidate",
+      "prescription": "if exactly one of your pieces is attacked and materially threatened, move it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 177,
+            "n": 250,
+            "p": 0.708,
+            "ci95": [
+              0.6488287723066753,
+              0.7608755472374812
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 6,
+          "cp_loss_q1_q3": [
+            -4,
+            33
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 36,
+            "n": 250,
+            "p": 0.144,
+            "ci95": [
+              0.10586196391903242,
+              0.19291333532269944
+            ]
+          },
+          "prescription_size_mean": 0.24033275447336305,
+          "prescription_size_median": 0.21621621621621623
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 74,
+            "n": 250,
+            "p": 0.296,
+            "ci95": [
+              0.24284512248053705,
+              0.3553294871973093
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 40,
+          "cp_loss_q1_q3": [
+            3,
+            205
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 95,
+            "n": 250,
+            "p": 0.38,
+            "ci95": [
+              0.3220763555106477,
+              0.44155576782926187
+            ]
+          },
+          "prescription_size_mean": 0.18533019000700895,
+          "prescription_size_median": 0.17142857142857143
+        },
+        "separation_b_valid": 0.412,
+        "contextual_exception_rate_t_plus": 0.29200000000000004
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.029082716887566216,
+        "n_legal_captures": 0.21935634141741478,
+        "n_checks_available": 0.18684588656527998,
+        "n_forcing_moves": 0.24857909904226475,
+        "piece_count": -0.17531965283550602,
+        "material_balance": 0.019708154897066427,
+        "total_material": -0.2083712023681183,
+        "fullmove_number": 0.09416151421723924
+      },
+      "c6_max_abs_smd": 0.24857909904226475,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only. The threat-detection task -- count the black pieces attacking white pieces -- is used in the chess-expertise eye-movement literature, where experts fixate the pieces forming the threat relationship more than novices do, within the first three seconds. It establishes that threat relations are perceptually available to experts. It says nothing about what they then play.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 21699,
+          "n": 167881,
+          "p": 0.1292522679755303,
+          "ci95": [
+            0.12765594880772643,
+            0.13086555430336802
+          ]
+        },
+        "t_minus": {
+          "k": 29403,
+          "n": 167881,
+          "p": 0.17514191600002382,
+          "ci95": [
+            0.1733311621991226,
+            0.1769675368348228
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.6956451612903226,
+        "false_alarm_rate": 0.27589783702897563,
+        "d_prime": 1.1069876811534494,
+        "criterion_c": 0.04157766578843031,
+        "n_t_plus": 21699,
+        "n_t_minus": 29403,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 1.0663257538217175,
+            "criterion_c": 0.07678031231813026,
+            "n_t_plus": 556,
+            "n_t_minus": 536
+          },
+          "1200-1400": {
+            "d_prime": 1.0995404534983915,
+            "criterion_c": 0.07229602490449555,
+            "n_t_plus": 3021,
+            "n_t_minus": 3421
+          },
+          "1400-1600": {
+            "d_prime": 1.071299383889361,
+            "criterion_c": 0.0403176144418875,
+            "n_t_plus": 7983,
+            "n_t_minus": 10117
+          },
+          "1600-1800": {
+            "d_prime": 1.1242003412496153,
+            "criterion_c": 0.032723018588329766,
+            "n_t_plus": 7001,
+            "n_t_minus": 10016
+          },
+          "1800-3500": {
+            "d_prime": 1.1717724129591456,
+            "criterion_c": 0.027086150307699564,
+            "n_t_plus": 3138,
+            "n_t_minus": 5313
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "B is 'moved that piece', a set of moves rather than one. Moving it is also not the only correct answer -- defending it or counter-attacking can be better -- so a low P(B_valid | T+) here would be evidence about the PRESCRIPTION, not about players."
+      ],
+      "position_between_anchors": -0.8103448275862078
+    },
+    "RC-05": {
+      "name": "safe-promotion",
+      "family": "promotion-race decisions",
+      "role": "candidate",
+      "prescription": "if a pawn can promote to a square nothing attacks, promote",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 142,
+            "n": 250,
+            "p": 0.568,
+            "ci95": [
+              0.5060238561876421,
+              0.6279179405864089
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 0,
+          "cp_loss_q1_q3": [
+            -1,
+            1
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 40,
+            "n": 250,
+            "p": 0.16,
+            "ci95": [
+              0.11975315933080616,
+              0.21053785679893777
+            ]
+          },
+          "prescription_size_mean": 0.0530101187809389,
+          "prescription_size_median": 0.043478260869565216
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 31,
+            "n": 250,
+            "p": 0.124,
+            "ci95": [
+              0.08874794216937745,
+              0.1706327109623393
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 135,
+          "cp_loss_q1_q3": [
+            10,
+            494
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 140,
+            "n": 250,
+            "p": 0.56,
+            "ci95": [
+              0.4980198439170466,
+              0.6201640944129987
+            ]
+          },
+          "prescription_size_mean": 0.05053487663656724,
+          "prescription_size_median": 0.038461538461538464
+        },
+        "separation_b_valid": 0.44399999999999995,
+        "contextual_exception_rate_t_plus": 0.43200000000000005
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.2243624493338772,
+        "n_legal_captures": -0.27809806994688785,
+        "n_checks_available": 0.1395305452130168,
+        "n_forcing_moves": 0.019597341699192892,
+        "piece_count": -0.8062055310441797,
+        "material_balance": 0.596030642161195,
+        "total_material": -0.7831633762743174,
+        "fullmove_number": 0.5977804358685687
+      },
+      "c6_max_abs_smd": 0.8062055310441797,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "None found. Declared absent rather than padded.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 370,
+          "n": 167881,
+          "p": 0.0022039420780195496,
+          "ci95": [
+            0.001990722094584204,
+            0.002439943550455186
+          ]
+        },
+        "t_minus": {
+          "k": 364,
+          "n": 167881,
+          "p": 0.0021682024767543675,
+          "ci95": [
+            0.0019568031793422524,
+            0.0024023848987790295
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.5997304582210242,
+        "false_alarm_rate": 0.15205479452054796,
+        "d_prime": 1.2803099157309452,
+        "criterion_c": 0.3875054687870607,
+        "n_t_plus": 370,
+        "n_t_minus": 364,
+        "by_rating_band": {
+          "1400-1600": {
+            "d_prime": 1.3149035685799682,
+            "criterion_c": 0.4377288684714041,
+            "n_t_plus": 114,
+            "n_t_minus": 127
+          },
+          "1600-1800": {
+            "d_prime": 1.3925014624642247,
+            "criterion_c": 0.44480638868893096,
+            "n_t_plus": 135,
+            "n_t_minus": 129
+          }
+        },
+        "d_prime_monotone_in_rating": null
+      },
+      "caveats": [
+        "Base rate expected to be very low; C9 is the criterion this is likely to fail."
+      ],
+      "position_between_anchors": -0.6724137931034493
+    },
+    "RC-06": {
+      "name": "answer-the-mate-threat",
+      "family": "threat recognition",
+      "role": "candidate",
+      "prescription": "if the opponent threatens mate next move, play a move that stops it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 242,
+            "n": 250,
+            "p": 0.968,
+            "ci95": [
+              0.9381368887054249,
+              0.9836978302689277
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 8,
+            "n": 250,
+            "p": 0.032,
+            "ci95": [
+              0.016302169731072406,
+              0.061863111294575085
+            ]
+          },
+          "cp_loss_median": 1,
+          "cp_loss_q1_q3": [
+            -7,
+            14
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 7,
+            "n": 242,
+            "p": 0.028925619834710745,
+            "ci95": [
+              0.014080624901213219,
+              0.05849293465908903
+            ]
+          },
+          "prescription_size_mean": 0.3173069971618108,
+          "prescription_size_median": 0.2972972972972973
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 50,
+            "n": 250,
+            "p": 0.2,
+            "ci95": [
+              0.15512326880286578,
+              0.25395703954690824
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 41,
+            "n": 250,
+            "p": 0.164,
+            "ci95": [
+              0.12325083757520047,
+              0.21491910777654646
+            ]
+          },
+          "cp_loss_median": 49,
+          "cp_loss_q1_q3": [
+            5,
+            150
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 71,
+            "n": 209,
+            "p": 0.3397129186602871,
+            "ci95": [
+              0.27891193160590577,
+              0.4062999818546208
+            ]
+          },
+          "prescription_size_mean": 0.10102030674321982,
+          "prescription_size_median": 0.08108108108108109
+        },
+        "separation_b_valid": 0.768,
+        "contextual_exception_rate_t_plus": 0.03200000000000003
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 41,
+          "n": 250,
+          "p": 0.164,
+          "ci95": [
+            0.12325083757520047,
+            0.21491910777654646
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.42738088264067003,
+        "n_legal_captures": -0.03474082224150366,
+        "n_checks_available": 0.12345915323965075,
+        "n_forcing_moves": 0.06279494473301703,
+        "piece_count": -0.33093487760557083,
+        "material_balance": -0.5725352788187477,
+        "total_material": -0.24084113469321605,
+        "fullmove_number": 0.30506293191228867
+      },
+      "c6_max_abs_smd": 0.5725352788187477,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only. Threat recognition is a named construct in chess cognition and the threat-detection task above is its validated form. The mating literature covers seeing a mate; nothing found covers preventing the opponent's.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 2080,
+          "n": 167881,
+          "p": 0.012389728438596388,
+          "ci95": [
+            0.011871624307350313,
+            0.012930147909349921
+          ]
+        },
+        "t_minus": {
+          "k": 80332,
+          "n": 167881,
+          "p": 0.47850560813909854,
+          "ci95": [
+            0.47611653593507325,
+            0.48089566402759437
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.7157616530514176,
+        "false_alarm_rate": 0.21814820808385096,
+        "d_prime": 1.3487588648824858,
+        "criterion_c": 0.10408304971414778,
+        "n_t_plus": 2080,
+        "n_t_minus": 80332,
+        "by_rating_band": {
+          "1200-1400": {
+            "d_prime": 1.1803210599408835,
+            "criterion_c": 0.2569971896355207,
+            "n_t_plus": 363,
+            "n_t_minus": 11057
+          },
+          "1400-1600": {
+            "d_prime": 1.2737894027704901,
+            "criterion_c": 0.15341922719035686,
+            "n_t_plus": 764,
+            "n_t_minus": 29013
+          },
+          "1600-1800": {
+            "d_prime": 1.534675673662497,
+            "criterion_c": -0.00840966076107913,
+            "n_t_plus": 627,
+            "n_t_minus": 26110
+          },
+          "1800-3500": {
+            "d_prime": 1.666369315780877,
+            "criterion_c": -0.11335477829069401,
+            "n_t_plus": 252,
+            "n_t_minus": 12142
+          }
+        },
+        "d_prime_monotone_in_rating": true
+      },
+      "caveats": [
+        "B is a predicate over the resulting position, so the satisfying set can be large. `prescription_size` is the guard: a rule satisfied by most legal moves scores well on C4 for no good reason."
+      ],
+      "position_between_anchors": 0.7241379310344829
+    }
+  },
+  "structurally_rejected": [
+    {
+      "family": "legal / illegal tactical affordances",
+      "why": "In every interface this product could ship, illegal moves are unplayable. B has no variance, so there is nothing to discriminate."
+    },
+    {
+      "family": "prohibitions -- 'do not move a piece to a square a cheaper piece attacks'",
+      "why": "Hits are non-events: complying with a prohibition looks identical to never having considered it. The noise trial would be every other move in the position, so the false-alarm cell has no natural denominator."
+    },
+    {
+      "family": "'capture toward the centre' and similar positional maxims",
+      "why": "No board-only trigger exists; the condition is a judgement, which is what C3 forbids."
+    }
+  ],
+  "determinism": "Stockfish runs with Threads 1 at a fixed node budget, so a position's result does not depend on which worker took it or on how many workers ran."
+}
