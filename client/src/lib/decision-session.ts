@@ -172,6 +172,29 @@ export const isCommittable = (
 export const engineMayRun = (stage: SessionStage): boolean => stage === "revealed";
 
 /**
+ * LAW 1: the player is producing evidence right now, so nothing may show them prior evidence.
+ *
+ * WHILE THIS IS TRUE, no reading of the record may be on screen -- not the claim panel, not the
+ * learning queue, not the record dashboard, not a pattern already found. A calibration gap is
+ * `confidence - accuracy`, and the confidence is STATED on this screen. Stating it beside a panel
+ * describing the player's calibration does not measure what they believed; it measures what they
+ * believed after being told, and nothing downstream can separate the two afterwards.
+ *
+ * WRITTEN AS A NEGATION, WHICH IS THE WHOLE POINT. An allowlist of the stages that hide prior
+ * evidence would let a stage added later show it by default, and the cost of that default is a
+ * contaminated measurement that looks exactly like a clean one. A new stage is mid-evidence until
+ * somebody says otherwise, in this function, deliberately.
+ *
+ * THE SAME BOUNDARY AS `engineMayRun`, AND THAT IS NOT A COINCIDENCE: the moment the engine is
+ * allowed to speak is the moment the record is allowed to. Before it, both are things the product
+ * would be saying to a player whose answer it has not finished collecting. They are two rules
+ * rather than one alias because they could legitimately diverge -- and if they ever do, somebody
+ * has to write it down. `tests/client/nothing-to-read-while-you-decide.test.tsx` holds the
+ * partition, so the divergence cannot happen quietly.
+ */
+export const makingEvidence = (stage: SessionStage): boolean => stage !== "revealed";
+
+/**
  * The commit event. Field names are the atom's, unchanged (section 3.1, GATE-ISO).
  *
  * `result` and `feedback` are typed as exactly `null`, not as nullable: at commit time the

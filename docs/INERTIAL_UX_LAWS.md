@@ -70,6 +70,25 @@ they believed after being told.
 
 **Gate:** `GATE-DECISION-FOCUS`.
 
+### Status: held
+
+`makingEvidence(stage)` in `client/src/lib/decision-session.ts` is the boundary, and it is written
+as a negation — every stage but the reveal — so a stage added later is mid-evidence until somebody
+says otherwise in that function, deliberately. It is the exact complement of `engineMayRun`, which
+is not a coincidence: **the moment the engine may speak is the moment the record may.**
+
+What the first pass found, beyond the two panels the law names: the analysis column branched on
+`deciding`, which is `"deciding" || "committing"` — so at `"committed"`, the counterfactual stage,
+the chain fell through to the *reveal* column and rendered all of it. The product asked a player to
+name the move they would have played instead, with a dashboard of their own accuracy rates beside
+the question.
+
+Held by `tests/client/nothing-to-read-while-you-decide.test.tsx` until the gate is registered at
+P2. Three of the seven surfaces cannot be reached by a serverless render — they need a feature
+flag, a record reading, a connected account — so those are held structurally instead, by their
+position relative to the branch. A DOM assertion that can never go red reads as coverage and is
+worse than none.
+
 ---
 
 ## LAW 2 — One primary action

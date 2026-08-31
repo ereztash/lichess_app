@@ -26,6 +26,7 @@
  * a test can count them without a hand-maintained number.
  */
 import { FileUp, Plus, Upload, UserSearch } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 export type PositionSourceId = "new" | "pgn" | "username" | "file";
 
@@ -130,6 +131,55 @@ export function PositionSourceMenu({
       <p className="position-source-note">
         העמדה שעל הלוח נשארת כפי שהיא עד שתבחרו אחת מאלה.
       </p>
+    </section>
+  );
+}
+
+/**
+ * The `pgn` source's own body, beside the menu that offers it.
+ *
+ * MOVED OUT OF `Home.tsx` UNDER ITS RATCHET, and to the file the menu already lives in rather than
+ * to a new one: this is the third of the four sources rendering its own surface, and the argument
+ * for the door being here is the argument for its rooms being here too. `new` and `username` were
+ * already components; `file` is an `<input>`; this was the one still spelled out in the page.
+ */
+export function PgnDrawer({
+  value,
+  onChange,
+  onLoad,
+  onSample,
+  onClose,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  onLoad: () => void;
+  /** Fills the box with the demo game. Not a load: the player still presses the button. */
+  onSample: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <section className="pgn-drawer">
+      <div className="drawer-heading">
+        <div>
+          <span>הדבקת PGN</span>
+          <b>IMPORT</b>
+        </div>
+        <button onClick={onClose}>סגור</button>
+      </div>
+      <Textarea value={value} onChange={(e) => onChange(e.target.value)} dir="ltr" />
+      <div className="drawer-actions">
+        <button className="drawer-confirm" onClick={onLoad}>
+          טען למשחק
+        </button>
+        {/*
+         * The demo game used to BE the opening screen, which is what made the app unplayable. It is
+         * still worth having -- it is the shortest way to see the review and timeline against a
+         * finished game -- so it lives here, where loading it is something the player chooses.
+         */}
+        <button className="ghost-control" onClick={onSample}>
+          הדביקו משחק לדוגמה
+        </button>
+      </div>
     </section>
   );
 }

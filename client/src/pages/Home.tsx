@@ -18,7 +18,6 @@ import { useLocation } from "wouter";
 import { lazyChunk } from "@/lib/lazy-chunk";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Textarea } from "@/components/ui/textarea";
 import { RecordModeNotice } from "@/components/RecordModeNotice";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
@@ -50,10 +49,11 @@ import { effectiveTiming, mayShowVerdictNow, type RevealTiming } from "@shared/r
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
 import { ImportGames } from "@/components/ImportGames";
-import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
+import { SavedReadingOverlay } from "@/components/ImportDiagnostic";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import {
   POSITION_SOURCES,
+  PgnDrawer,
   PositionSourceMenu,
   type PositionSourceId,
 } from "@/components/PositionSource";
@@ -118,6 +118,7 @@ import {
   cpLossFromSearches,
   cpLossOfFinalMove,
   engineMayRun,
+  makingEvidence,
   type DraftDecision,
   type CommitEvent,
   type SessionStage,
@@ -1744,6 +1745,26 @@ export default function Home() {
   const recordMode = useRecordMode();
 
   const deciding = stage === "deciding" || stage === "committing";
+  /*
+   * DECISION FOCUS (LAW 1). True in every stage except the reveal -- deciding, the write in
+   * flight, and the counterfactual question in between.
+   *
+   * WHAT IT TURNS OFF, and why each one is not a nicety. `ClaimPanel` and `LearningQueue` are
+   * readings of the record, shown while the player states how sure they are about a move; the
+   * control rail is four ways to abandon the position under decision, at the same weight as each
+   * other; and at `committed` -- the counterfactual stage -- the whole reveal column used to
+   * render, dashboard and all, because the chain below branched on `deciding` and `deciding` is
+   * false there. So the product asked "what would you have played instead?" with a panel of the
+   * player's own accuracy rates beside the question.
+   *
+   * The argument was already in this file, one branch down, for the one condition where a player
+   * had explicitly asked for silence:
+   *
+   *   REPLACES the claim panel and the learning queue for the duration, rather than joining them.
+   *
+   * It is every decision this product measures, not just that one.
+   */
+  const focus = makingEvidence(stage);
   /**
    * A live game the player chose to have the engine stay quiet through.
    *
@@ -1874,7 +1895,7 @@ export default function Home() {
          * no drill is started, because starting one from a sentence would be the ribbon acting
          * on the record it is describing.
          */
-        onGoTo={(target) => {
+        onGoTo={focus ? undefined : (target) => {
           if (target === "import") {
             openPositionSource("username");
             return;
@@ -1905,6 +1926,19 @@ export default function Home() {
           * the loudest thing on the page, and what it offers is discarding the position the
           * product exists to measure. The blue belongs to the commitment panel's submit.
           */}
+        {/*
+          * NOT ON SCREEN WHILE A DECISION IS OPEN (LAW 1, LAW 2).
+          *
+          * Every control in this rail answers "give me something else": another position, another
+          * account, a reading from another day. Offered beside an open decision they are four
+          * equal-weight ways to discard the thing being measured -- and the panel's submit, which
+          * is the one primary action of this state, has to compete with them for the eye.
+          *
+          * ABSENT RATHER THAN DISABLED. A disabled control still says "there is a thing here you
+          * could be doing", which is the cost this removes. It comes back at the reveal, where
+          * choosing what to do next is exactly what the player is there for.
+          */}
+        {!focus && (
         <aside className="control-rail">
           <div className="rail-label">כלי עבודה</div>
           <button
@@ -1956,6 +1990,7 @@ export default function Home() {
             }}
           />
         </aside>
+        )}
 
         <section className="board-workspace">
           <div className="workspace-meta">
@@ -2047,37 +2082,13 @@ export default function Home() {
                     />
                   )}
                   {positionChoice === "pgn" && (
-                    <section className="pgn-drawer">
-                      <div className="drawer-heading">
-                        <div>
-                          <span>הדבקת PGN</span>
-                          <b>IMPORT</b>
-                        </div>
-                        <button onClick={closePositionSource}>סגור</button>
-                      </div>
-                      <Textarea
-                        value={pgnInput}
-                        onChange={(e) => setPgnInput(e.target.value)}
-                        dir="ltr"
-                      />
-                      <div className="drawer-actions">
-                        <button className="drawer-confirm" onClick={() => importPgn(pgnInput)}>
-                          טען למשחק
-                        </button>
-                        {/*
-                         * The demo game used to BE the opening screen, which is what made the app
-                         * unplayable. It is still worth having -- it is the shortest way to see
-                         * the review and timeline against a finished game -- so it lives here,
-                         * where loading it is something the player chooses.
-                         */}
-                        <button
-                          className="ghost-control"
-                          onClick={() => setPgnInput(DEFAULT_PGN)}
-                        >
-                          הדביקו משחק לדוגמה
-                        </button>
-                      </div>
-                    </section>
+                    <PgnDrawer
+                      value={pgnInput}
+                      onChange={setPgnInput}
+                      onLoad={() => importPgn(pgnInput)}
+                      onSample={() => setPgnInput(DEFAULT_PGN)}
+                      onClose={closePositionSource}
+                    />
                   )}
                 </>
               )}
@@ -2085,23 +2096,10 @@ export default function Home() {
           )}
 
           {showReading && importReading.reading && (
-            <Overlay label="הקריאה השמורה" onClose={() => setShowReading(false)}>
-              {/*
-                * The same panel, reopened. Not a summary of it and not a second rendering of the
-                * same numbers in a smaller font: section 4.5 says two states must not render
-                * alike, and the converse holds too -- the same reading in two places must not
-                * render as two different findings. What is added is the provenance, because a
-                * rate reopened later with no scan date behind it stops being a measurement.
-                */}
-              <ImportDiagnosticPanel
-                diagnostic={importReading.reading.diagnostic}
-                provenance={{
-                  username: importReading.reading.username,
-                  games: importReading.reading.games,
-                  scannedAt: importReading.reading.scanned_at,
-                }}
-              />
-            </Overlay>
+            <SavedReadingOverlay
+              reading={importReading.reading}
+              onClose={() => setShowReading(false)}
+            />
           )}
 
           <div className="board-assembly">
@@ -2223,17 +2221,20 @@ export default function Home() {
               over={activeGame.isGameOver()}
               onSeeRecord={() => navigate("/")}
             />
-          ) : deciding ? (
-            <>
-              <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
-              {VERIFIED_LEARNING_ENABLED && (
-                <LearningQueue
-                  onStart={(ruleId) => void beginLearningTransfer(ruleId)}
-                  busy={learningTransfer !== null}
-                  error={learningTransferError}
-                />
-              )}
-            </>
+          ) : focus ? (
+            /*
+             * THE INSTRUMENT AND NOTHING ELSE (LAW 1).
+             *
+             * Two states end up here and both used to render a reading of the record. `deciding`
+             * showed the claim panel and the learning queue -- findings about the player's own
+             * decisions, on screen while they state how sure they are about this one. `committed`,
+             * the counterfactual stage, fell through to the reveal column below and got the whole
+             * of it: the analysis panel, the record dashboard, the Lichess layers.
+             *
+             * Both readings are still reachable, at the reveal, which is the stage where the
+             * engine has already spoken and a reading can no longer change what is recorded.
+             */
+            null
           ) : (
             <>
               {revealInputs && committedDraft ? (
@@ -2355,6 +2356,23 @@ export default function Home() {
                 -- it reads decisions already committed and revealed, so by construction it
                 cannot speak before the player has.
               */}
+              {/*
+                * THE READINGS OF THE RECORD, ALL IN THE ONE STAGE THAT MAY SHOW THEM.
+                *
+                * The claim panel and the learning queue used to sit on the `deciding` branch,
+                * which is the only stage where they could contaminate what was being recorded.
+                * Here they are what the player came to the reveal for: the decision is on the
+                * record, the engine has answered it, and what is worth doing next is a question
+                * this evidence can now legitimately inform.
+                */}
+              <ClaimPanel onRunDrill={beginDrill} drillError={drillError} />
+              {VERIFIED_LEARNING_ENABLED && (
+                <LearningQueue
+                  onStart={(ruleId) => void beginLearningTransfer(ruleId)}
+                  busy={learningTransfer !== null}
+                  error={learningTransferError}
+                />
+              )}
               {recordReading.data && (
                 <Suspense fallback={null}>
                   <RecordDashboard reading={recordReading.data} />

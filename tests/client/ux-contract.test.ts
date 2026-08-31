@@ -155,7 +155,13 @@ describe("transient panels do not push the board off the screen", () => {
      */
     const spans = overlaySpans(home);
     expect(spans.length, "no <Overlay>…</Overlay> pairs found in Home").toBeGreaterThan(0);
-    for (const panel of ["<NewGameSetup", "<ImportGames", 'className="pgn-drawer"']) {
+    /*
+     * THREE COMPONENT TAGS, WHICH IS WHAT THEY ALL ARE NOW. The PGN drawer was the last of the
+     * four sources still spelled out in the page; it moved to `PositionSource.tsx` beside the menu
+     * that offers it, under `Home.tsx`'s line ratchet. The claim here is unchanged -- the panel is
+     * inside an Overlay -- and it is now made the same way for all three.
+     */
+    for (const panel of ["<NewGameSetup", "<ImportGames", "<PgnDrawer"]) {
       const at = home.indexOf(panel);
       expect(at, `${panel} is not rendered any more`).toBeGreaterThan(-1);
       expect(

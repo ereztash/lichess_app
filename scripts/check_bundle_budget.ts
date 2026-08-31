@@ -396,10 +396,37 @@ const INDEX = "dist/public/index.html";
  *
  * 689 AND 767 LEAVE 1.4 kB AND 1.8 kB. The gzip ceiling did not fire and keeps its number, which
  * is the rule this file has followed every time: a ratchet nobody widened is a ratchet.
+ *
+ * ---
+ *
+ * 213 -> 215: LAW 1's decision focus, which cost 0.6 kB gzipped and ZERO raw.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              687.6      212.8       765.2
+ *     + the focus branch and the rail      687.6      213.4       765.2   +0.0 / +0.6 / +0.0
+ *     + two components out of Home.tsx     687.8      213.4       765.4   +0.2 / +0.0 / +0.2
+ *
+ * MEASURED THE SAME WAY AS THE RAISE ABOVE, and the split is the whole point: the ceiling that
+ * fired is the one the change did not add a single raw byte to.
+ *
+ * WHY THAT IS NOT A MEASUREMENT ERROR. Almost everything LAW 1 added is comment, and comments do
+ * not ship -- hence +0.0 raw. What the change does to the code is MOVE it: `<ClaimPanel>` and
+ * `<LearningQueue>` went from the `deciding` branch to the reveal branch, about two hundred lines
+ * away, and the control rail picked up a conditional. gzip back-references reach 32 kB; code that
+ * used to sit near its own near-duplicate now sits outside that window, so the same bytes compress
+ * worse. It is a real cost and it is worth exactly what it says: 0.6 kB to stop the product from
+ * showing a player their own calibration while it records how sure they are.
+ *
+ * The two extractions -- `PgnDrawer` to `PositionSource.tsx`, `SavedReadingOverlay` to
+ * `ImportDiagnostic.tsx` -- are `Home.tsx` going back under its 2,400-line ratchet. They cost
+ * 0.2 kB raw of props plumbing and nothing gzipped, and both files were already in the entry, so
+ * nothing moved between chunks.
+ *
+ * 215 LEAVES 1.6 kB, the headroom every raise above has taken. The other two did not fire.
  */
 const ENTRY_RAW_KB = 689;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 213;
+const ENTRY_GZIP_KB = 215;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
