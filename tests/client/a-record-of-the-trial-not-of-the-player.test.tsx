@@ -177,6 +177,21 @@ describe("nothing reads it back", () => {
      * how far along the player is, and the count read is not a licence for the rest of the log.
      */
     "client/src/pages/Record.tsx",
+    /*
+     * THE SHADOW, WHICH WRITES AND USES EXACTLY ONE OF THE THREE SANCTIONED READS.
+     *
+     * `next-action-shadow.ts` records what `deriveNextAction` WOULD have proposed beside what the
+     * screen actually offers, so the derivation can be watched disagreeing with the product before
+     * it is given any of it. It calls `trialEventSeen` for idempotency -- the "has this event
+     * fired" read named above -- and nothing else out of the log.
+     *
+     * IT IS A LIB AND NOT A SCREEN, WHICH IS THE PART THAT NEEDED THOUGHT. A helper that writes the
+     * log on a screen's behalf is exactly the shape of routing around this guard, and the
+     * difference here is that its return value reaches no interface at all: the case below asserts
+     * that `ResumeScreen` calls it as a STATEMENT and never binds the result. An entry added to
+     * this list without a check for the thing it could become would be the list weakening itself.
+     */
+    "client/src/lib/next-action-shadow.ts",
   ]);
 
   function sources(dir: string): string[] {
@@ -219,6 +234,36 @@ describe("nothing reads it back", () => {
       .map((file) => relative(root, file).replaceAll("\\", "/"));
 
     expect(importers).toEqual(["client/src/components/ResumeScreen.tsx"]);
+  });
+
+  it("lets the shadow write, and never lets its answer reach a screen", () => {
+    /*
+     * THE RULE THIS FILE IS ABOUT IS "the interface may not REACT to the log", and a derivation
+     * that ran beside a screen would be the most natural thing in the world to start rendering.
+     * This is the check that says it has not: the call is a statement, its value is dropped, and
+     * nothing else in the product calls it.
+     */
+    const shadow = readFileSync(resolve(root, "client/src/lib/next-action-shadow.ts"), "utf8");
+    /* The only read it takes from the log, and the ones it must never take. */
+    expect(shadow).toMatch(/trialEventSeen\("next_action_shadow"\)/);
+    expect(shadow, "the shadow reads more of the log than idempotency").not.toMatch(
+      /trialEventEverSeen|previousVisitStartedAt|visitsOnRecord|progressReport|readUsage/,
+    );
+
+    const callers = ["client/src", "shared", "server"]
+      .flatMap((dir) => sources(resolve(root, dir)))
+      .filter((file) => /useNextActionShadow/.test(readFileSync(file, "utf8")))
+      .map((file) => relative(root, file).replaceAll("\\", "/"))
+      .filter((file) => file !== "client/src/lib/next-action-shadow.ts");
+    expect(callers).toEqual(["client/src/components/ResumeScreen.tsx"]);
+
+    const resume = readFileSync(resolve(root, "client/src/components/ResumeScreen.tsx"), "utf8");
+    expect(resume, "the resume screen never calls the shadow at all").toMatch(
+      /\n\s*useNextActionShadow\(/,
+    );
+    expect(resume, "the resume screen is listening to the shadow").not.toMatch(
+      /(?:const|let|var|=)\s*[^;\n]*useNextActionShadow\(/,
+    );
   });
 
   it("is not reachable from the shared measurements at all", () => {

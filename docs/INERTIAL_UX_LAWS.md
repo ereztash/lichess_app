@@ -145,8 +145,30 @@ layer that changed what a player saw based on their own measurements would creat
 exposure the record cannot represent. `none` is a first-class result, because a function that always
 has a suggestion will invent one where the product has least to say.
 
-**Nothing renders from either yet.** Derivation, then shadow, then ownership: a pure function that
-is wrong is a failing test; a screen that is wrong is a player who cannot find anything.
+**Derivation, then shadow, then ownership.** A pure function that is wrong is a failing test; a
+screen that is wrong is a player who cannot find anything.
+
+### Shadow is running. Ownership is not, and here is what would grant it
+
+`client/src/lib/next-action-shadow.ts` runs the derivation beside `ResumeScreen` and writes what it
+*would* have said to the trial ledger. The screen ignores the answer entirely.
+
+The disagreement it exists to record is already known: `readResume` maps `nothing-scored` — games
+stored, engine has not run — to *"play another game"*, and the screen's one action starts a game
+whatever the blocker is. The derivation says **wait**, because playing grows the backlog that *is*
+the blocker, and since LAW 4's queue waiting is a thing that actually finishes.
+
+Each shadow row carries `blind`: the inputs that surface could not supply. The front door cannot see
+a half-finished drill — that state lives in `Home.tsx`'s component and does not survive navigating
+away, which is a LAW 4 defect of its own. A disagreement caused by a missing input is not the same
+finding as one caused by the screen being wrong, and a shadow record that did not separate them
+would be a list nobody could read.
+
+**What would grant ownership**, in the same shape as [D21](decisions/D21-feedback-exposure.md)'s
+trigger: shadow rows from real sessions in which the derivation's disagreements are (a) not
+explained by a `blind` input, and (b) ones a reader agrees the screen got wrong. Until that exists,
+handing the front door to a function nothing has contradicted would be exactly the move this
+document is against — acting on a claim before anything could have shown it wrong.
 
 ### What the first application of this law found
 

@@ -112,11 +112,34 @@ function playChecked(seed: number, tc: RequiredTimeControl, maxPlies: number) {
   return state;
 }
 
+/**
+ * WHAT THIS COSTS, AND WHY THE TIMEOUT IS NAMED RATHER THAN DEFAULTED.
+ *
+ * Each case plays 40 games of up to 40 plies through the real `chess.js` move generator and checks
+ * five invariants after every move -- about 4.2 seconds on a developer machine, measured. Vitest's
+ * default is 5 seconds, which left 0.7s of headroom, and a full parallel run consumed it: this file
+ * timed out twice in one afternoon on a machine where it passes in 4.2s when run alone.
+ *
+ * THE ALTERNATIVE WAS FEWER SEEDS, AND THAT IS THE WRONG FIX. The whole argument for this file is
+ * in its opening note -- example tests cannot catch a rule that holds for the first move and breaks
+ * on the fortieth, and they are found by playing a lot of games. Trading seeds for wall-clock would
+ * buy a green run by removing the thing the file is for.
+ *
+ * 30 SECONDS IS ABOUT SEVEN TIMES THE MEASURED COST. It is not a licence for the case to grow into
+ * it: a run that starts taking twenty seconds is a regression in the clock's own arithmetic, and
+ * the number is here so somebody notices that rather than raising it again.
+ */
+const PROPERTY_TIMEOUT_MS = 30_000;
+
 describe("what the clock may never do", () => {
   for (const [name, tc] of Object.entries(CONTROLS)) {
-    it(`holds every rule across 40 randomised games at ${name}`, () => {
-      for (let seed = 1; seed <= 40; seed += 1) playChecked(seed, tc, 40);
-    });
+    it(
+      `holds every rule across 40 randomised games at ${name}`,
+      () => {
+        for (let seed = 1; seed <= 40; seed += 1) playChecked(seed, tc, 40);
+      },
+      PROPERTY_TIMEOUT_MS,
+    );
   }
 
   it("gives the same reading however many times it is asked, and in any order", () => {

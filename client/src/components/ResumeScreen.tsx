@@ -31,6 +31,8 @@ import { lastSeenReading, rememberReadingSeen } from "@/lib/last-seen";
 import { readResume } from "@shared/resume-reading";
 import { changedSentence, knowsSentence, patternCounts } from "@shared/blitz-words";
 import { authorityOfRecordReading } from "@shared/evidence-authority";
+import { useDecisionCount, useRecordReading } from "@/lib/record-api";
+import { resumeProductState, useNextActionShadow } from "@/lib/next-action-shadow";
 
 export function ResumeScreen({
   /**
@@ -52,6 +54,30 @@ export function ResumeScreen({
   onPlay: () => void;
 }) {
   const { data, isLoading } = useBlitzReading();
+  /*
+   * SHADOW MODE (LAW 3, P0.5). `deriveNextAction` runs here and this screen ignores its answer.
+   *
+   * IT IS CALLED UNCONDITIONALLY AND ABOVE EVERY EARLY RETURN, because it is a hook -- and because
+   * the comparison is worth having on exactly the renders where this screen decides to show
+   * nothing. `null` while the reading is still fetching, which is the state the derivation answers
+   * `none` to, and it is the whole reason `none` exists.
+   *
+   * WHAT IT COSTS THE PLAYER: nothing on screen, and one row in a ledger that never leaves this
+   * browser. What it buys is the only evidence that could justify letting the derivation own this
+   * screen -- see `docs/INERTIAL_UX_LAWS.md` LAW 3.
+   */
+  const decisions = useDecisionCount();
+  const record = useRecordReading();
+  useNextActionShadow(
+    data
+      ? resumeProductState({
+          reading: data.reading,
+          games: data.games,
+          decisionsOnRecord: decisions.data?.decisions ?? 0,
+          record: record.data,
+        })
+      : null,
+  );
 
   /*
    * READ ONCE, ON THE FIRST RENDER, AND HELD.
