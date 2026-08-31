@@ -70,19 +70,47 @@ vi.mock("@/lib/stockfish", () => ({
         release = (scoreCp: number) => resolve({ ...reply, scoreCp });
       });
     }
+    /*
+     * THE REAL CLASS HAS ONE, AND THE ANALYSIS QUEUE CALLS IT. A double that omits a method the
+     * subject calls does not test a smaller thing; it tests a different one, and the symptom here
+     * was a `TypeError` raised inside the runner's `finally` — which would have replaced whatever
+     * the pass was actually reporting.
+     */
+    dispose() {}
   },
 }));
 
+import { resetBlitzAnalysisRunner } from "@/lib/blitz-analysis-runner";
 import Blitz from "@/pages/Blitz";
 
+/*
+ * A CLOCK WITH A FRACTIONAL PART, BECAUSE A BROWSER'S HAS ONE.
+ *
+ * `performance.now()` returns a double. Every suite in this repository used to mock it to whole
+ * milliseconds -- a test that means "four seconds" writes `4000` -- and that fixture hid a defect
+ * that made every blitz game played in a real browser unstorable: the think time came out as
+ * `3947.6999999999998` and `storedBlitzRecordSchema` requires an int, so the save was refused and
+ * the screen, rendering from its own copy, showed a complete post-game reading anyway.
+ *
+ * The values below are therefore deliberately not round, and their DIFFERENCES are not round
+ * either, which is the property that actually matters. `tests/shared/a-clock-that-does-not-tick-in-
+ * whole-milliseconds.test.ts` states the rule; the assertions in this file are what make it true
+ * through the real store.
+ */
 let clock = 0;
 beforeEach(() => {
-  clock = 1_000;
+  clock = 1_000.4830000000002;
   constructed.length = 0;
   analyserCalls.length = 0;
   release = null;
   hang = true;
   localStorage.clear();
+  /*
+   * THE QUEUE IS A PAGE-LEVEL SINGLETON (LAW 4), so it outlives a component the way it is meant to
+   * — and outlives a test case too. Reset for the same reason `localStorage` is cleared above: a
+   * case must start from nothing, and the previous one deliberately leaves a search hanging.
+   */
+  resetBlitzAnalysisRunner();
   vi.spyOn(performance, "now").mockImplementation(() => clock);
   /* 0.99 > the ask rate: never asked, so no open question can hold the opponent back. */
   vi.spyOn(Math, "random").mockReturnValue(0.99);
@@ -119,10 +147,10 @@ function renderBlitz() {
 /** Play one move, let the opponent reply, resign. Leaves the analyser mid-search. */
 async function playAndResign(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "3+0" }));
-  clock = 5_000;
+  clock = 5_000.8170000000001;
   await play(user, "e2", "e4");
   await waitFor(() => expect(constructed.length).toBeGreaterThan(0));
-  clock = 9_000;
+  clock = 9_000.2939999999999;
   await user.click(screen.getByRole("button", { name: "פרישה" }));
   await waitFor(() => expect(screen.getByText("המשחק נגמר")).toBeTruthy());
 }
@@ -161,6 +189,12 @@ describe("the tab closed during the analysis", () => {
      */
     expect(decisions[0].thinkMs).toBeGreaterThan(0);
     expect(decisions[0].clockBeforeMs).toBeGreaterThan(0);
+    /*
+     * AND IT IS A WHOLE MILLISECOND. Not a style preference: the record's schema requires it, so a
+     * fractional think time is not a slightly untidy row, it is a game that was never stored.
+     */
+    expect(Number.isInteger(decisions[0].thinkMs), `${decisions[0].thinkMs}`).toBe(true);
+    expect(Number.isInteger(decisions[0].clockBeforeMs)).toBe(true);
   });
 
   it("says the game is UNSCORED rather than storing a verdict nobody produced", async () => {

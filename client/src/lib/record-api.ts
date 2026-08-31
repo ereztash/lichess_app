@@ -40,7 +40,24 @@ export const LOCAL_KEYS = {
   importReading: ["local-record", "import-reading"] as const,
   /* Used by `blitz-reading-api.ts`, which is deliberately not in this module -- see its header. */
   blitzReading: ["local-record", "blitz-reading"] as const,
+  /*
+   * The raw blitz rows, read by `use-blitz-analysis.ts`. Here rather than there because the two
+   * blitz WRITES have to invalidate them, and a key defined in the module that reads it would mean
+   * the writes could not name it without importing their own reader.
+   */
+  blitzGames: ["local-record", "blitz-games"] as const,
+  blitzDecisions: ["local-record", "blitz-decisions"] as const,
 };
+
+/**
+ * Everything a blitz write makes stale, in one list.
+ *
+ * NAMED ONCE BECAUSE THE FAILURE IS SILENT. A write that forgets one of these leaves a screen
+ * reading a row that no longer exists — and the specific case that caught it was the analysis
+ * queue: the pending write did not invalidate the games query, so `hasPending` stayed false and
+ * the queue never started. Nothing errored. The game simply stayed pending forever.
+ */
+const BLITZ_KEYS = [LOCAL_KEYS.blitzGames, LOCAL_KEYS.blitzDecisions, LOCAL_KEYS.blitzReading];
 
 /**
  * Which backing is in use, whether it can hold anything, and WHY NOT when it cannot.
@@ -525,11 +542,41 @@ export function useSaveImportReading() {
 export function useSaveBlitzGame() {
   const { local } = useRecordMode();
   const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.saveBlitzGame.useMutation();
   return {
-    mutateAsync: async (input: StoredBlitzRecord) =>
-      !local ? await server.mutateAsync(input) : await service.saveBlitzGame(store, input),
+    mutateAsync: async (input: StoredBlitzRecord) => {
+      const result = !local
+        ? await server.mutateAsync(input)
+        : await service.saveBlitzGame(store, input);
+      await invalidateBlitz(queryClient, utils, local);
+      return result;
+    },
   };
+}
+
+/**
+ * Mark every blitz reading stale, on whichever side the record lives.
+ *
+ * BOTH SIDES ALWAYS, not the active one: signing in mid-session leaves the other side's cache in
+ * place, and a screen that switched back would read a row from before the write.
+ */
+async function invalidateBlitz(
+  queryClient: ReturnType<typeof useQueryClient>,
+  utils: ReturnType<typeof trpc.useUtils>,
+  local: boolean,
+): Promise<void> {
+  await Promise.all([
+    ...BLITZ_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    local
+      ? Promise.resolve()
+      : Promise.all([
+          utils.record.blitzGames.invalidate(),
+          utils.record.blitzDecisions.invalidate(),
+          utils.record.blitzReading.invalidate(),
+        ]),
+  ]);
 }
 
 /**
@@ -541,10 +588,17 @@ export function useSaveBlitzGame() {
 export function useAttachBlitzAnalysis() {
   const { local } = useRecordMode();
   const store = useStore();
+  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.attachBlitzAnalysis.useMutation();
   return {
-    mutateAsync: async (input: StoredBlitzRecord) =>
-      !local ? await server.mutateAsync(input) : await service.attachBlitzAnalysis(store, input),
+    mutateAsync: async (input: StoredBlitzRecord) => {
+      const result = !local
+        ? await server.mutateAsync(input)
+        : await service.attachBlitzAnalysis(store, input);
+      await invalidateBlitz(queryClient, utils, local);
+      return result;
+    },
   };
 }
 

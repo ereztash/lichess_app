@@ -369,8 +369,35 @@ const INDEX = "dist/public/index.html";
  * about.
  *
  * 686, 213 AND 764 LEAVE 1.8 kB, 1.2 kB AND 2.2 kB, the same headroom as every raise above.
+ *
+ * ---
+ *
+ * 686 -> 689 and 764 -> 767: LAW 4's analysis queue, run from the root.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              684.7      212.0       762.3
+ *     + everything but the root keeper     685.2      212.2       762.8   +0.5 / +0.2 / +0.5
+ *     + <BlitzAnalysisKeeper /> in App     687.6      212.8       765.2   +2.4 / +0.6 / +2.4
+ *
+ * MEASURED BY BUILDING BOTH LAYERS, because 2.4 of the 2.9 kB is one component and it was worth
+ * knowing that before raising anything. `BlitzAnalysisKeeper` renders nothing; what it costs is
+ * `use-blitz-analysis.ts` and the query wiring for the stored blitz GAMES, now on the entry route.
+ *
+ * AND IT IS THE FEATURE, not a module dragging something in. A pending analysis is finished by
+ * whichever page load finds it, and the screen that starts one is exactly the screen a player
+ * leaves -- so the resume has to live somewhere every route already is. What deliberately did NOT
+ * come with it: `blitz-analysis-runner.ts`, `blitz-analysis-queue.ts` and the engine are behind a
+ * dynamic import that only fires once a game is actually pending, so a record with no blitz games
+ * pays for the check and nothing else. The hook asks the cheap question first for the same reason
+ * -- the games, not the decisions.
+ *
+ * THE REMAINING 0.5 kB is `record-api.ts`: `BLITZ_KEYS` and the `invalidateBlitz` helper the two
+ * blitz mutations now share, so a write always marks both sides' caches stale.
+ *
+ * 689 AND 767 LEAVE 1.4 kB AND 1.8 kB. The gzip ceiling did not fire and keeps its number, which
+ * is the rule this file has followed every time: a ratchet nobody widened is a ratchet.
  */
-const ENTRY_RAW_KB = 686;
+const ENTRY_RAW_KB = 689;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 213;
 /**
@@ -416,7 +443,7 @@ const ENTRY_GZIP_KB = 213;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 764;
+const INITIAL_RAW_KB = 767;
 
 interface Asset {
   name: string;
