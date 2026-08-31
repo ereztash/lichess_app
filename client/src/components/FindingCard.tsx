@@ -26,6 +26,7 @@
 import type { ReactNode } from "react";
 import { AUTHORITY, type EvidenceAuthority } from "@shared/evidence-authority";
 import { EvidenceMark } from "./EvidenceMark";
+import { primaryAction, type PrimaryAction } from "@shared/primary-action";
 
 export interface FindingAction {
   label: string;
@@ -38,6 +39,15 @@ export interface FindingAction {
    * in this product is a request for a measurement and can say so.
    */
   because: string;
+  /**
+   * WHICH ACT THIS IS, when the card's action is the state's primary one.
+   *
+   * OPTIONAL, because a finding card is not always the loudest thing on its screen -- the same
+   * component renders inside `PostGame`, `ResumeScreen` and the record layers, and only some of
+   * those are the one place a player is meant to go next. Naming the act is what lets
+   * `GATE-NO-DUPLICATE-ACTION` tell a second copy of one action from a second action.
+   */
+  act?: PrimaryAction;
 }
 
 export function FindingCard({
@@ -83,7 +93,12 @@ export function FindingCard({
 
       {action && (
         <div className="finding__action">
-          <button type="button" className="finding__button" onClick={action.onClick}>
+          <button
+            type="button"
+            className="finding__button"
+            {...(action.act ? primaryAction(action.act) : {})}
+            onClick={action.onClick}
+          >
             {action.label}
           </button>
           <p className="finding__because">{action.because}</p>

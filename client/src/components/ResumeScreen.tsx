@@ -168,7 +168,16 @@ export function ResumeScreen({
           */
         action={
           resume.next.kind === "play"
-            ? { label: resume.next.label, because: resume.next.because, onClick: onPlay }
+            ? {
+                label: resume.next.label,
+                because: resume.next.because,
+                /*
+                 * THE FRONT DOOR'S ONE PRIMARY ACT on a returning visit. `FirstDecision` below
+                 * defers to it rather than offering a second, different product at the same weight.
+                 */
+                act: "play-blitz" as const,
+                onClick: onPlay,
+              }
             : null
         }
         why={

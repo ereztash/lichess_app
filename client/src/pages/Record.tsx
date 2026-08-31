@@ -50,6 +50,7 @@ import {
   type GameSource,
 } from "@/lib/game-source";
 import { pickFirstDecision } from "@/lib/first-decision";
+import { primaryAction } from "@shared/primary-action";
 import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import { PROMISE, PROMISE_RETURNING } from "@shared/promise";
 import { nextAnchor } from "@/lib/anchor-run";
@@ -131,7 +132,27 @@ async function handOverBankPosition(
   return "served";
 }
 
-function FirstDecision({ knownUsername }: { knownUsername?: string }) {
+function FirstDecision({
+  knownUsername,
+  /**
+   * Whether `ResumeScreen` is above this, already answering "what now" (LAW 2).
+   *
+   * WALKED IN A BROWSER, NOT REASONED ABOUT. On a returning visit both sections rendered a primary
+   * control at the same weight, and they named two DIFFERENT products: the resume screen said
+   * "play a short game", which goes to blitz, and this one said "take me to a position", which
+   * goes to the untimed loop. A player whose record answered neither question was handed the
+   * choice the product was supposed to have made.
+   *
+   * THE RESUME SCREEN WINS, and not by seniority: it speaks from the record this player already
+   * has, and §12/§13 made it the answer to a returning visit. This section stays -- it is the only
+   * route in for somebody with no account to import from -- at the weight of a route rather than
+   * of an answer.
+   */
+  deferPrimary = false,
+}: {
+  knownUsername?: string;
+  deferPrimary?: boolean;
+}) {
   const [, navigate] = useLocation();
   const [username, setUsername] = useState(knownUsername ?? "");
   /* The front door has to offer both sites, or the fastest route into the product is closed to
@@ -245,7 +266,8 @@ function FirstDecision({ knownUsername }: { knownUsername?: string }) {
         />
         <button
           type="button"
-          className="primary-control"
+          className={deferPrimary ? "ghost-control" : "primary-control"}
+          {...(deferPrimary ? {} : primaryAction("play-first-decision"))}
           disabled={busy || !username.trim()}
           onClick={() => void begin()}
         >
@@ -507,7 +529,10 @@ export default function Record() {
       {reading.isLoading ? (
         <p className="record-page-loading">קורא את הרשומה…</p>
       ) : measured === 0 ? (
-        <FirstDecision knownUsername={importReading.reading?.username} />
+        <FirstDecision
+          knownUsername={importReading.reading?.username}
+          deferPrimary={returning}
+        />
       ) : (
         <section className="record-layer" aria-label="החלטות עם ביטחון מוצהר">
           <div className="record-layer-head">

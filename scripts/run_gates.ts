@@ -144,6 +144,40 @@ const asksAgain = (roots: string[]) =>
     "both configured surfaces read what the player already chose, and keep it",
   );
 
+/**
+ * THE TOOLBOX IS BEHIND ITS DOOR, in both senses (LAW 2, P1.7).
+ *
+ * `RecordExplorer` carries every reading of the record, so `GATE-DECISION-FOCUS` already forbids
+ * those components anywhere else. What this adds is the door: the explorer must be rendered behind
+ * a control the player presses AND behind a lazy chunk, because a surface that renders only on a
+ * press has no business in the bytes every arrival downloads -- and because a toolbox that is
+ * statically imported is one somebody can render unconditionally without noticing the cost.
+ */
+const toolboxBehindItsDoor = (roots: string[]): GateResult => {
+  const findings: Finding[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const source = readFileSync(file, "utf8");
+      const path = file.replaceAll("\\", "/");
+      if (!/<RecordExplorer[\s/>]/.test(source)) continue;
+      if (!/\{exploring && !runInProgress && \(/.test(source)) {
+        findings.push({ file: path, line: 1, text: "the explorer renders without its control" });
+      }
+      if (!/lazyChunk\(\s*\(\)\s*=>\s*import\("@\/components\/RecordExplorer"\)/.test(source)) {
+        findings.push({ file: path, line: 1, text: "the explorer is in the entry chunk" });
+      }
+    }
+  }
+  if (findings.length === 0 && roots.every((r) => r === INERTIA_FIXTURES)) {
+    /*
+     * A CONTROL THAT FINDS NOTHING IS NOT A RED CONTROL. The fixture must actually render the
+     * explorer, or this gate would report "clean" over a directory that never mentions it.
+     */
+    return fail("the control fixture does not render the explorer at all");
+  }
+  return fromFindings(findings, "the toolbox is behind a control and behind a lazy chunk");
+};
+
 const pendingWork = (roots: string[], rootFile: string) =>
   fromFindings(
     findPendingWorkLeaks(roots, rootFile),
@@ -707,6 +741,35 @@ export const GATES: Gate[] = [
        * The control is not a contrived function; it is the mapping this product shipped.
        */
       nextActionResolves(() => ({ kind: "play-blitz", because: "nothing-scored", needs: null })),
+  },
+  {
+    id: "GATE-ONE-PRIMARY-ACTION",
+    rule: "LAW 2",
+    description: "A state offers at most one primary action, and never the same act twice.",
+    /*
+     * RENDERED RATHER THAN SCANNED, and that is what makes it a gate over a STATE. Every other
+     * inertial gate reads source, which can say where a component lives but not how many controls
+     * a player is looking at. Two controls are each correct on their own; the defect is that there
+     * are two, and only a rendered screen can count.
+     */
+    run: () =>
+      runVitestFile(
+        "tests/gates/primary-action.test.tsx",
+        "every state offers one act, from a closed vocabulary, without repeating it",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/primary-action.control.test.tsx",
+        "a front door offering two products, and a reveal offering one act twice",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
+    id: "GATE-TOOLBOX-OUTSIDE-FOCUS",
+    rule: "LAW 2",
+    description: "The record's toolbox renders only from EXPLORE, behind a control and a lazy chunk.",
+    run: () => toolboxBehindItsDoor(["client/src"]),
+    positiveControl: () => toolboxBehindItsDoor([INERTIA_FIXTURES]),
   },
 ];
 

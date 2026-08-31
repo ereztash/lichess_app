@@ -351,7 +351,7 @@ the finished game's board.
 
 ## The gates, and the one that is missing
 
-Five of the nine named in this document are registered in `scripts/run_gates.ts` and run on every
+Eight of the nine named in this document are registered in `scripts/run_gates.ts` and run on every
 `npm run verify`, each with a positive control that must go red:
 
 | gate | law | what its control does |
@@ -372,10 +372,33 @@ decision is open" is a validity question wearing a layout question's clothes.
 **And it is a gate rather than a test because it is violated by adding something, anywhere, at any
 time.** A test asserts that a screen is right today. A gate asserts that no screen has become wrong.
 
-`GATE-EXPOSURE-CONTEXT` is deliberately absent — see LAW 12. `GATE-ONE-PRIMARY-ACTION`,
-`GATE-NO-DUPLICATE-ACTION` and `GATE-TOOLBOX-OUTSIDE-FOCUS` are held by tests today and are not yet
-gates: each needs a predicate that can count a *primary* action from source, and a count that
-disagreed with a reader would be worse than none.
+| `GATE-ONE-PRIMARY-ACTION` | 2 | a front door offering two products, and a reveal offering one act twice |
+| `GATE-TOOLBOX-OUTSIDE-FOCUS` | 2 | a toolbox loaded for every arrival and opened without a press |
+
+`GATE-EXPOSURE-CONTEXT` is deliberately absent — see LAW 12. It is the only one of the nine still
+unregistered.
+
+### What made the last two possible, and what they caught
+
+They could not be written while the only signal was CSS weight: a gate that reads a colour goes red
+when a palette changes and stays green when a second loud button arrives in a different one.
+`shared/primary-action.ts` makes the control **declare its act** —
+`data-primary-action="next-decision"`, not a boolean — because the question is not how many loud
+buttons a state has but **how many different things it asks the player to choose between**. Two
+controls naming the same act are one action rendered twice, which is a different defect from two
+controls naming two acts, and a boolean cannot tell them apart.
+
+Both defects were live, and a walk through the built app in Chromium found them — no test could:
+
+- **The reveal offered `CONTINUATION_CTA` twice.** The header's control and `RevealPanel`'s foot,
+  both `primary-control`, both calling `nextDecision`, under render conditions that were
+  character-for-character identical — so whenever one appeared, so did the other.
+- **The returning front door offered two products.** `ResumeScreen` said *"play a short game"*
+  (blitz) beside `FirstDecision`'s *"take me to a position"* (the untimed loop), at the same weight,
+  to a player whose record answered neither question.
+
+Each control is correct on its own. The defect is that there are two, which is exactly what a
+per-component test cannot see and a per-state count can.
 
 ---
 

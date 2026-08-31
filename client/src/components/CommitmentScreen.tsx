@@ -76,6 +76,7 @@ import { KNOWN_OPTIONS, UNKNOWN_OPTIONS, type ReadOption } from "@/lib/read-opti
 import { scrollIntoViewRespectingMotion } from "@/lib/motion";
 import { foremostTension } from "@/lib/declared-tensions";
 import type { CommitFailureText } from "@/lib/commit-error";
+import { primaryAction } from "@shared/primary-action";
 
 interface CommitmentScreenProps {
   position: PositionUnderDecision;
@@ -593,6 +594,8 @@ export function CommitmentScreen({
       <button
         type="button"
         className={`commitment-submit ${ready ? "" : "not-ready"}`}
+        /* The one act of `DECIDE`: recording the decision that is open. */
+        {...primaryAction("commit-decision")}
         onClick={submit}
         /* PENDING ACTION LOCK (section 4.3): disabled while the write is in flight. */
         disabled={pending}

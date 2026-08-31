@@ -28,6 +28,7 @@ import {
   type RevealInputs,
 } from "@shared/reveal";
 import type { EngineLine } from "@/lib/engine-line";
+import { primaryAction } from "@shared/primary-action";
 import { recordTrialEvent, trialEventSeen } from "@/lib/progress-record";
 import { NotMeasured, Value } from "./Value";
 
@@ -270,7 +271,12 @@ export function RevealPanel({
         * a slow analysis into a dead end.
         */}
       {onContinue && (
-        <button type="button" className="primary-control reveal-continue" onClick={onContinue}>
+        <button
+          type="button"
+          className="primary-control reveal-continue"
+          {...primaryAction("next-decision")}
+          onClick={onContinue}
+        >
           {CONTINUATION_CTA}
         </button>
       )}

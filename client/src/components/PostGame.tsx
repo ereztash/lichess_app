@@ -23,6 +23,7 @@ import { SCREEN_QUESTIONS } from "@shared/screen-questions";
 import { eventFacts, eventHeadline, postGameWords } from "@shared/blitz-words";
 import type { BlitzEvent, PostGameReading } from "@shared/blitz-reading";
 import type { StoredBlitzGame } from "@shared/blitz-record";
+import { primaryAction } from "@shared/primary-action";
 
 /**
  * The measurement detail, behind "why are we saying this?".
@@ -167,7 +168,12 @@ export function PostGame({
         * is asked.
         */}
       {lead !== null && (
-        <button type="button" className="post-game__again" onClick={onPlayAgain}>
+        <button
+    type="button"
+    className="post-game__again"
+    {...primaryAction("play-blitz")}
+    onClick={onPlayAgain}
+  >
           משחק חדש
         </button>
       )}

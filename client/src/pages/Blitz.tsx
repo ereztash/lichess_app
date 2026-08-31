@@ -54,6 +54,7 @@ import { PostGame } from "@/components/PostGame";
 import { useSaveBlitzGame } from "@/lib/record-api";
 import { useBlitzAnalysis, useStoredBlitzRecord } from "@/lib/use-blitz-analysis";
 import { rememberTimeControl, rememberedTimeControl } from "@/lib/remembered-setup";
+import { primaryAction } from "@shared/primary-action";
 
 /** Two time controls are the same one when both halves agree. Compared, never referenced. */
 const sameControl = (a: RequiredTimeControl, b: RequiredTimeControl) =>
@@ -334,6 +335,13 @@ export default function Blitz() {
                 key={label}
                 type="button"
                 className={again ? "blitz-control blitz-control--again" : "blitz-control"}
+                /*
+                 * ONLY THE REMEMBERED ONE IS THE PRIMARY ACT. On a first visit nothing is
+                 * remembered and the three are genuinely equal -- that state has no primary action
+                 * and must not pretend to, which is the same argument that keeps the marker off
+                 * them: "nothing chosen yet" is a fact, not a weak preference for the first entry.
+                 */
+                {...(again ? primaryAction("play-blitz") : {})}
                 onClick={() => startGame(tc)}
               >
                 {/*
