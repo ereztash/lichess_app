@@ -1,0 +1,10 @@
+{
+  "csv": "data/lichess_db_puzzle.csv.zst",
+  "sample_every": 40,
+  "rows_seen": 6100960,
+  "rows_sampled": 152524,
+  "malformed": 0,
+  "records_written": 77978,
+  "predicate_version": "1.0.0",
+  "puzzle_position_rule": "board(FEN) then push(Moves[0]); solution is Moves[1]"
+}

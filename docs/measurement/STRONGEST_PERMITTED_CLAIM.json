@@ -1,0 +1,94 @@
+{
+  "claim_version": "1.0.0",
+  "decided_at": "2026-08-31",
+  "repository_main_sha": "68d61c216c6932455cc61bbe33eb65e7042a6bd7",
+  "board_predicate_version": "1.0.0",
+  "board_predicate_sha256": "91f6549d3e6f763757559644f800eab97628b897a4b488d7df6405fd4370de48",
+
+  "permitted": {
+    "detection": {
+      "statement": "A frozen board predicate identifies positions in which exactly one opponent non-pawn piece is legally capturable and has zero geometric defenders.",
+      "evidence": "20.4% of 57,504 classifiable positions sampled from 60,000 unfiltered rated Lichess games (2013-01); 22.5% of 77,978 classifiable Lichess puzzle positions.",
+      "robustness": "0.64% of T+ items flip to 'defended' under the Lichess ray-defence definition of is_defended.",
+      "status": "supported"
+    },
+    "recording": {
+      "statement": "Whether the player's move captured the designated target is recordable from the position and the move alone, with no engine, no result and no post-reveal information.",
+      "evidence": "research/measurement/predicates.py::observed_action; negative-controls.ts::outcomeLeakControl asserts an identical table after stripping every oracle field.",
+      "status": "supported"
+    },
+    "task_level_scoring": {
+      "statement": "Hit rate, false-alarm rate, sensitivity d' and response criterion c are computable for an item set under published formulae.",
+      "evidence": "Stanislaw & Todorov (1999) with the Hautus (1995) loglinear correction; cross-language equivalence pinned by tests/research/measurement-sdt.test.ts.",
+      "status": "supported"
+    }
+  },
+
+  "refuted": {
+    "scoring_inference": {
+      "statement_refuted": "B = capture(designated target) indicates use of the unprotected-piece discrimination.",
+      "evidence": {
+        "engine_best_move_is_the_designated_capture_on_T_plus": 0.662,
+        "taking_loses_100cp_or_more_on_T_plus": 0.150,
+        "engine_best_move_is_the_designated_capture_on_T_minus": 0.228,
+        "curated_solution_is_capture_of_target_on_predicate_T_plus": 0.4242,
+        "T_plus_items_with_a_competing_geometric_explanation": 0.142,
+        "T_minus_captures_SEE_calls_materially_sound": 0.366,
+        "engine": "Stockfish 17.1, 200000 nodes, n=600 per class"
+      },
+      "status": "refuted"
+    },
+    "generalisation_inference": {
+      "statement_refuted": "T+ and T- items are exchangeable on everything except the trigger.",
+      "evidence": {
+        "smd_material_balance_games": -0.487,
+        "smd_material_balance_puzzles": -0.724,
+        "smd_attacker_count_games": 0.475,
+        "smd_puzzle_rating": -0.239,
+        "matched_d_prime": 1.5194,
+        "unmatched_d_prime": 1.5555,
+        "max_residual_smd_after_exact_matching": 0.402
+      },
+      "status": "refuted"
+    }
+  },
+
+  "unresolved": [
+    {"id": "domain", "why": "no evidence that this is separable from general chess strength"},
+    {"id": "explanation", "why": "criterion c orders rating bands monotonically; d' does not", "d_prime_by_band": [1.533, 1.430, 1.500, 1.613, 1.698], "criterion_by_band": [0.089, 0.059, -0.001, -0.042, -0.065]},
+    {"id": "extrapolation", "why": "no uncued representative measurement exists; puzzle corpora are range-restricted by an engine-uniqueness rule"},
+    {"id": "utilization", "why": "formally blocked behind scoring and generalisation"},
+    {"id": "reactivity", "why": "untested; no published estimate covers repeated exposure to the taught contrast"}
+  ],
+
+  "forbidden_claims": [
+    "this measures whether the player has learned the unprotected-piece rule",
+    "d' increased, therefore discrimination improved",
+    "the player applies the rule N% of the time",
+    "accuracy on T+ items, reported alone",
+    "post > pre implies the intervention caused the change",
+    "puzzle-task improvement implies improvement in ordinary play",
+    "the Lichess hangingPiece theme may define the trigger state"
+  ],
+
+  "inherited_claim_29_of_29": {
+    "found_in_repository": false,
+    "reproduced_from_design": true,
+    "label_selected_corpus": {"k": 29, "n": 29, "full_pool": 0.99975},
+    "predicate_selected_corpus": {"k": 19, "n": 29, "full_pool": 0.42423},
+    "conclusion": "real, and an artifact of selecting the corpus by the label under test"
+  },
+
+  "gate_decisions": {
+    "construct_survives_as_stated": false,
+    "construct_survives_narrowed": true,
+    "narrowed_construct_is_the_same_construct": false,
+    "narrowed_construct_name": "discrimination between materially profitable and unprofitable capturing opportunities",
+    "existing_validated_paradigm_is_superior": "none exists for this construct",
+    "justifies_human_pilot_of_the_construct": false,
+    "justifies_human_pilot_of_item_bank_adjudication": true,
+    "justifies_production_integration": false,
+    "evidence_level_reached": "E1-E2",
+    "evidence_level_required_for_production": "E5"
+  }
+}

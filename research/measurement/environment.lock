@@ -1,0 +1,23 @@
+# The environment every number in `results/` was produced under.
+#
+# Same rule as `research/discovery-oracle/environment.lock`: a rate that cannot be reproduced is
+# an anecdote. The scans are deterministic given (corpus file, seed, predicate version), and the
+# predicate version is hashed in `docs/measurement/ITEM_BANK_PROTOCOL.md`.
+#
+#   python3 -m pip install -r environment.lock
+#
+# THE ENGINE IS NOT A PYTHON PACKAGE and is pinned separately: Stockfish 17.1, official release
+# build `stockfish-ubuntu-x86-64-avx2`, run at 200,000 nodes with Threads 1 and Hash 64. The build
+# string is recorded on every engine-scored record rather than only here, because a record that
+# cannot name its engine is not a measurement.
+
+python==3.11.15
+chess==1.11.2
+numpy==2.4.6
+scipy==1.17.1
+zstandard==0.25.0
+
+# THE CORPORA ARE NOT VENDORED, deliberately. `lichess_db_puzzle.csv.zst` is 304 MB and
+# `lichess_db_standard_rated_2013-01.pgn.zst` is 17.8 MB; both are downloaded by the commands in
+# `docs/measurement/ITEM_BANK_PROTOCOL.md`, and their sizes and last-modified dates are recorded
+# there so a later run can tell whether it read the same bytes.
