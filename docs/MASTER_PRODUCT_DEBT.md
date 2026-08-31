@@ -313,7 +313,7 @@ the only one the old code got right.
 | | |
 | --- | --- |
 | type | correctness |
-| state | **fixed** (for blitz; `saveClaim` and `saveDrillResult` still carry it — see below) |
+| state | **fixed** for blitz; **refuted** for `saveClaim` and `saveDrillResult` — see the audit below |
 | severity | P1 |
 | basis | **verified** — was `server/record.ts:551–557`, whose own comment read *"There is no transaction here — the same absence `saveClaim` and `saveDrillResult` live with"* |
 
@@ -332,9 +332,43 @@ insert fails inside the real driver at exactly the point the tear used to happen
 without a `DATABASE_URL` and runs in CI against MySQL 8 — a test that silently passes when it did
 not run is the failure this repository is built around, so the skip is loud.
 
-**What is still open, narrowed:** `saveClaim` and `saveDrillResult` are still un-wrapped. They are
-single-row writes, so there is no tear between two statements to inject — the row goes in or it
-does not. Left as its own question rather than folded into this one.
+### The audit of `saveClaim` and `saveDrillResult`, and why the answer is **refuted**
+
+The remainder was left as its own question rather than folded into the blitz fix, and the question
+was *"do these two need a transaction?"* — not *"add one, transactions are good."* Four things were
+read.
+
+**1. Each is one statement.** `saveClaim` is a single `INSERT … ON DUPLICATE KEY UPDATE`;
+`saveDrillResult` is a single `INSERT` (preceded by a `SELECT` that only reads the drill's stored
+refutation condition — a failure there writes nothing). Under autocommit a single statement is its
+own transaction, so there is no tear between two statements to inject.
+
+**2. The pair that could tear is `saveDrillResult` → `saveClaim`,** in `finishDrill`. That is a real
+two-write sequence and it is where a transaction would have bought something.
+
+**3. It is already handled, and not by a transaction.** `gradeClaimFromRecord` re-reads the claim
+and folds `evaluateClaim` over the `drill_results` rows rather than grading the copy it holds, so
+the grade is a **function of the record**: a run that dies between the two writes leaves the
+evidence stored and the grade stale, and the retry a lost response makes inevitable finds the result
+already recorded, re-derives, and writes. Self-healing rather than lost — which is strictly more
+than atomicity buys, because it also survives a crash after the commit, a replay and a backfill.
+
+**4. And it is measured, not argued.** `tests/shared/a-verdict-the-drill-cannot-report-twice.test.ts`
+injects the failure with `LosesTheClaimWrite`: the claim write throws `connection reset by peer`
+between the two, and the test asserts both halves — the record holds the result with the claim
+still `hypothesis`, and the retry then draws the verdict the record supports and writes exactly one.
+`learning-record.test.ts` does the same for the transfer path's identical pair with
+`LosesTheGradeWrite`.
+
+**So the row is `refuted`, and refuted means measured and found wrong** — not "we decided against
+it". A transaction here would add a failure surface and buy a property the record already has by a
+better route.
+
+### What the audit found instead, which was not what it went looking for
+
+**R-20**, below. Reading `saveClaim` closely enough to rule out the transaction is what surfaced a
+field missing from its `SET` clause — a defect on the same line, of a different kind, and worse than
+the one being ruled out.
 
 ### R-07 · `purpose` is a claim by the client that the server cannot check
 
@@ -416,6 +450,52 @@ transfer check taken while a drill is open never constructs the drill's id.
 **Gate:** `tests/shared/a-label-with-nothing-behind-it.test.ts` — send `purpose=transfer`, a
 `transfer_id` that resolves, and a position that transfer never registered; the server refuses and
 stores nothing. Removing the binding turns six of the eight transfer cases red.
+
+### R-20 · A graded claim did not record which protocol reached the grade
+
+| | |
+| --- | --- |
+| type | evidence |
+| state | **fixed** |
+| severity | **P1** |
+| basis | **verified** — `evaluateClaim` changes three stored fields and `saveClaim`'s `onDuplicateKeyUpdate` wrote two; measured by running the fold and reading the clause |
+
+`evaluateClaim` changes `grade`, `graded_under` and `last_evaluated_at`. The claim upsert's `SET`
+clause named the first and the third. `graded_under` therefore kept whatever the `INSERT` had put
+there, and for every claim in the product that is `null`: `currentClaim` writes a fresh hypothesis
+and every write after it is an update. On MySQL — and only on MySQL — no claim ever recorded which
+protocol graded it.
+
+**Why that is an evidence defect rather than a missing column.** `getClaim` maps a null
+`graded_under` on a graded row to `LEGACY_VALIDATION`, which is correct on its own terms: a claim
+graded before protocols existed genuinely has none. And `decidesClaim(LEGACY_VALIDATION, …)` returns
+**true** unconditionally, because a legacy grade cannot be re-litigated. Put those together and
+`gradeIsSettled` came back **true for every graded claim on the server deployment** — including one
+graded by a drill whose protocol cannot decide the question the claim asks.
+
+That is the exact sentence `gradeIsSettled`'s own docblock is written against:
+
+> `replicated` reached by a position drill on a claim about the clock is a real measurement of
+> something — it is not a measurement of the thing the claim says, and a screen that prints the same
+> word for both has told the player the drill settled a question it cannot reach.
+
+**Why nothing saw it.** Every test here but the database ones runs against `MemoryRecordStore`,
+whose `saveClaim` replaces the whole row and keeps all three fields. It is the **third** defect of
+this exact shape in this one function — the two timestamps above it carry the same note, and both
+were found by probing a real MariaDB side by side, which needs a database no unit run has.
+
+**And the fix was already written twenty lines below.** `saveLearningRule`'s `SET` clause names
+exactly the four fields `sameLearningRule` compares. Same file, same rule, stated correctly once.
+
+**Gate:** `tests/server/a-grade-that-forgot-which-protocol-reached-it.test.ts`, and it needs no
+database, because the rule is not "MySQL returns the right row" — it is *"the `SET` clause names
+every field the fold may change"*. The fold is **run**, its changed fields are collected from its
+actual output rather than from a hand-written list, and the clause is read from the source. A field
+added to the fold later fails this without anyone remembering to. Removing `gradedUnder` again turns
+it red naming the field.
+
+**Found by the R-06 audit**, which was ruling a transaction *out*. Reading the write closely enough
+to say it needs no transaction is what surfaced the thing on the same line that was actually wrong.
 
 ### R-08 · Attribution: a validated claim can name the wrong subgroup
 

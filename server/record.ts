@@ -459,13 +459,38 @@ export class DrizzleRecordStore implements RecordStore {
       createdAt: new Date(claim.created_at),
       lastEvaluatedAt: new Date(claim.last_evaluated_at),
     };
-    // The grade and the evaluation date are what legitimately change, and only via evaluateClaim.
-    // An explicit value in the SET clause is what overrides the column's ON UPDATE NOW().
+    /*
+     * THE SET CLAUSE IS EXACTLY WHAT `evaluateClaim` MAY CHANGE, and it was one field short.
+     *
+     * The fold changes three things -- `grade`, `graded_under` and `last_evaluated_at` -- and this
+     * clause wrote two. `graded_under` therefore kept whatever the INSERT put there, which for
+     * every claim is `null`: `currentClaim` writes a fresh hypothesis and every later write is an
+     * update. So on MySQL, and only on MySQL, no claim ever recorded which protocol graded it.
+     *
+     * WHAT THAT COST, AND IT IS NOT A MISSING COLUMN. `getClaim` maps a null `graded_under` on a
+     * graded row to `LEGACY_VALIDATION`, and `decidesClaim(LEGACY_VALIDATION, ...)` returns TRUE
+     * unconditionally -- it has to, because a claim graded before protocols existed cannot be
+     * re-litigated. So `gradeIsSettled` came back true for every graded claim on the server
+     * deployment, including one graded by a drill whose protocol cannot reach the question it
+     * asks. `gradeIsSettled`'s own docblock names that exact case: *"`replicated` reached by a
+     * position drill on a claim about the clock is a real measurement of something -- it is not a
+     * measurement of the thing the claim says, and a screen that prints the same word for both has
+     * told the player the drill settled a question it cannot reach."*
+     *
+     * `saveLearningRule` below is the model this should have followed: its SET clause names the
+     * same four fields `sameLearningRule` compares, which is the same rule stated in the same file.
+     *
+     * An explicit value in the SET clause is also what overrides the column's ON UPDATE NOW().
+     */
     await db
       .insert(claims)
       .values(row)
       .onDuplicateKeyUpdate({
-        set: { grade: claim.grade, lastEvaluatedAt: new Date(claim.last_evaluated_at) },
+        set: {
+          grade: claim.grade,
+          gradedUnder: claim.graded_under,
+          lastEvaluatedAt: new Date(claim.last_evaluated_at),
+        },
       });
   }
 
