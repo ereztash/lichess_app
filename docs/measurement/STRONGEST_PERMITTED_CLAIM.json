@@ -1,10 +1,9 @@
 {
-  "claim_version": "1.0.0",
+  "claim_version": "1.2.0",
   "decided_at": "2026-08-31",
   "repository_main_sha": "68d61c216c6932455cc61bbe33eb65e7042a6bd7",
   "board_predicate_version": "1.0.0",
   "board_predicate_sha256": "91f6549d3e6f763757559644f800eab97628b897a4b488d7df6405fd4370de48",
-
   "permitted": {
     "detection": {
       "statement": "A frozen board predicate identifies positions in which exactly one opponent non-pawn piece is legally capturable and has zero geometric defenders.",
@@ -23,13 +22,12 @@
       "status": "supported"
     }
   },
-
   "refuted": {
     "scoring_inference": {
       "statement_refuted": "B = capture(designated target) indicates use of the unprotected-piece discrimination.",
       "evidence": {
         "engine_best_move_is_the_designated_capture_on_T_plus": 0.662,
-        "taking_loses_100cp_or_more_on_T_plus": 0.150,
+        "taking_loses_100cp_or_more_on_T_plus": 0.15,
         "engine_best_move_is_the_designated_capture_on_T_minus": 0.228,
         "curated_solution_is_capture_of_target_on_predicate_T_plus": 0.4242,
         "T_plus_items_with_a_competing_geometric_explanation": 0.142,
@@ -52,15 +50,42 @@
       "status": "refuted"
     }
   },
-
   "unresolved": [
-    {"id": "domain", "why": "no evidence that this is separable from general chess strength"},
-    {"id": "explanation", "why": "criterion c orders rating bands monotonically; d' does not", "d_prime_by_band": [1.533, 1.430, 1.500, 1.613, 1.698], "criterion_by_band": [0.089, 0.059, -0.001, -0.042, -0.065]},
-    {"id": "extrapolation", "why": "no uncued representative measurement exists; puzzle corpora are range-restricted by an engine-uniqueness rule"},
-    {"id": "utilization", "why": "formally blocked behind scoring and generalisation"},
-    {"id": "reactivity", "why": "untested; no published estimate covers repeated exposure to the taught contrast"}
+    {
+      "id": "domain",
+      "why": "no evidence that this is separable from general chess strength"
+    },
+    {
+      "id": "explanation",
+      "why": "criterion c orders rating bands monotonically; d' does not",
+      "d_prime_by_band": [
+        1.533,
+        1.43,
+        1.5,
+        1.613,
+        1.698
+      ],
+      "criterion_by_band": [
+        0.089,
+        0.059,
+        -0.001,
+        -0.042,
+        -0.065
+      ]
+    },
+    {
+      "id": "extrapolation",
+      "why": "no uncued representative measurement exists; puzzle corpora are range-restricted by an engine-uniqueness rule"
+    },
+    {
+      "id": "utilization",
+      "why": "formally blocked behind scoring and generalisation"
+    },
+    {
+      "id": "reactivity",
+      "why": "untested; no published estimate covers repeated exposure to the taught contrast"
+    }
   ],
-
   "forbidden_claims": [
     "this measures whether the player has learned the unprotected-piece rule",
     "d' increased, therefore discrimination improved",
@@ -70,15 +95,21 @@
     "puzzle-task improvement implies improvement in ordinary play",
     "the Lichess hangingPiece theme may define the trigger state"
   ],
-
   "inherited_claim_29_of_29": {
     "found_in_repository": false,
     "reproduced_from_design": true,
-    "label_selected_corpus": {"k": 29, "n": 29, "full_pool": 0.99975},
-    "predicate_selected_corpus": {"k": 19, "n": 29, "full_pool": 0.42423},
+    "label_selected_corpus": {
+      "k": 29,
+      "n": 29,
+      "full_pool": 0.99975
+    },
+    "predicate_selected_corpus": {
+      "k": 19,
+      "n": 29,
+      "full_pool": 0.42423
+    },
     "conclusion": "real, and an artifact of selecting the corpus by the label under test"
   },
-
   "gate_decisions": {
     "construct_survives_as_stated": false,
     "construct_survives_narrowed": true,
@@ -89,6 +120,93 @@
     "justifies_human_pilot_of_item_bank_adjudication": true,
     "justifies_production_integration": false,
     "evidence_level_reached": "E1-E2",
-    "evidence_level_required_for_production": "E5"
+    "evidence_level_required_for_production": "E5",
+    "a_rule_class_with_identifiable_knowledge_to_action_exists": true,
+    "that_rule_class_is": "RC-06 answer-the-mate-threat",
+    "candidates_screened": 10,
+    "eligible_after_ten_candidates": "RC-06 answer-the-mate-threat, still the only one"
+  },
+  "second_iteration_rule_class_search": {
+    "question": "is knowledge-to-action identifiable in ANY rule class?",
+    "answer": "yes for exactly one of five candidates tried",
+    "permitted": {
+      "statement": "In a corpus of 60,000 unfiltered rated games, the rule 'if the opponent threatens mate next move, play a move that stops it' prescribes an action that is Stockfish's own best move on 96.8% of trigger-positive items, and on 100.0% of the items where the rule prescribes anything at all; the same action is the engine's best on 20.0% of trigger-negative items.",
+      "b_valid_t_plus": 0.968,
+      "b_valid_t_plus_where_a_satisfying_move_exists": 1.0,
+      "b_valid_t_minus": 0.2,
+      "separation": 0.768,
+      "position_between_anchors": 0.724,
+      "following_the_rule_loses_100cp_or_more_t_plus": 0.029,
+      "cp_loss_median_t_plus": 1,
+      "base_rate_t_plus": 0.0124,
+      "player_d_prime_monotone_in_rating": true,
+      "status": "supported"
+    },
+    "still_not_permitted": {
+      "statement_refuted_or_unresolved": "that RC-06 is ready for a human pilot",
+      "why": "T+ and T- differ by max |SMD| 0.573, so the item-difficulty confound of the first iteration applies unchanged; the base rate is 1.24% of not-in-check positions; and a multiple-baseline design needs three independently measurable rule classes where there is one.",
+      "status": "unresolved"
+    },
+    "mechanism": "An offensive rule competes with the whole rest of the board and is wrong whenever something better exists. A defensive rule against mate has no competition, because the alternative is losing. Severity protects the prescription, and that is why the four capture-family candidates scored below the refuted incumbent.",
+    "corrections_to_the_first_iteration": [
+      "F10 read the incumbent's non-monotone player d' as a defect of that rule class. The CEILING anchor's d' is also non-monotone (1.946, 2.040, 2.187, 2.085) at prescriptive validity 1.000, so non-monotonicity is not diagnostic.",
+      "ITEM_BANK_PROTOCOL rejected the recapture family because T reads a prior move. That was too strict -- history before the player's turn is available before behaviour -- and recapture was measured, then failed on its merits (B_valid|T+ = 0.660).",
+      "GO_NO_GO section 7 proposed an item-bank adjudication study as the next step. The owner overrode it; the rule-class search ran instead.",
+      "Round 1's mechanism -- 'severity protects the prescription' -- was written as a full explanation. The controlled ladder shows it explains only the positive cell; the negative cell carries 58% of the winner's margin and correlates with separation at rho = -0.811, p = 0.001."
+    ],
+    "no_trade_off_claimed": "Spearman(separation, max |SMD|) = 0.536, p = 0.215, n = 7. Not evidence. Recorded as a hypothesis, not a finding."
+  },
+  "third_iteration_severity_ladder": {
+    "question": "does severity protect the prescription, as round 1 claimed?",
+    "answer": "half of it. Severity holds on the positive side and is the less important half.",
+    "preregistered_before_the_run": "research/measurement/rule_classes.py::PREDICTIONS",
+    "H1_severity": {
+      "prediction": "B_valid|T+ declines monotonically: mate > queen > rook > minor",
+      "observed": [
+        0.968,
+        0.8,
+        0.704,
+        0.648
+      ],
+      "monotone_decreasing": true,
+      "span": 0.32,
+      "verdict": "CONFIRMED"
+    },
+    "H2_outcome_over_method": {
+      "prediction": "an outcome prescription beats a method prescription on an identical trigger",
+      "observed": {
+        "outcome_RC_09_t_plus": 0.648,
+        "method_RC_11_t_plus": 0.596,
+        "outcome_RC_09_t_minus": 0.452,
+        "method_RC_11_t_minus": 0.144,
+        "outcome_separation": 0.196,
+        "method_separation": 0.452
+      },
+      "verdict": "SPLIT -- the naive reading is REFUTED. The outcome prescription is more often correct (+0.052) and far less specific; the method prescription wins on separation by 0.256."
+    },
+    "the_finding": {
+      "statement": "Separation is driven by the noise cell, not by the positive cell.",
+      "spearman_separation_vs_b_valid_t_plus": {
+        "rho": 0.476,
+        "p": 0.118,
+        "n": 12
+      },
+      "spearman_separation_vs_b_valid_t_minus": {
+        "rho": -0.811,
+        "p": 0.001,
+        "n": 12
+      },
+      "decomposition_RC06_vs_RC07": {
+        "delta_t_plus": 0.168,
+        "delta_t_minus": 0.232,
+        "delta_separation": 0.4,
+        "noise_cell_share": 0.58
+      }
+    },
+    "corrected_mechanism": "Severity protects the prescription on the positive side and does nothing for the negative side. A rule class is usable only when the trigger is severe AND its absence is genuinely inert -- when not acting is actually correct once the trigger is gone.",
+    "candidates_tried": 10,
+    "eligible": 1,
+    "defect_caught_by_a_guard": "RC-12 first scored B_valid|T+ = 0.976 with prescription_size 0.969, which cannot be true. Cause: a double null move counted OUR promotions instead of the opponent's. Fixed, it scores 0.456/0.416, separation +0.040.",
+    "search_strategy_now_inverted": "Choose candidates by their noise cell first -- 'when the trigger is absent, is the prescribed action clearly wrong?' -- and check severity second."
   }
 }

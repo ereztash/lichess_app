@@ -21,9 +21,25 @@ scripts concluded and what may not be claimed from them.
    the Python and `tests/research/measurement-sdt.test.ts` asserts the port reproduces it.
 8. `negative-controls.ts` — eight false claims, each of which must fail for its own reason.
 
+## The second iteration: searching over rule classes instead of over measurement methods
+
+The first iteration refuted one rule class. It did not answer whether ANY rule class has an
+identifiable `knowledge -> action` link, and that question decides whether the paradigm is worth
+another cycle at all.
+
+9. `rule_classes.py` — seven rule classes as pairs of pure functions. C1, C2 and C7 are properties
+   of the signatures rather than promises: `trigger()` has no parameter through which the played
+   move could arrive, and `satisfies()` has no engine in scope.
+10. `scan_rule_classes.py` — the same 60,000 games, the same seed, the same sampled plies.
+11. `screen_rule_classes.py` — Stockfish grades the prescribed action from OUTSIDE the rule, on
+    four engines in parallel. Two anchors are measured in the same run so no threshold is invented.
+12. `decide_rule_class.py` — five gates, every one a comparison. The recommendation is derived from
+    the numbers, and `tests/research/measurement-rule-class-screen.test.ts` fails the build if the
+    published decision and the measurements disagree.
+
 ## What runs in CI
 
-`sdt.ts` and `negative-controls.ts`, via `npm test`. The Python is not run in CI: it needs 320 MB
+`sdt.ts`, `negative-controls.ts` and the rule-class screen's consistency check, via `npm test`. The Python is not run in CI: it needs 320 MB
 of downloaded corpora and a Stockfish binary, and a check that cannot run is worse than one that
 is honestly out of band. What CI *does* guarantee is that the arithmetic the Python used is still
 the arithmetic the controls run on.
