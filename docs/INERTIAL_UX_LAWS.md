@@ -126,6 +126,28 @@ looks like copy and layout stops being copy and layout.
 **Gate:** `GATE-NEXT-ACTION-RESOLVES-BLOCKER`, plus the shadow-mode comparison that precedes
 handing ownership over.
 
+### Status: derived, and deciding nothing yet
+
+`shared/interaction-mode.ts` holds the ten modes and, for each, a **contract**: what may be central,
+whether prior evidence may be on screen, whether the engine may speak, whether the player is
+producing evidence. That table is LAW 1, LAW 2 and R3 as data instead of as conditions spread across
+a 2,400-line component, and it is checked against `makingEvidence` and `engineMayRun` — the two
+functions the product actually runs on — so a table that agreed with nothing would fail rather than
+decorate.
+
+It would have caught the counterfactual defect on its own: `MODE_OF_STAGE` puts `committed` in
+`DECIDE`, and `DECIDE` permits neither prior evidence nor engine output.
+
+`shared/next-action.ts` holds the derivation. Every action it returns is justified by what the
+**record** is missing, never by anything predicted about the player — the line `ContextRibbon`
+already drew, and the one [D21](decisions/D21-feedback-exposure.md) makes load-bearing, since a
+layer that changed what a player saw based on their own measurements would create exactly the
+exposure the record cannot represent. `none` is a first-class result, because a function that always
+has a suggestion will invent one where the product has least to say.
+
+**Nothing renders from either yet.** Derivation, then shadow, then ownership: a pure function that
+is wrong is a failing test; a screen that is wrong is a player who cannot find anything.
+
 ### What the first application of this law found
 
 The law's narrow form — *a screen reads the record, it does not keep its own copy of it* — was

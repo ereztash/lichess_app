@@ -10,6 +10,7 @@
  * Time-to-decide is captured here. It is a predictor, not telemetry (section 4.1).
  */
 import { CONFIDENCE_LEVELS, CONFIDENCE_GRID_VERSION } from "@shared/confidence";
+import type { DecisionStage } from "@shared/decision-stage";
 import type { DecisionAtom, StatedParts } from "@shared/decision-atom";
 import { assignProbe } from "@shared/counterfactual";
 import type { RevealTiming } from "@shared/reveal-timing";
@@ -19,7 +20,14 @@ import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
 import { confidenceIsAsked, readsAreAsked, type DecisionPurpose } from "@shared/confidence-asked";
 
-export type SessionStage = "deciding" | "committing" | "committed" | "revealed" | "blocked";
+/**
+ * The stages, re-exported under the name this module has always used.
+ *
+ * The list itself is `shared/decision-stage.ts` now, so `counterfactual-stage.ts` can pin the probe
+ * to one of them in the type system rather than in a comment, and so `interaction-mode.ts` can map
+ * every stage exhaustively at run time. Nothing about the machine changed.
+ */
+export type SessionStage = DecisionStage;
 
 export interface PositionUnderDecision {
   gameId: string;
