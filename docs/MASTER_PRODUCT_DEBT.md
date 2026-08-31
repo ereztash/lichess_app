@@ -678,6 +678,16 @@ was not the one the reader had in mind. It is on the panel now, and absent when 
 **Gate:** `GATE-ENGINE-FAILURE-DISTINCT` — no two causes render the same sentence, and no classified
 cause reaches the generic fallback. Its control is the renderer that shipped.
 
+**Confirmed on the deployment after the fix**, on the same origin that produced the defect:
+
+| | before | after |
+| --- | --- | --- |
+| Web Worker | *"אפשר ליצור Worker"* — a pass, while the console said the worker was refused | *"Worker מאותו מקור ענה. blob: חסום במדיניות (לא בשימוש כאן)"* |
+| קובץ המנוע (JS) | status and byte count | status, bytes, **and `application/javascript; charset=utf-8`** |
+
+The second line is the whole point of the change: the check now says which scheme was refused and
+that no engine path depends on it, instead of reporting a refusal as a success.
+
 **What is still not established, and now it can be asked:** which cause the original reporter hit.
 Nothing here can recover that — the screen they saw could not say. What has changed is that the next
 report will name one of nine, and the two most likely candidates for theirs, `worker-refused` and
