@@ -155,7 +155,13 @@ describe.each([
   { label: "a phone", width: 390 },
   { label: "a desktop", width: 1280 },
 ])("nothing moves after paint on $label", ({ width }) => {
-  it.each(["/", "/play"])("holds %s within the shift budget", async (route) => {
+  /*
+   * `/blitz` JOINED THE LIST WITH §29, and it is the cheapest of the three: its initial state is
+   * three buttons and a heading, so a shift there would be the shell settling rather than a panel
+   * arriving. That is exactly why it belongs -- an untested route with nothing on it is where a
+   * regression in the shell hides, and every blitz game starts by painting it.
+   */
+  it.each(["/", "/play", "/blitz"])("holds %s within the shift budget", async (route) => {
     const runs: { cls: number; shifts: string[] }[] = [];
     for (let load = 0; load < LOADS; load += 1) runs.push(await score(route, width));
     const median = [...runs].sort((a, b) => a.cls - b.cls)[Math.floor(LOADS / 2)].cls;

@@ -76,6 +76,8 @@ interface Audit {
   rulesRun: number;
   squares: number;
   title: string;
+  /** How many elements matched this route's own marker. The per-route floor. */
+  markers: number;
 }
 
 let browser: Browser;
@@ -98,13 +100,14 @@ afterAll(async () => {
 /** Lighthouse's own desktop viewport, so this and the recorded audit describe the same page. */
 const VIEWPORT = { width: 1350, height: 940 };
 
-async function audit(path: string): Promise<Audit> {
+async function audit({ path, marker }: Route): Promise<Audit> {
   const page = await browser.newPage({ viewport: VIEWPORT });
   await page.goto(`${origin}${path}`, { waitUntil: "networkidle" });
   // The board is the point of this audit and it renders after hydration.
   await page.waitForSelector(".board-square", { timeout: 30_000 }).catch(() => undefined);
+  await page.waitForSelector(marker, { timeout: 30_000 }).catch(() => undefined);
   await page.addScriptTag({ content: axeSource });
-  const result = await page.evaluate(async () => {
+  const result = await page.evaluate(async (selector: string) => {
     const axe = (window as unknown as { axe: { run: (ctx: unknown) => Promise<unknown> } }).axe;
     const run = (await axe.run(document)) as {
       violations: Array<{
@@ -128,8 +131,9 @@ async function audit(path: string): Promise<Audit> {
       rulesRun: run.passes.length + run.violations.length + run.incomplete.length,
       squares: document.querySelectorAll(".board-square").length,
       title: document.title,
+      markers: document.querySelectorAll(selector).length,
     };
-  });
+  }, marker);
   await page.close();
   return result;
 }
@@ -141,8 +145,35 @@ async function audit(path: string): Promise<Audit> {
  * board is. The first draft audited `/` alone, reported zero violations, and was auditing a page
  * with no board on it: the floor below caught `0 board squares on screen`. The board is the surface
  * this audit most exists for, so a run that never renders one has audited the wrong thing.
+ *
+ * `/blitz` JOINED WITH §29, and only its INITIAL state -- three buttons -- is reachable here,
+ * because everything past it needs a click. `every-blitz-state.layout.test.ts` drives the rest in
+ * the same browser with the same axe build; this list is routes, and that file is states. Neither
+ * subsumes the other: a route can regress without any state changing, and a state can regress
+ * without its route noticing.
  */
-const ROUTES = ["/", "/play"];
+interface Route {
+  path: string;
+  /** Something only this route renders. The floor against auditing a shell that never hydrated. */
+  marker: string;
+  /**
+   * How many axe rules a real document on this route evaluates.
+   *
+   * PER ROUTE, AND THAT IS A CORRECTION RATHER THAN A LOOSENING. The floor used to be a single
+   * `> 20`, calibrated on two content-heavy pages, and `/blitz` failed it at 17 -- not because the
+   * harness was broken but because its opening state is a heading, a paragraph and three buttons.
+   * A page with less on it evaluates fewer rules, and a shared floor either fails an honest small
+   * page or is too low to catch an empty one on a large page. The marker below is what actually
+   * proves the page loaded; this number keeps each route from silently shrinking.
+   */
+  minRules: number;
+}
+
+const ROUTES: readonly Route[] = [
+  { path: "/", marker: ".record-page-head", minRules: 30 },
+  { path: "/play", marker: ".board-square", minRules: 30 },
+  { path: "/blitz", marker: ".blitz-setup", minRules: 12 },
+];
 
 describe("the built app, audited by the engine Lighthouse uses", () => {
   const audits = new Map<string, Audit>();
@@ -150,7 +181,7 @@ describe("the built app, audited by the engine Lighthouse uses", () => {
   let violations: Violation[];
 
   beforeAll(async () => {
-    for (const route of ROUTES) audits.set(route, await audit(route));
+    for (const route of ROUTES) audits.set(route.path, await audit(route));
     result = audits.get("/play")!;
     violations = [...audits.values()].flatMap((a) => a.violations);
     /* eslint-disable no-console */
@@ -202,10 +233,19 @@ describe("the built app, audited by the engine Lighthouse uses", () => {
      * the board -- sixty-four squares, the surface this audit most exists for -- was rendered when
      * it did.
      */
-    for (const [route, a] of audits) {
-      expect(a.rulesRun, `axe evaluated no rules on ${route} -- it audited an empty document`).
-        toBeGreaterThan(20);
-      expect(a.title.length, `the page shell did not load on ${route}`).toBeGreaterThan(0);
+    for (const route of ROUTES) {
+      const a = audits.get(route.path)!;
+      expect(
+        a.rulesRun,
+        `axe evaluated ${a.rulesRun} rules on ${route.path} -- it audited an empty document`,
+      ).toBeGreaterThanOrEqual(route.minRules);
+      expect(a.title.length, `the page shell did not load on ${route.path}`).toBeGreaterThan(0);
+      /*
+       * THE ASSERTION THAT ACTUALLY PROVES THE PAGE ARRIVED. A rule count says a document existed;
+       * a marker says THIS route's document existed. The shell is a single-page app, so a route
+       * that never hydrated still serves a valid HTML document with a title and a rule set.
+       */
+      expect(a.markers, `${route.path} never rendered ${route.marker}`).toBeGreaterThan(0);
     }
     expect(result.squares, "the board had not rendered when axe ran on /play").toBe(64);
   });
