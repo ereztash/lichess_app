@@ -111,7 +111,23 @@ function runVitestFile(
   if (config) args.push("--config", config);
   if (only) args.push("-t", only);
   const result = spawnSync(process.execPath, args, { encoding: "utf8", stdio: "pipe" });
-  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+  /*
+   * COLOUR STRIPPED BEFORE ANYTHING READS THIS, and it is not tidiness -- it was a CI-only red.
+   *
+   * Vitest colours its summary when `CI` is set, so on a runner "Test Files  1 passed" arrives as
+   * `\x1b[2m Test Files \x1b[22m \x1b[1m\x1b[32m1 passed`. Every pattern below was written against
+   * the plain text a pipe produces here, so the `only` guard read a perfectly green filtered run as
+   * "no test matched" and turned two gates red on the runner and nowhere else -- the worst shape a
+   * check can have, because the machine that decides is the one machine behaving differently.
+   *
+   * The same hazard applied to both `includes` and to the `AssertionError` search: a matcher that
+   * assumes uncoloured output behaves differently in the one place it matters most.
+   */
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.replace(
+    // eslint-disable-next-line no-control-regex
+    /\u001b\[[0-9;]*m/g,
+    "",
+  );
 
   if (result.error || result.status === null) {
     return fail(`${HARNESS_ERROR} ${result.error?.message ?? `no exit status from ${file}`}`);
