@@ -48,6 +48,7 @@ async function commit(store: MemoryRecordStore, id: string, index: number, revea
     clockMsRemaining: 60_000,
     purpose: "play",
     drillId: null,
+    transferId: null,
     secondsTaken: 10,
     chosenMove: "a1b1",
     candidateMovesConsidered: ["a1b1"],

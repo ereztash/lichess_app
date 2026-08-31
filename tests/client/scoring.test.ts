@@ -14,6 +14,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   },
   purpose: "play",
   drill_id: null,
+  transfer_id: null,
   known: "k",
   unknown: "u",
   // Null, not an empty pair: this fixture records no vocabulary, it does not assert silence.

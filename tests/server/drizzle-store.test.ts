@@ -18,6 +18,7 @@
  *     DATABASE_URL='mysql://root@127.0.0.1:3306/decision_lab' npx vitest run tests/server/drizzle-store.test.ts
  */
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
+import { evaluateClaim } from "../../shared/claim";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { DrizzleRecordStore, MemoryRecordStore } from "../../server/record";
 import type { CommitDecisionInput } from "../../shared/record-store";
@@ -38,6 +39,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     clockMsRemaining: 120_000,
     purpose: "play",
     drillId: null,
+    transferId: null,
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],
@@ -488,6 +490,61 @@ describeDb("DrizzleRecordStore against MySQL", () => {
         );
       }
       expect(fromMysql).toEqual(fromMemory);
+    });
+
+    it("keeps which protocol graded it, when the FOLD does the grading rather than the test", async () => {
+      /*
+       * R-20, AND THE REASON THE BLOCK ABOVE DID NOT CATCH IT. `roundTrip` hands `saveClaim` a
+       * graded claim the TEST built -- `{ ...claim, grade: "replicated" }` -- which carries
+       * `graded_under: null`, exactly as the fresh one did. So the field never changed, both stores
+       * returned null, and `toEqual` was satisfied by two stores agreeing about a value neither had
+       * been asked to write.
+       *
+       * `evaluateClaim` is what the product runs, and it changes THREE fields: `grade`,
+       * `last_evaluated_at`, and `graded_under`. The claim upsert's `SET` clause named two.
+       * `graded_under` therefore kept whatever the INSERT put there -- null for every claim, since
+       * `currentClaim` writes a fresh hypothesis and every later write is an update.
+       *
+       * WHAT THAT COST IS NOT A NULL COLUMN. `getClaim` maps a null `graded_under` on a graded row
+       * to `LEGACY_VALIDATION`, correctly -- a claim graded before protocols existed genuinely has
+       * none -- and `decidesClaim(LEGACY_VALIDATION, …)` returns true unconditionally, because a
+       * legacy grade cannot be re-litigated. So `gradeIsSettled` came back TRUE for every graded
+       * claim on the server deployment, including one graded by a drill whose protocol cannot reach
+       * the question the claim asks.
+       *
+       * So this grades through the fold, on both stores, and asks what came back.
+       */
+      const fresh = { ...claim, claim_id: "claim-graded-under" };
+      const drill = { ...result, claim_id: fresh.claim_id, drill_id: "drill-graded-under" };
+
+      async function gradeThroughTheFold(
+        target: typeof store | InstanceType<typeof MemoryRecordStore>,
+      ) {
+        await target.saveClaim(fresh);
+        await target.saveDrillResult(drill);
+        /*
+         * `gradeClaimFromRecord`'s own shape: re-read, fold over the stored results, write back.
+         * Re-reading rather than folding over the copy above is what makes the grade a function of
+         * the record -- and it is also the only way this test exercises the read path the defect
+         * hid in.
+         */
+        const stored = await target.getClaim(fresh.claim_id);
+        await target.saveClaim(evaluateClaim(stored!, stored!.prospective_tests));
+        return target.getClaim(fresh.claim_id);
+      }
+
+      const fromMysql = await gradeThroughTheFold(store);
+      const fromMemory = await gradeThroughTheFold(new MemoryRecordStore());
+
+      for (const [name, got] of [["MySQL", fromMysql], ["memory", fromMemory]] as const) {
+        expect(got?.grade, `${name} lost the grade`).toBe("replicated");
+        expect(
+          got?.graded_under,
+          `${name} did not record which protocol reached the grade, so gradeIsSettled cannot tell ` +
+            "a verdict from a drill that could not reach the question",
+        ).toBe(drill.protocol);
+      }
+      expect(fromMysql, "the two stores disagree about a graded claim").toEqual(fromMemory);
     });
 
     it("agrees on a claim that never recorded a direction, rather than one store inventing one", async () => {

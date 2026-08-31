@@ -1,0 +1,420 @@
+{
+  "seed": 20260831,
+  "records_per_world": 400,
+  "plant_cut": 0.025,
+  "plant_delta": 0.18,
+  "false_claim_ceiling": 0.02,
+  "recovery_bar": 0.21125,
+  "answerable": true,
+  "verdict": "REJECTED",
+  "shipped": {
+    "arm": "shipped",
+    "nulls": [
+      {
+        "world": "BLITZ-NULL-1-independent",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      },
+      {
+        "world": "BLITZ-NULL-2-within-game-correlated",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      },
+      {
+        "world": "BLITZ-NULL-3-skewed-features",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 1,
+        "any_bucket_rate": 0.0025,
+        "any_bucket_rate_ci": [
+          0.0004414364294344091,
+          0.014023640967247853
+        ],
+        "claim_formed": 1,
+        "claim_formed_rate": 0.0025,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {
+          "fast-under-45s": 1
+        }
+      },
+      {
+        "world": "BLITZ-NULL-5-informative-missingness",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      }
+    ],
+    "pooled_null": {
+      "validated": 0,
+      "n": 1600,
+      "ci": [
+        0.0,
+        0.002395249007133871
+      ]
+    },
+    "false_claim_rate": 0.0,
+    "false_claim_upper": 0.002395249007133871,
+    "bucket_liveness": {
+      "fast-under-45s": {
+        "nonempty": 1600.0,
+        "usable": 436.0,
+        "cleared": 1.0,
+        "n": 1600.0
+      },
+      "slow-over-2m": {
+        "nonempty": 935.0,
+        "usable": 6.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "phase-opening": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "phase-middlegame": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "phase-endgame": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "clock-under-1m": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      }
+    },
+    "plants": [
+      {
+        "plant": "relative-fast",
+        "delta": 0.18,
+        "expressible_as": "fast-under-45s",
+        "records": 400,
+        "any_bucket_recall": 0.05,
+        "any_bucket_recall_ci": [
+          0.0325971756266401,
+          0.0759642009130725
+        ],
+        "claim_formed_rate": 0.05,
+        "predicate_recovery": 0.0,
+        "predicate_recovery_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "validation_success": 0.0025,
+        "validation_success_ci": [
+          0.0004414364294344091,
+          0.014023640967247853
+        ],
+        "validated_on_target": 0.0,
+        "validated_on_target_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "mirror_rate": 0.0175,
+        "wrong_proxy_rate": 0.0325
+      },
+      {
+        "plant": "clean-middlegame",
+        "delta": 0.18,
+        "expressible_as": "phase-middlegame",
+        "records": 400,
+        "any_bucket_recall": 0.62,
+        "any_bucket_recall_ci": [
+          0.5715036398060112,
+          0.6662133264500655
+        ],
+        "claim_formed_rate": 0.62,
+        "predicate_recovery": 0.58,
+        "predicate_recovery_ci": [
+          0.5310948469671546,
+          0.6273831305368964
+        ],
+        "validation_success": 0.43,
+        "validation_success_ci": [
+          0.3823751858037104,
+          0.47895658388024487
+        ],
+        "validated_on_target": 0.4225,
+        "validated_on_target_ci": [
+          0.375054573432128,
+          0.4714198858608225
+        ],
+        "mirror_rate": 0.04,
+        "wrong_proxy_rate": 0.0
+      }
+    ],
+    "region_probe": {
+      "target": "fast-under-45s",
+      "planted_share": 0.27223379036526363,
+      "inside_share": 0.9681306617953556,
+      "median_derivation_decisions": 522.0,
+      "median_outside_decisions": 15.0,
+      "unplanted_decisions": 379.89396142933236,
+      "planted_outside_floor": 0.0,
+      "min_bucket_n": 30,
+      "answerable": true
+    }
+  },
+  "candidate": {
+    "arm": "candidate",
+    "nulls": [
+      {
+        "world": "BLITZ-NULL-1-independent",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      },
+      {
+        "world": "BLITZ-NULL-2-within-game-correlated",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      },
+      {
+        "world": "BLITZ-NULL-3-skewed-features",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      },
+      {
+        "world": "BLITZ-NULL-5-informative-missingness",
+        "records": 400,
+        "sigma_tilt": null,
+        "any_bucket_cleared": 0,
+        "any_bucket_rate": 0.0,
+        "any_bucket_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "claim_formed": 0,
+        "claim_formed_rate": 0.0,
+        "validated_claims": 0,
+        "false_validated_rate": 0.0,
+        "false_validated_rate_ci": [
+          0.0,
+          0.009512640599680667
+        ],
+        "cleared_by_bucket": {}
+      }
+    ],
+    "pooled_null": {
+      "validated": 0,
+      "n": 1600,
+      "ci": [
+        0.0,
+        0.002395249007133871
+      ]
+    },
+    "false_claim_rate": 0.0,
+    "false_claim_upper": 0.002395249007133871,
+    "bucket_liveness": {
+      "fast-relative": {
+        "nonempty": 1600.0,
+        "usable": 1593.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "slow-relative": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "phase-opening": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "phase-middlegame": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "phase-endgame": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      },
+      "clock-under-1m": {
+        "nonempty": 1600.0,
+        "usable": 1600.0,
+        "cleared": 0.0,
+        "n": 1600.0
+      }
+    },
+    "plants": [
+      {
+        "plant": "relative-fast",
+        "delta": 0.18,
+        "expressible_as": "fast-relative",
+        "records": 400,
+        "any_bucket_recall": 0.1775,
+        "any_bucket_recall_ci": [
+          0.1431753456171796,
+          0.21796030756961446
+        ],
+        "claim_formed_rate": 0.1775,
+        "predicate_recovery": 0.1225,
+        "predicate_recovery_ci": [
+          0.09391269296642375,
+          0.15826935068633516
+        ],
+        "validation_success": 0.05,
+        "validation_success_ci": [
+          0.0325971756266401,
+          0.0759642009130725
+        ],
+        "validated_on_target": 0.0475,
+        "validated_on_target_ci": [
+          0.03061683210766865,
+          0.07299210763504237
+        ],
+        "mirror_rate": 0.0225,
+        "wrong_proxy_rate": 0.0325
+      },
+      {
+        "plant": "clean-middlegame",
+        "delta": 0.18,
+        "expressible_as": "phase-middlegame",
+        "records": 400,
+        "any_bucket_recall": 0.6225,
+        "any_bucket_recall_ci": [
+          0.5740402091679837,
+          0.6686291938850947
+        ],
+        "claim_formed_rate": 0.6225,
+        "predicate_recovery": 0.58,
+        "predicate_recovery_ci": [
+          0.5310948469671546,
+          0.6273831305368964
+        ],
+        "validation_success": 0.43,
+        "validation_success_ci": [
+          0.3823751858037104,
+          0.47895658388024487
+        ],
+        "validated_on_target": 0.4225,
+        "validated_on_target_ci": [
+          0.375054573432128,
+          0.4714198858608225
+        ],
+        "mirror_rate": 0.04,
+        "wrong_proxy_rate": 0.0025
+      }
+    ],
+    "region_probe": {
+      "target": "fast-relative",
+      "planted_share": 0.27223379036526363,
+      "inside_share": 0.18667626257723882,
+      "median_derivation_decisions": 522.0,
+      "median_outside_decisions": 427.0,
+      "unplanted_decisions": 379.89396142933236,
+      "planted_outside_floor": 0.0855575277880248,
+      "min_bucket_n": 30,
+      "answerable": true
+    }
+  }
+}

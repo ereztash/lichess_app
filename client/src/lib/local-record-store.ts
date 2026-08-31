@@ -796,6 +796,8 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
     purpose: row.purpose ?? null,
     /* Absent on rows an earlier build wrote, which is the same fact as never having been a drill. */
     drill_id: row.drillId ?? null,
+    /* And the same for a transfer check. */
+    transfer_id: row.transferId ?? null,
     known: row.statedRead,
     unknown: row.statedUnknown,
     known_parts: row.statedReadParts ?? null,
@@ -856,6 +858,7 @@ type StoredDecision = Omit<
    * accept from a NEW write.
    */
   drillId?: string | null;
+  transferId?: string | null;
   /**
    * Absent on rows an earlier build wrote, and absent is a FOURTH STATE rather than a control
    * arm: those decisions were never randomised into anything.

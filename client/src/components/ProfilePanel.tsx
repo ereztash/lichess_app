@@ -87,6 +87,10 @@ export function ProfilePanel({
   crossing: CrossingReading;
 }) {
   const { findings } = variables;
+  /* Which variables carry a mirror, so the explanation below the list can name them. */
+  const mirrors = findings
+    .filter((finding) => finding.mirrored.length > 0)
+    .map((finding) => finding.variable.label);
   const readableShare = crossing.tried > 0 ? crossing.measurable / crossing.tried : 0;
 
   return (
@@ -113,12 +117,6 @@ export function ProfilePanel({
                 {finding.strongest.scope}: {direction(finding.strongest.gapDifference)}, על{" "}
                 <bdi>{finding.strongest.inside.n}</bdi> החלטות.
               </span>
-              {finding.mirrored.length > 0 && (
-                <span className="profile-panel__mirror">
-                  שאר הרמות של המשתנה הזה נראות טוב יותר כתוצאה מזה. זה אותה מדידה מהצד השני,
-                  ולא ממצא נוסף.
-                </span>
-              )}
               {finding.alongside.length > 0 && (
                 <span className="profile-panel__alongside">
                   {/* Same direction is a real second statement, unlike a mirror. */}
@@ -128,6 +126,26 @@ export function ProfilePanel({
             </li>
           ))}
         </ul>
+      )}
+
+      {/*
+        * THE MIRROR, EXPLAINED ONCE AND NAMED PER VARIABLE.
+        *
+        * IT USED TO SIT INSIDE EVERY ROW THAT HAD ONE. The sentence is about what a mirror IS --
+        * the same measurement seen from the other side -- and it is word-for-word the same
+        * whichever variable produced it, so a record with mirrors on all three variables printed
+        * it three times and none of the three copies said anything the other two did not.
+        *
+        * NAMING THE VARIABLES IS WHAT KEEPS IT A ROW-LEVEL FACT. "These two are mirrors" is
+        * exactly as specific as three copies of the sentence were, and it adds the one thing the
+        * copies could not say: which of the findings below it applies to, in one place.
+        */}
+      {mirrors.length > 0 && (
+        <p className="profile-panel__mirror">
+          ב{mirrors.length === 1 ? "" : "־"}
+          {mirrors.join(", ")}: שאר הרמות של המשתנה נראות טוב יותר כתוצאה מזה. זו אותה מדידה מהצד
+          השני, ולא ממצא נוסף.
+        </p>
       )}
 
       <h4 className="profile-panel__subtitle">הצלבות</h4>

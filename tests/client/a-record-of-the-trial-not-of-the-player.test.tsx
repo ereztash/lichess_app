@@ -244,8 +244,14 @@ describe("nothing reads it back", () => {
      * nothing else in the product calls it.
      */
     const shadow = readFileSync(resolve(root, "client/src/lib/next-action-shadow.ts"), "utf8");
-    /* The only read it takes from the log, and the ones it must never take. */
-    expect(shadow).toMatch(/trialEventSeen\("next_action_shadow"\)/);
+    /*
+     * The only read it takes from the log, and the ones it must never take.
+     *
+     * IT IS `trialEventSeenOn` AND THE SURFACE IS NOT DECORATION. Deduplicating by name alone meant
+     * whichever screen rendered first wrote its row and every other surface was silently absent --
+     * a ledger that looked like agreement with two thirds of the product missing from it.
+     */
+    expect(shadow).toMatch(/trialEventSeenOn\("next_action_shadow", surface\)/);
     expect(shadow, "the shadow reads more of the log than idempotency").not.toMatch(
       /trialEventEverSeen|previousVisitStartedAt|visitsOnRecord|progressReport|readUsage/,
     );

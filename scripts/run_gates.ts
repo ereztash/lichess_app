@@ -35,6 +35,7 @@ import {
   findScreensWithTwoBoards,
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
+import { findRegisterDrift } from "./register-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
@@ -91,15 +92,42 @@ function isoPredicate(screen: string[], event: string[], report: string[]): Gate
  *
  * Some gates must exercise client modules that import Vite-only `?url` assets (the 7MB wasm).
  * tsx cannot resolve those, so those gates delegate to Vitest, which has the transform pipeline.
+ *
+ * `only` narrows the run to one `describe` block, so two gates may share a file without sharing a
+ * verdict. That matters for the positive controls more than for the runs: a control file holding
+ * two defects goes red for EITHER of them, which would leave one of the two gates unproven -- red
+ * for the wrong reason is not a proven gate.
  */
 export const HARNESS_ERROR = "HARNESS ERROR:";
 
-function runVitestFile(file: string, label: string, config?: string): GateResult {
+function runVitestFile(
+  file: string,
+  label: string,
+  config?: string,
+  only?: string,
+): GateResult {
   const vitest = resolve("node_modules", "vitest", "vitest.mjs");
   const args = [vitest, "run", file];
   if (config) args.push("--config", config);
+  if (only) args.push("-t", only);
   const result = spawnSync(process.execPath, args, { encoding: "utf8", stdio: "pipe" });
-  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
+  /*
+   * COLOUR STRIPPED BEFORE ANYTHING READS THIS, and it is not tidiness -- it was a CI-only red.
+   *
+   * Vitest colours its summary when `CI` is set, so on a runner "Test Files  1 passed" arrives as
+   * `\x1b[2m Test Files \x1b[22m \x1b[1m\x1b[32m1 passed`. Every pattern below was written against
+   * the plain text a pipe produces here, so the `only` guard read a perfectly green filtered run as
+   * "no test matched" and turned two gates red on the runner and nowhere else -- the worst shape a
+   * check can have, because the machine that decides is the one machine behaving differently.
+   *
+   * The same hazard applied to both `includes` and to the `AssertionError` search: a matcher that
+   * assumes uncoloured output behaves differently in the one place it matters most.
+   */
+  const output = `${result.stdout ?? ""}${result.stderr ?? ""}`.replace(
+    // eslint-disable-next-line no-control-regex
+    /\u001b\[[0-9;]*m/g,
+    "",
+  );
 
   if (result.error || result.status === null) {
     return fail(`${HARNESS_ERROR} ${result.error?.message ?? `no exit status from ${file}`}`);
@@ -110,6 +138,15 @@ function runVitestFile(file: string, label: string, config?: string): GateResult
   // harness masquerade as a red control, proving nothing.
   if (output.includes("No test files found")) {
     return fail(`${HARNESS_ERROR} no tests collected from ${file}`);
+  }
+  /*
+   * A NAME FILTER THAT MATCHES NOTHING EXITS ZERO. Vitest skips the whole file and prints
+   * "Test Files  1 skipped (1)" -- so a gate whose `describe` block is renamed would go green
+   * forever, having run no assertion at all. That is the same hole as an uncollected file, one
+   * level down, and it is the specific risk of splitting two gates across one file.
+   */
+  if (only && !/Test Files\s+\d+ passed/.test(output) && result.status === 0) {
+    return fail(`${HARNESS_ERROR} no test in ${file} matched "${only}"`);
   }
   if (result.status === 0) return pass(`${label} (vitest: ${file})`);
 
@@ -122,6 +159,9 @@ function runVitestFile(file: string, label: string, config?: string): GateResult
 
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
+
+/** A whole repository in miniature, carrying the drifts the real registers actually had. */
+const REGISTER_FIXTURES = "tests/fixtures/registers";
 
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
@@ -138,11 +178,51 @@ const readingsOutside = (roots: string[]) =>
 const twoBoards = (roots: string[]) =>
   fromFindings(findScreensWithTwoBoards(roots), "one board per screen");
 
+const registerDrift = (root: string) =>
+  fromFindings(
+    findRegisterDrift(root),
+    "debt register, laws, ledger and runner agree with the tree",
+  );
+
 const asksAgain = (roots: string[]) =>
   fromFindings(
     findSurfacesThatAskAgain(roots),
     "both configured surfaces read what the player already chose, and keep it",
   );
+
+/**
+ * THE TOOLBOX IS BEHIND ITS DOOR, in both senses (LAW 2, P1.7).
+ *
+ * `RecordExplorer` carries every reading of the record, so `GATE-DECISION-FOCUS` already forbids
+ * those components anywhere else. What this adds is the door: the explorer must be rendered behind
+ * a control the player presses AND behind a lazy chunk, because a surface that renders only on a
+ * press has no business in the bytes every arrival downloads -- and because a toolbox that is
+ * statically imported is one somebody can render unconditionally without noticing the cost.
+ */
+const toolboxBehindItsDoor = (roots: string[]): GateResult => {
+  const findings: Finding[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const source = readFileSync(file, "utf8");
+      const path = file.replaceAll("\\", "/");
+      if (!/<RecordExplorer[\s/>]/.test(source)) continue;
+      if (!/\{exploring && !runInProgress && \(/.test(source)) {
+        findings.push({ file: path, line: 1, text: "the explorer renders without its control" });
+      }
+      if (!/lazyChunk\(\s*\(\)\s*=>\s*import\("@\/components\/RecordExplorer"\)/.test(source)) {
+        findings.push({ file: path, line: 1, text: "the explorer is in the entry chunk" });
+      }
+    }
+  }
+  if (findings.length === 0 && roots.every((r) => r === INERTIA_FIXTURES)) {
+    /*
+     * A CONTROL THAT FINDS NOTHING IS NOT A RED CONTROL. The fixture must actually render the
+     * explorer, or this gate would report "clean" over a directory that never mentions it.
+     */
+    return fail("the control fixture does not render the explorer at all");
+  }
+  return fromFindings(findings, "the toolbox is behind a control and behind a lazy chunk");
+};
 
 const pendingWork = (roots: string[], rootFile: string) =>
   fromFindings(
@@ -295,6 +375,7 @@ export const GATES: Gate[] = [
         clockMsRemaining: null,
         purpose: "play",
         drillId: null,
+        transferId: null,
         secondsTaken: 5,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],
@@ -707,6 +788,149 @@ export const GATES: Gate[] = [
        * The control is not a contrived function; it is the mapping this product shipped.
        */
       nextActionResolves(() => ({ kind: "play-blitz", because: "nothing-scored", needs: null })),
+  },
+  {
+    id: "GATE-ONE-PRIMARY-ACTION",
+    rule: "LAW 2",
+    description: "A state offers at most one primary action.",
+    /*
+     * RENDERED RATHER THAN SCANNED, and that is what makes it a gate over a STATE. Every other
+     * inertial gate reads source, which can say where a component lives but not how many controls
+     * a player is looking at. Two controls are each correct on their own; the defect is that there
+     * are two, and only a rendered screen can count.
+     */
+    run: () =>
+      runVitestFile(
+        "tests/gates/primary-action.test.tsx",
+        "every state offers at most one act",
+        undefined,
+        "GATE-ONE-PRIMARY-ACTION",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/primary-action.control.test.tsx",
+        "a front door offering two products",
+        "vitest.controls.config.ts",
+        "GATE-ONE-PRIMARY-ACTION",
+      ),
+  },
+  {
+    id: "GATE-NO-DUPLICATE-ACTION",
+    rule: "LAW 2",
+    description: "No state renders the same act twice, and no control names an act off the list.",
+    /*
+     * A SEPARATE GATE BECAUSE IT IS A SEPARATE DEFECT, and the split is not bookkeeping: the two
+     * were one gate over one file, so its control went red whenever EITHER defect was present.
+     * Fixing the front door alone would have left that control red on the reveal's duplicate and
+     * the front-door gate unproven -- a control red for the wrong reason proves nothing. Two
+     * controls, two reasons, one file each side.
+     *
+     * And the distinction is the one `shared/primary-action.ts` exists for. Two controls naming
+     * two acts is a state asking the player to choose a product; two controls naming the SAME act
+     * is one offer drawn twice. A boolean `isPrimary` could not tell them apart, which is why the
+     * attribute carries the act.
+     */
+    run: () =>
+      runVitestFile(
+        "tests/gates/primary-action.test.tsx",
+        "no act is offered twice, and every act is in the vocabulary",
+        undefined,
+        "GATE-NO-DUPLICATE-ACTION",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/primary-action.control.test.tsx",
+        "a reveal offering one act twice",
+        "vitest.controls.config.ts",
+        "GATE-NO-DUPLICATE-ACTION",
+      ),
+  },
+  {
+    id: "GATE-TOOLBOX-OUTSIDE-FOCUS",
+    rule: "LAW 2",
+    description: "The record's toolbox renders only from EXPLORE, behind a control and a lazy chunk.",
+    run: () => toolboxBehindItsDoor(["client/src"]),
+    positiveControl: () => toolboxBehindItsDoor([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-ENGINE-FAILURE-DISTINCT",
+    rule: "R-09",
+    description: "No two causes of an engine failure render the same sentence.",
+    /*
+     * R-09 WAS BLOCKED ON EXACTLY THIS. The scan failed on a deployment, two real defects on that
+     * path were found and fixed, and neither could be shown to be the reporter's -- because the
+     * screen they saw was one fallback sentence that six different causes reach, with fixes that
+     * have nothing in common. A disclosure holding the raw text lets a reader paste something; it
+     * does not let anyone say what to do.
+     */
+    run: () =>
+      runVitestFile("tests/gates/engine-failure.test.ts", "each cause of an engine failure says its own thing"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/engine-failure.control.test.ts",
+        "six causes rendering the one sentence the scan shipped with",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
+    id: "GATE-CLAIM-ANCHOR",
+    rule: "L2",
+    description: "A debt row may not claim more reality than its proof ever ran against.",
+    /*
+     * ONE WAVE SHIPPED FIVE DEFECTS THAT 246 GREEN TESTS DID NOT SEE, and not one of the five was a
+     * wrong test: each looked at a faithful shadow of the thing and was read as evidence about the
+     * thing. `tests/LEVELS.md` is the ladder and the five worked examples; this is the part that
+     * runs. A ratchet rather than a bar, because seven rows are under-anchored today and a gate
+     * that is red on the day it is written gets deleted rather than met.
+     */
+    run: () =>
+      runVitestFile("tests/gates/claim-anchor.test.ts", "no claim outruns the rung its proof stands on"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/claim-anchor.control.test.ts",
+        "a P0 proven at L1, and a level asserted with no reason",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
+    id: "GATE-SAID-ONCE",
+    rule: "LAW 2",
+    description: "A sentence identical in every row of a list belongs above the list, not in it.",
+    /*
+     * FOUND BY A PERSON LOOKING AT A SCREENSHOT and by none of 2,712 green tests: six rows in a
+     * post-game disclosure each reading "במהלך X המהלך היה מחיר גדול" with "המהלך: מחיר גדול"
+     * beneath. Thirteen statements of one fact, on the screen a reader opens precisely to choose
+     * between the rows. Three more screens had the same shape.
+     *
+     * THE WEAKER OF TWO INSTRUMENTS, AND `said-once-scan.ts` MEASURES BY HOW MUCH: it catches two
+     * of those four, because the other two render a function call and whether that varies is not a
+     * fact about the markup. The render assertions in
+     * `tests/client/six-rows-that-said-one-thing.test.tsx` hold those two. This is the half that
+     * runs over every screen on every build, including the ones nobody thought to render.
+     */
+    run: () =>
+      runVitestFile("tests/gates/said-once.test.ts", "a sentence that is the same in every row"),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/said-once.control.test.ts",
+        "notices a list that says one thing once per row",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
+    id: "GATE-REGISTER-RECONCILED",
+    rule: "R-01",
+    description: "The four registers agree with the tree and with each other.",
+    /*
+     * THE ONE ARTEFACT NO COMMAND READ. Every other claim in this repository is executed, measured,
+     * or asserted by a test. The registers -- which are where a reader goes to find out what is
+     * still open -- were the exception, and one hand reconciliation found four drifts in a single
+     * wave, including a P0 that had been found, fixed, written up in the laws, and never given a
+     * debt row at all. R-01 is the row that says one register answers "what is open?"; this is what
+     * keeps that true after the day it was written.
+     */
+    run: () => registerDrift("."),
+    positiveControl: () => registerDrift(REGISTER_FIXTURES),
   },
 ];
 

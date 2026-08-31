@@ -159,6 +159,7 @@ describe("what counts as accurate is one rule", () => {
         clockMsRemaining: 120_000,
         purpose: "play",
         drillId: null,
+        transferId: null,
         secondsTaken: 40,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],

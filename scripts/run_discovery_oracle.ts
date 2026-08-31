@@ -25,6 +25,10 @@
  * The confidence LEVEL crosses the pipe, never a probability: `normaliseConfidence` is the
  * product's map from a stated level to a number, and the oracle is not entitled to its own.
  */
+import {
+  BLITZ_CANDIDATE_BUCKETINGS,
+  BLITZ_CANDIDATE_VARIABLES,
+} from "../shared/blitz-time-candidate";
 import { createInterface } from "node:readline";
 
 import { CONFIDENCE_LEVELS, normaliseConfidence } from "../shared/confidence";
@@ -32,6 +36,7 @@ import { readVariables } from "../shared/bucket-variable";
 import { attribution } from "../shared/discovery/attribution";
 import {
   BUCKETINGS,
+  type Bucketing,
   DEFAULT_THRESHOLDS,
   PREREGISTERED_THRESHOLDS,
   decisionGap,
@@ -65,6 +70,17 @@ interface RecordLine {
   /** Whether the engine's rule called the move accurate. */
   ac: number[];
   split: number;
+  /**
+   * Search the BLITZ CANDIDATE set instead of the shipped six.
+   *
+   * OFF BY DEFAULT, AND THE DEFAULT IS THE POINT: every existing study in `results/` was measured
+   * on the frozen six and stays comparable. D05's reversal condition asks for one run of a declared
+   * candidate, and a candidate cannot be measured without being searched -- but it may not be
+   * searched by anything that ships, because `SEPARABILITY_K` is a measurement of those six
+   * together and the manifest hash freezes them. `shared/blitz-time-candidate.ts` carries the set
+   * and the argument; this flag is the only way to reach it.
+   */
+  candidate?: boolean;
   /** Emit the per-bucket membership of the derivation half. Off by default: it is the bulk. */
   masks?: boolean;
   /**
@@ -127,8 +143,9 @@ function report(
   offset: number,
   wantMasks: boolean,
   onlyKey?: string | null,
+  space: readonly Bucketing[] = BUCKETINGS,
 ): BucketReport[] {
-  const searched = onlyKey ? BUCKETINGS.filter((b) => b.key === onlyKey) : BUCKETINGS;
+  const searched = onlyKey ? space.filter((b) => b.key === onlyKey) : space;
   return searched.map((bucketing) => {
     const { inside, outside } = splitByBucket(bucketing, scored);
     const insideSummary = summarise(inside);
@@ -187,8 +204,17 @@ function handle(line: RecordLine): unknown {
    * a simulation that has neither. What IS reproduced is its selection rule, which is
    * `readVariables(...).findings[0].strongest` -- the same expression, on the same input.
    */
-  const patterns = detect(derivation, DEFAULT_THRESHOLDS);
-  const findings = readVariables(patterns).findings;
+  /*
+   * ONE FLAG, THREE PLACES, AND THEY MUST AGREE. The search space, the variable reading and the
+   * prospective test all have to be the candidate's or all the shipped one -- a run that searched
+   * the candidate and then confirmed against the frozen six would be testing a bucket the search
+   * never proposed, and would report the candidate's recall as zero for a reason that is entirely
+   * the harness's.
+   */
+  const space = line.candidate ? BLITZ_CANDIDATE_BUCKETINGS : BUCKETINGS;
+  const variables = line.candidate ? BLITZ_CANDIDATE_VARIABLES : undefined;
+  const patterns = detect(derivation, DEFAULT_THRESHOLDS, null, space);
+  const findings = readVariables(patterns, variables).findings;
   const selected = findings.length > 0 ? findings[0].strongest : null;
 
   /*
@@ -199,7 +225,7 @@ function handle(line: RecordLine): unknown {
   const confirmation =
     selected === null
       ? null
-      : report(validation, PREREGISTERED_THRESHOLDS, line.split, false, selected.key)[0];
+      : report(validation, PREREGISTERED_THRESHOLDS, line.split, false, selected.key, space)[0];
 
   /*
    * VALIDATED means: it cleared prospectively AND IN THE SAME DIRECTION. A bucket that separated
@@ -242,7 +268,7 @@ function handle(line: RecordLine): unknown {
   return {
     id: line.id,
     world: line.world,
-    derivation: report(derivation, DEFAULT_THRESHOLDS, 0, line.masks === true),
+    derivation: report(derivation, DEFAULT_THRESHOLDS, 0, line.masks === true, null, space),
     /*
      * Null when no claim was formed, or when the claimed bucket was too small to split, or when
      * every split of it was one-sided. Those are three different silences and Python counts them
@@ -273,7 +299,7 @@ function handle(line: RecordLine): unknown {
       line.sides !== true
         ? undefined
         : Object.fromEntries(
-            report(derivation, DEFAULT_THRESHOLDS, 0, false).map((b) => [
+            report(derivation, DEFAULT_THRESHOLDS, 0, false, null, space).map((b) => [
               b.key,
               { inside: b.insideN, outside: b.outsideN },
             ]),

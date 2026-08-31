@@ -14,6 +14,12 @@ import {
   type CheckStatus,
 } from "@/lib/self-check";
 import { localRecordAvailable, localRecordDurability } from "@/lib/local-record-store";
+import {
+  blobProbeUrl,
+  probeWorkerWith,
+  sameOriginProbeUrl,
+  WORKER_PROBE_TIMEOUT_MS,
+} from "@/lib/worker-probe";
 import { clearProgress, progressReport } from "@/lib/progress-record";
 
 const ICON: Record<CheckStatus, typeof Check> = { pass: Check, fail: X, skip: Minus };
@@ -42,9 +48,15 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
         },
         hasWorker: () => typeof Worker !== "undefined",
         createWorker: (url) => new Worker(url),
-        objectUrl: (script) =>
-          URL.createObjectURL(new Blob([script], { type: "text/javascript" })),
-        revokeObjectUrl: (url) => URL.revokeObjectURL(url),
+        /*
+         * Both sources, and the same-origin one is the one the check turns on -- see
+         * `worker-probe.ts` for why a `try`/`catch` around `new Worker` could not see a refusal.
+         */
+        probeWorker: probeWorkerWith(
+          (url) => new Worker(url),
+          (from) => (from === "blob" ? blobProbeUrl() : sameOriginProbeUrl()),
+          WORKER_PROBE_TIMEOUT_MS,
+        ),
         storage: () => ({
           available: localRecordAvailable(),
           durability: localRecordDurability(),

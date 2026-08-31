@@ -20,9 +20,16 @@
  */
 import { FindingCard } from "./FindingCard";
 import { SCREEN_QUESTIONS } from "@shared/screen-questions";
-import { eventFacts, eventHeadline, postGameWords } from "@shared/blitz-words";
+import {
+  eventFacts,
+  eventHeadline,
+  othersSummary,
+  postGameWords,
+  sharedCostBand,
+} from "@shared/blitz-words";
 import type { BlitzEvent, PostGameReading } from "@shared/blitz-reading";
 import type { StoredBlitzGame } from "@shared/blitz-record";
+import { primaryAction } from "@shared/primary-action";
 
 /**
  * The measurement detail, behind "why are we saying this?".
@@ -88,6 +95,8 @@ export function PostGame({
   const lead = reading.state === "nothing-to-conclude" ? null : reading.lead;
   const others =
     reading.state === "nothing-to-conclude" ? reading.worthSeeing : reading.alsoWorthSeeing;
+  /* Computed once for the summary and the rows, so the two cannot disagree about what was said. */
+  const sharedBand = sharedCostBand(others);
 
   return (
     <section className="post-game" aria-label={SCREEN_QUESTIONS.postGame} dir="rtl">
@@ -133,18 +142,29 @@ export function PostGame({
       {!words.facts && words.note && <p className="post-game__note">{words.note}</p>}
 
       {others.length > 0 && (
+        /*
+          * THE BAND IS SAID ONCE, ABOVE THE LIST, AND NOT IN EVERY ROW.
+          *
+          * WHAT THIS LOOKED LIKE. Six rows, each reading "במהלך X המהלך היה מחיר גדול" with
+          * "המהלך: מחיר גדול" on the line under it, below a summary that called all six worth
+          * seeing without saying what for. Seven statements of one fact, and nothing on screen to
+          * choose between the six -- which is what a reader opening a disclosure is there to do.
+          *
+          * `sharedCostBand` IS WHY THIS IS NOT A REWORDING. Where the rows really do differ -- a
+          * clean decision the player was unsure about beside an expensive one -- it returns null,
+          * every row keeps its own band and the summary goes back to naming none. The list says
+          * what the list has, rather than one shape for both cases.
+          */
         <details className="post-game__others">
-          <summary>
-            {others.length === 1 ? "ההחלטה שכדאי לראות" : `${others.length} ההחלטות שכדאי לראות`}
-          </summary>
+          <summary>{othersSummary(others)}</summary>
           <ul className="post-game__others-list">
             {others.map((event) => (
               <li key={`${event.gameId}#${event.ply}`}>
                 <button type="button" onClick={() => onSeePosition(event)}>
-                  {eventHeadline(event)}
+                  {eventHeadline(event, sharedBand !== null)}
                 </button>
                 <span className="post-game__others-detail">
-                  {eventFacts(event)
+                  {eventFacts(event, sharedBand !== null)
                     .map((fact) => `${fact.label}: ${fact.value}`)
                     .join(" · ")}
                 </span>
@@ -167,7 +187,12 @@ export function PostGame({
         * is asked.
         */}
       {lead !== null && (
-        <button type="button" className="post-game__again" onClick={onPlayAgain}>
+        <button
+    type="button"
+    className="post-game__again"
+    {...primaryAction("play-blitz")}
+    onClick={onPlayAgain}
+  >
           משחק חדש
         </button>
       )}

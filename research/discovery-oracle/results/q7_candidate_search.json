@@ -1,0 +1,450 @@
+{
+  "seed": 20260901,
+  "records_per_plant": 400,
+  "null_records_per_world": 400,
+  "games_per_record": 40,
+  "derivation_games": 20,
+  "separability_k": 3.75,
+  "min_bucket_n": 30,
+  "false_claim_ceiling": 0.02,
+  "on_target_jaccard": 0.6,
+  "sweeps": [
+    {
+      "depth": 1,
+      "plants": [
+        {
+          "plant": "clean-middlegame",
+          "records": 400,
+          "validated": 251,
+          "validated_rate": 0.6275,
+          "on_target": 251,
+          "on_target_rate": 0.6275,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "phase==1",
+              251
+            ]
+          ]
+        },
+        {
+          "plant": "weak-middlegame",
+          "records": 400,
+          "validated": 5,
+          "validated_rate": 0.0125,
+          "on_target": 5,
+          "on_target_rate": 0.0125,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "phase==1",
+              5
+            ]
+          ]
+        },
+        {
+          "plant": "clean-fast",
+          "records": 400,
+          "validated": 69,
+          "validated_rate": 0.1725,
+          "on_target": 69,
+          "on_target_rate": 0.1725,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "seconds<45.0",
+              69
+            ]
+          ]
+        },
+        {
+          "plant": "weak-fast",
+          "records": 400,
+          "validated": 3,
+          "validated_rate": 0.0075,
+          "on_target": 3,
+          "on_target_rate": 0.0075,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "seconds<45.0",
+              3
+            ]
+          ]
+        },
+        {
+          "plant": "interaction-only",
+          "records": 400,
+          "validated": 89,
+          "validated_rate": 0.2225,
+          "on_target": 89,
+          "on_target_rate": 0.2225,
+          "median_jaccard": 0.8413793103448276,
+          "regions": [
+            [
+              "phase==2",
+              89
+            ]
+          ]
+        },
+        {
+          "plant": "sparse-low-clock",
+          "records": 400,
+          "validated": 223,
+          "validated_rate": 0.5575,
+          "on_target": 222,
+          "on_target_rate": 0.555,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "clock_ms<60000.0",
+              222
+            ],
+            [
+              "phase==2",
+              1
+            ]
+          ]
+        },
+        {
+          "plant": "one-game-only",
+          "records": 400,
+          "validated": 0,
+          "validated_rate": 0.0,
+          "on_target": 0,
+          "on_target_rate": 0.0,
+          "median_jaccard": NaN,
+          "regions": []
+        },
+        {
+          "plant": "every-game-first-moves",
+          "records": 400,
+          "validated": 13,
+          "validated_rate": 0.0325,
+          "on_target": 1,
+          "on_target_rate": 0.0025,
+          "median_jaccard": 0.5555555555555556,
+          "regions": [
+            [
+              "phase==0",
+              13
+            ]
+          ]
+        },
+        {
+          "plant": "proxy-correlated",
+          "records": 400,
+          "validated": 22,
+          "validated_rate": 0.055,
+          "on_target": 22,
+          "on_target_rate": 0.055,
+          "median_jaccard": 0.8680329955700392,
+          "regions": [
+            [
+              "seconds<45.0",
+              22
+            ]
+          ]
+        }
+      ],
+      "nulls": [
+        {
+          "world": "NULL-1-independent",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-2-within-game-correlated",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-3-skewed-features",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-4-correlated-predictors",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-5-informative-missingness",
+          "records": 400,
+          "validated": 1
+        },
+        {
+          "world": "NULL-6-variable-game-lengths",
+          "records": 400,
+          "validated": 1
+        },
+        {
+          "world": "NULL-7-clockless-games",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-8-duplicated-features",
+          "records": 400,
+          "validated": 1
+        },
+        {
+          "world": "NULL-9-temporal-drift",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-10-imported-live-mixture",
+          "records": 400,
+          "validated": 0
+        }
+      ],
+      "shuffled_rate": 0.0005555555555555556,
+      "shuffled_ci": [
+        9.807340680549159e-05,
+        0.0031403484147114313
+      ],
+      "shuffled_n": 1800,
+      "false_claim_rate": 0.00075,
+      "false_claim_ci": [
+        0.0002550951115929764,
+        0.0022029441874642083
+      ],
+      "false_claim_n": 4000
+    },
+    {
+      "depth": 2,
+      "plants": [
+        {
+          "plant": "clean-middlegame",
+          "records": 400,
+          "validated": 166,
+          "validated_rate": 0.415,
+          "on_target": 160,
+          "on_target_rate": 0.4,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "phase==1",
+              133
+            ],
+            [
+              "phase==1 AND seconds<45.0",
+              19
+            ],
+            [
+              "clock_ms>=60000.0 AND phase==1",
+              11
+            ]
+          ]
+        },
+        {
+          "plant": "weak-middlegame",
+          "records": 400,
+          "validated": 3,
+          "validated_rate": 0.0075,
+          "on_target": 2,
+          "on_target_rate": 0.005,
+          "median_jaccard": 0.6395759717314488,
+          "regions": [
+            [
+              "phase==1 AND seconds<45.0",
+              2
+            ],
+            [
+              "phase==1 AND seconds>=45.0",
+              1
+            ]
+          ]
+        },
+        {
+          "plant": "clean-fast",
+          "records": 400,
+          "validated": 26,
+          "validated_rate": 0.065,
+          "on_target": 26,
+          "on_target_rate": 0.065,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "seconds<45.0",
+              25
+            ],
+            [
+              "clock_ms>=60000.0 AND seconds<45.0",
+              1
+            ]
+          ]
+        },
+        {
+          "plant": "weak-fast",
+          "records": 400,
+          "validated": 0,
+          "validated_rate": 0.0,
+          "on_target": 0,
+          "on_target_rate": 0.0,
+          "median_jaccard": NaN,
+          "regions": []
+        },
+        {
+          "plant": "interaction-only",
+          "records": 400,
+          "validated": 135,
+          "validated_rate": 0.3375,
+          "on_target": 134,
+          "on_target_rate": 0.335,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "phase==2 AND seconds<45.0",
+              122
+            ],
+            [
+              "phase==2",
+              12
+            ],
+            [
+              "clock_ms>=60000.0 AND phase==2",
+              1
+            ]
+          ]
+        },
+        {
+          "plant": "sparse-low-clock",
+          "records": 400,
+          "validated": 169,
+          "validated_rate": 0.4225,
+          "on_target": 158,
+          "on_target_rate": 0.395,
+          "median_jaccard": 1.0,
+          "regions": [
+            [
+              "clock_ms<60000.0",
+              136
+            ],
+            [
+              "clock_ms<60000.0 AND seconds<45.0",
+              20
+            ],
+            [
+              "clock_ms<60000.0 AND phase==2",
+              7
+            ]
+          ]
+        },
+        {
+          "plant": "one-game-only",
+          "records": 400,
+          "validated": 0,
+          "validated_rate": 0.0,
+          "on_target": 0,
+          "on_target_rate": 0.0,
+          "median_jaccard": NaN,
+          "regions": []
+        },
+        {
+          "plant": "every-game-first-moves",
+          "records": 400,
+          "validated": 12,
+          "validated_rate": 0.03,
+          "on_target": 0,
+          "on_target_rate": 0.0,
+          "median_jaccard": 0.5486204900636698,
+          "regions": [
+            [
+              "phase==0",
+              9
+            ],
+            [
+              "phase==0 AND seconds<45.0",
+              3
+            ]
+          ]
+        },
+        {
+          "plant": "proxy-correlated",
+          "records": 400,
+          "validated": 4,
+          "validated_rate": 0.01,
+          "on_target": 4,
+          "on_target_rate": 0.01,
+          "median_jaccard": 0.8623355893244796,
+          "regions": [
+            [
+              "seconds<45.0",
+              3
+            ],
+            [
+              "clock_ms>=60000.0 AND seconds<45.0",
+              1
+            ]
+          ]
+        }
+      ],
+      "nulls": [
+        {
+          "world": "NULL-1-independent",
+          "records": 400,
+          "validated": 1
+        },
+        {
+          "world": "NULL-2-within-game-correlated",
+          "records": 400,
+          "validated": 1
+        },
+        {
+          "world": "NULL-3-skewed-features",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-4-correlated-predictors",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-5-informative-missingness",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-6-variable-game-lengths",
+          "records": 400,
+          "validated": 2
+        },
+        {
+          "world": "NULL-7-clockless-games",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-8-duplicated-features",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-9-temporal-drift",
+          "records": 400,
+          "validated": 0
+        },
+        {
+          "world": "NULL-10-imported-live-mixture",
+          "records": 400,
+          "validated": 0
+        }
+      ],
+      "shuffled_rate": 0.0005555555555555556,
+      "shuffled_ci": [
+        9.807340680549159e-05,
+        0.0031403484147114313
+      ],
+      "shuffled_n": 1800,
+      "false_claim_rate": 0.001,
+      "false_claim_ci": [
+        0.00038894074776844433,
+        0.002568618812030325
+      ],
+      "false_claim_n": 4000
+    }
+  ]
+}

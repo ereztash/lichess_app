@@ -77,7 +77,14 @@ is moved back after the analysis.
 `attachBlitzAnalysis` fills the verdict in afterwards, against a `WHERE analysis_state = 'pending'`
 that makes the second write a no-op if it has already happened.
 
-`tests/client/the-tab-closed-during-the-analysis.test.tsx` is the gate, and it was run against the
+**And it is anchored in a real browser now, which is the rung the claim needed all along.**
+`tests/layout/what-the-record-holds-after-a-game.layout.test.ts` plays a game in Chromium, closes the tab
+while the analysis is in flight, opens a new one on the same profile, and compares the think times
+that come back with the ones that went in. A jsdom test can show the write is CALLED before the
+analysis starts; it cannot show anything is there afterwards, because there is no afterwards — no
+reload, no second page, no storage that outlives the test. R-19 is what that gap cost.
+
+`tests/client/the-tab-closed-during-the-analysis.test.tsx` is the jsdom gate, and it was run against the
 old ordering to check it: with the write behind the analysis and the analyser's search never
 returning, **all four assertions go red**. There is no way to make them pass except by writing the
 game before the engine starts.
@@ -88,6 +95,55 @@ built around, so the game now carries `analysis_state`. Rows written before toda
 `legacy-unknown` and are never backfilled to a real state: see the hand-written note at the top of
 `drizzle/migrations/0013_watery_infant_terrible.sql` for why `pending` and `complete` are both lies
 about a game nobody observed.
+
+### R-19 · A think time was a fraction of a millisecond, so no blitz game was ever stored
+
+| | |
+| --- | --- |
+| type | correctness |
+| state | **fixed** |
+| severity | **P0** |
+| basis | **verified in a real browser** — localStorage held no blitz record after a completed game on `main`, while the screen said *"המשחק עצמו נשמר"* |
+
+`performance.now()` returns a **double**. `thinkMs` was the difference between two of its readings,
+so an ordinary move produced `4183.199999999997`, and the stored record's schema requires an
+integer. Every write was rejected. The blitz route had never persisted a single game in a browser,
+on any build, since the route existed.
+
+**R-02 is the row this one embarrasses.** R-02 says the game is now written before the engine runs,
+and it is — the ordering is correct and its gate is real. But the write it protects was failing for
+an unrelated reason the whole time, so "the record survives a closed tab" was true of an ordering
+and false of the product.
+
+**Why three layers of green tests could not see it.** Each was green for a different reason, and
+they are worth naming separately because the same three exist for every other measurement here:
+
+| layer | why it passed |
+| --- | --- |
+| the shared suites | hand-built fixtures, integers by hand |
+| the jsdom suites | every one of them mocks `performance.now()` to whole milliseconds |
+| the browser audit | asserted a **card**, which the screen drew from its own in-memory copy |
+
+The single property separating every fixture from reality was the single property the schema
+checked. This is the argument for LAW 3 in one defect: the screen was reading its own state instead
+of the record, so it could report a save that had not happened.
+
+**Closed by** `shared/measured-duration.ts` — the only place two clock readings become a stored
+duration. It rounds at the **source** rather than at the store, so the value the game state holds is
+the value that is written; and it rounds rather than floors, because flooring biases every
+observation down by half a millisecond, which is a measurement error rather than a type error.
+
+**Gate:** `tests/layout/what-the-record-holds-after-a-game.layout.test.ts` — a game played by a
+real clock in a real browser, with every stored `thinkMs` read back out of `localStorage` and
+required to be a whole millisecond. That is the only clock that can falsify this: the shared suites
+build integers by hand and every jsdom suite mocks `performance.now()` to whole milliseconds, which
+is exactly why three green layers missed it. Restoring the unrounded subtraction turns all four
+cases in that file red, because nothing is stored at all.
+
+**Also gated at the level below**, and it is the cheaper of the two to run:
+`tests/shared/a-clock-that-does-not-tick-in-whole-milliseconds.test.ts`, whose property
+cases draw fractional readings rather than assuming whole ones. Reverting `durationMs` turns four of
+its eight cases and all four R-02 cases red.
 
 ### R-03 · No engine version is stored, and the engine is already known to change verdicts
 
@@ -131,7 +187,12 @@ replay. `StratumKey` in `shared/evidence-policy.ts` gained the build as a third 
 recorded builds are two populations; and `scoreDecisions` — *"the one place a missing confidence is
 handled"* — refuses a verdict that names no engine and counts it as `withoutInstrument`.
 
-**Gate:** `tests/shared/a-verdict-that-cannot-name-its-engine.test.ts`, checked by breaking it three
+**Gate:** `tests/layout/what-the-record-holds-after-a-game.layout.test.ts` — a game analysed by
+the real engine, with `analysis.build` read back out of storage. There is no engine in jsdom, so
+until this the field was only ever asserted on a row somebody typed; blanking the build turns that
+case red and no other.
+
+**Also gated at the level below:** `tests/shared/a-verdict-that-cannot-name-its-engine.test.ts`, checked by breaking it three
 ways: remove the scorer's refusal and 2 assertions go red; drop the build from the stratum key and 2
 do; sort strata by row count instead of by scoreable rows and 1 does.
 
@@ -180,7 +241,11 @@ reading, and it returns **strata**, never a set. Two opponent policies are two s
 function on the module that flattens them, for the reason `evidence-policy.ts` gives about its own
 shape — refusing to provide the operation is stronger than documenting that it is wrong.
 
-**Gate:** `tests/shared/two-opponents-are-not-one-population.test.ts`, and it was checked by
+**Gate:** `tests/layout/what-the-record-holds-after-a-game.layout.test.ts` — a real game's
+stored row, with all four opponent fields read back out of `localStorage`. Nulling the opponent
+turns that case red and no other.
+
+**Also gated at the level below:** `tests/shared/two-opponents-are-not-one-population.test.ts`, and it was checked by
 breaking the wall three ways rather than by trusting it. Drop the opponent from the stratum key and
 1 assertion goes red; drop the analyser and 3 do; let an unscored game count as readable and 2 do.
 It also asserts the other direction — colour, outcome and time control are **not** conditions of the
@@ -200,9 +265,26 @@ never say anything.
 | severity | P1 |
 | basis | **verified** — see the supersedes table above |
 
-**Gate:** a check that fails when a document other than this one introduces a status column
-(`open` / `blocked` / `P0`), or when this file's row count drops without a row moving to `fixed` or
-`refuted`.
+**Gate:** `GATE-REGISTER-RECONCILED`, and it is not the gate this row first described.
+
+The gate written here originally was *"a check that fails when a document other than this one
+introduces a status column, or when this file's row count drops without a row moving to `fixed` or
+`refuted`"*. It was never built, and it would have been the wrong check. Both halves guard against
+**deletion** — a second tracker appearing, a row vanishing — and neither of the two ways this
+register actually failed was a deletion:
+
+- a P0 was found, fixed, written up in the laws, and **never given a row at all** (R-19). Row count
+  did not drop; the row was never added, so nothing could notice its absence;
+- three separate rows drifted from the tree they describe while sitting perfectly still — a gate
+  name with no gate behind it, a ceiling quoted from the day it was measured, a trigger filed as
+  unfired after it had fired.
+
+So the gate that exists checks the opposite direction: not that rows stay, but that **what a row
+says is still true of the tree**. Every claim it scans is one a register makes about something
+outside itself — a path, a constant, a gate id, another register's table — because those are the
+claims that rot without anybody touching them. `scripts/register-scan.ts` holds the predicates and
+runs them over `tests/fixtures/registers`, which is the four documents reduced to the drifts they
+actually had.
 
 ### R-05 · The local record is shallow-merged into the current shape and never migrated
 
@@ -255,7 +337,7 @@ the only one the old code got right.
 | | |
 | --- | --- |
 | type | correctness |
-| state | **fixed** (for blitz; `saveClaim` and `saveDrillResult` still carry it — see below) |
+| state | **fixed** for blitz; **refuted** for `saveClaim` and `saveDrillResult` — see the audit below |
 | severity | P1 |
 | basis | **verified** — was `server/record.ts:551–557`, whose own comment read *"There is no transaction here — the same absence `saveClaim` and `saveDrillResult` live with"* |
 
@@ -274,16 +356,50 @@ insert fails inside the real driver at exactly the point the tear used to happen
 without a `DATABASE_URL` and runs in CI against MySQL 8 — a test that silently passes when it did
 not run is the failure this repository is built around, so the skip is loud.
 
-**What is still open, narrowed:** `saveClaim` and `saveDrillResult` are still un-wrapped. They are
-single-row writes, so there is no tear between two statements to inject — the row goes in or it
-does not. Left as its own question rather than folded into this one.
+### The audit of `saveClaim` and `saveDrillResult`, and why the answer is **refuted**
+
+The remainder was left as its own question rather than folded into the blitz fix, and the question
+was *"do these two need a transaction?"* — not *"add one, transactions are good."* Four things were
+read.
+
+**1. Each is one statement.** `saveClaim` is a single `INSERT … ON DUPLICATE KEY UPDATE`;
+`saveDrillResult` is a single `INSERT` (preceded by a `SELECT` that only reads the drill's stored
+refutation condition — a failure there writes nothing). Under autocommit a single statement is its
+own transaction, so there is no tear between two statements to inject.
+
+**2. The pair that could tear is `saveDrillResult` → `saveClaim`,** in `finishDrill`. That is a real
+two-write sequence and it is where a transaction would have bought something.
+
+**3. It is already handled, and not by a transaction.** `gradeClaimFromRecord` re-reads the claim
+and folds `evaluateClaim` over the `drill_results` rows rather than grading the copy it holds, so
+the grade is a **function of the record**: a run that dies between the two writes leaves the
+evidence stored and the grade stale, and the retry a lost response makes inevitable finds the result
+already recorded, re-derives, and writes. Self-healing rather than lost — which is strictly more
+than atomicity buys, because it also survives a crash after the commit, a replay and a backfill.
+
+**4. And it is measured, not argued.** `tests/shared/a-verdict-the-drill-cannot-report-twice.test.ts`
+injects the failure with `LosesTheClaimWrite`: the claim write throws `connection reset by peer`
+between the two, and the test asserts both halves — the record holds the result with the claim
+still `hypothesis`, and the retry then draws the verdict the record supports and writes exactly one.
+`learning-record.test.ts` does the same for the transfer path's identical pair with
+`LosesTheGradeWrite`.
+
+**So the row is `refuted`, and refuted means measured and found wrong** — not "we decided against
+it". A transaction here would add a failure surface and buy a property the record already has by a
+better route.
+
+### What the audit found instead, which was not what it went looking for
+
+**R-20**, below. Reading `saveClaim` closely enough to rule out the transaction is what surfaced a
+field missing from its `SET` clause — a defect on the same line, of a different kind, and worse than
+the one being ruled out.
 
 ### R-07 · `purpose` is a claim by the client that the server cannot check
 
 | | |
 | --- | --- |
 | type | evidence |
-| state | **fixed** (for `drill`; `transfer` still carries it — see below) |
+| state | **fixed** — `drill` first, `transfer` one wave later |
 | severity | P1 |
 | basis | **verified** — was `shared/decision-atom.ts:213`: *"This is a claim by the client … and a reading that treats it as verified is reading more than the field carries"* |
 
@@ -320,17 +436,104 @@ matching one.
 **Gate:** `tests/shared/a-label-with-nothing-behind-it.test.ts`. Remove the position check and the
 assertion written for it goes red on its own.
 
-**What is still the client's word:** `transfer`. A transfer decision names no transfer. It is the
-smaller hole — a transfer's observations are written through `recordTransferObservation`, which
-knows which transfer it is inside, whereas a drill decision arrives through the ordinary commit —
-but it is a hole, and it is named here rather than papered over.
+### `transfer`, and why the reason it waited was wrong
+
+The first pass called this the smaller hole, because *"a transfer's observations are written through
+`recordTransferObservation`, which knows which transfer it is inside"*. That call does resolve the
+transfer and does check the position — and it is a **second** call, made after the decision has
+already been committed, which nothing obliges a client to make. The decision itself was stored
+carrying the label with no binding, and it is the **decision** that `EVIDENCE_POLICY` reads.
+
+The harm is the drill's, in both directions. Discovery refuses a `transfer` decision outright —
+*"taken while deliberately applying a rule; that is the intervention working"* — so a free-play
+decision mislabelled `transfer` is dropped from the population it belongs to, and a transfer check
+mislabelled `play` walks the intervention into the evidence meant to test it.
+
+**Closed by** `transfer_id`, beside `drill_id` in `ATOM_FIELDS` because it is the same fact about
+the other label. `commitDecision` checks the same three things, and the third is again the one that
+matters: that an id was sent, that it names a transfer this record holds, and that **that transfer
+named this position in advance**. The first two alone would let one open transfer launder every
+decision a player takes while it is open.
+
+It also answers what `scoped(to: "matching-transfer")` has been asking, in the words the drill row
+used: `EVIDENCE_POLICY` already files a transfer decision as readable against its own transfer's
+verdict and no other claim's, and until now nothing on the row could say which transfer was the
+matching one. `NAMED_IN_ADVANCE` in that file — *"a transfer is graded on the positions it named in
+advance"* — was a comment until this check existed.
+
+**Matched by position, not by string,** and the two rules had to agree: `recordLearningTransferObservation`
+finds its slot with `samePosition`, which ignores the move counters. A boundary comparing raw FENs
+would let a decision pass one check and fail the other, and the run would stall between two rules
+that each think they are right.
+
+**And the pair is unrepresentable rather than merely refused.** The boundary refuses a decision
+carrying both ids — one decision is inside one test — but the screen also cannot build one:
+`namedTest` in `client/src/lib/decision-session.ts` derives both from the one `purpose`, so a
+transfer check taken while a drill is open never constructs the drill's id.
+
+**Gate:** `tests/shared/a-label-with-nothing-behind-it.test.ts` — send `purpose=transfer`, a
+`transfer_id` that resolves, and a position that transfer never registered; the server refuses and
+stores nothing. Removing the binding turns six of the eight transfer cases red.
+
+### R-20 · A graded claim did not record which protocol reached the grade
+
+| | |
+| --- | --- |
+| type | evidence |
+| state | **fixed** |
+| severity | **P1** |
+| basis | **verified** — `evaluateClaim` changes three stored fields and `saveClaim`'s `onDuplicateKeyUpdate` wrote two; measured by running the fold and reading the clause |
+
+`evaluateClaim` changes `grade`, `graded_under` and `last_evaluated_at`. The claim upsert's `SET`
+clause named the first and the third. `graded_under` therefore kept whatever the `INSERT` had put
+there, and for every claim in the product that is `null`: `currentClaim` writes a fresh hypothesis
+and every write after it is an update. On MySQL — and only on MySQL — no claim ever recorded which
+protocol graded it.
+
+**Why that is an evidence defect rather than a missing column.** `getClaim` maps a null
+`graded_under` on a graded row to `LEGACY_VALIDATION`, which is correct on its own terms: a claim
+graded before protocols existed genuinely has none. And `decidesClaim(LEGACY_VALIDATION, …)` returns
+**true** unconditionally, because a legacy grade cannot be re-litigated. Put those together and
+`gradeIsSettled` came back **true for every graded claim on the server deployment** — including one
+graded by a drill whose protocol cannot decide the question the claim asks.
+
+That is the exact sentence `gradeIsSettled`'s own docblock is written against:
+
+> `replicated` reached by a position drill on a claim about the clock is a real measurement of
+> something — it is not a measurement of the thing the claim says, and a screen that prints the same
+> word for both has told the player the drill settled a question it cannot reach.
+
+**Why nothing saw it.** Every test here but the database ones runs against `MemoryRecordStore`,
+whose `saveClaim` replaces the whole row and keeps all three fields. It is the **third** defect of
+this exact shape in this one function — the two timestamps above it carry the same note, and both
+were found by probing a real MariaDB side by side, which needs a database no unit run has.
+
+**And the fix was already written twenty lines below.** `saveLearningRule`'s `SET` clause names
+exactly the four fields `sameLearningRule` compares. Same file, same rule, stated correctly once.
+
+**Gate:** `tests/server/drizzle-store.test.ts` — the fold run against a **real MySQL-compatible
+database**, with `graded_under` read back. The block beside it round-tripped a claim the TEST had
+graded by hand, so the field never changed and both stores agreed about a value neither had been
+asked to write; this one grades through `evaluateClaim`, which is what the product runs. Removing
+`gradedUnder` from the `SET` clause turns it red with *expected 'legacy' to be 'position-drill'* —
+the defect, reproduced on a database.
+
+**And the rule, one level down:** `tests/server/a-grade-that-forgot-which-protocol-reached-it.test.ts`, and it needs no
+database, because the rule is not "MySQL returns the right row" — it is *"the `SET` clause names
+every field the fold may change"*. The fold is **run**, its changed fields are collected from its
+actual output rather than from a hand-written list, and the clause is read from the source. A field
+added to the fold later fails this without anyone remembering to. Removing `gradedUnder` again turns
+it red naming the field.
+
+**Found by the R-06 audit**, which was ruling a transaction *out*. Reading the write closely enough
+to say it needs no transaction is what surfaced the thing on the same line that was actually wrong.
 
 ### R-08 · Attribution: a validated claim can name the wrong subgroup
 
 | | |
 | --- | --- |
 | type | research |
-| state | **measured and deferred** — the test exists and is gated; it is not wired in, and the trigger is written down |
+| state | **measured and deferred** — the test exists and is gated; it is not wired in, the trigger is written down, and one reversal condition has now fired and been measured |
 | severity | P1 |
 | basis | **verified by measurement** — `docs/discovery-v2/M0_AUDIT.md` §Q4 (11,600 records) and `q5_attribution.py` (3,600 more) |
 
@@ -376,6 +579,47 @@ almost nothing. The trigger that turns it on is a fact about a record rather tha
 can be evaluated automatically: **60 validation games.** Full reasoning and three other reversal
 conditions in `docs/decisions/D08-attribution.md`.
 
+### One of those conditions has now fired and been measured
+
+D08's second reversal condition was *"the vocabulary gains conjunctions (D04) — the misattribution
+this node exists for largely stops happening"*. D04 built that search, so
+`research/discovery-oracle/q10_veto_after_search.py` runs **both pipelines on the same 400 records
+per world** and counts what happens to each claim.
+
+**The prediction was wrong and the finding is better than it.** The misattribution does not stop:
+the chain validates a wrong name on 12.25% of `interaction-only` records before the search exists
+and 12.25% after, because the search is a separate pipeline and does not touch the chain. That
+sentence conflated *the region becomes expressible* with *the shipped chain stops naming the wrong
+one*, and only a ported, wired-in search produces the first.
+
+What changes is the set of outcomes available once the chain has gone wrong. Pooled over the two
+misattributing worlds — 61 validated claims, every one of them a wrong name:
+
+| depth | search on target, no veto | on target, **vetoed** | off target, **vetoed** | off target, no veto |
+| --- | --- | --- | --- | --- |
+| 1 | 28 | 4 | 6 | 23 |
+| 2 | 30 | 5 | 5 | 21 |
+
+- the veto silences **8.2%** of wrong names, unchanged by the search as it must be;
+- on **57%** of them a right name now exists — before D04 the only alternative to a wrong sentence
+  was silence, and on more than half of these records it no longer is;
+- **34%** survive with no right name available, and that is what the veto's remaining job is
+  bounded by;
+- the false-veto cost is unchanged: **16 of 239** true claims withheld on the clean worlds, 6.69%
+  against Q5's 5.6% worst case.
+
+**And the veto points where the search looks.** On `interaction-only` every vetoed claim named
+`phase-endgame`, six of eight were split by `fast-under-45s`, and at depth 2 five of eight name the
+same cut the search's region is built from — `phase==2 AND seconds<45.0`, the planted region. The
+cheap TypeScript test that already ships names the conjunct the expensive Python oracle supplies.
+At depth 1 that agreement is zero everywhere, because a one-term search names one half of a two-term
+region and the veto names the other.
+
+**None of this turns the veto on.** The trigger is still 60 validation games. What it does is put a
+ceiling on what the veto can be worth, and add a fifth reversal condition to D08: if a search is
+ever ported, the question becomes whether a withheld claim should be replaced by the search's region
+rather than by silence.
+
 **Gate:** `tests/discovery/a-bucket-that-only-contains-the-answer.test.ts`, which asserts the
 direction of the trade rather than the value of `k` — the value belongs to the measurement.
 
@@ -391,7 +635,7 @@ sample vary at all" structurally. Gate: `tests/shared/a-bucket-that-never-varied
 | | |
 | --- | --- |
 | type | correctness |
-| state | **open**, no longer blocked — two defects found and fixed; the reporter's own case unconfirmed |
+| state | **fixed** — run on the deployment, and the report can now name which of six causes it was |
 | severity | P1 |
 | basis | **verified by running the built bundle in a browser**, not by inspection |
 
@@ -445,10 +689,81 @@ passes Hebrew through verbatim — so whatever threw had a non-Hebrew or empty m
 engine failure has. The two fixes above are real defects on the path, but nothing here proves either
 one is theirs.
 
-So the diagnostic gap is closed instead of guessed at: the scan's failure now renders the raw text
-behind a closed `<details>`, the way the commit path already does. A player who hits it again can
-say *which* stop it was without being asked to open a console — which was the thing this row was
-blocked on, and was always the wrong thing to ask.
+So the diagnostic gap was closed instead of guessed at: the scan's failure renders the raw text
+behind a closed `<details>`, the way the commit path already does.
+
+### That was not enough, and the run against the real deployment is what showed it
+
+A disclosure lets a reader paste something. It does not let anyone say what to **do** — and the six
+causes that reach that one sentence have nothing in common: two are the deployment's to fix, two the
+browser's, one the network's, and one is a game.
+
+**The scan was then run against the deployed app itself**, not against `npm run build` on localhost
+with the headers replayed out of `vercel.json`. The origin, the bytes and every response header were
+the edge's own. Two things came out of it.
+
+**1. The engine is sound on the deployment, and now that is measured rather than inferred.** Every
+step passed on the real origin: `application/javascript` for the loader, `application/wasm` and a
+valid signature for 7,295,411 bytes, `uciok` in 1.0 s, `readyok`, `bestmove e2e4` at depth 8, and an
+`info score` line. The CSP, the COOP and the MIME types are the deployment's and they are right.
+
+**2. The self-check reported a pass on a worker the browser had just refused.** The console said
+*"Refused to create a worker from `blob:…`"* and the check said *"אפשר ליצור Worker"*. Two defects,
+one line:
+
+- **A CSP-refused worker does not throw.** Measured on the deployment: `new Worker(url)` under a
+  `worker-src` that excludes the URL's scheme **returns a Worker**, and an `error` event with an
+  **empty message** arrives afterwards. `createWorker(url).terminate()` inside a `try` sees a
+  success. The probe now waits for the worker to **speak**; construction proves nothing.
+- **It probed the wrong scheme.** The probe built a `blob:` script to isolate *"can a worker be
+  created at all"* from *"can the engine's script be fetched"* — and this deployment's
+  `worker-src 'self'` forbids `blob:` and allows the engine's own same-origin script. The check was
+  asking about a scheme the product never uses and reporting the answer as if it were about the
+  engine. Both are probed now, and the same-origin one decides.
+
+The empty message turns out to be the **signature of a policy refusal**: a script that will not
+parse arrives with a real `SyntaxError`, and a worker the CSP refused arrives with nothing. Same
+event, two causes, and the message is what separates them — so it separates two codes.
+
+### Nine codes, because six causes with one sentence is the whole of this row
+
+`shared/engine-failure.ts` is the closed vocabulary. The test for two codes rather than one is
+whether the same person would do the same thing: `worker-refused` and `wasm-refused` are both
+almost always one CSP header and are two codes, because one is fixed by `worker-src` and the other
+by `'wasm-unsafe-eval'`, and no message can say which unless the code did.
+
+`asset-mistyped` is its own code because it is invisible from the app's side — the bytes arrive, the
+status is 200, and the browser refuses to execute them anyway, since `x-content-type-options:
+nosniff` on this deployment turns the content type from advice into a requirement. Both engine
+assets are now checked for it, magic bytes first so a proxy that swapped the body is not reported as
+a header problem.
+
+**There is no `unknown` code.** A generic one would collect exactly the cases this list exists to
+separate, so a failure that fits none of the nine surfaces as the raw error with the fact that
+nothing classified it — a smaller lie than filing it under a name.
+
+**And one thing the scan had computed since it existed and never shown**: `unreadable`, the games
+whose PGN produced no positions. A scan of twenty games that could read fourteen reported rates over
+fourteen while the reader was looking at twenty. Nothing was wrong with the numbers; the denominator
+was not the one the reader had in mind. It is on the panel now, and absent when it is zero.
+
+**Gate:** `GATE-ENGINE-FAILURE-DISTINCT` — no two causes render the same sentence, and no classified
+cause reaches the generic fallback. Its control is the renderer that shipped.
+
+**Confirmed on the deployment after the fix**, on the same origin that produced the defect:
+
+| | before | after |
+| --- | --- | --- |
+| Web Worker | *"אפשר ליצור Worker"* — a pass, while the console said the worker was refused | *"Worker מאותו מקור ענה. blob: חסום במדיניות (לא בשימוש כאן)"* |
+| קובץ המנוע (JS) | status and byte count | status, bytes, **and `application/javascript; charset=utf-8`** |
+
+The second line is the whole point of the change: the check now says which scheme was refused and
+that no engine path depends on it, instead of reporting a refusal as a success.
+
+**What is still not established, and now it can be asked:** which cause the original reporter hit.
+Nothing here can recover that — the screen they saw could not say. What has changed is that the next
+report will name one of nine, and the two most likely candidates for theirs, `worker-refused` and
+`engine-timeout`, are now told apart by the product rather than by a guess.
 
 ---
 
@@ -493,7 +808,7 @@ itself rests on an inference about age.
 | | |
 | --- | --- |
 | type | correctness · evidence |
-| state | **half fixed** — the false advice is gone; the thresholds themselves are §18 and are open |
+| state | **measured and deferred** — the false advice is gone; the replacement is measured twice, rejected by its own declared rule both times, and deliberately not chosen |
 | severity | **P1** |
 | basis | **verified, by measurement** — `tests/shared/a-line-nobody-crossed.test.ts` |
 
@@ -552,6 +867,67 @@ not. The false-claim rate is unaffected — 0/1,600, upper 95% 0.0024 against th
 bucket as readable when it had one decision on each side put `fast-under-45s` at 1.0000, which is
 true and says nothing: `detect` needs thirty on both. The gap between 1.0000 and 0.2725 is the
 finding.
+
+**A candidate was declared, measured and rejected** — `research/discovery-oracle/q8_relative_time.py`,
+both arms on the same worlds and the same seeds. The candidate is `thinkMs / clockBeforeMs`, cut at
+half and double an even pace across the product's own thirty-move horizon. Its rule was committed in
+`docs/decisions/D05-blitz-time.md` before the harness produced a number.
+
+**It fixes readability outright:**
+
+| | shipped | candidate |
+| --- | --- | --- |
+| fast bucket usable | `fast-under-45s` **0.2725** | `fast-relative` **0.9956** |
+| slow bucket usable | `slow-over-2m` **0.0037** | `slow-relative` **1.0000** |
+| slow bucket non-empty | 0.5844 | 1.0000 |
+
+and it earns the false-claim ceiling in its own right — 0 in 1,600 blitz nulls, upper 95% 0.0024
+against 0.02 — which matters because `SEPARABILITY_K = 3.75` was measured on *those six searched
+together* and a redefined set is a different multiplicity.
+
+**And its recovery condition turned out to be a question no bucket could answer.** The rule also
+required `clean-fast` recovery at half the middlegame's rate; it scored 0.0000, so the declared
+verdict is **REJECTED** and stands. But `region_probe` in the same file measures why: `clean-fast`
+plants its effect in `seconds < 45`, which on a 3+0 record is **96.9%** of the decisions. The shipped
+bucket *is* that region and has a median of **15** decisions on the far side against
+`MIN_BUCKET_N = 30`; the candidate bucket is a genuine 18% tail with at least **79%** of the record
+planted *and* outside it. An effect present almost everywhere is not a pattern, and no bucketing
+separates a constant.
+
+**Which reaches back into the table above.** The `usable` column there is measured on **null** worlds
+with no plant and stands unchanged — that is this row's finding and it needs no planted effect. The
+recovery row (`clean-fast` 0.0000 against the middlegame's 0.4175) has two sufficient causes and
+cannot tell them apart, so it does not by itself establish that the bucket rather than the fixture is
+at fault. Same failure class as the five in `tests/LEVELS.md`: an instrument right about what it
+looks at, read as evidence about something else. D05 carries the repaired rule, declared before its
+run.
+
+**The recovery question was then asked again on a plant that could answer it** —
+`research/discovery-oracle/q9_answerable_plant.py`, the rule for it committed before the file
+existed. The plant is `thinkMs / clockBeforeMs < 1/40`, the midpoint in value between the candidate's
+own cut (1/60) and an even pace (1/30), so it is a strict superset of `fast-relative` and a small
+subset of `fast-under-45s` and **neither arm is handed its own answer**. It covers 27% of a blitz
+record, leaves 380 unplanted decisions to contrast against, and the run reports that answerability
+before anything else.
+
+On the same worlds, same seeds, same scoring code:
+
+| | shipped | candidate |
+| --- | --- | --- |
+| any-bucket recall | 0.0500 | **0.1775** |
+| named the fast bucket | **0.0000** | 0.1225 |
+| validated on target | **0.0000** | 0.0475 |
+
+**`fast-under-45s` recovers a relative-time effect exactly never**, on a plant built to be
+recoverable, with the middlegame control scoring 0.4225 on the same records. That is this row stated
+at its strongest, and it is the first time it has been said with a plant that could have come out
+otherwise. The candidate reaches 4.75% — real, and a fifth of the declared bar of 0.2112, so the
+verdict is **REJECTED** a second time and stands.
+
+The cut does not now move to 1/40: fitting a threshold to a plant this harness drew is the post-hoc
+move D08 refuses one level up. What the number argues for instead is D04 — a bucket with a declared
+cut can only be near the truth by luck, and the search that finds where the line is takes correct
+attribution from 0% to 33.5% where a better constant is worth about five points.
 
 **Still open, and deliberately not fixed here:** the thresholds themselves. Replacing 45 seconds with
 a fraction of the clock is master-plan §18 and it cannot be done by editing a constant —
@@ -657,7 +1033,7 @@ and the disabled-control skip.
 | type | ops |
 | state | **open, and deliberately governed** — a ratchet, not a refactor, with the argument written down |
 | severity | P2 |
-| basis | **verified** — 2,378 lines, 55 `useState`, under a committed ceiling that only goes down |
+| basis | **verified** — under a committed ceiling that only goes down; the ceiling is `LINE_CEILING = 2400` and `STATE_CEILING = 53`, and the register is held to those numbers by a test |
 
 Real, and not the kind of open the word usually means. `ACTION_PLAN.md` scheduled C1 as *"a
 mechanical extraction with the existing tests as the invariant — not a redesign"*, and
@@ -672,8 +1048,17 @@ So the honest treatment is the one that shipped: a ceiling, in the same shape as
 a fifty-sixth piece of state" that is better than putting it somewhere else, so raising the ceiling
 would mean the refactor got further away.
 
-**Gate:** `the-file-that-only-ever-grew.test.ts` — 2,400 lines and 55 `useState`, both at 22 and 0
-of headroom respectively.
+**Gate:** `the-file-that-only-ever-grew.test.ts` — `LINE_CEILING = 2400` and `STATE_CEILING = 53`.
+
+**The ceiling had not gone down, and the rule above says it must.** The UX work extracted five
+times to stay under the line ceiling, and one of those extractions — `useNewGameSetup` — took the
+component from fifty-five pieces of state to fifty-three. The ceiling stayed at fifty-five, which
+quietly restored two slots of headroom that a refactor had just paid for. It is now fifty-three.
+
+The line ceiling keeps its headroom deliberately, and the asymmetry is the point: length is a
+symptom, and a ceiling with no room turns every added comment into a false alarm. State is the
+cause, and the row's own argument — that there is no version of "this component needs one more
+piece of state" that is better than putting it somewhere else — leaves no room to keep.
 
 ---
 
@@ -715,7 +1100,10 @@ premised on a measurement that was made and came back the other way.
 
 | | |
 | --- | --- |
-| type | UX · state | **refuted as framed** · basis | **asserted** (`ACTION_PLAN.md` §1.1) |
+| type | UX |
+| state | **refuted** — as framed |
+| severity | P2 |
+| basis | **asserted** (`docs/ACTION_PLAN.md` §1.1) |
 
 ---
 
@@ -768,12 +1156,12 @@ categories are not the same kind of "not done".
 | 12 | sampling calibration | **blocked on 11** |
 | 13 | a confidence-bearing corpus | **blocked on people** |
 | 14 | Discovery V2 integration | **partly done** — blitz reads through the shared detector and
-never gets its own; the thresholds are R-18 |
+never gets its own; the thresholds are R-18, measured twice and deferred |
 | 15 | freeze + prospective validation | **half** — the freeze exists (`hypothesis-manifest.ts`);
 the prospective half needs new games |
 | 16 | learning / action | **governed** — `mayPrescribe` is true for exactly one evidence level,
 and nothing on any screen can reach it yet |
-| 17 | browser / state / a11y gates | **done** — §29, four blitz states in real Chromium |
+| 17 | browser / state / a11y gates | **done** — §29, plus a walk over eleven of fourteen states in real Chromium; the three it cannot reach are below |
 | 18 | value field test | **blocked on people** |
 | 19 | effectiveness study | **blocked on people** |
 
@@ -784,12 +1172,36 @@ product can say what they learned, and whether any of it changes a later decisio
 produces any of those, and writing something that looked like them would be the manufactured
 certainty this whole plan is against.
 
-**What is buildable and still open** is one thing: R-18's second half. The time thresholds are wrong
-for blitz, the fix is relative time, and it cannot be done by editing a constant — `SEPARABILITY_K`
-is a measurement of *those six buckets searched together*, so a redefined bucket needs its own
-false-positive rate from `research/discovery-oracle/` before it may be searched. Until that
-measurement exists, the shipped behaviour is the honest one: say the split cannot divide this
-record, and do not ask for decisions that cannot help.
+**R-18's second half has now been measured rather than left open.** The time thresholds are wrong
+for blitz and the candidate fix is relative time; it could not be done by editing a constant, because
+`SEPARABILITY_K` is a measurement of *those six buckets searched together*, so a redefined bucket
+needed its own false-positive rate from `research/discovery-oracle/` before it might be searched. It
+has one: 0 false claims in 1,600 blitz nulls, upper 95% 0.0024. It also has a recovery number, twice,
+and both are below the bar its own rule declared in advance. So the bucket is **not** replaced, the
+shipped behaviour stays the honest one — say the split cannot divide this record, and do not ask for
+decisions that cannot help — and the next thing that moves this is D04's depth trade or a real blitz
+record, not a third constant. `docs/decisions/D05-blitz-time.md` carries both runs.
+
+### Three states the browser walk cannot reach, and why that is not a coverage gap to close
+
+The walk over the built app renders each product state in Chromium and asserts that none is empty
+or unstyled and that each offers one clear action. Eleven of fourteen were reached. The other three
+are unreachable **by construction**, and forcing them would mean building a way in that the product
+does not have:
+
+| unreached state | why a walk cannot enter it |
+| --- | --- |
+| the sampled confidence prompt | it fires on `BLITZ_ASK_RATE = 0.15` of decisions, and the sampling is the instrument — a switch that forces it is a second code path that is not the one players meet |
+| a review event | it needs a finished game whose engine pass found a scoreable event, which is a real analysis over real moves, not a fixture |
+| a due learning test | `RETRIEVAL_INTERVAL_DAYS = [1,3,7,21]` — the earliest is tomorrow, and the delay *is* what is under test |
+
+Each is covered by a rendered test with a constructed state, which is a weaker claim than the walk
+makes and is recorded as such: a jsdom render can say a component draws, and cannot say the screen
+is laid out. That distinction is exactly what the walk exists for, so it is written down rather than
+rounded to "covered".
+
+**The honest way to close these is time and use, not a test hook**, and two of the three close
+themselves the first time a real player takes enough decisions.
 
 **The prediction in the section above turned out to be right, and the product now says so.** The
 representation work was warned that it would mostly render an empty state. It does — and the empty

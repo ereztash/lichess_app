@@ -1,0 +1,35 @@
+Q7 / D04 -- can a candidate search find the region the six buckets cannot express?
+
+400 records per plant, 400 per null world, 40 games each, 20 to derive.
+Judged on the SHIPPED terms: k=3.75, min n=30.
+Declared before the run: false-claim ceiling 0.02, on-target = Jaccard >= 0.6.
+
+DEPTH 1  (conjunctions of up to 1 cut(s))
+plant                     validated  on-target  median J  top region
+clean-middlegame             0.6275     0.6275     1.000  phase==1
+weak-middlegame              0.0125     0.0125     1.000  phase==1
+clean-fast                   0.1725     0.1725     1.000  seconds<45.0
+weak-fast                    0.0075     0.0075     1.000  seconds<45.0
+interaction-only             0.2225     0.2225     0.841  phase==2
+sparse-low-clock             0.5575     0.5550     1.000  clock_ms<60000.0
+one-game-only                0.0000     0.0000       nan  -
+every-game-first-moves       0.0325     0.0025     0.556  phase==0
+proxy-correlated             0.0550     0.0550     0.868  seconds<45.0
+
+  false-claim rate on 4000 null records: 0.0008 (95% CI 0.0003-0.0022)  -> WITHIN the 0.02 ceiling
+  shuffled-label control, 1800 planted records with the gap permuted: 0.0006 (95% CI 0.0001-0.0031)  -> WITHIN
+
+DEPTH 2  (conjunctions of up to 2 cut(s))
+plant                     validated  on-target  median J  top region
+clean-middlegame             0.4150     0.4000     1.000  phase==1
+weak-middlegame              0.0075     0.0050     0.640  phase==1 AND seconds<45.0
+clean-fast                   0.0650     0.0650     1.000  seconds<45.0
+weak-fast                    0.0000     0.0000       nan  -
+interaction-only             0.3375     0.3350     1.000  phase==2 AND seconds<45.0
+sparse-low-clock             0.4225     0.3950     1.000  clock_ms<60000.0
+one-game-only                0.0000     0.0000       nan  -
+every-game-first-moves       0.0300     0.0000     0.549  phase==0
+proxy-correlated             0.0100     0.0100     0.862  seconds<45.0
+
+  false-claim rate on 4000 null records: 0.0010 (95% CI 0.0004-0.0026)  -> WITHIN the 0.02 ceiling
+  shuffled-label control, 1800 planted records with the gap permuted: 0.0006 (95% CI 0.0001-0.0031)  -> WITHIN

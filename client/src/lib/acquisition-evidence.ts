@@ -34,6 +34,8 @@
  */
 import type { OneThingKind } from "@shared/reveal";
 import type { DecisionPurpose } from "@shared/confidence-asked";
+import type { NextActionKind, ShadowSurface } from "@shared/next-action";
+import type { PrimaryAction } from "@shared/primary-action";
 
 /**
  * The acquisition angles the trial can tell apart.
@@ -250,11 +252,19 @@ export type TrialEvent =
       name: "next_action_shadow";
       at: string;
       /** Which screen the comparison was made on. */
-      surface: "resume";
+      surface: ShadowSurface;
       /** The derivation's answer, as its own kind. */
-      proposed: string;
-      /** What the screen offers instead, in the screen's own vocabulary. Never a label. */
-      offered: string;
+      proposed: NextActionKind;
+      /**
+       * The act the screen's primary control names, or `null` where it offers none.
+       *
+       * `PrimaryAction` AND NOT A STRING, and the difference is the whole comparison. The first
+       * version of this field held `"play"` -- a word in no vocabulary -- recorded as a constant,
+       * so the front door was logged as offering a control even on `nothing-scored`, the one state
+       * P1.5 made it deliberately offer nothing on. Every disagreement there was an artefact of
+       * this field. `null` is now a real value and means the screen is quiet.
+       */
+      offered: PrimaryAction | null;
       agrees: boolean;
       /** Inputs this surface could not supply, so a disagreement can be read correctly. */
       blind: string[];

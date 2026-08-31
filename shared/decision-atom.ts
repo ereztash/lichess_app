@@ -40,6 +40,12 @@ export const ATOM_FIELDS = [
    * lets it try. Anywhere else in the list and the two would read as unrelated facts.
    */
   "drill_id",
+  /*
+   * BESIDE `drill_id`, because it is the same binding for the other label that moves a decision
+   * across the wall. `drill` and `transfer` are the two purposes `EVIDENCE_POLICY` treats as
+   * evidence about a named test rather than about the player, and each needs to name the test.
+   */
+  "transfer_id",
   "known",
   "unknown",
   "known_parts",
@@ -278,6 +284,33 @@ export const decisionAtomSchema = z.object({
    * other claim's -- and until now nothing could say which drill was the matching one.
    */
   drill_id: z.string().min(1).max(64).nullable(),
+  /**
+   * The transfer check this decision belongs to, or null.
+   *
+   * THE OTHER HALF OF THE SAME HOLE. `drill_id` closed `purpose === "drill"`; `transfer` was left
+   * as the client's word, and it is the same failure with the same two directions.
+   * `EVIDENCE_POLICY` refuses a `transfer` decision from discovery -- *"taken while deliberately
+   * applying a rule; that is the intervention working"* -- so a `play` decision mislabelled
+   * `transfer` is silently dropped from the population it belongs to, and a transfer check
+   * mislabelled `play` walks the intervention straight into the evidence it is supposed to be
+   * tested against.
+   *
+   * IT WAS CALLED THE SMALLER HOLE, AND THE REASON WAS WRONG. A transfer's observations are indeed
+   * written through `recordLearningTransferObservation`, which resolves the transfer and checks
+   * the position -- but that is a SECOND call, made after the decision is already committed, and
+   * nothing obliges a client to make it. The decision itself was stored with the label and no
+   * binding, and it is the decision that `EVIDENCE_POLICY` reads.
+   *
+   * AND IT IS WHAT `scoped(to: "matching-transfer")` HAS BEEN ASKING FOR, in the same words the
+   * drill row used: that table files a transfer decision as readable against its own transfer's
+   * verdict and no other claim's, and until now nothing could say which transfer was the matching
+   * one.
+   *
+   * NULL ON EVERY OTHER PURPOSE, and refused if it is not, for the drill's reason: a decision that
+   * names a transfer and does not claim to be one is making two statements that cannot both be
+   * true.
+   */
+  transfer_id: z.string().min(1).max(64).nullable(),
   /**
    * What the player can name about this position. <=200 chars.
    *

@@ -128,6 +128,14 @@ export type CommitEvent = {
    * which refuses a decision claiming `drill` without one rather than storing an unbindable claim.
    */
   drill_id?: string | null;
+  /**
+   * The transfer check this decision belongs to, when it claims to be one.
+   *
+   * Optional for `drill_id`'s reason and refused for `drill_id`'s reason: a client older than the
+   * field can still write, and `commitDecision` refuses a decision claiming `transfer` without one
+   * rather than storing an unbindable claim.
+   */
+  transfer_id?: string | null;
   known: string;
   unknown: string;
   /**
@@ -239,11 +247,8 @@ export async function commitDecision(
    * payload (set version and position) that section 2 of the constitution specifies, so that a
    * bank answer identifies its slot rather than being guessed at from the board.
    *
-   * `drill` IS NOW CHECKED, `transfer` STILL IS NOT. The event carries `drill_id` and the block
-   * below resolves it; a transfer decision still names no transfer, so that one label remains the
-   * subject's word. Named rather than papered over, and it is the smaller hole of the two: a
-   * transfer's own observations are written through `recordTransferObservation`, which knows which
-   * transfer it is inside, whereas a drill decision arrives through the ordinary commit.
+   * `drill` AND `transfer` ARE BOTH CHECKED NOW. Each event carries its id and each block below
+   * resolves it against an object written down before the decision was made.
    */
   if (input.purpose === "anchor" && !isAnchorFen(input.entry_state.fen)) {
     throw new RecordError(
@@ -303,6 +308,61 @@ export async function commitDecision(
     throw new RecordError(
       "BAD_REQUEST",
       "ההחלטה מצביעה על תרגול אבל אינה מסומנת כהחלטת תרגול. שתי האמירות אינן יכולות להתקיים יחד.",
+    );
+  }
+  /*
+   * THE SAME BINDING FOR `transfer`, AND THE REASON IT WAITED WAS WRONG.
+   *
+   * It was called the smaller hole because "a transfer's observations are written through
+   * `recordLearningTransferObservation`, which knows which transfer it is inside". That call does
+   * resolve the transfer and does check the position -- but it is a SECOND call, made after this
+   * one has already returned, and nothing obliges a client to make it. The decision was stored
+   * carrying the label and no binding, and it is the DECISION that `EVIDENCE_POLICY` reads.
+   *
+   * BOTH DIRECTIONS, exactly as for `drill`. Discovery refuses a `transfer` decision -- "taken
+   * while deliberately applying a rule; that is the intervention working" -- so a `play` decision
+   * mislabelled `transfer` is dropped from the population it belongs to, and a transfer check
+   * mislabelled `play` walks the intervention into the evidence meant to test it.
+   *
+   * AND IT ANSWERS THE QUESTION `scoped(to: "matching-transfer")` HAS BEEN ASKING. That cell says
+   * a transfer's observations may decide that transfer and no other; until now nothing on the row
+   * could say which transfer was the matching one.
+   *
+   * THREE CHECKS, AND THE THIRD IS AGAIN THE ONE THAT MATTERS: that an id was sent, that it names
+   * a transfer this record holds, and that THAT TRANSFER NAMED THIS POSITION IN ADVANCE. The first
+   * two alone would let one open transfer launder every decision a player takes while it is open.
+   *
+   * COMPARED AS POSITIONS, not as strings, for the reason `recordLearningTransferObservation`
+   * already gives: a decision recorded against the identical board later in a game is the position
+   * that was written down, and preregistration deduplicates by `positionKey` so the match is
+   * unambiguous. Comparing raw FENs here and by position there would let a decision pass one check
+   * and fail the other, which is worse than either rule alone.
+   */
+  if (input.purpose === "transfer") {
+    if (!input.transfer_id) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כבדיקת העברה אבל בלי לומר לאיזו בדיקה — ותווית שאין מאחוריה בדיקה אינה נבדקת.",
+      );
+    }
+    const transfer = await store.getLearningTransfer(input.transfer_id);
+    if (!transfer) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כבדיקת העברה, אבל הבדיקה שהיא מצביעה עליה אינה ברשומה.",
+      );
+    }
+    if (!transfer.fens.some((fen) => samePosition(fen, input.entry_state.fen))) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כבדיקת העברה, אבל העמדה אינה אחת מהעמדות שהבדיקה רשמה מראש.",
+      );
+    }
+  } else if (input.transfer_id) {
+    /* Two statements that cannot both be true -- see the drill's `else if` above. */
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה מצביעה על בדיקת העברה אבל אינה מסומנת כבדיקת העברה. שתי האמירות אינן יכולות להתקיים יחד.",
     );
   }
   /*
@@ -384,6 +444,8 @@ export async function commitDecision(
     purpose: input.purpose ?? null,
     /* Verified above, not taken on trust. Null on every purpose but `drill`. */
     drillId: input.drill_id ?? null,
+    /* The same, for `transfer`. */
+    transferId: input.transfer_id ?? null,
     secondsTaken: Math.round(input.bounded_action.seconds_taken),
     chosenMove: input.decision,
     candidateMovesConsidered: input.bounded_action.candidate_moves_considered,

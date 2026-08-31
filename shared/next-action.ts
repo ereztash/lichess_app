@@ -31,6 +31,7 @@
  * screens for a while before believing it.
  */
 import type { BlitzBlocker, BlitzShortfall, BlitzStanding } from "./blitz-reading.js";
+import type { PrimaryAction } from "./primary-action.js";
 
 /**
  * The actions. Every one names something the record needs, and carries what it needs to be rendered
@@ -234,4 +235,81 @@ export function producesEvidence(action: NextAction): boolean {
     case "none":
       return false;
   }
+}
+
+/**
+ * The screens a shadow of this derivation may be taken on.
+ *
+ * IT LIVES HERE AND NOT IN THE TRIAL LEDGER. It was in `acquisition-evidence.ts`, which made
+ * `next-action-shadow.ts` import that module for a type -- and §30's import-graph rule is that
+ * nothing choosing a position, computing a reading or rendering a finding may name the telemetry
+ * module at all. The rule is right and the type was in the wrong file: which screens exist is a
+ * fact about the product, and the ledger is one of its readers.
+ *
+ * THREE, AND ONLY ONE OF THEM IS INSTRUMENTED LIVE. See `docs/decisions/D22-next-action-ownership.md`
+ * for why the other two are measured by a test instead of by a hook.
+ */
+export const SHADOW_SURFACES = ["resume", "post-game", "record"] as const;
+export type ShadowSurface = (typeof SHADOW_SURFACES)[number];
+
+/**
+ * THE ACT A CONTROL WOULD HAVE TO NAME to be offering what the derivation proposes.
+ *
+ * WHY IT LIVES HERE AND NOT IN THE SHADOW. The shadow wrote this correspondence by hand, in one
+ * surface, as `kind === "play-first-decision" || kind === "play-blitz"` -- a disjunction that is
+ * true for the front door, invisible to every other screen, and silent if a kind is added. The
+ * comparison the shadow exists to make is exactly this mapping, so the mapping is the thing that
+ * should be stated once and checked.
+ *
+ * `null` IS A REAL ANSWER AND THE INTERESTING ONE. Two proposals correspond to no control at all:
+ *
+ *   `wait-analysis`  the act is to WAIT, and there is no button for waiting. A screen offering
+ *                    anything here is offering something the derivation did not propose -- which is
+ *                    precisely the defect P1.5 fixed on the front door, where `nothing-scored` used
+ *                    to render "play another game" and grow the backlog that was the blocker.
+ *   `none`           the derivation has nothing to say. A control here would be the screen
+ *                    deciding, which is the thing the shadow is watching for.
+ *
+ * TWO KINDS SHARE ONE ACT, and that is correct rather than a collision: `continue-run` is the act
+ * for a drill and for a transfer alike, because from the player's side finishing a pre-registered
+ * set is one act whichever kind of set it is. The kinds stay apart because the SENTENCE differs.
+ *
+ * `collect-more-evidence` MAPS TO AN ACT WHOSE NAME IS NARROWER THAN THE ACT. `play-first-decision`
+ * is the control that opens a position, and the anchor set is unfinished on records that already
+ * have decisions -- so the act is right and the word "first" in its name is not. Written down here
+ * rather than renamed: the name is in the closed vocabulary three gates read, and a rename that
+ * touches them to fix a word is a change with more risk than the word has cost.
+ */
+export function actFor(kind: NextActionKind): PrimaryAction | null {
+  switch (kind) {
+    case "wait-analysis":
+    case "none":
+      return null;
+    case "play-first-decision":
+    case "collect-more-evidence":
+      return "play-first-decision";
+    case "play-blitz":
+      return "play-blitz";
+    case "review-event":
+      return "review-event";
+    case "test-hypothesis":
+      return "test-hypothesis";
+    case "continue-drill":
+    case "continue-transfer":
+      return "continue-run";
+    case "return-record":
+      return "return-record";
+  }
+}
+
+/**
+ * Whether a surface offering `offered` is offering what the derivation proposed.
+ *
+ * `null` OFFERED MEANS THE SCREEN OFFERS NO PRIMARY ACT, which agrees with exactly the two
+ * proposals that are not acts. A screen that goes quiet where the derivation wanted a button
+ * disagrees, and so does one that shows a button where the derivation wanted quiet: both are
+ * disagreements and neither is a near miss.
+ */
+export function agreesWith(kind: NextActionKind, offered: PrimaryAction | null): boolean {
+  return actFor(kind) === offered;
 }

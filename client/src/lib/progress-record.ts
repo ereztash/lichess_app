@@ -223,6 +223,26 @@ export function trialEventSeen(name: TrialEventName, decisionId?: string): boole
 }
 
 /**
+ * Whether an event of this name has been recorded ON THIS SURFACE in the current visit.
+ *
+ * A SECOND FUNCTION RATHER THAN A SECOND PARAMETER ON THE ONE ABOVE. `trialEventSeen`'s optional
+ * argument is a `decisionId` and the events that carry one are about a decision; the shadow's
+ * events are about a SCREEN and carry a surface instead. Widening that parameter into "match
+ * whichever id-ish field this event happens to have" would make both call sites read as
+ * approximately-idempotent, which is the kind of thing that is fine until the day it is not.
+ *
+ * IT EXISTS BECAUSE THE SHADOW RUNS ON THREE SURFACES NOW. Deduplicating by name alone meant
+ * whichever screen rendered first wrote its row and the other two never wrote at all -- so a ledger
+ * that looked like agreement was a ledger with two screens missing from it.
+ */
+export function trialEventSeenOn(name: TrialEventName, surface: string): boolean {
+  const visit = read().visits[read().visits.length - 1];
+  return (visit?.events ?? []).some(
+    (event) => event.name === name && "surface" in event && event.surface === surface,
+  );
+}
+
+/**
  * Whether an event of this name has ever been recorded, in any visit still on file.
  *
  * THE ONE CROSS-VISIT READ, and it exists for exactly one caller: the value-reconstruction

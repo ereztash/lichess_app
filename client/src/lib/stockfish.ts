@@ -1,4 +1,9 @@
 import {
+  EngineFailureError,
+  ENGINE_REMEDY,
+  type EngineFailure,
+} from "@shared/engine-failure";
+import {
   ANALYSIS_SUPERSEDED,
   emptyLine,
   // Moved to engine-line.ts, which has no asset imports, so the self-check can run the same
@@ -18,6 +23,9 @@ export * from "./engine-line";
 
 const ENGINE_JS = engineJsUrl;
 const ENGINE_WASM = engineWasmUrl;
+
+/* The nine codes, shared with the self-check and the scan so all three name a failure the same way. */
+
 
 /**
  * HOW LONG THE ENGINE GETS TO BECOME READY, and the old 15,000 was a download budget in disguise.
@@ -128,12 +136,26 @@ export class StockfishClient {
       this.rejectReady = reject;
       this.worker = this.createWorker();
       this.worker.onmessage = (event: { data: string }) => this.handleMessage(event.data);
-      this.worker.onerror = () => this.fail("טעינת המנוע נכשלה — אפשר להמשיך לנתח את הלוח ידנית.");
+      /*
+       * AN EMPTY MESSAGE IS THE SIGNATURE OF A POLICY REFUSAL, measured on the deployed origin: a
+       * worker the CSP refuses is CONSTRUCTED, and the failure arrives here with no message at all,
+       * while a script that would not parse arrives with a real one. Same event, two causes, two
+       * codes -- and the one the deployment can fix is not the one the player can.
+       */
+      this.worker.onerror = (event) => {
+        const said = (event as ErrorEvent)?.message?.trim();
+        this.fail(
+          said ? "engine-silent" : "worker-refused",
+          said
+            ? "טעינת המנוע נכשלה — אפשר להמשיך לנתח את הלוח ידנית."
+            : ENGINE_REMEDY["worker-refused"],
+        );
+      };
       this.worker.postMessage("uci");
       // Plain setTimeout, not window.setTimeout: this class has no reason to require a DOM
       // global, and depending on one made the superseding logic untestable outside jsdom.
       setTimeout(() => {
-        if (this.resolveReady) this.fail(ENGINE_SLOW_MESSAGE);
+        if (this.resolveReady) this.fail("engine-timeout", ENGINE_SLOW_MESSAGE);
       }, ENGINE_READY_TIMEOUT_MS);
     });
     return this.readyPromise;
@@ -182,7 +204,14 @@ export class StockfishClient {
 
   private async search(fen: string, limit: SearchLimit, multipv: number): Promise<EngineLine[]> {
     await this.start();
-    if (!this.worker) throw new Error("Stockfish worker unavailable");
+    /*
+     * ENGLISH, AND THAT WAS HALF OF WHY R-09 COULD NOT BE DIAGNOSED. `readableFailure` passes Hebrew
+     * through and buries anything else behind the generic fallback -- so this string, and only
+     * this string, is what a reporter's screen could have been showing. It now carries a code.
+     */
+    if (!this.worker) {
+      throw new EngineFailureError("worker-unsupported", "Stockfish worker unavailable");
+    }
     this.stopCurrent();
     this.lines.clear();
     this.onStatus({
@@ -322,9 +351,15 @@ export class StockfishClient {
    * still be downloading and would arrive into a worker nobody is listening to, competing for the
    * bandwidth the retry needs.
    */
-  private fail(message: string) {
+  private fail(code: EngineFailure, message: string) {
     this.onStatus({ mode: "error", detail: message });
-    this.rejectReady?.(new Error(message));
+    /*
+     * `EngineFailureError` RATHER THAN `Error`, and it is additive on purpose: the message is
+     * unchanged, so every `catch` that reads `error.message` behaves exactly as it did, and a
+     * caller that has learned to read `failureCode` can now say WHICH of the nine this was. R-09
+     * was reported as "the scan fails", and six causes reach that sentence.
+     */
+    this.rejectReady?.(new EngineFailureError(code, message));
     this.resolveReady = null;
     this.rejectReady = null;
     this.worker?.terminate();

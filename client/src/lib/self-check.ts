@@ -27,6 +27,18 @@ export type CheckStatus = "pass" | "fail" | "skip";
 // The application's own parser, not a second copy. A private reimplementation here could pass
 // while the real one fails, which would make this check worse than useless.
 import { parseInfo } from "./engine-line";
+/*
+ * THE SAME NINE CODES THE ENGINE AND THE SCAN USE. A private list here would drift from theirs, and
+ * a self-check whose vocabulary differs from the product's is a report nobody can act on.
+ */
+import { ENGINE_REMEDY, type EngineFailure } from "@shared/engine-failure";
+
+const WORKER_UNSUPPORTED: EngineFailure = "worker-unsupported";
+const WORKER_REFUSED: EngineFailure = "worker-refused";
+const WASM_UNSUPPORTED: EngineFailure = "wasm-unsupported";
+const WASM_REFUSED: EngineFailure = "wasm-refused";
+const ASSET_MISSING: EngineFailure = "asset-missing";
+const ASSET_MISTYPED: EngineFailure = "asset-mistyped";
 
 export type CheckResult = {
   id: string;
@@ -45,9 +57,14 @@ export type CheckEnv = {
    *  constructor to exist and still refuse the construction. */
   hasWorker: () => boolean;
   createWorker: (url: string) => Worker;
-  /** A URL for a throwaway script, so worker CONSTRUCTION is probed without the engine's files. */
-  objectUrl: (script: string) => string;
-  revokeObjectUrl: (url: string) => void;
+  /**
+   * Start a throwaway worker from one of the two sources and report whether it SPOKE.
+   *
+   * Not `createWorker` plus a `try`: a worker the browser refuses is constructed successfully and
+   * fails asynchronously with an empty message, so only a round trip distinguishes the two. The
+   * caller owns the timeout and the teardown; this hands back one observation.
+   */
+  probeWorker: (from: "same-origin" | "blob") => Promise<{ spoke: boolean; observed: string }>;
   storage: () => { available: boolean; durability: "persistent" | "session-only" };
   now: () => number;
 };
@@ -79,40 +96,68 @@ function reason(error: unknown): string {
 /** The position every engine check searches, so a parsed line has a FEN to belong to. */
 const STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+/**
+ * The content types a browser will execute as a classic script.
+ *
+ * Not a nicety: `x-content-type-options: nosniff` is set on this deployment, so a script served as
+ * `text/plain` is refused rather than sniffed, and the refusal reaches the app as an engine that
+ * never started.
+ */
+const EXECUTABLE_JS = /^(application|text)\/(javascript|ecmascript)|^text\/jscript/i;
+
 /** The smallest valid WebAssembly module: header plus version, nothing else. */
 const EMPTY_WASM = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
 
 async function checkWasm(): Promise<CheckResult> {
   const label = "WebAssembly";
   if (typeof WebAssembly === "undefined") {
-    return bad("wasm", label, "הדפדפן לא תומך ב-WebAssembly. המנוע לא יכול לרוץ כאן.");
+    return bad("wasm", label, `${WASM_UNSUPPORTED} — ${ENGINE_REMEDY[WASM_UNSUPPORTED]}`);
   }
   try {
     await WebAssembly.instantiate(EMPTY_WASM);
     return ok("wasm", label, "נתמך, ומודול בדיקה נטען בהצלחה.");
   } catch (error) {
     // Present but refused: a Content-Security-Policy without 'wasm-unsafe-eval' does exactly this.
-    return bad("wasm", label, `קיים אך חסום — ${reason(error)}. בדרך כלל מדיניות אבטחה (CSP).`);
+    return bad("wasm", label, `${WASM_REFUSED} — ${reason(error)}. ${ENGINE_REMEDY[WASM_REFUSED]}`);
   }
 }
 
-function checkWorker(env: CheckEnv): CheckResult {
+/**
+ * Whether a worker can be started, ASKED BY STARTING ONE AND WAITING FOR IT TO SPEAK.
+ *
+ * THIS CHECK REPORTED A PASS ON A BROWSER THAT HAD JUST REFUSED THE WORKER, and it took running it
+ * on the deployed origin to see. It was `env.createWorker(url).terminate()` inside a `try`, and
+ * that cannot observe the failure it exists for: under a `worker-src` that excludes the URL's
+ * scheme Chromium **does not throw**. Measured on the deployment: the constructor returns a Worker,
+ * the console logs *"Refused to create a worker from 'blob:…'"*, and an `error` event with an EMPTY
+ * message arrives afterwards. The synchronous path sees a success and says so.
+ *
+ * The probe therefore waits for the worker to POST BACK. Construction proves nothing; speaking does.
+ *
+ * AND IT PROBES THE SOURCE THE ENGINE USES. The old probe built a `blob:` script, to isolate "can a
+ * worker be created at all" from "can the engine's script be fetched" — but that isolation is what
+ * made the answer wrong on this deployment. Its CSP is `worker-src 'self'`, which forbids `blob:`
+ * and allows the engine's own same-origin script, so the probe was asking about a scheme the
+ * product never uses and reporting the answer as if it were about the product. Both are now asked,
+ * separately, and the same-origin one is the one that decides the check: `blob:` is reported for
+ * what it is, a fact about the policy that no engine path depends on.
+ */
+async function checkWorker(env: CheckEnv): Promise<CheckResult> {
   const label = "Web Worker";
   if (!env.hasWorker()) {
-    return bad("worker", label, "הדפדפן לא מאפשר Workers. המנוע רץ ב-Worker, ולכן לא ירוץ כאן.");
+    return bad("worker", label, `${WORKER_UNSUPPORTED} — ${ENGINE_REMEDY[WORKER_UNSUPPORTED]}`);
   }
-  let url: string | null = null;
-  try {
-    // A throwaway script, not the engine's: this isolates "can a worker be created at all" from
-    // "can the engine's script be fetched", which are two different failures with two fixes.
-    url = env.objectUrl("self.close()");
-    env.createWorker(url).terminate();
-    return ok("worker", label, "אפשר ליצור Worker.");
-  } catch (error) {
-    return bad("worker", label, `יצירת Worker נכשלה — ${reason(error)}.`);
-  } finally {
-    if (url) env.revokeObjectUrl(url);
-  }
+
+  const sameOrigin = await env.probeWorker("same-origin");
+  const blob = await env.probeWorker("blob");
+  const blobNote = blob.spoke ? "blob: מותר גם" : "blob: חסום במדיניות (לא בשימוש כאן)";
+
+  if (sameOrigin.spoke) return ok("worker", label, `Worker מאותו מקור ענה. ${blobNote}.`);
+  return bad(
+    "worker",
+    label,
+    `${WORKER_REFUSED} — ${sameOrigin.observed}. ${ENGINE_REMEDY[WORKER_REFUSED]} ${blobNote}.`,
+  );
 }
 
 /** The engine's two files, fetched from this origin exactly as the engine fetches them. */
@@ -132,13 +177,26 @@ async function checkAssets(env: CheckEnv): Promise<CheckResult[]> {
   try {
     const res = await env.fetch(urls.js);
     const body = await res.text();
-    results.push(
-      res.ok && body.length > 0
-        ? ok("engine-js", "קובץ המנוע (JS)", `${res.status}, ${body.length} בתים, ${urls.js}`)
-        : bad("engine-js", "קובץ המנוע (JS)", `סטטוס ${res.status} עבור ${urls.js}`),
-    );
+    const type = res.headers.get("content-type") ?? "<none>";
+    if (!res.ok || body.length === 0) {
+      results.push(
+        bad("engine-js", "קובץ המנוע (JS)", `${ASSET_MISSING} — סטטוס ${res.status} עבור ${urls.js}. ${ENGINE_REMEDY[ASSET_MISSING]}`),
+      );
+    } else if (!EXECUTABLE_JS.test(type)) {
+      /*
+       * A SEPARATE CODE BECAUSE IT IS INVISIBLE FROM HERE. The bytes arrive, the status is 200, and
+       * the browser refuses to execute them anyway -- `x-content-type-options: nosniff` is set on
+       * this deployment, which turns the content type from advice into a requirement. Nothing in
+       * the app can tell that apart from "the engine did not start" without being told the type.
+       */
+      results.push(
+        bad("engine-js", "קובץ המנוע (JS)", `${ASSET_MISTYPED} — הוגש כ-${type}. ${ENGINE_REMEDY[ASSET_MISTYPED]}`),
+      );
+    } else {
+      results.push(ok("engine-js", "קובץ המנוע (JS)", `${res.status}, ${body.length} בתים, ${type}, ${urls.js}`));
+    }
   } catch (error) {
-    results.push(bad("engine-js", "קובץ המנוע (JS)", `ההורדה נכשלה — ${reason(error)}.`));
+    results.push(bad("engine-js", "קובץ המנוע (JS)", `${ASSET_MISSING} — ההורדה נכשלה: ${reason(error)}.`));
   }
 
   try {
@@ -148,7 +206,18 @@ async function checkAssets(env: CheckEnv): Promise<CheckResult[]> {
     const magic = [...head].map((b) => b.toString(16).padStart(2, "0")).join("");
     const type = res.headers.get("content-type") ?? "<none>";
     if (!res.ok) {
-      results.push(bad("engine-wasm", "קובץ המנוע (wasm)", `סטטוס ${res.status} עבור ${urls.wasm}`));
+      results.push(
+        bad("engine-wasm", "קובץ המנוע (wasm)", `${ASSET_MISSING} — סטטוס ${res.status} עבור ${urls.wasm}. ${ENGINE_REMEDY[ASSET_MISSING]}`),
+      );
+    } else if (magic === "0061736d" && !type.startsWith("application/wasm")) {
+      /*
+       * REAL WASM, WRONG TYPE, and the order matters: the magic bytes are checked first so a proxy
+       * that swapped the body is not reported as a header problem. Streaming instantiation refuses
+       * anything but `application/wasm`, and under `nosniff` there is no fallback to sniffing.
+       */
+      results.push(
+        bad("engine-wasm", "קובץ המנוע (wasm)", `${ASSET_MISTYPED} — הוגש כ-${type}. ${ENGINE_REMEDY[ASSET_MISTYPED]}`),
+      );
     } else if (magic !== "0061736d") {
       // A proxy or captive portal that answers with an HTML error page produces exactly this:
       // status 200, the right length, and content that is not WebAssembly.
@@ -361,7 +430,7 @@ export async function runSelfCheck(
   const results: CheckResult[] = [checkContext(), checkStorage(env)];
   results.push(await checkApi(env));
   results.push(await checkWasm());
-  results.push(checkWorker(env));
+  results.push(await checkWorker(env));
   results.push(...(await checkAssets(env)));
   results.push(...(await checkEngine(env, timeout)));
   return results;

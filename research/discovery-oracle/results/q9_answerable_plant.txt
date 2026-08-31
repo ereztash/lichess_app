@@ -1,0 +1,42 @@
+Q9 / D05 -- the same two arms, on a plant that can actually be recovered
+
+400 records per world, 40 games each, 20 to derive. Blitz controls only.
+Plant `relative-fast`: thinkMs/clockBeforeMs < 1/40, delta 0.180. Rule declared in D05 before this file existed.
+
+CONDITION 1, REPORTED FIRST: is this a question an arm could answer YES to?
+
+       arm target bucket     planted   inside  unplanted n  planted & outside  answerable
+   shipped fast-under-45s     0.2722   0.9681          380             0.0000        True
+ candidate fast-relative      0.2722   0.1867          380             0.0856        True
+
+  a median derivation half holds 522 decisions, and MIN_BUCKET_N is 30.
+
+bucket                        arm  non-empty    usable   cleared
+clock-under-1m            shipped     1.0000    1.0000    0.0000
+fast-under-45s            shipped     1.0000    0.2725    0.0006
+phase-endgame             shipped     1.0000    1.0000    0.0000
+phase-middlegame          shipped     1.0000    1.0000    0.0000
+phase-opening             shipped     1.0000    1.0000    0.0000
+slow-over-2m              shipped     0.5844    0.0037    0.0000
+
+clock-under-1m          candidate     1.0000    1.0000    0.0000
+fast-relative           candidate     1.0000    0.9956    0.0000
+phase-endgame           candidate     1.0000    1.0000    0.0000
+phase-middlegame        candidate     1.0000    1.0000    0.0000
+phase-opening           candidate     1.0000    1.0000    0.0000
+slow-relative           candidate     1.0000    1.0000    0.0000
+
+plant                         arm   recall  on target  validated on target  wrong proxy
+relative-fast             shipped   0.0500     0.0000               0.0000       0.0325
+clean-middlegame          shipped   0.6200     0.5800               0.4225       0.0000
+relative-fast           candidate   0.1775     0.1225               0.0475       0.0325
+clean-middlegame        candidate   0.6225     0.5800               0.4225       0.0025
+
+THE THREE CONDITIONS, DECLARED BEFORE THE RUN
+  1. the plant is a genuine subset  -> PASS
+  2. false-claim on blitz nulls  0.0000 (upper 95% 0.0024)  ceiling 0.02   -> PASS
+  3. relative-fast validated-on-target  0.0475   bar 0.2112 (half of THIS run's middlegame 0.4225)   -> FAIL
+
+  the shipped arm on the same plant, same worlds, same seeds: 0.0000 validated on target, 0.0500 any-bucket recall
+
+VERDICT: REJECTED

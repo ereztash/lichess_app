@@ -53,6 +53,26 @@ describe("what is required is visible before you click", () => {
     expect(button.textContent).not.toMatch(/רשמו את ההחלטה/);
   });
 
+  it("does not wear a tick while it is saying something is missing", () => {
+    /*
+     * THE HALF OF THIS BUTTON THE TEST ABOVE CANNOT SEE, and it shipped wrong for exactly that
+     * reason. `<Check />` rendered unconditionally, so the button reading *"חסר: בחרו מהלך על
+     * הלוח"* carried a TICK -- and on the screen it sits directly under the last unanswered step,
+     * so the icon and the position both said "done" while the words said "missing".
+     *
+     * `textContent` is blind to an icon. Every assertion about this button read the string, every
+     * one of them was true, and half of what the button said was never looked at. So the icon is
+     * asserted here as what it is: a second channel carrying a second claim.
+     */
+    setup();
+    const button = screen.getByRole("button", { name: /חסר/ });
+    expect(
+      button.querySelector(".lucide-check"),
+      "the button says a field is missing and shows the glyph for done",
+    ).toBeNull();
+    expect(button.querySelector(".lucide-circle-dashed")).not.toBeNull();
+  });
+
   it("explains that the refusal is the rule, not a fault", () => {
     setup();
     expect(document.querySelector(".commitment-summary")?.textContent).toMatch(/לא תקלה/);

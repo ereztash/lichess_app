@@ -484,8 +484,48 @@ const INDEX = "dist/public/index.html";
  * and could not read.
  *
  * 753 LEAVES 1.5 kB. The other two ceilings did not move and keep their numbers.
+ *
+ * ---
+ *
+ * 673 -> 675: the other half of R-07, which is the same boundary check for the other label.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              671.9      209.2       752.6
+ *     + `transfer_id` and its binding      673.0      209.4       753.8   +1.1 / +0.2 / +1.2
+ *
+ * MEASURED BY BUILDING BOTH SIDES, not attributed by argument: the six changed client and shared
+ * files were reverted to `HEAD`, built, and measured, then restored and measured again. Nothing
+ * else in the commit reaches the entry route.
+ *
+ * IT IS ON THE ENTRY ROUTE FOR THE REASON `drill_id` IS, above, and the reason has not weakened:
+ * the browser-record deployment runs the same boundary the server does, so a check that arrived in
+ * a later chunk would let through exactly the rows it exists to refuse. `transfer` was the last
+ * atom label a client could assert unchecked, and `EVIDENCE_POLICY` reads it to decide whether a
+ * decision may enter discovery at all.
+ *
+ * 675 LEAVES 2.0 kB, the headroom every raise here takes. The gzip ceiling did not fire.
+ *
+ * ---
+ *
+ * 675 -> 678: nine codes instead of one sentence.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              673.0      209.4       753.8
+ *     + `engine-failure` and its wiring    676.1      210.0       756.8   +3.1 / +0.6 / +3.0
+ *
+ * R-09 was blocked on a screen that said one thing for six causes with nothing in common: two are
+ * the deployment's to fix, two the browser's, one the network's, one a game. This is the closed
+ * vocabulary, its nine remedies, the worker probe that waits for a worker to SPEAK rather than
+ * assuming construction succeeded, and the content-type checks on both engine assets.
+ *
+ * IT IS ON THE ENTRY ROUTE BECAUSE THE FAILURE IS. A code that arrived in a later chunk would be
+ * absent from exactly the case it exists for -- a browser that could not load a chunk. The probe's
+ * own worker is NOT here: `?worker&url` emits it as its own asset, fetched only when the
+ * self-check runs.
+ *
+ * 678 LEAVES 1.9 kB. The gzip ceiling still did not fire, with 1.0 kB to spare.
  */
-const ENTRY_RAW_KB = 673;
+const ENTRY_RAW_KB = 678;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 211;
 /**
@@ -530,8 +570,19 @@ const ENTRY_GZIP_KB = 211;
  * few lines -- the failing line was below the window, and a pipe discards the exit code that would
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
+ *
+ * ---
+ *
+ * 753 -> 756: the same 1.2 kB as the entry raise above, plus the headroom this file always takes.
+ * The stylesheet did not move; this is all JavaScript, on the entry chunk, and the attribution is
+ * the measurement recorded beside `ENTRY_RAW_KB`.
+ *
+ * ---
+ *
+ * 756 -> 759: the same 3.0 kB as the entry raise above, plus this file's usual headroom. All
+ * JavaScript, on the entry chunk; the stylesheet did not move.
  */
-const INITIAL_RAW_KB = 753;
+const INITIAL_RAW_KB = 759;
 
 interface Asset {
   name: string;

@@ -41,13 +41,19 @@ const source = readFileSync(
 const LINE_CEILING = 2400;
 
 /**
- * Measured at 55, and this is the number that actually makes the file hard to work in.
+ * Measured at 55, now 53, and this is the number that actually makes the file hard to work in.
  *
- * Line count is a symptom; fifty-five pieces of state in one scope is the cause. It is also the
+ * Line count is a symptom; fifty-odd pieces of state in one scope is the cause. It is also the
  * number that decides whether an extraction is mechanical, which is why it is pinned separately
  * rather than trusted to correlate with length.
+ *
+ * IT CAME DOWN BECAUSE AN EXTRACTION PAID FOR IT. `useNewGameSetup` took two pieces of state out of
+ * this component, and for a while the ceiling stayed at 55 -- which handed back, as headroom, the
+ * exact thing the refactor had just bought. A ratchet that does not tighten after a win is a
+ * ceiling, and this one is documented as a ratchet: `MASTER_PRODUCT_DEBT.md` R-13 says it may only
+ * go down, and `a-register-that-answers-what-is-open.test.ts` holds the register to this constant.
  */
-const STATE_CEILING = 55;
+const STATE_CEILING = 53;
 
 describe("the file that only ever grew", () => {
   it("is not longer than it was when this was written", () => {

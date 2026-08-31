@@ -63,6 +63,7 @@ async function record(
     },
     purpose: "play",
     drill_id: null,
+    transfer_id: null,
     known: options.confidence === null ? "" : "המרכז פתוח",
     unknown: options.confidence === null ? "" : "לא יודע איך הוא יענה",
     known_parts: null,

@@ -132,7 +132,7 @@ describe("a screen that said how many decisions were analysed", () => {
       // §24 state A is not an empty state: it names why, and it still opens the list.
       show([plainBlunder]);
       expect(screen.getByText(/הייתה החלטה אחת שכדאי לראות/)).toBeTruthy();
-      expect(screen.getByText(/ההחלטה שכדאי לראות/)).toBeTruthy();
+      expect(screen.getByText(/עוד החלטה אחת שכדאי לראות/)).toBeTruthy();
     });
 
     it("says the engine has not run when the engine has not run", () => {

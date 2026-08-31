@@ -19,19 +19,33 @@
  * claim about something that already existed when the decision was made. That is what makes it a
  * check rather than a second label.
  *
- * WHAT IS STILL THE CLIENT'S WORD, said rather than papered over: `transfer`. A transfer decision
- * names no transfer. It is the smaller hole — a transfer's own observations are written through
- * `recordTransferObservation`, which knows which transfer it is inside — but it is a hole.
+ * AND `transfer` IS THE SECOND LABEL, closed one wave later for the same reason and in the same
+ * shape. It was called the smaller hole because a transfer's observations are written through
+ * `recordLearningTransferObservation`, which resolves the transfer and checks the position — but
+ * that is a SECOND call, made after the decision has already been committed, and nothing obliges a
+ * client to make it. The decision was stored carrying the label and no binding, and it is the
+ * decision `EVIDENCE_POLICY` reads. Both directions again: discovery refuses a `transfer` decision
+ * outright, so a `play` decision mislabelled `transfer` is dropped from the population it belongs
+ * to, and a transfer check mislabelled `play` walks the intervention into the evidence meant to
+ * test it.
  */
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import { commitDecision, RecordError, type CommitEvent } from "@shared/record-service";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import { classifyPhase } from "@shared/phase";
+import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import { registerDrill } from "../fixtures/registered-drill";
+import { registerTransfer } from "../fixtures/registered-transfer";
 
 const DRILLED = "8/8/8/8/8/5k2/6p1/6K1 w - - 0 60";
 const ELSEWHERE = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+/** A third board, so a transfer can hold the three positions `TRANSFER_POSITION_COUNT` requires. */
+const THIRD = "8/8/8/4k3/8/8/4P3/4K3 w - - 0 40";
+/** A real bank position: `anchor` is refused on anything else, by the check above the drill's. */
+const ANCHOR = ANCHOR_POSITIONS[0].fen;
+/** Named in advance by nothing. The board a transfer decision must not be accepted on. */
+const UNREGISTERED = "8/8/8/8/3k4/8/3P4/3K4 w - - 0 50";
 
 let n = 0;
 const nextId = () => `${(n += 1).toString().padStart(8, "0")}-1111-4111-8111-111111111111`;
@@ -43,6 +57,7 @@ const event = (over: Partial<CommitEvent> = {}): CommitEvent => {
     entry_state: { game_id: "g", fen, ply: 60, phase: classifyPhase(fen, 60), clock_ms_remaining: null },
     purpose: "drill",
     drill_id: null,
+    transfer_id: null,
     known: "המלך שלו קרוב לרגל",
     unknown: "לא יודע אם אספיק לחזור",
     known_parts: null,
@@ -136,6 +151,132 @@ describe("a label with nothing behind it", () => {
     });
   });
 
+  describe("the same four refusals for `transfer`, which was the other half of R-07", () => {
+    /*
+     * WHY THE SECOND LABEL AND NOT THE OTHER FOUR. `drill` and `transfer` are the two purposes
+     * `EVIDENCE_POLICY` reads as evidence about a NAMED TEST rather than about the player -- both
+     * are refused from discovery, and `transfer` is filed as `scoped(to: "matching-transfer")`,
+     * which is a sentence about a specific transfer that nothing on the row could identify.
+     *
+     * The other four need no binding, and saying why is the difference between a rule and a habit.
+     * `anchor` is checked already, and checked better: bank membership is a property of the FEN, so
+     * the position proves it without an id. `play`, `import` and `first` claim nothing that moves a
+     * decision across the wall -- they are the population, not an exception to it.
+     */
+    const transferEvent = (over: Partial<CommitEvent> = {}) =>
+      event({ purpose: "transfer", drill_id: null, ...over });
+
+    it("refuses a decision that claims to be a transfer check and names none", async () => {
+      const store = new MemoryRecordStore();
+      const error = await refusal(store, transferEvent({ transfer_id: null }));
+      expect(error.message).toContain("העברה");
+      expect(await store.listAtoms(), "refused means not stored").toHaveLength(0);
+    });
+
+    it("refuses a transfer id that names no transfer this record holds", async () => {
+      const store = new MemoryRecordStore();
+      await refusal(store, transferEvent({ transfer_id: "a-transfer-that-was-never-started" }));
+    });
+
+    it("refuses a position the named transfer never registered, which is the check that matters", async () => {
+      /*
+       * THE CASE THE WHOLE ROW IS FOR: `purpose=transfer`, a transfer id that resolves, and a board
+       * that transfer never named. With only the first two checks, one open transfer would launder
+       * every decision the player took while it was open -- each one excluded from discovery, each
+       * one carrying a binding that looks like provenance and proves nothing about this position.
+       *
+       * `NAMED_IN_ADVANCE` in `evidence-policy.ts` is the sentence this enforces: *"a transfer is
+       * graded on the positions it named in advance"*. Until now that was a comment.
+       */
+      const store = new MemoryRecordStore();
+      const transferId = await registerTransfer(store, [DRILLED, ELSEWHERE, THIRD]);
+      const error = await refusal(
+        store,
+        transferEvent({
+          transfer_id: transferId,
+          entry_state: {
+            game_id: "g",
+            fen: UNREGISTERED,
+            ply: 50,
+            phase: classifyPhase(UNREGISTERED, 50),
+            clock_ms_remaining: null,
+          },
+        }),
+      );
+      expect(error.message).toContain("מראש");
+      expect(await store.listAtoms()).toHaveLength(0);
+    });
+
+    it("refuses a decision that names a transfer and does not claim to be one", async () => {
+      const store = new MemoryRecordStore();
+      const transferId = await registerTransfer(store, [DRILLED, ELSEWHERE, THIRD]);
+      const error = await refusal(store, event({ purpose: "play", transfer_id: transferId }));
+      expect(error.message).toContain("שתי האמירות");
+    });
+
+    it("refuses a decision carrying both a drill and a transfer", async () => {
+      /*
+       * ONE DECISION IS INSIDE ONE TEST. A run that sent both would be claiming its output belongs
+       * to two named tests at once, and `EVIDENCE_POLICY` scopes each to its own -- so a later
+       * reading would have to choose, silently. The purpose decides which id is legal and refuses
+       * the other, whichever way round the pair arrives.
+       */
+      const store = new MemoryRecordStore();
+      const drillId = await registerDrill(store, [DRILLED]);
+      const transferId = await registerTransfer(store, [DRILLED, ELSEWHERE, THIRD]);
+      await refusal(store, event({ purpose: "drill", drill_id: drillId, transfer_id: transferId }));
+      await refusal(
+        store,
+        transferEvent({ drill_id: drillId, transfer_id: transferId }),
+      );
+    });
+
+    it("says what happened in words about this decision, not about a field", async () => {
+      const store = new MemoryRecordStore();
+      const error = await refusal(store, transferEvent({ transfer_id: "no-such-transfer" }));
+      expect(error.message).not.toContain("transfer_id");
+      expect(error.message.length).toBeGreaterThan(20);
+    });
+
+    it("accepts a transfer decision on a position the transfer named, and keeps the binding", async () => {
+      const store = new MemoryRecordStore();
+      const transferId = await registerTransfer(store, [DRILLED, ELSEWHERE, THIRD]);
+      const sent = transferEvent({ transfer_id: transferId });
+      await commitDecision(store, sent);
+      const atom = await store.getAtom(sent.decision_id);
+      expect(atom?.purpose).toBe("transfer");
+      expect(atom?.transfer_id, "the binding did not survive the write").toBe(transferId);
+    });
+
+    it("matches the position the way the observation write does, not by string", async () => {
+      /*
+       * TWO CHECKS OVER ONE FACT, AND THEY MUST AGREE. `recordLearningTransferObservation` finds
+       * the slot with `samePosition`, which ignores the halfmove and fullmove counters -- a board
+       * reached again later in a game is the position that was written down. If this boundary
+       * compared raw FENs, a decision could pass one check and fail the other, and the run would
+       * stall between two rules that each think they are right.
+       */
+      const store = new MemoryRecordStore();
+      const transferId = await registerTransfer(store, [DRILLED, ELSEWHERE, THIRD]);
+      const laterInTheGame = DRILLED.replace(/ 0 60$/, " 4 78");
+      expect(laterInTheGame, "the fixture stopped differing from the registered FEN").not.toBe(
+        DRILLED,
+      );
+      const sent = transferEvent({
+        transfer_id: transferId,
+        entry_state: {
+          game_id: "g",
+          fen: laterInTheGame,
+          ply: 78,
+          phase: classifyPhase(laterInTheGame, 78),
+          clock_ms_remaining: null,
+        },
+      });
+      await commitDecision(store, sent);
+      expect((await store.getAtom(sent.decision_id))?.transfer_id).toBe(transferId);
+    });
+  });
+
   describe("what it still accepts, or the check would just be a wall", () => {
     it("accepts a drill decision on a position the drill registered", async () => {
       const store = new MemoryRecordStore();
@@ -153,8 +294,30 @@ describe("a label with nothing behind it", () => {
        * the product: `play` is most of the record and carries no drill.
        */
       const store = new MemoryRecordStore();
-      for (const purpose of ["play", "import", "transfer"] as const) {
-        const sent = event({ purpose, drill_id: null });
+      const transferId = await registerTransfer(store, [DRILLED, ELSEWHERE, THIRD]);
+      for (const purpose of ["play", "import", "anchor", "first", "transfer"] as const) {
+        /*
+         * `transfer` NEEDS ITS OWN BINDING NOW, and that is the change rather than an exception to
+         * it: this loop used to pass a bare `purpose: "transfer"` and the record kept it, which is
+         * precisely the hole. `anchor` is on a bank position or it would be refused by the check
+         * above it, so it is fed one.
+         */
+        const sent = event({
+          purpose,
+          drill_id: null,
+          transfer_id: purpose === "transfer" ? transferId : null,
+          ...(purpose === "anchor"
+            ? {
+                entry_state: {
+                  game_id: "g",
+                  fen: ANCHOR,
+                  ply: 20,
+                  phase: classifyPhase(ANCHOR, 20),
+                  clock_ms_remaining: null,
+                },
+              }
+            : {}),
+        });
         await commitDecision(store, sent);
         expect((await store.getAtom(sent.decision_id))?.purpose).toBe(purpose);
       }

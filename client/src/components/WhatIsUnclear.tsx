@@ -16,7 +16,7 @@
  * give it the weight of one. No evidence mark either, for the same reason -- there is no evidence
  * here to level.
  */
-import { UNCLEAR_SENTENCE, type Unclear } from "@shared/record-order";
+import { groupUnclear, type Unclear, type UnclearGroup } from "@shared/record-order";
 import { SCREEN_QUESTIONS } from "@shared/screen-questions";
 
 export function WhatIsUnclear({ items }: { items: readonly Unclear[] }) {
@@ -38,22 +38,7 @@ export function WhatIsUnclear({ items }: { items: readonly Unclear[] }) {
       {waits.length > 0 && (
         <>
           <p className="unclear__lead">אלה ייפתחו עם עוד החלטות מדודות:</p>
-          <ul className="unclear__list">
-            {waits.map((item) => (
-              <li key={`${item.what}-${item.because}`} className="unclear__item" data-waiting="true">
-                <span className="unclear__what">{item.what}</span>
-                <span className="unclear__because">{UNCLEAR_SENTENCE[item.because]}</span>
-                {/*
-                  * THE COUNT IS SEPARATE FROM THE SENTENCE, so the sentence carries no number that
-                  * could go stale, and so a screen reader reaches "eight more decisions" as its own
-                  * phrase rather than buried mid-clause.
-                  */}
-                {item.needs !== null && (
-                  <span className="unclear__needs">עוד {item.needs} החלטות</span>
-                )}
-              </li>
-            ))}
-          </ul>
+          <Groups items={waits} waiting />
         </>
       )}
 
@@ -67,16 +52,54 @@ export function WhatIsUnclear({ items }: { items: readonly Unclear[] }) {
               */}
             אלה לא ייפתחו מעוד משחקים:
           </p>
-          <ul className="unclear__list">
-            {deadEnds.map((item) => (
-              <li key={`${item.what}-${item.because}`} className="unclear__item" data-waiting="false">
-                <span className="unclear__what">{item.what}</span>
-                <span className="unclear__because">{UNCLEAR_SENTENCE[item.because]}</span>
-              </li>
-            ))}
-          </ul>
+          <Groups items={deadEnds} waiting={false} />
         </>
       )}
     </section>
+  );
+}
+
+/**
+ * THE REASON ONCE, AND THE SPLITS IT BLOCKS UNDER IT.
+ *
+ * WHAT THIS REPLACES. The sentence was rendered inside every row, and `whatIsUnclear` makes one row
+ * per bucket with three possible causes -- so a small record put all six buckets under
+ * `too-few-in-bucket` and printed the same sentence six times, and a blitz record printed a
+ * hundred-character sentence about a line nothing crossed twice, with a bucket name the only thing
+ * differing. A word repeated in every row of a list carries no information in any of them.
+ *
+ * THE ROW IS STILL THE THING THAT IS UNCLEAR. `.unclear__item` is one split, `data-waiting` is on
+ * it, and the count stays beside it -- so what a reader can act on is unchanged and only the
+ * repetition is gone. The grouping adds one statement the flat list could not make: these are
+ * blocked for the SAME reason.
+ */
+function Groups({ items, waiting }: { items: readonly Unclear[]; waiting: boolean }) {
+  return (
+    <ul className="unclear__list">
+      {groupUnclear(items).map((group: UnclearGroup) => (
+        <li key={group.because} className="unclear__group" data-waiting={String(waiting)}>
+          <span className="unclear__because">{group.sentence}</span>
+          <ul className="unclear__whats">
+            {group.items.map((item) => (
+              <li
+                key={`${item.what}-${item.because}`}
+                className="unclear__item"
+                data-waiting={String(waiting)}
+              >
+                <span className="unclear__what">{item.what}</span>
+                {/*
+                  * THE COUNT IS SEPARATE FROM THE SENTENCE, so the sentence carries no number that
+                  * could go stale, and so a screen reader reaches "eight more decisions" as its own
+                  * phrase rather than buried mid-clause.
+                  */}
+                {item.needs !== null && (
+                  <span className="unclear__needs">עוד {item.needs} החלטות</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
   );
 }

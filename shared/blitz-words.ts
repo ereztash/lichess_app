@@ -24,7 +24,7 @@
  * place, so two screens cannot round the same think time differently.
  */
 import { AUTHORITY, type EvidenceAuthority } from "./evidence-authority.js";
-import { COST_BAND_WORD, confidenceWord, costBand } from "./plain-reading.js";
+import { COST_BAND_WORD, type CostBand, confidenceWord, costBand } from "./plain-reading.js";
 import type { BlitzEvent, PostGameReading, PostGameSilence } from "./blitz-reading.js";
 
 /**
@@ -65,7 +65,7 @@ export interface EventFact {
  * saying the instrument stayed quiet is a fact about the sampler, and it belongs in the disclosure
  * with the rest of the protocol -- not in a three-line summary of what the player did.
  */
-export function eventFacts(event: BlitzEvent): EventFact[] {
+export function eventFacts(event: BlitzEvent, costAlreadySaid = false): EventFact[] {
   const facts: EventFact[] = [
     { label: "על השעון", value: clock(event.clockBeforeMs) },
     { label: "חשבת", value: seconds(event.thinkMs) },
@@ -76,11 +76,57 @@ export function eventFacts(event: BlitzEvent): EventFact[] {
       value: confidenceWord(event.confidence.level, event.confidence.scale),
     });
   }
-  facts.push({
-    label: "המהלך",
-    value: COST_BAND_WORD[costBand(event.standingCp, event.cpLoss)].word,
-  });
+  /*
+   * THE COST IS DROPPED WHERE SOMETHING ABOVE HAS ALREADY SAID IT.
+   *
+   * A LIST WHOSE ROWS ALL SHARE A BAND SAID IT SEVEN TIMES. Six rows in a post-game disclosure
+   * each read "במהלך X המהלך היה מחיר גדול" and then, on the line below, "המהלך: מחיר גדול" --
+   * the same three words in the headline and in the facts, in every row, plus once more implied by
+   * a summary that called them all worth seeing. `othersSummary` now says the band once, above the
+   * list, and this is how a row stops repeating it.
+   */
+  if (!costAlreadySaid) {
+    facts.push({
+      label: "המהלך",
+      value: COST_BAND_WORD[costBand(event.standingCp, event.cpLoss)].word,
+    });
+  }
   return facts;
+}
+
+/**
+ * The cost band every one of these events shares, or `null` where they do not all share one.
+ *
+ * WHY A LIST NEEDS THIS AT ALL. `blitzEventsIn` selects on cost and on what the player said, so a
+ * game with several expensive moves and no instrument answers produces a list whose every row has
+ * the same band -- and a word repeated in every row of a list carries no information in any of
+ * them. It is not wrong; it is the reader's whole screen spent on one fact.
+ *
+ * `null` IS THE ORDINARY CASE AND NOT A FAILURE. `unsure-and-fine` events are clean by definition,
+ * so any list holding one alongside a costly move genuinely has two bands to report, and every row
+ * keeps its own.
+ */
+export function sharedCostBand(events: readonly BlitzEvent[]): CostBand | null {
+  if (events.length < 2) return null;
+  const first = costBand(events[0].standingCp, events[0].cpLoss);
+  return events.every((e) => costBand(e.standingCp, e.cpLoss) === first) ? first : null;
+}
+
+/**
+ * What the disclosure above the list says.
+ *
+ * IT USED TO ASSERT VALUE AND NAME NOTHING: *"6 ההחלטות שכדאי לראות"*. Worth seeing for what? The
+ * summary is the one place a shared band belongs, because it is the one place it is said once --
+ * and saying it there is what lets six rows stop being six copies of it.
+ *
+ * THE DEFINITE ARTICLE IS GONE WITH IT. `postGameWords` already writes this count as
+ * `היו N החלטות שכדאי לראות`, indefinite, and the two disagreed.
+ */
+export function othersSummary(events: readonly BlitzEvent[]): string {
+  const shared = sharedCostBand(events);
+  const noun = events.length === 1 ? "החלטה אחת" : `${events.length} החלטות`;
+  if (shared === null) return `עוד ${noun} שכדאי לראות`;
+  return `עוד ${noun} שעלו ${COST_BAND_WORD[shared].word}`;
 }
 
 /**
@@ -96,12 +142,32 @@ export function eventFacts(event: BlitzEvent): EventFact[] {
  * story for a plain engine comparison, which is the one thing the process/engine split exists to
  * prevent.
  */
-export function eventHeadline(event: BlitzEvent): string {
+export function eventHeadline(event: BlitzEvent, costAlreadySaid = false): string {
   const cost = COST_BAND_WORD[costBand(event.standingCp, event.cpLoss)].word;
   if (event.confidence === null) {
-    return `במהלך ${event.san} המהלך היה ${cost}.`;
+    /*
+     * NO SENTENCE ONCE THE COST HAS BEEN SAID ABOVE, AND THAT IS THE FINDING RATHER THAN A
+     * SHORTENING.
+     *
+     * For a decision where nothing was asked, the cost band IS the whole of what this product knows
+     * that an engine report does not already say -- so with the band in the summary there is
+     * nothing left for a sentence to carry, and the row is the move. Writing one anyway is how six
+     * identical lines happened: a sentence shape built for the events that earn one, applied to the
+     * events that do not.
+     *
+     * The module's own ordering rule says this in the other direction: *ordered by what the record
+     * could say that an engine could not*. A row with no stated confidence is at the bottom of that
+     * order, and it should read like it.
+     */
+    return costAlreadySaid ? event.san : `במהלך ${event.san} המהלך היה ${cost}.`;
   }
   const said = confidenceWord(event.confidence.level, event.confidence.scale);
+  /*
+   * AND THE ROW THAT DID EARN A SENTENCE KEEPS IT. What the player said is the thing no game review
+   * can produce, so it survives the band moving upstairs -- which is also what makes the one row
+   * with an instrument answer visibly different from the five without.
+   */
+  if (costAlreadySaid) return `כאן אמרת "${said}".`;
   return `כאן אמרת "${said}", והמהלך היה ${cost}.`;
 }
 

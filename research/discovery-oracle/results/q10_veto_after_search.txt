@@ -1,0 +1,68 @@
+Q10 / D08 after D04 -- is the veto still doing a job once a search can name the region?
+
+400 records per world, 40 games each, 20 to derive. Both pipelines on the SAME records.
+ATTRIBUTION_K = 2.5, read off shared/discovery/attribution.ts. On target = Jaccard >= 0.6.
+
+Of the records where the SHIPPED CHAIN validated a claim:
+
+world                   d  validated  right+no veto  right+VETO  wrong+VETO  wrong+no veto
+clean-middlegame        1        178            133          12           2             31
+clean-middlegame        2        178             94           8           6             70
+
+clean-fast              1         61             35           0           2             24
+clean-fast              2         61             16           0           2             43
+
+interaction-only        1         49             22           4           4             19
+interaction-only        2         49             29           5           3             12
+
+proxy-correlated        1         12              6           0           2              4
+proxy-correlated        2         12              1           0           2              9
+
+The same, as rates over every record, plus what the search found where the chain was silent:
+
+world                   d  chain claims  veto rate  search on target  silent + found  unreadable
+clean-middlegame        1        0.4450     0.0787            0.5925          0.2300           0
+clean-middlegame        2        0.4450     0.0787            0.3725          0.1175           0
+
+clean-fast              1        0.1525     0.0328            0.2475          0.1600           0
+clean-fast              2        0.1525     0.0328            0.0775          0.0375           0
+
+interaction-only        1        0.1225     0.1633            0.2275          0.1625           0
+interaction-only        2        0.1225     0.1633            0.3275          0.2425           0
+
+proxy-correlated        1        0.0300     0.1667            0.0550          0.0400           0
+proxy-correlated        2        0.0300     0.1667            0.0100          0.0075           0
+
+WHAT THE CELLS MEAN, PER KIND OF WORLD
+
+  misattributing  depth 1: 6/61 wrong names silenced (0.0984, 95% 0.0459-0.1984); 23 wrong names survive; 32 of them the search could have named (4 of those vetoed anyway)
+  misattributing  depth 2: 5/61 wrong names silenced (0.0820, 95% 0.0355-0.1779); 21 wrong names survive; 35 of them the search could have named (5 of those vetoed anyway)
+
+  clean           depth 1: 16/239 TRUE claims withheld (0.0669); 223 stood
+  clean           depth 2: 16/239 TRUE claims withheld (0.0669); 223 stood
+
+WHERE THE VETO POINTS, WHEN IT FIRES -- a description, with no rule read off it
+
+world                   d  vetoed  search had one  expressible  same feature  same cut
+clean-middlegame        1      14              14            7             0         0
+clean-middlegame        2      14              14            7             3         2
+
+clean-fast              1       2               2            2             0         0
+clean-fast              2       2               2            2             0         0
+
+interaction-only        1       8               8            8             0         0
+interaction-only        2       8               8            8             5         5
+
+proxy-correlated        1       2               2            2             0         0
+proxy-correlated        2       2               2            2             0         0
+
+  which division each veto named:
+    clean-middlegame       depth 1: claimed fast-under-45s x1, phase-middlegame x13  ->  split by clock-under-1m x2, fast-under-45s x4, phase-middlegame x1, slow-over-2m x7
+    clean-middlegame       depth 2: claimed fast-under-45s x1, phase-middlegame x13  ->  split by clock-under-1m x2, fast-under-45s x4, phase-middlegame x1, slow-over-2m x7
+    clean-fast             depth 1: claimed fast-under-45s x2  ->  split by clock-under-1m x2
+    clean-fast             depth 2: claimed fast-under-45s x2  ->  split by clock-under-1m x2
+    interaction-only       depth 1: claimed phase-endgame x8  ->  split by clock-under-1m x2, fast-under-45s x6
+    interaction-only       depth 2: claimed phase-endgame x8  ->  split by clock-under-1m x2, fast-under-45s x6
+    proxy-correlated       depth 1: claimed fast-under-45s x2  ->  split by phase-endgame x1, phase-middlegame x1
+    proxy-correlated       depth 2: claimed fast-under-45s x2  ->  split by phase-endgame x1, phase-middlegame x1
+

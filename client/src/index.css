@@ -1912,7 +1912,8 @@ button:not(:disabled) {
   color: var(--muted);
 }
 .profile-panel__denominator,
-.profile-panel__impossible {
+.profile-panel__impossible,
+.profile-panel__mirror {
   margin: 10px 0 0;
 }
 .profile-panel__status {
@@ -3301,9 +3302,16 @@ button:not(:disabled) {
 .learning-rule-row small {
   opacity: 0.68;
 }
-/* Set apart from the schedule line beside it: this one explains an absence, not a date. */
+/*
+ * Set apart from the rows below it: this one explains an absence, and it explains it for the whole
+ * queue rather than for one rule -- which is why it is a paragraph above the list and no longer a
+ * `<small>` inside every row.
+ */
 .learning-withheld {
+  margin: 0 0 4px;
+  font-size: var(--panel-fine);
   font-style: italic;
+  color: var(--muted);
 }
 .learning-grade {
   font-size: var(--panel-fine);
@@ -5172,18 +5180,36 @@ button:not(:disabled) {
   display: grid;
   gap: 8px;
 }
-.unclear__item {
+/*
+ * THE REASON CARRIES THE RULE AND THE SPLITS SIT UNDER IT. The sentence used to be inside every
+ * row, so a record with six buckets short of the floor printed it six times; the group is the one
+ * place it is rendered once.
+ */
+.unclear__group {
   display: grid;
-  gap: 2px;
+  gap: 4px;
   padding-inline-start: 10px;
   border-inline-start: 2px solid var(--edge-soft);
+}
+.unclear__whats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.unclear__item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
 }
 /*
  * A DEAD END IS DRAWN DIFFERENTLY FROM A WAIT, and the difference is not decoration: one of them
  * is a thing the player can change and the other is not, and a list that rendered both the same
  * would be inviting somebody to keep playing to unlock something that cannot unlock.
  */
-.unclear__item[data-waiting="false"] {
+.unclear__group[data-waiting="false"] {
   border-inline-start-style: dashed;
   opacity: 0.85;
 }

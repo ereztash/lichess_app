@@ -55,9 +55,8 @@ import {
   PositionSourceOverlay,
   type PositionSourceId,
 } from "@/components/PositionSource";
-import { SelfCheck } from "@/components/SelfCheck";
+import { ExplainerOverlays } from "@/components/ExplainerOverlays";
 import { useNewGameSetup } from "@/lib/use-new-game-setup";
-import { WhatThisIs } from "@/components/WhatThisIs";
 import { Overlay } from "@/components/Overlay";
 /*
  * recharts is ~100KB and only matters once a game is being reviewed. A static import would put
@@ -129,11 +128,13 @@ import {
   cpLossOfFinalMove,
   engineMayRun,
   makingEvidence,
+  namedTest,
   type DraftDecision,
   type CommitEvent,
   type SessionStage,
 } from "@/lib/decision-session";
-import { CONTINUATION_CTA, type RevealInputs } from "@shared/reveal";
+import { type RevealInputs } from "@shared/reveal";
+import { primaryAction } from "@shared/primary-action";
 import {
   commitFailureText,
   readableFailureText,
@@ -360,7 +361,7 @@ export default function Home() {
   const [positionChoice, setPositionChoice] = useState<PositionSourceId | null>(null);
   const [showSelfCheck, setShowSelfCheck] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  /* The three answers a new game needs, remembered between games (P1.11). See the hook for why. */
+  /* The three answers a new game needs, remembered between games (P1.11). */
   const setup = useNewGameSetup();
   /**
    * Decisions committed in the current game, counted here rather than read from the record.
@@ -1222,20 +1223,11 @@ export default function Home() {
             ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
             clockMsRemaining: null,
             purpose: decisionPurpose,
-            /*
-             * WHAT MAKES THE LINE ABOVE CHECKABLE. `purpose` is the one atom field the server
-             * cannot re-derive, and `drill` is the value that decides whether a decision enters
-             * discovery at all. Sending the drill's id lets the boundary resolve it against a drill
-             * this record holds and confirm the position is one that drill registered before it
-             * started -- so the label stops being this client's word.
-             *
-             * `decisionPurpose` rather than `inDrill`, deliberately: the purpose is decided by one
-             * ordered rule in `decisionPurposeFor`, and reading a second flag here would let the
-             * two disagree -- a transfer check that also has a drill open would send a `transfer`
-             * decision carrying a drill id, which the boundary refuses as two statements that
-             * cannot both be true.
-             */
-            drillId: decisionPurpose === "drill" ? (drill?.drill_id ?? null) : null,
+            /* What makes the line above checkable. One rule for both ids -- see `namedTest`. */
+            ...namedTest(decisionPurpose, {
+              drillId: drill?.drill_id,
+              transferId: learningTransfer?.transfer_id,
+            }),
           },
           draft,
           secondsTaken,
@@ -1792,10 +1784,9 @@ export default function Home() {
    */
   const focus = makingEvidence(stage);
   /*
-   * A PRE-REGISTERED RUN IS UNDER WAY, which makes the mode `TEST` rather than `DECIDE` or
-   * `REVEAL` (P1.12). The set was chosen in advance to test one thing, and four of eight positions
-   * tests nothing -- so what the screen may show between two of them is what it may show while
-   * evidence is being produced, not what it may show once a decision is finished.
+   * A PRE-REGISTERED RUN IS UNDER WAY, which makes the mode `TEST` rather than `REVEAL` (P1.12).
+   * What the screen may show between two positions of a set chosen in advance is what it may show
+   * while evidence is being produced, not what it may show once a decision is finished.
    */
   const runInProgress = learningTransfer !== null || (drill !== null && drillStage === "running");
   /**
@@ -1854,20 +1845,24 @@ export default function Home() {
           <b>{sideToMove}</b>
         </div>
         <div className="header-actions">
+          {/*
+            * THE CONTINUATION CONTROL IS `RevealPanel`'s, AND NOT ALSO THE HEADER'S (LAW 2).
+            *
+            * Both used to render, both `primary-control`, both calling `nextDecision`, under
+            * identical conditions -- one act, two buttons. See `shared/primary-action.ts`. The
+            * panel's survives because it sits under the sentence that says what taking it is for.
+            * A transfer run keeps its own forward control here: it names a different experiment.
+            */}
           {stage === "revealed" &&
             revealedDecisionId &&
-            (!learningTransfer || learningTransferStage === "running") && (
-              /*
-               * NAMED FOR THE EXPERIMENT, NOT FOR THE MOVEMENT. "ההחלטה הבאה" says where the
-               * click goes. `CONTINUATION_CTA` says what taking it is for, in the same words as
-               * the proposition at the foot of the reveal -- so a reader who understood that
-               * sentence recognises this button as its consequence rather than as a way out of
-               * the screen. The transfer run keeps its own label: those positions are a
-               * pre-registered set being worked through, and "לבדוק אם זה חוזר" would describe
-               * the wrong experiment.
-               */
-              <button className="primary-control" onClick={nextDecision}>
-                {learningTransfer ? "העמדה הבאה" : CONTINUATION_CTA}
+            learningTransfer &&
+            learningTransferStage === "running" && (
+              <button
+                className="primary-control"
+                {...primaryAction("continue-run")}
+                onClick={nextDecision}
+              >
+                העמדה הבאה
               </button>
             )}
           {/*
@@ -2049,16 +2044,12 @@ export default function Home() {
            * above the board -- which pushed the board below the fold by their own height. See
            * components/Overlay.tsx for the measurements.
            */}
-          {showHelp && (
-            <Overlay label="מה נמדד כאן" onClose={() => setShowHelp(false)}>
-              <WhatThisIs onClose={() => setShowHelp(false)} />
-            </Overlay>
-          )}
-          {showSelfCheck && (
-            <Overlay label="בדיקה עצמית" onClose={() => setShowSelfCheck(false)}>
-              <SelfCheck onClose={() => setShowSelfCheck(false)} />
-            </Overlay>
-          )}
+          <ExplainerOverlays
+            help={showHelp}
+            selfCheck={showSelfCheck}
+            onCloseHelp={() => setShowHelp(false)}
+            onCloseSelfCheck={() => setShowSelfCheck(false)}
+          />
 
           {/*
             * ONE OVERLAY, FOUR ROOMS -- not one overlay per source stacked on the last.

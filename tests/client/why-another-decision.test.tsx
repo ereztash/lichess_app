@@ -197,14 +197,21 @@ describe("the button names the experiment rather than the movement", () => {
 
   it("is the label the reveal screen actually renders", () => {
     /*
-     * Asserted against the page rather than only against the constant: a constant nobody uses is
-     * a sentence in a file, and the old navigation label sitting in the header would still be what
-     * a player clicked.
+     * ASSERTED AGAINST THE COMPONENT THAT RENDERS IT, which is now the only one. A constant nobody
+     * uses is a sentence in a file, so this checks a render -- and it checks it where the render
+     * is: `Home.tsx` used to carry a SECOND copy of this control in its header, both
+     * `primary-control`, both calling `nextDecision`, under identical conditions. LAW 2 took it,
+     * and `GATE-ONE-PRIMARY-ACTION` keeps it taken.
      */
-    const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
-    expect(home).toContain("CONTINUATION_CTA");
-    expect(home, "the navigation label is still on the post-reveal button").not.toMatch(
+    const reveal = readFileSync(resolve(root, "client/src/components/RevealPanel.tsx"), "utf8");
+    expect(reveal).toContain("CONTINUATION_CTA");
+    expect(reveal, "the navigation label is back on the post-reveal button").not.toMatch(
       /: "ההחלטה הבאה"/,
+    );
+    /* And there is exactly one of them in the product. */
+    const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
+    expect(home, "the header renders the continuation control again").not.toContain(
+      "CONTINUATION_CTA",
     );
   });
 });
@@ -217,11 +224,21 @@ describe("the proposition is post-commit only", () => {
      * record depends on. The reveal panel renders only after a commit, so the sentence is
      * structurally post-commit as long as it exists in exactly one place.
      */
+    /*
+     * COMMENTS STRIPPED, BECAUSE THE CLAIM IS ABOUT WHERE IT RENDERS. A note in another file
+     * explaining why the sentence lives here is not a second place it is shown -- and this
+     * assertion fired on exactly that: a comment in `Home.tsx` about which control sits under the
+     * proposition. A test that cannot tell a rendering from a mention is one people work around by
+     * not writing the note.
+     */
+    const rendered = (name: string) =>
+      readFileSync(resolve(root, "client/src", name), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/^\s*\/\/.*$/gm, "")
+        .includes("CONTINUATION_PROPOSITION");
     const wearers = readdirSync(resolve(root, "client/src"), { recursive: true, encoding: "utf8" })
       .filter((name) => /\.tsx?$/.test(name))
-      .filter((name) =>
-        readFileSync(resolve(root, "client/src", name), "utf8").includes("CONTINUATION_PROPOSITION"),
-      );
+      .filter(rendered);
     expect(wearers, "the proposition is rendered somewhere other than the reveal").toEqual([
       "components/RevealPanel.tsx",
     ]);
