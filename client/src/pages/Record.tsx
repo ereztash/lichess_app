@@ -451,9 +451,25 @@ export default function Record() {
             </>
           )}
         </div>
-        <button type="button" className="ghost-control" onClick={() => navigate("/play")}>
-          ללוח
-        </button>
+        {/*
+          * NOT ON A COLD RECORD (P1.6), and the reason is already written twenty lines up.
+          *
+          * `ללוח` is a bare `navigate("/play")` and it lands on the opening position of a new live
+          * game -- a position where NO reveal branch can fire, because `theOneThing` needs either a
+          * centipawn loss at or over the material threshold or a stated confidence, and the
+          * starting position gives a loss of zero. That is why `FirstDecision` exists and why it
+          * offers a bank position instead: a route that produces something to read.
+          *
+          * So on an empty record this control is a second door, painted the same weight as the one
+          * the screen deliberately built, leading to the one first experience this product knows
+          * says nothing. It comes back the moment there is a record, where going to the board is an
+          * ordinary thing to want.
+          */}
+        {measured > 0 && (
+          <button type="button" className="ghost-control" onClick={() => navigate("/play")}>
+            ללוח
+          </button>
+        )}
       </header>
 
       {/*

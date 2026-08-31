@@ -53,6 +53,11 @@ import { readBlitzGame, type BlitzEvent } from "@shared/blitz-reading";
 import { PostGame } from "@/components/PostGame";
 import { useSaveBlitzGame } from "@/lib/record-api";
 import { useBlitzAnalysis, useStoredBlitzRecord } from "@/lib/use-blitz-analysis";
+import { rememberTimeControl, rememberedTimeControl } from "@/lib/remembered-setup";
+
+/** Two time controls are the same one when both halves agree. Compared, never referenced. */
+const sameControl = (a: RequiredTimeControl, b: RequiredTimeControl) =>
+  a.initialMs === b.initialMs && a.incrementMs === b.incrementMs;
 
 const CONTROLS: { label: string; tc: RequiredTimeControl }[] = [
   { label: "3+0", tc: { initialMs: 180_000, incrementMs: 0 } },
@@ -275,6 +280,12 @@ export default function Blitz() {
   };
 
   const startGame = (tc: RequiredTimeControl) => {
+    /*
+     * REMEMBERED AT THE START AND NOT AT THE END, because a game that is abandoned mid-way was
+     * still a choice the player made about how they wanted to play. Writing it on the finish would
+     * forget every game that did not reach one, which is the set most likely to be a fast retry.
+     */
+    rememberTimeControl(tc);
     setNotice(null);
     setWritten(false);
     setReviewing(null);
@@ -291,6 +302,12 @@ export default function Blitz() {
   };
 
   if (game.phase === "idle") {
+    /*
+     * READ AT RENDER AND NOT HELD IN STATE. It changes only when this screen writes it, and holding
+     * a copy would be the same "the screen is the source of truth" mistake the analysis queue was
+     * built to undo -- one browser, one value, read where it is used.
+     */
+    const remembered = rememberedTimeControl();
     return (
       <main className="blitz-setup">
         <h1>משחק בליץ</h1>
@@ -298,12 +315,32 @@ export default function Blitz() {
           המהלך נרשם ראשון, השעון נעצר, ורק אחר כך נשאלת שאלת הביטחון — אם בכלל. המנוע לא רץ עד סוף
           המשחק.
         </p>
+        {/*
+          * THE ONE YOU PLAYED LAST TIME IS THE LOUD ONE (P1.10, LAW 2).
+          *
+          * Three buttons at one weight is the product asking a question whose answer has not
+          * changed since the last game. Marking the remembered one removes the decision without
+          * removing the choice: all three are still here, in the same place, one tap each.
+          *
+          * ABSENT ON A FIRST VISIT rather than defaulted to the first entry. "Nothing chosen yet"
+          * and "3+0 chosen" are different facts, and painting one as the other would put a weight
+          * on a control the player has never picked.
+          */}
         <div className="blitz-controls">
-          {CONTROLS.map(({ label, tc }) => (
-            <button key={label} type="button" onClick={() => startGame(tc)}>
-              {label}
-            </button>
-          ))}
+          {CONTROLS.map(({ label, tc }) => {
+            const again = remembered !== null && sameControl(remembered, tc);
+            return (
+              <button
+                key={label}
+                type="button"
+                className={again ? "blitz-control blitz-control--again" : "blitz-control"}
+                onClick={() => startGame(tc)}
+              >
+                {label}
+                {again && <span className="blitz-control__again">שוב</span>}
+              </button>
+            );
+          })}
         </div>
       </main>
     );

@@ -33,6 +33,7 @@ import { changedSentence, knowsSentence, patternCounts } from "@shared/blitz-wor
 import { authorityOfRecordReading } from "@shared/evidence-authority";
 import { useDecisionCount, useRecordReading } from "@/lib/record-api";
 import { resumeProductState, useNextActionShadow } from "@/lib/next-action-shadow";
+import { useBlitzAnalysis } from "@/lib/use-blitz-analysis";
 
 export function ResumeScreen({
   /**
@@ -68,6 +69,12 @@ export function ResumeScreen({
    */
   const decisions = useDecisionCount();
   const record = useRecordReading();
+  /*
+   * THE SAME PAGE-LEVEL QUEUE THE ROOT ALREADY MOUNTS, read for its progress. Two screens calling
+   * this hook get one runner, which is what lets the resume screen and the blitz post-game report
+   * the same pass without either of them owning it.
+   */
+  const analysis = useBlitzAnalysis();
   useNextActionShadow(
     data
       ? resumeProductState({
@@ -151,7 +158,19 @@ export function ResumeScreen({
                */
               authorityOfRecordReading(data.reading.decisions.readable)
         }
-        action={{ label: resume.next.label, because: resume.next.because, onClick: onPlay }}
+        /*
+          * NO BUTTON WHILE THE ENGINE IS STILL GOING (P1.5).
+          *
+          * `nothing-scored` is the one blocker playing does not answer: the games are stored and
+          * unscored, so another game grows the backlog that IS the blocker. The screen offered one
+          * anyway, because every blocker had to fill in a label. It says what is happening instead,
+          * below.
+          */
+        action={
+          resume.next.kind === "play"
+            ? { label: resume.next.label, because: resume.next.because, onClick: onPlay }
+            : null
+        }
         why={
           <dl className="resume__why">
             <dt>משחקים</dt>
@@ -169,6 +188,33 @@ export function ResumeScreen({
           </dl>
         }
       />
+
+      {/*
+        * WHAT IS HAPPENING INSTEAD OF A BUTTON, and it is two sentences rather than one.
+        *
+        * `analysisState: "pending"` is the same stored value for "the queue has not reached this
+        * game" and "the queue is scoring it as we speak", and those are different things to a
+        * person waiting. The progress comes from the same page-level runner the root already
+        * mounts, so this screen reports it rather than owning it.
+        */}
+      {resume.next.kind === "wait" && (
+        <p className="resume__waiting" role="status">
+          {analysis.scoring !== null
+            ? `המנוע עובר על משחק עכשיו — ${analysis.done} מתוך ${analysis.of} עמדות.`
+            : waitingSentence(resume.next.games)}
+        </p>
+      )}
     </section>
   );
+}
+
+/**
+ * How many games are waiting, said as games rather than as a status.
+ *
+ * ONE AND MANY ARE DIFFERENT SENTENCES IN HEBREW and getting it wrong reads as machine output,
+ * which is the one register this screen cannot afford: it is the screen a returning player skims.
+ */
+function waitingSentence(games: number): string {
+  if (games <= 0) return "המנוע יעבור על המשחקים ששמורים.";
+  return games === 1 ? "משחק אחד ממתין לניתוח." : `${games} משחקים ממתינים לניתוח.`;
 }

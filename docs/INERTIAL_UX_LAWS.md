@@ -126,6 +126,13 @@ looks like copy and layout stops being copy and layout.
 **Gate:** `GATE-NEXT-ACTION-RESOLVES-BLOCKER`, plus the shadow-mode comparison that precedes
 handing ownership over.
 
+**One blocker is already fixed in the screen's own table, ahead of the derivation owning anything.**
+`readResume` mapped `nothing-scored` — games stored, engine has not been over them — to *"play
+another game"*, which grows the backlog that **is** the blocker. That entry is a `wait` now, with no
+button and the pending count beside it, because the count climbing across visits is the diagnosis.
+It only became honest to say *wait* in the commit that made waiting work: before LAW 4's queue,
+leaving the blitz screen cancelled the search.
+
 ### Status: derived, and deciding nothing yet
 
 `shared/interaction-mode.ts` holds the ten modes and, for each, a **contract**: what may be central,

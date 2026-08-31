@@ -58,6 +58,7 @@ import {
   type PositionSourceId,
 } from "@/components/PositionSource";
 import { SelfCheck } from "@/components/SelfCheck";
+import { useNewGameSetup } from "@/lib/use-new-game-setup";
 import { WhatThisIs } from "@/components/WhatThisIs";
 import { Overlay } from "@/components/Overlay";
 /*
@@ -342,10 +343,8 @@ export default function Home() {
   const [positionChoice, setPositionChoice] = useState<PositionSourceId | null>(null);
   const [showSelfCheck, setShowSelfCheck] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [setupColor, setSetupColor] = useState<"w" | "b">("w");
-  const [setupDepth, setSetupDepth] = useState<OpponentDepth>(DEFAULT_OPPONENT_DEPTH);
-  /** Chosen before the game starts, and applied to it -- not to the game already on the board. */
-  const [setupRevealTiming, setSetupRevealTiming] = useState<RevealTiming>("per-decision");
+  /* The three answers a new game needs, remembered between games (P1.11). See the hook for why. */
+  const setup = useNewGameSetup();
   /**
    * Decisions committed in the current game, counted here rather than read from the record.
    *
@@ -2061,13 +2060,16 @@ export default function Home() {
                   </button>
                   {positionChoice === "new" && (
                     <NewGameSetup
-                      color={setupColor}
-                      depth={setupDepth}
-                      revealTiming={setupRevealTiming}
-                      onColor={setSetupColor}
-                      onDepth={setSetupDepth}
-                      onRevealTiming={setSetupRevealTiming}
-                      onStart={() => newGame(setupColor, setupDepth, setupRevealTiming)}
+                      color={setup.color}
+                      depth={setup.depth}
+                      revealTiming={setup.revealTiming}
+                      onColor={setup.setColor}
+                      onDepth={setup.setDepth}
+                      onRevealTiming={setup.setRevealTiming}
+                      onStart={() => {
+                        setup.remember();
+                        newGame(setup.color, setup.depth, setup.revealTiming);
+                      }}
                       onCancel={closePositionSource}
                     />
                   )}

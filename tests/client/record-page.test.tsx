@@ -238,12 +238,33 @@ describe("the record is the front door", () => {
     expect(app).toMatch(/path="\/play"\s+component=\{Home\}/);
   });
 
-  it("leaves a way back to the board from the record, and to the record from the board", () => {
+  it("leaves a way back to the board once there is a record, and to the record from the board", () => {
     expect(screen.queryByText("ללוח")).toBeNull();
-    mount();
+    mount({ reading: { data: withRecord(12), isLoading: false, isError: false } });
     expect(screen.getByRole("button", { name: "ללוח" })).toBeTruthy();
     const home = code("client/src/pages/Home.tsx");
     expect(home, "the board is a dead end").toMatch(/className="brand-lockup"[\s\S]{0,80}navigate\("\/"\)/);
+  });
+
+  it("does not offer the bare board on a cold record, and is still not a dead end (P1.6)", () => {
+    /*
+     * `ללוח` IS A BARE `navigate("/play")`, AND THIS PAGE ALREADY KNOWS WHERE THAT LANDS. Its own
+     * note, twenty lines above the control: the opening position of a new live game is one where
+     * NO reveal branch can fire, because `theOneThing` needs either a centipawn loss at or over
+     * the material threshold or a stated confidence, and the starting position gives a loss of
+     * zero. That is why `FirstDecision` exists.
+     *
+     * So on an empty record the control was a second door at the same weight as the one the screen
+     * deliberately built, leading to the one first experience this product knows says nothing.
+     *
+     * NOT A DEAD END, WHICH IS THE HALF THAT MATTERS -- and the assertion is here rather than in
+     * the case above because removing a control is only correct while something better remains.
+     * Both routes below hand over a position and navigate to the board.
+     */
+    mount();
+    expect(screen.queryByRole("button", { name: "ללוח" })).toBeNull();
+    expect(screen.getByRole("button", { name: "עמדה מהסט המשותף" })).toBeTruthy();
+    expect(document.querySelector(".first-decision-form")).not.toBeNull();
   });
 
   it("does not ship a charting library to a page that renders no chart", () => {

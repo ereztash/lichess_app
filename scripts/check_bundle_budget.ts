@@ -423,8 +423,30 @@ const INDEX = "dist/public/index.html";
  * nothing moved between chunks.
  *
  * 215 LEAVES 1.6 kB, the headroom every raise above has taken. The other two did not fire.
+ *
+ * ---
+ *
+ * 689 -> 691 and 767 -> 769: the configuration a player already chose (P1.10, P1.11).
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              688.0      213.6       765.9
+ *     + the resume wait and the cold door  688.2      213.6       766.1   +0.2 / +0.0 / +0.2
+ *     + remembered setup, both surfaces    689.1      213.9       767.0   +0.9 / +0.3 / +0.9
+ *
+ * SPLIT THE SAME WAY AS THE TWO RAISES ABOVE, by building each half. The first row is P1.5 and
+ * P1.6 -- a blocker that stopped being answered with a button, and a control that stops being
+ * offered on a record where the route behind it can say nothing -- and both are conditions rather
+ * than code, so they cost almost nothing.
+ *
+ * THE 0.9 kB IS VALIDATION, NOT STORAGE. `remembered-setup.ts` reads two values and checks every
+ * field of each before returning one: a colour that is one of two, a depth that is a positive
+ * integer, a timing that is one of two, a clock that is a positive integer. The alternative is a
+ * cast, and a cast would put a `NaN` clock on a board from a value an older build of this app left
+ * in somebody's browser. That is what the bytes buy.
+ *
+ * 691 AND 769 LEAVE 1.9 kB AND 2.0 kB. The gzip ceiling did not fire and keeps its number.
  */
-const ENTRY_RAW_KB = 689;
+const ENTRY_RAW_KB = 691;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 215;
 /**
@@ -470,7 +492,7 @@ const ENTRY_GZIP_KB = 215;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 767;
+const INITIAL_RAW_KB = 769;
 
 interface Asset {
   name: string;
