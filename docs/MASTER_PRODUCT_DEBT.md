@@ -89,6 +89,47 @@ built around, so the game now carries `analysis_state`. Rows written before toda
 `drizzle/migrations/0013_watery_infant_terrible.sql` for why `pending` and `complete` are both lies
 about a game nobody observed.
 
+### R-19 · A think time was a fraction of a millisecond, so no blitz game was ever stored
+
+| | |
+| --- | --- |
+| type | correctness |
+| state | **fixed** |
+| severity | **P0** |
+| basis | **verified in a real browser** — localStorage held no blitz record after a completed game on `main`, while the screen said *"המשחק עצמו נשמר"* |
+
+`performance.now()` returns a **double**. `thinkMs` was the difference between two of its readings,
+so an ordinary move produced `4183.199999999997`, and the stored record's schema requires an
+integer. Every write was rejected. The blitz route had never persisted a single game in a browser,
+on any build, since the route existed.
+
+**R-02 is the row this one embarrasses.** R-02 says the game is now written before the engine runs,
+and it is — the ordering is correct and its gate is real. But the write it protects was failing for
+an unrelated reason the whole time, so "the record survives a closed tab" was true of an ordering
+and false of the product.
+
+**Why three layers of green tests could not see it.** Each was green for a different reason, and
+they are worth naming separately because the same three exist for every other measurement here:
+
+| layer | why it passed |
+| --- | --- |
+| the shared suites | hand-built fixtures, integers by hand |
+| the jsdom suites | every one of them mocks `performance.now()` to whole milliseconds |
+| the browser audit | asserted a **card**, which the screen drew from its own in-memory copy |
+
+The single property separating every fixture from reality was the single property the schema
+checked. This is the argument for LAW 3 in one defect: the screen was reading its own state instead
+of the record, so it could report a save that had not happened.
+
+**Closed by** `shared/measured-duration.ts` — the only place two clock readings become a stored
+duration. It rounds at the **source** rather than at the store, so the value the game state holds is
+the value that is written; and it rounds rather than floors, because flooring biases every
+observation down by half a millisecond, which is a measurement error rather than a type error.
+
+**Gate:** `tests/shared/a-clock-that-does-not-tick-in-whole-milliseconds.test.ts`, whose property
+cases draw fractional readings rather than assuming whole ones. Reverting `durationMs` turns four of
+its eight cases and all four R-02 cases red.
+
 ### R-03 · No engine version is stored, and the engine is already known to change verdicts
 
 | | |
@@ -200,9 +241,26 @@ never say anything.
 | severity | P1 |
 | basis | **verified** — see the supersedes table above |
 
-**Gate:** a check that fails when a document other than this one introduces a status column
-(`open` / `blocked` / `P0`), or when this file's row count drops without a row moving to `fixed` or
-`refuted`.
+**Gate:** `GATE-REGISTER-RECONCILED`, and it is not the gate this row first described.
+
+The gate written here originally was *"a check that fails when a document other than this one
+introduces a status column, or when this file's row count drops without a row moving to `fixed` or
+`refuted`"*. It was never built, and it would have been the wrong check. Both halves guard against
+**deletion** — a second tracker appearing, a row vanishing — and neither of the two ways this
+register actually failed was a deletion:
+
+- a P0 was found, fixed, written up in the laws, and **never given a row at all** (R-19). Row count
+  did not drop; the row was never added, so nothing could notice its absence;
+- three separate rows drifted from the tree they describe while sitting perfectly still — a gate
+  name with no gate behind it, a ceiling quoted from the day it was measured, a trigger filed as
+  unfired after it had fired.
+
+So the gate that exists checks the opposite direction: not that rows stay, but that **what a row
+says is still true of the tree**. Every claim it scans is one a register makes about something
+outside itself — a path, a constant, a gate id, another register's table — because those are the
+claims that rot without anybody touching them. `scripts/register-scan.ts` holds the predicates and
+runs them over `tests/fixtures/registers`, which is the four documents reduced to the drifts they
+actually had.
 
 ### R-05 · The local record is shallow-merged into the current shape and never migrated
 
@@ -657,7 +715,7 @@ and the disabled-control skip.
 | type | ops |
 | state | **open, and deliberately governed** — a ratchet, not a refactor, with the argument written down |
 | severity | P2 |
-| basis | **verified** — 2,378 lines, 55 `useState`, under a committed ceiling that only goes down |
+| basis | **verified** — under a committed ceiling that only goes down; the ceiling is `LINE_CEILING = 2400` and `STATE_CEILING = 53`, and the register is held to those numbers by a test |
 
 Real, and not the kind of open the word usually means. `ACTION_PLAN.md` scheduled C1 as *"a
 mechanical extraction with the existing tests as the invariant — not a redesign"*, and
@@ -672,8 +730,17 @@ So the honest treatment is the one that shipped: a ceiling, in the same shape as
 a fifty-sixth piece of state" that is better than putting it somewhere else, so raising the ceiling
 would mean the refactor got further away.
 
-**Gate:** `the-file-that-only-ever-grew.test.ts` — 2,400 lines and 55 `useState`, both at 22 and 0
-of headroom respectively.
+**Gate:** `the-file-that-only-ever-grew.test.ts` — `LINE_CEILING = 2400` and `STATE_CEILING = 53`.
+
+**The ceiling had not gone down, and the rule above says it must.** The UX work extracted five
+times to stay under the line ceiling, and one of those extractions — `useNewGameSetup` — took the
+component from fifty-five pieces of state to fifty-three. The ceiling stayed at fifty-five, which
+quietly restored two slots of headroom that a refactor had just paid for. It is now fifty-three.
+
+The line ceiling keeps its headroom deliberately, and the asymmetry is the point: length is a
+symptom, and a ceiling with no room turns every added comment into a false alarm. State is the
+cause, and the row's own argument — that there is no version of "this component needs one more
+piece of state" that is better than putting it somewhere else — leaves no room to keep.
 
 ---
 
@@ -715,7 +782,10 @@ premised on a measurement that was made and came back the other way.
 
 | | |
 | --- | --- |
-| type | UX · state | **refuted as framed** · basis | **asserted** (`ACTION_PLAN.md` §1.1) |
+| type | UX |
+| state | **refuted** — as framed |
+| severity | P2 |
+| basis | **asserted** (`docs/ACTION_PLAN.md` §1.1) |
 
 ---
 
@@ -773,7 +843,7 @@ never gets its own; the thresholds are R-18 |
 the prospective half needs new games |
 | 16 | learning / action | **governed** — `mayPrescribe` is true for exactly one evidence level,
 and nothing on any screen can reach it yet |
-| 17 | browser / state / a11y gates | **done** — §29, four blitz states in real Chromium |
+| 17 | browser / state / a11y gates | **done** — §29, plus a walk over eleven of fourteen states in real Chromium; the three it cannot reach are below |
 | 18 | value field test | **blocked on people** |
 | 19 | effectiveness study | **blocked on people** |
 
@@ -790,6 +860,27 @@ is a measurement of *those six buckets searched together*, so a redefined bucket
 false-positive rate from `research/discovery-oracle/` before it may be searched. Until that
 measurement exists, the shipped behaviour is the honest one: say the split cannot divide this
 record, and do not ask for decisions that cannot help.
+
+### Three states the browser walk cannot reach, and why that is not a coverage gap to close
+
+The walk over the built app renders each product state in Chromium and asserts that none is empty
+or unstyled and that each offers one clear action. Eleven of fourteen were reached. The other three
+are unreachable **by construction**, and forcing them would mean building a way in that the product
+does not have:
+
+| unreached state | why a walk cannot enter it |
+| --- | --- |
+| the sampled confidence prompt | it fires on `BLITZ_ASK_RATE = 0.15` of decisions, and the sampling is the instrument — a switch that forces it is a second code path that is not the one players meet |
+| a review event | it needs a finished game whose engine pass found a scoreable event, which is a real analysis over real moves, not a fixture |
+| a due learning test | `RETRIEVAL_INTERVAL_DAYS = [1,3,7,21]` — the earliest is tomorrow, and the delay *is* what is under test |
+
+Each is covered by a rendered test with a constructed state, which is a weaker claim than the walk
+makes and is recorded as such: a jsdom render can say a component draws, and cannot say the screen
+is laid out. That distinction is exactly what the walk exists for, so it is written down rather than
+rounded to "covered".
+
+**The honest way to close these is time and use, not a test hook**, and two of the three close
+themselves the first time a real player takes enough decisions.
 
 **The prediction in the section above turned out to be right, and the product now says so.** The
 representation work was warned that it would mostly render an empty state. It does — and the empty

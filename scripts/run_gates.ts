@@ -35,6 +35,7 @@ import {
   findScreensWithTwoBoards,
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
+import { findRegisterDrift } from "./register-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
@@ -91,13 +92,24 @@ function isoPredicate(screen: string[], event: string[], report: string[]): Gate
  *
  * Some gates must exercise client modules that import Vite-only `?url` assets (the 7MB wasm).
  * tsx cannot resolve those, so those gates delegate to Vitest, which has the transform pipeline.
+ *
+ * `only` narrows the run to one `describe` block, so two gates may share a file without sharing a
+ * verdict. That matters for the positive controls more than for the runs: a control file holding
+ * two defects goes red for EITHER of them, which would leave one of the two gates unproven -- red
+ * for the wrong reason is not a proven gate.
  */
 export const HARNESS_ERROR = "HARNESS ERROR:";
 
-function runVitestFile(file: string, label: string, config?: string): GateResult {
+function runVitestFile(
+  file: string,
+  label: string,
+  config?: string,
+  only?: string,
+): GateResult {
   const vitest = resolve("node_modules", "vitest", "vitest.mjs");
   const args = [vitest, "run", file];
   if (config) args.push("--config", config);
+  if (only) args.push("-t", only);
   const result = spawnSync(process.execPath, args, { encoding: "utf8", stdio: "pipe" });
   const output = `${result.stdout ?? ""}${result.stderr ?? ""}`;
 
@@ -111,6 +123,15 @@ function runVitestFile(file: string, label: string, config?: string): GateResult
   if (output.includes("No test files found")) {
     return fail(`${HARNESS_ERROR} no tests collected from ${file}`);
   }
+  /*
+   * A NAME FILTER THAT MATCHES NOTHING EXITS ZERO. Vitest skips the whole file and prints
+   * "Test Files  1 skipped (1)" -- so a gate whose `describe` block is renamed would go green
+   * forever, having run no assertion at all. That is the same hole as an uncollected file, one
+   * level down, and it is the specific risk of splitting two gates across one file.
+   */
+  if (only && !/Test Files\s+\d+ passed/.test(output) && result.status === 0) {
+    return fail(`${HARNESS_ERROR} no test in ${file} matched "${only}"`);
+  }
   if (result.status === 0) return pass(`${label} (vitest: ${file})`);
 
   const reason = output
@@ -122,6 +143,9 @@ function runVitestFile(file: string, label: string, config?: string): GateResult
 
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
+
+/** A whole repository in miniature, carrying the drifts the real registers actually had. */
+const REGISTER_FIXTURES = "tests/fixtures/registers";
 
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
@@ -137,6 +161,12 @@ const readingsOutside = (roots: string[]) =>
 
 const twoBoards = (roots: string[]) =>
   fromFindings(findScreensWithTwoBoards(roots), "one board per screen");
+
+const registerDrift = (root: string) =>
+  fromFindings(
+    findRegisterDrift(root),
+    "debt register, laws, ledger and runner agree with the tree",
+  );
 
 const asksAgain = (roots: string[]) =>
   fromFindings(
@@ -745,7 +775,7 @@ export const GATES: Gate[] = [
   {
     id: "GATE-ONE-PRIMARY-ACTION",
     rule: "LAW 2",
-    description: "A state offers at most one primary action, and never the same act twice.",
+    description: "A state offers at most one primary action.",
     /*
      * RENDERED RATHER THAN SCANNED, and that is what makes it a gate over a STATE. Every other
      * inertial gate reads source, which can say where a component lives but not how many controls
@@ -755,13 +785,47 @@ export const GATES: Gate[] = [
     run: () =>
       runVitestFile(
         "tests/gates/primary-action.test.tsx",
-        "every state offers one act, from a closed vocabulary, without repeating it",
+        "every state offers at most one act",
+        undefined,
+        "GATE-ONE-PRIMARY-ACTION",
       ),
     positiveControl: () =>
       runVitestFile(
         "tests/fixtures/controls/primary-action.control.test.tsx",
-        "a front door offering two products, and a reveal offering one act twice",
+        "a front door offering two products",
         "vitest.controls.config.ts",
+        "GATE-ONE-PRIMARY-ACTION",
+      ),
+  },
+  {
+    id: "GATE-NO-DUPLICATE-ACTION",
+    rule: "LAW 2",
+    description: "No state renders the same act twice, and no control names an act off the list.",
+    /*
+     * A SEPARATE GATE BECAUSE IT IS A SEPARATE DEFECT, and the split is not bookkeeping: the two
+     * were one gate over one file, so its control went red whenever EITHER defect was present.
+     * Fixing the front door alone would have left that control red on the reveal's duplicate and
+     * the front-door gate unproven -- a control red for the wrong reason proves nothing. Two
+     * controls, two reasons, one file each side.
+     *
+     * And the distinction is the one `shared/primary-action.ts` exists for. Two controls naming
+     * two acts is a state asking the player to choose a product; two controls naming the SAME act
+     * is one offer drawn twice. A boolean `isPrimary` could not tell them apart, which is why the
+     * attribute carries the act.
+     */
+    run: () =>
+      runVitestFile(
+        "tests/gates/primary-action.test.tsx",
+        "no act is offered twice, and every act is in the vocabulary",
+        undefined,
+        "GATE-NO-DUPLICATE-ACTION",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/primary-action.control.test.tsx",
+        "a reveal offering one act twice",
+        "vitest.controls.config.ts",
+        "GATE-NO-DUPLICATE-ACTION",
       ),
   },
   {
@@ -770,6 +834,21 @@ export const GATES: Gate[] = [
     description: "The record's toolbox renders only from EXPLORE, behind a control and a lazy chunk.",
     run: () => toolboxBehindItsDoor(["client/src"]),
     positiveControl: () => toolboxBehindItsDoor([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-REGISTER-RECONCILED",
+    rule: "R-01",
+    description: "The four registers agree with the tree and with each other.",
+    /*
+     * THE ONE ARTEFACT NO COMMAND READ. Every other claim in this repository is executed, measured,
+     * or asserted by a test. The registers -- which are where a reader goes to find out what is
+     * still open -- were the exception, and one hand reconciliation found four drifts in a single
+     * wave, including a P0 that had been found, fixed, written up in the laws, and never given a
+     * debt row at all. R-01 is the row that says one register answers "what is open?"; this is what
+     * keeps that true after the day it was written.
+     */
+    run: () => registerDrift("."),
+    positiveControl: () => registerDrift(REGISTER_FIXTURES),
   },
 ];
 

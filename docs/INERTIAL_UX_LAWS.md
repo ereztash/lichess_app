@@ -372,13 +372,22 @@ decision is open" is a validity question wearing a layout question's clothes.
 **And it is a gate rather than a test because it is violated by adding something, anywhere, at any
 time.** A test asserts that a screen is right today. A gate asserts that no screen has become wrong.
 
-| `GATE-ONE-PRIMARY-ACTION` | 2 | a front door offering two products, and a reveal offering one act twice |
+| `GATE-ONE-PRIMARY-ACTION` | 2 | a front door offering two products at one weight |
+| `GATE-NO-DUPLICATE-ACTION` | 2 | a reveal offering one act twice |
 | `GATE-TOOLBOX-OUTSIDE-FOCUS` | 2 | a toolbox loaded for every arrival and opened without a press |
 
 `GATE-EXPOSURE-CONTEXT` is deliberately absent — see LAW 12. It is the only one of the nine still
 unregistered.
 
-### What made the last two possible, and what they caught
+**The first two shipped as one gate over one file, and that was wrong.** A single control holding
+both defects goes red whenever *either* is present — so repairing the front door alone would have
+left that control red on the reveal's duplicate, and the front-door gate would have been passing
+its control for the other defect's reason. A control red for the wrong reason proves nothing.
+`GATE-NO-DUPLICATE-ACTION` is now registered separately, each half filtered to its own `describe`
+on both sides, and `runVitestFile` treats a name filter that matches nothing as a harness error —
+otherwise a renamed block would leave a gate green having run no assertion at all.
+
+### What made the last three possible, and what they caught
 
 They could not be written while the only signal was CSS weight: a gate that reads a colour goes red
 when a palette changes and stays green when a second loud button arrives in a different one.
