@@ -85,7 +85,7 @@ describe("the toolbox has one door", () => {
      * arrival downloads -- so `{exploring && (` is followed by a `<Suspense>` and then the
      * component. The span is capped so this cannot quietly start matching across the file.
      */
-    expect(home).toMatch(/\{exploring && \([\s\S]{0,200}?<RecordExplorer/);
+    expect(home).toMatch(/\{exploring && !runInProgress && \([\s\S]{0,200}?<RecordExplorer/);
   });
 
   it("closes itself when a new reveal arrives, because a mode is not a preference", () => {
@@ -95,6 +95,29 @@ describe("the toolbox has one door", () => {
      * A new decision id is exactly the event "there is something new to read".
      */
     expect(home).toMatch(/useEffect\(\(\) => setExploring\(false\), \[revealedDecisionId\]\)/);
+  });
+
+  it("is not offered at all while a pre-registered run is under way (P1.12)", () => {
+    /*
+     * A RUN IN PROGRESS IS `TEST`, NOT `REVEAL`. `MODE_CONTRACT.TEST` forbids prior evidence for
+     * the same reason `DECIDE` does: the positions in a drill or a transfer were chosen in advance
+     * to test one thing, and a player who opens the record dashboard between position three and
+     * position four has been shown their own measurements in the middle of producing more.
+     *
+     * `EXPLORE` is safe at an ordinary reveal precisely because nothing is at stake there. In a run
+     * something is -- the run's own verdict -- which is why the toolbox is absent rather than
+     * merely quiet.
+     */
+    expect(MODE_CONTRACT.TEST.priorEvidence, "TEST would permit a reading of the record").toBe(false);
+    expect(MODE_CONTRACT.TEST.producingEvidence).toBe(true);
+
+    /* Both the control and the surface are gated on the same fact, not just the control. */
+    expect(home).toMatch(/\{!runInProgress && \(/);
+    expect(home).toMatch(/\{exploring && !runInProgress && \(/);
+    /* And that fact is a run, named where it is derived rather than inlined at each use. */
+    expect(home).toMatch(
+      /const runInProgress =\s*learningTransfer !== null \|\| \(drill !== null && drillStage === "running"\)/,
+    );
   });
 
   it("keeps the two things that act on the decision with the decision", () => {

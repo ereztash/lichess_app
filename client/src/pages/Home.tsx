@@ -3,7 +3,6 @@ import { retryOnce } from "@/lib/retry-once";
 import { Chess } from "chess.js";
 import {
   Activity,
-  ArrowRight,
   Clipboard,
   FlipVertical2,
   HelpCircle,
@@ -52,9 +51,8 @@ import { ImportGames } from "@/components/ImportGames";
 import { SavedReadingOverlay } from "@/components/ImportDiagnostic";
 import { NewGameSetup } from "@/components/NewGameSetup";
 import {
-  POSITION_SOURCES,
   PgnDrawer,
-  PositionSourceMenu,
+  PositionSourceOverlay,
   type PositionSourceId,
 } from "@/components/PositionSource";
 import { SelfCheck } from "@/components/SelfCheck";
@@ -1793,6 +1791,13 @@ export default function Home() {
    * It is every decision this product measures, not just that one.
    */
   const focus = makingEvidence(stage);
+  /*
+   * A PRE-REGISTERED RUN IS UNDER WAY, which makes the mode `TEST` rather than `DECIDE` or
+   * `REVEAL` (P1.12). The set was chosen in advance to test one thing, and four of eight positions
+   * tests nothing -- so what the screen may show between two of them is what it may show while
+   * evidence is being produced, not what it may show once a decision is finished.
+   */
+  const runInProgress = learningTransfer !== null || (drill !== null && drillStage === "running");
   /**
    * A live game the player chose to have the engine stay quiet through.
    *
@@ -2064,66 +2069,47 @@ export default function Home() {
             * way back that does not close the door. Nothing nests, so nothing has to be unstacked.
             */}
           {showPositionSource && (
-            <Overlay
-              label={
-                POSITION_SOURCES.find((entry) => entry.id === positionChoice)?.label ?? "עמדה אחרת"
-              }
+            <PositionSourceOverlay
+              choice={positionChoice}
+              onChoose={choosePositionSource}
+              onBack={() => setPositionChoice(null)}
               onClose={closePositionSource}
             >
-              {positionChoice === null ? (
-                <PositionSourceMenu
-                  onChoose={choosePositionSource}
+              {positionChoice === "new" && (
+                <NewGameSetup
+                  color={setup.color}
+                  depth={setup.depth}
+                  revealTiming={setup.revealTiming}
+                  onColor={setup.setColor}
+                  onDepth={setup.setDepth}
+                  onRevealTiming={setup.setRevealTiming}
+                  onStart={() => {
+                    setup.remember();
+                    newGame(setup.color, setup.depth, setup.revealTiming);
+                  }}
+                  onCancel={closePositionSource}
+                />
+              )}
+              {positionChoice === "username" && (
+                <ImportGames
+                  keepReading={saveImportReading.mutateAsync}
+                  onLoad={loadLichessGame}
+                  onClose={closePositionSource}
+                  analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+                  /* The account the record already knows about, so it is not asked for twice. */
+                  lastUsername={importReading.reading?.username}
+                />
+              )}
+              {positionChoice === "pgn" && (
+                <PgnDrawer
+                  value={pgnInput}
+                  onChange={setPgnInput}
+                  onLoad={() => importPgn(pgnInput)}
+                  onSample={() => setPgnInput(DEFAULT_PGN)}
                   onClose={closePositionSource}
                 />
-              ) : (
-                <>
-                  {/* ArrowRight, not Left: back is towards the start of the line, and the line
-                      runs right-to-left. */}
-                  <button
-                    type="button"
-                    className="position-source-back"
-                    onClick={() => setPositionChoice(null)}
-                  >
-                    <ArrowRight size={16} aria-hidden="true" />
-                    <span>כל המקורות</span>
-                  </button>
-                  {positionChoice === "new" && (
-                    <NewGameSetup
-                      color={setup.color}
-                      depth={setup.depth}
-                      revealTiming={setup.revealTiming}
-                      onColor={setup.setColor}
-                      onDepth={setup.setDepth}
-                      onRevealTiming={setup.setRevealTiming}
-                      onStart={() => {
-                        setup.remember();
-                        newGame(setup.color, setup.depth, setup.revealTiming);
-                      }}
-                      onCancel={closePositionSource}
-                    />
-                  )}
-                  {positionChoice === "username" && (
-                    <ImportGames
-                      keepReading={saveImportReading.mutateAsync}
-                      onLoad={loadLichessGame}
-                      onClose={closePositionSource}
-                      analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
-                      /* The account the record already knows about, so it is not asked for twice. */
-                      lastUsername={importReading.reading?.username}
-                    />
-                  )}
-                  {positionChoice === "pgn" && (
-                    <PgnDrawer
-                      value={pgnInput}
-                      onChange={setPgnInput}
-                      onLoad={() => importPgn(pgnInput)}
-                      onSample={() => setPgnInput(DEFAULT_PGN)}
-                      onClose={closePositionSource}
-                    />
-                  )}
-                </>
               )}
-            </Overlay>
+            </PositionSourceOverlay>
           )}
 
           {showReading && importReading.reading && (
@@ -2351,15 +2337,27 @@ export default function Home() {
                 * revealed and stored, so nothing on the far side of this button can change what
                 * any of it said.
                 */}
-              <button
-                type="button"
-                className="explore-toggle"
-                aria-expanded={exploring}
-                onClick={() => setExploring((open) => !open)}
-              >
-                {exploring ? "חזרה לתוצאה" : "מה עוד יש כאן"}
-              </button>
-              {exploring && (
+              {/*
+                * NOT DURING A RUN (P1.12). A drill or a transfer in progress is `TEST`, not
+                * `REVEAL` -- and `MODE_CONTRACT.TEST` forbids prior evidence for the same reason
+                * `DECIDE` does: the positions in a run are pre-registered to test one thing, and a
+                * player who reads the record dashboard between position three and position four
+                * has been shown their own measurements in the middle of producing more.
+                *
+                * `EXPLORE` is safe at an ordinary reveal precisely because nothing is at stake
+                * there. In a run something is: the run's own verdict.
+                */}
+              {!runInProgress && (
+                <button
+                  type="button"
+                  className="explore-toggle"
+                  aria-expanded={exploring}
+                  onClick={() => setExploring((open) => !open)}
+                >
+                  {exploring ? "חזרה לתוצאה" : "מה עוד יש כאן"}
+                </button>
+              )}
+              {exploring && !runInProgress && (
                 <Suspense fallback={<p role="status">טוען…</p>}>
                 <RecordExplorer
                   position={{ fen: activeFen, activeMove, material }}

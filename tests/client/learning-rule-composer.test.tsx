@@ -60,6 +60,39 @@ function renderComposer(onSaved = vi.fn()) {
   return onSaved;
 }
 
+/**
+ * STATE THE RULE. The first of the composer's two stages (P1.8): what you now understand, when it
+ * applies, and what you will do about it.
+ *
+ * IT IS A HELPER BECAUSE THE ORDER IS NOW LOAD-BEARING. The falsification boxes do not exist until
+ * this half is answered -- you cannot say what would refute a rule before you have written the rule
+ * -- so every case below has to get here first, and writing that sequence five times is five places
+ * for it to drift.
+ */
+async function stateTheRule(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/מה אתם מבינים עכשיו/), "פספסתי שח כפוי");
+  await user.type(screen.getByLabelText(/מתי הכלל אמור/), "כאשר מבנה הרגלים ליד המלך משתנה");
+  await user.type(screen.getByLabelText(/איזה סימן/), "נפתח קו למלכה");
+  await user.type(screen.getByLabelText(/מה תעשו/), "אסרוק שחים, הכאות ואיומים לפני מסע שקט");
+  /*
+   * Both choices made explicitly. An earlier version of this file saved without touching either
+   * and passed, because the form pre-selected "סריקת איומים" and "לא" and required neither -- an
+   * assertion that the DEFAULTS round-tripped, wearing the name of one that the player's own
+   * language did.
+   */
+  await user.click(screen.getByRole("button", { name: "סריקת איומים" }));
+  await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
+}
+
+/** The second stage: what you expect, and what would prove you wrong. */
+async function stateTheFalsification(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/איזו תוצאה אתם מצפים/), "פחות החמצות טקטיות");
+  await user.type(
+    screen.getByLabelText(/איזו תוצאה תפריך/),
+    "פחות משתי הצלחות בשלוש עמדות חדשות",
+  );
+}
+
 describe("player-authored learning rule composer", () => {
   it("starts empty and stores the player's own language as a hypothesis", async () => {
     const onSaved = renderComposer();
@@ -70,23 +103,8 @@ describe("player-authored learning rule composer", () => {
     ).toBe(true);
 
     const user = userEvent.setup();
-    await user.type(screen.getByLabelText(/מה אתם מבינים עכשיו/), "פספסתי שח כפוי");
-    await user.type(screen.getByLabelText(/מתי הכלל אמור/), "כאשר מבנה הרגלים ליד המלך משתנה");
-    await user.type(screen.getByLabelText(/איזה סימן/), "נפתח קו למלכה");
-    await user.type(screen.getByLabelText(/מה תעשו/), "אסרוק שחים, הכאות ואיומים לפני מסע שקט");
-    await user.type(screen.getByLabelText(/איזו תוצאה אתם מצפים/), "פחות החמצות טקטיות");
-    await user.type(
-      screen.getByLabelText(/איזו תוצאה תפריך/),
-      "פחות משתי הצלחות בשלוש עמדות חדשות",
-    );
-    /*
-     * Both choices made explicitly. This test used to save without touching either, and passed --
-     * because the form pre-selected "סריקת איומים" and "לא" and required neither. It was
-     * therefore an assertion that the DEFAULTS round-tripped, wearing the name of an assertion
-     * that the player's own language did.
-     */
-    await user.click(screen.getByRole("button", { name: "סריקת איומים" }));
-    await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
+    await stateTheRule(user);
+    await stateTheFalsification(user);
     await user.click(save);
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
@@ -112,15 +130,15 @@ describe("player-authored learning rule composer", () => {
  * silently would leave the player believing what they typed was stored — the same defect, moved.
  */
 describe("the reflection the record kept", () => {
+  /* Both stages, then save. The revised read varies because that is what these cases are about. */
   const fill = async (user: ReturnType<typeof userEvent.setup>, revisedRead: string) => {
     await user.type(screen.getByLabelText(/מה אתם מבינים עכשיו/), revisedRead);
     await user.type(screen.getByLabelText(/מתי הכלל אמור/), "כאשר מבנה הרגלים ליד המלך משתנה");
     await user.type(screen.getByLabelText(/איזה סימן/), "נפתח קו למלכה");
     await user.type(screen.getByLabelText(/מה תעשו/), "אסרוק שחים, הכאות ואיומים לפני מסע שקט");
-    await user.type(screen.getByLabelText(/איזו תוצאה אתם מצפים/), "פחות החמצות טקטיות");
-    await user.type(screen.getByLabelText(/איזו תוצאה תפריך/), "פחות משתי הצלחות בשלוש עמדות חדשות");
     await user.click(screen.getByRole("button", { name: "סריקת איומים" }));
     await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
+    await stateTheFalsification(user);
     await user.click(screen.getByRole("button", { name: /שמירת כלל/ }));
   };
 
@@ -165,15 +183,20 @@ describe("the record says the player authored it, so the player has to have answ
    * WRONG, so defaulting it means every untouched rule in the record blames threat scanning.
    */
 
-  /** Fill every free-text field, leaving both choices untouched. */
+  /**
+   * Fill every free-text field that EXISTS while both choices are untouched, and leave them so.
+   *
+   * That is now four boxes rather than six, and the difference is the point of these cases: the
+   * falsification stage does not render until the rule is stated, and stating it includes both
+   * choices. So a form that reached a save with neither answered would have to have rendered a
+   * stage it may not.
+   */
   async function fillText() {
     const user = userEvent.setup();
     await user.type(screen.getByLabelText(/מה אתם מבינים עכשיו/), "פספסתי שח כפוי");
     await user.type(screen.getByLabelText(/מתי הכלל אמור/), "כאשר מבנה הרגלים משתנה");
     await user.type(screen.getByLabelText(/איזה סימן/), "נפתח קו למלכה");
     await user.type(screen.getByLabelText(/מה תעשו/), "אסרוק שחים לפני מסע שקט");
-    await user.type(screen.getByLabelText(/איזו תוצאה אתם מצפים/), "פחות החמצות");
-    await user.type(screen.getByLabelText(/איזו תוצאה תפריך/), "פחות משתי הצלחות");
     return user;
   }
   const save = () => screen.getByRole("button", { name: /שמירת כלל/ });
@@ -198,11 +221,17 @@ describe("the record says the player authored it, so the player has to have answ
     renderComposer();
     const user = await fillText();
     expect(save(), "saveable with two unanswered questions").toBeDisabled();
+    /* And the falsification is not even on screen, because the rule has not been stated. */
+    expect(screen.queryByLabelText(/איזו תוצאה תפריך/)).toBeNull();
 
     await user.click(screen.getByRole("button", { name: "חישוב" }));
     expect(save(), "saveable with one unanswered question").toBeDisabled();
+    expect(screen.queryByLabelText(/איזו תוצאה תפריך/)).toBeNull();
 
     await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("לא"));
+    /* Now the rule is stated, so the second stage exists -- and the save waits for it. */
+    expect(save(), "saveable before anything could refute it").toBeDisabled();
+    await stateTheFalsification(user);
     expect(save()).not.toBeDisabled();
   });
 
@@ -218,6 +247,7 @@ describe("the record says the player authored it, so the player has to have answ
     const user = await fillText();
     await user.click(screen.getByRole("button", { name: "חישוב" }));
     await user.click(within(screen.getByRole("group", { name: /בוחרים שוב/ })).getByText("כן"));
+    await stateTheFalsification(user);
     await user.click(save());
 
     await waitFor(() => expect(onSaved).toHaveBeenCalledOnce());
@@ -249,12 +279,23 @@ describe("the hardest thing on the reveal is not also the biggest thing on it", 
     expect(details!.querySelector("summary")?.textContent).toContain("נסחו כלל שאפשר להפריך");
   });
 
-  it("keeps every field, so this is a weight change and not a removal", () => {
+  it("keeps every field, so this is a weight change and not a removal", async () => {
+    /*
+     * STAGED, NOT REMOVED (P1.8). The falsification boxes arrive once the rule is stated -- you
+     * cannot say what would refute a rule before you have written it -- so the count is checked at
+     * both stages rather than once. A single "greater than five" would now be satisfied by a form
+     * that had quietly dropped a field and staged nothing.
+     */
     const { container } = render(<LearningRuleComposer sourceDecisionId={ID} onSaved={() => {}} />);
-    const fields = container.querySelectorAll(
-      ".learning-composer-fields textarea, .learning-composer-fields input",
-    );
-    expect(fields.length, "fields were dropped rather than folded").toBeGreaterThan(5);
+    const boxes = () =>
+      container.querySelectorAll(".learning-composer-fields textarea, .learning-composer-fields input");
+    expect(boxes().length, "the rule itself lost a field").toBe(4);
+    /* And the absence says what is coming, rather than reading as a rendering fault. */
+    expect(container.querySelector(".learning-composer-next")).not.toBeNull();
+
+    await stateTheRule(userEvent.setup());
+    expect(boxes().length, "fields were dropped rather than staged").toBe(7);
+    expect(container.querySelector(".learning-composer-next")).toBeNull();
     expect(
       container.querySelector(".learning-composer-fields .learning-save"),
       "the save control left the disclosure and now sits alone",

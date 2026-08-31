@@ -25,7 +25,9 @@
  * named source -- read this array, so a fifth source cannot appear in one and not the other, and
  * a test can count them without a hand-maintained number.
  */
-import { FileUp, Plus, Upload, UserSearch } from "lucide-react";
+import { ArrowRight, FileUp, Plus, Upload, UserSearch } from "lucide-react";
+import type { ReactNode } from "react";
+import { Overlay } from "./Overlay";
 import { Textarea } from "@/components/ui/textarea";
 
 export type PositionSourceId = "new" | "pgn" | "username" | "file";
@@ -181,5 +183,55 @@ export function PgnDrawer({
         </button>
       </div>
     </section>
+  );
+}
+
+/**
+ * THE DOOR AND ITS FOUR ROOMS, AS ONE SURFACE.
+ *
+ * `showNewGame`, `showPgn` and `showImport` were once three sibling overlays, and reaching a second
+ * meant closing the first from a rail button that had to remember to. This is a single surface
+ * whose body is either the menu or the chosen source, with a way back that does not close the door.
+ * Nothing nests, so nothing has to be unstacked.
+ *
+ * MOVED OUT OF `Home.tsx` UNDER ITS RATCHET, and to the file that already owns the menu, the source
+ * table and the PGN drawer. What stayed behind in the page is the state -- which door is open and
+ * which room is showing -- because that is the page's, and the handlers, because they act on the
+ * page's game.
+ */
+export function PositionSourceOverlay({
+  choice,
+  onChoose,
+  onBack,
+  onClose,
+  children,
+}: {
+  /** Which source is showing, or null for the menu. */
+  choice: PositionSourceId | null;
+  onChoose: (id: PositionSourceId) => void;
+  /** Back to the menu, which is NOT the same as closing the door. */
+  onBack: () => void;
+  onClose: () => void;
+  /** The chosen source's own body, rendered by the page that owns what it acts on. */
+  children: ReactNode;
+}) {
+  return (
+    <Overlay
+      label={POSITION_SOURCES.find((entry) => entry.id === choice)?.label ?? "עמדה אחרת"}
+      onClose={onClose}
+    >
+      {choice === null ? (
+        <PositionSourceMenu onChoose={onChoose} onClose={onClose} />
+      ) : (
+        <>
+          {/* ArrowRight, not Left: back is towards the start of the line, and the line runs RTL. */}
+          <button type="button" className="position-source-back" onClick={onBack}>
+            <ArrowRight size={16} aria-hidden="true" />
+            <span>כל המקורות</span>
+          </button>
+          {children}
+        </>
+      )}
+    </Overlay>
   );
 }

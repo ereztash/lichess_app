@@ -224,7 +224,7 @@ describe("the surfaces a serverless render cannot reach", () => {
      * arrival downloads -- so `{exploring && (` is followed by a `<Suspense>` and then the
      * component. The span is capped so this cannot quietly start matching across the file.
      */
-    expect(home).toMatch(/\{exploring && \([\s\S]{0,200}?<RecordExplorer/);
+    expect(home).toMatch(/\{exploring && !runInProgress && \([\s\S]{0,200}?<RecordExplorer/);
   });
 
   it("keeps the toolbox behind the same branch, by the same reading", () => {

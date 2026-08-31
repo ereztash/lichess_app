@@ -71,6 +71,21 @@ function overlaySpans(src: string): Array<[number, number]> {
   return spans;
 }
 
+/** The same span-matching, for any component that wraps its children in one. */
+function spansOf(src: string, tag: string): Array<[number, number]> {
+  const spans: Array<[number, number]> = [];
+  const open: number[] = [];
+  for (const m of src.matchAll(new RegExp(`<${tag}\\b|</${tag}>`, "g"))) {
+    if (m[0].startsWith("</")) {
+      const start = open.pop();
+      if (start !== undefined) spans.push([start, m.index]);
+    } else {
+      open.push(m.index);
+    }
+  }
+  return spans;
+}
+
 /** The smallest px value any of these size properties is set to, across one selector's rules. */
 function smallestDeclaredSize(selector: string): number | null {
   let smallest: number | null = null;
@@ -153,20 +168,33 @@ describe("transient panels do not push the board off the screen", () => {
      * surface whose rooms sit deeper inside it than the window could see. Matching the tags into
      * spans asserts what the name of the test says.
      */
-    const spans = overlaySpans(home);
-    expect(spans.length, "no <Overlay>…</Overlay> pairs found in Home").toBeGreaterThan(0);
     /*
-     * THREE COMPONENT TAGS, WHICH IS WHAT THEY ALL ARE NOW. The PGN drawer was the last of the
-     * four sources still spelled out in the page; it moved to `PositionSource.tsx` beside the menu
-     * that offers it, under `Home.tsx`'s line ratchet. The claim here is unchanged -- the panel is
-     * inside an Overlay -- and it is now made the same way for all three.
+     * THE CONTAINMENT NOW SPANS TWO FILES, AND SO DOES THE ASSERTION.
+     *
+     * All four position sources moved to `PositionSource.tsx` under `Home.tsx`'s line ratchet --
+     * first the PGN drawer, then the overlay itself. So the three panels sit inside
+     * `<PositionSourceOverlay>` in the page, and `<PositionSourceOverlay>` is an `<Overlay>` in the
+     * component. The claim is exactly the one this case has always made: none of them is a block
+     * above the board. It is checked in both halves rather than weakened to one.
      */
+    const source = readFileSync(resolve(root, "client/src/components/PositionSource.tsx"), "utf8");
+    const wrapper = overlaySpans(source);
+    expect(wrapper.length, "PositionSourceOverlay no longer renders an Overlay").toBeGreaterThan(0);
+    const doorAt = source.indexOf("export function PositionSourceOverlay");
+    expect(doorAt, "the shared door is gone").toBeGreaterThan(-1);
+    expect(
+      wrapper.some(([open]) => open > doorAt),
+      "the Overlay is not inside PositionSourceOverlay",
+    ).toBe(true);
+
+    const doors = overlaySpans(home).concat(spansOf(home, "PositionSourceOverlay"));
+    expect(doors.length, "no door of any kind found in Home").toBeGreaterThan(0);
     for (const panel of ["<NewGameSetup", "<ImportGames", "<PgnDrawer"]) {
       const at = home.indexOf(panel);
       expect(at, `${panel} is not rendered any more`).toBeGreaterThan(-1);
       expect(
-        spans.some(([open, close]) => at > open && at < close),
-        `${panel} is not inside an Overlay`,
+        doors.some(([open, close]) => at > open && at < close),
+        `${panel} is not inside a door`,
       ).toBe(true);
     }
   });

@@ -88,7 +88,7 @@ describe("the R3 gate", () => {
      * arrival downloads -- so `{exploring && (` is followed by a `<Suspense>` and then the
      * component. The span is capped so this cannot quietly start matching across the file.
      */
-    expect(home).toMatch(/\{exploring && \([\s\S]{0,200}?<RecordExplorer/);
+    expect(home).toMatch(/\{exploring && !runInProgress && \([\s\S]{0,200}?<RecordExplorer/);
 
     for (const stage of DECISION_STAGES) {
       expect(makingEvidence(stage), stage).toBe(stage !== "revealed");

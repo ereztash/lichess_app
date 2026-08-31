@@ -96,3 +96,73 @@ describe("a finished schedule is finished", () => {
     expect((later.container.querySelector("button") as HTMLButtonElement).disabled).toBe(true);
   });
 });
+
+/**
+ * P1.9: what is due is the queue. Everything else is a list, and a list is not a queue.
+ *
+ * THE SHAPE THIS REPLACES. Every non-retired rule rendered as its own row, each carrying a test
+ * button that was disabled on most of them. A retrieval schedule of 1/3/7/21 days means that on
+ * almost any visit almost nothing is due -- so the ordinary state of this section was N rows of a
+ * control the player could not press, and they had to read each one to find that out.
+ *
+ * LAW 2 CALLS THAT ABSENT-NOT-DISABLED, and it is the same rule the control rail follows: a
+ * greyed-out control still says "there is a thing here you could be doing", which is the whole of
+ * what is being removed.
+ *
+ * AND THE DELAY IS THE MEASUREMENT, so this is not only tidiness. `RETRIEVAL_INTERVAL_DAYS` exists
+ * to make the interval the thing under test; a screen that keeps every cue permanently in view is
+ * rehearsing them on every visit, which is the same argument that keeps the action rule off these
+ * rows in the first place.
+ */
+describe("what is due is the queue", () => {
+  const due = () => rule({ rule_id: "due-1", next_due_at: "2020-01-01T00:00:00.000Z" });
+  const later = (rule_id: string, next_due_at: string) => rule({ rule_id, next_due_at });
+
+  it("puts a rule that is not due behind a disclosure, and says how many", () => {
+    const { container } = show([
+      due(),
+      later("wait-1", "2999-01-01T00:00:00.000Z"),
+      later("wait-2", "2999-02-01T00:00:00.000Z"),
+    ]);
+    const waiting = container.querySelector("details.learning-waiting");
+    expect(waiting, "everything is still rendered in one flat list").not.toBeNull();
+    expect(waiting!.hasAttribute("open"), "the waiting rules open expanded").toBe(false);
+    expect(waiting!.querySelector("summary")?.textContent).toContain("2 כללים");
+    /* The due one is NOT inside it: it is the thing the player came for. */
+    expect(waiting!.querySelector('[data-rule="due-1"]')).toBeNull();
+  });
+
+  it("still keeps the waiting rules reachable, because retiring one is a legitimate act", () => {
+    /*
+     * FOLDED, NOT REMOVED. A player who wants a rule out of their queue must still be able to
+     * reach it, and the disclosure is what makes "not now" different from "not here".
+     */
+    const { container } = show([later("wait-1", "2999-01-01T00:00:00.000Z")]);
+    const waiting = container.querySelector("details.learning-waiting");
+    expect(waiting).not.toBeNull();
+    expect(waiting!.querySelectorAll("article.learning-rule-row").length).toBe(1);
+  });
+
+  it("says when the next test opens rather than making the player read every row", () => {
+    show([later("wait-1", "2999-03-01T00:00:00.000Z"), later("wait-2", "2999-01-01T00:00:00.000Z")]);
+    const line = document.querySelector(".learning-none-due")?.textContent ?? "";
+    expect(line, "no sentence at all where every row was disabled").toContain("אין בדיקה פתוחה");
+    /* The NEAREST date, which is the one a player would have had to find by reading all of them. */
+    expect(line).toContain(new Date("2999-01-01T00:00:00.000Z").toLocaleDateString("he-IL"));
+  });
+
+  it("says a finished schedule is finished, not late", () => {
+    /*
+     * `next_due_at === null` IS THE END OF THE SCHEDULE. Folding it into "the next one opens on…"
+     * would promise a date that will never arrive, and the service refuses a test against it.
+     */
+    show([rule({ next_due_at: null, grade: "replicated", retrieval_step: 4 })]);
+    expect(document.querySelector(".learning-none-due")?.textContent).toContain("הסתיים");
+  });
+
+  it("says nothing about waiting when something is actually due", () => {
+    show([due()]);
+    expect(document.querySelector(".learning-none-due")).toBeNull();
+    expect(document.querySelector("details.learning-waiting")).toBeNull();
+  });
+});

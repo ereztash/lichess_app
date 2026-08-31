@@ -4918,6 +4918,37 @@ button:not(:disabled) {
  * `/` and `/play` and has never seen this route. A screen can be entirely unstyled and pass every
  * automated check this repository owns.
  */
+/*
+ * P1.8: the composer's second stage, and what stands where it will be.
+ *
+ * The falsification boxes are ABSENT until the rule is stated -- you cannot say what would refute a
+ * rule before you have written it -- and an unexplained gap reads as a rendering fault, so a line
+ * says which half is coming.
+ */
+.learning-composer-next {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  border-inline-start: 2px solid var(--edge-soft);
+  padding-inline-start: 10px;
+  margin: 2px 0;
+}
+/*
+ * P1.9: everything that is not due, folded into one line the player can open.
+ *
+ * A retrieval schedule of 1/3/7/21 days means almost nothing is due on almost any visit, so the
+ * ordinary state of this section was N rows of a control that could not be pressed.
+ */
+.learning-none-due {
+  font-size: var(--panel-body);
+  color: var(--muted);
+  margin: 0;
+}
+.learning-waiting > summary {
+  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px 0;
+}
 .blitz-setup,
 .blitz {
   max-width: 34rem;

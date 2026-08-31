@@ -105,6 +105,25 @@ same act twice under two different labels.
 
 **Gate:** `GATE-ONE-PRIMARY-ACTION`, `GATE-NO-DUPLICATE-ACTION`.
 
+### Three more surfaces, in order of how badly each broke the rule
+
+**The learning queue** listed every rule, each with a test button that was disabled on most of
+them. A retrieval schedule of 1/3/7/21 days means almost nothing is due on almost any visit, so its
+ordinary state was N rows of a control the player could not press — and they had to read each row
+to find that out. What is due is the queue now; the rest is one line and a disclosure. That is not
+only tidiness: `RETRIEVAL_INTERVAL_DAYS` exists to make the delay the thing under test, and a
+screen that keeps every cue permanently in view is rehearsing them on every visit.
+
+**The rule composer** asked for the falsification beside the first field — what would refute a rule
+the player had not yet written. Its own heading is *"נסחו כלל שאפשר להפריך"*, and putting the
+refutation first inverted the sentence. Two stages now, split from one definition of completeness
+rather than a second one.
+
+**A run in progress is `TEST`, not `REVEAL`.** The explore toggle was on screen during a drill or a
+transfer, so a player could open the record dashboard between position three and position four of a
+pre-registered set. `MODE_CONTRACT.TEST` forbids prior evidence for the same reason `DECIDE` does;
+the toolbox is absent while a run is under way.
+
 ### The reveal column was the worst case, and it is a path now
 
 Nine sections at once: the reveal, the value question, the engine's lines, a rule composer, a drill
