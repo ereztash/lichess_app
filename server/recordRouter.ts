@@ -28,6 +28,7 @@ import {
   TRANSFER_POSITION_COUNT,
 } from "../shared/learning-record.js";
 import * as service from "../shared/record-service.js";
+import { blitzRecordReading } from "../shared/blitz-record-reading.js";
 import { RecordError } from "../shared/record-service.js";
 import type { RecordStore } from "./record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
@@ -81,6 +82,12 @@ export const commitEventSchema = z.object({
    * decision cannot claim the first-decision exemption, and `service.commitDecision` refuses it.
    */
   purpose: z.enum(DECISION_PURPOSES).nullable().optional(),
+  /**
+   * The drill this decision belongs to. Optional for the same reason `purpose` is: a client that
+   * predates the field sends nothing, and null is stored. `service.commitDecision` is where the
+   * absence costs something -- a decision claiming `drill` without one is refused there.
+   */
+  drill_id: z.string().min(1).max(64).nullable().optional(),
   /*
    * `min(1)` IS GONE FROM BOTH, AND THIS IS THE LINE THAT MADE THE EXEMPTION REAL.
    *
@@ -425,7 +432,19 @@ export function buildRecordRouter(store: RecordStore) {
       .input(storedBlitzRecordSchema)
       .mutation(({ input }) => guard(() => service.saveBlitzGame(store, input))),
 
+    /** The second half of the two-phase write. See `RecordStore.attachBlitzAnalysis`. */
+    attachBlitzAnalysis: ownerProcedure
+      .input(storedBlitzRecordSchema)
+      .mutation(({ input }) => guard(() => service.attachBlitzAnalysis(store, input))),
+
     blitzDecisions: ownerProcedure.query(() => guard(() => store.listBlitzDecisions())),
     blitzGames: ownerProcedure.query(() => guard(() => store.listBlitzGames())),
+    /*
+     * THE READING, NOT THE ROWS, AND BOTH ENDPOINTS STAY. The two above are the raw tables and are
+     * what a test or an export wants; this is the statement a screen renders, computed by the same
+     * function the local deployment calls, so the two modes cannot come to disagree about what the
+     * record says.
+     */
+    blitzReading: ownerProcedure.query(() => guard(() => blitzRecordReading(store))),
   });
 }

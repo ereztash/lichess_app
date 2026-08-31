@@ -117,6 +117,7 @@ describe("what conditions the decision was made under", () => {
       decision_id: "11111111-1111-4111-8111-111111111111",
       entry_state: { game_id: "g", fen: POSITION.fen, ply: 0, phase: "opening", clock_ms_remaining: null },
       purpose: "play",
+      drill_id: null,
       known: "a", unknown: "b", known_parts: null, unknown_parts: null,
       decision: "e2e4",
       bounded_action: { seconds_taken: 3, confidence: 5, candidate_moves_considered: ["e2e4"] },

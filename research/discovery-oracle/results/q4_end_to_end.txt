@@ -1,0 +1,33 @@
+
+world                                  n   any bucket    claim  validated  upper 95%
+NULL-1-independent                   800       0.0013   0.0013     0.0000     0.0048
+NULL-2-within-game-correlated        800       0.0025   0.0025     0.0000     0.0048
+NULL-3-skewed-features               800       0.0013   0.0013     0.0000     0.0048
+NULL-4-correlated-predictors         800       0.0013   0.0013     0.0000     0.0048
+NULL-5-informative-missingness       800       0.0025   0.0025     0.0000     0.0048
+NULL-6-variable-game-lengths         800       0.0013   0.0013     0.0000     0.0048
+NULL-7-clockless-games               800       0.0013   0.0013     0.0000     0.0048
+NULL-8-duplicated-features           800       0.0025   0.0025     0.0000     0.0048
+NULL-9-temporal-drift                800       0.0025   0.0025     0.0000     0.0048
+NULL-10-imported-live-mixture        800       0.0063   0.0063     0.0000     0.0048
+SWEEP-tilt-0.00                      800       0.0025   0.0025     0.0000     0.0048
+SWEEP-tilt-0.04                      800       0.0000   0.0000     0.0000     0.0048
+SWEEP-tilt-0.08                      800       0.0063   0.0063     0.0000     0.0048
+SWEEP-tilt-0.12                      800       0.0150   0.0150     0.0000     0.0048
+
+pooled null: 0/8000 = 0.0000  95% CI [0.0000, 0.0005]  ceiling 0.02  -> PASS
+
+plant                        delta   recall  on target  validated  on target   mirror    proxy
+clean-middlegame             0.180   0.6275     0.5925     0.4575     0.4475   0.0300   0.0050
+weak-middlegame              0.070   0.0275     0.0200     0.0025     0.0025   0.0075   0.0000
+clean-fast                   0.180   0.2775     0.2650     0.1250     0.1250   0.0100   0.0025
+weak-fast                    0.070   0.0150     0.0100     0.0000     0.0000   0.0050   0.0000
+interaction-only             0.220   0.2500     0.0000     0.1100     0.0000   0.0125   0.0000
+sparse-low-clock             0.220   0.6275     0.6150     0.4775     0.4775   0.0100   0.0025
+one-game-only                0.220   0.0050     0.0000     0.0000     0.0000   0.0050   0.0000
+every-game-first-moves       0.200   0.0450     0.0000     0.0000     0.0000   0.0075   0.0000
+proxy-correlated             0.200   0.1200     0.0000     0.0225     0.0000   0.0250   0.0000
+
+power on clean-middlegame: validated-on-target 0.4475  lower 95% 0.3995  floor 0.95  -> FAIL
+
+power on clean-fast: validated-on-target 0.1250  lower 95% 0.0961  floor 0.95  -> FAIL

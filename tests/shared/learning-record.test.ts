@@ -41,6 +41,7 @@ const RESULT: DecisionResult = {
   engine_best_move: "e2e4",
   engine_depth: 18,
   engine_source: "local_sf18",
+  engine_build: "sf18-test-build",
   cp_loss: 10,
 };
 
@@ -69,6 +70,7 @@ async function recordPosition(
     phase: "opening",
     clockMsRemaining: null,
     purpose: "play",
+    drillId: null,
     secondsTaken: 10,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4"],
@@ -148,6 +150,7 @@ describe("verified learning record", () => {
       phase: "opening",
       clockMsRemaining: null,
       purpose: "play",
+      drillId: null,
       secondsTaken: 10,
       chosenMove: "e2e4",
       candidateMovesConsidered: ["e2e4"],

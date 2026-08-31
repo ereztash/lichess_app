@@ -14,6 +14,7 @@ import {
 import { CLAIM_GRADES } from "../shared/claim.js";
 import { VALIDATION_KEYS } from "../shared/claim-grade-protocol.js";
 import type { BlitzOutcome, Side } from "../shared/blitz-game-core.js";
+import { BLITZ_ANALYSIS_STATES } from "../shared/blitz-record.js";
 import { ENGINE_SOURCES, PHASES, PROBE_ASSIGNMENTS } from "../shared/decision-atom.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import type { StatedParts } from "../shared/decision-atom.js";
@@ -74,6 +75,21 @@ export const decisions = mysqlTable(
      * measurement, exactly as `reveal_timing` does.
      */
     purpose: mysqlEnum("purpose", DECISION_PURPOSES),
+    /**
+     * The drill this decision belongs to, and the reason the column above can be checked.
+     *
+     * `purpose` is the one atom field the server cannot re-derive -- the phase comes back from the
+     * FEN and the legal-move count from the position, precisely so a wrong label cannot bias what
+     * the record is divided by, and "why was this position here" has no such re-derivation. This
+     * is the binding that replaces the trust: `commitDecision` resolves it against a drill that was
+     * stored BEFORE the decision was made (R5) and requires that drill to contain this position.
+     *
+     * NULLABLE, AND NULL IS NOT A DEFAULT. It is null on every purpose but `drill`, and on every
+     * row written before this column existed. No foreign key: the drills live in `prospective_drills`
+     * and this record is append-only, so a constraint that could refuse a write is a constraint that
+     * could lose a decision. The check is at the boundary, where it can produce a sentence.
+     */
+    drillId: varchar("drill_id", { length: 64 }),
     secondsTaken: int("seconds_taken").notNull(),
     chosenMove: varchar("chosen_move", { length: 6 }).notNull(),
     candidateMovesConsidered: json("candidate_moves_considered").$type<string[]>().notNull(),
@@ -111,6 +127,15 @@ export const decisions = mysqlTable(
      * assert that someone recorded it, and nobody did.
      */
     confidenceScale: int("confidence_scale"),
+    /**
+     * WHICH GRID that scale was. Nullable, and null means version 1.
+     *
+     * The level count is not the scale: seven levels could be any seven probabilities, and
+     * `shared/confidence.ts` names two open questions that would move them while leaving the
+     * count at seven. A stored `level 6, scale 7` would then assert a value the player never
+     * said, with nothing in the row able to tell.
+     */
+    confidenceGridVersion: int("confidence_grid_version"),
     /**
      * Which arm of the counterfactual probe this decision was randomised into.
      *
@@ -183,6 +208,16 @@ export const decisionReveals = mysqlTable("decision_reveals", {
   engineBestMove: varchar("engine_best_move", { length: 6 }).notNull(),
   engineDepth: int("engine_depth").notNull(),
   engineSource: mysqlEnum("engine_source", ENGINE_SOURCES).notNull(),
+  /**
+   * WHICH BUILD OF THAT SOURCE. Nullable, and null is never backfilled to a build.
+   *
+   * `engine_source` names a family and the family is not the instrument: `docs/ACTION_PLAN.md` B1
+   * measured 13.61% of decisions flipping verdict between two engines that would both have written
+   * `local_sf18` here. A row from before this column existed could have come from either, so there
+   * is no value that would be true to write into it -- see `shared/decision-atom.ts` on the field,
+   * and `scoreDecisions` for what a reading does with the absence.
+   */
+  engineBuild: varchar("engine_build", { length: 64 }),
   cpLoss: int("cp_loss").notNull(),
   revealedAt: timestamp("revealed_at").defaultNow().notNull(),
 });
@@ -476,6 +511,45 @@ export const blitzGames = mysqlTable("blitz_games", {
   analysisTiming: mysqlEnum("analysis_timing", ANALYSIS_TIMINGS).notNull(),
   samplingPolicyVersion: int("sampling_policy_version").notNull(),
   askRate: double("ask_rate").notNull(),
+  /*
+   * WHETHER THE ENGINE HAS SCORED THIS GAME, AS A STATE RATHER THAN AS AN ABSENCE.
+   *
+   * The game is now written BEFORE the analysis runs, so that a tab closed mid-analysis cannot
+   * lose it. That makes a null `cp_loss` ambiguous for the first time: it used to mean only "the
+   * evaluator could not answer for one of the two positions", and it would now ALSO mean "nothing
+   * has asked it yet". Those are different facts about a decision and must not share an encoding.
+   *
+   * `legacy-unknown` IS A SEPARATE VALUE AND IS NEVER BACKFILLED TO `complete`. Rows written
+   * before this column existed were in fact analysed before they were stored -- but nothing
+   * recorded that, and writing `complete` into them would assert a fact this build did not
+   * observe. It is the argument `measurement-protocol.ts` makes for its own legacy key, and
+   * `claim-grade-protocol.ts` for `LEGACY_VALIDATION`.
+   */
+  analysisState: mysqlEnum("analysis_state", BLITZ_ANALYSIS_STATES).notNull(),
+  /** When the engine finished. Null wherever the state is not `complete`. */
+  analysedAt: timestamp("analysed_at"),
+  /*
+   * WHAT SCORED IT. Null wherever the state is not `complete`.
+   *
+   * `docs/ACTION_PLAN.md` B1 measured 13.61% of decisions flipping verdict between the engine that
+   * produced this project's published numbers and the engine it ships. A record that cannot say
+   * which engine scored it cannot be pooled across a version bump, and nothing else here records
+   * one.
+   */
+  analysisEngine: varchar("analysis_engine", { length: 64 }),
+  analysisEngineBuild: varchar("analysis_engine_build", { length: 64 }),
+  analysisDepth: int("analysis_depth"),
+  /*
+   * WHO THE PLAYER WAS PLAYING. Null only on rows written before this was recorded.
+   *
+   * Without it every blitz claim is a claim about playing one colour against whatever the build
+   * used that week, stated as a claim about the player. If the opponent's search policy changes
+   * between builds the population changes, and nothing recorded that it did.
+   */
+  opponentKind: varchar("opponent_kind", { length: 32 }),
+  opponentEngine: varchar("opponent_engine", { length: 64 }),
+  opponentEngineBuild: varchar("opponent_engine_build", { length: 64 }),
+  opponentDepth: int("opponent_depth"),
 });
 export type BlitzGameRow = typeof blitzGames.$inferSelect;
 
@@ -504,6 +578,18 @@ export const blitzDecisions = mysqlTable(
      * about the search, not a cp-loss of zero.
      */
     confidence: int("confidence"),
+    /*
+     * WHAT THAT CONFIDENCE WAS STATED ON. Added after `decisions` had carried both for a release,
+     * which is exactly how long this table stored a bare integer that only the shipped constant
+     * could interpret.
+     *
+     * NULLABLE AND NEVER BACKFILLED, the same rule as `confidence_grid_version` on `decisions`: a
+     * row written before the column existed is dated by the absence, and writing 7 into it would
+     * assert that this build observed the scale, which it did not. `blitzConfidenceOf` is the one
+     * reader allowed to date such a row, and it reports that it did.
+     */
+    confidenceScale: int("confidence_scale"),
+    confidenceGridVersion: int("confidence_grid_version"),
     instrumentationLatencyMs: int("instrumentation_latency_ms"),
     cpLoss: int("cp_loss"),
     standingCp: int("standing_cp"),

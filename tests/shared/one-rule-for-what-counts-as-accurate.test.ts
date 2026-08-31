@@ -158,6 +158,7 @@ describe("what counts as accurate is one rule", () => {
         phase: "endgame",
         clockMsRemaining: 120_000,
         purpose: "play",
+        drillId: null,
         secondsTaken: 40,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],
@@ -177,6 +178,7 @@ describe("what counts as accurate is one rule", () => {
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: CP_LOSS,
       });
     };

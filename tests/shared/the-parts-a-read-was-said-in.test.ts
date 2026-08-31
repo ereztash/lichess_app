@@ -13,6 +13,7 @@
 import { describe, expect, it } from "vitest";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 import { MemoryRecordStore } from "../../server/record";
+import { registerDrill } from "../fixtures/registered-drill";
 import { commitDecision, type CommitEvent } from "@shared/record-service";
 import { buildCommitEvent, emptyDraft, type PositionUnderDecision } from "@/lib/decision-session";
 import { composeStatement } from "@/lib/read-options";
@@ -95,6 +96,12 @@ describe("the parts survive the write", () => {
   const stored = async (over: Partial<CommitEvent> = {}) => {
     const store = new MemoryRecordStore();
     const committed = { ...event(), ...over } as CommitEvent;
+    /*
+     * The fixture's purpose is `drill` (see the note on POSITION above), and the service now
+     * resolves that label against a drill holding this position rather than taking it on trust.
+     * Registering one keeps these cases about the read parts, which is what they are for.
+     */
+    committed.drill_id = await registerDrill(store, [committed.entry_state.fen]);
     await commitDecision(store, committed);
     return store.getAtom(committed.decision_id);
   };

@@ -2318,3 +2318,38 @@ Stated here because a specification that lists only its strengths is advertising
   very often are not.
 - **The elicitation is a move plus a level.** A stronger design elicits an interval on the cost
   itself; this one does not.
+
+## 7. The constants this document is held to
+
+**Why this section exists.** Master plan §30 asks that every significant algorithm carry an
+executable specification or a test holding the document and the code together. It names six:
+confidence, accuracy, learning success, validation protocol, blitz sampling, and the evidence
+lifecycle. Four of the six were described in prose here and in `VERIFIED_LEARNING.md` with numbers
+that nothing checked, and one of those documents had drifted from the code in four separate claims
+inside a single paragraph — see the note in `VERIFIED_LEARNING.md`.
+
+`tests/shared/what-the-documents-still-say.test.ts` now scans every `docs/*.md` for a
+``` `NAME = value` ``` citation and refuses any whose value differs from what this build ships. The
+table below is therefore not a summary: it is the surface the gate holds, and a constant listed here
+with the wrong number fails the build.
+
+| algorithm | constant | value | where it lives |
+| --- | --- | --- | --- |
+| confidence | `CONFIDENCE_LEVELS = 7` | how many buttons a stated level was one of | `shared/confidence.ts` |
+| confidence | `CONFIDENCE_GRID_VERSION = 1` | which published grid those levels assert | `shared/confidence.ts` |
+| accuracy | `ACCURATE_CP_LOSS = 30` | the abandoned raw-centipawn rule, kept because `ACCURATE_WIN_PROBABILITY_LOSS` is derived from it at its own reference | `shared/detector.ts` |
+| blitz sampling | `BLITZ_ASK_RATE = 0.15` | the probability the instrument asks about a decision | `shared/blitz-instrument.ts` |
+| learning success | `TRANSFER_MINIMUM_SUCCESSES = 2` | successes needed for a transfer test to be `observed` | `shared/learning-record.ts` |
+| learning success | `TRANSFER_POSITION_COUNT = 3` | positions in one transfer test | `shared/learning-record.ts` |
+| the detector | `MIN_BUCKET_N = 30` | the smallest side a split may be read from | `shared/detector.ts` |
+| the detector | `SEPARABILITY_K = 3.75` | standard errors a bucket must sit from the rest | `shared/detector.ts` |
+| attribution | `ATTRIBUTION_K = 2.5` | the same test one level down, on a claim's own subgroups | `shared/discovery/attribution.ts` |
+
+**What the gate does not do, said plainly.** It checks numbers, not sentences. "Application is
+reported" was false in `VERIFIED_LEARNING.md` for as long as that document existed, and no scan
+would ever have caught it — that class of drift is asserted one claim at a time in the same test
+file, against the code path that decides it. And a document may still cite a number this build does
+not ship: `MIN_GAP_DIFFERENCE = 0.45` is a threshold the detector abandoned and is discussed above
+in the past tense. The gate's registry is a list rather than "every exported constant" for exactly
+that reason, and it also requires every entry in the list to be cited somewhere — an entry nothing
+cites protects nothing and would sit here looking like coverage.

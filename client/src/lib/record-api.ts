@@ -31,13 +31,15 @@ import type {
   ReflectionDraft,
 } from "@shared/learning-record";
 
-const LOCAL_KEYS = {
+export const LOCAL_KEYS = {
   count: ["local-record", "count"] as const,
   claim: ["local-record", "claim"] as const,
   reading: ["local-record", "reading"] as const,
   learningRules: ["local-record", "learning-rules"] as const,
   hypothesis: ["local-record", "hypothesis"] as const,
   importReading: ["local-record", "import-reading"] as const,
+  /* Used by `blitz-reading-api.ts`, which is deliberately not in this module -- see its header. */
+  blitzReading: ["local-record", "blitz-reading"] as const,
 };
 
 /**
@@ -230,7 +232,7 @@ export function useRecordMode(): {
  * on every render -- and this is a pointer, not a fetch: nothing is written and nothing is read
  * until a hook below asks.
  */
-function useStore(): LocalRecordStore {
+export function useStore(): LocalRecordStore {
   const { user } = useAuth();
   setLocalRecordIdentity(user?.openId ?? null);
   return useMemo(() => new LocalRecordStore(), []);
@@ -527,6 +529,22 @@ export function useSaveBlitzGame() {
   return {
     mutateAsync: async (input: StoredBlitzRecord) =>
       !local ? await server.mutateAsync(input) : await service.saveBlitzGame(store, input),
+  };
+}
+
+/**
+ * The second write: the engine's verdict over a game that is already stored.
+ *
+ * Separate from `useSaveBlitzGame` because they are different operations with different
+ * guarantees -- the first refuses a repeat, the second refuses anything that is not pending.
+ */
+export function useAttachBlitzAnalysis() {
+  const { local } = useRecordMode();
+  const store = useStore();
+  const server = trpc.record.attachBlitzAnalysis.useMutation();
+  return {
+    mutateAsync: async (input: StoredBlitzRecord) =>
+      !local ? await server.mutateAsync(input) : await service.attachBlitzAnalysis(store, input),
   };
 }
 

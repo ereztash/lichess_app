@@ -16,7 +16,7 @@ import { ImportDiagnosticPanel } from "./ImportDiagnostic";
 import { PreregisterBridge } from "./PreregisterBridge";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
-import { readableFailureText } from "@/lib/commit-error";
+import { readableFailure } from "@/lib/commit-error";
 
 type Props = {
   onLoad: (game: ImportedGame) => void;
@@ -111,7 +111,19 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<ImportRunProgress | null>(null);
   const [diagnostic, setDiagnostic] = useState<ImportDiagnostic | null>(null);
-  const [scanFailure, setScanFailure] = useState<string | null>(null);
+  /**
+   * The sentence, and the text that was not written for the player.
+   *
+   * IT USED TO BE A STRING, AND THE OTHER HALF WENT TO `console.error`. That was the right call
+   * when it was made -- English internals must not be the first thing a Hebrew reader sees -- but
+   * it makes this screen's one failure state unreportable: a player who sees "the scan stopped
+   * before it measured anything" has no way to say WHICH stop it was, and asking them to open a
+   * console is asking them to do the diagnosis.
+   *
+   * `readableFailure` already returns both. The commit path renders the detail behind a closed
+   * disclosure for exactly this reason; this is the same treatment on the screen that needed it.
+   */
+  const [scanFailure, setScanFailure] = useState<{ message: string; detail?: string } | null>(null);
   /** Whether the reading on screen was persisted. False for a scan the player stopped. */
   const [kept, setKept] = useState(true);
   const abort = useRef<AbortController | null>(null);
@@ -170,7 +182,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
     } catch (error) {
       // R2: a scan that did not finish must not leave a reading on screen that looks finished.
       setDiagnostic(null);
-      setScanFailure(readableFailureText(error, "הסריקה נעצרה לפני שהספיקה למדוד משהו."));
+      setScanFailure(readableFailure(error, "הסריקה נעצרה לפני שהספיקה למדוד משהו."));
     } finally {
       setProgress(null);
       abort.current = null;
@@ -301,7 +313,22 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
         </div>
       )}
 
-      {scanFailure && <p className="import-failure">{scanFailure}</p>}
+      {scanFailure && (
+        <div className="import-failure">
+          <p>{scanFailure.message}</p>
+          {/*
+            * CLOSED, AND PRESENT. Shut, it is not the first thing anybody reads; open, it is the
+            * whole of what a bug report needs. The alternative in place until now was a console
+            * line, which is a report only from someone who already knows to look for one.
+            */}
+          {scanFailure.detail && (
+            <details>
+              <summary>מה בדיוק נעצר</summary>
+              <code>{scanFailure.detail}</code>
+            </details>
+          )}
+        </div>
+      )}
 
       {diagnostic && (
         <ImportDiagnosticPanel

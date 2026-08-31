@@ -62,6 +62,7 @@ async function record(
       clock_ms_remaining: null,
     },
     purpose: "play",
+    drill_id: null,
     known: options.confidence === null ? "" : "המרכז פתוח",
     unknown: options.confidence === null ? "" : "לא יודע איך הוא יענה",
     known_parts: null,
@@ -88,6 +89,7 @@ async function record(
       engine_best_move: "e2e4",
       engine_depth: 14,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       cp_loss: 0,
     });
   }
@@ -179,6 +181,7 @@ describe("the sentence the player reads carries the same distinction", () => {
       scored: 0,
       awaitingReveal: 0,
       withoutConfidence: 4,
+      withoutInstrument: 0,
       readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60,

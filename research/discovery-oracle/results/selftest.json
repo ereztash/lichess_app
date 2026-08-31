@@ -1,0 +1,694 @@
+{
+  "max_z": 3.5,
+  "games_per_record": 120,
+  "records_per_world": 40,
+  "seed": 20260830,
+  "nulls": [
+    {
+      "world": "NULL-1-independent",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": -0.0009537056911461727,
+      "standard_error": 0.004351466664718806,
+      "z": -0.2191687917268698,
+      "gap_icc_between_games": 0.0014272448607473714,
+      "passes": true
+    },
+    {
+      "world": "NULL-1-independent",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.006882703419641094,
+      "standard_error": 0.0061812277008632946,
+      "z": -1.113484853288907,
+      "gap_icc_between_games": 0.0014272448607473714,
+      "passes": true
+    },
+    {
+      "world": "NULL-1-independent",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": -0.009143418990221534,
+      "standard_error": 0.004428167021409822,
+      "z": -2.064831553555649,
+      "gap_icc_between_games": 0.0014272448607473714,
+      "passes": true
+    },
+    {
+      "world": "NULL-1-independent",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": 0.005323953195432473,
+      "standard_error": 0.004545651441892317,
+      "z": 1.1712189690497157,
+      "gap_icc_between_games": 0.0014272448607473714,
+      "passes": true
+    },
+    {
+      "world": "NULL-1-independent",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": 0.001288481207084441,
+      "standard_error": 0.004720780119219084,
+      "z": 0.27293819549841325,
+      "gap_icc_between_games": 0.0014272448607473714,
+      "passes": true
+    },
+    {
+      "world": "NULL-1-independent",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": -0.0013124081509946774,
+      "standard_error": 0.010102382126908328,
+      "z": -0.12991076109653346,
+      "gap_icc_between_games": 0.0014272448607473714,
+      "passes": true
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": 0.006932842148345939,
+      "standard_error": 0.004406385873187791,
+      "z": 1.5733624670801671,
+      "gap_icc_between_games": 0.013981480970303661,
+      "passes": true
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": 0.0034881543889184697,
+      "standard_error": 0.0048831240268263935,
+      "z": 0.7143284441999863,
+      "gap_icc_between_games": 0.013981480970303661,
+      "passes": true
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": -0.0029236244390835773,
+      "standard_error": 0.004081034018755744,
+      "z": -0.7163930576533036,
+      "gap_icc_between_games": 0.013981480970303661,
+      "passes": true
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": 0.003992846698001584,
+      "standard_error": 0.0031707024622860203,
+      "z": 1.2592940351529587,
+      "gap_icc_between_games": 0.013981480970303661,
+      "passes": true
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.002266806934552781,
+      "standard_error": 0.003444683795110286,
+      "z": -0.6580595112301757,
+      "gap_icc_between_games": 0.013981480970303661,
+      "passes": true
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": -0.005906588742370242,
+      "standard_error": 0.008249932309228226,
+      "z": -0.7159560249680155,
+      "gap_icc_between_games": 0.013981480970303661,
+      "passes": true
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": 0.0021136300176163372,
+      "standard_error": 0.003144796448926019,
+      "z": 0.6721039189478112,
+      "gap_icc_between_games": 0.016285754382298213,
+      "passes": true
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.010900890820685178,
+      "standard_error": 0.004824505981237772,
+      "z": -2.2594833259774405,
+      "gap_icc_between_games": 0.016285754382298213,
+      "passes": true
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": 0.00033826630521521794,
+      "standard_error": 0.004003294050491981,
+      "z": 0.08449699196431673,
+      "gap_icc_between_games": 0.016285754382298213,
+      "passes": true
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": -0.0001470791507768493,
+      "standard_error": 0.0031098528424479423,
+      "z": -0.04729456930221654,
+      "gap_icc_between_games": 0.016285754382298213,
+      "passes": true
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.00013501804139858797,
+      "standard_error": 0.003881611854191921,
+      "z": -0.03478401408239109,
+      "gap_icc_between_games": 0.016285754382298213,
+      "passes": true
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": 0.018019207605462783,
+      "standard_error": 0.006027421357320021,
+      "z": 2.989538400792123,
+      "gap_icc_between_games": 0.016285754382298213,
+      "passes": true
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": 0.005926926600783734,
+      "standard_error": 0.0044322991157703835,
+      "z": 1.337212684878459,
+      "gap_icc_between_games": 0.016805365818428675,
+      "passes": true
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.004247978996782545,
+      "standard_error": 0.004526733577552816,
+      "z": -0.938420369567902,
+      "gap_icc_between_games": 0.016805365818428675,
+      "passes": true
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": -0.002146262826480676,
+      "standard_error": 0.004278219192826796,
+      "z": -0.5016720111207186,
+      "gap_icc_between_games": 0.016805365818428675,
+      "passes": true
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": 0.0008251122742395395,
+      "standard_error": 0.004660763532914996,
+      "z": 0.17703371312714655,
+      "gap_icc_between_games": 0.016805365818428675,
+      "passes": true
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": 0.0008801972167861328,
+      "standard_error": 0.0046437355966246745,
+      "z": 0.18954507604306953,
+      "gap_icc_between_games": 0.016805365818428675,
+      "passes": true
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": 0.010086335525525982,
+      "standard_error": 0.00741049044188593,
+      "z": 1.361088797647658,
+      "gap_icc_between_games": 0.016805365818428675,
+      "passes": true
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": -0.0010500673664415095,
+      "standard_error": 0.005539681826766582,
+      "z": -0.18955373237643433,
+      "gap_icc_between_games": 0.015815077917135274,
+      "passes": true
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.0004549308495462895,
+      "standard_error": 0.005125463402679637,
+      "z": -0.08875896944429408,
+      "gap_icc_between_games": 0.015815077917135274,
+      "passes": true
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": -0.0018922277208172438,
+      "standard_error": 0.004046528140610904,
+      "z": -0.46761758600585795,
+      "gap_icc_between_games": 0.015815077917135274,
+      "passes": true
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": 0.002128400476501857,
+      "standard_error": 0.004426292758078803,
+      "z": 0.4808539770933887,
+      "gap_icc_between_games": 0.015815077917135274,
+      "passes": true
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.0009904707488642694,
+      "standard_error": 0.004766367407435635,
+      "z": -0.20780411248178515,
+      "gap_icc_between_games": 0.015815077917135274,
+      "passes": true
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": 0.005200087376982236,
+      "standard_error": 0.009739682554301536,
+      "z": 0.5339072755185039,
+      "gap_icc_between_games": 0.015815077917135274,
+      "passes": true
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": -0.004491058442527231,
+      "standard_error": 0.004788465646140538,
+      "z": -0.9378909183878108,
+      "gap_icc_between_games": 0.01556454375310531,
+      "passes": true
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": 0.0007994764028858362,
+      "standard_error": 0.00438388764287118,
+      "z": 0.1823669920432148,
+      "gap_icc_between_games": 0.01556454375310531,
+      "passes": true
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": 0.0017059991926471813,
+      "standard_error": 0.004498671139620158,
+      "z": 0.37922291710152123,
+      "gap_icc_between_games": 0.01556454375310531,
+      "passes": true
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": 0.0019599548607256143,
+      "standard_error": 0.003995089915710286,
+      "z": 0.4905909258808646,
+      "gap_icc_between_games": 0.01556454375310531,
+      "passes": true
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.003888255842585098,
+      "standard_error": 0.0045901899385985025,
+      "z": -0.8470795096928555,
+      "gap_icc_between_games": 0.01556454375310531,
+      "passes": true
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": -0.013669496053085112,
+      "standard_error": 0.007949381538373143,
+      "z": -1.7195672376649571,
+      "gap_icc_between_games": 0.01556454375310531,
+      "passes": true
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": 0.0034282883757527196,
+      "standard_error": 0.005207256962971116,
+      "z": 0.6583674284044998,
+      "gap_icc_between_games": 0.015817568673701366,
+      "passes": true
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.004392872966450999,
+      "standard_error": 0.004646582293754112,
+      "z": -0.9453987229185317,
+      "gap_icc_between_games": 0.015817568673701366,
+      "passes": true
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": 0.003483805369186295,
+      "standard_error": 0.005292070314368295,
+      "z": 0.6583067046043493,
+      "gap_icc_between_games": 0.015817568673701366,
+      "passes": true
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": -0.0011747748783688839,
+      "standard_error": 0.00393056691265516,
+      "z": -0.2988817909667145,
+      "gap_icc_between_games": 0.015817568673701366,
+      "passes": true
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.0015938987476347602,
+      "standard_error": 0.004549309983225764,
+      "z": -0.35036054995412286,
+      "gap_icc_between_games": 0.015817568673701366,
+      "passes": true
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": 0.004491141053197268,
+      "standard_error": 0.008558231115471176,
+      "z": 0.5247744531084689,
+      "gap_icc_between_games": 0.015817568673701366,
+      "passes": true
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": -0.0015286072870483516,
+      "standard_error": 0.006371773507423397,
+      "z": -0.23990295406254736,
+      "gap_icc_between_games": 0.015934603067723624,
+      "passes": true
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.00016165653093360154,
+      "standard_error": 0.0055283121748608485,
+      "z": -0.02924157063139629,
+      "gap_icc_between_games": 0.015934603067723624,
+      "passes": true
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": -0.002428681250387718,
+      "standard_error": 0.004912447587935034,
+      "z": -0.4943933155343085,
+      "gap_icc_between_games": 0.015934603067723624,
+      "passes": true
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": -0.0023566980971707575,
+      "standard_error": 0.0037757833621539054,
+      "z": -0.6241613649747036,
+      "gap_icc_between_games": 0.015934603067723624,
+      "passes": true
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": 0.005191234302736447,
+      "standard_error": 0.004532672151599952,
+      "z": 1.1452922534677552,
+      "gap_icc_between_games": 0.015934603067723624,
+      "passes": true
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": -0.008663868782936988,
+      "standard_error": 0.008162210300555911,
+      "z": -1.0614611072134357,
+      "gap_icc_between_games": 0.015934603067723624,
+      "passes": true
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": 0.0016387665892207818,
+      "standard_error": 0.004233113088446089,
+      "z": 0.38713035890622705,
+      "gap_icc_between_games": 0.016581117213654108,
+      "passes": true
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": -0.0019923880917984303,
+      "standard_error": 0.004869009614636109,
+      "z": -0.4091978142350277,
+      "gap_icc_between_games": 0.016581117213654108,
+      "passes": true
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": -0.005690109896544048,
+      "standard_error": 0.0049283887434989765,
+      "z": -1.1545578469332103,
+      "gap_icc_between_games": 0.016581117213654108,
+      "passes": true
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": 0.007652958975327069,
+      "standard_error": 0.003919165424866263,
+      "z": 1.9527011865257555,
+      "gap_icc_between_games": 0.016581117213654108,
+      "passes": true
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.004500535489198448,
+      "standard_error": 0.0043364228278637545,
+      "z": -1.0378451705124752,
+      "gap_icc_between_games": 0.016581117213654108,
+      "passes": true
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": 0.00800405322634559,
+      "standard_error": 0.006819538465340959,
+      "z": 1.1736942708109512,
+      "gap_icc_between_games": 0.016581117213654108,
+      "passes": true
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "bucket": "clock-under-1m",
+      "records": 40,
+      "mean_gap_difference": 0.006087606675047055,
+      "standard_error": 0.004165046068196113,
+      "z": 1.4615940797225337,
+      "gap_icc_between_games": 0.01434225964211638,
+      "passes": true
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "bucket": "fast-under-45s",
+      "records": 40,
+      "mean_gap_difference": 0.0024838790142893224,
+      "standard_error": 0.004144511896036908,
+      "z": 0.5993176220979057,
+      "gap_icc_between_games": 0.01434225964211638,
+      "passes": true
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "bucket": "phase-endgame",
+      "records": 40,
+      "mean_gap_difference": 0.005653604215528678,
+      "standard_error": 0.004477141658281759,
+      "z": 1.2627709031879109,
+      "gap_icc_between_games": 0.01434225964211638,
+      "passes": true
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "bucket": "phase-middlegame",
+      "records": 40,
+      "mean_gap_difference": -0.0038564625449412247,
+      "standard_error": 0.0030925441136061605,
+      "z": -1.2470194129079932,
+      "gap_icc_between_games": 0.01434225964211638,
+      "passes": true
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "bucket": "phase-opening",
+      "records": 40,
+      "mean_gap_difference": -0.00015302741256599804,
+      "standard_error": 0.00319457778498965,
+      "z": -0.047902233993182865,
+      "gap_icc_between_games": 0.01434225964211638,
+      "passes": true
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "bucket": "slow-over-2m",
+      "records": 40,
+      "mean_gap_difference": 0.002487684028935293,
+      "standard_error": 0.008655368219428678,
+      "z": 0.2874151585314645,
+      "gap_icc_between_games": 0.01434225964211638,
+      "passes": true
+    }
+  ],
+  "plants": [
+    {
+      "plant": "clean-middlegame",
+      "delta": 0.18,
+      "realised": 0.17439398944227655,
+      "share_inside": 0.48645187562425773,
+      "expressible_as": "phase-middlegame",
+      "passes": true
+    },
+    {
+      "plant": "weak-middlegame",
+      "delta": 0.07,
+      "realised": 0.07160890331731726,
+      "share_inside": 0.4786140694880214,
+      "expressible_as": "phase-middlegame",
+      "passes": true
+    },
+    {
+      "plant": "clean-fast",
+      "delta": 0.18,
+      "realised": 0.15825967146263356,
+      "share_inside": 0.7808939021560011,
+      "expressible_as": "fast-under-45s",
+      "passes": true
+    },
+    {
+      "plant": "weak-fast",
+      "delta": 0.07,
+      "realised": 0.05841873747285822,
+      "share_inside": 0.7946250449674948,
+      "expressible_as": "fast-under-45s",
+      "passes": true
+    },
+    {
+      "plant": "interaction-only",
+      "delta": 0.22,
+      "realised": 0.17798652150951477,
+      "share_inside": 0.19255191949994155,
+      "expressible_as": null,
+      "passes": true
+    },
+    {
+      "plant": "sparse-low-clock",
+      "delta": 0.22,
+      "realised": 0.19712577810715987,
+      "share_inside": 0.31310654898244783,
+      "expressible_as": "clock-under-1m",
+      "passes": true
+    },
+    {
+      "plant": "one-game-only",
+      "delta": 0.45,
+      "realised": 0.2167235731057564,
+      "share_inside": 0.012703965034941846,
+      "expressible_as": null,
+      "passes": false
+    },
+    {
+      "plant": "every-game-first-moves",
+      "delta": 0.2,
+      "realised": 0.17111216856912248,
+      "share_inside": 0.15310033664730507,
+      "expressible_as": null,
+      "passes": true
+    },
+    {
+      "plant": "proxy-correlated",
+      "delta": 0.2,
+      "realised": 0.1694386268192167,
+      "share_inside": 0.767836335215457,
+      "expressible_as": null,
+      "passes": true
+    }
+  ],
+  "null_leaks": [],
+  "plants_off_target": [
+    {
+      "plant": "one-game-only",
+      "delta": 0.45,
+      "realised": 0.2167235731057564,
+      "share_inside": 0.012703965034941846,
+      "expressible_as": null,
+      "passes": false
+    }
+  ],
+  "passed": false
+}

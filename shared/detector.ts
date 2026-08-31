@@ -340,12 +340,40 @@ export function summarise(decisions: ScoredDecision[]): CalibrationSummary {
   const gap = meanConfidence - accuracyRate;
   // Bessel-corrected: this is an estimate of the population variance from a sample, and at
   // n = MIN_BUCKET_N the difference between /n and /(n-1) is not decorative.
-  const gapVariance =
+  const spread =
     decisions.length < 2
       ? 0
       : decisions.reduce((total, d) => total + (decisionGap(d) - gap) ** 2, 0) /
         (decisions.length - 1);
-  return { n: decisions.length, meanConfidence, accuracyRate, gap, gapVariance };
+  /*
+   * A SAMPLE THAT DOES NOT VARY HAS VARIANCE ZERO, AND THE ARITHMETIC DOES NOT AGREE.
+   *
+   * `gapDifferenceStandardError` refuses a side whose `gapVariance <= 0`, and says at length why:
+   * a degenerate bucket -- every decision the same stated confidence and the same outcome -- would
+   * otherwise be treated as though its gap were known exactly, which by its own measurement fires
+   * on up to 13% of records against this product's 2% ceiling. That guard was unreachable.
+   *
+   * MEASURED, not reasoned about: sixty decisions all at confidence 0.8 and all accurate give a
+   * `gapVariance` of **6.1e-31**, not 0. The mean of sixty doubles that are each exactly 0.8 is
+   * 0.7999999999999993, so every `decisionGap(d) - gap` is about 7e-16 instead of 0, and squaring
+   * and averaging leaves residue. `<= 0` is a test for an exact zero that floating-point summation
+   * essentially never produces, so the whole guard was dead code and the case it was written for
+   * sailed through it.
+   *
+   * THE FIX IS STRUCTURAL RATHER THAN AN EPSILON. "Did this sample vary at all" has an exact
+   * answer -- are all the gaps the same number -- and asking it that way needs no tolerance to
+   * choose and cannot drift with the scale of the values. A tolerance would also be a second
+   * threshold nobody had measured, in a file where every threshold carries its measurement.
+   */
+  const first = decisionGap(decisions[0]);
+  const varies = decisions.some((d) => decisionGap(d) !== first);
+  return {
+    n: decisions.length,
+    meanConfidence,
+    accuracyRate,
+    gap,
+    gapVariance: varies ? spread : 0,
+  };
 }
 
 /**

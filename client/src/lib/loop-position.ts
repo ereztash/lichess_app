@@ -74,6 +74,19 @@ export interface LoopInputs {
   awaitingReveal: number;
   withoutConfidence: number;
   /**
+   * Revealed decisions whose verdict names no engine, so nothing can read it.
+   *
+   * A THIRD REASON, AND IT IS NOT A WAIT. `awaitingReveal` becomes scoreable when the engine
+   * speaks; `withoutConfidence` never will, by design, and the player has lost nothing.
+   * These are decisions that were fully measured and cannot be used, because `engine_source`
+   * records a family and two engines in one family disagree about 13.61% of verdicts.
+   *
+   * ON EVERY RECORD WRITTEN BEFORE THE BUILD WAS STORED THIS IS THE WHOLE OF IT, which is exactly
+   * why the strip has to say so out loud. A screen that showed "0 נמדדו" with no reason would be
+   * telling a player who has played for weeks that they have not played.
+   */
+  withoutInstrument: number;
+  /**
    * Decisions the record holds that this reading does not cover, because another one does.
    *
    * A bank answer, a drill, a transfer check, an imported position. The evidence policy files
@@ -189,6 +202,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     narrowedTo,
     awaitingReveal: awaiting,
     withoutConfidence,
+    withoutInstrument,
     readElsewhere,
   } = inputs;
 
@@ -263,6 +277,16 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
       withoutConfidence > 0
         ? ` ${withoutConfidence} נרשמו בעמדות שבהן לא נשאלה שאלת הביטחון, ולכן אינן נספרות כאן.`
         : "";
+    /*
+     * NOT A WAIT AND NOT A DESIGN, so it gets its own sentence rather than a share of one above.
+     * It says what happened and what fixes it, because unlike the other two this one does resolve:
+     * every decision taken from here on records its engine.
+     */
+    const unreadable =
+      withoutInstrument > 0
+        ? ` ${withoutInstrument} נמדדו לפני שהרשומה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן — ` +
+          `שני מנועים חולקים על 13.61% מהפסקים. החלטות חדשות שומרות את זה.`
+        : "";
     /* Not a loss and not a wait: they are counted, under another heading, with their own
        denominator. Saying nothing about them leaves a hole in the arithmetic on screen. */
     const elsewhere =
@@ -278,7 +302,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        */
       return {
         step: "record",
-        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}${passed}${elsewhere}`,
+        headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}${passed}${unreadable}${elsewhere}`,
         basis: `${scored} החלטות שנמדדו ברשומה · החיפוש מצומצם`,
         /*
          * Nowhere to send anyone. An import has already narrowed the search, so the one thing
@@ -304,7 +328,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     return {
       step: "record",
       headline:
-        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed}${elsewhere} ` +
+        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed}${unreadable}${elsewhere} ` +
         `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם סוג אחד שנבדל מהשאר.`,
       basis: `${scored} נמדדו מתוך ${recorded} שנרשמו`,
       /*

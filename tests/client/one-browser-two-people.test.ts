@@ -219,6 +219,7 @@ describe("every mutation is taken under a cross-tab lock", () => {
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: 0,
       });
       await store.recordFeedback("a1", { agreed: true, note: null } as never);

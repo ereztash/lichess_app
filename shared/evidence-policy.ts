@@ -282,6 +282,19 @@ export interface StratumKey {
    * with either mode would assert a condition nobody wrote down.
    */
   revealTiming: RevealTiming | typeof LEGACY_CONTEXT;
+  /**
+   * WHICH BUILD OF THE ENGINE PASSED THE VERDICT, or `legacy` while there is no verdict yet.
+   *
+   * `engine_source` is not this. It names a family -- `local_sf18` or `lichess_cloud` -- and
+   * `docs/ACTION_PLAN.md` B1 measured a change WITHIN the local family: 13.61% of decisions flipped
+   * verdict between two engines that would both have written `local_sf18`. Two rows agreeing on the
+   * source are not two rows from one instrument.
+   *
+   * A REVEALED ROW THAT NAMES NO BUILD NEVER REACHES THIS KEY. It is refused outright by
+   * `readableInstrument` below, so `legacy` in this slot means one thing only: nothing has scored
+   * this decision yet. That keeps it out of every population without inventing a build for it.
+   */
+  engineBuild: string | typeof LEGACY_CONTEXT;
 }
 
 /** One stratum: a set of decisions that share the conditions that make them comparable. */
@@ -291,13 +304,37 @@ export interface Stratum extends EvidenceSet {
 
 /** A stratum key as a single string, so it can index a map and appear in a message. */
 export function stratumId(key: StratumKey): string {
-  return `${key.protocol}/${key.revealTiming}`;
+  /*
+   * THE BUILD IS PERCENT-ENCODED AND THE OTHER TWO ARE NOT, which is not an inconsistency. Protocol
+   * and reveal timing are closed enums, so no value of either can contain the separator. The build
+   * is free text out of a record, and two regimes sharing an id would be silent pooling arriving
+   * through the identifier of the module that exists to prevent it.
+   */
+  return `${key.protocol}/${key.revealTiming}/${encodeURIComponent(key.engineBuild)}`;
+}
+
+/**
+ * Whether this row's verdict can be read at all.
+ *
+ * FALSE IS NOT "NOT ADMITTED HERE" -- IT IS "NOT READABLE ANYWHERE". Every other refusal in this
+ * module is a statement about one consumer: a drill decision is inadmissible to discovery and
+ * perfectly readable as history. This one is a property of the observation. A `cp_loss` whose
+ * engine nothing recorded is a number that any of several instruments could have produced, and
+ * B1's 13.61% says those instruments disagree about which decisions were mistakes. It cannot be
+ * compared to another row, and it cannot be compared to a threshold either.
+ *
+ * AN UNREVEALED ROW IS NOT UNREADABLE. It has no verdict yet and it may get one; that is a wait,
+ * not a defect, and `scoreDecisions` has counted it separately since it was written.
+ */
+export function readableInstrument(atom: DecisionAtom): boolean {
+  return !atom.result || atom.result.engine_build !== undefined;
 }
 
 function stratumKeyOf(atom: DecisionAtom): StratumKey {
   return {
     protocol: protocolOf(atom.measurement_protocol),
     revealTiming: atom.reveal_timing ?? LEGACY_CONTEXT,
+    engineBuild: atom.result?.engine_build ?? LEGACY_CONTEXT,
   };
 }
 
@@ -323,8 +360,29 @@ export function forDiscovery(
     stratum.ids.push(admitted.ids[index] ?? `decision-${index}`);
     byId.set(id, stratum);
   });
-  /* Largest first, so a caller that takes the head is taking the biggest comparable population. */
-  return [...byId.values()].sort((a, b) => b.atoms.length - a.atoms.length || stratumId(a.key).localeCompare(stratumId(b.key)));
+  /*
+   * ORDERED BY HOW MANY ROWS COULD EVER BE SCORED, not by how many rows each stratum holds, and the
+   * two differ by exactly one thing: a revealed decision whose verdict names no engine.
+   *
+   * A caller takes the head, and such a row can never contribute to a finding however many of them
+   * there are -- `scoreDecisions` refuses it, permanently. Counting it would let a pile of them win
+   * the contest and hand the detector a stratum that scores to nothing: a silence produced by the
+   * ordering rather than by the record, and the worst kind, because the record would contain a
+   * perfectly good population that was never looked at.
+   *
+   * AN UNREVEALED ROW STILL COUNTS, and that is deliberate. It has no verdict yet and it may get
+   * one, so it is a row this stratum is accumulating rather than a row it cannot use. Excluding it
+   * would make the choice alphabetical on a record where nothing has been revealed, which is every
+   * record on its first day.
+   *
+   * On a record with no unreadable rows -- every record written from here on -- this is the row
+   * count it replaces, so nothing about the existing ordering changes.
+   */
+  const scoreable = (s: Stratum) =>
+    s.atoms.reduce((n, a) => n + (readableInstrument(a) ? 1 : 0), 0);
+  return [...byId.values()].sort(
+    (a, b) => scoreable(b) - scoreable(a) || stratumId(a.key).localeCompare(stratumId(b.key)),
+  );
 }
 
 /**

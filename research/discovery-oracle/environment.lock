@@ -1,0 +1,23 @@
+# The environment every number in `results/` was produced under.
+#
+# WHY A LOCK AND NOT A REQUIREMENTS FILE. Every figure in `docs/discovery-v2/M0_AUDIT.md` is a rate
+# measured by a run, and a rate that cannot be reproduced is an anecdote. `statsmodels` is the
+# reference implementation this audit measures the product against; if its covariance code changes
+# between versions, the comparison changes with it and nobody would know.
+#
+#   python3 -m pip install -r environment.lock
+#
+# THE ORACLE'S OWN CODE IS NOT PINNED HERE -- it is in this repository, at the commit the results
+# were written. `results/*.json` carries the seed, the record counts and the world parameters, so a
+# run is reproducible from the file it produced.
+
+python==3.11.15
+numpy==1.26.4
+scipy==1.17.1
+pandas==3.0.5
+statsmodels==0.15.0
+
+# NOT USED BY THE M0 RUNS, and installed deliberately so that it is not a surprise later:
+# `pysubgroup` is the candidate-search oracle Phase B would use (D4). M0 gates Phase B, and M0 has
+# not passed, so nothing here imports it yet.
+pysubgroup==0.9.0

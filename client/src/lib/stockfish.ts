@@ -19,6 +19,34 @@ export * from "./engine-line";
 const ENGINE_JS = engineJsUrl;
 const ENGINE_WASM = engineWasmUrl;
 
+/**
+ * HOW LONG THE ENGINE GETS TO BECOME READY, and the old 15,000 was a download budget in disguise.
+ *
+ * MEASURED, on the built asset, in a real browser: once the bytes are local the engine answers
+ * `uciok` in **282 ms** -- 37 ms to fetch the wasm from disk, 5 ms to compile, the rest the
+ * loader's own start-up. So this bound is not about the engine being slow. It is almost entirely
+ * about the 7,295,411-byte wasm arriving, which is ~5.6 MB gzipped over the wire.
+ *
+ * 5.6 MB IN 15 SECONDS NEEDS 3.0 Mbit/s SUSTAINED, for the whole download, on the connection a
+ * player happens to have when they press the button. At 1 Mbit/s the same payload takes 45 s and at
+ * 500 kbit/s it takes 90 s -- both ordinary on mobile data -- and the old bound turned each of them
+ * into "the engine did not respond" rather than "this is still downloading".
+ *
+ * 60 s COVERS 1 Mbit/s WITH A LITTLE ROOM, and it is not the whole answer: the real repair is that
+ * failing is now recoverable (see `fail`). A bound is still wanted, because an engine that never
+ * arrives has to end in a sentence rather than a spinner.
+ */
+const ENGINE_READY_TIMEOUT_MS = 60_000;
+
+/**
+ * What to say when it runs out, and the old sentence was right about the cause and wrong about the
+ * remedy: it said "try again" while `readyPromise` was cached rejected, so trying again did
+ * nothing at all. With `fail` clearing that, the advice is true -- and the message now names the
+ * download, because that is what almost certainly did not finish.
+ */
+const ENGINE_SLOW_MESSAGE =
+  "המנוע לא סיים להיטען. הוא שוקל כ-5.6MB, ובחיבור איטי זה לוקח יותר מדקה. אפשר לנסות שוב.";
+
 const defaultWorkerFactory: WorkerFactory = () => {
   // The hash carries the wasm path and nothing else.
   //
@@ -79,6 +107,20 @@ export class StockfishClient {
     private createWorker: WorkerFactory = defaultWorkerFactory,
   ) {}
   start() {
+    /*
+     * A SETTLED PROMISE IS REUSED ONLY WHEN IT SETTLED WELL, and the missing half of that sentence
+     * was R-09.
+     *
+     * This was `if (this.readyPromise) return this.readyPromise`, with nothing clearing it on
+     * failure. `Home.tsx` keeps ONE client in a ref for the life of the page, so the first time the
+     * engine failed to become ready that rejected promise became the permanent answer: every later
+     * search awaited it and failed instantly, having sent no request and started no worker. The
+     * screen said *"check your network connection and try again"* and trying again could not work,
+     * because nothing was tried. Only a full page reload recovered.
+     *
+     * That is what a player sees as "הסריקה נעצרה לפני שהספיקה למדוד משהו" -- the scan's catch,
+     * reporting an engine that had already given up before the scan began.
+     */
     if (this.readyPromise) return this.readyPromise;
     this.onStatus({ mode: "loading", detail: "טוען את מנוע Stockfish 18" });
     this.readyPromise = new Promise<void>((resolve, reject) => {
@@ -91,8 +133,8 @@ export class StockfishClient {
       // Plain setTimeout, not window.setTimeout: this class has no reason to require a DOM
       // global, and depending on one made the superseding logic untestable outside jsdom.
       setTimeout(() => {
-        if (this.resolveReady) this.fail("המנוע לא הגיב בזמן — בדקו את חיבור הרשת ונסו שוב.");
-      }, 15000);
+        if (this.resolveReady) this.fail(ENGINE_SLOW_MESSAGE);
+      }, ENGINE_READY_TIMEOUT_MS);
     });
     return this.readyPromise;
   }
@@ -268,10 +310,25 @@ export class StockfishClient {
     this.owedBestMoves += 1;
     this.worker?.postMessage("stop");
   }
+  /**
+   * Give up on THIS attempt, and only on this attempt.
+   *
+   * THE THREE LINES AFTER THE REJECT ARE THE FIX. Rejecting alone left `readyPromise` holding a
+   * rejected promise and `worker` holding a worker that never spoke, so the client was finished --
+   * not for this call, for the page. Dropping both means the next `start()` builds a new worker and
+   * fetches the engine again, which is what the failure message has always told the player to do.
+   *
+   * THE WORKER IS TERMINATED RATHER THAN LEFT, because a slow one is not a dead one: the wasm may
+   * still be downloading and would arrive into a worker nobody is listening to, competing for the
+   * bandwidth the retry needs.
+   */
   private fail(message: string) {
     this.onStatus({ mode: "error", detail: message });
     this.rejectReady?.(new Error(message));
     this.resolveReady = null;
     this.rejectReady = null;
+    this.worker?.terminate();
+    this.worker = null;
+    this.readyPromise = null;
   }
 }

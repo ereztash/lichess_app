@@ -13,6 +13,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
     clock_ms_remaining: 90_000,
   },
   purpose: "play",
+  drill_id: null,
   known: "k",
   unknown: "u",
   // Null, not an empty pair: this fixture records no vocabulary, it does not assert silence.
@@ -31,6 +32,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
     engine_best_move: "e2e4",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: 10,
   },
   feedback: null,
@@ -104,6 +106,7 @@ describe("silence says WHICH kind of not-enough it is", () => {
          counts is no longer one thing, and this test is about the half that is a wait. */
       awaitingReveal: recorded - scored,
       withoutConfidence: 0,
+      withoutInstrument: 0,
       readElsewhere: 0,
       claimGrade: null,
       scoredStillNeeded: 60 - scored,

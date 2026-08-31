@@ -1,0 +1,621 @@
+{
+  "records_per_world": 800,
+  "records_per_plant": 400,
+  "games_per_record": 40,
+  "derivation_games": 20,
+  "seed": 20260830,
+  "false_claim_ceiling": 0.02,
+  "power_floor": 0.95,
+  "strong_plants": [
+    "clean-middlegame",
+    "clean-fast"
+  ],
+  "nulls": [
+    {
+      "world": "NULL-1-independent",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 1,
+      "any_bucket_rate": 0.00125,
+      "any_bucket_rate_ci": [
+        0.00022068410557866125,
+        0.0070464192640404275
+      ],
+      "claim_formed": 1,
+      "claim_formed_rate": 0.00125,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "phase-opening": 1
+      }
+    },
+    {
+      "world": "NULL-2-within-game-correlated",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 2,
+      "any_bucket_rate": 0.0025,
+      "any_bucket_rate_ci": [
+        0.0006858437481711838,
+        0.009069311993955125
+      ],
+      "claim_formed": 2,
+      "claim_formed_rate": 0.0025,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 1,
+        "phase-endgame": 1
+      }
+    },
+    {
+      "world": "NULL-3-skewed-features",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 1,
+      "any_bucket_rate": 0.00125,
+      "any_bucket_rate_ci": [
+        0.00022068410557866125,
+        0.0070464192640404275
+      ],
+      "claim_formed": 1,
+      "claim_formed_rate": 0.00125,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "fast-under-45s": 1
+      }
+    },
+    {
+      "world": "NULL-4-correlated-predictors",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 1,
+      "any_bucket_rate": 0.00125,
+      "any_bucket_rate_ci": [
+        0.00022068410557866125,
+        0.0070464192640404275
+      ],
+      "claim_formed": 1,
+      "claim_formed_rate": 0.00125,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 1
+      }
+    },
+    {
+      "world": "NULL-5-informative-missingness",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 2,
+      "any_bucket_rate": 0.0025,
+      "any_bucket_rate_ci": [
+        0.0006858437481711838,
+        0.009069311993955125
+      ],
+      "claim_formed": 2,
+      "claim_formed_rate": 0.0025,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 1,
+        "fast-under-45s": 1
+      }
+    },
+    {
+      "world": "NULL-6-variable-game-lengths",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 1,
+      "any_bucket_rate": 0.00125,
+      "any_bucket_rate_ci": [
+        0.00022068410557866125,
+        0.0070464192640404275
+      ],
+      "claim_formed": 1,
+      "claim_formed_rate": 0.00125,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "slow-over-2m": 1
+      }
+    },
+    {
+      "world": "NULL-7-clockless-games",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 1,
+      "any_bucket_rate": 0.00125,
+      "any_bucket_rate_ci": [
+        0.00022068410557866125,
+        0.0070464192640404275
+      ],
+      "claim_formed": 1,
+      "claim_formed_rate": 0.00125,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "fast-under-45s": 1
+      }
+    },
+    {
+      "world": "NULL-8-duplicated-features",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 2,
+      "any_bucket_rate": 0.0025,
+      "any_bucket_rate_ci": [
+        0.0006858437481711838,
+        0.009069311993955125
+      ],
+      "claim_formed": 2,
+      "claim_formed_rate": 0.0025,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "fast-under-45s": 1,
+        "slow-over-2m": 1
+      }
+    },
+    {
+      "world": "NULL-9-temporal-drift",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 2,
+      "any_bucket_rate": 0.0025,
+      "any_bucket_rate_ci": [
+        0.0006858437481711838,
+        0.009069311993955125
+      ],
+      "claim_formed": 2,
+      "claim_formed_rate": 0.0025,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "fast-under-45s": 1,
+        "phase-endgame": 1
+      }
+    },
+    {
+      "world": "NULL-10-imported-live-mixture",
+      "records": 800,
+      "sigma_tilt": null,
+      "any_bucket_cleared": 5,
+      "any_bucket_rate": 0.00625,
+      "any_bucket_rate_ci": [
+        0.002672454604116511,
+        0.014546858255531462
+      ],
+      "claim_formed": 5,
+      "claim_formed_rate": 0.00625,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 1,
+        "fast-under-45s": 3,
+        "slow-over-2m": 1
+      }
+    }
+  ],
+  "tilt_sweep": [
+    {
+      "world": "SWEEP-tilt-0.00",
+      "records": 800,
+      "sigma_tilt": 0.0,
+      "any_bucket_cleared": 2,
+      "any_bucket_rate": 0.0025,
+      "any_bucket_rate_ci": [
+        0.0006858437481711838,
+        0.009069311993955125
+      ],
+      "claim_formed": 2,
+      "claim_formed_rate": 0.0025,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 1,
+        "phase-endgame": 1
+      }
+    },
+    {
+      "world": "SWEEP-tilt-0.04",
+      "records": 800,
+      "sigma_tilt": 0.04,
+      "any_bucket_cleared": 0,
+      "any_bucket_rate": 0.0,
+      "any_bucket_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "claim_formed": 0,
+      "claim_formed_rate": 0.0,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {}
+    },
+    {
+      "world": "SWEEP-tilt-0.08",
+      "records": 800,
+      "sigma_tilt": 0.08,
+      "any_bucket_cleared": 5,
+      "any_bucket_rate": 0.00625,
+      "any_bucket_rate_ci": [
+        0.002672454604116511,
+        0.014546858255531462
+      ],
+      "claim_formed": 5,
+      "claim_formed_rate": 0.00625,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 1,
+        "fast-under-45s": 3,
+        "slow-over-2m": 1
+      }
+    },
+    {
+      "world": "SWEEP-tilt-0.12",
+      "records": 800,
+      "sigma_tilt": 0.12,
+      "any_bucket_cleared": 12,
+      "any_bucket_rate": 0.015,
+      "any_bucket_rate_ci": [
+        0.008601024976305207,
+        0.026034654490893303
+      ],
+      "claim_formed": 12,
+      "claim_formed_rate": 0.015,
+      "validated_claims": 0,
+      "false_validated_rate": 0.0,
+      "false_validated_rate_ci": [
+        0.0,
+        0.004779050997111869
+      ],
+      "cleared_by_bucket": {
+        "clock-under-1m": 5,
+        "fast-under-45s": 5,
+        "slow-over-2m": 2
+      }
+    }
+  ],
+  "planted": [
+    {
+      "plant": "clean-middlegame",
+      "delta": 0.18,
+      "expressible_as": "phase-middlegame",
+      "records": 400,
+      "any_bucket_recall": 0.6275,
+      "any_bucket_recall_ci": [
+        0.5791173246752143,
+        0.6734569519718671
+      ],
+      "claim_formed_rate": 0.6275,
+      "predicate_recovery": 0.5925,
+      "predicate_recovery_ci": [
+        0.5436874000695945,
+        0.6395527614194647
+      ],
+      "validation_success": 0.4575,
+      "validation_success_ci": [
+        0.4093127098586456,
+        0.5064958645923273
+      ],
+      "validated_on_target": 0.4475,
+      "validated_on_target_ci": [
+        0.39950002860195316,
+        0.4964987986610133
+      ],
+      "mirror_rate": 0.03,
+      "wrong_proxy_rate": 0.005
+    },
+    {
+      "plant": "weak-middlegame",
+      "delta": 0.07,
+      "expressible_as": "phase-middlegame",
+      "records": 400,
+      "any_bucket_recall": 0.0275,
+      "any_bucket_recall_ci": [
+        0.015423476078524147,
+        0.04856596928817408
+      ],
+      "claim_formed_rate": 0.0275,
+      "predicate_recovery": 0.02,
+      "predicate_recovery_ci": [
+        0.010168264597915498,
+        0.038963870377777945
+      ],
+      "validation_success": 0.0025,
+      "validation_success_ci": [
+        0.0004414364294344091,
+        0.014023640967247853
+      ],
+      "validated_on_target": 0.0025,
+      "validated_on_target_ci": [
+        0.0004414364294344091,
+        0.014023640967247853
+      ],
+      "mirror_rate": 0.0075,
+      "wrong_proxy_rate": 0.0
+    },
+    {
+      "plant": "clean-fast",
+      "delta": 0.18,
+      "expressible_as": "fast-under-45s",
+      "records": 400,
+      "any_bucket_recall": 0.2775,
+      "any_bucket_recall_ci": [
+        0.23589351571381514,
+        0.32333960935304273
+      ],
+      "claim_formed_rate": 0.2775,
+      "predicate_recovery": 0.265,
+      "predicate_recovery_ci": [
+        0.22413301235879635,
+        0.3103379287230536
+      ],
+      "validation_success": 0.125,
+      "validation_success_ci": [
+        0.09611465529837437,
+        0.16101982515138613
+      ],
+      "validated_on_target": 0.125,
+      "validated_on_target_ci": [
+        0.09611465529837437,
+        0.16101982515138613
+      ],
+      "mirror_rate": 0.01,
+      "wrong_proxy_rate": 0.0025
+    },
+    {
+      "plant": "weak-fast",
+      "delta": 0.07,
+      "expressible_as": "fast-under-45s",
+      "records": 400,
+      "any_bucket_recall": 0.015,
+      "any_bucket_recall_ci": [
+        0.006892197870136999,
+        0.03233506351155325
+      ],
+      "claim_formed_rate": 0.015,
+      "predicate_recovery": 0.01,
+      "predicate_recovery_ci": [
+        0.003895420793278812,
+        0.025426966994408242
+      ],
+      "validation_success": 0.0,
+      "validation_success_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validated_on_target": 0.0,
+      "validated_on_target_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "mirror_rate": 0.005,
+      "wrong_proxy_rate": 0.0
+    },
+    {
+      "plant": "interaction-only",
+      "delta": 0.22,
+      "expressible_as": null,
+      "records": 400,
+      "any_bucket_recall": 0.25,
+      "any_bucket_recall_ci": [
+        0.21007832849376823,
+        0.2946779918060721
+      ],
+      "claim_formed_rate": 0.25,
+      "predicate_recovery": 0.0,
+      "predicate_recovery_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validation_success": 0.11,
+      "validation_success_ci": [
+        0.08296824650193971,
+        0.14445161316581123
+      ],
+      "validated_on_target": 0.0,
+      "validated_on_target_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "mirror_rate": 0.0125,
+      "wrong_proxy_rate": 0.0
+    },
+    {
+      "plant": "sparse-low-clock",
+      "delta": 0.22,
+      "expressible_as": "clock-under-1m",
+      "records": 400,
+      "any_bucket_recall": 0.6275,
+      "any_bucket_recall_ci": [
+        0.5791173246752143,
+        0.6734569519718671
+      ],
+      "claim_formed_rate": 0.6275,
+      "predicate_recovery": 0.615,
+      "predicate_recovery_ci": [
+        0.5664344525867855,
+        0.661377640075288
+      ],
+      "validation_success": 0.4775,
+      "validation_success_ci": [
+        0.4289965818287492,
+        0.5264314869982364
+      ],
+      "validated_on_target": 0.4775,
+      "validated_on_target_ci": [
+        0.4289965818287492,
+        0.5264314869982364
+      ],
+      "mirror_rate": 0.01,
+      "wrong_proxy_rate": 0.0025
+    },
+    {
+      "plant": "one-game-only",
+      "delta": 0.22,
+      "expressible_as": null,
+      "records": 400,
+      "any_bucket_recall": 0.005,
+      "any_bucket_recall_ci": [
+        0.001372224221571147,
+        0.018045289972112712
+      ],
+      "claim_formed_rate": 0.005,
+      "predicate_recovery": 0.0,
+      "predicate_recovery_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validation_success": 0.0,
+      "validation_success_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validated_on_target": 0.0,
+      "validated_on_target_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "mirror_rate": 0.005,
+      "wrong_proxy_rate": 0.0
+    },
+    {
+      "plant": "every-game-first-moves",
+      "delta": 0.2,
+      "expressible_as": null,
+      "records": 400,
+      "any_bucket_recall": 0.045,
+      "any_bucket_recall_ci": [
+        0.02865122338409046,
+        0.07000527956161895
+      ],
+      "claim_formed_rate": 0.045,
+      "predicate_recovery": 0.0,
+      "predicate_recovery_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validation_success": 0.0,
+      "validation_success_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validated_on_target": 0.0,
+      "validated_on_target_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "mirror_rate": 0.0075,
+      "wrong_proxy_rate": 0.0
+    },
+    {
+      "plant": "proxy-correlated",
+      "delta": 0.2,
+      "expressible_as": null,
+      "records": 400,
+      "any_bucket_recall": 0.12,
+      "any_bucket_recall_ci": [
+        0.09171493428788872,
+        0.15551467256786858
+      ],
+      "claim_formed_rate": 0.12,
+      "predicate_recovery": 0.0,
+      "predicate_recovery_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "validation_success": 0.0225,
+      "validation_success_ci": [
+        0.011881448169963291,
+        0.04220312360273175
+      ],
+      "validated_on_target": 0.0,
+      "validated_on_target_ci": [
+        0.0,
+        0.009512640599680667
+      ],
+      "mirror_rate": 0.025,
+      "wrong_proxy_rate": 0.0
+    }
+  ],
+  "pooled_null": {
+    "records": 8000,
+    "validated_claims": 0,
+    "rate": 0.0,
+    "ci": [
+      0.0,
+      0.00047996951863715044
+    ],
+    "upper_ci_below_ceiling": true,
+    "worst_world": "NULL-1-independent",
+    "worst_world_upper_ci": 0.004779050997111869
+  },
+  "power": {
+    "clean-middlegame": {
+      "validated_on_target": 0.4475,
+      "lower_ci": 0.39950002860195316,
+      "meets_floor": false
+    },
+    "clean-fast": {
+      "validated_on_target": 0.125,
+      "lower_ci": 0.09611465529837437,
+      "meets_floor": false
+    }
+  }
+}

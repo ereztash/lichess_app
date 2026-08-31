@@ -34,6 +34,12 @@ export const ATOM_FIELDS = [
    * decision.
    */
   "purpose",
+  /*
+   * IMMEDIATELY AFTER `purpose`, because it is what turns that label into a claim somebody can
+   * check. `purpose` is the one atom field the server cannot re-derive; this is the binding that
+   * lets it try. Anywhere else in the list and the two would read as unrelated facts.
+   */
+  "drill_id",
   "known",
   "unknown",
   "known_parts",
@@ -113,6 +119,20 @@ export const boundedActionSchema = z.object({
    * a fact about that row's age, resolved once where stored rows are read, never defaulted here.
    */
   confidence_scale: z.number().int().min(2).max(CONFIDENCE_LEVELS).optional(),
+  /*
+   * WHICH GRID THAT SCALE WAS, and the level count does not say.
+   *
+   * `confidence_scale` records SEVEN. Seven levels could be `.05 .20 .35 .50 .65 .80 .95` or any
+   * other seven numbers, and `shared/confidence.ts` says in its own note that two open questions --
+   * Juslin's scale-end effect, and whether the map should be linear in log odds rather than in
+   * probability -- would move those numbers while leaving the count at seven. Every stored
+   * `level 6, scale 7` would then assert the new value instead of the 0.80 the player said, with
+   * nothing in the row able to tell: the count still matches and the word is still "בטוח".
+   *
+   * Optional for the same reason `confidence_scale` is, and resolved the same way: absence dates
+   * the row, and only one grid version has ever shipped.
+   */
+  confidence_grid_version: z.number().int().positive().optional(),
   candidate_moves_considered: z.array(z.string().min(4).max(6)).max(8),
 });
 
@@ -122,6 +142,29 @@ export const resultSchema = z.object({
   engine_best_move: z.string().min(4).max(6),
   engine_depth: z.number().int().min(1),
   engine_source: z.enum(ENGINE_SOURCES),
+  /*
+   * WHICH BUILD OF THAT SOURCE, AND IT IS NOT A REFINEMENT OF `engine_source`.
+   *
+   * `engine_source` names a family -- `local_sf18` or `lichess_cloud` -- and the family is not the
+   * instrument. `docs/ACTION_PLAN.md` §B1 measured a change WITHIN the local family: 13.61% of
+   * decisions flipped verdict (216 of 1,587) between the engine that produced this project's
+   * published numbers and the engine that ships, and 1 bucket of 38 was stable to display
+   * resolution. So two rows agreeing on `engine_source` are not two rows from one instrument, and a
+   * calibration gap computed across the difference is an artefact of the difference.
+   *
+   * TAKEN FROM THE ASSET'S CONTENT HASH, not from `package.json`: the dependency range is
+   * `^18.0.8`, so the binary can change without any version string a build could embed changing
+   * with it. `client/src/lib/engine-identity.ts` derives it from the URL Vite hashes, which moves
+   * when and only when the wasm actually differs.
+   *
+   * OPTIONAL, AND ABSENT IS NEVER RESOLVED TO A BUILD. Rows written before this field existed do
+   * not have it -- the same shape and the same rule as `confidence_scale` above, with one
+   * difference that matters: `confidence_scale` has a true default, because absence itself dates
+   * the row to the five-level scale. Absence here dates the row to nothing. Any build could have
+   * produced it, so the honest resolution is not a value but a refusal, and `scoreDecisions` makes
+   * it one.
+   */
+  engine_build: z.string().min(1).max(64).optional(),
   cp_loss: z.number().int().min(0),
 });
 
@@ -214,6 +257,27 @@ export const decisionAtomSchema = z.object({
    * reading that treats it as verified is reading more than the field carries.
    */
   purpose: z.enum(DECISION_PURPOSES).nullable(),
+  /**
+   * WHICH DRILL THIS DECISION BELONGS TO, and the reason it exists is the paragraph above it.
+   *
+   * `purpose` is the one field the boundary had to take on trust, and `drill` is the value where
+   * that costs the most: a decision labelled `drill` is refused by discovery, and a drill decision
+   * labelled `play` enters it -- which is the closed loop `shared/evidence-policy.ts` was written
+   * to prevent, reachable by mislabelling one field. Nothing on the wire proved either way.
+   *
+   * WITH THIS, THE SERVER CAN CHECK. `commitDecision` resolves the id against the stored drill and
+   * requires that drill to actually contain this position, so `drill` stops being the client's
+   * word and becomes a binding to an object that was written down BEFORE the decision was made
+   * (R5: a drill stores its refutation condition and its positions before it runs).
+   *
+   * NULL ON EVERY OTHER PURPOSE, and refused if it is not: a decision that names a drill and does
+   * not claim to be one is making two statements that cannot both be true.
+   *
+   * IT IS ALSO WHAT `EVIDENCE_POLICY` HAS BEEN ASKING FOR. That table already files a drill
+   * decision as `scoped(to: "matching-test")` -- readable against its own drill's verdict and no
+   * other claim's -- and until now nothing could say which drill was the matching one.
+   */
+  drill_id: z.string().min(1).max(64).nullable(),
   /**
    * What the player can name about this position. <=200 chars.
    *

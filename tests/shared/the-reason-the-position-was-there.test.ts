@@ -23,6 +23,7 @@
 import { describe, expect, it } from "vitest";
 import { commitDecision, RecordError, type CommitEvent } from "@shared/record-service";
 import { MemoryRecordStore } from "../../server/record";
+import { registerDrill } from "../fixtures/registered-drill";
 import { commitEventSchema } from "../../server/recordRouter";
 import { decisionAtomSchema, ATOM_FIELDS } from "@shared/decision-atom";
 import {
@@ -44,6 +45,7 @@ const event = (over: Partial<CommitEvent> = {}): CommitEvent => ({
   decision_id: id(),
   entry_state: { game_id: "g", fen: FEN, ply: 0, phase: "opening", clock_ms_remaining: null },
   purpose: "play",
+  drill_id: null,
   known: "המרכז פתוח",
   unknown: "לא יודע איך הוא יענה",
   known_parts: { tapped: ["המרכז פתוח"], typed: "" },
@@ -66,10 +68,24 @@ const event = (over: Partial<CommitEvent> = {}): CommitEvent => ({
   ...over,
 });
 
-/** Commit through the shared service -- the path BOTH the browser record and the server run. */
+/**
+ * Commit through the shared service -- the path BOTH the browser record and the server run.
+ *
+ * A `drill` DECISION GETS A DRILL FIRST, because the service now resolves the binding: `purpose`
+ * was the one field the boundary took on trust, and a decision claiming `drill` must name a drill
+ * this record holds that contains this position (R-07). Registering it here rather than in each
+ * case keeps every assertion below about the rule it was written for -- the read-field exemption,
+ * the re-derivation, the wire shape -- instead of about the binding.
+ *
+ * Skipped when the caller passes its own `drill_id`, which is how the binding's own cases say what
+ * they are testing.
+ */
 async function committed(over: Partial<CommitEvent> = {}) {
   const store = new MemoryRecordStore();
   const sent = event(over);
+  if (sent.purpose === "drill" && !("drill_id" in over)) {
+    sent.drill_id = await registerDrill(store, [sent.entry_state.fen]);
+  }
   await commitDecision(store, sent);
   return (await store.getAtom(sent.decision_id))!;
 }

@@ -183,6 +183,7 @@ describe("the answer is a later event, and it may not arrive early or late", () 
       engine_best_move: "e2e4",
       engine_depth: 14,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       cp_loss: 10,
     });
     await expect(store.recordCounterfactual(id, "d2d4")).rejects.toThrow();

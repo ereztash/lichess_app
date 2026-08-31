@@ -20,6 +20,7 @@
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
+import { registerDrill } from "../fixtures/registered-drill";
 import { remainingBeforeClaim } from "../../client/src/lib/loop-position";
 import { MIN_BUCKET_N } from "../../shared/detector";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
@@ -89,6 +90,15 @@ async function record(
       clock_ms_remaining: null,
     },
     purpose: options.purpose,
+    /*
+     * A `drill` decision names its drill, because the service resolves the label rather than
+     * trusting it (R-07). One drill over both fixture positions, which is what a real run is: the
+     * drill registers its positions before it starts and every decision inside it names it.
+     */
+    drill_id:
+      options.purpose === "drill"
+        ? await registerDrill(store, [ENDGAME, MIDDLEGAME], "drill-detector-fixture")
+        : null,
     known: "המרכז פתוח",
     unknown: "לא יודע איך הוא יענה",
     known_parts: { tapped: ["המרכז פתוח"], typed: "" },
@@ -115,6 +125,7 @@ async function record(
     engine_best_move: "d4d5",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: options.accurate ? 0 : 300,
   });
   return id;
@@ -123,19 +134,41 @@ async function record(
 /**
  * A record with a loud, obvious contrast in one phase, built entirely from decisions of one kind.
  *
- * Confident and wrong in the endgame, unconfident and right elsewhere: the largest calibration
- * contrast the six buckets can express. If a population is admitted to discovery at all, this
- * shape is what the detector finds in it -- so it is what a test must inject to prove a
- * population is NOT admitted.
+ * Confident and mostly wrong in the endgame, unconfident and mostly right elsewhere: about the
+ * largest calibration contrast the six buckets can express. If a population is admitted to
+ * discovery at all, this shape is what the detector finds in it -- so it is what a test must
+ * inject to prove a population is NOT admitted.
+ *
+ * `MOSTLY`, AND THE WORD IS LOAD-BEARING. This fixture used to be perfectly uniform inside each
+ * phase: every endgame decision at the top confidence and wrong, every other one at confidence 2
+ * and right. That is a bucket whose per-decision gap has a sample variance of exactly zero, and
+ * `gapDifferenceStandardError` refuses such a side by design -- a sample that cannot estimate its
+ * own error is not one that knows its gap exactly, and treating it as exact fires on up to 13% of
+ * records by that function's own measurement.
+ *
+ * It passed anyway, because the guard was unreachable: sixty identical doubles do not sum to a mean
+ * that cancels exactly, so the variance came out as 6.1e-31 rather than 0 and `<= 0` never fired.
+ * With `summarise` now answering "did this sample vary at all" structurally, the guard works and
+ * this fixture stopped being one the detector may read. One decision in six is flipped, which
+ * leaves the contrast enormous and gives both sides a variance that exists.
  */
 async function loudRecord(store: MemoryRecordStore, purpose: DecisionPurpose | null, n = FLOOR) {
   for (let i = 0; i < n; i++) {
     const endgame = i % 2 === 0;
+    /*
+     * One in five of EACH PHASE goes the other way, so neither side is a constant.
+     *
+     * `Math.floor(i / 2)` indexes within the phase rather than across the record, and the
+     * distinction is the whole of it: `i % 6 !== 0` only ever flips even indices, every one of
+     * which is an endgame decision, so the middlegame side stayed perfectly uniform and its
+     * variance stayed exactly zero -- the same degeneracy, moved one bucket over.
+     */
+    const typical = Math.floor(i / 2) % 5 !== 0;
     await record(store, {
       purpose,
       fen: endgame ? ENDGAME : MIDDLEGAME,
       confidence: endgame ? CONFIDENCE_LEVELS : 2,
-      accurate: !endgame,
+      accurate: typical ? !endgame : endgame,
     });
   }
 }
@@ -285,6 +318,7 @@ describe("a label with nothing behind it is not provenance", () => {
         clock_ms_remaining: null,
       },
       purpose: "anchor",
+      drill_id: null,
       known: "המרכז פתוח",
       unknown: "לא יודע איך הוא יענה",
       known_parts: { tapped: ["המרכז פתוח"], typed: "" },

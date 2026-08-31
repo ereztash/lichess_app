@@ -35,6 +35,7 @@ const RESULT: DecisionResult = {
   engine_best_move: "g1f3",
   engine_depth: 18,
   engine_source: "local_sf18",
+  engine_build: "sf18-test-build",
   cp_loss: 15,
 };
 
@@ -59,6 +60,7 @@ async function probedDecision(store: MemoryRecordStore) {
     phase: "middlegame",
     clockMsRemaining: 120_000,
     purpose: "play",
+    drillId: null,
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],

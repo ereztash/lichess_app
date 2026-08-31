@@ -55,6 +55,10 @@ import { PROMISE, PROMISE_RETURNING } from "@shared/promise";
 import { nextAnchor } from "@/lib/anchor-run";
 import { writePosition } from "@/lib/session-position";
 import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
+import { WhatIsUnclear } from "@/components/WhatIsUnclear";
+import { WhatIsUnderTest } from "@/components/WhatIsUnderTest";
+import { whatIsUnclear, whatIsUnderTest } from "@shared/record-order";
+import { visitsOnRecord } from "@/lib/progress-record";
 
 /**
  * How many games to pull for the first decision.
@@ -75,6 +79,21 @@ const GAMES_FOR_FIRST_DECISION = 6;
  */
 const RecordDashboard = lazyChunk(() =>
   import("@/components/RecordDashboard").then((m) => ({ default: m.RecordDashboard })),
+);
+
+/**
+ * The resume screen, for the same reason and with a bigger number behind it.
+ *
+ * Rendering it eagerly retained the entire blitz reading chain in the entry chunk -- the detector,
+ * the six bucketings, `classifyPhase` and the wire schemas -- for +16.1 kB raw and +5.1 kB
+ * gzipped. None of it had been in the entry before, because nothing on the entry route called
+ * `blitzRecordReading`; one call from an eagerly-rendered component retained all of it.
+ *
+ * IT IS ALSO THE HONEST SPLIT. A visitor who has never played blitz downloads none of this, and a
+ * returning one pays for it once, after the first paint, behind a reserved block.
+ */
+const ResumeScreen = lazyChunk(() =>
+  import("@/components/ResumeScreen").then((m) => ({ default: m.ResumeScreen })),
 );
 
 /**
@@ -366,6 +385,13 @@ export default function Record() {
   const scored = reading.data?.scored ?? 0;
   const anchored = reading.data?.anchor.n ?? 0;
   const measured = scored + anchored;
+  /*
+   * READ ONCE, HERE, AND PASSED DOWN. The header suppresses the explanation on a return and the
+   * resume screen appears on one; two components each calling the counter would be two chances to
+   * disagree about who is returning, on the one screen whose whole job is to look different to the
+   * two of them.
+   */
+  const returning = visitsOnRecord() > 1;
 
   return (
     <main className="record-page">
@@ -409,7 +435,19 @@ export default function Record() {
           ) : (
             <>
               <h1>הרשומה</h1>
-              <p className="record-page-claim">{PROMISE_RETURNING}</p>
+              {/*
+                * §13: THE EXPLANATION IS NOT SHOWN AGAIN.
+                *
+                * The finding that produced this line of the plan: a person who had seen this screen
+                * dozens of times had almost never read it. So the sentence stays for somebody who
+                * genuinely has not seen it -- a first arrival who already has a record, which is
+                * what a second device looks like -- and goes away from the second visit onward,
+                * where `ResumeScreen` below answers the questions this sentence does not.
+                *
+                * KEYED ON THE VISIT COUNT AND NOT ON THE RECORD, because they are different facts,
+                * and the one §13 is about is "have I seen this before".
+                */}
+              {!returning && <p className="record-page-claim">{PROMISE_RETURNING}</p>}
             </>
           )}
         </div>
@@ -417,6 +455,38 @@ export default function Record() {
           ללוח
         </button>
       </header>
+
+      {/*
+        * WHERE AM I · WHAT DO YOU KNOW · WHAT NOW -- above everything, and above the branch.
+        *
+        * ABOVE THE `measured === 0` SPLIT ON PURPOSE. That split asks whether the UNTIMED loop has
+        * anything in it; a player who has only played blitz measures zero by it and would be sent
+        * to the first-decision screen with a record full of games. The resume screen reads the
+        * blitz record and says so, and it renders nothing at all when there is nothing to say --
+        * so on a genuinely cold return it costs the page one absent element.
+        */}
+      {returning && (
+        /*
+         * LAZY, AND FOR THE REASON `RecordDashboard` IS: this page is the first thing every visitor
+         * downloads. Rendering the resume eagerly retained the whole reading chain in the entry
+         * chunk -- `detect`, the six bucketings, `classifyPhase` and the blitz wire schemas -- for
+         * +16.1 kB raw, paid by every arrival including the overwhelming majority who have no blitz
+         * record at all. Nothing was tree-shaken out before because nothing on the entry route
+         * called `blitzRecordReading`; adding one call retained all of it.
+         *
+         * THE FALLBACK RESERVES THE SPACE, which is what makes this safe rather than a layout
+         * shift on the topmost element of the front door. There is exactly one transition here and
+         * both sides of it are the same height: a returning player ALWAYS gets a card -- §13's
+         * "not enough has accumulated yet" is a state the resume screen renders, not a reason for
+         * it to be absent -- so the reserved block is never left holding nothing.
+         *
+         * GATED ON `returning` OUTSIDE THE SUSPENSE rather than inside the component, so a first
+         * arrival does not fetch the chunk at all and does not get the reserved space either.
+         */
+        <Suspense fallback={<div className="resume resume--pending" aria-hidden="true" />}>
+          <ResumeScreen returning onPlay={() => navigate("/blitz")} />
+        </Suspense>
+      )}
 
       {reading.isLoading ? (
         <p className="record-page-loading">קורא את הרשומה…</p>
@@ -461,9 +531,29 @@ export default function Record() {
               readingUnreadable: reading.isError,
             })}
           />
+          {/*
+            * §25's ORDER, AND IT IS AN ORDER OF VALUE TO A DECISION rather than of visualization
+            * type. What is clearest now, then what is still unclear, then what is being checked,
+            * then everything else. The dashboard below is unchanged and is still the whole record;
+            * what changed is that a returning player no longer has to start there.
+            *
+            * THE SECOND SECTION IS THE ADDITION THAT MATTERS. "What is still unclear" is the most
+            * common true statement this product can make -- the M0 audit measured the chain as
+            * silent on most records most of the time -- and it was scattered across the panels
+            * below as individual cells reading "not enough data", with no way to tell which of them
+            * a player could do anything about.
+            */}
+          <WhatIsUnclear items={reading.data ? whatIsUnclear(reading.data) : []} />
+          <WhatIsUnderTest test={whatIsUnderTest(claimView.data?.claim)} />
+
           {reading.data && (
             <>
               <AnchorRunControl answered={reading.data.anchorAnswered} />
+              {/*
+                * EVERYTHING ELSE, LAST. Not demoted and not hidden: the sections above make no
+                * measurement of their own and add nothing this does not already contain -- they are
+                * the same record, read in the order a decision needs it.
+                */}
               <Suspense fallback={null}>
                 <RecordDashboard reading={reading.data} />
               </Suspense>

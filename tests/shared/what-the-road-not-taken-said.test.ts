@@ -37,6 +37,7 @@ const probe = (over: Partial<Probe> = {}): Probe => ({
 const atom = (over: { probe?: Probe | null; cpLoss?: number; evalCp?: number } = {}): DecisionAtom => ({
   entry_state: { game_id: "g", fen: OPEN, ply: 0, phase: "opening", clock_ms_remaining: null },
   purpose: "play",
+  drill_id: null,
   known: "k",
   unknown: "u",
   // Null, not an empty pair: this fixture records no vocabulary, it does not assert silence.
@@ -55,6 +56,7 @@ const atom = (over: { probe?: Probe | null; cpLoss?: number; evalCp?: number } =
     engine_best_move: "e2e4",
     engine_depth: 14,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: over.cpLoss ?? 10,
   },
   feedback: null,

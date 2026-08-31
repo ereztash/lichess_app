@@ -37,6 +37,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     phase: "middlegame",
     clockMsRemaining: 120_000,
     purpose: "play",
+    drillId: null,
     secondsTaken: 30,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4", "d2d4"],
@@ -374,6 +375,7 @@ describeDb("DrizzleRecordStore against MySQL", () => {
         engine_best_move: "e2e4",
         engine_depth: 14,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: 10,
       });
       await expect(store.recordCounterfactual("d-406", "d2d4")).rejects.toThrow();

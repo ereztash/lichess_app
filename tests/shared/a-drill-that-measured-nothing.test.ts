@@ -144,6 +144,7 @@ describe("finishDrill refuses rather than grading what it could not measure", ()
         phase: "endgame",
         clockMsRemaining: 120_000,
         purpose: "play",
+        drillId: null,
         secondsTaken: 30,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],
@@ -163,6 +164,7 @@ describe("finishDrill refuses rather than grading what it could not measure", ()
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: 5,
       });
     }

@@ -121,6 +121,13 @@ export type CommitEvent = {
    * so an empty read arriving without one is refused below.
    */
   purpose?: DecisionPurpose | null;
+  /**
+   * The drill this decision belongs to, when it claims to be a drill decision.
+   *
+   * Optional so a client that predates it can still write; the price is paid in `commitDecision`,
+   * which refuses a decision claiming `drill` without one rather than storing an unbindable claim.
+   */
+  drill_id?: string | null;
   known: string;
   unknown: string;
   /**
@@ -136,6 +143,8 @@ export type CommitEvent = {
     confidence: number | null;
     /** Which scale that confidence was stated on. Optional in the type, refused below if absent. */
     confidence_scale?: number;
+    /** Which grid that scale was. See `shared/confidence.ts`. */
+    confidence_grid_version?: number;
     candidate_moves_considered: string[];
   };
   /**
@@ -230,15 +239,70 @@ export async function commitDecision(
    * payload (set version and position) that section 2 of the constitution specifies, so that a
    * bank answer identifies its slot rather than being guessed at from the board.
    *
-   * `drill` AND `transfer` CANNOT BE CHECKED AT ALL YET. Nothing on the commit event references
-   * the drill or the transfer it belongs to, so there is no binding to verify. That is a gap and
-   * it is named rather than papered over: until the context carries `drill_id` / `transfer_id`,
-   * those two labels are the subject's word.
+   * `drill` IS NOW CHECKED, `transfer` STILL IS NOT. The event carries `drill_id` and the block
+   * below resolves it; a transfer decision still names no transfer, so that one label remains the
+   * subject's word. Named rather than papered over, and it is the smaller hole of the two: a
+   * transfer's own observations are written through `recordTransferObservation`, which knows which
+   * transfer it is inside, whereas a drill decision arrives through the ordinary commit.
    */
   if (input.purpose === "anchor" && !isAnchorFen(input.entry_state.fen)) {
     throw new RecordError(
       "BAD_REQUEST",
       "ההחלטה נשלחה כאילו היא עמדה מהסט המשותף, אבל העמדה אינה בסט — ורק עמדות הסט נמדדות בו.",
+    );
+  }
+  /*
+   * WHY `drill` IS THE LABEL WORTH BINDING, out of six.
+   *
+   * It is the one that moves a decision ACROSS the wall `shared/evidence-policy.ts` draws. A
+   * decision labelled `drill` is refused by discovery, because a drill selects positions BECAUSE
+   * of a weakness and tells the player what is being tested before collecting the evidence -- so
+   * reading its output as discovery lets the attempt to fix a weakness manufacture the next one.
+   * A drill decision mislabelled `play` walks straight into that loop, and a free-play decision
+   * mislabelled `drill` is quietly excluded from the population it belongs to. One field, both
+   * directions, and until now nothing on the wire could tell either way.
+   *
+   * THREE THINGS ARE CHECKED, AND THE THIRD IS THE ONE THAT MATTERS. That an id was sent; that it
+   * names a drill this record holds; and that THAT DRILL CONTAINS THIS POSITION. The first two
+   * alone would let any drill id launder any decision -- a player could answer forty free-play
+   * positions carrying a stale drill id and have every one of them excluded from discovery. The
+   * third makes the claim a claim about a specific position that was written down, under R5,
+   * before the decision was made.
+   *
+   * A DRILL DECISION IS REFUSED, NOT DOWNGRADED. Storing it as `play` because the binding failed
+   * would put the drill's output into the discovery population, which is the exact harm; storing
+   * it as `drill` with no binding would keep the trust this block exists to remove. Refusing is
+   * the only outcome that does not quietly assert something nobody checked.
+   */
+  if (input.purpose === "drill") {
+    if (!input.drill_id) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כהחלטת תרגול אבל בלי לומר לאיזה תרגול — ותווית שאין מאחוריה תרגול אינה נבדקת.",
+      );
+    }
+    const drill = await store.getDrill(input.drill_id);
+    if (!drill) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כהחלטת תרגול, אבל התרגול שהיא מצביעה עליו אינו ברשומה.",
+      );
+    }
+    if (!drill.spec.fens.includes(input.entry_state.fen)) {
+      throw new RecordError(
+        "BAD_REQUEST",
+        "ההחלטה נשלחה כהחלטת תרגול, אבל העמדה אינה אחת מהעמדות שהתרגול רשם לפני שהתחיל.",
+      );
+    }
+  } else if (input.drill_id) {
+    /*
+     * TWO STATEMENTS THAT CANNOT BOTH BE TRUE, and refusing is cheaper than deciding which to
+     * believe. Dropping the id would silently keep a decision that thought it was part of a drill;
+     * keeping it would file a `play` decision under a drill and let a later reading scope it there.
+     */
+    throw new RecordError(
+      "BAD_REQUEST",
+      "ההחלטה מצביעה על תרגול אבל אינה מסומנת כהחלטת תרגול. שתי האמירות אינן יכולות להתקיים יחד.",
     );
   }
   /*
@@ -318,6 +382,8 @@ export async function commitDecision(
      * nobody recorded one.
      */
     purpose: input.purpose ?? null,
+    /* Verified above, not taken on trust. Null on every purpose but `drill`. */
+    drillId: input.drill_id ?? null,
     secondsTaken: Math.round(input.bounded_action.seconds_taken),
     chosenMove: input.decision,
     candidateMovesConsidered: input.bounded_action.candidate_moves_considered,
@@ -327,6 +393,13 @@ export async function commitDecision(
     statedUnknownParts: input.unknown_parts ?? null,
     confidence: input.bounded_action.confidence,
     confidenceScale,
+    /*
+     * NOT REFUSED WHEN ABSENT, unlike the scale above, and the asymmetry is the same one
+     * `normaliseConfidence` makes: a missing scale could be a live client that forgot, so reading
+     * it either way would be a coin toss over what somebody said. A missing grid version cannot
+     * be -- only one has ever shipped -- so absence dates the row rather than hiding a choice.
+     */
+    confidenceGridVersion: input.bounded_action.confidence_grid_version ?? null,
     probeAssignment: probe?.assignment ?? null,
     legalMoves: probe?.legal_moves ?? null,
     revealTiming: input.reveal_timing,
@@ -425,6 +498,13 @@ export async function reveal(
       existing.result.engine_best_move === result.engine_best_move &&
       existing.result.engine_depth === result.engine_depth &&
       existing.result.engine_source === result.engine_source &&
+      /*
+       * THE BUILD IS PART OF THE VERDICT, so a second reveal from a different binary is a CONFLICT
+       * rather than a replay. The retry above re-sends the identical payload and still matches; what
+       * this refuses is a row revealed once by one engine and again by another, which is two claims
+       * about one decision and not one claim sent twice.
+       */
+      existing.result.engine_build === result.engine_build &&
       existing.result.cp_loss === result.cp_loss;
     if (!sameVerdict) {
       throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
@@ -1415,6 +1495,36 @@ export async function saveBlitzGame(
   return { stored: true, decisions: input.decisions.length };
 }
 
+/**
+ * Attach the engine's verdict to a game that is already on the record.
+ *
+ * REFUSES ANYTHING THAT IS NOT A PENDING GAME, and the three refusals are different facts. A game
+ * nobody stored cannot be scored; a game already scored must not be re-scored, because a second
+ * verdict over the same decisions is a second measurement wearing the first one's timestamp; and a
+ * record that fails the wire schema is refused here exactly as it is on the way in.
+ */
+export async function attachBlitzAnalysis(
+  store: RecordStore,
+  input: StoredBlitzRecord,
+): Promise<{ attached: boolean; reason?: string }> {
+  const parsed = storedBlitzRecordSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new RecordError("BAD_REQUEST", `הניתוח לא נשמר: ${parsed.error.issues[0]?.message}`);
+  }
+  if (input.game.analysisState !== "complete") {
+    throw new RecordError("BAD_REQUEST", "הניתוח לא נשמר: המשחק לא סומן כמנותח.");
+  }
+  const stored = (await store.listBlitzGames()).find((g) => g.gameId === input.game.gameId);
+  if (!stored) return { attached: false, reason: "no-such-game" };
+  /*
+   * ALREADY SCORED IS A NO-OP AND NOT AN ERROR, for the reason `saveBlitzGame` gives about repeats:
+   * a retry after a lost response is the ordinary case, and it must not read as a failure.
+   */
+  if (stored.analysisState !== "pending") return { attached: false, reason: "not-pending" };
+  await store.attachBlitzAnalysis(input);
+  return { attached: true };
+}
+
 export type ClaimView = {
   claim: Claim | null;
   othersWithheld: number;
@@ -1433,6 +1543,18 @@ export type ClaimView = {
    */
   awaitingReveal: number;
   withoutConfidence: number;
+  /**
+   * Revealed decisions whose verdict names no engine build, so nothing can read it.
+   *
+   * SEPARATE FROM `readElsewhere`, and the ribbon says so in different words. `readElsewhere`
+   * means a decision is counted under another heading with its own denominator -- the shared bank,
+   * a drill, an imported game. This means the decision belongs to this reading and cannot be used
+   * by it: `engine_source` names a family, B1 measured 13.61% of verdicts flipping between two
+   * engines inside one family, and "accurate" is undefined for a row that cannot say which spoke.
+   * Folding it into `readElsewhere` would tell the player their decision is being read somewhere,
+   * which is the one thing that is not true of it.
+   */
+  withoutInstrument: number;
   /**
    * Decisions on the record that this reading does not cover, because another one does.
    *
@@ -1506,6 +1628,22 @@ export async function currentClaim(
   const wideStrata = forDiscovery(atoms, ids);
   const wide = discoverySearchPopulation(wideStrata);
   const full = scoreDecisions(wide.chosen?.atoms ?? [], wide.chosen?.ids ?? []);
+  /*
+   * WAITING IS COUNTED ACROSS EVERY STRATUM, and only this one number is.
+   *
+   * An unrevealed decision has no verdict, so nothing yet says which engine will score it -- it
+   * sits in the `legacy` build stratum, which is almost never the one the detector searches. Taken
+   * from `full` this number would read 0 on a healthy record, and the ribbon's "N already recorded
+   * and waiting to be revealed" would vanish exactly when it is the thing the player should act on.
+   *
+   * Every OTHER count here stays scoped to the searched stratum on purpose: `scored`,
+   * `withoutConfidence` and `withoutInstrument` describe the population a claim would come from,
+   * and summing them across regimes would describe a population nothing is allowed to search.
+   */
+  const awaitingAnywhere = wideStrata.reduce(
+    (n, s) => n + s.atoms.reduce((m, a) => m + (a.result ? 0 : 1), 0),
+    0,
+  );
 
   /*
    * THE BRIDGE, AND THE RULE THAT KEEPS IT FROM COMPOUNDING (shared/prereg.ts).
@@ -1557,8 +1695,9 @@ export async function currentClaim(
       reason,
       recorded: atoms.length,
       scored: full.scored.length,
-      awaitingReveal: full.awaitingReveal,
+      awaitingReveal: awaitingAnywhere,
       withoutConfidence: full.withoutConfidence,
+      withoutInstrument: full.withoutInstrument,
       readElsewhere: atoms.length - full.total,
       prereg: narrowing,
       preregScored: narrowing ? summary.scored.length : null,
@@ -1586,8 +1725,9 @@ export async function currentClaim(
         reason: null,
         recorded: atoms.length,
         scored: full.scored.length,
-        awaitingReveal: full.awaitingReveal,
+        awaitingReveal: awaitingAnywhere,
         withoutConfidence: full.withoutConfidence,
+        withoutInstrument: full.withoutInstrument,
         readElsewhere: atoms.length - full.total,
         prereg: narrowing,
         preregScored: narrowing ? summary.scored.length : null,
@@ -1601,8 +1741,9 @@ export async function currentClaim(
     reason: selection ? null : emptySearchReason(narrowing),
     recorded: atoms.length,
     scored: full.scored.length,
-    awaitingReveal: full.awaitingReveal,
+    awaitingReveal: awaitingAnywhere,
     withoutConfidence: full.withoutConfidence,
+    withoutInstrument: full.withoutInstrument,
     readElsewhere: atoms.length - full.total,
     prereg: narrowing,
     preregScored: narrowing ? summary.scored.length : null,

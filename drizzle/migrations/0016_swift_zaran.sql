@@ -1,0 +1,1 @@
+ALTER TABLE `decisions` ADD `confidence_grid_version` int;

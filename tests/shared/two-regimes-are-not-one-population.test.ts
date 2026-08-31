@@ -50,8 +50,8 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "instrumented-blitz/legacy",
-      "instrumented-standard/legacy",
+      "instrumented-blitz/legacy/legacy",
+      "instrumented-standard/legacy/legacy",
     ]);
     for (const s of strata) expect(s.atoms).toHaveLength(1);
   });
@@ -68,8 +68,8 @@ describe("two regimes are not one population", () => {
     ]);
     expect(strata).toHaveLength(2);
     expect(strata.map((s) => stratumId(s.key)).sort()).toEqual([
-      "legacy/end-of-game",
-      "legacy/per-decision",
+      "legacy/end-of-game/legacy",
+      "legacy/per-decision/legacy",
     ]);
   });
 
@@ -117,7 +117,7 @@ describe("two regimes are not one population", () => {
     expect(chosen?.key.revealTiming).toBe("per-decision");
     expect(chosen?.atoms).toHaveLength(3);
     // Not silently gone: named, counted, and available to whatever explains a population.
-    expect(setAside).toEqual([{ id: "legacy/end-of-game", n: 1 }]);
+    expect(setAside).toEqual([{ id: "legacy/end-of-game/legacy", n: 1 }]);
   });
 
   it("chooses the same regime every time, whatever order the rows arrived in", () => {

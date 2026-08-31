@@ -186,11 +186,21 @@ describe("a stored level is meaningless without the scale it was stated on", () 
      * exactly where a silent default would do its damage: a fresh seven-level decision that forgot
      * to pass its scale would be read on the five-level grid and be wrong by up to 25 points, with
      * nothing on screen to show it.
+     *
+     * THE PATTERN NAMES `levels` AND NOTHING ELSE, and it did not always. It used to read
+     * `normaliseConfidence\([^)]*levels[^)]*=`, which asks whether an `=` appears anywhere after the
+     * word `levels` inside the parameter list -- true of a default on `levels` and equally true of a
+     * default on any parameter added after it. `gridVersion` has one, deliberately and for a stated
+     * reason, and it turned this assertion red while the property it guards was untouched. A test
+     * that cannot tell the thing it forbids from the thing beside it is one somebody eventually
+     * loosens in the wrong direction.
      */
     const source = read("shared/confidence.ts").replace(/\/\*[\s\S]*?\*\//g, "");
     expect(source, "the scale has a default and can be omitted").not.toMatch(
-      /export function normaliseConfidence\([^)]*levels[^)]*=/,
+      /levels\s*:\s*number\s*=/,
     );
+    /* And the guard is only worth anything if the parameter is still there to be defaulted. */
+    expect(source).toMatch(/levels\s*:\s*number\s*[,)]/);
   });
 
   it("refuses a scale it cannot read rather than picking the nearest one", () => {

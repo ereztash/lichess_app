@@ -4662,3 +4662,346 @@ button:not(:disabled) {
   line-height: 1.6;
   color: var(--muted);
 }
+
+/*
+ * THE EVIDENCE LANGUAGE (§11), AND THE FINDING CARD THAT CARRIES IT (§14, §15).
+ *
+ * THE FIVE LEVELS GET FIVE VISIBLY DIFFERENT TREATMENTS, and that is the whole point of the block.
+ * A hypothesis rendered with the weight of a tested finding has been promoted by layout, without
+ * anyone having written a stronger sentence -- which is the failure `OutcomeSummary` already
+ * guards against for claims, widened here to everything the product says.
+ *
+ * THE ORDER OF WEIGHT IS NOT THE ORDER OF STRENGTH. `refuted` is not faint: it is the strongest
+ * evidence this product ever produces about a proposition, pointing the other way, and §22 is
+ * explicit that both settled outcomes are successes. It gets a settled colour, not a warning one.
+ */
+.evidence-mark {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: var(--panel-fine);
+}
+.evidence-mark__mark {
+  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: -0.05em;
+}
+.evidence-mark__word {
+  letter-spacing: 0.02em;
+}
+.evidence-mark[data-authority="one-event"],
+.evidence-mark[data-authority="recurred"] {
+  color: var(--muted);
+}
+.evidence-mark[data-authority="hypothesis"] {
+  color: var(--accent-soft);
+}
+.evidence-mark[data-authority="tested"] {
+  color: var(--blue);
+  font-weight: 600;
+}
+.evidence-mark[data-authority="refuted"] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.evidence-mark__explain {
+  flex-basis: 100%;
+  margin-top: 4px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.evidence-mark__explain > summary {
+  cursor: pointer;
+}
+.evidence-mark__explain > p {
+  margin: 4px 0 0;
+  line-height: 1.6;
+}
+
+/*
+ * THE CARD. Headline, example, evidence, action -- in that order, and the order is §7's argument:
+ * the concrete case before anything aggregate.
+ */
+.finding {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.finding__headline {
+  margin: 0;
+  font-size: var(--panel-title);
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.finding__example {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.finding__authority {
+  /*
+   * ON ITS OWN ROW, ABOVE THE ACTION. A mark tucked beside the headline reads as a tag on the
+   * sentence; on its own line it reads as an answer to "how much does this count", which is the
+   * question it is there to answer.
+   */
+  border-top: 1px solid rgba(var(--ink-rgb), 0.08);
+  padding-top: 8px;
+}
+.finding__button {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  background: var(--cream);
+  color: var(--ink);
+  cursor: pointer;
+  /* 44px is the target size the platform guidance asks for; the padding above reaches it. */
+  min-height: 44px;
+}
+.finding__because {
+  margin: 6px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.finding__why > summary {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.finding__why-body {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.finding__restraint {
+  margin: 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* THE POST-GAME SCREEN (§24). */
+.post-game {
+  display: grid;
+  gap: 12px;
+  max-width: 42rem;
+}
+.post-game__facts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.post-game__fact {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.post-game__fact-label {
+  min-width: 5.5rem;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.post-game__fact-value {
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+.post-game__note {
+  margin: 8px 0 0;
+  font-size: var(--panel-fine);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.post-game__why {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 6px 0 0;
+}
+.post-game__why > dt {
+  color: var(--muted);
+}
+.post-game__why > dd {
+  margin: 0;
+}
+.post-game__others > summary {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.post-game__others-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.post-game__others-list button {
+  font: inherit;
+  text-align: start;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--blue);
+  cursor: pointer;
+  min-height: 44px;
+}
+.post-game__others-detail {
+  display: block;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.post-game__again {
+  font: inherit;
+  justify-self: start;
+  padding: 8px 14px;
+  min-height: 44px;
+  border: 1px solid var(--edge-soft);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.blitz-review {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  max-width: 28rem;
+}
+
+/* THE RESUME SCREEN (§13, §28): three answers, above everything. */
+.resume {
+  display: grid;
+  gap: 10px;
+  max-width: 42rem;
+  margin: 0 0 20px;
+}
+.resume__changed {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--muted);
+}
+.resume__counts {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.resume__why {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 6px 0 0;
+}
+.resume__why > dt,
+.resume__excluded > dt {
+  color: var(--muted);
+}
+.resume__why > dd,
+.resume__excluded > dd {
+  margin: 0;
+}
+.resume__excluded {
+  display: contents;
+}
+/*
+ * THE RESERVED BLOCK, so the topmost element of the front door does not arrive late and push the
+ * page down. Matched to the rendered card's height: headline, one counts line, the evidence row,
+ * the button with its sentence, and the closed disclosure.
+ */
+.resume--pending {
+  min-height: 13rem;
+}
+
+/*
+ * §25's SECOND AND THIRD SECTIONS: what is still unclear, and what is being checked.
+ *
+ * NEITHER IS A CARD. `.finding` is for something the product is SAYING about the player; these are
+ * a list of things it is declining to say and one thing it has committed to checking, and giving
+ * either the card's border and weight would give a refusal the appearance of a finding.
+ */
+.unclear,
+.under-test {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.unclear__title,
+.under-test__title {
+  margin: 0;
+  font-size: var(--panel-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.unclear__lead {
+  margin: 6px 0 0;
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.unclear__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.unclear__item {
+  display: grid;
+  gap: 2px;
+  padding-inline-start: 10px;
+  border-inline-start: 2px solid var(--edge-soft);
+}
+/*
+ * A DEAD END IS DRAWN DIFFERENTLY FROM A WAIT, and the difference is not decoration: one of them
+ * is a thing the player can change and the other is not, and a list that rendered both the same
+ * would be inviting somebody to keep playing to unlock something that cannot unlock.
+ */
+.unclear__item[data-waiting="false"] {
+  border-inline-start-style: dashed;
+  opacity: 0.85;
+}
+.unclear__what {
+  font-size: var(--panel-body);
+  color: var(--ink);
+}
+.unclear__because,
+.unclear__needs {
+  font-size: var(--panel-fine);
+  color: var(--muted);
+}
+.unclear__needs {
+  font-variant-numeric: tabular-nums;
+}
+.under-test__statement {
+  margin: 0;
+  font-size: var(--panel-body);
+  line-height: 1.6;
+  color: var(--ink);
+}
+.under-test__terms {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: var(--panel-fine);
+}
+.under-test__terms > dt {
+  color: var(--muted);
+}
+.under-test__terms > dd {
+  margin: 0;
+  color: var(--ink);
+}

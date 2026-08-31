@@ -26,3 +26,6 @@ research/harness-shipped/corpus.json
 research/harness-shipped/*.jsonl
 research/b2/corpus.json
 research/b2/*.jsonl
+
+# Oracle run progress, written to stderr. The results beside it are the record.
+research/discovery-oracle/results/*.log

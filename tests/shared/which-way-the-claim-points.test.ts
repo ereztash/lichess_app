@@ -83,6 +83,7 @@ async function record(
     phase: o.phase,
     clockMsRemaining: 120_000,
     purpose: "play",
+    drillId: null,
     secondsTaken: 60,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4"],
@@ -102,6 +103,7 @@ async function record(
     engine_best_move: "e2e4",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: o.cpLoss,
   });
 }

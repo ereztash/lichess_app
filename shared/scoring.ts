@@ -10,6 +10,7 @@
 import { LEGACY_CONFIDENCE_LEVELS, normaliseConfidence } from "./confidence.js";
 import type { DecisionAtom } from "./decision-atom.js";
 import { accurateDecision, type ScoredDecision } from "./detector.js";
+import { readableInstrument } from "./evidence-policy.js";
 
 export interface ScoringSummary {
   scored: ScoredDecision[];
@@ -27,12 +28,32 @@ export interface ScoringSummary {
    * record of 40, and only one of those is honest about what the player did.
    */
   withoutConfidence: number;
+  /**
+   * Decisions the engine HAS passed verdict on, where nothing recorded which engine that was.
+   *
+   * A FOURTH STATE, and it is none of the three above. The decision is on the record, a confidence
+   * was stated, a `cp_loss` exists -- and the number cannot be read, because `engine_source` names
+   * a family and not an instrument. `docs/ACTION_PLAN.md` B1 measured 13.61% of decisions flipping
+   * verdict between two engines that would both have written `local_sf18`, so "accurate" is not
+   * defined for a row that cannot say which of them spoke.
+   *
+   * COUNTED, NOT DROPPED, for the reason `withoutConfidence` is: a record of 200 revealed
+   * decisions of which 0 name their engine is a different thing from a record of 0, and a screen
+   * that silently showed the second would be telling the player they have not played.
+   *
+   * IT WILL BE EVERY PRE-EXISTING ROW, and that is the intended cost rather than an oversight.
+   * `shared/evidence-policy.ts` made the same trade when it was written -- *"a source does not
+   * become eligible because excluding it leaves too little data"* -- and the same sentence applies
+   * to an instrument nobody wrote down. New decisions carry the build from the first one.
+   */
+  withoutInstrument: number;
 }
 
 export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): ScoringSummary {
   const scored: ScoredDecision[] = [];
   let awaitingReveal = 0;
   let withoutConfidence = 0;
+  let withoutInstrument = 0;
   atoms.forEach((atom, index) => {
     if (!atom.result) {
       awaitingReveal += 1;
@@ -51,6 +72,19 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
       withoutConfidence += 1;
       return;
     }
+    /*
+     * AFTER THE CONFIDENCE CHECK AND NOT BEFORE IT, which decides what each number means.
+     *
+     * A decision nobody was asked about can never be scored whatever engine judged it, so counting
+     * it here instead would move rows out of `withoutConfidence` -- a number already on screen --
+     * into a new one, and change a sentence the player reads for a reason that has nothing to do
+     * with them. In this order `withoutInstrument` is exactly the decisions that would otherwise
+     * have been scored, which is the only reading of it anybody wants.
+     */
+    if (!readableInstrument(atom)) {
+      withoutInstrument += 1;
+      return;
+    }
     scored.push({
       decision_id: decisionIds[index] ?? `decision-${index}`,
       fen: atom.entry_state.fen,
@@ -63,6 +97,12 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
       confidence: normaliseConfidence(
         atom.bounded_action.confidence,
         atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
+        /*
+         * AND WHICH GRID THAT SCALE WAS. Same rule one level down: the count says how many rungs,
+         * not what each asserts. Absent means version 1, which is a fact about the row's age --
+         * `normaliseConfidence` owns that resolution so it cannot be made twice, differently.
+         */
+        atom.bounded_action.confidence_grid_version,
       ),
       /*
        * Judged on what the move COST, not on how many centipawns it shed. Thirty centipawns is
@@ -76,7 +116,7 @@ export function scoreDecisions(atoms: DecisionAtom[], decisionIds: string[]): Sc
       clockMsRemaining: atom.entry_state.clock_ms_remaining,
     });
   });
-  return { scored, total: atoms.length, awaitingReveal, withoutConfidence };
+  return { scored, total: atoms.length, awaitingReveal, withoutConfidence, withoutInstrument };
 }
 
 /**

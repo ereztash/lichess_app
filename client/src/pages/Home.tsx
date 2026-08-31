@@ -132,6 +132,7 @@ import {
 // module. The implementation is pulled in dynamically at first reveal -- see ensureEngine.
 // Values (isStale, EngineLine) come from @/lib/engine-line, which has no asset imports.
 import type { StockfishClient } from "@/lib/stockfish";
+import { engineBuildId } from "@/lib/engine-identity";
 /*
  * Imported statically, and that is correct here: opponent.ts reaches chess.js and nothing else.
  * It does NOT import the engine -- it takes the search in as an argument -- so it adds no edge
@@ -1021,6 +1022,12 @@ export default function Home() {
             engine_best_move: bestMove,
             engine_depth: inputs.depth,
             engine_source: "local_sf18" as const,
+            /*
+             * WHICH BINARY, not just which family. `local_sf18` was the whole answer until now, and
+             * ACTION_PLAN B1 measured 13.61% of decisions flipping verdict between two engines that
+             * would both have written it.
+             */
+            engine_build: engineBuildId(),
             cp_loss: cpLoss,
           },
           alternative_cp_loss: alternativeCpLoss,
@@ -1188,6 +1195,20 @@ export default function Home() {
             ply: isLearningTransferDecision ? learningTransferIndex : currentPly + 1,
             clockMsRemaining: null,
             purpose: decisionPurpose,
+            /*
+             * WHAT MAKES THE LINE ABOVE CHECKABLE. `purpose` is the one atom field the server
+             * cannot re-derive, and `drill` is the value that decides whether a decision enters
+             * discovery at all. Sending the drill's id lets the boundary resolve it against a drill
+             * this record holds and confirm the position is one that drill registered before it
+             * started -- so the label stops being this client's word.
+             *
+             * `decisionPurpose` rather than `inDrill`, deliberately: the purpose is decided by one
+             * ordered rule in `decisionPurposeFor`, and reading a second flag here would let the
+             * two disagree -- a transfer check that also has a drill open would send a `transfer`
+             * decision carrying a drill id, which the boundary refuses as two statements that
+             * cannot both be true.
+             */
+            drillId: decisionPurpose === "drill" ? (drill?.drill_id ?? null) : null,
           },
           draft,
           secondsTaken,

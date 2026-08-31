@@ -22,6 +22,7 @@
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
+import { registerDrill } from "../fixtures/registered-drill";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
 import { classifyPhase } from "../../shared/phase";
@@ -50,6 +51,13 @@ async function record(
       clock_ms_remaining: null,
     },
     purpose: options.purpose,
+    /*
+     * A drill decision names the drill it came from, because the service resolves that rather than
+     * trusting the label (R-07). Registered lazily against this position, since the fixture picks
+     * the position per case and the binding requires the drill to hold it.
+     */
+    drill_id:
+      options.purpose === "drill" ? await registerDrill(store, [options.fen], `drill-${options.fen}`) : null,
     known: "המרכז פתוח",
     unknown: "לא יודע איך הוא יענה",
     known_parts: { tapped: ["המרכז פתוח"], typed: "" },
@@ -75,6 +83,7 @@ async function record(
     engine_best_move: "d4d5",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: options.accurate ? 0 : 300,
   });
 }

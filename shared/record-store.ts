@@ -50,6 +50,16 @@ export interface CommitDecisionInput {
    * would file every drill of that era as free play.
    */
   purpose: DecisionPurpose | null;
+  /**
+   * The drill this decision belongs to, or null on every other purpose.
+   *
+   * NULLABLE RATHER THAN OPTIONAL, so that every write site has to say which it is. A field that
+   * could be omitted would let a drill decision reach storage with no binding by forgetting a
+   * line, which is precisely the failure the binding exists to close.
+   */
+  drillId: string | null;
+  /** Which grid the confidence level was stated on, or null on a row that did not say. */
+  confidenceGridVersion?: number | null;
   secondsTaken: number;
   chosenMove: string;
   candidateMovesConsidered: string[];
@@ -140,6 +150,19 @@ export interface RecordStore {
    * include it. Append-only -- a game is played once and analysed once.
    */
   saveBlitzRecord(record: StoredBlitzRecord): Promise<void>;
+  /**
+   * Fill in the engine's verdict on a game that is already stored.
+   *
+   * THE ONE PERMITTED UPDATE IN AN APPEND-ONLY RECORD, and it is narrow on purpose: it writes the
+   * analysis columns and nothing else, once, and only over a game whose state is `pending`.
+   * Nothing the player did is mutable -- the moves, the clocks, the think times and the stated
+   * confidences are exactly as they were written when the game ended.
+   *
+   * It exists because the game is now stored BEFORE the engine runs, so that a tab closed during
+   * analysis cannot lose it. Something has to be able to come back afterwards and say what the
+   * engine found.
+   */
+  attachBlitzAnalysis(record: StoredBlitzRecord): Promise<void>;
   listBlitzGames(): Promise<StoredBlitzGame[]>;
   listBlitzDecisions(): Promise<StoredBlitzDecision[]>;
 

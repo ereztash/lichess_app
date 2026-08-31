@@ -223,6 +223,7 @@ describe("nothing downstream reads a null as a number", () => {
   const atom = (confidence: number | null, accurate: boolean): DecisionAtom => ({
     entry_state: { game_id: "g", fen: FEN, ply: 7, phase: "middlegame", clock_ms_remaining: null },
     purpose: "play",
+    drill_id: null,
     known: "k",
     unknown: "u",
     known_parts: null,
@@ -245,6 +246,7 @@ describe("nothing downstream reads a null as a number", () => {
       engine_best_move: "g8f6",
       engine_depth: 18,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       // Accurate at 0 loss, plainly inaccurate at 300.
       cp_loss: accurate ? 0 : 300,
     },

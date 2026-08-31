@@ -76,6 +76,7 @@ async function seedPattern(count: number) {
       phase: "opening",
       clockMsRemaining: 120_000,
       purpose: "play",
+      drillId: null,
       secondsTaken: fast ? 10 : 200,
       chosenMove: "e2e4",
       candidateMovesConsidered: ["e2e4"],
@@ -96,6 +97,7 @@ async function seedPattern(count: number) {
       engine_best_move: "e2e4",
       engine_depth: 18,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       // Fast decisions are usually wrong and occasionally right, which is what makes the bucket
       // a measurement rather than a constant.
       cp_loss: fast ? (i % 8 === 0 ? 5 : 200) : i % 3 === 0 ? 120 : 5,
@@ -133,6 +135,7 @@ async function recordDrillDecisions(
       phase: "opening",
       clockMsRemaining: null,
       purpose: "play",
+      drillId: null,
       secondsTaken: 12,
       chosenMove: "e2e4",
       candidateMovesConsidered: ["e2e4"],
@@ -159,6 +162,7 @@ async function recordDrillDecisions(
       engine_best_move: "e2e4",
       engine_depth: 18,
       engine_source: "local_sf18",
+      engine_build: "sf18-test-build",
       cp_loss: index === 2 ? (profile.cpLoss > 30 ? 10 : 200) : profile.cpLoss,
     });
     ids.push(id);

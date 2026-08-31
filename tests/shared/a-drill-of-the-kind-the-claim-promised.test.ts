@@ -181,6 +181,7 @@ async function decide(
     phase: classifyPhase(fen, plyFromFen(fen)),
     clockMsRemaining: 600_000,
     purpose: "play",
+    drillId: null,
     secondsTaken: o.secondsTaken,
     chosenMove: "e2e4",
     candidateMovesConsidered: ["e2e4"],
@@ -200,6 +201,7 @@ async function decide(
     engine_best_move: "e2e4",
     engine_depth: 18,
     engine_source: "local_sf18",
+    engine_build: "sf18-test-build",
     cp_loss: o.cpLoss,
   });
 }
@@ -348,6 +350,7 @@ describe("the decisions the drill is graded against are the ones it registered",
         phase: "endgame",
         clockMsRemaining: 120_000,
         purpose: "play",
+        drillId: null,
         secondsTaken: 30,
         chosenMove: "e2e4",
         candidateMovesConsidered: ["e2e4"],
@@ -367,6 +370,7 @@ describe("the decisions the drill is graded against are the ones it registered",
         engine_best_move: "e2e4",
         engine_depth: 18,
         engine_source: "local_sf18",
+        engine_build: "sf18-test-build",
         cp_loss: i === 6 ? 5 : 250,
       });
     }
