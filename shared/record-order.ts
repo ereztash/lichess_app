@@ -53,6 +53,7 @@ import { authorityOfClaim, type EvidenceAuthority } from "./evidence-authority.j
 export const UNCLEAR_CAUSES = [
   "too-few-in-bucket",
   "no-clock-recorded",
+  "split-does-not-divide",
   "no-population-baseline",
   "too-few-accurate",
   "too-few-inaccurate",
@@ -65,6 +66,13 @@ export type UnclearCause = (typeof UNCLEAR_CAUSES)[number];
 export const WAITING_HELPS: Readonly<Record<UnclearCause, boolean>> = {
   "too-few-in-bucket": true,
   "no-clock-recorded": false,
+  /*
+   * FALSE, AND MEASURED. On a realistic 3+0 blitz record of 480 decisions -- median think time 3.9
+   * seconds, longest 9.8 -- `fast-under-45s` comes out 480 inside and 0 outside. Not one decision
+   * in a record that size fell on the other side of the line, so the line is in the wrong place for
+   * these games, and another four hundred of them move it nowhere.
+   */
+  "split-does-not-divide": false,
   "no-population-baseline": false,
   /*
    * TRUE, AND ONLY JUST. More decisions do raise the smaller class eventually -- but a player whose
@@ -92,6 +100,13 @@ export const WAITING_HELPS: Readonly<Record<UnclearCause, boolean>> = {
  */
 export const UNCLEAR_SENTENCE: Readonly<Record<UnclearCause, string>> = {
   "too-few-in-bucket": "צד אחד של החלוקה עוד לא הגיע למספר שממנו אפשר להעריך שגיאה.",
+  /*
+   * IT NAMES THE LINE, which is what turns a dead end into something the player understands. "No
+   * decision of yours is on the other side of this line" is a fact about their games and their time
+   * control, and reading it they can see immediately why the split can never close.
+   */
+  "split-does-not-divide":
+    "אף החלטה ברשומה שלך לא נפלה בצד השני של החלוקה הזאת, אז אין מול מה להשוות. זה לא ייפתח מעוד משחקים מאותו סוג.",
   "no-clock-recorded":
     "לא נשמר שעון בהחלטות האלה, ולכן החלוקה הזאת לא תתמלא — לא משנה כמה עוד תשחק.",
   "no-population-baseline":
@@ -136,7 +151,11 @@ export function whatIsUnclear(reading: RecordReading): Unclear[] {
   for (const bucket of reading.buckets) {
     if (!bucket.measurable) {
       const because: UnclearCause =
-        bucket.unmeasurableReason === "no-clock-data" ? "no-clock-recorded" : "too-few-in-bucket";
+        bucket.unmeasurableReason === "no-clock-data"
+          ? "no-clock-recorded"
+          : bucket.unmeasurableReason === "one-side-empty"
+            ? "split-does-not-divide"
+            : "too-few-in-bucket";
       items.push({
         what: bucket.scope,
         because,

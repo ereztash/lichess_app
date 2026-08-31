@@ -32,6 +32,7 @@ import {
   MIN_BUCKET_N,
   SEPARABILITY_K,
   detect,
+  splitByBucket,
   summarise,
   type CalibrationSummary,
   type ScoredDecision,
@@ -59,17 +60,35 @@ export type BucketReading = {
    * measured a baseline here, and a caller must render the two differently.
    */
   versusPopulation: PopulationSeparation | null;
-  /** How many more decisions inside the bucket are needed before it can be read. */
+  /**
+   * How many more decisions the SMALLER SIDE needs before the split can be read.
+   *
+   * THE SMALLER SIDE AND NOT `inside`, which is what it used to be and which reported 0 whenever
+   * the comparison set was the short one -- a bucket that cannot be read, saying it needs nothing.
+   * `whatIsUnclear` renders this figure as "N more decisions", so the wrong side meant a player
+   * being told a split was ready when it was not.
+   */
   shortBy: number;
   /**
-   * Why it cannot be read, when it cannot.
+   * Why it cannot be read, when it cannot. THREE REASONS, AND ONLY ONE OF THEM IS A WAIT.
    *
    * "too-few" is a wait. "no-clock-data" is not: the record holds no clock at all, so the bucket
    * can never fill, and telling that player to record more decisions is advice that cannot work.
    * A local game against Stockfish has no clock, and a Lichess export carries none unless the
    * user ticked the option -- so this is the common case, not the edge case.
+   *
+   * "one-side-empty" IS THE THIRD, AND IT WAS FOUND BY MEASURING RATHER THAN BY READING. On a
+   * realistic 3+0 blitz record of 480 decisions -- median think time 3.9 seconds, longest 9.8 --
+   * `fast-under-45s` comes out 480 inside and 0 outside, and `slow-over-2m` comes out 0 and 480.
+   * Two of the six splits are structurally dead on the route this product built to measure time
+   * pressure, and one of them is the bucket the entire product narrative rests on.
+   *
+   * REPORTED SEPARATELY BECAUSE THE ADVICE IS OPPOSITE. "Too few" says keep going. An empty side on
+   * a record this size says the threshold sits outside the range this player's games produce, and
+   * no amount of the same play moves it -- so a screen that told them to keep playing would be
+   * spending their time on something the instrument cannot give them.
    */
-  unmeasurableReason: "too-few" | "no-clock-data" | null;
+  unmeasurableReason: "too-few" | "no-clock-data" | "one-side-empty" | null;
 };
 
 /**
@@ -358,18 +377,51 @@ export function readRecord(
   const anyClock = decisions.some((d) => d.clockMsRemaining !== null);
 
   const buckets: BucketReading[] = BUCKETINGS.map((bucketing) => {
-    const inside = summarise(decisions.filter(bucketing.predicate));
-    const outside = summarise(decisions.filter((d) => !bucketing.predicate(d)));
+    /*
+     * `splitByBucket` RATHER THAN TWO FILTERS, AND THIS WAS A LIVE DEFECT.
+     *
+     * The two filters were `predicate` and `!predicate`, which puts a decision the bucket CANNOT
+     * READ into the comparison set. `bucketable` exists precisely to stop that, and its own comment
+     * describes the failure in as many words: "we could not measure how long this took" becomes
+     * "this took more than 45 seconds", which is the same fabrication pointing the other way, and
+     * it moves the baseline the bucket is judged against. The detector was repaired; this reading,
+     * which draws the chart the player actually looks at, was still doing it.
+     *
+     * IT MATTERS MOST ON IMPORTED GAMES, which is where `secondsTaken` is null: a PGN without clock
+     * comments has no think times, so every one of those decisions was being counted as slow.
+     */
+    const sides = splitByBucket(bucketing, decisions);
+    const inside = summarise(sides.inside);
+    const outside = summarise(sides.outside);
     const measurable = inside.n >= MIN_BUCKET_N && outside.n >= MIN_BUCKET_N;
     const noClock = bucketing.requiresClock === true && !anyClock;
+    /*
+     * AN EMPTY SIDE ON A RECORD BIG ENOUGH TO HAVE FILLED IT is a division that does not divide,
+     * not a shortage. Zero is the test rather than "small", because zero is unambiguous: not one
+     * decision in a record of this size fell on that side of the line, so the threshold sits
+     * outside the range these games produce.
+     *
+     * THE SIZE CONDITION IS WHAT KEEPS IT HONEST. A record of ten decisions with nothing over two
+     * minutes says nothing about anything; the same record at sixty says the line is in the wrong
+     * place for this player.
+     */
+    const readable = inside.n + outside.n;
+    const emptySide =
+      readable >= MIN_BUCKET_N * 2 && Math.min(inside.n, outside.n) === 0;
     return {
       key: bucketing.key,
       scope: bucketing.scope,
       inside,
       outside,
       measurable,
-      shortBy: Math.max(0, MIN_BUCKET_N - inside.n),
-      unmeasurableReason: measurable ? null : noClock ? "no-clock-data" : "too-few",
+      shortBy: Math.max(0, MIN_BUCKET_N - Math.min(inside.n, outside.n)),
+      unmeasurableReason: measurable
+        ? null
+        : noClock
+          ? "no-clock-data"
+          : emptySide
+            ? "one-side-empty"
+            : "too-few",
       /*
        * Only when the split can be read at all. A comparison against a population, computed from
        * eight decisions, is a number with a very confident-looking provenance.

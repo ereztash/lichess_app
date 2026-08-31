@@ -452,6 +452,97 @@ blocked on, and was always the wrong thing to ask.
 
 ---
 
+### R-17 · A stored blitz confidence carries no scale and no grid version
+
+| | |
+| --- | --- |
+| type | correctness |
+| state | **fixed** |
+| severity | **P1** |
+| basis | **verified** — was `drizzle/schema.ts` `blitz_decisions.confidence` as a bare `int` with no
+scale column beside it, while `decisions` had carried both since R-10 |
+
+`decisions` carries `confidence_scale` and `confidence_grid_version`. `blitz_decisions` carried
+neither and stored a bare `confidence: 6`. Six of what, on which grid, was answerable only from
+whichever build happened to be reading — which is a property of the reader, not of the row.
+
+**Worse here than in `decisions`, which is why this is P1 and not P2.** The blitz row is the only
+place a confidence is recorded during a timed game, and the whole reason the blitz route exists is
+to measure calibration under time pressure. `shared/confidence.ts` names two open questions that
+would move the seven probabilities while leaving the count at seven; on that day every stored blitz
+level would silently assert a different number, with the count still matching and the word under the
+button unchanged.
+
+**Found sideways, and that is the argument for building the projection first.** Nothing had ever
+read these rows, so nothing had been forced to answer "what does this integer mean". `BlitzReading`
+had to.
+
+**Gate:** `tests/shared/a-blitz-confidence-with-no-scale.test.ts` — a stored row with no scale is
+read on the scale the blitz route has always shipped AND reports that it was dated rather than read;
+a fresh row that omits the scale is refused at the wire boundary; a row from a newer build is
+reported unreadable rather than re-read on today's grid.
+
+**Closed by** two nullable columns, never backfilled, plus `blitzConfidenceOf` — the one reader
+allowed to date an old row, and required to say that it did, so a denominator can report how much of
+itself rests on an inference about age.
+
+---
+
+### R-18 · Two of the six buckets are structurally dead on a blitz record
+
+| | |
+| --- | --- |
+| type | correctness · evidence |
+| state | **half fixed** — the false advice is gone; the thresholds themselves are §18 and are open |
+| severity | **P1** |
+| basis | **verified, by measurement** — `tests/shared/a-line-nobody-crossed.test.ts` |
+
+Measured on a realistic 3+0 record of 480 decisions — median think time 3.9 seconds, longest 9.8:
+
+| bucket | inside | outside |
+| --- | --- | --- |
+| `fast-under-45s` | **480** | **0** |
+| `slow-over-2m` | **0** | **480** |
+| `phase-opening` | 120 | 360 |
+| `phase-middlegame` | 240 | 240 |
+| `phase-endgame` | 120 | 360 |
+| `clock-under-1m` | 156 | 324 |
+
+Forty-five seconds is a quarter of the entire clock in a three-minute game and two minutes is two
+thirds of it. So the bucket the product's whole narrative rests on — *when you have little time, you
+commit before you have checked* — **can never be read on the route built to measure time pressure**.
+The other four work, which is what makes this a defect in the thresholds rather than in the idea.
+
+**What the page did about it was worse than silence.** Both dead splits came back as
+`too-few-in-bucket` with a count, so §25's new section would have told a player "thirty more
+decisions" on a record where four hundred and eighty had already failed to produce one. That is the
+same class of advice `no-clock-data` exists to prevent, and it is now a third reason —
+`one-side-empty` — reported as a dead end that names the line nothing crossed.
+
+**Two other defects surfaced in the same function**, both live and both older than this row:
+
+- `readRecord` split the record with `predicate` and `!predicate`, so a decision the bucket **cannot
+  read** landed in the comparison set. `bucketable` exists to stop exactly that and its own comment
+  describes the failure — "we could not measure how long this took" becoming "this took more than 45
+  seconds". The detector was repaired; the reading that draws the chart the player looks at was not.
+- `shortBy` counted only the `inside` side, so a split whose comparison set was empty reported that
+  it needed **nothing**. The screen that renders that figure did not exist when the field was
+  written, which is how a number answering the wrong question survives.
+
+**Gate:** `tests/shared/a-line-nobody-crossed.test.ts` — the saturation is asserted as exact counts
+on a deterministic record; the other four buckets must stay readable on the same record, so a
+degenerate fixture cannot satisfy it; a genuinely thin split must still be reported as a wait; and a
+small record's empty side must NOT be called a dead end.
+
+**Still open, and deliberately not fixed here:** the thresholds themselves. Replacing 45 seconds with
+a fraction of the clock is master-plan §18, and it cannot be done by editing a constant —
+`SEPARABILITY_K = 3.75` is a measurement of *those six buckets searched together*, so a seventh or a
+redefined one needs its own false-positive rate from `research/discovery-oracle/` before it may be
+searched. Until then the honest behaviour is the one now shipped: say the split cannot divide this
+record, and do not ask for decisions that will not help.
+
+---
+
 ## P2 — real, bounded, and not blocking anything
 
 ### R-10 · A confidence scale can be re-meant without the record noticing

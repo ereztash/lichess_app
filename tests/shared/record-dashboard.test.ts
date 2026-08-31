@@ -48,11 +48,25 @@ describe("reading the record", () => {
     expect(reading.buckets.every((b) => !b.measurable)).toBe(true);
   });
 
-  it("keeps a bucket unmeasurable below the threshold and says how short it is", () => {
+  it("counts the shortfall on the side that is actually short", () => {
+    /*
+     * THIS ASSERTION USED TO READ 3, AND 3 WAS THE BUG. Twenty-seven decisions, all ten seconds, so
+     * `fast-under-45s` holds all of them and its comparison set holds none. `shortBy` was
+     * `MIN_BUCKET_N - inside.n` -- three -- which answers a question nobody asked: the split needs
+     * thirty on BOTH sides, and the empty one is thirty short. A player told "three more" would
+     * have taken three more decisions and found the split exactly as unreadable.
+     *
+     * The screen that renders this figure did not exist when the field was written, which is how a
+     * number that answers the wrong question survives: nothing had ever put it in a sentence.
+     */
     const reading = readRecord(many(MIN_BUCKET_N - 3, { secondsTaken: 10 }));
     const fast = reading.buckets.find((b) => b.key === "fast-under-45s");
     expect(fast?.measurable).toBe(false);
-    expect(fast?.shortBy).toBe(3);
+    expect(fast?.inside.n).toBe(MIN_BUCKET_N - 3);
+    expect(fast?.outside.n).toBe(0);
+    expect(fast?.shortBy).toBe(MIN_BUCKET_N);
+    /* And at this size it is still a WAIT: 27 decisions say nothing about where the line belongs. */
+    expect(fast?.unmeasurableReason).toBe("too-few");
   });
 
   it("only reads a split once BOTH sides clear the threshold", () => {
