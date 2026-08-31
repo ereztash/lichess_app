@@ -1,0 +1,19 @@
+world                                      n   any bucket    claim  validated  upper 95%
+BLITZ-NULL-1-independent                 400       0.0000   0.0000     0.0000     0.0095
+BLITZ-NULL-2-within-game-correlated      400       0.0000   0.0000     0.0000     0.0095
+BLITZ-NULL-3-skewed-features             400       0.0025   0.0025     0.0000     0.0095
+BLITZ-NULL-5-informative-missingness     400       0.0000   0.0000     0.0000     0.0095
+
+pooled blitz null: 0/1600 = 0.0000  95% CI [0.0000, 0.0024]  ceiling 0.02  -> PASS
+
+bucket                non-empty    usable   cleared   (share of records, pooled nulls)
+clock-under-1m           1.0000    1.0000    0.0000
+fast-under-45s           1.0000    0.2725    0.0006
+phase-endgame            1.0000    1.0000    0.0000
+phase-middlegame         1.0000    1.0000    0.0000
+phase-opening            1.0000    1.0000    0.0000
+slow-over-2m             0.5844    0.0037    0.0000
+
+plant                    delta   recall  on target  validated  on target
+clean-middlegame         0.180   0.5775     0.5650     0.4200     0.4175
+clean-fast               0.180   0.0025     0.0025     0.0000     0.0000

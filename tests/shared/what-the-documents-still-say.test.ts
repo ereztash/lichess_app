@@ -175,6 +175,23 @@ describe("what the documents still say", () => {
       expect(lifecycle).not.toMatch(/Fewer than two successes refutes/);
     });
 
+    it("keeps the oracle's copy of the detector's floor equal to the detector's", () => {
+      /*
+       * `research/discovery-oracle/q6_blitz_time.py` duplicates `MIN_BUCKET_N` rather than importing
+       * it, and says why: a study that imported it would report "usable" against whatever the
+       * constant happens to be, and that table's whole job is to say what the SHIPPED floor does to
+       * a blitz record. A duplicate with a reason is fine; a duplicate nothing checks is how the
+       * number in `docs/decisions/D05-blitz-time.md` stops describing the product.
+       */
+      const q6 = readFileSync(
+        resolve(__dirname, "../../research/discovery-oracle/q6_blitz_time.py"),
+        "utf8",
+      );
+      const match = q6.match(/^MIN_BUCKET_N = (\d+)$/m);
+      expect(match, "q6 no longer declares MIN_BUCKET_N -- check what it uses instead").not.toBeNull();
+      expect(Number(match![1])).toBe(MIN_BUCKET_N);
+    });
+
     it("names the accuracy rule the record actually uses, at an evaluation where they differ", () => {
       /*
        * NOT A DOCUMENT ASSERTION AT ALL, and it is here on purpose: the reason the old sentence

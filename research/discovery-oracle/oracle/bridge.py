@@ -73,7 +73,14 @@ def run_detector(records: Iterable[dict], quiet: bool = True) -> Iterator[dict]:
         raise RuntimeError(f"the detector bridge exited {code}\n{message}", file=sys.stderr)
 
 
-def to_line(record: dict, record_id: str, world: str, split: int, masks: bool = False) -> dict:
+def to_line(
+    record: dict,
+    record_id: str,
+    world: str,
+    split: int,
+    masks: bool = False,
+    sides: bool = False,
+) -> dict:
     """The columnar shape the bridge reads. `truth_gap` never crosses: the detector may not see it."""
     line = {
         "id": record_id,
@@ -88,4 +95,8 @@ def to_line(record: dict, record_id: str, world: str, split: int, masks: bool = 
     }
     if masks:
         line["masks"] = True
+    if sides:
+        # Twelve integers per record: each bucket's two split sizes on the derivation half. A table
+        # of `cleared` zeroes cannot tell "never separated" from "never had two sides".
+        line["sides"] = True
     return line

@@ -67,6 +67,19 @@ interface RecordLine {
   split: number;
   /** Emit the per-bucket membership of the derivation half. Off by default: it is the bulk. */
   masks?: boolean;
+  /**
+   * Emit each bucket's two SIZES on the derivation half, whether or not it cleared.
+   *
+   * OFF BY DEFAULT AND SEPARATE FROM `masks`, because it answers a different question and costs a
+   * different amount. `masks` emits every index, which is the bulk of the output; this emits twelve
+   * integers. Both need a second full six-bucket split, which is real work per record on a harness
+   * that pushes millions of decisions, so neither is on unless a study asks.
+   *
+   * WHY ANY STUDY WOULD ASK. `cleared` lists the buckets that PASSED the separability test, and a
+   * table of zeroes there cannot tell "never separated" from "never had two sides to compare". On a
+   * blitz-only record those are the two different things R-18 is about.
+   */
+  sides?: boolean;
 }
 
 const PHASES = ["opening", "middlegame", "endgame"] as const;
@@ -250,6 +263,21 @@ function handle(line: RecordLine): unknown {
                 ? attributionReport.verdict.because
                 : null,
           },
+    /*
+     * THE SIZES, WHEN ASKED. Computed from the same `report` the rest of this file uses, so a
+     * bucket that is empty here is empty by the product's own `splitByBucket` -- including its
+     * `bucketable` guard, which is the whole reason a decision with no think time is in neither
+     * side rather than in the comparison set.
+     */
+    sides:
+      line.sides !== true
+        ? undefined
+        : Object.fromEntries(
+            report(derivation, DEFAULT_THRESHOLDS, 0, false).map((b) => [
+              b.key,
+              { inside: b.insideN, outside: b.outsideN },
+            ]),
+          ),
     cleared: patterns.map((p) => p.key),
     findings: findings.length,
     selected: selected === null ? null : selected.key,

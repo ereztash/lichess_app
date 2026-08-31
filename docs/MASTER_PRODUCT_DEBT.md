@@ -534,12 +534,33 @@ on a deterministic record; the other four buckets must stay readable on the same
 degenerate fixture cannot satisfy it; a genuinely thin split must still be reported as a wait; and a
 small record's empty side must NOT be called a dead end.
 
+**Measured end to end since**, through the same harness as M0 Q4 — `research/discovery-oracle/q6_blitz_time.py`,
+1,600 null records and 800 planted, blitz-only controls. On a forty-game blitz record:
+
+| bucket | non-empty | **usable** (both sides ≥ `MIN_BUCKET_N`) | cleared |
+| --- | --- | --- | --- |
+| `clock-under-1m`, all three phase buckets | 1.0000 | **1.0000** | 0.0000 |
+| `fast-under-45s` | 1.0000 | **0.2725** | 0.0006 |
+| `slow-over-2m` | 0.5844 | **0.0037** | 0.0000 |
+
+and a planted effect of the same strength that the middlegame recovers at **41.75% validated on
+target** is recovered in the fast bucket at **0.00%**. The middlegame row is the control: it scores
+0.4175 here against Q4's 0.4475 on mixed controls, so the blitz worlds are sound and the bucket is
+not. The false-claim rate is unaffected — 0/1,600, upper 95% 0.0024 against the 0.02 ceiling.
+
+**The first version of that table reported only the middle column and was misleading.** Counting a
+bucket as readable when it had one decision on each side put `fast-under-45s` at 1.0000, which is
+true and says nothing: `detect` needs thirty on both. The gap between 1.0000 and 0.2725 is the
+finding.
+
 **Still open, and deliberately not fixed here:** the thresholds themselves. Replacing 45 seconds with
-a fraction of the clock is master-plan §18, and it cannot be done by editing a constant —
+a fraction of the clock is master-plan §18 and it cannot be done by editing a constant —
 `SEPARABILITY_K = 3.75` is a measurement of *those six buckets searched together*, so a seventh or a
-redefined one needs its own false-positive rate from `research/discovery-oracle/` before it may be
-searched. Until then the honest behaviour is the one now shipped: say the split cannot divide this
-record, and do not ask for decisions that will not help.
+redefined one needs its own false-positive rate before it may be searched, and the six are frozen in
+`hypothesis-manifest.ts`, so changing them changes the hash that makes a pre-registration mean
+anything. Choosing among four candidate definitions by measuring all four and keeping the best is
+itself a four-comparison search with no correction. `docs/decisions/D05-blitz-time.md` holds the
+alternatives and the choice rule that has to be declared before the next run.
 
 ---
 
