@@ -330,6 +330,36 @@ the finished game's board.
 
 ---
 
+## The gates, and the one that is missing
+
+Five of the nine named in this document are registered in `scripts/run_gates.ts` and run on every
+`npm run verify`, each with a positive control that must go red:
+
+| gate | law | what its control does |
+| --- | --- | --- |
+| `GATE-DECISION-FOCUS` | 1 | a screen that shows the claim panel beside the commitment |
+| `GATE-ONE-BOARD-ONE-STORY` | 11 | two boards on one screen |
+| `GATE-REUSE-CONFIG` | 8 | a setup that asks again and keeps nothing |
+| `GATE-PENDING-WORK-LIVENESS` | 4 | an analysis a screen can cancel, and a root that never finishes it |
+| `GATE-NEXT-ACTION-RESOLVES-BLOCKER` | 3 | the mapping this product shipped, which answered `nothing-scored` with "play another game" |
+
+**They are a different kind of claim from the fifteen beside them, and the same kind underneath.**
+Every gate that existed before these reads code for a claim about a *measurement*. These read code
+for a claim about a *state*: which surfaces may exist while a player is in one. LAW 1 is why that
+belongs in the same file — a confidence stated in front of a panel describing that player's
+calibration is not a measurement of what they believed, so "which panel is on screen while a
+decision is open" is a validity question wearing a layout question's clothes.
+
+**And it is a gate rather than a test because it is violated by adding something, anywhere, at any
+time.** A test asserts that a screen is right today. A gate asserts that no screen has become wrong.
+
+`GATE-EXPOSURE-CONTEXT` is deliberately absent — see LAW 12. `GATE-ONE-PRIMARY-ACTION`,
+`GATE-NO-DUPLICATE-ACTION` and `GATE-TOOLBOX-OUTSIDE-FOCUS` are held by tests today and are not yet
+gates: each needs a predicate that can count a *primary* action from source, and a count that
+disagreed with a reader would be worse than none.
+
+---
+
 ## LAW 12 — Feedback exposure is evidence context
 
 > A decision made after the player has already seen feedback about a pattern is not automatically

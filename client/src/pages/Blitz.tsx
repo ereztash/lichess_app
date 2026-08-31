@@ -336,7 +336,20 @@ export default function Blitz() {
                 className={again ? "blitz-control blitz-control--again" : "blitz-control"}
                 onClick={() => startGame(tc)}
               >
-                {label}
+                {/*
+                  * `dir="ltr"` ON THE RUN, AND IT IS A CORRECTNESS FIX RATHER THAN A TIDY-UP.
+                  *
+                  * `3+0` is digits and a plus in a document that runs right to left. On its own it
+                  * resolves correctly; beside three more with nothing between them it does not --
+                  * the four merge into one numeric run and the bidi algorithm lays its segments out
+                  * right to left, so the player was offered `5+55+03+23+0`. `Home.tsx` already
+                  * carries this exact fix for `7. Bb3`, which rendered as `Bb3 .7`.
+                  *
+                  * MARKED HERE RATHER THAN TRUSTED TO THE SPACING. The layout that now separates
+                  * these controls would hide the problem; it would not solve it, and the next
+                  * element placed beside one of them would bring it straight back.
+                  */}
+                <span dir="ltr">{label}</span>
                 {again && <span className="blitz-control__again">שוב</span>}
               </button>
             );
@@ -359,9 +372,14 @@ export default function Blitz() {
 
   return (
     <main className="blitz">
+      {/* Two clocks side by side, both Latin runs: `3:00` beside `2:47` merges the same way. */}
       <div className="blitz-clocks">
-        <span aria-label="שעון היריב">{clockText(remainingMs(game, "b", now))}</span>
-        <span aria-label="השעון שלך">{clockText(remainingMs(game, "w", now))}</span>
+        <span dir="ltr" aria-label="שעון היריב">
+          {clockText(remainingMs(game, "b", now))}
+        </span>
+        <span dir="ltr" aria-label="השעון שלך">
+          {clockText(remainingMs(game, "w", now))}
+        </span>
       </div>
 
       {/*
@@ -376,7 +394,8 @@ export default function Blitz() {
         */}
       {reviewing && (
         <p className="blitz-board-mode" role="status">
-          מהלך {reviewing.ply}: {reviewing.san}
+          {/* The ply and the SAN are one Latin run inside a Hebrew sentence: `23: Nf3`, not `Nf3 :23`. */}
+          מהלך <span dir="ltr">{reviewing.ply}: {reviewing.san}</span>
         </p>
       )}
       <ChessBoard
@@ -462,7 +481,12 @@ export default function Blitz() {
       )}
 
       {game.phase === "running" && (
-        <button type="button" onClick={() => setGame(resign(game, PLAYER))}>
+        /* The way out of a game, at the weight of a way out: the primary action is the board. */
+        <button
+          type="button"
+          className="blitz-resign"
+          onClick={() => setGame(resign(game, PLAYER))}
+        >
           פרישה
         </button>
       )}

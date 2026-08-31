@@ -464,6 +464,26 @@ const INDEX = "dist/public/index.html";
  * ever moves one way is a ratchet that records defeats; leaving 19 kB of slack in it would mean the
  * next twenty accidental kilobytes cost nothing to ship. The same headroom as every raise above --
  * 1.9 kB, 2.1 kB and 1.7 kB -- measured from where the build actually is.
+ *
+ * ---
+ *
+ * 751 -> 753: a stylesheet for a route that never had one.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              671.1      208.9       749.3
+ *     + the blitz route's CSS              671.1      208.9       751.5   +0.0 / +0.0 / +2.2
+ *
+ * ENTRY RAW AND GZIP DID NOT MOVE, WHICH IS THE WHOLE SHAPE OF THIS ONE: it is 2.2 kB of
+ * stylesheet and no JavaScript at all. `/blitz` had exactly one rule in `index.css` and shipped as
+ * unstyled flow content -- four time-control buttons with no box and no spacing, which under the
+ * document's RTL direction merged into one numeric run and rendered as `5+55+03+23+0`, and a board
+ * that came out 120px wide because `.board-stage` pins itself to a column blitz does not have.
+ *
+ * IT IS THE ONLY RAISE IN THIS FILE THAT BUYS A SCREEN RATHER THAN A FEATURE. Everything above
+ * bought something the product can now do; this bought a route that a player could already reach
+ * and could not read.
+ *
+ * 753 LEAVES 1.5 kB. The other two ceilings did not move and keep their numbers.
  */
 const ENTRY_RAW_KB = 673;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
@@ -511,7 +531,7 @@ const ENTRY_GZIP_KB = 211;
  * have said so anyway. CI reported it correctly on the first try. The tool worked; reading it
  * through a keyhole did not.
  */
-const INITIAL_RAW_KB = 751;
+const INITIAL_RAW_KB = 753;
 
 interface Asset {
   name: string;
