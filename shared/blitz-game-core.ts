@@ -29,6 +29,7 @@
  * their clock ran out has still lost on time.
  */
 import { Chess } from "chess.js";
+import { durationMs } from "./measured-duration.js";
 import type { TimeControlMs } from "./pgn-clock.js";
 
 export type Side = "w" | "b";
@@ -181,7 +182,16 @@ export function commit(
 ): { state: BlitzState; accepted: boolean } {
   if (state.phase !== "running") return { state, accepted: false };
 
-  const elapsed = nowMs - state.turnStartedAtMs;
+  /*
+   * A WHOLE MILLISECOND, AND THE CLOCK IS KEPT IN THE SAME UNITS BY USING THIS ONE VALUE FOR BOTH.
+   *
+   * `elapsed` is the think time that gets frozen into the decision below AND the amount subtracted
+   * from the mover's clock. Rounding it once here keeps those two the same number; rounding only
+   * the stored one would let a record say a player spent 3948ms on a move their clock says cost
+   * 3947.7ms. `turnStartedAtMs` stays the raw reading, so the rounding does not accumulate: each
+   * move is measured from when it actually started, not from a rounded version of it.
+   */
+  const elapsed = durationMs(state.turnStartedAtMs, nowMs);
   const clockBefore = state.clocksAtTurnStart[state.active];
   const opponent: Side = state.active === "w" ? "b" : "w";
 

@@ -20,6 +20,7 @@
  * who can see the answer while stating how sure they were is not stating how sure they were.
  */
 import type { BlitzDecision } from "./blitz-game-core.js";
+import { durationMs } from "./measured-duration.js";
 
 /**
  * The sampling policy, and it is EXPERIMENTAL in the literal sense: nothing has yet shown that
@@ -128,7 +129,7 @@ export function answer(
     open: null,
     decisions: session.decisions.map((entry, i) =>
       i === index
-        ? { ...entry, confidence, instrumentationLatencyMs: Math.max(0, nowMs - askedAtMs) }
+        ? { ...entry, confidence, instrumentationLatencyMs: durationMs(askedAtMs, nowMs) }
         : entry,
     ),
   };

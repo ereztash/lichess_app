@@ -193,6 +193,37 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
     /* And it is the unscored sentence, not a headline about a move nothing has evaluated. */
     expect(await page.locator(".finding__headline").textContent()).toContain("המנוע עוד לא עבר");
 
+    /*
+     * AND THE GAME IS ON THE RECORD, which the card above is NOT evidence of.
+     *
+     * This assertion exists because its absence hid a total failure of the feature. `Blitz.tsx` used
+     * to render the post-game reading from the record it had just assembled in component state, so
+     * the card appeared whether or not the store had taken it -- and the store was taking none of
+     * them: `performance.now()` is a double, the think time came out fractional, and
+     * `storedBlitzRecordSchema` requires an int. Every game played in a real browser was refused,
+     * this audit went green on every run, and the screen said "המשחק עצמו נשמר".
+     *
+     * Read out of `localStorage` rather than off the screen ON PURPOSE. A browser check that asks
+     * the page whether the page saved something is asking the wrong party.
+     */
+    const record = await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((k) => k.startsWith("decision-lab.record."));
+      return key === undefined ? null : (localStorage.getItem(key) ?? null);
+    });
+    expect(record, "no record was written to this browser at all").not.toBeNull();
+    const state = JSON.parse(record as string) as {
+      blitzGames?: { gameId: string; analysisState: string }[];
+      blitzDecisions?: { gameId: string; thinkMs: number }[];
+    };
+    expect(state.blitzGames ?? [], "the game the player just finished was not stored").toHaveLength(
+      1,
+    );
+    expect((state.blitzDecisions ?? []).length).toBeGreaterThan(0);
+    /* The think time is the measurement, and it survived the round trip as a whole millisecond. */
+    for (const decision of state.blitzDecisions ?? []) {
+      expect(Number.isInteger(decision.thinkMs), `${decision.thinkMs}`).toBe(true);
+    }
+
     const audit = await axe(page);
     expect(audit.rulesRun, "axe audited an empty document").toBeGreaterThan(10);
     expect(serious(audit), JSON.stringify(serious(audit))).toEqual([]);
