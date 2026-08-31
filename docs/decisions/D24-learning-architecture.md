@@ -68,6 +68,30 @@ That answers **H14**. **H16** is answered in the corpus too — the screen is bu
 trigger-negative cell — though not in the product, which never shows a player a position where their
 rule does not apply.
 
+### One sentence in that paragraph does not survive being checked
+
+*"Its* d′ *orders rating bands monotonically"* is true, and it is the half of the pair that flatters
+the rule class. **The criterion moves too, from +0.257 to −0.113, and it moves more.** Of the
+**+19.8** points of trigger-positive hit rate between the bottom and top bands, freezing *c*
+reproduces **+8.1** and freezing *d′* reproduces **+12.3** — an ordering that holds at all three
+anchor choices. The false-alarm rate **rises** across the bands, .199 → .236.
+
+`RULE_CLASS_SEARCH` states the hedge in one sentence and does not quantify it, so nothing there is
+wrong. **What is wrong is the reading a reader supplies** — that stronger players *see* the threat
+better. Mostly they are readier to answer it.
+
+This matters because it names the way an intervention here fails: a procedure that repeatedly shows
+trigger-positive examples and rewards the defensive move is **criterion-shifting by construction**,
+it raises the number a trigger-positive-only study reports as success, and on trigger-negative
+positions following the rule loses **≥100 cp on 34.0%** of items, median **+49**. See
+[H18 and H19](../learning-v2/FALSIFICATION_REGISTER.md); arithmetic in
+[`research/learning/headroom.py`](../../research/learning/headroom.py).
+
+**And the headroom is real but band-dependent.** Unaided players already answer the threat on
+**.716** [.696, .735] of trigger-positive positions — **.63** at 1200–1400, **.83** at 1800+. The
+objection *"players already do this"* is wrong at the bottom of the range and close to right at the
+top, which makes it a recruiting constraint on Study D rather than a reason not to run it (H17).
+
 **What did not change, and it is why the verdict is `NARROW` and not `PROCEED`:**
 
 1. **RC-06 is expert-screened. The product is not.** Nine of ten candidate rule classes, *designed
@@ -118,6 +142,12 @@ It is selected because both outcomes point at different products: if detection p
 barrier is recognition and trigger focality is the intervention; if it does not, the barrier is
 action selection and if–then compilation is. **Choosing an intervention before that is known is
 aiming at a guess.**
+
+It carries **three amendments made after it was designed**, all from the headroom check above: the
+unaided human baseline is now stated in the design rather than absent from it, recruitment is
+constrained to 1200–1600 where the miss cell is 37% rather than 17%, and **a third falsification
+criterion was added** — hits and false alarms moving together is a criterion shift, and a study that
+reported the trigger-positive series alone would score it as the largest success.
 
 **It replaces D23's Study 0**, which remains a well-designed study of the wrong question: response
 congruency is already the settled convention in the largest chess-learning product, its outcome is

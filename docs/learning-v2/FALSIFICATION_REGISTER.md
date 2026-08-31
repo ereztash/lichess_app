@@ -1,7 +1,11 @@
-# Sixteen failure hypotheses
+# Nineteen failure hypotheses
 
 Each is stated as the **optimistic** claim a builder would want to be true, then attacked.
 `CONFIDENCE` is about the verdict, not about the effect.
+
+**H1–H16** were written against the architecture. **H17–H19** were added afterwards, against *this
+research's own conclusion*, when an objection was raised to how much headroom RC-06 leaves. Two of
+the three came back against the research rather than for it.
 
 Sources are the rows of [`THEORY_EVIDENCE.md`](THEORY_EVIDENCE.md) (V1–V13).
 
@@ -135,12 +139,68 @@ ever shows a player a position where their rule does not apply.
 **CONFIDENCE: high** that it is now measurable in principle; **unknown** about the effect. The
 [experiment](EXPERIMENT.md) carries it as its harm series.
 
+### H17 — RC-06's trigger is worth teaching, because players do not already answer it
+**Support:** the rule class passed every gate in the screen, and its prescribed act is the engine's
+best move on 242/242 trigger-positive items.
+**Falsifier:** *"answer the mate threat"* is the first thing anyone checks. If unaided players
+already do it, the rule class is measurable and unteachable, and Study D has a ceiling instead of a
+result. **The screen already measured this and nobody read it that way:**
+`screen_rule_classes.py::_player_sdt` scores the move the player ACTUALLY PLAYED against `B`, over
+2,080 trigger-positive positions.
+**VERDICT: NOT REFUTED — there is headroom, and less of it than the rule class's other numbers
+suggest.** Pooled hit rate **.716** [.696, .735]. By band it runs **.63 → .83**; against a chance
+rate of **.317** that is **46%** of the available range realised at 1200–1400 and **75%** at 1800+.
+**CONFIDENCE: high** on the arithmetic, which is
+[`research/learning/headroom.py`](../../research/learning/headroom.py) and re-derived from the raw
+screen results on every run. **The objection is real at the top of the range and wrong at the
+bottom**, which is a recruiting constraint on Study D rather than a reason not to run it.
+
+### H18 — The rating-band *d′* ordering shows the rule class captures a skill that improves
+**Support:** `RULE_CLASS_SEARCH` reports *d′* monotone across four bands, 1.180 → 1.666, span 0.49,
+and calls it *"the first time sensitivity has moved in the right order at all."*
+**Falsifier:** *d′* is half of the pair. The criterion moves too — **+0.257 → −0.113** — and the
+same document says so in one sentence without quantifying it. Quantified, the hedge is **larger
+than the headline**: of the **+19.8** points of hit rate between the bottom and top bands, freezing
+*c* reproduces **+8.1** and freezing *d′* reproduces **+12.3**. The ordering holds at all three
+anchor choices. Read from the other side, the **false-alarm rate rises** across the bands, .199 →
+.236, rather than falling.
+**VERDICT: OVERSTATED, NOT REFUTED.** Sensitivity does improve and the monotonicity is real; it is
+simply the smaller of the two terms behind the behaviour. The screen's claim is about *d′* and is
+true as written. **The claim that does not survive is the one a reader supplies — that the band
+ordering shows stronger players *see* it better.** Mostly they are readier to play it.
+**CONFIDENCE: high.** The decomposition is a convenience, not a variance partition — hit rate is
+nonlinear in the pair and the terms do not sum to the whole — but the ORDER is what is load-bearing
+and it is anchor-invariant.
+
+### H19 — An intervention that raises rule-consistent action on trigger-positive items is an improvement
+**Support:** it is the outcome any obvious study would report, and the one the product would build
+toward.
+**Falsifier:** H18 supplies the mechanism. A pure criterion shift raises the T+ hit rate **and the
+T− false-alarm rate together**, and the screen measured what the second one costs: on
+trigger-negative items, following the rule loses **≥100 cp on 34.0%** of them, median **+49 cp**.
+**The natural design is the dangerous one** — repeated exposure to trigger-positive examples with
+the defensive move rewarded is a criterion-shifting procedure, not a discrimination-training one.
+**VERDICT: REFUTED as stated.** A trigger-positive-only outcome cannot distinguish the intervention
+that teaches from the one that merely biases, and it scores the harmful one as the larger success.
+**CONFIDENCE: high** on the direction; **unknown** on how much any real intervention moves each
+term, which is not measurable without running one.
+**Study D already survives this** — its OUTCOME reports hits and false alarms separately with *c*
+beside any *d′*, and its item set carries the T− cell — but it survives by construction rather than
+by having been checked, and this entry is the check.
+
 ---
 
-## What the sixteen add up to
+## What the nineteen add up to
 
 Nine refuted, one likely false, three unresolved, one supported-with-inversion (H12), and **two
 (H14, H16) that were the architecture blockers and have since moved.**
+
+**Three more (H17–H19) were added after the rest, from an objection raised against this research
+rather than by it:** if answering a mate threat is something players already do, RC-06 is
+measurable and unteachable. Chasing it down found the headroom (**real, and band-dependent**), and
+then found a second thing nobody was looking for — **most of the rating-band improvement in this
+behaviour is criterion, not sensitivity**, which makes the obvious intervention and the obvious
+outcome measure both wrong in the same direction.
 
 **They moved because another workstream landed while this was being written.** `RULE_CLASS_SEARCH`
 found a rule class with a real signature and a measured trigger-negative cell, which is exactly what

@@ -80,6 +80,13 @@ mechanism entirely** — which is why that mechanism was ranked fourth in
   measured mean **.317** on RC-06 T+ — so a rule-consistent act is worth roughly three times chance
   before anything is learned, and the model carries the per-item value.
 - **T− cell as the false-application baseline:** `B_valid | T−` = **.200**.
+- **The unaided human baseline, which is the one an intervention has to beat.** The screen scored
+  the move players ACTUALLY PLAYED against `B` on 2,080 trigger-positive positions: pooled hit rate
+  **.716** [.696, .735], running **.63 → .83** across rating bands. Derived in
+  [`research/learning/headroom.py`](../../research/learning/headroom.py); see
+  [H17](FALSIFICATION_REGISTER.md). **This number was available before this study was designed and
+  was not in the design**, which is the kind of omission that produces a ceiling effect and calls
+  it a null result.
 
 ## OUTCOME
 
@@ -109,6 +116,10 @@ is the same as detection in a game.
 
 - **Participants:** 8–30, within-participant throughout. No between-groups comparison is attempted;
   [`INTERVENTION_COMPARISON.md`](INTERVENTION_COMPARISON.md) shows the supply cannot buy one.
+- **Recruit at 1200–1600, and report the band.** The miss cell is what this study models, and it is
+  **37%** of trigger-positive items at 1200–1400 against **17%** at 1800+. A sample drawn from the
+  strong end spends most of its items on the ceiling. This is a constraint the headroom measurement
+  imposed on the design after the design existed — stated here rather than folded in silently.
 - **Items:** RC-06 T+ and T−, matched on the existing covariate schema. **Residual imbalance must be
   reported, not assumed away:** the screen measured max |SMD| **0.573**, and
   `negative-controls.ts::itemDifficultyConfound` shows an agent with zero discrimination producing a
@@ -131,6 +142,12 @@ Item set, model and hypotheses frozen before the first participant. No interim l
 - **Confounded** if residual SMD after matching leaves the item-level variance above the
   person-level variance. Then the instrument is discriminating items, not people, and the study
   reports that instead of a result.
+- **Criterion-dominant** if the DETECT-FIRST → MOVE-FIRST difference moves hits and false alarms in
+  the SAME direction by comparable amounts. That is a bias shift, not a detection effect, and it is
+  the failure mode [H19](FALSIFICATION_REGISTER.md) names: the screen's own rating bands move
+  **more** by criterion (**+12.3** points of hit rate) than by sensitivity (**+8.1**), so this is
+  the expected shape of the data and not a remote possibility. **Reporting the T+ series alone
+  would score it as a success.**
 
 ## INTERPRETATION
 
@@ -140,6 +157,7 @@ Item set, model and hypotheses frozen before the first participant. No interim l
 | detection does not predict action | the barrier is **action selection** | if–then compilation and response-congruent rehearsal — **A** and **D** |
 | large order effect | the prompt is the intervention | no prompt-based measurement is admissible; D21's exposure problem becomes primary |
 | item variance > person variance | the instrument measures items | back to matching, before any human study |
+| hits and false alarms move together | the prompt shifts the **criterion** | nothing prompt-shaped — a bias-only gain is a net loss at 34.0% ≥100 cp on T− |
 
 ## Cost
 
