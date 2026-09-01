@@ -1,0 +1,123 @@
+/*
+ * ART-DIRECTION EXPERIMENT — OWNER ONLY.
+ *
+ * The product is the control. Nothing in this file changes layout, spacing, typography metrics,
+ * copy, DOM order, visibility, measurement, timing or interaction. The three candidates are
+ * intentionally constrained to the variables that make a product FEEL different while holding
+ * the task constant: colour roles, material/surface character, edge/shadow character, grain and
+ * corner character.
+ *
+ * `data-art-direction="0"` is the current product and receives no override.
+ * The mapping of 1/2/3 to the named hypotheses is kept in docs/ART_DIRECTION_EXPERIMENT.md so the
+ * owner can compare numbered conditions before reading the names.
+ */
+
+/* Candidate 1 — calm precision, closest to the current DNA but more deliberate and refined. */
+:root[data-art-direction="1"] {
+  --paper: #f1ede4;
+  --ink: #172321;
+  --ink-rgb: 23, 35, 33;
+  --blue: #19566c;
+  --blue-rgb: 25, 86, 108;
+  --cream: #fbf8f0;
+  --cream-rgb: 251, 248, 240;
+  --chosen: #8b5b18;
+  --chosen-rgb: 139, 91, 24;
+  --on-blue: #ffffff;
+  --shadow-rgb: 23, 35, 33;
+  --muted: #53635f;
+  --surface: #fbf8f0;
+  --edge: #7d8984;
+  --edge-soft: #d8d0c2;
+  --light-square: #ecdab7;
+  --dark-square: #74503c;
+  --piece-dark: #172321;
+  --piece-light: #fffaf0;
+  --coord-on-light: rgba(23, 35, 33, 0.8);
+  --coord-on-dark: rgba(255, 250, 240, 0.84);
+  --grain: rgba(var(--ink-rgb), 0.035);
+  --chip: #e7dfcf;
+  --chip-hover: #dbcfba;
+  --art-radius-control: 6px;
+  --art-radius-surface: 8px;
+  --art-shadow: 0 10px 30px rgba(var(--shadow-rgb), 0.09);
+}
+
+/* Candidate 2 — contemporary analytical lab: cool, crisp, digital, low-material. */
+:root[data-art-direction="2"] {
+  --paper: #e9edf0;
+  --ink: #132126;
+  --ink-rgb: 19, 33, 38;
+  --blue: #155f7a;
+  --blue-rgb: 21, 95, 122;
+  --cream: #f7f9fa;
+  --cream-rgb: 247, 249, 250;
+  --chosen: #8c5a12;
+  --chosen-rgb: 140, 90, 18;
+  --on-blue: #ffffff;
+  --shadow-rgb: 19, 33, 38;
+  --muted: #52636b;
+  --surface: #f7f9fa;
+  --edge: #85939a;
+  --edge-soft: #cfd7db;
+  --light-square: #dce7e4;
+  --dark-square: #58726d;
+  --piece-dark: #0f1c1f;
+  --piece-light: #fbfdfd;
+  --coord-on-light: rgba(15, 28, 31, 0.8);
+  --coord-on-dark: rgba(251, 253, 253, 0.86);
+  --grain: rgba(var(--ink-rgb), 0.012);
+  --chip: #dce4e7;
+  --chip-hover: #cdd9dd;
+  --art-radius-control: 3px;
+  --art-radius-surface: 4px;
+  --art-shadow: 0 8px 24px rgba(var(--shadow-rgb), 0.07);
+}
+
+/* Candidate 3 — chess editorial: warmer, more tactile, more recognisably chess-first. */
+:root[data-art-direction="3"] {
+  --paper: #efe4cf;
+  --ink: #211c18;
+  --ink-rgb: 33, 28, 24;
+  --blue: #2e5570;
+  --blue-rgb: 46, 85, 112;
+  --cream: #fff7e8;
+  --cream-rgb: 255, 247, 232;
+  --chosen: #9a5a18;
+  --chosen-rgb: 154, 90, 24;
+  --on-blue: #ffffff;
+  --shadow-rgb: 33, 28, 24;
+  --muted: #62594e;
+  --surface: #fff7e8;
+  --edge: #8b7c68;
+  --edge-soft: #d9c8aa;
+  --light-square: #f0d9b5;
+  --dark-square: #b58863;
+  --piece-dark: #211c18;
+  --piece-light: #fffaf0;
+  --coord-on-light: rgba(33, 28, 24, 0.8);
+  --coord-on-dark: rgba(255, 250, 240, 0.88);
+  --grain: rgba(var(--ink-rgb), 0.075);
+  --chip: #ead9bd;
+  --chip-hover: #dec8a5;
+  --art-radius-control: 10px;
+  --art-radius-surface: 14px;
+  --art-shadow: 0 12px 32px rgba(var(--shadow-rgb), 0.12);
+}
+
+/*
+ * CHARACTER, NOT GEOMETRY. Corner radius and shadow change the material reading of the exact same
+ * boxes. No width, height, padding, margin, gap, line-height or font-size is touched here.
+ */
+:root[data-art-direction="1"] :where(button, input, textarea, select),
+:root[data-art-direction="2"] :where(button, input, textarea, select),
+:root[data-art-direction="3"] :where(button, input, textarea, select) {
+  border-radius: var(--art-radius-control);
+}
+
+:root[data-art-direction="1"] :where(.commitment-screen, .reveal-panel, .profile-panel, .claim-panel, .finding, .record-dashboard, .record-explorer),
+:root[data-art-direction="2"] :where(.commitment-screen, .reveal-panel, .profile-panel, .claim-panel, .finding, .record-dashboard, .record-explorer),
+:root[data-art-direction="3"] :where(.commitment-screen, .reveal-panel, .profile-panel, .claim-panel, .finding, .record-dashboard, .record-explorer) {
+  border-radius: var(--art-radius-surface);
+  box-shadow: var(--art-shadow);
+}
