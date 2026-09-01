@@ -141,12 +141,29 @@ Open in this order:
 
 Do not read the candidate names before the first rating.
 
-For each condition inspect the same states:
+## Round 1 — cheap first-impression screen
+
+For **all four conditions**, inspect only:
 
 1. `ARRIVE` — front door
-2. `DECIDE` — board + commitment
-3. `REVEAL` — result after one committed decision
+2. `DECIDE` — board + commitment, before committing anything
+
+This is deliberate. Art direction is visible before a result exists, and requiring four committed
+decisions would add effort and contaminate the product record merely to compare colour/material
+character. The first round is a **screening round**, not a complete product evaluation.
+
+Rate all four conditions, then keep at most two finalists.
+
+## Round 2 — finalists only
+
+Only the two surviving conditions continue to:
+
+3. `REVEAL` — after a real committed decision
 4. `REFLECT` — `/` with a populated record
+
+If a single condition already dominates the first round and the owner is comfortable with it, the
+second round compares that condition against baseline rather than resurrecting a rejected third
+candidate.
 
 Do not spend time diagnosing CSS. The owner's job is to report perception.
 
@@ -200,8 +217,8 @@ Do **not** manufacture a single Art Direction Score.
 Inspect the vector of ratings. A condition dominates another only if it is at least as good on the
 owner-critical dimensions and materially better on one or more without failing a hard gate.
 
-If two directions remain defensible, that is success: those two move to FIELD rather than being
-resolved by more desk research.
+If two directions remain defensible, that is success: those two move to the finalist round rather
+than being resolved by more desk research.
 
 # Hard gates
 
@@ -222,7 +239,7 @@ It may establish:
 - which emotional territory the owner wants;
 - which current aesthetic complaints are actually palette/material/character complaints;
 - whether the current warm editorial DNA is an asset or a liability;
-- which two directions deserve field validation.
+- which two directions deserve deeper comparison.
 
 It may **not** establish:
 
@@ -236,7 +253,7 @@ It may **not** establish:
 The owner round is complete when either:
 
 1. one direction is clearly preferred and passes every hard gate; or
-2. two directions remain genuinely defensible.
+2. two directions remain genuinely defensible after the finalist round.
 
 In case 1, implement/refine only the winning territory.
 
