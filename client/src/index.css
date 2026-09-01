@@ -3021,11 +3021,48 @@ button:not(:disabled) {
   border-radius: var(--radius-control);
   border: 1px solid transparent;
 }
+/*
+ * A REGISTER, NOT A STACK OF CARDS -- the second and last of the two surface moves the owner's
+ * "המשטח, לא התוכן" licenses, and it is the same argument as the ordinal above it.
+ *
+ * The four steps are direct children of a flex column with `gap: var(--s4)`, so they rendered as
+ * four detached labels floating 12px apart on the panel's ground: measured at 1440x900, three
+ * collapsed rows across 216px of panel with nothing joining them. Four separate things you fill
+ * in. A register's rows are closer than a panel's regions and they share a rule, which is what
+ * says they are one reading rather than four.
+ *
+ * The margin cancels most of the panel's gap for THIS boundary only -- 6px, rule, 6px -- so the
+ * header, the lead sentence, the submit and the summary keep the 12px that separates regions.
+ * Nothing else moves, nothing is added, nothing is removed.
+ *
+ * THE OPEN STEP IS LIFTED OUT OF THE REGISTER RATHER THAN RULED INTO IT. It carries `--raise` and
+ * a radius, and a hairline butting into a raised rounded block is a seam. The two rules that touch
+ * it go transparent and keep their space, so the rhythm does not change when a step opens.
+ *
+ * WHAT THIS RULE IS ALLOWED TO CARRY: that these rows belong together. Nothing else. It identifies
+ * no component and no state -- the heads are buttons with their own labels, and the three states
+ * are ground, weight, and the answer text -- so it is a grouping mark and 1.4.11 does not reach
+ * it. If it ever becomes the only thing saying which step you are on, it is the wrong mark.
+ */
+.commitment-step + .commitment-step {
+  margin-block-start: calc(var(--s2) - var(--s4));
+  border-block-start: 1px solid var(--hairline);
+  padding-block-start: var(--s2);
+}
+.commitment-step[data-state="open"],
+.commitment-step[data-state="open"] + .commitment-step {
+  border-block-start-color: transparent;
+}
 /* Section 4.5: answered, open and not-yet-reached are three states and must not render alike.
    The ground carries it, and so does the index mark, and so does the answer text -- never
    colour alone. */
+/*
+ * THE GROUND SAYS IT, AND THE BORDER SAID IT AGAIN. `--raise` used to sit 0.040 from the page and
+ * needed a border to be seen at all; it travels 0.186 now, which is what a border was standing in
+ * for. Two signals for one state, and this file's own rule is that a border must say what becomes
+ * less understandable without it.
+ */
 .commitment-step[data-state="open"] {
-  border-color: var(--hairline-strong);
   background: var(--raise);
 }
 .step-heading {
@@ -3051,25 +3088,45 @@ button:not(:disabled) {
   text-align: start;
   cursor: pointer;
 }
+/*
+ * AN ORDINAL, NOT A BADGE, and this is what "it should look like it reflects strategy" turned out
+ * to mean when the owner was asked which of four things he meant: the SURFACE, not the content.
+ *
+ * A filled circle with a number in it is the single most recognisable form component there is --
+ * a wizard step. Four of them down the side of a panel say "fill this in", which is the wrong
+ * sentence for the one screen in this product whose contract is that it is RECORDING. Nothing
+ * about the information changes: same numeral, same place, same size, same three states, same
+ * words. What goes is the badge.
+ *
+ * THE THREE STATES STAY THREE, AND NONE OF THEM IS COLOUR ALONE, which is section 4.5's rule and
+ * is why this is not simply a deletion:
+ *
+ *   not reached   the numeral, muted, weight 400        it is there and it is quiet
+ *   open          the numeral, ink, weight 700          plus the raised ground under the step
+ *   done          a check, ink, ruled underneath        the component swaps the numeral for a
+ *                                                       check; the rule is the register's own
+ *                                                       mark for a row that is closed, the way a
+ *                                                       filled line is struck on a paper form
+ *
+ * The mono face is the same one every other READING in this product is set in. A step number is a
+ * reading of where the record is, and it is now set like one.
+ */
 .step-index {
   inline-size: 20px;
-  block-size: 20px;
   display: inline-grid;
   place-items: center;
-  border-radius: 50%;
-  font-size: var(--panel-fine);
-  font-weight: 700;
-  background: var(--chip);
+  font: var(--panel-fine) / 1 "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 .commitment-step[data-state="open"] .step-index {
-  background: var(--ink);
-  color: var(--on-action);
+  color: var(--ink);
+  font-weight: 700;
 }
 .commitment-step[data-state="done"] .step-index {
-  background: transparent;
-  border: 1px solid var(--edge);
   color: var(--ink);
+  border-block-end: 1px solid var(--edge);
+  padding-block-end: 2px;
 }
 .step-legend {
   display: inline-flex;
@@ -6488,5 +6545,29 @@ button:not(:disabled) {
   }
   .loop-step.live > span[aria-hidden] {
     background: Highlight;
+  }
+}
+
+/*
+ * THE OPEN STEP UNDER A READER'S OWN PALETTE, AND THIS ONE PREDATES THE PASS THAT FOUND IT.
+ *
+ * The open step is said twice on a normal screen: the whole step sits on `--raise`, and its
+ * ordinal is ink at weight 700. Forced colours erases the first -- author background-colors are
+ * replaced by the system's Canvas -- so the state came down to the weight of one numeral, and
+ * `.commitment-step`'s `border: 1px solid transparent` becomes an opaque system border on all
+ * four steps, which draws four identical boxes with nothing to say which one is open.
+ *
+ * MEASURED BEFORE AND AFTER THE STEP MARK CHANGED, so this is not a regression this round
+ * introduced. The mark used to be a circle filled with `--ink`: also a background, also erased.
+ * There was no forced-colours indicator for the open step in either build.
+ *
+ * `Highlight` ON THE BORDER, which is the one channel forced colours leaves an author. The border
+ * is already there and already opaque in this mode -- what changes is that one of the four is the
+ * system's own selection colour. Same device as the loop strip above and the board's marks: state
+ * re-stated in system colours rather than opted out of.
+ */
+@media (forced-colors: active) {
+  .commitment-step[data-state="open"] {
+    border-color: Highlight;
   }
 }
