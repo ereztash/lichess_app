@@ -9,7 +9,7 @@ them.
 
 ---
 
-## R1 — Re-screen the anchors and every class under `C11`
+## R1 — Re-screen the anchors and every class under `C11` — **DONE**
 
 | | |
 | --- | --- |
@@ -21,6 +21,7 @@ them.
 | **WHAT IT BLOCKS** | every claim in `RULE_CLASS_SEARCH.md`, both anchors, and any future screen |
 | **FALSIFIER** | a class whose stated-rule T− prescription size is near 1 and whose separation is nonetheless a valid specificity statistic |
 | **STOP CONDITION** | all seventeen graded. **Do not continue into candidate 18** |
+| **RESULT** | [`C11_SCREEN.md`](C11_SCREEN.md). `MEASURABLE` 7, `VACANT` 8, `SATURATED` 2. **The incumbent floor `RC-01` is `VACANT`, so `G5`'s threshold is set by a class whose own separation is not a specificity statistic**, and four of the top five published separations sit on ungraded cells |
 
 ## R2 — Measure the `chose-past-it` base rate
 
@@ -35,18 +36,19 @@ them.
 | **FALSIFIER** | a rate low enough that the branch is not a usable observation |
 | **STOP CONDITION** | the rate is reported with its denominator. **Do not build a score on the array** |
 
-## R3 — Screen `RC-11`, method-shaped, under `C11`
+## R3 — ~~Screen `RC-11`, method-shaped~~ → **screen `RC-05` and `RC-02`**
 
 | | |
 | --- | --- |
-| **DEPENDENCY** | R1 |
-| **QUESTION REMOVED** | is the degenerate noise cell a property of **outcome-shaped** rules specifically, or of the paradigm? |
-| **WHY IT MATTERS** | this is the **only remaining route to a valid final-move contrast**. `RC-11` is method-shaped (`B` is a property of the move), does not branch, and has a T− prescription size of **.175**. If it survives, `C/D` reaches **.98 from move alone on both cells**. If it does not, the paradigm has a domain limit rather than a rule-choice problem |
-| **COST** | one screen, ~1,000 searches. Corpus and code exist |
+| **DEPENDENCY** | R1, **done** |
+| **QUESTION REMOVED** | is there a rule class whose noise cell is non-degenerate **and** whose separation survives a full screen? |
+| **WHY IT MATTERS** | this is the **only remaining route to a valid final-move contrast**. R1 refuted the previous answer: `RC-11` is `VACANT`, and method shape is not what decides it — `RC-11` and `RC-18` are both *"move it"* and both `VACANT`. What decides it is whether the prescribed act **still exists and can be wrong** when the trigger is absent. `RC-05 safe-promotion` (+0.444) and `RC-02 recapture` (+0.400) are the two `MEASURABLE` candidates with that property |
+| **COST** | one screen each, ~1,000 searches. Corpus and code exist |
 | **WITHOUT HUMANS?** | **yes** |
 | **WHAT IT BLOCKS** | Gate B, Study D, every learning execution, and whether Execution 2 is even the right shape |
-| **FALSIFIER** | `RC-11`'s stated-rule T− prescription size also near 1 |
-| **STOP CONDITION** | **if it fails, stop and narrow the product claim.** Do not search for candidate 18; two selection strategies and eight families have already failed |
+| **FALSIFIER** | both survive C11 and still fail to separate on a rebuilt anchor pair |
+| **STOP CONDITION** | **if both fail, stop and narrow the product claim.** Do not search for candidate 18; two selection strategies and eight families have already failed, and a third selection rule has now been refuted |
+| **NOTE** | the anchor pair must be **rebuilt first**: the floor is `VACANT`, so `G5` has no valid threshold and a ranking cannot be repaired by rereading it |
 
 ## R4 — Re-score `RC-21` on the functional scope, and grade `RC-13` on the matched predicate
 

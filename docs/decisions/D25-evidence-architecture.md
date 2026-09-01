@@ -99,6 +99,13 @@ move-the-threatened-minor` defines `B` as a property of the move, does not branc
 trigger-negative prescription size of **.175**. **That is the difference between .500 and .983 on the
 distinction that matters**, and it is one screen away.
 
+> **WITHDRAWN 2026-09-01 by [`C11_SCREEN.md`](../evidence-architecture/C11_SCREEN.md).** That .175
+> is the **shipped** number, produced by `_designated_threat` returning a **pawn** where `RC-11`'s
+> sentence says *a knight or bishop of yours*. As stated, `RC-11` prescribes **nothing** on its
+> negative cell: `VACANT`, empty on 100% of T− items. Method shape is not the fix — `RC-11` and
+> `RC-18` are both method-shaped and both `VACANT`. The paragraph is kept because the reasoning that
+> produced it is on the record; the recommendation it makes is void.
+
 ### 8. Which additional observations add real incremental evidence?
 
 **Three, and none of them is a sensor:**
@@ -168,16 +175,19 @@ observation tested leaves the central distinction at exactly chance.
 
 1. **A single fixed response predicate, defensible from the rule's own statement, gives `RC-06` a
    trigger-negative rate materially below 1.** Then §2 is wrong and `RC-06` returns.
-2. **`RC-11` (or any method-shaped class) survives `C11` with a non-degenerate noise cell.** Then
-   `CONSTRUCT-UNDERIDENTIFIED` was a fact about outcome-shaped rules, this decision becomes `NARROW`
-   on that class, and Gate B is unblocked.
+2. ~~**`RC-11` (or any method-shaped class) survives `C11` with a non-degenerate noise cell.**~~
+   **FIRED, AND IT FAILED.** `RC-11` is `VACANT`. What replaces it: **`RC-05 safe-promotion` or
+   `RC-02 recapture` survives a full screen with a non-degenerate noise cell.** Both are
+   `MEASURABLE` under C11 and both keep the prescribed act defined when the trigger is absent.
 3. **Every method-shaped class also saturates.** Then the limit is the paradigm rather than the rule
    choice, and **that** is `PROCESS-EVIDENCE-REQUIRED` — reached properly, from a validly measured
    final-move contrast that failed.
 4. **The `chose-past-it` base rate is materially above a few percent.** Then M1 has real production
    support and the model comparison reopens.
-5. **The anchors fail `C11` too.** Then every published comparison in `RULE_CLASS_SEARCH.md` is
-   against a broken reference and the whole register needs re-grading, not just re-reading.
+5. ~~**The anchors fail `C11` too.**~~ **FIRED, and it half-failed: the floor is `VACANT`, the
+   ceiling is `MEASURABLE`.** So every published comparison *is* against a broken reference — `G5`
+   is anchored on `RC-01` — and the register needs re-grading rather than re-reading. Done in
+   [`C11_SCREEN.md`](../evidence-architecture/C11_SCREEN.md).
 6. **An observation is exhibited that separates `p_neg` = .05 from `p_neg` = .55 when P(B | T−) = 1
    for both.** Then the underidentification claim is wrong. **Note what it must be: not the
    response.**
@@ -197,14 +207,36 @@ observation tested leaves the central distinction at exactly chance.
 - **No repair of `RC-06`.** Preserve the failure. `docs/measurement/` keeps its rounds; this decision
   adds a round rather than rewriting them.
 
-## The one next action
+## The one next action — **DONE, and it went further than expected**
 
-**Re-screen every rule class, including both anchors, under `C11`** — the prescription size on the
-trigger-negative cell under the response predicate as the class's own sentence states it. No engine,
-no participants, no new corpus, and it is what decides whether `RULE_CLASS_SEARCH.md` describes chess
-or describes its predicates.
+> **Re-screen every rule class, including both anchors, under `C11`.**
 
-**Then, and only if an anchor survives, screen `RC-11`.**
+Run on 2026-09-01: [`C11_SCREEN.md`](../evidence-architecture/C11_SCREEN.md). **Ten of seventeen
+noise cells carry no information about the rule** — `MEASURABLE` 7, `VACANT` 8, `SATURATED` 2 — and
+the question it was asked is answered: `RULE_CLASS_SEARCH.md` describes **its predicates**, at
+exactly the place where it does the most work.
+
+**Three things it changed in this decision.**
+
+1. **`G5`'s own floor is `VACANT`.** The threshold every candidate was measured against is
+   `RC-01 loose-piece` at +0.600, whose as-stated noise cell is empty on **100%** of its T− items.
+   Its published `b_valid | T−` = .184 scores a **different act** — capturing the dearest
+   **defended** piece.
+2. **Four of the top five published separations sit on ungraded cells** — `RC-06` `SATURATED`;
+   `RC-01`, `RC-18`, `RC-11` `VACANT`. Only the ceiling anchor survives, and it survives because its
+   sentence's second clause makes the noise trial a check.
+3. **§7's recommendation below is withdrawn.** `RC-11` is `VACANT`, and the prediction that
+   method-shaped rules escape the problem is refuted — `RC-11` and `RC-18` are both *"move it"* and
+   both are `VACANT`. **Prescription shape is not what decides it.**
+
+**What does decide it, and it is checkable before a single search is spent:**
+
+> A rule class has a usable noise cell only where, with the trigger absent, the prescribed act
+> **still exists and can be wrong.**
+
+**The next action is now:** screen `RC-05 safe-promotion` and `RC-02 recapture` — the two
+`MEASURABLE` candidates whose triggers keep the prescribed act defined on both cells — and rebuild
+the anchor pair, because the floor is void and a ranking cannot be repaired by rereading it.
 
 # `CONSTRUCT-UNDERIDENTIFIED`
 

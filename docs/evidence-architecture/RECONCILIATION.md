@@ -393,6 +393,14 @@ the negative side.
 2. **`RC-12` is not a second `RC-06`.** Its published separation is +0.032 — it fails `G5` by a wide
    margin either way, so nothing downstream changes. What changes is the count: **two of seventeen**
    response predicates score a different act on the noise cell, and the register described one.
+
+   > **SUPERSEDED 2026-09-01 by [`C11_SCREEN.md`](C11_SCREEN.md), and the count was the smaller
+   > error.** Run on all seventeen classes, **ten** noise cells carry no information about the rule,
+   > and there are **two** failure modes rather than one. This section saw only `SATURATED` — the
+   > noise cell where almost everything satisfies the rule. The other is `VACANT`: the rule names an
+   > act that **does not exist** on a T− item, so `b_valid | T−` is 0 by construction, separation is
+   > just `b_valid | T+`, and the class is **flattered** rather than penalised. Eight classes are
+   > `VACANT`, including the **incumbent floor `RC-01`**, whose separation is `G5`'s threshold.
 3. **This is the third instance of one failure mode in this audit** — §2.2 (a scope predicate that
    is not the condition), §2.3 (a scope predicate that is not the claim), and here (a branching
    detector that is not the property). Each time, a **proxy for a property was checked instead of the
@@ -441,7 +449,9 @@ is on 17.1 at 200,000 nodes with `Threads 1` and `Hash 64`.
 5. **`FAITHFUL` is retired** in favour of `NO_STATED_SCOPE_GAP` (§2.4).
 6. **`B`-membership may not be called rule-consistent action on `RC-06`** (§2.6), and Study D scores
    exactly that (C1).
-7. **`criterion_channel.py`'s branching detector is not sound** (§2.6b), and `RC-12` branches too.
+7. **`criterion_channel.py`'s branching detector is not sound** (§2.6b), and `RC-12` branches too —
+   **and the full C11 screen found ten of seventeen noise cells uninformative, in two distinct
+   failure modes, including the floor anchor that defines `G5`** ([`C11_SCREEN.md`](C11_SCREEN.md)).
 8. **Three claims in the branches are withdrawn**: #51's "this does not block Study D"; #49's
    "eligibility is untouched"; and #49's licensing of a criterion reading it forbids elsewhere (C2).
 

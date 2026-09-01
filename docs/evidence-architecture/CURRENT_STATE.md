@@ -208,3 +208,8 @@ evidence exists either way.
 
 **U9 — Whether `RC-06` is a genuine exception or one draw from a tail.** Fifteen candidates across
 eight families cannot distinguish those, and #50 says so in its own words.
+
+**U10 — Whether the register's ranking survives its own instrument.** *Answered after this file was
+written:* [`C11_SCREEN.md`](C11_SCREEN.md) grades all seventeen and finds **ten** noise cells that
+carry no information about the rule, including the incumbent floor whose separation is `G5`'s
+threshold. The ranking cannot be repaired by rereading it.

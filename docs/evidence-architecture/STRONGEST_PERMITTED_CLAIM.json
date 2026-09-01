@@ -1,5 +1,5 @@
 {
-  "claim_version": "2.0.0",
+  "claim_version": "2.1.0",
   "supersedes": "docs/measurement/STRONGEST_PERMITTED_CLAIM.json 1.3.0 (PR #51), for the claims it contradicts only",
   "decided_at": "2026-09-01",
   "decision": "docs/decisions/D25-evidence-architecture.md",
@@ -130,6 +130,18 @@
       "permitted_moves_within_100cp": 0.286,
       "items_where_some_permitted_move_loses_100cp_or_more": 0.847,
       "status": "refuted"
+    },
+    "g5_threshold_is_a_specificity_statistic": {
+      "statement_refuted": "gate G5's threshold -- the incumbent floor RC-01's separation of +0.600 -- is a specificity statistic.",
+      "why": "RC-01's as-stated noise cell is empty on 100% of its trigger-negative items: when there is no capturable-and-undefended piece, no legal move can take it. Its published b_valid|T- of .184 scores a DIFFERENT act, capturing the dearest DEFENDED piece.",
+      "consequence": "every candidate in the register was measured against a threshold set by a class whose own separation is not a specificity statistic",
+      "status": "refuted"
+    },
+    "method_shaped_rules_escape_the_degenerate_noise_cell": {
+      "statement_refuted": "method-shaped rules, where B is a property of the move, do not have the degenerate-noise-cell problem (PR #49 H23, carried into D25's next-candidate recommendation).",
+      "why": "RC-11 and RC-18 are both method-shaped -- the prescription is `move it` -- and both are VACANT: as stated, neither prescribes anything on its negative cell.",
+      "what_replaces_it": "a rule class has a usable noise cell only where, with the trigger absent, the prescribed act STILL EXISTS AND CAN BE WRONG. That is a property of how the trigger's negative cell is constructed, not of the prescription's shape.",
+      "status": "refuted"
     }
   },
   "underidentified": {
@@ -201,7 +213,10 @@
     "the rule of the square applies where the opponent has no pieces",
     "a knight promotion that checks does something a queen cannot",
     "the final move is insufficient in general",
-    "process evidence is the next research object"
+    "process evidence is the next research object",
+    "RC-01's separation of +0.600 is the bar a candidate must beat",
+    "method-shaped rules escape the degenerate noise cell",
+    "RC-11 is the most promising remaining candidate"
   ],
   "new_criterion": {
     "id": "C11",
@@ -212,11 +227,61 @@
       "RC-06",
       "RC-12"
     ],
-    "rationale": "prescription_size already guards the positive cell against a vacuous prescription scoring well. The negative cell was unguarded."
+    "rationale": "prescription_size already guards the positive cell against a vacuous prescription scoring well. The negative cell was unguarded.",
+    "result": "run on all seventeen: 10 of 17 noise cells carry no information about the rule"
   },
   "evidence_level_reached": "E1",
   "evidence_level_attempted": "E2",
   "evidence_level_required_for_production": "E5",
   "humans_measured_by_this_execution": 0,
-  "production_behaviour_changed": false
+  "production_behaviour_changed": false,
+  "c11_screen": {
+    "ran": "2026-09-01",
+    "document": "docs/evidence-architecture/C11_SCREEN.md",
+    "classes_screened": 17,
+    "anchors_included": true,
+    "sample_per_cell": 2000,
+    "seed": 20260831,
+    "engine": "none",
+    "counts": {
+      "MEASURABLE": 7,
+      "VACANT": 8,
+      "SATURATED": 2
+    },
+    "measurable": [
+      "RC-00",
+      "RC-02",
+      "RC-03",
+      "RC-04",
+      "RC-05",
+      "RC-13",
+      "RC-21"
+    ],
+    "vacant": [
+      "RC-01",
+      "RC-07",
+      "RC-08",
+      "RC-09",
+      "RC-11",
+      "RC-14",
+      "RC-18",
+      "RC-20"
+    ],
+    "saturated": [
+      "RC-06",
+      "RC-12"
+    ],
+    "top_five_published_separations_by_grade": {
+      "RC-00 +0.832 ceiling": "MEASURABLE",
+      "RC-06 +0.768": "SATURATED",
+      "RC-01 +0.600 floor": "VACANT",
+      "RC-18 +0.468": "VACANT",
+      "RC-11 +0.452": "VACANT"
+    },
+    "best_measurable_candidate": {
+      "id": "RC-05",
+      "name": "safe-promotion",
+      "published_separation": 0.444
+    }
+  }
 }

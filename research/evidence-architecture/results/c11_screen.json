@@ -1,0 +1,598 @@
+{
+  "c11_version": "1.0.0",
+  "asks": "on the trigger-negative cell, under the response predicate as the class's own prescription sentence states it, what share of legal moves satisfies the rule?",
+  "grades": {
+    "SATURATED": "mean prescription size on T- >= 0.95: almost everything satisfies the rule when the trigger is absent, so b_valid|T- is near 1 whatever anyone plays",
+    "VACANT": "NO legal move satisfies the rule on >= 95% of T- items: the rule names an act that does not exist there, so b_valid|T- is 0 by construction and separation is just b_valid|T+",
+    "MEASURABLE": "neither: the rule prescribes something on T- and it can be wrong"
+  },
+  "graded_on": "the as-stated reading for classes whose shipped predicate asks about a different object on T-, because no single question is asked on both cells and the sentence's is the only one with a claim to be the rule; the shipped reading otherwise",
+  "seed": 20260831,
+  "sample_per_cell": 2000,
+  "engine": "none. Every quantity here is a pure function of the position.",
+  "counts": {
+    "MEASURABLE": 7,
+    "VACANT": 8,
+    "SATURATED": 2
+  },
+  "classes": {
+    "RC-00": {
+      "name": "mate-in-one",
+      "role": "ceiling-anchor",
+      "prescription": "if a move mates, play it; a check that is not mate is the error",
+      "shipped_predicate": "_mate1_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": "B is `gives check` on both cells. The strict reading of `if a move mates, play it` makes B the mate itself, which does not exist on a T- item -- but the sentence's own second clause, `a check that is not mate is the error`, says the noise trial IS a check. The shipped reading is the sentence's.",
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": -0.05813342797362494,
+      "cells": {
+        "positive": {
+          "cell_size": 1168,
+          "n": 1168,
+          "prescription_size_shipped": 0.10609176311171913,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.02607710924454041,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 78419,
+          "n": 2000,
+          "prescription_size_shipped": 0.05813342797362494,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-01": {
+      "name": "loose-piece",
+      "role": "incumbent-floor",
+      "prescription": "if exactly one enemy piece is capturable and undefended, take it",
+      "shipped_predicate": "_loose_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_loose_designated` returns the dearest DEFENDED piece on T-; the sentence says undefended",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.031001474059585678,
+      "cells": {
+        "positive": {
+          "cell_size": 11752,
+          "n": 2000,
+          "prescription_size_shipped": 0.04307442597631268,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.04307442597631268,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 45752,
+          "n": 2000,
+          "prescription_size_shipped": 0.031001474059585678,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-02": {
+      "name": "recapture",
+      "role": "candidate",
+      "prescription": "if the opponent just captured on a square you attack, take back there",
+      "shipped_predicate": "_recapture_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": null,
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": null,
+      "cells": {
+        "positive": {
+          "cell_size": 19587,
+          "n": 2000,
+          "prescription_size_shipped": 0.047536457230118,
+          "every_legal_move_shipped": 0.0005,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 30745,
+          "n": 2000,
+          "prescription_size_shipped": 0.03475095102220455,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      }
+    },
+    "RC-03": {
+      "name": "capture-the-checker",
+      "role": "candidate",
+      "prescription": "when a single piece checks you and nothing defends it, capture it",
+      "shipped_predicate": "_checker_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": null,
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": null,
+      "cells": {
+        "positive": {
+          "cell_size": 2057,
+          "n": 2000,
+          "prescription_size_shipped": 0.5075630952380965,
+          "every_legal_move_shipped": 0.1825,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 1286,
+          "n": 1286,
+          "prescription_size_shipped": 0.3814939553275461,
+          "every_legal_move_shipped": 0.07465007776049767,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      }
+    },
+    "RC-04": {
+      "name": "save-the-attacked-piece",
+      "role": "candidate",
+      "prescription": "if exactly one of your pieces is attacked and materially threatened, move it",
+      "shipped_predicate": "_save_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": null,
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": null,
+      "cells": {
+        "positive": {
+          "cell_size": 21699,
+          "n": 2000,
+          "prescription_size_shipped": 0.23635496882754858,
+          "every_legal_move_shipped": 0.0005,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 29403,
+          "n": 2000,
+          "prescription_size_shipped": 0.17762460718034936,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      }
+    },
+    "RC-05": {
+      "name": "safe-promotion",
+      "role": "candidate",
+      "prescription": "if a pawn can promote to a square nothing attacks, promote",
+      "shipped_predicate": "_promote_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": null,
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": null,
+      "cells": {
+        "positive": {
+          "cell_size": 370,
+          "n": 370,
+          "prescription_size_shipped": 0.05245173444439583,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 364,
+          "n": 364,
+          "prescription_size_shipped": 0.05007141093712889,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      }
+    },
+    "RC-06": {
+      "name": "answer-the-mate-threat",
+      "role": "candidate",
+      "prescription": "if the opponent threatens mate next move, play a move that stops it",
+      "shipped_predicate": "_threat_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_threat_satisfies` asks `no check at all` on T-; the sentence says the mate is stopped",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "SATURATED",
+      "noise_cell_inflation": 0.8893175253409824,
+      "cells": {
+        "positive": {
+          "cell_size": 2080,
+          "n": 2000,
+          "prescription_size_shipped": 0.3010496901252908,
+          "every_legal_move_shipped": 0.0065,
+          "no_legal_move_shipped": 0.041,
+          "prescription_size_as_stated": 0.3010496901252908,
+          "every_legal_move_as_stated": 0.0065,
+          "no_legal_move_as_stated": 0.041
+        },
+        "negative": {
+          "cell_size": 80332,
+          "n": 2000,
+          "prescription_size_shipped": 0.10480484622943466,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.13,
+          "prescription_size_as_stated": 0.994122371570417,
+          "every_legal_move_as_stated": 0.9385,
+          "no_legal_move_as_stated": 0.0
+        }
+      }
+    },
+    "RC-07": {
+      "name": "answer-the-queen-threat",
+      "role": "candidate",
+      "prescription": "if the opponent can win your queen, stop them",
+      "shipped_predicate": "_tier_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_designated_threat` returns a PAWN on T-; the sentence says your queen",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.19065654852585057,
+      "cells": {
+        "positive": {
+          "cell_size": 9298,
+          "n": 2000,
+          "prescription_size_shipped": 0.16212902542612323,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.012,
+          "prescription_size_as_stated": 0.16212902542612323,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.012
+        },
+        "negative": {
+          "cell_size": 19738,
+          "n": 2000,
+          "prescription_size_shipped": 0.19065654852585057,
+          "every_legal_move_shipped": 0.0005,
+          "no_legal_move_shipped": 0.0335,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-08": {
+      "name": "answer-the-rook-threat",
+      "role": "candidate",
+      "prescription": "if the opponent can win your rook, stop them",
+      "shipped_predicate": "_tier_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_designated_threat` returns a PAWN on T-; the sentence says your rook",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.1846343479062061,
+      "cells": {
+        "positive": {
+          "cell_size": 6454,
+          "n": 2000,
+          "prescription_size_shipped": 0.17842578931944128,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.034,
+          "prescription_size_as_stated": 0.17842578931944128,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.034
+        },
+        "negative": {
+          "cell_size": 19738,
+          "n": 2000,
+          "prescription_size_shipped": 0.1846343479062061,
+          "every_legal_move_shipped": 0.0005,
+          "no_legal_move_shipped": 0.032,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-09": {
+      "name": "answer-the-minor-threat",
+      "role": "candidate",
+      "prescription": "if the opponent can win a knight or bishop, stop them",
+      "shipped_predicate": "_tier_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_designated_threat` returns a PAWN on T-; the sentence says a knight or bishop",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.18681979285650252,
+      "cells": {
+        "positive": {
+          "cell_size": 16047,
+          "n": 2000,
+          "prescription_size_shipped": 0.15255649676214705,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0165,
+          "prescription_size_as_stated": 0.15255649676214705,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0165
+        },
+        "negative": {
+          "cell_size": 19738,
+          "n": 2000,
+          "prescription_size_shipped": 0.18681979285650252,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0385,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-11": {
+      "name": "move-the-threatened-minor",
+      "role": "candidate",
+      "prescription": "if a knight or bishop of yours can be won, move it",
+      "shipped_predicate": "_tier_satisfies_by_moving",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_designated_threat` returns a PAWN on T-; the sentence says a knight or bishop of yours",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.044147636671606164,
+      "cells": {
+        "positive": {
+          "cell_size": 16047,
+          "n": 2000,
+          "prescription_size_shipped": 0.17373549309807385,
+          "every_legal_move_shipped": 0.0005,
+          "no_legal_move_shipped": 0.0225,
+          "prescription_size_as_stated": 0.17373549309807385,
+          "every_legal_move_as_stated": 0.0005,
+          "no_legal_move_as_stated": 0.0225
+        },
+        "negative": {
+          "cell_size": 19738,
+          "n": 2000,
+          "prescription_size_shipped": 0.044147636671606164,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.25,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-12": {
+      "name": "stop-the-promotion",
+      "role": "candidate",
+      "prescription": "if the opponent can safely promote a pawn, prevent it",
+      "shipped_predicate": "_promotion_stop_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_promotion_stop_satisfies` answers a piece threat on T-; the sentence says a promotion",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "SATURATED",
+      "noise_cell_inflation": 0.8148759728441639,
+      "cells": {
+        "positive": {
+          "cell_size": 602,
+          "n": 602,
+          "prescription_size_shipped": 0.12355796884133952,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.2591362126245847,
+          "prescription_size_as_stated": 0.12355796884133952,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.2591362126245847
+        },
+        "negative": {
+          "cell_size": 19677,
+          "n": 2000,
+          "prescription_size_shipped": 0.1844805717223808,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0395,
+          "prescription_size_as_stated": 0.9993565445665447,
+          "every_legal_move_as_stated": 0.9975,
+          "no_legal_move_as_stated": 0.0
+        }
+      }
+    },
+    "RC-13": {
+      "name": "underpromote-to-knight",
+      "role": "candidate",
+      "prescription": "promote to a knight only when the knight gives check",
+      "shipped_predicate": "_underpromote_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": "B is `promote to a knight` on both cells. `only when` makes the negative side a PROHIBITION, under which B on T- is the complement -- almost every legal move. Both readings ask one question on both cells; the shipped one measures the forbidden act, which is the sharper instrument.",
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": 0.8965426727472398,
+      "cells": {
+        "positive": {
+          "cell_size": 67,
+          "n": 67,
+          "prescription_size_shipped": 0.05520908344593641,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.05520908344593641,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 700,
+          "n": 700,
+          "prescription_size_shipped": 0.05172866362638137,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.9482713363736212,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0
+        }
+      }
+    },
+    "RC-14": {
+      "name": "capture-the-mating-piece",
+      "role": "candidate",
+      "prescription": "when one piece threatens mate next move, capture it",
+      "shipped_predicate": "_capture_the_threat_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_capture_the_threat_satisfies` looks for the CHECKING piece on T-; the sentence says the mating piece",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.03896027022788759,
+      "cells": {
+        "positive": {
+          "cell_size": 240,
+          "n": 240,
+          "prescription_size_shipped": 0.04511824281582769,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.04511824281582769,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 9726,
+          "n": 2000,
+          "prescription_size_shipped": 0.03896027022788759,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-18": {
+      "name": "move-the-piece-that-must-move",
+      "role": "candidate",
+      "prescription": "if a minor of yours is attacked by something cheaper, move it",
+      "shipped_predicate": "_tier_satisfies_by_moving",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_designated_threat` returns a PAWN on T-; the sentence says a minor of yours",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.04485831085564996,
+      "cells": {
+        "positive": {
+          "cell_size": 8954,
+          "n": 2000,
+          "prescription_size_shipped": 0.16284355024906527,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": 0.16284355024906527,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 19738,
+          "n": 2000,
+          "prescription_size_shipped": 0.04485831085564996,
+          "every_legal_move_shipped": 0.001,
+          "no_legal_move_shipped": 0.27,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-20": {
+      "name": "defend-the-piece-in-place",
+      "role": "candidate",
+      "prescription": "if a minor of yours hangs to an equal-or-dearer attacker, defend it where it stands",
+      "shipped_predicate": "_hold_it_satisfies",
+      "substitutes_the_antecedent_on_T_minus": true,
+      "substitution": "`_designated_threat` returns a PAWN on T-; the sentence says a minor of yours",
+      "alternative_reading": null,
+      "graded_on": "as_stated",
+      "c11_grade": "VACANT",
+      "noise_cell_inflation": -0.15827504123735528,
+      "cells": {
+        "positive": {
+          "cell_size": 6967,
+          "n": 2000,
+          "prescription_size_shipped": 0.10062136078695584,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.141,
+          "prescription_size_as_stated": 0.10062136078695584,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 0.141
+        },
+        "negative": {
+          "cell_size": 19738,
+          "n": 2000,
+          "prescription_size_shipped": 0.15827504123735528,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.06,
+          "prescription_size_as_stated": 0.0,
+          "every_legal_move_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      }
+    },
+    "RC-21": {
+      "name": "push-the-unstoppable-passer",
+      "role": "candidate",
+      "prescription": "if your passed pawn is outside the enemy king's square, push it",
+      "shipped_predicate": "_passer_satisfies",
+      "substitutes_the_antecedent_on_T_minus": false,
+      "substitution": null,
+      "alternative_reading": null,
+      "graded_on": "shipped",
+      "c11_grade": "MEASURABLE",
+      "noise_cell_inflation": null,
+      "cells": {
+        "positive": {
+          "cell_size": 3286,
+          "n": 2000,
+          "prescription_size_shipped": 0.06833896072289106,
+          "every_legal_move_shipped": 0.002,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 8900,
+          "n": 2000,
+          "prescription_size_shipped": 0.0500795845991797,
+          "every_legal_move_shipped": 0.0,
+          "no_legal_move_shipped": 0.0,
+          "prescription_size_as_stated": null,
+          "every_legal_move_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      }
+    }
+  }
+}

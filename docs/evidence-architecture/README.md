@@ -17,6 +17,7 @@ Read in this order:
 | [`CURRENT_STATE.md`](CURRENT_STATE.md) | **start here.** What is VERIFIED / RESEARCH-ONLY / REFUTED / UNRESOLVED, reconstructed from `main` and the three open branches rather than from any description of them |
 | [`RECONCILIATION.md`](RECONCILIATION.md) | the cross-PR audit. Three risks the branches had already corrected, four they had not, and the measurement that decides the execution |
 | [`ACTION_MODEL_DECISION.md`](ACTION_MODEL_DECISION.md) | Gate A → **`ACTION-SIGNATURE-FAILED`**, and `C11`, the guard that would have caught it |
+| [`C11_SCREEN.md`](C11_SCREEN.md) | **`C11` run on all seventeen classes including both anchors.** Ten of seventeen noise cells carry no information about the rule, and one of them is the floor that defines `G5` |
 | [`ITEM_VALIDATION.md`](ITEM_VALIDATION.md) | Gate B → **`ITEM-PARADIGM-FAILED`**, for a response-definition reason rather than an item reason |
 | [`IDENTIFIABILITY_SIMULATION.md`](IDENTIFIABILITY_SIMULATION.md) | seven synthetic learners, rate-matched, scored by a Bayes-optimal classifier. **The distinction that decides the next intervention sits at chance and stays there** |
 | [`INCREMENTAL_EVIDENCE_VALUE.md`](INCREMENTAL_EVIDENCE_VALUE.md) | the complexity control. What each observation is worth, and the four removed on evidence |
@@ -56,7 +57,12 @@ moves.
    *"if T, act so that T is gone"* — where the noise cell is degenerate by construction. A
    method-shaped rule, where `B` is a property of the move, is one screen away and has not been
    tried. **"The final move is insufficient" is a forbidden sentence.**
-3. **Richer measurement was tested against this failure and is worth nothing.** Time, a timed
+3. **The register's ranking does not survive its own instrument.** `C11`, run on all seventeen
+   classes, grades **8 `VACANT`, 2 `SATURATED`, 7 `MEASURABLE`** — and four of the top five
+   published separations are in the first two groups, including the incumbent floor. What decides a
+   usable noise cell is not prescription shape but whether, with the trigger absent, **the
+   prescribed act still exists and can be wrong**.
+4. **Richer measurement was tested against this failure and is worth nothing.** Time, a timed
    condition, a delayed condition, a generic cue and the candidate set all leave the deciding
    distinction at exactly chance. **Process evidence is not the answer to a degenerate noise cell.**
 
