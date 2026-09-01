@@ -32,7 +32,7 @@ import { AnalysisPanel } from "@/components/AnalysisPanel";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { LearningQueue } from "@/components/LearningQueue";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
-import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
+import { EXPERIMENTAL_LEARNING_ENABLED } from "@/lib/features";
 import { lazyChunk } from "@/lib/lazy-chunk";
 import type { EngineLine, EngineStatus } from "@/lib/stockfish";
 import type { AnalysisSource } from "@shared/analysis-source";
@@ -154,7 +154,7 @@ export function RecordExplorer({
         * this evidence can legitimately inform.
         */}
       <ClaimPanel onRunDrill={claims.onRunDrill} drillError={claims.drillError} />
-      {VERIFIED_LEARNING_ENABLED && (
+      {EXPERIMENTAL_LEARNING_ENABLED && (
         <LearningQueue onStart={learning.onStart} busy={learning.busy} error={learning.error} />
       )}
       {record && (

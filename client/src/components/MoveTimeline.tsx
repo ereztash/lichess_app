@@ -72,7 +72,22 @@ export function MoveTimeline({ moves, currentPly, onNavigate }: Props) {
             </button>
           ))
         ) : (
-          <span className="empty-moves">הלוח מוכן למהלך הראשון.</span>
+          /*
+           * `dir="rtl"`, INSIDE AN LTR RAIL, AND IT IS A CORRECTNESS FIX RATHER THAN A TIDY-UP.
+           *
+           * `.moves-rail` is `dir="ltr"` and rightly so: it holds SAN, which is a left-to-right
+           * notation, and reversing it would reverse the game. This one child is not notation --
+           * it is a Hebrew sentence, and it inherited the rail's direction.
+           *
+           * A full stop is a bidi-NEUTRAL character, so it resolves to the paragraph direction.
+           * In an LTR paragraph that puts it at the far right, which in a right-to-left sentence
+           * is the BEGINNING. Measured with Range rects on the built app at 1440x900: the first
+           * character `ה` painted at x=273 and the period at x=283 -- ten pixels to its right, in
+           * front of the first word.
+           */
+          <span className="empty-moves" dir="rtl">
+            הלוח מוכן למהלך הראשון.
+          </span>
         )}
       </div>
       <div className="timeline-controls" dir="ltr">

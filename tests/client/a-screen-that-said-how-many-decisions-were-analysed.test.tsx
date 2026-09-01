@@ -100,7 +100,7 @@ const show = (
   return { ...view, seePosition, playAgain };
 };
 
-const card = () => screen.getByRole("heading", { level: 3 }).closest(".finding") as HTMLElement;
+const card = () => screen.getByRole("heading", { level: 2 }).closest(".finding") as HTMLElement;
 
 describe("a screen that said how many decisions were analysed", () => {
   describe("what decides the headline", () => {
@@ -117,13 +117,13 @@ describe("a screen that said how many decisions were analysed", () => {
        * silence` gates each separately; this one gates the composition, through the render.
        */
       show([plainBlunder, confidentAndCostly]);
-      expect(screen.getByRole("heading", { level: 3 }).textContent).toContain("בטוח");
-      expect(screen.getByRole("heading", { level: 3 }).textContent).not.toContain("Qh5");
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toContain("בטוח");
+      expect(screen.getByRole("heading", { level: 2 }).textContent).not.toContain("Qh5");
     });
 
     it("says there is nothing to conclude when every event is an engine comparison", () => {
       show([plainBlunder]);
-      expect(screen.getByRole("heading", { level: 3 }).textContent).toContain(
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toContain(
         "לא מצאתי במשחק הזה לבדו",
       );
     });
@@ -143,7 +143,7 @@ describe("a screen that said how many decisions were analysed", () => {
        */
       const pending = game({ analysisState: "pending", analysedAt: null, analysis: null });
       show([decision(1, { cpLoss: null, standingCp: null })], pending);
-      expect(screen.getByRole("heading", { level: 3 }).textContent).toContain("המנוע עוד לא עבר");
+      expect(screen.getByRole("heading", { level: 2 }).textContent).toContain("המנוע עוד לא עבר");
     });
   });
 
@@ -157,7 +157,7 @@ describe("a screen that said how many decisions were analysed", () => {
        * right shape: the count must be IN the document and NOT in the part that is visible. So the
        * headline and the example are checked directly, rather than searching the whole card.
        */
-      expect(screen.getByRole("heading", { level: 3 }).textContent).not.toMatch(/\d+ החלטות/);
+      expect(screen.getByRole("heading", { level: 2 }).textContent).not.toMatch(/\d+ החלטות/);
     });
 
     it("puts the count, the engine, the depth and the ask rate behind one disclosure", async () => {
@@ -195,7 +195,7 @@ describe("a screen that said how many decisions were analysed", () => {
 
     it("renders one headline, one example and one evidence mark", () => {
       show([confidentAndCostly]);
-      expect(within(card()).getAllByRole("heading", { level: 3 })).toHaveLength(1);
+      expect(within(card()).getAllByRole("heading", { level: 2 })).toHaveLength(1);
       expect(card().querySelectorAll(".finding__example")).toHaveLength(1);
       expect(card().querySelectorAll(".evidence-mark")).toHaveLength(1);
     });

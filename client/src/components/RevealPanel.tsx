@@ -107,9 +107,9 @@ export function RevealPanel({
     <section className="reveal-panel" aria-label="חשיפה">
       {/* 1 -- before any number */}
       <section className="reveal-block reveal-limits">
-        <h3>
+        <h2>
           <AlertTriangle size={14} /> מה ההחלטה הזאת עדיין לא אומרת
-        </h3>
+        </h2>
         <ul>
           {limits.map((limit) => (
             <li key={limit}>{limit}</li>
@@ -125,9 +125,9 @@ export function RevealPanel({
 
       {/* 2 -- one thing */}
       <section className="reveal-block reveal-one-thing">
-        <h3>
+        <h2>
           <Target size={14} /> מה קרה כאן
-        </h3>
+        </h2>
         {oneThing ? (
           <>
             <p className="one-thing-text">{oneThing.text}</p>
@@ -183,9 +183,9 @@ export function RevealPanel({
 
       {/* 3 -- the next question */}
       <section className="reveal-block reveal-question">
-        <h3>
+        <h2>
           <HelpCircle size={14} /> מה שווה לבדוק
-        </h3>
+        </h2>
         <p>{question}</p>
         {statedKnown.trim() && <p className="reveal-echo">הקריאה שלך הייתה: "{statedKnown}"</p>}
       </section>

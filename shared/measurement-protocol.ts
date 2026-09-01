@@ -146,6 +146,54 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  * untouched. The full reasoning, and the measurements behind every line above, are in
  * `docs/VISUAL_ARCHITECTURE_AUDIT.md`.
  */
+/*
+ * 3 -> 3. THE FRONTEND EXCELLENCE PASS ASKED FOR A BUMP AND DID NOT GET ONE, AND THE REASONING IS
+ * HERE RATHER THAN NOWHERE, because "we thought about it and decided no" and "nobody asked" are
+ * indistinguishable in a file that only records the yeses.
+ *
+ * THE RULE THIS FILE ALREADY SETS: *"BUMP THIS when anything changes about HOW a decision is
+ * produced. Not when a bug is fixed in something that reads one."* And the 2 -> 3 note widened it
+ * correctly: what is on screen while the answer is given is the same kind of fact as a sampling
+ * rate.
+ *
+ * SO THE QUESTION WAS ASKED AS A MEASUREMENT RATHER THAN AS AN OPINION. Every class the pass
+ * touched -- twenty-seven of them -- was searched for on the built app at 1440x900, on `DECIDE`
+ * cold, on `ANSWER_INSTRUMENT` with a move played, and again with every instrument step answered
+ * and nothing committed. Exactly one of the twenty-seven paints on any of those three:
+ *
+ *   .empty-moves   "הלוח מוכן למהלך הראשון."   16px, unchanged in size, colour and position
+ *
+ * and what changed about it is that it was given `dir="rtl"` inside a rail that is `dir="ltr"` for
+ * chess notation, which moves ONE bidi-neutral full stop from the beginning of the sentence to the
+ * end of it. No word was added, removed or reworded. No control moved. No size, weight or colour on
+ * that screen changed. It is the move rail's empty-state status line, and it is not part of the
+ * instrument.
+ *
+ * WHAT THAT LEAVES, AND IT IS NOT ON THE DECISION SCREEN. Two changes land on `/` -- the front
+ * door, seen before any decision exists: `.first-decision-note` moved from the scale's floor rank
+ * to its body rank, and the selected import-source toggle stopped wearing the primary action's
+ * fill. Both are pre-loop rather than pre-commit.
+ *
+ * THE ONE THAT GIVES PAUSE, STATED RATHER THAN OMITTED. `.first-decision-note` says how positions
+ * are chosen -- *"the position is chosen without looking at what came of your move; no engine ran
+ * on it"* -- which is framing, and making it 27% larger changes the probability it is read. The
+ * 2 -> 3 bump listed "two sentences became legible" among its reasons, so there is a precedent
+ * pointing the other way. What separates them: both of those sentences were on the DECIDE screen,
+ * on screen while the answer was being given. This one is on a different route, read once, before
+ * the loop is entered, and it was already legible -- `--muted` at 11px, over 4.5:1 -- rather than
+ * unreadable, which is what the v3 cases were.
+ *
+ * THE DECISION: NO BUMP, because nothing changed about how a decision is produced, and a version
+ * split is not free -- it fragments the population that later analysis can pool, so a bump that is
+ * not warranted costs evidence rather than protecting it.
+ *
+ * WHAT WOULD HAVE FORCED ONE, so the next reader can check this rather than trust it: any change to
+ * a class that paints on `DECIDE` or `ANSWER_INSTRUMENT` and is part of the instrument -- the
+ * board, the read chips, the confidence row, the step heads, `.commitment-summary`,
+ * `.commitment-submit`, `.board-note`, `.record-mode`, `.context-loop`. The probe that establishes
+ * this is `audit.local/probe-stimulus.ts` in the pass's working notes and the method is three
+ * lines: list the touched classes, render the pre-commit states, ask which are on screen.
+ */
 export const CURRENT_PROTOCOL_VERSION = 3;
 
 /**

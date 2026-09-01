@@ -110,7 +110,7 @@ import {
   useSaveImportReading,
   useRecordTransferObservation,
 } from "@/lib/record-api";
-import { VERIFIED_LEARNING_ENABLED } from "@/lib/features";
+import { EXPERIMENTAL_LEARNING_ENABLED } from "@/lib/features";
 import { MoveTimeline } from "@/components/MoveTimeline";
 import {
   buildHistory,
@@ -2293,7 +2293,7 @@ export default function Home() {
                 */}
               {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
               {learningTransfer && learningTransferPanel}
-              {VERIFIED_LEARNING_ENABLED &&
+              {EXPERIMENTAL_LEARNING_ENABLED &&
                 !learningTransfer &&
                 revealedDecisionId &&
                 (!learningRuleSaved ? (
