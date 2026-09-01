@@ -284,8 +284,14 @@ unverified comment of exactly this shape is what let `RC-21` through two screens
 | T− items where **every** legal move satisfies `B` | 0.05% | **92.2%** |
 | T− items where **no** legal move satisfies `B` | — | **0.0%** |
 
-On 92.2% of trigger-negative items **every legal move satisfies the rule as written**, so whatever
-the engine plays satisfies it. That is a lower bound with no engine in it:
+> **Two draws, and the difference is recorded rather than smoothed.** §2.6b's table reports **94.1%**
+> for the same quantity from a different 2,000-item draw of the same 80,332-item cell. Both are
+> honest samples and neither is *the* number; the engine run below drew a third sample and got
+> **92.0%** (230/250). The mean prescription size is stable across all three at **.994–.995**, and
+> nothing in the argument turns on the third digit — **the bound below holds at any of them.**
+
+On roughly 92% of trigger-negative items **every legal move satisfies the rule as written**, so
+whatever the engine plays satisfies it. That is a lower bound with no engine in it:
 
 ```
 b_valid_symmetric | T−  ≥  0.922
