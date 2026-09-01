@@ -166,7 +166,8 @@ is exactly what its own code comment claims and what the Shogi verbal-protocol l
 A player who reaches the same move by calculating rather than recognising is separable **only** by
 latency, and only under an assumed 12-second mechanism difference. Between-participant speed
 variance is what holds it at .79 — remove it and the number is 1.000, which is why it was added.
-**Roughly one player in five who is not doing the thing at all will be diagnosed as doing it.**
+**The classifier is wrong about one time in five** on a balanced pair — and the errors run in both
+directions, so it both misses players the construct does not apply to and flags players it does.
 
 ---
 

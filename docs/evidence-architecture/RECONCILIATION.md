@@ -103,6 +103,25 @@ Measured on the full trigger-positive cell (3,286 items, not a 250-item sample):
 something other than the lone king can change the race.** On the trigger-negative cell the piece
 list is right only 22.7% of the time (125/551).
 
+**And the exclusions are attributable, which is the part that matters.** One clause of the functional
+predicate — *nothing at all on the promotion path* — also fires on **our own** pieces, which is not
+an opposing resource, so the 46.4% could in principle have been an artefact of that clause. It is
+not ([`rc21_scope_clauses.py`](../../research/evidence-architecture/rc21_scope_clauses.py)):
+
+| of the 336 positions the piece list certifies | n | share |
+| --- | --- | --- |
+| **excluded because an enemy PAWN can affect the race** | **149** | **44.3%** |
+| ⤷ an enemy pawn queens inside the race window | 146 | 43.5% |
+| ⤷ an enemy pawn attacks the pawn or a square it must cross | 26 | 7.7% |
+| excluded **only** by one of our own pieces standing on the path | 7 | 2.1% |
+| the enemy king stands on the path | 0 | 0.0% |
+| the pawn has no legal forward push | 0 | 0.0% |
+
+**The excluding resource is the enemy pawn, in 44.3% of the cell, and the largest single clause is
+the counter-promotion** — a pawn that queens inside the window produces a piece that stops the
+passer, which is precisely the thing the rule of the square asserts is absent. The own-piece clause
+accounts for **2.1%**.
+
 **#51's `b_valid` = .562 "where the rule applies" is therefore computed on a set that is 46% not
 that.** The direction of the error is unknown without re-scoring, and re-scoring the functional
 subset is 180 items — cheap, and it is on the roadmap rather than done here, because `RC-21` is not

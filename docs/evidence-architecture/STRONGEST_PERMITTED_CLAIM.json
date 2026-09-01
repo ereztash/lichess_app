@@ -36,7 +36,10 @@
     },
     "rc06_domain_fact": {
       "statement": "Where the opponent threatens mate in one, the best move removing that threat is the engine's own best move on 242 of 242 items where the rule prescribes anything, at a median cost of 1 cp; not answering loses >=100 cp on 84.9%.",
-      "obeying_is_optimal": [242, 242],
+      "obeying_is_optimal": [
+        242,
+        242
+      ],
       "regret_b_xs_mean_t_plus": 0.0,
       "disobeying_loses_100cp_or_more_t_plus": 0.849,
       "status": "supported"
@@ -88,7 +91,18 @@
         "n": 3286,
         "lone_king_defends": 0.102,
         "functional_condition": 0.055,
-        "functional_given_piece_list": 0.536
+        "functional_given_piece_list": 0.536,
+        "exclusion_clauses": {
+          "of_the_336_the_piece_list_certifies": {
+            "enemy_pawn_can_affect_the_race": 149,
+            "enemy_pawn_queens_inside_the_window": 146,
+            "enemy_pawn_attacks_the_pawn_or_its_path": 26,
+            "only_our_own_piece_on_the_path": 7,
+            "enemy_king_on_the_path": 0,
+            "no_legal_forward_push": 0
+          },
+          "note": "clauses overlap. The own-piece clause is the one that is not about an opposing resource, and it accounts for 2.1%."
+        }
       },
       "verdict": "SEMANTICALLY-UNDERDEFINED",
       "status": "refuted"
@@ -96,7 +110,12 @@
     "rc13_scope_predicate_is_its_claim": {
       "statement_refuted": "`any knight promotion checks and no queen promotion checks` tests whether the knight does something a queen cannot.",
       "why": "The claim is about one promotion square. The matched comparison holds `from` and `to` fixed.",
-      "measured": {"n": 67, "unmatched": 0.701, "matched": 0.776, "in_scope_under_claim_not_under_predicate": 5},
+      "measured": {
+        "n": 67,
+        "unmatched": 0.701,
+        "matched": 0.776,
+        "in_scope_under_claim_not_under_predicate": 5
+      },
       "note": "RC-13's b_valid is .000 on both cells and both splits, so its verdict does not move; the in-scope denominator does.",
       "status": "refuted"
     },
@@ -127,19 +146,46 @@
         "plus candidate set": 0.5
       },
       "at_double_the_items": 0.5,
-      "beta_sensitivity_1_0_to_3_0": [0.515, 0.5, 0.5, 0.5, 0.5],
+      "beta_sensitivity_1_0_to_3_0": [
+        0.515,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
       "same_pair_under_a_non_saturated_noise_cell": 0.983,
       "status": "underidentified"
     }
   },
   "unresolved": [
-    {"id": "anchors_under_c11", "why": "neither RC-00 nor RC-01 has been graded for a saturated noise cell, and every published comparison is against them"},
-    {"id": "method_shaped_rules", "why": "RC-11 is method-shaped, does not branch, T- prescription size .175, and has not been re-screened"},
-    {"id": "chose_past_it_base_rate", "why": "the only production observation supporting M1 over M0, and shared/reveal.ts says it has never been measured"},
-    {"id": "exchangeability", "why": "max |SMD| 0.573, untouched, and moot while the contrast is void"},
-    {"id": "engine_sensitivity", "why": "top-1 b_valid agrees between SF16 and SF17.1; action-set value stability, node/depth stability and WDL-model sensitivity are untested"},
-    {"id": "domain", "why": "no evidence that any of this is separable from general chess strength"},
-    {"id": "reactivity", "why": "untested"}
+    {
+      "id": "anchors_under_c11",
+      "why": "neither RC-00 nor RC-01 has been graded for a saturated noise cell, and every published comparison is against them"
+    },
+    {
+      "id": "method_shaped_rules",
+      "why": "RC-11 is method-shaped, does not branch, T- prescription size .175, and has not been re-screened"
+    },
+    {
+      "id": "chose_past_it_base_rate",
+      "why": "the only production observation supporting M1 over M0, and shared/reveal.ts says it has never been measured"
+    },
+    {
+      "id": "exchangeability",
+      "why": "max |SMD| 0.573, untouched, and moot while the contrast is void"
+    },
+    {
+      "id": "engine_sensitivity",
+      "why": "top-1 b_valid agrees between SF16 and SF17.1; action-set value stability, node/depth stability and WDL-model sensitivity are untested"
+    },
+    {
+      "id": "domain",
+      "why": "no evidence that any of this is separable from general chess strength"
+    },
+    {
+      "id": "reactivity",
+      "why": "untested"
+    }
   ],
   "forbidden_claims": [
     "this measures whether the player has learned the unprotected-piece rule",
@@ -162,7 +208,10 @@
     "asks": "the prescription size on the trigger-negative cell, under the response predicate as the class's own prescription sentence states it",
     "fails_if": "near 1 -- the class has no noise cell and its separation is a fact about its predicate",
     "cost": "no engine, no participants, no new corpus",
-    "would_have_caught": ["RC-06", "RC-12"],
+    "would_have_caught": [
+      "RC-06",
+      "RC-12"
+    ],
     "rationale": "prescription_size already guards the positive cell against a vacuous prescription scoring well. The negative cell was unguarded."
   },
   "evidence_level_reached": "E1",
