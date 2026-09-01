@@ -166,6 +166,34 @@ followed.
 
 That gap is worth more than the reanalysis it was found by.
 
+### The same partition on the two other pawn-race classes
+
+Applying the identical split elsewhere matters in both directions: it shows the effect is not
+something any partition by material would produce, and it shows what the check does and does not
+generalise to.
+
+| | share in scope | `b_valid` in scope | `b_valid` out | gap |
+| --- | --- | --- | --- | --- |
+| **`RC-21`** push-the-unstoppable-passer | 12.8% | **.562** | .124 | **+.438** |
+| `RC-05` safe-promotion | 48.8% | .607 | .438 | +.169 |
+| `RC-12` stop-the-promotion | 13.2% | .455 | .465 | **−.010** |
+
+**`RC-12` is the control, and it is null.** The same predicate on a class of the same family moves
+`b_valid` by one point in the wrong direction. So the `RC-21` gap is not an artefact of slicing a
+cell by material.
+
+**`RC-05` is a moderator, not a defect, and the difference is in the trigger's own wording.**
+`_promote_trigger` fires when a queen promotion exists and its square is unattacked; it names no
+condition about what else is on the board, so it is not claiming something it fails to check. It
+simply works better in simplified positions (regret 0.004 in scope against 0.071 out).
+`_outside_the_square` is the one that names the lone king in its docstring and then does not test
+for it.
+
+So this is **one scope predicate, suited to rules about pawn races** — not a general audit. What
+generalises is the question, which no criterion in `rule_classes.py` currently asks: *does this
+predicate detect the condition it is named after?* Answering it for the other fourteen classes
+needs a predicate per rule, not this one.
+
 ## What the decision model shows that `b_valid` cannot
 
 **Robustness is a different question, and the ceiling anchor fails it.** `RC-00`'s `B` is *gives
@@ -215,8 +243,10 @@ the new columns, which has not been run.
 
 ## What follows
 
-1. **Audit the triggers against the rules they are named after.** `RC-21` was found by accident.
-   `trigger_scope.py` generalises the check, and the other sixteen have not had it.
+1. **Audit the triggers against the rules they are named after.** `RC-21` was found by accident,
+   and nothing in the nine criteria would have caught it. `trigger_scope.py` implements the check
+   for the pawn-race family; the other fourteen classes need a scope predicate each, and none has
+   one.
 2. **`RC-21` deserves re-measuring on a corrected trigger** — one that requires the opponent to have
    no piece able to stop the pawn — rather than the retraction its current number invites. That is
    [#50](https://github.com/ereztash/lichess_app/pull/50)'s predicate to change, not this branch's.

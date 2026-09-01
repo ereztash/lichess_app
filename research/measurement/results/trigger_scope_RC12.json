@@ -1,0 +1,44 @@
+{
+  "rule_class": "RC-12",
+  "cell": "positive",
+  "n": 250,
+  "opponent_piece_material_median": 6,
+  "opponent_piece_material_histogram": {
+    "0": 33,
+    "3": 28,
+    "5": 64,
+    "6": 8,
+    "8": 38,
+    "9": 15,
+    "10": 12,
+    "11": 4,
+    "12": 3,
+    "13": 1,
+    "14": 12,
+    "16": 3,
+    "17": 2,
+    "18": 1,
+    "19": 5,
+    "20": 2,
+    "22": 4,
+    "25": 5,
+    "28": 4,
+    "31": 6
+  },
+  "share_in_scope": 0.132,
+  "in_scope_king_and_pawns_only": {
+    "n": 33,
+    "b_valid": 0.45454545454545453,
+    "regret_b_xs_mean": 0.021520833333333333,
+    "advantage_xs_mean": -0.021520833333333333,
+    "v_star_xs_mean": 0.5005000000000001
+  },
+  "out_of_scope_opponent_still_has_pieces": {
+    "n": 217,
+    "b_valid": 0.46543778801843316,
+    "regret_b_xs_mean": 0.04126060606060605,
+    "advantage_xs_mean": 0.08367878787878787,
+    "v_star_xs_mean": 0.22199769585253462
+  },
+  "what_in_scope_means": "the opponent has no piece other than king and pawns, which is the ONLY case the rule of the square is a rule about"
+}
