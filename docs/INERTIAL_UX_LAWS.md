@@ -271,6 +271,26 @@ mode: `EXPLORE`.
 
 **Gate:** `GATE-TOOLBOX-OUTSIDE-FOCUS`.
 
+### And removing it from the DOM was only half of it
+
+Hiding the laboratory changes the child list of the grid the laboratory was in, and nothing changed
+the grid. `.workbench` declared three columns and named the column of no child, so with the toolbox
+absent grid auto-flow shifted both survivors one track towards the start and **the board was laid
+out in the 132px toolbox track**: 92x92 pixels at 1920, 1440 and 1280, squares of 9.8px against
+this repository's own 44px `--tap-floor`, and `elementFromPoint` at the centre of e2 returning the
+coordinate strip rather than the square. The act `DECIDE` exists to collect could not be performed
+with a mouse on any desktop width, and every suite was green.
+
+The general rule, and it is this law's other half:
+
+> **A container whose children depend on the interaction state must derive its shape from that same
+> state, and every child must name its own place.**
+
+Measurements, mechanism, the two further defects found on the way, the falsification pass and what
+is still unknown: [`docs/INTERACTION_GEOMETRY.md`](INTERACTION_GEOMETRY.md). Held by
+`tests/layout/the-board-in-the-state-that-decides.layout.test.ts`, whose positive control -- the
+same 45 assertions against the shipped stylesheet -- goes red on 27 of them.
+
 ---
 
 ## LAW 6 — Details never carry the main meaning

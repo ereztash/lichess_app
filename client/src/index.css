@@ -282,8 +282,27 @@ button:not(:disabled) {
   background: radial-gradient(rgba(var(--ink-rgb), 0.06) 0.6px, transparent 0.6px), var(--paper);
   background-size: 7px 7px;
 }
+/*
+ * ONE MEASURE FOR THE THREE BANDS OF THE SHELL, and this rule was destroyed by an insertion.
+ *
+ * It read `.studio-header, .workbench, .move-timeline { max-width: 1500px; margin: auto; }`. The
+ * game-review commit opened its section by writing a banner comment and its own selector directly
+ * after `.workbench,` -- which is a legal place for a selector to continue, so nothing failed. The
+ * effect was that `.move-timeline {` stopped being the third selector of this rule and became the
+ * head of a rule of its own, and the header and the workbench silently joined the review-stats
+ * rule instead: no measure, no centring, and a stray `margin-top: 12px`.
+ *
+ * MEASURED, ON THE BUILT APP: at 1920 the header and the workbench were 1872px wide while the
+ * move timeline directly beneath them held its 1500 -- the shell's own bands disagreeing about
+ * where the page ends. It binds only above 1548px of viewport width, and every browser audit this
+ * repository had was at 1440 or narrower.
+ */
 .studio-header,
 .workbench,
+.move-timeline {
+  max-width: 1500px;
+  margin-inline: auto;
+}
 /* ---- Game review ------------------------------------------------------------------------ */
 .game-review .review-stats {
   display: grid;
@@ -677,10 +696,6 @@ button:not(:disabled) {
   border-color: var(--warn);
   color: var(--warn);
 }
-.move-timeline {
-  max-width: 1500px;
-  margin: auto;
-}
 .studio-header {
   min-height: 88px;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.45);
@@ -749,15 +764,56 @@ button:not(:disabled) {
   display: grid;
   place-items: center;
 }
+/*
+ * THE TRACKS ARE NAMED AND EVERY CHILD IS PLACED, because one of the three children is conditional.
+ *
+ * THE DEFECT THIS REMOVES, and it was not cosmetic. This grid declared three tracks and named the
+ * column of none of its children, so placement was left to grid auto-flow -- which fills the first
+ * empty track with the first child, whatever that child is. `Home.tsx` removes `.control-rail`
+ * from the DOM while the player is producing evidence (LAW 1, LAW 5): absent, not hidden. So in
+ * every DECIDE state there were two children and three tracks, and auto-flow shifted both of them
+ * one track towards the start: the BOARD went into the 132px toolbox track, the commitment panel
+ * into the board's, and the 330px track stayed empty. The document is RTL, so track 1 is the right
+ * edge -- which is the "board pushed to the side" a player reports.
+ *
+ * MEASURED ON THE BUILT APP, at 1920/1440/1280 wide, initial DECIDE: `.board-workspace` 132px
+ * wide, `.board-stage` 92x92, one chess square 9.8x9.8 against this file's own 44px `--tap-floor`,
+ * and `document.elementFromPoint` at the centre of e2 returning the coordinate strip's
+ * `.file-label` rather than the square. Playwright could not click a square at all. At 1024 the
+ * board was 50x50 and a square 4.5px. THE BOARD WAS NOT MERELY SMALL: the one act this state
+ * exists to collect could not be performed with a mouse on any desktop width.
+ *
+ * WHY NAMED LINES RATHER THAN NUMBERS. The number of tracks changes with the state -- three when
+ * the toolbox exists, two when it does not -- so `grid-column: 2` means the board in one state and
+ * the commitment in the other, which is the bug written a second way. A name survives the template
+ * changing under it, and a template that adds or drops a track cannot silently re-seat a child.
+ */
 .workbench {
   display: grid;
-  grid-template-columns: 132px minmax(480px, 1fr) 330px;
+  grid-template-columns: [rail] 132px [board] minmax(480px, 1fr) [task] 330px;
   gap: 32px;
   padding-top: 24px;
 }
+/*
+ * FOCUS: THE TOOLBOX DOES NOT EXIST, SO NEITHER DOES ITS TRACK.
+ *
+ * The class comes from `makingEvidence(stage)` in `Home.tsx` -- the same boundary that decides
+ * whether the rail renders at all -- so the template and the children cannot disagree about which
+ * state this is. Reserving the track and leaving it empty was the other candidate and it is worse
+ * on the symptom this fixes: it holds the board exactly where the reveal has it (no lateral move
+ * at all), at the price of 164px of dead gutter on the outside edge, which is the same "pushed to
+ * the side" reading in a milder form.
+ */
+.workbench.workbench-focus {
+  grid-template-columns: [board] minmax(480px, 1fr) [task] 330px;
+}
 .control-rail {
+  grid-column: rail;
   border-left: 1px solid rgba(var(--ink-rgb), 0.4);
   min-height: 610px;
+}
+.board-workspace {
+  grid-column: board;
 }
 .rail-label {
   padding: 10px 12px;
@@ -1111,7 +1167,28 @@ button:not(:disabled) {
    * to 12px collapsed the board to 96px, which a container-sized board could not do.
    */
   width: 100%;
-  max-width: min(100%, calc(100vh - 268px));
+  /*
+   * AND A FLOOR UNDER THE HEIGHT BOUND, because the bound alone has no lower limit.
+   *
+   * `calc(100vh - 268px)` is a subtraction, so on a short viewport it keeps subtracting. Measured
+   * on the built app in Chromium, in DECIDE: 1440x620 gave a 352px board, 1280x550 gave 282px,
+   * and a landscape phone at 844x390 gave a 122px board whose squares were 13.5px -- against this
+   * file's own 44px `--tap-floor`.
+   *
+   * THE FLOOR IS DERIVED, NOT CHOSEN: eight squares at this file's own `--tap-floor`, plus the
+   * 7px border `.board-grid` draws on each side, which is inside the same box. A first pass wrote
+   * a flat 352px -- 8 x 44 and nothing else -- and measured 42.3px squares, because the border ate
+   * 14px of the eight tracks. The arithmetic has to include everything between the box and the
+   * squares or the floor undershoots the very number it is named after.
+   *
+   * IT IS A FLOOR AND NOT A SIZE. `min(100%, ...)` still caps it by the column, so a 390px phone
+   * gets its 342px board and a 320px one gets 272px, exactly as before -- on those the WIDTH is
+   * the binding constraint and 44px squares are unreachable by arithmetic rather than by defect.
+   * What changes is only the case where HEIGHT was doing the shrinking. There the page scrolls
+   * instead, which is what the mobile invariant asks for: a board that fits the viewport by
+   * becoming unplayable has satisfied the wrong requirement.
+   */
+  max-width: min(100%, max(calc(8 * var(--tap-floor) + 14px), calc(100vh - 268px)));
   margin-inline: auto;
 }
 /*
@@ -1121,7 +1198,7 @@ button:not(:disabled) {
  */
 @supports (height: 100svh) {
   .board-stage {
-    max-width: min(100%, calc(100svh - 268px));
+    max-width: min(100%, max(calc(8 * var(--tap-floor) + 14px), calc(100svh - 268px)));
   }
 }
 .evaluation-instrument {
@@ -1387,6 +1464,7 @@ button:not(:disabled) {
  * thing either way) and buys exactly the 143px that were missing.
  */
 .analysis-stack {
+  grid-column: task;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -1616,11 +1694,19 @@ button:not(:disabled) {
   font-size: var(--panel-fine);
 }
 @media (max-width: 1050px) {
+  /*
+   * Two bands, and the commitment goes UNDER the board rather than beside it -- 330px beside a
+   * 420px board is not a column, it is a squeeze. The names carry over so the board is still the
+   * board's track in both states; only the number of tracks changes.
+   */
   .workbench {
-    grid-template-columns: 90px minmax(420px, 1fr);
+    grid-template-columns: [rail] 90px [board] minmax(420px, 1fr);
+  }
+  .workbench.workbench-focus {
+    grid-template-columns: [board] minmax(420px, 1fr);
   }
   .analysis-stack {
-    grid-column: 2;
+    grid-column: board;
   }
   .move-timeline {
     grid-template-columns: 90px auto minmax(0, 1fr) auto;
