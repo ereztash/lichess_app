@@ -1,162 +1,238 @@
-# Where learning currently dies
+# Where learning currently dies — reconciled barrier model
 
-**The chain, and the current system laid over it.** Each arrow is a place a player can be lost.
-For each: the failure mode, what the repository can currently see, and what it cannot.
+This model separates **product gaps** from **measurement blockers**. The order matters: do not build
+an instructional remedy for a barrier that has not yet been shown to be the binding one.
 
-## CURRENT SYSTEM, as the code actually is
+## Current product chain
 
-Read from the tree at `3f77a3d`, not from any PR body.
-
+```text
+decision
+  ↓
+evidence
+  ↓
+finding
+  ↓
+player-authored rule
+  ↓
+(no validated teaching step)
+  ↓
+withheld-rule retrieval at 1/3/7/21 days
+  ↓
+cued transfer/drill
+  ↓
+ordinary future game (no rule-specific hook)
 ```
-decision ──▶ evidence ──▶ finding ──▶ player-authored rule ──▶  ???  ──▶ retrieval ──▶ drill/test ──▶ future game
-   │            │            │                 │                  │           │            │              │
- atom        engine     FindingCard     LearningRuleComposer    NOTHING   queue hides   3 unseen      no hook
- stored      scores     states what     6 fields, free text                the rule     positions,    at all
-             it         may be                                             1/3/7/21 d   2-of-3,
-                        believed                                                        2 days
-```
 
-| stage | teaching | rehearsal | discrimination | retrieval | transfer |
-| --- | --- | --- | --- | --- | --- |
-| finding → rule | **none** | none | none | none | none |
-| rule → queue | none | **none** — the rule is authored once and never practised | none | none | none |
-| queue → transfer test | none | none | **none** — no negative items exist anywhere | **yes** — the rule is genuinely withheld | none |
-| transfer test | none | none | none | yes | **cued** — the position is presented |
-| future game | none | none | none | none | **no hook exists** |
-
-**Three of the five columns are empty everywhere.** The product has exactly one learning-relevant
-mechanism — withheld-rule retrieval — and one measurement of it.
-
-### What PR #48 got wrong, corrected against the tree
-
-| PR #48 said | the code says |
-| --- | --- |
-| `replicated` arrives 47–81% from base rates | that is the **one-sitting** figure. `replicated` needs **two separate passing days**, so the null is **P(pass)²** — 9–65% across the same range |
-| the recall floor is a bare word-overlap check | it has a stop-list, Hebrew normalisation, a 2-word absolute floor **and** a 0.34 ratio, and an `isScoreable` guard that refuses to create an unwinnable test |
-| — | and the repo has **measured its own adversarial rate**: one generic sentence with no rule knowledge beat **2 of 8** realistic rules (down from 6/8 before the stop-list) |
-| a failed sitting refutes | **refuting is symmetric with replicating** — two failed *days*, added precisely because the asymmetry was "the most damaging thing in this file" |
-| — | transfer positions are **unseen, non-opening, and stride-spread** across the record |
-
-**PR #48 overstated the defect and understated the design.** The corrected picture is *narrower and
-worse*: the instrument is more careful than described, and still cannot reach the target construct.
+The product is stronger as a **measurement/claim-control system** than as a learning system. It can
+record decisions before reveal, control evidence authority, elicit a structured rule, hide it and ask
+for it later. It does not yet establish that the rule is safe to strengthen, that the learner notices
+the relevant situation without a cue, or that the learned policy changes ordinary play.
 
 ---
 
-## The barrier chain
+# Barrier chain
 
-### VALID INSIGHT → ATTENTION
-- **Failure mode:** the finding is read as a number rather than a claim about the player.
-- **Repo evidence:** `AUTHORITY` gives five levels with `mayPrescribe` true for exactly one.
-- **Measurement available:** none. No player has used this build.
-- **Missing:** whether anyone attends. **Contamination risk:** low.
+## 1. VALID INSIGHT → ATTENTION / COMPREHENSION
 
-### ATTENTION → COMPREHENSION
-- **External:** V3 — feedback is **not one treatment** (d = 0.48 with substantial heterogeneity),
-  moderated by **information content**.
-- **Product solution elsewhere:** Chess.com Game Review and Aimchess both stop here; the repeated
-  VOC verdict on Aimchess is *"a diagnostic tool, not a cure"* — the same diagnosis this repository
-  reached about itself.
-- **Missing:** any comprehension check. **This is not the binding barrier** (see V5: layout redesign
-  changed nothing while the *activity* did).
+**Failure:** the finding is technically valid but not attended to or understood.
 
-### COMPREHENSION → RULE / SCHEMA FORMATION
-- **Repo:** `LearningRuleComposer` collects six fields — trigger, missed signal, action, exception,
-  predicted outcome, refutation condition. **This is the product's strongest single asset**: it is
-  an if–then plan with an exception clause and a falsifier, which is the form V6 says works.
-- **Failure mode:** the fields are free text with no constraint on what a *trigger* may be.
-- **Missing:** any check that the trigger is **focal** (V8). See the two barriers below — this is
-  where the chain is decided.
+**Repo:** `FindingCard` is deliberately constrained to one important thing, one example, one evidence
+level and one next action. The evidence layer is relatively mature.
 
-### RULE FORMATION → **CONTENT VALIDITY**
-- **Failure mode:** the rule is wrong.
-- **Repo evidence:** `docs/measurement/` — on the cleanest rule class anyone found, the prescribed
-  act **loses ≥100cp on 15.0%** of the items where the rule says to act; on **22.8%** of negative
-  items the scored false alarm is the engine's own best move.
-- **Repo evidence, second:** `mayPrescribe` is true only at `tested` — **and is enforced in exactly
-  one place**, `FindingCard.tsx:135`, to decide one line of card copy. It **never reaches the
-  rehearsal path.** `formLearningRule` files at `hypothesis` and schedules retrieval for +1 day.
-- **External:** V11 — FSRS optimises scheduling and **cannot assess content quality, by design.**
-- **This is a real gate and it is missing.** A stronger teaching layer is an amplifier applied
-  before the sign is known.
+**Why this is not first:** the strongest external evidence reviewed here does not support treating
+layout clarity as the main learning mechanism. A clearer finding can improve usability without
+solving transfer.
 
-### CONTENT VALIDITY → MEMORY ENCODING
-- **Repo:** nothing. There is no encoding step; the rule is typed once.
-- **External:** V1 (generation/retrieval), V6 (rehearsal is a named moderator of if–then effects).
-- **Missing:** the entire step. **This is the gap the brief was pointing at, and it is real.**
-
-### MEMORY ENCODING → DELAYED RETRIEVAL
-- **Repo:** `RETRIEVAL_INTERVAL_DAYS = [1,3,7,21]`, rule genuinely hidden.
-- **Measurement available:** `scoreRecall` — a lexical floor whose own docblock says it is *"not a
-  memory measure"*, with a **measured 2/8** adversarial pass rate and **no reliability coefficient**
-  because nothing has been double-scored.
-- **What it supports:** L0–L3 at best, and only weakly.
-
-### DELAYED RETRIEVAL → **TRIGGER RECOGNITION**
-- **Failure mode:** the player knows the rule and never notices the situation.
-- **External, and this is the pivot:** V8. Spontaneous retrieval happens for **focal** cues — those
-  the ongoing task already processes. Nonfocal cues need **strategic monitoring**, which under a
-  3+0 clock will not happen.
-- **VOC, independently converging:** *"in games there is nothing telling you that there is a tactic
-  there, whereas in a puzzle you know there is something there"* — the same distinction, arrived at
-  by players rather than by theory.
-- **Repo:** nothing constrains an authored trigger to be focal. `MECHANISM_CLASSES` is a taxonomy of
-  *labels* (`threat_scan`), which is nonfocal by construction.
-- **Measurement available: none.** **This is where the chain most plausibly dies.**
-
-### TRIGGER RECOGNITION → CONDITIONAL DISCRIMINATION
-- **Failure mode:** the rule fires when it should not.
-- **External:** V2 — a contrast set is the right shape *when* the difficulty is discrimination.
-- **Repo:** **no negative items exist anywhere in the product.** Every transfer position is drawn
-  from the player's own undecided decisions with no trigger-absent counterpart.
-- **Consequence:** false application is **structurally unmeasurable today**, and it is half the
-  target construct.
-
-### DISCRIMINATION → ACTION SELECTION → ACTION UNDER TIME PRESSURE
-- **Repo:** the transfer test is untimed and presented. Blitz is timed and unprompted.
-- **External:** V4 — performance under one condition is an unreliable index of learning under another.
-- **Missing:** any measurement that spans the two.
-
-### ACTION → UNCUED TRANSFER → ECOLOGICAL BLITZ TRANSFER
-- **Repo:** `docs/measurement/ECOLOGICAL_EXTRAPOLATION_GAP.md` places the instrument at **L2,
-  aspiring to L3, not reaching L3** — the puzzle bank is selected by engine-uniqueness with no
-  counterpart in ordinary play.
-- **The target construct is L5/L6.** Nothing in the product observes a blitz game for a rule.
-
-### → RETENTION
-- Inherits the status of whatever it delays. Delaying an unmeasurable thing measures nothing.
+**Status:** product concern, not the current epistemic blocker.
 
 ---
 
-## What `RULE_CLASS_SEARCH` changed, after this file was first written
+## 2. COMPREHENSION → KNOWLEDGE / POLICY REPRESENTATION
 
-Two of the four barriers below were revised by
-[`docs/measurement/RULE_CLASS_SEARCH.md`](../measurement/RULE_CLASS_SEARCH.md), which merged while
-this research was in progress.
+**Failure:** the learner can explain the finding but does not form a representation usable in a later
+decision.
 
-- **CONDITIONAL DISCRIMINATION is no longer unmeasurable.** The screen is built on a
-  trigger-negative cell; for `RC-06` it measured `B_valid | T−` = **.200** against .968 on T+.
-  Negative items exist **in the corpus**. They still do not exist **in the product**.
-- **CONTENT VALIDITY has a measured price now.** Following `RC-06` loses ≥100 cp on **2.9%** of its
-  trigger-positive items; the refuted incumbent's figure was 14–15%. **That gap is the value of
-  screening** — and nine of the ten researcher-designed candidates scored below the incumbent, while
-  the product screens nothing at all and accepts whatever a novice types.
-- **TRIGGER RECOGNITION → ACTION SELECTION is unchanged and is now the sharpest arrow in the chain.**
-  The screen's own literature search reports that validated paradigms exist for check, mate and
-  threat *detection*, and that **"every one measures whether the player SAW it. None measures
-  whether the seeing governed the move."** Two independent routes — the prospective-memory framework
-  and a rule-class search — arrive at the same arrow.
+**Repo:** `LearningRuleComposer` elicits trigger, missed signal, action, exception, predicted outcome
+and falsifier. That is a useful representation, but it is player-authored free text.
 
-## Where learning dies, in order
+**Open issue:** text may be only one representation of the skill. Chess expertise literature often
+points to recognition of relations/relevant structures rather than explicit verbal rules.
 
-1. **TRIGGER RECOGNITION → ACTION SELECTION.** Promoted to first. It is where the prospective-memory
-   framework, the repeated player complaint, and the rule-class search's literature review all
-   independently point, and **nobody in the field has measured it.** It is the subject of
-   [`EXPERIMENT.md`](EXPERIMENT.md).
-2. **CONTENT VALIDITY** — no gate. A player-authored rule is rehearsed before its sign is known, and
-   the gate that exists in the vocabulary (`mayPrescribe`) is spent on one line of card copy. The
-   screen puts a number on what screening is worth: 2.9% versus 15%.
-3. **MEMORY ENCODING** — the step does not exist at all.
-4. **CONDITIONAL DISCRIMINATION** — measurable in the corpus now, absent from the product.
+**Status:** plausible learning-design problem, not yet the next experiment.
 
-**Barriers 2 and 3 are build problems. Barrier 1 is a measurement problem and it is the one nobody
-has solved. Barrier 4 stopped being a blocker while this was being written.**
+---
+
+## 3. RULE / POLICY REPRESENTATION → CONTENT VALIDITY
+
+**Failure:** the rule is memorable and wrong, overbroad or underdetermined by chess.
+
+**Repo:** `mayPrescribe` exists and gates prescriptive copy at the `tested` authority level, but that
+authority does **not** gate rehearsal. A player-authored hypothesis can be scheduled for retrieval
+before its content has earned prescriptive authority.
+
+**Measurement programme:** under the current binary screen, only **1 of 15** researcher-designed
+candidate rule classes is eligible (`RC-06`). Fourteen fail despite being designed deliberately.
+
+**Critical lesson:** teaching is an amplifier. Stronger learning machinery increases harm if the
+content sign is wrong.
+
+**Status:** real architectural gate. Missing in the product.
+
+---
+
+## 4. CONTENT VALIDITY → ACTION-MODEL VALIDITY
+
+**Failure:** the chess fact is true, but the measurement maps it to the wrong behavioural signature.
+
+The current rule-class screen asks whether the **single engine-best move** satisfies B. Round 3
+provides a direct warning that this may be too coarse as a general domain model: `RC-21
+push-the-unstoppable-passer` uses genuine, exactly defined chess knowledge while the named act is the
+engine's best move on only **16.4%** of T+ items.
+
+So:
+
+```text
+true trigger T
+≠
+unique correct action B
+```
+
+This is now the **first unresolved pre-human barrier**.
+
+**Required test:** [`PRE_HUMAN_GATES.md`](PRE_HUMAN_GATES.md), Gate A — action-set advantage, regret
+and robustness across the existing screened classes.
+
+**Stop condition:** if RC-06 does not survive a set-valued action model, Study D is cancelled.
+
+---
+
+## 5. ACTION-MODEL VALIDITY → ITEM EXCHANGEABILITY
+
+**Failure:** T+ and T− differ in other decision-relevant ways, so the instrument discriminates items
+rather than the learner's relationship to the trigger.
+
+**Current evidence:** RC-06 max |SMD| = **0.573** between T+ and T− under the existing covariate
+schema. The measurement programme already contains a negative control where a zero-discrimination
+agent can obtain a large apparent d′ on unbalanced items.
+
+**Required test:** Gate B — natural matching plus minimal functional twins, following the
+Sheridan/Reingold logic that a small chess-valid transformation should flip functional relevance.
+
+**Status:** second unresolved pre-human barrier.
+
+---
+
+## 6. VALID / EXCHANGEABLE TASK → TRIGGER RECOGNITION
+
+**Failure:** the learner knows the policy but does not notice when the condition is present.
+
+**External convergence:** prospective-memory work distinguishes focal cues from cues that require
+strategic monitoring; chess expertise research shows experts preferentially process relevant
+relations; player complaints repeatedly distinguish puzzles ("I know something is there") from games
+(no cue tells me to search).
+
+**Repo:** player-authored triggers are unconstrained; mechanism labels such as `threat_scan` are an
+internal taxonomy, not necessarily cues naturally processed during move choice.
+
+**Status:** plausible human barrier, but it cannot be isolated until Gates A/B establish an admissible
+task.
+
+---
+
+## 7. TRIGGER RECOGNITION → ACTION SELECTION
+
+**Failure:** the player sees the relevant relation but does not let it govern the move.
+
+The chess literature reviewed by the programme has validated detection paradigms for check, mate and
+threat relations, but does not establish this arrow in an uncued decision setting.
+
+**Next human study after Gates A/B:** [`EXPERIMENT.md`](EXPERIMENT.md), Study D.
+
+Study D also estimates reactivity because asking "is there a mate threat?" before the move is itself
+a cue/intervention.
+
+**Status:** highest-value human construct question, **not yet admissible**.
+
+---
+
+## 8. ACTION SELECTION → CONDITIONAL DISCRIMINATION
+
+**Failure:** training increases the target action in T+ but also increases it in T−.
+
+**Important correction:** negative items are not absent from the *research corpus*. The rule-class
+screen contains T− cells and RC-06 has a measurable trigger-negative action baseline. Negative items
+are still absent from the **product's learning loop**.
+
+The historical RC-06 analysis already shows why this matters: rule-following on T− can be costly.
+A trigger-positive-only study can score a criterion shift as a learning success.
+
+**Status:** measurable in research, not implemented in learning UX.
+
+---
+
+## 9. CONDITIONAL ACTION → MEMORY ENCODING / RETRIEVAL
+
+**Failure:** the correct conditional policy is not retained or retrievable after delay.
+
+**Repo:** retrieval intervals 1/3/7/21 exist and the rule is hidden. The lexical scorer is a floor
+against unrelated text, not a validated memory measure. D23's original one-sitting null was also
+corrected: the two-day `replicated` null under the same assumptions is roughly **9–65%**, not 47–81%.
+
+**Learning mechanisms:** response-congruent retrieval, spacing, generation and self-explanation are
+candidate interventions here, but they should not be selected before upstream construct validity.
+
+**Status:** learning-design problem after the earlier gates.
+
+---
+
+## 10. RETRIEVAL → ACTION UNDER TIME PRESSURE
+
+**Failure:** a policy works in an untimed presented task and collapses in 3+0.
+
+**Repo:** current transfer/drill conditions and Blitz differ materially. No validated bridge exists.
+
+**Status:** later representative-practice / transfer problem.
+
+---
+
+## 11. ACTION UNDER TIME PRESSURE → UNCUED / ECOLOGICAL TRANSFER
+
+**Failure:** laboratory/presented performance never appears during an ordinary game without a
+rule-specific cue.
+
+**Repo:** ordinary Blitz currently has no rule-opportunity hook. The target is L5–L6; the repository
+does not measure it.
+
+**Role of Blitz:** ecological sampling and final proving ground, not the primary teaching engine.
+
+**Status:** final validation layer.
+
+---
+
+# Current priority order
+
+The old version of this file put `TRIGGER RECOGNITION → ACTION SELECTION` first. That remains the
+highest-value **human** question, but PR #50 and the action-model critique add two cheaper upstream
+questions that must precede it.
+
+```text
+1. ACTION-MODEL VALIDITY            ← Gate A, no humans
+2. ITEM EXCHANGEABILITY             ← Gate B, no humans
+3. TRIGGER RECOGNITION → ACTION     ← Study D, humans
+4. CONTENT SAFETY FOR PLAYER RULES
+5. LEARNING / ENCODING MECHANISM
+6. DELAYED UNCUED TRANSFER
+7. ECOLOGICAL BLITZ TRANSFER
+```
+
+This ordering is a dependency chain, not a claim that later barriers are unimportant.
+
+## Stop rule
+
+If Gate A or Gate B fails, do not make Study D more elaborate and do not search for candidate 16.
+Carry the negative forward:
+
+> **final move is not sufficiently diagnostic of rule use under the current paradigm.**
+
+The next object then becomes **process evidence**, not a learning UI built on top of an invalid final-
+action inference.
