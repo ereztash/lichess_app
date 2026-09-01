@@ -98,7 +98,14 @@ the simple slope of one frozen residual on another:
 
     q_resid  = quality_loss - Qhat0(x)                       # frozen Q0 fit
     ut_resid = unexpected_time_within_rating - UThat(x)      # frozen fit of UT on Q0's own design
-    beta     = <q_resid, ut_resid> / <ut_resid, ut_resid>
+    beta     = cov(q_resid, ut_resid) / var(ut_resid)        # CENTRED on the evaluation set
+
+**Centred, i.e. with an intercept, on whatever set it is estimated on** -- the whole period, a band,
+a player, a stratum, or a bootstrap replicate. The same holds for every one-parameter re-estimate in
+§4. Frozen ridge residuals have mean zero on DEVELOPMENT *as a whole* and nowhere else, so a slope
+through the origin carries `n * mean(q_resid|set) * mean(ut_resid|set) / <ut_resid, ut_resid>`: a
+product of two frozen-model misfits with no allocation content and no determined sign. In the matched
+sample the centring is weighted, by the matching weights, and the intercept is weighted with it.
 
 The second residualisation is what makes this the joint coefficient rather than a marginal one:
 without it, `beta` would still carry whatever part of unexpected time the Q0 covariates explain.
@@ -242,11 +249,31 @@ band, before and after.
 ## 7. Player-level analysis
 
 For players with at least 20 eligible decisions, estimate per player: mean `T` adjusted for
-difficulty, `TAE_p`, `sd(unexpected_time_within_rating)`, extreme-UT rate, mean `quality_loss`,
-mean `AllocationLoss`. Shrink each toward the population mean by normal-normal partial pooling with
-the player's own bootstrap variance, so a player with 20 decisions cannot produce an extreme
-coefficient. Then regress the shrunk player estimate on player rating, weighting by the inverse of
-the shrunk variance.
+difficulty, `TAE_p` (centred within the player), `sd(unexpected_time_within_rating)`, extreme-UT
+rate, mean `quality_loss`, mean `AllocationLoss`.
+
+**The verdict reads the RAW per-player estimates, regressed on rating with inverse-variance
+weights.** Shrunk estimates are computed and are what the figure plots; they do not enter the
+verdict.
+
+This is not the obvious choice and it is the right one. Shrinking every player toward a **common**
+mean and then regressing rescales the slope by `tau2 / (tau2 + v_p)`, and the DerSimonian-Laird
+estimate of `tau2` is clipped to zero whenever between-player variance is small against per-player
+sampling variance. At ~32 decisions a player, `v_p` is of order 0.012 while a rating-driven
+between-player variance is of order 2e-4 -- so `tau2 = 0`, **every shrunk value equals the pooled
+mean, and the slope is zero to machine precision with a degenerate interval**. Simulated with the
+gradient control C6 itself plants (TAE 0.05 to 0.10 across the range, true slope 0.00278 per 100
+Elo, 2,600 players, 32 decisions each): players differing only through rating gave `tau2 = 0` in six
+runs of six and the condition failed in all six; with idiosyncratic variation it survived, attenuated
+seven- to hundred-fold. The inverse-variance-weighted regression of the same raw estimates recovered
+0.0022-0.0033 in every run.
+
+So the shrunk-then-regressed version could fail on a true effect for a reason that has nothing to do
+with the hypothesis, and its magnitude would mean nothing. Shrinkage is the right tool for **drawing**
+per-player estimates, where the job is to stop a noisy player looking extreme; it is the wrong tool
+between an estimate and a regression coefficient computed from it. Control **C6 exercises this
+estimator**, not only the pooled gradient -- a planted gradient must survive the statistic the
+verdict actually reads.
 
 ## 8. Statistical dependence
 

@@ -79,7 +79,11 @@ That is: unexpected time neither clears the bar nor adds anything measurable bey
 
 ### 2.3 `SKILL_ONLY` -- the residual gate
 
-**None of §2.1, §2.2, §2.4 or §2.5 fires.** Written as a complement rather than a conjunction
+**None of §2.1, §2.2, §2.3b, §2.4 or §2.5 fires.**
+
+(§2.3b is in that list deliberately. §2 says the first gate that fires is the verdict, so a
+complement that omitted the gate below it would make that gate unreachable **as written**, whatever
+the code did -- and a gate set is a rule only if it is exhaustive and exclusive on the page.) Written as a complement rather than a conjunction
 (re-review, N2), because the conjunctive version left cases with no verdict at all: `beta` failing
 its bar while **every** H2 metric passes is a live outcome, and the first draft had nothing to print
 for it while `evaluate.py` printed `SKILL_ONLY`, which would have been the wrong name for it.
@@ -122,7 +126,11 @@ lower.
 3. `beta` survives full adjustment: it is estimated in the model containing difficulty, VoC, clock,
    phase and standing, and its interval still excludes 0 with `beta >= BETA_FLOOR`.
 4. **Metric B, and at least one of Metric A and Metric D**, show the preregistered rating direction
-   with an interval excluding 0 **and** are `monotone enough` across adequately powered bands.
+   with an interval excluding 0. **Metrics B and D must additionally be `monotone enough`** across
+   adequately powered bands; **Metric A is judged directionally only**, because it is a pooled slope
+   with no band-level definition -- inside a 200-point band there is little rating variation left to
+   identify it from, so requiring a shape of it would be requiring a shape of a quantity that has
+   none (`MODEL_SPEC.md` §4). Its band table is computed and reported for the figures.
    Metrics C and E are **descriptive and cannot count** -- E because it makes no directional
    prediction, C because it is a transform of Metric B (Gate 1, R4e) and counting the two together
    would let this condition be met by one metric and its own shadow.

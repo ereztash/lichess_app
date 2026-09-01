@@ -792,3 +792,175 @@ may be hashed and frozen once N2, N3, N8 and N9 are applied and this table is re
 once more (it is short). Engine scoring of DEVELOPMENT may begin once N7 is in `score.py`; no output
 of `run.py` may be read until N1, N4 and N5 are in; N6 must exist before Gate 2 is convened. Nothing
 here requires a new period, a new feature, a new threshold, or a change to any model family.
+
+---
+
+# GATE 1 THIRD RE-READ
+
+PASS_WITH_REQUIRED_CHANGES
+
+**Reviewer role:** the same independent adversary, in a fresh context, on the short re-read the
+re-review asked for. **State reviewed:** commit `3b5fd72` (22:07:50), which is where the working
+tree came to rest during this pass; the five documents are `c9aae632` (`PREREGISTRATION.md`),
+`cf263394` (`DATA_PROTOCOL.md`), `9a5c1102` (`FEATURE_SCHEMA.md`), `431ecb57` (`MODEL_SPEC.md`),
+`1d7c0cc8` (`VERDICT_RULES.md`) by sha256 prefix. Two files changed under me while I read
+(`analysis.py`/`matching.py` at 22:06, `PREREGISTRATION.md`/`DATA_PROTOCOL.md` at 22:07); everything
+below was re-verified against the committed state. **What was run:** the suite (43 pass); every
+analysis module imports; `weighted_slope` and the weighted `gradient_with_main_effect` against
+closed-form WLS (agree to machine precision, inside a bootstrap replicate too); the `run.py`
+player-disjoint block verbatim on a synthetic scored frame with a non-contiguous index (runs; all
+seven keys produced; matching finds cells); `evaluate()` on three constructed inputs the tests do not
+construct; two simulations quoted below. **What was not touched:** no research code or document was
+edited; `data/development/` is being written by `score.py` as this is written (800 of 2,541 sides at
+22:12), no output of `run.py` exists, VALIDATION and FINAL are untouched.
+
+## Summary
+
+Seven of the nine are genuinely in, and the three that decide numbers (N1, N4, N5) are in where
+they matter: every band-, player-, pooled-, bootstrap-replicate- and matched-level statistic now
+centres inside the set it is estimated on, the matched sample does it with weighted means and a
+weighted intercept, Metrics C and D read frozen T1P residuals, absent or crashed controls invalidate,
+censoring is read on DEVELOPMENT, and C19 no longer fits on the period it is read from. The
+remaining problems are again transcription, and they are small, but four of them sit in text that is
+about to be hashed and two of them are the class of defect the re-review named ("the binding document
+and the code disagree"): `PREREGISTRATION.md` still carries the false A3 clause and, in §8, the exact
+phrase its own §9 forbids (N9 half-applied); `VERDICT_RULES.md` §2.5.4 still requires Metric A to be
+`monotone enough` while `MODEL_SPEC.md` §4 and `evaluate.py` say directional-only (N4 half-applied);
+`VERDICT_RULES.md` §2.3's complement omits §2.3b, so by the document's own precedence rule the gate
+N2 added can never fire (M2); and `MODEL_SPEC.md` §3 still defines `beta` as the uncentred inner
+product the N1 repair replaced (M1). On the code side, `run.py` now writes all six player-disjoint
+quantities but `evaluate.py` reads two of them (N6 half-applied), three verdict-bearing baselines in
+`controls.py`/`run.py` still compute the pre-N1 uncentred slope (M3), and two things the repairs did
+not introduce but this pass found by exercising the repaired paths: condition 6's shrink-then-regress
+estimator returns exactly zero with a degenerate interval whenever DerSimonian-Laird clips `tau2` to
+zero, which it did in every simulated run with C6's own planted gradient (M4), and `run.py` never
+puts C9 into the analysis `evaluate.py` reads, so the R12 level cap has no path to the verdict (M5).
+
+**Nothing here touches what is scored.** Every required change is document text or analysis-side
+code. DEVELOPMENT scoring continues; its output is unaffected; no scored quantity changes.
+
+## N1-N9: status
+
+| # | Status | What settles it |
+|---|---|---|
+| N1 | **APPLIED** (with M1, M3 below) | (a) `analysis.slope` (lines 141-166) and `partial_correlation` (169-177) centre both vectors inside the set. Band level: `estimands._by_band` evaluates `fn(idx[m[idx]])` (line 48), so a bootstrap replicate centres on its own resampled band, not on the period; the condition-5 `spread` (184-187) calls `slope` on the low/high masks *inside* the replicate; `tae_by_band` (116), `tae_partial_correlation_by_band` (125-127), `metric_a_time_vs_rating` (107-109) and the new `metric_a_by_band` (111-113) all go through them. Player level: `player_level` centres within the player (218-220) with the variance on the centred vectors (227); `make_report.py` 107-112 the same. Matched level: `matching.matched_estimates` (96-121) uses `analysis.weighted_slope` (209-227: weighted means, weighted centring -- verified against `(X'WX)^-1 X'Wy` to 1e-16, in a replicate too) and `gradient_with_main_effect(..., weights=w[i])` (230-249), which now scales the intercept column as well (verified against `sqrt(w)`-scaled lstsq; `weights=None` equals `weights=1`). Pooled `beta` (97) and the continuous gradients carry an intercept. (b) as above. (c) `analysis.fit_metric_nuisances` (64-88) fits `partial_allocation` and `partial_extreme` on the DEVELOPMENT frame *after* `run.py` sets `ut_q95` (run.py 120-124); `residualise` attaches `allocation_resid`/`extreme_resid` (124-131); `estimate` reads them (131-133, 143-145). **Residue:** `controls.py` C5b `base` (120-121), C8 `full_beta` and the jackknife (173-187), and `run.py` `model_comparison` (57-60) still compute `<q,u>/<u,u>` -- see M3; `MODEL_SPEC.md` §3 line 101 still writes `beta` that way -- see M1. |
+| N2 | **APPLIED** (with M2 below) | `VERDICT_RULES.md` §2.3 (line 82) is the residual gate with `rating_on_quality` and the H2 count reported beside it as facts; §2.3b (line 94) names the metric-bar-without-H1 case at level 0, off the ladder. `evaluate.py` 259-265: `ADAPTATION_WITHOUT_REGULARITY = not any(gates) and h2_includes_tae and h2_second_metric`, `SKILL_ONLY = not any(gates)`; `rating_on_quality` and `h2_metrics_meeting_the_bar` in the output (317-318); level 0 with the note (281-284); `test_the_metric_bar_met_without_h1_is_named_not_called_skill_only` and the parametrised case. The ordering of §2.2 before §2.3b (metric bar met, H1 fails, `Q1-Q0 < 0.001` is `DIFFICULTY_PROXY_ONLY`) agrees between document and code. |
+| N3 | **APPLIED** | `VERDICT_RULES.md` §3 level 3 (lines 183-191): sign agreement only, "NO SHAPE TEST", Spearman descriptive with no sign and no threshold. `evaluate.py` 285-291 no longer reads `MONOTONE_RHO` for level 3. A vestigial `math.isfinite(final.get("beta_band_spearman"))` clause remains at 289-290: it cannot change any outcome (`h1_band_agreement` already requires >= 5 powered bands with >= 80% finite agreeing points, which forces a finite Spearman), but it is a condition §3 does not state; delete it or name it a data-presence check, as N3 allowed. |
+| N4 | **PARTIALLY APPLIED** | (i)(ii) `evaluate.REQUIRED_CONTROLS` (41-52) and `missing_or_malformed` (55-81): absent, `note`-only, or non-finite -> `INVALID_EXPERIMENT` with the control named; `test_a_required_control_that_did_not_run_is_invalid` covers both shapes. (iii) `dev_censoring = analysis["periods"]["development"]["censored_voc_share"]` (141), FINAL's reported beside it (319-320); `test_censoring_is_read_on_development_not_final`. (iv) C3 and C7 checked on `tae_rating_gradient`, `metric_a_time_vs_rating`, `extreme_ut_vs_rating` (129-138); `controls.py` writes all three for both (80-84, 160-163). Metric A directional-only: `MODEL_SPEC.md` §4 lines 130-138 state it; `evaluate.py` 173 (`rho = None -> monotone = True`). **Not finished:** `VERDICT_RULES.md` §2.5.4 (lines 124-125) still reads "Metric B, and at least one of Metric A and Metric D, show the preregistered rating direction with an interval excluding 0 **and** are `monotone enough`". N4 said "amend §2.5.4 ... one or the other, stated"; the amendment went into `MODEL_SPEC.md` and not into the document that defines the verdict, so the two hashed documents now disagree with each other on a condition of the top verdict. One sentence in §2.5.4. |
+| N5 | **APPLIED** | `analysis.fit_metric_nuisances` 79-87: `T2R_C19`, `Q0_C19` (`quality_loss ~ T2R_C19`) and `partial_ut_C19` (`_ut_c19 ~ T2R_C19`) fitted on the DEVELOPMENT frame with the frozen penalties; `residualise` 132-136 attaches `ut_c19`, `q_resid_c19`, `ut_resid_c19` on every period; `controls.py` 206-209 reads `slope(q_resid_c19, ut_resid_c19)` under the player bootstrap and fits nothing. `models.SPECS["T2R_C19"]` carries `own_prev_think_s` and `own_prev_think_missing`; `dataset.load` derives the indicator and `apply_frozen` imputes the DEVELOPMENT median. |
+| N6 | **PARTIALLY APPLIED** | Written: `run.py` 164-203 computes the DEVELOPMENT+VALIDATION player-hash set, restricts FINAL, and writes `player_disjoint_final` with `overlapping_players`, `beta`, `tae_rating_gradient`, `tae_spread_low_to_high`, `tae_matched` (via `matching.match` + `matched_estimates` with the frozen basis), `tae_no_zero_time`, `tae_low_clock_pressure` (`clock_pressure_cut == 0`, the fullest-clock tercile, matching `C14_clock_pressure_t0`), `powered_bands`. Exercised on a synthetic frame: runs on the non-contiguous index, all keys present, values coherent with the full-sample ones. The `secondary` stage (205-223) exists: `data/secondary`, frozen fits, no controls or matching, seal required (146-148). **Not read:** `evaluate.py` 230-233 `player_disjoint_holds` checks `beta` (condition 1 in full) and `tae_rating_gradient` only. `VERDICT_RULES.md` §2.5 line 149 says "conditions 1 and 5". Demonstrated: the test fixture with `tae_matched`, `tae_no_zero_time`, `tae_low_clock_pressure` and `tae_spread_low_to_high` all set to `[-0.02, 0.02]` returns `EXPERTISE_ADAPTATION_SUPPORTED`, level 4, `player_disjoint_holds = True`; with the disjoint spread at 0.005 (below `TAE_FLOOR`) the same. The suite cannot see this because its fixture (test_verdict_rules.py 60-62) supplies only the two keys the code reads. Four lines in `evaluate.py` plus the fixture. Also: the `len(restricted) > 5000` minimum (run.py 183) is in no document; it can only withhold the top verdict, but it is a number the hashed rules do not contain. |
+| N7 | **APPLIED** | `score.py` 161-179 counts `closed_by_band`, `unknown_by_band`, `candidates_by_band` on `side["band"]` (which `ingest.Sampler` records, ingest.py 235) before usernames are dropped (182); manifest 226-234 writes `account_closed_by_band`, `account_unknown_by_band`, `account_checked_sides_by_band`, `account_closed_rate_by_band`. The running DEVELOPMENT process (started 22:01 from the 22:00 file) has already passed this step: its log shows the lookup completing for 2,525 usernames and 2,541 sampled sides before scoring began, so the counts will be in `data/development/manifest.json` when it lands. Check the four keys are present when it does. |
+| N8 | **APPLIED** | `VERDICT_RULES.md` §2.5c lines 161-171 carry the arithmetic and both conclusions; `PREREGISTRATION.md` §9 lines 240-241 forbid the reading. The arithmetic checks: `0.06 / (0.6 * sqrt(5000)) = 0.0014`; with correlation 0.8 the ratio's 95% interval is `[0.70r, 1.42r]`; the trigger fires at `r < 0.35`. It ignores player clustering, which widens the real interval, so the stated power is an upper bound and the conclusion ("a non-firing C9 is not evidence against A2") only strengthens. `c9.py` does not emit the "attenuation the interval excludes" (`1 - r_beta.hi`) as a field; it is a report obligation and trivially derived, but emitting it would stop it being forgotten. |
+| N9 | **PARTIALLY APPLIED** | (i) A5 rewritten to `rating_diff` with the pairing-diagonal caveat (`PREREGISTRATION.md` line 76). **A3 was not:** line 74 still ends "opponent rating as a covariate", which is false -- `opponent_rating` is in no model (`models.T0_NUMERIC`, `FEATURE_SCHEMA.md` §7). (ii) §4 now cites §1 and §2.5.2 (line 137). The same class of error survives at §3 line 119: "The verdict rule (VERDICT_RULES.md §4) requires the restricted estimate to hold" -- §4 is the post-holdout conduct section; the rule is §2.5. (iii) `MODEL_SPEC.md` C14 (line 278) and C17 (line 281) rows say the Metric B gradient is a verdict condition. (iv) `MODEL_SPEC.md` C5b row (line 269) is corrected. **`PREREGISTRATION.md` §8 was not:** lines 225-226 still read "That fraction is the **attenuation factor every reported effect should be read against**", which is, word for word, the phrase §9 line 242 of the same document forbids. The same sentence is what `controls.py` 128-130 writes as C5b's `note` into `analysis.json`, from which `make_report.py` 191-198 copies it into `tables/12_controls.csv`. (v) The five nuisance fits of §4 step 1 now exist (`T1P`, `partial_voc`, `partial_rating`, `partial_allocation`, `partial_extreme`). |
+
+`DATA_PROTOCOL.md` (the two disclosed consequences added at 22:07 are accurate and match the code)
+and `FEATURE_SCHEMA.md` (unchanged since 21:39) need nothing.
+
+## New defects, numbered
+
+**M1. `MODEL_SPEC.md` §3 defines `beta` as the estimator the N1 repair removed.** Line 101:
+`beta = <q_resid, ut_resid> / <ut_resid, ut_resid>`. `estimands.estimate` line 97 computes `beta` as
+`analysis.slope`, which centres. The document's own preamble says a disagreement between them is a
+defect in the code. The re-review's Recommended 2 said this decision belonged in the document; it was
+made in the code. One line in §3: the slope is centred within the evaluation set (equivalently, with
+an intercept), and the same holds for every one-parameter re-estimate in §4. Introduced by N1. Text,
+before the hash.
+
+**M2. `VERDICT_RULES.md` §2.3's complement omits §2.3b, so §2.3b cannot fire.** §2 line 52: "Applied
+in order. The first that fires is the verdict." §2.3 line 82: "None of §2.1, §2.2, §2.4 or §2.5
+fires." §2.3b's condition is a strict subset of that, and §2.3 precedes it, so under the document's
+own rule every input that meets §2.3b is `SKILL_ONLY`. `evaluate.py` fires `ADAPTATION_WITHOUT_REGULARITY`
+first (262-265). Fix the text: "None of §2.1, §2.2, §2.3b, §2.4 or §2.5 fires" (or renumber 2.3b
+ahead of 2.3). Introduced by N2. Text, before the hash. R4(b) was about exactly this: a gate set is a
+rule only if it is exhaustive and exclusive *as written*.
+
+**M3. Three verdict-bearing baselines still use the pre-N1 uncentred slope.** `analysis.slope`
+changed under callers that had inlined it. (a) `controls.py` 120-121: C5b's `base` is `<q,u>/<u,u>`,
+so `recovered_fraction = (beta_planted_centred - beta_unplanted_uncentred) / 0.02` mixes two
+estimators in an `INVALID_EXPERIMENT` quantity, and the written `beta_unplanted` will not equal
+`periods.final.beta.point`. (b) `controls.py` 173-187: C8's `full_beta` is uncentred and the jackknife
+is uncentred, so `relative_change` (condition 9, limit 25%) compares a centred `dropped["beta"]`
+against an uncentred full-sample value. (c) `run.py` 57-60: `model_comparison`'s `beta` is uncentred,
+so `q1_minus_q0_r2` (§2.2 and level 2, floor 0.001) is computed from a `beta` that is no longer the
+reported one. Magnitude, simulated with the re-review's own misfit sizes (mean `q_resid` 0.003, mean
+`ut_resid` 0.03, `n = 80,000`): gap `+0.00025`, i.e. 5% of a 0.005 `beta`, `+0.012` in
+`recovered_fraction`, five points of C8's 25% limit. Not decisive; but it is two estimators of one
+number under one name in three gate quantities. (`controls.py` 218, C10, centres `a` and not `u`;
+sign-only and descriptive, mention for completeness.) Fix: call `analysis.slope`; do the jackknife
+with centred running sums. Introduced by N1. Code, cheap, before any `run.py` output is read.
+
+**M4. Condition 6 is degenerate as specified, and a planted gradient does not survive it.**
+`MODEL_SPEC.md` §7 and `estimands.player_level` (241-251): each player's TAE is shrunk toward the
+*population* mean by normal-normal pooling, then the shrunk value is regressed on rating. Shrinkage
+toward a common mean rescales the slope by `tau2 / (tau2 + v_p)`, and DerSimonian-Laird returns
+`tau2 = 0` whenever between-player variance is small against the per-player sampling variance
+(`~0.36 / (n_p - 2)`, about 0.012 at `n_p = 32`, against a rating-driven between-player variance of
+about `2e-4`). When it does, every shrunk value equals the pooled mean, the slope is zero to machine
+precision, the interval is `[-3e-18, +3e-18]`, and condition 6 fails. Simulated with C6's own planted
+gradient (TAE `0.05 -> 0.10` across the range; true slope `0.00278` per 100 Elo; 2,600 players, 32
+decisions each, `sd(eY) = 0.6`, `sd(eV) = 1`): players differing only through rating -> `tau2 = 0`
+in 6 of 6 runs, condition 6 fails in all six; idiosyncratic sd 0.02 -> 2 of 6 collapse, the rest
+attenuated 20-100x; idiosyncratic sd 0.05 -> survives, attenuated 7x. The raw inverse-variance-weighted
+regression of the *same* per-player estimates on rating recovers `0.0022-0.0033` in every run. So
+condition 6 can fail on a true effect for a reason unrelated to the hypothesis, and its reported
+magnitude means nothing. Direction: conservative -- it can only withhold level 4. **Not introduced by
+N1(b)**; the shrink-then-regress structure is in §7 and in `player_level` at `0dc30f9`, and both
+earlier passes (mine) missed it; it surfaced because the repaired path was exercised on data with a
+known answer, which no test does. Because §7 is hashed and condition 6 is a verdict condition, decide
+before the hash: regress the raw per-player estimates on rating with inverse-variance weights (keep
+the shrinkage for the figure), or shrink toward the rating-conditional mean. Ten lines in
+`player_level`, one paragraph in §7. And make C6 exercise condition 6's estimator, not only the pooled
+gradient -- that is the control that would have caught this on data.
+
+**M5. C9 has no path to the verdict as wired.** `run.py` never writes a `c9` key (grep: none);
+`c9.py` writes a separate file; `README.md`'s stage list (`run.py --stage final; evaluate.py`) has no
+merge step; `evaluate.py` 296-301 reads `analysis.get("c9", {})` and, when it is absent, applies no
+cap and records nothing. Demonstrated: the fixture with `c9_proxy=True` and its `c9` block deleted
+returns level 4 with no note. `VERDICT_RULES.md` §2.5c is therefore a rule with no implementation
+between `results/c9.json` and the verdict -- the re-review's own words for N6. Pre-existing since
+R12, not introduced by N1-N9. Fix: the `final` stage loads `results/c9.json` if present and embeds it;
+`evaluate.py` names a missing C9 in `notes` and withholds level 3+ until it exists, on N4's principle
+that a required control that did not run cannot pass. Code, cheap.
+
+**Also found, not numbered.** `run.py` 235-236 writes `leakage_tests_passed: True` and
+`engine_nondeterminism_detected: False` as literals, so §2.1.1 and §2.1.8 are fed constants, and
+§2.1.8's "verification re-score" has no implementation anywhere (`rescore.py` changes the budget; it
+does not repeat it). Pre-existing; can only fail to invalidate; record the pytest result and a
+same-budget re-score of a small fixed subset instead.
+
+## What is expensive and what is not
+
+Nothing above touches `score.py`, `ingest.py`, the features, VoC, quality, the engine driver or the
+sample. The DEVELOPMENT scoring now running is unaffected and may continue. Every required change is
+either text in a document not yet hashed or analysis-side code for which no output has been produced
+or read. None is expensive.
+
+## May the five documents be hashed?
+
+**Not as they stand.** They may be hashed as soon as these seven text edits are made -- no fourth
+re-read is needed, because each is checkable by grep:
+
+1. `PREREGISTRATION.md` A3 (line 74): "opponent rating as a covariate" -> "`rating_diff` as a covariate" (N9i).
+2. `PREREGISTRATION.md` §8 (lines 225-226): replace the "attenuation factor every reported effect should be read against" sentence with the C5b wording of `MODEL_SPEC.md` §9 / §9 of this document (N9iv).
+3. `PREREGISTRATION.md` §3 (line 119): "VERDICT_RULES.md §4" -> "§2.5" (N9ii, same class).
+4. `VERDICT_RULES.md` §2.3 (line 82): add §2.3b to the complement (M2).
+5. `VERDICT_RULES.md` §2.5.4 (lines 124-125): Metric A directional-only; B and D keep the shape test (N4iv).
+6. `MODEL_SPEC.md` §3 (line 101): `beta` is the centred slope on the evaluation set, as is every §4 re-estimate (M1).
+7. `MODEL_SPEC.md` §7: state the condition-6 estimator that will actually be used (M4).
+
+After the hash, before any `run.py` output is read: `evaluate.py` reads all six player-disjoint
+quantities (N6) and names a missing C9 (M5); `run.py` embeds `c9.json` (M5); `controls.py` and
+`run.py` use `analysis.slope` (M3) and the C5b `note` string loses the forbidden phrase (N9iv);
+`player_level` regresses the raw weighted estimates (M4); the vestigial `isfinite` clause goes (N3);
+the fixture in `test_verdict_rules.py` carries every `player_disjoint_final` key and a case where the
+disjoint spread is below `TAE_FLOOR`.
+
+## Verdict, stated plainly
+
+`PASS_WITH_REQUIRED_CHANGES`. The repairs are sound where they decide numbers; the residue is seven
+one-line text edits and about forty lines of analysis-side code, none of it touching what is scored.
+The documents may not be hashed with a false clause (A3), a self-contradiction (§8 against §9), an
+unreachable gate (§2.3b) and a stale primary-estimand formula (§3) in them; they may be hashed the
+moment those are gone. M4 is the one finding that is not a transcription error: the hashed §7
+specifies an estimator that returned zero on every simulated run with the design's own planted
+gradient, and the designers should choose the estimator now rather than discover it at Gate 2.

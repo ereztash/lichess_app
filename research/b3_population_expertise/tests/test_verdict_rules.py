@@ -32,7 +32,8 @@ def band_table(points):
 def analysis(*, beta=0.01, band_betas=None, tae_gradient=0.03, tae_spread=0.05,
              metric_a=-0.5, metric_d=-0.4, r2_gain=0.004, powered=None, controls_ok=True,
              c5b=0.8, c9_proxy=False, disjoint_ok=True, tae_extras_ok=True,
-             metric_a_dead=False, metric_d_dead=False):
+             metric_a_dead=False, metric_d_dead=False, disjoint_extras_ok=True,
+             disjoint_spread=0.05, c9_present=True):
     powered = BANDS if powered is None else powered
     band_betas = band_betas or [0.01] * len(BANDS)
     dead = interval(0.0, -0.02, 0.02)
@@ -57,11 +58,21 @@ def analysis(*, beta=0.01, band_betas=None, tae_gradient=0.03, tae_spread=0.05,
         "model_comparison": {"final": {"q1_minus_q0_r2": r2_gain}},
         "matched": {"final": {"beta": interval(beta), "tae_rating_gradient": good}},
         "player_level": {"final": {"tae_vs_rating_per_100elo": interval(tae_gradient)}},
-        "player_disjoint_final": {"beta": interval(beta),
-                                  "tae_rating_gradient": interval(tae_gradient)}
-        if disjoint_ok else {},
-        "c9": {"favours_difficulty_proxy": c9_proxy,
-               "r_beta": interval(0.3, 0.1, 0.45) if c9_proxy else interval(0.9, 0.7, 1.2)},
+        # ALL SIX condition-1 and condition-5 quantities. The fixture used to carry two, which is
+        # what hid the N6 defect: a restriction whose matched, zero-time, low-pressure and spread
+        # quantities were all dead still returned the strongest verdict.
+        "player_disjoint_final": {
+            "beta": interval(beta),
+            "tae_rating_gradient": interval(tae_gradient),
+            "tae_matched": interval(tae_gradient) if disjoint_extras_ok else dead,
+            "tae_no_zero_time": interval(tae_gradient) if disjoint_extras_ok else dead,
+            "tae_low_clock_pressure": interval(tae_gradient) if disjoint_extras_ok else dead,
+            "tae_spread_low_to_high": interval(disjoint_spread),
+            "overlapping_players": 12,
+        } if disjoint_ok else {},
+        "c9": ({"favours_difficulty_proxy": c9_proxy,
+                "r_beta": interval(0.3, 0.1, 0.45) if c9_proxy else interval(0.9, 0.7, 1.2)}
+               if c9_present else {}),
         "controls": {"final": {
             "C5_planted_regularity": {"beta": interval(0.03)},
             "C5b_planted_foreign_residual": {"recovered_fraction": c5b},
@@ -137,6 +148,24 @@ def test_fewer_than_five_powered_bands_cannot_reach_level_4():
     assert "h2_enough_bands" in out["failed_conditions"]
 
 
+def test_the_disjoint_restriction_must_satisfy_conditions_1_and_5_in_full():
+    """third re-read, N6: reading two of the six let dead extras through."""
+    out = ev.evaluate(analysis(disjoint_extras_ok=False))
+    assert out["verdict"] == "GENERAL_REGULARITY_ONLY"
+    assert "player_disjoint_holds" in out["failed_conditions"]
+
+    below_floor = ev.evaluate(analysis(disjoint_spread=0.005))
+    assert below_floor["verdict"] == "GENERAL_REGULARITY_ONLY"
+    assert "player_disjoint_holds" in below_floor["failed_conditions"]
+
+
+def test_an_absent_c9_withholds_level_3_and_above():
+    """third re-read, M5: silence read as a pass, and the rule had no path to the verdict."""
+    out = ev.evaluate(analysis(c9_present=False))
+    assert out["level"] == 2
+    assert any("C9 did not run" in n for n in out["notes"])
+
+
 def test_c9_budget_reading_caps_the_level():
     out = ev.evaluate(analysis(c9_proxy=True))
     assert out["level"] == 2, "an attenuating beta must withhold level 3 and above"
@@ -192,6 +221,7 @@ def test_metric_c_alone_cannot_supply_the_second_metric():
     {"powered": BANDS[:2]}, {"beta": 0.0005, "r2_gain": 0.02},
     {"metric_a_dead": True}, {"metric_a_dead": True, "metric_d_dead": True},
     {"tae_spread": 0.0}, {"c9_proxy": True}, {"beta": 0.0001, "r2_gain": 0.02},
+    {"disjoint_extras_ok": False}, {"disjoint_spread": 0.001}, {"c9_present": False},
 ])
 def test_every_constructed_input_produces_exactly_one_verdict(kwargs):
     out = ev.evaluate(analysis(**kwargs))

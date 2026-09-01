@@ -241,10 +241,24 @@ def player_level(frame: pd.DataFrame) -> dict:
     pooled = pooled_random_effects(table["tae"].to_numpy(), table["tae_var"].to_numpy())
     table["tae_shrunk"] = pooled["shrunk"]
 
-    weights = 1.0 / (table["tae_var"].to_numpy() + max(pooled["tau2"], 1e-12))
-    weights = np.where(np.isfinite(weights), weights, 0.0)
+    # M4 FROM THE THIRD RE-READ. THE VERDICT READS THE RAW ESTIMATES, NOT THE SHRUNK ONES.
+    #
+    # Shrinking every player toward a COMMON mean and then regressing on rating rescales the slope
+    # by `tau2 / (tau2 + v_p)`, and DerSimonian-Laird clips `tau2` to zero whenever between-player
+    # variance is small against per-player sampling variance. At ~32 decisions a player, `v_p` is of
+    # order 0.012 while a rating-driven between-player variance is of order 2e-4 -- so `tau2 = 0`,
+    # every shrunk value equals the pooled mean, and the slope is ZERO TO MACHINE PRECISION with a
+    # degenerate interval. Simulated with the gradient control C6 itself plants, that happened in
+    # six runs of six: the condition failed on a true effect, for a reason with nothing to do with
+    # the hypothesis.
+    #
+    # Shrinkage is the right tool for DRAWING per-player estimates, where the job is to stop a noisy
+    # player looking extreme. It is the wrong tool between an estimate and a regression coefficient
+    # computed from it. The figure keeps the shrunk values; the verdict reads these.
+    weights = 1.0 / table["tae_var"].to_numpy()
+    weights = np.where(np.isfinite(weights) & (weights > 0), weights, 0.0)
     x = (table["rating"].to_numpy() - 1600.0) / 100.0
-    y = table["tae_shrunk"].to_numpy()
+    y = table["tae"].to_numpy()
     ok = np.isfinite(x) & np.isfinite(y) & (weights > 0)
     design = np.column_stack([x[ok], np.ones(ok.sum())])
     w = weights[ok]
@@ -262,12 +276,23 @@ def player_level(frame: pd.DataFrame) -> dict:
             pass
     lo, hi = np.percentile(replicates, [2.5, 97.5]) if len(replicates) > 20 else (np.nan, np.nan)
 
+    # The shrunk-then-regressed version, reported beside it so the difference is visible rather
+    # than a claim, and so a reader can see when tau2 collapsed.
+    shrunk_slope = float("nan")
+    if pooled["tau2"] > 0:
+        ys = table["tae_shrunk"].to_numpy()
+        ds = np.column_stack([x[ok], np.ones(ok.sum())])
+        cs, *_ = np.linalg.lstsq(ds * np.sqrt(w)[:, None], ys[ok] * np.sqrt(w), rcond=None)
+        shrunk_slope = float(cs[0])
+
     return {
         "players": int(len(table)),
         "mean_decisions_per_player": float(table["n"].mean()),
         "tae_mean": float(finite.mean()),
         "tau2": pooled["tau2"],
+        "tau2_collapsed_to_zero": bool(pooled["tau2"] <= 0),
         "tae_vs_rating_per_100elo": {"point": float(coef[0]), "lo": float(lo), "hi": float(hi)},
+        "tae_vs_rating_shrunk_reported_only": shrunk_slope,
         "quality_vs_rating_per_100elo": float(
             np.polyfit((table["rating"] - 1600) / 100, table["mean_quality_loss"], 1)[0]
         ),

@@ -45,6 +45,21 @@ def require_seal() -> dict:
     return seal
 
 
+def _gate_checks(results_dir) -> dict:
+    """The two INVALID conditions that were literals. Absent evidence is a failure, not a pass."""
+    path = os.path.join(results_dir, "gate_checks.json")
+    if not os.path.exists(path):
+        return {"leakage_tests_passed": False,
+                "engine_nondeterminism_detected": True,
+                "gate_checks_note": "results/gate_checks.json is absent; run src/gate_checks.py"}
+    checks = json.load(open(path))
+    return {
+        "leakage_tests_passed": bool(checks.get("leakage_tests_passed")),
+        "engine_nondeterminism_detected": bool(checks.get("engine_nondeterminism_detected")),
+        "gate_checks": checks,
+    }
+
+
 def model_comparison(frame, fits, groups=None) -> dict:
     y = frame["log_time"].to_numpy(float)
     out = {name: models.r2(y, models.predict(fits[name], frame))
@@ -54,10 +69,12 @@ def model_comparison(frame, fits, groups=None) -> dict:
     out["Q0"] = models.r2(q, q0)
     u = frame["ut_resid"].to_numpy(float)
     resid = frame["q_resid"].to_numpy(float)
-    denominator = float(u @ u)
-    beta = float(u @ resid) / denominator if denominator > 0 else 0.0
+    # The SAME estimator as the reported beta (M3c). Inlined uncentred, `q1_minus_q0_r2` -- which
+    # decides §2.2 and level 2 -- was computed from a beta that was not the one being reported.
+    beta = an.slope(resid, u)
+    uc = u - u.mean()
     total = q - q.mean()
-    out["Q1"] = out["Q0"] + (beta**2 * denominator) / float(total @ total)
+    out["Q1"] = out["Q0"] + (beta**2 * float(uc @ uc)) / float(total @ total)
     out["q1_minus_q0_r2"] = out["Q1"] - out["Q0"]
     return out
 
@@ -222,8 +239,17 @@ def main() -> None:
             "note": "the DEVELOPMENT-fitted models applied unchanged to 300+0; nothing retuned",
         }
 
+    # ---- C9, embedded so the level cap has a path to the verdict (M5) ---------------------------
+    #
+    # `VERDICT_RULES.md` §2.5c is a rule; `c9.py` writes `results/c9.json`; nothing joined them, so
+    # `evaluate.py` read `analysis.get("c9", {})`, found nothing, and applied no cap while recording
+    # nothing. A rule with no implementation between its input and the verdict is licence.
+    c9_path = os.path.join(args.results, "c9.json")
+    c9 = json.load(open(c9_path)) if os.path.exists(c9_path) else {}
+
     analysis = {
         "stage": args.stage,
+        "c9": c9,
         "player_disjoint_final": disjoint,
         "secondary_time_control": secondary,
         "periods": periods,
@@ -232,8 +258,9 @@ def main() -> None:
         "frontier": frontiers,
         "player_level": players,
         "model_comparison": comparison,
-        "leakage_tests_passed": True,
-        "engine_nondeterminism_detected": False,
+        # Read from the recorded test run rather than asserted (see `results/gate_checks.json`,
+        # written by `src/gate_checks.py`). Literals here fed constants to two INVALID conditions.
+        **_gate_checks(args.results),
         "elapsed_seconds": round(time.time() - started, 1),
     }
     path = os.path.join(args.results, f"analysis_{args.stage}.json")

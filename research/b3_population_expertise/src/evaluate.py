@@ -227,10 +227,20 @@ def evaluate(analysis: dict) -> dict:
         and (val["tae_rating_gradient"]["point"] > 0)
         == (final["tae_rating_gradient"]["point"] > 0)
     )
+    # CONDITIONS 1 AND 5 IN FULL on the restriction, not two of the six (third re-read, N6).
+    # `run.py` writes all six; reading two of them let a restriction whose matched, zero-time,
+    # low-clock-pressure and spread quantities were all dead still return the strongest verdict.
     disjoint = analysis.get("player_disjoint_final", {})
-    checks["player_disjoint_holds"] = bool(disjoint) and signed(disjoint.get("beta", {}), +1) and (
-        abs(disjoint.get("beta", {}).get("point", 0)) >= BETA_FLOOR
-    ) and signed(disjoint.get("tae_rating_gradient", {}), +1)
+    disjoint_spread = disjoint.get("tae_spread_low_to_high", {})
+    checks["player_disjoint_holds"] = bool(disjoint) and all([
+        signed(disjoint.get("beta", {}), +1),
+        abs(disjoint.get("beta", {}).get("point", 0)) >= BETA_FLOOR,
+        signed(disjoint.get("tae_rating_gradient", {}), +1),
+        signed(disjoint.get("tae_matched", {}), +1),
+        signed(disjoint.get("tae_no_zero_time", {}), +1),
+        signed(disjoint.get("tae_low_clock_pressure", {}), +1),
+        excludes_zero(disjoint_spread) and disjoint_spread.get("point", 0) >= TAE_FLOOR,
+    ])
 
     # --- gates, in order; exactly one must fire ------------------------------------------------------
     required = [
@@ -286,14 +296,24 @@ def evaluate(analysis: dict) -> dict:
         level = 1
         if r2_gain >= R2_GAIN_FLOOR:
             level = 2
-        if level == 2 and checks["h1_band_agreement"] and math.isfinite(
-                final.get("beta_band_spearman", float("nan"))):
+        # Sign agreement only. Level 3 is an INVARIANCE claim and no shape is preregistered for
+        # beta across bands (N3), so the vestigial finiteness clause is gone with the shape test.
+        if level == 2 and checks["h1_band_agreement"]:
             level = 3
     else:
         level = 0
 
     # 2.5c -- the C9 budget reading caps the level regardless of which gate fired (Gate 1, R12).
+    #
+    # An ABSENT C9 also caps (third re-read, M5), on N4's principle that a required control which did
+    # not run cannot pass. Silently applying no cap would have made §2.5c a rule with no path from
+    # its own input to the verdict.
     c9 = analysis.get("c9", {})
+    if not c9 or "r_beta" not in c9:
+        notes.append("C9 did not run: results/c9.json was not embedded in this analysis, so the "
+                     "budget reading has no input. Level 3 and above withheld.")
+        if level is not None and level >= 3:
+            level = 2
     c9_caps = bool(c9.get("favours_difficulty_proxy"))
     if c9_caps and level is not None and level >= 3:
         notes.append(f"C9: r_beta upper bound {c9.get('r_beta', {}).get('hi')} is below "
@@ -312,6 +332,8 @@ def evaluate(analysis: dict) -> dict:
         "adequately_powered_bands": powered,
         "band_sign_agreement": {"agree": agree, "of": len(powered), "needed": needed},
         "tae_spread": spread,
+        "player_disjoint": {k: v for k, v in disjoint.items() if not isinstance(v, dict)}
+        if disjoint else {},
         "c9_reading": c9.get("reading"),
         # Reported beside SKILL_ONLY as facts, never as conditions (re-review, N2).
         "rating_on_quality": final.get("rating_on_quality"),

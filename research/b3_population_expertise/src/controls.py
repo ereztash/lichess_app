@@ -117,8 +117,11 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
         frame["quality_loss"] = (frame["quality_loss"].to_numpy()
                                  + lam * scored["ut_gbt"].to_numpy())
         out = _rerun(frame, fits, constants, boot, basis)
-        base = float(np.asarray(scored["q_resid"]) @ np.asarray(scored["ut_resid"])
-                     / (np.asarray(scored["ut_resid"]) @ np.asarray(scored["ut_resid"])))
+        # Through `analysis.slope`, so `beta_unplanted` is the SAME estimator as the reported
+        # beta. Inlined, it was the pre-centring form, and `recovered_fraction` -- an
+        # INVALID_EXPERIMENT quantity -- was a difference between two different estimators of one
+        # number.
+        base = slope(scored["q_resid"].to_numpy(float), scored["ut_resid"].to_numpy(float))
         recovered = out["beta"]["point"] - base
         results["C5b_planted_foreign_residual"] = {
             "lambda": lam,
@@ -126,8 +129,9 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
             "beta_unplanted": base,
             "recovered_fraction": recovered / lam if lam else float("nan"),
             "note": "recovered_fraction is the share of a signal defined outside this pipeline's "
-                    "own residual that the frozen linear specification detects; it is the "
-                    "attenuation factor for every reported effect",
+                    "own residual that the frozen linear specification detects -- algebraically "
+                    "the regression slope of the tree residual on the linear residual, so it is "
+                    "the attenuation of a signal OF THAT SHAPE and of nothing else",
         }
 
     # C6 -- planted expertise adaptation: thinking time rebuilt so the VoC slope RISES with rating.
@@ -192,6 +196,7 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
             "relative_change": abs(dropped["beta"]["point"] - full_beta) / abs(full_beta)
             if full_beta else float("nan"),
             "max_single_player_relative_shift": worst,
+            "most_influential_player": worst_player,
             "players_dropped": len(busiest),
         }
 

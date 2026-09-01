@@ -71,7 +71,7 @@ than discovered later.
 |---|---|---|---|
 | A1 | **Skill only.** Rating raises quality; unexpected time is noise. | H1 estimated within rating bands and with rating adjusted. | Yes, if beta > 0 within bands. |
 | A2 | **Unmeasured difficulty.** Unexpected time is a proxy for position difficulty the engine features missed. | Residual taken from T2, the richest pre-move model (difficulty + candidate structure + search instability + VoC + clock). Matched analysis. Alternate engine budget (C9). | **No.** This is the central irreducible limitation and the report must say so. Adjustment shrinks it; it cannot remove it. |
-| A3 | **Position-distribution confound.** Stronger players reach systematically different positions, so a rating gradient is a gradient in the positions, not in the players. | Matched analysis on difficulty / VoC / clock / phase / standing / eval; within-band estimation; opponent rating as a covariate. | Partly. |
+| A3 | **Position-distribution confound.** Stronger players reach systematically different positions, so a rating gradient is a gradient in the positions, not in the players. | Matched analysis on difficulty / VoC / clock / phase / standing / eval; within-band estimation; `rating_diff` as a covariate. `opponent_rating` is a near-proxy for the exposure and is in no model (Gate 1, R5). | Partly. |
 | A4 | **Clock-management confound.** Stronger players get into time trouble less, and time trouble causes errors, so every metric moves for a reason that is not allocation. | Clock remaining, opponent clock and clock pressure enter every model; clock-pressure strata (C14). | Partly. |
 | A5 | **Opponent strength.** The opponent drives both position difficulty and the clock. | **`rating_diff`** is a covariate in T0 and therefore in every model. `opponent_rating` itself is recorded and enters no model, because it is a near-proxy for the exposure (Gate 1, R5). | Yes, to the extent `rating_diff` measures it -- and along the pairing diagonal, where `rating` and `opponent_rating` move together, it does not separate them at all. |
 | A6 | **Engine artifact.** Difficulty and quality both come from one engine at one budget, so a position where that engine is unstable gets a high difficulty score *and* a noisy quality score by construction. | C9 re-scores a random subset at 2.5x the node budget and repeats the primary estimate. | Partly. |
@@ -116,7 +116,7 @@ transcription.
 it would require reading the FINAL period before Gate 2. Instead it is preregistered here: after
 FINAL is opened, the overlap is counted and the primary H1 estimate is reported **twice** -- on all
 of FINAL, and on FINAL restricted to players absent from DEVELOPMENT and VALIDATION. The verdict
-rule (VERDICT_RULES.md §4) requires the restricted estimate to hold. Neither branch is chosen after
+rule (`VERDICT_RULES.md` §2.5) requires the restricted estimate to hold. Neither branch is chosen after
 seeing the numbers; both are always reported.
 
 ---
@@ -222,8 +222,12 @@ what makes a negative verdict meaningful was wrong and is withdrawn.
 **C5b** is the control that does that work: it plants `0.02 x (Y - Yhat_GBT)`, the residual of the
 pinned gradient-boosted comparator, which is a quantity this pipeline's linear specification never
 produced. What comes back is the fraction of a real, foreign signal the frozen specification
-actually recovers. That fraction is the **attenuation factor every reported effect should be read
-against**, and a shortfall is a measurement rather than an invalid run.
+actually recovers -- algebraically, the regression slope of the tree's residual on the linear
+residual, so it is the attenuation of a signal **of that shape** and of nothing else. §9 forbids
+reading it as the attenuation factor for every reported effect. A shortfall between 0.5 and 1.0 is a
+measurement; below 0.5 the linear expected-time model is missing more than half of what a tree can
+predict from the same pre-move features, "unexpected time" is not what the design says it is, and
+the run is invalid.
 
 ## 9. Language that is forbidden regardless of result
 
