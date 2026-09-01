@@ -109,11 +109,13 @@ speak the same units.
 from __future__ import annotations
 
 import argparse
+import atexit
 import collections
 import json
 import multiprocessing as mp
 import random
 import sys
+import time
 from pathlib import Path
 
 import chess
@@ -198,6 +200,36 @@ def _max_defined(*vals):
     return max(vals) if vals else None
 
 
+#: One engine per WORKER PROCESS, opened once and reused across every chunk that worker is handed.
+#: The first version opened and quit an engine per chunk, which forced chunks to be enormous --
+#: one quarter of the run each -- and an enormous chunk is why the first hour-long run had NO
+#: PROGRESS SIGNAL AT ALL: `Pool.map` returns when everything is finished, so a run that died at
+#: minute fifty would have had nothing to show for fifty minutes. A persistent engine makes small
+#: chunks cheap, and small chunks are what make progress reportable and partial results writable.
+_ENGINE = None
+
+
+def _init_engine(engine_path: str) -> None:
+    """Pool initializer: open this process's engine once and leave it open."""
+    global _ENGINE
+    # The 600s timeout is inherited from the published screen and for the same reason: four
+    # single-threaded engines on four cores make a 200,000-node search take longer in wall time
+    # than it takes in work, and python-chess reads a slow reply as a dead engine.
+    _ENGINE = chess.engine.SimpleEngine.popen_uci(engine_path, timeout=600.0)
+    _ENGINE.configure({"Threads": 1, "Hash": 64})
+    atexit.register(_close_engine)
+
+
+def _close_engine() -> None:
+    global _ENGINE
+    if _ENGINE is not None:
+        try:
+            _ENGINE.quit()
+        except Exception:  # noqa: BLE001 - a dead engine at shutdown is not a result
+            pass
+        _ENGINE = None
+
+
 def _adjudicate_chunk(args) -> list[dict]:
     """
     One worker: its own engine, its own slice, no shared state. Up to six searches per item.
@@ -226,147 +258,145 @@ def _adjudicate_chunk(args) -> list[dict]:
     a chance rate for `b_valid` per item instead of inventing one.
     """
     engine_path, nodes, chunk = args
-    # The 600s timeout is inherited from the published screen and for the same reason: four
-    # single-threaded engines on four cores make a 200,000-node search take longer in wall time
-    # than it takes in work, and python-chess reads a slow reply as a dead engine.
-    engine = chess.engine.SimpleEngine.popen_uci(engine_path, timeout=600.0)
-    engine.configure({"Threads": 1, "Hash": 64})
+    # Under the pool the initializer has already opened this process's engine. Called directly --
+    # which the smoke tests do -- there is no initializer, so one is opened here and closed on
+    # exit by the same atexit hook.
+    if _ENGINE is None:
+        _init_engine(engine_path)
+    engine = _ENGINE
     limit = chess.engine.Limit(nodes=nodes)
     out = []
-    try:
-        build = engine.id.get("name", "unknown")
-        for rec in chunk:
-            rc = BY_ID[rec["rule_class"]]
-            board = chess.Board(rec["fen"])
-            ply = board.ply()
-            ctx = _ctx_of(rec)
-            satisfying = list(rc.satisfying_moves(board, ctx))
-            legal = list(board.legal_moves)
-            sat_set = set(satisfying)
-            violating = [m for m in legal if m not in sat_set]
+    build = engine.id.get("name", "unknown")
+    for rec in chunk:
+        rc = BY_ID[rec["rule_class"]]
+        board = chess.Board(rec["fen"])
+        ply = board.ply()
+        ctx = _ctx_of(rec)
+        satisfying = list(rc.satisfying_moves(board, ctx))
+        legal = list(board.legal_moves)
+        sat_set = set(satisfying)
+        violating = [m for m in legal if m not in sat_set]
 
+        row = {
+            "rule_class": rec["rule_class"],
+            "trigger_state": rec["trigger_state"],
+            "fen": rec["fen"],
+            "engine_build": build,
+            "engine_nodes": nodes,
+            "n_legal": len(legal),
+            "n_satisfying": len(satisfying),
+            "n_violating": len(violating),
+            "prescription_size": (len(satisfying) / len(legal)) if legal else None,
+            "observable_action": rec["observable_action"],
+            "actor_elo": rec["actor_elo"],
+        }
+
+        try:
+            # 1. `b_valid`, BY THE PUBLISHED METHOD. Single PV, full width, full budget, the
+            #    engine's own best move asked for membership. Nothing here differs from
+            #    `screen_rule_classes.py`; this row is what makes the reordering a comparison
+            #    between instruments rather than between protocols.
+            searches = 1
+            info = engine.analyse(board, limit)
+            pv = info.get("pv") or []
+            best = pv[0] if pv else None
+            v_full_cp, v_full_xs = _value(info["score"].pov(board.turn), ply)
+            row["engine_best_move"] = best.uci() if best else None
+            row["v_full_cp"], row["v_full_xs"] = v_full_cp, v_full_xs
+            row["b_valid"] = int(bool(satisfying) and best is not None and best in sat_set)
+            row["no_satisfying_move"] = int(not satisfying)
+            row["no_violating_move"] = int(not violating)
+
+            # 2-3. THE PARTITION. Two root-restricted searches at the full budget.
+            v_b_cp, v_b_xs = _best_over(engine, board, limit, satisfying, ply)
+            v_nb_cp, v_nb_xs = _best_over(engine, board, limit, violating, ply)
+            searches = _count(_count(searches, satisfying), violating)
+            v_star_cp = _max_defined(v_b_cp, v_nb_cp)
+            v_star_xs = _max_defined(v_b_xs, v_nb_xs)
+
+            row["v_b_cp"], row["v_b_xs"] = v_b_cp, v_b_xs
+            row["v_nb_cp"], row["v_nb_xs"] = v_nb_cp, v_nb_xs
+            row["v_star_cp"], row["v_star_xs"] = v_star_cp, v_star_xs
+            # How far the full-width search disagrees with the partition it is supposed to
+            # cover. Reported per item so a reader can see the search noise rather than
+            # discover it in a negative regret.
+            row["basis_gap_cp"] = (
+                None if None in (v_full_cp, v_star_cp) else v_full_cp - v_star_cp)
+
+            # EFFICACY: what obeying costs. >= 0 by construction now.
+            row["regret_b_cp"] = None if None in (v_star_cp, v_b_cp) else v_star_cp - v_b_cp
+            row["regret_b_xs"] = None if None in (v_star_xs, v_b_xs) else v_star_xs - v_b_xs
+            # What disobeying costs, the same subtraction from the other end.
+            row["regret_nb_cp"] = None if None in (v_star_cp, v_nb_cp) else v_star_cp - v_nb_cp
+            row["regret_nb_xs"] = None if None in (v_star_xs, v_nb_xs) else v_star_xs - v_nb_xs
+            # NECESSITY, signed: regret_nb - regret_b, i.e. V_B - V_notB.
+            row["advantage_cp"] = None if None in (v_b_cp, v_nb_cp) else v_b_cp - v_nb_cp
+            row["advantage_xs"] = None if None in (v_b_xs, v_nb_xs) else v_b_xs - v_nb_xs
+
+            # 4-5. THE CHANCE CONTROL. A size-matched random prescription, seeded from the
+            #      FEN so the draw is reproducible and independent of worker scheduling.
+            if satisfying and violating and len(satisfying) < len(legal):
+                rng = random.Random(f"{rec['fen']}|{len(satisfying)}")
+                r_set = set(rng.sample(range(len(legal)), len(satisfying)))
+                rand_b = [m for i, m in enumerate(legal) if i in r_set]
+                rand_nb = [m for i, m in enumerate(legal) if i not in r_set]
+                v_r_cp, v_r_xs = _best_over(engine, board, limit, rand_b, ply)
+                v_rn_cp, v_rn_xs = _best_over(engine, board, limit, rand_nb, ply)
+                searches += 2
+                row["chance_advantage_cp"] = (
+                    None if None in (v_r_cp, v_rn_cp) else v_r_cp - v_rn_cp)
+                row["chance_advantage_xs"] = (
+                    None if None in (v_r_xs, v_rn_xs) else v_r_xs - v_rn_xs)
+                row["chance_regret_cp"] = (
+                    None if None in (v_r_cp, v_rn_cp) else max(v_r_cp, v_rn_cp) - v_r_cp)
+                row["chance_regret_xs"] = (
+                    None if None in (v_r_xs, v_rn_xs) else max(v_r_xs, v_rn_xs) - v_r_xs)
+            else:
+                row["chance_advantage_cp"] = row["chance_advantage_xs"] = None
+                row["chance_regret_cp"] = row["chance_regret_xs"] = None
+
+            # 6. ROBUSTNESS. MultiPV over B ONLY -- a handful of moves, so each line still
+            #    gets a real share of the budget. This is the only search of the six that
+            #    looks at a member of B other than its best one, and it asks the question
+            #    `b_valid` cannot be made to answer: is the PERMITTED SET safe to teach, or
+            #    does it merely contain a good move somewhere inside it?
+            if satisfying:
+                lines = engine.analyse(
+                    board, limit, root_moves=satisfying, multipv=len(satisfying))
+                searches += 1
+                per_move = []
+                for ln in lines:
+                    lpv = ln.get("pv") or []
+                    if not lpv:
+                        continue
+                    c, x = _value(ln["score"].pov(board.turn), ply)
+                    per_move.append({"move": lpv[0].uci(), "cp": c, "xs": x})
+                row["within_b"] = per_move
+                cps = [p["cp"] for p in per_move if p["cp"] is not None]
+                xss = [p["xs"] for p in per_move if p["xs"] is not None]
+                row["worst_in_b_cp"] = min(cps) if cps else None
+                row["worst_in_b_xs"] = min(xss) if xss else None
+                row["max_regret_in_b_cp"] = (
+                    None if row["worst_in_b_cp"] is None or v_star_cp is None
+                    else v_star_cp - row["worst_in_b_cp"])
+                row["max_regret_in_b_xs"] = (
+                    None if row["worst_in_b_xs"] is None or v_star_xs is None
+                    else v_star_xs - row["worst_in_b_xs"])
+            else:
+                row["within_b"] = []
+                row["worst_in_b_cp"] = row["worst_in_b_xs"] = None
+                row["max_regret_in_b_cp"] = row["max_regret_in_b_xs"] = None
+            row["searches"] = searches
+
+        except chess.engine.EngineError as exc:
+            # ONE BAD POSITION MAY NOT DESTROY THE RUN. Recorded with its reason and excluded
+            # from the rates, where a reader can count them rather than wonder why a
+            # denominator moved.
             row = {
-                "rule_class": rec["rule_class"],
-                "trigger_state": rec["trigger_state"],
-                "fen": rec["fen"],
-                "engine_build": build,
-                "engine_nodes": nodes,
-                "n_legal": len(legal),
-                "n_satisfying": len(satisfying),
-                "n_violating": len(violating),
-                "prescription_size": (len(satisfying) / len(legal)) if legal else None,
-                "observable_action": rec["observable_action"],
-                "actor_elo": rec["actor_elo"],
+                "rule_class": rec["rule_class"], "trigger_state": rec["trigger_state"],
+                "fen": rec["fen"], "engine_failed": str(exc),
             }
-
-            try:
-                # 1. `b_valid`, BY THE PUBLISHED METHOD. Single PV, full width, full budget, the
-                #    engine's own best move asked for membership. Nothing here differs from
-                #    `screen_rule_classes.py`; this row is what makes the reordering a comparison
-                #    between instruments rather than between protocols.
-                searches = 1
-                info = engine.analyse(board, limit)
-                pv = info.get("pv") or []
-                best = pv[0] if pv else None
-                v_full_cp, v_full_xs = _value(info["score"].pov(board.turn), ply)
-                row["engine_best_move"] = best.uci() if best else None
-                row["v_full_cp"], row["v_full_xs"] = v_full_cp, v_full_xs
-                row["b_valid"] = int(bool(satisfying) and best is not None and best in sat_set)
-                row["no_satisfying_move"] = int(not satisfying)
-                row["no_violating_move"] = int(not violating)
-
-                # 2-3. THE PARTITION. Two root-restricted searches at the full budget.
-                v_b_cp, v_b_xs = _best_over(engine, board, limit, satisfying, ply)
-                v_nb_cp, v_nb_xs = _best_over(engine, board, limit, violating, ply)
-                searches = _count(_count(searches, satisfying), violating)
-                v_star_cp = _max_defined(v_b_cp, v_nb_cp)
-                v_star_xs = _max_defined(v_b_xs, v_nb_xs)
-
-                row["v_b_cp"], row["v_b_xs"] = v_b_cp, v_b_xs
-                row["v_nb_cp"], row["v_nb_xs"] = v_nb_cp, v_nb_xs
-                row["v_star_cp"], row["v_star_xs"] = v_star_cp, v_star_xs
-                # How far the full-width search disagrees with the partition it is supposed to
-                # cover. Reported per item so a reader can see the search noise rather than
-                # discover it in a negative regret.
-                row["basis_gap_cp"] = (
-                    None if None in (v_full_cp, v_star_cp) else v_full_cp - v_star_cp)
-
-                # EFFICACY: what obeying costs. >= 0 by construction now.
-                row["regret_b_cp"] = None if None in (v_star_cp, v_b_cp) else v_star_cp - v_b_cp
-                row["regret_b_xs"] = None if None in (v_star_xs, v_b_xs) else v_star_xs - v_b_xs
-                # What disobeying costs, the same subtraction from the other end.
-                row["regret_nb_cp"] = None if None in (v_star_cp, v_nb_cp) else v_star_cp - v_nb_cp
-                row["regret_nb_xs"] = None if None in (v_star_xs, v_nb_xs) else v_star_xs - v_nb_xs
-                # NECESSITY, signed: regret_nb - regret_b, i.e. V_B - V_notB.
-                row["advantage_cp"] = None if None in (v_b_cp, v_nb_cp) else v_b_cp - v_nb_cp
-                row["advantage_xs"] = None if None in (v_b_xs, v_nb_xs) else v_b_xs - v_nb_xs
-
-                # 4-5. THE CHANCE CONTROL. A size-matched random prescription, seeded from the
-                #      FEN so the draw is reproducible and independent of worker scheduling.
-                if satisfying and violating and len(satisfying) < len(legal):
-                    rng = random.Random(f"{rec['fen']}|{len(satisfying)}")
-                    r_set = set(rng.sample(range(len(legal)), len(satisfying)))
-                    rand_b = [m for i, m in enumerate(legal) if i in r_set]
-                    rand_nb = [m for i, m in enumerate(legal) if i not in r_set]
-                    v_r_cp, v_r_xs = _best_over(engine, board, limit, rand_b, ply)
-                    v_rn_cp, v_rn_xs = _best_over(engine, board, limit, rand_nb, ply)
-                    searches += 2
-                    row["chance_advantage_cp"] = (
-                        None if None in (v_r_cp, v_rn_cp) else v_r_cp - v_rn_cp)
-                    row["chance_advantage_xs"] = (
-                        None if None in (v_r_xs, v_rn_xs) else v_r_xs - v_rn_xs)
-                    row["chance_regret_cp"] = (
-                        None if None in (v_r_cp, v_rn_cp) else max(v_r_cp, v_rn_cp) - v_r_cp)
-                    row["chance_regret_xs"] = (
-                        None if None in (v_r_xs, v_rn_xs) else max(v_r_xs, v_rn_xs) - v_r_xs)
-                else:
-                    row["chance_advantage_cp"] = row["chance_advantage_xs"] = None
-                    row["chance_regret_cp"] = row["chance_regret_xs"] = None
-
-                # 6. ROBUSTNESS. MultiPV over B ONLY -- a handful of moves, so each line still
-                #    gets a real share of the budget. This is the only search of the six that
-                #    looks at a member of B other than its best one, and it asks the question
-                #    `b_valid` cannot be made to answer: is the PERMITTED SET safe to teach, or
-                #    does it merely contain a good move somewhere inside it?
-                if satisfying:
-                    lines = engine.analyse(
-                        board, limit, root_moves=satisfying, multipv=len(satisfying))
-                    searches += 1
-                    per_move = []
-                    for ln in lines:
-                        lpv = ln.get("pv") or []
-                        if not lpv:
-                            continue
-                        c, x = _value(ln["score"].pov(board.turn), ply)
-                        per_move.append({"move": lpv[0].uci(), "cp": c, "xs": x})
-                    row["within_b"] = per_move
-                    cps = [p["cp"] for p in per_move if p["cp"] is not None]
-                    xss = [p["xs"] for p in per_move if p["xs"] is not None]
-                    row["worst_in_b_cp"] = min(cps) if cps else None
-                    row["worst_in_b_xs"] = min(xss) if xss else None
-                    row["max_regret_in_b_cp"] = (
-                        None if row["worst_in_b_cp"] is None or v_star_cp is None
-                        else v_star_cp - row["worst_in_b_cp"])
-                    row["max_regret_in_b_xs"] = (
-                        None if row["worst_in_b_xs"] is None or v_star_xs is None
-                        else v_star_xs - row["worst_in_b_xs"])
-                else:
-                    row["within_b"] = []
-                    row["worst_in_b_cp"] = row["worst_in_b_xs"] = None
-                    row["max_regret_in_b_cp"] = row["max_regret_in_b_xs"] = None
-                row["searches"] = searches
-
-            except chess.engine.EngineError as exc:
-                # ONE BAD POSITION MAY NOT DESTROY THE RUN. Recorded with its reason and excluded
-                # from the rates, where a reader can count them rather than wonder why a
-                # denominator moved.
-                row = {
-                    "rule_class": rec["rule_class"], "trigger_state": rec["trigger_state"],
-                    "fen": rec["fen"], "engine_failed": str(exc),
-                }
-            out.append(row)
-    finally:
-        engine.quit()
+        out.append(row)
     return out
 
 
@@ -528,6 +558,8 @@ def main() -> None:
     ap.add_argument("--sample", type=int, default=250)
     ap.add_argument("--nodes", type=int, default=200_000)
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--chunk", type=int, default=25,
+                    help="items per unit of work; smaller means finer progress, not more engines")
     ap.add_argument("--seed", type=int, default=20260831)
     ap.add_argument("--out", required=True)
     ap.add_argument("--raw", help="optional JSONL of every adjudicated item, one row per line")
@@ -583,12 +615,44 @@ def main() -> None:
                 kept.append(r)
         to_adjudicate = kept
 
-    print(f"adjudicating {len(to_adjudicate)} positions on {a.workers} engines "
-          f"(up to 6 searches each)", file=sys.stderr)
-    chunks = [to_adjudicate[i::a.workers] for i in range(a.workers)]
-    with mp.Pool(a.workers) as pool_:
-        results = pool_.map(_adjudicate_chunk, [(a.engine, a.nodes, c) for c in chunks])
-    adjudicated = [row for part in results for row in part]
+    total = len(to_adjudicate)
+    print(f"adjudicating {total} positions on {a.workers} engines (up to 6 searches each)",
+          file=sys.stderr, flush=True)
+
+    # SMALL CHUNKS, STREAMED. Interleaved so every chunk carries a mix of rule classes and no
+    # worker is handed all of the expensive ones -- the MultiPV search runs over B, so a class
+    # with a large prescription costs several times what a narrow one does, and a contiguous
+    # split would leave one worker running long after the others had finished.
+    chunks = [to_adjudicate[i::(max(1, total // a.chunk))] for i in
+              range(max(1, total // a.chunk))]
+    chunks = [c for c in chunks if c]
+
+    adjudicated: list[dict] = []
+    raw_fh = open(a.raw, "w", encoding="utf-8") if a.raw else None
+    started = time.time()
+    done = 0
+    try:
+        with mp.Pool(a.workers, initializer=_init_engine, initargs=(a.engine,)) as pool_:
+            for part in pool_.imap_unordered(
+                    _adjudicate_chunk, [(a.engine, a.nodes, c) for c in chunks]):
+                adjudicated.extend(part)
+                # THE PARTIAL RESULT IS ON DISK BEFORE THE RUN ENDS. An hour-long run that can
+                # only be inspected once it succeeds is an hour that cannot be diagnosed.
+                if raw_fh is not None:
+                    for r in part:
+                        raw_fh.write(json.dumps(r) + "\n")
+                    raw_fh.flush()
+                done += len(part)
+                # NOT `rate`: that name belongs to the module-level Wilson-interval helper this
+                # function calls a few lines later, and shadowing it raised UnboundLocalError on
+                # the first validation run.
+                throughput = done / max(1e-9, time.time() - started)
+                print(f"  {done}/{total} items  {throughput:.2f}/s  "
+                      f"eta {int((total - done) / max(1e-9, throughput))}s",
+                      file=sys.stderr, flush=True)
+    finally:
+        if raw_fh is not None:
+            raw_fh.close()
 
     engine_failures = [r for r in adjudicated if "engine_failed" in r]
     adjudicated = [r for r in adjudicated if "engine_failed" not in r]
@@ -686,14 +750,8 @@ def main() -> None:
         ),
     }
 
-    if a.raw:
-        # THE PER-ITEM RECORDS, KEPT. Every aggregate below is a summary of these rows, and a
-        # summary nobody can go behind is an assertion. `within_b` is dropped from the raw file
-        # only where it is empty; the move-level values stay, because the robustness claim is the
-        # one a reader is least able to reconstruct.
-        with open(a.raw, "w", encoding="utf-8") as fh:
-            for r in adjudicated:
-                fh.write(json.dumps(r) + "\n")
+    # The per-item records were written as each chunk landed, above. Every aggregate below is a
+    # summary of those rows, and a summary nobody can go behind is an assertion.
 
     out = {
         "action_set_version": "1.0.0",
