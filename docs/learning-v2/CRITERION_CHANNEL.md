@@ -202,8 +202,17 @@ performed. **Flagged here for its owner.**
 ## What this does not say
 
 That the rule-class screen is wrong. `B_valid` is adjudicated by an **engine against the rule**,
-never by SDT, and **the eligibility gates never read *c* at all** — so RC-06's eligibility, its
-.968/.200 separation, its 242/242 engine agreement and its 2.9% harm rate are all untouched.
+never by SDT, and **the eligibility gates never read *c* at all** — so RC-06's .968/.200 separation,
+its 242/242 engine agreement and its 2.9% harm rate are untouched **by anything in this file**.
+
+**Its eligibility is another matter, and not because of anything here.** Gate A's action-set
+reanalysis, which merged into `main` while this was being written, finds RC-06 **`fails
+A5_beats_incumbent`** and that its prescription *"is not safe to teach as stated"* — it permits a
+median **29.7%** of legal moves, which is the same permissiveness this file reads as the chance rate
+`.317`, reached independently and for a different purpose. See
+[`ACTION_SET_REANALYSIS.md`](../measurement/ACTION_SET_REANALYSIS.md). **Nothing in this file rescues
+or damages that**; the two results are about different quantities and both are unwelcome for the
+same rule class.
 
 That players do not differ. They plainly do: corrected for the move-blind floor, sensitivity still
 orders the rating bands and still has headroom ([H17](FALSIFICATION_REGISTER.md)).
