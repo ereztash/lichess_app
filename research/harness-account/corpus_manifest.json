@@ -1,0 +1,85 @@
+{
+  "source": "https://lichess.org/api/games/user/erez281?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+  "fetchedAt": "2026-09-01T18:27:42.656Z",
+  "gamesReturned": 3195,
+  "gamesAdmissible": 2209,
+  "rejected": {
+    "termination:Abandoned": 124,
+    "termination:Time forfeit": 724,
+    "under-20-plies": 134,
+    "no-clocks": 4
+  },
+  "window": 48,
+  "windowRule": "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
+  "speedsInWindow": {
+    "blitz": 47,
+    "rapid": 1
+  },
+  "pgnSpeedCheck": {
+    "agreed": 2144,
+    "missingFromPgn": 65,
+    "disagreed": 0,
+    "examples": []
+  },
+  "players": [
+    {
+      "playerId": "8633c23fa6918be9",
+      "games": 48,
+      "speeds": [
+        "blitz",
+        "rapid"
+      ]
+    }
+  ],
+  "gameIds": [
+    "945nilfW",
+    "t8OSlWGU",
+    "gKKEYRMt",
+    "KXFZanHQ",
+    "TqbkNIaK",
+    "SYAEjEAu",
+    "eTjHHjoq",
+    "9Yb5l7w6",
+    "OwSNTfdB",
+    "jcdeD1Lt",
+    "uXUoOSOx",
+    "1x5PEj6H",
+    "O6DzQ2Wo",
+    "vi36wVJ2",
+    "15QRouc2",
+    "YIUKYo5q",
+    "6Mo88Puw",
+    "vREVyh4I",
+    "2yoa7sW8",
+    "22Ou13vB",
+    "Zj57PEsN",
+    "jxejz7eE",
+    "ypJ8jNWr",
+    "4HGQpt5h",
+    "7vzokqTU",
+    "g7agew15",
+    "XaiCSzfW",
+    "kbdQjSMZ",
+    "IN16M1cb",
+    "BsUpin9p",
+    "nXMP1Ai2",
+    "0JJ0gfsW",
+    "RfcQB9Y9",
+    "Z7DJDpBT",
+    "pGJRx4TU",
+    "Qqsozy21",
+    "schwmDKJ",
+    "bvD3uchk",
+    "YbVxkcBC",
+    "I3ckt4ue",
+    "2Bb3YbRb",
+    "xZrDfBRX",
+    "qzV3MdrO",
+    "iKzD6Nkc",
+    "BOsRRpPK",
+    "g8NpzrOf",
+    "n3hQdPv1",
+    "gyLsGQEI"
+  ],
+  "corpusSha256": "162aaf9a969dae05e1fae5a7807dd1b8514c066c4fd2d7910d015bebe56ed9d1"
+}
