@@ -56,6 +56,7 @@ What a piece of work is allowed to become, given what is known about it:
 | [D04](D04-candidate-search.md) | can a search find a region the six buckets cannot express? | `PSEUDOCODE_ORACLE` | measured, not rejected — 0% → 33.5% correct attribution at 0.0010 false-claim; depth is an open trade |
 | [D22](D22-next-action-ownership.md) | may a derivation decide what the player is sent to next? | `DEFER` | the correspondence is stated once and tested; the shadow's own two fabricated inputs are fixed; no screen handed over |
 | [D23](D23-insight-to-action.md) | is there a teaching step between an insight and a change in what the player does? | `DEFER` | there is not — and the instrument that would measure one grades `replicated` at 47–81% from base rates alone. One study specified |
+| [D25](D25-evidence-architecture.md) | can the evidence architecture support the intended claim at all? | `REJECT` (the current action signature) | **`CONSTRUCT-UNDERIDENTIFIED`** — the one eligible rule class separates because its two cells score different acts; under one fixed predicate separation is −0.048, not +0.768. Supersedes `D24`'s `NARROW` (on unmerged [#49](https://github.com/ereztash/lichess_app/pull/49)) |
 
 ### D04, whose trigger fired and which has now been measured
 

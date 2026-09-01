@@ -20,9 +20,15 @@ behaviour changed: none.**
 [#50](https://github.com/ereztash/lichess_app/pull/50),
 [#51](https://github.com/ereztash/lichess_app/pull/51).
 
-**Supersedes:** [D24](D24-learning-architecture.md)'s `NARROW` verdict, which rested on `RC-06` being
+**Supersedes:** `D24-learning-architecture.md`'s `NARROW` verdict, which rested on `RC-06` being
 eligible. **It amends rather than erases**: D24's sequencing constraint, its architecture finding
 about `mayPrescribe`, and its two pre-human gates all survive, and Gate A is now answered.
+
+> **`D24` is not on this branch.** It lives on the unmerged
+> [#49](https://github.com/ereztash/lichess_app/pull/49), as do all of `docs/learning-v2/`. Every
+> reference to them here is a reference to that branch at `72f25de`, quoted rather than linked, so
+> that this decision reads correctly whether or not #49 lands. **If #49 merges, D24's verdict line
+> should be amended to point here** — not deleted.
 
 ---
 
