@@ -277,9 +277,166 @@
   /* Three more the light palette never declared. --warn carries five declarations on its own,
      including the border and text of every failure notice, so in the light theme a warning was
      drawn with no warning colour. */
-  --raise: #efe9dc;
+  --raise: #fdfbf4;
   --accent-soft: #2f6072;
   --warn: #a8412c;
+
+  /* ==== THE SEMANTIC LAYER =================================================================
+   *
+   * WHY IT DID NOT EXIST, AND WHAT IT COST. Every token above is a PRIMITIVE: it names a colour,
+   * not a job. Fifty call sites reached straight for `--blue`, and measured on the built app at
+   * `b9a228c` that one hue was carrying NINE jobs at once -- the engine's arrow on the board, the
+   * player's own selected square and legal-move dots on the SAME board, the primary action,
+   * selection, focus, progress, links, evidence authority and the brand mark.
+   *
+   * Two of those nine are the two sides of the one distinction this product exists to make. And
+   * this file already had the argument written down, forty lines up, at `--chosen`:
+   *
+   *     "Deliberately not --blue: blue is the engine's arrow, and one mark meaning both
+   *      'your guess' and 'the machine's answer' would erase the difference."
+   *
+   * That argument was applied to two squares and to nothing else. Below is the same argument
+   * finished. Nothing here is a new colour; every semantic token points at a primitive that was
+   * already in the file. What is new is that a call site now names a JOB, and a job has one
+   * appearance.
+   *
+   * THE RULE THE WHOLE THING RESTS ON, and it is asserted in
+   * `tests/client/no-control-speaks-in-the-machines-colour.test.ts` with a positive control:
+   *
+   *     THE MACHINE'S COLOUR IS NEVER SOMETHING YOU CAN PRESS.
+   *
+   * Not a button, not a chip, not a focus ring, not a link, not the brand. The engine may speak
+   * and it may not ask the player for anything. That is `MODE_CONTRACT` in a colour.
+   */
+
+  /* The page. `--paper` is the primitive; this is what a layout means by "the ground". */
+  --canvas: var(--paper);
+  /*
+   * THE SURFACE LADDER, AND IT USED TO RUN BACKWARDS.
+   *
+   * Measured as relative luminance: `--surface` 0.898, `--raise` 0.818, `--paper` 0.783. So the
+   * token spent on "the object a mode contract names central" was DARKER than an ordinary card,
+   * and 0.035 from the page behind it. On `REVEAL` that put the central object at a squint mass
+   * of 1,757 against 9,100 for the engine's evaluation bar.
+   *
+   * ONE VALUE MOVED AND NO HUE DID: `--raise` #efe9dc -> #fdfbf4. The ladder is now monotonic --
+   * canvas 0.783, surface 0.898, raised 0.964 -- and the distance a raised object travels from
+   * the page is 0.181 rather than 0.035, five times further.
+   *
+   * `--paper` WAS MOVED AND PUT BACK, and the reason is worth keeping. Deepening the canvas would
+   * have separated the surfaces from the page from BOTH ends -- and it would also have closed the
+   * gap between the page and the board's light squares from 1.14:1 to 1.09:1. The board is the
+   * visual centre of `DECIDE` because it stands off this page; "the board stops reading as pasted
+   * in" and "the board is the subject" are the same measurement pulled in opposite directions.
+   * Every contrast ratio pinned in the comments of this file is also measured against this exact
+   * value. So the separation is bought entirely at the top of the ladder, where it costs nothing.
+   */
+  --surface-raised: var(--raise);
+  /* A well the player writes into: the move field, the chosen-move readout. Recessed, not raised,
+     because it is the one place on the screen the player is being asked to put something. */
+  --surface-recessed: #ded7c6;
+  /*
+   * THE MACHINE'S PLANE, AND IT IS THE SIGNATURE.
+   *
+   * One recessed, cool-tinted ground that appears nowhere else in the product and holds nothing
+   * the player made: the engine's column, its evaluation, its disclosure. Everything the PLAYER
+   * recorded is on the page itself. Where the machine has not spoken -- `DECIDE`,
+   * `ANSWER_INSTRUMENT`, `TEST`, a running game -- the plane is not there, and that absence is
+   * `engineMayRun` visible as a fact about the page rather than as a sentence about a rule.
+   *
+   * WHY A PLANE RATHER THAN A HUE ALONE. This file already states the house rule where it matters
+   * most: "Move classification ALWAYS ships its label as text: colour never carries it alone."
+   * Provenance is the most load-bearing distinction the product makes, and a distinction carried
+   * by hue on 11px Noto Sans Hebrew is 1.4.1 waiting to happen. A ground is pre-attentive, it
+   * survives grayscale, and it survives being wrong about colour.
+   *
+   * It is cool where the page is warm, and one step below it: 1.10:1 against the page, which is
+   * the separation `--chip` already carries and is deliberately not a box. Ink on it is 13.5:1.
+   */
+  --surface-machine: #d8dcda;
+  /* Foreground for anything painted on the machine's own colour, flipping for the same reason
+     `--on-blue` does: white works over the light theme's deep teal and fails over the dark
+     theme's pale one. */
+  --on-machine: var(--on-blue);
+
+  /* ---- The two hands ------------------------------------------------------------------- */
+  /*
+   * THE MACHINE. One applied colour, belonging to neither the paper nor the board, used wherever
+   * the engine is the author: its arrow, its evaluation, its depth, its identity. It is the same
+   * value `--blue` has always been, so every contrast measurement recorded for the board vectors
+   * still holds. What changed is that it is now the ONLY thing that colour does.
+   */
+  --machine: var(--blue);
+  /* The player's mark on the board is `--chosen`, which is the board's own wood family. The
+     player's mark on the page is the page's own ink. A hand uses the material it writes on. */
+  --hand: var(--chosen);
+
+  /* ---- Interaction ---------------------------------------------------------------------- */
+  /* The primary act, in the page's own ink. The action belongs to the player, so it is made of
+     what the player writes with -- and it is the highest-contrast fill the palette has. */
+  --action: var(--ink);
+  --on-action: var(--cream);
+  /*
+   * HOVER ON THE DARKEST FILL THE PALETTE HAS CAN ONLY GO ONE WAY, and lightening a filled control
+   * is how a hover reads as a disable. So the hover step is a WARMING rather than a lightening:
+   * the same value, moved toward the board's family, which is the direction the rest of this
+   * product's warmth already runs in.
+   */
+  --action-hover: #23302c;
+  /*
+   * SELECTED, WHICH IS NOT THE SAME JOB AS PRESSED. `.read-chip.selected` measured 5.21:1 against
+   * the unselected chip in `--blue`; in `--ink` it measures 11.4:1, so the state separation
+   * 1.4.11 asks for got stronger rather than weaker when the hue left. The two jobs are told
+   * apart by SHAPE, which this file already argues for chips: "a chip is a token you pick, not a
+   * field you fill, and the two should not be the same shape". A pill is a thing you chose; a
+   * rectangle is a thing you do.
+   */
+  --selected: var(--ink);
+  --on-selected: var(--cream);
+  /*
+   * FOCUS, AS A RING AND A HALO RATHER THAN A HUE.
+   *
+   * A single ink outline measures 2.34:1 against a dark board square, which is under the 3:1 a
+   * focus indicator needs. The halo is what makes one token work on every ground the product has:
+   * ink core, paper halo, and on a dark square the halo carries 5.6:1. Both flip with the theme,
+   * so the ring inverts by itself instead of needing a second value.
+   */
+  --focus: var(--ink);
+  --focus-halo: var(--paper);
+
+  /* ---- Measure -------------------------------------------------------------------------- */
+  /*
+   * THE LINE LENGTH, AND THERE WAS NOT ONE. Measured on the built app by counting rendered lines
+   * with `Range.getClientRects()` and dividing the text by them: `.context-loop` on `DECIDE`, the
+   * first thing in reading order, ran to 116 CHARACTERS ON ONE LINE at 1392px wide. The front
+   * door's payoff sentence ran to 104. Six of `REFLECT`'s 31 paragraphs were over 90, the worst
+   * at 123.
+   *
+   * 45-75 characters is the range every typographic authority converges on, and it is not a
+   * preference: past it the eye loses the start of the next line. `--measure` is the body rule;
+   * `--measure-wide` is for a lead paragraph or a heading, where a longer line is read once.
+   *
+   * `ch` rather than `rem` on purpose: `ch` is a measure of the FACE, so the rule stays true if a
+   * size on the type scale moves. It is the width of the "0" glyph, which for Noto Sans Hebrew is
+   * close enough to the average Hebrew advance for this to behave.
+   */
+  --measure: 62ch;
+  --measure-wide: 78ch;
+
+  /* ---- Shape ----------------------------------------------------------------------------- */
+  /*
+   * TWO RADII, DOWN FROM SIX. Measured across this file: 6, 8, 9, 10, 12 and 14 px, all doing the
+   * same job of softening a corner, in steps of one and two pixels. That is the type scale's
+   * defect in another material -- a one-pixel step ranks nothing, so six radii say what one says
+   * while looking like an accident.
+   *
+   * The rule is a RELATIONSHIP, the same shape as the spacing scale's: a region on the page is
+   * `--radius-card`; anything inside a region is `--radius-control`. Two shapes that are two
+   * steps apart are two things. `999px` and `50%` survive because they are not radii, they are
+   * shapes: a pill and a circle.
+   */
+  --radius-card: 12px;
+  --radius-control: 8px;
 }
 
 /*
@@ -319,7 +476,12 @@
   --chip-hover: #394649;
   --hairline: rgba(160, 175, 170, 0.22);
   --hairline-strong: rgba(160, 175, 170, 0.38);
-  --raise: #222a2d;
+  --raise: #2a3438;
+  /* The dark ladder already ran the right way; it is widened to match the light one's 0.216:
+     paper 0.011, surface 0.017, raised 0.033. The same object travels the same distance. */
+  --surface-recessed: #141a1c;
+  --surface-machine: #151c20;
+  --action-hover: #d2cec3;
   --accent-soft: #a4c3ca;
   --warn: #e08a7a;
   --last-move: rgba(232, 120, 96, 0.45);
@@ -426,7 +588,7 @@ button:not(:disabled) {
   gap: var(--s1);
   padding: var(--s4);
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--surface);
 }
 .review-stat b {
@@ -457,9 +619,9 @@ button:not(:disabled) {
   font-size: var(--panel-label);
 }
 .review-tabs button[aria-selected="true"] {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: var(--on-blue);
+  background: var(--selected);
+  border-color: var(--selected);
+  color: var(--on-selected);
 }
 .chart-legend {
   display: flex;
@@ -543,6 +705,7 @@ button:not(:disabled) {
  * NOTHING IS HIDDEN AND NOTHING IS REMOVED. Every one of these sentences says exactly what it said.
  */
 .review-caveat {
+  max-inline-size: var(--measure);
   margin-top: 12px;
   font-size: var(--panel-body);
   line-height: 1.6;
@@ -557,7 +720,7 @@ button:not(:disabled) {
   display: block;
   block-size: 100%;
   inline-size: 100%;
-  background: var(--blue);
+  background: var(--machine);
   transform-origin: right center;
   transition: transform 0.25s linear;
 }
@@ -706,6 +869,7 @@ button:not(:disabled) {
  * rather than an edge case: a local game against Stockfish has no clock at all.
  */
 .bucket-short {
+  max-inline-size: var(--measure);
   font-size: var(--panel-fine);
   overflow-wrap: anywhere;
   line-height: 1.35;
@@ -780,7 +944,7 @@ button:not(:disabled) {
 }
 .candidates-list li {
   padding: 3px 7px;
-  background: var(--raise);
+  background: var(--surface);
   font-family: inherit;
   font-size: var(--panel-data);
   font-variant-numeric: tabular-nums;
@@ -825,6 +989,7 @@ button:not(:disabled) {
   line-height: 1.5;
 }
 .record-mode {
+  max-inline-size: var(--measure);
   margin-top: 10px;
   padding: 7px 10px;
   /*
@@ -842,9 +1007,21 @@ button:not(:disabled) {
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.8);
 }
+/*
+ * SESSION-ONLY IS A STANDING CONDITION, NOT A FAILURE.
+ *
+ * The browser blocked persistent storage, the loop carries on in tab memory, and the product says
+ * so. Nothing went wrong: this is one of three storage modes the record is designed to run in and
+ * `shared/record-service.ts` runs the same code in all three. Drawing it in the same red as an
+ * engine that could not start, an import that refused and a self-check that failed is the fourth
+ * job that hue was carrying, and the one where it was plainly false.
+ *
+ * A standing condition is STATED. It keeps the 2px inline-start rule that already marks it as a
+ * notice, at the ink weight every other notice on the page uses, and it says what it says.
+ */
 .record-mode.session-only {
-  border-color: var(--warn);
-  color: var(--warn);
+  border-color: var(--edge);
+  color: var(--ink);
 }
 .studio-header {
   min-height: 88px;
@@ -864,9 +1041,31 @@ button:not(:disabled) {
    *
    * So: two named tracks, and both children name theirs below.
    */
-  grid-template-columns: [brand] 1fr [actions] auto;
+  grid-template-columns: [brand] minmax(0, auto) [actions] 1fr;
   align-items: center;
   gap: var(--s5);
+}
+/*
+ * AND THE TRACKS THEMSELVES WERE WRONG AT THE NARROWEST WIDTH THE PRODUCT SUPPORTS.
+ *
+ * `[brand] 1fr [actions] auto` gives the actions their content width and the brand whatever is
+ * left. At 390 that is 390 - 194 - 18 = 178px for a lockup whose intrinsic width is 196, so the
+ * lockup overflowed its own track. Measured in Chromium at 390x844 on the shipped build: lockup
+ * x=184..380, actions x=10..204 -- TWENTY PIXELS OF OVERLAP, with the brand mark painting over
+ * the fourth icon control.
+ *
+ * `minmax(0, auto) / 1fr` fixes the overflow: the brand may shrink, and the actions take the
+ * remainder rather than dictating it. Below 560 the wordmark is dropped as well, because 46px of
+ * mark plus 194px of controls fits a 390px screen and 196px of lockup does not. The mark still
+ * carries the identity and the way back, and the button carries its own accessible name in JSX,
+ * so nothing is lost to a screen reader when the text is not painted.
+ */
+@media (max-width: 560px) {
+  /* THE WORDMARK, NOT THE MARK. `> div` matched both children -- the knight is a div too -- so the
+     first version of this rule removed the brand entirely from every phone. */
+  .brand-lockup > div:not(.brand-mark) {
+    display: none;
+  }
 }
 .brand-lockup {
   display: flex;
@@ -892,7 +1091,7 @@ button:not(:disabled) {
   border: 1px solid var(--ink);
   box-shadow: 4px 4px 0 var(--ink);
   background: var(--cream);
-  color: var(--blue);
+  color: var(--ink);
   font: 34px Georgia;
 }
 .brand-name {
@@ -916,8 +1115,11 @@ button:not(:disabled) {
 }
 .primary-control {
   padding: 0 14px;
-  background: var(--blue) !important;
-  color: var(--on-blue) !important;
+  background: var(--action) !important;
+  color: var(--on-action) !important;
+}
+.primary-control:hover {
+  background: var(--action-hover) !important;
 }
 .icon-control {
   width: var(--tap-floor);
@@ -1036,7 +1238,7 @@ button:not(:disabled) {
 }
 .workspace-meta p {
   margin: 0;
-  color: var(--blue);
+  color: var(--muted);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .workspace-meta h1 {
@@ -1052,14 +1254,14 @@ button:not(:disabled) {
   font-size: var(--panel-fine);
 }
 .turn-reading b {
-  color: var(--blue);
+  color: var(--ink);
 }
 .pgn-drawer {
   margin-bottom: 15px;
   padding: 13px;
   border: 1px solid var(--ink);
   background: rgba(var(--cream-rgb), 0.9);
-  box-shadow: 5px 5px 0 rgba(var(--blue-rgb), 0.18);
+  box-shadow: 5px 5px 0 rgba(var(--ink-rgb), 0.14);
 }
 .drawer-heading {
   display: flex;
@@ -1070,7 +1272,7 @@ button:not(:disabled) {
 }
 .drawer-heading b {
   display: block;
-  color: var(--blue);
+  color: var(--ink);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-heading button,
@@ -1092,9 +1294,9 @@ button:not(:disabled) {
   padding-top: 9px;
 }
 .drawer-actions .drawer-confirm {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: var(--on-blue);
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--on-action);
 }
 /*
  * Import by username.
@@ -1108,7 +1310,7 @@ button:not(:disabled) {
   padding: 13px;
   border: 1px solid var(--ink);
   background: rgba(var(--cream-rgb), 0.9);
-  box-shadow: 5px 5px 0 rgba(var(--blue-rgb), 0.18);
+  box-shadow: 5px 5px 0 rgba(var(--ink-rgb), 0.14);
 }
 .import-hint {
   margin-top: 8px;
@@ -1185,9 +1387,9 @@ button:not(:disabled) {
   align-items: center;
   gap: var(--s2);
   padding: 8px 14px;
-  border: 1px solid var(--blue);
-  background: var(--blue);
-  color: var(--on-blue);
+  border: 1px solid var(--action);
+  background: var(--action);
+  color: var(--on-action);
   white-space: nowrap;
 }
 /*
@@ -1281,7 +1483,7 @@ button:not(:disabled) {
   text-align: start;
 }
 .import-list button:hover {
-  background: rgba(var(--blue-rgb), 0.1);
+  background: rgba(var(--ink-rgb), 0.07);
 }
 .import-players {
   min-width: 0;
@@ -1389,18 +1591,39 @@ button:not(:disabled) {
     max-width: min(100%, max(calc(8 * var(--tap-floor) + 14px), calc(100svh - 268px)));
   }
 }
+/*
+ * THE MACHINE'S PLANE, first of three. See `--surface-machine`. Nothing the player made is ever
+ * painted on this ground, and where the engine has not spoken the ground is not on the page.
+ */
 .evaluation-instrument {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--s1);
+  padding: var(--s2) var(--s1);
+  background: var(--surface-machine);
+  border-radius: var(--radius-control);
 }
+/*
+ * THE MACHINE'S LARGEST OBJECT, AND IT WAS DRAWN IN THE PLAYER'S MATERIAL.
+ *
+ * Measured on the shipped build at 1440x900: this track is 20x596 in `--ink`, a squint mass of
+ * 9,100 against 1,757 for `.reveal-one-thing` -- the object `MODE_CONTRACT.REVEAL` names central.
+ * `RevealPanel`'s own comment says the evaluation is "the most visually attractive element on this
+ * screen and the least useful one" and puts the NUMBER inside a collapsed disclosure. The bar was
+ * never covered by that argument, and it is five times the weight of the thing it is beside.
+ *
+ * Two changes and neither is a hiding. The track is the machine's colour rather than the page's
+ * ink, because this is the engine speaking and it now says so; and it is 16px rather than 20,
+ * which with the lower luminance distance brings the visible mass under the central object's.
+ * The gauge still runs the height of the board, because that alignment is what makes it readable.
+ */
 .evaluation-track {
-  width: 20px;
+  width: 16px;
   flex: 1;
   min-height: 360px;
-  border: 1px solid var(--ink);
-  background: var(--ink);
+  border: 1px solid var(--machine);
+  background: var(--machine);
   position: relative;
   overflow: hidden;
 }
@@ -1417,7 +1640,20 @@ button:not(:disabled) {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: white;
+  /*
+   * `white` was a literal, over a track that is one colour and a fill that is ANOTHER, and both
+   * flip with the theme. In the dark theme the track resolved to `--ink` #e7e3d8, so the engine's
+   * own number was white on near-white wherever the black share reached it.
+   *
+   * A halo rather than a ground, because the ground under this number is genuinely two colours at
+   * once: the number sits at the boundary between the two shares and moves with it. Ink with a
+   * cream halo reads on both, and both tokens flip together.
+   */
+  color: var(--ink);
+  text-shadow:
+    0 0 3px var(--cream),
+    0 0 3px var(--cream),
+    0 0 2px var(--cream);
   mix-blend-mode: difference;
 }
 .eval-marker {
@@ -1493,8 +1729,27 @@ button:not(:disabled) {
 .last-square {
   box-shadow: inset 0 0 0 5px var(--last-move);
 }
+/*
+ * THE SQUARE THE PLAYER IS HOLDING, and it used to be the engine's colour.
+ *
+ * The comment eight lines below has always said the chosen ring is "visibly not the engine's
+ * arrow, which is blue" -- while the ring saying which piece is in the player's hand was drawn in
+ * exactly that blue, on the same board, in the same state. Measured on `ANSWER_INSTRUMENT` at
+ * `b9a228c`: the player's own square carried the gold `--chosen` ring AND a blue legal-move dot
+ * inside it. One hand, two colours, and one of them the other hand's.
+ */
 .selected-square {
-  box-shadow: inset 0 0 0 5px var(--blue);
+  box-shadow: inset 0 0 0 5px var(--hand);
+}
+/*
+ * AND IT NEEDS TWO GROUNDS FOR THE SAME REASON THE LEGAL DOT DOES. `--chosen` measures 4.11:1
+ * against a light square and 1.19:1 against a dark one; the blue it replaces measured 1.06:1
+ * there, so this was already the weakest mark on the board and moving it into the board's family
+ * would have left it that way. The dark-square ring is the piece cream that is already on the
+ * board, at the same 5px inset, so the mark is one shape with two grounds rather than two marks.
+ */
+.dark-square.selected-square {
+  box-shadow: inset 0 0 0 5px rgba(var(--cream-rgb), 0.9);
 }
 /*
  * The player's proposed move, while deciding. A ring on both squares plus a marker on the
@@ -1516,13 +1771,30 @@ button:not(:disabled) {
   margin: 12%;
   pointer-events: none;
 }
+/*
+ * WHERE THE PLAYER MAY PUT IT, in the player's own family and readable on both grounds.
+ *
+ * ONE RULE WAS NEVER ENOUGH AND THE NUMBERS SAY SO. The old dot was `rgba(--blue-rgb, 0.65)` for
+ * every square: composited, that measures 5.22:1 against a light square and 1.06:1 against a dark
+ * one. Half the marks the player needs in order to move were at the threshold of visible -- and
+ * all of them were the engine's colour marking the player's own affordance.
+ *
+ * Two rules, because a board has two grounds and this file already solved the same problem for
+ * `.piece` the same way. The dark mark is the board's own wood family; the light mark is the
+ * piece cream already on the board. Neither is imported from outside the board's material.
+ */
 .legal-square::before {
   content: "";
   position: absolute;
   width: 20%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: rgba(var(--blue-rgb), 0.65);
+}
+.light-square.legal-square::before {
+  background: rgba(var(--chosen-rgb), 0.75);
+}
+.dark-square.legal-square::before {
+  background: rgba(var(--cream-rgb), 0.8);
 }
 /*
  * A ring, not a drop shadow. A single offset shadow leaves three sides of the glyph touching the
@@ -1635,12 +1907,12 @@ button:not(:disabled) {
   pointer-events: none;
 }
 .board-vectors line {
-  stroke: var(--blue);
+  stroke: var(--machine);
   stroke-width: 2.5;
 }
 .board-vectors circle {
   fill: rgba(var(--blue-rgb), 0.15);
-  stroke: var(--blue);
+  stroke: var(--machine);
 }
 .board-coordinates {
   height: 15px;
@@ -1677,13 +1949,13 @@ button:not(:disabled) {
 .board-note > i {
   width: 6px;
   height: 6px;
-  background: var(--blue);
+  background: var(--muted);
 }
 .board-note button {
   margin-right: auto;
   border: 0;
   background: transparent;
-  color: var(--blue);
+  color: var(--ink);
   display: flex;
   align-items: center;
   gap: var(--s1);
@@ -1713,8 +1985,10 @@ button:not(:disabled) {
 .analysis-stack > .loop-strip {
   order: 2;
 }
+/* The machine's plane, second of three: the whole engine column. It was a half-alpha cream, which
+   is the page again at 50% -- the same ground, dimmed, rather than a different one. */
 .analysis-column {
-  background: rgba(var(--cream-rgb), 0.5);
+  background: var(--surface-machine);
   border-right: 1px solid rgba(var(--ink-rgb), 0.4);
 }
 .analysis-hero {
@@ -1797,16 +2071,16 @@ button:not(:disabled) {
 .pv-first,
 .data-chip,
 .suggestion-button {
-  color: var(--blue);
+  color: var(--ink);
 }
 .suggestion-button,
 .layer-refresh,
 .personal-load {
   margin-top: 9px;
   border: 0;
-  border-bottom: 1px solid var(--blue);
+  border-bottom: 1px solid var(--ink);
   background: transparent;
-  color: var(--blue);
+  color: var(--ink);
 }
 .material-row {
   display: grid;
@@ -1823,7 +2097,7 @@ button:not(:disabled) {
 .material-track i {
   display: block;
   height: 100%;
-  background: var(--blue);
+  background: var(--ink);
 }
 .layer-intro,
 .layer-muted {
@@ -1831,9 +2105,9 @@ button:not(:disabled) {
   font-size: var(--panel-label);
 }
 .layer-action {
-  border: 1px solid var(--blue);
+  border: 1px solid var(--edge);
   background: transparent;
-  color: var(--blue);
+  color: var(--edge);
 }
 .layer-block {
   padding: 11px 0;
@@ -1863,8 +2137,8 @@ button:not(:disabled) {
 }
 .reply-strip span {
   padding: 5px;
-  background: var(--raise);
-  border-left: 2px solid var(--blue);
+  background: var(--surface);
+  border-left: 2px solid var(--edge);
 }
 .reply-strip small {
   display: block;
@@ -1874,12 +2148,12 @@ button:not(:disabled) {
   background: transparent;
 }
 .color-toggle .selected {
-  background: var(--blue);
-  color: var(--on-blue);
+  background: var(--selected);
+  color: var(--on-selected);
 }
 .cloud-score {
   display: block;
-  color: var(--blue);
+  color: var(--machine);
   font: 700 var(--panel-heading) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .cloud-pv {
@@ -1938,8 +2212,8 @@ button:not(:disabled) {
   font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .move-cell.active {
-  background: var(--blue);
-  color: var(--on-blue);
+  background: var(--selected);
+  color: var(--on-selected);
 }
 .move-cell.active .move-number {
   color: var(--on-blue);
@@ -2173,6 +2447,7 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 .value-triple .value-provenance {
+  max-inline-size: var(--measure);
   font-size: var(--panel-fine);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -2314,6 +2589,7 @@ button:not(:disabled) {
 .profile-panel__alongside,
 .profile-panel__denominator,
 .profile-panel__impossible {
+  max-inline-size: var(--measure);
   font-size: var(--panel-body);
   line-height: 1.6;
   color: var(--muted);
@@ -2411,7 +2687,7 @@ button:not(:disabled) {
   flex-direction: column;
   gap: var(--s4);
   padding: 1.15rem;
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   border: 1px solid var(--hairline);
 }
@@ -2448,7 +2724,7 @@ button:not(:disabled) {
   flex-direction: column;
   gap: var(--s4);
   padding: 1.15rem;
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   border: 1px solid var(--hairline);
 }
@@ -2487,7 +2763,7 @@ button:not(:disabled) {
   flex: 1 1 auto;
   min-width: 0;
   padding: 0.6rem 0.9rem;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--hairline);
   background: var(--surface);
   color: var(--ink);
@@ -2507,7 +2783,7 @@ button:not(:disabled) {
   flex-direction: column;
   gap: var(--s4);
   padding: 1.15rem;
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   border: 1px solid var(--hairline);
 }
@@ -2546,6 +2822,7 @@ button:not(:disabled) {
   margin: 0.15rem 0 0;
 }
 .commitment-intro {
+  max-inline-size: var(--measure);
   font-size: var(--panel-body);
   line-height: 1.5;
   color: var(--muted);
@@ -2574,9 +2851,11 @@ button:not(:disabled) {
   font: inherit;
   font-size: var(--panel-body);
   padding: 0.5rem 0.6rem;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--hairline-strong);
-  background: transparent;
+  /* A well, for the reason at `.first-decision-form input`: this is where the player writes. It
+     was `transparent`, which is not a surface at all -- it is whatever is behind it. */
+  background: var(--surface-recessed);
   color: inherit;
 }
 .commitment-count {
@@ -2598,7 +2877,7 @@ button:not(:disabled) {
  */
 .commitment-step {
   gap: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
 }
 /* Section 4.5: answered, open and not-yet-reached are three states and must not render alike.
@@ -2622,7 +2901,7 @@ button:not(:disabled) {
   gap: var(--s3);
   padding: 0.4rem 0.5rem;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -2643,8 +2922,8 @@ button:not(:disabled) {
   color: var(--muted);
 }
 .commitment-step[data-state="open"] .step-index {
-  background: var(--blue);
-  color: var(--on-blue);
+  background: var(--ink);
+  color: var(--on-action);
 }
 .commitment-step[data-state="done"] .step-index {
   background: transparent;
@@ -2708,7 +2987,7 @@ button:not(:disabled) {
 .step-next {
   min-block-size: var(--tap-floor);
   padding: 0.35rem 0.9rem;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--edge);
   background: transparent;
   color: inherit;
@@ -2742,7 +3021,7 @@ button:not(:disabled) {
   font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--panel-data);
   padding: 0.45rem 0.6rem;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   border: 1px dashed var(--hairline-strong);
 }
 /*
@@ -2863,6 +3142,7 @@ button:not(:disabled) {
   max-width: 48ch;
 }
 .anchor-run-note {
+  max-inline-size: var(--measure);
   margin: 10px 0 4px;
   font-size: var(--panel-label);
   line-height: 1.55;
@@ -2935,11 +3215,11 @@ button:not(:disabled) {
   font-weight: 400;
 }
 .dash-note {
+  max-inline-size: var(--measure);
   font-size: var(--panel-label);
   line-height: 1.6;
   color: var(--muted);
   margin: 7px 0 4px;
-  max-width: 42ch;
 }
 
 .confidence-row {
@@ -2964,7 +3244,7 @@ button:not(:disabled) {
   gap: var(--s1);
   font-size: var(--panel-data);
   padding: 0.4rem 0.2rem;
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   border: 1px solid var(--hairline-strong);
   background: transparent;
   color: inherit;
@@ -3090,7 +3370,7 @@ button:not(:disabled) {
   justify-content: center;
   gap: var(--s2);
   padding: 0.6rem 0.9rem;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   border: 1px solid transparent;
   /*
    * FILLED, AND IT WAS NOT.
@@ -3109,8 +3389,8 @@ button:not(:disabled) {
    * Opaque either way: it sits over the panel's own content while the panel scrolls under it,
    * and `.not-ready` below repeals nothing.
    */
-  background: var(--blue);
-  color: var(--on-blue);
+  background: var(--action);
+  color: var(--on-action);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -3167,7 +3447,7 @@ button:not(:disabled) {
 .reveal-one-thing {
   padding: var(--s4);
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--raise);
 }
 /*
@@ -3271,6 +3551,7 @@ button:not(:disabled) {
  * on this panel that is true of every position rather than of this one.
  */
 .reveal-continuation {
+  max-inline-size: var(--measure);
   margin: 0.9rem 0 0;
   padding-top: 0.7rem;
   border-top: 1px solid var(--hairline);
@@ -3292,6 +3573,7 @@ button:not(:disabled) {
 }
 /* A property of the build, not of the position. Set apart from the per-position limits. */
 .reveal-build-limit {
+  max-inline-size: var(--measure);
   margin: 0.5rem 0 0;
   padding-top: 0.45rem;
   border-top: 1px solid var(--hairline);
@@ -3333,10 +3615,16 @@ button:not(:disabled) {
   font-size: var(--panel-label) !important;
   opacity: 0.68;
 }
+/*
+ * The machine's plane, third of three: the engine's own numbers, where `RevealPanel` puts them.
+ * The border goes with the ground arriving -- a border has to say what becomes less
+ * understandable without it, and a declared plane already says everything this one said.
+ */
 .reveal-secondary {
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border: 0;
+  border-radius: var(--radius-card);
   padding: 0.6rem 0.9rem;
+  background: var(--surface-machine);
 }
 .reveal-secondary summary {
   cursor: pointer;
@@ -3386,7 +3674,7 @@ button:not(:disabled) {
 /* An honest silence is a correct screen (section 4.5). It is never filled with encouragement. */
 .claim-panel {
   padding: 0.9rem 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--hairline);
   display: flex;
   flex-direction: column;
@@ -3423,7 +3711,7 @@ button:not(:disabled) {
   flex-direction: column;
   gap: var(--s3);
   padding: 0.8rem 0.9rem;
-  border-radius: 10px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--hairline);
 }
 .claim-header {
@@ -3472,7 +3760,7 @@ button:not(:disabled) {
   flex-direction: column;
   gap: var(--s3);
   padding: 0.9rem 1rem;
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   border: 1px solid var(--hairline-strong);
 }
 .drill-header {
@@ -3485,7 +3773,7 @@ button:not(:disabled) {
 /* R5 on screen: what would disprove this, before the first position and throughout. */
 .drill-prereg {
   border: 1px dashed var(--hairline-strong);
-  border-radius: 9px;
+  border-radius: var(--radius-control);
   padding: 0.5rem 0.6rem;
 }
 .drill-prereg > span {
@@ -3509,7 +3797,7 @@ button:not(:disabled) {
 .drill-finish,
 .claim-run-drill {
   padding: 0.55rem 0.8rem;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   border: 1px solid currentColor;
   background: transparent;
   color: inherit;
@@ -3557,7 +3845,7 @@ button:not(:disabled) {
   gap: var(--s3);
   padding: 0.85rem 1rem;
   border: 1px solid var(--hairline);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
 }
 .value-reconstruction-head {
   display: flex;
@@ -3577,7 +3865,7 @@ button:not(:disabled) {
   font-size: var(--panel-body);
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--hairline-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
   resize: vertical;
@@ -3601,7 +3889,7 @@ button:not(:disabled) {
   gap: var(--s3);
   padding: 0.9rem 1rem;
   border: 1px solid var(--hairline-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
 }
 .learning-heading {
   display: flex;
@@ -3654,7 +3942,7 @@ button:not(:disabled) {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--hairline-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
   padding: 0.5rem 0.55rem;
@@ -3721,7 +4009,7 @@ button:not(:disabled) {
 .transfer-verdict button {
   /* Size comes from the tap floor. These shipped at 32px from a branch that predates it. */
   border: 1px solid var(--hairline-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -3772,7 +4060,7 @@ button:not(:disabled) {
   /* Was 38px, for the same reason. */
   padding: 0.5rem 0.7rem;
   border: 1px solid var(--hairline-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--ink);
   font: inherit;
@@ -3862,7 +4150,7 @@ button:not(:disabled) {
 .transfer-prereg {
   padding: 0.55rem 0.6rem;
   border: 1px dashed var(--hairline-strong);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 .transfer-prereg span,
 .transfer-prereg small,
@@ -3954,8 +4242,8 @@ button:not(:disabled) {
   font: 700 var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .depth-row .selected {
-  background: var(--blue);
-  color: var(--on-blue);
+  background: var(--selected);
+  color: var(--on-selected);
 }
 .new-game-setup .color-toggle button {
   padding: 8px 16px;
@@ -4000,7 +4288,7 @@ button:not(:disabled) {
 }
 .opponent-thinking {
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: var(--blue);
+  color: var(--machine);
   padding: 6px 0;
 }
 
@@ -4011,12 +4299,23 @@ button:not(:disabled) {
  * click does not leave a ring behind.
  */
 :where(button, a, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--blue);
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  /*
+   * THE HALO SITS IN THE OFFSET, which is what makes one focus token work on every ground this
+   * product has. An ink ring measures 2.34:1 against a dark board square and 1:1 against the
+   * ink-filled primary -- so on its own it is invisible in exactly the two places the loop runs
+   * through. The paper ring between the control and the outline carries 5.6:1 against a dark
+   * square, and both halves flip with the theme, so the indicator inverts by itself.
+   */
+  box-shadow: 0 0 0 2px var(--focus-halo);
   outline-offset: 2px;
   border-radius: 1px;
 }
 .board-square:focus-visible {
-  outline: 3px solid var(--blue);
+  outline: 3px solid var(--focus);
+  outline-offset: -1px;
+  box-shadow: inset 0 0 0 2px var(--focus-halo);
   outline-offset: -3px;
 }
 
@@ -4058,7 +4357,7 @@ button:not(:disabled) {
   background: rgba(var(--ink-rgb), 0.42);
 }
 .loop-step.live > span[aria-hidden] {
-  background: var(--blue);
+  background: var(--ink);
 }
 .loop-step.live {
   color: var(--ink);
@@ -4068,7 +4367,7 @@ button:not(:disabled) {
 }
 .loop-here {
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: var(--blue);
+  color: var(--ink);
 }
 .loop-headline {
   margin: 0;
@@ -4164,6 +4463,7 @@ button:not(:disabled) {
   }
 }
 .context-loop {
+  max-inline-size: var(--measure);
   margin: 0;
   flex: 1 1 100%;
   /* Contextual prose, so it takes the label rank and the muted ink. It was at body rank in
@@ -4195,7 +4495,7 @@ button:not(:disabled) {
   align-items: center;
   cursor: pointer;
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: var(--blue);
+  color: var(--ink);
 }
 .context-why ul {
   margin: 6px 0 0;
@@ -4256,8 +4556,8 @@ button:not(:disabled) {
  * is the one sentence on this page that does not need an n beside it.
  */
 .record-page-claim {
+  max-inline-size: var(--measure);
   margin: 0;
-  max-inline-size: 46rem;
   font-size: var(--panel-body);
   line-height: 1.55;
   color: var(--muted);
@@ -4275,20 +4575,20 @@ button:not(:disabled) {
  * ordering rather than the pixels.
  */
 .record-page-problem {
+  max-inline-size: var(--measure-wide);
   margin: 0;
-  max-inline-size: 46rem;
   font-size: var(--panel-title);
   line-height: 1.45;
 }
 .record-page-mechanism {
+  max-inline-size: var(--measure);
   margin: 0.5rem 0 0;
-  max-inline-size: 46rem;
   font-size: var(--panel-body);
   line-height: 1.55;
 }
 .record-page-payoff {
+  max-inline-size: var(--measure);
   margin: 0.45rem 0 0;
-  max-inline-size: 46rem;
   font-size: var(--panel-body);
   line-height: 1.55;
   color: var(--muted);
@@ -4310,7 +4610,7 @@ button:not(:disabled) {
   /* THE SAME CARD AS THE REST OF THE PRODUCT -- square corners with a 3px accent bar were a
      fifth card language, used on this page only. */
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   padding: var(--s5);
 }
@@ -4327,8 +4627,8 @@ button:not(:disabled) {
   line-height: 1.25;
 }
 .record-layer-head p {
+  max-inline-size: var(--measure);
   margin: 0;
-  max-inline-size: 46rem;
   font-size: var(--panel-label);
   line-height: 1.5;
   color: var(--muted);
@@ -4346,7 +4646,7 @@ button:not(:disabled) {
      language used on this page and nowhere else, which is a large part of why the front door and
      the board did not read as one thing. `--surface` on `--paper`, one hairline, one radius. */
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: var(--radius-card);
   background: var(--surface);
   padding: var(--s5);
 }
@@ -4355,8 +4655,8 @@ button:not(:disabled) {
   font-size: var(--panel-heading);
 }
 .first-decision-lead {
+  max-inline-size: var(--measure);
   margin: 0 0 14px;
-  max-inline-size: 42rem;
   font-size: var(--panel-body);
   line-height: 1.6;
 }
@@ -4385,10 +4685,15 @@ button:not(:disabled) {
    * The button below is legitimately quiet while it is disabled, and making a disabled control
    * loud is the defect this file already argues against two rules down. So the weight goes where
    * the act is: a field that reads as a field.
+   *
+   * AND IT IS A WELL RATHER THAN A RAISE, now that the ladder runs the right way round. `--raise`
+   * used to sit BETWEEN the page and a card and now sits above both, so this would have been the
+   * brightest object on the front door. What a field IS, is the one place on the screen the
+   * player is asked to put something, and that is recessed.
    */
   border: 1px solid var(--edge);
-  border-radius: 8px;
-  background: var(--raise);
+  border-radius: var(--radius-control);
+  background: var(--surface-recessed);
   color: inherit;
   font-size: var(--panel-data);
 }
@@ -4434,8 +4739,8 @@ button:not(:disabled) {
   color: var(--warn);
 }
 .first-decision-note {
+  max-inline-size: var(--measure);
   margin: 14px 0 0;
-  max-inline-size: 42rem;
   font-size: var(--panel-body);
   line-height: 1.55;
   color: var(--muted);
@@ -4493,7 +4798,7 @@ button:not(:disabled) {
 }
 .position-source-option > svg {
   grid-row: 1 / span 2;
-  color: var(--blue);
+  color: var(--muted);
 }
 .position-source-label {
   font-size: var(--panel-title);
@@ -4538,7 +4843,7 @@ button:not(:disabled) {
   border: 0;
   background: transparent;
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: var(--blue);
+  color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -4624,9 +4929,9 @@ button:not(:disabled) {
   align-items: center;
   gap: var(--s2);
   padding-inline: 14px;
-  border: 1px solid var(--blue);
-  background: var(--blue);
-  color: var(--on-blue);
+  border: 1px solid var(--action);
+  background: var(--action);
+  color: var(--on-action);
   font: inherit;
   font-size: var(--panel-body);
   font-weight: 700;
@@ -4642,7 +4947,7 @@ button:not(:disabled) {
   align-items: center;
   cursor: pointer;
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: var(--blue);
+  color: var(--ink);
 }
 .boundary-trace pre {
   margin-top: 8px;
@@ -4692,9 +4997,9 @@ button:not(:disabled) {
 .reveal-failure-next {
   align-self: flex-start;
   padding-inline: 14px;
-  border: 1px solid var(--blue);
-  background: var(--blue);
-  color: var(--on-blue);
+  border: 1px solid var(--action);
+  background: var(--action);
+  color: var(--on-action);
   font: inherit;
   font-size: var(--panel-body);
   font-weight: 700;
@@ -4806,10 +5111,24 @@ button:not(:disabled) {
  * identically is section 4.5. The word still says "required" and still carries --warn; what goes
  * is the frame, and with it two of the twenty-eight boxes the panel was counted to hold.
  */
+/*
+ * AND THEN THE WORD LOST THE COLOUR TOO, for the reason the frame lost it.
+ *
+ * "Required" is not a failure. It is a fact about a field, true from the moment the panel renders
+ * and before the player has done anything at all -- and on a cold `DECIDE` the marks that carry
+ * it were, together with the submit's dashed edge, THE ONLY SATURATED COLOUR ON THE SCREEN. A
+ * player meeting this product for the first time met an alarm about something they had not yet
+ * had the chance to do.
+ *
+ * `WARNING != FAILURE` and `UNCERTAINTY != WEAKNESS` are two of the distinctions this product's
+ * whole visual constitution rests on, and the pre-commit screen is where they matter most: it has
+ * to read as RECORDING, not as judging. So the word survives, at the same rank, in the same place
+ * -- what goes is the claim that something has gone wrong.
+ */
 .required-mark {
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
-  color: var(--warn);
+  color: var(--muted);
   margin-inline-start: 6px;
   vertical-align: middle;
 }
@@ -4835,14 +5154,26 @@ button:not(:disabled) {
  * The state still reads as not-ready -- dashed border, --warn text -- and the button is still
  * pressable, because pressing it is how you find out what is missing and get taken there.
  */
+/*
+ * NOT-READY IS STILL A STATE, AND IT IS STILL NOT A FAILURE.
+ *
+ * Everything the note above says about the ground stands and is still held in a browser. What
+ * changed is the hue. Three things separate this state from the ready one and none of them is an
+ * alarm: the label names exactly what is missing, the edge is DASHED where the ready control has
+ * no edge at all, and the treatment is quiet where the ready one is the heaviest fill on the
+ * screen. `--edge` measures 3.22:1 against `--surface`, which is what 1.4.11 asks of a control's
+ * boundary, and `--muted` on `--surface` measures 5.98:1.
+ *
+ * The button is still pressable, because pressing it is how you find out what is missing.
+ */
 .commitment-submit.not-ready {
   background: var(--surface);
-  color: var(--warn);
-  border: 1px dashed var(--warn);
+  color: var(--muted);
+  border: 1px dashed var(--edge);
 }
 .commitment-summary {
   font: var(--panel-label) / 1.5 "Noto Sans Hebrew", Arial, sans-serif;
-  color: var(--warn);
+  color: var(--muted);
   padding-top: 6px;
 }
 
@@ -5005,8 +5336,8 @@ button:not(:disabled) {
 }
 /* Selected is carried by weight and a filled ground, not by hue alone. */
 .read-chip.selected {
-  background: var(--blue);
-  color: var(--on-blue);
+  background: var(--selected);
+  color: var(--on-selected);
   font-weight: 700;
 }
 .read-write-toggle {
@@ -5184,7 +5515,7 @@ button:not(:disabled) {
   margin-top: 10px;
   padding: 10px 12px;
   border: 1px solid var(--hairline-strong);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   font-size: var(--panel-label);
   line-height: 1.7;
 }
@@ -5220,7 +5551,7 @@ button:not(:disabled) {
   margin: 0 0 18px;
   padding: 14px 16px;
   border: 1px solid var(--hairline-strong);
-  border-radius: 10px;
+  border-radius: var(--radius-card);
 }
 .outcome-summary__title {
   margin: 0 0 10px;
@@ -5273,7 +5604,7 @@ button:not(:disabled) {
   text-decoration: line-through;
 }
 .outcome-summary__badge[data-kind="hypothesis"] {
-  color: var(--accent-soft);
+  color: var(--muted);
 }
 .outcome-summary__badge[data-kind="record-description"],
 .outcome-summary__badge[data-kind="no-pattern"],
@@ -5285,6 +5616,7 @@ button:not(:disabled) {
   color: var(--warn);
 }
 .outcome-summary__text {
+  max-inline-size: var(--measure);
   grid-column: 2;
   margin: 0;
   font-size: var(--panel-body);
@@ -5298,6 +5630,7 @@ button:not(:disabled) {
   color: var(--muted);
 }
 .outcome-summary__note {
+  max-inline-size: var(--measure);
   margin: 12px 0 0;
   font-size: var(--panel-body);
   line-height: 1.6;
@@ -5329,16 +5662,43 @@ button:not(:disabled) {
 .evidence-mark__word {
   letter-spacing: 0.02em;
 }
+/*
+ * GRADE -> WEIGHT, DECLARED IN ONE PLACE, because `D25` reads `CONSTRUCT-UNDERIDENTIFIED` and the
+ * one thing this stylesheet lacked was a written rule for how much authority a grade is allowed
+ * to look like. `shared/evidence-authority.ts` has the grades; nothing said what they weigh.
+ *
+ * The ladder is VALUE then WEIGHT, in that order, and it is the only ladder in the product that
+ * is allowed to say "this is better evidence than that":
+ *
+ *   one-event   muted 400   it happened once
+ *   recurred    muted 400   it happened again, and that is still a count
+ *   hypothesis  muted 600   somebody wrote a refutable rule; nothing has tested it
+ *   tested      ink   700   a prospective drill measured it
+ *   refuted     ink   600   measured, and it did not hold -- known, and not an achievement
+ *
+ * `tested` used to be `--blue`, which under this file's semantic layer is the ENGINE speaking. A
+ * grade is a property of the player's own record; the engine has no opinion about it. `hypothesis`
+ * used to be `--accent-soft`, which is the same hue family, on the grade that most needs to not
+ * look like a finding.
+ *
+ * `refuted` sits BELOW `tested` on purpose and above everything else: a refuted claim is a thing
+ * this record knows, which is why the repository keeps it forever and never retests it.
+ *
+ * COLOUR NEVER CARRIES THE GRADE ALONE. `.evidence-mark__word` renders it in words, every time,
+ * which is the same rule the chart palette states for move classification.
+ */
 .evidence-mark[data-authority="one-event"],
 .evidence-mark[data-authority="recurred"] {
   color: var(--muted);
+  font-weight: 400;
 }
 .evidence-mark[data-authority="hypothesis"] {
-  color: var(--accent-soft);
+  color: var(--muted);
+  font-weight: 600;
 }
 .evidence-mark[data-authority="tested"] {
-  color: var(--blue);
-  font-weight: 600;
+  color: var(--ink);
+  font-weight: 700;
 }
 .evidence-mark[data-authority="refuted"] {
   color: var(--ink);
@@ -5367,7 +5727,7 @@ button:not(:disabled) {
   gap: var(--s3);
   padding: 14px 16px;
   border: 1px solid var(--edge-soft);
-  border-radius: 8px;
+  border-radius: var(--radius-card);
   background: var(--surface);
 }
 .finding__headline {
@@ -5396,7 +5756,7 @@ button:not(:disabled) {
   font: inherit;
   padding: 8px 14px;
   border: 1px solid var(--edge);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: var(--cream);
   color: var(--ink);
   cursor: pointer;
@@ -5404,6 +5764,7 @@ button:not(:disabled) {
   min-height: 44px;
 }
 .finding__because {
+  max-inline-size: var(--measure);
   margin: 6px 0 0;
   font-size: var(--panel-body);
   line-height: 1.6;
@@ -5494,7 +5855,7 @@ button:not(:disabled) {
   background: none;
   border: none;
   padding: 0;
-  color: var(--blue);
+  color: var(--ink);
   cursor: pointer;
   min-height: 44px;
 }
@@ -5509,7 +5870,7 @@ button:not(:disabled) {
   padding: 8px 14px;
   min-height: 44px;
   border: 1px solid var(--edge-soft);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -5566,10 +5927,18 @@ button:not(:disabled) {
   padding: 6px 0;
 }
 .blitz-setup,
-.blitz {
+/*
+ * THE GAME LIVES INSIDE THE PRODUCT'S SHELL NOW, and the column is the column rather than the
+ * page. `main` was `.blitz` itself -- a 34rem centred block with nothing above it -- so the route
+ * had no header, no brand and no way back, and putting a header inside the column would have made
+ * the brand 34rem wide and centred, which is not what a header is. Same shell as `/play`, same
+ * lockup, same way home.
+ */
+.blitz,
+.blitz-setup {
   max-width: 34rem;
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 20px 0 40px;
   display: grid;
   gap: var(--s4);
 }
@@ -5594,7 +5963,7 @@ button:not(:disabled) {
   min-height: var(--tap-floor);
   padding: 10px 18px;
   border: 1px solid var(--edge);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: var(--cream);
   color: var(--ink);
   font: var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -5611,12 +5980,12 @@ button:not(:disabled) {
  * action per state, and "the same again" is that action once there has been a first game.
  */
 .blitz-control--again {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: var(--on-blue);
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--on-action);
 }
 .blitz-control--again:hover {
-  background: var(--blue);
+  background: var(--action);
   filter: brightness(1.08);
 }
 .blitz-control__again {
@@ -5647,21 +6016,21 @@ button:not(:disabled) {
   min-height: var(--tap-floor);
   padding: 8px 16px;
   border: 1px solid var(--edge-soft);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
   cursor: pointer;
 }
 .blitz-board-mode {
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
-  color: var(--blue);
+  color: var(--ink);
   margin: 0;
 }
 .blitz-board-back {
   justify-self: start;
   padding: 8px 14px;
   border: 1px solid var(--edge-soft);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--ink);
   cursor: pointer;
@@ -5681,7 +6050,7 @@ button:not(:disabled) {
   min-width: var(--tap-floor);
   min-height: var(--tap-floor);
   border: 1px solid var(--edge);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: var(--cream);
   color: var(--ink);
   font: var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -5833,6 +6202,7 @@ button:not(:disabled) {
 }
 .unclear__because,
 .unclear__needs {
+  max-inline-size: var(--measure);
   font-size: var(--panel-body);
   color: var(--muted);
 }
@@ -5858,4 +6228,22 @@ button:not(:disabled) {
 .under-test__terms > dd {
   margin: 0;
   color: var(--ink);
+}
+
+/*
+ * THE TWO SECONDARY PATHS OFF A COLD FRONT DOOR, given one grammar rather than none.
+ *
+ * `.first-decision-alt` had no rule at all: two blocks with the same job -- a sentence and a
+ * secondary control -- inherited whatever they landed in, and their prose ran to 87 characters on
+ * one line at 1440. One primary act, two alternates, one shape for both.
+ */
+.first-decision-alt {
+  display: grid;
+  justify-items: start;
+  gap: var(--s3);
+  margin-top: var(--s5);
+}
+.first-decision-alt p {
+  max-inline-size: var(--measure);
+  margin: 0;
 }

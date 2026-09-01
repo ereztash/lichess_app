@@ -52,7 +52,7 @@ export function MoveTimeline({ moves, currentPly, onNavigate }: Props) {
           <SkipBack size={16} />
         </button>
         <button aria-label="המהלך הקודם" title="המהלך הקודם" onClick={() => go(currentPly - 1)}>
-          <ChevronLeft size={18} />
+          <ChevronLeft size={16} />
         </button>
       </div>
       <div className="moves-rail" dir="ltr" ref={railRef}>
@@ -92,7 +92,7 @@ export function MoveTimeline({ moves, currentPly, onNavigate }: Props) {
       </div>
       <div className="timeline-controls" dir="ltr">
         <button aria-label="המהלך הבא" title="המהלך הבא" onClick={() => go(currentPly + 1)}>
-          <ChevronRight size={18} />
+          <ChevronRight size={16} />
         </button>
         <button aria-label="לסוף המשחק" title="לסוף המשחק" onClick={() => go(moves.length - 1)}>
           <SkipForward size={16} />

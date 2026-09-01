@@ -351,7 +351,7 @@ export function CommitmentScreen({
             onClick={() => setOpenStep(open ? null : id)}
           >
             <span className="step-index" aria-hidden="true">
-              {done[id] ? <Check size={12} /> : index + 1}
+              {done[id] ? <Check size={14} /> : index + 1}
             </span>
             <span className="step-legend">
               {STEP_LEGEND[id]}
@@ -718,7 +718,7 @@ function ReadField({
         </>
       ) : (
         <button type="button" className="read-write-toggle" onClick={() => setWriting(true)}>
-          <Pencil size={12} /> להוסיף במילים שלכם
+          <Pencil size={14} /> להוסיף במילים שלכם
         </button>
       )}
 

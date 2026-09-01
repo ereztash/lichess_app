@@ -33,7 +33,7 @@ export function LearningTransferRunner({
   return (
     <section className="learning-transfer" aria-label="בדיקת העברה">
       <header className="learning-heading">
-        <FlaskConical size={15} />
+        <FlaskConical size={14} />
         <div>
           <span>בדיקה שנרשמה מראש</span>
           <h3>העברה לעמדות חדשות</h3>

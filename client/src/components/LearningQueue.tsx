@@ -46,7 +46,7 @@ export function LearningQueue({
   return (
     <section className="learning-queue" aria-label="תור למידה">
       <header className="learning-heading">
-        <CalendarClock size={15} />
+        <CalendarClock size={14} />
         <div>
           <span>בדיקות עתידיות</span>
           <h3>תור למידה</h3>

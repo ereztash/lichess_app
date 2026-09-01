@@ -118,7 +118,7 @@ export function PositionSourceMenu({
         {POSITION_SOURCES.map((source) => (
           <li key={source.id}>
             <button type="button" className="position-source-option" onClick={() => onChoose(source.id)}>
-              <source.icon size={18} aria-hidden="true" />
+              <source.icon size={16} aria-hidden="true" />
               <span className="position-source-label">{source.label}</span>
               <span className="position-source-detail">{source.detail}</span>
             </button>

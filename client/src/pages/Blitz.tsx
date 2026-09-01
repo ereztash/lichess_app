@@ -23,7 +23,9 @@
  * change what is recorded.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useLocation } from "wouter";
 import { Chess } from "chess.js";
+import { BrandLockup } from "@/components/BrandLockup";
 import { ChessBoard } from "@/components/ChessBoard";
 import { chooseOpponentMove, DEFAULT_OPPONENT_DEPTH } from "@/lib/opponent";
 import type { StockfishClient } from "@/lib/stockfish";
@@ -103,6 +105,7 @@ const REFUSAL_NOTICE: Record<string, string> = {
 };
 
 export default function Blitz() {
+  const [, navigate] = useLocation();
   const [game, setGame] = useState<BlitzState>({ phase: "idle" });
   const [session, setSession] = useState<InstrumentSession>(newSession());
   const [, setPaint] = useState(0);
@@ -302,6 +305,23 @@ export default function Blitz() {
       decisions: [], ply: 0 });
   };
 
+  /*
+   * THE GAME IS PART OF THE PRODUCT, AND IT DID NOT LOOK LIKE IT.
+   *
+   * Measured on the shipped build at 1440x900: this route had no header, no brand and no way back
+   * -- the only control on a running game was `פרישה`. The heaviest painted object on the setup
+   * screen was one of four identical time-control buttons, at a squint mass of 352 against 43,368
+   * on the front door and 129,632 on the board. One of the product's ten modes rendered as a
+   * different application.
+   *
+   * The lockup is the way back everywhere else in the product, so it is the way back here.
+   */
+  const header = (
+    <header className="studio-header blitz-header">
+      <BrandLockup onNavigate={() => navigate("/")} />
+    </header>
+  );
+
   if (game.phase === "idle") {
     /*
      * READ AT RENDER AND NOT HELD IN STATE. It changes only when this screen writes it, and holding
@@ -310,7 +330,9 @@ export default function Blitz() {
      */
     const remembered = rememberedTimeControl();
     return (
-      <main className="blitz-setup">
+      <main className="studio-shell" dir="rtl">
+        {header}
+        <div className="blitz-setup">
         <h1>משחק בליץ</h1>
         <p>
           המהלך נרשם ראשון, השעון נעצר, ורק אחר כך נשאלת שאלת הביטחון — אם בכלל. המנוע לא רץ עד סוף
@@ -363,6 +385,7 @@ export default function Blitz() {
             );
           })}
         </div>
+        </div>
       </main>
     );
   }
@@ -379,7 +402,9 @@ export default function Blitz() {
       : [];
 
   return (
-    <main className="blitz">
+    <main className="studio-shell" dir="rtl">
+      {header}
+      <div className="blitz">
       {/* Two clocks side by side, both Latin runs: `3:00` beside `2:47` merges the same way. */}
       <div className="blitz-clocks">
         <span dir="ltr" aria-label="שעון היריב">
@@ -498,6 +523,7 @@ export default function Blitz() {
           פרישה
         </button>
       )}
+      </div>
     </main>
   );
 }

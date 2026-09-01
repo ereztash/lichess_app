@@ -26,6 +26,7 @@ import { isAnchorFen } from "@shared/anchor-set";
 import { decisionPurposeFor, type DecisionPurpose } from "@shared/confidence-asked";
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { SilentGame } from "@/components/SilentGame";
+import { BrandLockup } from "@/components/BrandLockup";
 import { RevealPanel } from "@/components/RevealPanel";
 import { recordTrialEvent, revealsPresented, trialEventSeen } from "@/lib/progress-record";
 import { continuationStarted } from "@/lib/acquisition-evidence";
@@ -1833,13 +1834,7 @@ export default function Home() {
           * header already points on every other site -- and because the alternative was a
           * fifth unlabelled icon in a row that has already been trimmed once for overflowing.
           */}
-        <button type="button" className="brand-lockup" onClick={() => navigate("/")}>
-          <div className="brand-mark">♞</div>
-          <div>
-            <p className="brand-name">DECISION LAB</p>
-            <span>COMMIT · THEN REVEAL</span>
-          </div>
-        </button>
+        <BrandLockup onNavigate={() => navigate("/")} />
         {/* `תור / לבן` was read here AND in `.workspace-meta` beside the board -- one fact at one
             rank, 400px apart, both competing with the task heading. The one next to the board is
             where the fact is used; nothing moved behind a disclosure. */}
@@ -1879,7 +1874,7 @@ export default function Home() {
             aria-expanded={showHelp}
             onClick={() => setShowHelp((v) => !v)}
           >
-            <HelpCircle size={17} />
+            <HelpCircle size={16} />
           </button>
           <button
             className="icon-control"
@@ -1887,14 +1882,14 @@ export default function Home() {
             aria-expanded={showSelfCheck}
             onClick={() => setShowSelfCheck((v) => !v)}
           >
-            <Stethoscope size={17} />
+            <Stethoscope size={16} />
           </button>
           <button
             className="icon-control"
             aria-label="הפוך את הלוח"
             onClick={() => setOrientation((v) => (v === "w" ? "b" : "w"))}
           >
-            <FlipVertical2 size={17} />
+            <FlipVertical2 size={16} />
           </button>
           {toggleTheme && (
             <button
@@ -1903,7 +1898,7 @@ export default function Home() {
               aria-pressed={theme === "dark"}
               onClick={toggleTheme}
             >
-              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           )}
         </div>
@@ -1975,7 +1970,7 @@ export default function Home() {
             aria-expanded={showPositionSource}
             onClick={() => (showPositionSource ? closePositionSource() : openPositionSource())}
           >
-            <Plus size={18} />
+            <Plus size={16} />
             <span>עמדה אחרת</span>
           </button>
           {/*
@@ -1999,13 +1994,13 @@ export default function Home() {
                 closePositionSource();
               }}
             >
-              <History size={18} />
+              <History size={16} />
               <span>קריאה שמורה</span>
             </button>
           )}
           {/* Not a position source: this connects an account and enables the analysis layers. */}
           <button className="rail-button" onClick={openLichess}>
-            <Link2 size={18} />
+            <Link2 size={16} />
             <span>Lichess</span>
           </button>
           <input
@@ -2162,7 +2157,7 @@ export default function Home() {
                 setNotice("FEN הועתק.");
               }}
             >
-              <Clipboard size={13} /> העתק FEN
+              <Clipboard size={14} /> העתק FEN
             </button>
           </div>
         </section>

@@ -193,7 +193,7 @@ export function RevealPanel({
       {/* 4 -- everything else, collapsed */}
       <details className="reveal-secondary">
         <summary>
-          <ChevronDown size={13} /> פרטי הניתוח
+          <ChevronDown size={14} /> פרטי הניתוח
         </summary>
         <div className="reveal-secondary-body">
           <div className="reveal-metric">

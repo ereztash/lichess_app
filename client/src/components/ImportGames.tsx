@@ -375,7 +375,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
                   )}
                 </span>
                 {game.opening && <span className="import-opening">{game.opening}</span>}
-                <Download size={13} />
+                <Download size={14} />
               </button>
             </li>
           ))}

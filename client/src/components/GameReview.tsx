@@ -179,7 +179,7 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
             onKeyDown={onTabKeyDown}
             onClick={() => setTab(key)}
           >
-            <Icon size={13} /> {label}
+            <Icon size={14} /> {label}
           </button>
         ))}
       </div>
@@ -302,7 +302,7 @@ export function GameReviewProgress({ done, total }: { done: number; total: numbe
         <span>סקירת משחק</span>
       </div>
       <p className="layer-loading">
-        <LoaderCircle size={15} /> המנוע מנתח עמדה {done} מתוך {total}…
+        <LoaderCircle size={14} /> המנוע מנתח עמדה {done} מתוך {total}…
       </p>
       {/*
         Scaled, not sized in percent. GATE-DENOM flagged the earlier `${pct}%` here -- correctly,

@@ -227,7 +227,7 @@ describe("colour tokens that flip together", () => {
     expect(light.get("--on-blue")).not.toBe(dark.get("--on-blue"));
   });
 
-  it("paints every blue-backed control with --on-blue rather than a literal white", () => {
+  it("paints every token-backed control with that token's own foreground", () => {
     /*
      * DERIVED FROM THE STYLESHEET, because the hand-written list was wrong.
      *
@@ -237,24 +237,43 @@ describe("colour tokens that flip together", () => {
      * painting text on the same --blue with a literal `white`, unwatched, at the measured 2.36:1
      * in the dark palette. A list of selectors maintained by hand only ever protects the
      * selectors someone remembered to add. Asking the stylesheet which rules paint themselves
-     * blue cannot miss one, and it goes red the first time a new control does it.
+     * from a token cannot miss one, and it goes red the first time a new control does it.
+     *
+     * AND THEN THE ONE TOKEN BECAME THREE. `--blue` used to be the primary action, selection and
+     * the engine's own colour at once; the semantic layer split them, so this walks the pairs
+     * rather than the single hue -- and the pair is the point, because the reason `--on-blue`
+     * exists at all is that a foreground over a token has to FLIP when the token does.
      *
      * Rules with no text are exempt by construction: the requirement is a foreground, and a
      * progress fill or a 6px dot never sets one.
      */
-    const painted = rules().filter((rule) => /background(-color)?:[^;]*var\(--blue\)/.test(rule.body));
-    expect(painted.length, "no rules paint themselves --blue any more").toBeGreaterThan(3);
-    const carriesText = painted.filter((rule) => /(^|[\s;{])color:/.test(rule.body));
-    expect(carriesText.length, "no blue-backed rule sets a foreground at all").toBeGreaterThan(3);
-    for (const rule of carriesText) {
-      const where = rule.selectors.join(", ");
-      expect(rule.body, `${where} hard-codes a literal foreground over --blue`).not.toMatch(
-        /color:\s*(white|#fff(f{3})?\b|rgb)/i,
+    const PAIRS = [
+      ["--action", "--on-action"],
+      ["--selected", "--on-selected"],
+      ["--machine", "--on-machine"],
+      ["--blue", "--on-blue"],
+    ] as const;
+    let backed = 0;
+    let withText = 0;
+    for (const [ground, foreground] of PAIRS) {
+      const painted = rules().filter((rule) =>
+        new RegExp(`background(-color)?:[^;]*var\\(${ground}\\)`).test(rule.body),
       );
-      expect(rule.body, `${where} paints on --blue without --on-blue`).toMatch(
-        /color:\s*var\(--on-blue\)/,
-      );
+      backed += painted.length;
+      const carriesText = painted.filter((rule) => /(^|[\s;{])color:/.test(rule.body));
+      withText += carriesText.length;
+      for (const rule of carriesText) {
+        const where = rule.selectors.join(", ");
+        expect(rule.body, `${where} hard-codes a literal foreground over ${ground}`).not.toMatch(
+          /color:\s*(white|#fff(f{3})?\b|rgb)/i,
+        );
+        expect(rule.body, `${where} paints on ${ground} without ${foreground}`).toMatch(
+          new RegExp(`color:\\s*var\\(${foreground}\\)`),
+        );
+      }
     }
+    expect(backed, "no rule paints itself from a ground token any more").toBeGreaterThan(3);
+    expect(withText, "no token-backed rule sets a foreground at all").toBeGreaterThan(3);
   });
 
   it("casts shadows with a colour that is dark in BOTH themes", () => {

@@ -68,9 +68,11 @@ afterAll(async () => {
  * broke on the first screen a stranger sees, where the learned rule "the blue one is the thing to
  * press" pointed at a source toggle.
  *
- * THE ASSERTION IS THE RELATION, NOT THE HUE. It reads `--blue` off the document at run time, so
+ * THE ASSERTION IS THE RELATION, NOT THE HUE, and the hue has since moved. It reads the token the
+ * semantic layer names for the primary act -- `--action` -- off the document at run time, so
  * repainting the palette changes nothing here; what fails is a second role picking up whatever the
- * primary action is wearing.
+ * primary action is wearing. It read `--blue` until that token stopped meaning "act" and started
+ * meaning "the engine is speaking"; see `GATE-TWO-HANDS`.
  */
 describe("the primary action's fill belongs to the primary action", () => {
   it("is worn by exactly one control on the front door, with the field filled", async () => {
@@ -82,7 +84,7 @@ describe("the primary action's fill belongs to the primary action", () => {
     await page.waitForTimeout(400);
 
     const wearers = await page.evaluate(() => {
-      const raw = getComputedStyle(document.documentElement).getPropertyValue("--blue").trim();
+      const raw = getComputedStyle(document.documentElement).getPropertyValue("--action").trim();
       /* Resolve the token to the rgb() a computed style reports, via a throwaway element. */
       const probe = document.createElement("span");
       probe.style.color = raw;
