@@ -67,7 +67,36 @@ afterAll(async () => {
   await new Promise<void>((done) => (server ? server.close(() => done()) : done()));
 });
 
-/** The record as this browser holds it. Null when nothing was ever written. */
+/**
+ * The record as this browser holds it. Null when nothing was ever written.
+ *
+ * IT WAITS FOR THE WRITE, AND THAT IS A FIX FOR A RACE THIS FILE LOST THREE TIMES IN CI.
+ *
+ * `playAGame` returns as soon as the "המשחק נגמר" heading renders. The heading renders from the
+ * finished GAME STATE; the record is written by a mutation an effect fires afterwards -- `Blitz.tsx`
+ * says so in `played.saved`'s own note, which exists because "this effect runs on every state change
+ * while the game is finished" and the write is still in flight when it does. So the heading and the
+ * stored row are two events, in that order, and reading storage the instant the heading appears is
+ * reading before the write.
+ *
+ * On a fast machine the write wins and the file is green -- it passes locally every time. On a
+ * loaded runner it does not, and the failure lands on whichever test in this file drew the short
+ * straw: `R-19` on one run (`nothing was stored to check`), `R-04` on two others (`no game to
+ * read`), across two different branches, on diffs that touch no TypeScript at all.
+ *
+ * WHAT THIS DOES NOT DO IS WEAKEN THE TEST, and the `catch` is the whole reason.
+ *
+ *   - it waits for the RECORD, not for the analysis. The game is written BEFORE the engine runs --
+ *     that is R-02's fix and R-02's claim -- so waiting for the row does not wait for the queue,
+ *     and the tab still closes while the engine is working.
+ *   - a timeout is swallowed rather than thrown, so a record that never arrives falls through to
+ *     the same read and fails on the same assertion with the same message. A genuine "nothing was
+ *     stored" is still a red build; it now takes 30 seconds to say so instead of none.
+ *
+ * After this, a failure here means the write did not happen within thirty seconds, which is a
+ * defect. Before it, a failure meant either that or the runner was busy, and the assertion could
+ * not tell the two apart.
+ */
 async function storedRecord(page: Page): Promise<{
   blitzGames?: {
     gameId: string;
@@ -77,6 +106,25 @@ async function storedRecord(page: Page): Promise<{
   }[];
   blitzDecisions?: { gameId: string; thinkMs: number }[];
 } | null> {
+  await page
+    .waitForFunction(
+      () => {
+        const key = Object.keys(localStorage).find((k) => k.startsWith("decision-lab.record."));
+        if (key === undefined) return false;
+        const stored = localStorage.getItem(key);
+        if (stored === null) return false;
+        try {
+          return ((JSON.parse(stored) as { blitzGames?: unknown[] }).blitzGames ?? []).length > 0;
+        } catch {
+          return false;
+        }
+      },
+      undefined,
+      { timeout: 30_000 },
+    )
+    /* Deliberate: let the caller's own assertion report a record that never arrived. */
+    .catch(() => undefined);
+
   const raw = await page.evaluate(() => {
     const key = Object.keys(localStorage).find((k) => k.startsWith("decision-lab.record."));
     return key === undefined ? null : (localStorage.getItem(key) ?? null);
