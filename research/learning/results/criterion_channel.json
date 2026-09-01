@@ -1,0 +1,257 @@
+{
+  "branching_predicates": {
+    "RC-00": false,
+    "RC-01": false,
+    "RC-02": false,
+    "RC-03": false,
+    "RC-04": false,
+    "RC-05": false,
+    "RC-06": true,
+    "RC-07": false,
+    "RC-08": false,
+    "RC-09": false,
+    "RC-11": false,
+    "RC-12": false
+  },
+  "rule_classes": [
+    {
+      "id": "RC-00",
+      "name": "mate-in-one",
+      "size_t_plus": 0.11023148974425423,
+      "size_t_minus": 0.058791513134804234,
+      "blind_d_prime": 0.3397015484553245,
+      "blind_c": 1.395148726959628,
+      "observed_d_prime": 2.088405994275247,
+      "observed_c": -0.03673147816344957,
+      "corrected_c": -1.4318802051230777,
+      "observed_hit": 0.8601368691189051,
+      "observed_false_alarm": 0.15685411884723285,
+      "branches": false
+    },
+    {
+      "id": "RC-01",
+      "name": "loose-piece",
+      "size_t_plus": 0.04618482014993361,
+      "size_t_minus": 0.030775573912974703,
+      "blind_d_prime": 0.18648720675678376,
+      "blind_c": 1.7762717627811733,
+      "observed_d_prime": 1.555467704237147,
+      "observed_c": -0.012155407318127753,
+      "corrected_c": -1.788427170099301,
+      "observed_hit": 0.7852037777588701,
+      "observed_false_alarm": 0.22196358708718553,
+      "branches": false
+    },
+    {
+      "id": "RC-02",
+      "name": "recapture",
+      "size_t_plus": 0.049661694567909594,
+      "size_t_minus": 0.03383464306197196,
+      "blind_d_prime": 0.17906006649593897,
+      "blind_c": 1.7376727462419175,
+      "observed_d_prime": 1.3397950853240959,
+      "observed_c": 0.06243963646481543,
+      "corrected_c": -1.675233109777102,
+      "observed_hit": 0.7282264651827649,
+      "observed_false_alarm": 0.23198139595394524,
+      "branches": false
+    },
+    {
+      "id": "RC-03",
+      "name": "capture-the-checker",
+      "size_t_plus": 0.543009523809524,
+      "size_t_minus": 0.39638571428571445,
+      "blind_d_prime": 0.37073205852134083,
+      "blind_c": 0.07734744755215998,
+      "observed_d_prime": 1.2592233468875875,
+      "observed_c": -0.9628853086869431,
+      "corrected_c": -1.0402327562391032,
+      "observed_hit": 0.9443634596695821,
+      "observed_false_alarm": 0.6305361305361306,
+      "branches": false
+    },
+    {
+      "id": "RC-04",
+      "name": "save-the-attacked-piece",
+      "size_t_plus": 0.24033275447336305,
+      "size_t_minus": 0.18533019000700895,
+      "blind_d_prime": 0.19000447510412388,
+      "blind_c": 0.8002348180864719,
+      "observed_d_prime": 1.1069876811534494,
+      "observed_c": 0.04157766578843031,
+      "corrected_c": -0.7586571522980416,
+      "observed_hit": 0.6956451612903226,
+      "observed_false_alarm": 0.27589783702897563,
+      "branches": false
+    },
+    {
+      "id": "RC-05",
+      "name": "safe-promotion",
+      "size_t_plus": 0.0530101187809389,
+      "size_t_minus": 0.05053487663656724,
+      "blind_d_prime": 0.02334674229139333,
+      "blind_c": 1.6280160805656605,
+      "observed_d_prime": 1.2803099157309452,
+      "observed_c": 0.3875054687870607,
+      "corrected_c": -1.2405106117785998,
+      "observed_hit": 0.5997304582210242,
+      "observed_false_alarm": 0.15205479452054796,
+      "branches": false
+    },
+    {
+      "id": "RC-06",
+      "name": "answer-the-mate-threat",
+      "size_t_plus": 0.3173069971618108,
+      "size_t_minus": 0.10102030674321982,
+      "blind_d_prime": 0.8005166142050517,
+      "blind_c": 0.8755010084016925,
+      "observed_d_prime": 1.3487588648824858,
+      "observed_c": 0.10408304971414778,
+      "corrected_c": -0.7714179586875447,
+      "observed_hit": 0.7157616530514176,
+      "observed_false_alarm": 0.21814820808385096,
+      "branches": true
+    },
+    {
+      "id": "RC-07",
+      "name": "answer-the-queen-threat",
+      "size_t_plus": 0.15743404357009755,
+      "size_t_minus": 0.18037266035131258,
+      "blind_d_prime": -0.09111392447104627,
+      "blind_c": 0.9595027725181735,
+      "observed_d_prime": 1.1489626964585886,
+      "observed_c": -0.4157160525518211,
+      "corrected_c": -1.3752188250699946,
+      "observed_hit": 0.8389611786213571,
+      "observed_false_alarm": 0.4369268959927048,
+      "branches": false
+    },
+    {
+      "id": "RC-08",
+      "name": "answer-the-rook-threat",
+      "size_t_plus": 0.18752747193658809,
+      "size_t_minus": 0.17852461475231352,
+      "blind_d_prime": 0.03395779589033454,
+      "blind_c": 0.9040233957503548,
+      "observed_d_prime": 0.6382365571622217,
+      "observed_c": -0.16035298290363764,
+      "corrected_c": -1.0643763786539924,
+      "observed_hit": 0.6841982958946553,
+      "observed_false_alarm": 0.4369268959927048,
+      "branches": false
+    },
+    {
+      "id": "RC-09",
+      "name": "answer-the-minor-threat",
+      "size_t_plus": 0.15213137667601903,
+      "size_t_minus": 0.19180880409812745,
+      "blind_d_prime": -0.15608488321008696,
+      "blind_c": 0.9492925449560575,
+      "observed_d_prime": 0.6672632299258324,
+      "observed_c": -0.174866319285443,
+      "corrected_c": -1.1241588642415006,
+      "observed_hit": 0.6944479062811565,
+      "observed_false_alarm": 0.4369268959927048,
+      "branches": false
+    },
+    {
+      "id": "RC-11",
+      "name": "move-the-threatened-minor",
+      "size_t_plus": 0.1791861248429714,
+      "size_t_minus": 0.04236270874450347,
+      "blind_d_prime": 0.8054314952176004,
+      "blind_c": 1.3211869100030285,
+      "observed_d_prime": 1.239707854916062,
+      "observed_c": 0.34925873373881117,
+      "corrected_c": -0.9719281762642173,
+      "observed_hit": 0.6066488035892323,
+      "observed_false_alarm": 0.1662444906023608,
+      "branches": false
+    },
+    {
+      "id": "RC-12",
+      "name": "stop-the-promotion",
+      "size_t_plus": 0.12884373909155378,
+      "size_t_minus": 0.19468969632933292,
+      "blind_d_prime": -0.27113045538206193,
+      "blind_c": 0.9963086125134929,
+      "observed_d_prime": 0.09435207598831499,
+      "observed_c": 0.10957043574193497,
+      "corrected_c": -0.886738176771558,
+      "observed_hit": 0.47512437810945274,
+      "observed_false_alarm": 0.437722329505031,
+      "branches": false
+    }
+  ],
+  "r_blind_c_observed_c": 0.7201281296006853,
+  "r_blind_d_observed_d": 0.5580436373938692,
+  "shape_pair": {
+    "observed_delta_c": 0.5241250530242542,
+    "blind_delta_c": 0.37189436504697093,
+    "corrected_delta_c": 0.15223068797728323,
+    "consistency_gain": 3.4429658039939177,
+    "share_explained": 0.7095527353655452,
+    "same_items": true
+  },
+  "rc06_bands_nonparametric": {
+    "1200-1400": {
+      "a_prime": 0.8060626395569234,
+      "b_double_prime_d": 0.4060099830254954,
+      "d_prime": 1.1803210599408833,
+      "criterion_c": 0.25699718963552076
+    },
+    "1400-1600": {
+      "a_prime": 0.8216444850193316,
+      "b_double_prime_d": 0.25301531618389933,
+      "d_prime": 1.2737894027704901,
+      "criterion_c": 0.15341922719035697
+    },
+    "1600-1800": {
+      "a_prime": 0.8577854939642936,
+      "b_double_prime_d": -0.014496156111225959,
+      "d_prime": 1.534675673662497,
+      "criterion_c": -0.008409660761078963
+    },
+    "1800-3500": {
+      "a_prime": 0.8725568962683792,
+      "b_double_prime_d": -0.1955485538255503,
+      "d_prime": 1.666369315780877,
+      "criterion_c": -0.11335477829069385
+    }
+  },
+  "decomposition_uncertainty": {
+    "sensitivity_mean": 0.08071003153161255,
+    "sensitivity_ci": [
+      0.0441598941262628,
+      0.11763803962788855
+    ],
+    "criterion_mean": 0.1229376409305551,
+    "criterion_ci": [
+      0.0868372308944005,
+      0.15958909273282101
+    ],
+    "p_criterion_larger": 1.0
+  },
+  "composition_drift_bound": {
+    "observed_criterion_shift": -0.3703519679262147,
+    "t_minus_only": {
+      "from": 0.10102030674321982,
+      "to": 0.2963057816358933,
+      "ratio": 2.933130884160381
+    },
+    "both_equally": {
+      "t_plus": {
+        "from": 0.3173069971618108,
+        "to": 0.4582312560515479,
+        "ratio": 1.4441259100815629
+      },
+      "t_minus": {
+        "from": 0.10102030674321982,
+        "to": 0.1826248123075398,
+        "ratio": 1.807802987291929
+      }
+    }
+  },
+  "bootstrap_draws": 20000,
+  "seed": 20260901
+}

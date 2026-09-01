@@ -21,6 +21,7 @@
   "hypotheses": {
     "preregistered": {
       "H1_severity": "B_valid | T+ declines monotonically down the severity ladder: RC-06 mate > RC-07 queen > RC-08 rook > RC-09 minor. If it does not, severity is not what protects the prescription and the explanation given for RC-06 is wrong.",
+      "H3_noise_cell_by_design": "The five candidates designed to the narrowness rule (RC-13, RC-14, RC-18, RC-20, RC-21) will have prescription_size | T- below the median of the first twelve (0.140) and B_valid | T- below their median (0.230). If a narrow prescription does not buy an inert noise cell, the design rule extracted from round 2 is wrong and the correlation that produced it was a coincidence of twelve points.",
       "H2_outcome_over_method": "RC-09 (outcome: the threat is gone) scores above RC-11 (method: move the piece), on an identical trigger and an identical noise cell. This is the controlled version of the confounded RC-04 vs RC-06 comparison."
     },
     "H1_severity": {
@@ -403,6 +404,151 @@
         "following_the_rule_loses_100cp_or_more_t_plus": 0.2275132275132275,
         "player_d_prime": 0.09435207598831499,
         "player_d_prime_monotone_in_rating": null
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-13",
+      "name": "underpromote-to-knight",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": false,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.029850746268656716,
+        "b_valid_t_minus": 0.004,
+        "chance_rate_t_plus": 0.05520908344593639,
+        "lift_over_chance_t_plus": -0.025358337177279675,
+        "separation": 0.025850746268656716,
+        "position_between_anchors": -2.474781266083378,
+        "base_rate_t_plus": 0.0003990922141278644,
+        "max_abs_smd": 0.5807980842470419,
+        "contextual_exception_rate_t_plus": 0.9701492537313433,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.5970149253731343,
+        "player_d_prime": 0.4172394388296117,
+        "player_d_prime_monotone_in_rating": null
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-14",
+      "name": "capture-the-mating-piece",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.6416666666666667,
+        "b_valid_t_minus": 0.5,
+        "chance_rate_t_plus": 0.0451182428158277,
+        "lift_over_chance_t_plus": 0.5965484238508391,
+        "separation": 0.14166666666666672,
+        "position_between_anchors": -1.9755747126436793,
+        "base_rate_t_plus": 0.0014295840506072753,
+        "max_abs_smd": 0.7809454008620221,
+        "contextual_exception_rate_t_plus": 0.3583333333333333,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.22083333333333333,
+        "player_d_prime": 0.36314859078158035,
+        "player_d_prime_monotone_in_rating": null
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-18",
+      "name": "move-the-piece-that-must-move",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.632,
+        "b_valid_t_minus": 0.164,
+        "chance_rate_t_plus": 0.16436275962252245,
+        "lift_over_chance_t_plus": 0.46763724037747756,
+        "separation": 0.46799999999999997,
+        "position_between_anchors": -0.5689655172413801,
+        "base_rate_t_plus": 0.0533353982880731,
+        "max_abs_smd": 0.6455191945552662,
+        "contextual_exception_rate_t_plus": 0.368,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.18,
+        "player_d_prime": 1.4027594576853426,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-20",
+      "name": "defend-the-piece-in-place",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.228,
+        "b_valid_t_minus": 0.324,
+        "chance_rate_t_plus": 0.0953150918762074,
+        "lift_over_chance_t_plus": 0.1326849081237926,
+        "separation": -0.096,
+        "position_between_anchors": -3.0000000000000018,
+        "base_rate_t_plus": 0.04149963366908703,
+        "max_abs_smd": 0.4081036252314014,
+        "contextual_exception_rate_t_plus": 0.772,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.39805825242718446,
+        "player_d_prime": -0.23451738388323495,
+        "player_d_prime_monotone_in_rating": false
+      },
+      "verdict": "FAILS-A-GATE"
+    },
+    {
+      "id": "RC-21",
+      "name": "push-the-unstoppable-passer",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "G1_structural": true,
+        "G2_testable": true,
+        "G3_occurs": true,
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      },
+      "eligible": false,
+      "measurements": {
+        "b_valid_t_plus": 0.164,
+        "b_valid_t_minus": 0.096,
+        "chance_rate_t_plus": 0.06908433065235858,
+        "lift_over_chance_t_plus": 0.09491566934764142,
+        "separation": 0.068,
+        "position_between_anchors": -2.2931034482758634,
+        "base_rate_t_plus": 0.019573388292897946,
+        "max_abs_smd": 0.49338221629871326,
+        "contextual_exception_rate_t_plus": 0.836,
+        "following_the_rule_loses_100cp_or_more_t_plus": 0.472,
+        "player_d_prime": 0.4873200676224594,
+        "player_d_prime_monotone_in_rating": false
       },
       "verdict": "FAILS-A-GATE"
     }

@@ -17,9 +17,13 @@ Three structural facts about those PRs, established by inspection rather than as
    `git merge-tree` reports no conflict. **They contradict each other in claims, not in text** — which
    is why a textual merge would have hidden the contradiction rather than surfaced it. See
    [`RECONCILIATION.md`](RECONCILIATION.md) §C1.
-3. **None of the three is merged.** Every statement below that comes from #49/#50/#51 is therefore a
-   statement about an unmerged branch, and is labelled as such. `main` does not contain the round-4
-   screen, the action-set model, `C10`, the criterion-channel result, or `D24`.
+3. **None of the three was merged when this was written, and all three are now.** Every statement
+   below that comes from #49/#50/#51 was therefore a statement about an unmerged branch, and is
+   labelled as such throughout; `main` did not then contain the round-4 screen, the action-set
+   model, `C10`, the criterion-channel result, or `D24`. It does now — #50, #49 and #51 landed in
+   that order, and this branch has been merged with `main` since. **The labels are left in place
+   rather than swept**, because what each claim was checked against is a fact about the check and
+   does not change when the branch does.
 
 Sections are the four the programme allows. A claim appears once, in the strongest section it has
 earned, and nothing that was true in an earlier round appears here because it was true then.

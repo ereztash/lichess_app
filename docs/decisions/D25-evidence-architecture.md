@@ -24,11 +24,15 @@ behaviour changed: none.**
 eligible. **It amends rather than erases**: D24's sequencing constraint, its architecture finding
 about `mayPrescribe`, and its two pre-human gates all survive, and Gate A is now answered.
 
-> **`D24` is not on this branch.** It lives on the unmerged
-> [#49](https://github.com/ereztash/lichess_app/pull/49), as do all of `docs/learning-v2/`. Every
-> reference to them here is a reference to that branch at `72f25de`, quoted rather than linked, so
-> that this decision reads correctly whether or not #49 lands. **If #49 merges, D24's verdict line
-> should be amended to point here** — not deleted.
+> **`D24` was not on this branch when this was written, and it is now.** It lived on
+> [#49](https://github.com/ereztash/lichess_app/pull/49), as did all of `docs/learning-v2/`, so
+> every reference to them here was written as a quotation of that branch at `72f25de` rather than a
+> link — deliberately, so that this decision would read correctly whether or not #49 landed. It
+> landed, along with [#50](https://github.com/ereztash/lichess_app/pull/50) and
+> [#51](https://github.com/ereztash/lichess_app/pull/51), and this branch has been merged with
+> `main` since. The quotations are left as quotations because that is what they were checked as;
+> what the merge required is what this file asked for in advance — **D24's row in
+> [`README.md`](README.md) now says it is superseded here, and D24 itself is not deleted.**
 
 ---
 

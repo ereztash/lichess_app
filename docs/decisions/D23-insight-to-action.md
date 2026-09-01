@@ -1,5 +1,16 @@
 # D23 — is there a teaching step between an insight and a change in what the player does?
 
+> **SUPERSEDED IN PART BY [D24](D24-learning-architecture.md), AND CORRECTED ON TWO POINTS.**
+> The finding that no teaching step exists stands. Two things below are wrong:
+> **(1)** the `47–81%` figure is the probability of passing **one sitting**; `replicated` requires
+> **two separate passing days**, so the null is P(pass)² — **9–65%**.
+> **(2)** the recall scorer is materially better than described — stop-list, Hebrew normalisation,
+> a two-word absolute floor beside the ratio, an `isScoreable` guard, symmetric refutation, and
+> unseen non-opening transfer positions.
+> D24 also supersedes this node's choice of first experiment: Study 0 is a well-designed study of
+> the wrong question. See [`docs/learning-v2/`](../learning-v2/).
+
+
 **Mode:** `DEFER` — the layer does not exist, one study that would earn the first component is
 specified, and the condition that would say the current design is fine is written into it.
 **Evidence level:** E1 — external implementations exist and are evidenced in the literature; nothing
@@ -25,7 +36,7 @@ recorded in [`docs/learning/FALSIFICATION_REGISTER.md`](../learning/FALSIFICATIO
 
 **The transfer bar has no null model.** `TRANSFER_POSITION_COUNT = 3`,
 `TRANSFER_MINIMUM_SUCCESSES = 2`. At per-item rates the components plausibly produce, the grade
-`replicated` arrives **47–81%** of the time whether or not anything was learned. Nothing in the
+`replicated` arrives **9–65%** of the time whether or not anything was learned *(corrected — the original 47–81% was the one-sitting figure)*. Nothing in the
 repository estimates the base rate, so nothing subtracts it.
 
 **A graded success is not rule use.** `record-service.ts` scores one as *word-overlap recall floor

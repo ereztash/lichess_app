@@ -1,0 +1,31 @@
+RC-06 answer-the-mate-threat: what an UNAIDED player already does
+
+pooled hit rate      0.7158  95% CI [0.6960, 0.7347]   n(T+) = 2080
+pooled false alarms  0.2181                          n(T-) = 80332
+chance rate on T+    0.3170   (share of legal moves satisfying B)
+realised range       0.5838   ((H - chance) / (1 - chance))
+
+band          d-prime        c      hit    false    n T+  realised    left
+1200-1400      1.1803   0.2570   0.6305   0.1985     363    0.4590  0.3695
+1400-1600      1.2738   0.1534   0.6856   0.2147     764    0.5397  0.3144
+1600-1800      1.5347  -0.0084   0.7811   0.2239     627    0.6794  0.2189
+1800-3500      1.6664  -0.1134   0.8281   0.2358     252    0.7483  0.1719
+
+hit-rate gain, 1200-1400 -> 1800-3500
+  observed                         +0.1976
+  with the criterion held fixed    +0.0805   (sensitivity)
+  with sensitivity held fixed      +0.1228   (criterion)
+
+anchor        sensitivity  criterion   larger
+pooled            +0.0805    +0.1228   criterion
+low_band          +0.0873    +0.1286   criterion
+high_band         +0.0689    +0.1103   criterion
+  -> the ordering is ROBUST to the anchor choice
+
+THE CRITERION TERM IS THE LARGER ONE, and the false-alarm rate rises across the bands
+rather than falling, which is the same fact from the other side.
+
+DO NOT READ THAT AS A WILLINGNESS. `criterion_channel.py` shows RC-06's two cells score
+different acts -- a hit is 'no mate in one', a false alarm is 'no check at all' -- so no
+bias parameter is identified here. What the numbers support is narrower: the RATIO
+between stopping mate threats and leaving the opponent checkless rises with rating.

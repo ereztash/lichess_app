@@ -20,12 +20,15 @@ checks its own constants against `shared/learning-record.ts` and fails if they d
 The product can justify a finding and can schedule a test of it, and **between those two things
 there is no teaching step at all** — so the layer that would convert an insight into a decision
 policy does not exist to be evaluated, and the instrument that would tell you whether it worked
-grades a rule `replicated` on a bar that clears **47–81%** of the time from base rates alone.
+grades a rule `replicated` on a bar with no null model at all — reachable **9–65%** of the time
+from base rates *(corrected by [D24](../decisions/D24-learning-architecture.md); the original
+47–81% was the one-sitting figure, and `replicated` needs two passing days)*.
 
 ## The three findings that did not need a person
 
-1. **The transfer bar has no null model.** Three positions, two successes. At plausible component
-   rates the grade `replicated` arrives 47–81% of the time whether or not anything was learned.
+1. **The transfer bar has no null model.** Three positions, two successes, on two separate days.
+   At plausible component rates the grade `replicated` arrives **9–65%** of the time whether or
+   not anything was learned. *(Corrected by D24.)*
 2. **A "success" is not rule use.** `record-service.ts` scores one as *word-overlap recall floor
    cleared* **and** *move accurate*. The first is documented in the repo as "a floor against
    unrelated text, not a memory measure"; the second is what an unaided player of that strength
