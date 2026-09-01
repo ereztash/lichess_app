@@ -89,6 +89,31 @@ time-pressure failure · G/H = immediate availability **vs** delayed retrieval f
 cue = weak recognition a cue does not repair **vs** one it does · L7 = the construct applies **vs**
 an alternative strategy producing the same move.
 
+### Doubling the items — the robustness check that matters most
+
+40 items per condition instead of 20. **Everything improves except the one column that decides the
+gate.**
+
+| observation set | A/B | **C/D** branching | **C/D fixed** | E/F | G/H | cue | L7 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| move only | .947 | .500 | **.500** | .500 | .500 | .500 | .500 |
+| move, both cells | .950 | .998 | **.500** | .500 | .500 | .500 | .500 |
+| + time | .950 | .999 | **.500** | .500 | .500 | .500 | .783 |
+| + timed condition | .991 | .999 | **.500** | .876 | .500 | .500 | .779 |
+| + delayed condition | .997 | .998 | **.500** | .885 | .879 | .500 | .790 |
+| + generic cue | 1.000 | .998 | **.500** | .891 | .890 | .987 | .801 |
+| + candidate set | 1.000 | .998 | **.500** | .886 | .881 | .986 | .778 |
+
+**`C/D` under the fixed predicate is .500 at every rung at double the sample.** Underidentification
+is not a power problem, and no study size fixes it. Two further readings:
+
+- **`L7` does not improve with more items** (~.78–.80 at both sizes) while everything else does.
+  Its ceiling is set by **between-participant speed variance**, which more items per participant do
+  not reduce. More *participants* would not help either — the offset is a property of each person.
+- **Everything that has the right condition present improves substantially** — `E/F` .797 → .886,
+  `G/H` .795 → .881, `cue` .940 → .986 — which is what a well-specified distinction looks like when
+  you give it more data, and is the contrast that makes `C/D`'s flat line meaningful.
+
 ---
 
 ## What the two tables say
