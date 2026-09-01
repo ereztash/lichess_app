@@ -194,7 +194,48 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  * this is `audit.local/probe-stimulus.ts` in the pass's working notes and the method is three
  * lines: list the touched classes, render the pre-commit states, ask which are on screen.
  */
-export const CURRENT_PROTOCOL_VERSION = 3;
+/*
+ * 3 -> 4: THE PRE-COMMIT SCREEN'S COLOUR SEMANTICS.
+ *
+ * WHAT CHANGED, AND IT IS EXACTLY THE LIST THE 2 -> 3 NOTE ABOVE SAYS WOULD FORCE A BUMP. Every
+ * one of these paints on `DECIDE` or `ANSWER_INSTRUMENT` and is part of the instrument:
+ *
+ *   .commitment-submit        ready: filled `--blue` -> filled `--action` (the page's own ink).
+ *                             not-ready: `--warn` text on a dashed `--warn` edge -> `--muted` on
+ *                             a dashed `--edge`.
+ *   .commitment-summary       `--warn` -> `--muted`.
+ *   .required-mark            `--warn` -> `--muted`.
+ *   .read-chip.selected       filled `--blue` -> filled `--selected`; state separation against the
+ *                             unselected chip 5.21:1 -> 11.4:1.
+ *   .confidence-row button    edge `--hairline-strong` (1.64:1) -> `--edge` (3.22:1).
+ *   .step-index (open step)   filled `--blue` -> filled `--ink`.
+ *   .commitment-field textarea  `background: transparent` -> `--surface-recessed`.
+ *   .context-loop, .record-mode  given a measure: 116 characters on one line -> 58.
+ *   .record-mode.session-only `--warn` -> `--edge` / `--ink`.
+ *   .board-note > i, button   `--blue` -> `--muted` / `--ink`.
+ *   the board itself          `.selected-square` and `.legal-square::before` moved off the
+ *                             engine's hue onto the board's own family, and the focus ring
+ *                             gained a halo so it is visible on a dark square.
+ *
+ * THE ONE THAT SETTLES IT ON ITS OWN. On a cold `DECIDE` before this change, the ONLY saturated
+ * colour on the screen was `--warn`, on the submit's dashed edge and on the required marks --
+ * an alarm about something the player had not yet had the chance to do. A decision taken in front
+ * of that screen and one taken in front of a screen with no evaluative colour on it are two
+ * measurements, and nothing in the row itself tells them apart. Decision time is measured to the
+ * commit, so what the control that ends it looks like is not cosmetic.
+ *
+ * THIS IS NOT A CLAIM THAT v3 ROWS ARE WRONG. Only that they are not the same population. A
+ * version split is not free -- it fragments what a later analysis may pool -- and that cost is
+ * paid here on purpose rather than avoided by calling a stimulus change a repaint.
+ *
+ * WHAT REMAINED IDENTICAL: commitment requirements, confidence collection and its sampling, the
+ * candidate list, the counterfactual probe and its rate, reveal timing, engine timing, thresholds,
+ * eligibility, scoring, the measurement schema, the interpretation policy, every word of
+ * measurement wording, the order the questions are asked in, and the position of every control.
+ * `LAW 9`'s three friction points are untouched. `deriveInteractionMode`, `MODE_CONTRACT`,
+ * `makingEvidence`, `engineMayRun` and `next-action.ts` were not edited.
+ */
+export const CURRENT_PROTOCOL_VERSION = 4;
 
 /**
  * What analysis timing a protocol is allowed to have.
