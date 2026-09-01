@@ -19,12 +19,28 @@ families. Every number below was measured on the built app, not read out of the 
 
 ## A. Executive diagnosis
 
-**It is not colour.** The palette is tokenised, both themes are declared, and every colour pair in
-the loop carries a measured contrast ratio in a comment beside it. Replacing it would change
-nothing about the report.
+**Colour is not the primary driver, and that is a weaker claim than the one this section made
+first.** It said *"It is not colour"*, and the evidence does not reach that. What is measured here
+is that the palette is tokenised, both themes are declared, and every colour pair in the loop
+carries a contrast ratio in a comment beside it — which establishes that the colour is
+**systematic and accessible**. It does not establish that it is **liked**.
 
-**It is not component count either.** The screens the owner objects to hold roughly what their
-mode contract says they may hold.
+Those are separate dimensions and the literature this task's §5 names keeps them separate on
+purpose. VisAWI treats **Colorfulness** as a facet of its own, beside Simplicity, Diversity and
+Craftsmanship — not as something derivable from token discipline or contrast compliance
+([Moshagen & Thielsch 2010](https://www.sciencedirect.com/science/article/pii/S1071581910000777)).
+Lavie & Tractinsky separate *classical* aesthetics — order, cleanliness, clarity — from
+*expressive* aesthetics, and an interface can improve a great deal on the first while remaining
+unattractive on the second
+([2004](https://www.sciencedirect.com/science/article/abs/pii/S1071581903001642)).
+
+So the claim this document is entitled to is: **nothing found here points at colour as the cause,
+and colour was therefore not changed.** Whether the palette is *pleasant* is untested, is a
+`Colorfulness` question rather than a structural one, and is listed in §10.
+
+**Component count is not the driver either.** The screens the owner objects to hold roughly what
+their mode contract says they may hold — though see the correction to M1 below, which is the same
+kind of overreach and matters more.
 
 The cause is that **this product has a typographic scale but no typographic hierarchy, and no
 spacing system at all.** Three mechanisms, in order of how much of the report each explains.
@@ -52,9 +68,25 @@ inside a two-pixel band. Two more sizes exist below the scale's own floor: `9px`
 
 Three steps spanning two pixels is not a hierarchy. It is below the difference an eye can rank at
 reading distance, so **every text role reads as equally important**, and the reader is left to
-find the task by reading rather than by looking. That is precisely the shape of "there is too much
-information" and "the next action is not obvious": the information is not excessive, it is
-*unranked*.
+find the task by reading rather than by looking.
+
+**That explains a large part of "there is too much information" without settling it, and the first
+draft of this paragraph overstated it.** It said *"the information is not excessive, it is
+unranked"* — and only the second half of that was measured. What the numbers above establish is
+that the information was **badly ranked**. They say nothing about how much of it there should be.
+
+The two are separate questions and this document cannot answer the second. `MODE_CONTRACT` says
+what a state may *permit*; permission is not a demonstration that everything permitted should be
+*visible*. And this pass leaves several quantity questions open by its own account: the move
+timeline is still the third-largest mass on `DECIDE` with one move on the board (§9 P2-1), the
+ribbon still occupies the band above everything, four icon controls still sit at one weight in the
+header, `EXPLORE` got no state-specific tuning, and the record's twelve-row *"what is still
+unclear"* list is left as twelve peers (§10 Q8).
+
+So the claim this document is entitled to is: **a substantial part of the reported overload is
+explained by weak hierarchy, and the residual — whether there is simply too much on these screens —
+is untested.** It is an owner judgement first and a field question after that, not something more
+CSS reasoning can reach.
 
 The upper half of the scale is nearly unused. `--panel-display` — commented "the one largest thing
 on a screen, and there is one" — appears four times in the whole product and **not at all on
@@ -756,27 +788,122 @@ Questions that cannot honestly be settled further without watching real people.
 8. **Is the record page's twelve-row "what is still unclear" list legible as twelve peers**, or
    does it need grouping? They genuinely *are* twelve open bucketings; whether that reads as
    information or as a wall is not answerable from the repository.
+9. **Is the palette liked?** Added after the owner's review of the merged PR, because §A's first
+   draft answered this by assuming it. Everything measured here is `Simplicity` and
+   `Craftsmanship` — order, ranking, one card language, one spacing scale. `Colorfulness` is a
+   separate VisAWI facet, and nothing in this pass measured it: no hue moved, so there is not even
+   a before-and-after to compare. A palette can be tokenised, contrast-compliant, theme-complete
+   and still not pleasant, and no browser can tell us which.
+10. **Is there simply too much on these screens?** Also added after review. This pass measured that
+    the information was badly *ranked* and fixed that; it never measured whether the quantity is
+    right. The residual is in §9's P2 list — the timeline's mass on `DECIDE`, the ribbon, four
+    header controls at one weight, `EXPLORE` untuned — and every one of them is a question about
+    how much, not about order.
 
 ## 11. Pre-field DOD verdict
 
-Mechanical: core actions usable at 12 viewports; no known P0/P1 mechanical defect.
-Hierarchy: every core state has one visual priority matching its `MODE_CONTRACT.central`; the
-next action is findable with all copy removed. System: type follows ranks, spacing follows a
-scale, surfaces follow one rule with one deliberate variant, colour follows roles.
-Evidence: no claim strengthened, protocol change acknowledged and versioned, measurement
-behaviour intact. Verification: `npm run verify` green, all positive controls red, axe 0
-violations, bundle within budget.
+### The verdict this section first recorded was wrong, and the way it was wrong is the point
+
+It read `PRE-FIELD VISUAL DOD: PASS`, over a checklist of five rows — mechanical, hierarchy,
+system, evidence, verification. **§41's owner-acceptance gate was not one of the five.** It was not
+failed, or deferred, or noted as outstanding: it was absent, and its absence let four green rows
+and a sixth that could not be self-assessed add up to a pass.
+
+That is a scoring error of exactly the kind this repository's gates exist to prevent — a check
+that reports green having never run. `tests/layout/browser.ts` refuses to skip for this reason and
+says so: *"a test that passes because it did not run is the exact failure the product is about."*
+A DOD that omits its one non-automatable gate is that failure in a document instead of a suite.
+
+**It is also a gate no amount of the other rows can pay for.** 2,886 passing tests, 27 gates and a
+clean axe run are evidence about mechanics and hierarchy. §41 asks a different question — *is the
+owner willing for this to represent the product* — and it is non-compensatory by construction:
+the whole reason it exists is that everything else can be green on a screen somebody still rejects.
+
+### The accurate status
+
+| | |
+| --- | --- |
+| Interaction mechanics | **PASS** |
+| Visual hierarchy engineering | **PASS** |
+| Visual owner acceptance | **PENDING** — §41, not yet performed |
+| Evidence/UI reconciliation | **FAIL** — see §13 |
+| Real-user validation | **NOT STARTED** |
 
 ```
-PRE-FIELD VISUAL DOD: PASS
+PRE-FIELD VISUAL DOD: PENDING OWNER + EVIDENCE RECONCILIATION
 ```
 
-No known repo-solvable or browser-solvable P0/P1 remains. Everything left is P2 (§9) or
-FIELD-REQUIRED (§10).
+The engineering half stands and is unchanged by this correction: no known repo-solvable or
+browser-solvable P0/P1 remains in the visual work, and everything left of it is P2 (§9) or
+FIELD-REQUIRED (§10). What changed is the arithmetic — that half was never the whole verdict.
+
+**What would move each of the two open rows.** Owner acceptance: the owner opens the built app at
+`ARRIVE`, `DECIDE` and `REVEAL` **before reading this document**, and answers one question — is
+this still experienced as ugly or cluttered, or has the feeling changed. Reading the audit first
+contaminates the answer, which is the whole value of it. If the answer is still *ugly*, that
+reaction is **new data** and the next investigation is derived from it rather than from more
+literature. Evidence reconciliation: §13.
 
 ## 12. Stop condition
 
-**This visual pass is done.** Further change now requires observed user behaviour, field usability
-evidence, a newly discovered defect, or a new explicit product requirement — not another article,
-another competitor, or another pass over the same screens. The list in §10 is the list of things
-that need people, and reasoning harder will not shorten it.
+**Further visual research-driven development is done, and that is narrower than "the work is
+done".** No article, competitor or design pattern justifies another pass over these screens;
+reasoning harder will not shorten §10, and it will not answer §41 either.
+
+What remains is not research. It is one person looking, and one contradiction to resolve — and
+neither is reached by continuing to reason about CSS.
+
+## 13. The contradiction this pass lowered the volume on instead of resolving
+
+**Found by the owner in review of the merged PR, verified here against the tree, and it is not a
+visual finding.** It is the reason the row above reads FAIL rather than PENDING.
+
+`docs/decisions/D25-evidence-architecture.md` opens with its verdict and its status line:
+
+```
+# CONSTRUCT-UNDERIDENTIFIED
+Evidence level: E1 reached, E2 attempted and not reached.
+Humans measured: 0. Production behaviour changed: none.
+```
+
+And `client/src/lib/features.ts`, in its entirety:
+
+```ts
+export const VERIFIED_LEARNING_ENABLED = import.meta.env.VITE_VERIFIED_LEARNING_ENABLED !== "false";
+```
+
+`!== "false"` means **on unless explicitly switched off**. It gates `<LearningRuleComposer>` after
+every reveal in `Home.tsx` and a section of `RecordExplorer`, and `docs/VERIFIED_LEARNING.md` says
+so in as many words: *"The feature is enabled by default."*
+
+**So the product ships a surface named `VERIFIED` by default, on top of a construct its own
+governing decision records as underidentified, with E2 not reached and zero humans measured.**
+
+Three things make this worse than a naming quibble:
+
+1. **`features.ts` is a one-line file with no comment.** In a repository where a `gap` value
+   carries a fifteen-line paragraph and a colour token carries its measured contrast ratio, the
+   single line that decides whether a surface called VERIFIED reaches every user is the least
+   explained line in the tree. Nothing anywhere argues for the default; only how to turn it off.
+2. **D25's own status line may be describing an omission rather than a state of rest.**
+   *"Production behaviour changed: none"* reads as a careful refusal to act on a finding. But
+   production behaviour was *already* shipping the learning surface on by default before D25
+   reached its verdict, so leaving it unchanged is not neutrality — it is the stronger claim
+   continuing to ship while the weaker one is written down.
+3. **This visual pass touched it and made it quieter.** The rule composer's invite was de-ranked
+   from `--panel-title` to `--panel-data` (§7) because it was sitting at the same heading rank as
+   the reveal's own three sections. That was correct as typography and it is **not** a resolution:
+   §27 of the brief asks that experimental surfaces not be drawn as more verified than the
+   evidence supports, and lowering a heading by one step does not address a constant named
+   `VERIFIED` that is on for everyone.
+
+**Why it was not fixed in this pass.** Flipping that default changes what every user sees, and
+§47 of the brief lists *"change learning validity"* as a non-goal — deliberately, since the visual
+work was not supposed to become a licence to re-decide the instrument. Recording it as a blocker
+is inside this document's remit; flipping it is a product decision and belongs to whoever owns
+D25's consequences.
+
+**What resolving it requires**, and the choice is genuinely open: whether the surface becomes
+opt-in and stays named as it is, whether it keeps its default and is renamed to something the
+evidence supports, or whether both. Those are different products, not different CSS. What is not
+open is shipping `VERIFIED`, on by default, over `CONSTRUCT-UNDERIDENTIFIED`.
