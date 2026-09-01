@@ -4,7 +4,7 @@
 
 ```
 BASE_SHA  b9a228c979d7b2ff9e3c75875e18dc100bbf00ca
-HEAD_SHA  see the branch tip; this document is written against the last commit below
+HEAD_SHA  0cbb46a  (six commits; the branch tip may carry one more that records this run)
 BRANCH    claude/decision-lab-visual-identity-s1t3ng
 ```
 
@@ -343,8 +343,9 @@ FIELD VALIDATION:         PENDING
 
 **What each row rests on.**
 
-- **Technical:** `npm run verify` — typecheck, build, 2,929 tests, **28 gates green**, **28
-  positive controls red**, bundle within budget. axe: 0 violations on five populated states. No
+- **Technical:** `npm run verify`, run to completion on the tip — typecheck, build, **2,903 tests
+  passed / 26 skipped across 259 files**, **28 gates green**, **28 positive controls red**, bundle
+  within budget (initial download 757.6 kB against a 761 kB ceiling). axe: 0 violations on five populated states. No
   horizontal overflow at four viewports or a 32px root. Zero live animations under reduced motion.
 - **Art direction system:** one thesis, one signature, one system, a stated risk, a stated
   restraint; the subject-swap test passes **by one row, and the table says so**.
