@@ -892,15 +892,12 @@ export const GATES: Gate[] = [
       runVitestFile(
         "tests/gates/two-hands.test.ts",
         "the machine may speak and may not ask for anything",
-        undefined,
-        "GATE-TWO-HANDS",
       ),
     positiveControl: () =>
       runVitestFile(
         "tests/fixtures/controls/two-hands.control.test.ts",
         "a control in the engine's hue, and the engine's own object in the page's ink",
         "vitest.controls.config.ts",
-        "GATE-TWO-HANDS",
       ),
   },
   {
