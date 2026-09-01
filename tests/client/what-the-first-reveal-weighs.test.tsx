@@ -85,6 +85,39 @@ describe("on a screen carrying a reveal, the largest thing is the reveal's own s
     expect(sizeOf(".one-thing-text")).toBeGreaterThan(engine);
   });
 
+  it("gives the empty answer a rank too, without promoting it to a finding", () => {
+    /*
+     * THE OTHER BRANCH, AND THE ONE A NEW PLAYER MEETS FIRST.
+     *
+     * `.one-thing-text` renders when the reveal HAS something to say. `.one-thing-none` renders
+     * when it does not -- which is every early reveal -- and it shipped at `--panel-body` under
+     * `opacity: 0.82`: quieter than the prose beside it, inside the block `MODE_CONTRACT.REVEAL`
+     * names central. Measured on the built app in that state, the caveat block above it was
+     * 57,539px^2 against this one's 36,352. The state where the product has LEAST to say was the
+     * state where its central object disappeared.
+     *
+     * `shared/next-action.ts` already made this argument about its own `none`: *"NOTHING TO
+     * PROPOSE, AND IT IS A FIRST-CLASS ANSWER. A function that always has a suggestion is a
+     * function that will invent one."*
+     *
+     * BOTH HALVES MATTER AND THEY PULL OPPOSITE WAYS. It has to outrank the prose around it,
+     * because it is the block's answer. It must NOT reach the finding's rank, because "nothing
+     * here yet" is not a finding and drawing it like one would be the epistemic overclaim D25
+     * exists to prevent.
+     */
+    const none = sizeOf(".one-thing-none");
+    expect(none, "the empty answer is quieter than the prose it answers with").toBeGreaterThan(
+      SCALE["--panel-body"],
+    );
+    expect(none, "nothing-to-report is drawn as loudly as a finding").toBeLessThan(
+      sizeOf(".one-thing-text"),
+    );
+    expect(
+      block(".one-thing-none"),
+      "the empty answer is faded, which is how it lost its rank the first time",
+    ).not.toMatch(/opacity/);
+  });
+
   it("puts the disclaimer first and smallest, which are two different claims", () => {
     const limits = sizeOf(".reveal-limits li");
     expect(limits, "the block about what cannot be said outweighs what can").toBeLessThan(

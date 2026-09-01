@@ -1840,10 +1840,9 @@ export default function Home() {
             <span>COMMIT · THEN REVEAL</span>
           </div>
         </button>
-        <div className="header-reading">
-          <span>תור</span>
-          <b>{sideToMove}</b>
-        </div>
+        {/* `תור / לבן` was read here AND in `.workspace-meta` beside the board -- one fact at one
+            rank, 400px apart, both competing with the task heading. The one next to the board is
+            where the fact is used; nothing moved behind a disclosure. */}
         <div className="header-actions">
           {/*
             * THE CONTINUATION CONTROL IS `RevealPanel`'s, AND NOT ALSO THE HEADER'S (LAW 2).

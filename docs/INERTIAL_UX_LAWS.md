@@ -145,6 +145,23 @@ that direction.
 
 ---
 
+### The other half of this law is perceptual, and it was not held
+
+LAW 2 is satisfied by `primaryAction === 1`. A state can satisfy it and still present six
+competing priorities to the eye, and this one did: measured on the built app, the control that
+records a decision rendered in this stylesheet's *secondary* language while `.primary-control` --
+"take another decision", offered after the reveal -- rendered filled blue. One act, correctly
+counted, drawn as the quieter of two.
+
+The audit that found it, the type and spacing systems that were missing underneath it, and the
+falsification passes: [`docs/VISUAL_ARCHITECTURE_AUDIT.md`](VISUAL_ARCHITECTURE_AUDIT.md). It is
+not a law and it registers no gate; the invariants it *could* express as tests are in
+`tests/layout/what-the-eye-ranks-first.layout.test.ts` and
+`tests/layout/the-control-that-records-a-decision.layout.test.ts`, and the rest is
+[FIELD-REQUIRED](VISUAL_ARCHITECTURE_AUDIT.md).
+
+---
+
 ## LAW 3 — State decides, screen renders
 
 `PostGame` does not decide what comes next. Neither does `ResumeScreen`, nor `ClaimPanel`. One

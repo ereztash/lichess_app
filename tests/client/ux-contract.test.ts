@@ -402,10 +402,44 @@ describe("the control that records a decision is always reachable", () => {
     expect(submit).toMatch(/bottom:\s*\d/);
   });
 
-  it("gives it an opaque ground, because the panel scrolls underneath it", () => {
-    // `background: transparent` was the shipped value, which over a scrolling panel would put
-    // option chips through the middle of the button.
-    expect(block(".commitment-submit")).toMatch(/background:\s*var\(--surface\)/);
+  /*
+   * THIS ASSERTION WAS GREEN WHILE THE DEFECT IT NAMES WAS ON SCREEN, and that is the finding.
+   *
+   * It read `.commitment-submit` and matched `background: var(--surface)`, and its own comment
+   * described what was shipping: *"`background: transparent` was the shipped value, which over a
+   * scrolling panel would put option chips through the middle of the button."* The base rule was
+   * correct throughout. `.commitment-submit.not-ready`, 1,552 lines further down, set
+   * `background: transparent` -- and `not-ready` is the panel's DEFAULT state, so the transparent
+   * one was the ordinary one. Photographed at 390x844, scrollY 400, with the read chips of step 2
+   * rendering through `חסר: בחרו רמת ביטחון`.
+   *
+   * Same shape as the `.workbench` defect: a rule and its override owned by two places, and the
+   * check reading one of them. A selector-scoped assertion cannot see a cascade.
+   *
+   * So there are two checks now and neither is the old one. Here: EVERY rule that sets a
+   * background on this control sets an opaque one, derived from the stylesheet rather than from a
+   * list somebody has to remember to extend -- the same device the `--on-blue` check above uses.
+   * And in a real browser, where the composited value can actually be read:
+   * `tests/layout/the-control-that-records-a-decision.layout.test.ts`.
+   */
+  it("gives it an opaque ground in EVERY state, because the panel scrolls underneath it", () => {
+    const grounds = rules()
+      .filter((rule) => rule.selectors.some((sel) => sel.includes(".commitment-submit")))
+      .flatMap((rule) =>
+        [...rule.body.matchAll(/(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/g)].map((m) => ({
+          where: rule.selectors.join(", "),
+          value: m[1].trim(),
+        })),
+      );
+    expect(grounds.length, "no rule paints this control at all any more").toBeGreaterThan(1);
+    for (const { where, value } of grounds) {
+      expect(value, `${where} leaves the sticky submit see-through`).not.toMatch(
+        /transparent|rgba\([^)]*,\s*0?\.\d+\s*\)|\bnone\b/,
+      );
+      expect(value, `${where} paints the submit with something that is not a token`).toMatch(
+        /var\(--[a-z-]+\)/,
+      );
+    }
   });
 });
 

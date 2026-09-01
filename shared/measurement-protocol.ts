@@ -100,7 +100,53 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  * wrong. It is a claim that they are not the same population, which is a weaker and much safer
  * thing to say.
  */
-export const CURRENT_PROTOCOL_VERSION = 2;
+/*
+ * 2 -> 3: THE VISUAL PASS. Nothing was added to or removed from the pre-commit screen, no
+ * measurement wording was rewritten, no question moved, no sampling rate changed and no control
+ * changed position. What changed is SALIENCE, and this field's own 1 -> 2 note is the reason
+ * that is enough:
+ *
+ *   "IT IS THE STIMULUS THAT CHANGED, WHICH IS WHAT THIS FIELD IS FOR. The examples in the
+ *    paragraph above are a sampling rate and the moment a question appears; what is on screen
+ *    while the answer is given is the same kind of fact."
+ *
+ * What is on screen while the answer is given, before and after:
+ *
+ *   - THE CONTROL THAT RECORDS THE DECISION IS LEGIBLE. `.commitment-submit` declares an opaque
+ *     ground with a comment saying why; `.not-ready` -- the panel's DEFAULT state -- repealed it
+ *     1,552 lines later with `background: transparent`. Photographed at 390x844, scrollY 400,
+ *     with the instrument's own read chips rendering through the button's text. A player who
+ *     could not read the control that ends the decision was being timed to it.
+ *   - IT IS ALSO NOW THE PRIMARY CONTROL BY TREATMENT. It rendered in the secondary language --
+ *     a cream fill and a hairline -- while `.primary-control`, which offers "take another
+ *     decision" AFTER the reveal, rendered filled blue. The loudest button in the loop was the
+ *     one that leaves it.
+ *   - THE TASK OUTRANKS THE LABEL. The largest non-decorative text on the DECIDE screen was
+ *     `עמדת פתיחה`, the position's NAME, at the region-heading rank; the question the panel asks
+ *     was one rank below it. They have swapped: the name is a reading, the question is the
+ *     region.
+ *   - THE TYPE SCALE HAS RANKS. 91% of this product's font-size declarations resolved to 10, 11
+ *     or 12px -- steps of 1.10x and 1.09x, which no eye orders. The values were re-spaced; the
+ *     names, and every test that references them, did not change.
+ *   - TWO SENTENCES BECAME LEGIBLE. `.board-note`, which states the task in as many words, was
+ *     11px at a measured 2.81:1 against the 4.5:1 that 1.4.3 asks. `.record-mode` was a
+ *     paragraph at the kicker rank.
+ *   - ONE DUPLICATE RESOLVED. `תור / לבן` rendered twice, 400px apart, at one rank. The reading
+ *     beside the board survives; the header's copy is gone. Nothing moved behind a disclosure.
+ *
+ * WHICH DIRECTION ANY OF THIS MOVES THE NUMBERS IS NOT KNOWN, and none of it is a claim that v2
+ * rows are wrong. It is the same weaker and safer claim the last bump made: they are not the same
+ * population. A decision taken in front of an unreadable commit control and a decision taken in
+ * front of a readable one are two measurements, and nothing in the row itself tells them apart.
+ *
+ * WHAT DID NOT CHANGE, stated because a version bump is also a claim about scope: the commitment
+ * requirements, the confidence collection, the candidate collection, the counterfactual probe and
+ * its rate, the sampling, the reveal timing, the engine timing, the thresholds, the eligibility,
+ * the scoring, the schema and the interpretation policy. LAW 9's three friction points are
+ * untouched. The full reasoning, and the measurements behind every line above, are in
+ * `docs/VISUAL_ARCHITECTURE_AUDIT.md`.
+ */
+export const CURRENT_PROTOCOL_VERSION = 3;
 
 /**
  * What analysis timing a protocol is allowed to have.
