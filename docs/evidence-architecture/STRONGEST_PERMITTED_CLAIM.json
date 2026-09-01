@@ -1,5 +1,5 @@
 {
-  "claim_version": "2.1.0",
+  "claim_version": "2.2.0",
   "supersedes": "docs/measurement/STRONGEST_PERMITTED_CLAIM.json 1.3.0 (PR #51), for the claims it contradicts only",
   "decided_at": "2026-09-01",
   "decision": "docs/decisions/D25-evidence-architecture.md",
@@ -217,7 +217,8 @@
     "process evidence is the next research object",
     "RC-01's separation of +0.600 is the bar a candidate must beat",
     "method-shaped rules escape the degenerate noise cell",
-    "RC-11 is the most promising remaining candidate"
+    "RC-11 is the most promising remaining candidate",
+    "RC-05 or RC-02 is eligible"
   ],
   "new_criterion": {
     "id": "C11",
@@ -284,5 +285,67 @@
       "name": "safe-promotion",
       "published_separation": 0.444
     }
+  },
+  "anchor_rebuild": {
+    "ran": "2026-09-01",
+    "document": "docs/evidence-architecture/ANCHOR_REBUILD.md",
+    "engine": "Stockfish 17.1, 200000 nodes",
+    "searches": 3000,
+    "engine_failures": 0,
+    "floor": "CHANCE (psz|T+ minus psz|T-), not a rule class",
+    "ceiling": "RC-00 mate-in-one, corrected separation +0.765, re-measured in-run",
+    "rc01_scored_by_its_own_sentence": {
+      "b_valid_t_plus": 0.78,
+      "b_valid_t_minus": 0.0,
+      "share_of_t_minus_with_no_satisfying_move": 1.0,
+      "corrected_separation": 0.734,
+      "fraction_of_ceiling": 0.96,
+      "reading": "a floor at 96% of the ceiling is not a floor; the zero exists by construction"
+    },
+    "candidates": {
+      "RC-05 safe-promotion": {
+        "b_valid": [
+          0.56,
+          0.104
+        ],
+        "chance_separation": 0.002,
+        "corrected_separation": 0.454,
+        "fraction_of_ceiling": 0.593
+      },
+      "RC-02 recapture": {
+        "b_valid": [
+          0.64,
+          0.26
+        ],
+        "chance_separation": 0.016,
+        "corrected_separation": 0.364,
+        "fraction_of_ceiling": 0.476
+      },
+      "RC-04 save-the-attacked-piece": {
+        "corrected_separation": 0.361,
+        "fraction_of_ceiling": 0.472
+      },
+      "RC-03 capture-the-checker": {
+        "chance_separation": 0.147,
+        "corrected_separation": 0.109,
+        "fraction_of_ceiling": 0.143,
+        "reading": "the published trap, quantified: most of its apparent separation is geometry"
+      }
+    },
+    "chance_correction_does_not_substitute_for_c11": {
+      "rc06_one_basis": {
+        "observed": -0.048,
+        "chance": -0.692,
+        "corrected": 0.644
+      },
+      "reading": "a saturated noise cell has a chance rate near 1, so the chance separation is large and negative and subtracting it is a bonus. C11 gates first."
+    },
+    "not_established": [
+      "eligibility",
+      "exchangeability",
+      "harm",
+      "robustness",
+      "that RC-05's base rate of 0.22% permits a within-person study"
+    ]
   }
 }

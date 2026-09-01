@@ -18,6 +18,7 @@ Read in this order:
 | [`RECONCILIATION.md`](RECONCILIATION.md) | the cross-PR audit. Three risks the branches had already corrected, four they had not, and the measurement that decides the execution |
 | [`ACTION_MODEL_DECISION.md`](ACTION_MODEL_DECISION.md) | Gate A → **`ACTION-SIGNATURE-FAILED`**, and `C11`, the guard that would have caught it |
 | [`C11_SCREEN.md`](C11_SCREEN.md) | **`C11` run on all seventeen classes including both anchors.** Ten of seventeen noise cells carry no information about the rule, and one of them is the floor that defines `G5` |
+| [`ANCHOR_REBUILD.md`](ANCHOR_REBUILD.md) | the anchor pair rebuilt with **chance** as the floor, and `RC-05` and `RC-02` screened against it on Stockfish 17.1 |
 | [`ITEM_VALIDATION.md`](ITEM_VALIDATION.md) | Gate B → **`ITEM-PARADIGM-FAILED`**, for a response-definition reason rather than an item reason |
 | [`IDENTIFIABILITY_SIMULATION.md`](IDENTIFIABILITY_SIMULATION.md) | seven synthetic learners, rate-matched, scored by a Bayes-optimal classifier. **The distinction that decides the next intervention sits at chance and stays there** |
 | [`INCREMENTAL_EVIDENCE_VALUE.md`](INCREMENTAL_EVIDENCE_VALUE.md) | the complexity control. What each observation is worth, and the four removed on evidence |

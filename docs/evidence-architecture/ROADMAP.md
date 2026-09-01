@@ -36,7 +36,7 @@ them.
 | **FALSIFIER** | a rate low enough that the branch is not a usable observation |
 | **STOP CONDITION** | the rate is reported with its denominator. **Do not build a score on the array** |
 
-## R3 — ~~Screen `RC-11`, method-shaped~~ → **screen `RC-05` and `RC-02`**
+## R3 — ~~Screen `RC-11`, method-shaped~~ → **screen `RC-05` and `RC-02`** — **DONE**
 
 | | |
 | --- | --- |
@@ -49,6 +49,20 @@ them.
 | **FALSIFIER** | both survive C11 and still fail to separate on a rebuilt anchor pair |
 | **STOP CONDITION** | **if both fail, stop and narrow the product claim.** Do not search for candidate 18; two selection strategies and eight families have already failed, and a third selection rule has now been refuted |
 | **NOTE** | the anchor pair must be **rebuilt first**: the floor is `VACANT`, so `G5` has no valid threshold and a ranking cannot be repaired by rereading it |
+| **RESULT** | [`ANCHOR_REBUILD.md`](ANCHOR_REBUILD.md). Floor is now **chance**, not a rule class. On that scale `RC-05` reaches **59%** of the ceiling with a chance separation of **.002**, `RC-02` **48%**. `RC-01` scored by its own sentence reads **96% of the ceiling** — the `VACANT` artefact quantified. Chance-correction is shown **not** to substitute for C11: it lifts `RC-06` to +0.644 |
+
+## R3b — Count `RC-05`'s base rate against a within-person design **← next**
+
+| | |
+| --- | --- |
+| **DEPENDENCY** | R3, done |
+| **QUESTION REMOVED** | how many games does a within-person study on `RC-05` need? |
+| **WHY IT MATTERS** | `RC-05` is the best interpretable separation in the register and its base rate is **0.22%** of not-in-check positions, the lowest of any class. A full screen on a class whose base rate makes the study impossible is wasted work |
+| **COST** | a count over the existing corpus. No engine, no participants |
+| **WITHOUT HUMANS?** | **yes** |
+| **WHAT IT BLOCKS** | whether a full screen on `RC-05` is worth running at all |
+| **FALSIFIER** | a feasible number of games per participant |
+| **STOP CONDITION** | if the count says a study is infeasible, say so and move to `RC-02`, whose base rate is 11.67% |
 
 ## R4 — Re-score `RC-21` on the functional scope, and grade `RC-13` on the matched predicate
 
