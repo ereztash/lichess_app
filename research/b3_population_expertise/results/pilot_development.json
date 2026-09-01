@@ -1,0 +1,60 @@
+{
+ "period": "development",
+ "month": "2026-02",
+ "window": "2026.02.01",
+ "time_control": "180+0",
+ "ingest_seconds": 166.7,
+ "prefix_bytes_consumed": 995383550,
+ "hit_max_bytes": false,
+ "games_in_window": 3012764,
+ "game_exclusions": {
+  "time control": 2427467,
+  "neither side in the studied rating range": 3159,
+  "termination: Abandoned": 2386,
+  "berserk or impossible starting clock": 25735,
+  "shorter than 20 plies": 16166,
+  "rating out of sanity range": 558,
+  "not rated (no RatingDiff)": 1674,
+  "bot": 210,
+  "clock trace does not match the movetext": 118,
+  "termination: Insufficient material": 36,
+  "termination: Rules infraction": 1,
+  "over the per-player game cap": 856920
+ },
+ "candidate_sides_by_band": {
+  "1400-1599": 182255,
+  "1600-1799": 245192,
+  "2200-2399": 69243,
+  "2000-2199": 168716,
+  "1800-1999": 257872,
+  "1200-1399": 113921,
+  "2400-2599": 20915,
+  "1000-1199": 64010,
+  "800-999": 27471
+ },
+ "sides_after_player_cap_by_band": {
+  "1800-1999": 39693,
+  "1400-1599": 37728,
+  "1600-1799": 43427,
+  "1200-1399": 26431,
+  "2000-2199": 24439,
+  "1000-1199": 16565,
+  "800-999": 7848,
+  "2400-2599": 3196,
+  "2200-2399": 10077
+ },
+ "mean_eligible_decisions_per_side": 31.69,
+ "decisions_per_side_sample": 400,
+ "available_decisions_by_band": {
+  "800-999": 248684,
+  "1000-1199": 524903,
+  "1200-1399": 837532,
+  "1400-1599": 1195506,
+  "1600-1799": 1376093,
+  "1800-1999": 1257772,
+  "2000-2199": 774411,
+  "2200-2399": 319315,
+  "2400-2599": 101273
+ },
+ "distinct_players": 115405
+}

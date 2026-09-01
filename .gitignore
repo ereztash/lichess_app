@@ -29,3 +29,12 @@ research/b2/*.jsonl
 
 # Oracle run progress, written to stderr. The results beside it are the record.
 research/discovery-oracle/results/*.log
+
+# B3 population study: scored per-decision evidence, hundreds of megabytes, rebuildable from the
+# manifests beside it (source URL, prefix bytes, prefix sha256, seed, acceptance rates, caps,
+# engine identity and options). The manifests and the analysis outputs ARE committed -- they are
+# the provenance record and are what the report quotes.
+research/b3_population_expertise/data/**/*.jsonl.zst
+research/b3_population_expertise/b2_repro/*.jsonl
+research/b3_population_expertise/b2_repro/corpus.json
+.venv-b3/
