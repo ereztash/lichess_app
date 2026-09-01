@@ -78,12 +78,29 @@ with a comparison condition and preregistered outcomes.
 
 ## Deployment
 
-The feature is enabled by default. Set the build-time flag below to disable its UI while retaining
-the schema and APIs:
+**The feature is off by default, and the flag is opt-in.** Set the build-time flag below to render
+its UI; the schema and APIs exist either way, and no stored record depends on it:
 
 ```bash
-VITE_VERIFIED_LEARNING_ENABLED=false
+VITE_EXPERIMENTAL_LEARNING_ENABLED=true
 ```
+
+> **The default was inverted, and the flag was renamed, and both were deliberate.**
+>
+> It used to read `VITE_VERIFIED_LEARNING_ENABLED`, tested with `!== "false"` -- on unless switched
+> off. [`D25`](decisions/D25-evidence-architecture.md) records `CONSTRUCT-UNDERIDENTIFIED`: `E1`
+> reached, `E2` attempted and not reached, **humans measured: 0**. That verdict was written while
+> this surface was already default-on, so leaving it alone was not neutrality; it was the stronger
+> claim continuing to ship while the weaker one was written down.
+>
+> A constant named `VERIFIED` is a claim, and `E1 reached, E2 not reached` does not support it.
+> `EXPERIMENTAL` does. `=== "true"` also fails closed: a misspelt flag ships nothing rather than
+> shipping everything.
+>
+> **Nothing stored was deleted or migrated.** The flag decides what is rendered.
+> `shared/record-service.ts` and `shared/learning-record.ts` are not behind it, every rule still
+> starts at `grade: "hypothesis"`, and a deployment that sets the flag gets its records back in the
+> state it left them.
 
 For a MySQL-backed deployment, apply [`drizzle/0001_verified_learning.sql`](../drizzle/0001_verified_learning.sql)
 before enabling the UI. Browser records migrate in place: the existing

@@ -83,7 +83,7 @@ export function FindingCard({
 }) {
   return (
     <section className="finding" data-authority={authority} dir="rtl">
-      <h3 className="finding__headline">{headline}</h3>
+      <h2 className="finding__headline">{headline}</h2>
 
       {example && <div className="finding__example">{example}</div>}
 

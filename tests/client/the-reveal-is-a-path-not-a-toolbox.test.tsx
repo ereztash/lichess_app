@@ -138,9 +138,52 @@ describe("what the explorer shows once it is open", () => {
     const { container } = render(<RecordExplorer {...PROPS} />);
     expect(container.querySelector(".analysis-column")).not.toBeNull();
     expect(container.querySelector(".claim-panel")).not.toBeNull();
-    expect(container.querySelector(".learning-queue")).not.toBeNull();
     expect(container.querySelector(".lichess-layers")).not.toBeNull();
     expect(screen.getByRole("button", { name: /נתחו את המשחק כולו/ })).toBeTruthy();
+  });
+
+  /**
+   * THE LEARNING QUEUE IS NOT ON THAT LIST ANY MORE, AND ITS ABSENCE IS THE ASSERTION.
+   *
+   * It used to be, and this line read `.learning-queue` beside the other three. It came out because
+   * `EXPERIMENTAL_LEARNING_ENABLED` is now `=== "true"` -- off unless a deployment asks for it --
+   * over `D25 = CONSTRUCT-UNDERIDENTIFIED`, and a default build therefore has three readings here
+   * rather than four.
+   *
+   * DROPPING THE LINE WOULD HAVE LOST THE INVARIANT RATHER THAN MOVED IT, which is why the queue is
+   * asserted ABSENT here and the gate is asserted at its source below. A reading that quietly
+   * returns to a default build is exactly what this pair now fails on.
+   */
+  it("does not ship the learning queue in a default build", () => {
+    const { container } = render(<RecordExplorer {...PROPS} />);
+    expect(container.querySelector(".learning-queue")).toBeNull();
+  });
+
+  it("gates both learning surfaces on the opt-in flag, and the flag fails closed", () => {
+    /*
+     * THE SOURCE, NOT THE RENDER, because a render can only show that the flag is off in this
+     * environment. What has to hold is that the constant is `=== "true"`: a deployment that says
+     * nothing ships nothing, and a misspelt flag ships nothing rather than everything.
+     */
+    const features = read("client/src/lib/features.ts");
+    expect(features).toContain("EXPERIMENTAL_LEARNING_ENABLED");
+    expect(features).toContain('import.meta.env.VITE_EXPERIMENTAL_LEARNING_ENABLED === "true"');
+    /*
+     * COMMENTS STRIPPED BEFORE THE ABSENCE CHECK, and the reason is the one
+     * `what-the-documents-still-say.test.ts` already had to find: that file's header QUOTES the old
+     * declaration verbatim, because a reader who cannot see what changed cannot see why. A
+     * quotation of what we used to say is not a claim the product makes. What must be gone is the
+     * DECLARATION.
+     */
+    const declared = features.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(declared, "the VERIFIED name is a claim D25 does not support").not.toMatch(
+      /VERIFIED_LEARNING_ENABLED/,
+    );
+    for (const file of ["client/src/pages/Home.tsx", "client/src/components/RecordExplorer.tsx"]) {
+      expect(read(file), `${file} renders a learning surface ungated`).toMatch(
+        /\{EXPERIMENTAL_LEARNING_ENABLED &&/,
+      );
+    }
   });
 
   it("does not run the whole-game review by itself", async () => {

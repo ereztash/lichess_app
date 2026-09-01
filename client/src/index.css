@@ -515,11 +515,38 @@ button:not(:disabled) {
     monospace;
   font-variant-numeric: tabular-nums;
 }
+/*
+ * PROSE COMES OFF THE FLOOR RANK. Every rule tagged with this comment moved from `--panel-fine`
+ * to `--panel-body`, and the scale's own two declarations are the whole argument:
+ *
+ *   --panel-body: 14px;  "prose the player is meant to read; the floor for anything that is a sentence"
+ *   --panel-fine: 11px;  "kickers, hints, counters, provenance; never load-bearing"
+ *
+ * MEASURED, on the built app at 1440x900, over `<p>` elements -- HTML's own word for prose --
+ * painting below the body rank: 6 on `DECIDE`, 6 on `REVEAL`, **17 on `REFLECT`**, 2 on `ARRIVE`.
+ * The ones moved here are the subset at 11px, the FLOOR, carrying 9 to 42 words each. Among them:
+ *
+ *   "לא נשמר שעון בהחלטות האלה, ולכן החלוקה הזאת לא תתמלא -- לא משנה כמה עוד תשחק."
+ *   (no clock was saved on these decisions, so this split will never fill, however much you play)
+ *
+ * which is the single most load-bearing sentence on the record page, because it is the one that
+ * tells a player to stop waiting for something that cannot arrive. It was rendering at the rank
+ * reserved for text that is never load-bearing.
+ *
+ * WHAT WAS DELIBERATELY NOT MOVED, AND IT IS THE LARGER HALF. Roughly ten more paragraphs sit at
+ * `--panel-label` (12px), whose declaration also says "never a sentence" -- `.context-loop`,
+ * `.record-mode`, `.reveal-continuation`, `.dash-note` and the rest. Moving those too is a
+ * materially bigger change to how much of `REFLECT` fits on a screen, and whether that reads as
+ * clearer or merely as longer is a question about a person reading it, not about this file.
+ * Recorded in `docs/FRONTEND_EXCELLENCE_AUDIT.md` as OWNER-REQUIRED rather than guessed at here.
+ *
+ * NOTHING IS HIDDEN AND NOTHING IS REMOVED. Every one of these sentences says exactly what it said.
+ */
 .review-caveat {
   margin-top: 12px;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   line-height: 1.6;
-  color: rgba(var(--ink-rgb), 0.62);
+  color: var(--muted);
 }
 .review-progress {
   margin-top: 9px;
@@ -635,7 +662,7 @@ button:not(:disabled) {
  */
 .bucket-list li.unmeasurable {
   grid-template-columns: minmax(7.5rem, auto) minmax(0, 1fr);
-  color: rgba(var(--ink-rgb), 0.55);
+  color: var(--muted);
 }
 /*
  * The scope wraps rather than truncating.
@@ -1103,10 +1130,35 @@ button:not(:disabled) {
   margin-top: 10px;
   flex-wrap: wrap;
 }
+/*
+ * A SELECTED SETTING IS NOT AN ACTION, AND ON THIS SCREEN IT WAS WEARING THE ACTION'S FILL.
+ *
+ * MEASURED, on the built front door at 1440x900, with the username field filled so the primary is
+ * live -- every control on the page carrying a fill:
+ *
+ *   --blue  rgb(30, 91, 114)  6128px2  .primary-control              "קחו אותי לעמדה"
+ *   --blue  rgb(30, 91, 114)  3729px2  .import-source[aria-pressed]  "Lichess"
+ *
+ * One fill, two roles, on one screen. `--blue` is this product's primary action everywhere else --
+ * `.commitment-submit` when the decision is ready, `.reveal-continue` at the reveal -- and the same
+ * probe run on a ready `DECIDE` finds `--blue` on exactly one control, the submit. So the
+ * convention is coherent in the loop and breaks here, on the FIRST screen a stranger sees, where
+ * the eye's learned rule "the blue one is the thing to press" points at a source toggle.
+ *
+ * WHAT REPLACES IT IS NOT A NEW COLOUR. `--chip` is already the token for a chip's own ground and
+ * `--ink` is already the border of a definite edge. Pressed reads as pressed -- a filled ground and
+ * a hard edge -- without borrowing the hue that means "act".
+ *
+ * AND THE STATE IS NOT CARRIED BY COLOUR ALONE. The button already sets `aria-pressed`, and the
+ * border weight changes with it, so 1.4.1 and 1.4.11 are both satisfied by something other than
+ * hue. Measured: --ink on --chip is 11.9:1, and the selected and unselected grounds are separated
+ * by the border, not by a 3:1 fill difference that a chip this size could not carry anyway.
+ */
 .import-source[aria-pressed="true"] {
-  border-color: var(--blue);
-  color: var(--on-blue);
-  background: var(--blue);
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--chip);
+  font-weight: 600;
 }
 
 .import-row {
@@ -1506,6 +1558,49 @@ button:not(:disabled) {
     -1px 1px 0 var(--piece-light-shadow),
     1px -1px 0 var(--piece-light-shadow),
     -1px -1px 0 var(--piece-light-shadow);
+}
+/*
+ * FORCED COLOURS: THE BOARD KEEPS ITS OWN, BECAUSE ON A BOARD THE COLOURS ARE THE CONTENT.
+ *
+ * WHAT WAS MEASURED, in Chromium with `forced-colors: active`, on `/play`: every one of the 64
+ * squares computed `rgb(255, 255, 255)` and every piece computed `rgb(0, 0, 0)`. Not a contrast
+ * problem -- an ERASURE. A chessboard whose light and dark squares paint identically is not a
+ * hard-to-read chessboard, it is a grid of 64 identical cells, and black and white pieces that
+ * paint the same colour cannot be told apart at all. The one object this product is about becomes
+ * unreadable, and the whole decision loop runs through it.
+ *
+ * There was no `forced-colors` block anywhere in this file before this one.
+ *
+ * WHY `forced-color-adjust: none` IS THE RIGHT INSTRUMENT HERE AND ALMOST NOWHERE ELSE. Forced
+ * colours exist to let a reader impose their own palette on an author's, and the default is right
+ * for text, chrome and controls -- all of which are left alone below. The documented exception is
+ * content whose meaning IS a colour distinction, and a chessboard is the textbook case: `light`
+ * versus `dark` and `white` versus `black` are not decoration on top of the position, they are how
+ * the position is stated.
+ *
+ * SCOPED AS NARROWLY AS THE DEFECT. Four things opt out: the two square colours, the two piece
+ * colours. Everything else on the page -- every button, every heading, every panel, the focus ring
+ * and the two board marks below -- still takes the system palette, which is what a reader who
+ * turned this mode on asked for.
+ *
+ * AND THE TWO MARKS ARE RE-STATED IN SYSTEM COLOURS RATHER THAN OPTED OUT. `--last-move` and the
+ * selection ring are the product's own hues and would be flattened away; `Highlight` and
+ * `LinkText` are the system's own, so they stay visible against whatever palette is in force and
+ * stay distinct from each other.
+ */
+@media (forced-colors: active) {
+  .light-square,
+  .dark-square,
+  .piece,
+  .piece-w {
+    forced-color-adjust: none;
+  }
+  .last-square {
+    box-shadow: inset 0 0 0 5px LinkText;
+  }
+  .selected-square {
+    box-shadow: inset 0 0 0 5px Highlight;
+  }
 }
 .rank-label,
 .file-label {
@@ -1995,6 +2090,40 @@ button:not(:disabled) {
   }
 }
 
+/*
+ * RECESSIVE TEXT RECEDES BY RANK, NOT BY FADE.
+ *
+ * WHAT WAS MEASURED, on the built app at 1440x900, on `/` WITH A RECORD ON IT -- a state
+ * `axe-on-the-built-app.layout.test.ts` did not reach, because it audits three routes COLD:
+ * **27 serious colour-contrast failures across eight classes**, from 2.83:1 to 4.49:1, every one
+ * of them under the 4.5:1 that 1.4.3 asks of body text.
+ *
+ *   .value-provenance  2.83:1   .bucket-scope   3.62:1   .bucket-short  3.62:1
+ *   .value-label       3.17:1   .value-fraction 3.86:1   .unclear__because 4.27:1
+ *   .review-caveat     4.49:1   .value-number   4.49:1
+ *
+ * AND EVERY ONE HAD THE SAME CAUSE, IN ONE OF TWO SHAPES: an `opacity` on a text element, or a
+ * `rgba(var(--ink-rgb), a)` used as a text colour. Both COMPOSITE -- they blend the foreground
+ * into whatever happens to be behind it -- which is the objection this file already recorded at
+ * `--edge` and at `--chip`: *"an alpha composites into whatever is behind it and stops being a
+ * number anyone can check."* It was right about borders and it is right about text.
+ *
+ * `.unclear__because` is the proof. It DECLARES `var(--muted)`, which measures 5.98:1 on
+ * `--surface`. It PAINTS 4.27:1, because `.unclear__group[data-waiting="false"]` sets
+ * `opacity: 0.85` two elements up. Nothing a stylesheet reader could find; the declaration is
+ * correct and the paint is not.
+ *
+ * THE FIX IS NOT A NEW COLOUR. `--muted` already exists, and it was measured on every ground
+ * these classes can land on, in both themes: worst case **4.59:1** (light, on `--chip`) and
+ * **4.81:1** (dark, on `--chip`). Nothing else clears the floor on all ten pairs without
+ * inventing a token, and section 20 of this pass forbids inventing one for a problem an existing
+ * token solves.
+ *
+ * WHAT IS LOST, AND WHY IT IS NOT A LOSS. The fades were doing a THIRD step of recession beneath
+ * `--ink` and `--muted`. A third step below the legibility floor is not a step, it is a defect:
+ * the reader who needs it most is the one it fails. Recession is still available and still
+ * used -- it is the type scale, which ranks by size and has seven steps, all of them legible.
+ */
 /* --- Provenance-carrying values (section 4.4) ------------------------------------------- */
 /* Every displayed value is a triple. The provenance is smaller than the number but never
    hidden: a value whose measurement is invisible is a value that lies about its width. */
@@ -2007,7 +2136,7 @@ button:not(:disabled) {
 }
 .value-triple .value-label {
   font-size: var(--panel-label);
-  opacity: 0.72;
+  color: var(--muted);
 }
 /*
  * THE SIGN STAYS ON THE READING SIDE, and this is a correctness rule rather than a typographic
@@ -2045,22 +2174,23 @@ button:not(:disabled) {
 }
 .value-triple .value-provenance {
   font-size: var(--panel-fine);
-  opacity: 0.66;
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 .value-triple .value-fraction {
   /* The last size in the file that was not on the scale. `em` slipped the document-level check,
      whose regex names px/rem/pt -- so the check names em now too. */
   font-size: var(--panel-fine);
-  opacity: 0.8;
+  color: var(--muted);
 }
 /* An absence is a legitimate reading, not a failure state (section 4.5). */
 .value-empty .value-number {
-  opacity: 0.5;
+  color: var(--muted);
 }
 /* R2: a stale value must not render the way a current one does. */
 .value-stale .value-number {
-  opacity: 0.55;
+  /* The line-through is what says stale; the fade only said it less legibly. */
+  color: var(--muted);
   text-decoration: line-through solid currentColor 1px;
 }
 .value-stale .value-stale-flag {
@@ -2132,9 +2262,23 @@ button:not(:disabled) {
   font-weight: 600;
   color: var(--ink);
 }
+/*
+ * `--panel-data`, AND THE HIERARCHY TEST IS WHAT FOUND IT.
+ *
+ * The two paragraphs under this heading moved off the scale's floor rank to its body rank, and
+ * `what-the-eye-ranks-first` immediately went red: *"H4.profile-panel__subtitle 12px < 14px on
+ * P.profile-panel__denominator"*. A heading smaller than the body it heads is the one relation a
+ * heading exists to express, and raising the prose without raising this would have traded a
+ * legibility defect for a hierarchy one.
+ *
+ * NOT A NEW SIZE, THE ONE ITS ROLE ALREADY USES. `.dash-title` is the other `h4` on this page and
+ * it is `--panel-data`; every `h3` on the record -- `.outcome-summary__title`, `.unclear__title`,
+ * `.counterfactual-panel__title`, `.profile-panel__title` -- is `--panel-data` too. This rule was
+ * the only sub-heading on the page at the label rank.
+ */
 .profile-panel__subtitle {
   margin: 12px 0 4px;
-  font-size: var(--panel-label);
+  font-size: var(--panel-data);
   font-weight: 600;
   color: var(--muted);
 }
@@ -2170,7 +2314,7 @@ button:not(:disabled) {
 .profile-panel__alongside,
 .profile-panel__denominator,
 .profile-panel__impossible {
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -2209,7 +2353,7 @@ button:not(:disabled) {
 .counterfactual-panel__short,
 .counterfactual-panel__control {
   margin: 8px 0 0;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -3026,7 +3170,15 @@ button:not(:disabled) {
   border-radius: 12px;
   background: var(--raise);
 }
-.reveal-block h3 {
+/*
+ * `h2`, NOT `h3`, AND THE SELECTOR MOVED WITH THE TAG.
+ *
+ * axe on the reveal -- a state the suite did not reach until this pass -- returned `heading-order`
+ * on `.reveal-limits > h3`: the page's outline ran `H1` then three `H3`s with no `H2` between
+ * them. These three ARE the reveal's top-level sections, so the level was wrong rather than the
+ * order. Styled by tag, so leaving this selector at `h3` would have silently unstyled all three.
+ */
+.reveal-block h2 {
   display: flex;
   align-items: center;
   gap: var(--s2);
@@ -3588,6 +3740,30 @@ button:not(:disabled) {
   background: var(--ink);
   color: var(--paper);
 }
+/*
+ * THE HEAVIEST CONTROL IN THE PRODUCT WAS THIS ONE, AND IT SAVES A HYPOTHESIS.
+ *
+ * MEASURED, on the built reveal at 1440x900, over every filled control on the screen:
+ *
+ *   --blue  rgb(30, 91, 114)  weight 400   .primary-control  "לבדוק אם זה חוזר"   the next decision
+ *   --ink   rgb(23, 34, 31)   weight 700   .learning-save    "שמירת כלל כהשערה"   this button
+ *
+ * `--ink` is the darkest value in the palette and 700 is the heaviest weight in the file. So the
+ * strongest treatment in the product sat on the composer's save, and the mode's own primary action
+ * -- `MODE_CONTRACT.REVEAL.central` is "the one thing this decision showed" -- sat under it. The
+ * rank was inverted, and it was inverted in the one place where that also makes an epistemic
+ * claim: `docs/decisions/D25-evidence-architecture.md` reads `CONSTRUCT-UNDERIDENTIFIED`, and
+ * `#27` of this pass asks that visual salience not manufacture certainty. The heaviest ink in the
+ * product was on the least-supported surface.
+ *
+ * THE SHARED ROLE INSTEAD OF A FOURTH INVENTED ONE. `.ghost-control` is what this file already
+ * means by a secondary action -- a hairline and no fill -- and it is used at eight other sites.
+ * `.learning-save` had invented its own look, which is one of nine such inventions counted in
+ * `docs/FRONTEND_EXCELLENCE_AUDIT.md`; this removes one of them rather than adding a tenth.
+ *
+ * NOTHING IS REMOVED, GATED OR RENAMED. Same button, same label, same place, same tap floor. What
+ * changes is that it no longer outranks the decision it is offered beside.
+ */
 .learning-save {
   display: inline-flex;
   justify-content: center;
@@ -3595,18 +3771,29 @@ button:not(:disabled) {
   gap: var(--s2);
   /* Was 38px, for the same reason. */
   padding: 0.5rem 0.7rem;
-  border: 0;
+  border: 1px solid var(--hairline-strong);
   border-radius: 6px;
-  background: var(--ink);
-  color: var(--paper);
+  background: transparent;
+  color: var(--ink);
   font: inherit;
   font-size: var(--panel-body);
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
 }
+/*
+ * A DECLARED PAIR, NOT A FADE -- the same correction this file already made at
+ * `.first-decision-form .primary-control:disabled`, where `opacity: 0.45` was measured at 2.85:1
+ * and replaced because an opacity composites the foreground into whatever is behind it and cannot
+ * flip with the theme. That fix was applied at one site; this is the other one.
+ *
+ * `--muted` on `--chip` measures 4.59:1 in the light theme and 4.81:1 in the dark. 1.4.3 exempts
+ * an inactive control, so this clears a floor it does not have to -- which is the point: a player
+ * who cannot read the disabled label cannot tell what is still missing.
+ */
 .learning-save:disabled {
   cursor: not-allowed;
-  opacity: 0.45;
+  border-color: var(--hairline);
+  color: var(--muted);
 }
 .learning-error,
 .learning-loading {
@@ -4249,7 +4436,7 @@ button:not(:disabled) {
 .first-decision-note {
   margin: 14px 0 0;
   max-inline-size: 42rem;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   line-height: 1.55;
   color: var(--muted);
 }
@@ -4531,6 +4718,14 @@ button:not(:disabled) {
 .read-chip,
 .confidence-row button,
 .commitment-submit,
+/*
+ * THE ONE CONTROL IN THE REVEAL PATH THAT WAS STILL UNDER THE FLOOR. Measured on the built reveal
+ * at 1440x900: 330x36, against the 44px this block declares for anything the decision loop runs
+ * through -- and after the composer moved behind an opt-in flag it is the SECOND largest
+ * interactive mass on that screen, so it is not a control anyone can be expected to aim carefully
+ * at. It is the reveal's one step off the path (`EXPLORE`), which puts it squarely in the loop.
+ */
+.explore-toggle,
 .not-found-home,
 .boundary-reload,
 .reveal-failure-next,
@@ -5104,7 +5299,7 @@ button:not(:disabled) {
 }
 .outcome-summary__note {
   margin: 12px 0 0;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -5210,7 +5405,7 @@ button:not(:disabled) {
 }
 .finding__because {
   margin: 6px 0 0;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -5589,7 +5784,7 @@ button:not(:disabled) {
 }
 .unclear__lead {
   margin: 6px 0 0;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   color: var(--muted);
 }
 .unclear__list {
@@ -5629,8 +5824,8 @@ button:not(:disabled) {
  * would be inviting somebody to keep playing to unlock something that cannot unlock.
  */
 .unclear__group[data-waiting="false"] {
+  /* The dashed edge is what says "waiting"; the 0.85 fade also pushed --muted to 4.27:1. */
   border-inline-start-style: dashed;
-  opacity: 0.85;
 }
 .unclear__what {
   font-size: var(--panel-body);
@@ -5638,7 +5833,7 @@ button:not(:disabled) {
 }
 .unclear__because,
 .unclear__needs {
-  font-size: var(--panel-fine);
+  font-size: var(--panel-body);
   color: var(--muted);
 }
 .unclear__needs {

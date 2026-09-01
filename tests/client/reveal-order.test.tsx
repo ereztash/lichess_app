@@ -35,8 +35,14 @@ const ANALYSIS: EngineLine = {
 const renderPanel = (inputs = INPUTS, analysis: EngineLine | null = ANALYSIS) =>
   render(<RevealPanel inputs={inputs} analysis={analysis} fen={FEN} statedKnown="מרכז פתוח" />);
 
+/*
+ * `h2`, because the reveal's three blocks became `h2` when axe found `heading-order` on them: the
+ * page ran `H1` then three `H3`s with no `H2` between. They are the reveal's top-level sections, so
+ * the level was wrong rather than the order. This helper reads the ORDER of the blocks and does not
+ * care what they are called; it does have to name the tag they use.
+ */
 const headings = (container: HTMLElement) =>
-  [...container.querySelectorAll("h3, summary")].map((el) => el.textContent?.trim() ?? "");
+  [...container.querySelectorAll("h2, summary")].map((el) => el.textContent?.trim() ?? "");
 
 /**
  * The four blocks in the order they render, identified by what they ARE rather than by what they
