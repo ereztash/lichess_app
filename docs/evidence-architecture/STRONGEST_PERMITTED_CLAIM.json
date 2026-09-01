@@ -1,0 +1,351 @@
+{
+  "claim_version": "2.2.0",
+  "supersedes": "docs/measurement/STRONGEST_PERMITTED_CLAIM.json 1.3.0 (PR #51), for the claims it contradicts only",
+  "decided_at": "2026-09-01",
+  "decision": "docs/decisions/D25-evidence-architecture.md",
+  "verdict": "CONSTRUCT-UNDERIDENTIFIED",
+  "repository_main_sha": "e9cd4de675dd771a20f81dbfd5d7141a01b55f6b",
+  "corpus": {
+    "pgn": "lichess_db_standard_rated_2013-01.pgn.zst",
+    "bytes": 17761302,
+    "md5": "46fa4bf93894234017be96eed030e7b2",
+    "seed": 20260831,
+    "reproduces_published_manifest_exactly": true,
+    "games_seen": 60834,
+    "games_used": 60000,
+    "positions_sampled": 180000,
+    "positions_in_check": 12119,
+    "records_written": 580852
+  },
+  "engine": {
+    "build": "Stockfish 17.1",
+    "binary": "stockfish-ubuntu-x86-64-avx2",
+    "nodes": 200000,
+    "threads": 1,
+    "hash": 64,
+    "note": "the published engine. PR #51's action-set numbers were produced on Stockfish 16 and say so."
+  },
+  "permitted": {
+    "detection": {
+      "statement": "A frozen board predicate identifies positions in which a named chess condition holds, and the trigger has no parameter through which the played move could reach it.",
+      "status": "supported"
+    },
+    "recording": {
+      "statement": "Whether the player's move satisfies a named board-only property of the resulting position is recordable from the position and the move alone.",
+      "status": "supported"
+    },
+    "rc06_domain_fact": {
+      "statement": "Where the opponent threatens mate in one, the best move removing that threat is the engine's own best move on 242 of 242 items where the rule prescribes anything, at a median cost of 1 cp; not answering loses >=100 cp on 84.9%.",
+      "obeying_is_optimal": [
+        242,
+        242
+      ],
+      "regret_b_xs_mean_t_plus": 0.0,
+      "disobeying_loses_100cp_or_more_t_plus": 0.849,
+      "status": "supported"
+    },
+    "production_record_contents": {
+      "statement": "Per decision, before reveal: position, move, seconds_taken, stated read, confidence with its scale and grid version, every distinct move physically placed on the board in touch order, and a randomised alternative-move probe with a denominator.",
+      "status": "shipped"
+    }
+  },
+  "refuted": {
+    "rc06_separation_is_specificity": {
+      "statement_refuted": "RC-06's separation of +0.768 shows the prescribed action is specific to its trigger.",
+      "why": "b_valid|T+ and b_valid|T- are computed under different definitions of B. On T+, B = the opponent has no mate in one. On T-, B = the opponent has no check at all.",
+      "measured": {
+        "t_minus_prescription_size_shipped": 0.10361230871539323,
+        "t_minus_prescription_size_as_stated": 0.9940050583243489,
+        "t_minus_items_where_every_legal_move_satisfies_stated_rule": 0.9316959617587014,
+        "b_valid_t_plus_branching": 0.952,
+        "b_valid_t_minus_branching": 0.192,
+        "separation_branching": 0.76,
+        "b_valid_t_plus_symmetric": 0.952,
+        "b_valid_t_minus_symmetric": 1.0,
+        "separation_symmetric": -0.048,
+        "sample_per_cell": 250,
+        "engine_failures": 0,
+        "positive_control": "reproduces the published .968 / .200 / +0.768 within its own intervals on an independent draw",
+        "exact_not_sampled": "the whole 80,332-item T- cell, no sampling; three earlier samples gave .920/.922/.941 and bracket it"
+      },
+      "status": "refuted"
+    },
+    "rc06_is_eligible": {
+      "statement_refuted": "RC-06 answer-the-mate-threat is an eligible rule class.",
+      "why": "G5 is the only gate it uniquely passes and G5 reads separation.",
+      "eligible_set_after_fifteen_candidates": [],
+      "status": "refuted"
+    },
+    "only_one_predicate_branches": {
+      "statement_refuted": "_threat_satisfies is the only predicate of the twelve that branches on the trigger.",
+      "why": "_promotion_stop_satisfies (RC-12) branches on the same board condition without calling the trigger function, and says so in its own docstring. The shipped detector tests for a literal `_trigger(` call.",
+      "rc12_t_minus_prescription_size_shipped": 0.184,
+      "rc12_t_minus_prescription_size_as_stated": 0.9995,
+      "rc12_items_where_every_legal_move_satisfies_stated_rule": 0.9955,
+      "amends": "PR #49 H22",
+      "status": "refuted"
+    },
+    "lone_king_defends_is_the_rule_of_the_square_precondition": {
+      "statement_refuted": "`the opponent has no knight, bishop, rook or queen` is the condition under which the rule of the square is the whole story.",
+      "why": "An enemy pawn can capture the passer, be captured, block after a capture, and promote into a piece that stops it.",
+      "measured_on_full_t_plus_cell": {
+        "n": 3286,
+        "lone_king_defends": 0.102,
+        "functional_condition": 0.055,
+        "functional_given_piece_list": 0.536,
+        "exclusion_clauses": {
+          "of_the_336_the_piece_list_certifies": {
+            "enemy_pawn_can_affect_the_race": 149,
+            "enemy_pawn_queens_inside_the_window": 146,
+            "enemy_pawn_attacks_the_pawn_or_its_path": 26,
+            "only_our_own_piece_on_the_path": 7,
+            "enemy_king_on_the_path": 0,
+            "no_legal_forward_push": 0
+          },
+          "note": "clauses overlap. The own-piece clause is the one that is not about an opposing resource, and it accounts for 2.1%."
+        }
+      },
+      "verdict": "SEMANTICALLY-UNDERDEFINED",
+      "status": "refuted"
+    },
+    "rc13_scope_predicate_is_its_claim": {
+      "statement_refuted": "`any knight promotion checks and no queen promotion checks` tests whether the knight does something a queen cannot.",
+      "why": "The claim is about one promotion square. The matched comparison holds `from` and `to` fixed.",
+      "measured": {
+        "n": 67,
+        "unmatched": 0.701,
+        "matched": 0.776,
+        "in_scope_under_claim_not_under_predicate": 5
+      },
+      "note": "RC-13's b_valid is .000 on both cells and both splits, so its verdict does not move; the in-scope denominator does.",
+      "status": "refuted"
+    },
+    "a5_on_expected_score": {
+      "statement_refuted": "A5_beats_incumbent is a gate on the expected-score scale.",
+      "why": "The ceiling anchor RC-00 mate-in-one scores +0.344 where the refuted floor RC-01 scores +0.564. Mean V* on RC-00's positive cell is exactly 1.000; in centipawns the cell reads +99255, the mate constant.",
+      "status": "refuted"
+    },
+    "b_membership_is_rule_consistent_action": {
+      "statement_refuted": "move in B indicates rule-consistent action on RC-06.",
+      "prescription_size_median_t_plus": 0.297,
+      "permitted_moves_within_100cp": 0.286,
+      "items_where_some_permitted_move_loses_100cp_or_more": 0.847,
+      "status": "refuted"
+    },
+    "g5_threshold_is_a_specificity_statistic": {
+      "statement_refuted": "gate G5's threshold -- the incumbent floor RC-01's separation of +0.600 -- is a specificity statistic.",
+      "why": "RC-01's as-stated noise cell is empty on 100% of its trigger-negative items: when there is no capturable-and-undefended piece, no legal move can take it. Its published b_valid|T- of .184 scores a DIFFERENT act, capturing the dearest DEFENDED piece.",
+      "consequence": "every candidate in the register was measured against a threshold set by a class whose own separation is not a specificity statistic",
+      "status": "refuted"
+    },
+    "method_shaped_rules_escape_the_degenerate_noise_cell": {
+      "statement_refuted": "method-shaped rules, where B is a property of the move, do not have the degenerate-noise-cell problem (PR #49 H23, carried into D25's next-candidate recommendation).",
+      "why": "RC-11 and RC-18 are both method-shaped -- the prescription is `move it` -- and both are VACANT: as stated, neither prescribes anything on its negative cell.",
+      "what_replaces_it": "a rule class has a usable noise cell only where, with the trigger absent, the prescribed act STILL EXISTS AND CAN BE WRONG. That is a property of how the trigger's negative cell is constructed, not of the prescription's shape.",
+      "status": "refuted"
+    }
+  },
+  "underidentified": {
+    "conditional_discrimination_vs_response_bias": {
+      "statement": "Correct conditional discrimination and response bias / perform-B-everywhere take different interventions and are observationally equivalent under a saturated noise cell.",
+      "classifier": "Bayes-optimal likelihood ratio handed the true generative model of both hypotheses -- an upper bound",
+      "separation_by_observation_set_fixed_predicate": {
+        "move only": 0.5,
+        "move both cells": 0.5,
+        "plus time": 0.5,
+        "plus timed condition": 0.5,
+        "plus delayed condition": 0.5,
+        "plus generic cue": 0.5,
+        "plus candidate set": 0.5
+      },
+      "at_double_the_items": 0.5,
+      "beta_sensitivity_1_0_to_3_0": [
+        0.515,
+        0.5,
+        0.5,
+        0.5,
+        0.5
+      ],
+      "same_pair_under_a_non_saturated_noise_cell": 0.983,
+      "status": "underidentified"
+    }
+  },
+  "unresolved": [
+    {
+      "id": "anchors_under_c11",
+      "why": "neither RC-00 nor RC-01 has been graded for a saturated noise cell, and every published comparison is against them"
+    },
+    {
+      "id": "method_shaped_rules",
+      "why": "RC-11 is method-shaped, does not branch, T- prescription size .175, and has not been re-screened"
+    },
+    {
+      "id": "chose_past_it_base_rate",
+      "why": "the only production observation supporting M1 over M0, and shared/reveal.ts says it has never been measured"
+    },
+    {
+      "id": "exchangeability",
+      "why": "max |SMD| 0.573, untouched, and moot while the contrast is void"
+    },
+    {
+      "id": "engine_sensitivity",
+      "why": "top-1 b_valid agrees between SF16 and SF17.1; action-set value stability, node/depth stability and WDL-model sensitivity are untested"
+    },
+    {
+      "id": "domain",
+      "why": "no evidence that any of this is separable from general chess strength"
+    },
+    {
+      "id": "reactivity",
+      "why": "untested"
+    }
+  ],
+  "forbidden_claims": [
+    "this measures whether the player has learned the unprotected-piece rule",
+    "d' increased, therefore discrimination improved",
+    "the player applies the rule N% of the time",
+    "accuracy on T+ items, reported alone",
+    "post > pre implies the intervention caused the change",
+    "puzzle-task improvement implies improvement in ordinary play",
+    "the Lichess hangingPiece theme may define the trigger state",
+    "RC-06 is the eligible rule class",
+    "RC-06's action signature is valid",
+    "separation of +0.768 shows the rule is specific to its trigger",
+    "the rule of the square applies where the opponent has no pieces",
+    "a knight promotion that checks does something a queen cannot",
+    "the final move is insufficient in general",
+    "process evidence is the next research object",
+    "RC-01's separation of +0.600 is the bar a candidate must beat",
+    "method-shaped rules escape the degenerate noise cell",
+    "RC-11 is the most promising remaining candidate",
+    "RC-05 or RC-02 is eligible"
+  ],
+  "new_criterion": {
+    "id": "C11",
+    "asks": "the prescription size on the trigger-negative cell, under the response predicate as the class's own prescription sentence states it",
+    "fails_if": "near 1 -- the class has no noise cell and its separation is a fact about its predicate",
+    "cost": "no engine, no participants, no new corpus",
+    "would_have_caught": [
+      "RC-06",
+      "RC-12"
+    ],
+    "rationale": "prescription_size already guards the positive cell against a vacuous prescription scoring well. The negative cell was unguarded.",
+    "result": "run on all seventeen: 10 of 17 noise cells carry no information about the rule"
+  },
+  "evidence_level_reached": "E1",
+  "evidence_level_attempted": "E2",
+  "evidence_level_required_for_production": "E5",
+  "humans_measured_by_this_execution": 0,
+  "production_behaviour_changed": false,
+  "c11_screen": {
+    "ran": "2026-09-01",
+    "document": "docs/evidence-architecture/C11_SCREEN.md",
+    "classes_screened": 17,
+    "anchors_included": true,
+    "sample_per_cell": 2000,
+    "seed": 20260831,
+    "engine": "none",
+    "counts": {
+      "MEASURABLE": 7,
+      "VACANT": 8,
+      "SATURATED": 2
+    },
+    "measurable": [
+      "RC-00",
+      "RC-02",
+      "RC-03",
+      "RC-04",
+      "RC-05",
+      "RC-13",
+      "RC-21"
+    ],
+    "vacant": [
+      "RC-01",
+      "RC-07",
+      "RC-08",
+      "RC-09",
+      "RC-11",
+      "RC-14",
+      "RC-18",
+      "RC-20"
+    ],
+    "saturated": [
+      "RC-06",
+      "RC-12"
+    ],
+    "top_five_published_separations_by_grade": {
+      "RC-00 +0.832 ceiling": "MEASURABLE",
+      "RC-06 +0.768": "SATURATED",
+      "RC-01 +0.600 floor": "VACANT",
+      "RC-18 +0.468": "VACANT",
+      "RC-11 +0.452": "VACANT"
+    },
+    "best_measurable_candidate": {
+      "id": "RC-05",
+      "name": "safe-promotion",
+      "published_separation": 0.444
+    }
+  },
+  "anchor_rebuild": {
+    "ran": "2026-09-01",
+    "document": "docs/evidence-architecture/ANCHOR_REBUILD.md",
+    "engine": "Stockfish 17.1, 200000 nodes",
+    "searches": 3000,
+    "engine_failures": 0,
+    "floor": "CHANCE (psz|T+ minus psz|T-), not a rule class",
+    "ceiling": "RC-00 mate-in-one, corrected separation +0.765, re-measured in-run",
+    "rc01_scored_by_its_own_sentence": {
+      "b_valid_t_plus": 0.78,
+      "b_valid_t_minus": 0.0,
+      "share_of_t_minus_with_no_satisfying_move": 1.0,
+      "corrected_separation": 0.734,
+      "fraction_of_ceiling": 0.96,
+      "reading": "a floor at 96% of the ceiling is not a floor; the zero exists by construction"
+    },
+    "candidates": {
+      "RC-05 safe-promotion": {
+        "b_valid": [
+          0.56,
+          0.104
+        ],
+        "chance_separation": 0.002,
+        "corrected_separation": 0.454,
+        "fraction_of_ceiling": 0.593
+      },
+      "RC-02 recapture": {
+        "b_valid": [
+          0.64,
+          0.26
+        ],
+        "chance_separation": 0.016,
+        "corrected_separation": 0.364,
+        "fraction_of_ceiling": 0.476
+      },
+      "RC-04 save-the-attacked-piece": {
+        "corrected_separation": 0.361,
+        "fraction_of_ceiling": 0.472
+      },
+      "RC-03 capture-the-checker": {
+        "chance_separation": 0.147,
+        "corrected_separation": 0.109,
+        "fraction_of_ceiling": 0.143,
+        "reading": "the published trap, quantified: most of its apparent separation is geometry"
+      }
+    },
+    "chance_correction_does_not_substitute_for_c11": {
+      "rc06_one_basis": {
+        "observed": -0.048,
+        "chance": -0.692,
+        "corrected": 0.644
+      },
+      "reading": "a saturated noise cell has a chance rate near 1, so the chance separation is large and negative and subtracting it is a bonus. C11 gates first."
+    },
+    "not_established": [
+      "eligibility",
+      "exchangeability",
+      "harm",
+      "robustness",
+      "that RC-05's base rate of 0.22% permits a within-person study"
+    ]
+  }
+}

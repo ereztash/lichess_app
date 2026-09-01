@@ -1940,7 +1940,9 @@ export default function Home() {
         }}
       />
 
-      <section className="workbench">
+      {/* One track per child that exists, off the same `focus` the rail is gated on. Gating only
+          the rail left the board in the toolbox's 132px track: see `.workbench` in index.css. */}
+      <section className={focus ? "workbench workbench-focus" : "workbench"}>
         {/*
           * THREE QUESTIONS, THREE ENTRIES -- not six controls at one weight.
           *
@@ -2023,7 +2025,10 @@ export default function Home() {
         <section className="board-workspace">
           <div className="workspace-meta">
             <div>
-              <p>{deciding ? "DECIDE" : "REVEAL"}</p>
+              {/* `focus`, not `deciding`: the narrower reading said REVEAL at `committed`, where
+                  the counterfactual is open and the engine has not run, and at `blocked`, where the
+                  write failed. `MODE_OF_STAGE` calls all four DECIDE. Measured in a browser. */}
+              <p>{focus ? "DECIDE" : "REVEAL"}</p>
               {/* "7. Bb3" is a Latin run: under the page's RTL direction it rendered "Bb3 .7". */}
               <h1>
                 {activeMove ? (

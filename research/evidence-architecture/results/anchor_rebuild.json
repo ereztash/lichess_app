@@ -1,0 +1,353 @@
+{
+  "version": "1.0.0",
+  "what_this_is": "the anchor pair rebuilt after C11 voided the floor, and RC-05 and RC-02 screened against it, all within one run on the published engine",
+  "engine": {
+    "build": "Stockfish 17.1",
+    "nodes": 200000,
+    "threads": 1,
+    "hash": 64
+  },
+  "seed": 20260831,
+  "sample_per_cell": 250,
+  "searches": 3000,
+  "engine_failures": 0,
+  "rebuilt_scale": {
+    "floor": "CHANCE, not a rule class. A move-blind agent earns psz|T+ - psz|T- for free.",
+    "ceiling": "RC-00 mate-in-one's corrected separation, re-measured in this run",
+    "gate_order": "C11 first, then correction. Correction cannot replace C11: on a saturated noise cell the chance rate is ~1, the chance separation is large and negative, and subtracting it turns the worst class in the register into one of the best (RC-06, one basis: -0.048 observed, -0.692 chance, +0.644 corrected)."
+  },
+  "classes": {
+    "RC-00": {
+      "name": "mate-in-one",
+      "role": "ceiling-anchor",
+      "prescription": "if a move mates, play it; a check that is not mate is the error",
+      "basis": "shipped",
+      "separation_shipped": 0.8160000000000001,
+      "separation_as_stated": 1.0,
+      "chance_separation_shipped": 0.05143997660945007,
+      "chance_separation_as_stated": 0.026600362986168406,
+      "separation_on_basis": 0.8160000000000001,
+      "chance_separation_on_basis": 0.05143997660945007,
+      "corrected_separation": 0.76456002339055,
+      "cells": {
+        "positive": {
+          "cell_size": 1168,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 250,
+            "n": 250,
+            "p": 1.0,
+            "ci95": [
+              0.9848667005045553,
+              0.9999999999999998
+            ]
+          },
+          "b_valid_as_stated": {
+            "k": 250,
+            "n": 250,
+            "p": 1.0,
+            "ci95": [
+              0.9848667005045553,
+              0.9999999999999998
+            ]
+          },
+          "prescription_size_shipped": 0.11023148974425427,
+          "prescription_size_as_stated": 0.026600362986168406,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 78419,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 46,
+            "n": 250,
+            "p": 0.184,
+            "ci95": [
+              0.14087551749687086,
+              0.23668872778425012
+            ]
+          },
+          "b_valid_as_stated": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              8.673617379884035e-19,
+              0.015133299495444574
+            ]
+          },
+          "prescription_size_shipped": 0.0587915131348042,
+          "prescription_size_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      },
+      "position_between_chance_and_ceiling": 1.0
+    },
+    "RC-01": {
+      "name": "loose-piece",
+      "role": "incumbent-floor",
+      "prescription": "if exactly one enemy piece is capturable and undefended, take it",
+      "basis": "as_stated",
+      "separation_shipped": 0.5920000000000001,
+      "separation_as_stated": 0.78,
+      "chance_separation_shipped": 0.015409246236958909,
+      "chance_separation_as_stated": 0.046184820149933616,
+      "separation_on_basis": 0.78,
+      "chance_separation_on_basis": 0.046184820149933616,
+      "corrected_separation": 0.7338151798500664,
+      "cells": {
+        "positive": {
+          "cell_size": 11752,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 195,
+            "n": 250,
+            "p": 0.78,
+            "ci95": [
+              0.7246272763980252,
+              0.8268980758845258
+            ]
+          },
+          "b_valid_as_stated": {
+            "k": 195,
+            "n": 250,
+            "p": 0.78,
+            "ci95": [
+              0.7246272763980252,
+              0.8268980758845258
+            ]
+          },
+          "prescription_size_shipped": 0.046184820149933616,
+          "prescription_size_as_stated": 0.046184820149933616,
+          "no_legal_move_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 45752,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 47,
+            "n": 250,
+            "p": 0.188,
+            "ci95": [
+              0.1444258093511374,
+              0.24101736953401998
+            ]
+          },
+          "b_valid_as_stated": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              8.673617379884035e-19,
+              0.015133299495444574
+            ]
+          },
+          "prescription_size_shipped": 0.030775573912974707,
+          "prescription_size_as_stated": 0.0,
+          "no_legal_move_as_stated": 1.0
+        }
+      },
+      "position_between_chance_and_ceiling": 0.9598
+    },
+    "RC-02": {
+      "name": "recapture",
+      "role": "candidate",
+      "prescription": "if the opponent just captured on a square you attack, take back there",
+      "basis": "shipped",
+      "separation_shipped": 0.38,
+      "separation_as_stated": null,
+      "chance_separation_shipped": 0.015827051505937634,
+      "chance_separation_as_stated": null,
+      "separation_on_basis": 0.38,
+      "chance_separation_on_basis": 0.015827051505937634,
+      "corrected_separation": 0.36417294849406234,
+      "cells": {
+        "positive": {
+          "cell_size": 19587,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 160,
+            "n": 250,
+            "p": 0.64,
+            "ci95": [
+              0.5787949527342393,
+              0.6969677234070362
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.0496616945679096,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 30745,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 65,
+            "n": 250,
+            "p": 0.26,
+            "ci95": [
+              0.20955021872073462,
+              0.3177137650370787
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.03383464306197197,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      },
+      "position_between_chance_and_ceiling": 0.4763
+    },
+    "RC-03": {
+      "name": "capture-the-checker",
+      "role": "candidate",
+      "prescription": "when a single piece checks you and nothing defends it, capture it",
+      "basis": "shipped",
+      "separation_shipped": 0.256,
+      "separation_as_stated": null,
+      "chance_separation_shipped": 0.1466238095238096,
+      "chance_separation_as_stated": null,
+      "separation_on_basis": 0.256,
+      "chance_separation_on_basis": 0.1466238095238096,
+      "corrected_separation": 0.1093761904761904,
+      "cells": {
+        "positive": {
+          "cell_size": 2057,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 238,
+            "n": 250,
+            "p": 0.952,
+            "ci95": [
+              0.9179876987868126,
+              0.9723317984693053
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.5430095238095239,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 1286,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 174,
+            "n": 250,
+            "p": 0.696,
+            "ci95": [
+              0.6363702875665094,
+              0.7496974590312762
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.39638571428571434,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      },
+      "position_between_chance_and_ceiling": 0.1431
+    },
+    "RC-04": {
+      "name": "save-the-attacked-piece",
+      "role": "candidate",
+      "prescription": "if exactly one of your pieces is attacked and materially threatened, move it",
+      "basis": "shipped",
+      "separation_shipped": 0.416,
+      "separation_as_stated": null,
+      "chance_separation_shipped": 0.05500256446635429,
+      "chance_separation_as_stated": null,
+      "separation_on_basis": 0.416,
+      "chance_separation_on_basis": 0.05500256446635429,
+      "corrected_separation": 0.3609974355336457,
+      "cells": {
+        "positive": {
+          "cell_size": 21699,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 175,
+            "n": 250,
+            "p": 0.7,
+            "ci95": [
+              0.6405184593182177,
+              0.7534282208836044
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.24033275447336322,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 29403,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 71,
+            "n": 250,
+            "p": 0.284,
+            "ci95": [
+              0.2316994606970238,
+              0.3428381246850081
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.18533019000700893,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      },
+      "position_between_chance_and_ceiling": 0.4722
+    },
+    "RC-05": {
+      "name": "safe-promotion",
+      "role": "candidate",
+      "prescription": "if a pawn can promote to a square nothing attacks, promote",
+      "basis": "shipped",
+      "separation_shipped": 0.45600000000000007,
+      "separation_as_stated": null,
+      "chance_separation_shipped": 0.002475242144371635,
+      "chance_separation_as_stated": null,
+      "separation_on_basis": 0.45600000000000007,
+      "chance_separation_on_basis": 0.002475242144371635,
+      "corrected_separation": 0.45352475785562846,
+      "cells": {
+        "positive": {
+          "cell_size": 370,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 140,
+            "n": 250,
+            "p": 0.56,
+            "ci95": [
+              0.4980209822582853,
+              0.6201630218022616
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.05301011878093891,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        },
+        "negative": {
+          "cell_size": 364,
+          "n": 250,
+          "b_valid_shipped": {
+            "k": 26,
+            "n": 250,
+            "p": 0.104,
+            "ci95": [
+              0.07196523249243102,
+              0.14802034070796105
+            ]
+          },
+          "b_valid_as_stated": null,
+          "prescription_size_shipped": 0.05053487663656728,
+          "prescription_size_as_stated": null,
+          "no_legal_move_as_stated": null
+        }
+      },
+      "position_between_chance_and_ceiling": 0.5932
+    }
+  }
+}

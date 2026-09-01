@@ -1,0 +1,95 @@
+{
+  "version": "1.0.0",
+  "seed": 20260831,
+  "detectors": {
+    "source_shipped": {
+      "RC-00": false,
+      "RC-01": false,
+      "RC-02": false,
+      "RC-03": false,
+      "RC-04": false,
+      "RC-05": false,
+      "RC-06": true,
+      "RC-07": false,
+      "RC-08": false,
+      "RC-09": false,
+      "RC-11": false,
+      "RC-12": false,
+      "RC-13": false,
+      "RC-14": false,
+      "RC-18": false,
+      "RC-20": false,
+      "RC-21": false
+    },
+    "declared_in_docstring": {
+      "RC-00": false,
+      "RC-01": false,
+      "RC-02": false,
+      "RC-03": false,
+      "RC-04": false,
+      "RC-05": false,
+      "RC-06": true,
+      "RC-07": false,
+      "RC-08": false,
+      "RC-09": false,
+      "RC-11": false,
+      "RC-12": true,
+      "RC-13": false,
+      "RC-14": false,
+      "RC-18": false,
+      "RC-20": false,
+      "RC-21": false
+    },
+    "disagree": [
+      "RC-12"
+    ],
+    "reading": "The shipped detector reports the classes whose `satisfies` CALLS a trigger function. A predicate that inlines the same board condition is invisible to it. Every id in `disagree` is a class the shipped detector and the class's own docstring describe differently."
+  },
+  "measured": {
+    "RC-06": {
+      "prescription": "if the opponent threatens mate next move, play a move that stops it",
+      "cells": {
+        "positive": {
+          "cell_size": 2080,
+          "n": 2000,
+          "prescription_size_shipped": 0.3019841662670199,
+          "prescription_size_as_stated": 0.3019841662670199,
+          "every_legal_move_satisfies_shipped": 0.007,
+          "every_legal_move_satisfies_as_stated": 0.007
+        },
+        "negative": {
+          "cell_size": 80332,
+          "n": 2000,
+          "prescription_size_shipped": 0.10439055979871081,
+          "prescription_size_as_stated": 0.9949961491651329,
+          "every_legal_move_satisfies_shipped": 0.0,
+          "every_legal_move_satisfies_as_stated": 0.9405
+        }
+      },
+      "noise_cell_inflation": 0.8906055893664221
+    },
+    "RC-12": {
+      "prescription": "if the opponent can safely promote a pawn, prevent it",
+      "cells": {
+        "positive": {
+          "cell_size": 602,
+          "n": 602,
+          "prescription_size_shipped": 0.12355796884133952,
+          "prescription_size_as_stated": 0.12355796884133952,
+          "every_legal_move_satisfies_shipped": 0.0,
+          "every_legal_move_satisfies_as_stated": 0.0
+        },
+        "negative": {
+          "cell_size": 19677,
+          "n": 2000,
+          "prescription_size_shipped": 0.18413946269997036,
+          "prescription_size_as_stated": 0.999506844248756,
+          "every_legal_move_satisfies_shipped": 0.0,
+          "every_legal_move_satisfies_as_stated": 0.9955
+        }
+      },
+      "noise_cell_inflation": 0.8153673815487856
+    }
+  },
+  "what_this_shows": "Branching is not a property of how a predicate is written, so it cannot be detected by reading how a predicate is written. The measured columns price it: the noise cell the screen reports is smaller than the noise cell the rule as stated would have, and the difference is not small."
+}

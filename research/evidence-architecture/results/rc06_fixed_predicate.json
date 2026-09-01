@@ -1,0 +1,122 @@
+{
+  "version": "1.0.0",
+  "engine": {
+    "path": "/tmp/claude-0/-home-user-lichess-app/77ca420a-6457-5629-a96e-57621a891d30/scratchpad/data/stockfish/stockfish-ubuntu-x86-64-avx2",
+    "nodes": 200000,
+    "threads": 1,
+    "hash": 64
+  },
+  "seed": 20260831,
+  "sample_per_cell": 250,
+  "engine_failures": 0,
+  "cells": {
+    "positive": {
+      "n": 250,
+      "cell_size": 2080,
+      "b_valid_branching": {
+        "k": 238,
+        "n": 250,
+        "p": 0.952,
+        "ci95": [
+          0.9179876987868126,
+          0.9723317984693053
+        ]
+      },
+      "b_valid_symmetric": {
+        "k": 238,
+        "n": 250,
+        "p": 0.952,
+        "ci95": [
+          0.9179876987868126,
+          0.9723317984693053
+        ]
+      },
+      "nothing_satisfies_branching_B": {
+        "k": 12,
+        "n": 250,
+        "p": 0.048,
+        "ci95": [
+          0.02766820153069461,
+          0.08201230121318728
+        ]
+      },
+      "nothing_satisfies_symmetric_B": {
+        "k": 12,
+        "n": 250,
+        "p": 0.048,
+        "ci95": [
+          0.02766820153069461,
+          0.08201230121318728
+        ]
+      },
+      "every_legal_move_satisfies_symmetric_B": {
+        "k": 3,
+        "n": 250,
+        "p": 0.012,
+        "ci95": [
+          0.0040893198805342975,
+          0.0346807804270196
+        ]
+      }
+    },
+    "negative": {
+      "n": 250,
+      "cell_size": 80332,
+      "b_valid_branching": {
+        "k": 48,
+        "n": 250,
+        "p": 0.192,
+        "ci95": [
+          0.14798411102572986,
+          0.245338001463464
+        ]
+      },
+      "b_valid_symmetric": {
+        "k": 250,
+        "n": 250,
+        "p": 1.0,
+        "ci95": [
+          0.9848667005045553,
+          0.9999999999999998
+        ]
+      },
+      "nothing_satisfies_branching_B": {
+        "k": 35,
+        "n": 250,
+        "p": 0.14,
+        "ci95": [
+          0.1024162573102742,
+          0.1884797183264459
+        ]
+      },
+      "nothing_satisfies_symmetric_B": {
+        "k": 0,
+        "n": 250,
+        "p": 0.0,
+        "ci95": [
+          8.673617379884035e-19,
+          0.015133299495444574
+        ]
+      },
+      "every_legal_move_satisfies_symmetric_B": {
+        "k": 230,
+        "n": 250,
+        "p": 0.92,
+        "ci95": [
+          0.8796703567961583,
+          0.9476176716276683
+        ]
+      }
+    }
+  },
+  "separation_branching": 0.76,
+  "separation_symmetric": -0.04800000000000004,
+  "published_separation_branching": 0.768,
+  "published_incumbent_floor_separation": 0.6,
+  "positive_control": "the `branching` column must reproduce the published .968 / .200; if it does not, nothing in the `symmetric` column is evidence about anything.",
+  "gate_G5": {
+    "asks": "separation > the refuted incumbent RC-01's separation (+0.600)",
+    "passes_under_branching_B": true,
+    "passes_under_symmetric_B": false
+  }
+}

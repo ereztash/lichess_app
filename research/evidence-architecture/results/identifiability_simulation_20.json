@@ -1,0 +1,213 @@
+{
+  "version": "1.0.0",
+  "gate": "decision-relevant identifiability: all distinctions required for the intended downstream decision are separable enough to change what the system would do next",
+  "classifier": "Bayes-optimal likelihood ratio, handed the true generative model of both hypotheses. An UPPER BOUND: no real estimator beats it.",
+  "beta": 2.0,
+  "person_time_sd_seconds": 8.0,
+  "beta_calibration": "P(B | not applying) = min(1, beta * per-item chance rate). At beta = 2 the model reproduces the observed RC-06 trigger-negative rate under the shipped predicate (2 x .104 = .21 against a measured .192-.200).",
+  "items_per_condition": 20,
+  "trials": 4000,
+  "chance": 0.5,
+  "rate_matched_to": 0.716,
+  "rate_match_note": "every learner's p_act is solved so its expected P(B | T+, untimed) equals .716, the pooled trigger-positive rule-consistent action rate measured on historical players. Pairs therefore differ in MECHANISM at equal primary behaviour.",
+  "baseline_b_rate_on_t_plus_without_applying": 0.5746,
+  "pairs": {
+    "A/B": "recognises T + weak action selection   vs   does not recognise T, baseline produces B",
+    "C/D": "correct conditional discrimination   vs   response bias / perform-B-everywhere",
+    "E/F": "untimed competence   vs   time-pressure execution failure",
+    "G/H": "immediate availability   vs   delayed retrieval failure",
+    "cue": "weak recognition, cue does not help   vs   weak recognition a generic cue repairs",
+    "L7": "the construct applies   vs   an alternative strategy producing the same move"
+  },
+  "learners": {
+    "L1": {
+      "label": "recognises T, weak action selection",
+      "next_intervention": "action selection / if-then compilation",
+      "p_recognise": 0.95,
+      "p_act_solved": 0.7234,
+      "p_false_application": 0.05
+    },
+    "L2": {
+      "label": "does not recognise T, baseline policy often produces B",
+      "next_intervention": "trigger recognition / contrastive examples",
+      "p_recognise": 0.3,
+      "p_act_solved": 1.0,
+      "p_false_application": 0.05
+    },
+    "L3": {
+      "label": "recognises T but overgeneralises into T-",
+      "next_intervention": "boundary / T- discrimination, hard negatives",
+      "p_recognise": 0.95,
+      "p_act_solved": 0.7234,
+      "p_false_application": 0.55
+    },
+    "L4": {
+      "label": "correct untimed, fails under time pressure",
+      "next_intervention": "representative timed practice",
+      "p_recognise": 0.95,
+      "p_act_solved": 0.7234,
+      "p_false_application": 0.05
+    },
+    "L5": {
+      "label": "weak initial state, strongly cue-responsive",
+      "next_intervention": "orientation, worked examples with fading",
+      "p_recognise": 0.3,
+      "p_act_solved": 1.0,
+      "p_false_application": 0.05
+    },
+    "L6": {
+      "label": "competent immediately, poor delayed retrieval",
+      "next_intervention": "spacing and retrieval practice",
+      "p_recognise": 0.95,
+      "p_act_solved": 0.7234,
+      "p_false_application": 0.05
+    },
+    "L7": {
+      "label": "alternative strategy producing the same move (calculation, not recognition)",
+      "next_intervention": "none -- the construct does not apply to this player",
+      "p_recognise": 0.95,
+      "p_act_solved": 0.7234,
+      "p_false_application": 0.05
+    }
+  },
+  "results": {
+    "branching": {
+      "move only": {
+        "A/B": 0.863,
+        "C/D": 0.5,
+        "E/F": 0.5,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.5
+      },
+      "move, both cells": {
+        "A/B": 0.859,
+        "C/D": 0.983,
+        "E/F": 0.5,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.5
+      },
+      "+ time": {
+        "A/B": 0.878,
+        "C/D": 0.98,
+        "E/F": 0.5,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.786
+      },
+      "+ timed condition": {
+        "A/B": 0.947,
+        "C/D": 0.976,
+        "E/F": 0.797,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.78
+      },
+      "+ delayed condition": {
+        "A/B": 0.979,
+        "C/D": 0.978,
+        "E/F": 0.804,
+        "G/H": 0.795,
+        "cue": 0.5,
+        "L7": 0.783
+      },
+      "+ generic cue": {
+        "A/B": 0.99,
+        "C/D": 0.983,
+        "E/F": 0.807,
+        "G/H": 0.793,
+        "cue": 0.94,
+        "L7": 0.781
+      },
+      "+ candidate set": {
+        "A/B": 1.0,
+        "C/D": 0.977,
+        "E/F": 0.793,
+        "G/H": 0.802,
+        "cue": 0.939,
+        "L7": 0.786
+      }
+    },
+    "symmetric": {
+      "move only": {
+        "A/B": 0.863,
+        "C/D": 0.5,
+        "E/F": 0.5,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.5
+      },
+      "move, both cells": {
+        "A/B": 0.859,
+        "C/D": 0.5,
+        "E/F": 0.5,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.5
+      },
+      "+ time": {
+        "A/B": 0.878,
+        "C/D": 0.5,
+        "E/F": 0.5,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.786
+      },
+      "+ timed condition": {
+        "A/B": 0.947,
+        "C/D": 0.5,
+        "E/F": 0.797,
+        "G/H": 0.5,
+        "cue": 0.5,
+        "L7": 0.78
+      },
+      "+ delayed condition": {
+        "A/B": 0.979,
+        "C/D": 0.5,
+        "E/F": 0.804,
+        "G/H": 0.795,
+        "cue": 0.5,
+        "L7": 0.783
+      },
+      "+ generic cue": {
+        "A/B": 0.99,
+        "C/D": 0.5,
+        "E/F": 0.807,
+        "G/H": 0.793,
+        "cue": 0.94,
+        "L7": 0.781
+      },
+      "+ candidate set": {
+        "A/B": 1.0,
+        "C/D": 0.5,
+        "E/F": 0.793,
+        "G/H": 0.802,
+        "cue": 0.939,
+        "L7": 0.786
+      }
+    }
+  },
+  "beta_sensitivity_on_C_vs_D": {
+    "1.0": {
+      "branching": 0.99,
+      "symmetric": 0.515
+    },
+    "1.5": {
+      "branching": 0.988,
+      "symmetric": 0.5
+    },
+    "2.0": {
+      "branching": 0.978,
+      "symmetric": 0.5
+    },
+    "2.5": {
+      "branching": 0.971,
+      "symmetric": 0.5
+    },
+    "3.0": {
+      "branching": 0.961,
+      "symmetric": 0.5
+    }
+  }
+}

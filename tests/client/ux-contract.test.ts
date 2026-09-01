@@ -124,7 +124,13 @@ describe("the board is sized by its container, not by its glyphs", () => {
   });
 
   it("keeps the height bound that stops the board running off the bottom", () => {
-    expect(block(".board-stage")).toMatch(/max-width:\s*min\(100%,\s*calc\(100vh - \d+px\)\)/);
+    /*
+     * The bound now sits under a `max()` -- see "keeps a floor under the board's height bound"
+     * below for why. What this assertion is for is unchanged and is still the thing that goes red
+     * if somebody removes it: a board whose width is not bounded by the height available ran 111px
+     * past the bottom of a 1440x950 viewport and cut off the first rank.
+     */
+    expect(block(".board-stage")).toMatch(/max-width:\s*min\(100%,[\s\S]*calc\(100vh - \d+px\)\)/);
   });
 });
 
@@ -545,5 +551,89 @@ describe("the reduced-motion setting is read", () => {
     ).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
     expect(commitment).not.toMatch(/behavior:\s*["']smooth["']/);
     expect(commitment).toMatch(/scrollIntoViewRespectingMotion/);
+  });
+});
+
+/**
+ * The grid whose child list depends on the interaction state.
+ *
+ * A BROWSER MEASURES THE GEOMETRY; THIS MEASURES THE CAUSE.
+ * `tests/layout/the-board-in-the-state-that-decides.layout.test.ts` reads real rects in Chromium
+ * and is the file that would go red on the defect. What it costs is a build and a browser, and
+ * what it cannot see is the RELATION that made the defect possible: that the template and the
+ * child list are driven by the SAME condition, and that neither leaves a column to auto-flow.
+ * Those are readable from the source, so they are read on every commit rather than on demand.
+ */
+describe("the workbench's tracks follow its children", () => {
+  const workbench = block(".workbench");
+  const focused = block(".workbench.workbench-focus");
+
+  it("names its columns instead of numbering them", () => {
+    /*
+     * The number of tracks changes with the state, so `grid-column: 2` means the board in one
+     * state and the commitment in the other. That is the defect written a second way.
+     */
+    expect(workbench, "the workbench's columns are unnamed again").toMatch(
+      /grid-template-columns:\s*\[rail\][^;]*\[board\][^;]*\[task\]/,
+    );
+    expect(focused, "the focus template is unnamed again").toMatch(
+      /grid-template-columns:\s*\[board\][^;]*\[task\]/,
+    );
+  });
+
+  it("drops the toolbox's track in the state where the toolbox does not exist", () => {
+    /* One fewer track, and no line by that name for a child to be placed against. */
+    expect(focused, "the focus state still declares a toolbox track").not.toContain("[rail]");
+    const tracks = (declaration: string) =>
+      (declaration.match(/grid-template-columns:([^;]*);/) ?? ["", ""])[1].match(/\[[a-z]+\]/g) ?? [];
+    expect(tracks(focused).length).toBe(tracks(workbench).length - 1);
+  });
+
+  it("places every child of the grid by name", () => {
+    for (const [selector, line] of [
+      [".control-rail", "rail"],
+      [".board-workspace", "board"],
+      [".analysis-stack", "task"],
+    ] as const) {
+      expect(block(selector), `${selector} is placed by auto-flow`).toMatch(
+        new RegExp(`grid-column:\\s*${line}`),
+      );
+    }
+  });
+
+  it("gates the template on the same condition that gates the toolbox", () => {
+    /*
+     * THE WHOLE DEFECT IN ONE SENTENCE: the rail was conditional and the grid was not. Two
+     * conditions can disagree; one cannot. `focus` is `makingEvidence(stage)`, the LAW 1 boundary,
+     * and both the class and the rail read it -- so this goes red if a later change gives either
+     * of them a condition of its own.
+     */
+    expect(home, "the workbench no longer switches template on the focus state").toMatch(
+      /className=\{focus \? "workbench workbench-focus" : "workbench"\}/,
+    );
+    expect(home, "the toolbox is no longer gated on `focus`").toMatch(
+      /\{!focus && \(\s*<aside className="control-rail">/,
+    );
+    expect(home, "`focus` is no longer the LAW 1 boundary").toMatch(
+      /const focus = makingEvidence\(stage\);/,
+    );
+  });
+
+  it("keeps a floor under the board's height bound", () => {
+    /*
+     * `calc(100vh - 268px)` is a subtraction with no lower limit, and a landscape phone at 844x390
+     * measured a 122px board with 13.5px squares. The floor is eight squares at the file's own tap
+     * floor plus the 7px border on each side -- derived from the tokens, so it cannot drift away
+     * from the number it is named after.
+     */
+    for (const declaration of bare.match(/max-width:\s*min\(100%,[^;]*268px\)[^;]*;/g) ?? []) {
+      expect(declaration, "the height bound lost its floor").toMatch(
+        /max\(calc\(8 \* var\(--tap-floor\) \+ 14px\)/,
+      );
+    }
+    expect(
+      (bare.match(/max-width:\s*min\(100%,[^;]*268px\)[^;]*;/g) ?? []).length,
+      "the vh and svh bounds are no longer both present",
+    ).toBe(2);
   });
 });

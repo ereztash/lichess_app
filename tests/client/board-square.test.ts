@@ -51,7 +51,9 @@ describe("the board cannot collapse a rank", () => {
     // all. The minifier keeps only the last of two same-property declarations in one block, so
     // the fallback has to live in its own rule to survive the build.
     const stage = block(".board-stage");
-    expect(stage).toMatch(/max-width:\s*min\(100%,\s*calc\(100vh/);
+    /* The bound sits inside a `max()` now -- see the floor under it in `index.css`. What this
+       assertion holds is unchanged: the base rule is the vh one, and svh lives in @supports. */
+    expect(stage).toMatch(/max-width:\s*min\(100%,[\s\S]*calc\(100vh/);
     expect(stage).not.toMatch(/100svh/);
     expect(css).toMatch(/@supports \(height: 100svh\)/);
   });
