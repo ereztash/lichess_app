@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 from analysis import (
-    PlayerBootstrap, RatingBasis, gradient_with_main_effect, pooled_random_effects, slope,
-    spearman,
+    PlayerBootstrap, RatingBasis, gradient_with_main_effect, partial_correlation,
+    pooled_random_effects, slope, spearman,
 )
 from common import BAND_LABELS
 
@@ -74,6 +74,9 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     rating_c = _centred_rating(frame)
     allocation = frame["allocation_loss"].to_numpy(float)
     extreme = frame["extreme_ut"].to_numpy(float)
+    # N1(c): the frozen-residualised forms, which are what MODEL_SPEC 4 step 1 specifies.
+    allocation_resid = frame["allocation_resid"].to_numpy(float)
+    extreme_resid = frame["extreme_resid"].to_numpy(float)
 
     out: dict = {
         "n_decisions": int(len(frame)),
@@ -105,6 +108,10 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
         lambda i: 100.0 * slope(y_resid[i], rating_resid[i])
     )
 
+    out["metric_a_by_band"] = _by_band(
+        frame, boot, lambda i: 100.0 * slope(y_resid[i], rating_resid[i])
+    )
+
     # --- Metric B: time allocation efficiency (PRIMARY) ----------------------------------------
     out["tae_by_band"] = _by_band(frame, boot, lambda i: slope(y_resid[i], voc_resid[i]))
     tae_main, tae_inter = gradient_with_main_effect(y_resid, voc_resid, rating_c, rating_block)
@@ -114,19 +121,15 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
                                             rating_block[i])[1], point=tae_inter
     )
     # The partial-correlation form, so a band whose thinking times are merely more variable cannot
-    # read as more efficient.
-    def partial_corr(i):
-        a, b = y_resid[i], voc_resid[i]
-        denominator = np.sqrt((a @ a) * (b @ b))
-        return float(a @ b / denominator) if denominator > 0 else float("nan")
-
-    out["tae_partial_correlation_by_band"] = _by_band(frame, boot, partial_corr)
+    # read as more efficient. Centred within the band, per N1(a).
+    out["tae_partial_correlation_by_band"] = _by_band(
+        frame, boot, lambda i: partial_correlation(y_resid[i], voc_resid[i])
+    )
 
     # --- Metric C: allocation loss --------------------------------------------------------------
     out["allocation_loss_by_band"] = _by_band(frame, boot, lambda i: float(allocation[i].mean()))
     out["allocation_loss_vs_rating"] = boot.interval(
-        lambda i: 100.0 * slope(allocation[i] - allocation[i].mean(),
-                                rating_resid[i] - rating_resid[i].mean())
+        lambda i: 100.0 * slope(allocation_resid[i], rating_resid[i])
     )
     out["overthinking_by_band"] = _by_band(
         frame, boot, lambda i: float(frame["overthinking"].to_numpy(float)[i].mean())
@@ -138,8 +141,7 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     # --- Metric D: extreme unexpected-time exposure ---------------------------------------------
     out["extreme_ut_by_band"] = _by_band(frame, boot, lambda i: float(extreme[i].mean()))
     out["extreme_ut_vs_rating"] = boot.interval(
-        lambda i: 100.0 * slope(extreme[i] - extreme[i].mean(),
-                                rating_resid[i] - rating_resid[i].mean())
+        lambda i: 100.0 * slope(extreme_resid[i], rating_resid[i])
     )
 
     # --- Metric E: friction burden. DESCRIPTIVE. Cannot contribute to a verdict. -----------------
@@ -209,15 +211,20 @@ def player_level(frame: pd.DataFrame) -> dict:
             continue
         y = block["y_resid_T1"].to_numpy(float)
         v = block["voc_resid"].to_numpy(float)
-        denominator = float(v @ v)
-        tae = float(v @ y) / denominator if denominator > 0 else np.nan
+        # CENTRED WITHIN THE PLAYER (N1b). Uncentred, this statistic is dominated by
+        # mean(pace) x mean(position-type) -- the player's tempo times the kind of positions they
+        # reach -- and both trend with rating, so condition 6 would have read a product of two
+        # frozen-model misfits as a player-level allocation gradient.
+        yc, vc = y - y.mean(), v - v.mean()
+        denominator = float(vc @ vc)
+        tae = float(vc @ yc) / denominator if denominator > 0 else np.nan
         rows.append(
             {
                 "player": player,
                 "n": len(block),
                 "rating": float(block["rating"].mean()),
                 "tae": tae,
-                "tae_var": (float(y @ y) / denominator / max(len(block) - 2, 1))
+                "tae_var": (float(yc @ yc) / denominator / max(len(block) - 2, 1))
                 if denominator > 0 else np.nan,
                 "mean_quality_loss": float(block["quality_loss"].mean()),
                 "adjusted_time": float(block["y_resid_T1"].mean()),

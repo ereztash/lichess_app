@@ -70,10 +70,10 @@ than discovered later.
 | # | Alternative | Preregistered response | Can it be excluded? |
 |---|---|---|---|
 | A1 | **Skill only.** Rating raises quality; unexpected time is noise. | H1 estimated within rating bands and with rating adjusted. | Yes, if beta > 0 within bands. |
-| A2 | **Unmeasured difficulty.** Unexpected time is a proxy for position difficulty the engine features missed. | Residual taken from T2, the richest pre-move model (difficulty + candidate structure + search instability + VoC + clock). Matched analysis (§21 of the plan). Alternate engine budget (C9). | **No.** This is the central irreducible limitation and the report must say so. Adjustment shrinks it; it cannot remove it. |
+| A2 | **Unmeasured difficulty.** Unexpected time is a proxy for position difficulty the engine features missed. | Residual taken from T2, the richest pre-move model (difficulty + candidate structure + search instability + VoC + clock). Matched analysis. Alternate engine budget (C9). | **No.** This is the central irreducible limitation and the report must say so. Adjustment shrinks it; it cannot remove it. |
 | A3 | **Position-distribution confound.** Stronger players reach systematically different positions, so a rating gradient is a gradient in the positions, not in the players. | Matched analysis on difficulty / VoC / clock / phase / standing / eval; within-band estimation; opponent rating as a covariate. | Partly. |
 | A4 | **Clock-management confound.** Stronger players get into time trouble less, and time trouble causes errors, so every metric moves for a reason that is not allocation. | Clock remaining, opponent clock and clock pressure enter every model; clock-pressure strata (C14). | Partly. |
-| A5 | **Opponent strength.** Opponent rating drives both position difficulty and the clock. | Opponent rating is a covariate in T0/T1/T2 and in the quality model. | Yes, to the extent it is measured. |
+| A5 | **Opponent strength.** The opponent drives both position difficulty and the clock. | **`rating_diff`** is a covariate in T0 and therefore in every model. `opponent_rating` itself is recorded and enters no model, because it is a near-proxy for the exposure (Gate 1, R5). | Yes, to the extent `rating_diff` measures it -- and along the pairing diagonal, where `rating` and `opponent_rating` move together, it does not separate them at all. |
 | A6 | **Engine artifact.** Difficulty and quality both come from one engine at one budget, so a position where that engine is unstable gets a high difficulty score *and* a noisy quality score by construction. | C9 re-scores a random subset at 2.5x the node budget and repeats the primary estimate. | Partly. |
 | A7 | **Clock quantisation.** Lichess database clocks are whole seconds, so a large share of decisions read as `T = 0`, and those are disproportionately easy positions. | C17 repeats everything with `T = 0` decisions removed. | Yes, by exclusion. |
 | A8 | **Survivorship.** Longer games contribute more decisions, and game length is not independent of how the player is playing. | Player-level clustering everywhere; C18 restricts to the first 40 plies. | Partly. |
@@ -134,7 +134,7 @@ Rating bands for stratification and figures (primary modelling is on continuous 
 
 A band is **adequately powered** in a period when it holds >= 150 distinct players **and**
 >= 3,000 eligible decisions in that period. Bands below that are reported with their counts and
-excluded from the 80% agreement rule in VERDICT_RULES.md §4.2. Bands are never merged.
+excluded from the agreement rules in `VERDICT_RULES.md` §1 and §2.5.2. Bands are never merged.
 
 ---
 
@@ -236,6 +236,11 @@ against**, and a shortfall is a measurement rather than an invalid run.
   with better *recognition* of which positions are sharp, and this design cannot separate the two.
 * "expertise changes how players manage the process", in the verdict, the abstract or the
   conclusion
+* **"C9 did not fire, therefore unmeasured difficulty is excluded"** (re-review, N8). C9 at
+  `n = 5,000` can only see attenuation of roughly two-thirds or more; a realistic difficulty-proxy
+  effect is invisible to it, and a non-firing C9 is not exoneration.
+* **"the attenuation factor for every reported effect"** as a reading of C5b's `recovered_fraction`.
+  It is the attenuation of a signal shaped like the tree's residual, and of nothing else.
 
 The strongest phrase this design can license, and only if the invariance tests support it, is
 **`cross-rating law-like regularity`**; with the secondary time control replicating,

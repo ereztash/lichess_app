@@ -477,3 +477,318 @@ repair applied under time pressure is exactly where a new defect gets in.
   "cross-rating law-like regularity" are appropriate for an observational design.
 * **The packet's candour.** §9 of the packet lists the design's soft spots before the reviewer
   looked, including the band-count softness (§9.6) that became R4(d).
+
+---
+---
+
+# GATE 1 RE-REVIEW
+
+PASS_WITH_REQUIRED_CHANGES
+
+**Reviewer role:** the same independent adversary, in a fresh context. **Scope read, in full, as they
+now stand on disk (uncommitted, after `01f02d7`):** `PREREGISTRATION.md`, `DATA_PROTOCOL.md`,
+`FEATURE_SCHEMA.md`, `MODEL_SPEC.md`, `VERDICT_RULES.md`; the packet's ADDENDUM (treated as a claim,
+not evidence); every file in `src/` and `tests/`; `FAILURES.md`, `README.md`, `REPRODUCIBILITY.md`,
+`MODEL_LEDGER.md`, `results/pilot_development.json`; the lines *removed* from the five documents
+since `01f02d7` (nothing was silently weakened). The test suite was run (39 passed). `evaluate()` was
+additionally run on seven constructed inputs the tests do not construct, and two estimator questions
+were checked numerically. No research code or document was edited; this section is the only write.
+`data/` is empty: no period is scored, no decision-level statistic exists, FINAL has never been read.
+
+## Summary
+
+Twelve of the thirteen changes are genuinely applied in the documents, and the documents now say the
+right things: the rating-spline main effect is frozen on DEVELOPMENT and threaded through every
+estimator, control and the matched sample; condition 5 is a four-fold test with intervals; the TAE
+floor is absolute; `opponent_rating` is in no model; one side per game; the suffix leakage test
+covers the list §5 enforces; the open-choice list has one row; `opp_prev_think_s` is in T0; closed
+accounts are excluded; C5 is an implementation check and C5b does the work; C9 reports a ratio with a
+preregistered threshold; H2 is narrowed. The remaining defects are all in the *transcription* -- the
+place I said a repair applied under time pressure would fail -- and three of them sit on quantities
+the verdict reads: `estimands.py` computes Metric B per band and per player as an **uncentred** inner
+product where `MODEL_SPEC.md` §4 specifies `cov/var` (the per-player version, which decides condition
+6, is dominated by a pace-times-position-type term that is exactly the R1(a) mechanism at player
+level); Metrics C and D are **not residualised on T1P** although §4 now names those frozen fits; and
+`evaluate.py` lets an **absent or crashed required control pass silently** (an `analysis.json` with no
+C5b, no C7 and no C1-C4 returns `EXPERTISE_ADAPTATION_SUPPORTED`). Beside those, `VERDICT_RULES.md`
+§2.3 is still not a complement of the other gates (the code is exhaustive only because it makes
+`SKILL_ONLY` the catch-all, which is not what §2.3 says), level 3 carries a "monotone enough" term the
+code does not implement and which has no preregistered sign, C19 fits a model on the period it is read
+from, the player-disjoint restriction is a placeholder that never runs, and the R10 exclusion is
+counted in total rather than per band. None of these can produce a *false positive* today -- the
+disjoint placeholder actually makes the top verdict unreachable -- but every one of them is a case of
+the binding document and the code disagreeing, and the rule the designers wrote is that such a
+disagreement is a defect. They are small; the largest is about thirty lines. The documents may not be
+hashed until the four document items (N2, N3, N8, N9) are in; engine scoring of DEVELOPMENT may start
+once N7 (two lines in `score.py`) is in; no `run.py` output may be read until N1, N4 and N5 are in;
+N6 must exist before Gate 2.
+
+## R1-R13: status
+
+| # | Status | What settles it |
+|---|---|---|
+| R1 | **APPLIED in the documents; PARTIALLY APPLIED in code** | (a) `MODEL_SPEC.md` §4 "Continuous form, with the main effect it needs"; `VERDICT_RULES.md` §1 "TAE gradient" now defines `eV x rating_c` in `eY ~ s(rating) + eV + eV x rating_c`; `analysis.gradient_with_main_effect` builds `[rating_block, x, x*rating_c, 1]`; `analysis.RatingBasis` is constructed once in `run.py` (line 126, DEVELOPMENT) and passed through `analyse_period -> estimate / matching.matched_estimates / controls.run -> _rerun / C8 / strata`. Knot rule matches `models.KNOTS_5` (7 quantile knots). (b) §4 preamble "frozen nuisance, few-parameter re-estimate". (c) §4 Metric B paragraph; `fits["partial_voc"]` (`voc_z ~ T1P`, same penalty as T1P). (d) §4 "`corr(eY, eV | band b)`... not `gamma_b * sd(voc_z) / sd(Y)`". **Code deviation:** `estimands.estimate` computes `tae_by_band`, the condition-5 `spread`, `tae_partial_correlation_by_band` and `metric_a_time_vs_rating` as uncentred `<a,b>/<b,b>` (`analysis.slope`, "already-centred" per its docstring, which is true on DEVELOPMENT only), and `estimands.player_level` computes the per-player `TAE_p` the same way. See N1. |
+| R2 | **APPLIED** | `VERDICT_RULES.md` §2.5.5 (matched sample, `T = 0` removed, lowest `clock_pressure` tercile, each with an interval excluding 0); `MODEL_SPEC.md` §4 table of the three routes; `evaluate.py` `h2_tae_matched` (`analysis["matched"]["final"]`), `h2_tae_no_zero_time` (`C17_no_zero_time`), `h2_tae_low_clock_pressure` (`C14_clock_pressure_t0`), all `signed(..., +1)`. `clock_pressure = -log(clock_frac + 0.01)` and `np.digitize` at DEVELOPMENT terciles, so `t0` is the fullest-clock tercile: correct. The matched gradient (`matching.matched_estimates`) uses the frozen basis and CEM weights; its intercept column is unweighted, which I measured as inconsequential (see Recommended 1). |
+| R3 | **APPLIED** | `VERDICT_RULES.md` §1 `TAE_FLOOR = 0.02`, absolute, with the reason; `evaluate.TAE_FLOOR = 0.02`; `h2_tae_spread = excludes_zero(spread) and point >= TAE_FLOOR`; `estimands` `tae_spread_low_to_high` is `slope(high band) - slope(low band)` over `powered[0]`, `powered[-1]` with a player-bootstrap interval; `tae_by_band` (hence `TAE(lowest)`) in every table (`make_report` table 09); `test_an_absolute_tae_floor_cannot_be_passed_by_a_near_zero_base`. |
+| R4 | **PARTIALLY APPLIED** | (a) §2.2 parenthesised; `evaluate.py` line 197-200 matches. (c) §1 "raw, not shrunk"; `sign_agreement` and `estimands` Spearman read `["point"]` of the raw band table. (d) §1 `ceil`, `MIN_POWERED_BANDS = 5`, `h2_enough_bands`, `h1_band_agreement = band_shape and enough_bands`. (e) §2.5.4 "Metric B, and at least one of Metric A and Metric D"; `evaluate.metric_specs` contains A, B, D only; `test_metric_c_alone_cannot_supply_the_second_metric`. **(b) not finished:** §2.4 no longer requires band shape (the hole I named is closed), but §2.3 `SKILL_ONLY` still has conjunctive conditions ("rating predicts quality_loss ... **and** fewer than two H2 metrics meet §2.5"), so the document still has cases with no gate; the code fires `SKILL_ONLY` as the complement of the other four and never reads `rating_on_quality`. Demonstrated: beta = 0.0005, gain = 0.02, all H2 metrics passing -> document: no gate; code: `SKILL_ONLY`. Same input with `rating_on_quality` containing 0 -> code still `SKILL_ONLY`. The `assert len(fired) == 1` is satisfied by construction, not by enumeration. See N2. Also the doc's condition 4 requires each counted metric to be `monotone enough`, but no per-band Metric A exists in `estimands`, so `evaluate` exempts A (`rho is None -> True`). See N4(iv). |
+| R5 | **APPLIED** | `models.T0_NUMERIC` carries `rating_diff`, not `opponent_rating`; `ALL_MODEL_FEATURES` excludes it; `controls` C3 recomputes `rating_diff` after the player-level shuffle; `models.gbt_columns()` and `run.tree_comparator` use `SPECS["T2R"]`; `MODEL_SPEC.md` §1 boxed note; `FEATURE_SCHEMA.md` §7. Stale text survives in `PREREGISTRATION.md` §2 A3 ("opponent rating as a covariate") and A5 ("Opponent rating is a covariate in T0/T1/T2 and in the quality model"), which is now false. See N9. |
+| R6 | **APPLIED** | `ingest.Sampler.offer`: when both sides clear the hash, the side with the smaller `unit_hash(SEED, game_id, side)` is kept and `"second side of the same game"` is counted; `DATA_PROTOCOL.md` §4.3; `PREREGISTRATION.md` A10 re-justified with the reason the "Yes" was false. Interaction with the caps and rates: the per-player reservoir cap runs after the one-side rule, so a player's two sides are two games; the rule does make within-band inclusion depend on the *opponent's* band rate (a `q = 1` side is displaced with probability `q_opp / 2`), which skews the `rating_diff` composition in opposite directions at the two extreme bands. `rating_diff` is in T1P, so eY and eV are purged of it; second order, but see Observation 3 and Recommended 5 (the cost pilot on disk predates the rule and must be re-run). |
+| R7 | **APPLIED** | `tests/test_suffix_leakage.py`: replaces every move after the decision, every `%clk` from `clk[i]` on, `Termination` and `Result`; asserts `board_features + clock_features` bit-identical, `clock_ms_self/opp`, `opp_prev_think_s`, `own_prev_think_s`, `legal_moves`, `in_check`, `move_uci` unchanged, and that `seconds_taken` **did** move so the fixture cannot prove nothing; both colours parametrised. `PREREGISTRATION.md` §5 item 2 states both perturbations and the exemption for `seconds_taken`/`log_time`. Engine features read only `fen_before`, and the move-swap test covers that path against the real binary. `termination` is written to the row but is in neither `PRE_MOVE` nor any model. |
+| R8 | **APPLIED** | `PREREGISTRATION.md` §3: "model-family exploration" and "freezing the final specification" are gone; the one-row open-choice table (ridge penalty, grouped CV, frozen grid, DEVELOPMENT) and "Anything not on it is closed". `models.RIDGE_GRID`, `choose_penalty` (GroupKFold, 5 folds) match. `sklearn` in `.venv-b3` is 1.9.0 as pinned. |
+| R9 | **APPLIED** | `clock.opponent_previous_think` (`clk[i-3] - clk[i-1] + inc`, `None` below ply 3); `models.T0_NUMERIC` has `opp_prev_think_s`, `T0_CATEGORICAL` has `opp_prev_think_missing`; `dataset.apply_frozen` imputes the DEVELOPMENT median; `own_prev_think_s` recorded, excluded from every primary spec, used only by `T2R_C19`; `FEATURE_SCHEMA.md` §6; A12. **But the C19 control the repair added fits `T2R_C19` on the period being analysed** (`controls.run`: `dev_like = scored`, i.e. FINAL when FINAL is analysed) and computes a marginal, non-FWL slope. See N5. |
+| R10 | **PARTIALLY APPLIED** | `account_status.lookup` (`POST /api/users`, 300 per call), `excluded` (`disabled` or `tosViolation`; unknown counts as *not* excluded and is counted); `score.py` runs it after `finalise()` and before any engine work, records `account_status_lookup_date` and `account_exclusions` in the manifest; `DATA_PROTOCOL.md` §4.6; A11 with the snapshot limitation in both directions. **The count is a single total** (`account_exclusions["closed_or_tos"]`, `sampler.excluded[...] += 1`); `DATA_PROTOCOL.md` §4.6 says "counted per band", and the per-band count is the whole point of the rule (the top-band contrast). See N7. On whether the exclusion itself induces a gradient: see Observation 4. |
+| R11 | **APPLIED** | `MODEL_SPEC.md` §9 C5 relabelled "an implementation check"; §9 closing paragraphs corrected; `PREREGISTRATION.md` §8 withdraws the claim; C5b row; `FEATURE_SCHEMA.md` §1 pins the comparator (library, version, hyperparameters, seed); `models.GBT_SPEC` / `fit_gbt` match the pin; `controls` C5b plants `0.02 * ut_gbt` with `ut_gbt = log_time - gbt_predict`; `recovered_fraction = (beta_planted - beta_unplanted) / 0.02`; `evaluate.C5B_RECOVERY_FLOOR = 0.5`. On whether `recovered_fraction` is well defined and whether INVALID is right: see Observation 5 (yes, and yes, with one over-reading to remove -- N9). `evaluate.py` skips the check when C5b is absent: see N4. |
+| R12 | **APPLIED** | `MODEL_SPEC.md` §9 C9 (VALIDATION subset, `unit_hash(SEED, "c9", game_id, ply)`, nuisance refitted per budget with the frozen recipe, `r_beta` and `r_TAE` with player-bootstrap intervals, reading fixed); `VERDICT_RULES.md` §2.5c; `rescore.py` (seeded draw, not the first N); `c9.py` (`fit_all` on each budget's subset, common-decision alignment, `PlayerBootstrap`, `favours_difficulty_proxy = upper < 0.5`); `evaluate.py` caps the level at 2 when it fires; `test_c9_budget_reading_caps_the_level`. On estimability at 5,000: estimable, but it detects only attenuation of roughly two-thirds or more -- see Observation 6 and N8. |
+| R13 | **APPLIED** | `PREREGISTRATION.md` §1 boxed question narrowed; the recognition-versus-allocation paragraph; §9 adds "allocation skill", "time-management skill", "manages time better", "spends time more wisely", "expertise changes how players manage the process"; `VERDICT_RULES.md` §3 level 4 rewritten and §3.1 added; `evaluate.py` `label_means`. The label is kept for the mission plan and is defined by the narrowed sentence. |
+
+## New required changes
+
+Ordered by how directly each one can put a wrong number under a gate. N1, N4 and N5 are code; N2,
+N3, N8 and N9 are document text and must precede the hash; N6 and N7 are code that must exist before
+the period they serve is read.
+
+### N1. The few-parameter re-estimates in `estimands.py` are not the ones `MODEL_SPEC.md` §4 specifies
+**Where:** `estimands.estimate` (`tae_by_band`, `spread`, `tae_partial_correlation_by_band`,
+`metric_a_time_vs_rating`, `allocation_loss_vs_rating`, `extreme_ut_vs_rating`);
+`estimands.player_level` (`tae`); `analysis.fit_all`; `make_report.py` player figure.
+**Defects.**
+(a) **Uncentred where the document says `cov/var`.** §4 defines `gamma_b(P) = cov(eY, eV | b) /
+var(eV | b)` and the partial correlation as `corr(eY, eV | b)`. The code computes `<eY, eV> /
+<eV, eV>` and `<eY, eV> / sqrt(<eY,eY><eV,eV>)` inside the band. Frozen ridge residuals have mean
+zero on DEVELOPMENT as a whole, not within a band and not on another period, so the code's slope
+contains `n * mean(eY|b) * mean(eV|b) / <eV,eV>` -- a product of two frozen-model misfits with no
+allocation content and no determined sign. Measured on synthetic residuals with the true slope 0.098
+in every band: a band misfit of 0.08 log-seconds in `eY` and 0.12 sd in `eV` moves the code's band
+slope to 0.084 or 0.107 depending on the signs, i.e. by 0.009-0.013 against `TAE_FLOOR = 0.02`. That
+is the condition-5 spread. (b) **The same at player level, where it is larger.** `player_level`
+computes `TAE_p = <v, y> / <v, v>` per player. A player's mean `y_resid_T1` is their pace relative to
+the frozen model (Metric A predicts it trends with rating) and their mean `voc_resid` is the kind of
+positions they reach; with 20-120 decisions per player the product term is of the same order as the
+allocation slope itself. Condition 6 then reads a rating trend in `pace x position-type` as a
+player-level allocation gradient -- the R1(a) mechanism reintroduced one level down.
+(c) **Metrics C and D are not residualised.** §4 step 1 names the frozen fits `allocation_loss ~
+T1P` and `extreme_ut ~ T1P`; `fit_all` has neither, and `estimate` regresses the raw (centred)
+indicator on `rating_resid`. By FWL that equals the partial coefficient only where `rating_resid` is
+orthogonal to the T1P column space -- DEVELOPMENT, approximately -- and not on FINAL, where
+condition 4 reads Metric D.
+**Minimal repair.** In every band-, player- and matched-level statistic, centre both residual vectors
+on the set being estimated before the inner product (equivalently, add an intercept to the
+one-parameter re-estimate; `gradient_with_main_effect` already carries one). Add `partial_allocation`
+(`allocation_loss ~ T1P`) and `partial_extreme` (`extreme_ut ~ T1P`) to `fit_all` after `ut_q95`
+exists (`run.py` computes `ut_q95` after the first `fit_all`, so the two fits must follow it), attach
+their residuals in `residualise`, and use them in `estimate`. Add a per-band Metric A table and
+Spearman or amend condition 4 (see N4(iv)). `MODEL_SPEC.md` needs no change for (a) and (c): the
+document is already right; the code is not.
+
+### N2. `VERDICT_RULES.md` §2.3 is not a complement, and the code's `SKILL_ONLY` is not the document's
+**Where:** `VERDICT_RULES.md` §2.3; `evaluate.py` lines 196-212.
+**Defect.** R4(b) asked for the remaining cases to be enumerated so that exactly one gate fires. The
+document closed the §2.4 hole and left §2.3 conjunctive. Two cases the document does not cover, both
+run through `evaluate()`: (i) `beta` fails §2.2's bar, `Q1 - Q0 >= 0.001`, rating predicts quality,
+**and all of B, A, D pass** -> no document gate; code prints `SKILL_ONLY`; (ii) the same with
+`rating_on_quality` containing 0 -> §2.3's first clause is false; code prints `SKILL_ONLY` because it
+never reads `rating_on_quality`. The `assert len(fired) == 1` cannot fail because `SKILL_ONLY` is
+defined as `not any(gates.values())`; the assertion is a tautology, not the enumeration R4(b)
+required. Case (i) is a live outcome (a Metric B gradient with no H1) and the label `SKILL_ONLY`
+would be wrong for it.
+**Minimal repair (document, no numeric change).** Write §2.3 as the residual gate: "`SKILL_ONLY`:
+none of §2.1, §2.2, §2.4, §2.5 fires. Reported beside it, as facts and not conditions: whether the
+rating coefficient on `quality_loss` has an interval excluding 0 with the expected sign, and which H2
+metrics met §2.5.4's bar." If the designers want case (i) named, add a verdict
+`ADAPTATION_WITHOUT_REGULARITY` for "§2.5.4 met, H1 fails" and give it a level (it is not level 4;
+condition 1 fails). Then make `evaluate.py` read `rating_on_quality` and the H2 count into `notes`,
+and add cases (i) and (ii) to `test_verdict_rules.py`.
+
+### N3. Level 3's "monotone enough shape" is undefined for `beta` and is not what the code checks
+**Where:** `VERDICT_RULES.md` §3 level 3 ("and a `monotone enough` shape"); `evaluate.py` lines
+228-231; `estimands.estimate` (`("beta", ..., +1)` in the Spearman loop).
+**Defect.** `monotone enough` is defined as "Spearman rho ... at least 0.6 with the preregistered
+sign", and no sign is preregistered for `beta` across bands -- level 3 is an *invariance* claim, for
+which the natural shape is flat. `estimands` assigns `+1` to it arbitrarily. The code awards level 3
+on sign agreement plus a merely *finite* Spearman: an input with 100% sign agreement and
+`beta_band_spearman = -0.9` returns `GENERAL_REGULARITY_ONLY, level 3`. So the hashed rule would say
+one thing, the code another, on the rule that licenses "cross-rating law-like regularity".
+**Minimal repair.** Delete "and a `monotone enough` shape" from level 3 (level 3 = `ceil(80%)` sign
+agreement of the raw band `beta` over at least 5 adequately powered bands); report the band Spearman
+of `beta` descriptively with no expected sign; remove the `isfinite` clause from `evaluate.py` or
+leave it as a data-presence check with that name.
+
+### N4. `evaluate.py` passes inputs the tests never construct
+**Where:** `evaluate.py` §2.1 block (lines 73-100) and `metric_specs`.
+**Defects, each demonstrated.** (i) An `analysis.json` **without** `C5b_planted_foreign_residual`
+and `C7_no_effect_synthetic` returns `EXPERTISE_ADAPTATION_SUPPORTED` with reasons "conditions that
+failed: none": C5b is checked only `if recovered is not None`, C7 only `if c7`. (ii) C7 present but
+malformed (`{"note": "not computable"}`, the shape `controls.py` writes when a control raises) and
+C1-C4 absent -> `EXPERTISE_ADAPTATION_SUPPORTED`. A required control that did not run cannot pass.
+(iii) §2.1.7 says censoring "exceeds 15% of **DEVELOPMENT** decisions"; the code reads
+`final["censored_voc_share"]`: DEVELOPMENT at 20% and FINAL at 5% is not invalid. (iv) §9 says C3
+fails if "every H2 rating gradient" is disturbed and C7 if "every H2 gradient" is non-null; the code
+checks `tae_rating_gradient` (and `beta` for C7) only, though `controls.py` writes A, C and D too.
+Condition 4 requires each counted metric to be `monotone enough`; Metric A has no band table, so it is
+exempt in code.
+**Minimal repair.** For every control named in §2.1 (C1-C4, C5, C5b, C6, C7): absent, malformed, or
+non-finite interval -> `INVALID_EXPERIMENT` with the control named. Check `voc_regret_censored` on
+DEVELOPMENT (the Gate-1 return trigger) and report FINAL's beside it. Check `metric_a_time_vs_rating`
+and `extreme_ut_vs_rating` for C3 and C7 as §9 says. Either compute Metric A by band (N1) or amend
+§2.5.4 to "Metric B and D monotone enough; Metric A directional" -- one or the other, stated. Add
+each case to `test_verdict_rules.py`.
+
+### N5. C19 fits a model on the period it is read from, and its `beta` is not the FWL coefficient
+**Where:** `controls.run`, C19 block (`dev_like = scored`; `m.fit_frozen(dev_like, "T2R_C19", ...)`;
+`beta = <q_resid, ut> / <ut, ut>`).
+**Defect.** `controls.run` is called per period with that period's frame, so on FINAL `T2R_C19` is
+fitted on FINAL. `MODEL_SPEC.md` §0: "No period the result is read from is ever a period a model was
+fitted on"; `controls.py` docstring: "None of them refits anything". Both false here. The slope
+also pairs the frozen Q0 residual with an unpurged residual, so it is a marginal coefficient, not the
+"re-estimated `beta`" §9 C19 describes. C19 is reported only, so this cannot change the verdict; it is
+a violation of a hashed invariant introduced by a repair, and it is what a later reader will cite.
+**Minimal repair.** Fit `T2R_C19`, `Q0_C19` (`quality_loss ~ T2R_C19`) and `partial_ut_C19` in
+`fit_all` on DEVELOPMENT; attach `q_resid_c19`, `ut_resid_c19` in `residualise`; C19 `beta` is their
+slope with the player bootstrap, centred per N1.
+
+### N6. The player-disjoint restriction and the secondary time control are not implemented
+**Where:** `run.py` line 158 (`seen = ... # placeholder, filled below` -- it is not filled;
+`analysis["player_disjoint_final"]` is never written); `run.py` `wanted["secondary"]` (the same three
+periods; no `300+0` path); `evaluate.py` `player_disjoint_holds` and `secondary_time_control`.
+**Defect.** `PREREGISTRATION.md` §3 promises the H1 estimate "twice"; `VERDICT_RULES.md` §2.5 requires
+the restriction to satisfy conditions 1 and 5. As the code stands the key is absent, the check fails,
+and `EXPERTISE_ADAPTATION_SUPPORTED` is unreachable on any data (demonstrated). Conservative, but a
+pipeline that cannot deliver the design's own top verdict is not a transcription of it. Also, the code
+checks only `beta` and the pooled gradient of the disjoint set, while §2.5 says "conditions 1 and 5"
+(five Metric B quantities).
+**Minimal repair.** Before Gate 2: compute the DEVELOPMENT+VALIDATION player-hash set, restrict FINAL,
+run `estimate` on the restriction with the frozen basis, write `player_disjoint_final` with `beta`,
+`tae_rating_gradient`, and either the three extra condition-5 quantities and the spread or an
+amendment to §2.5 saying "conditions 1 and the pooled gradient of 5" -- one or the other. Implement
+the `300+0` stage or delete §2.6/level 5 from the hashed rules; a rule with no implementation is
+licence.
+
+### N7. The R10 exclusion is counted in total, not per band
+**Where:** `score.py` lines 153-168; `DATA_PROTOCOL.md` §4.6 ("excluded and counted per band").
+**Repair.** Count `closed_or_tos` and `unknown_to_endpoint` by `side["band"]` (the record carries it)
+and write both dictionaries to the manifest. Two lines, before DEVELOPMENT is ingested, since the
+usernames are dropped after this step and the count cannot be recovered without re-ingesting.
+
+### N8. State what C9 can detect at n = 5,000
+**Where:** `MODEL_SPEC.md` §9 C9; `VERDICT_RULES.md` §2.5c.
+**Defect.** The ratio is estimable, but with `beta ~ 0.005`, `sd(q_resid) ~ 0.06`, `sd(ut_resid) ~
+0.6`, 5,000 decisions give a per-budget standard error near 0.0014, and with the two budgets' estimates
+correlated at roughly 0.8 the 95% interval on `r_beta` spans about `[0.7 r, 1.4 r]`. The trigger
+(`upper < 0.5`) therefore fires only for `r` below about 0.35 -- attenuation of two-thirds or more. A
+realistic A2 (difficulty measurement improving from depth ~12 to ~14) attenuates by perhaps 10-30% and
+is invisible to it. A non-firing C9 will be read as exoneration of A2 unless the document forbids
+that reading now.
+**Minimal repair (document).** Add to §2.5c: "A C9 that does not fire is not evidence against A2 for
+attenuation smaller than the realised interval can exclude; the report must state the attenuation the
+interval excludes, computed from its width, beside the ratio." Add "C9 did not fire, therefore
+unmeasured difficulty is excluded" to §9's forbidden readings. See Recommended 4 for the cheap fix to
+the power itself.
+
+### N9. Text that would be hashed as false or over-reaching
+**Where and what.** (i) `PREREGISTRATION.md` §2 A3 "opponent rating as a covariate" and A5 "Opponent
+rating is a covariate in T0/T1/T2 and in the quality model" -> `rating_diff`, per R5. (ii)
+`PREREGISTRATION.md` §4 "excluded from the 80% agreement rule in VERDICT_RULES.md §4.2" -> there is
+no §4.2; cite §1 and §2.5.2. (iii) `MODEL_SPEC.md` §9 rows C14 ("reported, sign agreement counted") and
+C17 ("same sign, `beta` interval excludes 0") do not say that `VERDICT_RULES.md` §2.5.5 makes their
+Metric B gradient a verdict condition; add it to both rows. (iv) `MODEL_SPEC.md` §9 C5b and
+`PREREGISTRATION.md` §8: `recovered_fraction` is "the attenuation factor every reported effect should
+be read against" -> it is the attenuation of a signal *shaped like the comparator's residual*, and
+`beta` or a Metric B gradient may not be divided by it; say "an attenuation estimate for signals of
+that shape, reported beside the effects, never used to rescale them". (v) `MODEL_SPEC.md` §4 step 1
+lists five nuisance fits; after N1 the code will have them -- until then the list is aspirational.
+
+## Recommended, not required
+
+1. **Matched-sample intercept.** `matching.matched_estimates` weights `y`, `v` and the spline block
+   by `sqrt(w)` but hands `gradient_with_main_effect` an unweighted column of ones. I measured the
+   consequence on synthetic CEM-like weights (0.5 vs 4.0 by band): correct WLS 0.0308, the code's form
+   0.0308, unchanged under a +0.5 offset. Inconsequential; pass `sw` as the intercept column anyway so
+   the estimator is the textbook one.
+2. **Centre `beta` too.** §3's `<q_resid, ut_resid> / <ut_resid, ut_resid>` is the document's own
+   definition and I am not asking for it to change on my say-so, but the same misfit product enters it
+   on FINAL: with mean Q0 residual 0.003 and mean `ut_resid` 0.03 it is ~0.00025, an eighth of
+   `BETA_FLOOR`. An intercept in the one-parameter re-estimate costs nothing and the designers should
+   decide now, in the document, whether the evaluation-period residuals are centred before the slope.
+3. **Fail loudly on a missing basis.** `estimands.estimate` and `matching.matched_estimates` refit
+   `RatingBasis` on the evaluation frame when `rating_basis is None`. Every caller passes it today;
+   raise instead of refitting, so a future caller cannot fit the main effect on FINAL by omission.
+4. **C9 at 20,000 decisions.** Four times the subset halves the interval width and makes 30-40%
+   attenuation detectable; at 150k nodes and two searches that is roughly two hours on four workers.
+   Also make `rescore.py` assert `period == "validation"` on every row rather than trusting `--from`.
+5. **Re-run the cost pilot.** `results/pilot_development.json` was written at 21:02; the one-side rule
+   entered `ingest.py` at 21:36. Its per-band supply counts both sides of a game. Re-run (167 s), set
+   `q_b` from the post-R6 supply, and write `per_band_targets` and the resulting expected players and
+   decisions per band to the manifest, as R4(d) and `VERDICT_RULES.md` §1 require.
+6. **One comparator.** `run.tree_comparator` fits a second `HistGradientBoostingRegressor` with
+   `random_state=0`; `FEATURE_SCHEMA.md` §1 pins one comparator with seed 20260901. Use
+   `models.fit_gbt` in both places. Note for the report that with `early_stopping="auto"` and
+   n > 10,000 the pinned tree holds out 10% of DEVELOPMENT, so its DEVELOPMENT residual is 90%
+   in-sample; C5b on FINAL (what the verdict reads) is unaffected.
+7. **Displacement accounting for R6.** Count "second side of the same game" by (band, opponent band)
+   and report the `rating_diff` distribution by band, so the composition effect in Observation 3 is
+   visible. If it is material, the uniform alternative is: designate one side per game by hash first,
+   then apply that side's `q_b` -- inclusion `q_b / 2` for everyone, at a yield cost the pilot can price.
+8. **`tae_pooled` is the slope at 1600**, not "at mean rating" (`rating_c` is centred at a fixed 1600).
+   Label it so.
+9. **`make_report.player_figure`** plots the raw per-player slope under the name `tae_shrunk`.
+
+## Observations for the report
+
+1. **State of the experiment, precisely.** `data/` is empty and only the cost pilot has been computed,
+   but `FAILURES.md` F3-F5 and the addendum show that a DEVELOPMENT *smoke sample* (5,827 sides) was
+   ingested and some of it engine-scored, including the post-move search, for implementation checks;
+   `AMBIGUITY_TAU` was changed after inspecting its feature distributions (F4, disclosed). No statistic
+   relating a feature to an outcome is claimed to have been computed and nothing on disk contradicts
+   that. The report should say exactly this rather than "no decision has existed".
+2. **What was checked and found sound this time.** The frozen rating basis is built once in `run.py`
+   and reaches every estimator, control, stratum and the matched sample; C9 refits it by design. The
+   removed-line diff of all five documents shows only the claimed repairs; no threshold moved except
+   the two R3/R4 replacements. `test_suffix_leakage` genuinely perturbs `clk[i]` onward, the
+   continuation, the termination and the result. `t0` is the lowest-pressure tercile. `ceil`, raw
+   estimates, `MIN_POWERED_BANDS = 5`, `TAE_FLOOR = 0.02`, `C5B_RECOVERY_FLOOR = 0.5`,
+   `R_BETA_THRESHOLD = 0.5` are literals matching the documents. `sklearn` is 1.9.0. Both leakage
+   tests and the determinism test run against the real binary. C3 shuffles whole players and
+   recomputes `rating_diff` and `rating_band` consistently.
+3. **One side per game and composition.** Under the rule as coded, a side in a `q = 1` band is
+   displaced with probability `q_opp / 2`, so the top band is enriched for sides facing opponents in
+   lower-`q` or out-of-range bands and the bottom band for the mirror case. This is a sampling skew
+   in `rating_diff` that differs by band. It is adjusted linearly and by spline through T1P; residual
+   heterogeneity of the allocation slope in `rating_diff` would remain. Report it.
+4. **Does the account-status exclusion induce a gradient?** It removes accounts non-randomly, but not
+   in the hypothesis's direction: engine-assisted accounts (upper bands) are the ones with anomalously
+   steep time-on-VoC slopes, and removing them *lowers* `TAE(highest)`; sandbagging and churn
+   concentrate in lower bands and mostly add exposure noise there, so their removal raises low-band
+   slopes if anything. The asymmetry that matters is the **lookup lag**: DEVELOPMENT games (February)
+   will have had months longer for Lichess to close accounts than FINAL games (June) by the time FINAL
+   is ingested after Gate 2, so FINAL's top band is the least cleaned of the three. Record the lag per
+   period, report the per-band exclusion rate per period (N7), and if the top-band rate differs
+   materially between periods, report condition 5 with the top band dropped, as R10's fallback said.
+   The 5.5% measured on the smoke sample is large enough that this table will be read.
+5. **C5b's `recovered_fraction` is well defined.** Because Q0 is frozen, planting `0.02 * ut_gbt`
+   shifts `beta` by exactly `0.02 * <ut_gbt, ut_resid> / <ut_resid, ut_resid>`, so the fraction is the
+   regression slope of the tree residual on the linear residual, which equals one minus the share of
+   the linear residual variance the tree additionally explains. It lies in (0, 1] in practice and is
+   not a "fraction of every real signal" -- it is the attenuation of a signal of that shape (N9(iv)).
+   Making `< 0.5` an `INVALID_EXPERIMENT` trigger is right: it means the linear expected-time model
+   misses more than half of what a tree can predict from the same pre-move features, and then
+   "unexpected time" is not what the design says it is. The trigger can only remove a verdict, never
+   manufacture one. It should be read on FINAL (out of sample), which is what `evaluate.py` does.
+6. **C9 is a weak handle and should be presented as one.** See N8 for the arithmetic. `r_TAE` has no
+   threshold and is descriptive; say so.
+7. **A2 still stands** as the central limitation; nothing in the repairs changes that, and the
+   narrowed H2 wording (R13) is the right frame for the report.
+8. **`SKILL_ONLY` as a label.** After N2 it is the residual gate; the report must not describe it as
+   "rating predicts quality and nothing else does" unless `rating_on_quality` was in fact reported
+   with the expected sign.
+9. **Two GBTs** exist in the code until Recommended 6 is taken; the report should cite the pinned one.
+10. **The cost pilot on disk is pre-R6** (Recommended 5) and must not be cited as the supply table.
+
+## Verdict, stated plainly
+
+`PASS_WITH_REQUIRED_CHANGES`. The design is sound and twelve of thirteen repairs are genuinely in the
+documents; the defects above are transcription defects, all small, three of them on verdict quantities
+(N1, N4, N6) and four of them in text that is about to be hashed (N2, N3, N8, N9). The five documents
+may be hashed and frozen once N2, N3, N8 and N9 are applied and this table is re-read against them
+once more (it is short). Engine scoring of DEVELOPMENT may begin once N7 is in `score.py`; no output
+of `run.py` may be read until N1, N4 and N5 are in; N6 must exist before Gate 2 is convened. Nothing
+here requires a new period, a new feature, a new threshold, or a change to any model family.

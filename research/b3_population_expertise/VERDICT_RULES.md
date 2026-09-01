@@ -77,11 +77,27 @@ Parenthesised explicitly (Gate 1, R4a):
 
 That is: unexpected time neither clears the bar nor adds anything measurable beyond T1.
 
-### 2.3 `SKILL_ONLY`
+### 2.3 `SKILL_ONLY` -- the residual gate
 
-Rating predicts `quality_loss` (rating coefficient interval excludes 0, correct sign) **and**
-neither H1 nor any H2 gradient survives: `beta` fails §2.2's bar, and fewer than two H2 metrics
-meet §2.5's conditions.
+**None of §2.1, §2.2, §2.4 or §2.5 fires.** Written as a complement rather than a conjunction
+(re-review, N2), because the conjunctive version left cases with no verdict at all: `beta` failing
+its bar while **every** H2 metric passes is a live outcome, and the first draft had nothing to print
+for it while `evaluate.py` printed `SKILL_ONLY`, which would have been the wrong name for it.
+
+Reported **beside** the verdict, as facts and never as conditions:
+
+* whether the rating coefficient on `quality_loss` has an interval excluding 0 with the expected
+  sign -- so the report cannot describe this verdict as "rating predicts quality and nothing else
+  does" unless that was actually measured;
+* which H2 metrics met §2.5.4's bar, and how many.
+
+### 2.3b `ADAPTATION_WITHOUT_REGULARITY`
+
+Fires when §2.5.4's metric bar is met -- Metric B plus at least one of A and D -- while H1 fails
+(`beta` does not clear §2.5.1). It is **off the scientific-level ladder in §3**, which is built
+around the regularity, and is recorded at level 0 with the combination named. It exists because
+"the expertise gradient is there and the regularity is not" is a surprising, reportable result and
+calling it `SKILL_ONLY` would bury it.
 
 ### 2.4 `GENERAL_REGULARITY_ONLY`
 
@@ -142,6 +158,18 @@ decisions -- the report **must** state that the evidence favours the difficulty-
 only falsification handle the design has on its own central limitation, and the number and its
 threshold are fixed here, before FINAL was opened.
 
+**What C9 can detect, stated before it runs (re-review, N8).** At `n = 5,000` with `beta` of order
+0.005, `sd(q_resid)` of order 0.06 and `sd(ut_resid)` of order 0.6, the per-budget standard error is
+near 0.0014; with the two budgets' estimates correlated at roughly 0.8, the 95% interval on `r_beta`
+spans about `[0.7r, 1.4r]`. The trigger therefore fires only for `r` below about **0.35** --
+attenuation of two-thirds or more. A realistic difficulty-proxy effect, where the measurement
+improves from median depth ~12 to ~14, might attenuate `beta` by 10-30% and would be **invisible to
+this control**.
+
+So: **a C9 that does not fire is not evidence against A2.** The report must state the attenuation the
+realised interval actually excludes, computed from its width, beside the ratio itself. `r_TAE` has no
+threshold at all and is descriptive.
+
 ### 2.6 `CROSS_CONTEXT_REGULARITY` (secondary label, optional)
 
 Added only when `EXPERTISE_ADAPTATION_SUPPORTED` holds **and** the frozen pipeline, run on `300+0`
@@ -154,8 +182,13 @@ excluding 0. It never changes the primary verdict.
     1  a time-quality regularity exists
     2  it survives measured objective difficulty (Q1 beats Q0 out of sample by >= 0.001 R^2)
     3  its qualitative shape is invariant across skill levels: >= 80% (ceil) sign agreement of the
-       RAW band estimates of beta across at least 5 adequately powered bands, and a
-       `monotone enough` shape
+       RAW band estimates of beta across at least 5 adequately powered bands.
+
+       NO SHAPE TEST (re-review, N3). `monotone enough` requires a preregistered sign, and no sign
+       is preregistered for beta across bands -- level 3 is an INVARIANCE claim, for which the
+       natural shape is flat, so a monotonicity requirement would be the wrong test and the code
+       was awarding level 3 on a merely finite Spearman. The band Spearman of beta is reported
+       descriptively, with no expected sign and no threshold.
     4  the time / value-of-computation relation differs systematically with rating, net of
        matched position and clock state
        (= EXPERTISE_ADAPTATION_SUPPORTED, and that label means EXACTLY this sentence)

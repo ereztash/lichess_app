@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analysis import PlayerBootstrap, residualise
+from analysis import PlayerBootstrap, residualise, slope
 from estimands import estimate
 
 SEED = 20260901
@@ -197,21 +197,16 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
 
     # C19 -- the player's own previous think time added to the context block. It absorbs pace, and
     # pace is partly the allocation policy Metric B measures, which is why it is not in T0.
-    if wanted("C19"):
-        import models as m
-
-        dev_like = scored
-        try:
-            fit = m.fit_frozen(dev_like, "T2R_C19", "log_time", dev_like["player"].to_numpy(),
-                               penalty=fits["T2R"]["penalty"])
-            ut = dev_like["log_time"].to_numpy(float) - m.predict(fit, dev_like)
-            q = scored["q_resid"].to_numpy(float)
-            results["C19_own_pace_added"] = {
-                "beta": boot.interval(lambda i: float(q[i] @ ut[i]) / float(ut[i] @ ut[i])
-                                      if float(ut[i] @ ut[i]) > 0 else np.nan)
-            }
-        except Exception as error:
-            results["C19_own_pace_added"] = {"note": f"not computable: {error}"}
+    #
+    # N5: the first draft fitted `T2R_C19` on `scored` -- the period being read, FINAL included --
+    # which breaks the one invariant this whole design rests on ("no period the result is read from
+    # is ever a period a model was fitted on") and produced a marginal slope rather than the FWL
+    # coefficient. The three C19 models are now fitted on DEVELOPMENT in `fit_all`, and this reads
+    # their residuals like every other estimate here.
+    if wanted("C19") and "ut_resid_c19" in scored:
+        q = scored["q_resid_c19"].to_numpy(float)
+        u = scored["ut_resid_c19"].to_numpy(float)
+        results["C19_own_pace_added"] = {"beta": boot.interval(lambda i: slope(q[i], u[i]))}
 
     # C10 -- the B2-compatible binary outcome.
     if wanted("C10"):

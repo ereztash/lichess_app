@@ -106,6 +106,25 @@ few accounts.
    is reported -- inventing a closure for an account we know nothing about would thin the sample in
    whichever band the endpoint happened to miss.
 
+### Two consequences of these rules, disclosed rather than corrected for
+
+**One side per game skews `rating_diff` composition by band.** Under the rule as coded, a side that
+clears the hash is displaced with probability roughly `q_opponent / 2`, so a band with a high
+acceptance rate is enriched for sides facing opponents in low-rate or out-of-range bands, and a
+low-rate band for the mirror case. `rating_diff` is adjusted linearly and by spline through T1P, so
+the first-order effect is removed; residual heterogeneity of the allocation slope in `rating_diff`
+would not be. Reported, not corrected.
+
+**The account-status lookup has a lag that differs by period.** DEVELOPMENT games were played in
+February and FINAL games in June, but the lookups happen within days of each other, so Lichess has
+had four months longer to close a DEVELOPMENT account than a FINAL one. **FINAL's top band is the
+least cleaned of the three.** The lookup date is recorded per period, the per-band exclusion rate is
+reported per period, and if the top-band rate differs materially between periods, the primary
+Metric B condition is additionally reported with the top band dropped -- the fallback R10 named.
+This is the direction that matters: the exclusion removes accounts whose time tracks engine
+difficulty with low loss, which is what Metric B rewards, so under-cleaning FINAL's top band works
+**in favour** of the hypothesis.
+
 `SEED = 20260901`. Fixed, never tuned.
 
 Player identity is the lowercased Lichess username, stored as `blake2b(username, 8 bytes)`. The

@@ -128,8 +128,14 @@ same shape H1 uses -- **frozen nuisance, few-parameter re-estimate**:
 No nuisance choice is ever made on the period being read.
 
 **Metric A -- matched-difficulty thinking time.** Coefficient of `rating` (per 100 Elo) in
-`Y ~ [T1 feature set] + rating`, as `<y_resid_T1, rating_resid> / <rating_resid, rating_resid>`.
-Expected negative. Reported alongside the matched-sample version
+`Y ~ [T1 feature set] + rating`, as the centred slope `cov(y_resid_T1, rating_resid) /
+var(rating_resid)`. Expected negative.
+
+**Metric A is a pooled slope and is judged DIRECTIONALLY ONLY** (re-review, N4iv). It has no
+band-level definition -- inside a 200-point band there is little rating variation left to identify it
+from -- so requiring a `monotone enough` band shape of it would be requiring a shape of a quantity
+that has none. A per-band table is computed and reported for the figures; the verdict reads the
+pooled slope. Metrics B and D, which do have band-level definitions, keep their shape requirement. Reported alongside the matched-sample version
 (§6) and a robustness run excluding book positions.
 
 **Metric B -- Time Allocation Efficiency. PRIMARY.**
@@ -260,7 +266,7 @@ reinterpreted.
 | C3 | permute `rating` **across players** (whole player, keeping their decisions together) | every H2 rating gradient interval contains 0 |
 | C4 | permute `voc_z` across decisions | Metric B gradient interval contains 0 |
 | C5 | add `0.02 * unexpected_time_within_rating` to `quality_loss` | `beta` recovered, interval excludes 0, point estimate within 30% of `0.02` above the unplanted estimate. **An implementation check** (Gate 1, R11): the planted term is linear in the estimator's own regressor, so recovery follows from linear algebra and this can only fail on a code bug. |
-| C5b | add `0.02 * (Y - Yhat_GBT)` to `quality_loss` -- the residual of the pinned gradient-boosted comparator (`FEATURE_SCHEMA.md` §1), a quantity the linear pipeline never produced | sign recovered **and** `recovered_fraction = (beta_planted - beta) / 0.02 >= 0.5`. The shortfall below 1.0 is the **attenuation factor** every reported effect should be read against, and is reported as such. A shortfall is **not** an `INVALID_EXPERIMENT` trigger; failing the 0.5 bar is. |
+| C5b | add `0.02 * (Y - Yhat_GBT)` to `quality_loss` -- the residual of the pinned gradient-boosted comparator (`FEATURE_SCHEMA.md` §1), a quantity the linear pipeline never produced | sign recovered **and** `recovered_fraction = (beta_planted - beta) / 0.02 >= 0.5`. The shortfall below 1.0 is the attenuation of a signal **of that shape** -- algebraically it is the regression slope of the tree residual on the linear residual, i.e. one minus the share of the linear residual's variance the tree additionally explains. It is **not** "the attenuation factor for every real signal", and the report may not call it that (re-review, N9iv). A shortfall is **not** an `INVALID_EXPERIMENT` trigger; failing the 0.5 bar is. |
 | C6 | rebuild `Y` as `Y_synth = Yhat(T1P) + (0.05 + 0.05 * (rating-800)/1800) * voc_z + N(0, sd of the real residual)` | Metric B gradient recovered with the right sign, interval excludes 0 |
 | C7 | rebuild both `Y` and `quality_loss` from their T1P/Q0 fits plus independent noise, no UT term, no rating term | `beta` interval contains 0 **and** every H2 gradient interval contains 0 |
 | C8 | (a) drop the 1% of players contributing the most decisions; (b) jackknife over players | (a) `beta` within +/-25% and interval still excludes 0; (b) no single player shifts `beta` by more than 20% |
@@ -269,10 +275,10 @@ reinterpreted.
 | C11 | drop book positions | same sign, `beta` interval excludes 0 |
 | C12 | by `phase` | reported, sign agreement counted |
 | C13 | by `standing` | reported, sign agreement counted |
-| C14 | by `clock_pressure` tercile | reported, sign agreement counted |
+| C14 | by `clock_pressure` tercile | reported, sign agreement counted. **The Metric B gradient in the LOWEST tercile is a verdict condition** (`VERDICT_RULES.md` §2.5.5): it must have the preregistered sign with an interval excluding 0. |
 | C15 | DEVELOPMENT vs VALIDATION vs FINAL | reported; FINAL is what the verdict reads |
 | C16 | `300+0`, frozen pipeline, no retuning | reported; may only add `CROSS_CONTEXT_REGULARITY` |
-| C17 | drop `T = 0` decisions | same sign, `beta` interval excludes 0 |
+| C17 | drop `T = 0` decisions | same sign, `beta` interval excludes 0. **The Metric B gradient here is also a verdict condition** (`VERDICT_RULES.md` §2.5.5). |
 | C18 | first 40 plies only | same sign |
 | C19 | add `own_prev_think_s` (and its missing indicator) to the T2R context block and re-estimate `beta` | reported; `beta` same sign. Kept out of the primary spec because own pace is partly the allocation policy Metric B measures. |
 

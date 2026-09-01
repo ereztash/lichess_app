@@ -153,17 +153,29 @@ def main() -> None:
     # R10: drop sides whose account Lichess has since closed, before any engine work is spent.
     account_lookup_date = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     status = {}
+    # PER BAND, not in total (Gate 1 re-review, N7). The usernames are dropped immediately after
+    # this step, so a count not taken here cannot be recovered without re-ingesting the period -- and
+    # the per-band rate is what the report needs, because the exclusion is not band-neutral and the
+    # lookup lag differs by period (a February game has had four more months to be closed than a
+    # June one).
     account_exclusions = {"closed_or_tos": 0, "unknown_to_endpoint": 0}
+    closed_by_band: dict[str, int] = {}
+    unknown_by_band: dict[str, int] = {}
+    candidates_by_band: dict[str, int] = {}
     if not args.skip_account_check and sides:
         status = account_status.lookup([s["username"] for s in sides])
         kept = []
         for side in sides:
+            band = side["band"]
+            candidates_by_band[band] = candidates_by_band.get(band, 0) + 1
             if account_status.excluded(status, side["username"]):
                 account_exclusions["closed_or_tos"] += 1
+                closed_by_band[band] = closed_by_band.get(band, 0) + 1
                 sampler.excluded["account closed or tosViolation at the lookup date"] += 1
                 continue
             if side["username"].lower() not in status:
                 account_exclusions["unknown_to_endpoint"] += 1
+                unknown_by_band[band] = unknown_by_band.get(band, 0) + 1
             kept.append(side)
         sides = kept
     for side in sides:
@@ -214,6 +226,12 @@ def main() -> None:
         "account_status_lookup_date": account_lookup_date,
         "account_status_checked": not args.skip_account_check,
         "account_exclusions": account_exclusions,
+        "account_closed_by_band": closed_by_band,
+        "account_unknown_by_band": unknown_by_band,
+        "account_checked_sides_by_band": candidates_by_band,
+        "account_closed_rate_by_band": {
+            b: round(closed_by_band.get(b, 0) / n, 5) for b, n in candidates_by_band.items()
+        },
         "acceptance_rates": rates,
         "games_per_player_cap": args.games_per_player,
         "max_decisions_per_side": args.max_decisions,

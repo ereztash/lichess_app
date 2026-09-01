@@ -197,3 +197,34 @@ that predates B3, and the change is disclosed in `FAILURES.md` F4.
 
 **Tests:** 39 pass, including engine determinism against the real binary, both leakage
 perturbations, the constant ports against their TypeScript sources, and the verdict gate set.
+
+---
+
+# ADDENDUM 2: the re-review's nine new changes
+
+Prepared for the short third re-read the re-review asked for. All nine applied.
+
+| # | Required change | Where it landed |
+|---|---|---|
+| N1a | band, player and matched statistics used `<y,x>/<x,x>` where `MODEL_SPEC.md` §4 says `cov/var` | `analysis.slope` and `analysis.partial_correlation` now centre both vectors within the set being estimated, with the measured bias (0.009-0.013 against a floor of 0.02) written into the docstring. Every caller goes through them |
+| N1b | the same at player level, where the product term is the size of the effect | `estimands.player_level` centres within the player, and `make_report.py`'s player figure with it. The docstring names it as the R1(a) mechanism one level down |
+| N1c | the `allocation_loss ~ T1P` and `extreme_ut ~ T1P` fits §4 names did not exist | `analysis.fit_metric_nuisances`, called from `run.py` **after** `ut_q95` exists (`extreme_ut` is defined by it); `residualise` attaches `allocation_resid` and `extreme_resid`; `estimands` uses them for Metrics C and D |
+| N2 | §2.3 was conjunctive, so cases fell through the gate set, and the `assert` was a tautology | `VERDICT_RULES.md` §2.3 is now the residual gate, with rating-on-quality and the H2 count reported **beside** it as facts. §2.3b adds `ADAPTATION_WITHOUT_REGULARITY` for the live case the re-review named -- the metric bar met while H1 fails -- at level 0 and explicitly off the ladder. Both are in `evaluate.py` and tested |
+| N3 | level 3 required a `monotone enough` shape with no preregistered sign, and the code awarded it on a merely finite Spearman | the shape test is deleted from level 3; the band Spearman of `beta` is reported descriptively with no sign and no threshold |
+| N4 | absent or malformed controls read as passes; censoring read on the wrong period; C3/C7 checked one gradient | `evaluate.REQUIRED_CONTROLS` + `missing_or_malformed`: absence, a `note`-only payload, or a non-finite interval is `INVALID_EXPERIMENT` with the control named. Censoring is read on **DEVELOPMENT** and FINAL's is reported beside it. C3 and C7 are checked on Metric B, Metric A and Metric D. Metric A is stated to be directional-only, with its band table computed for the figures |
+| N5 | C19 fitted `T2R_C19` on the period it was read from, FINAL included | `T2R_C19`, `Q0_C19` and `partial_ut_C19` are fitted on DEVELOPMENT in `fit_metric_nuisances`; the control reads their residuals like every other estimate |
+| N6 | the player-disjoint restriction was a placeholder and the `300+0` stage did not exist | `run.py` computes the DEVELOPMENT+VALIDATION player set, restricts FINAL, and writes `player_disjoint_final` with `beta`, the gradient, the spread **and the three condition-5 quantities**; the `secondary` stage runs the frozen models on `300+0` and writes `secondary_time_control` |
+| N7 | the account exclusion was counted in total, not per band | `score.py` writes `account_closed_by_band`, `account_unknown_by_band`, `account_checked_sides_by_band` and `account_closed_rate_by_band`. In before DEVELOPMENT was ingested, since the usernames are dropped immediately after |
+| N8 | C9's power was not stated | `VERDICT_RULES.md` §2.5c carries the arithmetic and the conclusion: the trigger fires only for attenuation of roughly two-thirds or more, a realistic difficulty-proxy effect is invisible to it, and a non-firing C9 is not evidence against A2. Added to `PREREGISTRATION.md` §9's forbidden readings |
+| N9 | text that would be hashed as false | A3 and A5 rewritten to `rating_diff` with the pairing-diagonal caveat; the `§4.2` reference corrected; C14 and C17 rows say they are verdict conditions; C5b's "attenuation factor for every effect" corrected to "of a signal of that shape", with the over-reading added to §9 |
+
+**Also taken from the observations.** The second gradient-boosted tree is gone: `tree_comparator`
+now reports the **pinned** comparator that C5b plants the residual of, so the report cannot cite a
+tree the control did not use.
+
+**Tests:** 43 pass, including a required control that did not run, a malformed control payload, the
+censoring period, and the `ADAPTATION_WITHOUT_REGULARITY` case.
+
+**State of the experiment.** DEVELOPMENT ingest and engine scoring are running as this is written
+(the re-review permitted scoring to start once N7 was in). No output of `run.py` has been produced or
+read. VALIDATION and FINAL have not been touched.

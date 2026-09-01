@@ -66,11 +66,14 @@ def analysis(*, beta=0.01, band_betas=None, tae_gradient=0.03, tae_spread=0.05,
             "C5_planted_regularity": {"beta": interval(0.03)},
             "C5b_planted_foreign_residual": {"recovered_fraction": c5b},
             "C6_planted_expertise": {"tae_rating_gradient": interval(0.05)},
-            "C7_no_effect_synthetic": {"beta": dead, "tae_rating_gradient": dead},
+            "C7_no_effect_synthetic": {"beta": dead, "tae_rating_gradient": dead,
+                                       "metric_a_time_vs_rating": dead,
+                                       "extreme_ut_vs_rating": dead},
             "C1_shuffled_quality": {"beta": dead},
             "C2_shuffled_time": {"beta": dead},
-            "C3_shuffled_rating": {"tae_rating_gradient": dead if controls_ok
-                                   else interval(0.04)},
+            "C3_shuffled_rating": {"tae_rating_gradient": dead if controls_ok else interval(0.04),
+                                   "metric_a_time_vs_rating": dead,
+                                   "extreme_ut_vs_rating": dead},
             "C4_shuffled_voc": {"tae_rating_gradient": dead if controls_ok else interval(0.04)},
             "C8_player_influence": {"relative_change": 0.05,
                                     "beta_without_busiest_1pct": interval(beta),
@@ -140,6 +143,40 @@ def test_c9_budget_reading_caps_the_level():
     assert any("C9" in n for n in out["notes"])
 
 
+def test_a_required_control_that_did_not_run_is_invalid():
+    """re-review, N4i/N4ii: absence must not read as a pass."""
+    a = analysis()
+    del a["controls"]["final"]["C5b_planted_foreign_residual"]
+    del a["controls"]["final"]["C7_no_effect_synthetic"]
+    out = ev.evaluate(a)
+    assert out["verdict"] == "INVALID_EXPERIMENT"
+    assert any("C5b" in r for r in out["reasons"]) and any("C7" in r for r in out["reasons"])
+
+    b = analysis()
+    b["controls"]["final"]["C7_no_effect_synthetic"] = {"note": "not computable: boom"}
+    assert ev.evaluate(b)["verdict"] == "INVALID_EXPERIMENT"
+
+
+def test_censoring_is_read_on_development_not_final():
+    """re-review, N4iii: VERDICT_RULES 2.1.7 names DEVELOPMENT, which is the Gate 1 return trigger."""
+    a = analysis()
+    a["periods"]["development"] = {**a["periods"]["development"], "censored_voc_share": 0.20}
+    out = ev.evaluate(a)
+    assert out["verdict"] == "INVALID_EXPERIMENT"
+    assert any("DEVELOPMENT" in r for r in out["reasons"])
+
+    b = analysis()
+    b["periods"]["final"] = {**b["periods"]["final"], "censored_voc_share": 0.20}
+    assert ev.evaluate(b)["verdict"] != "INVALID_EXPERIMENT"
+
+
+def test_the_metric_bar_met_without_h1_is_named_not_called_skill_only():
+    """re-review, N2 case (i)."""
+    out = ev.evaluate(analysis(beta=0.0001, r2_gain=0.02))
+    assert out["verdict"] == "ADAPTATION_WITHOUT_REGULARITY"
+    assert out["level"] == 0
+
+
 def test_metric_c_alone_cannot_supply_the_second_metric():
     """Gate 1, R4e: Metric C is a transform of Metric B and must not count."""
     out = ev.evaluate(analysis(metric_a_dead=True, metric_d_dead=True))
@@ -154,11 +191,12 @@ def test_metric_c_alone_cannot_supply_the_second_metric():
     {"controls_ok": False}, {"c5b": 0.1}, {"disjoint_ok": False}, {"tae_extras_ok": False},
     {"powered": BANDS[:2]}, {"beta": 0.0005, "r2_gain": 0.02},
     {"metric_a_dead": True}, {"metric_a_dead": True, "metric_d_dead": True},
-    {"tae_spread": 0.0}, {"c9_proxy": True},
+    {"tae_spread": 0.0}, {"c9_proxy": True}, {"beta": 0.0001, "r2_gain": 0.02},
 ])
 def test_every_constructed_input_produces_exactly_one_verdict(kwargs):
     out = ev.evaluate(analysis(**kwargs))
     assert out["verdict"] in {
         "INVALID_EXPERIMENT", "DIFFICULTY_PROXY_ONLY", "SKILL_ONLY",
         "GENERAL_REGULARITY_ONLY", "EXPERTISE_ADAPTATION_SUPPORTED",
+        "ADAPTATION_WITHOUT_REGULARITY",
     }

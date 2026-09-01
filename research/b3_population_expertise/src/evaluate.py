@@ -38,6 +38,49 @@ def contains_zero(interval) -> bool:
     return not excludes_zero(interval)
 
 
+REQUIRED_CONTROLS = {
+    "C1_shuffled_quality": ("beta",),
+    "C2_shuffled_time": ("beta",),
+    "C3_shuffled_rating": ("tae_rating_gradient", "metric_a_time_vs_rating",
+                           "extreme_ut_vs_rating"),
+    "C4_shuffled_voc": ("tae_rating_gradient",),
+    "C5_planted_regularity": ("beta",),
+    "C5b_planted_foreign_residual": ("recovered_fraction",),
+    "C6_planted_expertise": ("tae_rating_gradient",),
+    "C7_no_effect_synthetic": ("beta", "tae_rating_gradient", "metric_a_time_vs_rating",
+                               "extreme_ut_vs_rating"),
+}
+
+
+def missing_or_malformed(controls: dict) -> list[str]:
+    """A required control that did not run cannot pass (re-review, N4i and N4ii).
+
+    The first draft guarded every control check with `if present`, so an `analysis.json` with no
+    C5b and no C7 at all returned the strongest verdict with "conditions that failed: none". The
+    shape `controls.py` writes when a control raises -- `{"note": "not computable: ..."}` -- did the
+    same. Absence is now a failure, named.
+    """
+    problems = []
+    for name, fields in REQUIRED_CONTROLS.items():
+        payload = controls.get(name)
+        if not isinstance(payload, dict) or not payload:
+            problems.append(f"{name} is absent")
+            continue
+        if "note" in payload and not any(f in payload for f in fields):
+            problems.append(f"{name} did not run: {payload['note']}")
+            continue
+        for field in fields:
+            value = payload.get(field)
+            if value is None:
+                problems.append(f"{name}.{field} is absent")
+            elif isinstance(value, dict):
+                if not all(math.isfinite(value.get(k, float("nan"))) for k in ("point", "lo", "hi")):
+                    problems.append(f"{name}.{field} has a non-finite interval")
+            elif not math.isfinite(value):
+                problems.append(f"{name}.{field} is not finite")
+    return problems
+
+
 def signed(interval, expected: int) -> bool:
     """Interval excludes zero AND the point estimate has the preregistered sign."""
     if not excludes_zero(interval):
@@ -67,6 +110,7 @@ def evaluate(analysis: dict) -> dict:
     invalid: list[str] = []
     if not analysis.get("leakage_tests_passed"):
         invalid.append("leakage tests failed")
+    invalid.extend(missing_or_malformed(controls))
     if analysis.get("holdout_contaminated"):
         return {"verdict": "HOLDOUT_CONTAMINATED", "level": None,
                 "reasons": ["the final holdout was inspected before Gate 2 passed"]}
@@ -82,19 +126,22 @@ def evaluate(analysis: dict) -> dict:
     if not signed(c6, +1):
         invalid.append("C6 failed: a planted expertise gradient was not recovered")
     c7 = controls.get("C7_no_effect_synthetic", {})
-    if c7 and (excludes_zero(c7.get("beta", {}))
-               or excludes_zero(c7.get("tae_rating_gradient", {}))):
-        invalid.append("C7 failed: the pipeline reported the hypothesis on data built without it")
+    for gradient in REQUIRED_CONTROLS["C7_no_effect_synthetic"]:
+        if excludes_zero(c7.get(gradient, {})):
+            invalid.append(f"C7 failed: the pipeline reported {gradient} on data built without it")
     for name, key in (("C1", "C1_shuffled_quality"), ("C2", "C2_shuffled_time")):
         if excludes_zero(controls.get(key, {}).get("beta", {})):
             invalid.append(f"{name} failed: a destroyed association survived its destruction")
-    if excludes_zero(controls.get("C3_shuffled_rating", {}).get("tae_rating_gradient", {})):
-        invalid.append("C3 failed: shuffled rating reproduced an expertise gradient")
+    # C3 and C7 are checked on EVERY H2 gradient, as MODEL_SPEC.md §9 says, not on Metric B alone.
+    for gradient in REQUIRED_CONTROLS["C3_shuffled_rating"]:
+        if excludes_zero(controls.get("C3_shuffled_rating", {}).get(gradient, {})):
+            invalid.append(f"C3 failed: shuffled rating reproduced {gradient}")
     if excludes_zero(controls.get("C4_shuffled_voc", {}).get("tae_rating_gradient", {})):
         invalid.append("C4 failed: shuffled value-of-computation preserved the allocation signal")
-    if final["censored_voc_share"] > CENSOR_LIMIT:
-        invalid.append(f"voc_regret censoring {final['censored_voc_share']:.1%} exceeds "
-                       f"{CENSOR_LIMIT:.0%}")
+    dev_censoring = analysis["periods"]["development"]["censored_voc_share"]
+    if dev_censoring > CENSOR_LIMIT:
+        invalid.append(f"voc_regret censoring on DEVELOPMENT is {dev_censoring:.1%}, above "
+                       f"{CENSOR_LIMIT:.0%} -- the definition is unusable as specified")
     if analysis.get("engine_nondeterminism_detected"):
         invalid.append("engine nondeterminism detected against the recorded run")
 
@@ -118,6 +165,10 @@ def evaluate(analysis: dict) -> dict:
 
     # --- H2 metrics ---------------------------------------------------------------------------------
     # Metrics C and E are DESCRIPTIVE and cannot count (Gate 1, R4e): C is a transform of B.
+    # Metric A is a POOLED slope and is judged directionally only (re-review, N4iv): inside a
+    # 200-point band there is little rating variation left to identify it from, so requiring a band
+    # shape of it would be requiring a shape of a quantity that has none. Its band table is computed
+    # and reported for the figures; the verdict reads the pooled slope.
     metric_specs = [
         ("A_matched_time", final["metric_a_time_vs_rating"], -1, None, None),
         ("B_time_allocation_efficiency", final["tae_rating_gradient"], +1,
@@ -205,6 +256,12 @@ def evaluate(analysis: dict) -> dict:
         not gates["INVALID_EXPERIMENT"] and not gates["DIFFICULTY_PROXY_ONLY"]
         and not gates["EXPERTISE_ADAPTATION_SUPPORTED"] and h1_holds
     )
+    # The metric bar met while H1 fails is a real, surprising outcome that the first draft printed
+    # as SKILL_ONLY -- the wrong name for it (re-review, N2). It is off the level ladder in §3,
+    # which is built around the regularity.
+    gates["ADAPTATION_WITHOUT_REGULARITY"] = (
+        not any(gates.values()) and checks["h2_includes_tae"] and checks["h2_second_metric"]
+    )
     gates["SKILL_ONLY"] = not any(gates.values())
 
     fired = [name for name, on in gates.items() if on]
@@ -221,6 +278,10 @@ def evaluate(analysis: dict) -> dict:
             secondary.get("tae_rating_gradient", {}), +1)
         if cross and checks["temporal_sign_agreement"]:
             level = 5
+    elif verdict == "ADAPTATION_WITHOUT_REGULARITY":
+        level = 0
+        notes.append("off the scientific-level ladder: the expertise metric bar is met while the "
+                     "regularity the ladder is built around is not")
     elif h1_holds:
         level = 1
         if r2_gain >= R2_GAIN_FLOOR:
@@ -252,6 +313,11 @@ def evaluate(analysis: dict) -> dict:
         "band_sign_agreement": {"agree": agree, "of": len(powered), "needed": needed},
         "tae_spread": spread,
         "c9_reading": c9.get("reading"),
+        # Reported beside SKILL_ONLY as facts, never as conditions (re-review, N2).
+        "rating_on_quality": final.get("rating_on_quality"),
+        "h2_metrics_meeting_the_bar": passing,
+        "development_censored_voc_share": dev_censoring,
+        "final_censored_voc_share": final["censored_voc_share"],
         "c5b_recovered_fraction": recovered,
         "notes": notes,
         "label_means": ("the time / value-of-computation relation differs systematically with "

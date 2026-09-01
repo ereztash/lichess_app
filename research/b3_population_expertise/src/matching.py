@@ -12,7 +12,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analysis import PlayerBootstrap, RatingBasis, gradient_with_main_effect, slope
+from analysis import PlayerBootstrap, RatingBasis, gradient_with_main_effect, weighted_slope
 from common import BAND_LABELS
 
 CELL_KEYS = [
@@ -98,24 +98,26 @@ def matched_estimates(matched: pd.DataFrame, rating_basis: RatingBasis | None = 
     if matched.empty:
         return {"note": "no matched sample"}
     w = matched["w"].to_numpy(float)
-    sw = np.sqrt(w)
-    q = matched["q_resid"].to_numpy(float) * sw
-    u = matched["ut_resid"].to_numpy(float) * sw
-    y = matched["y_resid_T1"].to_numpy(float) * sw
-    v = matched["voc_resid"].to_numpy(float) * sw
+    q = matched["q_resid"].to_numpy(float)
+    u = matched["ut_resid"].to_numpy(float)
+    y = matched["y_resid_T1"].to_numpy(float)
+    v = matched["voc_resid"].to_numpy(float)
+    r = matched["rating_resid"].to_numpy(float)
     rating_c = (matched["rating"].to_numpy(float) - 1600.0) / 100.0
     if rating_basis is None:
         rating_basis = RatingBasis(matched["rating"].to_numpy(float))
-    block = rating_basis.transform(matched["rating"].to_numpy(float)) * sw[:, None]
+    block = rating_basis.transform(matched["rating"].to_numpy(float))
     boot = PlayerBootstrap(matched["player"].to_numpy())
     return {
-        "beta": boot.interval(lambda i: slope(q[i], u[i])),
+        "beta": boot.interval(lambda i: weighted_slope(q[i], u[i], w[i])),
         "tae_rating_gradient": boot.interval(
-            lambda i: gradient_with_main_effect(y[i], v[i], rating_c[i], block[i])[1]
+            lambda i: gradient_with_main_effect(y[i], v[i], rating_c[i], block[i],
+                                                weights=w[i])[1]
         ),
         "metric_a_time_vs_rating": boot.interval(
-            lambda i: 100.0 * slope(y[i], matched["rating_resid"].to_numpy(float)[i] * sw[i])
+            lambda i: 100.0 * weighted_slope(y[i], r[i], w[i])
         ),
+        "weights": "coarsened exact matching cell weights, applied as weighted least squares",
     }
 
 

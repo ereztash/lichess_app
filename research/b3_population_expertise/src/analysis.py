@@ -11,6 +11,8 @@ period would be choosing something.
 """
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 import models
@@ -59,6 +61,33 @@ def fit_all(dev, groups):
     return fits, dev
 
 
+def fit_metric_nuisances(dev, fits, groups, constants):
+    """The `allocation_loss ~ T1P` and `extreme_ut ~ T1P` fits that `MODEL_SPEC.md` §4 step 1 names.
+
+    N1(c). Without them, Metrics C and D were estimated by regressing the raw centred quantity on
+    `rating_resid`, which equals the partial coefficient only where `rating_resid` is orthogonal to
+    the T1P column space -- approximately true on DEVELOPMENT, where the fit was made, and not on
+    FINAL, which is the period condition 4 reads Metric D from.
+
+    They are fitted after `ut_q95` exists, because `extreme_ut` is defined by it.
+    """
+    scored = residualise(dev, fits, constants)
+    fits["partial_allocation"] = models.fit_frozen(scored, "T1P", "allocation_loss", groups,
+                                                   penalty=fits["T1P"]["penalty"])
+    fits["partial_extreme"] = models.fit_frozen(scored, "T1P", "extreme_ut", groups,
+                                                penalty=fits["T1P"]["penalty"])
+    # N5: C19's models are fitted on DEVELOPMENT here, never on the period they are read from.
+    fits["T2R_C19"] = models.fit_frozen(dev, "T2R_C19", "log_time", groups,
+                                        penalty=fits["T2R"]["penalty"])
+    dev_c19 = dev.copy()
+    dev_c19["_ut_c19"] = dev_c19["log_time"] - models.predict(fits["T2R_C19"], dev_c19)
+    fits["Q0_C19"] = models.fit_frozen(dev_c19, "T2R_C19", "quality_loss", groups,
+                                       penalty=fits["Q0"]["penalty"])
+    fits["partial_ut_C19"] = models.fit_frozen(dev_c19, "T2R_C19", "_ut_c19", groups,
+                                               penalty=fits["Q0"]["penalty"])
+    return fits
+
+
 def residualise(frame, fits, constants):
     """Attach every frozen residual a downstream estimator reads."""
     out = frame.copy()
@@ -86,19 +115,66 @@ def residualise(frame, fits, constants):
     out["allocation_loss"] = np.abs(u) * wrong_way
     out["overthinking"] = np.where((u > 0) & (v < 0), u, 0.0)
     out["premature_commitment"] = np.where((u < 0) & (v > 0), -u, 0.0)
-    out["extreme_ut"] = (out["unexpected_time_population"] > constants["ut_q95"]).astype(float)
+    # `ut_q95` does not exist on the first pass -- it is a quantile OF this residual -- so the
+    # indicator is empty then and correct on the second. `run.py` calls this twice for that reason.
+    out["extreme_ut"] = (out["unexpected_time_population"]
+                         > constants.get("ut_q95", float("inf"))).astype(float)
     if "gbt" in fits:
         out["ut_gbt"] = out["log_time"] - models.gbt_predict(fits["gbt"], out)
+    # N1(c): Metrics C and D read residualised outcomes, not raw ones.
+    if "partial_allocation" in fits:
+        out["allocation_resid"] = (out["allocation_loss"]
+                                   - models.predict(fits["partial_allocation"], out))
+        out["extreme_resid"] = out["extreme_ut"] - models.predict(fits["partial_extreme"], out)
+    else:
+        out["allocation_resid"] = out["allocation_loss"] - out["allocation_loss"].mean()
+        out["extreme_resid"] = out["extreme_ut"] - out["extreme_ut"].mean()
+    # N5: C19's residual pair, both from DEVELOPMENT-fitted models.
+    if "T2R_C19" in fits:
+        out["ut_c19"] = out["log_time"] - models.predict(fits["T2R_C19"], out)
+        out["q_resid_c19"] = out["quality_loss"] - models.predict(fits["Q0_C19"], out)
+        out["ut_resid_c19"] = out["ut_c19"] - models.predict(fits["partial_ut_C19"], out)
     return out
 
 
 # --- estimators, all one-parameter -------------------------------------------------------------
 def slope(y, x) -> float:
-    """OLS slope through the origin of two already-centred residual vectors."""
+    """`cov(y, x) / var(x)` INSIDE THE SET BEING ESTIMATED. Equivalently: with an intercept.
+
+    N1 FROM THE GATE 1 RE-REVIEW, and it lands directly on the quantity the strongest verdict reads.
+    The first draft used `<y, x> / <x, x>` -- a slope through the origin -- on the grounds that
+    frozen ridge residuals have mean zero. They have mean zero **on DEVELOPMENT as a whole**: not
+    inside a rating band, not for one player, not on another period. The uncentred form therefore
+    carries `n * mean(y|set) * mean(x|set) / <x, x>`, a product of two frozen-model misfits with no
+    allocation content and no determined sign.
+
+    Measured on synthetic residuals with a true slope of 0.098 in every band, a band misfit of 0.08
+    log-seconds in `eY` and 0.12 sd in `eV` moved the band slope to 0.084 or 0.107 -- 0.009 to 0.013,
+    against a `TAE_FLOOR` of 0.02. At player level it is worse: a player's mean time residual is
+    their pace (which Metric A predicts trends with rating) and their mean VoC residual is the kind
+    of position they reach, so with 20-120 decisions each the product term is the same order as the
+    allocation slope. That is the R1(a) mechanism reintroduced one level down, inside the check that
+    is supposed to confirm the gradient at player level.
+    """
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
-    denominator = float(x @ x)
-    return float(x @ y) / denominator if denominator > 0 else float("nan")
+    if x.size < 2:
+        return float("nan")
+    xc = x - x.mean()
+    yc = y - y.mean()
+    denominator = float(xc @ xc)
+    return float(xc @ yc) / denominator if denominator > 0 else float("nan")
+
+
+def partial_correlation(y, x) -> float:
+    """`corr(y, x)` inside the set being estimated -- centred, for the same reason as `slope`."""
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    if x.size < 3:
+        return float("nan")
+    xc, yc = x - x.mean(), y - y.mean()
+    denominator = math.sqrt(float(xc @ xc) * float(yc @ yc))
+    return float(xc @ yc) / denominator if denominator > 0 else float("nan")
 
 
 class RatingBasis:
@@ -130,7 +206,28 @@ class RatingBasis:
         return self.spline.transform(np.asarray(values, float).reshape(-1, 1))
 
 
-def gradient_with_main_effect(y, x, rating_c, rating_block):
+def weighted_slope(y, x, w) -> float:
+    """`cov_w(y, x) / var_w(x)`: the weighted slope with an intercept.
+
+    The matched sample carries CEM weights, and the usual square-root trick (multiply both vectors
+    by `sqrt(w)` and take an ordinary slope) is only correct through the origin. Once N1 made every
+    slope centred, the centring had to be weighted too -- centring `sqrt(w) * x` by its unweighted
+    mean is not centring `x` by its weighted mean, and the difference is a function of how the
+    weights covary with the regressor, which in a matched sample is exactly what the weights are for.
+    """
+    x = np.asarray(x, float)
+    y = np.asarray(y, float)
+    w = np.asarray(w, float)
+    total = w.sum()
+    if total <= 0 or x.size < 2:
+        return float("nan")
+    xbar = float(w @ x) / total
+    ybar = float(w @ y) / total
+    denominator = float(w @ (x - xbar) ** 2)
+    return float(w @ ((x - xbar) * (y - ybar))) / denominator if denominator > 0 else float("nan")
+
+
+def gradient_with_main_effect(y, x, rating_c, rating_block, weights=None):
     """`y ~ s(rating) + x + x*rating_c`. Returns (slope at mean rating, gradient per 100 Elo).
 
     Three free parameters plus the frozen-knot spline main effect: no nuisance choice is made on the
@@ -138,9 +235,17 @@ def gradient_with_main_effect(y, x, rating_c, rating_block):
     number the verdict reads.
     """
     x = np.asarray(x, float)
+    y = np.asarray(y, float)
     design = np.column_stack([rating_block, x, x * np.asarray(rating_c, float),
                               np.ones(len(x))])
-    coef, *_ = np.linalg.lstsq(design, np.asarray(y, float), rcond=None)
+    if weights is not None:
+        # Weighted least squares, with the INTERCEPT scaled too. Scaling every column but the
+        # intercept fits an unweighted constant against weighted covariates, which is not a
+        # weighted regression of anything.
+        root = np.sqrt(np.asarray(weights, float))[:, None]
+        design = design * root
+        y = y * root.ravel()
+    coef, *_ = np.linalg.lstsq(design, y, rcond=None)
     return float(coef[-3]), float(coef[-2])
 
 

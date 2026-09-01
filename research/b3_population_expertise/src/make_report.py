@@ -106,9 +106,10 @@ def main() -> None:
                 continue
             y = rows["y_resid_T1"].to_numpy(float)
             v = rows["voc_resid"].to_numpy(float)
-            d = float(v @ v)
+            yc, vc = y - y.mean(), v - v.mean()   # centred within the player, per N1(b)
+            d = float(vc @ vc)
             table.append({"rating": float(rows["rating"].mean()),
-                          "tae_shrunk": float(v @ y) / d if d > 0 else np.nan})
+                          "tae_shrunk": float(vc @ yc) / d if d > 0 else np.nan})
         rp.player_figure(f"{args.figures}/08_player_level_efficiency.png", table)
         rp.frontier_figure(f"{args.figures}/09_decision_efficiency_frontier.png",
                            A["frontier"][final_name])
