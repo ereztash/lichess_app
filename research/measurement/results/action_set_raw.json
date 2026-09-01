@@ -1,0 +1,7137 @@
+{
+ "action_set_version": "1.0.0",
+ "what_this_is": "The same seventeen rule classes and the same sampled items as the published screen, scored as a decision problem: efficacy (what obeying costs), necessity (what disobeying costs) and robustness (what the worst permitted move costs), in expected score as well as centipawns.",
+ "engine": {
+  "nodes": 200000,
+  "workers": 4,
+  "wdl_model": "sf16",
+  "build": "Stockfish 16"
+ },
+ "provenance_warning": "THIS IS NOT THE PUBLISHED ENGINE. The published screen ran Stockfish 17.1 at 200,000 nodes; this run's build is recorded above. Every comparison in this file is therefore WITHIN this run -- b_valid is recomputed here by the published method so that the reordering is measured against a column produced by the same engine. No number here may be subtracted from a number in RULE_CLASS_SEARCH.md.",
+ "sample_per_cell": 250,
+ "seed": 20260831,
+ "items_adjudicated": 8307,
+ "searches": 48155,
+ "searches_per_item_median": 6,
+ "engine_failures": 0,
+ "corpus": {
+  "pgn": "lichess_db_standard_rated_2013-01.pgn.zst",
+  "seed": 20260831,
+  "per_game": 3,
+  "games_seen": 60834,
+  "games_used": 60000,
+  "positions_sampled": 180000,
+  "positions_in_check": 12119,
+  "records_written": 580852,
+  "rule_class_version": "1.0.0",
+  "trigger_counts": {
+   "RC-00": {
+    "positive": 1171,
+    "negative": 78582
+   },
+   "RC-01": {
+    "positive": 13685,
+    "negative": 46899
+   },
+   "RC-02": {
+    "positive": 21969,
+    "negative": 31709
+   },
+   "RC-03": {
+    "positive": 2057,
+    "negative": 1286
+   },
+   "RC-04": {
+    "positive": 22239,
+    "negative": 30168
+   },
+   "RC-05": {
+    "positive": 370,
+    "negative": 366
+   },
+   "RC-06": {
+    "positive": 2080,
+    "negative": 80332
+   },
+   "RC-07": {
+    "positive": 9717,
+    "negative": 22373
+   },
+   "RC-08": {
+    "positive": 7432,
+    "negative": 22373
+   },
+   "RC-09": {
+    "positive": 16982,
+    "negative": 22373
+   },
+   "RC-11": {
+    "positive": 16982,
+    "negative": 22373
+   },
+   "RC-12": {
+    "positive": 602,
+    "negative": 22312
+   },
+   "RC-13": {
+    "positive": 67,
+    "negative": 702
+   },
+   "RC-14": {
+    "positive": 240,
+    "negative": 9726
+   },
+   "RC-18": {
+    "positive": 9009,
+    "negative": 22373
+   },
+   "RC-20": {
+    "positive": 7709,
+    "negative": 22373
+   },
+   "RC-21": {
+    "positive": 3293,
+    "negative": 8928
+   }
+  },
+  "note": "one record per (position, rule class that fired). A position can appear under several rule classes; they are different items and are never pooled."
+ },
+ "rule_classes": {
+  "RC-00": {
+   "name": "mate-in-one",
+   "family": "immediate mate threats",
+   "role": "ceiling-anchor",
+   "prescription": "if a move mates, play it; a check that is not mate is the error",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 250,
+     "n": 250,
+     "p": 1.0,
+     "ci95": [
+      0.9848661527503766,
+      1.0
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.0,
+     "share_nonzero": 0.0
+    },
+    "obeying_is_optimal": {
+     "k": 250,
+     "n": 250,
+     "p": 1.0,
+     "ci95": [
+      0.9848661527503766,
+      1.0
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 99255,
+     "q1": 3,
+     "q3": 99650,
+     "p90": 100026
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.511,
+     "mean": 0.120174,
+     "share_nonzero": 0.2
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 99255,
+     "q1": 3,
+     "q3": 99650,
+     "p90": 100026
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.511,
+     "mean": 0.120174,
+     "share_nonzero": 0.2
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 160,
+     "n": 250,
+     "p": 0.64,
+     "ci95": [
+      0.5787938053589917,
+      0.6969687174111138
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 99995,
+     "q1": 98818,
+     "q3": 100566,
+     "p90": 100824
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.49850000000000005,
+     "q1": 0.0,
+     "q3": 1.0,
+     "p90": 1.0,
+     "mean": 0.5035660000000001,
+     "share_nonzero": 0.576
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 191,
+     "n": 250,
+     "p": 0.764,
+     "ci95": [
+      0.7076152006750633,
+      0.8123941279771356
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 522,
+     "n": 1082,
+     "p": 0.4824399260628466,
+     "ci95": [
+      0.45278020540532743,
+      0.5122238983239825
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.49050000000000005,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.21502799999999997,
+     "share_nonzero": 0.308
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -99363,
+     "q1": -99970,
+     "q3": -3,
+     "p90": 1
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.49050000000000005,
+     "p90": 1.0,
+     "mean": 0.22502800000000003,
+     "share_nonzero": 0.296
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.33520200000000006,
+     "ci95": [
+      0.25984048685697025,
+      0.41056351314302986
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.22502799999999995,
+     "ci95": [
+      0.17718361925622014,
+      0.27287238074377973
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "prescription_size_median": 0.09090909090909091
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 47,
+     "n": 250,
+     "p": 0.188,
+     "ci95": [
+      0.14442509786439153,
+      0.24101842281937344
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 290,
+     "q1": 18,
+     "q3": 567,
+     "p90": 829
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.014,
+     "q1": 0.0,
+     "q3": 0.5065,
+     "p90": 0.9965,
+     "mean": 0.29439,
+     "share_nonzero": 0.56
+    },
+    "obeying_is_optimal": {
+     "k": 44,
+     "n": 250,
+     "p": 0.176,
+     "ci95": [
+      0.13379907724930237,
+      0.22800765576845358
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 157,
+     "n": 250,
+     "p": 0.628,
+     "ci95": [
+      0.5665711761893972,
+      0.6855545589146992
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -281,
+     "q1": -567,
+     "q3": -18,
+     "p90": 95
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": -0.013000000000000012,
+     "q1": -0.5065,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.27952199999999994,
+     "share_nonzero": 0.624
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 95
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.014868,
+     "share_nonzero": 0.064
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 23,
+     "n": 250,
+     "p": 0.092,
+     "ci95": [
+      0.06208656638760557,
+      0.13426265296808712
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 539,
+     "q1": 271,
+     "q3": 819,
+     "p90": 1302
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.485,
+     "q1": 0.0,
+     "q3": 0.9,
+     "p90": 1.0,
+     "mean": 0.43517199999999995,
+     "share_nonzero": 0.716
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 203,
+     "n": 250,
+     "p": 0.812,
+     "ci95": [
+      0.7589815771806265,
+      0.8555749021356085
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 130,
+     "n": 497,
+     "p": 0.26156941649899396,
+     "ci95": [
+      0.22486426840390414,
+      0.30193222773379685
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.03649999999999998,
+     "q1": -0.4995,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.2702319999999999,
+     "share_nonzero": 0.636
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -211,
+     "q1": -534,
+     "q3": -67,
+     "p90": -9
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.04099999999999998,
+     "q1": 0.0,
+     "q3": 0.4995,
+     "p90": 0.9735,
+     "mean": 0.27557600000000004,
+     "share_nonzero": 0.612
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": -0.00929,
+     "ci95": [
+      -0.061286779543457605,
+      0.042706779543457606
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": -0.018813999999999987,
+     "ci95": [
+      -0.0654585589760381,
+      0.027830558976038127
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -2,
+     "q1": -12,
+     "q3": 5,
+     "p90": 15
+    },
+    "prescription_size_median": 0.041666666666666664
+   },
+   "separation_b_valid": 0.812,
+   "separation_advantage_xs": 0.39969599999999994,
+   "separation_advantage_cp": 99536,
+   "separation_regret_xs": 0.29439,
+   "separation_regret_cp": 290,
+   "separation_advantage_over_chance_xs": 0.3444920000000001,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.33520200000000006,
+    "ci95": [
+     0.25984048685697025,
+     0.41056351314302986
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": -0.00929,
+    "ci95": [
+     -0.061286779543457605,
+     0.042706779543457606
+    ]
+   },
+   "anchor_separation_b_valid": 1.0,
+   "anchor_separation_advantage_xs": 1.0,
+   "anchor_separation_regret_xs": 1.0,
+   "anchor_separation_advantage_over_chance_xs": 1.0
+  },
+  "RC-01": {
+   "name": "loose-piece",
+   "family": "elementary tactical safety relations",
+   "role": "incumbent-floor",
+   "prescription": "if exactly one enemy piece is capturable and undefended, take it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 197,
+     "n": 250,
+     "p": 0.788,
+     "ci95": [
+      0.7331716894914767,
+      0.8341112144927404
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 341
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.02946,
+     "share_nonzero": 0.068
+    },
+    "obeying_is_optimal": {
+     "k": 202,
+     "n": 250,
+     "p": 0.808,
+     "ci95": [
+      0.7546609408206536,
+      0.8520166092735785
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 34,
+     "n": 250,
+     "p": 0.136,
+     "ci95": [
+      0.09898068743644395,
+      0.1840367533612819
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 300,
+     "q1": 33,
+     "q3": 463,
+     "p90": 678
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.5025,
+     "p90": 0.99,
+     "mean": 0.2341139999999999,
+     "share_nonzero": 0.56
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 300,
+     "q1": 33,
+     "q3": 463,
+     "p90": 678
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.5025,
+     "p90": 0.99,
+     "mean": 0.263574,
+     "share_nonzero": 0.492
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 161,
+     "n": 250,
+     "p": 0.644,
+     "ci95": [
+      0.5828767221362727,
+      0.7007647298558357
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 11,
+     "q1": -3,
+     "q3": 91,
+     "p90": 421
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.005999999999999894,
+     "p90": 0.269,
+     "mean": 0.07085599999999999,
+     "share_nonzero": 0.384
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 59,
+     "n": 250,
+     "p": 0.236,
+     "ci95": [
+      0.1876058720228644,
+      0.2923847993249367
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 268,
+     "n": 337,
+     "p": 0.7952522255192879,
+     "ci95": [
+      0.7489561577114853,
+      0.834892762138674
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.4645,
+     "q1": -0.9505,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.4149219999999999,
+     "share_nonzero": 0.672
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -576,
+     "q1": -917,
+     "q3": -337,
+     "p90": -98
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.469,
+     "q1": 0.0,
+     "q3": 0.9505,
+     "p90": 1.0,
+     "mean": 0.42117599999999994,
+     "share_nonzero": 0.652
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.649036,
+     "ci95": [
+      0.5624093331222392,
+      0.7356626668777607
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.391716,
+     "ci95": [
+      0.3384685961215269,
+      0.4449634038784731
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -1,
+     "q1": -14,
+     "q3": 9,
+     "p90": 22
+    },
+    "prescription_size_median": 0.037037037037037035
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 46,
+     "n": 250,
+     "p": 0.184,
+     "ci95": [
+      0.14087481495903226,
+      0.2366897765027297
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 155,
+     "q1": 19,
+     "q3": 504,
+     "p90": 838
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.017000000000000015,
+     "q1": 0.0,
+     "q3": 0.474,
+     "p90": 0.892,
+     "mean": 0.235402,
+     "share_nonzero": 0.58
+    },
+    "obeying_is_optimal": {
+     "k": 47,
+     "n": 250,
+     "p": 0.188,
+     "ci95": [
+      0.14442509786439153,
+      0.24101842281937344
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 140,
+     "n": 250,
+     "p": 0.56,
+     "ci95": [
+      0.4980198439170466,
+      0.6201640944129987
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -154,
+     "q1": -504,
+     "q3": -19,
+     "p90": 34
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": -0.01649999999999996,
+     "q1": -0.474,
+     "q3": 0.0,
+     "p90": 0.0024999999999999467,
+     "mean": -0.2191000000000001,
+     "share_nonzero": 0.692
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 34
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0024999999999999467,
+     "mean": 0.016302,
+     "share_nonzero": 0.112
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 12,
+     "n": 250,
+     "p": 0.048,
+     "ci95": [
+      0.02766792620603601,
+      0.08201307170762354
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 197,
+     "q1": 28,
+     "q3": 523,
+     "p90": 876
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.02999999999999997,
+     "q1": 0.0,
+     "q3": 0.48750000000000004,
+     "p90": 0.9515,
+     "mean": 0.24577800000000002,
+     "share_nonzero": 0.7
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 148,
+     "n": 250,
+     "p": 0.592,
+     "ci95": [
+      0.5301320093936375,
+      0.6510833627124317
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 112,
+     "n": 268,
+     "p": 0.417910447761194,
+     "ci95": [
+      0.36042705307340267,
+      0.47771398199996357
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.133,
+     "q1": -0.5,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.30400000000000016,
+     "share_nonzero": 0.708
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -278,
+     "q1": -611,
+     "q3": -84,
+     "p90": -29
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.15649999999999997,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 0.9995,
+     "mean": 0.3087059999999999,
+     "share_nonzero": 0.668
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.08489999999999999,
+     "ci95": [
+      0.02998643500325074,
+      0.13981356499674924
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.07330400000000002,
+     "ci95": [
+      0.02332401827666769,
+      0.12328398172333235
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -11,
+     "q3": 9,
+     "p90": 17
+    },
+    "prescription_size_median": 0.027777777777777776
+   },
+   "separation_b_valid": 0.6040000000000001,
+   "separation_advantage_xs": 0.453214,
+   "separation_advantage_cp": 454,
+   "separation_regret_xs": 0.20594200000000001,
+   "separation_regret_cp": 155,
+   "separation_advantage_over_chance_xs": 0.564136,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.649036,
+    "ci95": [
+     0.5624093331222392,
+     0.7356626668777607
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.08489999999999999,
+    "ci95": [
+     0.02998643500325074,
+     0.13981356499674924
+    ]
+   },
+   "anchor_separation_b_valid": 0.0,
+   "anchor_separation_advantage_xs": -0.0,
+   "anchor_separation_regret_xs": 0.0,
+   "anchor_separation_advantage_over_chance_xs": -0.0
+  },
+  "RC-02": {
+   "name": "recapture",
+   "family": "recapture decisions",
+   "role": "candidate",
+   "prescription": "if the opponent just captured on a square you attack, take back there",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 162,
+     "n": 250,
+     "p": 0.648,
+     "ci95": [
+      0.5869640447438548,
+      0.7045563364702568
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 84,
+     "p90": 421
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.46299999999999997,
+     "mean": 0.08080600000000002,
+     "share_nonzero": 0.216
+    },
+    "obeying_is_optimal": {
+     "k": 161,
+     "n": 250,
+     "p": 0.644,
+     "ci95": [
+      0.5828767221362727,
+      0.7007647298558357
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 61,
+     "n": 250,
+     "p": 0.244,
+     "ci95": [
+      0.19489634565082414,
+      0.300852184140983
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 51,
+     "q1": -84,
+     "q3": 335,
+     "p90": 565
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.332,
+     "p90": 0.5175000000000001,
+     "mean": 0.08640799999999997,
+     "share_nonzero": 0.688
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 51,
+     "q1": 0,
+     "q3": 335,
+     "p90": 565
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.332,
+     "p90": 0.5175000000000001,
+     "mean": 0.167214,
+     "share_nonzero": 0.472
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 104,
+     "n": 250,
+     "p": 0.416,
+     "ci95": [
+      0.3566223071073427,
+      0.477920179230594
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 72,
+     "q1": 10,
+     "q3": 381,
+     "p90": 630
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0050000000000000044,
+     "q1": 0.0,
+     "q3": 0.3355,
+     "p90": 0.636,
+     "mean": 0.17812599999999995,
+     "share_nonzero": 0.636
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 115,
+     "n": 250,
+     "p": 0.46,
+     "ci95": [
+      0.3992896616885707,
+      0.5219210460913992
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 253,
+     "n": 393,
+     "p": 0.6437659033078881,
+     "ci95": [
+      0.5952364666002545,
+      0.6895119065541728
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.31600000000000006,
+     "q1": -0.518,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.35856800000000005,
+     "share_nonzero": 0.696
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -469,
+     "q1": -656,
+     "q3": -163,
+     "p90": -56
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.3345,
+     "q1": 0.0,
+     "q3": 0.518,
+     "p90": 0.999,
+     "mean": 0.35898800000000003,
+     "share_nonzero": 0.688
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.44497600000000026,
+     "ci95": [
+      0.36953184324087324,
+      0.5204201567591273
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.2781820000000001,
+     "ci95": [
+      0.228242422091567,
+      0.32812157790843316
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -1,
+     "q1": -9,
+     "q3": 7,
+     "p90": 18
+    },
+    "prescription_size_median": 0.043478260869565216
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 67,
+     "n": 250,
+     "p": 0.268,
+     "ci95": [
+      0.2169104563368289,
+      0.3261116487869964
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 136,
+     "q1": 0,
+     "q3": 458,
+     "p90": 732
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.496,
+     "p90": 0.919,
+     "mean": 0.22876199999999994,
+     "share_nonzero": 0.488
+    },
+    "obeying_is_optimal": {
+     "k": 65,
+     "n": 250,
+     "p": 0.26,
+     "ci95": [
+      0.20954936702346566,
+      0.31771487965635353
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 130,
+     "n": 250,
+     "p": 0.52,
+     "ci95": [
+      0.45823595399411676,
+      0.5811586921158984
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -131,
+     "q1": -458,
+     "q3": 1,
+     "p90": 88
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.496,
+     "q3": 0.0,
+     "p90": 0.04349999999999998,
+     "mean": -0.20036200000000004,
+     "share_nonzero": 0.656
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 1,
+     "p90": 88
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.04349999999999998,
+     "mean": 0.0284,
+     "share_nonzero": 0.168
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 21,
+     "n": 250,
+     "p": 0.084,
+     "ci95": [
+      0.055595617989370606,
+      0.12499574292231608
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 228,
+     "q1": 17,
+     "q3": 516,
+     "p90": 835
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.010500000000000065,
+     "q1": 0.0,
+     "q3": 0.504,
+     "p90": 0.9955,
+     "mean": 0.2787239999999999,
+     "share_nonzero": 0.636
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 148,
+     "n": 250,
+     "p": 0.592,
+     "ci95": [
+      0.5301320093936375,
+      0.6510833627124317
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 127,
+     "n": 289,
+     "p": 0.43944636678200694,
+     "ci95": [
+      0.38338901073117565,
+      0.4970924509190818
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.24499999999999994,
+     "q1": -0.5285,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.33646800000000016,
+     "share_nonzero": 0.704
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -279,
+     "q1": -560,
+     "q3": -87,
+     "p90": -22
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.25549999999999995,
+     "q1": 0.0,
+     "q3": 0.5285,
+     "p90": 0.9995,
+     "mean": 0.340466,
+     "share_nonzero": 0.7
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.13610600000000003,
+     "ci95": [
+      0.08157936162237961,
+      0.19063263837762046
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.11170400000000001,
+     "ci95": [
+      0.062150907799856964,
+      0.16125709220014306
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -2,
+     "q1": -13,
+     "q3": 8,
+     "p90": 19
+    },
+    "prescription_size_median": 0.029411764705882353
+   },
+   "separation_b_valid": 0.38,
+   "separation_advantage_xs": 0.28677,
+   "separation_advantage_cp": 182,
+   "separation_regret_xs": 0.14795599999999992,
+   "separation_regret_cp": 136,
+   "separation_advantage_over_chance_xs": 0.3088700000000002,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.44497600000000026,
+    "ci95": [
+     0.36953184324087324,
+     0.5204201567591273
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.13610600000000003,
+    "ci95": [
+     0.08157936162237961,
+     0.19063263837762046
+    ]
+   },
+   "anchor_separation_b_valid": -1.0769230769230775,
+   "anchor_separation_advantage_xs": 3.1100564296124626,
+   "anchor_separation_regret_xs": -0.6555942474674398,
+   "anchor_separation_advantage_over_chance_xs": 1.1621806195479953
+  },
+  "RC-03": {
+   "name": "capture-the-checker",
+   "family": "responding to check / escaping check",
+   "role": "candidate",
+   "prescription": "when a single piece checks you and nothing defends it, capture it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 241,
+     "n": 250,
+     "p": 0.964,
+     "ci95": [
+      0.9330088524397113,
+      0.980946937312638
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 56,
+     "n": 250,
+     "p": 0.224,
+     "ci95": [
+      0.17671751406074326,
+      0.2796363696210489
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 3.2e-05,
+     "share_nonzero": 0.004
+    },
+    "obeying_is_optimal": {
+     "k": 239,
+     "n": 250,
+     "p": 0.956,
+     "ci95": [
+      0.9229414729274126,
+      0.9752564583809309
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 4,
+     "n": 250,
+     "p": 0.016,
+     "ci95": [
+      0.006239123654412256,
+      0.04041044048322319
+     ]
+    },
+    "advantage_cp": {
+     "n": 194,
+     "median": 490,
+     "q1": 216,
+     "q3": 832,
+     "p90": 99198
+    },
+    "advantage_xs": {
+     "n": 194,
+     "median": 0.0145,
+     "q1": 0.0,
+     "q3": 0.561,
+     "p90": 1.0,
+     "mean": 0.32336340206185565,
+     "share_nonzero": 0.5670103092783505
+    },
+    "regret_nb_cp": {
+     "n": 194,
+     "median": 490,
+     "q1": 216,
+     "q3": 832,
+     "p90": 99198
+    },
+    "regret_nb_xs": {
+     "n": 194,
+     "median": 0.0145,
+     "q1": 0.0,
+     "q3": 0.561,
+     "p90": 1.0,
+     "mean": 0.3234046391752577,
+     "share_nonzero": 0.5618556701030928
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 163,
+     "n": 194,
+     "p": 0.8402061855670103,
+     "ci95": [
+      0.7821158967583828,
+      0.8850845302498906
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 18,
+     "q1": 0,
+     "q3": 70,
+     "p90": 201
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.010500000000000065,
+     "p90": 0.23249999999999998,
+     "mean": 0.06034800000000001,
+     "share_nonzero": 0.448
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 48,
+     "n": 250,
+     "p": 0.192,
+     "ci95": [
+      0.14798339072642153,
+      0.2453390591793465
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 342,
+     "n": 402,
+     "p": 0.8507462686567164,
+     "ci95": [
+      0.8125986482781601,
+      0.8822537276241625
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 194,
+     "median": 0.0,
+     "q1": -0.21999999999999997,
+     "q3": 0.0,
+     "p90": 0.5,
+     "mean": -0.06473453608247422,
+     "share_nonzero": 0.5463917525773195
+    },
+    "chance_advantage_cp": {
+     "n": 194,
+     "median": -77,
+     "q1": -532,
+     "q3": 81,
+     "p90": 970
+    },
+    "chance_regret_xs": {
+     "n": 194,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.21999999999999997,
+     "p90": 0.739,
+     "mean": 0.172819587628866,
+     "share_nonzero": 0.34536082474226804
+    },
+    "advantage_over_chance_xs": {
+     "n": 194,
+     "mean": 0.38809793814432975,
+     "ci95": [
+      0.3000631923602942,
+      0.4761326839283653
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 194,
+     "mean": 0.17277835051546397,
+     "ci95": [
+      0.12797950219019524,
+      0.2175771988407327
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -9,
+     "q3": 9,
+     "p90": 20
+    },
+    "prescription_size_median": 0.5
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 167,
+     "n": 250,
+     "p": 0.668,
+     "ci95": [
+      0.6074679599095894,
+      0.7234470674145372
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 20,
+     "n": 250,
+     "p": 0.08,
+     "ci95": [
+      0.052381922070894156,
+      0.1203305096187895
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 27,
+     "p90": 380
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.03915,
+     "share_nonzero": 0.088
+    },
+    "obeying_is_optimal": {
+     "k": 170,
+     "n": 250,
+     "p": 0.68,
+     "ci95": [
+      0.619825530285745,
+      0.7347262847043906
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 47,
+     "n": 250,
+     "p": 0.188,
+     "ci95": [
+      0.14442509786439153,
+      0.24101842281937344
+     ]
+    },
+    "advantage_cp": {
+     "n": 230,
+     "median": 110,
+     "q1": -45,
+     "q3": 593,
+     "p90": 99163
+    },
+    "advantage_xs": {
+     "n": 230,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.1285,
+     "p90": 0.8695,
+     "mean": 0.12907826086956523,
+     "share_nonzero": 0.391304347826087
+    },
+    "regret_nb_cp": {
+     "n": 230,
+     "median": 110,
+     "q1": 0,
+     "q3": 593,
+     "p90": 99163
+    },
+    "regret_nb_xs": {
+     "n": 230,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.1285,
+     "p90": 0.8695,
+     "mean": 0.17163260869565217,
+     "share_nonzero": 0.2956521739130435
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 120,
+     "n": 230,
+     "p": 0.5217391304347826,
+     "ci95": [
+      0.45735530244219436,
+      0.5854086882249923
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 31,
+     "q1": 0,
+     "q3": 235,
+     "p90": 651
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.001,
+     "p90": 0.4985,
+     "mean": 0.108474,
+     "share_nonzero": 0.292
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 87,
+     "n": 250,
+     "p": 0.348,
+     "ci95": [
+      0.29165649607070654,
+      0.4089441934931789
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 216,
+     "n": 311,
+     "p": 0.6945337620578779,
+     "ci95": [
+      0.6412258135407993,
+      0.7430944287651731
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 230,
+     "median": 0.0,
+     "q1": -0.1,
+     "q3": 0.0,
+     "p90": 0.0005,
+     "mean": -0.10936521739130446,
+     "share_nonzero": 0.3869565217391304
+    },
+    "chance_advantage_cp": {
+     "n": 230,
+     "median": -90,
+     "q1": -603,
+     "q3": 5,
+     "p90": 449
+    },
+    "chance_regret_xs": {
+     "n": 230,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.1,
+     "p90": 0.9390000000000001,
+     "mean": 0.16911739130434783,
+     "share_nonzero": 0.28695652173913044
+    },
+    "advantage_over_chance_xs": {
+     "n": 230,
+     "mean": 0.2384434782608696,
+     "ci95": [
+      0.16625525402151348,
+      0.3106317025002257
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 230,
+     "mean": 0.12656304347826086,
+     "ci95": [
+      0.08503748130780081,
+      0.1680886056487209
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -10,
+     "q3": 11,
+     "p90": 25
+    },
+    "prescription_size_median": 0.3333333333333333
+   },
+   "separation_b_valid": 0.29599999999999993,
+   "separation_advantage_xs": 0.19428514119229043,
+   "separation_advantage_cp": 380,
+   "separation_regret_xs": 0.039118,
+   "separation_regret_cp": 0,
+   "separation_advantage_over_chance_xs": 0.14965445988346016,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 194,
+    "mean": 0.38809793814432975,
+    "ci95": [
+     0.3000631923602942,
+     0.4761326839283653
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 230,
+    "mean": 0.2384434782608696,
+    "ci95": [
+     0.16625525402151348,
+     0.3106317025002257
+    ]
+   },
+   "anchor_separation_b_valid": -1.4807692307692317,
+   "anchor_separation_advantage_xs": 4.838163959933279,
+   "anchor_separation_regret_xs": -1.8861251808972512,
+   "anchor_separation_advantage_over_chance_xs": 1.8870606076949064
+  },
+  "RC-04": {
+   "name": "save-the-attacked-piece",
+   "family": "forced defensive responses",
+   "role": "candidate",
+   "prescription": "if exactly one of your pieces is attacked and materially threatened, move it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 176,
+     "n": 250,
+     "p": 0.704,
+     "ci95": [
+      0.6446705128026907,
+      0.7571548775194629
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 24,
+     "p90": 158
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.07850000000000001,
+     "mean": 0.042266,
+     "share_nonzero": 0.168
+    },
+    "obeying_is_optimal": {
+     "k": 171,
+     "n": 250,
+     "p": 0.684,
+     "ci95": [
+      0.6239541772841809,
+      0.7384765669279577
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 35,
+     "n": 250,
+     "p": 0.14,
+     "ci95": [
+      0.10241566325298423,
+      0.1884807067667446
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 52,
+     "q1": -24,
+     "q3": 231,
+     "p90": 600
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.1575,
+     "p90": 0.5,
+     "mean": 0.09465599999999998,
+     "share_nonzero": 0.604
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 52,
+     "q1": 0,
+     "q3": 231,
+     "p90": 600
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.1575,
+     "p90": 0.5,
+     "mean": 0.13692199999999996,
+     "share_nonzero": 0.436
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 102,
+     "n": 250,
+     "p": 0.408,
+     "ci95": [
+      0.3489166372875682,
+      0.4698679906063625
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 582,
+     "q1": 389,
+     "q3": 849,
+     "p90": 1249
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.49350000000000005,
+     "q1": 0.0,
+     "q3": 0.9325,
+     "p90": 1.0,
+     "mean": 0.45773799999999987,
+     "share_nonzero": 0.752
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 243,
+     "n": 250,
+     "p": 0.972,
+     "ci95": [
+      0.943341533054129,
+      0.9863721151422264
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 637,
+     "n": 2049,
+     "p": 0.3108833577354807,
+     "ci95": [
+      0.29121139744536023,
+      0.3312631276227211
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.23250000000000004,
+     "q3": 0.0,
+     "p90": 0.023499999999999965,
+     "mean": -0.1293520000000001,
+     "share_nonzero": 0.6
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -80,
+     "q1": -308,
+     "q3": 1,
+     "p90": 84
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.23250000000000004,
+     "p90": 0.5635,
+     "mean": 0.16173,
+     "share_nonzero": 0.448
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.224008,
+     "ci95": [
+      0.16978734151580244,
+      0.2782286584841976
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.11946399999999996,
+     "ci95": [
+      0.08664787361657073,
+      0.1522801263834292
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -11,
+     "q3": 8,
+     "p90": 23
+    },
+    "prescription_size_median": 0.21621621621621623
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 77,
+     "n": 250,
+     "p": 0.308,
+     "ci95": [
+      0.2540373353038144,
+      0.367774062040041
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 39,
+     "q1": 0,
+     "q3": 219,
+     "p90": 610
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.16599999999999998,
+     "p90": 0.522,
+     "mean": 0.14293599999999998,
+     "share_nonzero": 0.412
+    },
+    "obeying_is_optimal": {
+     "k": 75,
+     "n": 250,
+     "p": 0.3,
+     "ci95": [
+      0.24657086403938408,
+      0.35948267486046526
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 90,
+     "n": 250,
+     "p": 0.36,
+     "ci95": [
+      0.30303128258888623,
+      0.4212061946410083
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -38,
+     "q1": -219,
+     "q3": 8,
+     "p90": 114
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.16599999999999998,
+     "q3": 0.0,
+     "p90": 0.15100000000000002,
+     "mean": -0.09472399999999996,
+     "share_nonzero": 0.576
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 8,
+     "p90": 114
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.15100000000000002,
+     "mean": 0.048212,
+     "share_nonzero": 0.164
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 29,
+     "n": 250,
+     "p": 0.116,
+     "ci95": [
+      0.08199108127964577,
+      0.161631713408065
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 579,
+     "q1": 408,
+     "q3": 790,
+     "p90": 99401
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.497,
+     "q1": 0.0,
+     "q3": 0.9025,
+     "p90": 1.0,
+     "mean": 0.471128,
+     "share_nonzero": 0.752
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 236,
+     "n": 250,
+     "p": 0.944,
+     "ci95": [
+      0.9082084818368784,
+      0.966352661805456
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 370,
+     "n": 1531,
+     "p": 0.24167210973220118,
+     "ci95": [
+      0.22089156187865217,
+      0.2637458104729964
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.0005,
+     "q1": -0.1925,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.12074800000000004,
+     "share_nonzero": 0.604
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -52,
+     "q1": -150,
+     "q3": -9,
+     "p90": 38
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0005000000000000004,
+     "q1": 0.0,
+     "q3": 0.1925,
+     "p90": 0.47950000000000004,
+     "mean": 0.13466799999999995,
+     "share_nonzero": 0.516
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.02602400000000001,
+     "ci95": [
+      -0.023835984506722325,
+      0.07588398450672235
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": -0.008267999999999998,
+     "ci95": [
+      -0.04388428522805642,
+      0.027348285228056428
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -9,
+     "q3": 6,
+     "p90": 21
+    },
+    "prescription_size_median": 0.17142857142857143
+   },
+   "separation_b_valid": 0.39599999999999996,
+   "separation_advantage_xs": 0.18937999999999994,
+   "separation_advantage_cp": 90,
+   "separation_regret_xs": 0.10066999999999998,
+   "separation_regret_cp": 39,
+   "separation_advantage_over_chance_xs": 0.197984,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.224008,
+    "ci95": [
+     0.16978734151580244,
+     0.2782286584841976
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.02602400000000001,
+    "ci95": [
+     -0.023835984506722325,
+     0.07588398450672235
+    ]
+   },
+   "anchor_separation_b_valid": -1.0000000000000009,
+   "anchor_separation_advantage_xs": 4.929818005157139,
+   "anchor_separation_regret_xs": -1.1902134587554276,
+   "anchor_separation_advantage_over_chance_xs": 1.6670248219846668
+  },
+  "RC-05": {
+   "name": "safe-promotion",
+   "family": "promotion-race decisions",
+   "role": "candidate",
+   "prescription": "if a pawn can promote to a square nothing attacks, promote",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 130,
+     "n": 250,
+     "p": 0.52,
+     "ci95": [
+      0.45823595399411676,
+      0.5811586921158984
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 4,
+     "p90": 510
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.038324,
+     "share_nonzero": 0.08
+    },
+    "obeying_is_optimal": {
+     "k": 162,
+     "n": 250,
+     "p": 0.648,
+     "ci95": [
+      0.5869640447438548,
+      0.7045563364702568
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 46,
+     "n": 250,
+     "p": 0.184,
+     "ci95": [
+      0.14087481495903226,
+      0.2366897765027297
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -4,
+     "q3": 4,
+     "p90": 3167
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.013566000000000002,
+     "share_nonzero": 0.124
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 4,
+     "p90": 3167
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.024758000000000002,
+     "share_nonzero": 0.044
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 45,
+     "n": 250,
+     "p": 0.18,
+     "ci95": [
+      0.1373327388520246,
+      0.23235292338773436
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 1,
+     "p90": 404
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.037634,
+     "share_nonzero": 0.096
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 36,
+     "n": 250,
+     "p": 0.144,
+     "ci95": [
+      0.10586196391903242,
+      0.19291333532269944
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 214,
+     "n": 250,
+     "p": 0.856,
+     "ci95": [
+      0.8070866646773006,
+      0.8941380360809675
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.13200000000000003,
+     "share_nonzero": 0.232
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -448,
+     "q1": -98859,
+     "q3": -2,
+     "p90": 0
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.5,
+     "mean": 0.136,
+     "share_nonzero": 0.228
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.11843400000000001,
+     "ci95": [
+      0.07511396851864768,
+      0.16175403148135234
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.09767599999999997,
+     "ci95": [
+      0.062717225975323,
+      0.13263477402467694
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -22,
+     "q3": 0,
+     "p90": 0
+    },
+    "prescription_size_median": 0.043478260869565216
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 26,
+     "n": 250,
+     "p": 0.104,
+     "ci95": [
+      0.07196474410827003,
+      0.14802126291343168
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 168,
+     "q1": 6,
+     "q3": 522,
+     "p90": 96597
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.010499999999999954,
+     "p90": 0.5,
+     "mean": 0.12884199999999998,
+     "share_nonzero": 0.268
+    },
+    "obeying_is_optimal": {
+     "k": 39,
+     "n": 250,
+     "p": 0.156,
+     "ci95": [
+      0.11626512943648533,
+      0.20614695747125555
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 142,
+     "n": 250,
+     "p": 0.568,
+     "ci95": [
+      0.5060238561876421,
+      0.6279179405864089
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -159,
+     "q1": -522,
+     "q3": -6,
+     "p90": 0
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.010499999999999954,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.12284400000000004,
+     "share_nonzero": 0.276
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.005998,
+     "share_nonzero": 0.008
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 12,
+     "n": 250,
+     "p": 0.048,
+     "ci95": [
+      0.02766792620603601,
+      0.08201307170762354
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 194,
+     "q1": 4,
+     "q3": 588,
+     "p90": 99134
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0020000000000000018,
+     "p90": 0.5,
+     "mean": 0.12630399999999997,
+     "share_nonzero": 0.272
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 147,
+     "n": 250,
+     "p": 0.588,
+     "ci95": [
+      0.5261038843001786,
+      0.6472325585838876
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 103,
+     "n": 250,
+     "p": 0.412,
+     "ci95": [
+      0.35276744141611227,
+      0.4738961156998214
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.351,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.17756,
+     "share_nonzero": 0.328
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -273,
+     "q1": -1146,
+     "q3": -35,
+     "p90": 0
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.351,
+     "p90": 1.0,
+     "mean": 0.18188,
+     "share_nonzero": 0.316
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.054716000000000015,
+     "ci95": [
+      0.011557533222632525,
+      0.0978744667773675
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.053038,
+     "ci95": [
+      0.012933137437187943,
+      0.09314286256281207
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -2,
+     "q1": -35,
+     "q3": 1,
+     "p90": 28
+    },
+    "prescription_size_median": 0.038461538461538464
+   },
+   "separation_b_valid": 0.41600000000000004,
+   "separation_advantage_xs": 0.10927800000000004,
+   "separation_advantage_cp": 159,
+   "separation_regret_xs": 0.09051799999999999,
+   "separation_regret_cp": 168,
+   "separation_advantage_over_chance_xs": 0.063718,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.11843400000000001,
+    "ci95": [
+     0.07511396851864768,
+     0.16175403148135234
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.054716000000000015,
+    "ci95": [
+     0.011557533222632525,
+     0.0978744667773675
+    ]
+   },
+   "anchor_separation_b_valid": -0.9038461538461543,
+   "anchor_separation_advantage_xs": 6.426548077282401,
+   "anchor_separation_regret_xs": -1.3049927641099863,
+   "anchor_separation_advantage_over_chance_xs": 2.278313999016592
+  },
+  "RC-06": {
+   "name": "answer-the-mate-threat",
+   "family": "threat recognition",
+   "role": "candidate",
+   "prescription": "if the opponent threatens mate next move, play a move that stops it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 242,
+     "n": 250,
+     "p": 0.968,
+     "ci95": [
+      0.9381368887054249,
+      0.9836978302689277
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 8,
+     "n": 250,
+     "p": 0.032,
+     "ci95": [
+      0.016302169731072406,
+      0.061863111294575085
+     ]
+    },
+    "no_violating_move": {
+     "k": 5,
+     "n": 250,
+     "p": 0.02,
+     "ci95": [
+      0.008572197944651562,
+      0.045956295414986886
+     ]
+    },
+    "regret_b_cp": {
+     "n": 242,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_b_xs": {
+     "n": 242,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.0,
+     "share_nonzero": 0.0
+    },
+    "obeying_is_optimal": {
+     "k": 242,
+     "n": 242,
+     "p": 1.0,
+     "ci95": [
+      0.9843736780105564,
+      1.0
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 0,
+     "n": 242,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.01562632198944361
+     ]
+    },
+    "advantage_cp": {
+     "n": 237,
+     "median": 99864,
+     "q1": 99347,
+     "q3": 100088,
+     "p90": 100509
+    },
+    "advantage_xs": {
+     "n": 237,
+     "median": 0.055,
+     "q1": 0.0,
+     "q3": 0.7095,
+     "p90": 1.0,
+     "mean": 0.3544409282700422,
+     "share_nonzero": 0.5358649789029536
+    },
+    "regret_nb_cp": {
+     "n": 245,
+     "median": 99807,
+     "q1": 99265,
+     "q3": 100079,
+     "p90": 100498
+    },
+    "regret_nb_xs": {
+     "n": 245,
+     "median": 0.0025,
+     "q1": 0.0,
+     "q3": 0.635,
+     "p90": 1.0,
+     "mean": 0.3428673469387755,
+     "share_nonzero": 0.5183673469387755
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 208,
+     "n": 245,
+     "p": 0.8489795918367347,
+     "ci95": [
+      0.7987771943877684,
+      0.8884069420267218
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 242,
+     "median": 98259,
+     "q1": 557,
+     "q3": 99873,
+     "p90": 100245
+    },
+    "max_regret_in_b_xs": {
+     "n": 242,
+     "median": 0.0025,
+     "q1": 0.0,
+     "q3": 0.5885,
+     "p90": 1.0,
+     "mean": 0.3338305785123967,
+     "share_nonzero": 0.5206611570247934
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 205,
+     "n": 242,
+     "p": 0.8471074380165289,
+     "ci95": [
+      0.7963702342377059,
+      0.8869966166125975
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 641,
+     "n": 2239,
+     "p": 0.286288521661456,
+     "ci95": [
+      0.26794330530148236,
+      0.3053658396688981
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 237,
+     "median": 0.0,
+     "q1": -0.029500000000000026,
+     "q3": 0.0,
+     "p90": 0.009500000000000064,
+     "mean": -0.10947679324894515,
+     "share_nonzero": 0.4388185654008439
+    },
+    "chance_advantage_cp": {
+     "n": 237,
+     "median": -42,
+     "q1": -725,
+     "q3": 5,
+     "p90": 150
+    },
+    "chance_regret_xs": {
+     "n": 237,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.029500000000000026,
+     "p90": 0.539,
+     "mean": 0.14008016877637133,
+     "share_nonzero": 0.3206751054852321
+    },
+    "advantage_over_chance_xs": {
+     "n": 237,
+     "mean": 0.4639177215189873,
+     "ci95": [
+      0.3855232607832476,
+      0.542312182254727
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 237,
+     "mean": 0.1400801687763714,
+     "ci95": [
+      0.10279749436058519,
+      0.1773628431921576
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -6,
+     "q3": 12,
+     "p90": 43
+    },
+    "prescription_size_median": 0.2972972972972973
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 51,
+     "n": 250,
+     "p": 0.204,
+     "ci95": [
+      0.158704508175768,
+      0.25825472939600896
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 41,
+     "n": 250,
+     "p": 0.164,
+     "ci95": [
+      0.12325083757520047,
+      0.21491910777654646
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 209,
+     "median": 43,
+     "q1": 1,
+     "q3": 165,
+     "p90": 474
+    },
+    "regret_b_xs": {
+     "n": 209,
+     "median": 0.0005000000000000004,
+     "q1": 0.0,
+     "q3": 0.09250000000000003,
+     "p90": 0.49850000000000005,
+     "mean": 0.11972488038277511,
+     "share_nonzero": 0.507177033492823
+    },
+    "obeying_is_optimal": {
+     "k": 50,
+     "n": 209,
+     "p": 0.23923444976076555,
+     "ci95": [
+      0.18643353299878954,
+      0.3014485351683357
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 69,
+     "n": 209,
+     "p": 0.33014354066985646,
+     "ci95": [
+      0.26995634436369303,
+      0.39646225049746203
+     ]
+    },
+    "advantage_cp": {
+     "n": 209,
+     "median": -43,
+     "q1": -165,
+     "q3": -1,
+     "p90": 73
+    },
+    "advantage_xs": {
+     "n": 209,
+     "median": -0.0005000000000000004,
+     "q1": -0.09250000000000003,
+     "q3": 0.0,
+     "p90": 0.014500000000000013,
+     "mean": -0.09141387559808621,
+     "share_nonzero": 0.631578947368421
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 64
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.004500000000000004,
+     "mean": 0.023667999999999998,
+     "share_nonzero": 0.104
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 18,
+     "n": 250,
+     "p": 0.072,
+     "ci95": [
+      0.046025193010480865,
+      0.11092938023519675
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 209,
+     "median": 508,
+     "q1": 179,
+     "q3": 721,
+     "p90": 1016
+    },
+    "max_regret_in_b_xs": {
+     "n": 209,
+     "median": 0.476,
+     "q1": 0.0045,
+     "q3": 0.6775,
+     "p90": 1.0,
+     "mean": 0.43330382775119625,
+     "share_nonzero": 0.7799043062200957
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 175,
+     "n": 209,
+     "p": 0.8373205741626795,
+     "ci95": [
+      0.7812760261338376,
+      0.8811884544940096
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 310,
+     "n": 825,
+     "p": 0.37575757575757573,
+     "ci95": [
+      0.343355979839498,
+      0.4093108747199255
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 209,
+     "median": -0.008499999999999952,
+     "q1": -0.31599999999999995,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.16422488038277513,
+     "share_nonzero": 0.6746411483253588
+    },
+    "chance_advantage_cp": {
+     "n": 209,
+     "median": -83,
+     "q1": -217,
+     "q3": -21,
+     "p90": 5
+    },
+    "chance_regret_xs": {
+     "n": 209,
+     "median": 0.008499999999999952,
+     "q1": 0.0,
+     "q3": 0.31599999999999995,
+     "p90": 0.5,
+     "mean": 0.17020334928229663,
+     "share_nonzero": 0.5789473684210527
+    },
+    "advantage_over_chance_xs": {
+     "n": 209,
+     "mean": 0.072811004784689,
+     "ci95": [
+      0.02817212483598671,
+      0.1174498847333913
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 209,
+     "mean": 0.05047846889952152,
+     "ci95": [
+      0.015906888451380725,
+      0.0850500493476623
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -8,
+     "q3": 8,
+     "p90": 20
+    },
+    "prescription_size_median": 0.08108108108108109
+   },
+   "separation_b_valid": 0.764,
+   "separation_advantage_xs": 0.4458548038681284,
+   "separation_advantage_cp": 99907,
+   "separation_regret_xs": 0.11972488038277511,
+   "separation_regret_cp": 43,
+   "separation_advantage_over_chance_xs": 0.3911067167342983,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 237,
+    "mean": 0.4639177215189873,
+    "ci95": [
+     0.3855232607832476,
+     0.542312182254727
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 209,
+    "mean": 0.072811004784689,
+    "ci95": [
+     0.02817212483598671,
+     0.1174498847333913
+    ]
+   },
+   "anchor_separation_b_valid": 0.7692307692307689,
+   "anchor_separation_advantage_xs": 0.13750880324136874,
+   "anchor_separation_regret_xs": -0.9747774920543701,
+   "anchor_separation_advantage_over_chance_xs": 0.7877714996344164
+  },
+  "RC-07": {
+   "name": "answer-the-queen-threat",
+   "family": "severity ladder: defensive threat answering",
+   "role": "candidate",
+   "prescription": "if the opponent can win your queen, stop them",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 205,
+     "n": 250,
+     "p": 0.82,
+     "ci95": [
+      0.7676470766122656,
+      0.8626672611479753
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 5,
+     "n": 250,
+     "p": 0.02,
+     "ci95": [
+      0.008572197944651562,
+      0.045956295414986886
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 245,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 72
+    },
+    "regret_b_xs": {
+     "n": 245,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.0190734693877551,
+     "share_nonzero": 0.05714285714285714
+    },
+    "obeying_is_optimal": {
+     "k": 206,
+     "n": 245,
+     "p": 0.8408163265306122,
+     "ci95": [
+      0.7897950007304135,
+      0.8813146529609306
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 18,
+     "n": 245,
+     "p": 0.07346938775510205,
+     "ci95": [
+      0.04697477475278341,
+      0.11313350296283972
+     ]
+    },
+    "advantage_cp": {
+     "n": 245,
+     "median": 298,
+     "q1": 74,
+     "q3": 544,
+     "p90": 826
+    },
+    "advantage_xs": {
+     "n": 245,
+     "median": 0.011499999999999955,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 0.9975,
+     "mean": 0.2609755102040816,
+     "share_nonzero": 0.6122448979591837
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 284,
+     "q1": 55,
+     "q3": 544,
+     "p90": 826
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0095,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 0.9975,
+     "mean": 0.274448,
+     "share_nonzero": 0.544
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 171,
+     "n": 250,
+     "p": 0.684,
+     "ci95": [
+      0.6239541772841809,
+      0.7384765669279577
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 245,
+     "median": 367,
+     "q1": 147,
+     "q3": 637,
+     "p90": 1750
+    },
+    "max_regret_in_b_xs": {
+     "n": 245,
+     "median": 0.10499999999999998,
+     "q1": 0.0,
+     "q3": 0.5025,
+     "p90": 0.998,
+     "mean": 0.30580816326530613,
+     "share_nonzero": 0.6
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 208,
+     "n": 245,
+     "p": 0.8489795918367347,
+     "ci95": [
+      0.7987771943877684,
+      0.8884069420267218
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 655,
+     "n": 1492,
+     "p": 0.4390080428954424,
+     "ci95": [
+      0.4140147825012727,
+      0.4643145807147256
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 245,
+     "median": 0.0,
+     "q1": -0.4515,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.19607755102040825,
+     "share_nonzero": 0.5918367346938775
+    },
+    "chance_advantage_cp": {
+     "n": 245,
+     "median": -195,
+     "q1": -581,
+     "q3": -28,
+     "p90": 65
+    },
+    "chance_regret_xs": {
+     "n": 245,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.4515,
+     "p90": 0.986,
+     "mean": 0.22124897959183676,
+     "share_nonzero": 0.49795918367346936
+    },
+    "advantage_over_chance_xs": {
+     "n": 245,
+     "mean": 0.45705306122448985,
+     "ci95": [
+      0.3792282113501263,
+      0.5348779110988534
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 245,
+     "mean": 0.20217551020408173,
+     "ci95": [
+      0.16001819241059562,
+      0.24433282799756784
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -11,
+     "q3": 6,
+     "p90": 16
+    },
+    "prescription_size_median": 0.15217391304347827
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 104,
+     "n": 250,
+     "p": 0.416,
+     "ci95": [
+      0.3566223071073427,
+      0.477920179230594
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 9,
+     "n": 250,
+     "p": 0.036,
+     "ci95": [
+      0.019053062687361854,
+      0.06699114756028864
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 241,
+     "median": 5,
+     "q1": 0,
+     "q3": 83,
+     "p90": 371
+    },
+    "regret_b_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.009499999999999953,
+     "p90": 0.28700000000000003,
+     "mean": 0.07688796680497925,
+     "share_nonzero": 0.2863070539419087
+    },
+    "obeying_is_optimal": {
+     "k": 113,
+     "n": 241,
+     "p": 0.46887966804979253,
+     "ci95": [
+      0.4068573198795955,
+      0.5318785812091082
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 55,
+     "n": 241,
+     "p": 0.22821576763485477,
+     "ci95": [
+      0.1797378802147308,
+      0.2852223226266164
+     ]
+    },
+    "advantage_cp": {
+     "n": 241,
+     "median": -5,
+     "q1": -83,
+     "q3": 31,
+     "p90": 136
+    },
+    "advantage_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": -0.009499999999999953,
+     "q3": 0.009500000000000008,
+     "p90": 0.25799999999999995,
+     "mean": -0.022524896265560205,
+     "share_nonzero": 0.5975103734439834
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 27,
+     "p90": 136
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.009000000000000008,
+     "p90": 0.25799999999999995,
+     "mean": 0.052406,
+     "share_nonzero": 0.3
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 31,
+     "n": 250,
+     "p": 0.124,
+     "ci95": [
+      0.08874794216937745,
+      0.1706327109623393
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 241,
+     "median": 624,
+     "q1": 230,
+     "q3": 902,
+     "p90": 99205
+    },
+    "max_regret_in_b_xs": {
+     "n": 241,
+     "median": 0.474,
+     "q1": 0.0,
+     "q3": 0.531,
+     "p90": 1.0,
+     "mean": 0.3766929460580912,
+     "share_nonzero": 0.6887966804979253
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 212,
+     "n": 241,
+     "p": 0.8796680497925311,
+     "ci95": [
+      0.8325245706430017,
+      0.9148974360748109
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 561,
+     "n": 1402,
+     "p": 0.40014265335235377,
+     "ci95": [
+      0.3748034969724562,
+      0.4260275497116084
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": -0.128,
+     "q3": 0.0,
+     "p90": 0.030999999999999972,
+     "mean": -0.10624481327800828,
+     "share_nonzero": 0.6099585062240664
+    },
+    "chance_advantage_cp": {
+     "n": 241,
+     "median": -55,
+     "q1": -177,
+     "q3": 0,
+     "p90": 34
+    },
+    "chance_regret_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.128,
+     "p90": 0.4865,
+     "mean": 0.12409128630705396,
+     "share_nonzero": 0.43568464730290457
+    },
+    "advantage_over_chance_xs": {
+     "n": 241,
+     "mean": 0.0837199170124481,
+     "ci95": [
+      0.0407274916825013,
+      0.1267123423423949
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 241,
+     "mean": 0.04720331950207469,
+     "ci95": [
+      0.019059247185009207,
+      0.07534739181914017
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -11,
+     "q3": 10,
+     "p90": 19
+    },
+    "prescription_size_median": 0.18181818181818182
+   },
+   "separation_b_valid": 0.40399999999999997,
+   "separation_advantage_xs": 0.2835004064696418,
+   "separation_advantage_cp": 303,
+   "separation_regret_xs": 0.05781449741722415,
+   "separation_regret_cp": 5,
+   "separation_advantage_over_chance_xs": 0.3733331442120418,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 245,
+    "mean": 0.45705306122448985,
+    "ci95": [
+     0.3792282113501263,
+     0.5348779110988534
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 241,
+    "mean": 0.0837199170124481,
+    "ci95": [
+     0.0407274916825013,
+     0.1267123423423949
+    ]
+   },
+   "anchor_separation_b_valid": -0.9615384615384623,
+   "anchor_separation_advantage_xs": 3.171149772606562,
+   "anchor_separation_regret_xs": -1.674741120011486,
+   "anchor_separation_advantage_over_chance_xs": 0.8686914087703661
+  },
+  "RC-08": {
+   "name": "answer-the-rook-threat",
+   "family": "severity ladder: defensive threat answering",
+   "role": "candidate",
+   "prescription": "if the opponent can win your rook, stop them",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 175,
+     "n": 250,
+     "p": 0.7,
+     "ci95": [
+      0.6405173251395347,
+      0.7534291359606159
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 4,
+     "n": 250,
+     "p": 0.016,
+     "ci95": [
+      0.006239123654412256,
+      0.04041044048322319
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 246,
+     "median": 0,
+     "q1": 0,
+     "q3": 14,
+     "p90": 285
+    },
+    "regret_b_xs": {
+     "n": 246,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0010000000000000009,
+     "mean": 0.03879471544715448,
+     "share_nonzero": 0.12601626016260162
+    },
+    "obeying_is_optimal": {
+     "k": 176,
+     "n": 246,
+     "p": 0.7154471544715447,
+     "ci95": [
+      0.6560872126706999,
+      0.7681816040515753
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 40,
+     "n": 246,
+     "p": 0.16260162601626016,
+     "ci95": [
+      0.12173991174512266,
+      0.21383911112376713
+     ]
+    },
+    "advantage_cp": {
+     "n": 246,
+     "median": 89,
+     "q1": -14,
+     "q3": 359,
+     "p90": 834
+    },
+    "advantage_xs": {
+     "n": 246,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.3315,
+     "p90": 0.5235,
+     "mean": 0.13458130081300815,
+     "share_nonzero": 0.4959349593495935
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 86,
+     "q1": 0,
+     "q3": 348,
+     "p90": 834
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.32499999999999996,
+     "p90": 0.5235,
+     "mean": 0.17060199999999998,
+     "share_nonzero": 0.364
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 118,
+     "n": 250,
+     "p": 0.472,
+     "ci95": [
+      0.4110089576615158,
+      0.5338385377844631
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 246,
+     "median": 498,
+     "q1": 126,
+     "q3": 1006,
+     "p90": 99387
+    },
+    "max_regret_in_b_xs": {
+     "n": 246,
+     "median": 0.001,
+     "q1": 0.0,
+     "q3": 0.5445,
+     "p90": 1.0,
+     "mean": 0.32891056910569094,
+     "share_nonzero": 0.532520325203252
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 195,
+     "n": 246,
+     "p": 0.7926829268292683,
+     "ci95": [
+      0.737713616236345,
+      0.8386515687448591
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 539,
+     "n": 1361,
+     "p": 0.39603232916972814,
+     "ci95": [
+      0.37037631770254514,
+      0.4222736132491492
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 246,
+     "median": 0.0,
+     "q1": -0.406,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.16352642276422766,
+     "share_nonzero": 0.47560975609756095
+    },
+    "chance_advantage_cp": {
+     "n": 246,
+     "median": -149,
+     "q1": -478,
+     "q3": -3,
+     "p90": 84
+    },
+    "chance_regret_xs": {
+     "n": 246,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.406,
+     "p90": 0.9445,
+     "mean": 0.19484146341463418,
+     "share_nonzero": 0.3861788617886179
+    },
+    "advantage_over_chance_xs": {
+     "n": 246,
+     "mean": 0.298107723577236,
+     "ci95": [
+      0.2292298619693905,
+      0.36698558518508145
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 246,
+     "mean": 0.1560467479674796,
+     "ci95": [
+      0.11385176382589038,
+      0.19824173210906884
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -11,
+     "q3": 10,
+     "p90": 25
+    },
+    "prescription_size_median": 0.16129032258064516
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 90,
+     "n": 250,
+     "p": 0.36,
+     "ci95": [
+      0.30303128258888623,
+      0.4212061946410083
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 14,
+     "n": 250,
+     "p": 0.056,
+     "ci95": [
+      0.03364733819454402,
+      0.09179151816312153
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 236,
+     "median": 12,
+     "q1": 0,
+     "q3": 89,
+     "p90": 395
+    },
+    "regret_b_xs": {
+     "n": 236,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.006500000000000006,
+     "p90": 0.14649999999999996,
+     "mean": 0.0554936440677966,
+     "share_nonzero": 0.2754237288135593
+    },
+    "obeying_is_optimal": {
+     "k": 97,
+     "n": 236,
+     "p": 0.4110169491525424,
+     "ci95": [
+      0.350156445742878,
+      0.47472797797677696
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 56,
+     "n": 236,
+     "p": 0.23728813559322035,
+     "ci95": [
+      0.18749099890553392,
+      0.29550110921916173
+     ]
+    },
+    "advantage_cp": {
+     "n": 236,
+     "median": -12,
+     "q1": -86,
+     "q3": 25,
+     "p90": 101
+    },
+    "advantage_xs": {
+     "n": 236,
+     "median": 0.0,
+     "q1": -0.006000000000000005,
+     "q3": 0.001,
+     "p90": 0.1385,
+     "mean": -0.008741525423728816,
+     "share_nonzero": 0.5338983050847458
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 23,
+     "p90": 100
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.122,
+     "mean": 0.044134,
+     "share_nonzero": 0.244
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 26,
+     "n": 250,
+     "p": 0.104,
+     "ci95": [
+      0.07196474410827003,
+      0.14802126291343168
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 236,
+     "median": 592,
+     "q1": 251,
+     "q3": 865,
+     "p90": 98904
+    },
+    "max_regret_in_b_xs": {
+     "n": 236,
+     "median": 0.345,
+     "q1": 0.0,
+     "q3": 0.5285,
+     "p90": 1.0,
+     "mean": 0.3663686440677966,
+     "share_nonzero": 0.6440677966101694
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 215,
+     "n": 236,
+     "p": 0.9110169491525424,
+     "ci95": [
+      0.8678032903044253,
+      0.9410638953714541
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 571,
+     "n": 1451,
+     "p": 0.39352170916609236,
+     "ci95": [
+      0.3686974552291532,
+      0.4189082882414763
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 236,
+     "median": 0.0,
+     "q1": -0.04899999999999999,
+     "q3": 0.0,
+     "p90": 0.027000000000000024,
+     "mean": -0.08790677966101695,
+     "share_nonzero": 0.538135593220339
+    },
+    "chance_advantage_cp": {
+     "n": 236,
+     "median": -48,
+     "q1": -139,
+     "q3": 2,
+     "p90": 39
+    },
+    "chance_regret_xs": {
+     "n": 236,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.05700000000000005,
+     "p90": 0.4555,
+     "mean": 0.10308474576271186,
+     "share_nonzero": 0.3898305084745763
+    },
+    "advantage_over_chance_xs": {
+     "n": 236,
+     "mean": 0.07916525423728815,
+     "ci95": [
+      0.04480333596156183,
+      0.11352717251301447
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 236,
+     "mean": 0.04759110169491526,
+     "ci95": [
+      0.02300854998889426,
+      0.07217365340093626
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -9,
+     "q3": 11,
+     "p90": 25
+    },
+    "prescription_size_median": 0.18421052631578946
+   },
+   "separation_b_valid": 0.33999999999999997,
+   "separation_advantage_xs": 0.14332282623673698,
+   "separation_advantage_cp": 101,
+   "separation_regret_xs": 0.016698928620642123,
+   "separation_regret_cp": 12,
+   "separation_advantage_over_chance_xs": 0.21894246933994782,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 246,
+    "mean": 0.298107723577236,
+    "ci95": [
+     0.2292298619693905,
+     0.36698558518508145
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 236,
+    "mean": 0.07916525423728815,
+    "ci95": [
+     0.04480333596156183,
+     0.11352717251301447
+    ]
+   },
+   "anchor_separation_b_valid": -1.26923076923077,
+   "anchor_separation_advantage_xs": 5.790410212699702,
+   "anchor_separation_regret_xs": -2.1395969539091664,
+   "anchor_separation_advantage_over_chance_xs": 1.5716046450622476
+  },
+  "RC-09": {
+   "name": "answer-the-minor-threat",
+   "family": "severity ladder: defensive threat answering",
+   "role": "candidate",
+   "prescription": "if the opponent can win a knight or bishop, stop them",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 163,
+     "n": 250,
+     "p": 0.652,
+     "ci95": [
+      0.5910558065068211,
+      0.7083435039292935
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 3,
+     "n": 250,
+     "p": 0.012,
+     "ci95": [
+      0.004089245839774545,
+      0.034681389075857876
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 247,
+     "median": 0,
+     "q1": 0,
+     "q3": 35,
+     "p90": 156
+    },
+    "regret_b_xs": {
+     "n": 247,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.05449999999999999,
+     "mean": 0.036653846153846155,
+     "share_nonzero": 0.1700404858299595
+    },
+    "obeying_is_optimal": {
+     "k": 160,
+     "n": 247,
+     "p": 0.6477732793522267,
+     "ci95": [
+      0.5863543992163605,
+      0.7046659100146444
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 32,
+     "n": 247,
+     "p": 0.12955465587044535,
+     "ci95": [
+      0.09328461116572992,
+      0.17717132596750482
+     ]
+    },
+    "advantage_cp": {
+     "n": 247,
+     "median": 45,
+     "q1": -35,
+     "q3": 251,
+     "p90": 405
+    },
+    "advantage_xs": {
+     "n": 247,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.19450000000000006,
+     "p90": 0.5065,
+     "mean": 0.11176518218623481,
+     "share_nonzero": 0.5708502024291497
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 45,
+     "q1": 0,
+     "q3": 249,
+     "p90": 405
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.184,
+     "p90": 0.5065,
+     "mean": 0.14663799999999994,
+     "share_nonzero": 0.396
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 99,
+     "n": 250,
+     "p": 0.396,
+     "ci95": [
+      0.3373887778853423,
+      0.45775906234257946
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 247,
+     "median": 289,
+     "q1": 111,
+     "q3": 623,
+     "p90": 1169
+    },
+    "max_regret_in_b_xs": {
+     "n": 247,
+     "median": 0.1535,
+     "q1": 0.0,
+     "q3": 0.506,
+     "p90": 1.0,
+     "mean": 0.32528340080971657,
+     "share_nonzero": 0.6518218623481782
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 192,
+     "n": 247,
+     "p": 0.7773279352226721,
+     "ci95": [
+      0.7214195613542348,
+      0.8247418409012125
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 599,
+     "n": 1313,
+     "p": 0.4562071591774562,
+     "ci95": [
+      0.4294324555341549,
+      0.4832373750665795
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 247,
+     "median": -0.0005,
+     "q1": -0.44249999999999995,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.19001821862348195,
+     "share_nonzero": 0.5991902834008097
+    },
+    "chance_advantage_cp": {
+     "n": 247,
+     "median": -146,
+     "q1": -345,
+     "q3": -31,
+     "p90": 12
+    },
+    "chance_regret_xs": {
+     "n": 247,
+     "median": 0.0005,
+     "q1": 0.0,
+     "q3": 0.44249999999999995,
+     "p90": 0.6485,
+     "mean": 0.20754048582995951,
+     "share_nonzero": 0.5141700404858299
+    },
+    "advantage_over_chance_xs": {
+     "n": 247,
+     "mean": 0.3017834008097166,
+     "ci95": [
+      0.23906859406852932,
+      0.3644982075509039
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 247,
+     "mean": 0.17088663967611334,
+     "ci95": [
+      0.13414185690620084,
+      0.20763142244602584
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -10,
+     "q3": 9,
+     "p90": 21
+    },
+    "prescription_size_median": 0.14285714285714285
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 109,
+     "n": 250,
+     "p": 0.436,
+     "ci95": [
+      0.37595699605403504,
+      0.49798013639391675
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 9,
+     "n": 250,
+     "p": 0.036,
+     "ci95": [
+      0.019053062687361854,
+      0.06699114756028864
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 241,
+     "median": 4,
+     "q1": 0,
+     "q3": 60,
+     "p90": 231
+    },
+    "regret_b_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.007000000000000006,
+     "p90": 0.118,
+     "mean": 0.04737551867219916,
+     "share_nonzero": 0.3070539419087137
+    },
+    "obeying_is_optimal": {
+     "k": 114,
+     "n": 241,
+     "p": 0.4730290456431535,
+     "ci95": [
+      0.4109118240582757,
+      0.5359926235519341
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 46,
+     "n": 241,
+     "p": 0.1908713692946058,
+     "ci95": [
+      0.14625748330361893,
+      0.2451858008441729
+     ]
+    },
+    "advantage_cp": {
+     "n": 241,
+     "median": -4,
+     "q1": -60,
+     "q3": 46,
+     "p90": 142
+    },
+    "advantage_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": -0.007000000000000006,
+     "q3": 0.0020000000000000018,
+     "p90": 0.09700000000000009,
+     "mean": -0.0007759336099585267,
+     "share_nonzero": 0.5767634854771784
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 45,
+     "p90": 142
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0005000000000000004,
+     "p90": 0.09700000000000009,
+     "mean": 0.044922,
+     "share_nonzero": 0.26
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 32,
+     "n": 250,
+     "p": 0.128,
+     "ci95": [
+      0.09214637228076344,
+      0.17511321007295638
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 241,
+     "median": 591,
+     "q1": 234,
+     "q3": 818,
+     "p90": 1512
+    },
+    "max_regret_in_b_xs": {
+     "n": 241,
+     "median": 0.49,
+     "q1": 0.0,
+     "q3": 0.581,
+     "p90": 1.0,
+     "mean": 0.4129066390041495,
+     "share_nonzero": 0.7178423236514523
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 218,
+     "n": 241,
+     "p": 0.9045643153526971,
+     "ci95": [
+      0.8608697925279115,
+      0.935563493318938
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 630,
+     "n": 1568,
+     "p": 0.4017857142857143,
+     "ci95": [
+      0.37778764882226396,
+      0.4262638535683076
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": -0.05900000000000005,
+     "q3": 0.0,
+     "p90": 0.008000000000000007,
+     "mean": -0.06999792531120337,
+     "share_nonzero": 0.5643153526970954
+    },
+    "chance_advantage_cp": {
+     "n": 241,
+     "median": -53,
+     "q1": -141,
+     "q3": -1,
+     "p90": 28
+    },
+    "chance_regret_xs": {
+     "n": 241,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.05900000000000005,
+     "p90": 0.369,
+     "mean": 0.08162240663900415,
+     "share_nonzero": 0.43983402489626555
+    },
+    "advantage_over_chance_xs": {
+     "n": 241,
+     "mean": 0.06922199170124481,
+     "ci95": [
+      0.032946811515608444,
+      0.10549717188688118
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 241,
+     "mean": 0.03424688796680497,
+     "ci95": [
+      0.01492462897757224,
+      0.053569146956037705
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -10,
+     "q3": 8,
+     "p90": 21
+    },
+    "prescription_size_median": 0.19047619047619047
+   },
+   "separation_b_valid": 0.21600000000000003,
+   "separation_advantage_xs": 0.11254111579619333,
+   "separation_advantage_cp": 49,
+   "separation_regret_xs": 0.010721672518353008,
+   "separation_regret_cp": 4,
+   "separation_advantage_over_chance_xs": 0.23256140910847178,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 247,
+    "mean": 0.3017834008097166,
+    "ci95": [
+     0.23906859406852932,
+     0.3644982075509039
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 241,
+    "mean": 0.06922199170124481,
+    "ci95": [
+     0.032946811515608444,
+     0.10549717188688118
+    ]
+   },
+   "anchor_separation_b_valid": -1.865384615384616,
+   "anchor_separation_advantage_xs": 6.3655757727083655,
+   "anchor_separation_regret_xs": -2.2071762785099387,
+   "anchor_separation_advantage_over_chance_xs": 1.5096000386604156
+  },
+  "RC-11": {
+   "name": "move-the-threatened-minor",
+   "family": "prescription-shape control",
+   "role": "candidate",
+   "prescription": "if a knight or bishop of yours can be won, move it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 150,
+     "n": 250,
+     "p": 0.6,
+     "ci95": [
+      0.5382005167677087,
+      0.6587727137823666
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 3,
+     "n": 250,
+     "p": 0.012,
+     "ci95": [
+      0.004089245839774545,
+      0.034681389075857876
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 247,
+     "median": 0,
+     "q1": 0,
+     "q3": 56,
+     "p90": 265
+    },
+    "regret_b_xs": {
+     "n": 247,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.382,
+     "mean": 0.06264372469635629,
+     "share_nonzero": 0.22267206477732793
+    },
+    "obeying_is_optimal": {
+     "k": 151,
+     "n": 247,
+     "p": 0.611336032388664,
+     "ci95": [
+      0.5492837763039539,
+      0.6699781005139264
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 51,
+     "n": 247,
+     "p": 0.20647773279352227,
+     "ci95": [
+      0.16067921390564097,
+      0.2612667472108565
+     ]
+    },
+    "advantage_cp": {
+     "n": 247,
+     "median": 41,
+     "q1": -56,
+     "q3": 190,
+     "p90": 360
+    },
+    "advantage_xs": {
+     "n": 247,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.08599999999999997,
+     "p90": 0.4915,
+     "mean": 0.05729352226720649,
+     "share_nonzero": 0.6194331983805668
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 41,
+     "q1": 0,
+     "q3": 188,
+     "p90": 360
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.085,
+     "p90": 0.4915,
+     "mean": 0.11849799999999998,
+     "share_nonzero": 0.392
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 90,
+     "n": 250,
+     "p": 0.36,
+     "ci95": [
+      0.30303128258888623,
+      0.4212061946410083
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 247,
+     "median": 492,
+     "q1": 329,
+     "q3": 641,
+     "p90": 895
+    },
+    "max_regret_in_b_xs": {
+     "n": 247,
+     "median": 0.482,
+     "q1": 0.0005,
+     "q3": 0.8295,
+     "p90": 1.0,
+     "mean": 0.4321214574898786,
+     "share_nonzero": 0.757085020242915
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 240,
+     "n": 247,
+     "p": 0.97165991902834,
+     "ci95": [
+      0.9426672505915016,
+      0.9862057912006094
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 510,
+     "n": 1492,
+     "p": 0.3418230563002681,
+     "ci95": [
+      0.31818857433872527,
+      0.3662699940016658
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 247,
+     "median": -0.0065,
+     "q1": -0.483,
+     "q3": 0.0,
+     "p90": 0.000500000000000056,
+     "mean": -0.20261133603238873,
+     "share_nonzero": 0.6558704453441295
+    },
+    "chance_advantage_cp": {
+     "n": 247,
+     "median": -161,
+     "q1": -381,
+     "q3": -22,
+     "p90": 36
+    },
+    "chance_regret_xs": {
+     "n": 247,
+     "median": 0.0065,
+     "q1": 0.0,
+     "q3": 0.483,
+     "p90": 0.546,
+     "mean": 0.2228522267206478,
+     "share_nonzero": 0.5546558704453441
+    },
+    "advantage_over_chance_xs": {
+     "n": 247,
+     "mean": 0.2599048582995951,
+     "ci95": [
+      0.20384914506385915,
+      0.315960571535331
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 247,
+     "mean": 0.16020850202429165,
+     "ci95": [
+      0.12298536181213962,
+      0.1974316422364437
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -1,
+     "q1": -10,
+     "q3": 7,
+     "p90": 18
+    },
+    "prescription_size_median": 0.175
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 38,
+     "n": 250,
+     "p": 0.152,
+     "ci95": [
+      0.11278704166232252,
+      0.20174611602341536
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 68,
+     "n": 250,
+     "p": 0.272,
+     "ci95": [
+      0.22059935523679833,
+      0.33030167910902997
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 182,
+     "median": 84,
+     "q1": 2,
+     "q3": 277,
+     "p90": 890
+    },
+    "regret_b_xs": {
+     "n": 182,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.27199999999999996,
+     "p90": 0.5035,
+     "mean": 0.15565109890109896,
+     "share_nonzero": 0.4010989010989011
+    },
+    "obeying_is_optimal": {
+     "k": 43,
+     "n": 182,
+     "p": 0.23626373626373626,
+     "ci95": [
+      0.1803988935747976,
+      0.3030321573847292
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 84,
+     "n": 182,
+     "p": 0.46153846153846156,
+     "ci95": [
+      0.39065440264432183,
+      0.5340126256206092
+     ]
+    },
+    "advantage_cp": {
+     "n": 182,
+     "median": -80,
+     "q1": -277,
+     "q3": -2,
+     "p90": 40
+    },
+    "advantage_xs": {
+     "n": 182,
+     "median": 0.0,
+     "q1": -0.27199999999999996,
+     "q3": 0.0,
+     "p90": 0.00649999999999995,
+     "mean": -0.14512087912087912,
+     "share_nonzero": 0.532967032967033
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 23
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.007665999999999999,
+     "share_nonzero": 0.096
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 8,
+     "n": 250,
+     "p": 0.032,
+     "ci95": [
+      0.016302169731072406,
+      0.061863111294575085
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 182,
+     "median": 170,
+     "q1": 48,
+     "q3": 415,
+     "p90": 1397
+    },
+    "max_regret_in_b_xs": {
+     "n": 182,
+     "median": 0.0005,
+     "q1": 0.0,
+     "q3": 0.433,
+     "p90": 0.518,
+     "mean": 0.20089285714285718,
+     "share_nonzero": 0.554945054945055
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 112,
+     "n": 182,
+     "p": 0.6153846153846154,
+     "ci95": [
+      0.5430114563069403,
+      0.6829874588982668
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 116,
+     "n": 272,
+     "p": 0.4264705882352941,
+     "ci95": [
+      0.3691211627479972,
+      0.4858680774536257
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 182,
+     "median": -0.0035,
+     "q1": -0.4779999999999999,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.2328543956043959,
+     "share_nonzero": 0.5604395604395604
+    },
+    "chance_advantage_cp": {
+     "n": 182,
+     "median": -179,
+     "q1": -537,
+     "q3": -67,
+     "p90": -14
+    },
+    "chance_regret_xs": {
+     "n": 182,
+     "median": 0.0035,
+     "q1": 0.0,
+     "q3": 0.4779999999999999,
+     "p90": 0.661,
+     "mean": 0.23310164835164837,
+     "share_nonzero": 0.5439560439560439
+    },
+    "advantage_over_chance_xs": {
+     "n": 182,
+     "mean": 0.0877335164835165,
+     "ci95": [
+      0.04790446896176534,
+      0.12756256400526766
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 182,
+     "mean": 0.07745054945054945,
+     "ci95": [
+      0.041687509530233945,
+      0.11321358937086495
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -9,
+     "q3": 9,
+     "p90": 27
+    },
+    "prescription_size_median": 0.034482758620689655
+   },
+   "separation_b_valid": 0.44799999999999995,
+   "separation_advantage_xs": 0.2024144013880856,
+   "separation_advantage_cp": 121,
+   "separation_regret_xs": 0.09300737420474267,
+   "separation_regret_cp": 84,
+   "separation_advantage_over_chance_xs": 0.17217134181607857,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 247,
+    "mean": 0.2599048582995951,
+    "ci95": [
+     0.20384914506385915,
+     0.315960571535331
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 182,
+    "mean": 0.0877335164835165,
+    "ci95": [
+     0.04790446896176534,
+     0.12756256400526766
+    ]
+   },
+   "anchor_separation_b_valid": -0.7500000000000008,
+   "anchor_separation_advantage_xs": 4.686266276989313,
+   "anchor_separation_regret_xs": -1.2768477048125155,
+   "anchor_separation_advantage_over_chance_xs": 1.7845452558864416
+  },
+  "RC-12": {
+   "name": "stop-the-promotion",
+   "family": "severity ladder: defensive threat answering",
+   "role": "candidate",
+   "prescription": "if the opponent can safely promote a pawn, prevent it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 116,
+     "n": 250,
+     "p": 0.464,
+     "ci95": [
+      0.40319218878090557,
+      0.5258974482210673
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 61,
+     "n": 250,
+     "p": 0.244,
+     "ci95": [
+      0.19489634565082414,
+      0.300852184140983
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 189,
+     "median": 0,
+     "q1": 0,
+     "q3": 7,
+     "p90": 453
+    },
+    "regret_b_xs": {
+     "n": 189,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.03875396825396825,
+     "share_nonzero": 0.08994708994708994
+    },
+    "obeying_is_optimal": {
+     "k": 128,
+     "n": 189,
+     "p": 0.6772486772486772,
+     "ci95": [
+      0.607635477492768,
+      0.7397999306349389
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 30,
+     "n": 189,
+     "p": 0.15873015873015872,
+     "ci95": [
+      0.11350582412055973,
+      0.2175513751559449
+     ]
+    },
+    "advantage_cp": {
+     "n": 189,
+     "median": 1,
+     "q1": -7,
+     "q3": 475,
+     "p90": 1250
+    },
+    "advantage_xs": {
+     "n": 189,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.5,
+     "mean": 0.07032010582010582,
+     "share_nonzero": 0.26455026455026454
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 103,
+     "p90": 997
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.428,
+     "mean": 0.08246,
+     "share_nonzero": 0.132
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 63,
+     "n": 250,
+     "p": 0.252,
+     "ci95": [
+      0.20221109724776432,
+      0.30929529098804887
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 189,
+     "median": 966,
+     "q1": 123,
+     "q3": 98502,
+     "p90": 99727
+    },
+    "max_regret_in_b_xs": {
+     "n": 189,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 1.0,
+     "mean": 0.2549550264550265,
+     "share_nonzero": 0.3544973544973545
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 144,
+     "n": 189,
+     "p": 0.7619047619047619,
+     "ci95": [
+      0.6963465671062794,
+      0.8170281404257054
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 285,
+     "n": 715,
+     "p": 0.3986013986013986,
+     "ci95": [
+      0.36334684698286873,
+      0.43493972964263533
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 189,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.12802380952380948,
+     "share_nonzero": 0.2751322751322751
+    },
+    "chance_advantage_cp": {
+     "n": 189,
+     "median": -92,
+     "q1": -951,
+     "q3": 0,
+     "p90": 12
+    },
+    "chance_regret_xs": {
+     "n": 189,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.5035,
+     "mean": 0.1441084656084656,
+     "share_nonzero": 0.2275132275132275
+    },
+    "advantage_over_chance_xs": {
+     "n": 189,
+     "mean": 0.19834391534391532,
+     "ci95": [
+      0.12322746683328437,
+      0.2734603638545463
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 189,
+     "mean": 0.10535449735449733,
+     "ci95": [
+      0.05976231298668811,
+      0.15094668172230655
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 19,
+     "p90": 159
+    },
+    "prescription_size_median": 0.125
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 108,
+     "n": 250,
+     "p": 0.432,
+     "ci95": [
+      0.372082059413591,
+      0.4939761438123577
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 8,
+     "n": 250,
+     "p": 0.032,
+     "ci95": [
+      0.016302169731072406,
+      0.061863111294575085
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 242,
+     "median": 1,
+     "q1": 0,
+     "q3": 88,
+     "p90": 300
+    },
+    "regret_b_xs": {
+     "n": 242,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0044999999999999485,
+     "p90": 0.26750000000000007,
+     "mean": 0.06666942148760331,
+     "share_nonzero": 0.28512396694214875
+    },
+    "obeying_is_optimal": {
+     "k": 120,
+     "n": 242,
+     "p": 0.49586776859504134,
+     "ci95": [
+      0.43343179743870475,
+      0.5584328829083155
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 53,
+     "n": 242,
+     "p": 0.2190082644628099,
+     "ci95": [
+      0.17151403971916332,
+      0.27528422387821
+     ]
+    },
+    "advantage_cp": {
+     "n": 242,
+     "median": -1,
+     "q1": -88,
+     "q3": 41,
+     "p90": 173
+    },
+    "advantage_xs": {
+     "n": 242,
+     "median": 0.0,
+     "q1": -0.0044999999999999485,
+     "q3": 0.007000000000000006,
+     "p90": 0.24250000000000005,
+     "mean": -0.010283057851239681,
+     "share_nonzero": 0.6115702479338843
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 36,
+     "p90": 173
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.006,
+     "p90": 0.24250000000000005,
+     "mean": 0.054582000000000006,
+     "share_nonzero": 0.316
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 39,
+     "n": 250,
+     "p": 0.156,
+     "ci95": [
+      0.11626512943648533,
+      0.20614695747125555
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 242,
+     "median": 583,
+     "q1": 260,
+     "q3": 824,
+     "p90": 98660
+    },
+    "max_regret_in_b_xs": {
+     "n": 242,
+     "median": 0.425,
+     "q1": 0.0,
+     "q3": 0.5545,
+     "p90": 1.0,
+     "mean": 0.3711818181818183,
+     "share_nonzero": 0.6900826446280992
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 211,
+     "n": 242,
+     "p": 0.871900826446281,
+     "ci95": [
+      0.8239103226303012,
+      0.9082684461378813
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 611,
+     "n": 1528,
+     "p": 0.39986910994764396,
+     "ci95": [
+      0.3755870432178604,
+      0.424653399397094
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 242,
+     "median": 0.0,
+     "q1": -0.0685,
+     "q3": 0.0,
+     "p90": 0.014500000000000068,
+     "mean": -0.0942582644628099,
+     "share_nonzero": 0.6157024793388429
+    },
+    "chance_advantage_cp": {
+     "n": 242,
+     "median": -46,
+     "q1": -169,
+     "q3": -1,
+     "p90": 28
+    },
+    "chance_regret_xs": {
+     "n": 242,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0685,
+     "p90": 0.46749999999999997,
+     "mean": 0.11369834710743804,
+     "share_nonzero": 0.4669421487603306
+    },
+    "advantage_over_chance_xs": {
+     "n": 242,
+     "mean": 0.08397520661157025,
+     "ci95": [
+      0.046600345613335134,
+      0.12135006760980536
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 242,
+     "mean": 0.04702892561983471,
+     "ci95": [
+      0.0223118850566155,
+      0.07174596618305393
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -10,
+     "q3": 8,
+     "p90": 21
+    },
+    "prescription_size_median": 0.2
+   },
+   "separation_b_valid": 0.03200000000000003,
+   "separation_advantage_xs": 0.08060316367134551,
+   "separation_advantage_cp": 2,
+   "separation_regret_xs": 0.027915453233635062,
+   "separation_regret_cp": 1,
+   "separation_advantage_over_chance_xs": 0.11436870873234507,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 189,
+    "mean": 0.19834391534391532,
+    "ci95": [
+     0.12322746683328437,
+     0.2734603638545463
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 242,
+    "mean": 0.08397520661157025,
+    "ci95": [
+     0.046600345613335134,
+     0.12135006760980536
+    ]
+   },
+   "anchor_separation_b_valid": -2.750000000000001,
+   "anchor_separation_advantage_xs": 6.962346057936657,
+   "anchor_separation_regret_xs": -2.012782050090053,
+   "anchor_separation_advantage_over_chance_xs": 2.0477103461403687
+  },
+  "RC-13": {
+   "name": "underpromote-to-knight",
+   "family": "noise-cell-first: committal acts",
+   "role": "candidate",
+   "prescription": "promote to a knight only when the knight gives check",
+   "t_plus": {
+    "n": 67,
+    "b_valid": {
+     "k": 0,
+     "n": 67,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.05422802421176257
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 67,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.05422802421176257
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 67,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.05422802421176257
+     ]
+    },
+    "regret_b_cp": {
+     "n": 67,
+     "median": 498,
+     "q1": 16,
+     "q3": 99261,
+     "p90": 99559
+    },
+    "regret_b_xs": {
+     "n": 67,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.5,
+     "mean": 0.06352238805970149,
+     "share_nonzero": 0.1791044776119403
+    },
+    "obeying_is_optimal": {
+     "k": 4,
+     "n": 67,
+     "p": 0.05970149253731343,
+     "ci95": [
+      0.023458971433043548,
+      0.1436970498877623
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 44,
+     "n": 67,
+     "p": 0.6567164179104478,
+     "ci95": [
+      0.5373244120046358,
+      0.7591115804066028
+     ]
+    },
+    "advantage_cp": {
+     "n": 67,
+     "median": -498,
+     "q1": -99261,
+     "q3": -16,
+     "p90": -1
+    },
+    "advantage_xs": {
+     "n": 67,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.06352238805970149,
+     "share_nonzero": 0.1791044776119403
+    },
+    "regret_nb_cp": {
+     "n": 67,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_nb_xs": {
+     "n": 67,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.0,
+     "share_nonzero": 0.0
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 0,
+     "n": 67,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.05422802421176257
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 67,
+     "median": 602,
+     "q1": 44,
+     "q3": 99329,
+     "p90": 99768
+    },
+    "max_regret_in_b_xs": {
+     "n": 67,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.5,
+     "mean": 0.09673134328358209,
+     "share_nonzero": 0.23880597014925373
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 45,
+     "n": 67,
+     "p": 0.6716417910447762,
+     "ci95": [
+      0.5525795678445592,
+      0.7720884238439404
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 24,
+     "n": 78,
+     "p": 0.3076923076923077,
+     "ci95": [
+      0.2163178292080744,
+      0.4171204222435101
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 67,
+     "median": 0.0,
+     "q1": -0.000500000000000056,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.137544776119403,
+     "share_nonzero": 0.2537313432835821
+    },
+    "chance_advantage_cp": {
+     "n": 67,
+     "median": -507,
+     "q1": -99255,
+     "q3": -5,
+     "p90": -1
+    },
+    "chance_regret_xs": {
+     "n": 67,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.000500000000000056,
+     "p90": 0.515,
+     "mean": 0.13754477611940297,
+     "share_nonzero": 0.2537313432835821
+    },
+    "advantage_over_chance_xs": {
+     "n": 67,
+     "mean": 0.07402238805970152,
+     "ci95": [
+      0.011275434457281658,
+      0.13676934166212137
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 67,
+     "mean": 0.07402238805970152,
+     "ci95": [
+      0.011275434457281658,
+      0.13676934166212137
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 67,
+     "median": 0,
+     "q1": -22,
+     "q3": 0,
+     "p90": 13
+    },
+    "prescription_size_median": 0.047619047619047616
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 586,
+     "q1": 170,
+     "q3": 98858,
+     "p90": 99748
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 1.0,
+     "mean": 0.221704,
+     "share_nonzero": 0.356
+    },
+    "obeying_is_optimal": {
+     "k": 7,
+     "n": 250,
+     "p": 0.028,
+     "ci95": [
+      0.013627884857773491,
+      0.056658466945870976
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 198,
+     "n": 250,
+     "p": 0.792,
+     "ci95": [
+      0.7374548978246092,
+      0.8377069353816109
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -585,
+     "q1": -98858,
+     "q3": -170,
+     "p90": -3
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.5,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.221704,
+     "share_nonzero": 0.356
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.0,
+     "share_nonzero": 0.0
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 585,
+     "q1": 150,
+     "q3": 98928,
+     "p90": 99979
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 1.0,
+     "mean": 0.22920800000000002,
+     "share_nonzero": 0.36
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 193,
+     "n": 250,
+     "p": 0.772,
+     "ci95": [
+      0.7161076912424261,
+      0.8196594958537787
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 58,
+     "n": 258,
+     "p": 0.2248062015503876,
+     "ci95": [
+      0.17811822298249824,
+      0.27956917275599413
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.46950000000000003,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.1799200000000001,
+     "share_nonzero": 0.316
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -256,
+     "q1": -1185,
+     "q3": -4,
+     "p90": 0
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.46950000000000003,
+     "p90": 1.0,
+     "mean": 0.18809199999999998,
+     "share_nonzero": 0.3
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": -0.04178400000000001,
+     "ci95": [
+      -0.08275470967457361,
+      -0.0008132903254264023
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": -0.033612,
+     "ci95": [
+      -0.07075032097935158,
+      0.0035263209793515646
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -23,
+     "q3": 0,
+     "p90": 13
+    },
+    "prescription_size_median": 0.0392156862745098
+   },
+   "separation_b_valid": 0.0,
+   "separation_advantage_xs": 0.1581816119402985,
+   "separation_advantage_cp": 87,
+   "separation_regret_xs": 0.1581816119402985,
+   "separation_regret_cp": 88,
+   "separation_advantage_over_chance_xs": 0.11580638805970153,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 67,
+    "mean": 0.07402238805970152,
+    "ci95": [
+     0.011275434457281658,
+     0.13676934166212137
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": -0.04178400000000001,
+    "ci95": [
+     -0.08275470967457361,
+     -0.0008132903254264023
+    ]
+   },
+   "anchor_separation_b_valid": -2.9038461538461546,
+   "anchor_separation_advantage_xs": 5.512769312375297,
+   "anchor_separation_regret_xs": -0.539982679763268,
+   "anchor_separation_advantage_over_chance_xs": 2.041164848301336
+  },
+  "RC-14": {
+   "name": "capture-the-mating-piece",
+   "family": "noise-cell-first: committal acts",
+   "role": "candidate",
+   "prescription": "when one piece threatens mate next move, capture it",
+   "t_plus": {
+    "n": 240,
+    "b_valid": {
+     "k": 160,
+     "n": 240,
+     "p": 0.6666666666666666,
+     "ci95": [
+      0.6048134560923747,
+      0.72326838064098
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 240,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015754489799935698
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 240,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015754489799935698
+     ]
+    },
+    "regret_b_cp": {
+     "n": 240,
+     "median": 0,
+     "q1": 0,
+     "q3": 18,
+     "p90": 99021
+    },
+    "regret_b_xs": {
+     "n": 240,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0045,
+     "mean": 0.060922916666666674,
+     "share_nonzero": 0.10416666666666667
+    },
+    "obeying_is_optimal": {
+     "k": 163,
+     "n": 240,
+     "p": 0.6791666666666667,
+     "ci95": [
+      0.6176851438707345,
+      0.735002830617622
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 52,
+     "n": 240,
+     "p": 0.21666666666666667,
+     "ci95": [
+      0.16922849006301854,
+      0.27303238749027836
+     ]
+    },
+    "advantage_cp": {
+     "n": 240,
+     "median": 90,
+     "q1": -9,
+     "q3": 595,
+     "p90": 1334
+    },
+    "advantage_xs": {
+     "n": 240,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0215,
+     "p90": 0.9285,
+     "mean": 0.10802291666666666,
+     "share_nonzero": 0.375
+    },
+    "regret_nb_cp": {
+     "n": 240,
+     "median": 90,
+     "q1": 0,
+     "q3": 595,
+     "p90": 1334
+    },
+    "regret_nb_xs": {
+     "n": 240,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0215,
+     "p90": 0.9285,
+     "mean": 0.16894583333333335,
+     "share_nonzero": 0.2708333333333333
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 118,
+     "n": 240,
+     "p": 0.49166666666666664,
+     "ci95": [
+      0.42904808854732723,
+      0.5545478196160049
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 240,
+     "median": 11,
+     "q1": 0,
+     "q3": 225,
+     "p90": 99325
+    },
+    "max_regret_in_b_xs": {
+     "n": 240,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.4455,
+     "mean": 0.08045208333333334,
+     "share_nonzero": 0.24583333333333332
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 71,
+     "n": 240,
+     "p": 0.29583333333333334,
+     "ci95": [
+      0.24167167356650046,
+      0.35642807643513985
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 200,
+     "n": 278,
+     "p": 0.7194244604316546,
+     "ci95": [
+      0.6638953458556541,
+      0.7689719100781752
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 240,
+     "median": 0.0,
+     "q1": -1.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.33588124999999996,
+     "share_nonzero": 0.48333333333333334
+    },
+    "chance_advantage_cp": {
+     "n": 240,
+     "median": -99361,
+     "q1": -99999,
+     "q3": -760,
+     "p90": -3
+    },
+    "chance_regret_xs": {
+     "n": 240,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 1.0,
+     "p90": 1.0,
+     "mean": 0.34857708333333337,
+     "share_nonzero": 0.4583333333333333
+    },
+    "advantage_over_chance_xs": {
+     "n": 240,
+     "mean": 0.4439041666666668,
+     "ci95": [
+      0.3561774465342206,
+      0.5316308867991131
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 240,
+     "mean": 0.2876541666666666,
+     "ci95": [
+      0.23094296658568872,
+      0.34436536674764445
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 240,
+     "median": 0,
+     "q1": -6,
+     "q3": 12,
+     "p90": 36
+    },
+    "prescription_size_median": 0.037037037037037035
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 131,
+     "n": 250,
+     "p": 0.524,
+     "ci95": [
+      0.46219676292977036,
+      0.5850768124022478
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 174,
+     "p90": 581
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.010499999999999954,
+     "p90": 0.501,
+     "mean": 0.11529800000000001,
+     "share_nonzero": 0.304
+    },
+    "obeying_is_optimal": {
+     "k": 130,
+     "n": 250,
+     "p": 0.52,
+     "ci95": [
+      0.45823595399411676,
+      0.5811586921158984
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 74,
+     "n": 250,
+     "p": 0.296,
+     "ci95": [
+      0.24284512248053705,
+      0.3553294871973093
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 5,
+     "q1": -174,
+     "q3": 269,
+     "p90": 601
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.010499999999999954,
+     "q3": 0.005000000000000001,
+     "p90": 0.5,
+     "mean": 0.012315999999999903,
+     "share_nonzero": 0.604
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 5,
+     "q1": 0,
+     "q3": 269,
+     "p90": 601
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.005000000000000001,
+     "p90": 0.5,
+     "mean": 0.127614,
+     "share_nonzero": 0.3
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 93,
+     "n": 250,
+     "p": 0.372,
+     "ci95": [
+      0.3144454410853008,
+      0.43342882381060277
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 23,
+     "q1": 0,
+     "q3": 301,
+     "p90": 599
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.07100000000000006,
+     "p90": 0.5680000000000001,
+     "mean": 0.140006,
+     "share_nonzero": 0.528
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 90,
+     "n": 250,
+     "p": 0.36,
+     "ci95": [
+      0.30303128258888623,
+      0.4212061946410083
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 202,
+     "n": 304,
+     "p": 0.6644736842105263,
+     "ci95": [
+      0.6096346585271799,
+      0.7152077279469029
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.25649999999999995,
+     "q1": -0.727,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.37457200000000007,
+     "share_nonzero": 0.688
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -437,
+     "q1": -745,
+     "q3": -145,
+     "p90": -27
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.2685,
+     "q1": 0.0,
+     "q3": 0.727,
+     "p90": 1.0,
+     "mean": 0.376558,
+     "share_nonzero": 0.68
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.38688799999999995,
+     "ci95": [
+      0.30708067553901097,
+      0.46669532446098894
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.26126,
+     "ci95": [
+      0.20590102119111656,
+      0.31661897880888346
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -1,
+     "q1": -11,
+     "q3": 7,
+     "p90": 16
+    },
+    "prescription_size_median": 0.03125
+   },
+   "separation_b_valid": 0.1426666666666666,
+   "separation_advantage_xs": 0.09570691666666675,
+   "separation_advantage_cp": 85,
+   "separation_regret_xs": 0.05437508333333334,
+   "separation_regret_cp": 0,
+   "separation_advantage_over_chance_xs": 0.05701616666666687,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 240,
+    "mean": 0.4439041666666668,
+    "ci95": [
+     0.3561774465342206,
+     0.5316308867991131
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.38688799999999995,
+    "ci95": [
+     0.30708067553901097,
+     0.46669532446098894
+    ]
+   },
+   "anchor_separation_b_valid": -2.217948717948719,
+   "anchor_separation_advantage_xs": 6.680127869750978,
+   "anchor_separation_regret_xs": -1.7136274044259532,
+   "anchor_separation_advantage_over_chance_xs": 2.3088262521777665
+  },
+  "RC-18": {
+   "name": "move-the-piece-that-must-move",
+   "family": "noise-cell-first: committal acts",
+   "role": "candidate",
+   "prescription": "if a minor of yours is attacked by something cheaper, move it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 153,
+     "n": 250,
+     "p": 0.612,
+     "ci95": [
+      0.550334217662286,
+      0.6702758005537984
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 47,
+     "p90": 193
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.279,
+     "mean": 0.05791599999999999,
+     "share_nonzero": 0.24
+    },
+    "obeying_is_optimal": {
+     "k": 156,
+     "n": 250,
+     "p": 0.624,
+     "ci95": [
+      0.562505575124048,
+      0.6817412307580455
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 48,
+     "n": 250,
+     "p": 0.192,
+     "ci95": [
+      0.14798339072642153,
+      0.2453390591793465
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": 37,
+     "q1": -47,
+     "q3": 202,
+     "p90": 377
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.35150000000000003,
+     "p90": 0.503,
+     "mean": 0.09593800000000004,
+     "share_nonzero": 0.704
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 37,
+     "q1": 0,
+     "q3": 202,
+     "p90": 377
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.35150000000000003,
+     "p90": 0.503,
+     "mean": 0.153854,
+     "share_nonzero": 0.464
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 100,
+     "n": 250,
+     "p": 0.4,
+     "ci95": [
+      0.34122728621763343,
+      0.46179948323229125
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 464,
+     "q1": 347,
+     "q3": 573,
+     "p90": 714
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.4945,
+     "q1": 0.0024999999999999467,
+     "q3": 0.7525,
+     "p90": 1.0,
+     "mean": 0.4502659999999999,
+     "share_nonzero": 0.776
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 239,
+     "n": 250,
+     "p": 0.956,
+     "ci95": [
+      0.9229414729274126,
+      0.9752564583809309
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 496,
+     "n": 1453,
+     "p": 0.34136269786648316,
+     "ci95": [
+      0.3174284232361077,
+      0.36613360574494286
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": -0.05650000000000005,
+     "q1": -0.4885,
+     "q3": 0.0,
+     "p90": 0.0015000000000000013,
+     "mean": -0.23116399999999995,
+     "share_nonzero": 0.7
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -163,
+     "q1": -363,
+     "q3": -23,
+     "p90": 57
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.062000000000000055,
+     "q1": 0.0,
+     "q3": 0.4885,
+     "p90": 0.6925,
+     "mean": 0.250708,
+     "share_nonzero": 0.592
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.32710199999999984,
+     "ci95": [
+      0.26607579758888084,
+      0.38812820241111884
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.19279200000000005,
+     "ci95": [
+      0.15345984391111944,
+      0.23212415608888065
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -2,
+     "q1": -13,
+     "q3": 6,
+     "p90": 14
+    },
+    "prescription_size_median": 0.16666666666666666
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 40,
+     "n": 250,
+     "p": 0.16,
+     "ci95": [
+      0.11975315933080616,
+      0.21053785679893777
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 62,
+     "n": 250,
+     "p": 0.248,
+     "ci95": [
+      0.19855073569865583,
+      0.3050767233151544
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 188,
+     "median": 60,
+     "q1": 2,
+     "q3": 266,
+     "p90": 558
+    },
+    "regret_b_xs": {
+     "n": 188,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.142,
+     "p90": 0.5,
+     "mean": 0.12980053191489363,
+     "share_nonzero": 0.44680851063829785
+    },
+    "obeying_is_optimal": {
+     "k": 43,
+     "n": 188,
+     "p": 0.22872340425531915,
+     "ci95": [
+      0.17447256343841408,
+      0.2938387934310032
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 78,
+     "n": 188,
+     "p": 0.4148936170212766,
+     "ci95": [
+      0.3468549322595456,
+      0.4863407875426245
+     ]
+    },
+    "advantage_cp": {
+     "n": 188,
+     "median": -58,
+     "q1": -260,
+     "q3": -1,
+     "p90": 55
+    },
+    "advantage_xs": {
+     "n": 188,
+     "median": 0.0,
+     "q1": -0.135,
+     "q3": 0.0,
+     "p90": 0.01899999999999996,
+     "mean": -0.11093617021276599,
+     "share_nonzero": 0.6063829787234043
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 17
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0040000000000000036,
+     "mean": 0.014186,
+     "share_nonzero": 0.12
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 10,
+     "n": 250,
+     "p": 0.04,
+     "ci95": [
+      0.02186967487695694,
+      0.07205346459269657
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 188,
+     "median": 148,
+     "q1": 50,
+     "q3": 390,
+     "p90": 691
+    },
+    "max_regret_in_b_xs": {
+     "n": 188,
+     "median": 0.007500000000000062,
+     "q1": 0.0,
+     "q3": 0.3365,
+     "p90": 0.5165,
+     "mean": 0.18089627659574467,
+     "share_nonzero": 0.6170212765957447
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 108,
+     "n": 188,
+     "p": 0.574468085106383,
+     "ci95": [
+      0.5029955219752764,
+      0.6429582231978248
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 144,
+     "n": 298,
+     "p": 0.48322147651006714,
+     "ci95": [
+      0.4270589262785652,
+      0.5398111141664894
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 188,
+     "median": -0.017000000000000015,
+     "q1": -0.478,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.2066170212765958,
+     "share_nonzero": 0.6170212765957447
+    },
+    "chance_advantage_cp": {
+     "n": 188,
+     "median": -171,
+     "q1": -423,
+     "q3": -52,
+     "p90": -1
+    },
+    "chance_regret_xs": {
+     "n": 188,
+     "median": 0.0185,
+     "q1": 0.0,
+     "q3": 0.48,
+     "p90": 0.6150000000000001,
+     "mean": 0.21677127659574463,
+     "share_nonzero": 0.5851063829787234
+    },
+    "advantage_over_chance_xs": {
+     "n": 188,
+     "mean": 0.0956808510638298,
+     "ci95": [
+      0.04648517447798466,
+      0.14487652764967493
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 188,
+     "mean": 0.08697074468085113,
+     "ci95": [
+      0.050577487903019205,
+      0.12336400145868305
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": -1,
+     "q1": -10,
+     "q3": 7,
+     "p90": 24
+    },
+    "prescription_size_median": 0.037037037037037035
+   },
+   "separation_b_valid": 0.45199999999999996,
+   "separation_advantage_xs": 0.20687417021276602,
+   "separation_advantage_cp": 95,
+   "separation_regret_xs": 0.07188453191489363,
+   "separation_regret_cp": 60,
+   "separation_advantage_over_chance_xs": 0.23142114893617005,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.32710199999999984,
+    "ci95": [
+     0.26607579758888084,
+     0.38812820241111884
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 188,
+    "mean": 0.0956808510638298,
+    "ci95": [
+     0.04648517447798466,
+     0.14487652764967493
+    ]
+   },
+   "anchor_separation_b_valid": -0.7307692307692315,
+   "anchor_separation_advantage_xs": 4.602934149019651,
+   "anchor_separation_regret_xs": -1.515664210441236,
+   "anchor_separation_advantage_over_chance_xs": 1.5147914400749853
+  },
+  "RC-20": {
+   "name": "defend-the-piece-in-place",
+   "family": "noise-cell-first: committal acts",
+   "role": "candidate",
+   "prescription": "if a minor of yours hangs to an equal-or-dearer attacker, defend it where it stands",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 56,
+     "n": 250,
+     "p": 0.224,
+     "ci95": [
+      0.17671751406074326,
+      0.2796363696210489
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 44,
+     "n": 250,
+     "p": 0.176,
+     "ci95": [
+      0.13379907724930237,
+      0.22800765576845358
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 206,
+     "median": 62,
+     "q1": 0,
+     "q3": 227,
+     "p90": 578
+    },
+    "regret_b_xs": {
+     "n": 206,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.08650000000000002,
+     "p90": 0.5,
+     "mean": 0.12093689320388348,
+     "share_nonzero": 0.35436893203883496
+    },
+    "obeying_is_optimal": {
+     "k": 58,
+     "n": 206,
+     "p": 0.2815533980582524,
+     "ci95": [
+      0.22456743788335745,
+      0.3465376242206295
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 85,
+     "n": 206,
+     "p": 0.41262135922330095,
+     "ci95": [
+      0.3475909223298904,
+      0.48085110251170426
+     ]
+    },
+    "advantage_cp": {
+     "n": 206,
+     "median": -62,
+     "q1": -227,
+     "q3": 1,
+     "p90": 123
+    },
+    "advantage_xs": {
+     "n": 206,
+     "median": 0.0,
+     "q1": -0.08650000000000002,
+     "q3": 0.0,
+     "p90": 0.010000000000000009,
+     "mean": -0.09167961165048552,
+     "share_nonzero": 0.5048543689320388
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 88
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.00649999999999995,
+     "mean": 0.024108,
+     "share_nonzero": 0.124
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 23,
+     "n": 250,
+     "p": 0.092,
+     "ci95": [
+      0.06208656638760557,
+      0.13426265296808712
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 206,
+     "median": 597,
+     "q1": 315,
+     "q3": 918,
+     "p90": 99332
+    },
+    "max_regret_in_b_xs": {
+     "n": 206,
+     "median": 0.26799999999999996,
+     "q1": 0.0,
+     "q3": 0.929,
+     "p90": 1.0,
+     "mean": 0.3983228155339806,
+     "share_nonzero": 0.6504854368932039
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 187,
+     "n": 206,
+     "p": 0.9077669902912622,
+     "ci95": [
+      0.8604457979250243,
+      0.9401580861475333
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 228,
+     "n": 876,
+     "p": 0.2602739726027397,
+     "ci95": [
+      0.2323080197256864,
+      0.2903333284442568
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 206,
+     "median": -0.002,
+     "q1": -0.49950000000000006,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.22825728155339814,
+     "share_nonzero": 0.5776699029126213
+    },
+    "chance_advantage_cp": {
+     "n": 206,
+     "median": -284,
+     "q1": -501,
+     "q3": -83,
+     "p90": -2
+    },
+    "chance_regret_xs": {
+     "n": 206,
+     "median": 0.0020000000000000018,
+     "q1": 0.0,
+     "q3": 0.49950000000000006,
+     "p90": 0.8410000000000001,
+     "mean": 0.23701213592233006,
+     "share_nonzero": 0.5339805825242718
+    },
+    "advantage_over_chance_xs": {
+     "n": 206,
+     "mean": 0.13657766990291262,
+     "ci95": [
+      0.0858513560087655,
+      0.18730398379705973
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 206,
+     "mean": 0.11607524271844659,
+     "ci95": [
+      0.07493516448865713,
+      0.15721532094823604
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -12,
+     "q3": 8,
+     "p90": 21
+    },
+    "prescription_size_median": 0.08695652173913043
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 82,
+     "n": 250,
+     "p": 0.328,
+     "ci95": [
+      0.2727885097296531,
+      0.3884175337242174
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 22,
+     "n": 250,
+     "p": 0.088,
+     "ci95": [
+      0.058830921041025906,
+      0.12963936909266374
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 228,
+     "median": 19,
+     "q1": 0,
+     "q3": 110,
+     "p90": 329
+    },
+    "regret_b_xs": {
+     "n": 228,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.050500000000000045,
+     "p90": 0.4255,
+     "mean": 0.09191228070175439,
+     "share_nonzero": 0.4166666666666667
+    },
+    "obeying_is_optimal": {
+     "k": 83,
+     "n": 228,
+     "p": 0.36403508771929827,
+     "ci95": [
+      0.3043102809875197,
+      0.4282657536844287
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 60,
+     "n": 228,
+     "p": 0.2631578947368421,
+     "ci95": [
+      0.21026327187301833,
+      0.32390143368456925
+     ]
+    },
+    "advantage_cp": {
+     "n": 228,
+     "median": -18,
+     "q1": -110,
+     "q3": 19,
+     "p90": 64
+    },
+    "advantage_xs": {
+     "n": 228,
+     "median": 0.0,
+     "q1": -0.049000000000000044,
+     "q3": 0.0055000000000000005,
+     "p90": 0.09349999999999997,
+     "mean": -0.052083333333333405,
+     "share_nonzero": 0.6929824561403509
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 16,
+     "p90": 62
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0004999999999999449,
+     "p90": 0.0695,
+     "mean": 0.036323999999999995,
+     "share_nonzero": 0.252
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 16,
+     "n": 250,
+     "p": 0.064,
+     "ci95": [
+      0.039774400710777265,
+      0.10142231409089433
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 228,
+     "median": 633,
+     "q1": 294,
+     "q3": 811,
+     "p90": 1147
+    },
+    "max_regret_in_b_xs": {
+     "n": 228,
+     "median": 0.4885,
+     "q1": 0.0030000000000000027,
+     "q3": 0.599,
+     "p90": 1.0,
+     "mean": 0.43817324561403503,
+     "share_nonzero": 0.7807017543859649
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 205,
+     "n": 228,
+     "p": 0.8991228070175439,
+     "ci95": [
+      0.8531819365732763,
+      0.9318368003574556
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 536,
+     "n": 1314,
+     "p": 0.4079147640791476,
+     "ci95": [
+      0.3816479286238903,
+      0.4347184692800763
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 228,
+     "median": -0.0055,
+     "q1": -0.1995,
+     "q3": 0.0,
+     "p90": 0.027500000000000024,
+     "mean": -0.1365964912280702,
+     "share_nonzero": 0.6929824561403509
+    },
+    "chance_advantage_cp": {
+     "n": 228,
+     "median": -62,
+     "q1": -163,
+     "q3": -10,
+     "p90": 29
+    },
+    "chance_regret_xs": {
+     "n": 228,
+     "median": 0.006000000000000005,
+     "q1": 0.0,
+     "q3": 0.21200000000000008,
+     "p90": 0.498,
+     "mean": 0.15238157894736845,
+     "share_nonzero": 0.5570175438596491
+    },
+    "advantage_over_chance_xs": {
+     "n": 228,
+     "mean": 0.08451315789473682,
+     "ci95": [
+      0.039743902674491564,
+      0.12928241311498206
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 228,
+     "mean": 0.06046929824561404,
+     "ci95": [
+      0.0311313407692817,
+      0.08980725572194638
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -7,
+     "q3": 9,
+     "p90": 23
+    },
+    "prescription_size_median": 0.1724137931034483
+   },
+   "separation_b_valid": -0.10400000000000001,
+   "separation_advantage_xs": -0.039596278317152116,
+   "separation_advantage_cp": -44,
+   "separation_regret_xs": -0.029024612502129093,
+   "separation_regret_cp": -43,
+   "separation_advantage_over_chance_xs": 0.0520645120081758,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 206,
+    "mean": 0.13657766990291262,
+    "ci95": [
+     0.0858513560087655,
+     0.18730398379705973
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 228,
+    "mean": 0.08451315789473682,
+    "ci95": [
+     0.039743902674491564,
+     0.12928241311498206
+    ]
+   },
+   "anchor_separation_b_valid": -3.4038461538461546,
+   "anchor_separation_advantage_xs": 9.208308948711677,
+   "anchor_separation_regret_xs": -2.656550883028776,
+   "anchor_separation_advantage_over_chance_xs": 2.331370253646011
+  },
+  "RC-21": {
+   "name": "push-the-unstoppable-passer",
+   "family": "noise-cell-first: committal acts",
+   "role": "candidate",
+   "prescription": "if your passed pawn is outside the enemy king's square, push it",
+   "t_plus": {
+    "n": 250,
+    "b_valid": {
+     "k": 45,
+     "n": 250,
+     "p": 0.18,
+     "ci95": [
+      0.1373327388520246,
+      0.23235292338773436
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 91,
+     "q1": 5,
+     "q3": 530,
+     "p90": 99236
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.012499999999999956,
+     "p90": 0.5015000000000001,
+     "mean": 0.13121,
+     "share_nonzero": 0.304
+    },
+    "obeying_is_optimal": {
+     "k": 45,
+     "n": 250,
+     "p": 0.18,
+     "ci95": [
+      0.1373327388520246,
+      0.23235292338773436
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 121,
+     "n": 250,
+     "p": 0.484,
+     "ci95": [
+      0.42276331446858867,
+      0.5457209686433993
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -90,
+     "q1": -530,
+     "q3": -5,
+     "p90": 7
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.012499999999999956,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.12384600000000003,
+     "share_nonzero": 0.34
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 7
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.007364000000000001,
+     "share_nonzero": 0.036
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 13,
+     "n": 250,
+     "p": 0.052,
+     "ci95": [
+      0.03063736169809375,
+      0.0869225654375688
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 149,
+     "q1": 22,
+     "q3": 757,
+     "p90": 99314
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.103,
+     "p90": 0.5974999999999999,
+     "mean": 0.16254,
+     "share_nonzero": 0.368
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 147,
+     "n": 250,
+     "p": 0.588,
+     "ci95": [
+      0.5261038843001786,
+      0.6472325585838876
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 158,
+     "n": 384,
+     "p": 0.4114583333333333,
+     "ci95": [
+      0.3633518201255001,
+      0.4613188701769327
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.14849999999999997,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.16542200000000004,
+     "share_nonzero": 0.392
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -150,
+     "q1": -686,
+     "q3": -24,
+     "p90": -1
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.14849999999999997,
+     "p90": 0.597,
+     "mean": 0.167422,
+     "share_nonzero": 0.384
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.041575999999999974,
+     "ci95": [
+      0.0067349854451896965,
+      0.07641701455481026
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.03621199999999998,
+     "ci95": [
+      0.004328285606733852,
+      0.06809571439326612
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -11,
+     "q3": 9,
+     "p90": 24
+    },
+    "prescription_size_median": 0.041666666666666664
+   },
+   "t_minus": {
+    "n": 250,
+    "b_valid": {
+     "k": 21,
+     "n": 250,
+     "p": 0.084,
+     "ci95": [
+      0.055595617989370606,
+      0.12499574292231608
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 250,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.015133847249623387
+     ]
+    },
+    "regret_b_cp": {
+     "n": 250,
+     "median": 142,
+     "q1": 26,
+     "q3": 456,
+     "p90": 1353
+    },
+    "regret_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.1815,
+     "p90": 0.759,
+     "mean": 0.170372,
+     "share_nonzero": 0.384
+    },
+    "obeying_is_optimal": {
+     "k": 24,
+     "n": 250,
+     "p": 0.096,
+     "ci95": [
+      0.06536141854642746,
+      0.13886673003126823
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 145,
+     "n": 250,
+     "p": 0.58,
+     "ci95": [
+      0.5180598018274972,
+      0.6395187826125629
+     ]
+    },
+    "advantage_cp": {
+     "n": 250,
+     "median": -140,
+     "q1": -456,
+     "q3": -26,
+     "p90": -1
+    },
+    "advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.1815,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.169346,
+     "share_nonzero": 0.4
+    },
+    "regret_nb_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 0
+    },
+    "regret_nb_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.0010260000000000002,
+     "share_nonzero": 0.016
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 4,
+     "n": 250,
+     "p": 0.016,
+     "ci95": [
+      0.006239123654412256,
+      0.04041044048322319
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 250,
+     "median": 159,
+     "q1": 40,
+     "q3": 487,
+     "p90": 2679
+    },
+    "max_regret_in_b_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.20399999999999996,
+     "p90": 0.7725,
+     "mean": 0.17405,
+     "share_nonzero": 0.404
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 151,
+     "n": 250,
+     "p": 0.604,
+     "ci95": [
+      0.5422409376574205,
+      0.6626112221146577
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 133,
+     "n": 322,
+     "p": 0.41304347826086957,
+     "ci95": [
+      0.3605958067752434,
+      0.4675415458525364
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": -0.362,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.19388799999999995,
+     "share_nonzero": 0.42
+    },
+    "chance_advantage_cp": {
+     "n": 250,
+     "median": -176,
+     "q1": -585,
+     "q3": -29,
+     "p90": -2
+    },
+    "chance_regret_xs": {
+     "n": 250,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.362,
+     "p90": 0.9885,
+     "mean": 0.19809,
+     "share_nonzero": 0.4
+    },
+    "advantage_over_chance_xs": {
+     "n": 250,
+     "mean": 0.024542000000000008,
+     "ci95": [
+      -0.01110581839174507,
+      0.06018981839174509
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 250,
+     "mean": 0.027717999999999996,
+     "ci95": [
+      -0.006456349978394473,
+      0.06189234997839446
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 250,
+     "median": 0,
+     "q1": -12,
+     "q3": 9,
+     "p90": 27
+    },
+    "prescription_size_median": 0.038461538461538464
+   },
+   "separation_b_valid": 0.09599999999999999,
+   "separation_advantage_xs": 0.04549999999999997,
+   "separation_advantage_cp": 50,
+   "separation_regret_xs": 0.039162,
+   "separation_regret_cp": 51,
+   "separation_advantage_over_chance_xs": 0.017033999999999966,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.041575999999999974,
+    "ci95": [
+     0.0067349854451896965,
+     0.07641701455481026
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 250,
+    "mean": 0.024542000000000008,
+    "ci95": [
+     -0.01110581839174507,
+     0.06018981839174509
+    ]
+   },
+   "anchor_separation_b_valid": -2.4423076923076934,
+   "anchor_separation_advantage_xs": 7.618259277252505,
+   "anchor_separation_regret_xs": -1.8856277134587562,
+   "anchor_separation_advantage_over_chance_xs": 2.4908579337473378
+  }
+ },
+ "reordering": {
+  "n_rule_classes": 17,
+  "b_valid_vs_advantage": {
+   "rho": 0.8210784313725491,
+   "p": 5.346351701144895e-05,
+   "n": 17
+  },
+  "b_valid_vs_efficacy": {
+   "rho": 0.627450980392157,
+   "p": 0.007011345696595818,
+   "n": 17
+  },
+  "advantage_vs_efficacy": {
+   "rho": 0.7377450980392158,
+   "p": 0.0007238246704990691,
+   "n": 17
+  },
+  "b_valid_vs_advantage_over_chance": {
+   "rho": 0.732843137254902,
+   "p": 0.0008187010454083449,
+   "n": 17
+  },
+  "rank_by_b_valid": [
+   "RC-00",
+   "RC-06",
+   "RC-01",
+   "RC-18",
+   "RC-11",
+   "RC-05",
+   "RC-07",
+   "RC-04",
+   "RC-02",
+   "RC-08",
+   "RC-03",
+   "RC-09",
+   "RC-14",
+   "RC-21",
+   "RC-12",
+   "RC-13",
+   "RC-20"
+  ],
+  "rank_by_advantage": [
+   "RC-01",
+   "RC-06",
+   "RC-00",
+   "RC-02",
+   "RC-07",
+   "RC-18",
+   "RC-11",
+   "RC-03",
+   "RC-04",
+   "RC-13",
+   "RC-08",
+   "RC-09",
+   "RC-05",
+   "RC-14",
+   "RC-12",
+   "RC-21",
+   "RC-20"
+  ],
+  "rank_by_advantage_over_chance": [
+   "RC-01",
+   "RC-06",
+   "RC-07",
+   "RC-00",
+   "RC-02",
+   "RC-09",
+   "RC-18",
+   "RC-08",
+   "RC-04",
+   "RC-11",
+   "RC-03",
+   "RC-13",
+   "RC-12",
+   "RC-05",
+   "RC-14",
+   "RC-20",
+   "RC-21"
+  ],
+  "rank_by_efficacy": [
+   "RC-00",
+   "RC-01",
+   "RC-13",
+   "RC-02",
+   "RC-06",
+   "RC-04",
+   "RC-11",
+   "RC-05",
+   "RC-18",
+   "RC-07",
+   "RC-14",
+   "RC-21",
+   "RC-03",
+   "RC-12",
+   "RC-08",
+   "RC-09",
+   "RC-20"
+  ],
+  "reading": "A high rho means the decision model AGREES with the top-1 screen and the published ordering stands. A low rho means the published ordering is an artefact of measuring argmax agreement instead of value, and every design rule inferred from that ordering was inferred from the wrong column."
+ }
+}
