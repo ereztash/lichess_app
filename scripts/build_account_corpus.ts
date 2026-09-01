@@ -70,9 +70,12 @@ async function fetchHistory(username: string, cachePath: string): Promise<string
     pgnInJson: "true",
     sort: "dateDesc",
   });
-  const response = await fetch(`${LICHESS}/api/games/user/${encodeURIComponent(username)}?${query}`, {
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/x-ndjson" },
-  });
+  const response = await fetch(
+    `${LICHESS}/api/games/user/${encodeURIComponent(username)}?${query}`,
+    {
+      headers: { Authorization: `Bearer ${token}`, Accept: "application/x-ndjson" },
+    },
+  );
   if (!response.ok) throw new Error(`lichess answered ${response.status} for ${username}`);
   const body = await response.text();
   writeFileSync(cachePath, body);
@@ -107,7 +110,8 @@ async function main() {
     const game = admissible(record.pgn);
     if (!game) {
       /* Named rather than pooled, so a corpus that shrinks says which rule shrank it. */
-      const tag = (name: string) => record.pgn!.match(new RegExp(`\\[${name} "(.*?)"\\]`))?.[1] ?? "";
+      const tag = (name: string) =>
+        record.pgn!.match(new RegExp(`\\[${name} "(.*?)"\\]`))?.[1] ?? "";
       const reason =
         tag("Termination") !== "Normal"
           ? `termination:${tag("Termination") || "none"}`
@@ -134,7 +138,8 @@ async function main() {
    */
   const games = admitted.slice(0, wanted);
   const speeds = new Map<string, number>();
-  for (const game of games) speeds.set(game.speed ?? "unknown", (speeds.get(game.speed ?? "unknown") ?? 0) + 1);
+  for (const game of games)
+    speeds.set(game.speed ?? "unknown", (speeds.get(game.speed ?? "unknown") ?? 0) + 1);
 
   const provenance = {
     source: `${LICHESS}/api/games/user/${username}?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc`,
@@ -143,7 +148,8 @@ async function main() {
     gamesAdmissible: admitted.length,
     rejected,
     window: games.length,
-    windowRule: "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
+    windowRule:
+      "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
     speedsInWindow: Object.fromEntries([...speeds].sort((a, b) => b[1] - a[1])),
     /* The check, not the source. A number here means the PGN-only path would have been wrong. */
     pgnSpeedCheck: {

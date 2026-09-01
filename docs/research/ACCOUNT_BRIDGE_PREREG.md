@@ -44,8 +44,8 @@ refusals that this preregistration counts as results rather than failures.**
 `scripts/build_import_corpus.ts` says, in a comment that has governed every real-game measurement in
 this repository:
 
-> *"WHY THE OPEN DATABASE AND NOT THE LICHESS API. The games-export endpoint answers 404 through
-> this environment's proxy."*
+> _"WHY THE OPEN DATABASE AND NOT THE LICHESS API. The games-export endpoint answers 404 through
+> this environment's proxy."_
 
 **That is no longer true.** Measured before this document was written, and recorded here because it
 is the fact that makes the study possible rather than a finding of the study:
@@ -58,13 +58,13 @@ in the `[Event]` tag, and the difference lands on a field the product's bucketin
 
 ## 3. The account, and what it is not
 
-| | |
-| --- | --- |
-| account | `erez281`, the repository owner's own |
-| rated games | 3,195 |
-| admissible under the repo's own `admissible()` | **2,209** |
-| plies carrying `[%clk]` in those | 121,647 |
-| dominant time control | `180+0` (1,426 games), then `300+0` (420) |
+|                                                |                                           |
+| ---------------------------------------------- | ----------------------------------------- |
+| account                                        | `erez281`, the repository owner's own     |
+| rated games                                    | 3,195                                     |
+| admissible under the repo's own `admissible()` | **2,209**                                 |
+| plies carrying `[%clk]` in those               | 121,647                                   |
+| dominant time control                          | `180+0` (1,426 games), then `300+0` (420) |
 
 **One player, not six.** Every conclusion here is about one account, and the canonical record's
 six-player corpus remains the only multi-player reading this repository has. A bridge that registers
@@ -99,13 +99,13 @@ Arena`, `Hourly Rapid Arena` — none of which contain the word `Rated` or any o
 Measured over the 2,209 admissible games: **1,104 of them, exactly half the corpus, arrive with no
 time class at all.**
 
-The function's own comment already describes this failure and its consequence, for the *other*
+The function's own comment already describes this failure and its consequence, for the _other_
 format it was fixed for:
 
-> *"A player whose window happened to be tournament games then arrived with NO speed at all, which
+> _"A player whose window happened to be tournament games then arrived with NO speed at all, which
 > switches the product's clock buckets from 'the dominant class' to 'every class at once' -- the
 > exact averaging the restriction exists to prevent, produced by the corpus rather than by the
-> product."*
+> product."_
 
 The same defect reappears through the API path. It is fixed here **before** the run because a run on
 the broken corpus would measure the corpus builder rather than the player, and because the fix is
@@ -115,13 +115,13 @@ records the resulting class distribution so a reader can check that the fix did 
 
 ## 6. What is held fixed
 
-| | |
-| --- | --- |
-| engine | `stockfish-18-lite-single` — the **shipped** build, over stdio via `scripts/sf-wasm.sh` |
-| options | `Threads 1`, `Hash 16`, hash cleared before every position |
-| depth | 12, which is what `analyzePositions` defaults to and what an import searches at |
-| bucketings | the frozen six in `shared/detector.ts`, untouched |
-| separability bar | `worstBucketVerdict` at **two standard errors**, the product's default, unchanged |
+|                    |                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------- |
+| engine             | `stockfish-18-lite-single` — the **shipped** build, over stdio via `scripts/sf-wasm.sh`                  |
+| options            | `Threads 1`, `Hash 16`, hash cleared before every position                                               |
+| depth              | 12, which is what `analyzePositions` defaults to and what an import searches at                          |
+| bucketings         | the frozen six in `shared/detector.ts`, untouched                                                        |
+| separability bar   | `worstBucketVerdict` at **two standard errors**, the product's default, unchanged                        |
 | `decisions_before` | **0.** No live record exists for this account, so every future decision is a decision after registration |
 
 Clearing the hash is the product's behaviour and therefore the harness's. The historical warm-hash
@@ -133,13 +133,13 @@ deleted is a fix nobody can check.
 `hypothesisFromImport` returns exactly one of five things. **All five are results.** The rule is
 that the run reports whichever one it gets, with the numbers underneath it, and nothing is retried:
 
-| outcome | what it means here |
-| --- | --- |
-| `registered` | The lowest bucket beat the runner-up by more than two standard errors of the difference, and it is a bucket the live loop can fill. The bridge works end to end on a real account. |
-| `not-separable` | The buckets are closer to each other than their own sampling error. **A finding**, not a shortfall: these games cannot tell this player's buckets apart. |
-| `nothing-readable` | No bucket reached the decisions needed to read it at all. |
-| `only-one-readable` | One bucket is a rate, not a comparison. |
-| `not-registrable` | The lowest bucket is one the live loop cannot fill — `clock-under-1m` against a board that never writes a clock. The screen would be right to refuse. |
+| outcome             | what it means here                                                                                                                                                                 |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `registered`        | The lowest bucket beat the runner-up by more than two standard errors of the difference, and it is a bucket the live loop can fill. The bridge works end to end on a real account. |
+| `not-separable`     | The buckets are closer to each other than their own sampling error. **A finding**, not a shortfall: these games cannot tell this player's buckets apart.                           |
+| `nothing-readable`  | No bucket reached the decisions needed to read it at all.                                                                                                                          |
+| `only-one-readable` | One bucket is a rate, not a comparison.                                                                                                                                            |
+| `not-registrable`   | The lowest bucket is one the live loop cannot fill — `clock-under-1m` against a board that never writes a clock. The screen would be right to refuse.                              |
 
 ## 8. The expansion, declared now rather than after seeing the 48
 

@@ -185,7 +185,8 @@ async function main() {
         }
       : null;
 
-  const evidence = a.rows.map((r) => JSON.stringify({ playerId: player.playerId, ...r })).join("\n") + "\n";
+  const evidence =
+    a.rows.map((r) => JSON.stringify({ playerId: player.playerId, ...r })).join("\n") + "\n";
   writeFileSync(`${dataDir}/decision_evidence.jsonl`, evidence);
 
   const report = {
@@ -202,7 +203,11 @@ async function main() {
     reproducibility: { repeats, orderIndependent, elapsedMsA: a.elapsedMs },
     reading: fingerprint(a.diagnostic),
     verdict: verdict && {
-      worst: { key: verdict.worst.key, n: verdict.worst.n, accurateRate: verdict.worst.accurateRate },
+      worst: {
+        key: verdict.worst.key,
+        n: verdict.worst.n,
+        accurateRate: verdict.worst.accurateRate,
+      },
       runnerUp: verdict.runnerUp && {
         key: verdict.runnerUp.key,
         n: verdict.runnerUp.n,
