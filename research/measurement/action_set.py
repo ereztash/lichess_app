@@ -531,6 +531,9 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=20260831)
     ap.add_argument("--out", required=True)
     ap.add_argument("--raw", help="optional JSONL of every adjudicated item, one row per line")
+    ap.add_argument("--only", help="comma-separated rule class ids, for a control re-run")
+    ap.add_argument("--head", type=int,
+                    help="keep only the first N items of each (class, cell) AFTER sampling")
     a = ap.parse_args()
 
     items = [json.loads(l) for l in open(a.items, encoding="utf-8")]
@@ -560,7 +563,25 @@ def main() -> None:
             "base_rate_t_minus": rate(len(neg), denom),
         }
         for cell in (pos, neg):
+            # THE FULL DRAW ALWAYS HAPPENS, FOR EVERY CLASS, IN THE PUBLISHED ORDER. `--only` and
+            # `--head` filter AFTERWARDS and never touch the rng, so a control re-run at a larger
+            # node budget lands on a SUBSET of the same items rather than on a different sample.
+            # Filtering before the draw would change the sequence of rng calls and quietly make
+            # the control a comparison between two samples instead of between two node budgets.
             to_adjudicate.extend(rng.sample(cell, min(a.sample, len(cell))))
+
+    if a.only:
+        keep = {x.strip() for x in a.only.split(",")}
+        to_adjudicate = [r for r in to_adjudicate if r["rule_class"] in keep]
+    if a.head:
+        seen: dict = collections.defaultdict(int)
+        kept = []
+        for r in to_adjudicate:
+            k = (r["rule_class"], r["trigger_state"])
+            if seen[k] < a.head:
+                seen[k] += 1
+                kept.append(r)
+        to_adjudicate = kept
 
     print(f"adjudicating {len(to_adjudicate)} positions on {a.workers} engines "
           f"(up to 6 searches each)", file=sys.stderr)

@@ -186,11 +186,48 @@ def decide(run: dict, raw_rows: list[dict]) -> dict:
     }
 
 
+def _fmt(v, places=3, pct=False):
+    if v is None:
+        return "—"
+    if pct:
+        return f"{v:.3f}".lstrip("0") if 0 <= v < 1 else f"{v:.3f}"
+    return f"{v:+.{places}f}" if places else f"{v:+.0f}"
+
+
+def markdown(result: dict) -> str:
+    """
+    THE DOCUMENT'S TABLE, RENDERED FROM THE DATA RATHER THAN TYPED.
+
+    `tests/research/measurement-action-set.test.ts` checks that every row in the model appears in
+    the markdown. That check is only worth having if the markdown is transcribed mechanically --
+    a table retyped by hand agrees with the data exactly until the first time somebody rounds a
+    number to make a sentence read better.
+    """
+    head = ("| | rule class | family | `b_valid` T+ | sep `b_valid` | regret T+ | regret T− | "
+            "adv/chance T+ | sep adv/chance | safe in B | verdict |")
+    rule = "| " + " | ".join(["---"] * 11) + " |"
+    lines = [head, rule]
+    for r in result["rows"]:
+        m = r.get("measurements") or {}
+        lines.append(
+            f"| {r['id']} | {r['name'] or '—'} | {r.get('family') or '—'} | "
+            f"{_fmt(m.get('b_valid_t_plus'), pct=True)} | "
+            f"{_fmt(m.get('separation_b_valid'))} | "
+            f"{_fmt(m.get('regret_b_xs_mean_t_plus'))} | "
+            f"{_fmt(m.get('regret_b_xs_mean_t_minus'))} | "
+            f"{_fmt(m.get('advantage_over_chance_t_plus'))} | "
+            f"{_fmt(m.get('separation_advantage_over_chance_xs'))} | "
+            f"{_fmt(m.get('permitted_moves_safe_t_plus'), pct=True)} | "
+            f"{r['verdict']} |")
+    return "\n".join(lines)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True)
     ap.add_argument("--raw", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--markdown", help="also write the document's table, rendered from the data")
     a = ap.parse_args()
     run = json.load(open(a.run, encoding="utf-8"))
     raw = [json.loads(l) for l in open(a.raw, encoding="utf-8")]
@@ -203,6 +240,9 @@ def main() -> None:
         print(f"{r['id']} {str(r['name'])[:26]:26s} {r['verdict'][:34]:34s} "
               f"gates={''.join('1' if v else ('0' if v is False else '-') for v in r['gates'].values())} "
               f"anchor={pos if pos is None else round(pos, 3)}")
+    if a.markdown:
+        with open(a.markdown, "w", encoding="utf-8") as fh:
+            fh.write(markdown(result) + "\n")
     print("recommended:", result["recommended"])
     print("verdict changes:", json.dumps(result["verdict_changes"]))
 
