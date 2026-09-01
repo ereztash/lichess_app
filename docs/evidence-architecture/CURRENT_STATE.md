@@ -163,6 +163,12 @@ alone; across two required days the corresponding null is 9–65%.
 
 ## UNRESOLVED
 
+**These are the questions open in the repository *as found*, before this execution ran.** Four of
+them (U1–U4) are answered in [`RECONCILIATION.md`](RECONCILIATION.md) and
+[`ACTION_MODEL_DECISION.md`](ACTION_MODEL_DECISION.md); each says where. They are stated here as
+they stood so that the record shows what was open and what closed it, rather than presenting this
+execution's answers as though the repository already contained them.
+
 **U1 — Whether `RC-06`'s separation survives a single fixed response predicate.** The number that
 makes `RC-06` the only eligible class is `separation = b_valid|T+ − b_valid|T−` = +0.768, and F6
 establishes that those two terms are computed under **different definitions of `B`**. No document in
