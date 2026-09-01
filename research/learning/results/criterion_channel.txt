@@ -1,0 +1,100 @@
+1. WHICH PREDICATES SCORE THE SAME ACT ON BOTH CELLS
+
+   rule classes whose `satisfies` recomputes the trigger: ['RC-06']
+   ...out of 12 measured.
+
+   On RC-06 a HIT means 'the opponent no longer has mate in one' and a FALSE ALARM
+   means 'the opponent no longer has ANY CHECK'. Those are different acts, so the
+   pair is not a signal-detection contrast and c is not a response bias.
+
+2. WHAT AN AGENT THAT PICKS UNIFORMLY AMONG LEGAL MOVES SCORES
+
+   id     name                           sz T+   sz T-  blind d  blind c    obs d    obs c    corr c  branch
+   RC-00  mate-in-one                   0.1102  0.0588   0.3397   1.3951   2.0884  -0.0367   -1.4319       -
+   RC-01  loose-piece                   0.0462  0.0308   0.1865   1.7763   1.5555  -0.0122   -1.7884       -
+   RC-02  recapture                     0.0497  0.0338   0.1791   1.7377   1.3398   0.0624   -1.6752       -
+   RC-03  capture-the-checker           0.5430  0.3964   0.3707   0.0773   1.2592  -0.9629   -1.0402       -
+   RC-04  save-the-attacked-piece       0.2403  0.1853   0.1900   0.8002   1.1070   0.0416   -0.7587       -
+   RC-05  safe-promotion                0.0530  0.0505   0.0233   1.6280   1.2803   0.3875   -1.2405       -
+   RC-06  answer-the-mate-threat        0.3173  0.1010   0.8005   0.8755   1.3488   0.1041   -0.7714     YES
+   RC-07  answer-the-queen-threat       0.1574  0.1804  -0.0911   0.9595   1.1490  -0.4157   -1.3752       -
+   RC-08  answer-the-rook-threat        0.1875  0.1785   0.0340   0.9040   0.6382  -0.1604   -1.0644       -
+   RC-09  answer-the-minor-threat       0.1521  0.1918  -0.1561   0.9493   0.6673  -0.1749   -1.1242       -
+   RC-11  move-the-threatened-minor     0.1792  0.0424   0.8054   1.3212   1.2397   0.3493   -0.9719       -
+   RC-12  stop-the-promotion            0.1288  0.1947  -0.2711   0.9963   0.0944   0.1096   -0.8867       -
+
+   n = 12 rule classes
+   r(move-blind c, observed c)       = +0.7201   -> 52% of the variance
+   r(move-blind d', observed d')     = +0.5580   -> 31% of the variance
+
+3. THE CONTROLLED PAIR ALREADY IN THE DATA: OUTCOME vs METHOD
+
+   RC-09 answer-the-minor-threat      B names an OUTCOME
+   RC-11 move-the-threatened-minor    B names a METHOD
+   identical item counts on both cells: True
+
+   observed c    -0.1749 -> +0.3493   = +0.5241
+   move-blind c  +0.9493 -> +1.3212   = +0.3719
+   predicate geometry accounts for 71% of the shift
+
+   SAME PLAYERS, SAME POSITIONS, SAME TRIGGER, SAME NOISE CELL. The only thing
+   that changed is how the prescription is written, and the criterion moved by
+   0.52 -- larger than the whole rating-band shift H18 was about.
+   corrected c   -1.1242 -> -0.9719   = +0.1522
+
+   THE CORRECTION'S OWN TEST: raw disagreement 0.5241, corrected 0.1522 -- 3.4x more consistent.
+   It does not reach zero. A chance-corrected criterion is better behaved than a
+   raw one and is still not a clean player parameter.
+
+4. DOES RC-06's BAND PATTERN SURVIVE DROPPING THE EQUAL-VARIANCE ASSUMPTION?
+
+   band           hits/n          FA/n        d prime        c  A prime    Bpp D
+   1200-1400       229/363      2194/11057     1.1803   0.2570   0.8061   0.4060
+   1400-1600       524/764      6228/29013     1.2738   0.1534   0.8216   0.2530
+   1600-1800       490/627      5847/26110     1.5347  -0.0084   0.8578  -0.0145
+   1800-3500       209/252      2863/12142     1.6664  -0.1134   0.8726  -0.1955
+
+   A' rises monotonically with rating:  True   (0.8061 -> 0.8726)
+   B''D falls monotonically with rating: True   (+0.4060 -> -0.1955)
+   Both agree with the parametric pair, so the equal-variance assumption is not what
+   is carrying H18. The BRANCHING PREDICATE still is, and no measure computed from
+   these two cells can repair that.
+
+5. THE INTERVAL H18 WAS PUBLISHED WITHOUT
+
+   sensitivity term  +0.0807  95% [+0.0442, +0.1176]
+   criterion term    +0.1229  95% [+0.0868, +0.1596]
+   P(criterion term > sensitivity term) = 1.0000   (20,000 draws)
+
+   The ORDER H18 asserted is well supported by the sampling. That was never the weak
+   part of H18; the weak part is what the criterion MEANS, which no amount of
+   resampling touches.
+
+6. THE ALTERNATIVE THIS PASS CANNOT RULE OUT, BOUNDED
+
+   If stronger players' games contain structurally different T- positions, their
+   move-blind criterion differs too, and part of the observed shift is composition
+   rather than anything psychological. The item-level records are not on disk, so
+   this cannot be tested -- only bounded, by asking how much the chance rates would
+   have to move to produce the whole shift on their own.
+
+   observed criterion shift, 1200-1400 -> 1800-3500: -0.3704
+
+   if ONLY the T- chance rate drifts:  0.1010 -> 0.2963  (2.93x)
+   if BOTH drift equally:              T+ 0.3173 -> 0.4582  (1.44x),  T- 0.1010 -> 0.1826 (1.81x)
+
+   Those are large. Explaining the WHOLE shift by composition is implausible;
+   explaining PART of it needs only a modest drift, and part is all it takes to
+   make the remainder uninterpretable. NOT RULED OUT.
+
+VERDICT
+
+   RC-06's move-blind floor is d' = 0.8005, against a measured 1.1803 in the lowest band.
+   Sensitivity above that floor still orders the rating bands and still has room to
+   grow. The CRITERION does not survive as a player parameter: RC-06's two cells
+   score different acts, and across the twelve rule classes half the variance in c
+   is predicted by predicate geometry alone.
+
+   So the criterion channel is not a thing to intervene on here. It is a thing to
+   MEASURE PROPERLY FIRST, on a rule class whose predicate does not branch -- of
+   which this screen already contains eleven.
