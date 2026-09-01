@@ -1,0 +1,413 @@
+{
+  "scope_version": "1.0.0",
+  "cell": "positive",
+  "what_this_asks": "does the trigger fire on the condition the rule class is named after?",
+  "verdict_counts": {
+    "FAITHFUL": 8,
+    "DESIGNED": 7,
+    "UNCHECKED": 2
+  },
+  "unchecked_claims": [
+    "RC-13",
+    "RC-21"
+  ],
+  "designed_narrowings": [
+    "RC-04",
+    "RC-07",
+    "RC-08",
+    "RC-09",
+    "RC-11",
+    "RC-18",
+    "RC-20"
+  ],
+  "faithful": [
+    "RC-00",
+    "RC-01",
+    "RC-02",
+    "RC-03",
+    "RC-05",
+    "RC-06",
+    "RC-12",
+    "RC-14"
+  ],
+  "ranked_by_b_valid_gap": [
+    "RC-21",
+    "RC-11",
+    "RC-07",
+    "RC-05",
+    "RC-04",
+    "RC-09",
+    "RC-08",
+    "RC-13",
+    "RC-12",
+    "RC-20",
+    "RC-18"
+  ],
+  "results": {
+    "RC-00": {
+      "rule_class": "RC-00",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "Trigger: exactly one mating move exists. That IS mate-in-one. But `satisfies` is `gives check`, which is wider than the name -- reported as prescription breadth in the robustness column (48.2% of permitted moves safe), not as a trigger defect.",
+      "has_predicate": false,
+      "whole_cell": {
+        "n": 250,
+        "b_valid": 1.0,
+        "regret_b_xs_mean": 0.0,
+        "advantage_xs_mean": 0.12017399999999998,
+        "v_star_xs_mean": 1.0
+      }
+    },
+    "RC-01": {
+      "rule_class": "RC-01",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "`loose` means undefended, and the trigger tests `not board.attackers(them, sq)`. That a loose piece is sometimes still not winnable -- pins, back ranks -- is a fact about chess the published screen already prices at 15%, not a condition the name claims and the predicate skips.",
+      "has_predicate": false,
+      "whole_cell": {
+        "n": 250,
+        "b_valid": 0.788,
+        "regret_b_xs_mean": 0.02946,
+        "advantage_xs_mean": 0.234114,
+        "v_star_xs_mean": 0.6448420000000001
+      }
+    },
+    "RC-02": {
+      "rule_class": "RC-02",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "`recapture` means taking back after they took, and `prev_was_capture` is exactly that. The name claims nothing about the exchange being favourable.",
+      "has_predicate": false,
+      "whole_cell": {
+        "n": 250,
+        "b_valid": 0.648,
+        "regret_b_xs_mean": 0.08080600000000003,
+        "advantage_xs_mean": 0.08640799999999993,
+        "v_star_xs_mean": 0.49580799999999986
+      }
+    },
+    "RC-03": {
+      "rule_class": "RC-03",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "The trigger tests one checker, capturable, and splits T+/T- on whether it is defended -- which is the safety condition the name implies. Its known problem is a chance rate of .543 in check, which is a base-rate fact and not a scope defect.",
+      "has_predicate": false,
+      "whole_cell": {
+        "n": 250,
+        "b_valid": 0.964,
+        "regret_b_xs_mean": 3.2e-05,
+        "advantage_xs_mean": 0.32336340206185565,
+        "v_star_xs_mean": 0.4466419999999999
+      }
+    },
+    "RC-04": {
+      "rule_class": "RC-04",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "Named for a threat, singular. `_designated_threat` documents that it returns the most valuable piece of ours the opponent can win, and B asks only that the biggest be rescued -- deliberate and on the record. Where a second piece hangs, the prescribed act leaves a loss the rule is silent about.",
+      "has_predicate": true,
+      "share_in_scope": 0.864,
+      "in_scope": {
+        "n": 216,
+        "b_valid": 0.7222222222222222,
+        "regret_b_xs_mean": 0.03415972222222222,
+        "advantage_xs_mean": 0.11031712962962967,
+        "v_star_xs_mean": 0.5456134259259259
+      },
+      "out_of_scope": {
+        "n": 34,
+        "b_valid": 0.5882352941176471,
+        "regret_b_xs_mean": 0.09376470588235293,
+        "advantage_xs_mean": -0.004838235294117656,
+        "v_star_xs_mean": 0.5830147058823529
+      },
+      "b_valid_gap": 0.13398692810457513,
+      "regret_gap": 0.05960498366013071
+    },
+    "RC-06": {
+      "rule_class": "RC-06",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "`_threatens_mate_after_pass` null-moves and asks whether the opponent mates, which is what a mate threat is. Items where the mate cannot be stopped are already counted rather than dropped (3.2%). No condition is named and skipped.",
+      "has_predicate": false,
+      "whole_cell": {
+        "n": 250,
+        "b_valid": 0.968,
+        "regret_b_xs_mean": 0.0,
+        "advantage_xs_mean": 0.35444092827004225,
+        "v_star_xs_mean": 0.33601000000000003
+      }
+    },
+    "RC-07": {
+      "rule_class": "RC-07",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "has_predicate": true,
+      "share_in_scope": 0.768,
+      "in_scope": {
+        "n": 192,
+        "b_valid": 0.8645833333333334,
+        "regret_b_xs_mean": 0.016426701570680626,
+        "advantage_xs_mean": 0.25673036649214664,
+        "v_star_xs_mean": 0.5506614583333332
+      },
+      "out_of_scope": {
+        "n": 58,
+        "b_valid": 0.6724137931034483,
+        "regret_b_xs_mean": 0.02843518518518519,
+        "advantage_xs_mean": 0.27599074074074076,
+        "v_star_xs_mean": 0.5246896551724138
+      },
+      "b_valid_gap": 0.19216954022988508,
+      "regret_gap": 0.012008483614504562
+    },
+    "RC-08": {
+      "rule_class": "RC-08",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "has_predicate": true,
+      "share_in_scope": 0.712,
+      "in_scope": {
+        "n": 178,
+        "b_valid": 0.7134831460674157,
+        "regret_b_xs_mean": 0.03141142857142857,
+        "advantage_xs_mean": 0.1462542857142857,
+        "v_star_xs_mean": 0.5480365168539326
+      },
+      "out_of_scope": {
+        "n": 72,
+        "b_valid": 0.6666666666666666,
+        "regret_b_xs_mean": 0.056992957746478876,
+        "advantage_xs_mean": 0.10580985915492959,
+        "v_star_xs_mean": 0.47759027777777785
+      },
+      "b_valid_gap": 0.04681647940074907,
+      "regret_gap": 0.025581529175050306
+    },
+    "RC-09": {
+      "rule_class": "RC-09",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "has_predicate": true,
+      "share_in_scope": 0.848,
+      "in_scope": {
+        "n": 212,
+        "b_valid": 0.6698113207547169,
+        "regret_b_xs_mean": 0.03433732057416268,
+        "advantage_xs_mean": 0.12044019138755979,
+        "v_star_xs_mean": 0.5570094339622642
+      },
+      "out_of_scope": {
+        "n": 38,
+        "b_valid": 0.5526315789473685,
+        "regret_b_xs_mean": 0.04939473684210526,
+        "advantage_xs_mean": 0.06405263157894736,
+        "v_star_xs_mean": 0.46430263157894736
+      },
+      "b_valid_gap": 0.11717974180734847,
+      "regret_gap": 0.015057416267942582
+    },
+    "RC-11": {
+      "rule_class": "RC-11",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "has_predicate": true,
+      "share_in_scope": 0.816,
+      "in_scope": {
+        "n": 204,
+        "b_valid": 0.6568627450980392,
+        "regret_b_xs_mean": 0.05325615763546799,
+        "advantage_xs_mean": 0.08631280788177337,
+        "v_star_xs_mean": 0.5990735294117647
+      },
+      "out_of_scope": {
+        "n": 46,
+        "b_valid": 0.34782608695652173,
+        "regret_b_xs_mean": 0.10595454545454545,
+        "advantage_xs_mean": -0.0765909090909091,
+        "v_star_xs_mean": 0.3920869565217391
+      },
+      "b_valid_gap": 0.3090366581415175,
+      "regret_gap": 0.052698387819077465
+    },
+    "RC-13": {
+      "rule_class": "RC-13",
+      "cell": "positive",
+      "n": 67,
+      "verdict": "UNCHECKED",
+      "why": "Its docstring names `the knight does something a queen cannot`; the trigger tests only that the knight promotion checks, and a queen promotion very often checks from the same square. THE SKIP IS REAL AND EXPLAINS NOTHING: b_valid is .000 on both sides of the split, so the class fails just as completely inside its own scope.",
+      "has_predicate": true,
+      "share_in_scope": 0.7014925373134329,
+      "in_scope": {
+        "n": 47,
+        "b_valid": 0.0,
+        "regret_b_xs_mean": 0.07980851063829789,
+        "advantage_xs_mean": -0.07980851063829789,
+        "v_star_xs_mean": 0.843531914893617
+      },
+      "out_of_scope": {
+        "n": 20,
+        "b_valid": 0.0,
+        "regret_b_xs_mean": 0.02525,
+        "advantage_xs_mean": -0.02525,
+        "v_star_xs_mean": 0.7753
+      },
+      "b_valid_gap": 0.0,
+      "regret_gap": -0.054558510638297884
+    },
+    "RC-14": {
+      "rule_class": "RC-14",
+      "cell": "positive",
+      "n": 240,
+      "verdict": "FAITHFUL",
+      "why": "`_sole_source_of` refuses to fire unless every threatened mate comes from one square, so `the mating piece` is well defined wherever the class fires.",
+      "has_predicate": false,
+      "whole_cell": {
+        "n": 240,
+        "b_valid": 0.6666666666666666,
+        "regret_b_xs_mean": 0.060922916666666674,
+        "advantage_xs_mean": 0.10802291666666665,
+        "v_star_xs_mean": 0.41669166666666657
+      }
+    },
+    "RC-18": {
+      "rule_class": "RC-18",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "Its own extra condition -- the attacker is cheaper, so defending cannot help -- IS tested, which is what makes it the contrast with RC-04. It still inherits the documented single-threat choice from `_designated_threat`.",
+      "has_predicate": true,
+      "share_in_scope": 0.904,
+      "in_scope": {
+        "n": 226,
+        "b_valid": 0.6061946902654868,
+        "regret_b_xs_mean": 0.05989159292035395,
+        "advantage_xs_mean": 0.10062389380530971,
+        "v_star_xs_mean": 0.5800730088495577
+      },
+      "out_of_scope": {
+        "n": 24,
+        "b_valid": 0.6666666666666666,
+        "regret_b_xs_mean": 0.0393125,
+        "advantage_xs_mean": 0.051812500000000004,
+        "v_star_xs_mean": 0.5560625
+      },
+      "b_valid_gap": -0.06047197640117985,
+      "regret_gap": -0.020579092920353953
+    },
+    "RC-20": {
+      "rule_class": "RC-20",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "DESIGNED",
+      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "has_predicate": true,
+      "share_in_scope": 0.796,
+      "in_scope": {
+        "n": 199,
+        "b_valid": 0.22110552763819097,
+        "regret_b_xs_mean": 0.1216840490797546,
+        "advantage_xs_mean": -0.08620858895705517,
+        "v_star_xs_mean": 0.6366909547738694
+      },
+      "out_of_scope": {
+        "n": 51,
+        "b_valid": 0.23529411764705882,
+        "regret_b_xs_mean": 0.1181046511627907,
+        "advantage_xs_mean": -0.11241860465116278,
+        "v_star_xs_mean": 0.44180392156862747
+      },
+      "b_valid_gap": -0.014188590008867852,
+      "regret_gap": -0.0035793979169638918
+    },
+    "RC-05": {
+      "rule_class": "RC-05",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "`_promote_trigger` fires on a queen promotion whose square is unattacked and names no condition about the rest of the board, so it claims nothing it fails to check. The material split is reported as a MODERATOR for comparison with RC-21.",
+      "has_predicate": true,
+      "share_in_scope": 0.488,
+      "in_scope": {
+        "n": 122,
+        "b_valid": 0.6065573770491803,
+        "regret_b_xs_mean": 0.004098360655737705,
+        "advantage_xs_mean": 0.008372950819672131,
+        "v_star_xs_mean": 0.9754098360655737
+      },
+      "out_of_scope": {
+        "n": 128,
+        "b_valid": 0.4375,
+        "regret_b_xs_mean": 0.0709453125,
+        "advantage_xs_mean": -0.034476562499999995,
+        "v_star_xs_mean": 0.83165234375
+      },
+      "b_valid_gap": 0.16905737704918034,
+      "regret_gap": 0.06684695184426229
+    },
+    "RC-12": {
+      "rule_class": "RC-12",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "FAITHFUL",
+      "why": "Names a promotion threat and tests one. The material split is reported as the NULL CONTROL: the same predicate on the same family moves b_valid by one point in the wrong direction, which is what shows RC-21's gap is not an artefact of slicing.",
+      "has_predicate": true,
+      "share_in_scope": 0.132,
+      "in_scope": {
+        "n": 33,
+        "b_valid": 0.45454545454545453,
+        "regret_b_xs_mean": 0.021520833333333333,
+        "advantage_xs_mean": -0.021520833333333333,
+        "v_star_xs_mean": 0.5005000000000001
+      },
+      "out_of_scope": {
+        "n": 217,
+        "b_valid": 0.46543778801843316,
+        "regret_b_xs_mean": 0.04126060606060605,
+        "advantage_xs_mean": 0.08367878787878787,
+        "v_star_xs_mean": 0.22199769585253462
+      },
+      "b_valid_gap": -0.010892333472978633,
+      "regret_gap": 0.01973977272727272
+    },
+    "RC-21": {
+      "rule_class": "RC-21",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "UNCHECKED",
+      "why": "`_outside_the_square` names the LONE enemy king in its own docstring. `_passer_trigger` never tests that the king is alone, and here the skip explains the headline: b_valid .562 inside the rule's scope against .124 outside it.",
+      "has_predicate": true,
+      "share_in_scope": 0.128,
+      "in_scope": {
+        "n": 32,
+        "b_valid": 0.5625,
+        "regret_b_xs_mean": 0.0,
+        "advantage_xs_mean": 0.016859375,
+        "v_star_xs_mean": 0.9530624999999999
+      },
+      "out_of_scope": {
+        "n": 218,
+        "b_valid": 0.12385321100917432,
+        "regret_b_xs_mean": 0.1504701834862385,
+        "advantage_xs_mean": -0.14449999999999996,
+        "v_star_xs_mean": 0.5398027522935781
+      },
+      "b_valid_gap": 0.43864678899082565,
+      "regret_gap": 0.1504701834862385
+    }
+  }
+}
