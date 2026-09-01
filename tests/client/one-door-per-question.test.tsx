@@ -48,6 +48,8 @@ const code = (path: string) =>
     .replace(/^\s*\/\/.*$/gm, "");
 
 const home = code("client/src/pages/Home.tsx");
+/* The rail's markup lives here since it was extracted to pay for `Home.tsx`'s line ratchet. */
+const rail = code("client/src/components/ControlRail.tsx");
 const css = readFileSync(resolve(root, "client/src/index.css"), "utf8").replace(
   /\/\*[\s\S]*?\*\//g,
   "",
@@ -151,8 +153,18 @@ describe("what did NOT collapse, because it is not the same question", () => {
     /*
      * The reading renders only once a scan is behind it -- a button that opens an empty panel is
      * a button that lies about what the record holds. That predates this change and survives it.
+     *
+     * READ IN TWO PLACES SINCE THE RAIL BECAME A COMPONENT, and deliberately: `Home.tsx` decides
+     * whether there IS a reading, the rail decides whether to draw an entry for it. Asserting only
+     * the first would have passed on `{showReading && importReading.reading && (`, which is the
+     * reading PANEL a hundred lines away -- a green test measuring the wrong thing.
      */
-    expect(home).toMatch(/importReading\.reading && \(/);
+    expect(home, "the rail is no longer told whether a reading exists").toMatch(
+      /savedReading=\{Boolean\(importReading\.reading\)\}/,
+    );
+    expect(rail, "the rail draws its saved-reading entry unconditionally").toMatch(
+      /\{savedReading && \(/,
+    );
   });
 
   it("names the import's second effect, because it has one", () => {
@@ -169,7 +181,7 @@ describe("what did NOT collapse, because it is not the same question", () => {
 
 describe("the rail stops being six controls at one weight", () => {
   it("offers the position sources through one entry rather than four", () => {
-    const railButtons = home.match(/className="rail-button[^"]*"/g) ?? [];
+    const railButtons = rail.match(/className="rail-button[^"]*"/g) ?? [];
     /*
      * Three entries, one per question, and the third renders conditionally. Asserted as a range
      * rather than an exact count because the saved-reading entry appears only once a scan has
@@ -177,11 +189,14 @@ describe("the rail stops being six controls at one weight", () => {
      */
     expect(railButtons.length, "the rail is back to a control per source").toBeLessThan(4);
     expect(railButtons.length, "the rail lost an entry it needs").toBeGreaterThan(1);
-    expect(home, "the one door is missing its label").toMatch(/עמדה אחרת/);
+    expect(rail, "the one door is missing its label").toMatch(/עמדה אחרת/);
   });
 
   it("no longer paints a rail control as the page's primary action", () => {
-    expect(home, "a rail button is prominent again").not.toMatch(/rail-button prominent/);
+    expect(rail, "a rail button is prominent again").not.toMatch(/rail-button prominent/);
+    expect(home, "a rail button is prominent again, in the page").not.toMatch(
+      /rail-button prominent/,
+    );
     expect(
       css,
       "the prominent rail style is still in the stylesheet, ready for the next control to pick up",

@@ -304,7 +304,7 @@ describe("the mobile tool rail", () => {
      * satisfies both -- five orphans the sixth onto its own row, six leave a dead cell when there
      * is no reading. What the original assertion protected is the intent kept here.
      */
-    const railButtons = (readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8")
+    const railButtons = (readFileSync(resolve(root, "client/src/components/ControlRail.tsx"), "utf8")
       .match(/className="rail-button[^"]*"/g) || []).length;
     expect(railButtons, "no rail buttons found at all").toBeGreaterThan(1);
     const mobile = bare.slice(bare.indexOf("@media (max-width: 680px)"));
@@ -621,17 +621,42 @@ describe("the workbench's tracks follow its children", () => {
   const workbench = block(".workbench");
   const focused = block(".workbench.workbench-focus");
 
-  it("names its columns instead of numbering them", () => {
+  it("names its columns instead of numbering them, task first", () => {
     /*
      * The number of tracks changes with the state, so `grid-column: 2` means the board in one
      * state and the commitment in the other. That is the defect written a second way.
+     *
+     * AND THE ORDER IS PART OF THE ASSERTION NOW, WHICH IT WAS NOT WHEN THIS WAS WRITTEN. It read
+     * `[rail] [board] [task]`, which is what shipped, and the document runs right to left: track 1
+     * is the right edge, so the surface a player WRITES INTO landed at the far left -- the place a
+     * Hebrew reader arrives last. Measured at 1440x900: `.commitment-screen` at x=24..354. This
+     * file measured the CAUSE of a geometry defect and could not see a direction defect, because
+     * nothing here asked which end of the line the language starts at. It asks now.
      */
-    expect(workbench, "the workbench's columns are unnamed again").toMatch(
-      /grid-template-columns:\s*\[rail\][^;]*\[board\][^;]*\[task\]/,
+    expect(workbench, "the workbench's columns are unnamed, or the task is not first").toMatch(
+      /grid-template-columns:\s*\[task\][^;]*\[board\][^;]*\[rail\]/,
     );
-    expect(focused, "the focus template is unnamed again").toMatch(
-      /grid-template-columns:\s*\[board\][^;]*\[task\]/,
+    expect(focused, "the focus template is unnamed, or the task is not first").toMatch(
+      /grid-template-columns:\s*\[task\][^;]*\[board\]/,
     );
+  });
+
+  it("puts the task first in the DOM too, so the tab order is the reading order", () => {
+    /*
+     * A track order the DOM disagrees with is a keyboard walk that jumps, and the repair for that
+     * is `order` or `tabindex` -- both of which leave the two orders saying different things. The
+     * children moved with the tracks instead. The phone is the one exception and it is asserted
+     * where it happens, in the layout suite.
+     */
+    const children = /<section className=\{focus \? "workbench[\s\S]*?\n      <\/section>/.exec(home);
+    expect(children, "the workbench section is no longer recognisable in Home.tsx").not.toBeNull();
+    const order = [...children![0].matchAll(/className="(analysis-stack|board-workspace)"/g)].map(
+      (m) => m[1],
+    );
+    expect(order.slice(0, 2), `workbench children in DOM order: ${order.join(", ")}`).toEqual([
+      "analysis-stack",
+      "board-workspace",
+    ]);
   });
 
   it("drops the toolbox's track in the state where the toolbox does not exist", () => {
@@ -664,9 +689,20 @@ describe("the workbench's tracks follow its children", () => {
     expect(home, "the workbench no longer switches template on the focus state").toMatch(
       /className=\{focus \? "workbench workbench-focus" : "workbench"\}/,
     );
+    /*
+     * THE RAIL IS A COMPONENT NOW and the gate is still in `Home.tsx`, which is the half that
+     * matters: what this protects is that ONE condition drives both the template and the child,
+     * not where the child's markup lives. `<aside className="control-rail">` moved to
+     * `components/ControlRail.tsx` to pay for the line the workbench's reading order cost the
+     * ratchet in `the-file-that-only-ever-grew.test.ts`.
+     */
     expect(home, "the toolbox is no longer gated on `focus`").toMatch(
-      /\{!focus && \(\s*<aside className="control-rail">/,
+      /\{!focus && \(\s*<ControlRail\b/,
     );
+    expect(
+      readFileSync(resolve(root, "client/src/components/ControlRail.tsx"), "utf8"),
+      "the rail component no longer renders the rail",
+    ).toMatch(/<aside className="control-rail">/);
     expect(home, "`focus` is no longer the LAW 1 boundary").toMatch(
       /const focus = makingEvidence\(stage\);/,
     );

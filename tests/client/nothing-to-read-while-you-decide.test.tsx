@@ -228,9 +228,19 @@ describe("the surfaces a serverless render cannot reach", () => {
   });
 
   it("keeps the toolbox behind the same branch, by the same reading", () => {
-    const rail = home.indexOf('<aside className="control-rail">');
+    /*
+     * THE MARKUP MOVED AND THE BRANCH DID NOT, which is the half this asserts. The rail is
+     * `components/ControlRail.tsx` now; what has to stay in this file is the gate on it, because
+     * the claim is that a surface offering "give me something else" is absent while a decision is
+     * open -- and absence is decided here, not there.
+     */
+    const rail = home.indexOf("<ControlRail");
     expect(rail, "the control rail is gone entirely").toBeGreaterThan(0);
     expect(home, "the rail renders unconditionally again").toMatch(/\{!focus && \(/);
+    expect(
+      readFileSync(resolve(__dirname, "../../client/src/components/ControlRail.tsx"), "utf8"),
+      "the rail component no longer renders the rail",
+    ).toContain('<aside className="control-rail">');
   });
 });
 
