@@ -1,0 +1,182 @@
+{
+  "predicate_semantics_version": "1.0.0",
+  "what_this_is": "Three claims made in `rule_classes.py` comments and in `docs/measurement/ACTION_SET_REANALYSIS.md`, measured instead of asserted. No engine is used and no move played by any human is read.",
+  "items_file": "rc.jsonl",
+  "records_read": 95365,
+  "seed": 20260831,
+  "cells": {
+    "RC-06/negative": {
+      "cell_size": 80332,
+      "drawn": 2000
+    },
+    "RC-06/positive": {
+      "cell_size": 2080,
+      "drawn": 2000
+    },
+    "RC-13/negative": {
+      "cell_size": 700,
+      "drawn": 700
+    },
+    "RC-13/positive": {
+      "cell_size": 67,
+      "drawn": 67
+    },
+    "RC-21/negative": {
+      "cell_size": 8900,
+      "drawn": 8900
+    },
+    "RC-21/positive": {
+      "cell_size": 3286,
+      "drawn": 3286
+    }
+  },
+  "RC-06_response_definition": {
+    "question": "`separation` is `b_valid|T+` minus `b_valid|T-`. On RC-06 those two numbers are produced by two different predicates. What is the separation when one predicate is held fixed across both cells?",
+    "branching_B": "T+: opponent has no mate in one. T-: opponent has no check at all.",
+    "symmetric_B": "both cells: opponent has no mate in one -- the rule as written.",
+    "t_plus": {
+      "n": 2000,
+      "prescription_size_branching_mean": 0.301246639452993,
+      "prescription_size_symmetric_mean": 0.301246639452993,
+      "every_legal_move_satisfies_symmetric_B": {
+        "k": 14,
+        "n": 2000,
+        "p": 0.007
+      },
+      "every_legal_move_satisfies_branching_B": {
+        "k": 14,
+        "n": 2000,
+        "p": 0.007
+      },
+      "no_legal_move_satisfies_symmetric_B": {
+        "k": 81,
+        "n": 2000,
+        "p": 0.0405
+      }
+    },
+    "t_minus": {
+      "n": 2000,
+      "prescription_size_branching_mean": 0.10275028784520251,
+      "prescription_size_symmetric_mean": 0.9939776582600595,
+      "every_legal_move_satisfies_symmetric_B": {
+        "k": 1844,
+        "n": 2000,
+        "p": 0.922
+      },
+      "every_legal_move_satisfies_branching_B": {
+        "k": 1,
+        "n": 2000,
+        "p": 0.0005
+      },
+      "no_legal_move_satisfies_symmetric_B": {
+        "k": 0,
+        "n": 2000,
+        "p": 0.0
+      }
+    }
+  },
+  "RC-21_scope": {
+    "question": "Is `no opposing knight/bishop/rook/queen` the condition under which the rule of the square is the whole story?",
+    "t_plus": {
+      "n": 3286,
+      "lone_king_defends": {
+        "k": 336,
+        "n": 3286,
+        "p": 0.10225197808886184
+      },
+      "only_the_king_can_stop_it": {
+        "k": 180,
+        "n": 3286,
+        "p": 0.054777845404747415
+      },
+      "functional_given_piece_list": {
+        "k": 180,
+        "n": 336,
+        "p": 0.5357142857142857
+      },
+      "piece_list_true_functional_false": {
+        "k": 156,
+        "n": 3286,
+        "p": 0.04747413268411443
+      }
+    },
+    "t_minus": {
+      "n": 8900,
+      "lone_king_defends": {
+        "k": 551,
+        "n": 8900,
+        "p": 0.06191011235955056
+      },
+      "only_the_king_can_stop_it": {
+        "k": 125,
+        "n": 8900,
+        "p": 0.014044943820224719
+      },
+      "functional_given_piece_list": {
+        "k": 125,
+        "n": 551,
+        "p": 0.22686025408348456
+      },
+      "piece_list_true_functional_false": {
+        "k": 426,
+        "n": 8900,
+        "p": 0.04786516853932584
+      }
+    }
+  },
+  "RC-13_matched_promotion": {
+    "question": "Does a knight promotion do something the queen promotion FROM THE SAME SQUARE TO THE SAME SQUARE cannot?",
+    "t_plus": {
+      "n": 67,
+      "unmatched_shipped_predicate": {
+        "k": 47,
+        "n": 67,
+        "p": 0.7014925373134329
+      },
+      "matched_same_from_and_to": {
+        "k": 52,
+        "n": 67,
+        "p": 0.7761194029850746
+      },
+      "matched_given_unmatched": {
+        "k": 47,
+        "n": 47,
+        "p": 1.0
+      },
+      "unmatched_true_matched_false": {
+        "k": 0,
+        "n": 67,
+        "p": 0.0
+      },
+      "matched_true_unmatched_false": {
+        "k": 5,
+        "n": 67,
+        "p": 0.07462686567164178
+      }
+    },
+    "t_minus": {
+      "n": 700,
+      "unmatched_shipped_predicate": {
+        "k": 0,
+        "n": 700,
+        "p": 0.0
+      },
+      "matched_same_from_and_to": {
+        "k": 0,
+        "n": 700,
+        "p": 0.0
+      },
+      "matched_given_unmatched": null,
+      "unmatched_true_matched_false": {
+        "k": 0,
+        "n": 700,
+        "p": 0.0
+      },
+      "matched_true_unmatched_false": {
+        "k": 0,
+        "n": 700,
+        "p": 0.0
+      }
+    }
+  }
+}
