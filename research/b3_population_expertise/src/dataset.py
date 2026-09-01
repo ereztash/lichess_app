@@ -27,6 +27,10 @@ def load(path: str) -> pd.DataFrame:
     # rather than a silent zero, and the imputed value is a frozen DEVELOPMENT median supplied by
     # the caller through `apply_frozen_imputation`.
     frame["nodes_to_depth10_missing"] = frame["nodes_to_depth10"].isna().astype(int)
+    for column in ("opp_prev_think_s", "own_prev_think_s"):
+        if column not in frame:
+            frame[column] = np.nan
+        frame[f"{column[:-2]}_missing"] = frame[column].isna().astype(int)
     return frame
 
 
@@ -34,6 +38,8 @@ def apply_frozen(frame: pd.DataFrame, constants: dict) -> pd.DataFrame:
     """Attach every DEVELOPMENT-derived constant. Applied identically to every period."""
     frame = frame.copy()
     frame["nodes_to_depth10"] = frame["nodes_to_depth10"].fillna(constants["nodes_to_depth10_median"])
+    for column in ("opp_prev_think_s", "own_prev_think_s"):
+        frame[column] = frame[column].fillna(constants[f"{column}_median"])
     frame["voc_z"] = (frame["voc_regret"] - constants["voc_mean"]) / constants["voc_sd"]
     for name, edges in constants["cuts"].items():
         frame[f"{name}_cut"] = np.digitize(frame[name].astype(float), edges)
@@ -51,6 +57,8 @@ def frozen_constants(dev: pd.DataFrame) -> dict:
 
     return {
         "nodes_to_depth10_median": float(dev["nodes_to_depth10"].median()),
+        "opp_prev_think_s_median": float(dev["opp_prev_think_s"].median()),
+        "own_prev_think_s_median": float(dev["own_prev_think_s"].median()),
         "voc_mean": float(dev["voc_regret"].mean()),
         "voc_sd": float(dev["voc_regret"].std() or 1.0),
         "cuts": {

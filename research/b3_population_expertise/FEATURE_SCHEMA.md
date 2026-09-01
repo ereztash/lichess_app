@@ -17,6 +17,24 @@ Frozen with `PREREGISTRATION.md`. Every column is tagged. A model may only consu
 | hash reset | `ucinewgame` + `isready` before **every** search |
 | searches per decision | 2: the pre-move position, and the position after the human's move. Identical settings for both, so `E1_before` and `E1_after` are measured the same way. |
 
+### The predictive comparator, pinned (Gate 1, R11)
+
+Control C5b plants the residual of a gradient-boosted comparator, so that comparator must be
+reproducible to the seed:
+
+| Setting | Value |
+|---|---|
+| library | scikit-learn 1.9.0, `HistGradientBoostingRegressor` |
+| `max_iter` | 200 |
+| `learning_rate` | 0.1 |
+| `max_leaf_nodes` | 31 |
+| `min_samples_leaf` | 20 |
+| `l2_regularization` | 0.0 |
+| `random_state` | 20260901 |
+| features | the T2R numeric and binary columns (`phase` and `standing` excluded; they enter the linear models as indicators) |
+
+Its predictions are reported. Its explanations are not: it supplies no reported scientific quantity.
+
 Determinism was measured before any B3 data existed, not assumed
 (`tests/test_engine_determinism.py`): with the hash cleared, repeated runs are identical, runs in a
 fresh process are identical, position order does not matter, and `Hash` size does not matter. With
@@ -102,10 +120,22 @@ as specified and the design returns to Gate 1 rather than being patched after th
 | `clock_frac` | `clock_ms_self / (1000 * base_seconds)` |
 | `clock_pressure` | `-log(clock_frac + 0.01)`; increases as the clock empties |
 | `clock_diff_frac` | `(clock_ms_self - clock_ms_opp) / (1000 * base_seconds)` |
+| `opp_prev_think_s` | seconds the OPPONENT spent on ply `i-1`: `clk_opp[i-3] - clk_opp[i-1] + increment`. `null` (with an indicator) when the opponent's previous move was their first. **Required in T0** (Gate 1, R9): blitz players think on the opponent's clock, so a decision following a long opponent think shows a short own think time *and* better quality -- negative unexpected time paired with low quality loss, which adds to `beta` for a reason that is not "unusually long deliberation predicts a worse move". It is observable before the human moved, from clocks already parsed, so omitting it was not a limit of the data. |
+| `own_prev_think_s` | seconds the player spent on their own previous move, `clk[i-4] - clk[i-2] + increment`. **Recorded but in no primary model**: it absorbs the player's pace, and pace is partly the allocation policy Metric B measures. Control C19 adds it and re-estimates `beta`. |
 
 ## 7. Skill features (`PRE_MOVE`)
 
-`rating` (analysed side, at game time), `rating_band`, `opponent_rating`, `rating_diff`.
+`rating` (analysed side, at game time), `rating_band`, `rating_diff`, and `opponent_rating`
+(recorded, but **not** a model feature).
+
+**The context block carries `rating_diff`, never `opponent_rating`** (Gate 1, R5). Lichess pairs by
+rating, so across 800-2600 `opponent_rating` is very nearly `rating`; carrying it in T0 put the
+exposure inside T1P and T2P, the models this study calls *rating-free*. Metric A would then have
+been identified from rating-difference variation alone -- a matchup quantity -- and
+`unexpected_time_population` would have had most of its between-band signal removed before Metric D
+compared bands on it. Models named "with rating" carry `{rating, rating_diff}`, which spans the same
+columns as `{rating, opponent_rating}` but makes the `rating` coefficient the level effect along the
+pairing diagonal.
 
 ## 8. Time (`PRE_MOVE` as an outcome, never as a predictor of itself)
 

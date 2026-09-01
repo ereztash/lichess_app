@@ -40,6 +40,34 @@ def think_time(clocks: list[float], ply: int, increment: int) -> float | None:
     return clocks[ply - 2] - clocks[ply] + increment
 
 
+def opponent_previous_think(clocks: list[float], ply: int, increment: int) -> float | None:
+    """Seconds the OPPONENT spent on the move immediately before this decision.
+
+    R9 FROM GATE 1, and it is a mechanical route to a false positive for H1, not a nicety. Blitz
+    players think on the opponent's clock. Part of the deliberation behind decision `i` happened
+    while the opponent was moving at `i-1`, so a decision that follows a long opponent think tends
+    to show a SHORT own think time (the move was already chosen) and BETTER quality (real
+    deliberation went into it). That pairs negative unexpected time with low quality loss, which
+    adds to beta for a reason that has nothing to do with unusually long deliberation predicting a
+    worse move. It is observable before the human moved, from clocks already parsed, so leaving it
+    out was not a limit of the data.
+    """
+    if ply < 3 or ply - 1 >= len(clocks):
+        return None
+    return clocks[ply - 3] - clocks[ply - 1] + increment
+
+
+def own_previous_think(clocks: list[float], ply: int, increment: int) -> float | None:
+    """Seconds the player spent on their OWN previous move. Pace, and partly policy.
+
+    Recorded but kept out of every primary model: it absorbs the player's tempo, and tempo is part
+    of the allocation policy Metric B is trying to measure. Control C19 adds it and re-estimates.
+    """
+    if ply < 4:
+        return None
+    return think_time(clocks, ply - 2, increment)
+
+
 def berserked(clocks: list[float], base_seconds: int) -> bool:
     """Whether either side started on a clock that is not this time control's.
 

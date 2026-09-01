@@ -12,9 +12,9 @@ statistic of any kind existed.
 The weak claim -- stronger players play better moves -- is already known and is not worth an
 experiment. B3 tests something narrower and falsifiable:
 
-> Does increasing chess expertise show up as **better management of a common
-> difficulty / time / value-of-computation / quality process**, rather than only as a higher
-> level of the quality outcome?
+> Does the relationship between thinking time and the engine-measured value of further
+> computation **differ systematically with rating**, net of matched position and clock state --
+> rather than expertise showing up only as a higher level of the quality outcome?
 
 Two separable questions, tested separately:
 
@@ -25,8 +25,8 @@ pre-move value of further computation, the clock state, and rating, does a decis
     QualityLoss_i = f(Difficulty_i, VoC_i, Clock_i, Rating_i) + beta * UT_within_i + e_i
     H1:  beta > 0
 
-**H2 (expertise adaptation).** Does the way players operate inside that process change
-systematically with rating? Five preregistered manifestations, of which Metric B is primary:
+**H2 (expertise adaptation).** Does the time / value-of-computation relation change systematically
+with rating? Five preregistered manifestations, of which Metric B is primary:
 
     A  matched-difficulty thinking time            expect: decreases with rating
     B  Time Allocation Efficiency (PRIMARY)        expect: increases with rating
@@ -44,6 +44,20 @@ nothing here measures cognition. `unexpected_time` is a **regression residual of
 difference**, not a mental state. The variable names in the code are deliberately neutral
 (`unexpected_time_population`, `unexpected_time_within_rating`) so that no analysis step can
 quietly import an interpretation the design cannot support. See §9.
+
+**And one thing more, which Gate 1 (R13) was right to force into the front of the document.** No H2
+metric here distinguishes a better *allocation policy* from **better recognition of which positions
+require computation**. The strongest H2 signal is the within-band slope of time on engine-measured
+value-of-computation. A stronger player who merely *sees* that a position is sharp -- pattern
+recall, opening knowledge, tactical vision -- produces a steeper slope with an identical allocation
+policy, because a weaker player cannot allocate time to a position they cannot identify as
+deserving it. Nothing measured here separates the two, and no covariate in this design could.
+
+So the boxed question above is the claim, and it is deliberately narrower than the one this study
+started with. The verdict label `EXPERTISE_ADAPTATION_SUPPORTED` is kept because the mission plan
+fixes it, and `VERDICT_RULES.md` §3 defines what it is allowed to mean: *the time / VoC relation
+differs systematically with rating, net of matched position and clock state.* Not "expertise
+changes management". Not "stronger players manage their time better".
 
 ---
 
@@ -64,7 +78,9 @@ than discovered later.
 | A7 | **Clock quantisation.** Lichess database clocks are whole seconds, so a large share of decisions read as `T = 0`, and those are disproportionately easy positions. | C17 repeats everything with `T = 0` decisions removed. | Yes, by exclusion. |
 | A8 | **Survivorship.** Longer games contribute more decisions, and game length is not independent of how the player is playing. | Player-level clustering everywhere; C18 restricts to the first 40 plies. | Partly. |
 | A9 | **Metric induction.** Time Allocation Efficiency is an association between time and VoC; if VoC were built from anything the player did, the metric would be circular. | VoC is computed **only** from engine analysis of the pre-move position (§6). C4 destroys VoC and requires the TAE signal to die with it. | Yes, by construction and by C4. |
-| A10 | **Pseudo-replication.** Hundreds of thousands of moves from a handful of very active accounts. | At most **2 game-sides per player**, player-level block bootstrap for every interval, C8 player-influence controls. | Yes. |
+| A10 | **Pseudo-replication.** Hundreds of thousands of moves from a handful of very active accounts, or two sides of one game counted as two clusters. | At most **2 game-sides per player** and **at most one analysed side per game** (Gate 1, R6); player-level block bootstrap for every interval; C8 player-influence controls. | Yes -- but only with the one-side-per-game rule. Without it the two accepted sides of a game are alternate plies of one position sequence with coupled clocks, the dependence graph is a player-game graph rather than the tree `move ⊂ game ⊂ player`, and every band interval is too narrow, worst in the thinnest bands. |
+| A11 | **Engine-assisted accounts.** Time that tracks engine difficulty paired with low quality loss is close to what assistance detection looks for, and it is exactly what Metric B rewards. Assisted accounts concentrate in the upper bands of a fast time control, and the strongest verdict is a top-versus-bottom band contrast. | One batch lookup of public account status per period, on a date recorded in the manifest; sides whose account is `disabled` or `tosViolation` are excluded and counted per band (Gate 1, R10). | Partly. The lookup is a snapshot: an account closed after the lookup date stays in, and one closed for an unrelated reason is removed. Both directions are reported, not corrected for. |
+| A12 | **Thinking on the opponent's clock.** A decision that follows a long opponent think has a short own think time *and* better quality, which is a positive contribution to `beta` that has nothing to do with unusually long deliberation predicting a worse move. | `opp_prev_think_s` is a pre-move feature in T0 and therefore in every model (Gate 1, R9). C19 additionally adds the player's own previous think time. | Yes, to the extent the clocks measure it. |
 
 ---
 
@@ -74,13 +90,27 @@ Non-overlapping, completed, historical. Constructed identically (§ DATA_PROTOCO
 
 | Period | Source month | Role | May be used for |
 |---|---|---|---|
-| DEVELOPMENT | 2026-02 | build | debugging, feature development, cost pilot, model-family exploration, fitting the frozen models, setting frozen standardisation constants and thresholds |
-| VALIDATION | 2026-04 | choose | comparing already-defined candidates, calibration, directional checks, freezing the final specification |
+| DEVELOPMENT | 2026-02 | build | debugging, feature development, the cost pilot, fitting the frozen models, setting the frozen standardisation constants |
+| VALIDATION | 2026-04 | confirm | out-of-sample confirmation and calibration of an already-determined specification, and the C9 budget subset. **No choice is made on it.** |
 | FINAL REPLICATION | 2026-06 | seal | **nothing** until FABLE GATE 2 returns PASS. Then opened once, mechanically. |
 | SECONDARY CONTEXT | 2026-06, `300+0` | replicate | run only after the primary verdict is frozen. No retuning. |
 
 The repository's opening book (`shared/opening-book-keys.ts`) was built from **2026-03**, which is
 disjoint from all three periods. That is checked, not assumed.
+
+**What is still open after this document is hashed (Gate 1, R8).** Exactly one thing:
+
+| Open choice | Decision rule | Period that decides |
+|---|---|---|
+| the ridge penalty | lowest grouped-CV error over the frozen grid `{0.01, 0.1, 1, 10, 100}`, players as groups, 5 folds | DEVELOPMENT |
+
+That is the entire list. Anything not on it is closed. The first draft of this table said
+DEVELOPMENT could be used for "model-family exploration" and VALIDATION for "freezing the final
+specification", which would have meant Gate 1 hashed a document that did not determine the analysis
+and the specification was settled after two of the three periods had been seen. `MODEL_SPEC.md`
+names one model family, one penalty grid and one knot rule, and `src/evaluate.py` is a
+transcription of `VERDICT_RULES.md`; a transcription of an under-determined specification is not a
+transcription.
 
 **Player overlap.** Overlap between periods is not prevented at sampling time, because preventing
 it would require reading the FINAL period before Gate 2. Instead it is preregistered here: after
@@ -124,9 +154,22 @@ This is enforced two ways, and both are tests that fail the build:
 1. **Structural.** Every feature carries a provenance tag. A model may only consume features
    tagged `PRE_MOVE`. The outcome columns are tagged `POST_MOVE` and are unreachable from a model's
    feature list.
-2. **Empirical.** For a sample of decisions, the played move is replaced with a different legal
-   move and the whole pre-move feature vector is recomputed. Every pre-move feature must be
-   **bit-identical**. Any feature that moves is leakage.
+2. **Empirical, in two perturbations, because one is not enough** (Gate 1, R7).
+   * *The played move* is replaced with a different legal move and the whole pre-move feature
+     vector is recomputed. Every pre-move feature must be **bit-identical**.
+     (`tests/test_leakage.py`)
+   * *The whole game suffix* -- every later move, every later `%clk` reading, `Termination` and
+     `Result` -- is replaced with a different legal continuation, different clocks and a different
+     outcome. Every pre-move quantity must be **bit-identical**. `seconds_taken` and `log_time` are
+     the only non-outcome columns permitted to change, because they read `clk[i]`, the reading
+     written *after* the move, which is exactly why they are outcomes here and never predictors.
+     (`tests/test_suffix_leakage.py`)
+
+   The first perturbation alone cannot see a feature that reads a later clock, a later move or the
+   result -- a `clock_ms_self` mistakenly taken from `clk[i]` instead of `clk[i-2]` passes it
+   bit-identical. B2's own ledger records that clock-derivation defects are the ones that actually
+   happen: its starting clock was inferred from the largest eligible reading and was wrong in 63 of
+   75 games, by up to 86 seconds.
 
 A leakage failure invalidates the experiment. It is not repaired and re-run as B3.
 
@@ -166,11 +209,21 @@ the primary estimate; if the estimate is an artifact of shared engine noise, C9 
 
 ## 8. Controls
 
-C1-C16 exactly as specified in the mission plan, plus C17 (`T = 0` exclusion) and C18 (first 40
-plies only), which address A7 and A8 above. `MODEL_SPEC.md` §9 gives each control's exact
-construction and its pass condition. The positive controls (C5, C6) are the ones that make a
-negative result mean anything: a pipeline that cannot recover a planted signal produces
-`SKILL_ONLY` on every dataset in the world.
+C1-C16 exactly as specified in the mission plan, plus C17 (`T = 0` exclusion), C18 (first 40 plies
+only), **C5b** and **C19**. `MODEL_SPEC.md` §9 gives each control's exact construction and its pass
+condition.
+
+**What C5 actually establishes, corrected** (Gate 1, R11). C5 plants a term linear in the
+estimator's own regressor, so its recovery follows from linear algebra and it can only fail on a
+code bug. It is an **implementation check**. It does not establish that a real signal -- one living
+in raw time under an expected-time model that is not T2R -- would be seen, so the claim that C5 is
+what makes a negative verdict meaningful was wrong and is withdrawn.
+
+**C5b** is the control that does that work: it plants `0.02 x (Y - Yhat_GBT)`, the residual of the
+pinned gradient-boosted comparator, which is a quantity this pipeline's linear specification never
+produced. What comes back is the fraction of a real, foreign signal the frozen specification
+actually recovers. That fraction is the **attenuation factor every reported effect should be read
+against**, and a shortfall is a measurement rather than an invalid run.
 
 ## 9. Language that is forbidden regardless of result
 
@@ -178,6 +231,11 @@ negative result mean anything: a pipeline that cannot recover a planted signal p
 * "confusion", "cognitive failure", "indecision", "hesitation" as names for a time residual
 * any claim that this measures cognition, intelligence, or a mental state
 * any predicted Elo from behavioural metrics
+* **"allocation skill", "time-management skill", "manages time better", "spends time more wisely"**
+  or any equivalent, as a reading of a Metric B gradient (Gate 1, R13). The gradient is consistent
+  with better *recognition* of which positions are sharp, and this design cannot separate the two.
+* "expertise changes how players manage the process", in the verdict, the abstract or the
+  conclusion
 
 The strongest phrase this design can license, and only if the invariance tests support it, is
 **`cross-rating law-like regularity`**; with the secondary time control replicating,

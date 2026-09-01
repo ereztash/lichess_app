@@ -9,7 +9,10 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analysis import PlayerBootstrap, pooled_random_effects, slope, slope_with_interaction, spearman
+from analysis import (
+    PlayerBootstrap, RatingBasis, gradient_with_main_effect, pooled_random_effects, slope,
+    spearman,
+)
 from common import BAND_LABELS
 
 MIN_PLAYERS_PER_BAND = 150
@@ -55,9 +58,13 @@ def _centred_rating(frame):
     return (frame["rating"].to_numpy(float) - 1600.0) / 100.0
 
 
-def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None) -> dict:
+def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
+             rating_basis: RatingBasis | None = None) -> dict:
     if boot is None:
         boot = PlayerBootstrap(frame["player"].to_numpy())
+    if rating_basis is None:
+        rating_basis = RatingBasis(frame["rating"].to_numpy(float))
+    rating_block = rating_basis.transform(frame["rating"].to_numpy(float))
 
     q_resid = frame["q_resid"].to_numpy(float)
     ut_resid = frame["ut_resid"].to_numpy(float)
@@ -86,10 +93,11 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None) -> dict:
     # --- H1 -----------------------------------------------------------------------------------
     out["beta"] = boot.interval(lambda i: slope(q_resid[i], ut_resid[i]))
     out["beta_by_band"] = _by_band(frame, boot, lambda i: slope(q_resid[i], ut_resid[i]))
-    main, inter = slope_with_interaction(q_resid, ut_resid, rating_c)
+    main, inter = gradient_with_main_effect(q_resid, ut_resid, rating_c, rating_block)
     out["beta_at_mean_rating"] = main
     out["beta_rating_interaction"] = boot.interval(
-        lambda i: slope_with_interaction(q_resid[i], ut_resid[i], rating_c[i])[1], point=inter
+        lambda i: gradient_with_main_effect(q_resid[i], ut_resid[i], rating_c[i],
+                                            rating_block[i])[1], point=inter
     )
 
     # --- Metric A: matched-difficulty thinking time, per 100 Elo -------------------------------
@@ -99,10 +107,11 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None) -> dict:
 
     # --- Metric B: time allocation efficiency (PRIMARY) ----------------------------------------
     out["tae_by_band"] = _by_band(frame, boot, lambda i: slope(y_resid[i], voc_resid[i]))
-    tae_main, tae_inter = slope_with_interaction(y_resid, voc_resid, rating_c)
+    tae_main, tae_inter = gradient_with_main_effect(y_resid, voc_resid, rating_c, rating_block)
     out["tae_pooled"] = tae_main
     out["tae_rating_gradient"] = boot.interval(
-        lambda i: slope_with_interaction(y_resid[i], voc_resid[i], rating_c[i])[1], point=tae_inter
+        lambda i: gradient_with_main_effect(y_resid[i], voc_resid[i], rating_c[i],
+                                            rating_block[i])[1], point=tae_inter
     )
     # The partial-correlation form, so a band whose thinking times are merely more variable cannot
     # read as more efficient.

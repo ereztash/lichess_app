@@ -1,8 +1,12 @@
 """VERDICT_RULES.md, transcribed. Applied mechanically, before any narrative exists.
 
 Every threshold below is a literal from that document and was fixed before the FINAL period was
-opened. This file makes no judgement calls: it reads `results/analysis.json` and prints a verdict.
-If a rule and this code disagree, the code is wrong.
+opened. This file makes no judgement calls: it reads `results/analysis_final.json` and prints a
+verdict. If a rule and this code disagree, the code is wrong.
+
+The gate set is checked for EXHAUSTIVENESS at the end: exactly one gate must fire. A rule set that
+can fire twice, or leave a case with nothing to print, is not a rule set -- and the first draft had
+exactly that hole (Gate 1, R4b).
 """
 from __future__ import annotations
 
@@ -11,50 +15,69 @@ import json
 import math
 
 BETA_FLOOR = 0.002
+TAE_FLOOR = 0.02            # absolute, in log-seconds per DEVELOPMENT sd of VoC (Gate 1, R3)
 MONOTONE_RHO = 0.6
 SIGN_AGREEMENT = 0.80
-TAE_RELATIVE_GAIN = 0.20
+MIN_POWERED_BANDS = 5       # Gate 1, R4d
 CENSOR_LIMIT = 0.15
 R2_GAIN_FLOOR = 0.001
 PLAYER_INFLUENCE_LIMIT = 0.25
 JACKKNIFE_LIMIT = 0.20
+C5B_RECOVERY_FLOOR = 0.5    # Gate 1, R11
+R_BETA_THRESHOLD = 0.5      # Gate 1, R12
 
 
 def excludes_zero(interval) -> bool:
-    lo, hi = interval.get("lo"), interval.get("hi")
+    lo, hi = (interval or {}).get("lo"), (interval or {}).get("hi")
     if lo is None or hi is None or not (math.isfinite(lo) and math.isfinite(hi)):
         return False
     return lo > 0 or hi < 0
 
 
 def contains_zero(interval) -> bool:
-    lo, hi = interval.get("lo"), interval.get("hi")
-    if lo is None or hi is None or not (math.isfinite(lo) and math.isfinite(hi)):
-        return True
-    return lo <= 0 <= hi
+    return not excludes_zero(interval)
 
 
 def signed(interval, expected: int) -> bool:
     """Interval excludes zero AND the point estimate has the preregistered sign."""
-    return excludes_zero(interval) and (interval["point"] > 0) == (expected > 0)
+    if not excludes_zero(interval):
+        return False
+    return (interval["point"] > 0) == (expected > 0)
+
+
+def sign_agreement(table, bands, expected: int) -> tuple[int, int, bool]:
+    """RAW band estimates, `ceil` rounding (Gate 1, R4c and R4d).
+
+    Shrunk estimates are for figures. Partial pooling with unequal band variances can reorder
+    bands, and a shape test run on reordered points is a test of the shrinkage.
+    """
+    points = [table[b]["point"] for b in bands]
+    agree = sum(1 for p in points if math.isfinite(p) and ((p > 0) == (expected > 0)))
+    needed = math.ceil(SIGN_AGREEMENT * len(bands)) if bands else 0
+    return agree, needed, bool(bands) and agree >= needed
 
 
 def evaluate(analysis: dict) -> dict:
     final = analysis["periods"]["final"]
     controls = analysis["controls"]["final"]
-    reasons: list[str] = []
     checks: dict[str, bool] = {}
+    notes: list[str] = []
 
-    # --- 2.1 INVALID_EXPERIMENT -----------------------------------------------------------------
+    # --- 2.1 INVALID_EXPERIMENT ------------------------------------------------------------------
     invalid: list[str] = []
-    if not analysis["leakage_tests_passed"]:
+    if not analysis.get("leakage_tests_passed"):
         invalid.append("leakage tests failed")
     if analysis.get("holdout_contaminated"):
         return {"verdict": "HOLDOUT_CONTAMINATED", "level": None,
                 "reasons": ["the final holdout was inspected before Gate 2 passed"]}
     c5 = controls.get("C5_planted_regularity", {}).get("beta", {})
     if not excludes_zero(c5) or c5.get("point", 0) <= 0:
-        invalid.append("C5 failed: a planted regularity was not recovered")
+        invalid.append("C5 failed: the implementation check did not recover its own regressor")
+    c5b = controls.get("C5b_planted_foreign_residual", {})
+    recovered = c5b.get("recovered_fraction")
+    if recovered is not None and math.isfinite(recovered) and recovered < C5B_RECOVERY_FLOOR:
+        invalid.append(f"C5b failed: the pipeline recovered {recovered:.2f} of a signal defined "
+                       f"outside its own residual, below the {C5B_RECOVERY_FLOOR} floor")
     c6 = controls.get("C6_planted_expertise", {}).get("tae_rating_gradient", {})
     if not signed(c6, +1):
         invalid.append("C6 failed: a planted expertise gradient was not recovered")
@@ -74,88 +97,76 @@ def evaluate(analysis: dict) -> dict:
                        f"{CENSOR_LIMIT:.0%}")
     if analysis.get("engine_nondeterminism_detected"):
         invalid.append("engine nondeterminism detected against the recorded run")
-    if invalid:
-        return {"verdict": "INVALID_EXPERIMENT", "level": None, "reasons": invalid, "checks": checks}
 
     beta = final["beta"]
     r2_gain = analysis["model_comparison"]["final"]["q1_minus_q0_r2"]
+    powered = final["powered_bands"]
+    enough_bands = len(powered) >= MIN_POWERED_BANDS
 
-    # --- H1 ------------------------------------------------------------------------------------
+    # --- H1 ---------------------------------------------------------------------------------------
     checks["h1_interval_excludes_zero"] = excludes_zero(beta)
     checks["h1_positive"] = beta["point"] > 0
     checks["h1_above_floor"] = abs(beta["point"]) >= BETA_FLOOR
-    checks["h1_band_agreement"] = final["beta_sign_agreement"] >= SIGN_AGREEMENT
     h1_holds = all(checks[k] for k in
-                   ("h1_interval_excludes_zero", "h1_positive", "h1_above_floor",
-                    "h1_band_agreement"))
+                   ("h1_interval_excludes_zero", "h1_positive", "h1_above_floor"))
 
-    # --- 2.2 DIFFICULTY_PROXY_ONLY ---------------------------------------------------------------
-    if (contains_zero(beta) or abs(beta["point"]) < BETA_FLOOR) and r2_gain < R2_GAIN_FLOOR:
-        return {"verdict": "DIFFICULTY_PROXY_ONLY", "level": 1 if h1_holds else 0,
-                "reasons": [f"beta = {beta['point']:.5f} "
-                            f"[{beta['lo']:.5f}, {beta['hi']:.5f}], floor {BETA_FLOOR}; "
-                            f"Q1 adds {r2_gain:.5f} held-out R^2 over Q0"],
-                "checks": checks}
+    agree, needed, band_shape = sign_agreement(final["beta_by_band"], powered, +1)
+    checks["h1_band_agreement"] = band_shape and enough_bands
+    notes.append(f"beta agrees in sign in {agree}/{len(powered)} adequately powered bands "
+                 f"(needed {needed}); Spearman across bands "
+                 f"{final.get('beta_band_spearman', float('nan')):.2f}")
 
-    # --- H2 metrics ------------------------------------------------------------------------------
+    # --- H2 metrics ---------------------------------------------------------------------------------
+    # Metrics C and E are DESCRIPTIVE and cannot count (Gate 1, R4e): C is a transform of B.
     metric_specs = [
         ("A_matched_time", final["metric_a_time_vs_rating"], -1, None, None),
         ("B_time_allocation_efficiency", final["tae_rating_gradient"], +1,
-         final["tae_band_spearman"], +1),
-        ("C_allocation_loss", final["allocation_loss_vs_rating"], -1,
-         final["allocation_loss_band_spearman"], -1),
+         final.get("tae_band_spearman"), +1),
         ("D_extreme_ut_exposure", final["extreme_ut_vs_rating"], -1,
-         final["extreme_ut_band_spearman"], -1),
+         final.get("extreme_ut_band_spearman"), -1),
     ]
-    metrics_passing = []
-    metric_detail = {}
+    metric_detail, passing = {}, []
     for name, interval, expected, rho, rho_sign in metric_specs:
         directional = signed(interval, expected)
-        if rho is None:
-            monotone = True  # Metric A has no band-level shape requirement of its own
-        else:
-            monotone = math.isfinite(rho) and (rho * rho_sign) >= MONOTONE_RHO
+        monotone = True if rho is None else (math.isfinite(rho) and (rho * rho_sign) >= MONOTONE_RHO)
         metric_detail[name] = {"interval": interval, "expected_sign": expected,
                                "directional": directional, "band_spearman": rho,
                                "monotone_enough": monotone, "passes": directional and monotone}
         if directional and monotone:
-            metrics_passing.append(name)
-    checks["h2_two_metrics"] = len(metrics_passing) >= 2
-    checks["h2_includes_tae"] = "B_time_allocation_efficiency" in metrics_passing
+            passing.append(name)
+    metric_detail["C_allocation_loss"] = {"interval": final["allocation_loss_vs_rating"],
+                                          "role": "descriptive; a transform of Metric B"}
+    metric_detail["E_friction_burden"] = {"role": "descriptive; no directional prediction"}
 
-    # 2.5.5 -- the TAE spread between the extreme powered bands
-    powered = final["powered_bands"]
-    tae_gain_ok = False
-    tae_gain = None
-    if len(powered) >= 2:
-        low = final["tae_by_band"][powered[0]]
-        high = final["tae_by_band"][powered[-1]]
-        if math.isfinite(low["point"]) and low["point"] != 0:
-            tae_gain = (high["point"] - low["point"]) / abs(low["point"])
-            spread = final.get("tae_spread_low_to_high", {})
-            tae_gain_ok = tae_gain >= TAE_RELATIVE_GAIN and excludes_zero(spread)
-    checks["h2_tae_spread"] = tae_gain_ok
+    checks["h2_includes_tae"] = "B_time_allocation_efficiency" in passing
+    checks["h2_second_metric"] = any(m in passing for m in
+                                     ("A_matched_time", "D_extreme_ut_exposure"))
+
+    # Condition 5: Metric B four times over (Gate 1, R2).
+    matched = analysis["matched"]["final"]
+    checks["h2_tae_matched"] = signed(matched.get("tae_rating_gradient", {}), +1)
+    checks["h2_tae_no_zero_time"] = signed(
+        controls.get("C17_no_zero_time", {}).get("tae_rating_gradient", {}), +1)
+    checks["h2_tae_low_clock_pressure"] = signed(
+        controls.get("C14_clock_pressure_t0", {}).get("tae_rating_gradient", {}), +1)
+    spread = final.get("tae_spread_low_to_high", {})
+    checks["h2_tae_spread"] = (excludes_zero(spread)
+                               and spread.get("point", 0) >= TAE_FLOOR)
+    checks["h2_enough_bands"] = enough_bands
 
     checks["h2_player_level"] = signed(
-        analysis["player_level"]["final"].get("tae_vs_rating_per_100elo", {}), +1
-    )
+        analysis["player_level"]["final"].get("tae_vs_rating_per_100elo", {}), +1)
     checks["c3_passes"] = contains_zero(
-        controls.get("C3_shuffled_rating", {}).get("tae_rating_gradient", {})
-    )
+        controls.get("C3_shuffled_rating", {}).get("tae_rating_gradient", {}))
     checks["c4_passes"] = contains_zero(
-        controls.get("C4_shuffled_voc", {}).get("tae_rating_gradient", {})
-    )
+        controls.get("C4_shuffled_voc", {}).get("tae_rating_gradient", {}))
     influence = controls.get("C8_player_influence", {})
     checks["c8_passes"] = (
         influence.get("relative_change", 1.0) <= PLAYER_INFLUENCE_LIMIT
         and excludes_zero(influence.get("beta_without_busiest_1pct", {}))
         and influence.get("max_single_player_relative_shift", 1.0) <= JACKKNIFE_LIMIT
     )
-    matched = analysis["matched"]["final"]
-    checks["matched_consistent"] = (
-        matched.get("beta", {}).get("point", 0) > 0
-        and matched.get("tae_rating_gradient", {}).get("point", 0) > 0
-    )
+    checks["matched_beta_consistent"] = matched.get("beta", {}).get("point", 0) > 0
     dev, val = analysis["periods"]["development"], analysis["periods"]["validation"]
     checks["temporal_sign_agreement"] = (
         (dev["beta"]["point"] > 0) == (beta["point"] > 0)
@@ -170,65 +181,98 @@ def evaluate(analysis: dict) -> dict:
         abs(disjoint.get("beta", {}).get("point", 0)) >= BETA_FLOOR
     ) and signed(disjoint.get("tae_rating_gradient", {}), +1)
 
-    # --- 2.3 SKILL_ONLY ---------------------------------------------------------------------------
-    rating_on_quality = final.get("rating_on_quality", {})
-    if not h1_holds and len(metrics_passing) < 2:
-        return {
-            "verdict": "SKILL_ONLY", "level": 0,
-            "reasons": [f"beta = {beta['point']:.5f} [{beta['lo']:.5f}, {beta['hi']:.5f}] does not "
-                        f"clear the bar, and only {len(metrics_passing)} expertise metric(s) "
-                        f"({metrics_passing}) meet their conditions"],
-            "checks": checks, "metrics": metric_detail,
-            "rating_on_quality": rating_on_quality,
-        }
-
-    # --- 2.5 EXPERTISE_ADAPTATION_SUPPORTED --------------------------------------------------------
+    # --- gates, in order; exactly one must fire ------------------------------------------------------
     required = [
         "h1_interval_excludes_zero", "h1_positive", "h1_above_floor", "h1_band_agreement",
-        "h2_two_metrics", "h2_includes_tae", "h2_tae_spread", "h2_player_level",
-        "c3_passes", "c4_passes", "c8_passes", "matched_consistent",
+        "h2_includes_tae", "h2_second_metric", "h2_tae_matched", "h2_tae_no_zero_time",
+        "h2_tae_low_clock_pressure", "h2_tae_spread", "h2_enough_bands", "h2_player_level",
+        "c3_passes", "c4_passes", "c8_passes", "matched_beta_consistent",
         "temporal_sign_agreement", "player_disjoint_holds",
     ]
     failed = [name for name in required if not checks.get(name)]
-    if not failed:
-        verdict, level = "EXPERTISE_ADAPTATION_SUPPORTED", 4
+
+    gates = {}
+    gates["INVALID_EXPERIMENT"] = bool(invalid)
+    gates["DIFFICULTY_PROXY_ONLY"] = (
+        not gates["INVALID_EXPERIMENT"]
+        and ((contains_zero(beta) or abs(beta["point"]) < BETA_FLOOR)
+             and r2_gain < R2_GAIN_FLOOR)
+    )
+    gates["EXPERTISE_ADAPTATION_SUPPORTED"] = (
+        not gates["INVALID_EXPERIMENT"] and not gates["DIFFICULTY_PROXY_ONLY"] and not failed
+    )
+    gates["GENERAL_REGULARITY_ONLY"] = (
+        not gates["INVALID_EXPERIMENT"] and not gates["DIFFICULTY_PROXY_ONLY"]
+        and not gates["EXPERTISE_ADAPTATION_SUPPORTED"] and h1_holds
+    )
+    gates["SKILL_ONLY"] = not any(gates.values())
+
+    fired = [name for name, on in gates.items() if on]
+    assert len(fired) == 1, f"the gate set is not exhaustive and exclusive: {fired}"
+    verdict = fired[0]
+
+    # --- scientific level -----------------------------------------------------------------------------
+    if verdict == "INVALID_EXPERIMENT":
+        level = None
+    elif verdict == "EXPERTISE_ADAPTATION_SUPPORTED":
+        level = 4
         secondary = analysis.get("secondary_time_control", {})
-        cross = (signed(secondary.get("beta", {}), +1)
-                 and signed(secondary.get("tae_rating_gradient", {}), +1))
-        if cross:
+        cross = signed(secondary.get("beta", {}), +1) and signed(
+            secondary.get("tae_rating_gradient", {}), +1)
+        if cross and checks["temporal_sign_agreement"]:
             level = 5
-        return {"verdict": verdict, "level": level,
-                "secondary_label": "CROSS_CONTEXT_REGULARITY" if cross else None,
-                "reasons": ["every condition in VERDICT_RULES.md 2.5 held on the final period"],
-                "checks": checks, "metrics": metric_detail,
-                "tae_relative_gain": tae_gain}
+    elif h1_holds:
+        level = 1
+        if r2_gain >= R2_GAIN_FLOOR:
+            level = 2
+        if level == 2 and checks["h1_band_agreement"] and math.isfinite(
+                final.get("beta_band_spearman", float("nan"))):
+            level = 3
+    else:
+        level = 0
 
-    # --- 2.4 GENERAL_REGULARITY_ONLY ---------------------------------------------------------------
-    if h1_holds:
-        level = 2 if r2_gain >= R2_GAIN_FLOOR else 1
-        if level == 2 and math.isfinite(final["beta_band_spearman"]):
-            if final["beta_sign_agreement"] >= SIGN_AGREEMENT:
-                level = 3
-        return {"verdict": "GENERAL_REGULARITY_ONLY", "level": level,
-                "reasons": [f"H1 holds (beta = {beta['point']:.5f} "
-                            f"[{beta['lo']:.5f}, {beta['hi']:.5f}]); "
-                            f"the expertise conditions that failed: {failed}"],
-                "checks": checks, "metrics": metric_detail, "tae_relative_gain": tae_gain}
+    # 2.5c -- the C9 budget reading caps the level regardless of which gate fired (Gate 1, R12).
+    c9 = analysis.get("c9", {})
+    c9_caps = bool(c9.get("favours_difficulty_proxy"))
+    if c9_caps and level is not None and level >= 3:
+        notes.append(f"C9: r_beta upper bound {c9.get('r_beta', {}).get('hi')} is below "
+                     f"{R_BETA_THRESHOLD}; level capped at 2 and level-3+ language withheld")
+        level = 2
 
-    return {"verdict": "SKILL_ONLY", "level": 0,
-            "reasons": [f"H1 does not hold and the expertise conditions that failed: {failed}"],
-            "checks": checks, "metrics": metric_detail}
+    out = {
+        "verdict": verdict,
+        "level": level,
+        "reasons": invalid if verdict == "INVALID_EXPERIMENT" else
+        [f"beta = {beta['point']:.5f} [{beta['lo']:.5f}, {beta['hi']:.5f}], floor {BETA_FLOOR}; "
+         f"Q1 - Q0 held-out R^2 = {r2_gain:.5f}; conditions that failed: {failed or 'none'}"],
+        "checks": checks,
+        "failed_conditions": failed,
+        "metrics": metric_detail,
+        "adequately_powered_bands": powered,
+        "band_sign_agreement": {"agree": agree, "of": len(powered), "needed": needed},
+        "tae_spread": spread,
+        "c9_reading": c9.get("reading"),
+        "c5b_recovered_fraction": recovered,
+        "notes": notes,
+        "label_means": ("the time / value-of-computation relation differs systematically with "
+                        "rating, net of matched position and clock state -- NOT that expertise "
+                        "changes how players manage the process (VERDICT_RULES.md 3.1)"),
+    }
+    if verdict == "EXPERTISE_ADAPTATION_SUPPORTED" and level == 5:
+        out["secondary_label"] = "CROSS_CONTEXT_REGULARITY"
+    return out
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--analysis", default="results/analysis.json")
+    ap.add_argument("--analysis", default="results/analysis_final.json")
     ap.add_argument("--out", default="results/verdict.json")
     args = ap.parse_args()
-    analysis = json.load(open(args.analysis))
-    verdict = evaluate(analysis)
-    json.dump(verdict, open(args.out, "w"), indent=1)
-    print(json.dumps({k: verdict[k] for k in ("verdict", "level", "reasons")}, indent=1))
+    verdict = evaluate(json.load(open(args.analysis)))
+    json.dump(verdict, open(args.out, "w"), indent=1, default=float)
+    print(json.dumps({k: verdict[k] for k in
+                      ("verdict", "level", "reasons", "failed_conditions", "notes")},
+                     indent=1, default=float))
 
 
 if __name__ == "__main__":

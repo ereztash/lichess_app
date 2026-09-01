@@ -155,3 +155,45 @@ would mechanically generate a rating gradient, weak controls, and ways a positiv
 appear even if expertise only means stronger chess knowledge.
 
 Return `PASS`, `PASS_WITH_REQUIRED_CHANGES`, or `FAIL`.
+
+---
+
+# ADDENDUM: what changed in response to the Gate 1 review
+
+Prepared for the Gate 1 **re-review**. The verdict under review was
+`PASS_WITH_REQUIRED_CHANGES` with thirteen required changes. All thirteen are applied. Still no B3
+period has been scored, no decision exists, and the FINAL period has never been read.
+
+| # | Required change | Where it landed |
+|---|---|---|
+| R1a | Metric B's interaction had no `rating` main effect | `MODEL_SPEC.md` §4 Metric B; `analysis.RatingBasis` and `gradient_with_main_effect` -- the gradient is now the coefficient of `eV x rating_c` in `eY ~ s(rating) + eV + eV x rating_c`, spline knots frozen on DEVELOPMENT, threaded through every estimator, every control and the matched sample |
+| R1b | "evaluated per period" undefined for a fitted coefficient | `MODEL_SPEC.md` §4 preamble: one construction for all of H2 -- frozen nuisance, few-parameter re-estimate, stated as a two-step recipe |
+| R1c | `voc_z` must be residualised on the same frozen nuisance | already true in code (`partial_voc`); now stated in `MODEL_SPEC.md` §4 with the reason (`voc_switch` shares an iteration history with `best_move_changes`; a censored `voc_regret` equals `gap1k`) |
+| R1d | the partial-correlation form was `gamma_b * sd(voc_z) / sd(Y)`, and `sd(voc_z)` is 1 by construction | `MODEL_SPEC.md` §4: it is `corr(eY, eV \| band b)`, which is what `estimands.partial_corr` computes |
+| R2 | three mechanical routes to a Metric B gradient not closed | `MODEL_SPEC.md` §4 has the table of routes; `VERDICT_RULES.md` §2.5 condition 5 now requires the gradient to hold **with an interval excluding zero** on the matched sample, with `T = 0` removed, and in the lowest `clock_pressure` tercile; `evaluate.py` checks all three |
+| R3 | the 20% relative TAE floor is degenerate | `TAE_FLOOR = 0.02`, absolute, in the metric's own units; `TAE(lowest)` reported in every table; `test_verdict_rules.py::test_an_absolute_tae_floor_cannot_be_passed_by_a_near_zero_base` |
+| R4 | gates non-exhaustive; precedence, raw-vs-shrunk, rounding, band count, Metric C all undefined | `VERDICT_RULES.md` §1 and §2.2-§2.5 rewritten: parenthesised precedence, band shape moved to the level ladder, raw estimates for shape tests, `ceil`, **minimum 5 adequately powered bands**, Metric C demoted to descriptive. `evaluate.py` asserts exactly one gate fires; `test_verdict_rules.py` exercises the hole you found and 15 constructed inputs |
+| R5 | `opponent_rating` proxies the exposure | `models.T0_NUMERIC` carries `rating_diff`; `opponent_rating` is recorded and is in no model. Documented in `MODEL_SPEC.md` §1 and `FEATURE_SCHEMA.md` §7 |
+| R6 | both sides of one game counted as independent clusters | `ingest.Sampler.offer` takes **one analysed side per game**, by the smaller hash, and counts the other. `DATA_PROTOCOL.md` §4.3; A10 in `PREREGISTRATION.md` §2 re-justified with the reason it was false |
+| R7 | the leakage test could not see later clocks, later moves or the result | `tests/test_suffix_leakage.py`: the whole game suffix -- moves, `%clk` readings, `Termination`, `Result` -- is replaced and every pre-move quantity must come back bit-identical; `seconds_taken`/`log_time` are the only exempt columns, and the test asserts they *did* move so the fixture cannot silently prove nothing |
+| R8 | a design freedom survived the freeze | `PREREGISTRATION.md` §3: "model-family exploration" and "freezing the final specification" are gone; there is now a one-row table of everything still open (the ridge penalty, by grouped CV on DEVELOPMENT over the frozen grid) and the sentence "anything not on it is closed" |
+| R9 | the opponent's previous think time is an omitted pre-move predictor | `opp_prev_think_s` is in T0 (`clock.opponent_previous_think`); `own_prev_think_s` is recorded, excluded from every primary model, and added by the new control **C19**; A12 added to `PREREGISTRATION.md` §2 |
+| R10 | engine-assisted and closed accounts not excluded | `src/account_status.py`: one batch `POST /api/users` per period before any engine work, `disabled`/`tosViolation` excluded and counted, lookup date in the manifest. A11 added, with the snapshot limitation stated in both directions. Measured on a development smoke sample: **5.5% of sampled sides** are excluded by this rule |
+| R11 | C5 is tautological and the negative-verdict claim rested on it | C5 relabelled an implementation check; the claim withdrawn in `PREREGISTRATION.md` §8; **C5b** added -- plants `0.02 x (Y - Yhat_GBT)`, the residual of a comparator pinned to library, hyperparameters and seed in `FEATURE_SCHEMA.md` §1; `recovered_fraction` is reported as the attenuation factor, and below 0.5 it is an `INVALID_EXPERIMENT` trigger |
+| R12 | C9 under-specified and its pass condition could not detect A2 | `src/rescore.py` and `src/c9.py`: subset drawn from **VALIDATION** by `unit_hash(SEED, "c9", ...)`, nuisance refitted per budget with the frozen recipe, `r_beta` and `r_TAE` with player-bootstrap intervals. `VERDICT_RULES.md` §2.5c: upper bound of `r_beta` below **0.5** withholds level 3 and above, whatever gate fired |
+| R13 | H2 as worded is not answerable | `PREREGISTRATION.md` §1's boxed question narrowed to "the time / value-of-computation relation differs systematically with rating, net of matched position and clock state"; a paragraph added saying no metric here separates allocation from **recognition**; "allocation skill", "time-management skill", "manages time better" and "expertise changes management" added to §9's forbidden list; `VERDICT_RULES.md` §3 level 4 rewritten and §3.1 added defining what the label is not |
+
+**Not changed, and why.** The label `EXPERTISE_ADAPTATION_SUPPORTED` is kept because the mission
+plan fixes the name. `VERDICT_RULES.md` §3.1 now defines it as exactly the narrowed sentence and
+forbids the management reading in the report.
+
+**Also recorded since the first packet.** Five implementation defects, all found before any
+scientific quantity existed, in `FAILURES.md`. Two of them would not have failed loudly: a SAN
+tokenizer that silently dropped every plain pawn push, and `parse_san` rejecting `h5?`, which was
+excluding 10.7% of sampled sides -- and not at random, since an annotated game is one somebody asked
+for an analysis of. One constant changed after a development sample was inspected (`AMBIGUITY_TAU`,
+which was saturating at `log 4`); it is now anchored to `ACCURATE_WIN_PROBABILITY_LOSS`, a constant
+that predates B3, and the change is disclosed in `FAILURES.md` F4.
+
+**Tests:** 39 pass, including engine determinism against the real binary, both leakage
+perturbations, the constant ports against their TypeScript sources, and the verdict gate set.

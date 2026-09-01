@@ -46,6 +46,7 @@ PRE_MOVE = (
     "pv_instability final_depth nodes_to_depth10 is_mate_line "
     "voc_switch voc_regret voc_drift voc_rank voc_regret_censored "
     "clock_ms_self clock_ms_opp clock_frac clock_pressure clock_diff_frac "
+    "opp_prev_think_s opp_prev_think_missing own_prev_think_s own_prev_think_missing "
     "rating opponent_rating rating_diff rating_band "
     # Derived at load time, both pre-move: the mover's colour as a number, and the indicator that
     # goes with imputing `nodes_to_depth10` when the search never reached depth 10.
@@ -174,10 +175,17 @@ def search_trace(complete_iterations) -> dict:
 def clock_features(decision: dict, base_seconds: int) -> dict:
     base_ms = 1000.0 * base_seconds
     frac = decision["clock_ms_self"] / base_ms
+    opp_prev = decision.get("opp_prev_think_s")
+    own_prev = decision.get("own_prev_think_s")
     return {
         "clock_ms_self": decision["clock_ms_self"],
         "clock_ms_opp": decision["clock_ms_opp"],
         "clock_frac": frac,
         "clock_pressure": -math.log(frac + 0.01),
         "clock_diff_frac": (decision["clock_ms_self"] - decision["clock_ms_opp"]) / base_ms,
+        # Both are facts about clocks that had already been read when the player began deciding.
+        "opp_prev_think_s": opp_prev,
+        "opp_prev_think_missing": int(opp_prev is None),
+        "own_prev_think_s": own_prev,
+        "own_prev_think_missing": int(own_prev is None),
     }

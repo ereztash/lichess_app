@@ -84,19 +84,19 @@ def tree_comparator(dev, frame, groups) -> dict:
     }
 
 
-def analyse_period(name, path, fits, constants, want_controls=True, want_matching=True):
+def analyse_period(name, path, fits, constants, basis, want_controls=True, want_matching=True):
     frame = dataset.apply_frozen(dataset.load(path), constants)
     scored = an.residualise(frame, fits, constants)
     boot = an.PlayerBootstrap(scored["player"].to_numpy())
-    result = estimate(scored, boot)
+    result = estimate(scored, boot, basis)
     result["model_comparison"] = model_comparison(scored, fits)
     out = {"estimates": result, "scored": scored, "raw": frame}
     if want_matching:
         matched, balance = matching.match(scored)
-        out["matched"] = {**matching.matched_estimates(matched), "balance": balance}
+        out["matched"] = {**matching.matched_estimates(matched, basis), "balance": balance}
         out["frontier"] = matching.frontier(scored)
     if want_controls:
-        out["controls"] = ctl.run(frame, scored, fits, constants)
+        out["controls"] = ctl.run(frame, scored, fits, constants, basis=basis)
     out["player_level"] = player_level(scored)
     return out
 
@@ -122,11 +122,14 @@ def main() -> None:
     scored_dev = an.residualise(dev, fits, constants)
     constants["ut_q95"] = float(np.quantile(scored_dev["unexpected_time_population"], 0.95))
     scored_dev = an.residualise(dev, fits, constants)  # q95 now available for `extreme_ut`
+    # The rating spline that carries every interaction's main effect, frozen on DEVELOPMENT knots.
+    basis = an.RatingBasis(dev["rating"].to_numpy(float))
 
     manifest = {
         "frozen_constants": constants,
         "models": {name: models.manifest_entry(fit) for name, fit in fits.items()},
         "bootstrap": {"replicates": an.BOOTSTRAP, "seed": an.BOOT_SEED, "unit": "player"},
+        "rating_basis_knots": basis.knots,
         "development": {"decisions": int(len(dev)), "players": int(dev["player"].nunique())},
         "written_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
@@ -143,7 +146,7 @@ def main() -> None:
 
     for name in wanted:
         sys.stderr.write(f"analysing {name}\n")
-        out = analyse_period(name, os.path.join(args.data, name), fits, constants)
+        out = analyse_period(name, os.path.join(args.data, name), fits, constants, basis)
         periods[name] = out["estimates"]
         controls[name] = out["controls"]
         matched[name] = out["matched"]

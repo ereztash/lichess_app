@@ -54,6 +54,8 @@ def fit_all(dev, groups):
                                                penalty=fits["T1P"]["penalty"])
     fits["partial_voc"] = models.fit_frozen(dev, "T1P", "voc_z", groups,
                                             penalty=fits["T1P"]["penalty"])
+    # The comparator, and the residual control C5b plants -- one the linear pipeline did not make.
+    fits["gbt"] = models.fit_gbt(dev)
     return fits, dev
 
 
@@ -85,6 +87,8 @@ def residualise(frame, fits, constants):
     out["overthinking"] = np.where((u > 0) & (v < 0), u, 0.0)
     out["premature_commitment"] = np.where((u < 0) & (v > 0), -u, 0.0)
     out["extreme_ut"] = (out["unexpected_time_population"] > constants["ut_q95"]).astype(float)
+    if "gbt" in fits:
+        out["ut_gbt"] = out["log_time"] - models.gbt_predict(fits["gbt"], out)
     return out
 
 
@@ -97,16 +101,47 @@ def slope(y, x) -> float:
     return float(x @ y) / denominator if denominator > 0 else float("nan")
 
 
-def slope_with_interaction(y, x, z):
-    """Slope of `y` on `x` and on `x*z`; returns (main, interaction).
+class RatingBasis:
+    """A frozen spline basis for rating, so an interaction can carry its own main effect.
 
-    `z` is centred rating in hundreds of Elo, so the interaction is "how the slope changes per 100
-    rating points" and the main term is the slope at the sample's mean rating.
+    R1(a) FROM GATE 1, AND IT WOULD HAVE MANUFACTURED THE HEADLINE RESULT. The first draft estimated
+    the expertise gradient as the coefficient of `voc_resid x rating` with NO `rating` main effect
+    in the model, because the nuisance set (T1P) deliberately contains no rating. An interaction
+    without its main effect does not sit still: it absorbs
+
+        (the rating main effect on time) x (E[voc_resid | rating])
+
+    and neither factor is zero -- Metric A PREDICTS the first, and the second is non-zero whenever
+    position distributions differ by band, which they do. So a population in which every player
+    allocated time identically would still have produced a rating gradient in Metric B. The main
+    effect enters as a spline with DEVELOPMENT knots, and the interaction is then what the name says.
     """
-    design = np.column_stack([np.asarray(x, float), np.asarray(x, float) * np.asarray(z, float),
+
+    def __init__(self, values, n_knots=5):
+        from sklearn.preprocessing import SplineTransformer
+
+        values = np.asarray(values, float).reshape(-1, 1)
+        knots = np.unique(np.quantile(values, np.linspace(0, 1, n_knots + 2))).reshape(-1, 1)
+        self.spline = SplineTransformer(degree=3, knots=knots, extrapolation="linear",
+                                        include_bias=False).fit(values)
+        self.knots = [float(k) for k in knots.ravel()]
+
+    def transform(self, values) -> np.ndarray:
+        return self.spline.transform(np.asarray(values, float).reshape(-1, 1))
+
+
+def gradient_with_main_effect(y, x, rating_c, rating_block):
+    """`y ~ s(rating) + x + x*rating_c`. Returns (slope at mean rating, gradient per 100 Elo).
+
+    Three free parameters plus the frozen-knot spline main effect: no nuisance choice is made on the
+    period being read, which is what keeps the freeze intact while still letting FINAL supply the
+    number the verdict reads.
+    """
+    x = np.asarray(x, float)
+    design = np.column_stack([rating_block, x, x * np.asarray(rating_c, float),
                               np.ones(len(x))])
     coef, *_ = np.linalg.lstsq(design, np.asarray(y, float), rcond=None)
-    return float(coef[0]), float(coef[1])
+    return float(coef[-3]), float(coef[-2])
 
 
 class PlayerBootstrap:

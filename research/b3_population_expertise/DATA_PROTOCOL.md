@@ -72,11 +72,39 @@ few accounts.
 2. `q_b` is set **once**, by the cost pilot, so that each band reaches its decision target or takes
    everything available, whichever binds first. Scarce bands get `q_b = 1.0`. The rates are frozen
    before any period is scored and are identical across periods.
-3. **Cap: at most 2 accepted sides per player per period**, applied by reservoir sampling over the
+3. **At most ONE analysed side per game** (Gate 1, R6). When both sides of a game clear the hash,
+   the side with the smaller `unit_hash(SEED, game_id, side)` is taken and the other is counted.
+   Accepting both looks like two observations and is not: they are alternate plies of one position
+   sequence, their clocks are coupled, and each is the other's `clock_ms_opp` and `rating_diff`.
+   The dependence graph would then be a player-**game** graph rather than the tree
+   `move ⊂ game ⊂ player` that the player bootstrap assumes, so every band-level interval would be
+   too narrow -- worst in the thinnest bands, which is exactly where the strongest verdict is
+   decided.
+4. **Cap: at most 2 accepted sides per player per period**, applied by reservoir sampling over the
    player's accepted candidates, so the cap is order-independent too.
-4. **Cap: at most 60 eligible decisions per side**, applied by taking every eligible decision when
+5. **Cap: at most 60 eligible decisions per side**, applied by taking every eligible decision when
    a side has 60 or fewer and otherwise an evenly spaced subsample by ply. A single very long game
    cannot dominate a player.
+
+6. **Account status** (Gate 1, R10). After sampling and **before any engine work is spent**, one
+   batch lookup of the sampled usernames' public account status (`POST /api/users`, 300 ids per
+   call). A side whose account is `disabled` or `tosViolation` at the lookup date is excluded and
+   counted per band. The lookup date is recorded in the manifest. The rule is identical for every
+   period, reads no game content, and for FINAL runs after Gate 2 as part of the mechanical ingest.
+
+   Why it is here and not in the honest-limitations list: time that tracks engine-measured
+   difficulty, paired with low quality loss, is close to what assistance detection looks for, and it
+   is precisely what Metric B rewards. Assisted accounts concentrate in the upper bands of a fast
+   time control, and verdict condition 5 is a contrast between the top and bottom adequately powered
+   bands, so a few percent of assisted sides in the top band would inflate `TAE(highest)` directly.
+   Titled bots are excluded by header; accounts later closed for engine use are not marked in the
+   dumps at all.
+
+   It is a **snapshot**, and the limitation runs both ways: an account closed after the lookup date
+   is still in the corpus, and an account closed for a reason unrelated to engine use is removed. A
+   username the endpoint does not return counts as *not* excluded, and the number of such accounts
+   is reported -- inventing a closure for an account we know nothing about would thin the sample in
+   whichever band the endpoint happened to miss.
 
 `SEED = 20260901`. Fixed, never tuned.
 

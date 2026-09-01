@@ -26,7 +26,7 @@ import chess
 import requests
 import zstandard
 
-from clock import berserked, clock_seconds, think_time
+from clock import berserked, clock_seconds, opponent_previous_think, own_previous_think, think_time
 from common import rating_band, unit_hash, player_hash
 
 HEADER = re.compile(r'\[(\w+) "(.*)"\]')
@@ -187,6 +187,16 @@ class Sampler:
             self._drop("no game id")
             return
 
+        """AT MOST ONE ANALYSED SIDE PER GAME (Gate 1, R6).
+
+        Accepting both sides of a game looks like two observations and is not. They are alternate
+        plies of ONE position sequence, their clocks are coupled, and each is the other's
+        `clock_ms_opp` and `rating_diff`. The dependence graph is then a player-GAME graph rather
+        than the tree `move in game in player` that the player bootstrap assumes, so every band-level
+        interval would be too narrow -- worst in the thinnest bands, which is exactly where the
+        strongest verdict is decided. With both sides eligible, the one with the smaller hash is
+        taken and the other is counted.
+        """
         wanted = []
         for side in ("w", "b"):
             band = bands[side]
@@ -197,6 +207,9 @@ class Sampler:
                 wanted.append(side)
         if not wanted:
             return
+        if len(wanted) == 2:
+            self._drop("second side of the same game (one analysed side per game)")
+            wanted = [min(wanted, key=lambda s: unit_hash(SEED, game_id, s))]
 
         # Only now is the expensive work done: everything above is header arithmetic.
         clocks = clock_seconds(movetext)
@@ -212,8 +225,10 @@ class Sampler:
             return
 
         for side in wanted:
-            self.accepted[player_hash(headers["White" if side == "w" else "Black"])].append(
+            username = headers["White" if side == "w" else "Black"]
+            self.accepted[player_hash(username)].append(
                 {
+                    "username": username,  # in memory only; never written to any artifact
                     "game_id": game_id,
                     "side": side,
                     "rating": elos[side],
@@ -279,6 +294,8 @@ def eligible_decisions(side_record: dict, base_seconds: int, increment: int, max
                 elif not (0 <= seconds <= base_seconds):
                     counts["impossible think time"] += 1
                 else:
+                    opp_prev = opponent_previous_think(clocks, ply, increment)
+                    own_prev = own_previous_think(clocks, ply, increment)
                     decisions.append(
                         {
                             "ply": ply,
@@ -289,6 +306,8 @@ def eligible_decisions(side_record: dict, base_seconds: int, increment: int, max
                             "seconds_taken": seconds,
                             "clock_ms_self": int(clocks[ply - 2] * 1000),
                             "clock_ms_opp": int(clocks[ply - 1] * 1000),
+                            "opp_prev_think_s": opp_prev,
+                            "own_prev_think_s": own_prev,
                         }
                     )
         board.push(move)

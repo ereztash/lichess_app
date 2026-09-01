@@ -12,7 +12,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analysis import PlayerBootstrap, slope, slope_with_interaction
+from analysis import PlayerBootstrap, RatingBasis, gradient_with_main_effect, slope
 from common import BAND_LABELS
 
 CELL_KEYS = [
@@ -93,7 +93,7 @@ def match(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     return matched, report
 
 
-def matched_estimates(matched: pd.DataFrame) -> dict:
+def matched_estimates(matched: pd.DataFrame, rating_basis: RatingBasis | None = None) -> dict:
     """The primary estimates recomputed inside the matched sample, with CEM weights."""
     if matched.empty:
         return {"note": "no matched sample"}
@@ -104,11 +104,14 @@ def matched_estimates(matched: pd.DataFrame) -> dict:
     y = matched["y_resid_T1"].to_numpy(float) * sw
     v = matched["voc_resid"].to_numpy(float) * sw
     rating_c = (matched["rating"].to_numpy(float) - 1600.0) / 100.0
+    if rating_basis is None:
+        rating_basis = RatingBasis(matched["rating"].to_numpy(float))
+    block = rating_basis.transform(matched["rating"].to_numpy(float)) * sw[:, None]
     boot = PlayerBootstrap(matched["player"].to_numpy())
     return {
         "beta": boot.interval(lambda i: slope(q[i], u[i])),
         "tae_rating_gradient": boot.interval(
-            lambda i: slope_with_interaction(y[i], v[i], rating_c[i])[1]
+            lambda i: gradient_with_main_effect(y[i], v[i], rating_c[i], block[i])[1]
         ),
         "metric_a_time_vs_rating": boot.interval(
             lambda i: 100.0 * slope(y[i], matched["rating_resid"].to_numpy(float)[i] * sw[i])

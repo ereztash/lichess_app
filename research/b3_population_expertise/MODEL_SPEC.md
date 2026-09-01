@@ -41,7 +41,18 @@ Outcome `Y = log(1 + T)`.
 
 **T0 -- context baseline.** `phase`, `standing`, `ply`, `move_number`, `clock_ms_self`,
 `clock_ms_opp`, `clock_frac`, `clock_pressure`, `clock_diff_frac`, `non_pawn_material`, `side`,
-`opponent_rating`.
+`rating_diff`.
+
+> **`rating_diff`, not `opponent_rating` (Gate 1, R5).** Lichess pairs by rating, so across
+> 800-2600 `opponent_rating` is very nearly `rating`. Carrying it in T0 -- and therefore in T1P and
+> T2P, the models this study calls *rating-free* -- put the exposure inside every one of them.
+> Metric A's rating coefficient would then have been identified from rating-difference variation
+> alone (a matchup quantity, not an expertise-level one), and
+> `unexpected_time_population` would have had most of its between-band signal already removed
+> before Metric D compared bands on it. `rating_diff` adjusts for the matchup without proxying the
+> level; models named "with rating" carry `{rating, rating_diff}`, which spans the same columns as
+> `{rating, opponent_rating}` but makes the `rating` coefficient the level effect along the pairing
+> diagonal.
 
 **T1 -- objective position model.** T0 plus `wp1`, `edge`, `gap12`, `gap1k`, `ambiguity_entropy`,
 `n_near`, `legal_moves`, `in_check`, `best_move_changes`, `eval_volatility`, `pv_instability`,
@@ -104,7 +115,17 @@ Also reported, always:
 
 ## 4. H2 -- expertise metrics
 
-All five are fitted on DEVELOPMENT where a fit is needed, frozen, and evaluated per period.
+**One construction for all of them (Gate 1, R1b).** "Evaluated per period" is meaningless for a
+fitted coefficient: freeze it on DEVELOPMENT and FINAL contributes nothing; refit it on FINAL and a
+model has been fitted on the period the result is read from. Every H2 metric therefore uses the
+same shape H1 uses -- **frozen nuisance, few-parameter re-estimate**:
+
+1. Fit the nuisance models on DEVELOPMENT and freeze them (`Y ~ T1P`, `voc_z ~ T1P`,
+   `rating ~ T1P`, `allocation_loss ~ T1P`, `extreme_ut ~ T1P`; same basis, same penalty rule).
+2. In any period P, form the residuals `eY`, `eV`, `eR`, and estimate the metric as a slope or a
+   three-parameter regression on those residuals.
+
+No nuisance choice is ever made on the period being read.
 
 **Metric A -- matched-difficulty thinking time.** Coefficient of `rating` (per 100 Elo) in
 `Y ~ [T1 feature set] + rating`, as `<y_resid_T1, rating_resid> / <rating_resid, rating_resid>`.
@@ -116,14 +137,43 @@ Expected negative. Reported alongside the matched-sample version
     within band b:   Y ~ gamma_b * voc_z + [T1 feature set without VoC and without rating]
     TAE_b = gamma_b
 
-`gamma_b` is log-seconds of extra thinking per one DEVELOPMENT standard deviation of
-value-of-computation, holding measured difficulty and clock fixed. In frozen-residual form,
-`gamma_b = <y_resid_T1, voc_resid> / <voc_resid, voc_resid>` inside band `b`, where `voc_resid` is
-`voc_z` purged of the same T1 controls. Continuous form: the coefficient of `voc_resid x rating`
-in the pooled model, per 100 Elo. Expected `d TAE / d rating > 0`.
+    gamma_b(P) = cov(eY, eV | band b) / var(eV | band b)
 
-Also reported: the partial correlation form, `gamma_b * sd(voc_z) / sd(Y | controls)`, so a band
-whose thinking times are simply more variable cannot be read as more efficient.
+`eV` is `voc_z` purged of the **same** frozen T1P controls. That residualisation is not cosmetic:
+`voc_switch` is built from the same iteration history as `best_move_changes`, `voc_drift` from the
+same as `eval_volatility`, and a censored `voc_regret` *equals* `gap1k` -- so a slope of `eY` on raw
+`voc_z` would not be the partial slope at all (Gate 1, R1c).
+
+`gamma_b` is log-seconds of extra thinking per one DEVELOPMENT standard deviation of
+value-of-computation, holding measured difficulty and clock fixed.
+
+**Continuous form, with the main effect it needs (Gate 1, R1a).**
+
+    eY  ~  s(rating) + eV + eV x rating_c
+
+`s(rating)` is a natural-cubic spline with DEVELOPMENT knots and `rating_c` is rating in hundreds of
+Elo, centred. The main effect is **required**, not decoration: an interaction without it absorbs
+`(rating main effect on time) x E[eV | rating]`, and neither factor is zero -- Metric A predicts the
+first, and the second is non-zero whenever position distributions differ by band. Without
+`s(rating)`, a population in which every player allocated time identically would still have produced
+a rating gradient here.
+
+Also reported: the partial-correlation form `corr(eY, eV | band b)` -- the correlation of the two
+residuals inside the band, **not** `gamma_b * sd(voc_z) / sd(Y)`, because `sd(voc_z)` is 1 by
+construction on pooled DEVELOPMENT and would correct nothing (Gate 1, R1d). It exists so a band
+whose thinking times are merely more variable cannot read as more efficient.
+
+**Three mechanical routes to a gradient, and where each is closed (Gate 1, R2).** Each of these can
+produce `d TAE / d rating > 0` with the allocation policy held *identical* across bands:
+
+| Route | Mechanism | Where it is closed |
+|---|---|---|
+| clock ceiling | a player with 5 seconds left cannot spend 15 on a high-VoC position, and time trouble is commoner in low bands, so the within-band slope is compressed from above | verdict condition 5 must also hold **within the lowest `clock_pressure` tercile** |
+| `T = 0` floor | `log(1 + T)` on whole seconds has a point mass at 0 and steps at 0.69 and 1.10, so a band whose median `T` is 1 second is compressed from below | verdict condition 5 must also hold **with `T = 0` removed** (C17) |
+| regressor scale | `voc_regret` is in win-probability units through a logistic that compresses everything in decided positions, and low bands live in decided positions more often, so `var(eV \| band)` and the reliability of `eV` differ by band | verdict condition 5 must also hold **on the matched sample** of §6, with an interval, not merely in sign |
+
+All three are conditions of the verdict, with a bootstrap interval excluding zero in each case --
+not observations to be discussed afterwards.
 
 **Metric C -- Allocation Loss.**
 
@@ -133,6 +183,13 @@ whose thinking times are simply more variable cannot be read as more efficient.
 Extra time spent where computation is worth less than average, or time skimped where it is worth
 more. One decision contributes to at most one of the two. Reported as the band mean, and as the
 `rating` coefficient in `AllocationLoss ~ [T1 without VoC] + rating`. Expected negative.
+
+**DESCRIPTIVE ONLY; it cannot count toward a verdict (Gate 1, R4e).** `AllocationLoss` is
+`|U| * 1[sign(U) != sign(voc_z)]` where `U` is the T1P residual of `Y`. A larger within-band
+covariance of `U` with `voc_z` -- which is exactly what Metric B measures -- mechanically lowers the
+disagreement rate that Metric C counts. It is a transform of Metric B, not independent evidence, and
+counting the two together would have let "two of four metrics" be satisfied by one metric and its
+own shadow.
 
 Its two halves are also reported separately -- `overthinking` (`U > 0, voc_z < 0`) and
 `premature_commitment` (`U < 0, voc_z > 0`) -- because a metric that only ever moves through one
@@ -149,7 +206,7 @@ form as everything else. Linear rather than logistic so that the freeze-then-FWL
 unchanged; the raw band rates are reported beside it and carry no functional-form assumption at
 all. Expected negative.
 
-**Metric E -- friction burden.** For each band,
+**Metric E -- friction burden.** Descriptive. For each band,
 
     E_b = E[quality_loss | UT_pop > q, b] - E[quality_loss | UT_pop <= q, b]
 
@@ -202,11 +259,12 @@ reinterpreted.
 | C2 | permute `Y` across decisions before residuals are formed | `beta` interval contains 0 |
 | C3 | permute `rating` **across players** (whole player, keeping their decisions together) | every H2 rating gradient interval contains 0 |
 | C4 | permute `voc_z` across decisions | Metric B gradient interval contains 0 |
-| C5 | add `0.02 * unexpected_time_within_rating` to `quality_loss` | `beta` recovered, interval excludes 0, point estimate within 30% of `0.02` above the unplanted estimate |
+| C5 | add `0.02 * unexpected_time_within_rating` to `quality_loss` | `beta` recovered, interval excludes 0, point estimate within 30% of `0.02` above the unplanted estimate. **An implementation check** (Gate 1, R11): the planted term is linear in the estimator's own regressor, so recovery follows from linear algebra and this can only fail on a code bug. |
+| C5b | add `0.02 * (Y - Yhat_GBT)` to `quality_loss` -- the residual of the pinned gradient-boosted comparator (`FEATURE_SCHEMA.md` §1), a quantity the linear pipeline never produced | sign recovered **and** `recovered_fraction = (beta_planted - beta) / 0.02 >= 0.5`. The shortfall below 1.0 is the **attenuation factor** every reported effect should be read against, and is reported as such. A shortfall is **not** an `INVALID_EXPERIMENT` trigger; failing the 0.5 bar is. |
 | C6 | rebuild `Y` as `Y_synth = Yhat(T1P) + (0.05 + 0.05 * (rating-800)/1800) * voc_z + N(0, sd of the real residual)` | Metric B gradient recovered with the right sign, interval excludes 0 |
 | C7 | rebuild both `Y` and `quality_loss` from their T1P/Q0 fits plus independent noise, no UT term, no rating term | `beta` interval contains 0 **and** every H2 gradient interval contains 0 |
 | C8 | (a) drop the 1% of players contributing the most decisions; (b) jackknife over players | (a) `beta` within +/-25% and interval still excludes 0; (b) no single player shifts `beta` by more than 20% |
-| C9 | re-score a random 5,000-decision subset at `nodes 150000`, recompute `beta` and Metric B on that subset under both budgets | same sign under both budgets |
+| C9 | re-score a **VALIDATION** subset of 5,000 decisions -- never the fitting period, never FINAL -- drawn by `unit_hash(SEED, "c9", game_id, ply)`, at `nodes 150000`. Every nuisance model is **refitted on the subset at each budget** with the frozen recipe (knot rule, penalty grid, grouped CV), because the feature scales move with the budget (`final_depth`, `eval_volatility`, `nodes_to_depth10`, and the shallow-to-deep gap `voc_regret` is built from). Report `r_beta = beta(150k)/beta(60k)` and `r_TAE = gradient(150k)/gradient(60k)` with player-bootstrap intervals. | **Not "same sign"** (Gate 1, R12). Under A2, `beta` is positive at every budget and shrinks toward zero as difficulty is measured better, so a sign test passes while the study's central limitation goes unfalsified. The preregistered reading: **if the upper interval bound of `r_beta` is below 0.5**, the report must state that the evidence favours the difficulty-proxy explanation over H1, and level 3 and higher language is withheld. |
 | C10 | binary `accurate` outcome, logistic | same sign |
 | C11 | drop book positions | same sign, `beta` interval excludes 0 |
 | C12 | by `phase` | reported, sign agreement counted |
@@ -216,7 +274,14 @@ reinterpreted.
 | C16 | `300+0`, frozen pipeline, no retuning | reported; may only add `CROSS_CONTEXT_REGULARITY` |
 | C17 | drop `T = 0` decisions | same sign, `beta` interval excludes 0 |
 | C18 | first 40 plies only | same sign |
+| C19 | add `own_prev_think_s` (and its missing indicator) to the T2R context block and re-estimate `beta` | reported; `beta` same sign. Kept out of the primary spec because own pace is partly the allocation policy Metric B measures. |
 
-C5, C6 and C7 are the controls that give a negative result meaning. If C5 or C6 fails, the pipeline
-cannot see a signal that is there, and **no** negative verdict from it is informative; the run is
-`INVALID_EXPERIMENT`.
+**C6, C5b and C7 are the controls that give a negative result meaning.** C6 plants an expertise
+gradient the pipeline must recover; C5b plants a signal defined *outside* the pipeline's own
+residual and measures what fraction survives; C7 plants nothing and the pipeline must report
+nothing. If C6 fails, or C5b recovers under half of a foreign signal, the pipeline cannot see what
+is there and no negative verdict from it is informative.
+
+C5 is an implementation check and is listed with them only for continuity with the mission plan's
+numbering. Its recovery is a fact about linear algebra, not about the study, and the earlier claim
+that it made a negative verdict meaningful is withdrawn (Gate 1, R11).

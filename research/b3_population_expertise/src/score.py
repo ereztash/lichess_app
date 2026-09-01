@@ -24,6 +24,7 @@ import zstandard
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import account_status  # noqa: E402
 from common import rating_band  # noqa: E402
 from engine import Engine  # noqa: E402
 from ingest import Sampler, eligible_decisions, parse_time_control, stream_games  # noqa: E402
@@ -98,6 +99,10 @@ def _score_decision(board, ply, decision, side_record, base_seconds, period) -> 
         "rating_diff": side_record["rating"] - side_record["opponent_rating"],
         "termination": side_record["termination"],
         "seconds_taken": decision["seconds_taken"],
+        # Kept so the corpus can be re-scored at another engine budget (control C9) without
+        # re-streaming and re-sampling. `move_uci` is POST_MOVE and no model may read it.
+        "fen_before": decision["fen_before"],
+        "move_uci": decision["move_uci"],
         **board_features(board, ply, decision),
         **features,
         **voc_features(complete),
@@ -125,6 +130,8 @@ def main() -> None:
     ap.add_argument("--binary", default=_BINARY)
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--limit-sides", type=int, default=0, help="pilot only")
+    ap.add_argument("--skip-account-check", action="store_true",
+                    help="implementation smoke tests only; never for a scored period")
     args = ap.parse_args()
 
     month, day = PERIODS[args.period]
@@ -142,6 +149,26 @@ def main() -> None:
     ):
         sampler.offer(headers, movetext)
     sides = sampler.finalise()
+
+    # R10: drop sides whose account Lichess has since closed, before any engine work is spent.
+    account_lookup_date = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    status = {}
+    account_exclusions = {"closed_or_tos": 0, "unknown_to_endpoint": 0}
+    if not args.skip_account_check and sides:
+        status = account_status.lookup([s["username"] for s in sides])
+        kept = []
+        for side in sides:
+            if account_status.excluded(status, side["username"]):
+                account_exclusions["closed_or_tos"] += 1
+                sampler.excluded["account closed or tosViolation at the lookup date"] += 1
+                continue
+            if side["username"].lower() not in status:
+                account_exclusions["unknown_to_endpoint"] += 1
+            kept.append(side)
+        sides = kept
+    for side in sides:
+        side.pop("username", None)  # the plaintext never leaves this process
+
     if args.limit_sides:
         sides = sides[: args.limit_sides]
     stream = tally.get("stream")
@@ -184,6 +211,9 @@ def main() -> None:
         "prefix_sha256": stream.digest.hexdigest(),
         "max_bytes_requested": args.max_bytes,
         "seed": 20260901,
+        "account_status_lookup_date": account_lookup_date,
+        "account_status_checked": not args.skip_account_check,
+        "account_exclusions": account_exclusions,
         "acceptance_rates": rates,
         "games_per_player_cap": args.games_per_player,
         "max_decisions_per_side": args.max_decisions,
