@@ -23,6 +23,7 @@
   "hypotheses": {
     "preregistered": {
       "H1_severity": "B_valid | T+ declines monotonically down the severity ladder: RC-06 mate > RC-07 queen > RC-08 rook > RC-09 minor. If it does not, severity is not what protects the prescription and the explanation given for RC-06 is wrong.",
+      "H3_noise_cell_by_design": "The five candidates designed to the narrowness rule (RC-13, RC-14, RC-18, RC-20, RC-21) will have prescription_size | T- below the median of the first twelve (0.140) and B_valid | T- below their median (0.230). If a narrow prescription does not buy an inert noise cell, the design rule extracted from round 2 is wrong and the correlation that produced it was a coincidence of twelve points.",
       "H2_outcome_over_method": "RC-09 (outcome: the threat is gone) scores above RC-11 (method: move the piece), on an identical trigger and an identical noise cell. This is the controlled version of the confounded RC-04 vs RC-06 comparison."
     },
     "H1_severity": {
@@ -2148,6 +2149,838 @@
         "Base rate expected to be low, as RC-05's was. C9 is the criterion this is likeliest to fail, and a low base rate is a measurement rather than a disqualification."
       ],
       "position_between_anchors": -2.4137931034482776
+    },
+    "RC-13": {
+      "name": "underpromote-to-knight",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "prescription": "promote to a knight only when the knight gives check",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 67,
+          "b_valid": {
+            "k": 2,
+            "n": 67,
+            "p": 0.029850746268656716,
+            "ci95": [
+              0.008224522347453904,
+              0.10246750041883029
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 67,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.05422802421176257
+            ]
+          },
+          "cp_loss_median": 295,
+          "cp_loss_q1_q3": [
+            7,
+            99226
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 40,
+            "n": 67,
+            "p": 0.5970149253731343,
+            "ci95": [
+              0.4774111146058888,
+              0.7060968806963064
+            ]
+          },
+          "prescription_size_mean": 0.05520908344593639,
+          "prescription_size_median": 0.047619047619047616
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 1,
+            "n": 250,
+            "p": 0.004,
+            "ci95": [
+              0.0007064293567593388,
+              0.02230634711486706
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 416,
+          "cp_loss_q1_q3": [
+            116,
+            99039
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 190,
+            "n": 250,
+            "p": 0.76,
+            "ci95": [
+              0.7033784234651377,
+              0.8087519759650581
+            ]
+          },
+          "prescription_size_mean": 0.04882010095842583,
+          "prescription_size_median": 0.0392156862745098
+        },
+        "separation_b_valid": 0.025850746268656716,
+        "contextual_exception_rate_t_plus": 0.9701492537313433
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.09421161724695953,
+        "n_legal_captures": 0.18773975448892197,
+        "n_checks_available": 0.5807980842470419,
+        "n_forcing_moves": 0.5659881246802125,
+        "piece_count": 0.08988238775268116,
+        "material_balance": 0.17320146259748345,
+        "total_material": 0.06862946139105405,
+        "fullmove_number": -0.022229942885583952
+      },
+      "c6_max_abs_smd": 0.5807980842470419,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "None found. Underpromotion has no validated paradigm; it is here as the extreme point of the narrowness rule, not as a construct anyone has studied.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 67,
+          "n": 167881,
+          "p": 0.0003990922141278644,
+          "ci95": [
+            0.00031429944049372497,
+            0.0005067490751812006
+          ]
+        },
+        "t_minus": {
+          "k": 700,
+          "n": 167881,
+          "p": 0.004169620147604553,
+          "ci95": [
+            0.003872515568539356,
+            0.004489416256995988
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.007352941176470588,
+        "false_alarm_rate": 0.0021398002853067048,
+        "d_prime": 0.4172394388296117,
+        "criterion_c": 2.648161983267687,
+        "n_t_plus": 67,
+        "n_t_minus": 700,
+        "by_rating_band": {},
+        "d_prime_monotone_in_rating": null
+      },
+      "caveats": [
+        "Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.",
+        "THE EXTREME POINT: one move out of thirty-odd, and wrong essentially always unless the knight does what a queen cannot. If the narrowness rule is right this has the most inert noise cell in the register; if it does not, the rule is wrong at its own best case.",
+        "Base rate will be tiny. C9 is what this is likeliest to fail, and that is a measurement."
+      ],
+      "position_between_anchors": -2.474781266083378
+    },
+    "RC-14": {
+      "name": "capture-the-mating-piece",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "prescription": "when one piece threatens mate next move, capture it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 240,
+          "b_valid": {
+            "k": 154,
+            "n": 240,
+            "p": 0.6416666666666667,
+            "ci95": [
+              0.579206714832041,
+              0.6996628463913106
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 240,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015754489799935698
+            ]
+          },
+          "cp_loss_median": 5,
+          "cp_loss_q1_q3": [
+            -3,
+            63
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 53,
+            "n": 240,
+            "p": 0.22083333333333333,
+            "ci95": [
+              0.17298057525782595,
+              0.2774823482138048
+            ]
+          },
+          "prescription_size_mean": 0.0451182428158277,
+          "prescription_size_median": 0.037037037037037035
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 125,
+            "n": 250,
+            "p": 0.5,
+            "ci95": [
+              0.4384901486556353,
+              0.5615098513443647
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 14,
+          "cp_loss_q1_q3": [
+            -1,
+            188
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 72,
+            "n": 250,
+            "p": 0.288,
+            "ci95": [
+              0.2354089145467806,
+              0.3470078366870597
+            ]
+          },
+          "prescription_size_mean": 0.03817219376465522,
+          "prescription_size_median": 0.03125
+        },
+        "separation_b_valid": 0.14166666666666672,
+        "contextual_exception_rate_t_plus": 0.3583333333333333
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.6294791705967414,
+        "n_legal_captures": -0.1903091871816712,
+        "n_checks_available": 0.15703107670775593,
+        "n_forcing_moves": -0.010123891594383119,
+        "piece_count": -0.6820072284312932,
+        "material_balance": -0.7809454008620221,
+        "total_material": -0.5899776563787487,
+        "fullmove_number": 0.5168605052112256
+      },
+      "c6_max_abs_smd": 0.7809454008620221,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only -- the same mating-task and check-detection literature that supports RC-00 and RC-06. Nothing found measures the response.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 240,
+          "n": 167881,
+          "p": 0.0014295840506072753,
+          "ci95": [
+            0.0012598968675519588,
+            0.0016220881609284204
+          ]
+        },
+        "t_minus": {
+          "k": 9726,
+          "n": 167881,
+          "p": 0.05793389365085984,
+          "ci95": [
+            0.0568264380489492,
+            0.059061580277060294
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.6369294605809128,
+        "false_alarm_rate": 0.4948596689626812,
+        "d_prime": 0.36314859078158035,
+        "criterion_c": -0.1686890397244638,
+        "n_t_plus": 240,
+        "n_t_minus": 9726,
+        "by_rating_band": {},
+        "d_prime_monotone_in_rating": null
+      },
+      "caveats": [
+        "Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.",
+        "RC-06 NARROWED FROM AN OUTCOME TO A NAMED ACT. RC-06 says 'stop the mate somehow' and its satisfying set is 31.7% of legal moves; this says 'take the piece that would give it'. Same family, same corpus, same engine, and the prescription is the only thing that moved -- so the difference between them is the narrowness rule measured directly on the winner.",
+        "Restricted to threats that come from a SINGLE square. A mate threatened from two pieces at once has no one piece to capture, and those positions are excluded rather than guessed at."
+      ],
+      "position_between_anchors": -1.9755747126436793
+    },
+    "RC-18": {
+      "name": "move-the-piece-that-must-move",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "prescription": "if a minor of yours is attacked by something cheaper, move it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 158,
+            "n": 250,
+            "p": 0.632,
+            "ci95": [
+              0.5706410625109003,
+              0.6893636018151991
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 8,
+          "cp_loss_q1_q3": [
+            -2,
+            59
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 45,
+            "n": 250,
+            "p": 0.18,
+            "ci95": [
+              0.1373327388520246,
+              0.23235292338773436
+            ]
+          },
+          "prescription_size_mean": 0.16436275962252245,
+          "prescription_size_median": 0.16666666666666666
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 41,
+            "n": 250,
+            "p": 0.164,
+            "ci95": [
+              0.12325083757520047,
+              0.21491910777654646
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 62,
+            "n": 250,
+            "p": 0.248,
+            "ci95": [
+              0.19855073569865583,
+              0.3050767233151544
+            ]
+          },
+          "cp_loss_median": 69,
+          "cp_loss_q1_q3": [
+            5,
+            246
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 83,
+            "n": 188,
+            "p": 0.44148936170212766,
+            "ci95": [
+              0.37238278681380144,
+              0.5129392705501905
+            ]
+          },
+          "prescription_size_mean": 0.04775163353047425,
+          "prescription_size_median": 0.037037037037037035
+        },
+        "separation_b_valid": 0.46799999999999997,
+        "contextual_exception_rate_t_plus": 0.368
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 62,
+          "n": 250,
+          "p": 0.248,
+          "ci95": [
+            0.19855073569865583,
+            0.3050767233151544
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.6364025367899545,
+        "n_legal_captures": 0.5195401074088547,
+        "n_checks_available": -0.09719315922000696,
+        "n_forcing_moves": 0.3066863839855667,
+        "piece_count": 0.6356686283548314,
+        "material_balance": 0.24698747548399813,
+        "total_material": 0.6455191945552662,
+        "fullmove_number": -0.48951319579227015
+      },
+      "c6_max_abs_smd": 0.6455191945552662,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only -- the chess-expertise threat-detection task, as for RC-04 and RC-09.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 8954,
+          "n": 167881,
+          "p": 0.0533353982880731,
+          "ci95": [
+            0.0522706998696942,
+            0.05442053817951869
+          ]
+        },
+        "t_minus": {
+          "k": 19738,
+          "n": 167881,
+          "p": 0.11757137496202667,
+          "ci95": [
+            0.11603931995409117,
+            0.11912093170260157
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.6677275265214964,
+        "false_alarm_rate": 0.1662444906023608,
+        "d_prime": 1.4027594576853426,
+        "criterion_c": 0.26773293235417084,
+        "n_t_plus": 8954,
+        "n_t_minus": 19738,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": 1.623911779819805,
+            "criterion_c": 0.34175483720084,
+            "n_t_plus": 245,
+            "n_t_minus": 542
+          },
+          "1200-1400": {
+            "d_prime": 1.439531018382427,
+            "criterion_c": 0.3541483465536762,
+            "n_t_plus": 1173,
+            "n_t_minus": 2753
+          },
+          "1400-1600": {
+            "d_prime": 1.4342113388614859,
+            "criterion_c": 0.30561882421085834,
+            "n_t_plus": 3297,
+            "n_t_minus": 7175
+          },
+          "1600-1800": {
+            "d_prime": 1.3652092222406789,
+            "criterion_c": 0.21531513521942394,
+            "n_t_plus": 2868,
+            "n_t_minus": 6323
+          },
+          "1800-3500": {
+            "d_prime": 1.3469962249883785,
+            "criterion_c": 0.20469843148689598,
+            "n_t_plus": 1371,
+            "n_t_minus": 2945
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.",
+        "RC-11 WITH ITS POSITIVE CELL REPAIRED AND ITS NOISE CELL UNTOUCHED. RC-11 scored .144 on T-, second most inert in the register, and only .596 on T+ because moving is not the answer when defending would also do. When the attacker is cheaper, defending cannot help. The shared noise cell is what makes this pair isolate the positive cell.",
+        "A pin can make 'move it' illegal or losing, and that is not modelled. It shows up as items where the rule is wrong rather than as an exclusion."
+      ],
+      "position_between_anchors": -0.5689655172413801
+    },
+    "RC-20": {
+      "name": "defend-the-piece-in-place",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "prescription": "if a minor of yours hangs to an equal-or-dearer attacker, defend it where it stands",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 57,
+            "n": 250,
+            "p": 0.228,
+            "ci95": [
+              0.1803405041462213,
+              0.2838923087575739
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 44,
+            "n": 250,
+            "p": 0.176,
+            "ci95": [
+              0.13379907724930237,
+              0.22800765576845358
+            ]
+          },
+          "cp_loss_median": 56,
+          "cp_loss_q1_q3": [
+            3,
+            190
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 82,
+            "n": 206,
+            "p": 0.39805825242718446,
+            "ci95": [
+              0.33366730012777635,
+              0.46618172885408415
+            ]
+          },
+          "prescription_size_mean": 0.0953150918762074,
+          "prescription_size_median": 0.08695652173913043
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 81,
+            "n": 250,
+            "p": 0.324,
+            "ci95": [
+              0.26902875602743026,
+              0.38429835820443714
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 22,
+            "n": 250,
+            "p": 0.088,
+            "ci95": [
+              0.058830921041025906,
+              0.12963936909266374
+            ]
+          },
+          "cp_loss_median": 28,
+          "cp_loss_q1_q3": [
+            1,
+            113
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 63,
+            "n": 228,
+            "p": 0.27631578947368424,
+            "ci95": [
+              0.22234076332873975,
+              0.33770368080898194
+            ]
+          },
+          "prescription_size_mean": 0.16317313855181895,
+          "prescription_size_median": 0.1724137931034483
+        },
+        "separation_b_valid": -0.096,
+        "contextual_exception_rate_t_plus": 0.772
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 22,
+          "n": 250,
+          "p": 0.088,
+          "ci95": [
+            0.058830921041025906,
+            0.12963936909266374
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": 0.4081036252314014,
+        "n_legal_captures": 0.31694320082069033,
+        "n_checks_available": 0.11537941021974353,
+        "n_forcing_moves": 0.2807422658601834,
+        "piece_count": -0.04297438440336809,
+        "material_balance": 0.18298262057786077,
+        "total_material": -0.016847134598278,
+        "fullmove_number": 0.06087810379273568
+      },
+      "c6_max_abs_smd": 0.4081036252314014,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "MODERATE, detection only -- as RC-18.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 6967,
+          "n": 167881,
+          "p": 0.04149963366908703,
+          "ci95": [
+            0.04055602311659894,
+            0.04246422735490044
+          ]
+        },
+        "t_minus": {
+          "k": 19738,
+          "n": 167881,
+          "p": 0.11757137496202667,
+          "ci95": [
+            0.11603931995409117,
+            0.11912093170260157
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.24016934557979333,
+        "false_alarm_rate": 0.31873448502963675,
+        "d_prime": -0.23451738388323495,
+        "criterion_c": 0.5884992339787505,
+        "n_t_plus": 6967,
+        "n_t_minus": 19738,
+        "by_rating_band": {
+          "0-1200": {
+            "d_prime": -0.03341895188607258,
+            "criterion_c": 0.607996968548696,
+            "n_t_plus": 170,
+            "n_t_minus": 542
+          },
+          "1200-1400": {
+            "d_prime": -0.213358518174884,
+            "criterion_c": 0.5873944202322076,
+            "n_t_plus": 1010,
+            "n_t_minus": 2753
+          },
+          "1400-1600": {
+            "d_prime": -0.19758591176458717,
+            "criterion_c": 0.5781439318401091,
+            "n_t_plus": 2573,
+            "n_t_minus": 7175
+          },
+          "1600-1800": {
+            "d_prime": -0.2833458812787745,
+            "criterion_c": 0.6059166923670515,
+            "n_t_plus": 2240,
+            "n_t_minus": 6323
+          },
+          "1800-3500": {
+            "d_prime": -0.27539248695814994,
+            "criterion_c": 0.5735638484244198,
+            "n_t_plus": 974,
+            "n_t_minus": 2945
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.",
+        "THE COMPLEMENT OF RC-18's ACT on the complementary trigger: cheaper attacker means move it, equal-or-dearer attacker means a defender fixes it. Between them the two cover both ways to answer the same kind of threat, so a gap between their scores is about the two METHODS.",
+        "B requires the piece to have stayed put, so a move that answers the threat by counter-attacking scores as a miss. That is the narrowness the design rule asks for, and its cost."
+      ],
+      "position_between_anchors": -3.0000000000000018
+    },
+    "RC-21": {
+      "name": "push-the-unstoppable-passer",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "prescription": "if your passed pawn is outside the enemy king's square, push it",
+      "c1_trigger_precedes_behaviour": "enforced by signature",
+      "c2_b_directly_observable": "enforced by signature",
+      "c3_grade": "independent",
+      "c4_prescriptive_validity": {
+        "t_plus": {
+          "n": 250,
+          "b_valid": {
+            "k": 41,
+            "n": 250,
+            "p": 0.164,
+            "ci95": [
+              0.12325083757520047,
+              0.21491910777654646
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 82,
+          "cp_loss_q1_q3": [
+            3,
+            312
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 118,
+            "n": 250,
+            "p": 0.472,
+            "ci95": [
+              0.4110089576615158,
+              0.5338385377844631
+            ]
+          },
+          "prescription_size_mean": 0.06908433065235858,
+          "prescription_size_median": 0.041666666666666664
+        },
+        "t_minus": {
+          "n": 250,
+          "b_valid": {
+            "k": 24,
+            "n": 250,
+            "p": 0.096,
+            "ci95": [
+              0.06536141854642746,
+              0.13886673003126823
+            ]
+          },
+          "no_satisfying_move": {
+            "k": 0,
+            "n": 250,
+            "p": 0.0,
+            "ci95": [
+              0.0,
+              0.015133847249623387
+            ]
+          },
+          "cp_loss_median": 118,
+          "cp_loss_q1_q3": [
+            30,
+            357
+          ],
+          "following_the_rule_loses_100cp_or_more": {
+            "k": 132,
+            "n": 250,
+            "p": 0.528,
+            "ci95": [
+              0.4661614622155369,
+              0.5889910423384842
+            ]
+          },
+          "prescription_size_mean": 0.051740667984442025,
+          "prescription_size_median": 0.038461538461538464
+        },
+        "separation_b_valid": 0.068,
+        "contextual_exception_rate_t_plus": 0.836
+      },
+      "c5_same_action_available_in_t_minus": {
+        "t_minus_items_with_no_satisfying_move": {
+          "k": 0,
+          "n": 250,
+          "p": 0.0,
+          "ci95": [
+            0.0,
+            0.015133847249623387
+          ]
+        },
+        "enforced": "a position where the prescribed act is unavailable is not an item"
+      },
+      "c6_exchangeability_smd": {
+        "n_legal_moves": -0.17811769543420863,
+        "n_legal_captures": -0.12154866936685323,
+        "n_checks_available": -0.1476680613707959,
+        "n_forcing_moves": -0.16253462289028558,
+        "piece_count": -0.40685015108326844,
+        "material_balance": 0.01042590638043576,
+        "total_material": -0.3334669335258067,
+        "fullmove_number": 0.49338221629871326
+      },
+      "c6_max_abs_smd": 0.49338221629871326,
+      "c7_no_engine_in_b": true,
+      "c8_literature": "None found as a measured paradigm. The rule of the square is a named, exactly defined endgame rule in every textbook, which is why the trigger needs no invention -- but no validation evidence exists for measuring whether players apply it.",
+      "c9_base_rate": {
+        "t_plus": {
+          "k": 3286,
+          "n": 167881,
+          "p": 0.019573388292897946,
+          "ci95": [
+            0.01892163021368689,
+            0.0202471329535531
+          ]
+        },
+        "t_minus": {
+          "k": 8900,
+          "n": 167881,
+          "p": 0.05301374187668646,
+          "ci95": [
+            0.05195211464659426,
+            0.05409582530035566
+          ]
+        },
+        "denominator_is": "not-in-check positions"
+      },
+      "player_behaviour_secondary": {
+        "hit_rate": 0.22284758138119867,
+        "false_alarm_rate": 0.10566228513650151,
+        "d_prime": 0.4873200676224594,
+        "criterion_c": 1.0062714690812578,
+        "n_t_plus": 3286,
+        "n_t_minus": 8900,
+        "by_rating_band": {
+          "1200-1400": {
+            "d_prime": 0.6201535949686796,
+            "criterion_c": 0.9709074384794819,
+            "n_t_plus": 343,
+            "n_t_minus": 1003
+          },
+          "1400-1600": {
+            "d_prime": 0.4613957462860556,
+            "criterion_c": 1.0223364808864024,
+            "n_t_plus": 1140,
+            "n_t_minus": 3001
+          },
+          "1600-1800": {
+            "d_prime": 0.4560070740989718,
+            "criterion_c": 0.9773119659115941,
+            "n_t_plus": 1143,
+            "n_t_minus": 3090
+          },
+          "1800-3500": {
+            "d_prime": 0.5050004482169289,
+            "criterion_c": 1.0473710735697048,
+            "n_t_plus": 606,
+            "n_t_minus": 1667
+          }
+        },
+        "d_prime_monotone_in_rating": false
+      },
+      "caveats": [
+        "Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.",
+        "THE ONLY CANDIDATE IN THE REGISTER WHOSE TRIGGER IS A NAMED CHESS RULE WITH AN EXACT GEOMETRIC DEFINITION. The rule of the square is not a heuristic of ours; the noise cell is the same pawn, inside the square, where pushing achieves nothing.",
+        "THE LONE-KING FORM ONLY. The textbook rule assumes the king is the sole defender; a rook or bishop covering the queening square stops the pawn regardless. Those items score as the rule being wrong, and the honest reading of a low T+ here is that the trigger is too coarse rather than that the rule is false."
+      ],
+      "position_between_anchors": -2.2931034482758634
     }
   },
   "structurally_rejected": [

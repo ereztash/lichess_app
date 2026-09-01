@@ -625,6 +625,236 @@ def _promotion_stop_satisfies(board: chess.Board, move: chess.Move, ctx: Context
     return hit is not None and _threat_answered(board, move, hit[0])
 
 
+# ---------------------------------------------------------------- the noise-cell batch
+#
+# DESIGNED TO A RULE DERIVED FROM DATA, NOT TO A HUNCH. Round 2 found that separation is decided by
+# the noise cell (rho = -0.811, p = 0.001, n = 12). Asked what makes a noise cell inert, the same
+# twelve rule classes answer with two things, and only two:
+#
+#     prescription_size | T-      rho = +0.811, p = 0.0014   narrower is better
+#     cp cost of the rule | T-    rho = -0.862, p = 0.0003   costlier is better
+#     no_satisfying_move | T-     rho = +0.067, p = 0.8353   irrelevant
+#
+# And `prescription_size | T+` does NOT predict separation (rho = -0.182, p = 0.57) while
+# `prescription_size | T-` does (rho = -0.713, p = 0.009). So the brief for this batch is exact:
+#
+#     PRESCRIBE A NARROW, COMMITTAL ACT WHOSE ONLY JUSTIFICATION IS THE TRIGGER.
+#
+# `prescription_size` is computable from the board with no engine, which makes this a CHEAP
+# pre-screen: a candidate's noise cell can be predicted before a single search is spent on it.
+# That is the practical payoff of round 2 and the reason this batch is a test of it.
+
+
+def _knight_promotions(board: chess.Board) -> list[chess.Move]:
+    return [m for m in board.legal_moves if m.promotion == chess.KNIGHT]
+
+
+def _underpromote_trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+    """
+    T+ a knight promotion that checks; T- a knight promotion when a queen promotion is there too.
+
+    THE NARROWEST ACT IN THE WHOLE REGISTER. Promoting to a knight is one move out of thirty-odd
+    and is wrong essentially always -- a queen is strictly better -- unless the knight does
+    something a queen cannot, which on the move it appears means giving check. If the narrowness
+    rule is right, this is the most inert noise cell obtainable.
+    """
+    knights = _knight_promotions(board)
+    if not knights:
+        return None
+    checking = [m for m in knights if board.gives_check(m)]
+    if checking:
+        return "positive"
+    if any(m.promotion == chess.QUEEN for m in board.legal_moves):
+        return "negative"
+    return None
+
+
+def _underpromote_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    return move.promotion == chess.KNIGHT
+
+
+def _sole_source_of(moves: list[chess.Move]) -> Optional[int]:
+    """The one square every move in the list departs from, or None if they disagree."""
+    if not moves:
+        return None
+    squares = {m.from_square for m in moves}
+    return next(iter(squares)) if len(squares) == 1 else None
+
+
+def _mating_piece_square(board: chess.Board) -> Optional[int]:
+    """The single square every mate the opponent threatens would come from."""
+    if board.is_check():
+        return None
+    board.push(chess.Move.null())
+    try:
+        return _sole_source_of(_mating_moves(board))
+    finally:
+        board.pop()
+
+
+def _checking_piece_square(board: chess.Board) -> Optional[int]:
+    if board.is_check():
+        return None
+    board.push(chess.Move.null())
+    try:
+        return _sole_source_of([m for m in board.legal_moves if board.gives_check(m)])
+    finally:
+        board.pop()
+
+
+def _capture_the_threat_trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+    """
+    RC-06 NARROWED FROM AN OUTCOME TO A NAMED ACT, which is the sharpest test of the rule this
+    batch was designed under. RC-06 says "stop the mate somehow" and its satisfying set is 31.7%
+    of legal moves; this says "take the piece that would give it", one or two moves. Same family,
+    same corpus, same engine -- the prescription is the only thing that moved.
+    """
+    if _threatens_mate_after_pass(board):
+        sq = _mating_piece_square(board)
+        return "positive" if sq is not None and _captures_to(board, sq) else None
+    sq = _checking_piece_square(board)
+    return "negative" if sq is not None and _captures_to(board, sq) else None
+
+
+def _capture_the_threat_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    sq = (
+        _mating_piece_square(board)
+        if _threatens_mate_after_pass(board)
+        else _checking_piece_square(board)
+    )
+    return sq is not None and move.to_square == sq and board.is_capture(move)
+
+
+def _must_move_trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+    """
+    T+ a minor attacked by something CHEAPER; T- the pawn cell RC-11 already uses.
+
+    RC-11 WITH ITS POSITIVE CELL REPAIRED AND ITS NOISE CELL UNTOUCHED. RC-11 scored .144 on T-
+    -- the second most inert in the register -- and only .596 on T+, because "move it" is not the
+    answer when defending would also do. When the attacker is CHEAPER than the piece, defending
+    cannot help: the opponent simply takes and comes out ahead. So this trigger keeps exactly the
+    cases where moving is the only answer, and shares RC-11's noise cell so the pair isolates the
+    positive cell.
+    """
+    hit = _designated_threat(board)
+    if hit is None:
+        return None
+    square, worth = hit
+    if worth == VALUES[chess.PAWN]:
+        return "negative"
+    if worth != VALUES[chess.KNIGHT]:
+        return None
+    piece = board.piece_at(square)
+    assert piece is not None
+    cheaper = any(
+        ATTACKER_ORDER[board.piece_at(a).piece_type] < worth  # type: ignore[union-attr]
+        for a in board.attackers(not piece.color, square)
+    )
+    if not cheaper:
+        return None
+    return "positive" if any(m.from_square == square for m in board.legal_moves) else None
+
+
+def _hold_it_trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+    """T+ a minor hanging to an equal-or-dearer attacker, where a defender would fix it."""
+    hit = _designated_threat(board)
+    if hit is None:
+        return None
+    square, worth = hit
+    if worth == VALUES[chess.PAWN]:
+        return "negative"
+    if worth != VALUES[chess.KNIGHT]:
+        return None
+    piece = board.piece_at(square)
+    assert piece is not None
+    cheaper = any(
+        ATTACKER_ORDER[board.piece_at(a).piece_type] < worth  # type: ignore[union-attr]
+        for a in board.attackers(not piece.color, square)
+    )
+    return None if cheaper else "positive"
+
+
+def _hold_it_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    """
+    Defended IN PLACE: the piece did not move, and is no longer takeable.
+
+    THE COMPLEMENT OF `_must_move_trigger`'s ACT, deliberately. Between them the two candidates
+    cover both ways to answer the same kind of threat, so a difference between their scores is a
+    difference between the two methods rather than between two situations.
+    """
+    hit = _designated_threat(board)
+    if hit is None or move.from_square == hit[0]:
+        return False
+    board.push(move)
+    try:
+        piece = board.piece_at(hit[0])
+        return piece is not None and not _in_bad_spot(board, hit[0], piece.color)
+    finally:
+        board.pop()
+
+
+# ---------------------------------------------------------------- RC-21  the rule of the square
+
+def _passed_pawns(board: chess.Board, colour: chess.Color) -> list[int]:
+    """Our pawns with no enemy pawn ahead on their file or either neighbour."""
+    out = []
+    for square, piece in board.piece_map().items():
+        if piece.color != colour or piece.piece_type != chess.PAWN:
+            continue
+        file_, rank = chess.square_file(square), chess.square_rank(square)
+        ahead = range(rank + 1, 8) if colour == chess.WHITE else range(0, rank)
+        blocked = False
+        for f in (file_ - 1, file_, file_ + 1):
+            if not 0 <= f <= 7:
+                continue
+            for r in ahead:
+                other = board.piece_at(chess.square(f, r))
+                if other is not None and other.piece_type == chess.PAWN and other.color != colour:
+                    blocked = True
+                    break
+            if blocked:
+                break
+        if not blocked:
+            out.append(square)
+    return out
+
+
+def _outside_the_square(board: chess.Board, pawn: int, colour: chess.Color) -> bool:
+    """
+    The rule of the square: can the lone enemy king catch this pawn?
+
+    A NAMED, EXACTLY DEFINED CHESS RULE, which is why it is here rather than a heuristic of ours.
+    The pawn needs `steps` moves to promote; the defending king needs `king_distance` moves to
+    reach the promotion square, and it is their move next. Outside the square means it cannot.
+    """
+    rank = chess.square_rank(pawn)
+    promotion = chess.square(chess.square_file(pawn), 7 if colour == chess.WHITE else 0)
+    steps = (7 - rank) if colour == chess.WHITE else rank
+    if colour == chess.WHITE and rank == 1:
+        steps -= 1          # the double step is available from the home rank
+    elif colour == chess.BLACK and rank == 6:
+        steps -= 1
+    king = board.king(not colour)
+    if king is None:
+        return False
+    return chess.square_distance(king, promotion) > steps
+
+
+def _passer_trigger(board: chess.Board, ctx: Context) -> Optional[TriggerState]:
+    passers = _passed_pawns(board, board.turn)
+    if len(passers) != 1:
+        return None
+    pawn = passers[0]
+    if not any(m.from_square == pawn for m in board.legal_moves):
+        return None
+    return "positive" if _outside_the_square(board, pawn, board.turn) else "negative"
+
+
+def _passer_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> bool:
+    passers = _passed_pawns(board, board.turn)
+    return len(passers) == 1 and move.from_square == passers[0]
+
+
 # ---------------------------------------------------------------- the register
 
 RULE_CLASSES: list[RuleClass] = [
@@ -872,6 +1102,91 @@ RULE_CLASSES: list[RuleClass] = [
             "Base rate expected to be low, as RC-05's was. C9 is the criterion this is likeliest to fail, and a low base rate is a measurement rather than a disqualification.",
         ],
     ),
+    RuleClass(
+        id="RC-13",
+        name="underpromote-to-knight",
+        family="noise-cell-first: committal acts",
+        role="candidate",
+        trigger=_underpromote_trigger,
+        satisfies=_underpromote_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="promote to a knight only when the knight gives check",
+        literature=('None found. Underpromotion has no validated paradigm; it is here as the extreme point of the narrowness rule, not as a construct anyone has studied.'),
+        caveats=[
+            'Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.',
+            'THE EXTREME POINT: one move out of thirty-odd, and wrong essentially always unless the knight does what a queen cannot. If the narrowness rule is right this has the most inert noise cell in the register; if it does not, the rule is wrong at its own best case.',
+            'Base rate will be tiny. C9 is what this is likeliest to fail, and that is a measurement.',
+        ],
+    ),
+    RuleClass(
+        id="RC-14",
+        name="capture-the-mating-piece",
+        family="noise-cell-first: committal acts",
+        role="candidate",
+        trigger=_capture_the_threat_trigger,
+        satisfies=_capture_the_threat_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="when one piece threatens mate next move, capture it",
+        literature=('MODERATE, detection only -- the same mating-task and check-detection literature that supports RC-00 and RC-06. Nothing found measures the response.'),
+        caveats=[
+            'Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.',
+            "RC-06 NARROWED FROM AN OUTCOME TO A NAMED ACT. RC-06 says 'stop the mate somehow' and its satisfying set is 31.7% of legal moves; this says 'take the piece that would give it'. Same family, same corpus, same engine, and the prescription is the only thing that moved -- so the difference between them is the narrowness rule measured directly on the winner.",
+            'Restricted to threats that come from a SINGLE square. A mate threatened from two pieces at once has no one piece to capture, and those positions are excluded rather than guessed at.',
+        ],
+    ),
+    RuleClass(
+        id="RC-18",
+        name="move-the-piece-that-must-move",
+        family="noise-cell-first: committal acts",
+        role="candidate",
+        trigger=_must_move_trigger,
+        satisfies=_tier_satisfies_by_moving,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if a minor of yours is attacked by something cheaper, move it",
+        literature=('MODERATE, detection only -- the chess-expertise threat-detection task, as for RC-04 and RC-09.'),
+        caveats=[
+            'Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.',
+            'RC-11 WITH ITS POSITIVE CELL REPAIRED AND ITS NOISE CELL UNTOUCHED. RC-11 scored .144 on T-, second most inert in the register, and only .596 on T+ because moving is not the answer when defending would also do. When the attacker is cheaper, defending cannot help. The shared noise cell is what makes this pair isolate the positive cell.',
+            "A pin can make 'move it' illegal or losing, and that is not modelled. It shows up as items where the rule is wrong rather than as an exclusion.",
+        ],
+    ),
+    RuleClass(
+        id="RC-20",
+        name="defend-the-piece-in-place",
+        family="noise-cell-first: committal acts",
+        role="candidate",
+        trigger=_hold_it_trigger,
+        satisfies=_hold_it_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if a minor of yours hangs to an equal-or-dearer attacker, defend it where it stands",
+        literature=('MODERATE, detection only -- as RC-18.'),
+        caveats=[
+            'Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.',
+            "THE COMPLEMENT OF RC-18's ACT on the complementary trigger: cheaper attacker means move it, equal-or-dearer attacker means a defender fixes it. Between them the two cover both ways to answer the same kind of threat, so a gap between their scores is about the two METHODS.",
+            'B requires the piece to have stayed put, so a move that answers the threat by counter-attacking scores as a miss. That is the narrowness the design rule asks for, and its cost.',
+        ],
+    ),
+    RuleClass(
+        id="RC-21",
+        name="push-the-unstoppable-passer",
+        family="noise-cell-first: committal acts",
+        role="candidate",
+        trigger=_passer_trigger,
+        satisfies=_passer_satisfies,
+        c3_grade="independent",
+        needs_previous_move=False,
+        prescription="if your passed pawn is outside the enemy king's square, push it",
+        literature=('None found as a measured paradigm. The rule of the square is a named, exactly defined endgame rule in every textbook, which is why the trigger needs no invention -- but no validation evidence exists for measuring whether players apply it.'),
+        caveats=[
+            'Designed to the noise-cell rule derived in round 2 -- a narrow, committal act whose only justification is the trigger -- rather than picked from a family list.',
+            'THE ONLY CANDIDATE IN THE REGISTER WHOSE TRIGGER IS A NAMED CHESS RULE WITH AN EXACT GEOMETRIC DEFINITION. The rule of the square is not a heuristic of ours; the noise cell is the same pawn, inside the square, where pushing achieves nothing.',
+            'THE LONE-KING FORM ONLY. The textbook rule assumes the king is the sole defender; a rook or bishop covering the queening square stops the pawn regardless. Those items score as the rule being wrong, and the honest reading of a low T+ here is that the trigger is too coarse rather than that the rule is false.',
+        ],
+    ),
 ]
 
 BY_ID = {rc.id: rc for rc in RULE_CLASSES}
@@ -895,6 +1210,13 @@ PREDICTIONS = {
         "B_valid | T+ declines monotonically down the severity ladder: "
         "RC-06 mate > RC-07 queen > RC-08 rook > RC-09 minor. If it does not, severity is not "
         "what protects the prescription and the explanation given for RC-06 is wrong."
+    ),
+    "H3_noise_cell_by_design": (
+        "The five candidates designed to the narrowness rule (RC-13, RC-14, RC-18, RC-20, RC-21) "
+        "will have prescription_size | T- below the median of the first twelve (0.140) and "
+        "B_valid | T- below their median (0.230). If a narrow prescription does not buy an inert "
+        "noise cell, the design rule extracted from round 2 is wrong and the correlation that "
+        "produced it was a coincidence of twelve points."
     ),
     "H2_outcome_over_method": (
         "RC-09 (outcome: the threat is gone) scores above RC-11 (method: move the piece), on an "
