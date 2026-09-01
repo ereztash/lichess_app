@@ -581,8 +581,28 @@ const ENTRY_GZIP_KB = 211;
  *
  * 756 -> 759: the same 3.0 kB as the entry raise above, plus this file's usual headroom. All
  * JavaScript, on the entry chunk; the stylesheet did not move.
+ *
+ * ---
+ *
+ * 759 -> 761: THE STYLESHEET, AND FOR ONCE THE JAVASCRIPT DID NOT MOVE AT ALL.
+ *
+ * Measured: index.css 83,271 -> 84,638 bytes, +1,367. Every byte of it is one change --
+ * 142 `gap` declarations that were literals became `var(--sN)`, and `gap: var(--s3)` is six
+ * characters longer than `gap: 8px`. Minification strips the comments that came with them, so the
+ * growth is the token references and the six declarations that define them.
+ *
+ * WHAT IT BOUGHT, and this is the trade this file exists to make explicit: the product had ZERO
+ * spacing tokens and THIRTY-ONE distinct gap values across two units, so `5px`, `0.35rem` and
+ * `6px` all existed and all read the same. Proximity is the one thing that groups without drawing
+ * anything, and it cannot group if the distances are not ranked. See
+ * `docs/VISUAL_ARCHITECTURE_AUDIT.md`.
+ *
+ * THE NUMBER THAT MATTERS MOST DID NOT MOVE: gzipped went 210.8 -> 210.9 kB, because 142
+ * references to six strings is exactly what a compressor is for. This ceiling is the raw one, and
+ * the raise is 2 kB rather than 1.4 so the next stylesheet change is not forced to come with a
+ * budget commit of its own.
  */
-const INITIAL_RAW_KB = 759;
+const INITIAL_RAW_KB = 761;
 
 interface Asset {
   name: string;

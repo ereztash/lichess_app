@@ -263,13 +263,20 @@ describe("the type scale is the document's, not one panel's", () => {
      * Two exemptions, both drawings rather than text, both documented at their declaration:
      * `.brand-mark` is the knight glyph sized to the mark it draws, and `.piece` is sized in
      * `cqmin` so it tracks the square under it. A type scale ranks text; neither is text.
+     *
+     * `em` IS IN THE PATTERN NOW, and it was not. `.value-triple .value-fraction` carried
+     * `font-size: 0.72em` and slipped both checks -- this one because the unit list named px, rem
+     * and pt, and the panel-scoped one below (whose list does include em) because the selector is
+     * outside the panel. It rendered at 7.92px, the smallest text in the product. A unit missing
+     * from a list is the same hole as a selector missing from a list, which is the finding the
+     * `--on-blue` check above is built around.
      */
     const offScale: string[] = [];
     for (const rule of rules()) {
       if (rule.selectors.some((s) => s.startsWith(".brand-mark") || s.includes(".piece"))) continue;
       for (const [, prop, value] of rule.body.matchAll(/(?:^|;)\s*(font-size|font)\s*:\s*([^;]+)/g)) {
         if (value.includes("var(--panel-")) continue;
-        if (/\d+(\.\d+)?(px|rem|pt)(?![a-z])/.test(value))
+        if (/\d+(\.\d+)?(px|rem|em|pt)(?![a-z])/.test(value))
           offScale.push(`${rule.selectors.join(", ")} { ${prop}: ${value.trim()} }`);
       }
     }

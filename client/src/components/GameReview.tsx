@@ -195,15 +195,15 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
             <ResponsiveContainer width="100%" height={168}>
               <AreaChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -22 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
-                <XAxis dataKey="ply" tick={{ fontSize: 9 }} stroke="var(--c-axis)" />
-                <YAxis tick={{ fontSize: 9 }} stroke="var(--c-axis)" width={38} />
+                <XAxis dataKey="ply" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
+                <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={38} />
                 <ReferenceLine y={0} stroke="var(--c-axis)" />
                 <Tooltip
                   contentStyle={{
                     background: "var(--surface)",
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: 0,
-                    fontSize: 11,
+                    fontSize: "var(--panel-label)",
                   }}
                   labelFormatter={(ply) => `חצי־מהלך ${ply}`}
                   formatter={(v) => [`${Number(v) > 0 ? "+" : ""}${Number(v).toFixed(2)}`, "הערכה"]}
@@ -241,15 +241,15 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
             <ResponsiveContainer width="100%" height={168}>
               <BarChart data={losses} margin={{ top: 6, right: 4, bottom: 0, left: -22 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
-                <XAxis dataKey="moveNumber" tick={{ fontSize: 9 }} stroke="var(--c-axis)" />
-                <YAxis tick={{ fontSize: 9 }} stroke="var(--c-axis)" width={38} />
+                <XAxis dataKey="moveNumber" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
+                <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={38} />
                 <Tooltip
                   cursor={{ fill: "var(--c-grid)" }}
                   contentStyle={{
                     background: "var(--surface)",
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: 0,
-                    fontSize: 11,
+                    fontSize: "var(--panel-label)",
                   }}
                   labelFormatter={(m) => `מהלך ${m}`}
                   formatter={(v) => [`${Number(v)}`, "אובדן סנטיפונים"]}

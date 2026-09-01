@@ -87,11 +87,15 @@ against what is actually the strongest thing on screen:
   16px — the same size as the duplicated turn indicator and the move-timeline's label. The
   sentence that actually states the task (`בחרו מהלך וכתבו את הקריאה שלכם`) is 11px at
   **2.81:1**, the least legible text on the screen.
-* **`REVEAL`** — contract: *the one thing this decision showed*. `.reveal-one-thing` renders at
-  **36,352px²**; `.reveal-limits`, the block that exists to withhold claims, renders at
-  **57,539px²**. All three blocks carry an identical 1px hairline, an identical 12px radius and
-  an identical 12px heading. The separation between "what this showed" and "what this cannot say"
-  is one pixel of type size and 0.2 of opacity.
+* **`REVEAL`** — contract: *the one thing this decision showed*. When there **is** a finding this
+  is already right and tested: `.one-thing-text` renders at `--panel-display`, weight 600, and
+  `what-the-first-reveal-weighs.test.tsx` holds it there. When there is **not** — every early
+  reveal, and the first one any new player sees — `.one-thing-none` falls to `--panel-body` at
+  `opacity: 0.82`, which is *quieter than the paragraph beside it*. Measured in that state:
+  `.reveal-one-thing` 36,352px² against `.reveal-limits`' 57,539px². The state where the product
+  has least to say is the state where its central object disappears. All three blocks also carry
+  an identical 1px hairline, an identical 12px radius and an identical `--panel-body` heading,
+  so nothing ranks them.
 * **`ARRIVE`** — contract: *the first decision*. The only fully saturated control on the front
   door is `Lichess`, which is a **segmented-control option**. The primary action renders at
   `opacity: 0.45` — measured **2.85:1** — because it is disabled until a username is typed.
@@ -131,7 +135,7 @@ by area × luminance distance from the page ground.
 | `ARRIVE` | start the first decision | the first decision | a segmented-control option (`Lichess`, mass 2,565 vs the primary action's 4,216 at `opacity .45`) | three buttons in three visual languages | 18 text runs, 5 of them 11px prose stacked under the h1 | one card, square corners, left accent bar — a language used nowhere else | **no header at all**; does not read as the same product as `/play` | **P1** |
 | `DECIDE` | commit a decision | the commitment | the board (correct, 129k mass) | the ribbon is the widest bordered band on the page and sits above everything; `.move-timeline` is the second-largest single surface (11,349) | 89 text runs, 37 at 10px | 24 borders; `תור/לבן` rendered twice, 400px apart | red is the only accent on screen and it is on the not-yet-done state | **P0** (D1) |
 | `ANSWER_INSTRUMENT` | answer the probe | **the question** | the board (632², vs the question card at 330×205) | ~560px of empty column under the question | low | question and board are 250px apart with nothing joining them | kicker still reads `DECIDE` | **P1** |
-| `REVEAL` | read what the decision showed | **the one thing this decision showed** | the caveat block (57,539 vs 36,352) | three identical cards; toolbox column returns for two items | 12px headings on 12px bodies | three blocks, one visual treatment | order is right and documented; weight contradicts it | **P1** |
+| `REVEAL` | read what the decision showed | **the one thing this decision showed** | the caveat block, **in the no-finding case** (57,539 vs 36,352) | three identical cards; toolbox column returns for two items | 12px headings on 12px bodies | three blocks, one visual treatment | order is right and documented; the *empty* answer has no weight | **P1** |
 | `REFLECT` / `RESUME` | what the record can and cannot say | the next action | nothing — no mass above 4,216 in 2,818px of page | ~20 sections at one weight; 12 consecutive near-identical 10px rows | **127 text runs; 59 at 10px, 30 at 11px** | hairlines only; no rank between sections | two candidate actions, the louder one 700px down the scroll | **P1** |
 | `EXPLORE` | move around a finished game | the position being looked at | the board | 15 headings, `h3` rendered at 11, 12 **and** 14px | **258 text runs; 190 in the 10–12px band**; 63 borders | `h4` at 11px above 12px bodies — headings smaller than what they head | legitimately dense, but its structure is not legible | **P1** |
 | `WAIT` / `TEST` / `REVIEW_EVENT` | — | — | — | inherit the same type and spacing systems | — | — | — | see M1/M2 |
@@ -244,24 +248,41 @@ Falsify:       re-measure the submit's y at 1393x681 and 390x844 after the chang
                grayscale pass -- if hierarchy survives without hue, the type is carrying it
 ```
 
-### P1-1 — `REVEAL` gives its central object less weight than its caveat
+### P1-1 — `REVEAL`'s central object vanishes in the case a new player meets first
+
+**A correction to this finding's first draft, kept because the correction is the finding.** The
+first pass measured `.reveal-one-thing` at 36,352px² against `.reveal-limits`' 57,539px² and read
+it as a blanket weight inversion. It is not. When the reveal HAS a finding, `.one-thing-text`
+renders at `--panel-display` weight 600 and is correctly the largest thing on the screen -- the
+repository already did this work and `tests/client/what-the-first-reveal-weighs.test.tsx` holds it.
+The 36,352 was measured in the *other* branch.
 
 ```
 ID:            P1-1
-State:         REVEAL
-Evidence:      .reveal-limits 57,539px^2 / .reveal-one-thing 36,352px^2. Identical border, radius
-               and 12px heading on all three blocks
-Mechanism:     the DOM order is a documented epistemic decision ("not negotiable", D25). Weight
-               was never separated from it, so first-in-order became largest-on-screen
-Impact:        MODE_CONTRACT.REVEAL names "the one thing this decision showed" central; it is not
+State:         REVEAL, no-finding branch (every early reveal; the first one any new player sees)
+Evidence:      .one-thing-text  -> --panel-display, weight 600   (correct, tested)
+               .one-thing-none  -> --panel-body, opacity 0.82    (quieter than the prose beside it)
+               In that branch: .reveal-limits 57,539px^2 vs .reveal-one-thing 36,352px^2.
+               All three blocks share one border, one radius and a --panel-body heading
+Mechanism:     the finding branch was given a rank and the empty branch was given a de-emphasis.
+               "Nothing to report" was treated as an absence of content rather than as content
+Impact:        the state where the product has LEAST to say is the state where its central object
+               disappears -- and MODE_CONTRACT.REVEAL does not say "the finding when there is
+               one", it says "the one thing this decision showed". shared/next-action.ts already
+               makes this exact argument for its own `none`: "NOTHING TO PROPOSE, AND IT IS A
+               FIRST-CLASS ANSWER"
 Class:         A
-Intervention:  keep the order exactly; give the one-thing block a surface and a real type step;
-               keep the limits first, legible, and quiet
-Invariant:     limits stay FIRST and fully legible; the evaluation number stays inside the
-               collapsed <details>; no epistemic claim strengthens
-Wrong if:      quieting the limits reads as hiding them
-Falsify:       measure both blocks' contrast after the change -- the limits must not lose AA; and
-               check the ordering assertion in the reveal tests still holds
+Intervention:  raise the empty branch to --panel-data at full opacity -- a clear step above body,
+               well below the display step a real finding gets, because it is not one. Give every
+               reveal block a heading rank. Keep the ORDER exactly: it is epistemic (D25) and an
+               ordering claim and a weight claim are different claims, which .reveal-limits li
+               already says in its own comment
+Invariant:     limits stay FIRST and fully legible; the finding branch keeps --panel-display and
+               its test; the evaluation number stays inside the collapsed <details>; no epistemic
+               claim strengthens -- "nothing here yet" is not promoted to a finding
+Wrong if:      a legible empty answer reads AS a finding
+Falsify:       re-run what-the-first-reveal-weighs; assert the empty branch is strictly SMALLER
+               than the finding branch; measure the limits' contrast after the change
 ```
 
 ### P1-2 — `ARRIVE` makes a radio option louder than the primary action

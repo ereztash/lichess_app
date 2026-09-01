@@ -153,14 +153,34 @@ describe("an empty record does not pretend to be a measurement", () => {
      * With no username there is nothing to fetch, so the button is disabled -- and it has to
      * LOOK disabled, or the one thing on an otherwise empty page that reads as ready to press is
      * the thing that will not respond. Section 4.5: distinct states must not render alike.
+     *
+     * THIS USED TO ASSERT `opacity`, WHICH IS THE MECHANISM AND NOT THE REQUIREMENT -- and the
+     * mechanism was wrong. `opacity: 0.45` fades the foreground against whatever is behind it,
+     * and measured on the built front door in Chromium it put `קחו אותי לעמדה` at **2.85:1**
+     * against the 4.5:1 that WCAG 1.4.3 asks. The one act on the page was simultaneously the
+     * quietest thing on it and the only text failing contrast. A test that names one
+     * implementation cannot tell a correct one from an illegible one.
+     *
+     * So it asserts the requirement instead, in two halves: the state is DECLARED (a rule exists
+     * for it), and it is declared with a colour pair rather than a fade. `--muted` on `--chip`
+     * measures 4.59:1 in the light palette and 4.80:1 in the dark, and both flip with the theme,
+     * which an opacity cannot.
      */
     mount();
     const start = screen.getByRole("button", { name: /קחו אותי לעמדה/ }) as HTMLButtonElement;
     expect(start.disabled, "an empty username is treated as actionable").toBe(true);
     const css = readFileSync(resolve(root, "client/src/index.css"), "utf8");
-    expect(css, "a disabled control renders identically to an enabled one").toMatch(
-      /\.first-decision-form \.primary-control:disabled\s*\{[^}]*opacity/,
-    );
+    const disabled = css.match(
+      /\.first-decision-form \.primary-control:disabled\s*\{([^}]*)\}/,
+    )?.[1];
+    expect(disabled, "a disabled control renders identically to an enabled one").toBeTruthy();
+    expect(disabled, "the disabled state sets no ground of its own").toMatch(/background:/);
+    expect(disabled, "the disabled state sets no foreground of its own").toMatch(/color:/);
+    expect(
+      disabled,
+      "a fade, not a declared pair: opacity composites the label into whatever is behind it and " +
+        "measured 2.85:1 on the built page",
+    ).not.toMatch(/opacity/);
   });
 
   it("says the position is picked without looking at how the move went", () => {

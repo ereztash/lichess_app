@@ -406,15 +406,15 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
             <ResponsiveContainer width="100%" height={150}>
               <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -24 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
-                <XAxis dataKey="stated" tick={{ fontSize: 9 }} stroke="var(--c-axis)" />
-                <YAxis tick={{ fontSize: 9 }} stroke="var(--c-axis)" width={40} unit="%" />
+                <XAxis dataKey="stated" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
+                <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={40} unit="%" />
                 <Tooltip
                   cursor={{ fill: "var(--c-grid)" }}
                   contentStyle={{
                     background: "var(--surface)",
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: 0,
-                    fontSize: 11,
+                    fontSize: "var(--panel-label)",
                   }}
                   labelFormatter={(s) => `ביטחון ${s}`}
                   formatter={(v, name, item) => [

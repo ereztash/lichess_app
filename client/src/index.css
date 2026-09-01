@@ -146,6 +146,45 @@
   /* The smallest a control in the decision loop is allowed to be. See "Tap floor" below. */
   --tap-floor: 44px;
   /*
+   * THE SPACING SCALE, and the reason it is new is that there was not one.
+   *
+   * Typography got this treatment and spacing never did. Measured across this file before this
+   * block existed: ZERO spacing tokens, THIRTY-ONE distinct `gap` values, sixty-three distinct
+   * `padding` declarations and ten corner radii. The gaps mixed units, so `5px`, `0.35rem`
+   * (5.6px) and `6px` all existed and all read the same -- three declarations for one
+   * relationship, none of which the eye can tell from the others.
+   *
+   * THAT IS NOT UNTIDINESS, IT IS A LOST SIGNAL. Proximity is the one thing that says "these
+   * belong together" without drawing anything, and it can only say it if the distances are
+   * RANKED. Thirty-one unranked distances say nothing, so every component reached for a border
+   * instead: measured on the built app, 24 visible borders on DECIDE and 63 on EXPLORE. Boxes
+   * were doing the grouping that whitespace is for, which is most of what "it does not feel like
+   * one product" is.
+   *
+   * The steps are anchored on the values already most used, so the majority of the 142 call
+   * sites did not move at all; what moved is the noise between them.
+   *
+   *   --s1  inside one line: an icon and its label, a digit and its unit
+   *   --s2  between rows of one group
+   *   --s3  between groups inside a region
+   *   --s4  between regions inside a panel
+   *   --s5  between panels
+   *   --s6  between bands of the page
+   *
+   * The rule, and it is the same shape as the type scale's: a distance is a RELATIONSHIP, not a
+   * nudge. Two things one step apart are one thing; two things three steps apart are two.
+   *
+   * Two literals survive on purpose and both are named where they are: `gap: 0` on a collapsed
+   * commitment step, and `gap: 1px` on `.calibration-split`, which is a hairline drawn as a grid
+   * gap rather than a distance.
+   */
+  --s1: 4px;
+  --s2: 6px;
+  --s3: 8px;
+  --s4: 12px;
+  --s5: 18px;
+  --s6: 28px;
+  /*
    * THE TYPE SCALE, and why it is here rather than on the panel that needed it.
    *
    * Measured on the built commitment panel at 1440x950: TEN distinct font sizes inside one 330px
@@ -161,12 +200,46 @@
    * is a document-level fact; only colours here vary by theme.
    *
    * The rule: a size is a JOB, not a nudge. Anything in the decision panel picks one of these.
+   *
+   * ---
+   *
+   * AND THEN THE SCALE WAS MEASURED IN USE, WHICH IS A DIFFERENT QUESTION FROM WHETHER IT IS
+   * HONOURED. It is honoured: 5,333 lines of stylesheet contain exactly one raw font-size
+   * literal. The distribution across it was the defect.
+   *
+   *   --panel-fine   80 declarations
+   *   --panel-label  79
+   *   --panel-body   76      <- 235 of 258, or 91%, inside a TWO-PIXEL BAND
+   *   --panel-data   12
+   *   --panel-title   9
+   *   --panel-heading 8
+   *   --panel-display 4      <- "the one largest thing on a screen" appeared 0 times on /play
+   *
+   * Rendered, that is 37 runs at 10px on DECIDE and, on EXPLORE, 190 of 226 runs between 10 and
+   * 12. Ten, eleven and twelve are 1.10x and 1.09x apart. A step that small is not a rank -- the
+   * eye cannot order it -- so every role read as equally important and the reader had to READ to
+   * find the task instead of looking. That is what "too much information" was: not too many
+   * things, too few ranks.
+   *
+   * SO THE VALUES MOVED AND THE NAMES DID NOT. Nine tests name these tokens and the names are
+   * still true; what changed is the spacing between them, and the floor.
+   *
+   * The steps that must be ORDERED are wide. label -> body is 1.17, because "a label" and "a
+   * sentence" is the distinction the panel is built on. body -> data 1.14, data -> title 1.125,
+   * title -> heading 1.22, heading -> display 1.27. fine -> label stays close at 1.09 ON PURPOSE:
+   * both are things that are not sentences, they are ranked against BODY rather than against
+   * each other, and pushing them apart would spend a rank on a distinction nobody makes.
+   *
+   * THE FLOOR ALSO MOVED FOR A REASON THAT IS NOT HIERARCHY. This interface is Hebrew. Hebrew
+   * has no ascenders or descenders to help letters resolve, so the x-height carries the whole of
+   * the discrimination, and 10px of Noto Sans Hebrew is materially harder to read than 10px of a
+   * Latin face. The old floor put 80 declarations there.
    */
-  --panel-title: 16px; /* the one heading */
-  --panel-data: 14px;  /* things that are readings: the move, the confidence digit */
-  --panel-body: 12px;  /* prose the player is meant to read */
-  --panel-label: 11px; /* every label, legend, chip and toggle */
-  --panel-fine: 10px;  /* kickers, hints, counters, the required mark */
+  --panel-title: 18px; /* a block's own heading; never smaller than the body under it */
+  --panel-data: 16px;  /* things that are readings: the move, the confidence digit */
+  --panel-body: 14px;  /* prose the player is meant to read; the floor for anything that is a sentence */
+  --panel-label: 12px; /* every label, legend, chip and toggle; never a sentence */
+  --panel-fine: 11px;  /* kickers, hints, counters, provenance; never load-bearing */
   /*
    * TWO STEPS ABOVE THE PANEL'S OWN, because the scale turned out to be the document's.
    *
@@ -180,8 +253,8 @@
    * nowhere because the tests that enforce it name these tokens, and a rename that touches a
    * hundred call sites to change nothing is churn.
    */
-  --panel-heading: 20px;  /* a heading that owns a region of the page */
-  --panel-display: 26px;  /* the one largest thing on a screen, and there is one */
+  --panel-heading: 22px;  /* a heading that owns a region of the page */
+  --panel-display: 28px;  /* the one largest thing on a screen, and there is one */
   /* ---- Chart palette -------------------------------------------------------------------
    * Two poles, validated rather than eyeballed: normal-vision ΔE 26.1, protan 20.2 against the
    * cream surface. Blue is White's advantage and a move that held; warm is Black's advantage and
@@ -279,7 +352,44 @@ button:not(:disabled) {
 .studio-shell {
   min-height: 100vh;
   padding: 0 24px 24px;
-  background: radial-gradient(rgba(var(--ink-rgb), 0.06) 0.6px, transparent 0.6px), var(--paper);
+  /*
+   * THE GROUND IS A COLOUR AND THE GRAIN IS A LAYER, and they used to be one declaration.
+   *
+   * `background: radial-gradient(...), var(--paper)` put a gradient in this element's background
+   * shorthand, and axe stops at a gradient: it cannot composite one, so it returns every
+   * descendant that does not paint its own opaque ground as INCOMPLETE rather than checking it.
+   * Measured with axe-core 4 on the built app at /play: THIRTY-NINE nodes incomplete, ONE
+   * evaluated, and "0 violations" reported. The suite was green having checked almost nothing,
+   * and an 11px sentence at 2.81:1 -- `.board-note`, the line that states the task -- was
+   * underneath it.
+   *
+   * The fix is not to drop the grain. It was tested three ways in Chromium before choosing:
+   *
+   *   as shipped (gradient in the shorthand)   evaluated 33   incomplete 37
+   *   flat ground, no grain at all             evaluated 53   incomplete 17
+   *   flat ground + grain on a ::before layer  evaluated 53   incomplete 17
+   *
+   * The third costs nothing and keeps the paper. `isolation: isolate` is what lets the layer sit
+   * at `z-index: -1` -- above this element's own background, below everything in it -- without
+   * escaping into the page's stacking context.
+   */
+  position: relative;
+  isolation: isolate;
+  background: var(--paper);
+}
+/*
+ * ONE GROUND FOR BOTH ROUTES. `/play` had the grain and `/` did not, so the front door and the
+ * board were literally different surfaces -- a small thing that is a real part of "it does not
+ * feel like one product".
+ */
+.studio-shell::before,
+.record-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image: radial-gradient(rgba(var(--ink-rgb), 0.06) 0.6px, transparent 0.6px);
   background-size: 7px 7px;
 }
 /*
@@ -304,18 +414,20 @@ button:not(:disabled) {
   margin-inline: auto;
 }
 /* ---- Game review ------------------------------------------------------------------------ */
+.review-stats,
 .game-review .review-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: 10px;
+  gap: var(--s3);
   margin-top: 12px;
 }
 .review-stat {
   display: grid;
-  gap: 3px;
-  padding: 9px 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.22);
-  background: rgba(var(--cream-rgb), 0.4);
+  gap: var(--s1);
+  padding: var(--s4);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
 }
 .review-stat b {
   font:
@@ -331,13 +443,13 @@ button:not(:disabled) {
 }
 .review-tabs {
   display: flex;
-  gap: 6px;
+  gap: var(--s2);
   margin-top: 12px;
 }
 .review-tabs button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--s1);
   padding: 6px 10px;
   border: 1px solid rgba(var(--ink-rgb), 0.25);
   background: transparent;
@@ -352,7 +464,7 @@ button:not(:disabled) {
 .chart-legend {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--s4);
   margin: 11px 0 4px;
   font-size: var(--panel-fine);
   color: rgba(var(--ink-rgb), 0.72);
@@ -376,13 +488,13 @@ button:not(:disabled) {
 }
 .review-moments h4 {
   margin: 0 0 7px;
-  font-size: var(--panel-label);
+  font-size: var(--panel-data);
   font-weight: 700;
 }
 .review-moments li {
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr) auto;
-  gap: 9px;
+  gap: var(--s3);
   align-items: baseline;
   padding: 5px 0;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
@@ -424,8 +536,10 @@ button:not(:disabled) {
 }
 /* ---- Record dashboard ------------------------------------------------------------------- */
 .dash-title {
-  margin: 15px 0 0;
-  font-size: var(--panel-label);
+  /* A block heading, so at least the data rank: it shipped at label rank, which put it BELOW
+     the prose it heads once body reached 14px. A heading is never smaller than its body. */
+  margin: var(--s5) 0 0;
+  font-size: var(--panel-data);
   font-weight: 700;
 }
 /*
@@ -443,12 +557,12 @@ button:not(:disabled) {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--s1);
 }
 .import-pipeline li {
   display: grid;
   grid-template-columns: 1rem minmax(0, 1fr);
-  gap: 8px;
+  gap: var(--s3);
   align-items: baseline;
   font-size: var(--panel-label);
 }
@@ -477,7 +591,7 @@ button:not(:disabled) {
 .import-ledger li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px;
+  gap: var(--s3);
   align-items: baseline;
   padding: 5px 0;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
@@ -500,7 +614,7 @@ button:not(:disabled) {
 .bucket-list li {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 78px auto;
-  gap: 10px;
+  gap: var(--s3);
   align-items: center;
   padding: 7px 0;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.1);
@@ -583,7 +697,7 @@ button:not(:disabled) {
 .import-diagnostic .bucket-list li,
 .import-diagnostic .bucket-list li.unmeasurable {
   grid-template-columns: minmax(0, 1fr) auto;
-  row-gap: 4px;
+  row-gap: var(--s1);
 }
 /*
  * Provenance, shown only on a reading reopened from storage. Quiet by design: it is the source
@@ -632,7 +746,7 @@ button:not(:disabled) {
 .candidates-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--s2);
   margin: 5px 0 0;
   padding: 0;
   list-style: none;
@@ -686,9 +800,18 @@ button:not(:disabled) {
 .record-mode {
   margin-top: 10px;
   padding: 7px 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.3);
-  background: rgba(var(--cream-rgb), 0.4);
-  font-size: var(--panel-fine);
+  /*
+   * --panel-fine IS NEVER A SENTENCE. This is a standing notice about where decisions are
+   * stored -- running prose -- and it shipped at the smallest rank in the product, the one
+   * reserved for kickers, counters and board coordinates.
+   *
+   * The border went with it. It is a notice, not a region: what it needs is to be legible and
+   * quiet, and a box around it made it a fourth surface on a screen that already had three.
+   */
+  border: 0;
+  border-inline-start: 2px solid var(--edge-soft);
+  background: none;
+  font-size: var(--panel-label);
   line-height: 1.6;
   color: rgba(var(--ink-rgb), 0.8);
 }
@@ -700,15 +823,32 @@ button:not(:disabled) {
   min-height: 88px;
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.45);
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /*
+   * NAMED, BECAUSE THE CHILD LIST CHANGED AND A TRACK COUNT THAT DOES NOT IS THE DEFECT THIS
+   * REPOSITORY ALREADY PAID FOR.
+   *
+   * This was `1fr auto 1fr` for three children -- the lockup, the turn reading and the actions.
+   * The turn reading is gone (it was the second rendering of a fact that is read beside the
+   * board), which would have left two children in three tracks and auto-flow shifting both one
+   * track towards the start. That is `.workbench` verbatim, and `docs/INTERACTION_GEOMETRY.md`
+   * states the rule it broke: *"A container whose children depend on the interaction state must
+   * derive its shape from that same state, and every child must name its own place. Nothing
+   * about where a thing sits may be decided by how many siblings happen to exist."*
+   *
+   * So: two named tracks, and both children name theirs below.
+   */
+  grid-template-columns: [brand] 1fr [actions] auto;
   align-items: center;
-  gap: 20px;
+  gap: var(--s5);
 }
 .brand-lockup {
   display: flex;
   direction: ltr;
   align-items: center;
-  gap: 12px;
+  gap: var(--s4);
+  grid-column: brand;
+  /* A button, not a band: in a 1fr track it stretched to 1172px at 1440. */
+  justify-self: start;
 }
 /*
  * The one size in this file that is NOT on the scale, and it is not text.
@@ -733,23 +873,19 @@ button:not(:disabled) {
   font: 700 var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.12em;
 }
-.brand-lockup span,
-.header-reading span {
+.brand-lockup span {
   color: var(--muted);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
-.header-reading {
-  display: flex;
-  gap: 8px;
-}
 .header-actions {
+  grid-column: actions;
   justify-self: end;
   display: flex;
   /* The icon buttons are 44px square now, and after a reveal a fifth control joins them. Wrap
      rather than push the brand off the row on a narrow phone. */
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--s3);
 }
 .primary-control {
   padding: 0 14px;
@@ -791,7 +927,7 @@ button:not(:disabled) {
 .workbench {
   display: grid;
   grid-template-columns: [rail] 132px [board] minmax(480px, 1fr) [task] 330px;
-  gap: 32px;
+  gap: var(--s6);
   padding-top: 24px;
 }
 /*
@@ -832,7 +968,7 @@ button:not(:disabled) {
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 7px;
+  gap: var(--s2);
   min-height: 74px;
   border: 0;
   border-top: 1px solid rgba(var(--ink-rgb), 0.2);
@@ -878,7 +1014,7 @@ button:not(:disabled) {
 }
 .workspace-meta h1 {
   margin: 4px 0 0;
-  font-size: var(--panel-heading);
+  font-size: var(--panel-data);
 }
 .turn-reading {
   display: grid;
@@ -963,7 +1099,7 @@ button:not(:disabled) {
  */
 .import-sources {
   display: flex;
-  gap: 8px;
+  gap: var(--s3);
   margin-top: 10px;
   flex-wrap: wrap;
 }
@@ -976,7 +1112,7 @@ button:not(:disabled) {
 .import-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: var(--s3);
   margin-top: 10px;
 }
 .import-input {
@@ -995,7 +1131,7 @@ button:not(:disabled) {
 .import-search {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
   padding: 8px 14px;
   border: 1px solid var(--blue);
   background: var(--blue);
@@ -1086,7 +1222,7 @@ button:not(:disabled) {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 4px 10px;
+  gap: var(--s1) var(--s3);
   width: 100%;
   padding: 9px 10px;
   background: transparent;
@@ -1111,7 +1247,7 @@ button:not(:disabled) {
 .import-meta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--s3);
   font-size: var(--panel-fine);
   color: rgba(var(--ink-rgb), 0.7);
 }
@@ -1138,7 +1274,7 @@ button:not(:disabled) {
 .board-assembly {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  gap: 12px;
+  gap: var(--s4);
   direction: ltr;
 }
 /*
@@ -1205,7 +1341,7 @@ button:not(:disabled) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: var(--s1);
 }
 .evaluation-track {
   width: 20px;
@@ -1428,9 +1564,19 @@ button:not(:disabled) {
   padding-top: 14px;
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: var(--edge);
-  font-size: var(--panel-label);
+  gap: var(--s2);
+  /*
+   * A SENTENCE, SO IT TAKES THE SENTENCE RANK -- and it was the least legible text on the
+   * screen while being the one that states the task: *"choose a move and write your reading."*
+   * Measured on the built app at 1440x900: `--edge` on `--paper` is 2.81:1, against the 4.5:1
+   * that 1.4.3 asks of anything under 18.66px. `--muted` measures 6.9:1 on the same ground.
+   *
+   * axe did not catch it and could not: `.studio-shell` paints a decorative dot grid as a
+   * gradient, and axe stops at a gradient. It returned 39 of 40 nodes on /play as INCOMPLETE
+   * and reported zero violations. See `.studio-shell` for the other half of that.
+   */
+  color: var(--muted);
+  font-size: var(--panel-body);
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.25);
 }
 .board-note > i {
@@ -1445,7 +1591,7 @@ button:not(:disabled) {
   color: var(--blue);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--s1);
   /* Measured 70x17, then held at 24px for WCAG 2.2 AA (2.5.8). The tap floor below supersedes
      that: same intent, one number, applied to every control instead of this one. */
   padding-block: 4px;
@@ -1483,7 +1629,7 @@ button:not(:disabled) {
 }
 .analysis-kicker {
   display: flex;
-  gap: 6px;
+  gap: var(--s2);
   color: var(--accent-soft);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -1520,19 +1666,36 @@ button:not(:disabled) {
   font-weight: 700;
 }
 .analysis-section {
-  padding: 15px 17px;
-  border-bottom: 1px solid rgba(var(--ink-rgb), 0.25);
+  /* One step between regions, and the rule stays because it is what tells twenty sections apart
+     when they scroll past. Spacing does the grouping; the rule marks the seam. */
+  padding: var(--s6) 0;
+  border-bottom: 1px solid var(--hairline);
 }
 .section-heading {
   display: flex;
   justify-content: space-between;
-  color: var(--edge);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  /*
+   * IT NAMES A REGION AND IT RENDERED AS THE SMALLEST, LOWEST-CONTRAST TEXT ON THE LONGEST PAGE
+   * IN THE PRODUCT.
+   *
+   * `--panel-fine` in `--edge`: the kicker rank, in the colour measured at 2.81:1 against the
+   * page. Measured on the built record at 1440x900 -- 127 text runs, 59 of them at 10px and 30 at
+   * 11px, about twenty sections, and no perceptual mass anywhere above 4,216. A page whose
+   * contract is *"what the record can and cannot say"* said everything at one volume, which is
+   * the same as saying nothing.
+   *
+   * A region heading takes the region rank. `--muted` measures 6.9:1 on this ground where
+   * `--edge` measures 2.81.
+   */
+  align-items: baseline;
+  gap: var(--s3);
+  color: var(--muted);
+  font: 600 var(--panel-title) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-line {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--s2);
   padding-top: 10px;
   font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -1553,7 +1716,7 @@ button:not(:disabled) {
 .material-row {
   display: grid;
   grid-template-columns: 40px 1fr 22px;
-  gap: 8px;
+  gap: var(--s3);
   align-items: center;
   padding-top: 10px;
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -1584,7 +1747,7 @@ button:not(:disabled) {
 .layer-title {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--s1);
   color: var(--edge);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -1599,7 +1762,7 @@ button:not(:disabled) {
 .outcome-row,
 .reply-strip {
   display: flex;
-  gap: 6px;
+  gap: var(--s2);
   padding-top: 8px;
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -1717,7 +1880,10 @@ button:not(:disabled) {
     padding-inline: 10px;
   }
   .studio-header {
-    grid-template-columns: 1fr auto;
+    /* The same names as the base rule. A breakpoint that renames the tracks leaves every child's
+       `grid-column: brand | actions` pointing at a line that does not exist, and Chromium answers
+       that with implicit tracks: measured `113.75px 0px 0px 196.25px` at 390 before this line. */
+    grid-template-columns: [brand] 1fr [actions] auto;
     /* 88px of guaranteed height for a wordmark and four icons, on the screen with the least of
        it to spare. The content decides now. */
     min-height: 0;
@@ -1749,7 +1915,7 @@ button:not(:disabled) {
    */
   .header-actions {
     flex-wrap: nowrap;
-    gap: 6px;
+    gap: var(--s2);
   }
   .brand-lockup {
     min-inline-size: 0;
@@ -1757,9 +1923,6 @@ button:not(:disabled) {
   .brand-name {
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .header-reading {
-    display: none;
   }
   /*
    * BOARD, THEN THE QUESTION, THEN THE TOOLS.
@@ -1778,7 +1941,7 @@ button:not(:disabled) {
   .workbench {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--s5);
     padding-top: 12px;
   }
   .board-workspace {
@@ -1816,7 +1979,7 @@ button:not(:disabled) {
   }
   .board-assembly {
     grid-template-columns: 20px 1fr;
-    gap: 8px;
+    gap: var(--s3);
   }
   .board-grid {
     border-width: 5px;
@@ -1839,7 +2002,7 @@ button:not(:disabled) {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.1rem;
+  gap: var(--s1);
   line-height: 1.15;
 }
 .value-triple .value-label {
@@ -1865,6 +2028,18 @@ button:not(:disabled) {
  * tests/layout/signed-number-reads-as-signed.layout.test.tsx.
  */
 .value-triple .value-number {
+  /*
+   * THE READING TAKES THE READING RANK, and it had no rank at all: this rule declared no
+   * font-size, so the one number a `Value` exists to show inherited whatever it landed in. On
+   * the record page that put the product's own measurements -- the stated confidence, what
+   * actually happened, the gap between them -- at the same size as the caveats around them, and
+   * quieter than several of them.
+   *
+   * `--panel-data` is the token whose stated job is exactly this: "things that are readings: the
+   * move, the confidence digit".
+   */
+  font-size: var(--panel-data);
+  font-weight: 600;
   unicode-bidi: plaintext;
   font-variant-numeric: tabular-nums;
 }
@@ -1874,7 +2049,9 @@ button:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 .value-triple .value-fraction {
-  font-size: 0.72em;
+  /* The last size in the file that was not on the scale. `em` slipped the document-level check,
+     whose regex names px/rem/pt -- so the check names em now too. */
+  font-size: var(--panel-fine);
   opacity: 0.8;
 }
 /* An absence is a legitimate reading, not a failure state (section 4.5). */
@@ -1951,13 +2128,13 @@ button:not(:disabled) {
 }
 .profile-panel__title {
   margin: 0 0 6px;
-  font-size: var(--panel-label);
+  font-size: var(--panel-data);
   font-weight: 600;
   color: var(--ink);
 }
 .profile-panel__subtitle {
   margin: 12px 0 4px;
-  font-size: var(--panel-fine);
+  font-size: var(--panel-label);
   font-weight: 600;
   color: var(--muted);
 }
@@ -1968,13 +2145,13 @@ button:not(:disabled) {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s3);
 }
 .profile-panel__variable,
 .profile-panel__crossing {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--s1);
 }
 .profile-panel__variable-label,
 .profile-panel__crossing-scope {
@@ -2024,7 +2201,7 @@ button:not(:disabled) {
 }
 .counterfactual-panel__title {
   margin: 0 0 6px;
-  font-size: var(--panel-label);
+  font-size: var(--panel-data);
   font-weight: 600;
   color: var(--ink);
 }
@@ -2049,7 +2226,7 @@ button:not(:disabled) {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--s2);
 }
 .counterfactual-panel__reading {
   display: grid;
@@ -2061,7 +2238,7 @@ button:not(:disabled) {
    */
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 10px;
+  gap: var(--s3);
   font-size: var(--panel-body);
   color: var(--ink);
 }
@@ -2088,7 +2265,7 @@ button:not(:disabled) {
 .silent-game {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: var(--s4);
   padding: 1.15rem;
   border-radius: 14px;
   background: var(--surface);
@@ -2125,7 +2302,7 @@ button:not(:disabled) {
 .counterfactual-probe {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: var(--s4);
   padding: 1.15rem;
   border-radius: 14px;
   background: var(--surface);
@@ -2160,7 +2337,7 @@ button:not(:disabled) {
 .counterfactual-probe__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: var(--s3);
 }
 .counterfactual-probe__actions button {
   flex: 1 1 auto;
@@ -2184,7 +2361,7 @@ button:not(:disabled) {
 .commitment-screen {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: var(--s4);
   padding: 1.15rem;
   border-radius: 14px;
   background: var(--surface);
@@ -2194,7 +2371,7 @@ button:not(:disabled) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--s4);
 }
 /*
  * FIVE TYPE SIZES ABOVE, AND FROM HERE ON THREE TEXT COLOURS. Same disease, same cure.
@@ -2221,7 +2398,7 @@ button:not(:disabled) {
   margin: 0;
 }
 .commitment-header h2 {
-  font-size: var(--panel-title);
+  font-size: var(--panel-heading);
   margin: 0.15rem 0 0;
 }
 .commitment-intro {
@@ -2233,7 +2410,7 @@ button:not(:disabled) {
 .commitment-field {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--s1);
   border: 0;
   padding: 0;
   margin: 0;
@@ -2298,7 +2475,7 @@ button:not(:disabled) {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--s3);
   padding: 0.4rem 0.5rem;
   border: 0;
   border-radius: 10px;
@@ -2333,7 +2510,7 @@ button:not(:disabled) {
 .step-legend {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: var(--s2);
   min-inline-size: 0;
 }
 /* The answer a collapsed step shows. It is the only thing on the row that is a reading rather
@@ -2367,7 +2544,7 @@ button:not(:disabled) {
 .step-body {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: var(--s3);
   padding: 0.1rem 0.5rem 0.55rem;
   max-block-size: min(38vh, 290px);
   overflow-y: auto;
@@ -2519,7 +2696,7 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--s5);
   flex-wrap: wrap;
   margin: 10px 0 4px;
   padding: 10px 12px;
@@ -2529,7 +2706,7 @@ button:not(:disabled) {
 .anchor-run-text {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--s1);
   min-width: 0;
 }
 .anchor-run-text b {
@@ -2572,7 +2749,7 @@ button:not(:disabled) {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--s5);
   padding: 7px 10px;
   background: rgba(var(--cream-rgb), 0.4);
 }
@@ -2634,13 +2811,13 @@ button:not(:disabled) {
    * which is legible. Seven at 44 plus six gaps is 337px, so it holds on any panel this app has.
    */
   grid-template-columns: repeat(auto-fit, minmax(var(--tap-floor), 1fr));
-  gap: 0.3rem;
+  gap: var(--s1);
 }
 .confidence-row button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.1rem;
+  gap: var(--s1);
   font-size: var(--panel-data);
   padding: 0.4rem 0.2rem;
   border-radius: 9px;
@@ -2668,7 +2845,7 @@ button:not(:disabled) {
 .commitment-error {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   font-size: var(--panel-body);
   margin: 0;
   /*
@@ -2702,7 +2879,7 @@ button:not(:disabled) {
   background: rgba(var(--chosen-rgb), 0.07);
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--s1);
 }
 .commitment-tension-question {
   margin: 0;
@@ -2767,13 +2944,29 @@ button:not(:disabled) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: var(--s2);
   padding: 0.6rem 0.9rem;
   border-radius: 10px;
-  border: 1px solid currentColor;
-  /* Opaque: it sits over the panel's own content while the panel scrolls under it. */
-  background: var(--surface);
-  color: inherit;
+  border: 1px solid transparent;
+  /*
+   * FILLED, AND IT WAS NOT.
+   *
+   * Measured on the built app: this control -- the one the whole instrument exists to collect --
+   * rendered `rgb(247,243,233)` on ink with a 1px border, which is this stylesheet's SECONDARY
+   * treatment; while `.primary-control`, which offers "take another decision" at the reveal,
+   * rendered a filled `--blue`. Two primary actions in two languages, and the quieter one was
+   * the one that records a measurement.
+   *
+   * `Home.tsx` had already made the call and the stylesheet had not followed it. Its note above
+   * the tool rail reads, in as many words: *"NOTHING HERE IS `prominent` ANY MORE. `משחק חדש`
+   * was a filled blue button, permanently the loudest thing on the page... The blue belongs to
+   * the commitment panel's submit."* It belongs to it now.
+   *
+   * Opaque either way: it sits over the panel's own content while the panel scrolls under it,
+   * and `.not-ready` below repeals nothing.
+   */
+  background: var(--blue);
+  color: var(--on-blue);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -2790,19 +2983,55 @@ button:not(:disabled) {
 .reveal-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: var(--s4);
 }
+/*
+ * THREE BOXES DRAWN IDENTICALLY, FOR THREE DIFFERENT JOBS.
+ *
+ * `MODE_CONTRACT.REVEAL` names one thing central: *"the one thing this decision showed"*. The
+ * limits block, the finding and the next question all carried the same 1px hairline, the same
+ * 12px radius and the same heading rank, so the screen offered three peers and named none of
+ * them. Measured on the built app in the no-finding branch: the limits block 57,539px^2 against
+ * the finding's 36,352.
+ *
+ * THE ORDER DOES NOT MOVE. It is load-bearing and it is epistemic -- what cannot be inferred
+ * here comes before any number, and `RevealPanel`'s own header calls it non-negotiable. What
+ * moves is the WEIGHT, and the distinction is one this stylesheet already drew for
+ * `.reveal-limits li`: *"First on the screen and smallest on it: an ordering claim and a weight
+ * claim are different claims."* This is that sentence applied to the boxes as well as the type.
+ *
+ * So the frames come off and a rule separates the sections instead -- a border has to say what
+ * becomes less understandable without it, and "this paragraph is next to that paragraph" is not
+ * an answer. The finding keeps a real surface, below.
+ */
 .reveal-block {
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
+  padding: 0 0 var(--s4);
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.reveal-panel > .reveal-block:last-of-type {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+/*
+ * THE ONE SURFACE ON THE SCREEN, and it is the one the contract names.
+ *
+ * A raised ground is the strongest grouping signal available that is not a colour, and it is
+ * spent here rather than spread over three blocks. `--raise` already exists for exactly this and
+ * had three call sites in the product.
+ */
+.reveal-one-thing {
+  padding: var(--s4);
   border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raise);
 }
 .reveal-block h3 {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   margin: 0 0 0.45rem;
-  font-size: var(--panel-body);
+  font-size: var(--panel-title);
   letter-spacing: 0.02em;
 }
 .reveal-limits ul {
@@ -2810,7 +3039,7 @@ button:not(:disabled) {
   padding-inline-start: 1.05rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--s1);
 }
 /* First on the screen and smallest on it: an ordering claim and a weight claim are different
    claims, and this block was making both. Still fully legible, still before the finding. */
@@ -2919,11 +3148,28 @@ button:not(:disabled) {
   opacity: 0.8;
 }
 /* Section 4.5: an honest nothing is a correct screen, not a failure. */
+/*
+ * "NOTHING HERE YET" IS AN ANSWER, AND IT WAS RENDERED AS AN ABSENCE.
+ *
+ * The finding branch above is right and tested: `.one-thing-text` takes `--panel-display`, and
+ * `tests/client/what-the-first-reveal-weighs.test.tsx` holds it there. This is the OTHER branch --
+ * the one every early reveal takes, and the first one any new player ever sees -- and it shipped
+ * at body size under `opacity: 0.82`, which made the block MODE_CONTRACT calls central the
+ * quietest thing inside its own card. Measured in that state, the caveat block above it was
+ * 57,539px^2 against this one's 36,352.
+ *
+ * `shared/next-action.ts` already made this argument about its own `none`: *"NOTHING TO PROPOSE,
+ * AND IT IS A FIRST-CLASS ANSWER. A function that always has a suggestion is a function that will
+ * invent one."* The visual form of that is a rank, not a fade.
+ *
+ * `--panel-data` and not `--panel-display`, deliberately: it is a clear step above the prose
+ * around it and two steps below what a real finding gets, because it is not one. The wording is
+ * untouched and no claim is strengthened.
+ */
 .one-thing-none {
   margin: 0;
-  font-size: var(--panel-body);
-  line-height: 1.55;
-  opacity: 0.82;
+  font-size: var(--panel-data);
+  line-height: 1.5;
 }
 .reveal-question p {
   margin: 0;
@@ -2945,26 +3191,26 @@ button:not(:disabled) {
   font-size: var(--panel-body);
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: var(--s1);
   opacity: 0.8;
 }
 .reveal-secondary-body {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--s3);
   margin-top: 0.6rem;
 }
 .reveal-metric {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: var(--s3);
   font-size: var(--panel-body);
 }
 .reveal-pv {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: var(--s1);
   font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--panel-body);
   opacity: 0.85;
@@ -2992,26 +3238,26 @@ button:not(:disabled) {
   border: 1px solid var(--hairline);
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--s3);
 }
 .claim-panel > h3 {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   margin: 0;
-  font-size: var(--panel-body);
+  font-size: var(--panel-title);
 }
 .claim-loading {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   font-size: var(--panel-body);
   opacity: 0.75;
   margin: 0;
 }
 .claim-progress {
   display: flex;
-  gap: 1.2rem;
+  gap: var(--s5);
   flex-wrap: wrap;
 }
 .claim-silence {
@@ -3023,7 +3269,7 @@ button:not(:disabled) {
 .claim-card {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--s3);
   padding: 0.8rem 0.9rem;
   border-radius: 10px;
   border: 1px solid var(--hairline);
@@ -3031,7 +3277,7 @@ button:not(:disabled) {
 .claim-header {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
 }
 .claim-statement {
   margin: 0;
@@ -3072,7 +3318,7 @@ button:not(:disabled) {
 .drill-runner {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--s3);
   padding: 0.9rem 1rem;
   border-radius: 12px;
   border: 1px solid var(--hairline-strong);
@@ -3080,7 +3326,7 @@ button:not(:disabled) {
 .drill-header {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   font-size: var(--panel-body);
   font-weight: 600;
 }
@@ -3124,7 +3370,7 @@ button:not(:disabled) {
 .drill-error {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   margin: 0;
   font-size: var(--panel-body);
 }
@@ -3156,7 +3402,7 @@ button:not(:disabled) {
 .value-reconstruction {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--s3);
   padding: 0.85rem 1rem;
   border: 1px solid var(--hairline);
   border-radius: 8px;
@@ -3164,7 +3410,7 @@ button:not(:disabled) {
 .value-reconstruction-head {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   font-size: var(--panel-fine);
   font-weight: 700;
   opacity: 0.68;
@@ -3186,7 +3432,7 @@ button:not(:disabled) {
 }
 .value-reconstruction-actions {
   display: flex;
-  gap: 0.45rem;
+  gap: var(--s3);
 }
 .value-reconstruction-note {
   margin: 0;
@@ -3200,7 +3446,7 @@ button:not(:disabled) {
 .learning-transfer {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: var(--s3);
   padding: 0.9rem 1rem;
   border: 1px solid var(--hairline-strong);
   border-radius: 8px;
@@ -3208,7 +3454,7 @@ button:not(:disabled) {
 .learning-heading {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--s3);
 }
 /*
  * The composer's nine fields, behind their own disclosure.
@@ -3224,7 +3470,7 @@ button:not(:disabled) {
 .learning-composer-fields {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: var(--s3);
   margin-block-start: 0.65rem;
 }
 .learning-heading span {
@@ -3235,12 +3481,18 @@ button:not(:disabled) {
 }
 .learning-heading h3 {
   margin: 0.08rem 0 0;
+  /*
+   * A SECONDARY OFFER, NOT A SECTION OF THE REVEAL. At `--panel-title` this was a fourth heading
+   * at the same rank as the reveal's own three -- and it sits BELOW the primary action, so the
+   * column read as four peers followed by two things to press. It is the disclosure on an
+   * optional next step; the data rank is what that is worth.
+   */
   font-size: var(--panel-data);
 }
 .learning-composer label,
 .learning-transfer label {
   display: grid;
-  gap: 0.28rem;
+  gap: var(--s1);
   font-size: var(--panel-label);
   font-weight: 600;
 }
@@ -3291,7 +3543,7 @@ button:not(:disabled) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
 }
 .learning-choice > span,
 .transfer-applied > span {
@@ -3340,7 +3592,7 @@ button:not(:disabled) {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   /* Was 38px, for the same reason. */
   padding: 0.5rem 0.7rem;
   border: 0;
@@ -3360,7 +3612,7 @@ button:not(:disabled) {
 .learning-loading {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   margin: 0;
   font-size: var(--panel-label);
   line-height: 1.45;
@@ -3368,7 +3620,7 @@ button:not(:disabled) {
 .learning-rule-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.65rem;
+  gap: var(--s3);
   padding-block: 0.65rem;
   border-top: 1px solid var(--hairline);
 }
@@ -3410,14 +3662,14 @@ button:not(:disabled) {
 .learning-rule-actions {
   display: flex;
   align-items: start;
-  gap: 0.3rem;
+  gap: var(--s1);
 }
 .learning-rule-actions button,
 .transfer-verdict button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
+  gap: var(--s1);
   padding: 0.35rem 0.5rem;
 }
 .transfer-prereg {
@@ -3441,7 +3693,7 @@ button:not(:disabled) {
 }
 .transfer-verdict {
   display: grid;
-  gap: 0.45rem;
+  gap: var(--s3);
   padding-top: 0.55rem;
   border-top: 2px solid currentColor;
 }
@@ -3483,7 +3735,7 @@ button:not(:disabled) {
   border: 1px solid var(--hairline-strong);
   padding: 16px;
   display: grid;
-  gap: 14px;
+  gap: var(--s4);
 }
 .new-game-setup h3 {
   font: 700 var(--panel-body)/1 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -3494,7 +3746,7 @@ button:not(:disabled) {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 8px;
+  gap: var(--s3);
 }
 .setup-field legend {
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -3504,7 +3756,7 @@ button:not(:disabled) {
 .new-game-setup .color-toggle,
 .depth-row {
   display: flex;
-  gap: 6px;
+  gap: var(--s2);
   margin: 0;
 }
 .depth-row button {
@@ -3527,7 +3779,7 @@ button:not(:disabled) {
 }
 .setup-actions {
   display: flex;
-  gap: 8px;
+  gap: var(--s3);
 }
 .ghost-control {
   border: 1px solid var(--hairline-strong);
@@ -3593,12 +3845,12 @@ button:not(:disabled) {
   border-bottom: 1px solid rgba(var(--ink-rgb), 0.25);
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: var(--s2);
 }
 .loop-rail {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
+  gap: var(--s1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -3606,7 +3858,7 @@ button:not(:disabled) {
 .loop-step {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s1);
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
@@ -3649,7 +3901,6 @@ button:not(:disabled) {
  * record, and the engine had no part in it.
  */
 .context-ribbon {
-  gap: 4px 12px;
   /*
    * MEASURED AND TRIMMED. Carrying the loop position made this the first block on the page, and
    * at 151px on a 390x844 phone it pushed the decision panel from y=706 to y=871 -- back below
@@ -3659,15 +3910,29 @@ button:not(:disabled) {
    * The sentence keeps its own row because it is the content. The basis and the "why" share the
    * row under it: one is a citation and the other is a single collapsed word, and neither earns
    * a row of its own.
+   *
+   * ---
+   *
+   * AND THEN IT WAS THE LOUDEST BAND ON THE DECIDE SCREEN, which is a rank it does not have.
+   *
+   * A 1px frame plus a 3px accent bar, full measure, directly under the header: measured on the
+   * built app at 1440x900, the widest bordered surface on the page and the first thing in the
+   * reading order, above both the board and the task. What it holds is where the RECORD stands
+   * -- how far off a pattern is. `MODE_CONTRACT.DECIDE` permits it (loop position is not a
+   * reading of the player, which is the line `ContextRibbon`'s own header draws) and it stays on
+   * screen, in the same words, saying the same thing. What it loses is the frame.
+   *
+   * A rule above it does the same separating work as four borders and claims none of the
+   * importance: the band is still bounded, and it no longer reads as a panel.
    */
-  margin-top: 10px;
-  padding: 8px 12px;
-  border: 1px solid var(--hairline-strong);
-  border-inline-start: 3px solid var(--edge);
+  margin-top: var(--s4);
+  padding: var(--s3) 0 var(--s4);
+  border: 0;
+  border-bottom: 1px solid var(--hairline);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
+  gap: var(--s3) var(--s4);
 }
 /*
  * The loop position, at the top of the page.
@@ -3714,7 +3979,10 @@ button:not(:disabled) {
 .context-loop {
   margin: 0;
   flex: 1 1 100%;
-  font-size: var(--panel-body);
+  /* Contextual prose, so it takes the label rank and the muted ink. It was at body rank in
+     --ink, which is the treatment the task's own intro carries one region below it. */
+  font-size: var(--panel-label);
+  color: var(--muted);
   line-height: 1.5;
 }
 .context-loop-basis {
@@ -3751,9 +4019,12 @@ button:not(:disabled) {
 .context-why small {
   display: block;
   margin-top: 6px;
-  font-size: var(--panel-fine);
+  /* A SENTENCE, so it takes at least the label rank. --panel-fine is for kickers, counters and
+     board coordinates; this is the product refusing, out loud, to adapt to what it measures, and
+     it shipped at the smallest size in the file under a 0.75 fade. */
+  font-size: var(--panel-label);
   line-height: 1.55;
-  opacity: 0.75;
+  color: var(--muted);
 }
 .context-dismiss {
   padding-inline: 12px;
@@ -3775,13 +4046,15 @@ button:not(:disabled) {
   padding: 18px 16px 48px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: var(--s5);
+  position: relative;
+  isolation: isolate;
 }
 .record-page-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--s5);
   padding-block-end: 14px;
   border-block-end: 1px solid var(--hairline-strong);
 }
@@ -3847,9 +4120,12 @@ button:not(:disabled) {
  * larger pile of numbers borrow the smaller one's meaning; the wall is what stops that.
  */
 .record-layer {
-  border: 1px solid var(--hairline-strong);
-  border-inline-start: 3px solid var(--blue);
-  padding: 14px;
+  /* THE SAME CARD AS THE REST OF THE PRODUCT -- square corners with a 3px accent bar were a
+     fifth card language, used on this page only. */
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: var(--s5);
 }
 .record-layer.secondary {
   /* Deliberately not blue: this layer is a different measurement, not a lesser one. */
@@ -3879,9 +4155,13 @@ button:not(:disabled) {
  * starts measuring it.
  */
 .first-decision {
-  border: 1px solid var(--hairline-strong);
-  border-inline-start: 3px solid var(--blue);
-  padding: 16px;
+  /* THE SAME CARD AS THE REST OF THE PRODUCT. Square corners and a 3px accent bar were a card
+     language used on this page and nowhere else, which is a large part of why the front door and
+     the board did not read as one thing. `--surface` on `--paper`, one hairline, one radius. */
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: var(--s5);
 }
 .first-decision h2 {
   margin: 0 0 8px;
@@ -3897,7 +4177,7 @@ button:not(:disabled) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--s3);
 }
 .first-decision-form label {
   flex: 1 1 100%;
@@ -3908,8 +4188,20 @@ button:not(:disabled) {
   flex: 1 1 14rem;
   min-block-size: var(--tap-floor);
   padding-inline: 10px;
-  border: 1px solid var(--hairline-strong);
-  background: transparent;
+  /*
+   * THE ACT ON AN EMPTY FRONT DOOR IS FILLING THIS IN, and it had no weight at all: a
+   * transparent ground and a hairline, on a card that is itself `--surface`. The squint test --
+   * every visible box scored by area x luminance distance from the page -- ranked the whole page
+   * as `first-decision` 42,300, the SELECTED SOURCE TOGGLE 2,565, and the primary action 623.
+   * The loudest thing on the page was a radio button.
+   *
+   * The button below is legitimately quiet while it is disabled, and making a disabled control
+   * loud is the defect this file already argues against two rules down. So the weight goes where
+   * the act is: a field that reads as a field.
+   */
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  background: var(--raise);
   color: inherit;
   font-size: var(--panel-data);
 }
@@ -3917,7 +4209,7 @@ button:not(:disabled) {
   min-block-size: var(--tap-floor);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
 }
 /*
  * A disabled control has to look disabled.
@@ -3925,9 +4217,27 @@ button:not(:disabled) {
  * Without this the button is fully blue with an empty username field, so the one thing on an
  * otherwise empty page that looks ready to press is the thing that will not respond. Section 4.5
  * again: two distinct states must not render alike.
+ *
+ * ---
+ *
+ * AND IT HAS TO STAY READABLE WHILE IT DOES. `opacity: 0.45` was how this said it, and opacity
+ * fades the FOREGROUND against whatever is behind it: measured on the built front door,
+ * `קחו אותי לעמדה` came out at **2.85:1** against the 4.5:1 that 1.4.3 asks. On a page whose only
+ * other saturated control is a source toggle, the primary action was both the quietest thing on
+ * screen and the one failing contrast -- which is most of what "the next action is not obvious"
+ * was on ARRIVE.
+ *
+ * A declared pair instead of a fade, and the pair is one this palette already carries and has
+ * already measured: --muted on --chip is 4.59:1 in the light theme and 4.80:1 in the dark. Both
+ * flip with the theme, which an opacity cannot.
+ *
+ * `!important` because `.primary-control` sets its own two with `!important`, which is what a
+ * state rule has to outrank here.
  */
 .first-decision-form .primary-control:disabled {
-  opacity: 0.45;
+  background: var(--chip) !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--hairline-strong);
   cursor: not-allowed;
 }
 .first-decision-error {
@@ -3960,7 +4270,7 @@ button:not(:disabled) {
   }
   .record-page-head {
     flex-direction: column;
-    gap: 10px;
+    gap: var(--s3);
   }
 }
 
@@ -3979,7 +4289,7 @@ button:not(:disabled) {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: var(--s3);
 }
 .position-source-option {
   inline-size: 100%;
@@ -3987,7 +4297,7 @@ button:not(:disabled) {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 2px 10px;
+  gap: var(--s1) var(--s3);
   padding: 10px 12px;
   border: 1px solid var(--hairline-strong);
   background: transparent;
@@ -4017,7 +4327,7 @@ button:not(:disabled) {
   min-block-size: var(--tap-floor);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
   margin-bottom: 10px;
   padding-inline: 10px;
   border: 1px solid var(--hairline-strong);
@@ -4094,7 +4404,7 @@ button:not(:disabled) {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--s4);
   padding: clamp(20px, 5vw, 32px);
   border: 1px solid var(--hairline-strong);
   background: var(--surface);
@@ -4125,7 +4435,7 @@ button:not(:disabled) {
 .boundary-reload {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: var(--s2);
   padding-inline: 14px;
   border: 1px solid var(--blue);
   background: var(--blue);
@@ -4171,13 +4481,13 @@ button:not(:disabled) {
   border-inline-start-width: 3px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: var(--s2);
 }
 .reveal-failure-what {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--s2);
   font-size: var(--panel-body);
   font-weight: 700;
 }
@@ -4312,9 +4622,26 @@ button:not(:disabled) {
   border-color: var(--warn);
   outline: 1px solid var(--warn);
 }
+/*
+ * NOT-READY IS A STATE, NOT A HOLE. This rule used to say `background: transparent`, and it wins
+ * over the base rule six hundred lines above it -- whose comment is *"Opaque: it sits over the
+ * panel's own content while the panel scrolls under it."* `not-ready` is the panel's DEFAULT
+ * state, so the transparent one was the ordinary one: photographed at 390x844, scrollY 400, with
+ * the read chips of step 2 rendering straight through `חסר: בחרו רמת ביטחון`.
+ *
+ * The regression test for exactly this was green throughout. `ux-contract` asserts
+ * `background: var(--surface)` on `.commitment-submit`, and its own comment names the failure
+ * that was shipping -- *"which over a scrolling panel would put option chips through the middle
+ * of the button"*. It read one selector; the state that renders was governed by another. That is
+ * the `.workbench` defect again: a rule and its override owned by two places, and the check
+ * reading one of them. It is held in a browser now, in both states, by
+ * `tests/layout/the-control-that-records-a-decision.layout.test.ts`.
+ *
+ * The state still reads as not-ready -- dashed border, --warn text -- and the button is still
+ * pressable, because pressing it is how you find out what is missing and get taken there.
+ */
 .commitment-submit.not-ready {
-  /* Still pressable: pressing it is how you find out what is missing and get taken there. */
-  background: transparent;
+  background: var(--surface);
   color: var(--warn);
   border: 1px dashed var(--warn);
 }
@@ -4327,7 +4654,7 @@ button:not(:disabled) {
 /* --- Self-check ------------------------------------------------------------------------- */
 .self-check {
   display: grid;
-  gap: 14px;
+  gap: var(--s4);
   padding: 18px;
   /* No width of its own: .panel-shell sizes the dialog, and a min-width here fought it. */
 }
@@ -4338,7 +4665,7 @@ button:not(:disabled) {
 }
 .self-check-actions {
   display: flex;
-  gap: 10px;
+  gap: var(--s3);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -4356,7 +4683,7 @@ button:not(:disabled) {
 .self-check-progress {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s3);
   padding-block-start: 14px;
   border-block-start: 1px solid var(--hairline);
 }
@@ -4373,7 +4700,7 @@ button:not(:disabled) {
 }
 .self-check-list {
   display: grid;
-  gap: 8px;
+  gap: var(--s3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -4384,7 +4711,7 @@ button:not(:disabled) {
 .self-check-row {
   display: grid;
   grid-template-columns: 16px 1fr;
-  gap: 9px;
+  gap: var(--s3);
   align-items: start;
   padding: 8px 10px;
   border: 1px solid rgba(var(--ink-rgb), 0.22);
@@ -4417,12 +4744,12 @@ button:not(:disabled) {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 8px;
+  gap: var(--s3);
 }
 .read-field legend {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--s2);
   flex-wrap: wrap;
   font: 700 var(--panel-label) / 1.4 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
@@ -4439,7 +4766,7 @@ button:not(:disabled) {
   flex-wrap: wrap;
   /* 5px, not 6. Measured: the pills wrap into eight rows at this gap and nine at the old one,
      on the 330px column, which is 45px of a panel that does not fit the viewport as it is. */
-  gap: 5px;
+  gap: var(--s1);
 }
 /*
  * A GROUND, NOT A BORDER, and the measurement that forced the swap.
@@ -4491,7 +4818,7 @@ button:not(:disabled) {
   justify-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--s1);
   padding: 5px 2px;
   border: 0;
   background: none;
@@ -4554,18 +4881,18 @@ button:not(:disabled) {
 .what-this-is {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--s3);
   max-width: 62ch;
 }
 .what-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--s4);
 }
 .what-heading h3 {
   margin: 0;
-  font-size: var(--panel-data);
+  font-size: var(--panel-title);
 }
 .what-heading button {
   min-width: 44px;
@@ -4583,7 +4910,7 @@ button:not(:disabled) {
 }
 .what-this-is h4 {
   margin: 6px 0 0;
-  font-size: var(--panel-body);
+  font-size: var(--panel-data);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
@@ -4702,7 +5029,7 @@ button:not(:disabled) {
 }
 .outcome-summary__title {
   margin: 0 0 10px;
-  font-size: var(--panel-label);
+  font-size: var(--panel-data);
   font-weight: 600;
   color: var(--ink);
 }
@@ -4712,12 +5039,12 @@ button:not(:disabled) {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--s4);
 }
 .outcome-summary__item {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 10px;
+  gap: var(--s1) var(--s3);
   align-items: start;
 }
 .outcome-summary__badge {
@@ -4797,7 +5124,7 @@ button:not(:disabled) {
 .evidence-mark {
   display: inline-flex;
   align-items: baseline;
-  gap: 6px;
+  gap: var(--s2);
   font-size: var(--panel-fine);
 }
 .evidence-mark__mark {
@@ -4842,7 +5169,7 @@ button:not(:disabled) {
  */
 .finding {
   display: grid;
-  gap: 10px;
+  gap: var(--s3);
   padding: 14px 16px;
   border: 1px solid var(--edge-soft);
   border-radius: 8px;
@@ -4909,7 +5236,7 @@ button:not(:disabled) {
 /* THE POST-GAME SCREEN (§24). */
 .post-game {
   display: grid;
-  gap: 12px;
+  gap: var(--s4);
   max-width: 42rem;
 }
 .post-game__facts {
@@ -4917,11 +5244,11 @@ button:not(:disabled) {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 4px;
+  gap: var(--s1);
 }
 .post-game__fact {
   display: flex;
-  gap: 8px;
+  gap: var(--s3);
   align-items: baseline;
 }
 .post-game__fact-label {
@@ -4942,7 +5269,7 @@ button:not(:disabled) {
 .post-game__why {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 10px;
+  gap: var(--s1) var(--s3);
   margin: 6px 0 0;
 }
 .post-game__why > dt {
@@ -4964,7 +5291,7 @@ button:not(:disabled) {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: var(--s3);
 }
 .post-game__others-list button {
   font: inherit;
@@ -5049,7 +5376,7 @@ button:not(:disabled) {
   margin: 0 auto;
   padding: 20px 16px 40px;
   display: grid;
-  gap: 14px;
+  gap: var(--s4);
 }
 .blitz-setup h1 {
   font-size: var(--panel-heading);
@@ -5065,7 +5392,7 @@ button:not(:disabled) {
 .blitz-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--s3);
 }
 .blitz-control {
   min-width: var(--tap-floor);
@@ -5079,7 +5406,7 @@ button:not(:disabled) {
   cursor: pointer;
   display: inline-flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--s3);
 }
 .blitz-control:hover {
   background: var(--chip-hover);
@@ -5104,7 +5431,7 @@ button:not(:disabled) {
 .blitz-clocks {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--s4);
   font: var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 /*
@@ -5148,7 +5475,7 @@ button:not(:disabled) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: var(--s3);
 }
 .blitz-confidence p {
   flex-basis: 100%;
@@ -5167,7 +5494,7 @@ button:not(:disabled) {
 }
 .blitz-over {
   display: grid;
-  gap: 10px;
+  gap: var(--s3);
   padding-top: 6px;
   border-top: 1px solid rgba(var(--ink-rgb), 0.25);
 }
@@ -5183,7 +5510,7 @@ button:not(:disabled) {
 }
 .blitz-review {
   display: grid;
-  gap: 10px;
+  gap: var(--s3);
   margin-top: 16px;
   max-width: 28rem;
 }
@@ -5191,7 +5518,7 @@ button:not(:disabled) {
 /* THE RESUME SCREEN (§13, §28): three answers, above everything. */
 .resume {
   display: grid;
-  gap: 10px;
+  gap: var(--s3);
   max-width: 42rem;
   margin: 0 0 20px;
 }
@@ -5210,7 +5537,7 @@ button:not(:disabled) {
 .resume__why {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 10px;
+  gap: var(--s1) var(--s3);
   margin: 6px 0 0;
 }
 .resume__why > dt,
@@ -5243,16 +5570,22 @@ button:not(:disabled) {
 .unclear,
 .under-test {
   display: grid;
-  gap: 8px;
+  gap: var(--s3);
   margin: 16px 0;
 }
+/*
+ * A SECTION HEADING RENDERED AS A KICKER. Uppercase, letter-spaced, `--muted`, at the label rank
+ * -- which is the treatment this stylesheet gives a legend, and it heads a list of twelve items
+ * whose own text paints two ranks larger. `tests/layout/what-the-eye-ranks-first.layout.test.ts`
+ * found it by driving to a record that has something on it, which is the only state it exists in.
+ */
 .unclear__title,
 .under-test__title {
   margin: 0;
-  font-size: var(--panel-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: var(--panel-data);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
 }
 .unclear__lead {
   margin: 6px 0 0;
@@ -5264,7 +5597,7 @@ button:not(:disabled) {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 8px;
+  gap: var(--s3);
 }
 /*
  * THE REASON CARRIES THE RULE AND THE SPLITS SIT UNDER IT. The sentence used to be inside every
@@ -5273,7 +5606,7 @@ button:not(:disabled) {
  */
 .unclear__group {
   display: grid;
-  gap: 4px;
+  gap: var(--s1);
   padding-inline-start: 10px;
   border-inline-start: 2px solid var(--edge-soft);
 }
@@ -5282,12 +5615,12 @@ button:not(:disabled) {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 2px;
+  gap: var(--s1);
 }
 .unclear__item {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--s3);
   align-items: baseline;
 }
 /*
@@ -5320,7 +5653,7 @@ button:not(:disabled) {
 .under-test__terms {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 10px;
+  gap: var(--s1) var(--s3);
   margin: 0;
   font-size: var(--panel-fine);
 }
