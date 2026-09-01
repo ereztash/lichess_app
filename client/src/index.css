@@ -1599,9 +1599,31 @@ button:not(:disabled) {
     transform: rotate(360deg);
   }
 }
+/*
+ * THE FIRST TRACK IS THE INSTRUMENT'S WIDTH, AND IT USED TO BE THE BAR'S.
+ *
+ * 28px was right when column 1 held a 20px bar and nothing else. The evaluation is a labelled
+ * instrument now -- gauge, reading, engine and depth -- with `min-inline-size: 6.75rem`, and a
+ * FIXED grid track does not grow for an item's minimum size. So the instrument overflowed its
+ * track by 80px into the board's column and stayed legible only where the board happened to be
+ * centred with slack to spare. Measured at reveal, clearance between the instrument's right edge
+ * and the board:
+ *
+ *   1440x900   33px       1024x768   91px       844x390   68px
+ *   1280x800    3px  <-- three pixels
+ *    390x844  -80px  <-- the board painted over the gauge; see the breakpoint below
+ *
+ * Reported by a review bot on the pull request, then measured. Both numbers that matter are the
+ * last two: one defect and one about to be.
+ *
+ * RESERVED IN BOTH STATES, NOT ONLY AT REVEAL. `auto` would have grown the track only when the
+ * instrument exists, which buys back 80px on `DECIDE` and pays for it by moving the board another
+ * 40px between the two states -- and this file's own note below is that the board must not jump
+ * sideways when the bar appears. The gutter is the cheaper of the two.
+ */
 .board-assembly {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 6.75rem minmax(0, 1fr);
   gap: var(--s4);
   direction: ltr;
 }
@@ -1714,6 +1736,9 @@ button:not(:disabled) {
   position: absolute;
   bottom: 0;
   width: 100%;
+  /* The share arrives as a bare number from `EvaluationBar.tsx`; which axis it grows along is a
+     stylesheet decision, because the phone lays this gauge on its side. */
+  block-size: calc(var(--white-share, 0.5) * 100%);
   background: var(--cream);
 }
 .evaluation-value {
@@ -2478,9 +2503,56 @@ button:not(:disabled) {
     justify-content: center;
     padding: 9px 3px;
   }
+  /*
+   * ON A PHONE THE INSTRUMENT IS A ROW, BECAUSE THERE IS NO COLUMN FOR IT.
+   *
+   * At 390 the assembly is 370px and the board is 342 of it. Reserving the instrument's 108px
+   * would leave a 254px board -- 30px squares, under this file's own 44px tap floor -- and NOT
+   * reserving it put the board on top of the gauge: measured at reveal, the instrument spanned
+   * x=10..118 and the board began at x=38, so 80px of the gauge was painted over and the reading
+   * spilled out below the board on its own.
+   *
+   * Neither is a layout to keep, so the axis changes instead. One column, the board first, the
+   * instrument under it as a full-width row with the gauge on its side. `direction: ltr` is
+   * already on the assembly, so white grows from the left the way it grows from the bottom
+   * everywhere else -- the same convention, rotated with the gauge.
+   *
+   * THE ROWS ARE PLACED BY NAME, AND THAT IS THE SECOND PLACE THE VISUAL ORDER AND THE DOM ORDER
+   * DIFFER. `EvaluationBar` is declared before `ChessBoard` in `Home.tsx`, which in one column
+   * puts the instrument above the board -- and the instrument does not exist on `DECIDE`, so the
+   * board would drop 54px the moment the engine speaks. `MODE_CONTRACT` names the board as
+   * `REVEAL`'s continuity anchor, so the board keeps row 1 and the reading follows it. A screen
+   * reader hears the evaluation and then reaches the position it is about; the eye sees the
+   * position and then the reading under it. Both sequences carry the same meaning, which is what
+   * 1.3.2 asks. The other place is `.workbench` on a phone, asserted in
+   * `tests/layout/the-board-in-the-state-that-decides.layout.test.ts`.
+   */
   .board-assembly {
-    grid-template-columns: 20px 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s3);
+  }
+  .board-stage {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .evaluation-instrument {
+    grid-row: 2;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--s3);
+    min-inline-size: 0;
+    padding: var(--s2) var(--s3);
+  }
+  .evaluation-track {
+    width: auto;
+    flex: 1;
+    block-size: 16px;
+    min-height: 0;
+  }
+  .evaluation-white {
+    inset-inline-start: 0;
+    inline-size: calc(var(--white-share, 0.5) * 100%);
+    block-size: 100%;
   }
   .board-grid {
     border-width: 5px;

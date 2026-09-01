@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { formatEvaluation } from "@/lib/game-data";
 import { isStale, type EngineLine } from "@/lib/engine-line";
 import { NotMeasured, Value } from "./Value";
@@ -39,8 +40,19 @@ export function EvaluationBar({
       aria-label={`הערכת מנוע ${formatEvaluation(scoreCp, mate)} בעומק ${depth}${stale ? " (לא מעודכן)" : ""}`}
     >
       <span className="eval-marker top">לבן</span>
+      {/*
+        * THE SHARE IS A CUSTOM PROPERTY, NOT A HEIGHT, and that is what lets the gauge lie down.
+        *
+        * `height` names the block axis, so a gauge that runs left-to-right on a phone would have
+        * read 92% of 16px -- the whole track white at every evaluation. The stylesheet decides
+        * which axis the fill grows along, because the stylesheet is what knows the viewport.
+        * Nothing about the number changes: `whiteShare` is the same clamp it always was.
+        */}
       <div className="evaluation-track">
-        <div className="evaluation-white" style={{ height: `${whiteShare * 100}%` }} />
+        <div
+          className="evaluation-white"
+          style={{ "--white-share": whiteShare } as CSSProperties}
+        />
       </div>
       {/*
         * THE NUMBER CAME OUT OF THE RAIL, because inside it the number was not readable.

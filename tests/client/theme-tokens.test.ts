@@ -62,8 +62,23 @@ describe("theme tokens", () => {
   });
 
   it("resolves every var() used in the stylesheet to a declared token", () => {
+    /*
+     * A `var()` THAT CARRIES A FALLBACK CANNOT RESOLVE TO NOTHING, which is the whole failure this
+     * test exists for. `var(--white-share, 0.5)` is a value a COMPONENT supplies at runtime --
+     * `EvaluationBar.tsx` writes it as an inline style so the gauge's share can be spent on
+     * whichever axis the viewport gives it -- and declaring it in `:root` would put a number that
+     * is not a theme decision into the theme palette, where the two tests above would then hold
+     * it. The fallback is what makes the omission safe, so the fallback is what exempts it.
+     *
+     * WITHOUT the fallback it is still caught: drop the `, 0.5` and this test names it again.
+     */
+    const withFallback = new Set(
+      [...css.matchAll(/var\((--[a-z0-9-]+)\s*,/g)].map((m) => m[1]),
+    );
     const used = new Set([...css.matchAll(/var\((--[a-z0-9-]+)/g)].map((m) => m[1]));
-    const undeclared = [...used].filter((name) => !light.has(name) && !dark.has(name));
+    const undeclared = [...used].filter(
+      (name) => !light.has(name) && !dark.has(name) && !withFallback.has(name),
+    );
     expect(undeclared).toEqual([]);
   });
 

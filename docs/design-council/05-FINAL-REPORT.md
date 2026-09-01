@@ -349,9 +349,9 @@ FIELD VALIDATION:         PENDING
 
 **What each row rests on.**
 
-- **Technical:** `npm run verify`, run to completion on the tip — typecheck, build, **2,911 tests
-  passed / 26 skipped across 262 files**, **28 gates green**, **28 positive controls red**, bundle
-  within budget (initial download 758.3 kB against a 761 kB ceiling). axe: 0 violations on five populated states. No
+- **Technical:** `npm run verify`, run to completion on the tip — typecheck, build, **2,919 tests
+  passed / 26 skipped across 263 files**, **28 gates green**, **28 positive controls red**, bundle
+  within budget (initial download 758.7 kB against a 761 kB ceiling). axe: 0 violations on five populated states. No
   horizontal overflow at four viewports or a 32px root. Zero live animations under reduced motion.
 - **Art direction system:** one thesis, one signature, one system, a stated risk, a stated
   restraint; the subject-swap test passes **by one row, and the table says so**.
@@ -495,7 +495,45 @@ of that file a redesign. The file came out nine lines below where it started rat
 The ceiling was left where it is — its headroom is documented as deliberate, unlike the state
 ceiling, which is a hard ratchet.
 
-### 13.6 What this round did not settle
+### 13.6 A P1 a review bot found before this pass did
+
+`.board-assembly` reserves a fixed track for the evaluation column, and it was `28px` — the width
+of the bar it used to hold. Round one turned that bar into a labelled instrument with
+`min-inline-size: 6.75rem`, and a fixed grid track does not grow for an item's minimum size, so the
+instrument overflowed 80px into the board's column. Measured at reveal, clearance between the
+instrument's right edge and the board:
+
+| viewport | clearance |
+| --- | ---: |
+| 1440×900 | 33px |
+| 1280×800 | **3px** |
+| 1024×768 | 91px |
+| 844×390 | 68px |
+| 390×844 | **−80px** — the board painted over the gauge |
+
+On a phone the reading spilled out below the board on its own and the gauge was a clipped sliver.
+Reported by a review bot on the pull request; measured afterwards, in Chromium, at six viewports.
+
+The fix is in two parts. The track is `6.75rem`, reserved in **both** states so the board still
+does not move when the engine speaks — the alternative, an `auto` track that grows only at reveal,
+buys back 80px on `DECIDE` and pays for it by moving the board another 40px between the two states,
+which this file's own note forbids. And on a phone the assembly becomes one column with the gauge
+lying down under the board: reserving 108px there would have left a 254px board (30px squares,
+under the 44px tap floor), and not reserving it is the defect. The phone board came out 28px
+**wider** than before, because the 20px column and its gap are gone.
+
+The gauge's share had to leave the component to do that: `height: 92%` of a horizontal 16px track
+is 14.7px and full width, so `EvaluationBar` now passes the share as a custom property and the
+stylesheet decides which axis spends it.
+
+**The diagnosis is the part worth keeping.** Every probe this pass ran measures one element —
+contrast, size, rank, squint mass, measure. Not one asks whether two elements are in the same
+place. That is the same shape as the direction defect in §13.2: a measurement programme is only as
+good as the questions it can express, and neither of this round's two real defects was expressible
+in the ones it had. `tests/layout/the-instrument-and-the-board-it-measures.layout.test.ts` asks it
+now, at six viewports, demonstrated red on the shipped shape.
+
+### 13.7 What this round did not settle
 
 `OWNER VISUAL ACCEPTANCE` is **still PENDING**. The owner has now seen `DECIDE` and named three
 things about it; that is not the same as having looked at the built app across its states and

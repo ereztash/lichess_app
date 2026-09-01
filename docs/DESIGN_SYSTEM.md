@@ -176,6 +176,30 @@ rather than pinned.
 
 ---
 
+## Two elements in the same place
+
+A reserved track is only reserved if it is wide enough for what goes in it.
+
+`.board-assembly` declares `6.75rem minmax(0, 1fr)`, and the first number is the evaluation
+instrument's own `min-inline-size`. It was `28px` — the width of the bar that used to live there —
+and **a fixed grid track does not grow for an item's minimum size**, so the instrument overflowed
+into the board's column and cleared the board only where the board happened to be centred with
+slack. Measured clearance before the fix: 33px at 1440×900, 3px at 1280×800, **−80px at 390×844**.
+
+Reserved in **both** states, not only at reveal: an `auto` track grows when the instrument exists
+and collapses when it does not, which moves the board 40px every time the engine speaks.
+
+On a phone there is no column to reserve — 108px beside a 342px board leaves 254px, which is 30px
+squares against a 44px tap floor — so `.board-assembly` becomes one column and the gauge lies
+down under the board. The fill's share is a custom property rather than an inline `height`, because
+`height` names the block axis and a horizontal gauge would read 100% white at every evaluation.
+
+**The rule this leaves behind:** every probe in this pass measures *one* element. Overlap is a
+relation between two, and it needs its own check —
+`tests/layout/the-instrument-and-the-board-it-measures.layout.test.ts`.
+
+---
+
 ## Spacing
 
 `--s1: 4px` · `--s2: 6px` · `--s3: 8px` · `--s4: 12px` · `--s5: 18px` · `--s6: 28px`
