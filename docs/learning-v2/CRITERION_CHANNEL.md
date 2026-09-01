@@ -16,7 +16,9 @@ definitions, and fails if either moves.
 
 ## 1. RC-06's two cells do not score the same act
 
-`_threat_satisfies` is **the only predicate of the twelve that branches on the trigger**:
+`_threat_satisfies` is **the only predicate of the seventeen screened that branches on the
+trigger** — it was the only one of twelve when this was written, and it stayed the only one when
+five more rule classes landed:
 
 | cell | what `B` asks |
 | --- | --- |
@@ -58,15 +60,54 @@ executable failure* — "a control the current design DOES NOT PASS". It is cite
 caveat about item matching. **Nobody had computed what the floor actually is for the rule class the
 product would be built on.**
 
-## 3. Across twelve rule classes, geometry predicts half the criterion
+## 3. Across the rule classes, geometry predicts a quarter to two-fifths of the criterion
 
 | | correlation with the move-blind value | variance explained |
 | --- | --- | --- |
-| **observed *c*** | **r = +0.72** | **52%** |
-| observed *d′* | r = +0.56 | 31% |
+| **observed *c*** | **r = +0.50** | **25%** |
+| observed *d′* | r = +0.64 | 41% |
 
-Half the variance in a quantity read as a psychological bias is predicted by **how restrictive `B`
-is on each cell**, with no player in the model at all.
+A quarter to two-fifths of the variance in a quantity read as a psychological bias is predicted by
+**how restrictive `B` is on each cell**, with no player in the model at all — see the sensitivity
+band below.
+
+### This number moved, and the movement is left visible
+
+**On the 12-class screen it was r = +0.72 (52%).** Five rule classes landed with PR #50 and it fell
+to **+0.50 (25%)** — the strongest single claim in this file, roughly halved.
+
+**Part of the drop is two classes sitting on the response floor**, where *d′* and *c* are carried by
+the Hautus correction rather than by anything a player did. `RC-13 underpromote-to-knight` has a hit
+rate of **.007 on 67 items** and a false-alarm rate of **.002**; its *c* of **+2.65** is far outside
+the rest of the table and is the only positive chance-corrected value in it.
+
+Three cuts, and **none of them is "the" number**:
+
+| set | n | r | variance |
+| --- | --- | --- | --- |
+| all classes | 17 | +0.50 | 25% |
+| without `RC-13` | 16 | +0.57 | 33% |
+| **off the response floor** (n(T+) ≥ 250, rates in [.02, .98]) | **15** | **+0.66** | **43%** |
+
+**The filter was not pre-registered, and saying otherwise would be the exact move this file was
+written to catch.** The order was: the correlation dropped, `RC-13` was found to be the largest
+outlier, and only then was a floor rule written down — which then also removed `RC-14`, a class
+nobody had looked at. That is post-hoc, and it is why all three cuts are printed rather than the
+best one. Reporting only the full set would understate the effect; reporting only the filtered set
+would overstate it.
+
+**The claim that geometry predicts a substantial share of the criterion survives every cut. The
+specific claim that it predicts *half the variance* does not.**
+
+**This is the weakest of the three legs and it is the only one that moved.** The other two do not
+depend on which *other* rule classes exist:
+
+- **§1, the branching predicate** — a property of RC-06 alone. It got *stronger*: still the only
+  brancher, now out of seventeen rather than twelve.
+- **§4, the controlled pair** — RC-09 and RC-11, unchanged in every figure (+0.524, 71%, 3.4×),
+  because they are the same items scored two ways.
+
+So the argument does not rest on the correlation, and this file no longer claims it does.
 
 ## 4. The controlled experiment was already in the data
 
@@ -161,8 +202,17 @@ performed. **Flagged here for its owner.**
 ## What this does not say
 
 That the rule-class screen is wrong. `B_valid` is adjudicated by an **engine against the rule**,
-never by SDT, and **the eligibility gates never read *c* at all** — so RC-06's eligibility, its
-.968/.200 separation, its 242/242 engine agreement and its 2.9% harm rate are all untouched.
+never by SDT, and **the eligibility gates never read *c* at all** — so RC-06's .968/.200 separation,
+its 242/242 engine agreement and its 2.9% harm rate are untouched **by anything in this file**.
+
+**Its eligibility is another matter, and not because of anything here.** Gate A's action-set
+reanalysis, which merged into `main` while this was being written, finds RC-06 **`fails
+A5_beats_incumbent`** and that its prescription *"is not safe to teach as stated"* — it permits a
+median **29.7%** of legal moves, which is the same permissiveness this file reads as the chance rate
+`.317`, reached independently and for a different purpose. See
+[`ACTION_SET_REANALYSIS.md`](../measurement/ACTION_SET_REANALYSIS.md). **Nothing in this file rescues
+or damages that**; the two results are about different quantities and both are unwelcome for the
+same rule class.
 
 That players do not differ. They plainly do: corrected for the move-blind floor, sensitivity still
 orders the rating bands and still has headroom ([H17](FALSIFICATION_REGISTER.md)).
@@ -181,17 +231,18 @@ on it.
   *part* of it needs only a modest drift. It is not ruled out.
 - The independent predicate check ran on **random-walk positions**, which are not representative
   chess. It establishes the asymmetry is definitional, not its exact magnitude in play.
-- `r = +0.72` is across **twelve** rule classes that are not independent draws — they share corpora,
-  and the severity ladder shares one noise cell. It is a description of this set, not an estimate
-  of a population.
-- **The set is growing.** The measurement workstream has an open PR adding five more rule classes to
-  the same screen. Every count in this file — "twelve", "the only one of the twelve", `r = +0.72` —
-  is scoped to the screen as it stood, and
-  [`criterion_channel.py`](../../research/learning/criterion_channel.py) prints its own `n` and
-  warns on stderr if a second predicate starts branching. **Re-run it before quoting these numbers
-  after that PR lands.** The script hard-asserts only what the argument depends on — that RC-06
-  branches, and that RC-09/RC-11 still share both cells — so a new rule class is not a failure of
-  this file.
+- `r = +0.50` is across **seventeen** rule classes that are not independent draws — they share
+  corpora, and the severity ladder shares one noise cell. It is a description of this set, not an
+  estimate of a population. **It was +0.72 on twelve**, which is itself the evidence that a
+  correlation over a non-random set of hand-designed rule classes is not a stable quantity.
+- **The set grew, and this file was already re-run once.** The measurement workstream's five extra
+  rule classes landed with PR #50; every figure here is from the 17-class screen, and the one that
+  moved is called out above rather than quietly restated.
+  [`criterion_channel.py`](../../research/learning/criterion_channel.py) now derives its own `n` and
+  variance share instead of carrying them in prose — the first version hardcoded "twelve" and "half
+  the variance" in its own verdict text, which is the exact drift this repository's conventions
+  exist to prevent, in a file written to enforce them. It also warns on stderr if a second predicate
+  starts branching, and hard-asserts only what the argument depends on.
 - The mutation control on the branching detector **failed on its first version**, which accepted a
   bare `state ==` comparison and so survived having the trigger call removed. The detector now
   requires a `_trigger(` call. Recorded because a control that is written after the fact and passes

@@ -11,7 +11,12 @@
     "RC-08": false,
     "RC-09": false,
     "RC-11": false,
-    "RC-12": false
+    "RC-12": false,
+    "RC-13": false,
+    "RC-14": false,
+    "RC-18": false,
+    "RC-20": false,
+    "RC-21": false
   },
   "rule_classes": [
     {
@@ -25,6 +30,7 @@
       "observed_c": -0.03673147816344957,
       "corrected_c": -1.4318802051230777,
       "observed_hit": 0.8601368691189051,
+      "observed_n_t_plus": 1168,
       "observed_false_alarm": 0.15685411884723285,
       "branches": false
     },
@@ -39,6 +45,7 @@
       "observed_c": -0.012155407318127753,
       "corrected_c": -1.788427170099301,
       "observed_hit": 0.7852037777588701,
+      "observed_n_t_plus": 11752,
       "observed_false_alarm": 0.22196358708718553,
       "branches": false
     },
@@ -53,6 +60,7 @@
       "observed_c": 0.06243963646481543,
       "corrected_c": -1.675233109777102,
       "observed_hit": 0.7282264651827649,
+      "observed_n_t_plus": 19587,
       "observed_false_alarm": 0.23198139595394524,
       "branches": false
     },
@@ -67,6 +75,7 @@
       "observed_c": -0.9628853086869431,
       "corrected_c": -1.0402327562391032,
       "observed_hit": 0.9443634596695821,
+      "observed_n_t_plus": 2057,
       "observed_false_alarm": 0.6305361305361306,
       "branches": false
     },
@@ -81,6 +90,7 @@
       "observed_c": 0.04157766578843031,
       "corrected_c": -0.7586571522980416,
       "observed_hit": 0.6956451612903226,
+      "observed_n_t_plus": 21699,
       "observed_false_alarm": 0.27589783702897563,
       "branches": false
     },
@@ -95,6 +105,7 @@
       "observed_c": 0.3875054687870607,
       "corrected_c": -1.2405106117785998,
       "observed_hit": 0.5997304582210242,
+      "observed_n_t_plus": 370,
       "observed_false_alarm": 0.15205479452054796,
       "branches": false
     },
@@ -109,6 +120,7 @@
       "observed_c": 0.10408304971414778,
       "corrected_c": -0.7714179586875447,
       "observed_hit": 0.7157616530514176,
+      "observed_n_t_plus": 2080,
       "observed_false_alarm": 0.21814820808385096,
       "branches": true
     },
@@ -123,6 +135,7 @@
       "observed_c": -0.4157160525518211,
       "corrected_c": -1.3752188250699946,
       "observed_hit": 0.8389611786213571,
+      "observed_n_t_plus": 9298,
       "observed_false_alarm": 0.4369268959927048,
       "branches": false
     },
@@ -137,6 +150,7 @@
       "observed_c": -0.16035298290363764,
       "corrected_c": -1.0643763786539924,
       "observed_hit": 0.6841982958946553,
+      "observed_n_t_plus": 6454,
       "observed_false_alarm": 0.4369268959927048,
       "branches": false
     },
@@ -151,6 +165,7 @@
       "observed_c": -0.174866319285443,
       "corrected_c": -1.1241588642415006,
       "observed_hit": 0.6944479062811565,
+      "observed_n_t_plus": 16047,
       "observed_false_alarm": 0.4369268959927048,
       "branches": false
     },
@@ -165,6 +180,7 @@
       "observed_c": 0.34925873373881117,
       "corrected_c": -0.9719281762642173,
       "observed_hit": 0.6066488035892323,
+      "observed_n_t_plus": 16047,
       "observed_false_alarm": 0.1662444906023608,
       "branches": false
     },
@@ -179,12 +195,93 @@
       "observed_c": 0.10957043574193497,
       "corrected_c": -0.886738176771558,
       "observed_hit": 0.47512437810945274,
+      "observed_n_t_plus": 602,
       "observed_false_alarm": 0.437722329505031,
+      "branches": false
+    },
+    {
+      "id": "RC-13",
+      "name": "underpromote-to-knight",
+      "size_t_plus": 0.05520908344593639,
+      "size_t_minus": 0.04882010095842583,
+      "blind_d_prime": 0.0600867428138292,
+      "blind_c": 1.626359787009538,
+      "observed_d_prime": 0.4172394388296117,
+      "observed_c": 2.648161983267687,
+      "corrected_c": 1.0218021962581487,
+      "observed_hit": 0.007352941176470588,
+      "observed_n_t_plus": 67,
+      "observed_false_alarm": 0.0021398002853067048,
+      "branches": false
+    },
+    {
+      "id": "RC-14",
+      "name": "capture-the-mating-piece",
+      "size_t_plus": 0.0451182428158277,
+      "size_t_minus": 0.03817219376465522,
+      "blind_d_prime": 0.07815074650801557,
+      "blind_c": 1.7332269395781,
+      "observed_d_prime": 0.36314859078158035,
+      "observed_c": -0.1686890397244638,
+      "corrected_c": -1.9019159793025637,
+      "observed_hit": 0.6369294605809128,
+      "observed_n_t_plus": 240,
+      "observed_false_alarm": 0.4948596689626812,
+      "branches": false
+    },
+    {
+      "id": "RC-18",
+      "name": "move-the-piece-that-must-move",
+      "size_t_plus": 0.16436275962252245,
+      "size_t_minus": 0.04775163353047425,
+      "blind_d_prime": 0.6903718147109145,
+      "blind_c": 1.321870108137767,
+      "observed_d_prime": 1.4027594576853426,
+      "observed_c": 0.26773293235417084,
+      "corrected_c": -1.0541371757835962,
+      "observed_hit": 0.6677275265214964,
+      "observed_n_t_plus": 8954,
+      "observed_false_alarm": 0.1662444906023608,
+      "branches": false
+    },
+    {
+      "id": "RC-20",
+      "name": "defend-the-piece-in-place",
+      "size_t_plus": 0.0953150918762074,
+      "size_t_minus": 0.16317313855181895,
+      "blind_d_prime": -0.32721722607409875,
+      "blind_c": 1.1451085264174201,
+      "observed_d_prime": -0.23451738388323495,
+      "observed_c": 0.5884992339787505,
+      "corrected_c": -0.5566092924386696,
+      "observed_hit": 0.24016934557979333,
+      "observed_n_t_plus": 6967,
+      "observed_false_alarm": 0.31873448502963675,
+      "branches": false
+    },
+    {
+      "id": "RC-21",
+      "name": "push-the-unstoppable-passer",
+      "size_t_plus": 0.06908433065235858,
+      "size_t_minus": 0.051740667984442025,
+      "blind_d_prime": 0.14556006909333696,
+      "blind_c": 1.5554253852574642,
+      "observed_d_prime": 0.4873200676224594,
+      "observed_c": 1.0062714690812578,
+      "corrected_c": -0.5491539161762065,
+      "observed_hit": 0.22284758138119867,
+      "observed_n_t_plus": 3286,
+      "observed_false_alarm": 0.10566228513650151,
       "branches": false
     }
   ],
-  "r_blind_c_observed_c": 0.7201281296006853,
-  "r_blind_d_observed_d": 0.5580436373938692,
+  "r_blind_c_observed_c": 0.5033357605649393,
+  "r_blind_c_observed_c_off_floor": 0.6580365672660555,
+  "floor_excluded": [
+    "RC-13",
+    "RC-14"
+  ],
+  "r_blind_d_observed_d": 0.6429142059635583,
   "shape_pair": {
     "observed_delta_c": 0.5241250530242542,
     "blind_delta_c": 0.37189436504697093,
