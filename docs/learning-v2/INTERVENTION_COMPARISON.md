@@ -1,9 +1,13 @@
-# Ranking ten candidate first interventions
+# Ranking candidate learning interventions — after the measurement revisions
 
-Scored 1 (bad) to 5 (good) on the mission's ten criteria. **The column that decides the table is
-#3, measurement availability** — and it is low for every row, which is itself the finding.
+This file compares instructional candidates, but its main conclusion is now deliberately upstream:
+**do not choose an instructional component before the observation model survives.**
 
-**Legend for #5 (risk of strengthening a false rule):** high score = *low* risk.
+Scored 1 (bad) to 5 (good) on the mission's ten criteria. The table is retained because it shows
+which mechanisms are plausible once measurement becomes admissible; it is **not** a licence to build
+the highest total now.
+
+**Legend for #5 (risk of strengthening a false rule):** high score = low risk.
 
 | intervention | 1 causal id | 2 construct rel. | **3 measurement** | 4 reactivity | 5 false-rule | 6 participants | 7 items | 8 ecological | 9 burden | 10 learning≠perf | **Σ** |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -17,64 +21,129 @@ Scored 1 (bad) to 5 (good) on the mission's ten criteria. **The column that deci
 | **H** varied / interleaved practice | 3 | 4 | **1** | 4 | 2 | 3 | 2 | 3 | 3 | 4 | **29** |
 | **I** learner-generated rule *(status quo)* | 2 | 3 | 2 | 3 | **1** | 5 | 5 | 3 | 5 | 2 | **31** |
 | **J** expert-validated rule | 3 | 3 | 2 | 4 | **5** | 2 | 2 | 3 | 3 | 3 | **30** |
-| **K** *focal-trigger constraint* — added by this research | 4 | **5** | **1** | 3 | 3 | 3 | 2 | **4** | 4 | 4 | **35** |
+| **K** focal-trigger constraint | 4 | **5** | **1** | 3 | 3 | 3 | 2 | **4** | 4 | 4 | **35** |
+
+---
 
 ## Reading the table
 
-**The totals are close and that is not a tie — it is a symptom.** Nothing separates cleanly because
-every candidate is bottlenecked by the same column. **No row scores above 2 on measurement
-availability.** Ranking interventions when none of them can be scored is choosing which experiment
-to run badly.
+The totals are close because nearly every candidate is bottlenecked by the same thing: **we do not
+yet have a domain-valid, exchangeable observation of rule use that reaches the target construct.**
 
-**K, the highest scorer, is not in the mission's list.** It comes out of V8 and Cluster 1: constrain
-the authored trigger to name something the player already processes while choosing a move. It ranks
-highest on construct relevance because, unlike every other row, it does not *improve* the target
-behaviour — it is a **precondition for the behaviour existing at all**. It also ranks worst-equal on
-measurement, for the same reason as B and H: it requires negative items that do not exist.
+The table therefore ranks mechanisms under a conditional:
 
-## The case against A (PR #48's Study 0), stated fully
+> *If* a valid target behaviour and item bank exist, which component would be a plausible first
+> intervention?
 
-PR #48 chose response-congruent retrieval. Three arguments against it, and one for.
+It does not answer whether that condition is currently met.
 
-1. **It is confirmatory.** V13 — Chessable already retrieves by playing the move, and it is the
-   largest chess-learning product in the world. A positive result reproduces a settled convention;
-   a null result is more likely to indict the local implementation than the principle.
-2. **Its outcome cannot reach the target.** PR #48's own outcome is "rule-consistent action with
-   base rate as a covariate", which is **L4 cued application** — the position is presented. The
-   target is L5. The study cannot observe the construct it is motivated by.
-3. **It does not address either blocking barrier.** [`BARRIER_MODEL.md`](BARRIER_MODEL.md) puts the
-   deaths at content validity, encoding, trigger recognition and discrimination. Response
-   congruency touches encoding only.
+---
 
-**In its favour:** it is subtractive, cheap, needs no new machinery, and is honestly framed.
-**Verdict: Study 0 is a well-designed study of the wrong question.** It should not be run first.
+## Why PR #48's response-congruency study is not first
 
-## The table was scored before `RULE_CLASS_SEARCH` landed
+Response-congruent retrieval remains attractive because it is subtractive, cheap and well supported
+as a learning principle. It is still not the first uncertainty to buy here:
 
-**Column 3 was the bottleneck and it has partly opened.** With `RC-06` the measurement availability
-of any design scored **on RC-06 items** rises from 1–2 to roughly 4: a signature exists, a
-trigger-negative cell exists, and the prescribed act is engine-checkable at a median cost of +1 cp.
+1. its outcome is cued application rather than uncued transfer;
+2. it addresses encoding/retrieval rather than proving whether the bottleneck is recognition or
+   action selection;
+3. it can strengthen a player-authored rule before content safety is known;
+4. its usefulness still depends on the behavioural signature being valid.
 
-**It does not open for the product as it stands**, because RC-06 is expert-screened and the product
-accepts player-authored rules — and nine of ten researcher-designed candidates failed the same
-screen. So the column splits in two: **high** for a screened rule class, **unchanged** for the
-product's actual content.
+So Study 0 remains a good experiment of a lower-priority question.
 
-**This does not promote row A.** Response congruency is still confirmatory of Chessable's settled
-convention, still yields an L4 outcome, and still addresses none of the top barriers. What the
-change does is make **K** (focal-trigger constraint) and **B** (contrastive) testable *in principle*
-— and it makes a prior question testable *first*, which is the one the experiment now asks.
+---
 
-## What the table actually recommends
+## What the rule-class search changed
 
-**Still not an intervention — but for a different reason than when this table was written.**
+The first rule-class search partially opened the measurement bottleneck by finding `RC-06
+answer-the-mate-threat`.
 
-The item set now exists. What does not exist, in this repository or in the published literature, is
-any measurement of whether **detection governs action**. Every row above assumes that if the player
-recognises the trigger they will act on it, and that assumption has never been tested for anything.
+The later round then made the interpretation narrower, not broader:
 
-An intervention chosen before that is known is an intervention aimed at a guess: if the barrier is
-recognition, **K** is right and **A**/**D** are wasted; if it is action selection, the reverse. One
-study separates them.
+- **15 rule classes** have now been screened across 8 families and 3 selection strategies;
+- **14 of 15** fail the current eligibility screen;
+- the `noise-cell-first` design story did not survive the candidates selected from it;
+- no design rule extracted so far predicts which class will work;
+- `RC-06` remains the sole observed survivor under the current binary action signature.
 
-That is the reasoning that produces [`EXPERIMENT.md`](EXPERIMENT.md).
+Therefore measurement availability is **provisionally higher for RC-06 only**, not for a known
+family of teachable rules and not for the product's player-authored content.
+
+---
+
+## A new upstream concern: the action signature may itself be too coarse
+
+The current screen asks whether Stockfish's **single best move** satisfies B.
+
+Round 3 makes that representation suspect as a general model of chess knowledge: `RC-21` represents
+genuine, exactly defined chess knowledge while its named act is the engine's best move on only
+16.4% of T+ items.
+
+That creates a cheaper uncertainty than any instructional comparison:
+
+> Does RC-06 remain distinctive when we compare the value of the **best rule-consistent action set**
+> against the best non-rule-consistent alternative, rather than treating the engine's top move as a
+> binary label?
+
+The specification is in [`PRE_HUMAN_GATES.md`](PRE_HUMAN_GATES.md).
+
+---
+
+## What must happen before any intervention ranking controls the roadmap
+
+### Gate A — action-set validity
+
+Re-score the existing classes with action-set advantage, regret and within-B robustness. If the
+eligible set changes, the old binary measurement was the bottleneck and the intervention table is
+premature.
+
+### Gate B — exchangeability / minimal functional twins
+
+If RC-06 survives Gate A, attack its max |SMD| .573 with matched natural items and minimal
+functional pairs. If the contrast does not survive, a human study would be an item-difficulty study
+wearing a learner label.
+
+### Study D — next human study
+
+Only after A/B pass, ask whether explicit detection predicts rule-consistent action and estimate how
+much the detection prompt itself changes behaviour. See [`EXPERIMENT.md`](EXPERIMENT.md).
+
+---
+
+## How Study D would choose among interventions
+
+If detection predicts action with low reactivity, the next mechanism should target **recognition and
+boundary detection**. K and B become the leading candidates: focal triggers, T+/T− contrast,
+minimal-pair discrimination.
+
+If detection does not predict action, the bottleneck is downstream of seeing. D and A become more
+plausible: if–then compilation and response-congruent action retrieval.
+
+If hits and false alarms rise together, neither branch wins. The problem is criterion shift /
+overgeneralisation, and the first intervention target is boundary learning rather than more positive
+practice.
+
+If the detection prompt itself drives the move, prompt-shaped self-explanation or explicit trigger
+questions cannot be treated as neutral measurements.
+
+---
+
+## What the table actually recommends now
+
+**No learning intervention yet.**
+
+The current priority order is:
+
+```text
+Action-set validity
+    ↓
+Exchangeability / minimal twins
+    ↓
+Human detection → action + reactivity
+    ↓
+Choose the intervention family that matches the measured barrier
+```
+
+The intervention scores become decision-relevant only at the last arrow. Until then, building the
+highest-scoring row would optimise a mechanism before the product knows what mechanism is missing.

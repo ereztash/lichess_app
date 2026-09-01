@@ -108,6 +108,9 @@ better behaved than a raw one and is still not a clean player parameter.
 
 ## What this costs H18 and H19
 
+*(This pass is filed as [H22 and H23](FALSIFICATION_REGISTER.md#h22). H20 and H21 were taken by the
+two pre-human gates in the round that landed alongside it.)*
+
 **H18 stands as arithmetic and falls as interpretation.** The criterion term really is larger than
 the sensitivity term, robustly. But "criterion" here is not *willingness to play the mate-answering
 move* — the two cells score different acts, so the quantity has no such reading. What the numbers

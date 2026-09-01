@@ -1,177 +1,245 @@
-# The one experiment: does seeing it govern the move?
+# Next human experiment — blocked until the pre-human gates pass
 
-**Study D — detection → action, on RC-06 items, with order counterbalanced.**
+**Study D — detection → action on RC-06 items, with order counterbalanced.**
 
-## Why this replaced the experiment this file originally proposed
+**STATUS: SPECIFIED, NOT YET ADMISSIBLE.**
 
-An earlier draft of this file proposed **Study S** — an item-supply and signature-strength study, to
-find out whether any rule class carries an observable signature of rule use. **That study has since
-been run**, by the rule-class screen in
-[`docs/measurement/RULE_CLASS_SEARCH.md`](../measurement/RULE_CLASS_SEARCH.md), and it returned a
-positive: `RC-06 answer-the-mate-threat` is eligible, with `B_valid` **.968** on trigger-positive
-items against **.200** on trigger-negative, separation **+0.768** against the refuted incumbent's
-+0.600, and the prescribed act is the engine's own best move on **242 of 242** items where the rule
-prescribes anything at all.
+Do not recruit participants until both upstream gates in
+[`PRE_HUMAN_GATES.md`](PRE_HUMAN_GATES.md) pass:
 
-Proposing it again would be proposing work already done. **The blocker moved**, and this file moves
-with it.
+1. **Gate A — action-set validity**: the RC-06 signature must survive a set-valued decision analysis,
+   not only the binary question of whether the single engine-best move satisfies B.
+2. **Gate B — exchangeability / minimal functional twins**: the T+/T− contrast must survive item
+   balancing and a stronger minimal-pair test.
 
-## What the screen left open, in its own words
-
-> *"Every one measures whether the player **SAW** it. None measures whether the seeing governed the
-> move."*
-
-That is the C8 literature search's verdict on every validated paradigm it found for check, mate and
-threat detection (Sheridan & Reingold 2014; Rosch & Vogel 2022; Kuchelmeister et al. 2024 —
-`UNVERIFIED` here, cited as the screen reports them). It is also, exactly, the arrow this research
-identifies as the place learning dies: **TRIGGER RECOGNITION → ACTION SELECTION**.
-
-**Nobody has measured it. It is now measurable.** That conjunction is what selects this study.
+Study D is therefore the **next human study**, not the next overall step.
 
 ---
 
-## PRIMARY QUESTION
+## Why the order changed
 
-On positions where a mate threat exists (RC-06 T+), does a player's **detection** of the threat
-predict **rule-consistent action**, over and above their general playing strength?
+An earlier version of this file made Study D the immediate next experiment because the rule-class
+screen found one usable action signature: `RC-06 answer-the-mate-threat`.
+
+The subsequent third rule-class round screened **15 rule classes across 8 families and 3 selection
+strategies** and left RC-06 as the only eligible candidate under the current screen. More importantly,
+it retracted the design story derived from the previous batch: choosing new candidates from the
+`noise-cell-first` hypothesis was enough to reverse the correlation pattern that motivated it.
+
+What survives is narrower:
+
+- RC-06 is an observed survivor under the current binary action signature;
+- no rule for predicting a usable rule class is currently supported;
+- true chess knowledge need not imply one unique best action;
+- RC-06 still has max |SMD| **0.573** between T+ and T− items.
+
+That makes a human study premature until the action model and item comparison survive direct attack.
+
+---
+
+## What Study D will ask if the gates pass
+
+> On positions where a mate threat exists, does a player's **detection** of that threat predict a
+> **rule-consistent action**, over and above general playing strength, and how much does asking about
+> the threat itself change the subsequent action?
+
+This is the open arrow left by the chess literature and by the repo's measurement work:
+
+```text
+TRIGGER RECOGNITION  →  ACTION SELECTION
+```
+
+Validated chess paradigms found by the literature search measure whether the player saw/detected the
+relation. They do not establish that the detection governed the move without the measurement itself
+becoming part of the task.
+
+---
 
 ## NULL / ALTERNATIVE
 
-- **H₀:** detection and action are independent once strength is controlled — players who see the
-  threat are no more likely to answer it than players who do not. The barrier is **action
-  selection**.
-- **H₁:** detection predicts action. The barrier is **recognition**, and trigger focality is where
-  an intervention belongs.
+- **H₀:** once strength and item are controlled, detection adds no predictive information about
+  rule-consistent action. The barrier is downstream of recognition.
+- **H₁:** detection predicts rule-consistent action. Recognition/focality is a plausible barrier.
 
-**Both outcomes are informative and they point at different products.** That is the property that
-made this study win the comparison.
+Neither result is interpreted as learning. This is construct validation for a later learning study.
+
+---
 
 ## UNIT OF ANALYSIS
 
-The **item within participant**. Mixed-effects logistic model of the act, random intercepts for
-participant and item, detection as the fixed effect, strength band as a covariate.
+The **item within participant**.
 
-## INTERVENTION / CONTROL
+Planned model: mixed-effects logistic model of rule-consistent action, with random intercepts for
+participant and item, detection as the focal predictor, and strength band as a covariate. Item-level
+properties from Gate A/B remain in the analysis rather than being discarded after item construction.
 
-**The order manipulation is the experiment**, and it doubles as the reactivity control:
+---
+
+## ORDER MANIPULATION / REACTIVITY ESTIMATE
 
 | condition | sequence |
 | --- | --- |
-| **DETECT-FIRST** | "is there a mate threat here?" → then choose a move |
-| **MOVE-FIRST** | choose a move → then "was there a mate threat?" |
+| **DETECT-FIRST** | "is there a mate threat here?" → choose a move |
+| **MOVE-FIRST** | choose a move → "was there a mate threat?" |
 
-Assigned within participant, counterbalanced across items.
+Assigned within participant and counterbalanced across items/pairs.
 
-## REACTIVITY CONTROL — and this is why the design has two orders
+Asking about the threat before the move is a cue. The difference between orders is therefore an
+estimate of **measurement reactivity**, not a nuisance to be explained away.
 
-Asking about the threat **before** the move is a cue. It is the intervention and the measurement at
-once, which is [F7](../measurement/FALSIFICATION_REGISTER.md#f7) and D21's contamination in its
-purest form. So instead of pretending the prompt is neutral, **the difference between orders is the
-reactivity estimate**: DETECT-FIRST minus MOVE-FIRST on rule-consistent action is the amount the
-question itself moves the behaviour.
+If feasible under the minimal-twin bank produced by Gate B, prefer assigning the move response and
+the explicit detection response to opposite members of a twin pair, counterbalanced across
+participants, so the primary natural-action observation is not preceded by the detection prompt.
+The DETECT-FIRST arm then exists specifically to estimate reactivity.
 
-**That quantity has never been measured in this repository, and it gates the self-explanation
-mechanism entirely** — which is why that mechanism was ranked fourth in
-[`INTERVENTION_COMPARISON.md`](INTERVENTION_COMPARISON.md) rather than second.
+---
 
-## BASELINE / BASE-RATE MODEL
+## BASELINES
 
-- **Chance rate, per item, derived not assumed:** the share of legal moves satisfying B. The screen
-  measured mean **.317** on RC-06 T+ — so a rule-consistent act is worth roughly three times chance
-  before anything is learned, and the model carries the per-item value.
-- **T− cell as the false-application baseline:** `B_valid | T−` = **.200**.
-- **The unaided human baseline, which is the one an intervention has to beat.** The screen scored
-  the move players ACTUALLY PLAYED against `B` on 2,080 trigger-positive positions: pooled hit rate
-  **.716** [.696, .735], running **.63 → .83** across rating bands. Derived in
-  [`research/learning/headroom.py`](../../research/learning/headroom.py); see
-  [H17](FALSIFICATION_REGISTER.md). **This number was available before this study was designed and
-  was not in the design**, which is the kind of omission that produces a ceiling effect and calls
-  it a null result.
-- **The move-blind floor, which is the one the *instrument* has to beat.** An agent picking
-  uniformly among legal moves scores hit **.317**, false alarm **.101**, and therefore *d′* **0.80**
-  on this rule class — **more than half of the lowest band's measured 1.180**. Any sensitivity
-  quoted by this study is reported against that floor, never against zero
-  ([`CRITERION_CHANNEL.md`](CRITERION_CHANNEL.md)).
+- **Per-item chance rate:** share of legal moves satisfying B; the old RC-06 screen averaged `.317`
+  on T+ items. Carry the item-specific value rather than one global constant.
+- **Trigger-negative behaviour:** false application is reported separately, never folded into a
+  single accuracy score.
+- **Unaided historical player behaviour:** pooled trigger-positive rule-consistent action `.716`
+  [.696, .735], approximately `.63 → .83` across the existing rating bands. This is a headroom and
+  recruitment constraint, not a causal baseline for the new study.
+- **Domain-value baseline:** replace the old binary `B_valid` interpretation with the Gate-A
+  action-set quantities once available (`V_B`, `V_notB`, action-set advantage, regret, robustness).
+- **The move-blind floor, which is the baseline the *instrument* has to beat.** An agent picking
+  uniformly among legal moves scores hit **.317**, false alarm **.101** — and therefore *d′* **0.80**
+  and *c* **+0.88** — on RC-06's own predicate sizes. **More than half of the lowest rating band's
+  measured *d′* of 1.180 needs no knowledge of chess.** Any sensitivity this study quotes is reported
+  against that floor, never against zero
+  ([H22](FALSIFICATION_REGISTER.md#h22), [`CRITERION_CHANNEL.md`](CRITERION_CHANNEL.md)).
 
-## OUTCOME
+---
 
-**Rule-consistent action**, hits and false alarms **separately**, with Wilson intervals.
-**Accuracy alone is never reported**, per `ANALYSIS_PLAN.md`.
+## OUTCOMES
 
-**No *c*, and no *d′* without its floor.** `ANALYSIS_PLAN.md` requires *c* beside any *d′*, and on
-this rule class that requirement cannot be met honestly: the two cells score different acts, so *c*
-is not a bias ([H20](FALSIFICATION_REGISTER.md)). Report the two rates and the **move-blind floor**
-— *d′* = **0.80**, *c* = **+0.88**, derived from RC-06's own predicate sizes — so that any *d′*
-quoted is read against what an agent knowing no chess would score. This is a **deviation from the
-analysis plan and is declared as one**, not an omission.
+Primary behavioural quantities are reported separately:
 
-## HARM OUTCOME
+1. trigger-positive rule-consistent action;
+2. trigger-negative rule-consistent action / false application;
+3. sensitivity only, reported against the move-blind floor — **not criterion, and on RC-06 this is
+   not a judgement call.** The two cells score different acts (a hit is *"no mate in one"*, a false
+   alarm is *"no check at all"*), so no response criterion is identified and none may be reported.
+   This is a **declared deviation** from `ANALYSIS_PLAN.md` §1.2, whose stated reason for trusting
+   the criterion — *"the corpus audit found the criterion gradient cleaner than the sensitivity
+   one"* — is what [H22](FALSIFICATION_REGISTER.md#h22) undermines;
+4. reactivity from order / prompt exposure;
+5. action-set regret / harm for the move actually chosen.
 
-Rule-consistent action on items where following the rule **loses ≥100 cp**. The screen measured this
-at **2.9%** for RC-06 — against 14–15% for the refuted incumbent — so for this rule class the harm
-channel is small but not zero, and it is reported as its own series.
+**Accuracy alone is never the outcome.**
+
+A headline improvement that raises both hits and false alarms is **not** to be called a criterion or
+bias shift on this rule class — on RC-06 no such parameter is identified
+([H22](FALSIFICATION_REGISTER.md#h22)). Report it as **both cells moved**. What that would mean is
+that the procedure changed behaviour on trigger-negative positions too, which is a reactivity and
+harm finding and is damaging enough on its own without borrowing a name it has not earned.
+
+---
+
+## HARM
+
+The old binary screen measured RC-06 rule-following as a ≥100 cp loss on 2.9% of T+ items and 34.0%
+of T− items. Those numbers are retained as historical diagnostics but do not substitute for Gate A's
+set-valued action analysis.
+
+The harm question is primary:
+
+> Did the procedure increase a useful conditional discrimination, or merely make the player more
+> willing to perform B everywhere?
+
+**On RC-06 that question cannot be answered as posed**, because "perform B" is not one act across the
+two cells. It is answerable on a **method-shaped** rule class, where `B` is a property of the move
+rather than of a threat's survival — which is the cheapest open item in the programme, needing no
+corpus, no participants and no product change ([H23](FALSIFICATION_REGISTER.md#h23)).
+
+---
 
 ## TRANSFER LEVEL ACTUALLY TESTED
 
-**L3–L4.** The position is presented; no rule is named. This measures the detection→action link in
-representative positions, and it is **not** L5 and **not** L6.
+At most **L3–L4 construct validation**. The position is presented and the task is experimental.
+
+Study D does **not** establish:
+
+- delayed transfer;
+- spontaneous/uncued recognition in ordinary play;
+- ecological Blitz transfer;
+- transfer of a player-authored rule;
+- that an instructional intervention caused anything.
+
+---
 
 ## WHAT IS DELIBERATELY NOT CLAIMED
 
-That any of this is uncued transfer. That RC-06 generalises to player-authored rules — it is
-expert-screened, and **nine of ten candidate rule classes designed by a researcher failed**. That
-the corpus base rate equals the participants' base rate. That detection measured by a forced choice
-is the same as detection in a game.
+- RC-06 generalises to player-authored rules. Fourteen of fifteen researcher-designed candidates
+  failed the current rule-class screen.
+- The old binary best-move signature is domain-complete. Gate A exists because that is unresolved.
+- T+ and T− are exchangeable. Gate B exists because they are not yet.
+- A forced detection response is equivalent to spontaneous detection in a game.
+- A detection→action association identifies the best teaching mechanism by itself.
 
-## SAMPLE AND ITEM DESIGN
+---
 
-- **Participants:** 8–30, within-participant throughout. No between-groups comparison is attempted;
-  [`INTERVENTION_COMPARISON.md`](INTERVENTION_COMPARISON.md) shows the supply cannot buy one.
-- **Recruit at 1200–1600, and report the band.** The miss cell is what this study models, and it is
-  **37%** of trigger-positive items at 1200–1400 against **17%** at 1800+. A sample drawn from the
-  strong end spends most of its items on the ceiling. This is a constraint the headroom measurement
-  imposed on the design after the design existed — stated here rather than folded in silently.
-- **Items:** RC-06 T+ and T−, matched on the existing covariate schema. **Residual imbalance must be
-  reported, not assumed away:** the screen measured max |SMD| **0.573**, and
-  `negative-controls.ts::itemDifficultyConfound` shows an agent with zero discrimination producing a
-  large *d′* on unbalanced items. The matched supply and residual SMD are the first numbers out.
-- **Base rate constraint, stated because it bounds the design:** RC-06 fires on **1.24%** of
-  not-in-check positions. Items must therefore be **constructed from the corpus**, which reopens
-  [F9](../measurement/FALSIFICATION_REGISTER.md#f9) — representativeness — and that limitation is
-  carried into every conclusion rather than noted once.
+## SAMPLE DESIGN — ONLY AFTER GATES A/B
+
+- **Participants:** 8–30, within-participant design; no conventional between-groups efficacy trial.
+- **Strength:** prioritise 1200–1600 for the first construct-validation pass because the historical
+  miss cell is materially larger there than at 1800+; report exact distribution rather than treating
+  the band as homogeneous.
+- **Items:** use the Gate-B bank, retaining pair identity and action-set diagnostics from Gate A.
+- **Item provenance:** every item records whether it is natural-matched or a minimally transformed
+  twin and exactly what transformation generated it.
+
+---
 
 ## STOP RULE
 
-Item set, model and hypotheses frozen before the first participant. No interim look.
+Before the first participant:
+
+- freeze item bank;
+- freeze twin transformations;
+- freeze model specification;
+- freeze hypotheses and interpretations;
+- freeze the reactivity comparison.
+
+No interim look used to redesign the item bank or outcome.
+
+---
 
 ## FALSIFICATION CRITERIA
 
-- **H₀ retained** if detection adds nothing to the model once strength is in it.
-- **Reactivity dominant** if the order effect is comparable to or larger than the detection effect —
-  in which case *any* prompt-based intervention is measuring itself, and the self-explanation branch
-  closes.
-- **Confounded** if residual SMD after matching leaves the item-level variance above the
-  person-level variance. Then the instrument is discriminating items, not people, and the study
-  reports that instead of a result.
-- **Order effect moves both cells together** — the DETECT-FIRST → MOVE-FIRST difference shifts hits
-  and false alarms in the same direction by comparable amounts. Report it as *"both cells moved"*
-  and **not** as a criterion shift: on RC-06 the two cells score different acts
-  ([H20](FALSIFICATION_REGISTER.md), [`CRITERION_CHANNEL.md`](CRITERION_CHANNEL.md)), so no bias
-  parameter is identified and none may be claimed. What the pattern would mean is that the prompt
-  moves behaviour on trigger-negative positions too, which is a reactivity finding and is enough to
-  close the self-explanation branch on its own.
+- **Gate failure before recruitment:** Study D does not run.
+- **H₀ retained:** detection adds no useful information about action once strength/item are in the
+  model.
+- **Reactivity dominant:** asking first changes action by an amount comparable to or larger than the
+  detection association; prompt-based measurement is not a neutral instrument.
+- **Criterion dominant:** hits and false applications move together; the procedure changes response
+  bias rather than discrimination.
+- **Item dominant:** item/pair effects explain the apparent relationship better than person-level
+  detection; return to the item paradigm rather than interpreting a player construct.
+- **Harm dominant:** rule-consistent action increases where Gate-A regret says B is costly; the
+  procedure teaches compliance, not conditional control.
 
-## INTERPRETATION
+---
 
-| result | reading | what to build |
+## INTERPRETATION IF RUN
+
+| result | permitted reading | next research object |
 | --- | --- | --- |
-| detection predicts action | the barrier is **recognition** | trigger focality — intervention **K**, which this research added and which ranked first |
-| detection does not predict action | the barrier is **action selection** | if–then compilation and response-congruent rehearsal — **A** and **D** |
-| large order effect | the prompt is the intervention | no prompt-based measurement is admissible; D21's exposure problem becomes primary |
-| item variance > person variance | the instrument measures items | back to matching, before any human study |
-| hits and false alarms move together | the prompt moves behaviour on trigger-**negative** positions too | nothing prompt-shaped — the measurement is not separable from the intervention |
+| detection predicts action, low reactivity | recognition/focality is a plausible bottleneck | contrast / focal-trigger intervention |
+| detection does not predict action | barrier is downstream of seeing | action selection / if–then compilation |
+| large order effect | the prompt is part of the causal system | nonreactive/process measurement |
+| hits and false alarms rise together | criterion shift | boundary / T− discrimination, not more T+ practice |
+| item effects dominate | instrument measures items | redesign task / process evidence |
+| harm rises | rule-consistent compliance is not learning | strengthen content-safety gate |
 
-## Cost
+---
 
-8–30 participants, one sitting each, many items. **No product change, no build beyond an item
-presenter, no new corpus** — RC-06 items come from the scan already in `research/measurement/`.
+## COST
+
+The human component remains small: 8–30 participants, one sitting each, repeated items.
+
+But **zero participants are the correct cost until Gate A and Gate B are finished**. The existing
+15-class corpus and RC-06 positions should absorb the next uncertainty first.
