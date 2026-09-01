@@ -210,14 +210,21 @@ gradient cleaner than the sensitivity one."*
 **Falsifier:** a criterion is only a bias if **one** response is scored against two states of the
 world. Three measurements, all from data already collected:
 
-1. **RC-06's predicate branches on the trigger** — the only one of the twelve screened to do so. On
-   T+, `B` asks *"does the opponent still have mate in one"*; on T−, *"does the opponent still have
-   **any check at all**"*. A hit and a false alarm are different behaviours.
+1. **RC-06's predicate branches on the trigger** — the only one of the **seventeen** screened to do
+   so, and it stayed the only one when five more rule classes landed. On T+, `B` asks *"does the
+   opponent still have mate in one"*; on T−, *"does the opponent still have **any check at all**"*.
+   A hit and a false alarm are different behaviours.
 2. **A move-blind agent** — picking uniformly among legal moves, discriminating nothing — scores
    *d′* = **0.80** and *c* = **+0.88** on RC-06, from the predicate sizes alone. **More than half of
    the lowest band's measured 1.180 needs no knowledge of chess.**
-3. **Across the twelve rule classes, move-blind *c* predicts observed *c* at r = +0.72** — **52%** of
-   the variance in a supposed psychological bias, from geometry with no player in the model.
+3. **Across the rule classes, move-blind *c* predicts observed *c* at r = +0.50** — **25%** of the
+   variance in a supposed psychological bias, from geometry with no player in the model.
+   **This leg weakened when the screen grew:** it was **+0.72 (52%)** on twelve classes and fell to
+   +0.50 on seventeen. Part of the drop is two classes on the response floor, where *c* is carried
+   by the loglinear correction — dropping them gives **+0.66 (43%)** on fifteen. All three cuts are
+   reported and none is privileged; **"a substantial share" survives them all, "half the variance"
+   does not.** It is the only one of the three legs that moved — points 1 and 2 do not depend on
+   which *other* rule classes exist, and neither does the controlled pair below.
 
 **And the controlled experiment was already in the data.** `RC-09` and `RC-11` were built to share a
 trigger, a corpus and a noise cell and to differ only in whether `B` names an **outcome** or a

@@ -10,7 +10,9 @@ player -- a willingness, a readiness, a bias.
 THIS FILE ASKS WHETHER IT IS ONE, and the answer is mostly no.
 
     1. RC-06'S TWO CELLS DO NOT SCORE THE SAME ACT. `_threat_satisfies` is the only predicate of the
-       twelve that BRANCHES ON THE TRIGGER. On T+ it asks "does the opponent still have mate in
+       seventeen screened that BRANCHES ON THE TRIGGER -- it was the only one of twelve when this
+       was written, and stayed the only one when five more landed. On T+ it asks "does the
+       opponent still have mate in
        one"; on T- it asks "does the opponent still have ANY CHECK". A hit and a false alarm are
        therefore different behaviours, and signal-detection theory -- whose whole content is that
        one response is scored against two states of the world -- does not apply to that pair.
@@ -23,8 +25,12 @@ THIS FILE ASKS WHETHER IT IS ONE, and the answer is mostly no.
        are hit and false-alarm rates on their own. More than half of the bottom rating band's d' of
        1.180 is available without any knowledge of chess.
 
-    3. ACROSS THE TWELVE RULE CLASSES, MOVE-BLIND c PREDICTS OBSERVED c AT r = +0.72 -- about half
-       the variance in a quantity read as a psychological bias, from geometry with no player in it.
+    3. ACROSS THE RULE CLASSES, MOVE-BLIND c PREDICTS OBSERVED c AT r = +0.50 on the 17-class
+       screen -- a quarter of the variance in a quantity read as a psychological bias, from
+       geometry with no player in it. IT WAS +0.72 ON THE 12-CLASS SCREEN, and the drop when five
+       classes landed is recorded rather than smoothed over: this is the weakest of the three legs
+       and the only one that moved. The other two -- the branching predicate and the controlled
+       pair below -- are unchanged, because neither depends on which OTHER rule classes exist.
 
     4. AND THE REPOSITORY ALREADY CONTAINS THE CONTROLLED EXPERIMENT. `RC-09` and `RC-11` were built
        to share a trigger, a corpus and a noise cell and to differ in ONE thing: whether B names an
@@ -65,6 +71,15 @@ NORMAL = NormalDist()
 SHAPE_PAIR = ("RC-09", "RC-11")
 BOOTSTRAP = 20_000
 SEED = 20260901
+
+#: A rule class is left out of the sensitivity cut when its behaviour sits on the response floor,
+#: where d' and c are carried by the Hautus correction rather than by anything a player did.
+#: POST HOC, AND SAID SO. The order was: the correlation dropped when the screen grew, RC-13 was
+#: found to be the largest outlier, and only then was this rule written. It also removes RC-14,
+#: which nobody had looked at. That is why `main()` prints the filtered AND unfiltered figures
+#: rather than the better one.
+FLOOR_MIN_ITEMS = 250
+FLOOR_RATE = 0.02
 
 
 def z(p: float) -> float:
@@ -223,7 +238,7 @@ def check() -> None:
     if others:
         print(
             f"NOTE: {len(others)} rule class(es) besides RC-06 now branch on the trigger: {others}. "
-            "The document's '\u200bonly one of the twelve' claim is scoped to the original screen "
+            "The document's 'only branching predicate' claim needs re-reading against this list. "
             "and needs re-reading against this list.",
             file=sys.stderr,
         )
@@ -287,6 +302,7 @@ def main() -> int:
                 # of the bias that is not the predicate's shape.
                 "corrected_c": player["criterion_c"] - blind_c,
                 "observed_hit": player["hit_rate"],
+                "observed_n_t_plus": player["n_t_plus"],
                 "observed_false_alarm": player["false_alarm_rate"],
                 "branches": branching.get(key),
             }
@@ -303,6 +319,30 @@ def main() -> int:
     lines.append(f"   n = {len(rows)} rule classes")
     lines.append(f"   r(move-blind c, observed c)       = {r_c:+.4f}   -> {r_c**2:.0%} of the variance")
     lines.append(f"   r(move-blind d', observed d')     = {r_d:+.4f}   -> {r_d**2:.0%} of the variance")
+
+    # SENSITIVITY, BECAUSE ONE CUT IS A CHOICE AND THREE ARE A RANGE. Two of the newer classes sit
+    # on the response floor -- `RC-13 underpromote-to-knight` has a hit rate of .007 on 67 items --
+    # and SDT estimates there are carried by the loglinear correction rather than by behaviour.
+    # Dropping them RAISES r, so reporting only the full set would understate the effect and
+    # reporting only the filtered set would overstate it. Both are printed, and neither is "the"
+    # number.
+    usable = [
+        r for r in rows
+        if r["observed_n_t_plus"] >= FLOOR_MIN_ITEMS and FLOOR_RATE < r["observed_hit"] < 1 - FLOOR_RATE
+    ]
+    excluded = sorted(r["id"] for r in rows if r not in usable)
+    if excluded:
+        r_usable = pearson([r["blind_c"] for r in usable], [r["observed_c"] for r in usable])
+        lines.append("")
+        lines.append(
+            f"   dropping {len(excluded)} class(es) on the response floor {excluded}:"
+        )
+        lines.append(
+            f"   r(move-blind c, observed c)       = {r_usable:+.4f}   -> {r_usable**2:.0%} "
+            f"of the variance, on n = {len(usable)}"
+        )
+    else:
+        r_usable = r_c
     lines.append("")
 
     # ---------------------------------------------------------------- 4. the controlled pair
@@ -456,12 +496,16 @@ def main() -> int:
     )
     lines.append("   Sensitivity above that floor still orders the rating bands and still has room to")
     lines.append("   grow. The CRITERION does not survive as a player parameter: RC-06's two cells")
-    lines.append("   score different acts, and across the twelve rule classes half the variance in c")
-    lines.append("   is predicted by predicate geometry alone.")
+    lines.append(
+        f"   score different acts, and across the {len(rows)} rule classes {r_c**2:.0%} of the "
+        "variance in c is"
+    )
+    lines.append("   predicted by predicate geometry alone.")
     lines.append("")
+    non_branching = sum(1 for v in branching.values() if not v)
     lines.append("   So the criterion channel is not a thing to intervene on here. It is a thing to")
     lines.append("   MEASURE PROPERLY FIRST, on a rule class whose predicate does not branch -- of")
-    lines.append("   which this screen already contains eleven.")
+    lines.append(f"   which this screen already contains {non_branching}.")
 
     text = "\n".join(lines) + "\n"
     out = Path(__file__).resolve().parent / "results"
@@ -473,6 +517,8 @@ def main() -> int:
                 "branching_predicates": branching,
                 "rule_classes": rows,
                 "r_blind_c_observed_c": r_c,
+                "r_blind_c_observed_c_off_floor": r_usable,
+                "floor_excluded": excluded,
                 "r_blind_d_observed_d": r_d,
                 "shape_pair": shape,
                 "rc06_bands_nonparametric": nonparam,
