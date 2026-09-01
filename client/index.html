@@ -6,6 +6,34 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#e9e4d8" />
 
+    <!--
+      THE FACE THIS INTERFACE IS SET IN, FETCHED BEFORE THE FIRST PAINT RATHER THAN AFTER IT.
+
+      `font-display: swap` renders the fallback first and re-renders when the real face lands. For
+      Latin that costs a flash; for THIS interface it cost a layout shift, because a Hebrew line
+      that fits in two lines of Noto Sans Hebrew takes three in the fallback. Measured in Chromium
+      on `/play`: the context ribbon painted 88px tall, dropped to 65px at 60ms when the font
+      arrived, and the whole workbench -- the board included -- moved 23px up. CLS 0.0023 -> 0.0137.
+
+      IT WAS FOUND BY GIVING THE PROSE A MEASURE, and it was there before that: a column with no
+      max width has no line count to change, so the defect had nothing to move. Reserving the
+      band's height would have paid 23px of permanent space above a board whose last rank is
+      already close to the fold; fetching the face first removes the reflow for every string in
+      the product instead of hiding it in one band.
+
+      ONE FILE, NOT NINE. Only the 400-weight Hebrew subset is preloaded: 12 kB, and the face that
+      renders nearly every glyph on every screen. The Latin subsets and the heavier weights stay
+      on the ordinary path, because a preload that is not on the critical path is bytes taken from
+      one that is.
+    -->
+    <link
+      rel="preload"
+      href="/fonts/noto-sans-hebrew-400-hebrew.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
     <title>Decision Lab — החלטה, ואז חשיפה</title>
 
     <!--

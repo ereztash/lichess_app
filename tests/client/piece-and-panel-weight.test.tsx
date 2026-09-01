@@ -353,7 +353,22 @@ describe("the panel has three text colours, not nine opacities", () => {
    * Nine opacities is nine greys nobody picked, exactly as ten font sizes was ten weights nobody
    * picked. Re-measured after: zero violations, both themes.
    */
-  const PALETTE = ["var(--ink)", "var(--muted)", "var(--warn)", "var(--on-blue)", "inherit", "currentColor"];
+  /*
+   * `--on-blue` LEFT THE PANEL AND TWO PAIRS ARRIVED. The panel's filled things -- the submit,
+   * the open step's index, a selected chip -- used to be filled with the engine's hue and
+   * therefore carried its foreground. They are the ACT and the CHOICE now, and each carries its
+   * own declared pair (see the semantic layer in index.css and `GATE-TWO-HANDS`). The list is
+   * still exhaustive, which is the whole of what this assertion is for.
+   */
+  const PALETTE = [
+    "var(--ink)",
+    "var(--muted)",
+    "var(--warn)",
+    "var(--on-action)",
+    "var(--on-selected)",
+    "inherit",
+    "currentColor",
+  ];
 
   it("dims no text with an alpha", () => {
     const dimmed: string[] = [];
@@ -508,16 +523,53 @@ describe("the read chips are a ground, not eighteen boxes", () => {
   });
 });
 
-describe("the required mark says the word without drawing a box round it", () => {
-  it("keeps the warn colour and drops the frame", () => {
-    /*
-     * Two small red-bordered rectangles sat at the top of a panel on which nothing had gone wrong
-     * yet, in the same red as the panel's one real refusal three fields below. Two alarms of
-     * different severity rendered identically is section 4.5. The word still says required and
-     * still carries --warn; only the frame goes.
-     */
+describe("the pre-commit screen says what is missing without saying anything failed", () => {
+  /*
+   * THE FRAME WENT FIRST AND THE COLOUR WENT SECOND, and the second half is the interesting one.
+   *
+   * Two small red-bordered rectangles sat at the top of a panel on which nothing had gone wrong
+   * yet, in the same red as the panel's one real refusal three fields below. Two alarms of
+   * different severity rendered identically is section 4.5, and the frame went for that.
+   *
+   * What the frame's removal left behind was the same defect with less ink. Measured on a cold
+   * `DECIDE` at 1440x900 on the build before this: the ONLY saturated colour on the screen was
+   * `--warn`, on `.required-mark` and on the submit's dashed edge -- an alarm about something the
+   * player had not yet had the chance to do, on the one screen whose contract is that it must
+   * read as RECORDING rather than judging. `WARNING != FAILURE` and `UNCERTAINTY != WEAKNESS`.
+   *
+   * The word still says required, at the same rank, in the same place. What is gone is the claim
+   * that something has gone wrong.
+   */
+  it("says the word, with no frame and no failure colour", () => {
     const mark = block(".required-mark");
-    expect(mark).toContain("color: var(--warn)");
     expect(mark, "the box is back around the required mark").not.toMatch(/border:/);
+    expect(mark, "a field that has not been filled in has not failed").not.toContain(
+      "var(--warn)",
+    );
+    expect(mark, "the word lost its rank as well as its alarm").toContain("var(--muted)");
+  });
+
+  it("keeps the not-ready submit out of the failure hue, and dashed so the state still reads", () => {
+    const submit = block(".commitment-submit.not-ready");
+    expect(submit, "the control that has not been used yet is drawn as a failure").not.toContain(
+      "var(--warn)",
+    );
+    expect(submit, "not-ready stopped being distinguishable from ready").toMatch(/dashed/);
+  });
+
+  it("still paints the real failures in the failure hue, so this did not drain the token", () => {
+    /*
+     * THE OTHER HALF, AND WITHOUT IT THE THREE ABOVE ARE SATISFIED BY DELETING `--warn`. These
+     * four are failures: an import that refused, an engine that could not start, a self-check
+     * row that did not pass, a layer that errored. They keep the colour.
+     */
+    for (const selector of [
+      ".import-failure",
+      ".reveal-failure",
+      ".self-check-row.fail",
+      ".layer-error",
+    ]) {
+      expect(block(selector), `${selector} stopped saying it failed`).toContain("var(--warn)");
+    }
   });
 });

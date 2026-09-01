@@ -41,12 +41,26 @@ export function EvaluationBar({
       <span className="eval-marker top">לבן</span>
       <div className="evaluation-track">
         <div className="evaluation-white" style={{ height: `${whiteShare * 100}%` }} />
-        <span className="evaluation-value">
-          <Value provenance={{ kind: "engine", source: "local_sf18", depth, stale }}>
-            {formatEvaluation(scoreCp, mate)}
-          </Value>
-        </span>
       </div>
+      {/*
+        * THE NUMBER CAME OUT OF THE RAIL, because inside it the number was not readable.
+        *
+        * It was absolutely positioned in the track, rotated 90 degrees, in a column 16px wide --
+        * so the digits were clipped by the track's own borders on both sides, over a ground that
+        * is two colours at once and moves with the evaluation. A blind critic, given only the
+        * screenshots, called it illegible; that is the correct reading, and no halo fixes a box
+        * narrower than the glyphs in it.
+        *
+        * IT IS A READING, SO IT IS SET LIKE ONE: horizontal, in the reading face, under the thing
+        * it measures. Nothing about which number is shown, or when, or from what, has changed --
+        * `Value` still carries the engine provenance, and `RevealPanel` still keeps the number
+        * itself inside a collapsed disclosure for the reason written there.
+        */}
+      <span className="evaluation-value">
+        <Value provenance={{ kind: "engine", source: "local_sf18", depth, stale }}>
+          {formatEvaluation(scoreCp, mate)}
+        </Value>
+      </span>
       <span className="eval-marker bottom">שחור</span>
     </div>
   );

@@ -416,9 +416,18 @@
    * preference: past it the eye loses the start of the next line. `--measure` is the body rule;
    * `--measure-wide` is for a lead paragraph or a heading, where a longer line is read once.
    *
-   * `ch` rather than `rem` on purpose: `ch` is a measure of the FACE, so the rule stays true if a
-   * size on the type scale moves. It is the width of the "0" glyph, which for Noto Sans Hebrew is
-   * close enough to the average Hebrew advance for this to behave.
+   * `ch` RATHER THAN `rem`, AND THE UNIT WAS CHANGED ONCE AND CHANGED BACK.
+   *
+   * `ch` is a measure of the FACE at the size it is used, which is what a measure should be: the
+   * same token gives a 12px caption and an 18px lead the same number of characters. `rem` was
+   * tried when this pass found a layout shift and blamed the unit; measured, it made the caption
+   * columns 17% wider (`.record-mode` 429 -> 502px, 76 -> 79 characters) and did not move the
+   * shift at all, because the shift was never the unit.
+   *
+   * WHAT IT ACTUALLY WAS: a Hebrew line that fits in two lines of Noto Sans Hebrew takes three in
+   * the fallback, and `font-display: swap` paints the fallback first. Giving the prose a measure
+   * is what gave that a line count to change. The fix is in `client/index.html`, where the face
+   * is now fetched before the first paint; the note there has the measurements.
    */
   --measure: 62ch;
   --measure-wide: 78ch;
@@ -613,7 +622,7 @@ button:not(:disabled) {
   align-items: center;
   gap: var(--s1);
   padding: 6px 10px;
-  border: 1px solid rgba(var(--ink-rgb), 0.25);
+  border: 1px solid var(--edge);
   background: transparent;
   color: var(--ink);
   font-size: var(--panel-label);
@@ -1124,7 +1133,7 @@ button:not(:disabled) {
 .icon-control {
   width: var(--tap-floor);
   height: var(--tap-floor);
-  border: 1px solid var(--ink);
+  border: 1px solid var(--edge);
   background: transparent;
   display: grid;
   place-items: center;
@@ -1277,7 +1286,7 @@ button:not(:disabled) {
 }
 .drawer-heading button,
 .drawer-actions button {
-  border: 1px solid var(--ink);
+  border: 1px solid var(--edge);
   background: transparent;
   padding: 7px 10px;
 }
@@ -1402,7 +1411,7 @@ button:not(:disabled) {
   inline-size: 100%;
   margin-top: 10px;
   padding: 10px 12px;
-  border: 1px solid rgba(var(--ink-rgb), 0.35);
+  border: 1px solid var(--edge);
   background: transparent;
   color: rgb(var(--ink-rgb));
   font: inherit;
@@ -1603,6 +1612,15 @@ button:not(:disabled) {
   padding: var(--s2) var(--s1);
   background: var(--surface-machine);
   border-radius: var(--radius-control);
+  /*
+   * WIDE ENOUGH FOR THE READING IT CARRIES. The number came out of the rail because a 16px column
+   * cannot hold it; leaving the column 16px wide would have moved the clipping from the digits to
+   * the provenance line under them, which is the same defect one element down. The engine's
+   * identity and depth are what make its number readable at all -- `ENGINE_PARITY_RESULTS` is a
+   * whole document about two engines disagreeing on 13.61% of decisions -- so it is not fine
+   * print and it is not allowed to wrap into three ragged lines.
+   */
+  min-inline-size: 5.5rem;
 }
 /*
  * THE MACHINE'S LARGEST OBJECT, AND IT WAS DRAWN IN THE PLAYER'S MATERIAL.
@@ -1634,28 +1652,18 @@ button:not(:disabled) {
   background: var(--cream);
 }
 .evaluation-value {
-  position: absolute;
-  top: 50%;
-  left: 2px;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   /*
-   * `white` was a literal, over a track that is one colour and a fill that is ANOTHER, and both
-   * flip with the theme. In the dark theme the track resolved to `--ink` #e7e3d8, so the engine's
-   * own number was white on near-white wherever the black share reached it.
-   *
-   * A halo rather than a ground, because the ground under this number is genuinely two colours at
-   * once: the number sits at the boundary between the two shares and moves with it. Ink with a
-   * cream halo reads on both, and both tokens flip together.
+   * A READING, SET AS ONE. This was `position: absolute; writing-mode: vertical-rl;
+   * transform: rotate(180deg)` inside a 16px track -- a rotated numeral in a column narrower than
+   * its own glyphs, clipped by the track's borders on both sides, over a ground that is two
+   * colours at once and moves with the evaluation itself. See the note in `EvaluationBar.tsx`.
    */
-  color: var(--ink);
-  text-shadow:
-    0 0 3px var(--cream),
-    0 0 3px var(--cream),
-    0 0 2px var(--cream);
-  mix-blend-mode: difference;
+  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--machine);
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
 }
+
 .eval-marker {
   font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
@@ -2144,7 +2152,7 @@ button:not(:disabled) {
   display: block;
 }
 .color-toggle button {
-  border: 1px solid rgba(var(--ink-rgb), 0.2);
+  border: 1px solid var(--edge);
   background: transparent;
 }
 .color-toggle .selected {
@@ -2764,7 +2772,7 @@ button:not(:disabled) {
   min-width: 0;
   padding: 0.6rem 0.9rem;
   border-radius: var(--radius-control);
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--edge);
   background: var(--surface);
   color: var(--ink);
   font: inherit;
@@ -3245,7 +3253,7 @@ button:not(:disabled) {
   font-size: var(--panel-data);
   padding: 0.4rem 0.2rem;
   border-radius: var(--radius-control);
-  border: 1px solid var(--hairline-strong);
+  border: 1px solid var(--edge);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -3798,7 +3806,7 @@ button:not(:disabled) {
 .claim-run-drill {
   padding: 0.55rem 0.8rem;
   border-radius: var(--radius-control);
-  border: 1px solid currentColor;
+  border: 1px solid var(--edge);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -4008,7 +4016,7 @@ button:not(:disabled) {
 .learning-rule-actions button,
 .transfer-verdict button {
   /* Size comes from the tap floor. These shipped at 32px from a branch that predates it. */
-  border: 1px solid var(--hairline-strong);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
@@ -4059,7 +4067,7 @@ button:not(:disabled) {
   gap: var(--s2);
   /* Was 38px, for the same reason. */
   padding: 0.5rem 0.7rem;
-  border: 1px solid var(--hairline-strong);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--ink);
@@ -4237,7 +4245,7 @@ button:not(:disabled) {
 .depth-row button {
   min-width: 44px;
   padding: 8px 12px;
-  border: 1px solid rgba(var(--ink-rgb), 0.2);
+  border: 1px solid var(--edge);
   background: transparent;
   font: 700 var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
@@ -4257,7 +4265,7 @@ button:not(:disabled) {
   gap: var(--s3);
 }
 .ghost-control {
-  border: 1px solid var(--hairline-strong);
+  border: 1px solid var(--edge);
   background: transparent;
   padding: 8px 14px;
 }
@@ -4266,11 +4274,19 @@ button:not(:disabled) {
  * next decision, which lives in the header and is painted as such. This is a way to look at the
  * record, and a toolbox door painted like a call to action is a toolbox that is not behind a door.
  */
+/*
+ * AND IT WAS DASHED, which now means something else.
+ *
+ * `.commitment-submit.not-ready` is dashed because the state it names is "not yet". Nothing else
+ * in the product may be dashed without saying that, and a blind critic given only the screenshots
+ * read this control as "a labeled empty dashed box" -- which is exactly what a not-yet container
+ * looks like. It is a door, and doors are secondary controls.
+ */
 .explore-toggle {
   width: 100%;
   margin-top: 12px;
   padding: 9px;
-  border: 1px dashed var(--hairline-strong);
+  border: 1px solid var(--edge);
   background: transparent;
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
@@ -4515,7 +4531,7 @@ button:not(:disabled) {
 }
 .context-dismiss {
   padding-inline: 12px;
-  border: 1px solid var(--hairline-strong);
+  border: 1px solid var(--edge);
   background: transparent;
   font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
   color: inherit;
@@ -4729,7 +4745,7 @@ button:not(:disabled) {
 .first-decision-form .primary-control:disabled {
   background: var(--chip) !important;
   color: var(--muted) !important;
-  border: 1px solid var(--hairline-strong);
+  border: 1px solid var(--edge);
   cursor: not-allowed;
 }
 .first-decision-error {
@@ -5869,7 +5885,7 @@ button:not(:disabled) {
   justify-self: start;
   padding: 8px 14px;
   min-height: 44px;
-  border: 1px solid var(--edge-soft);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
@@ -6015,7 +6031,7 @@ button:not(:disabled) {
   justify-self: start;
   min-height: var(--tap-floor);
   padding: 8px 16px;
-  border: 1px solid var(--edge-soft);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--muted);
@@ -6029,7 +6045,7 @@ button:not(:disabled) {
 .blitz-board-back {
   justify-self: start;
   padding: 8px 14px;
-  border: 1px solid var(--edge-soft);
+  border: 1px solid var(--edge);
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--ink);
@@ -6246,4 +6262,30 @@ button:not(:disabled) {
 .first-decision-alt p {
   max-inline-size: var(--measure);
   margin: 0;
+}
+
+/*
+ * THE LOOP STRIP UNDER A READER'S OWN PALETTE, FOUND BY A BLIND CRITIC LOOKING AT A SCREENSHOT.
+ *
+ * The four ticks that say where the player is in the loop are 71x3 spans filled from
+ * `rgba(--ink-rgb, 0.16)`, with the live one at full ink. Measured with `forced-colors: active`
+ * on `/play`: all four computed `rgb(255, 255, 255)` on a white canvas, the live one included --
+ * so the strip was not merely low contrast, THE CURRENT STEP HAD NO INDICATOR AT ALL. Same
+ * erasure as the board's, in a place nothing was looking.
+ *
+ * SYSTEM COLOURS RATHER THAN AN OPT-OUT, because these are chrome and a reader who turned this
+ * mode on asked for chrome to obey them. `GrayText` and `Highlight` are the system's own, so they
+ * stay distinct from each other under any palette.
+ *
+ * AT THE END OF THE FILE RATHER THAN IN THE BOARD'S BLOCK, and that is not tidiness: the rules it
+ * has to beat are declared 2,300 lines below that block, at equal specificity, so the first
+ * version of this fix measured exactly as white as the defect it was written for.
+ */
+@media (forced-colors: active) {
+  .loop-step > span[aria-hidden] {
+    background: GrayText;
+  }
+  .loop-step.live > span[aria-hidden] {
+    background: Highlight;
+  }
 }
