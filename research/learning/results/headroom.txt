@@ -22,9 +22,10 @@ low_band          +0.0873    +0.1286   criterion
 high_band         +0.0689    +0.1103   criterion
   -> the ordering is ROBUST to the anchor choice
 
-THE CRITERION TERM IS THE LARGER ONE. Most of the behavioural improvement that arrives
-with rating is a greater willingness to play the mate-answering move, not a greater
-ability to tell when one is needed -- and the false-alarm rate rises across the bands
-rather than falling, which is the same fact from the other side. An intervention that
-moved only this would raise the T+ hit rate and cost the player 34.0% x (>=100 cp) on
-the trigger-negative positions it also affects.
+THE CRITERION TERM IS THE LARGER ONE, and the false-alarm rate rises across the bands
+rather than falling, which is the same fact from the other side.
+
+DO NOT READ THAT AS A WILLINGNESS. `criterion_channel.py` shows RC-06's two cells score
+different acts -- a hit is 'no mate in one', a false alarm is 'no check at all' -- so no
+bias parameter is identified here. What the numbers support is narrower: the RATIO
+between stopping mate threats and leaving the opponent checkless rises with rating.

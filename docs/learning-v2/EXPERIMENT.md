@@ -87,12 +87,23 @@ mechanism entirely** — which is why that mechanism was ranked fourth in
   [H17](FALSIFICATION_REGISTER.md). **This number was available before this study was designed and
   was not in the design**, which is the kind of omission that produces a ceiling effect and calls
   it a null result.
+- **The move-blind floor, which is the one the *instrument* has to beat.** An agent picking
+  uniformly among legal moves scores hit **.317**, false alarm **.101**, and therefore *d′* **0.80**
+  on this rule class — **more than half of the lowest band's measured 1.180**. Any sensitivity
+  quoted by this study is reported against that floor, never against zero
+  ([`CRITERION_CHANNEL.md`](CRITERION_CHANNEL.md)).
 
 ## OUTCOME
 
-**Rule-consistent action**, hits and false alarms **separately**, with Wilson intervals, and
-criterion *c* reported beside any *d′*. **Accuracy alone is never reported**, per
-`ANALYSIS_PLAN.md`.
+**Rule-consistent action**, hits and false alarms **separately**, with Wilson intervals.
+**Accuracy alone is never reported**, per `ANALYSIS_PLAN.md`.
+
+**No *c*, and no *d′* without its floor.** `ANALYSIS_PLAN.md` requires *c* beside any *d′*, and on
+this rule class that requirement cannot be met honestly: the two cells score different acts, so *c*
+is not a bias ([H20](FALSIFICATION_REGISTER.md)). Report the two rates and the **move-blind floor**
+— *d′* = **0.80**, *c* = **+0.88**, derived from RC-06's own predicate sizes — so that any *d′*
+quoted is read against what an agent knowing no chess would score. This is a **deviation from the
+analysis plan and is declared as one**, not an omission.
 
 ## HARM OUTCOME
 
@@ -142,12 +153,13 @@ Item set, model and hypotheses frozen before the first participant. No interim l
 - **Confounded** if residual SMD after matching leaves the item-level variance above the
   person-level variance. Then the instrument is discriminating items, not people, and the study
   reports that instead of a result.
-- **Criterion-dominant** if the DETECT-FIRST → MOVE-FIRST difference moves hits and false alarms in
-  the SAME direction by comparable amounts. That is a bias shift, not a detection effect, and it is
-  the failure mode [H19](FALSIFICATION_REGISTER.md) names: the screen's own rating bands move
-  **more** by criterion (**+12.3** points of hit rate) than by sensitivity (**+8.1**), so this is
-  the expected shape of the data and not a remote possibility. **Reporting the T+ series alone
-  would score it as a success.**
+- **Order effect moves both cells together** — the DETECT-FIRST → MOVE-FIRST difference shifts hits
+  and false alarms in the same direction by comparable amounts. Report it as *"both cells moved"*
+  and **not** as a criterion shift: on RC-06 the two cells score different acts
+  ([H20](FALSIFICATION_REGISTER.md), [`CRITERION_CHANNEL.md`](CRITERION_CHANNEL.md)), so no bias
+  parameter is identified and none may be claimed. What the pattern would mean is that the prompt
+  moves behaviour on trigger-negative positions too, which is a reactivity finding and is enough to
+  close the self-explanation branch on its own.
 
 ## INTERPRETATION
 
@@ -157,7 +169,7 @@ Item set, model and hypotheses frozen before the first participant. No interim l
 | detection does not predict action | the barrier is **action selection** | if–then compilation and response-congruent rehearsal — **A** and **D** |
 | large order effect | the prompt is the intervention | no prompt-based measurement is admissible; D21's exposure problem becomes primary |
 | item variance > person variance | the instrument measures items | back to matching, before any human study |
-| hits and false alarms move together | the prompt shifts the **criterion** | nothing prompt-shaped — a bias-only gain is a net loss at 34.0% ≥100 cp on T− |
+| hits and false alarms move together | the prompt moves behaviour on trigger-**negative** positions too | nothing prompt-shaped — the measurement is not separable from the intervention |
 
 ## Cost
 

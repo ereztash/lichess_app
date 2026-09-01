@@ -80,12 +80,40 @@ anchor choices. The false-alarm rate **rises** across the bands, .199 → .236.
 wrong. **What is wrong is the reading a reader supplies** — that stronger players *see* the threat
 better. Mostly they are readier to answer it.
 
-This matters because it names the way an intervention here fails: a procedure that repeatedly shows
-trigger-positive examples and rewards the defensive move is **criterion-shifting by construction**,
-it raises the number a trigger-positive-only study reports as success, and on trigger-negative
-positions following the rule loses **≥100 cp on 34.0%** of items, median **+49**. See
-[H18 and H19](../learning-v2/FALSIFICATION_REGISTER.md); arithmetic in
-[`research/learning/headroom.py`](../../research/learning/headroom.py).
+### ...and then that correction was itself wrong
+
+The paragraph above read the criterion as a **willingness** — stronger players being readier to play
+the mate-answering move — and built a harm argument on it. Checking that reading is
+[`CRITERION_CHANNEL.md`](../learning-v2/CRITERION_CHANNEL.md), and it comes back against it.
+
+**`_threat_satisfies` is the only predicate of the twelve that branches on the trigger.** On T+ it
+asks *"does the opponent still have mate in one"*; on T− it asks *"does the opponent still have any
+check at all"*. A hit and a false alarm are **different acts**, so the pair is not a
+signal-detection contrast and *c* is not a response bias. Three measurements say so:
+
+| | |
+| --- | --- |
+| a **move-blind** agent picking uniformly among legal moves scores | *d′* **0.80**, *c* **+0.88** |
+| across the twelve rule classes, move-blind *c* predicts observed *c* at | **r = +0.72** (52%) |
+| `RC-09` vs `RC-11` — same trigger, same corpus, same noise cell, outcome vs method — moves *c* by | **+0.524** |
+
+That last one is the controlled experiment, and it was already in the data. **Same players, same
+positions; only the sentence changed.** It moves the criterion further than the entire rating-band
+shift did.
+
+**What survives:** the arithmetic. Bootstrapped, P(criterion term > sensitivity term) = **1.000**;
+*A′* and *B″_D* agree with the parametric pair. **What is withdrawn:** that any of it describes a
+player's willingness. And **H19's harm mechanism goes with it** — it needed the two cells to be the
+same act. The 34.0% / ≥100 cp figure is the cost of *following the rule* on T− items, not the cost
+of that false-alarm cell, and D24 used it as though it were the second.
+
+**More than half the bottom band's *d′* of 1.180 is available to an agent that knows no chess.**
+Corrected for that floor, sensitivity still orders the bands — 0.380 → 0.866, a **2.3×** span rather
+than 1.41× — so [H17](../learning-v2/FALSIFICATION_REGISTER.md)'s headroom finding is unaffected.
+
+See [H18, H19, H20, H21](../learning-v2/FALSIFICATION_REGISTER.md); arithmetic in
+[`headroom.py`](../../research/learning/headroom.py) and
+[`criterion_channel.py`](../../research/learning/criterion_channel.py).
 
 **And the headroom is real but band-dependent.** Unaided players already answer the threat on
 **.716** [.696, .735] of trigger-positive positions — **.63** at 1200–1400, **.83** at 1800+. The
@@ -143,11 +171,15 @@ barrier is recognition and trigger focality is the intervention; if it does not,
 action selection and if–then compilation is. **Choosing an intervention before that is known is
 aiming at a guess.**
 
-It carries **three amendments made after it was designed**, all from the headroom check above: the
-unaided human baseline is now stated in the design rather than absent from it, recruitment is
-constrained to 1200–1600 where the miss cell is 37% rather than 17%, and **a third falsification
-criterion was added** — hits and false alarms moving together is a criterion shift, and a study that
-reported the trigger-positive series alone would score it as the largest success.
+It carries **four amendments made after it was designed**, all from checks run against it rather
+than for it: the unaided human baseline is now stated in the design rather than absent from it;
+recruitment is constrained to 1200–1600, where the miss cell is 37% rather than 17%; a third
+falsification criterion covers hits and false alarms moving together; and **the study may no longer
+report a criterion for RC-06 at all**, because on this rule class there is none to report.
+
+**Study D was never a criterion study**, which is why H20 does not sink it — it asks whether
+*detection* predicts *action*, and both of those are measured on trigger-positive items where the
+predicate is well defined. What H20 removes is the secondary reading D24 had started to hang on it.
 
 **It replaces D23's Study 0**, which remains a well-designed study of the wrong question: response
 congruency is already the settled convention in the largest chess-learning product, its outcome is
@@ -190,7 +222,11 @@ generate hypotheses and never as effectiveness evidence.
    content. **This is the most valuable follow-up and it is buildable.**
 4. **Someone measures whether seeing governs the move.** V15 says nobody has. If that changes, the
    experiment below is superseded by better evidence than it can produce itself.
-5. **The construct is renamed rather than widened.** A cued-discrimination claim on a screened rule
+5. **The chance-corrected criterion is measured across the eleven non-branching rule classes.**
+   That needs no corpus, no participants and no product change — the data is already collected —
+   and it is the only way to find out whether a criterion channel exists at all once predicate
+   geometry is subtracted. **This is the cheapest open question in the programme.**
+6. **The construct is renamed rather than widened.** A cued-discrimination claim on a screened rule
    class is legitimate and defensible — it is simply not *transfer*, and calling it that would be the
    substitution everything here exists to prevent.
 

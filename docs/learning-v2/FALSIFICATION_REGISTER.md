@@ -1,4 +1,4 @@
-# Nineteen failure hypotheses
+# Twenty-one failure hypotheses
 
 Each is stated as the **optimistic** claim a builder would want to be true, then attacked.
 `CONFIDENCE` is about the verdict, not about the effect.
@@ -6,6 +6,12 @@ Each is stated as the **optimistic** claim a builder would want to be true, then
 **H1–H16** were written against the architecture. **H17–H19** were added afterwards, against *this
 research's own conclusion*, when an objection was raised to how much headroom RC-06 leaves. Two of
 the three came back against the research rather than for it.
+
+**H20–H21** were then written against H18 and H19 themselves, and refuted them: the criterion those
+entries reasoned about is not a player parameter, and cannot be made into one at this rule shape.
+**The register's last three rounds have each falsified the round before it.** That is the method
+working, not the method failing — but it is also the reason nothing here is a basis for building
+yet.
 
 Sources are the rows of [`THEORY_EVIDENCE.md`](THEORY_EVIDENCE.md) (V1–V13).
 
@@ -164,13 +170,18 @@ than the headline**: of the **+19.8** points of hit rate between the bottom and 
 *c* reproduces **+8.1** and freezing *d′* reproduces **+12.3**. The ordering holds at all three
 anchor choices. Read from the other side, the **false-alarm rate rises** across the bands, .199 →
 .236, rather than falling.
-**VERDICT: OVERSTATED, NOT REFUTED.** Sensitivity does improve and the monotonicity is real; it is
-simply the smaller of the two terms behind the behaviour. The screen's claim is about *d′* and is
-true as written. **The claim that does not survive is the one a reader supplies — that the band
-ordering shows stronger players *see* it better.** Mostly they are readier to play it.
-**CONFIDENCE: high.** The decomposition is a convenience, not a variance partition — hit rate is
-nonlinear in the pair and the terms do not sum to the whole — but the ORDER is what is load-bearing
-and it is anchor-invariant.
+**VERDICT: OVERSTATED — and then, on a second pass, MY OWN CORRECTION WAS WRONG TOO.** Sensitivity
+does improve and the monotonicity is real, and the criterion term really is the larger one: the
+bootstrap gives **P(criterion > sensitivity) = 1.000** over 20,000 draws, and non-parametric *A′*
+and *B″_D* agree with the parametric pair. **The arithmetic survives everything thrown at it.**
+
+**The interpretation does not.** *"Readier to play it"* requires the two cells to score the same act,
+and on RC-06 they do not: `_threat_satisfies` is the only predicate of the twelve that **branches on
+the trigger** — a hit means *"no mate in one"*, a false alarm means *"no check at all"*. There is no
+response bias to read. See [`CRITERION_CHANNEL.md`](CRITERION_CHANNEL.md).
+**What the numbers do support, narrowly:** the ratio between stopping mate threats and leaving the
+opponent checkless rises with rating. That is a fact, and it is not a fact about bias.
+**CONFIDENCE: high** on the arithmetic; **the interpretive claim is withdrawn.**
 
 ### H19 — An intervention that raises rule-consistent action on trigger-positive items is an improvement
 **Support:** it is the outcome any obvious study would report, and the one the product would build
@@ -180,17 +191,64 @@ T− false-alarm rate together**, and the screen measured what the second one co
 trigger-negative items, following the rule loses **≥100 cp on 34.0%** of them, median **+49 cp**.
 **The natural design is the dangerous one** — repeated exposure to trigger-positive examples with
 the defensive move rewarded is a criterion-shifting procedure, not a discrimination-training one.
-**VERDICT: REFUTED as stated.** A trigger-positive-only outcome cannot distinguish the intervention
-that teaches from the one that merely biases, and it scores the harmful one as the larger success.
-**CONFIDENCE: high** on the direction; **unknown** on how much any real intervention moves each
-term, which is not measurable without running one.
-**Study D already survives this** — its OUTCOME reports hits and false alarms separately with *c*
-beside any *d′*, and its item set carries the T− cell — but it survives by construction rather than
-by having been checked, and this entry is the check.
+**VERDICT: THE CAUTION SURVIVES, THE MECHANISM I GAVE FOR IT DOES NOT.** The harm argument required
+hits and false alarms to be **the same act**, so that raising one necessarily raises the other. On
+RC-06 they are not (H20), so the coupling does not follow — an intervention that teaches
+mate-threat answering has no particular reason to make players leave the opponent checkless more
+often on unrelated positions. **The 34.0% / ≥100 cp figure is the cost of *following the rule* on
+T− items, not the cost of this false-alarm cell**, and I used it as though it were the second.
+**What still stands, on other grounds:** reporting a trigger-positive series alone is bad practice
+regardless, and `itemDifficultyConfound` still fails.
+**CONFIDENCE: high** that the stated mechanism is void; **unknown** whether some real coupling exists
+on a rule class where the cells are comparable — that is now measurable and is not measured.
+**Study D still survives** — hits and false alarms separately, *c* beside any *d′*, T− cell in the
+item set — but for a weaker reason than this entry originally gave it.
+
+### H20 — The SDT criterion on a rule class measures something about the player
+**Support:** it is what *c* means everywhere else it is used, and this repository's own
+`ANALYSIS_PLAN.md` requires it be reported beside any *d′* — a rule written to prevent exactly the
+accuracy-only reporting that hides a bias shift.
+**Falsifier:** a criterion is only a bias if one response is scored against two states of the world.
+Three measurements, all from data already collected:
+1. **A move-blind agent** — picking uniformly among legal moves, discriminating nothing — scores
+   *d′* = **0.80** and *c* = **+0.88** on RC-06, from the predicate sizes alone.
+2. **Across the twelve rule classes, move-blind *c* predicts observed *c* at r = +0.72** — **52%**
+   of the variance in a supposed psychological bias, from geometry with no player in the model.
+3. **The controlled pair was already in the data.** `RC-09` and `RC-11` share a trigger, a corpus
+   and a noise cell and differ only in whether `B` names an outcome or a method. Same players, same
+   positions: **the criterion moves +0.524** — larger than the whole rating-band shift H18 was
+   about. Geometry accounts for 71% of it.
+**VERDICT: REFUTED.** The criterion, as measured here, is a property of the sentence the rule is
+written in at least as much as of the person reading it.
+**CONFIDENCE: high.** A chance-corrected criterion (subtracting the move-blind value) is **3.4×**
+more consistent across the RC-09/RC-11 pair — **and not zero**, so even corrected it is not a clean
+player parameter. What could **not** be tested is whether T− composition differs by rating band: the
+item-level records are not on disk. Fully explaining the shift that way would need the T− chance
+rate to rise **.101 → .296 (2.9×)**, which is implausible — but part of it needs only a modest
+drift, and part is enough. **Not ruled out.**
+
+### H21 — RC-06's predicate could be symmetrised, and then the criterion would mean something
+**Support:** the branch is the whole problem, so removing it looks like the whole fix. The screen's
+own docstring says an earlier version *was* symmetric.
+**Falsifier:** it says why that version was abandoned — `P(B | T−)` ran near 1, because *"the
+opponent has no mate in one"* is trivially true when they never had one. That is not an accident of
+this rule. **For any rule of the form *"if THREAT, act so that THREAT is gone"*, `B` is
+automatically satisfied whenever the threat is absent.**
+**VERDICT: REFUTED, and the reason generalises.** On outcome-shaped defensive rules a symmetric
+predicate makes the noise cell degenerate and an asymmetric one makes the criterion
+uninterpretable — **you can measure sensitivity or criterion, not both.** The branch is a correct
+fix for a real problem and it costs the criterion; there is no third option at this rule shape.
+**CONFIDENCE: high**, and it carries a prediction: **method-shaped rules should not have the
+problem**, because `B` is a property of the move rather than of the threat's survival. `RC-11` is
+method-shaped, does not branch, and is one half of the pair in H20 — which is what makes that pair
+the right test rather than a coincidence.
+**The practical consequence:** the criterion channel is measurable **today**, on the eleven
+non-branching rule classes, from data already collected. No corpus, no participants, no product
+change. It is simply not measurable on the one rule class the product would be built on.
 
 ---
 
-## What the nineteen add up to
+## What the twenty-one add up to
 
 Nine refuted, one likely false, three unresolved, one supported-with-inversion (H12), and **two
 (H14, H16) that were the architecture blockers and have since moved.**

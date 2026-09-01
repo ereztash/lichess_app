@@ -24,17 +24,22 @@ TWO THINGS COME OUT, AND THE SECOND IS THE ONE THAT CHANGES A DESIGN.
        reproduces +12.3. **Most of the behavioural gain that comes with rating is criterion, not
        sensitivity.**
 
-WHY (2) IS A DESIGN CONSTRAINT AND NOT A FOOTNOTE. A criterion shift means playing more
-mate-answering moves EVERYWHERE, and the screen measured what that costs on positions where the
-trigger is absent: following the rule there loses >=100 cp on 34.0% of items, median +49. So an
-intervention that moves the criterion instead of the sensitivity raises the trigger-positive hit
-rate -- the number a naive study would report as success -- while making the player worse. Repeated
-exposure to trigger-positive examples with the defensive move rewarded is *precisely* a
-criterion-shifting design, and it is the design the product would reach for first.
+    (2) WAS THEN CHECKED AND THE CHECK CAME BACK AGAINST IT. This file's first version read the
+       criterion term as a WILLINGNESS -- players readier to play the mate-answering move -- and
+       argued that an intervention moving it would raise the T+ hit rate while costing >=100 cp on
+       34.0% of trigger-negative items. `criterion_channel.py` refutes that reading:
+       `_threat_satisfies` is the only predicate of the twelve that BRANCHES ON THE TRIGGER, so a
+       hit ("no mate in one") and a false alarm ("no check at all") are different acts and no bias
+       parameter is identified. The arithmetic below stands; the interpretation is withdrawn, and
+       the withdrawal is recorded here rather than edited away.
 
-Study D already survives this: its OUTCOME section reports hits and false alarms separately with
-*c* beside any *d'*, and its item set contains the T- cell. This file does not fix Study D. It
-supplies the baseline Study D was missing and names the failure mode its analysis must rule out.
+WHAT THIS FILE IS STILL FOR. The hit rates in (1). They are what an intervention has to beat, they
+were absent from Study D's design, and nothing in the criterion finding touches them: they are
+directly observed rates on trigger-positive items, where the predicate is well defined.
+
+THE DECOMPOSITION IN (2) IS ALSO STILL SOUND AS ARITHMETIC -- bootstrapped at
+P(criterion > sensitivity) = 1.000, and agreeing with non-parametric A' and B"D. What it may no
+longer be called is a bias. See `docs/learning-v2/CRITERION_CHANNEL.md`.
 
 NOTHING HERE TOUCHES THE PRODUCT. It imports nothing from `shared/`, is on no build path, and reads
 one results file plus one source file, both asserted against below.
@@ -229,21 +234,24 @@ def main() -> int:
     lines.append("")
     if parts["criterion_exceeds_sensitivity"]:
         lines.append(
-            "THE CRITERION TERM IS THE LARGER ONE. Most of the behavioural improvement that arrives"
+            "THE CRITERION TERM IS THE LARGER ONE, and the false-alarm rate rises across the bands"
         )
         lines.append(
-            "with rating is a greater willingness to play the mate-answering move, not a greater"
+            "rather than falling, which is the same fact from the other side."
+        )
+        lines.append("")
+        lines.append(
+            "DO NOT READ THAT AS A WILLINGNESS. `criterion_channel.py` shows RC-06's two cells score"
         )
         lines.append(
-            "ability to tell when one is needed -- and the false-alarm rate rises across the bands"
+            "different acts -- a hit is 'no mate in one', a false alarm is 'no check at all' -- so no"
         )
         lines.append(
-            "rather than falling, which is the same fact from the other side. An intervention that"
+            "bias parameter is identified here. What the numbers support is narrower: the RATIO"
         )
         lines.append(
-            "moved only this would raise the T+ hit rate and cost the player 34.0% x (>=100 cp) on"
+            "between stopping mate threats and leaving the opponent checkless rises with rating."
         )
-        lines.append("the trigger-negative positions it also affects.")
     else:
         lines.append("The sensitivity term is the larger one.")
 
