@@ -12,6 +12,7 @@ Read in this order:
 | [`EXISTING_MEASURE_AUDIT.md`](EXISTING_MEASURE_AUDIT.md) | twelve silos searched before anything was designed |
 | [`FALSIFICATION_REGISTER.md`](FALSIFICATION_REGISTER.md) | ten attempts to break the construct, and what each returned |
 | [`RULE_CLASS_SEARCH.md`](RULE_CLASS_SEARCH.md) | the second iteration: is there a rule class where `knowledge → action` is identifiable at all? **One of five candidates passed** |
+| [`ACTION_SET_REANALYSIS.md`](ACTION_SET_REANALYSIS.md) | the same seventeen classes scored as a **decision** — efficacy, necessity, robustness — instead of as top-1 agreement. The published ordering survives (ρ = +0.82); `RC-21`'s trigger does not |
 | [`CONSTRUCT_DECISION.md`](CONSTRUCT_DECISION.md) | SURVIVES / NARROW / REPLACE / REJECT → **NARROW**, and why the narrowing renames it |
 | [`ITEM_BANK_PROTOCOL.md`](ITEM_BANK_PROTOCOL.md) | what a bank would have to satisfy. Specified, **not built** |
 | [`ANALYSIS_PLAN.md`](ANALYSIS_PLAN.md) | score validation before learning validation; every threshold sourced or marked unresolved |
@@ -19,6 +20,7 @@ Read in this order:
 | [`EVIDENCE_MANIFEST.json`](EVIDENCE_MANIFEST.json) | every source, with its evidence tier and where it was used |
 | [`STRONGEST_PERMITTED_CLAIM.json`](STRONGEST_PERMITTED_CLAIM.json) | the machine-readable version of what may and may not be said |
 | [`RULE_CLASS_SCREEN.json`](RULE_CLASS_SCREEN.json) | the rule-class gates and their outcome, derived from the measurements rather than written by hand |
+| [`ACTION_SET_MODEL.json`](ACTION_SET_MODEL.json) | gates A1–A5, the value-scale counterparts of G1–G5, derived the same way |
 
 Scripts and results: [`research/measurement/`](../../research/measurement/). Executable controls:
 `tests/research/measurement-*.test.ts`.
