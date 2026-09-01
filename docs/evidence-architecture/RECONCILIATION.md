@@ -323,6 +323,56 @@ three selection strategies, two anchors — and the one survivor survived on a c
 difference. This is not a fifteenth failure of the same kind; it removes the only positive result
 the programme had.
 
+### 2.6b — It is two classes of seventeen, and the control built to find them finds one
+
+`criterion_channel.py` (#49) detects a branching predicate by reading its source for a literal
+`_trigger(` call:
+
+```python
+out[rule.id] = "_trigger(" in source
+```
+
+**That detector was hardened after a mutation control caught a weaker version**, and #49 records the
+hardening honestly: an earlier version also accepted `"state ==" in source`, and blanking the trigger
+call left the comparison behind, so the predicate still scored as branching. **The hardening is what
+makes it blind.** `_promotion_stop_satisfies` (`RC-12 stop-the-promotion`) branches on the same
+board condition its trigger uses *without calling the trigger function*, and says so in its own
+docstring:
+
+> *"Branches on the trigger, for the reason `_threat_satisfies` branches: on a T− item the opponent
+> never had a promotion, so 'they still have none' would be satisfied by almost every legal move and
+> the false-alarm cell would be degenerate."*
+
+So **H22's "the only predicate of the twelve that branches on the trigger" is not correct** — `RC-12`
+was among those twelve — and the stderr warning #49 added to fire when a second class starts
+branching **cannot fire**.
+
+**Priced, not just noted** ([`branching_audit.py`](../../research/evidence-architecture/branching_audit.py)).
+The `as-stated` predicate for each class is read off that class's own `prescription` string and
+nothing else:
+
+| | T− prescription size, shipped | T− as the sentence states it | items where **every** legal move satisfies the stated rule | inflation |
+| --- | --- | --- | --- | --- |
+| `RC-06` *"if the opponent threatens mate next move, play a move that stops it"* | .104 | **.995** | **94.1%** | **+0.891** |
+| `RC-12` *"if the opponent can safely promote a pawn, prevent it"* | .184 | **.9995** | **99.6%** | **+0.815** |
+
+Both positive cells are unchanged by construction — .302 and .124 — because the branch only rewrites
+the negative side.
+
+**Three consequences.**
+
+1. **Branching is not a property of how a predicate is written**, so it cannot be found by reading
+   how a predicate is written. The detector must be behavioural, and the behavioural quantity is
+   already computed by the screen: **the prescription size on the noise cell under the rule as
+   stated.** A value near 1 means the class has no noise cell, whatever its published one says.
+2. **`RC-12` is not a second `RC-06`.** Its published separation is +0.032 — it fails `G5` by a wide
+   margin either way, so nothing downstream changes. What changes is the count: **two of seventeen**
+   response predicates score a different act on the noise cell, and the register described one.
+3. **This is the third instance of one failure mode in this audit** — §2.2 (a scope predicate that
+   is not the condition), §2.3 (a scope predicate that is not the claim), and here (a branching
+   detector that is not the property). Each time, a **proxy for a property was checked instead of the
+   property**, and each time the class's own docstring stated the property plainly.
+
 ## 2.7 — Engine sensitivity — **PARTLY DONE, and #51 says so accurately**
 
 *The risk as posed:* separate top-1 stability, action-set value stability, node/depth stability and
@@ -366,7 +416,8 @@ is on 17.1 at 200,000 nodes with `Threads 1` and `Hash 64`.
 5. **`FAITHFUL` is retired** in favour of `NO_STATED_SCOPE_GAP` (§2.4).
 6. **`B`-membership may not be called rule-consistent action on `RC-06`** (§2.6), and Study D scores
    exactly that (C1).
-7. **Three claims in the branches are withdrawn**: #51's "this does not block Study D"; #49's
+7. **`criterion_channel.py`'s branching detector is not sound** (§2.6b), and `RC-12` branches too.
+8. **Three claims in the branches are withdrawn**: #51's "this does not block Study D"; #49's
    "eligibility is untouched"; and #49's licensing of a criterion reading it forbids elsewhere (C2).
 
 **What is *not* changed.** The severity ladder's positive-cell monotonicity (§F4), the detector's
