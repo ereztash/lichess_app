@@ -3,15 +3,15 @@
   "cell": "positive",
   "what_this_asks": "does the trigger fire on the condition the rule class is named after?",
   "verdict_counts": {
-    "FAITHFUL": 8,
-    "DESIGNED": 7,
-    "UNCHECKED": 2
+    "tested-by-the-trigger": 8,
+    "declared-and-separately-tested": 7,
+    "asserted-and-unchecked": 2
   },
-  "unchecked_claims": [
+  "asserted_and_unchecked": [
     "RC-13",
     "RC-21"
   ],
-  "designed_narrowings": [
+  "declared_and_separately_tested": [
     "RC-04",
     "RC-07",
     "RC-08",
@@ -20,7 +20,7 @@
     "RC-18",
     "RC-20"
   ],
-  "faithful": [
+  "tested_by_the_trigger": [
     "RC-00",
     "RC-01",
     "RC-02",
@@ -48,8 +48,8 @@
       "rule_class": "RC-00",
       "cell": "positive",
       "n": 250,
-      "verdict": "FAITHFUL",
-      "why": "Trigger: exactly one mating move exists. That IS mate-in-one. But `satisfies` is `gives check`, which is wider than the name -- reported as prescription breadth in the robustness column (48.2% of permitted moves safe), not as a trigger defect.",
+      "verdict": "tested-by-the-trigger",
+      "why": "The trigger fires when exactly one mating move exists, which IS mate-in-one. `satisfies` is `gives check`, which is wider than the name -- but that is the prescription's breadth, not a condition the trigger claims and skips, and it shows up in robustness (48.2% of permitted moves safe) rather than here.",
       "has_predicate": false,
       "whole_cell": {
         "n": 250,
@@ -63,8 +63,8 @@
       "rule_class": "RC-01",
       "cell": "positive",
       "n": 250,
-      "verdict": "FAITHFUL",
-      "why": "`loose` means undefended, and the trigger tests `not board.attackers(them, sq)`. That a loose piece is sometimes still not winnable -- pins, back ranks -- is a fact about chess the published screen already prices at 15%, not a condition the name claims and the predicate skips.",
+      "verdict": "tested-by-the-trigger",
+      "why": "`loose` means undefended and the trigger tests `not board.attackers(them, sq)`. That a loose piece is sometimes still not winnable -- pins, back ranks -- is a fact about chess the screen already prices at 15%, not an unchecked claim.",
       "has_predicate": false,
       "whole_cell": {
         "n": 250,
@@ -78,7 +78,7 @@
       "rule_class": "RC-02",
       "cell": "positive",
       "n": 250,
-      "verdict": "FAITHFUL",
+      "verdict": "tested-by-the-trigger",
       "why": "`recapture` means taking back after they took, and `prev_was_capture` is exactly that. The name claims nothing about the exchange being favourable.",
       "has_predicate": false,
       "whole_cell": {
@@ -93,8 +93,8 @@
       "rule_class": "RC-03",
       "cell": "positive",
       "n": 250,
-      "verdict": "FAITHFUL",
-      "why": "The trigger tests one checker, capturable, and splits T+/T- on whether it is defended -- which is the safety condition the name implies. Its known problem is a chance rate of .543 in check, which is a base-rate fact and not a scope defect.",
+      "verdict": "tested-by-the-trigger",
+      "why": "The trigger tests one checker, capturable, and splits T+/T- on whether it is defended -- the safety condition the name implies. Its chance rate of .543 in check is a base-rate fact, not a scope defect.",
       "has_predicate": false,
       "whole_cell": {
         "n": 250,
@@ -108,8 +108,8 @@
       "rule_class": "RC-04",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "Named for a threat, singular. `_designated_threat` documents that it returns the most valuable piece of ours the opponent can win, and B asks only that the biggest be rescued -- deliberate and on the record. Where a second piece hangs, the prescribed act leaves a loss the rule is silent about.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Names *a* threat, singular. `_designated_threat` returns the most valuable piece of ours the opponent can win and assigns each position to one tier by that value, so the class fires with a second piece hanging too and B asks only that the bigger be rescued. Documented in `_designated_threat`, not hidden -- and measured all the same.",
       "has_predicate": true,
       "share_in_scope": 0.864,
       "in_scope": {
@@ -129,12 +129,37 @@
       "b_valid_gap": 0.13398692810457513,
       "regret_gap": 0.05960498366013071
     },
+    "RC-05": {
+      "rule_class": "RC-05",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "tested-by-the-trigger",
+      "why": "Fires when a queen promotion exists and its square is unattacked, and names no condition about the rest of the board -- so it claims nothing it fails to check. The predicate is carried as a MODERATOR, not a scope test: it works better in simplified positions, which is a fact about chess rather than about the trigger.",
+      "has_predicate": true,
+      "share_in_scope": 0.488,
+      "in_scope": {
+        "n": 122,
+        "b_valid": 0.6065573770491803,
+        "regret_b_xs_mean": 0.004098360655737705,
+        "advantage_xs_mean": 0.008372950819672131,
+        "v_star_xs_mean": 0.9754098360655737
+      },
+      "out_of_scope": {
+        "n": 128,
+        "b_valid": 0.4375,
+        "regret_b_xs_mean": 0.0709453125,
+        "advantage_xs_mean": -0.034476562499999995,
+        "v_star_xs_mean": 0.83165234375
+      },
+      "b_valid_gap": 0.16905737704918034,
+      "regret_gap": 0.06684695184426229
+    },
     "RC-06": {
       "rule_class": "RC-06",
       "cell": "positive",
       "n": 250,
-      "verdict": "FAITHFUL",
-      "why": "`_threatens_mate_after_pass` null-moves and asks whether the opponent mates, which is what a mate threat is. Items where the mate cannot be stopped are already counted rather than dropped (3.2%). No condition is named and skipped.",
+      "verdict": "tested-by-the-trigger",
+      "why": "`_threatens_mate_after_pass` null-moves and asks whether the opponent mates, which is what a mate threat is. Items where the mate cannot be stopped are counted rather than dropped (3.2%). The only eligible class in the register does not name a condition it fails to test.",
       "has_predicate": false,
       "whole_cell": {
         "n": 250,
@@ -148,8 +173,8 @@
       "rule_class": "RC-07",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Names *a* threat, singular. `_designated_threat` returns the most valuable piece of ours the opponent can win and assigns each position to one tier by that value, so the class fires with a second piece hanging too and B asks only that the bigger be rescued. Documented in `_designated_threat`, not hidden -- and measured all the same.",
       "has_predicate": true,
       "share_in_scope": 0.768,
       "in_scope": {
@@ -173,8 +198,8 @@
       "rule_class": "RC-08",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Names *a* threat, singular. `_designated_threat` returns the most valuable piece of ours the opponent can win and assigns each position to one tier by that value, so the class fires with a second piece hanging too and B asks only that the bigger be rescued. Documented in `_designated_threat`, not hidden -- and measured all the same.",
       "has_predicate": true,
       "share_in_scope": 0.712,
       "in_scope": {
@@ -198,8 +223,8 @@
       "rule_class": "RC-09",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Names *a* threat, singular. `_designated_threat` returns the most valuable piece of ours the opponent can win and assigns each position to one tier by that value, so the class fires with a second piece hanging too and B asks only that the bigger be rescued. Documented in `_designated_threat`, not hidden -- and measured all the same.",
       "has_predicate": true,
       "share_in_scope": 0.848,
       "in_scope": {
@@ -223,8 +248,8 @@
       "rule_class": "RC-11",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Names *a* threat, singular. `_designated_threat` returns the most valuable piece of ours the opponent can win and assigns each position to one tier by that value, so the class fires with a second piece hanging too and B asks only that the bigger be rescued. Documented in `_designated_threat`, not hidden -- and measured all the same.",
       "has_predicate": true,
       "share_in_scope": 0.816,
       "in_scope": {
@@ -244,12 +269,37 @@
       "b_valid_gap": 0.3090366581415175,
       "regret_gap": 0.052698387819077465
     },
+    "RC-12": {
+      "rule_class": "RC-12",
+      "cell": "positive",
+      "n": 250,
+      "verdict": "tested-by-the-trigger",
+      "why": "Names a promotion threat and tests one. The predicate is carried as the NULL CONTROL for the material split: the same partition on the same family moves `b_valid` by one point in the WRONG direction, which is what shows RC-21's gap is not an artefact of slicing by material.",
+      "has_predicate": true,
+      "share_in_scope": 0.132,
+      "in_scope": {
+        "n": 33,
+        "b_valid": 0.45454545454545453,
+        "regret_b_xs_mean": 0.021520833333333333,
+        "advantage_xs_mean": -0.021520833333333333,
+        "v_star_xs_mean": 0.5005000000000001
+      },
+      "out_of_scope": {
+        "n": 217,
+        "b_valid": 0.46543778801843316,
+        "regret_b_xs_mean": 0.04126060606060605,
+        "advantage_xs_mean": 0.08367878787878787,
+        "v_star_xs_mean": 0.22199769585253462
+      },
+      "b_valid_gap": -0.010892333472978633,
+      "regret_gap": 0.01973977272727272
+    },
     "RC-13": {
       "rule_class": "RC-13",
       "cell": "positive",
       "n": 67,
-      "verdict": "UNCHECKED",
-      "why": "Its docstring names `the knight does something a queen cannot`; the trigger tests only that the knight promotion checks, and a queen promotion very often checks from the same square. THE SKIP IS REAL AND EXPLAINS NOTHING: b_valid is .000 on both sides of the split, so the class fails just as completely inside its own scope.",
+      "verdict": "asserted-and-unchecked",
+      "why": "ASSERTS AND DOES NOT TEST. Its own docstring names `the knight does something a queen cannot`; the trigger asks only whether the knight promotion checks, and a queen promotion very often checks from the same square. The gap is real and explains nothing -- `b_valid` is .000 on both sides of it -- which is why C10 grades the claim and `trigger_scope.py` measures the consequence separately.",
       "has_predicate": true,
       "share_in_scope": 0.7014925373134329,
       "in_scope": {
@@ -273,8 +323,8 @@
       "rule_class": "RC-14",
       "cell": "positive",
       "n": 240,
-      "verdict": "FAITHFUL",
-      "why": "`_sole_source_of` refuses to fire unless every threatened mate comes from one square, so `the mating piece` is well defined wherever the class fires.",
+      "verdict": "tested-by-the-trigger",
+      "why": "`_sole_source_of` refuses to fire unless every mate the opponent threatens comes from one square, so `the mating piece` is well defined wherever this class fires.",
       "has_predicate": false,
       "whole_cell": {
         "n": 240,
@@ -288,8 +338,8 @@
       "rule_class": "RC-18",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "Its own extra condition -- the attacker is cheaper, so defending cannot help -- IS tested, which is what makes it the contrast with RC-04. It still inherits the documented single-threat choice from `_designated_threat`.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Its OWN extra condition -- the attacker is cheaper, so defending cannot help -- IS tested, and that is what makes it the contrast with RC-04. It still inherits the documented single-threat choice from `_designated_threat`.",
       "has_predicate": true,
       "share_in_scope": 0.904,
       "in_scope": {
@@ -313,8 +363,8 @@
       "rule_class": "RC-20",
       "cell": "positive",
       "n": 250,
-      "verdict": "DESIGNED",
-      "why": "As RC-04: names one threat, fires on the largest, and says so.",
+      "verdict": "declared-and-separately-tested",
+      "why": "Names *a* threat, singular. `_designated_threat` returns the most valuable piece of ours the opponent can win and assigns each position to one tier by that value, so the class fires with a second piece hanging too and B asks only that the bigger be rescued. Documented in `_designated_threat`, not hidden -- and measured all the same.",
       "has_predicate": true,
       "share_in_scope": 0.796,
       "in_scope": {
@@ -334,62 +384,12 @@
       "b_valid_gap": -0.014188590008867852,
       "regret_gap": -0.0035793979169638918
     },
-    "RC-05": {
-      "rule_class": "RC-05",
-      "cell": "positive",
-      "n": 250,
-      "verdict": "FAITHFUL",
-      "why": "`_promote_trigger` fires on a queen promotion whose square is unattacked and names no condition about the rest of the board, so it claims nothing it fails to check. The material split is reported as a MODERATOR for comparison with RC-21.",
-      "has_predicate": true,
-      "share_in_scope": 0.488,
-      "in_scope": {
-        "n": 122,
-        "b_valid": 0.6065573770491803,
-        "regret_b_xs_mean": 0.004098360655737705,
-        "advantage_xs_mean": 0.008372950819672131,
-        "v_star_xs_mean": 0.9754098360655737
-      },
-      "out_of_scope": {
-        "n": 128,
-        "b_valid": 0.4375,
-        "regret_b_xs_mean": 0.0709453125,
-        "advantage_xs_mean": -0.034476562499999995,
-        "v_star_xs_mean": 0.83165234375
-      },
-      "b_valid_gap": 0.16905737704918034,
-      "regret_gap": 0.06684695184426229
-    },
-    "RC-12": {
-      "rule_class": "RC-12",
-      "cell": "positive",
-      "n": 250,
-      "verdict": "FAITHFUL",
-      "why": "Names a promotion threat and tests one. The material split is reported as the NULL CONTROL: the same predicate on the same family moves b_valid by one point in the wrong direction, which is what shows RC-21's gap is not an artefact of slicing.",
-      "has_predicate": true,
-      "share_in_scope": 0.132,
-      "in_scope": {
-        "n": 33,
-        "b_valid": 0.45454545454545453,
-        "regret_b_xs_mean": 0.021520833333333333,
-        "advantage_xs_mean": -0.021520833333333333,
-        "v_star_xs_mean": 0.5005000000000001
-      },
-      "out_of_scope": {
-        "n": 217,
-        "b_valid": 0.46543778801843316,
-        "regret_b_xs_mean": 0.04126060606060605,
-        "advantage_xs_mean": 0.08367878787878787,
-        "v_star_xs_mean": 0.22199769585253462
-      },
-      "b_valid_gap": -0.010892333472978633,
-      "regret_gap": 0.01973977272727272
-    },
     "RC-21": {
       "rule_class": "RC-21",
       "cell": "positive",
       "n": 250,
-      "verdict": "UNCHECKED",
-      "why": "`_outside_the_square` names the LONE enemy king in its own docstring. `_passer_trigger` never tests that the king is alone, and here the skip explains the headline: b_valid .562 inside the rule's scope against .124 outside it.",
+      "verdict": "asserted-and-unchecked",
+      "why": "ASSERTS AND DOES NOT TEST, AND THIS IS THE CLASS C10 WAS WRITTEN FOR. `_outside_the_square` names the LONE enemy king in its own docstring; `_passer_trigger` calls it without ever checking the king is alone. The class fires with the opponent holding a median thirteen points of pieces. Inside the rule's real scope `b_valid` is .562 and obeying costs nothing; outside it, .124 and 0.150.",
       "has_predicate": true,
       "share_in_scope": 0.128,
       "in_scope": {

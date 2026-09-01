@@ -250,3 +250,91 @@ describe("the document quotes the run", () => {
     }
   });
 });
+
+/**
+ * C10, ON THE JSON SIDE.
+ *
+ * The criterion's real guard is `RuleClass.__post_init__`, which refuses at import any class that
+ * concedes a gap between its name and its predicate without handing over the predicate. That guard
+ * runs in Python, so nothing in the TypeScript build would notice if `trigger_scope.json` were
+ * hand-edited to say something the register does not — which is the exact failure mode C10 exists
+ * to prevent, one file away.
+ *
+ * So the invariant is asserted again here, against the published artefact.
+ */
+interface ScopeRow {
+  rule_class: string;
+  verdict: string;
+  why: string;
+  has_predicate: boolean;
+  share_in_scope?: number;
+  b_valid_gap?: number | null;
+}
+
+interface Scope {
+  verdict_counts: Record<string, number>;
+  asserted_and_unchecked: string[];
+  declared_and_separately_tested: string[];
+  tested_by_the_trigger: string[];
+  results: Record<string, ScopeRow>;
+}
+
+const scope = JSON.parse(
+  readFileSync(resolve(root, "research/measurement/results/trigger_scope.json"), "utf8"),
+) as Scope;
+
+const C10_GRADES = [
+  "tested-by-the-trigger",
+  "declared-and-separately-tested",
+  "asserted-and-unchecked",
+] as const;
+
+describe("C10 — the predicate detects the condition the class is named after", () => {
+  it("every scored rule class carries a grade from the register's own vocabulary", () => {
+    for (const row of Object.values(scope.results)) {
+      expect(C10_GRADES).toContain(row.verdict as (typeof C10_GRADES)[number]);
+    }
+  });
+
+  it("every class states its claim — silence is not a grade", () => {
+    for (const row of Object.values(scope.results)) {
+      expect(row.why.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it("a conceded gap arrives with the predicate that measures it", () => {
+    /*
+     * The whole content of C10's enforced half. A class may say its trigger does not test
+     * everything it is named for — but not without the code that shows how far off it is, which
+     * is the comment nobody verified that let RC-21 through.
+     */
+    for (const row of Object.values(scope.results)) {
+      if (row.verdict !== "tested-by-the-trigger") expect(row.has_predicate).toBe(true);
+    }
+  });
+
+  it("the grade says whether a gap exists and never whether it matters", () => {
+    /*
+     * RC-13 is why these are two columns. It concedes `asserted-and-unchecked`, and the split it
+     * concedes to moves `b_valid` by nothing at all. A test that required a conceded gap to show a
+     * measurable effect would force the register to lie about RC-13 to stay green.
+     */
+    const conceded = scope.asserted_and_unchecked.map((id) => scope.results[id]);
+    expect(conceded.length).toBeGreaterThan(0);
+    expect(conceded.some((r) => (r.b_valid_gap ?? 0) === 0)).toBe(true);
+  });
+
+  it("the three verdict lists partition the scored classes", () => {
+    const all = [
+      ...scope.asserted_and_unchecked,
+      ...scope.declared_and_separately_tested,
+      ...scope.tested_by_the_trigger,
+    ];
+    expect(new Set(all).size).toBe(all.length);
+    expect(all.sort()).toEqual(Object.keys(scope.results).sort());
+  });
+
+  it("the document reports the audit it is derived from", () => {
+    for (const id of scope.asserted_and_unchecked) expect(doc.includes(id)).toBe(true);
+  });
+});

@@ -174,40 +174,48 @@ and docstring — never invented to improve a score — and is a pure function o
 whole audit is recomputed from adjudications already on disk with no engine and no new sampling
 (`research/measurement/trigger_scope.py`).
 
-Three verdicts, and the distinction between the first two carries the result:
+**The question is now a criterion.** `C10` is declared on every rule class in
+`rule_classes.py` — `scope_claim` says what the class asserts, `c10_grade` says whether its trigger
+tests that, and `scope_predicate` is the code that measures the distance. `RuleClass.__post_init__`
+**refuses at import** any class that concedes a gap without handing over that predicate: a grade of
+`asserted-and-unchecked` with nothing beside it would be the same comment nobody verified that let
+`RC-21` through. This file no longer decides anything about a rule class — it reads what the class
+declares and reports the consequence. Every number below is unchanged by that move.
 
-| verdict | what it means | classes |
+Three grades, and the distinction between the first two carries the result:
+
+| `c10_grade` | what it means | classes |
 | --- | --- | --- |
-| **UNCHECKED** | the code skips a precondition **its own docstring asserts** | `RC-13`, `RC-21` |
-| **DESIGNED** | the class narrows deliberately and says so | `RC-04`, `RC-07`, `RC-08`, `RC-09`, `RC-11`, `RC-18`, `RC-20` |
-| **FAITHFUL** | the trigger tests what the name claims | `RC-00`, `RC-01`, `RC-02`, `RC-03`, `RC-05`, `RC-06`, `RC-12`, `RC-14` |
+| **`asserted-and-unchecked`** | the code skips a precondition **its own docstring asserts** | `RC-13`, `RC-21` |
+| **`declared-and-separately-tested`** | the class narrows deliberately and says so | `RC-04`, `RC-07`, `RC-08`, `RC-09`, `RC-11`, `RC-18`, `RC-20` |
+| **`tested-by-the-trigger`** | the trigger tests what the name claims | `RC-00`, `RC-01`, `RC-02`, `RC-03`, `RC-05`, `RC-06`, `RC-12`, `RC-14` |
 
-| | verdict | in scope | `b_valid` in | `b_valid` out | gap | regret in | regret out |
+| | `c10_grade` | in scope | `b_valid` in | `b_valid` out | gap | regret in | regret out |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **RC-21** push-the-unstoppable-passer | UNCHECKED | 12.8% | **.562** | .124 | **+.439** | **0.000** | 0.150 |
-| **RC-13** underpromote-to-knight | UNCHECKED | 70.1% | .000 | .000 | **+.000** | 0.080 | 0.025 |
-| RC-11 move-the-threatened-minor | DESIGNED | 81.6% | .657 | .348 | +.309 | 0.053 | 0.106 |
-| RC-07 answer-the-queen-threat | DESIGNED | 76.8% | .865 | .672 | +.192 | 0.016 | 0.028 |
-| RC-04 save-the-attacked-piece | DESIGNED | 86.4% | .722 | .588 | +.134 | 0.034 | 0.094 |
-| RC-09 answer-the-minor-threat | DESIGNED | 84.8% | .670 | .553 | +.117 | 0.034 | 0.049 |
-| RC-08 answer-the-rook-threat | DESIGNED | 71.2% | .713 | .667 | +.047 | 0.031 | 0.057 |
-| RC-20 defend-the-piece-in-place | DESIGNED | 79.6% | .221 | .235 | −.014 | 0.122 | 0.118 |
-| RC-18 move-the-piece-that-must-move | DESIGNED | 90.4% | .606 | .667 | −.060 | 0.060 | 0.039 |
-| *RC-05* safe-promotion | FAITHFUL | 48.8% | .607 | .438 | +.169 | 0.004 | 0.071 |
-| *RC-12* stop-the-promotion | FAITHFUL | 13.2% | .455 | .465 | −.011 | 0.022 | 0.041 |
+| **RC-21** push-the-unstoppable-passer | `asserted-and-unchecked` | 12.8% | **.562** | .124 | **+.439** | **0.000** | 0.150 |
+| **RC-13** underpromote-to-knight | `asserted-and-unchecked` | 70.1% | .000 | .000 | **+.000** | 0.080 | 0.025 |
+| RC-11 move-the-threatened-minor | `declared…tested` | 81.6% | .657 | .348 | +.309 | 0.053 | 0.106 |
+| RC-07 answer-the-queen-threat | `declared…tested` | 76.8% | .865 | .672 | +.192 | 0.016 | 0.028 |
+| RC-04 save-the-attacked-piece | `declared…tested` | 86.4% | .722 | .588 | +.134 | 0.034 | 0.094 |
+| RC-09 answer-the-minor-threat | `declared…tested` | 84.8% | .670 | .553 | +.117 | 0.034 | 0.049 |
+| RC-08 answer-the-rook-threat | `declared…tested` | 71.2% | .713 | .667 | +.047 | 0.031 | 0.057 |
+| RC-20 defend-the-piece-in-place | `declared…tested` | 79.6% | .221 | .235 | −.014 | 0.122 | 0.118 |
+| RC-18 move-the-piece-that-must-move | `declared…tested` | 90.4% | .606 | .667 | −.060 | 0.060 | 0.039 |
+| *RC-05* safe-promotion | `tested-by-the-trigger` | 48.8% | .607 | .438 | +.169 | 0.004 | 0.071 |
+| *RC-12* stop-the-promotion | `tested-by-the-trigger` | 13.2% | .455 | .465 | −.011 | 0.022 | 0.041 |
 
 *`RC-05` and `RC-12` are faithful and are split anyway, as the moderator and the null control for
 the material predicate. The other six faithful classes have no natural predicate and are not split:
 manufacturing a partition for a trigger that claims nothing it skips would manufacture a defect.*
 
-**A verdict is not a score, and `RC-13` is why the two columns are separate.** Its docstring names
+**A grade is not a score, and `RC-13` is why the two columns are separate.** Its docstring names
 *"the knight does something a queen cannot"*; its trigger tests only that the knight promotion
 checks, and a queen promotion very often checks from the same square. The skip is real. **It
 explains nothing**: `b_valid` is **.000 on both sides** — 0 of 47 in scope — so the class fails just
 as completely inside its own scope as outside it, and underpromoting is *more* expensive there
 (regret 0.080 against 0.025). An unchecked claim can be harmless. `RC-21`'s is not; `RC-13`'s is.
 
-**The designed narrowing has a cost, and it is not a law.** `_designated_threat` returns the most
+**The declared narrowing has a cost, and it is not a law.** `_designated_threat` returns the most
 valuable piece of ours the opponent can win, and each position is assigned to exactly one tier by
 that value — deliberate, and on the record in its docstring. But where a *second* piece hangs, the
 prescribed act rescues one and leaves a loss the rule is silent about. Five of the seven score
@@ -215,7 +223,7 @@ better where only one thing hangs, by about ten points of `b_valid` on average; 
 those two have the smallest out-of-scope cells in the table (24 and 51 items). So it is a real cost
 with two nulls sitting on it, reported as such.
 
-**`RC-06` is faithful, and that matters most of anything here.** `_threatens_mate_after_pass`
+**`RC-06` is `tested-by-the-trigger`, and that matters most of anything here.** `_threatens_mate_after_pass`
 null-moves and asks whether the opponent mates, which is what a mate threat is; items where the mate
 cannot be stopped are counted rather than dropped. The only eligible rule class in the register does
 not name a condition it fails to test.
@@ -269,12 +277,12 @@ the new columns, which has not been run.
 
 ## What follows
 
-1. **The trigger audit is done, and it found a second unchecked claim.** `RC-13` skips its own
-   stated condition too — harmlessly, which is itself the useful half of the result. What the
-   audit cannot do is prove the remaining eight faithful: it tests the conditions the docstrings
-   happen to state, and a condition nobody wrote down is invisible to it. **A tenth criterion
-   belongs in `rule_classes.py`** — *does this predicate detect the condition it is named
-   after?* — asked when a class is written rather than recovered afterwards.
+1. **`C10` is in `rule_classes.py` and enforced at import**, so the question is now asked when a
+   class is written rather than recovered afterwards. What it cannot do is prove the remaining
+   eight faithful: it tests the conditions the docstrings **happen to state**, and a condition
+   nobody wrote down is invisible to it. `scope_claim` is a signature on a claim, not a proof of
+   one — a class can still be graded `tested-by-the-trigger` by an author who did not notice what
+   they were assuming.
 2. **`RC-21` deserves re-measuring on a corrected trigger** — one that requires the opponent to have
    no piece able to stop the pawn — rather than the retraction its current number invites. That is
    [#50](https://github.com/ereztash/lichess_app/pull/50)'s predicate to change, not this branch's.

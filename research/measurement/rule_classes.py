@@ -23,7 +23,15 @@ evidence or a different paradigm entirely.
 
 ---
 
-THE NINE CRITERIA. Three are enforced by the shape of this file rather than asserted:
+THE TEN CRITERIA, AND THE THREE WAYS ONE CAN BE HELD.
+
+  BY SIGNATURE  C1, C2 and C7. The function cannot receive what it may not use, so there is
+                nothing to promise and nothing to check -- there is no channel.
+  AT IMPORT     C10, and only in part. What can be enforced is that a conceded gap arrives with
+                the code that measures it; whether the concession is honest cannot be.
+  BY THE SCREEN C5, which refuses an item whose prescribed act is unavailable.
+
+The rest are graded, measured or declared, and each row below says which.
 
   C1  T can be determined before behaviour.
       ENFORCED: `trigger()` receives the board and the previous move. It has no parameter through
@@ -44,6 +52,38 @@ THE NINE CRITERIA. Three are enforced by the shape of this file rather than asse
       DECLARED per candidate, with the citation, and a candidate may declare `None`.
   C9  The rule can plausibly matter in ordinary play.
       MEASURED as a base rate in an unfiltered corpus.
+  C10 The predicate detects the condition the rule class is NAMED AFTER.
+      GRADED, and PARTLY ENFORCED -- see `C10Grade` and `RuleClass.__post_init__`.
+
+---
+
+C10 EXISTS BECAUSE C1-C9 LET `RC-21` THROUGH, and the way it got through is worth stating exactly.
+
+The rule of the square answers one question: CAN THE LONE ENEMY KING CATCH THIS PAWN? Its helper,
+`_outside_the_square`, says so in its own docstring. `_passer_trigger` then calls that helper
+WITHOUT EVER CHECKING THAT THE KING IS ALONE -- so the class fires in positions where the opponent
+still holds, at the median, thirteen points of pieces to stop the pawn with. A rook two files away
+stops the pawn; the rule of the square has nothing to say about it.
+
+Every one of C1-C9 passed. C1 asks whether T is knowable before behaviour -- it is. C3 asks whether
+T contains B -- it does not. C4 measured .164 and the number was read as a finding about chess:
+`T can be objectively true without having a single correct B`. On the 12.8% of items where the rule
+actually applies, `b_valid` is .562 and obeying costs nothing. **The trigger was not measuring a
+true T badly. It was measuring a T that is not true.** No criterion asked.
+
+C10 IS DECLARED, NOT MEASURED, and it cannot be otherwise: only a person who knows what a rule
+class is named after can say whether its predicate detects that. What the file CAN enforce is that
+the declaration is not free. A class that admits its trigger narrows, or admits it asserts
+something it does not test, MUST HAND OVER THE CODE THAT TESTS IT -- `__post_init__` refuses the
+class otherwise. A grade of `asserted-and-unchecked` with no predicate beside it would be the same
+comment nobody verified that let `RC-21` through in the first place.
+
+AND A GRADE IS NOT A SCORE. `RC-13` asserts a condition it does not test -- its docstring names
+`the knight does something a queen cannot` and its trigger asks only whether the knight promotion
+checks -- and the gap explains nothing: `b_valid` is .000 on both sides of its own scope. An
+unchecked claim can be entirely harmless. Whether a gap MATTERS is measured by
+`research/measurement/trigger_scope.py`, which reads these predicates and reports the split; it is
+never inferred from the grade.
 
 ---
 
@@ -114,6 +154,30 @@ C3Grade = Literal[
 ]
 
 
+#: C10. How the predicate stands to the condition the class is NAMED AFTER.
+C10Grade = Literal[
+    # The trigger tests exactly what the name claims, and there is nothing separate left to check.
+    # `mate-in-one` fires when a mating move exists; `recapture` fires when they just captured.
+    "tested-by-the-trigger",
+    # The class narrows or generalises DELIBERATELY, and says so where a reader will find it.
+    # `_designated_threat` documents that it returns the most valuable piece the opponent can win
+    # and assigns each position to one tier by that value -- so "answer the queen threat" fires
+    # with a rook hanging too. That is a choice on the record. It still has a cost, and the
+    # predicate is what measures the cost.
+    "declared-and-separately-tested",
+    # THE `RC-21` GRADE. The class asserts a condition -- in a docstring, in its own name -- that
+    # its predicate does not test. Recorded rather than quietly repaired, because the number the
+    # class already produced is in a published table and a reader has to be able to find out what
+    # it was a number about.
+    "asserted-and-unchecked",
+]
+
+#: (board, context) -> bool. True where the class's stated condition actually holds. A pure
+#: function of the position: no engine, no behaviour, no oracle -- the same standard `trigger` is
+#: held to, so an audit costs nothing but a re-read of adjudications already on disk.
+ScopePredicate = Callable[[chess.Board, "Context"], bool]
+
+
 @dataclass(frozen=True)
 class RuleClass:
     id: str
@@ -132,8 +196,40 @@ class RuleClass:
     prescription: str
     #: C8. `None` is an allowed and honest answer.
     literature: Optional[str]
+
+    #: C10. How the predicate stands to the condition the class is named after.
+    c10_grade: C10Grade
+    #: C10, in words: what this class's NAME and docstrings claim, and whether the trigger tests
+    #: it. Required of every class -- there is no `None` here, because "this class claims nothing"
+    #: is itself a claim somebody has to make and sign.
+    scope_claim: str
+
     #: Anything a reader has to know to interpret this candidate's numbers.
     caveats: list[str] = field(default_factory=list)
+    #: C10's executable half. REQUIRED whenever `c10_grade` is not `tested-by-the-trigger`; see
+    #: `__post_init__`. Permitted on a `tested-by-the-trigger` class as a CONTROL -- `RC-12` keeps
+    #: one for exactly that reason, and its null result is what shows these splits can come out
+    #: flat.
+    scope_predicate: Optional[ScopePredicate] = None
+
+    def __post_init__(self) -> None:
+        """
+        C10's ENFORCED half: A CLASS MAY NOT CLAIM WHAT IT WILL NOT LET ANYBODY TEST.
+
+        `scope_claim` is prose and prose is what failed here before -- `_outside_the_square`
+        described its own precondition accurately and the trigger ignored it. So a grade that
+        admits any distance between the name and the predicate has to arrive WITH the predicate
+        that measures the distance. This is checked at import, which means no run of any script in
+        this directory can begin against a register that skipped it.
+        """
+        if not self.scope_claim or not self.scope_claim.strip():
+            raise ValueError(f"{self.id}: C10 requires a scope_claim; silence is not a grade")
+        if self.c10_grade != "tested-by-the-trigger" and self.scope_predicate is None:
+            raise ValueError(
+                f"{self.id}: c10_grade is {self.c10_grade!r}, which concedes the trigger does not "
+                "test everything the class is named for -- so a scope_predicate is required. "
+                "A conceded gap with nothing to measure it is the comment nobody verified."
+            )
 
     def satisfying_moves(self, board: chess.Board, ctx: "Context") -> list[chess.Move]:
         """
@@ -855,11 +951,94 @@ def _passer_satisfies(board: chess.Board, move: chess.Move, ctx: Context) -> boo
     return len(passers) == 1 and move.from_square == passers[0]
 
 
+# ---------------------------------------------------------------- C10 scope predicates
+#
+# ONE PER CLAIM, NOT ONE PER CLASS. Seven classes share `_exactly_one_thing_hanging` because they
+# share `_designated_threat`, and sharing is the point: a claim several classes make is a claim
+# that should be tested the same way in all of them.
+#
+# EACH IS READ OFF ITS CLASS'S OWN NAME AND DOCSTRING, never written to improve a score. The
+# question a scope predicate answers is "this class says X -- where is X true?", and if the answer
+# turns out to be "almost nowhere", that is a fact about the class rather than a reason to soften
+# the predicate.
+
+
+def _lone_king_defends(board: chess.Board, ctx: Context) -> bool:
+    """
+    THE RULE OF THE SQUARE'S OWN PRECONDITION, which `_passer_trigger` never tests.
+
+    `_outside_the_square` asks whether the LONE enemy king can catch the pawn. It is a statement
+    about a king-and-pawn ending and says nothing whatever about a position in which the defender
+    still owns a rook.
+    """
+    them = not board.turn
+    return not any(
+        p.color == them and p.piece_type in (chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN)
+        for p in board.piece_map().values()
+    )
+
+
+def _exactly_one_thing_hanging(board: chess.Board, ctx: Context) -> bool:
+    """
+    THE SEVERITY LADDER NAMES *A* THREAT, SINGULAR -- "answer the queen threat", "move the
+    threatened minor", "defend the piece in place".
+
+    `_designated_threat` returns the MOST VALUABLE piece of ours the opponent can win, and each
+    position is assigned to exactly one tier by that value. With two pieces hanging the class still
+    fires, still names the bigger one, and B still asks only that the bigger one be rescued -- while
+    the position contains a second loss the rule is silent about. Deliberate and documented, which
+    is why these classes are graded `declared-and-separately-tested` rather than
+    `asserted-and-unchecked`; the cost is real all the same, and this is what measures it.
+    """
+    us = board.turn
+    return sum(
+        1 for sq, piece in board.piece_map().items()
+        if piece.color == us and piece.piece_type != chess.KING and _in_bad_spot(board, sq, us)
+    ) == 1
+
+
+def _knight_check_a_queen_could_not_give(board: chess.Board, ctx: Context) -> bool:
+    """
+    `RC-13`'s OWN STATED CONDITION, WHICH ITS TRIGGER DOES NOT TEST.
+
+    Its docstring: promoting to a knight "is wrong essentially always -- a queen is strictly
+    better -- unless the knight does something a queen cannot, WHICH ON THE MOVE IT APPEARS MEANS
+    GIVING CHECK." `_underpromote_trigger` then fires on `knight promotion gives check` alone, and
+    a queen promotion very often gives check from the same square -- where it does, the knight is
+    doing nothing a queen could not, and promoting to one is simply the worse move.
+    """
+    knight_checks = any(
+        m.promotion == chess.KNIGHT and board.gives_check(m) for m in board.legal_moves
+    )
+    queen_checks = any(
+        m.promotion == chess.QUEEN and board.gives_check(m) for m in board.legal_moves
+    )
+    return knight_checks and not queen_checks
+
+
+def _opponent_has_no_pieces(board: chess.Board, ctx: Context) -> bool:
+    """
+    The same board fact as `_lone_king_defends`, under the name the promotion-race classes use it
+    by. `RC-05` and `RC-12` claim nothing about it -- both are `tested-by-the-trigger` -- and carry
+    it as a CONTROL: `RC-05` to show the split can be a moderator on a faithful class, `RC-12` to
+    show it can come out flat. Without the flat one, `RC-21`'s gap could be an artefact of slicing
+    a cell by material, and there would be no way to tell.
+    """
+    return _lone_king_defends(board, ctx)
+
+
 # ---------------------------------------------------------------- the register
 
 RULE_CLASSES: list[RuleClass] = [
     RuleClass(
         id="RC-00",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "The trigger fires when exactly one mating move exists, which IS mate-in-one. "
+            "`satisfies` is `gives check`, which is wider than the name -- but that is the "
+            "prescription's breadth, not a condition the trigger claims and skips, and it shows "
+            "up in robustness (48.2% of permitted moves safe) rather than here."
+        ),
         name="mate-in-one",
         family="immediate mate threats",
         role="ceiling-anchor",
@@ -888,6 +1067,12 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-01",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "`loose` means undefended and the trigger tests `not board.attackers(them, sq)`. "
+            "That a loose piece is sometimes still not winnable -- pins, back ranks -- is a "
+            "fact about chess the screen already prices at 15%, not an unchecked claim."
+        ),
         name="loose-piece",
         family="elementary tactical safety relations",
         role="incumbent-floor",
@@ -908,6 +1093,11 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-02",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "`recapture` means taking back after they took, and `prev_was_capture` is exactly "
+            "that. The name claims nothing about the exchange being favourable."
+        ),
         name="recapture",
         family="recapture decisions",
         role="candidate",
@@ -931,6 +1121,12 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-03",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "The trigger tests one checker, capturable, and splits T+/T- on whether it is "
+            "defended -- the safety condition the name implies. Its chance rate of .543 in "
+            "check is a base-rate fact, not a scope defect."
+        ),
         name="capture-the-checker",
         family="responding to check / escaping check",
         role="candidate",
@@ -956,6 +1152,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-04",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Names *a* threat, singular. `_designated_threat` returns the most valuable piece "
+            "of ours the opponent can win and assigns each position to one tier by that value, "
+            "so the class fires with a second piece hanging too and B asks only that the bigger "
+            "be rescued. Documented in `_designated_threat`, not hidden -- and measured all the "
+            "same."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="save-the-attacked-piece",
         family="forced defensive responses",
         role="candidate",
@@ -979,6 +1184,14 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-05",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "Fires when a queen promotion exists and its square is unattacked, and names no "
+            "condition about the rest of the board -- so it claims nothing it fails to check. "
+            "The predicate is carried as a MODERATOR, not a scope test: it works better in "
+            "simplified positions, which is a fact about chess rather than about the trigger."
+        ),
+        scope_predicate=_opponent_has_no_pieces,
         name="safe-promotion",
         family="promotion-race decisions",
         role="candidate",
@@ -992,6 +1205,13 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-06",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "`_threatens_mate_after_pass` null-moves and asks whether the opponent mates, which "
+            "is what a mate threat is. Items where the mate cannot be stopped are counted "
+            "rather than dropped (3.2%). The only eligible class in the register does not name "
+            "a condition it fails to test."
+        ),
         name="answer-the-mate-threat",
         family="threat recognition",
         role="candidate",
@@ -1013,6 +1233,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-07",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Names *a* threat, singular. `_designated_threat` returns the most valuable piece "
+            "of ours the opponent can win and assigns each position to one tier by that value, "
+            "so the class fires with a second piece hanging too and B asks only that the bigger "
+            "be rescued. Documented in `_designated_threat`, not hidden -- and measured all the "
+            "same."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="answer-the-queen-threat",
         family="severity ladder: defensive threat answering",
         role="candidate",
@@ -1031,6 +1260,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-08",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Names *a* threat, singular. `_designated_threat` returns the most valuable piece "
+            "of ours the opponent can win and assigns each position to one tier by that value, "
+            "so the class fires with a second piece hanging too and B asks only that the bigger "
+            "be rescued. Documented in `_designated_threat`, not hidden -- and measured all the "
+            "same."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="answer-the-rook-threat",
         family="severity ladder: defensive threat answering",
         role="candidate",
@@ -1049,6 +1287,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-09",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Names *a* threat, singular. `_designated_threat` returns the most valuable piece "
+            "of ours the opponent can win and assigns each position to one tier by that value, "
+            "so the class fires with a second piece hanging too and B asks only that the bigger "
+            "be rescued. Documented in `_designated_threat`, not hidden -- and measured all the "
+            "same."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="answer-the-minor-threat",
         family="severity ladder: defensive threat answering",
         role="candidate",
@@ -1068,6 +1315,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-11",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Names *a* threat, singular. `_designated_threat` returns the most valuable piece "
+            "of ours the opponent can win and assigns each position to one tier by that value, "
+            "so the class fires with a second piece hanging too and B asks only that the bigger "
+            "be rescued. Documented in `_designated_threat`, not hidden -- and measured all the "
+            "same."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="move-the-threatened-minor",
         family="prescription-shape control",
         role="candidate",
@@ -1086,6 +1342,14 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-12",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "Names a promotion threat and tests one. The predicate is carried as the NULL "
+            "CONTROL for the material split: the same partition on the same family moves "
+            "`b_valid` by one point in the WRONG direction, which is what shows RC-21's gap is "
+            "not an artefact of slicing by material."
+        ),
+        scope_predicate=_opponent_has_no_pieces,
         name="stop-the-promotion",
         family="severity ladder: defensive threat answering",
         role="candidate",
@@ -1104,6 +1368,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-13",
+        c10_grade="asserted-and-unchecked",
+        scope_claim=(
+            "ASSERTS AND DOES NOT TEST. Its own docstring names `the knight does something a "
+            "queen cannot`; the trigger asks only whether the knight promotion checks, and a "
+            "queen promotion very often checks from the same square. The gap is real and "
+            "explains nothing -- `b_valid` is .000 on both sides of it -- which is why C10 "
+            "grades the claim and `trigger_scope.py` measures the consequence separately."
+        ),
+        scope_predicate=_knight_check_a_queen_could_not_give,
         name="underpromote-to-knight",
         family="noise-cell-first: committal acts",
         role="candidate",
@@ -1121,6 +1394,11 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-14",
+        c10_grade="tested-by-the-trigger",
+        scope_claim=(
+            "`_sole_source_of` refuses to fire unless every mate the opponent threatens comes "
+            "from one square, so `the mating piece` is well defined wherever this class fires."
+        ),
         name="capture-the-mating-piece",
         family="noise-cell-first: committal acts",
         role="candidate",
@@ -1138,6 +1416,13 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-18",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Its OWN extra condition -- the attacker is cheaper, so defending cannot help -- IS "
+            "tested, and that is what makes it the contrast with RC-04. It still inherits the "
+            "documented single-threat choice from `_designated_threat`."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="move-the-piece-that-must-move",
         family="noise-cell-first: committal acts",
         role="candidate",
@@ -1155,6 +1440,15 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-20",
+        c10_grade="declared-and-separately-tested",
+        scope_claim=(
+            "Names *a* threat, singular. `_designated_threat` returns the most valuable piece "
+            "of ours the opponent can win and assigns each position to one tier by that value, "
+            "so the class fires with a second piece hanging too and B asks only that the bigger "
+            "be rescued. Documented in `_designated_threat`, not hidden -- and measured all the "
+            "same."
+        ),
+        scope_predicate=_exactly_one_thing_hanging,
         name="defend-the-piece-in-place",
         family="noise-cell-first: committal acts",
         role="candidate",
@@ -1172,6 +1466,16 @@ RULE_CLASSES: list[RuleClass] = [
     ),
     RuleClass(
         id="RC-21",
+        c10_grade="asserted-and-unchecked",
+        scope_claim=(
+            "ASSERTS AND DOES NOT TEST, AND THIS IS THE CLASS C10 WAS WRITTEN FOR. "
+            "`_outside_the_square` names the LONE enemy king in its own docstring; "
+            "`_passer_trigger` calls it without ever checking the king is alone. The class "
+            "fires with the opponent holding a median thirteen points of pieces. Inside the "
+            "rule's real scope `b_valid` is .562 and obeying costs nothing; outside it, .124 "
+            "and 0.150."
+        ),
+        scope_predicate=_lone_king_defends,
         name="push-the-unstoppable-passer",
         family="noise-cell-first: committal acts",
         role="candidate",
