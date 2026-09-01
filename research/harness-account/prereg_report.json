@@ -1,0 +1,161 @@
+{
+  "generatedAt": "2026-09-01T18:33:58.660Z",
+  "preregistration": "docs/research/ACCOUNT_BRIDGE_PREREG.md",
+  "engine": "Stockfish 18 Lite WASM",
+  "engineInvokedAs": "sf-wasm.sh",
+  "engineOptions": {
+    "Threads": 1,
+    "Hash": 16,
+    "clearHashBetweenPositions": true
+  },
+  "importDepth": 12,
+  "corpus": {
+    "source": "https://lichess.org/api/games/user/erez281?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+    "fetchedAt": "2026-09-01T18:27:42.656Z",
+    "gamesReturned": 3195,
+    "gamesAdmissible": 2209,
+    "rejected": {
+      "termination:Abandoned": 124,
+      "termination:Time forfeit": 724,
+      "under-20-plies": 134,
+      "no-clocks": 4
+    },
+    "window": 48,
+    "windowRule": "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
+    "speedsInWindow": {
+      "blitz": 47,
+      "rapid": 1
+    },
+    "pgnSpeedCheck": {
+      "agreed": 2144,
+      "missingFromPgn": 65,
+      "disagreed": 0,
+      "examples": []
+    }
+  },
+  "playerId": "8633c23fa6918be9",
+  "games": 48,
+  "decisions": 1361,
+  "reproducibility": {
+    "repeats": true,
+    "orderIndependent": true,
+    "elapsedMsA": 119565
+  },
+  "reading": {
+    "scored": 1361,
+    "forced": 4,
+    "book": 137,
+    "eligible": 1220,
+    "withoutTime": 0,
+    "withoutClock": 0,
+    "timeBucketSpeed": "blitz",
+    "excludedForSpeed": 20,
+    "buckets": [
+      {
+        "key": "fast-under-45s",
+        "scope": "החלטות תחת פחות מ-45 שניות",
+        "n": 1196,
+        "accurateRate": 0.6245819397993311,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "slow-over-2m",
+        "scope": "החלטות אחרי יותר משתי דקות",
+        "n": 0,
+        "accurateRate": null,
+        "measurable": false,
+        "unmeasurableReason": "too-few"
+      },
+      {
+        "key": "phase-opening",
+        "scope": "החלטות בפתיחה",
+        "n": 343,
+        "accurateRate": 0.6209912536443148,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "phase-middlegame",
+        "scope": "החלטות באמצע המשחק",
+        "n": 790,
+        "accurateRate": 0.6025316455696202,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "phase-endgame",
+        "scope": "החלטות בסיום",
+        "n": 87,
+        "accurateRate": 0.8160919540229885,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "clock-under-1m",
+        "scope": "החלטות עם פחות מדקה על השעון",
+        "n": 145,
+        "accurateRate": 0.7724137931034483,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-winning",
+        "scope": "החלטות מתוך עמדה מנצחת",
+        "n": 467,
+        "accurateRate": 0.6231263383297645,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-level",
+        "scope": "החלטות מתוך עמדה שקולה",
+        "n": 495,
+        "accurateRate": 0.6262626262626263,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-losing",
+        "scope": "החלטות מתוך עמדה מפסידה",
+        "n": 258,
+        "accurateRate": 0.6162790697674418,
+        "measurable": true,
+        "unmeasurableReason": null
+      }
+    ]
+  },
+  "verdict": {
+    "worst": {
+      "key": "phase-middlegame",
+      "n": 790,
+      "accurateRate": 0.6025316455696202
+    },
+    "runnerUp": {
+      "key": "standing-losing",
+      "n": 258,
+      "accurateRate": 0.6162790697674418
+    },
+    "separation": 0.0137474241978216,
+    "threshold": 0.0698493920792876,
+    "separable": false
+  },
+  "bridge": {
+    "outcome": {
+      "kind": "not-separable",
+      "worstKey": "phase-middlegame",
+      "separation": 0.0137474241978216,
+      "threshold": 0.0698493920792876
+    },
+    "progress": {
+      "reached": "measured",
+      "blockedReason": "הסוגים קרובים זה לזה יותר מטעות הדגימה שלהם, ולכן אין מועמד לבחור בו."
+    },
+    "prediction": {
+      "resolutionFactor": 25.815622033936624,
+      "predictedWindow": 1240,
+      "assumption": "holds only if the bucket rates stay where they are; it is the size at which a gap THIS BIG would become readable, not a prediction that the gap survives"
+    }
+  },
+  "evidenceSha256": "cbb7d8fbc70a60cb6ff2c81a1bc7452d62c82223de2af564bd1da25043dd03d4"
+}

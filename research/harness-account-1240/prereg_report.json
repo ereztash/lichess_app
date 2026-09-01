@@ -1,0 +1,171 @@
+{
+  "generatedAt": "2026-09-01T21:00:06.526Z",
+  "preregistration": "docs/research/ACCOUNT_BRIDGE_PREREG.md",
+  "engine": "Stockfish 18 Lite WASM",
+  "engineInvokedAs": "sf-wasm.sh",
+  "engineOptions": {
+    "Threads": 1,
+    "Hash": 16,
+    "clearHashBetweenPositions": true
+  },
+  "importDepth": 12,
+  "corpus": {
+    "source": "https://lichess.org/api/games/user/erez281?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+    "fetchedAt": "2026-09-01T18:37:29.248Z",
+    "gamesReturned": 3195,
+    "gamesAdmissible": 2209,
+    "rejected": {
+      "termination:Abandoned": 124,
+      "termination:Time forfeit": 724,
+      "under-20-plies": 134,
+      "no-clocks": 4
+    },
+    "window": 1240,
+    "windowRule": "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
+    "speedsInWindow": {
+      "blitz": 1101,
+      "rapid": 136,
+      "bullet": 2,
+      "classical": 1
+    },
+    "pgnSpeedCheck": {
+      "agreed": 2144,
+      "missingFromPgn": 65,
+      "disagreed": 0,
+      "examples": []
+    }
+  },
+  "playerId": "8633c23fa6918be9",
+  "games": 1240,
+  "decisions": 33213,
+  "reproducibility": {
+    "repeats": true,
+    "orderIndependent": true,
+    "elapsedMsA": 2861042
+  },
+  "reading": {
+    "scored": 33213,
+    "forced": 190,
+    "book": 3558,
+    "eligible": 29465,
+    "withoutTime": 0,
+    "withoutClock": 0,
+    "timeBucketSpeed": "blitz",
+    "excludedForSpeed": 2821,
+    "buckets": [
+      {
+        "key": "fast-under-45s",
+        "scope": "החלטות תחת פחות מ-45 שניות",
+        "n": 26580,
+        "accurateRate": 0.6258088788562829,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "slow-over-2m",
+        "scope": "החלטות אחרי יותר משתי דקות",
+        "n": 2,
+        "accurateRate": null,
+        "measurable": false,
+        "unmeasurableReason": "too-few"
+      },
+      {
+        "key": "phase-opening",
+        "scope": "החלטות בפתיחה",
+        "n": 8637,
+        "accurateRate": 0.6464050017367141,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "phase-middlegame",
+        "scope": "החלטות באמצע המשחק",
+        "n": 19577,
+        "accurateRate": 0.6024416407008224,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "phase-endgame",
+        "scope": "החלטות בסיום",
+        "n": 1251,
+        "accurateRate": 0.8105515587529976,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "clock-under-1m",
+        "scope": "החלטות עם פחות מדקה על השעון",
+        "n": 2315,
+        "accurateRate": 0.6971922246220302,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-winning",
+        "scope": "החלטות מתוך עמדה מנצחת",
+        "n": 10235,
+        "accurateRate": 0.6300928187591598,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-level",
+        "scope": "החלטות מתוך עמדה שקולה",
+        "n": 11537,
+        "accurateRate": 0.6140244430961255,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-losing",
+        "scope": "החלטות מתוך עמדה מפסידה",
+        "n": 7693,
+        "accurateRate": 0.6314831665150137,
+        "measurable": true,
+        "unmeasurableReason": null
+      }
+    ]
+  },
+  "verdict": {
+    "worst": {
+      "key": "phase-middlegame",
+      "n": 19577,
+      "accurateRate": 0.6024416407008224
+    },
+    "runnerUp": {
+      "key": "standing-level",
+      "n": 11537,
+      "accurateRate": 0.6140244430961255
+    },
+    "separation": 0.011582802395303071,
+    "threshold": 0.011450153016507062,
+    "separable": true
+  },
+  "bridge": {
+    "outcome": {
+      "kind": "registered",
+      "hypothesis": {
+        "bucket_key": "phase-middlegame",
+        "scope": "החלטות באמצע המשחק",
+        "registered_at": "2026-09-01T21:00:06.468Z",
+        "decisions_before": 0,
+        "evidence": {
+          "accurate_rate": 0.6024416407008224,
+          "n": 19577,
+          "runner_up_key": "standing-level",
+          "separation": 0.011582802395303071,
+          "threshold": 0.011450153016507062,
+          "games": 1240
+        },
+        "refutation_condition": "המשחקים המיובאים הצביעו על החלטות באמצע המשחק כמקום לבדוק בו — לא על מה שיימצא שם. אם ייאספו מספיק החלטות חיות בסוג הזה ולא יימצא בו פער כיול שחורג מהסף, ההשערה הופרכה, והחיפוש חוזר לשישה הסוגים."
+      }
+    },
+    "progress": {
+      "reached": "candidate",
+      "blockedReason": null
+    },
+    "prediction": null
+  },
+  "evidenceSha256": "604cf85973da3cf379610ac28633333c5fa5778e658e4858c0f4df38b23e7cf7"
+}
