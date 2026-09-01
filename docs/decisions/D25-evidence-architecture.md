@@ -58,7 +58,7 @@ reproducing the published values:
 | fixed, as written | .952 | **1.000** (250/250) | **−0.048** |
 
 Engine-free and prior: **99.5%** of legal moves satisfy the rule on trigger-negative items; on
-**94.1%** every legal move does.
+**93.2%** every legal move does.
 
 **The prescription is not wrong — it is uninformative.** And it is **two of seventeen** classes:
 `RC-12` inflates the same way, and the detector #49 built to find this reports it as clean, because

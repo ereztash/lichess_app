@@ -54,9 +54,9 @@
       "statement_refuted": "RC-06's separation of +0.768 shows the prescribed action is specific to its trigger.",
       "why": "b_valid|T+ and b_valid|T- are computed under different definitions of B. On T+, B = the opponent has no mate in one. On T-, B = the opponent has no check at all.",
       "measured": {
-        "t_minus_prescription_size_shipped": 0.104,
-        "t_minus_prescription_size_as_stated": 0.995,
-        "t_minus_items_where_every_legal_move_satisfies_stated_rule": 0.941,
+        "t_minus_prescription_size_shipped": 0.10361230871539323,
+        "t_minus_prescription_size_as_stated": 0.9940050583243489,
+        "t_minus_items_where_every_legal_move_satisfies_stated_rule": 0.9316959617587014,
         "b_valid_t_plus_branching": 0.952,
         "b_valid_t_minus_branching": 0.192,
         "separation_branching": 0.76,
@@ -65,7 +65,8 @@
         "separation_symmetric": -0.048,
         "sample_per_cell": 250,
         "engine_failures": 0,
-        "positive_control": "reproduces the published .968 / .200 / +0.768 within its own intervals on an independent draw"
+        "positive_control": "reproduces the published .968 / .200 / +0.768 within its own intervals on an independent draw",
+        "exact_not_sampled": "the whole 80,332-item T- cell, no sampling; three earlier samples gave .920/.922/.941 and bracket it"
       },
       "status": "refuted"
     },

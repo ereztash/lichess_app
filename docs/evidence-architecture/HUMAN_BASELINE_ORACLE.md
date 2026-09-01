@@ -45,7 +45,7 @@ The screen's chance rate is the share of legal moves satisfying `B` — a **unif
 human-policy null is strictly better, because humans do not play uniformly.
 
 > **Answered already, and Maia cannot improve on it.** On `RC-06`'s trigger-negative cell, **99.5% of
-> legal moves satisfy the rule as stated**, and on 94.1% of items **every** legal move does
+> legal moves satisfy the rule as stated**, and on 93.2% of items **every** legal move does
 > ([`RECONCILIATION.md`](RECONCILIATION.md) §2.6a). Any policy — uniform, Maia at any Elo, Stockfish,
 > a beginner — scores ≈1.00. Running Maia would produce a number between .99 and 1.00 at the cost of
 > a torch install. **When a predicate is satisfied by everything, no policy model can tell you

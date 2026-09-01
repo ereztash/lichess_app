@@ -31,7 +31,7 @@ written.
 | --- | --- |
 | shipped (branching) predicate | **.104** |
 | the rule as its own sentence states it | **.995** |
-| items where **every** legal move satisfies the stated rule | **94.1%** |
+| items where **every** legal move satisfies the stated rule | **93.2%** |
 | `b_valid` under the stated rule, Stockfish 17.1 | **1.000** (250/250) |
 
 One predicate gives a degenerate noise cell; the other gives an uninterpretable comparison. **There

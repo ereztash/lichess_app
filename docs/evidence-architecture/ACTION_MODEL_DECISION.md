@@ -85,7 +85,7 @@ measured on Stockfish 17.1:
 | symmetric `B`, as written | .952 | **1.000** (250/250) | **−0.048** | **fails** |
 
 Engine-free and prior to any search: **99.5% of legal moves satisfy the rule on trigger-negative
-items, and on 94.1% of them every single legal move does.**
+items, and on 93.2% of them every single legal move does.**
 
 **The prescription is not wrong. It is uninformative.** *"Play a move that stops the mate"* is
 excellent advice whose best member is the engine's own move. It cannot discriminate, because when no

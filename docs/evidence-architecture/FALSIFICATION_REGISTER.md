@@ -16,7 +16,7 @@ definitions of `B`, and under any single fixed definition the quantity is not +0
 **OBSERVATION.** `_threat_satisfies` returns *"the opponent has no mate in one"* on T+ and *"the
 opponent has no check at all"* on T−. Measured, corpus scan reproducing the published manifest
 exactly: T− prescription size **.104** under the shipped predicate against **.995** under the rule as
-its own `prescription` string states it; **94.1%** of T− items have every legal move satisfying the
+its own `prescription` string states it; **93.2%** of T− items have every legal move satisfying the
 stated rule. Stockfish 17.1, 200,000 nodes, 250 items per cell, 0 failures: `b_valid|T−` = **1.000**
 (250/250) under the fixed predicate; separation **−0.048** against +0.760 under the shipped one.
 
@@ -26,7 +26,7 @@ symmetric predicate is not the right reading of the rule.
 **Answered.** (a) The `branching` column reproduces the published .968/.200/+0.768 within its own
 intervals on an independent draw — that is the positive control. (b) The engine-free bound needs no
 sampling argument: if every legal move satisfies `B`, any policy satisfies it, and that holds on
-94.1% of items. (c) The symmetric predicate is the class's own `prescription` field, not a
+93.2% of items. (c) The symmetric predicate is the class's own `prescription` field, not a
 reinterpretation.
 
 **FALSIFIER.** A fixed response predicate, defensible from the rule's own statement, under which

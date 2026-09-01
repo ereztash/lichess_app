@@ -284,11 +284,21 @@ unverified comment of exactly this shape is what let `RC-21` through two screens
 | T− items where **every** legal move satisfies `B` | 0.05% | **92.2%** |
 | T− items where **no** legal move satisfies `B` | — | **0.0%** |
 
-> **Two draws, and the difference is recorded rather than smoothed.** §2.6b's table reports **94.1%**
-> for the same quantity from a different 2,000-item draw of the same 80,332-item cell. Both are
-> honest samples and neither is *the* number; the engine run below drew a third sample and got
-> **92.0%** (230/250). The mean prescription size is stable across all three at **.994–.995**, and
-> nothing in the argument turns on the third digit — **the bound below holds at any of them.**
+> **Computed exactly, on the whole cell, because two draws disagreed.** Three samples of this one
+> statistic gave 92.0%, 92.2% and 94.1%. All were honest draws and none was the number, so the
+> **entire 80,332-item cell** was scanned with no sampling at all
+> ([`rc06_full_cell.py`](../../research/evidence-architecture/rc06_full_cell.py), 38 minutes, no
+> engine). The exact values:
+>
+> | `RC-06` T−, all 80,332 items | shipped `B` | as-stated `B` |
+> | --- | --- | --- |
+> | mean prescription size | **.1036** | **.9940** |
+> | items where **every** legal move satisfies `B` | .03% | **93.17%** |
+> | items where **no** legal move satisfies `B` | — | 0.004% (3 items) |
+>
+> The three samples bracket it. The table above and every figure derived from it now carry the
+> exact **93.2%**; the sampled spread is kept here because a number that had to be recomputed
+> should say so.
 
 On roughly 92% of trigger-negative items **every legal move satisfies the rule as written**, so
 whatever the engine plays satisfies it. That is a lower bound with no engine in it:
@@ -378,7 +388,7 @@ nothing else:
 
 | | T− prescription size, shipped | T− as the sentence states it | items where **every** legal move satisfies the stated rule | inflation |
 | --- | --- | --- | --- | --- |
-| `RC-06` *"if the opponent threatens mate next move, play a move that stops it"* | .104 | **.995** | **94.1%** | **+0.891** |
+| `RC-06` *"if the opponent threatens mate next move, play a move that stops it"* | .104 | **.994** | **93.2%** | **+0.891** |
 | `RC-12` *"if the opponent can safely promote a pawn, prevent it"* | .184 | **.9995** | **99.6%** | **+0.815** |
 
 Both positive cells are unchanged by construction — .302 and .124 — because the branch only rewrites

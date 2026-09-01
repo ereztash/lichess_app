@@ -1,0 +1,24 @@
+{
+  "version": "1.0.0",
+  "what": "the whole RC-06 cell, no sampling",
+  "cells": {
+    "positive": {
+      "n": 2080,
+      "prescription_size_as_stated": 0.30211857133215625,
+      "prescription_size_shipped": 0.30211857133215625,
+      "every_legal_move_satisfies_as_stated": 0.006730769230769231,
+      "every_legal_move_satisfies_shipped": 0.006730769230769231,
+      "no_legal_move_satisfies_as_stated": 0.040865384615384616,
+      "seconds": 42.8
+    },
+    "negative": {
+      "n": 80332,
+      "prescription_size_as_stated": 0.9940050583243489,
+      "prescription_size_shipped": 0.10361230871539323,
+      "every_legal_move_satisfies_as_stated": 0.9316959617587014,
+      "every_legal_move_satisfies_shipped": 0.0003485535029627048,
+      "no_legal_move_satisfies_as_stated": 3.7345018174575515e-05,
+      "seconds": 2279.8
+    }
+  }
+}

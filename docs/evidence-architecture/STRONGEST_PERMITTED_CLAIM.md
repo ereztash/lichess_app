@@ -41,7 +41,7 @@ those fifteen and about the instrument that screened them.
 
 > **On outcome-shaped rules — *"if T, act so that T is gone"* — the trigger-negative cell is
 > degenerate by construction. Measured on `RC-06`: 99.5% of legal moves satisfy the rule when its
-> trigger is absent, and on 94.1% of items every legal move does. `RC-12` inflates the same way.**
+> trigger is absent, and on 93.2% of items every legal move does. `RC-12` inflates the same way.**
 
 Evidence: `E1`, measured on two of seventeen classes and argued structurally for the shape.
 
