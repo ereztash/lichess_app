@@ -43,6 +43,25 @@ which is a statement about people being identical.
 rate). At β = 2, the model reproduces the observed trigger-negative rate under the shipped predicate
 (2 × .104 = .21 against a measured .192–.200).
 
+## The required set of distinctions, declared before the simulation
+
+**No arbitrary global threshold.** What is declared instead is the set of distinctions the
+architecture must eventually make, and for each: what would separate it, what would count against
+separability, and what uncertainty must be reported alongside it.
+
+| pair | what theoretically separates them | what would count **against** separability | uncertainty to report |
+| --- | --- | --- | --- |
+| **A/B** recognises T + weak action selection **vs** no recognition, baseline produces B | the candidate set: was the answering move ever on the board? plus explicit detection in a laboratory arm | placement not tracking consideration; a baseline policy whose B-rate matches the recognising one at every item difficulty | the interval on the separation, **and** that the candidate array is one-sided — absence is uninformative |
+| **C/D** correct conditional discrimination **vs** response bias / perform-B-everywhere | the trigger-negative cell, scored by the **same** response predicate | a T− chance rate near 1; a T− cell scoring a different act; T− composition differing by strength band | the T− chance rate itself, per item, **never a pooled constant** |
+| **E/F** untimed competence **vs** time-pressure execution failure | the same items presented under both a timed and an untimed condition | time differences driven by legal-move count or interface rather than pressure; a protocol change between conditions | between-participant baseline speed, which is larger than most mechanism effects |
+| **G/H** immediate availability **vs** delayed retrieval failure | the same items at delay 0 and delay > 0, uncued | improvement over the interval from ordinary play; item re-exposure | what the player did between sessions, which is unobserved |
+| **cue** weak state a cue repairs **vs** one it does not | a **generic**, contentless cue arm | the cue signalling that the item is unusual rather than supplying orientation | the cue's effect on items where nothing is wrong |
+| **L7** the construct applies **vs** an alternative strategy producing the same move | latency, and only latency | a mechanism difference smaller than between-person speed variance | that this is a ceiling, not an estimate |
+
+**The gate, restated:** a construct is `UNDERIDENTIFIED` if material latent states remain
+observationally equivalent under the proposed protocol. It is **not** *classification accuracy > X*.
+The question is whether the evidence would change what the system does next.
+
 ## The seven learner types, and the intervention each would take
 
 | | latent state | next intervention if this is the diagnosis |
