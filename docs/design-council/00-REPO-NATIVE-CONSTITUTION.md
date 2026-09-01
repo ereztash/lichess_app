@@ -360,6 +360,49 @@ this pass.
 
 ---
 
+## 10b. The owner-reported defect: the writing surface is at the end of the line
+
+Reported by the owner from a screenshot of `DECIDE` after the first round shipped, reproduced in
+Chromium on the built tip.
+
+```
+SOURCE:            client/src/index.css `.workbench`, client/src/pages/Home.tsx (child order),
+                   client/index.html (`dir="rtl"`)
+EVIDENCE TYPE:     MEASURED (element rects read in Chromium on the production build)
+WHAT IT ESTABLISHES:
+  `.workbench` declared `grid-template-columns: [rail] 132px [board] minmax(480px, 1fr)
+  [task] 330px`, and the document runs right to left. Track 1 is therefore the RIGHT edge, and the
+  task column, declared last, landed at the left. Measured at 1440x900 on `DECIDE`:
+  `.commitment-screen` at x=24..354, `.board-workspace` at x=382..1416.
+  The surface a player WRITES INTO is at the end of the reading line. In `REVEAL` the toolbox
+  holds the reading start instead.
+  This is a direction fact, not a taste one, and no measurement this pass had made could catch it:
+  contrast, size, rank, measure and displacement were all measured, and none of them asks which
+  end of the line the language starts at.
+WHAT IT IMPLIES FOR ART DIRECTION:
+  1. Track 1 belongs to the surface that receives what the player has to say. The DOM order has to
+     move with it, or the tab order and the eye disagree and the fix has traded one defect for a
+     worse one.
+  2. The direction may not be pinned in the stylesheet. If a physical side decides a layout, the
+     layout is correct in exactly one language, and the same defect returns the first time the
+     interface language changes.
+WHAT IT FORBIDS:
+  A repair by `order:` or `tabindex`. Both would leave the DOM order saying one thing and the
+  screen saying another, on the two screens where a keyboard walk and a visual walk have to be the
+  same walk.
+  Also forbidden: reading "we need to allow switching between the languages" as a licence to
+  translate. The interface is Hebrew in 931 strings across 115 files, and on `DECIDE` and
+  `ANSWER_INSTRUMENT` the copy IS the stimulus -- a translation is a protocol change. The owner
+  scoped this himself: "חוק פריסה בלבד, עכשיו".
+WHAT IT DOES NOT ESTABLISH:
+  That the product will ever ship a second interface language, or which one. The rule derives the
+  direction from the language rather than asserting a language exists.
+```
+
+**Classification:** `REPO-SOLVABLE`, `P1`. Taken in this pass.
+
+---
+
 ## 11. Measured baseline facts that no previous document holds
 
 Four things measured in Chromium at `b9a228c` for this pass, none of which appear in the earlier

@@ -235,6 +235,59 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  * `LAW 9`'s three friction points are untouched. `deriveInteractionMode`, `MODE_CONTRACT`,
  * `makingEvidence`, `engineMayRun` and `next-action.ts` were not edited.
  */
+/*
+ * 4, SECOND ROUND: THE PANEL'S SIDE AND ITS STEP MARKS, ON THE SAME UNRELEASED VERSION.
+ *
+ * WHAT CHANGED. Two of these three are on the list the 2 -> 3 note says would force a bump, and
+ * the first contradicts a sentence the 3 -> 4 note above wrote:
+ *
+ *   .workbench                the task column moved from track 3 to track 1. On a right-to-left
+ *                             page that puts `.commitment-screen` at the reading start rather than
+ *                             at the far left -- measured at 1440x900, x=24..354 before. The note
+ *                             above lists "the position of every control" among what stayed
+ *                             identical. It is not identical any more, and this is that sentence
+ *                             being corrected rather than left standing.
+ *   .step-index               a filled circle badge -> a mono ordinal, ruled once its step is
+ *                             answered. Three states before and three after, none of them colour
+ *                             alone; what goes is the wizard-step form, on the one screen whose
+ *                             contract is that it is RECORDING rather than collecting.
+ *   .commitment-step[open]    lost its border. `--raise` now travels 0.186 in luminance from the
+ *                             page rather than 0.040, which is the work the border was doing.
+ *   .commitment-step + ...    the four steps are ruled into a register: one hairline between
+ *                             consecutive rows, 6px either side, against the 12px that separates
+ *                             the panel's regions. The open step is lifted out of it rather than
+ *                             ruled into it, so the rhythm does not change when a step opens.
+ *                             The panel's total height moves; no control moves relative to the
+ *                             ones around it, and none is added or removed.
+ *   @media forced-colors      the open step takes a `Highlight` border. This is the one change
+ *                             that ADDS a signal rather than moving one, and it is a repair: in
+ *                             that mode the open state was said only by a background, which the
+ *                             mode replaces with the system's Canvas, so there was no indicator
+ *                             for the open step in this build OR the one before it. A reader in
+ *                             forced colours is a different stimulus population already; this
+ *                             makes their screen say what everyone else's says.
+ *
+ * WHY THIS IS NOT 5, AND THE REASONING IS NARROW ON PURPOSE. A version number separates
+ * populations, and version 4 has never stamped a row: `CURRENT_PROTOCOL_VERSION` is written in
+ * exactly one place, `shared/blitz-record.ts`, by whichever build is running, and 4 exists only on
+ * an unmerged branch that has not been deployed. Splitting 4 from 5 here would produce two
+ * versions, one of them permanently empty, and then ask every later analysis to pool them back
+ * together: the fragmentation cost of a bump with none of its discrimination benefit. The rule
+ * this file states is about a stimulus that changed UNDER MEASUREMENT. Nothing was measured under
+ * either half of 4.
+ *
+ * THIS EXPIRES THE MOMENT A BUILD STAMPING 4 REACHES A PLAYER. After that the next change to the
+ * same list is 5, whatever else is in flight, and no argument of this shape applies again.
+ *
+ * WHAT REMAINED IDENTICAL: every word on the screen, every question, the order they are asked in,
+ * the confidence scale and its sampling, the counterfactual probe and its rate, reveal timing,
+ * engine timing, thresholds, eligibility, scoring, and the measurement schema.
+ *
+ * AND ONE THING THAT DID NOT COME APART. The DOM order moved with the visual order in `Home.tsx`,
+ * so the sequence a keyboard player walks is the sequence a sighted player sees. A layout change
+ * that had left those two disagreeing would have changed the instrument for one population and
+ * not the other, which is a worse problem than a version number.
+ */
 export const CURRENT_PROTOCOL_VERSION = 4;
 
 /**

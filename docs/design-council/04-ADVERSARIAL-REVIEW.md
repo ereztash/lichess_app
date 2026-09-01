@@ -132,6 +132,23 @@ Four blockers, and all four were true.
 
 ---
 
+## 4a. Round two, reviewed against itself
+
+The owner looked and named three things. Those are recorded in
+[`05-FINAL-REPORT.md`](05-FINAL-REPORT.md) §13. This section is the case against what was done
+about them, written before the branch was pushed rather than after somebody else made it.
+
+| # | objection | answer |
+| --- | --- | --- |
+| R2-1 | **The direction defect was in this pass's own tip, and this pass captured a screenshot of it and did not see it.** `DECIDE` at 1440×900 was rendered, cropped and read during the baseline, with the commitment panel at `x=24..354`. The pass measured contrast, rank, size, displacement, squint mass and measure — every quantity it could name — and none of them asks *which end of the line does this language start at*. A native reader saw it in one glance | **conceded, and it is the most useful finding of the round.** A measurement programme is only as good as the questions it can express, and "is this the right way round for the reader" was not one of them. It is one now: `tests/client/one-direction-one-language.test.ts` and the track-name assertions in the layout suite. Neither of those would have caught it *first* — a person did — and that is recorded rather than dressed up |
+| R2-2 | **The licence for the surface changes came from a menu this pass wrote.** The owner said *"it should look a bit more like it reflects strategy"*; four readings were offered and he picked one. If the four were the wrong four, the answer is an artefact of the question | **partly conceded.** The alternative was guessing, and two of the four readings would have changed what a player looks at while a decision is being measured — a protocol change dressed as taste. Offering the choice is what kept it from being taken silently. That the answer is bounded by the options is true and is why §13.5 leaves the underlying question open rather than closed |
+| R2-3 | **The register adds a boundary to a pass whose headline was six control edges reduced to one.** Three hairlines were added between steps in the same commit that removed one from the open step. The net count of drawn lines on `DECIDE` went **up** | **conceded on the count, disputed on the claim.** The count that mattered was of *control edges* doing the same job in six different weights; the register's rule is a grouping mark on the panel's own `--hairline`, not a seventh control treatment, and it replaces a 12px gap that was making the same statement less clearly. It is still an addition, and an addition is the thing this pass is meant to be reluctant about |
+| R2-4 | **The protocol did not bump, on an argument about deployment state rather than about the stimulus.** The rule says a change to a class that paints on `DECIDE` forces a version. Three did. The exception granted is "version 4 has never stamped a row", which is a fact about where the branch is, not about what the screen is. The first exception to a rule is how the rule dies | **disclosed rather than resolved.** The argument is written at the constant, it is checkable (`CURRENT_PROTOCOL_VERSION` is stamped in exactly one place, by whichever build is running, and this branch is unmerged), and it carries its own expiry: the moment a build stamping 4 reaches a player, the next change to the same list is 5. An adversary is right that this is the weakest paragraph in the round. It is also the one most likely to be checked, which is why it is written where the constant is rather than in a document |
+| R2-5 | **The phone's DOM order and visual order now disagree, and they used to agree.** A keyboard or screen-reader user on a phone reaches the panel before the board the panel's first field is filled from | **conceded as a cost, taken deliberately.** One of the two orders had to give: repairing the desktop with `order` or `tabindex` would put the divergence on the surface that matters more, and putting the panel above the board on a phone would separate the move from the board it is made on. Both sequences carry the same meaning, which is what 1.3.2 asks, and both are asserted so neither can drift. **The screen-reader half of that claim is reasoned, not tested** — no screen reader has been run in this pass or any before it, and §9 of the report says so |
+| R2-6 | **"It reads as an instrument rather than a form" is exactly the kind of perceptual claim this pass sends to FIELD, and it was not sent** | **conceded and corrected.** It is a `FIELD` question and it is now in the table below. What can be said without a field is narrower and is all that is claimed: the wizard-step badge is gone, the rows are one register, and no word, question, option or requirement changed |
+
+---
+
 ## 5. What no pass could settle
 
 | # | question | authority |
@@ -144,3 +161,5 @@ Four blockers, and all four were true.
 | 6 | Which of the three routes should a cold arrival take? | **FIELD** — the ledger already records it |
 | 7 | Is the chart palette too close to the machine's hue to keep? | **OWNER**, after a measured re-validation |
 | 8 | Do the internal state labels (`DECIDE`, `REVEAL`) help? | **FIELD** |
+| 9 | Does the decision panel read as an instrument rather than as a form, to somebody who did not build it? | **FIELD** — one screenshot and one owner answer scoped the change; neither settles how it is read |
+| 10 | Does a screen reader hear the phone's DOM order as the same meaning the eye sees? | **FIELD**, and it is the one place the two orders differ. No screen reader has been run |

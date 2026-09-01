@@ -195,7 +195,8 @@ Unchanged. Zero live animations under `prefers-reduced-motion`, before and after
 | the 7-point confidence scale | `dir="ltr"` on `/play`, RTL on `/blitz` — **the same instrument running in opposite directions** | one direction, the document's |
 | Hebrew in mono classes | Liberation Serif fallback | the product's own face |
 | brand lockup vs header controls at 390px | **20px of overlap** | 130px of clearance |
-| logical properties | 26 logical / 11 audited physical | unchanged |
+| logical properties | 26 logical / 11 audited physical | **0 physical outside the board**; direction derived from `shared/interface-language.ts` |
+| the commitment panel on a Hebrew page | `x=24..354` at 1440×900 — the far left, where a Hebrew reader arrives last | track 1, the reading start, with the DOM order moved to match |
 
 ### Accessibility
 
@@ -319,7 +320,12 @@ record.
 3. **Does silence feel legitimate?**
 4. **Which of the three routes does a cold arrival take?** The ledger already records it.
 5. **Do the internal state labels (`DECIDE`, `REVEAL`) help or intrude?**
-6. **Screen readers.** None was run, and no claim is made.
+6. **Screen readers.** None was run, and no claim is made. Round two made this matter more: the
+   phone is now the one place the DOM order and the visual order differ, and the argument that both
+   carry the same meaning is reasoned rather than heard.
+7. **Does the decision panel read as an instrument rather than as a form?** Round two changed the
+   surface it was asked to change. Whether the reading changed is not something the person who made
+   the change can answer.
 
 ---
 
@@ -329,7 +335,7 @@ record.
 REPO-SOLVABLE P0/P1:    0
 BROWSER-SOLVABLE P0/P1: 0
 OWNER-REQUIRED:         6
-FIELD-REQUIRED:         6
+FIELD-REQUIRED:         7
 
 TECHNICAL FRONTEND DOD:   PASS
 ART DIRECTION SYSTEM DOD: PASS
@@ -343,9 +349,9 @@ FIELD VALIDATION:         PENDING
 
 **What each row rests on.**
 
-- **Technical:** `npm run verify`, run to completion on the tip — typecheck, build, **2,903 tests
-  passed / 26 skipped across 259 files**, **28 gates green**, **28 positive controls red**, bundle
-  within budget (initial download 757.6 kB against a 761 kB ceiling). axe: 0 violations on five populated states. No
+- **Technical:** `npm run verify`, run to completion on the tip — typecheck, build, **2,911 tests
+  passed / 26 skipped across 262 files**, **28 gates green**, **28 positive controls red**, bundle
+  within budget (initial download 758.3 kB against a 761 kB ceiling). axe: 0 violations on five populated states. No
   horizontal overflow at four viewports or a 32px root. Zero live animations under reduced motion.
 - **Art direction system:** one thesis, one signature, one system, a stated risk, a stated
   restraint; the subject-swap test passes **by one row, and the table says so**.
@@ -389,3 +395,112 @@ Every remaining item in [`04-ADVERSARIAL-REVIEW.md`](04-ADVERSARIAL-REVIEW.md) i
 further design repository, palette or reference would shorten either list.
 
 What remains is one person looking, and some players using it.
+
+---
+
+## 13. The owner looked — round two
+
+§11 asked one question and said that an "it still feels wrong" answer would be **new evidence** and
+would not be argued with. It was answered, from a screenshot of `DECIDE`, in three parts. Recorded
+here in the order they arrived.
+
+### 13.1 What was said, and what it was not allowed to mean
+
+> *"אני חושב שזה צריך להראות קצת יותר משקף אסטרטגיה."*
+
+Four readings fit that sentence and they lead to four different products: more strategic
+**information** on the screen; a **surface** that reads like an instrument rather than a form; more
+visual **weight** on the board; or a claim that the product **is** a strategy tool, which it is not
+and may not say. Two of the four would have changed what a player is looking at while a decision is
+being measured, which is a protocol change dressed as taste. The reading was not guessed. The owner
+was asked and chose:
+
+> **"המשטח, לא התוכן"** — the surface, not the content. No new information, no measurement change.
+
+That answer is the whole licence for §13.3, and the reason it stops where it does.
+
+### 13.2 Direction, and the side the writing surface is on
+
+> *"RTL דורש גם להצמיד לימין מסכי כתיבה… אם זה באנגלית זה צריך להיות מצד שמאל, אנחנו צריכים לאפשר
+> מעבר בין השפות."*
+
+Two things, one of which is a defect and one of which is a request.
+
+**The defect.** `.workbench` declared `[rail] [board] [task]`. Track 1 is the right edge of a
+right-to-left page, so the panel a player writes into rendered at `x=24..354` — the far left, the
+place a Hebrew reader reaches last — with the board holding the reading start. Nothing in this
+pass's own measurements caught it, because every measurement it made was of contrast, size, order
+and displacement, and none of them asks *which end of the line does this language start at*. The
+fix is the track order and, with it, the DOM order in `Home.tsx`, so the tab sequence is the
+sequence the eye takes.
+
+**The request**, scoped by the owner to **"חוק פריסה בלבד, עכשיו"** — the layout rule only, now:
+
+- `shared/interface-language.ts` is the single source of the pair. `App.tsx` writes it onto the
+  document; `client/index.html` ships the same pair statically so the first paint is not the wrong
+  way round; `tests/client/one-direction-one-language.test.ts` holds the three in agreement.
+- Every physical side in `client/src/index.css` became logical. Fourteen declarations. Two remain,
+  both on the board, because a1 is bottom-left for White in every language.
+- **No translation.** 931 Hebrew strings across 115 files, and on the two measured screens the copy
+  *is* the stimulus, so translating is a protocol change and not a formatting one. The module's own
+  comment says this at the declaration rather than in a document nobody opens.
+
+### 13.3 The surface, not the content
+
+Two changes, both of the surface, and the count is the point: this is the whole of what
+"המשטח, לא התוכן" buys.
+
+**The first is the step mark.** `.step-index` was a filled circle with a numeral in it, which is
+the most recognisable form component in existence; four of them down the side of a panel say
+*fill this in*. The panel's contract is that it is **recording**. It is now a mono ordinal in
+the same face as every other reading in the product, with a rule struck under it once its step is
+answered — three states, ground and weight and a rule, never colour alone, which is section 4.5's
+standing requirement. `.commitment-step[data-state="open"]` gave up its border in the same move,
+because `--raise` now travels 0.186 in luminance from the page rather than 0.040 and the border was
+standing in for a ground that could not be seen.
+
+**The second is the register.** The four steps are direct children of a flex column with a 12px gap,
+so they rendered as four detached labels floating on the panel's ground — measured at 1440×900,
+three collapsed rows across 216px of panel with nothing joining them. They are ruled now: one
+hairline between consecutive rows, 6px either side of it, and the open step lifted out of the
+register rather than ruled into it. A register's rows are closer than a panel's regions, and the
+rule is what says these four are one reading rather than four things you fill in.
+
+Nothing else. Same numerals, same places, same sizes, same words, same order, same questions, and
+the required marks stay on the collapsed rows for the reason the component already gives: what is
+required has to be knowable before the click.
+
+### 13.4 What it cost the measurement
+
+Three of the four changes are on the list `CURRENT_PROTOCOL_VERSION`'s own bump rule names — the
+step mark, the open step's ground and the register are all "the step heads" — and the fourth, the
+track order, contradicts a sentence the 3 → 4 note wrote (*"the position of every control"* stayed
+identical; it did not). A fifth change paints only under `forced-colors: active` and is listed with
+them. The version stays at **4**, and the reasoning is written at the constant so
+it can be checked rather than trusted: version 4 has never stamped a row — it is written in one
+place, by whichever build is running, and it exists only on an unmerged branch. Splitting it would
+produce two versions, one permanently empty, and ask every later analysis to pool them back. The
+rule is about a stimulus that changed *under measurement*. Nothing was measured under either half
+of 4. **That argument expires the moment a build stamping 4 reaches a player**, and the note says
+so.
+
+### 13.5 One thing the round paid for on the way
+
+`Home.tsx` is under a ratchet that may only ever go down
+(`tests/client/the-file-that-only-ever-grew.test.ts`), and the comment explaining the workbench's
+new reading order pushed it two lines over. The rule the ratchet states is *move something out,
+do not raise the ceiling*, so the tool rail became `client/src/components/ControlRail.tsx`: seven
+props, no state, nothing closing over the fifty-three pieces of state that make every other split
+of that file a redesign. The file came out nine lines below where it started rather than two above.
+The ceiling was left where it is — its headroom is documented as deliberate, unlike the state
+ceiling, which is a hard ratchet.
+
+### 13.6 What this round did not settle
+
+`OWNER VISUAL ACCEPTANCE` is **still PENDING**. The owner has now seen `DECIDE` and named three
+things about it; that is not the same as having looked at the built app across its states and
+answered §11's question.
+
+The `FIELD-REQUIRED` list grew rather than shrank: this round added the very question it acted on.
+Whether the panel now reads as an instrument to somebody who did not build it is not answerable by
+the person who changed it, and one screenshot with one answer does not close it.

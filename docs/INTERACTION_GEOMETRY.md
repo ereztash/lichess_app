@@ -499,3 +499,36 @@ column with the board on top.
 
 **`ANSWER_INSTRUMENT`'s continuity anchor is the board.** The question is *about* the move just
 played, so the board it was played on must not move underneath it. Measured: 0px, in both axes.
+
+
+---
+
+## Addendum — the track order changed, and every measurement above predates it
+
+Everything above was measured against `grid-template-columns: [rail] [board] [task]`, and that
+order is no longer what ships. The tables are left exactly as they were taken: they are a record of
+a browser session, and rewriting a measurement to match a later build is how a document stops being
+evidence.
+
+**What changed.** The tracks are `[task] 330px [board] minmax(480px, 1fr) [rail] 132px`, focus is
+`[task] 330px [board] minmax(480px, 1fr)`, and the ≤1050 breakpoint is
+`[board] minmax(420px, 1fr) [rail] 90px`. The children in `Home.tsx` were reordered to match, so
+the DOM order is the visual order.
+
+**Why.** The document runs right to left, so track 1 is the right edge and the task column —
+declared last — put the surface a player writes into at the far left, where a Hebrew reader arrives
+last. Measured at 1440×900 on `DECIDE`: `.commitment-screen` at x=24..354. Reported by the owner
+from a screenshot; the reasoning is in
+[`docs/design-council/00-REPO-NATIVE-CONSTITUTION.md`](design-council/00-REPO-NATIVE-CONSTITUTION.md)
+§10b.
+
+**What did not change, and this is the part that matters for §6 and §7 above.** The *diagnosis*
+this document made is untouched. The tracks are still named, every child still declares its column
+by name, `.workbench-focus` still drops the rail's track rather than leaving it empty, and the
+template and the child list are still governed by the same `focus` identifier — the rail's markup
+moved to `client/src/components/ControlRail.tsx`, but the gate on it did not move out of
+`Home.tsx`, which is the half this document's diagnosis was about. The board still does
+not resize between `DECIDE` and `REVEAL`; only the sign of the displacement flips, because the
+toolbox now returns on the far side. The §10 assertions were re-run and the one that reads the
+rail's width now reads it **by track name** rather than by position, which is what it should always
+have done.

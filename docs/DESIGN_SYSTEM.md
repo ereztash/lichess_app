@@ -140,6 +140,42 @@ to 65px at 60ms, moving the board 23px up (CLS 0.0023 → 0.0137). The face is n
 
 ---
 
+## Direction
+
+One module decides it, and the stylesheet never asks:
+
+```ts
+// shared/interface-language.ts
+export const INTERFACE_LANGUAGE: InterfaceLanguage = "he";
+export const INTERFACE_DIRECTION = DIRECTION_OF[INTERFACE_LANGUAGE]; // "rtl"
+```
+
+`App.tsx` writes the pair onto `<html>`; `client/index.html` ships the same pair as static
+attributes so the first paint is not the wrong way round.
+`tests/client/one-direction-one-language.test.ts` holds the three in agreement — the module, the
+document, and the component that sets it.
+
+**Nothing in `index.css` names left or right.** Layout is written in logical properties:
+`border-inline-start`, `margin-inline-end`, `padding-block-end`, `text-align: start` / `end`.
+Fourteen physical declarations were converted to get here. Two remain, both on the board: the rank
+and file labels, which are physical on purpose — a1 is bottom-left for White in every language.
+
+**The writing surface sits at the reading start.** `.workbench` declares
+`[task] 330px [board] minmax(480px, 1fr) [rail] 132px`; on a right-to-left page track 1 is the
+right edge, so the panel a player writes into is the first region they meet, and the toolbox is
+last. The DOM order in `Home.tsx` was moved with it, so tab order follows the eye without an
+`order` or a `tabindex` to repair it. The phone is the one place the two diverge, and it is
+documented at the assertion that permits it
+(`tests/layout/the-board-in-the-state-that-decides.layout.test.ts`).
+
+**This is a layout rule, not a translation.** The interface is Hebrew: 931 Hebrew strings across
+115 files, and on the measured screens the copy *is* the stimulus. Switching the constant would lay
+the page out correctly in the other direction and leave every word in Hebrew, which is why the
+module ships the direction rule and stops there. What it buys today is that the rule is derived
+rather than pinned.
+
+---
+
 ## Spacing
 
 `--s1: 4px` · `--s2: 6px` · `--s3: 8px` · `--s4: 12px` · `--s5: 18px` · `--s6: 28px`
@@ -177,6 +213,27 @@ became two.
 
 **Selected is not pressed.** A selected token keeps its chip ground and takes an `--ink` edge and
 weight 600; the state separation measures 11.4:1, up from 5.21:1 when it was a filled hue.
+
+**A step mark is a reading, not a badge.** `.step-index` is a mono ordinal, set in the same face as
+every other reading in the product. Its three states are ground and weight and a rule, never colour
+alone:
+
+| state | mark |
+| --- | --- |
+| not reached | the numeral, `--muted`, weight 400 |
+| open | the numeral, `--ink`, weight 700, plus the raised ground under the whole step |
+| answered | a check, `--ink`, ruled underneath — the way a line on a paper form is struck once its answer is on it |
+
+The steps themselves are a **register**: one hairline between consecutive rows and 6px either side
+of it, against the 12px that separates the panel's regions. The open step is lifted out of the
+register rather than ruled into it — it carries `--raise` and a radius, and the two rules that
+would touch it go transparent while keeping their space, so the rhythm does not change when a step
+opens.
+
+It was a filled circle with a number in it, which is the most recognisable form component there is.
+Four of them down the side of a panel say *fill this in*, and this panel's contract is that it is
+**recording**. The information did not change: same numeral, same place, same size, same three
+states, same words.
 
 ---
 
@@ -217,9 +274,17 @@ None. Zero live animations under `prefers-reduced-motion`, and none added.
 ## Forced colours
 
 Four opt-outs, and everything else obeys the reader: the two square colours and the two piece
-colours, because `light`/`dark` and `white`/`black` are how a position is *stated*. Four marks are
+colours, because `light`/`dark` and `white`/`black` are how a position is *stated*. Five marks are
 re-stated in system colours instead: `.last-square` (`LinkText`), `.selected-square` (`Highlight`),
-and the loop strip's ticks (`GrayText` / `Highlight`).
+the loop strip's ticks (`GrayText` / `Highlight`), and the open step of the decision panel
+(`Highlight` on its border).
+
+**A state carried by a background is a state this mode erases.** The open step said itself twice —
+the raised ground under the step, and the weight of its ordinal — and forced colours replaces
+author background-colors with the system's Canvas, so only the weight survived while
+`.commitment-step`'s transparent border became four identical opaque boxes. The border is the one
+channel left, so the open one takes `Highlight`. This was true of the build before this pass too:
+the mark it erased then was a circle filled with `--ink`.
 
 ---
 

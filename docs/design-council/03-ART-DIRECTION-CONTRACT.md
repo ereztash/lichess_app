@@ -194,6 +194,66 @@ not a preference.
 
 ---
 
+### Direction, and where the writing surface sits
+
+**RULE: the surface a player writes into occupies track 1, which is the reading start in whichever
+direction the document runs.**
+
+This was not the layout the pass shipped first. `.workbench` declared `[rail] [board] [task]`, and
+on a Hebrew page track 1 is the right edge, so the commitment panel — the one region on `DECIDE`
+whose whole job is to receive what the player has to say — sat at `x=24..354`, the far left, where
+a Hebrew reader arrives last. The board occupied the reading start and the toolbox sat above it.
+Nothing was broken by any measure this contract had; it was simply the wrong way round for the
+language the product is in, and the owner said so from a screenshot.
+
+**RULE: no rule in the stylesheet names a physical side.** Direction comes from
+`shared/interface-language.ts` through the document, and every layout declaration is logical. The
+same three tracks therefore read task–board–rail from the right in Hebrew and from the left in a
+language that runs the other way, with no second stylesheet and no mirroring pass. Two physical
+declarations survive on purpose: the board's rank and file labels, because a1 is bottom-left for
+White in every language, and a board that mirrored itself with the interface would be stating a
+different position.
+
+**WHAT THIS RULE DOES NOT BUY.** It is a layout rule and not a translation. The interface is
+Hebrew — 931 strings across 115 files — and on `DECIDE` and `ANSWER_INSTRUMENT` the copy is the
+stimulus, so a translation is a measurement change and not a formatting one. The direction rule is
+correct now and is a prerequisite for a second language later. It is not that language.
+
+**FORBIDDEN:** a `dir` attribute written anywhere but from the module; an `order` or a `tabindex`
+that repairs a DOM order the visual order left behind. The one place the two orders diverge is the
+phone, where the board precedes the panel visually and follows it in the DOM, and that divergence
+is asserted at the test that permits it rather than left to be discovered.
+
+---
+
+### The decision panel is a register
+
+**RULE: on the one screen whose contract is that it is RECORDING, the surface may not borrow the
+form of a screen that COLLECTS.**
+
+Two marks carried the wrong form and both are surface, which is the licence the owner gave when he
+was asked what "it should look more like it reflects strategy" meant: **"המשטח, לא התוכן"**.
+
+- **The step mark was a filled circle with a numeral in it.** That is the most recognisable form
+  component in existence, and four of them down the side of a panel say *fill this in*. It is a
+  mono ordinal now, set in the same face as every other reading in the product, in the three states
+  section 4.5 requires and never in colour alone.
+- **The four steps floated 12px apart on the panel's ground.** Measured at 1440×900: three
+  collapsed rows across 216px with nothing joining them — four separate things rather than one
+  reading. They are ruled into a register, 6px either side of a hairline, and the open step is
+  lifted out of it rather than ruled into it.
+
+**WHAT THIS RULE MAY NOT REACH.** Not one word, question, option, order or requirement. The panel
+is the instrument; a change to what it asks is a protocol change, and the owner's answer excluded
+it before this pass could be tempted by it. The required marks stay on collapsed rows for the
+reason the component already gives: what is required has to be knowable before the click.
+
+**FORBIDDEN:** progress bars, completion percentages, a "step 2 of 4" counter, a wizard chrome of
+any kind, and any mark that says how well the panel is being filled in. The panel records; it does
+not score the recording.
+
+---
+
 ## RISK
 
 **The primary action is the page's own ink, filled — not a hue.**
