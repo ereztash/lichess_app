@@ -358,7 +358,8 @@ be the evidence that one is.
 | the same file against the **shipped** `index.css` and `Home.tsx` | **27 failed, 18 passed** — the positive control |
 | `npx vitest run tests/client/ux-contract.test.ts tests/client/board-square.test.ts` | 39 passed |
 | `npx vitest run tests/client/nothing-to-read-while-you-decide.test.tsx tests/client/knows-before-you-ask.test.tsx` | 47 passed |
-| `npm run verify` | see the run recorded in the commit message |
+| `npm run verify` (this change alone) | typecheck clean, build clean, **2,839 tests passed / 0 failed / 26 skipped**, **27 gates PASS**, **27 positive controls RED**, bundle within budget |
+| `npm run verify` (after merging `main`, which landed #50, #49 and #51) | typecheck clean, build clean, **2,868 tests passed / 0 failed / 26 skipped**, **27 gates PASS**, **27 positive controls RED**, bundle within budget |
 
 What it cost the bundle, from the two builds side by side — nothing was imported, so this is the
 class name and the CSS text:
