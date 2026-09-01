@@ -270,6 +270,8 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/discovery-v2/M0_AUDIT.md`](docs/discovery-v2/M0_AUDIT.md) | ארבע שאלות על מכשיר המדידה עצמו, לפני שנבנה מנוע discovery חדש — ומה שנמצא הפך את הכיוון | אנגלית |
 | [`docs/decisions/`](docs/decisions/README.md) | פנקס ההכרעות: מה נבחר, מה נדחה, איזה מימוש חיצוני כבר קיים, ומה יהפוך כל הכרעה | אנגלית |
 | [`docs/INTERACTION_GEOMETRY.md`](docs/INTERACTION_GEOMETRY.md) | מה המסך מסודר סביבו בכל מצב, נמדד בדפדפן: הפריסה של `DECIDE`, המעברים, מסע ההפרכה, ומה דורש שדה | אנגלית |
+| [`docs/design-council/`](docs/design-council/05-FINAL-REPORT.md) | האם השפה החזותית עושה את התזה של המוצר נראית: החוקה מהמאגר, קו הבסיס הנמדד, חוזה האמנות, ורישום הביקורת היריבה | אנגלית |
+| [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | מה כל טוקן אומר ומה מותר לו לצבוע | אנגלית |
 | [`docs/ACTION_PLAN.md`](docs/ACTION_PLAN.md) | מה נעשה הלאה, באיזה סדר, ובאילו תנאי עצירה | אנגלית |
 | [`docs/STATIC_DEPLOYMENT.md`](docs/STATIC_DEPLOYMENT.md) | לפרוס בלי שרת בכלל, ומה נשמר ומה נאבד | אנגלית |
 

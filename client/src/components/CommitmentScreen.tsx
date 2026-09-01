@@ -517,7 +517,25 @@ export function CommitmentScreen({
         "confidence",
         <fieldset className="commitment-confidence" disabled={pending}>
           <legend className="sr-only">כמה אתם בטוחים</legend>
-          <div className="confidence-row" dir="ltr">
+          {/*
+            * THE SAME SCALE RAN IN OPPOSITE DIRECTIONS ON THE TWO SCREENS THAT COLLECT IT.
+            *
+            * This carried `dir="ltr"` inside an otherwise fully RTL panel, so `1 ניחוש` sat at the
+            * LEFT edge and `7 ודאי` at the right; `Blitz.tsx` declares no direction at all, so the
+            * same seven buttons run right to left there. Measured in Chromium at 1440: x=52 for
+            * option 1 here, and option 7 at the left edge on `/blitz`. A player who reaches for
+            * "the third box" means two different confidences depending on which loop they are in,
+            * and nothing in either row tells them apart.
+            *
+            * THIS IS THE INSTRUMENT, not a layout. The direction is removed rather than copied to
+            * the other screen, because the labels under the digits are Hebrew and the document is
+            * Hebrew: the low end belongs at the reading start. Single digits need no direction of
+            * their own -- the reason `3+0` and `7. Bb3` are marked `ltr` elsewhere is that they
+            * are RUNS of Latin characters, and `1` is not a run.
+            *
+            * It is one of the eleven changes that took `CURRENT_PROTOCOL_VERSION` to 4.
+            */}
+          <div className="confidence-row">
             {CONFIDENCE_CHOICES.map((level) => (
               <button
                 key={level}

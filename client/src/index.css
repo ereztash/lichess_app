@@ -9,8 +9,20 @@
  * dropped: nothing in this app renders them, and they were two thirds of the bytes.
  *
  * DM Mono 700 is absent because it does not exist. The old @import requested `wght@400;700`
- * and Google served 400 only -- the family has no bold. Every `font: 700 ... "DM Mono", ui-monospace, Menlo, Consolas, monospace` in this
+ * and Google served 400 only -- the family has no bold. Every `font: 700 ... "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace` in this
  * stylesheet was already being synthesised by the browser, before this change and after it.
+ */
+/*
+ * AND THE MONO STACK CARRIES A HEBREW FACE AFTER IT, which is not a preference either.
+ *
+ * DM Mono's `unicode-range` below is Latin only, so every Hebrew string in a mono class falls
+ * through the stack. Read back through CDP `CSS.getPlatformFontsForNode` on the built app: the
+ * loop strip's four stage names, the three `חובה` markers, `מסילת מהלכים`, the import labels and
+ * the empty move field all painted in **Liberation Serif** -- a serif that appears nowhere else in
+ * this product -- and `בחרו מהלך על הלוח` painted in TWO faces at once, DM Mono for three glyphs
+ * and Liberation Serif for fourteen. Naming the product's own Hebrew face next in the stack means
+ * the Latin glyphs still come from DM Mono and the Hebrew ones come from the face the rest of the
+ * interface is set in.
  */
 @font-face {
   font-family: 'DM Mono';
@@ -122,7 +134,14 @@
      border and hairline drawn from them had no colour at all -- measured in a browser as
      "(EMPTY)" for --edge, --edge-soft, --hairline, --hairline-strong and --last-move. That is
      what "the light presentation is depressing" was: twenty declarations rendering colourless. */
-  --edge: #7c8b86;
+  /*
+   * THE ONE EDGE A SECONDARY CONTROL WEARS, and the value moved once this pass gave it that job.
+   * At #7c8b86 it measured 3.22:1 against `--surface` and 2.81:1 against `--paper` -- so a control
+   * sitting on a card conformed to 1.4.11 and the same control sitting on the PAGE did not, which
+   * is where the four header icons live. #6f7e79 measures 3.38:1 on the page and 3.84:1 on a card.
+   * Dark is unaffected and was measured: 5.48:1 and 4.99:1.
+   */
+  --edge: #6f7e79;
   --edge-soft: #cfc7b6;
   --light-square: #e9d5af;
   --dark-square: #765039;
@@ -370,6 +389,15 @@
   /* The player's mark on the board is `--chosen`, which is the board's own wood family. The
      player's mark on the page is the page's own ink. A hand uses the material it writes on. */
   --hand: var(--chosen);
+  /*
+   * WHICH HUE A BOUNDED RING IS DRAWN IN, declared here so the token exists at the document level
+   * and set per mark at the four call sites. Every ring on the board shares one geometry -- a 5px
+   * inset in a hue, bounded by a 2px inset in the value the square is not -- and differs only in
+   * this. Declared rather than left to the fallback because `theme-tokens.test.ts` holds every
+   * `var()` in this file to a token that exists, which is how five self-referential declarations
+   * were once found resolving to nothing at all.
+   */
+  --ring-hue: var(--hand);
 
   /* ---- Interaction ---------------------------------------------------------------------- */
   /* The primary act, in the page's own ink. The action belongs to the player, so it is made of
@@ -429,8 +457,8 @@
    * is what gave that a line count to change. The fix is in `client/index.html`, where the face
    * is now fetched before the first paint; the note there has the measurements.
    */
-  --measure: 62ch;
-  --measure-wide: 78ch;
+  --measure: 35.7em;
+  --measure-wide: 44.9em;
 
   /* ---- Shape ----------------------------------------------------------------------------- */
   /*
@@ -489,7 +517,14 @@
   /* The dark ladder already ran the right way; it is widened to match the light one's 0.216:
      paper 0.011, surface 0.017, raised 0.033. The same object travels the same distance. */
   --surface-recessed: #141a1c;
-  --surface-machine: #151c20;
+  /*
+   * MEASURED AND MOVED. At #151c20 the plane was 1.037:1 against the dark page (delta-L 0.0022) --
+   * less separation than `--surface-recessed` gets, on the one ground whose whole job is to be
+   * recognisable. Found by a critic reading the rendered screens rather than by anyone using it.
+   * #1e2a2f measures 1.22:1 against the page and 1.11:1 against a card, at or above what the
+   * light palette's plane carries.
+   */
+  --surface-machine: #1e2a2f;
   --action-hover: #d2cec3;
   --accent-soft: #a4c3ca;
   --warn: #e08a7a;
@@ -916,13 +951,19 @@ button:not(:disabled) {
  * August 24" and "not kept at all" are different states and section 4.5 forbids rendering them
  * alike.
  */
+/*
+ * WHAT AN IMPORT DID NOT KEEP IS AN ACCOUNT, NOT AN ERROR. Positions that are not decisions -- a
+ * single legal move, a book position -- are excluded on purpose and shown as arithmetic. In the
+ * failure hue the account read as a list of things that went wrong. Same argument as
+ * `.record-mode.session-only`, same fix: a standing condition is stated, not coloured.
+ */
 .import-not-kept {
   margin: 6px 0 0;
   padding: 7px 9px;
-  border-inline-start: 2px solid var(--warn);
+  border-inline-start: 2px solid var(--edge);
   font-size: var(--panel-label);
   line-height: 1.45;
-  color: var(--warn);
+  color: var(--ink);
 }
 /*
  * The instrument's own reading. Same list mechanics as the buckets above it, because it IS the
@@ -1105,12 +1146,12 @@ button:not(:disabled) {
 }
 .brand-name {
   margin: 0;
-  font: 700 var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-data) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.12em;
 }
 .brand-lockup span {
   color: var(--muted);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .header-actions {
   grid-column: actions;
@@ -1192,7 +1233,7 @@ button:not(:disabled) {
 .rail-label {
   padding: 10px 12px;
   color: var(--muted);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 /*
  * Icon above label, one fixed height for every button.
@@ -1248,7 +1289,7 @@ button:not(:disabled) {
 .workspace-meta p {
   margin: 0;
   color: var(--muted);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .workspace-meta h1 {
   margin: 4px 0 0;
@@ -1282,7 +1323,7 @@ button:not(:disabled) {
 .drawer-heading b {
   display: block;
   color: var(--ink);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-heading button,
 .drawer-actions button {
@@ -1295,7 +1336,7 @@ button:not(:disabled) {
   margin-top: 10px;
   border-radius: 0;
   background: var(--cream);
-  font: var(--panel-label)/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label)/1.5 "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .drawer-actions {
   display: flex;
@@ -1620,7 +1661,7 @@ button:not(:disabled) {
    * whole document about two engines disagreeing on 13.61% of decisions -- so it is not fine
    * print and it is not allowed to wrap into three ragged lines.
    */
-  min-inline-size: 5.5rem;
+  min-inline-size: 6.75rem;
 }
 /*
  * THE MACHINE'S LARGEST OBJECT, AND IT WAS DRAWN IN THE PLAYER'S MATERIAL.
@@ -1658,14 +1699,14 @@ button:not(:disabled) {
    * its own glyphs, clipped by the track's borders on both sides, over a ground that is two
    * colours at once and moves with the evaluation itself. See the note in `EvaluationBar.tsx`.
    */
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--machine);
   font-variant-numeric: tabular-nums;
   direction: ltr;
 }
 
 .eval-marker {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 /*
@@ -1758,6 +1799,50 @@ button:not(:disabled) {
  */
 .dark-square.selected-square {
   box-shadow: inset 0 0 0 5px rgba(var(--cream-rgb), 0.9);
+}
+/*
+ * AND EVERY RING ON THIS BOARD IS BOUNDED, because a hue alone cannot carry a mark across two
+ * square colours and two themes at once.
+ *
+ * MEASURED, in both palettes, against the square each ring is drawn on:
+ *
+ *   light theme   `--chosen` on a light square  4.11:1     on a dark square  1.19:1
+ *   dark theme    `--chosen` on a light square  1.00:1     -- the mark and the square are the
+ *                                                             same luminance. It is not there.
+ *
+ * The blue this replaced was no better (1.06:1 on a dark square) and had the additional problem of
+ * being the engine's colour on the player's own mark. So the fix is not the hue: it is that the
+ * ring needs an EDGE, in the value the square is not. One extra inset ring, two pixels, in the
+ * piece cream on a dark square and the piece ink on a light one -- the same pair `.piece` already
+ * uses, for the same reason and with the same measurements behind it.
+ *
+ * The hue still says WHOSE mark it is. The bounding ring says that it is there at all.
+ */
+.light-square.chosen-from,
+.light-square.chosen-to,
+.light-square.selected-square,
+.light-square.last-square {
+  box-shadow:
+    inset 0 0 0 5px var(--ring-hue, var(--hand)),
+    inset 0 0 0 7px rgba(var(--ink-rgb), 0.55);
+}
+.dark-square.chosen-from,
+.dark-square.chosen-to,
+.dark-square.selected-square,
+.dark-square.last-square {
+  box-shadow:
+    inset 0 0 0 5px var(--ring-hue, var(--hand)),
+    inset 0 0 0 7px rgba(var(--cream-rgb), 0.7);
+}
+.chosen-from {
+  --ring-hue: rgba(var(--chosen-rgb), 0.55);
+}
+.chosen-to,
+.selected-square {
+  --ring-hue: var(--hand);
+}
+.last-square {
+  --ring-hue: var(--last-move);
 }
 /*
  * The player's proposed move, while deciding. A ring on both squares plus a marker on the
@@ -1886,7 +1971,7 @@ button:not(:disabled) {
 .file-label {
   position: absolute;
   z-index: 3;
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 /* Coloured by the square, not by the page. Inheriting the page ink put a light label on a light
    square in the dark theme (1.70:1) and a dark one on a dark square in the light theme (2.32:1). */
@@ -1914,13 +1999,28 @@ button:not(:disabled) {
   z-index: 5;
   pointer-events: none;
 }
+/*
+ * THE ENGINE'S ARROW, AND IT DISAPPEARED ON HALF THE BOARD IN ONE THEME.
+ *
+ * Measured: `--machine` against a light square is 5.22:1 in the light palette and **1.08:1 in the
+ * dark one** -- the pale blue and the pale wood are the same luminance, so the one mark the engine
+ * draws on the board was not visible on 32 of its 64 squares. Pre-existing, and this pass is where
+ * it became load-bearing: the arrow is now the ONLY thing on the board that speaks for the machine.
+ *
+ * A paint-order outline rather than a second colour, so the hue still says who is speaking.
+ */
 .board-vectors line {
   stroke: var(--machine);
   stroke-width: 2.5;
+  paint-order: stroke;
 }
 .board-vectors circle {
   fill: rgba(var(--blue-rgb), 0.15);
   stroke: var(--machine);
+}
+.board-vectors {
+  filter: drop-shadow(0 0 1.5px rgba(var(--cream-rgb), 0.95))
+    drop-shadow(0 0 1.5px rgba(var(--ink-rgb), 0.35));
 }
 .board-coordinates {
   height: 15px;
@@ -1928,7 +2028,7 @@ button:not(:disabled) {
   grid-template-columns: repeat(8, 1fr);
   padding: 0 8px;
   color: var(--muted);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   direction: ltr;
 }
 .board-coordinates span {
@@ -2008,7 +2108,7 @@ button:not(:disabled) {
   display: flex;
   gap: var(--s2);
   color: var(--accent-soft);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-row {
   display: flex;
@@ -2025,10 +2125,10 @@ button:not(:disabled) {
    is the product's own sentence rather than the number every other chess tool also shows. Still
    the largest element in the analysis column, which is the job it actually has. */
 .score-number {
-  font: 700 var(--panel-heading) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-heading) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .engine-status {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-caption {
   color: var(--edge-soft);
@@ -2067,14 +2167,14 @@ button:not(:disabled) {
   align-items: baseline;
   gap: var(--s3);
   color: var(--muted);
-  font: 600 var(--panel-title) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 600 var(--panel-title) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-line {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s2);
   padding-top: 10px;
-  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-body) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .pv-first,
 .data-chip,
@@ -2096,7 +2196,7 @@ button:not(:disabled) {
   gap: var(--s3);
   align-items: center;
   padding-top: 10px;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .material-track {
   height: 7px;
@@ -2126,7 +2226,7 @@ button:not(:disabled) {
   align-items: center;
   gap: var(--s1);
   color: var(--edge);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .layer-title small,
 .color-toggle {
@@ -2141,7 +2241,7 @@ button:not(:disabled) {
   display: flex;
   gap: var(--s2);
   padding-top: 8px;
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .reply-strip span {
   padding: 5px;
@@ -2162,10 +2262,10 @@ button:not(:disabled) {
 .cloud-score {
   display: block;
   color: var(--machine);
-  font: 700 var(--panel-heading) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-heading) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .cloud-pv {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .layer-error {
   color: var(--warn);
@@ -2196,7 +2296,7 @@ button:not(:disabled) {
 }
 .timeline-title span {
   color: var(--muted);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .timeline-controls {
   display: flex;
@@ -2217,7 +2317,7 @@ button:not(:disabled) {
   border: 0;
   border-left: 1px solid rgba(var(--ink-rgb), 0.15);
   background: transparent;
-  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-body) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .move-cell.active {
   background: var(--selected);
@@ -2454,8 +2554,10 @@ button:not(:disabled) {
   unicode-bidi: plaintext;
   font-variant-numeric: tabular-nums;
 }
-.value-triple .value-provenance {
+.value-provenance {
   max-inline-size: var(--measure);
+}
+.value-triple .value-provenance {
   font-size: var(--panel-fine);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -2636,6 +2738,7 @@ button:not(:disabled) {
 .counterfactual-panel__what,
 .counterfactual-panel__short,
 .counterfactual-panel__control {
+  max-inline-size: var(--measure);
   margin: 8px 0 0;
   font-size: var(--panel-body);
   line-height: 1.6;
@@ -2786,11 +2889,17 @@ button:not(:disabled) {
   color: var(--muted);
 }
 
+/*
+ * THE PANEL'S FOOT CLEARS ITS OWN STICKY CONTROL. `.commitment-submit` is `position: sticky;
+ * bottom: 8px` over a column that is taller than the viewport at three of four widths, so without
+ * a foot the last row of the instrument scrolls under it and stops. Measured at 1024x768 scrolled
+ * 400px: the button covered 9 of 20px of a step index and 8 of 18px of its legend.
+ */
 .commitment-screen {
   display: flex;
   flex-direction: column;
   gap: var(--s4);
-  padding: 1.15rem;
+  padding: 1.15rem 1.15rem calc(1.15rem + var(--tap-floor) + var(--s3));
   border-radius: var(--radius-card);
   background: var(--surface);
   border: 1px solid var(--hairline);
@@ -3026,7 +3135,7 @@ button:not(:disabled) {
   white-space: nowrap;
 }
 .commitment-move {
-  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "DM Mono", "Noto Sans Hebrew", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--panel-data);
   padding: 0.45rem 0.6rem;
   border-radius: var(--radius-control);
@@ -3290,9 +3399,15 @@ button:not(:disabled) {
 .commitment-error > details {
   flex-basis: 100%;
 }
+/*
+ * ONE RULE, NOT TWO. This declared `--warn` and was rescued 1,900 lines later by a second
+ * `.commitment-summary` block declaring `--muted` -- the shape this file's own note at
+ * `.commitment-submit.not-ready` warns about in as many words: "a rule and its override owned by
+ * two places, and the check reading one of them". The override still exists and now agrees.
+ */
 .commitment-summary {
   font-size: var(--panel-label);
-  color: var(--warn);
+  color: var(--muted);
   margin: 0;
   text-align: center;
 }
@@ -3320,7 +3435,7 @@ button:not(:disabled) {
 }
 .commitment-tension-basis {
   margin: 0;
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 /*
@@ -3659,7 +3774,7 @@ button:not(:disabled) {
   display: flex;
   flex-wrap: wrap;
   gap: var(--s1);
-  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "DM Mono", "Noto Sans Hebrew", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--panel-body);
   opacity: 0.85;
 }
@@ -4221,7 +4336,7 @@ button:not(:disabled) {
   gap: var(--s4);
 }
 .new-game-setup h3 {
-  font: 700 var(--panel-body)/1 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-body)/1 "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.08em;
 }
 .setup-field {
@@ -4232,7 +4347,7 @@ button:not(:disabled) {
   gap: var(--s3);
 }
 .setup-field legend {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
   padding: 0;
 }
@@ -4247,7 +4362,7 @@ button:not(:disabled) {
   padding: 8px 12px;
   border: 1px solid var(--edge);
   background: transparent;
-  font: 700 var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-body) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .depth-row .selected {
   background: var(--selected);
@@ -4288,7 +4403,7 @@ button:not(:disabled) {
   padding: 9px;
   border: 1px solid var(--edge);
   background: transparent;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
   cursor: pointer;
 }
@@ -4303,7 +4418,7 @@ button:not(:disabled) {
   border-top: 1px solid rgba(var(--ink-rgb), 0.25);
 }
 .opponent-thinking {
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--machine);
   padding: 6px 0;
 }
@@ -4314,7 +4429,7 @@ button:not(:disabled) {
  * and every control in the decision loop is reachable by keyboard. :focus-visible so a mouse
  * click does not leave a ring behind.
  */
-:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+:where(button, a, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   /*
@@ -4361,7 +4476,7 @@ button:not(:disabled) {
   display: flex;
   flex-direction: column;
   gap: var(--s1);
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 /* The step's own bar. Colour never carries the state alone -- "כאן" is text. */
@@ -4382,7 +4497,7 @@ button:not(:disabled) {
   font-weight: 700;
 }
 .loop-here {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
 }
 .loop-headline {
@@ -4392,7 +4507,7 @@ button:not(:disabled) {
 }
 .loop-basis {
   margin: 0;
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   opacity: 0.7;
 }
 
@@ -4478,7 +4593,33 @@ button:not(:disabled) {
     min-block-size: 88px;
   }
 }
+/*
+ * TWO LINES ARE RESERVED, because giving this sentence a measure gave it a line count.
+ *
+ * Sampled frame by frame in Chromium on `/play`: at 236ms `.context-loop` is 18px tall in a 428px
+ * column -- one line -- and at 395ms, when the record's reading arrives, the sentence is longer and
+ * it is 36px. The whole workbench, board included, moves 23px up. CLS 0.0023 -> 0.0143.
+ *
+ * NOT A FONT PROBLEM, WHICH IS WHERE THIS PASS LOOKED FIRST AND WAS WRONG TWICE: the unit was
+ * changed from `ch` to `rem` and back, and the face was preloaded, and the shift did not move.
+ * Measured at a fixed width, Noto Sans Hebrew and the fallback both set this sentence in two lines.
+ * What changes is the TEXT, and before the measure it could not matter -- a 1,392px band is one
+ * line whatever it says.
+ *
+ * So the space is reserved, which is the same instrument `ResumeScreen` already uses on this page
+ * for the same reason: "THE FALLBACK RESERVES THE SPACE, which is what makes this safe rather than
+ * a layout shift on the topmost element of the front door."
+ *
+ * AND IT FIXES THIS ELEMENT AND NOT THE BAND. Re-sampled after: `.context-loop` is 36px in every
+ * frame. The ribbon still goes 88px -> 65px, because it renders with ONE child and then with
+ * three -- `.context-loop-basis` and `.context-why` arrive with the reading -- and it is a
+ * wrapping row, so it gets SHORTER as it fills. That is a data-arrival shape, it predates this
+ * pass, and paying for it would mean reserving the taller transient: 23 permanent pixels above a
+ * board whose last rank is already near the fold. The residual is measured and reported rather
+ * than bought.
+ */
 .context-loop {
+  min-block-size: 3em;
   max-inline-size: var(--measure);
   margin: 0;
   flex: 1 1 100%;
@@ -4510,7 +4651,7 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
 }
 .context-why ul {
@@ -4533,7 +4674,7 @@ button:not(:disabled) {
   padding-inline: 12px;
   border: 1px solid var(--edge);
   background: transparent;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: inherit;
 }
 
@@ -4684,7 +4825,7 @@ button:not(:disabled) {
 }
 .first-decision-form label {
   flex: 1 1 100%;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 .first-decision-form input {
@@ -4841,7 +4982,7 @@ button:not(:disabled) {
   border: 1px solid var(--hairline-strong);
   background: transparent;
   color: inherit;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 
 /*
@@ -4858,7 +4999,7 @@ button:not(:disabled) {
   padding: 0;
   border: 0;
   background: transparent;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -4923,7 +5064,7 @@ button:not(:disabled) {
 }
 .not-found-code {
   margin: 0;
-  font: 700 var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-display) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 .not-found h1,
@@ -4962,7 +5103,7 @@ button:not(:disabled) {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
 }
 .boundary-trace pre {
@@ -4972,7 +5113,7 @@ button:not(:disabled) {
   padding: 10px;
   border: 1px solid var(--hairline);
   background: var(--cream);
-  font: var(--panel-label)/1.5 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label)/1.5 "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -5142,7 +5283,7 @@ button:not(:disabled) {
  * -- what goes is the claim that something has gone wrong.
  */
 .required-mark {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   color: var(--muted);
   margin-inline-start: 6px;
@@ -5184,8 +5325,20 @@ button:not(:disabled) {
  */
 .commitment-submit.not-ready {
   background: var(--surface);
-  color: var(--muted);
-  border: 1px dashed var(--edge);
+  /*
+   * AND THEN IT WAS TOO QUIET, which a red team measured before anyone could feel it: ranked by
+   * ink mass on a cold `DECIDE` this control came FOURTEENTH of 87 runs, behind four inert step
+   * legends and the brand wordmark. Removing the alarm was right; replacing it with nothing left
+   * the panel with no ranking at all.
+   *
+   * Ink rather than muted, and a dashed edge in ink rather than `--edge`. Still not the failure
+   * hue, still visibly not the ready state -- a dashed outline against a solid fill -- and now the
+   * heaviest thing in its own panel, which is what the one control on a screen has to be. It also
+   * separates it from `.commitment-move.unset`, the empty FIELD eight pixels above it, which is a
+   * dashed rectangle of the same radius carrying nearly the same words.
+   */
+  color: var(--ink);
+  border: 1px dashed var(--ink);
 }
 .commitment-summary {
   font: var(--panel-label) / 1.5 "Noto Sans Hebrew", Arial, sans-serif;
@@ -5293,7 +5446,7 @@ button:not(:disabled) {
   align-items: center;
   gap: var(--s2);
   flex-wrap: wrap;
-  font: 700 var(--panel-label) / 1.4 "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: 700 var(--panel-label) / 1.4 "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: 0.04em;
   padding: 0;
   margin-bottom: 6px;
@@ -5374,7 +5527,7 @@ button:not(:disabled) {
   color: var(--ink);
 }
 .read-write-label {
-  font: var(--panel-fine) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
 }
 
@@ -5499,7 +5652,13 @@ button:not(:disabled) {
  * directions. The padding is on the ANCHOR rather than only on the paragraph so the target grows
  * with it -- SC 2.5.8 asks for 24px and a bare 11px line of text does not reach it on its own.
  */
+/*
+ * THE LICENCE LINE IS PROSE, AND IT HAD NO MEASURE. Measured on the front door at 1440: 920px of
+ * 12px Hebrew, roughly 150 characters on a line -- longer than every "before" figure this pass
+ * quotes, on the one screen a stranger meets first. It is fine print and it is still a sentence.
+ */
 .record-notices {
+  max-inline-size: var(--measure);
   margin-top: 2.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--hairline);
@@ -5628,8 +5787,17 @@ button:not(:disabled) {
 .outcome-summary__badge[data-kind="same-twice"] {
   color: var(--muted);
 }
+/*
+ * NOT MEASURABLE IS NOT A FAILURE, and it was the last place in the product still saying so.
+ *
+ * `unreadable` means `no-readable-split` or `bucket-too-small` -- not enough decisions on one side
+ * of a division. Every sibling kind (`insufficient`, `no-pattern`, `same-twice`, `hypothesis`,
+ * `record-description`) is already `--muted`. This one carried the failure hue, which is
+ * `APOLOGETIC` -- the first forbidden quality in the perceptual contract -- in the exact place
+ * this product is at its most honest.
+ */
 .outcome-summary__badge[data-kind="unreadable"] {
-  color: var(--warn);
+  color: var(--muted);
 }
 .outcome-summary__text {
   max-inline-size: var(--measure);
@@ -5672,11 +5840,14 @@ button:not(:disabled) {
   font-size: var(--panel-fine);
 }
 .evidence-mark__mark {
-  font: var(--panel-body) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-body) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   letter-spacing: -0.05em;
 }
 .evidence-mark__word {
   letter-spacing: 0.02em;
+  /* "אירוע אחד" wrapped across two lines in a 32px box inside a 510px card, with the disclosure
+     control sitting between its halves. A grade is one phrase. */
+  white-space: nowrap;
 }
 /*
  * GRADE -> WEIGHT, DECLARED IN ONE PLACE, because `D25` reads `CONSTRUCT-UNDERIDENTIFIED` and the
@@ -5937,7 +6108,7 @@ button:not(:disabled) {
   margin: 0;
 }
 .learning-waiting > summary {
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
   cursor: pointer;
   padding: 6px 0;
@@ -5982,7 +6153,7 @@ button:not(:disabled) {
   border-radius: var(--radius-control);
   background: var(--cream);
   color: var(--ink);
-  font: var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-data) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   cursor: pointer;
   display: inline-flex;
   align-items: baseline;
@@ -6012,7 +6183,7 @@ button:not(:disabled) {
   display: flex;
   justify-content: space-between;
   gap: var(--s4);
-  font: var(--panel-display) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-display) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 /*
  * THE BOARD IS THE ONLY THING IN ITS ROW HERE, AND `.board-stage` DOES NOT ASSUME THAT.
@@ -6038,7 +6209,7 @@ button:not(:disabled) {
   cursor: pointer;
 }
 .blitz-board-mode {
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--ink);
   margin: 0;
 }
@@ -6069,7 +6240,7 @@ button:not(:disabled) {
   border-radius: var(--radius-control);
   background: var(--cream);
   color: var(--ink);
-  font: var(--panel-data) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-data) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   cursor: pointer;
 }
 .blitz-over {
@@ -6084,7 +6255,7 @@ button:not(:disabled) {
 }
 .blitz-analysing,
 .blitz-analysing-note {
-  font: var(--panel-label) "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
   color: var(--muted);
   margin: 0;
 }
@@ -6096,10 +6267,16 @@ button:not(:disabled) {
 }
 
 /* THE RESUME SCREEN (§13, §28): three answers, above everything. */
+/*
+ * ONE COLUMN WIDTH ON THIS PAGE. This was `max-width: 42rem` while `.record-layer` beside it runs
+ * the full 960px, so in an RTL document -- where all four blocks share a right edge -- the card
+ * carrying the page's headline started 288 measured pixels to the right of everything under it,
+ * as a ragged notch. A measure belongs to the PROSE inside a block; a block's width belongs to the
+ * column.
+ */
 .resume {
   display: grid;
   gap: var(--s3);
-  max-width: 42rem;
   margin: 0 0 20px;
 }
 .resume__changed {

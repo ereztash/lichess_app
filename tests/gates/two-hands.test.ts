@@ -73,4 +73,30 @@ describe("what the predicate calls a control", () => {
       expect(isInteractive(selector), selector).toBe(false);
     }
   });
+
+  it("counts a disclosure as a control, because it is one", () => {
+    /*
+     * FOUND BY A CRITIC READING THE STYLESHEET AGAINST THE CONTRACT. `.reveal-secondary` is a
+     * `<details>` carrying the machine's plane, and `details` was in neither the element list nor
+     * the suffix list -- so the one clear case where a control sits on the engine's ground was
+     * invisible to a gate that claimed to check exactly that. The rule was wrong, not the
+     * stylesheet: a ground is not a voice. See `MACHINE_TOKENS`.
+     */
+    for (const selector of [".reveal-secondary", "details.reveal-secondary", "details.foo"]) {
+      expect(isInteractive(selector), selector).toBe(true);
+    }
+  });
+
+  it("sees rules inside a media block, which the first version of the scanner did not", () => {
+    const css = [
+      "@media (forced-colors: active) {",
+      "  .primary-control {",
+      "    background: var(--machine);",
+      "  }",
+      "}",
+    ].join("\n");
+    expect(controlsSpeakingInTheMachinesColour(css).map((b) => b.selector)).toEqual([
+      ".primary-control",
+    ]);
+  });
 });

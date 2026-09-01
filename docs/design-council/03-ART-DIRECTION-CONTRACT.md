@@ -28,14 +28,28 @@ rather than as a sentence about a rule.
 **The rule that makes it checkable, in both directions:**
 
 ```
-no rule a player can press paints in the machine's colour
-every surface the engine owns paints in it
+the colour the machine SPEAKS IN is never something a player can press
+the ground the machine WRITES ON is never something the player made
 ```
 
 `GATE-TWO-HANDS` (`scripts/two-hands-scan.ts`) asserts both, with a positive control that reddens
 twice. A one-directional check would be satisfied by deleting the colour, and could not fail in the
 direction the design actually fails — which is the engine's own output drifting into the page's
 material. It had: `.evaluation-track`, the machine's largest object, was drawn in `--ink`.
+
+**The rule contradicted itself in its first draft, and a critic found it.** It read *"the machine's
+colour is never something you can press"* with `--surface-machine` inside the forbidden set — while
+`MACHINE_SURFACES` required that same token on `.reveal-secondary`, which is a `<details>`. The gate
+demanded and forbade one declaration on one selector, and could see neither, because `details` was
+in none of the scanner's lists. **A ground is not a voice.** The plane is where the engine writes; a
+disclosure that opens the engine's own numbers is a control sitting on that ground, and that is
+allowed. What is never allowed is a control drawn *in* the engine's hue.
+
+**And what the second direction cannot do**, stated because a gate whose limits are unwritten gets
+trusted past them: `MACHINE_SURFACES` is a hand-kept list of eight selectors. It proves everything
+named there is on the plane. It cannot notice a ninth surface nobody added. No property of a
+selector says "this is the engine speaking", so the list is a fact about the product written down
+as one, and adding a surface means adding it there.
 
 ### Why it is a plane and not only a hue
 
@@ -73,9 +87,10 @@ What is new is that a call site names a **job**, and a job has one appearance.
 | --- | --- | --- | --- |
 | canvas | `--canvas` → `--paper` | `#e9e4d8` / `#14181a` | the page |
 | surface | `--surface` | `#f7f3e9` / `#1b2124` | a card, a region |
-| raised | `--surface-raised` → `--raise` | `#fdfbf4` / `#2a3438` | **the object a mode contract names central. One per screen** |
+| raised | `--surface-raised` → `--raise` | `#fdfbf4` / `#2a3438` | **the object a mode contract names central. At most one per screen** |
 | recessed | `--surface-recessed` | `#ded7c6` / `#141a1c` | a well the player writes into |
-| **machine plane** | `--surface-machine` | `#d8dcda` / `#151c20` | the engine's column, evaluation and disclosure. **Nothing else, ever** |
+| chip | `--chip` | `#e0d6c0` / `#2e393e` | a token's own ground, and a disabled control |
+| **machine plane** | `--surface-machine` | `#d8dcda` / `#1e2a2f` | the engine's column, evaluation and disclosure. **Nothing else, ever** |
 | machine | `--machine` → `--blue` | `#1e5b72` / `#5fb3d4` | the engine's arrow, its evaluation, its readings |
 | on-machine | `--on-machine` → `--on-blue` | `#fff` / `#0d1416` | text on the machine's own colour |
 | player's hand | `--hand` → `--chosen` | `#8a5a12` / `#e0a458` | the player's mark **on the board** |
@@ -131,10 +146,14 @@ PV, evaluations, depths, counts, clocks, usernames.
 | shadow | **none added.** The board keeps its own; the brand mark keeps its hard offset | elevation is not decoration |
 | texture | the existing grain, on its own layer, unchanged | it is measured where it is |
 
-**The ladder ran backwards and now does not.** Measured: `--surface` 0.898, `--raise` 0.818,
-`--paper` 0.783 — so the token spent on a mode's central object was *darker* than an ordinary card
-and 0.035 from the page behind it. One value moved: `--raise` `#efe9dc` → `#fdfbf4`. Canvas 0.783,
-surface 0.898, raised 0.964. The distance a raised object travels is now 0.181 instead of 0.035.
+**The ladder ran backwards and now does not.** Measured in Chromium: `--surface` 0.898,
+`--raise` 0.818, `--paper` **0.778** — so the token spent on a mode's central object was *darker*
+than an ordinary card, and the ΔL a raised object travelled from the page was **0.040**. One value
+moved: `--raise` `#efe9dc` → `#fdfbf4`. Canvas 0.778, surface 0.898, raised 0.964, and the same
+object now travels **0.186**, measured on `.reveal-one-thing` by the same probe both times.
+
+*(An earlier draft of this section said 0.783 and 0.035. That was arithmetic; the numbers above are
+the browser's, and the difference is why the arithmetic is not the record.)*
 
 **`--paper` was moved and put back**, and the reason is on the record: deepening the canvas would
 also have closed the gap between the page and the board's light squares from 1.14:1 to 1.09:1. The
@@ -212,8 +231,13 @@ the expressive force where the brief says to put it: in the signature, which no 
   provenance label the product already computes and the ablation test already proves.
 - **No celebration, flash, confetti, zoom or motion at the commitment boundary.** The transition is
   consequential; it is not theatrical.
-- **Nothing added to a pre-commit screen.** The ~560px of empty column under the counterfactual
-  question stays empty. Filling it would be adding a stimulus to a measurement.
+- **Nothing added to a screen where evidence is being produced.** The empty column under the
+  counterfactual question stays empty; filling it would be adding a stimulus to a measurement.
+  **One thing WAS added, and this list did not reach it:** the front door gained a third,
+  secondary route — a short game — because `/blitz` had no door on a first visit at all
+  (`00-REPO-NATIVE-CONSTITUTION.md` §10a). `ARRIVE` is an acquisition surface, not a
+  `producingEvidence` mode. It is a change to the funnel, and it is disclosed here and in the final
+  report rather than left covered by a restraint that does not cover it.
 - **No new font, no new dependency, no new library.**
 - **No change to measurement wording, question order, control position, sampling, timing,
   thresholds, eligibility, scoring or schema.**
@@ -236,13 +260,17 @@ the expressive force where the brief says to put it: in the signature, which no 
 | two radii, two icon ranks, one action grammar | **yes** | craft |
 | warm paper, ink, hairlines | **yes** | this is the part that is not distinctive, and the RISK section says so |
 | board wood participating in the page's family | no | there is no board in a CRM |
-| **the machine plane** | **no** | a CRM has one author. There is no second party whose output arrives separately, after a boundary, and may not ask for anything |
+| a recessed neutral plane holding a second author's output | **yes, and this is the correction** | that is what an assistant's answer panel is. As a *component* the plane is the most transplantable thing in the pass |
+| **the plane measuring literally zero pixels until a boundary is crossed** | **no** | `DECIDE` and `ANSWER_INSTRUMENT` contain 0px of it and 0px of the machine's hue. A product with one author has nothing to withhold |
 | **the rule that the machine's colour is never pressable** | **no** | it is meaningless without a machine that speaks second |
 | `--warn` restricted to failures, `--hand` on the board | no | both exist because this product distinguishes a failure from an incomplete entry, and a player's mark from an engine's |
 
-**PASS**, and narrowly: three of seven rows are generic craft. The direction concentrates its
-specificity in the signature, which is what the Lead Art Director's own source says to do, and the
-concentration is visible in the table rather than claimed around it.
+**PASS, and by one row rather than four.** The first draft counted the plane and the
+not-pressable rule as two ideas; a critic reading this table against the rendered screens pointed
+out that they are one fact stated twice, and that a recessed grey read-only panel is the current
+convention for an AI assistant's answer. What survives is the **timing**: a ground that measures
+literally zero pixels until the player has committed, and that appears only afterwards. Everything
+else here is craft or hygiene, and the table now says so rather than claiming four.
 
 ---
 

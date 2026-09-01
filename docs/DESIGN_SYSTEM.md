@@ -29,8 +29,11 @@ primitive *is* the meaning: `--ink` for text, `--light-square` for a light squar
 
 ### The rule that governs the whole palette
 
-> **The machine's colour is never something a player can press.**
-> **Every surface the engine owns paints in it.**
+> **The colour the machine speaks in is never something a player can press.**
+> **The ground the machine writes on is never something the player made.**
+>
+> A ground is not a voice: a disclosure that opens the engine's own numbers is a control sitting
+> *on* the plane, which is allowed. A control drawn *in* the engine's hue is not.
 
 Both directions are asserted by `GATE-TWO-HANDS` (`scripts/two-hands-scan.ts`), with a positive
 control that reddens twice.
@@ -41,12 +44,13 @@ control that reddens twice.
 | --- | --- | --- | --- |
 | `--canvas` | `--paper` | the page | anything raised |
 | `--surface` | | a card, a region | the page |
-| `--surface-raised` | `--raise` | **the object this mode's contract names central. One per screen** | anything else |
+| `--surface-raised` | `--raise` | **the object this mode's contract names central. At most one per screen** | anything else |
 | `--surface-recessed` | | a well the player writes into | a card |
+| `--chip` | | a token's own ground, and a disabled control | a card, a page |
 | `--surface-machine` | | the engine's column, its evaluation, its disclosure | anything the player made |
 | `--machine` | `--blue` | the engine's arrow, evaluation, depth, identity | **any control, chip, focus ring, link or the brand** |
 | `--on-machine` | `--on-blue` | text on the machine's own colour | |
-| `--hand` | `--chosen` | the player's mark **on the board** | a page element |
+| `--hand` | `--chosen` | the player's mark on the board. `--chosen`, the primitive under it, also marks the player's own declared tension in the panel | anything the machine authored |
 | `--action` | `--ink` | the one primary act | a second act on the same screen |
 | `--on-action` | `--cream` | text on it | |
 | `--action-hover` | | the primary act, hovered | |
@@ -68,13 +72,19 @@ control that reddens twice.
 
 | | relative luminance | ΔL from the page |
 | --- | ---: | ---: |
-| `--canvas` | 0.783 | — |
-| `--surface-machine` | 0.709 | 0.075 (cool, and below the page) |
-| `--surface` | 0.898 | 0.115 |
-| `--surface-raised` | 0.964 | **0.181** |
+| `--canvas` | 0.778 | — |
+| `--surface-machine` | 0.709 | 0.070 (cool, and below the page) |
+| `--surface` | 0.898 | 0.120 |
+| `--surface-raised` | 0.964 | **0.186** |
 
-It used to run canvas 0.783 → **raise 0.818** → surface 0.898: the token spent on a mode's central
-object was darker than an ordinary card and 0.035 from the page behind it.
+It used to run canvas 0.778 → **raise 0.818** → surface 0.898: the token spent on a mode's central
+object was darker than an ordinary card, and the ΔL it travelled from the page was 0.040. Measured
+on `.reveal-one-thing` in Chromium, before and after, by the same probe.
+
+**Dark carries the same relationships and its plane was measured and moved.** `--surface-machine`
+started at `#151c20`, which is 1.037:1 against the dark page — less separation than a recessed well
+gets, on the one ground whose job is to be recognisable. `#1e2a2f` measures 1.215:1 against the
+page and 1.11:1 against a card.
 
 ---
 
@@ -113,7 +123,14 @@ carries the whole of the discrimination.
 | `--measure-wide` | `78ch` | a lead sentence, read once |
 
 Measured from rendered Hebrew rather than assumed: line count from `Range.getClientRects()`, text
-length divided by it. Before: 116, 104 and 123 characters on a line. After: nothing above 78.
+length divided by it, on `/`, `/play` and the record with something on it. Before: 116, 104 and 123
+characters on a line. After: nothing above 78, and the widest is the front door's lead sentence at
+`--measure-wide`.
+
+**A measure is not a global claim.** Two things it does not reach, both found by review rather than
+by the probe: a paragraph narrower than the token is not widened by it — the reveal column is 330px,
+so its lines land at 35–45 characters, under the range the token is set from — and a screen the
+probe does not open is a screen the number does not describe.
 
 **A measure gives prose a line count, and a line count is a thing that can change.** Giving these
 columns a width is what exposed the font swap: a Hebrew line that fits in two lines of Noto Sans
@@ -147,7 +164,7 @@ became two.
 
 | role | treatment | how many |
 | --- | --- | --- |
-| **primary** | filled `--action`, no edge, `--radius-control` | **one per screen.** `LAW 2` and `GATE-ONE-PRIMARY-ACTION` decide which |
+| **primary** | filled `--action`, no edge, `--radius-control`; **dashed `--ink` outline when not ready** | **one per screen.** `LAW 2` and `GATE-ONE-PRIMARY-ACTION` decide which |
 | **secondary** | transparent ground, 1px solid `--edge`, ink text | as many as the screen needs |
 | **quiet** | no ground, no edge, ink text, underlined | leaving, explaining, disclosing |
 

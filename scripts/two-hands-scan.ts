@@ -33,20 +33,28 @@ export function blocksOf(css: string): CssBlock[] {
   const out: CssBlock[] = [];
   const lines = css.split("\n");
   let selector: string | null = null;
+  let indent = "";
   let start = 0;
   let body: string[] = [];
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     if (selector === null) {
-      const m = /^([^ \t@].*?)\{\s*$/.exec(line);
+      /*
+       * INDENTED BLOCKS COUNT. The first version of this anchored on column zero, which made
+       * every rule inside an `@media` invisible to it -- including the whole `forced-colors`
+       * block and both breakpoints. A scanner with a blind spot is the shape of defect this
+       * repository keeps finding in its own tests, so it does not get to ship one.
+       */
+      const m = /^(\s*)([^\s@}].*?)\{\s*$/.exec(line);
       if (m) {
-        selector = m[1].trim();
+        indent = m[1];
+        selector = m[2].trim();
         start = i + 1;
         body = [];
       }
       continue;
     }
-    if (/^\}/.test(line)) {
+    if (line === `${indent}}` || /^\s*\}\s*$/.test(line)) {
       out.push({ selector, body: body.join("\n"), line: start });
       selector = null;
       continue;
@@ -57,13 +65,27 @@ export function blocksOf(css: string): CssBlock[] {
 }
 
 /**
- * The machine's tokens, by the name a declaration uses.
+ * THE MACHINE'S VOICE, which is a colour a mark is drawn IN.
  *
  * `--blue` is here as well as `--machine` because it is the primitive underneath it: a call site
  * that reaches past the semantic name gets the same colour and the same meaning, and a rule that
  * only knew the alias would be satisfied by spelling it the other way.
+ *
+ * `--surface-machine` IS DELIBERATELY NOT HERE, and the distinction was forced by a critic who
+ * found the rule contradicting itself. The plane is a GROUND, not a voice: the engine's numbers
+ * live on it, and the disclosure that opens the engine's numbers is a control that sits ON that
+ * ground. Requiring `.reveal-secondary` to carry the plane (below) while forbidding any control
+ * from carrying it made the gate demand and forbid the same declaration on the same selector.
+ *
+ * The rule the product actually holds, and the one asserted here:
+ *
+ *     the colour the machine SPEAKS IN is never something a player can press
+ *     the ground the machine WRITES ON is never something the player made
  */
-export const MACHINE_TOKENS = ["--machine", "--blue", "--blue-rgb", "--surface-machine"];
+export const MACHINE_TOKENS = ["--machine", "--blue", "--blue-rgb"];
+
+/** The ground the machine writes on. A surface, never a voice. */
+export const MACHINE_GROUND = "--surface-machine";
 
 /**
  * What counts as something a player can press.
@@ -73,7 +95,7 @@ export const MACHINE_TOKENS = ["--machine", "--blue", "--blue-rgb", "--surface-m
  * positive here is a five-second look at one selector, and a false negative is the defect.
  */
 const INTERACTIVE =
-  /(^|[\s,>+~])(button|a|input|textarea|select|summary)([\s.:[,]|$)|:hover|:focus|:focus-visible|:active|\[aria-pressed|\[aria-selected|\[role="button"\]|-control\b|-button\b|-chip\b|-toggle\b|-submit\b|-action\b|-tab\b|-next\b|-confirm\b|-again\b|-resign\b|-reload\b|-save\b|-abandon\b|\.selected\b|\.active\b/;
+  /(^|[\s,>+~])(button|a|input|textarea|select|summary|details)([\s.:[,]|$)|:hover|:focus|:focus-visible|:active|\[aria-pressed|\[aria-selected|\[role="button"\]|-control\b|-button\b|-chip\b|-toggle\b|-submit\b|-action\b|-tab\b|-next\b|-confirm\b|-again\b|-resign\b|-reload\b|-save\b|-abandon\b|\.selected\b|\.active\b|\breveal-secondary\b/;
 
 export function isInteractive(selector: string): boolean {
   return INTERACTIVE.test(selector);
@@ -116,7 +138,8 @@ export function machineSurfacesNotSpeakingInIt(css: string): string[] {
       missing.push(`${selector} (no such rule)`);
       continue;
     }
-    if (!found.some((b) => MACHINE_TOKENS.some((t) => b.body.includes(`var(${t})`)))) {
+    const speaks = [...MACHINE_TOKENS, MACHINE_GROUND];
+    if (!found.some((b) => speaks.some((t) => b.body.includes(`var(${t})`)))) {
       missing.push(selector);
     }
   }
