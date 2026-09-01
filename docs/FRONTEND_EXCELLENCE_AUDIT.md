@@ -307,3 +307,313 @@ Small falsifiable batches, in this order, each verified before the next:
 7. Tests locking each relationship; then falsification; then owner review.
 
 No architecture change. No new dependency. No design-system package. `Home.tsx` is not rewritten.
+
+---
+---
+
+# Part II — after: what changed, and what it cost
+
+Everything below was re-measured on the built app after the change, by the same probes that
+produced Part I. Where a number did not move, it says so.
+
+## 1. Executive verdict
+
+**Three of the four things in §A were one defect, and it is closed. The fourth was a decision, and
+it has been taken.**
+
+The contrast failures, the rank misuse and the "least-supported claim wearing the heaviest ink"
+were not three problems. They were a stylesheet that expressed *recession* by **fading** — an
+`opacity` on text, or `rgba(var(--ink-rgb), α)` as a text colour — in a file that had already
+written down, twice, why that does not work: *"an alpha composites into whatever is behind it and
+stops being a number anyone can check."* It was right about borders and it was right about text.
+Recession is now the type scale, which has seven ranks and all of them are legible.
+
+The fourth was `VERIFIED_LEARNING_ENABLED`. It is `EXPERIMENTAL_LEARNING_ENABLED` now, `=== "true"`,
+off unless a deployment asks. Nothing stored moved.
+
+**What did not change, and is the honest headline: the product does not look different.** No hue
+moved. No layout moved. No panel was reorganised, nothing went behind a disclosure, and nobody who
+knows this interface would notice most of this pass from a screenshot. What changed is that eight
+classes of text became readable, one board survives a reader's own palette, one full stop is at the
+right end of one sentence, and a suite that reported green now goes where the failures were.
+
+## 2. Layer scorecard
+
+**These are estimates, and they are labelled as estimates.** No instrument here produces a maturity
+number; the column is a judgement about how much further repository, browser and standards evidence
+could take each layer, and it is offered so the ceiling is visible, not so the number is believed.
+
+| Layer | Before (est.) | After (est.) | What moved |
+|---|---|---|---|
+| Semantic / epistemic trust | 2 | **4** | opt-in flag; heaviest ink off the `H`-grade surface |
+| Interaction mechanics | 4 | **4.5** | `.explore-toggle` joins the declared tap floor |
+| Spatial composition | 4.5 | 4.5 | nothing; #52 holds under re-measurement |
+| Action salience | 3 | **4** | one fill, one role; primary is now the largest mass on `REVEAL` |
+| Information hierarchy | 4 | **4.5** | two heading-order defects closed; one sub-heading un-inverted |
+| Information density | 2.5 | **3.5** | prose off the floor rank; the 12 px question left open |
+| Typography | 3 | **4** | 17 sub-body paragraphs on `REFLECT` → 6, all of them legitimately fine-rank |
+| Spacing / rhythm | 4 | 4 | untouched |
+| Component grammar | 2.5 | **3** | one local invention removed; eight remain |
+| Color / theming | 3.5 | **4** | no hue moved; every pair now measurable rather than composited |
+| Art direction | 2 | 2 | a contract is *drafted* below and is not ratified |
+| Motion / feedback | 4 | 4 | 0 live animations under reduced motion, before and after |
+| Hebrew / RTL | 3.5 | **4.5** | the one measured bidi defect closed |
+| Responsive | 4.5 | 4.5 | 0 overflow at 26 viewport/route pairs, before and after |
+| Accessibility | 2 | **4** | 28 violations in unaudited states → 0, and the states are now audited |
+| Perceived performance | 4.5 | 4.5 | LCP 148/256 ms, CLS 0.0000/0.0023 |
+
+## 3. State-by-state, before → after
+
+| | `ARRIVE` | `DECIDE` | `REVEAL` | `REFLECT` |
+|---|---|---|---|---|
+| Visible text runs | 18 → **18** | 87 → **87** | 128 → **111** | 127 → **127** |
+| axe violations | 0 → 0 | 0 → 0 | 1 → **0** | 28 → **0** |
+| Controls wearing `--blue` | 2 → **1** | 1 → 1 | 1 → 1 | 1 → 1 |
+| Strongest non-board control, copy stripped | primary | primary | 3rd → **primary** | primary |
+| `<p>` below the body rank | 2 → **1** | 6 → **3** | 6 → **2** | 17 → **6** |
+
+`REVEAL` is the one state that lost content, and it lost it on purpose: 128 → 111 runs is the
+learning composer no longer rendering in a default build. See §4 and §10.
+
+## 4. Information removed or deferred
+
+| What | Why | Where it went | Why no needed context was lost |
+|---|---|---|---|
+| The learning-rule composer, on every reveal | `D25 = CONSTRUCT-UNDERIDENTIFIED`, humans measured: 0, and the flag was on-unless-disabled | Behind `VITE_EXPERIMENTAL_LEARNING_ENABLED=true` | The reveal's own three blocks — what this decision does not say, what happened, what is worth testing — are untouched, and they are what `MODE_CONTRACT.REVEAL` names as central. Every stored rule, transfer test and observation is intact and returns the moment the flag is set. |
+| The learning queue, in the record explorer | same | same | The explorer's other three readings render unchanged; the test that used to assert the queue's presence now asserts its absence, so the removal cannot happen silently in reverse. |
+
+**Nothing else was removed, hidden, collapsed or moved behind a disclosure.** The re-ranked
+sentences on `REFLECT` are the same sentences, in the same order, in the same place, larger. Run
+counts on `ARRIVE`, `DECIDE` and `REFLECT` are identical before and after.
+
+## 5. Visual grammar diff
+
+| | Before | After |
+|---|---|---|
+| Text recession | `opacity` on the element, or `rgba(var(--ink-rgb), α)` at α 0.55–0.80 | `var(--muted)`, declared, measured on all ten ground/theme pairs, worst 4.59:1 |
+| Disabled | two languages: a declared pair, and `opacity: 0.45` | one language: a declared pair |
+| Secondary action | 3 shared roles + 9 local inventions | 3 shared roles + **8** local inventions (`.learning-save` joined `ghost-control`) |
+| `--blue` | primary action **and** selected toggle | primary action |
+| Selected toggle | `--blue` fill | `--chip` ground, `--ink` edge, weight 600, `aria-pressed` unchanged |
+| Prose rank | 11 px (`--panel-fine`, "never load-bearing") | 14 px (`--panel-body`, "the floor for anything that is a sentence") |
+| Forced colours | nothing declared | one scoped block: 4 opt-outs, 2 marks re-stated in system colours |
+
+## 6. Art Direction Contract — **DRAFT, OWNER-REQUIRED**
+
+Read off the built product rather than proposed for it, and **not ratified.** §18 of the brief is
+explicit that Claude cannot self-approve aesthetic acceptance, so this is a hypothesis about what
+the interface already is, offered for the owner to accept, amend or reject.
+
+**Desired (5):** quiet · precise · paper · chess-first · evidence-conscious
+**Forbidden (5):** generic-SaaS · gamified · dashboard-chaotic · clinically-cold · prototype-like
+
+- **Typography voice.** One Hebrew sans for everything a person reads; one mono, used only where a
+  glyph is a *reading* — a move, an evaluation, a count. Seven ranks, no eighth.
+- **Material voice.** Warm paper (`#e9e4d8`), raised surfaces rather than shadowed cards, hairlines
+  rather than boxes. #55's argument stands: whitespace groups, borders do not.
+- **Brand presence.** One knight and a wordmark, once, at the top. No watermark, no repetition.
+- **Icon voice.** Line icons at a single weight. Currently **eight** sizes for one role — the one
+  place the draft contract and the built product disagree, and it is filed as P2-4.
+- **Decorative restraint.** Nothing on screen that is not a reading, a control, or a sentence.
+- **Motion voice.** Motion explains a state change or does not exist. Verified: 0 live animations
+  under `prefers-reduced-motion`.
+
+## 7. Hebrew / RTL
+
+`<html lang="he" dir="rtl">`. 26 logical declarations against 11 physical ones, each of the eleven
+read at its call site, none inverting a meaning. 21 deliberate `dir="ltr"` sites — PV, FEN, PGN,
+SAN, usernames, CPL, chart frames — all correct.
+
+**One defect found and closed.** `.empty-moves` measured with Range rects: first character at
+x = 273, full stop at x = 283 — ten pixels in front of the first word. Now x = 277 and x = 112. The
+assertion is on glyph positions rather than on `dir`, for the reason
+`signed-number-reads-as-signed` already gives about this class of bug.
+
+**No P0/P1 remain.**
+
+## 8. Accessibility
+
+| | Before | After |
+|---|---|---|
+| States audited by axe | 3 (cold routes) | **5** (3 cold routes + `REVEAL` + `/` with a record) |
+| Serious/critical | 27, in states nothing audited | **0** |
+| Moderate | 2 (`heading-order` ×2) | **0** |
+| Forced colours | 64 identical squares, identical pieces | checkerboard and piece colours preserved; marks in `Highlight`/`LinkText` |
+| Dark theme | 0 violations | 0 violations |
+| 200 % zoom / 24 px root | no horizontal overflow | no horizontal overflow |
+| `prefers-reduced-motion` | 0 live animations | 0 live animations |
+| Tap floor, decision loop | one control at 36 px | **0** below 44 px |
+
+**Not tested, and stated rather than implied: no screen reader was run.** No claim is made about
+NVDA, JAWS or VoiceOver. axe checks names, roles and structure; it does not check whether an
+announcement makes sense to a person hearing it. That is FIELD-REQUIRED.
+
+## 9. Perceived performance
+
+Lab measurements in Chromium on a local server. **These are not field Core Web Vitals** and RUM
+remains production evidence.
+
+| | Before | After |
+|---|---|---|
+| `/` lab-LCP / FCP | 152 ms | 148 ms |
+| `/play` lab-LCP / FCP | 232 ms | 256 ms |
+| `/` CLS | 0.0000 | 0.0000 |
+| `/play` CLS | 0.0023 | 0.0023 |
+
+The 24 ms on `/play` is within run-to-run variation on this harness and is not attributed to the
+change. No P0/P1.
+
+## 10. Semantic / epistemic trust
+
+`D25` says `CONSTRUCT-UNDERIDENTIFIED`. The learning surface is graded `H` — hypothesis. Before this
+pass it rendered with the authority of `I` in two independent ways, and both are closed:
+
+1. **It shipped by default.** `!== "false"` → `=== "true"`. Off unless asked for, and failing closed
+   on a misspelt flag. The constant no longer contains the word `VERIFIED`, which was a claim the
+   evidence does not support.
+2. **It carried the heaviest treatment in the product.** `--ink` at weight 700, above a primary
+   action at 400. It now uses the shared secondary grammar.
+
+Re-measured on a default build at `REVEAL`: composer absent, queue absent, **zero occurrences of
+"verified" or "מאומת" anywhere on screen.**
+
+**What was already right and was left alone:** the copy. `שמירת כלל כהשערה` — *save the rule as a
+hypothesis* — the composer's heading asking for a *refutable* rule, the confirmation naming it a
+hypothesis, `grade: "hypothesis"` on every new rule, two distinct dates required in either
+direction, and `OutcomeSummary`'s existing note about hypotheses promoted by layout. The vocabulary
+did not overclaim and was not rewritten.
+
+## 11. Measurement protocol
+
+**Did the measurement stimulus change?** Asked as a measurement rather than as an opinion. All 27
+touched classes were searched for on the built app at `DECIDE` cold, at `ANSWER_INSTRUMENT` with a
+move played, and again with every instrument step answered and nothing committed.
+
+**Exactly one paints on any of those three:** `.empty-moves`, the move rail's empty-state status
+line, 16 px, unchanged in size, colour and position. What changed about it is one bidi-neutral full
+stop moving to the correct end of a sentence that is not part of the instrument.
+
+Two changes land on `/` — the front door, before any decision exists: `.first-decision-note` moved
+off the floor rank, and the selected source toggle stopped wearing the primary fill.
+
+**Does the protocol version need separation? No, and the reasoning is now in
+`shared/measurement-protocol.ts` rather than absent**, together with the case that gives pause
+(`.first-decision-note` is framing, and the 2→3 bump listed "two sentences became legible" among its
+reasons — but both of those were on the decision screen, and this one was already legible) and an
+explicit list of what *would* have forced a bump, so the next reader can check this rather than
+trust it.
+
+`CURRENT_PROTOCOL_VERSION` stays at **3**.
+
+## 12. Falsification
+
+The new tests were run against `5ecc58e` — the tree they were written to describe — with the fixes
+reverted and the tests kept.
+
+| Attempt | Expected failure | Result | Action |
+|---|---|---|---|
+| Revert the stylesheet, keep the new axe test | 27 serious + 2 moderate return | **RED**: `serious color-contrast x27 .unclear__group[data-waiting="false"] > .unclear__because` | none; the test is not vacuous |
+| Revert, keep the fill test | 2 wearers of `--blue` | **RED**: `expected […(2)] to have a length of 1 but got 2` | none |
+| Revert, keep the forced-colours test | squares identical | **RED**: `expected 'rgb(255, 255, 255)' not to be 'rgb(255, 255, 255)'` | none |
+| Revert, keep the bidi test | full stop before the sentence | **RED**: `expected 283.125 to be less than 273.078125` | none |
+| Does the axe harness pass vacuously? | it must still reach both states | **GREEN on the old tree**: markers found, 37/41 rules evaluated | none; a green result cannot mean a walk that stopped early |
+| Blur/squint: does a secondary region dominate? | a competing mass | strongest masses are `commitment-screen`, `primary-control`+`evaluation-track`, `record-layer`+`finding` | `.move-timeline` outranks the primary on `REVEAL` by container area at 45 % alpha; recorded, not acted on |
+| Copy-stripped: is the next action findable? | some state fails | **all four states**: strongest non-board control is the primary action | none |
+| Grayscale: does rank survive without hue? | rank collapses | `ARRIVE` primary Δ0.688 vs toggle Δ0.100, a 6.9× separation | none |
+| Density: was anything hidden? | a run count drops | `ARRIVE`/`DECIDE`/`REFLECT` identical; `REVEAL` 128→111 | that 17 is the composer, and it is §4 |
+| Typography: does the rank change break the grid? | overflow or clipping | 0 overflow at 26 viewport/route pairs; 200 % zoom and 24 px root clean | none |
+| Did the rank change invert a heading? | a heading under its body | **RED, caught by the repo's own test**: `H4.profile-panel__subtitle 12px < 14px` | fixed: subtitle → `--panel-data`, the rank its role already uses |
+| Motion under reduced-motion | an animation survives | 0 | none |
+| Performance: did polish cost anything? | LCP or CLS rises | 148/256 ms, CLS unchanged | none |
+| Epistemic: did authority outrun evidence? | a learning surface reachable by default | composer absent, queue absent, 0 "verified" on screen | none |
+
+The eleventh row is the one worth keeping: the change **did** introduce a defect, and the existing
+suite caught it before the pass ended.
+
+## 13. Remaining P2
+
+- **P2-4 Iconography.** 36 glyphs at eight sizes (12–18 and 44); 1 px steps rank nothing.
+- **P2-5 Component grammar.** Eight locally-invented action looks remain beside the three shared
+  roles.
+- **12 px prose.** ~10 paragraphs sit at `--panel-label`, whose declaration also reads "never a
+  sentence". Moving them is a materially larger change to how much of `REFLECT` fits on a screen.
+
+All three are consolidations whose end state is an aesthetic choice. §20 forbids building a
+design-system package for it, and §16 forbids letting P2 become infinite work.
+
+## 14. Verification — every command actually run
+
+```
+npm run verify        # check && build && test && gates && gates:controls && bundle:budget
+  tsc --noEmit                                                          clean
+  vite build                                                            built
+  vitest run            258 files passed, 2 skipped;  2,894 tests passed, 26 skipped, 0 failed
+  gates                 27 gates: 27 pass, 0 fail, 0 not-measured
+  gates:controls        27 gates: 0 pass, 27 fail  ("all implemented controls went red" = correct)
+  bundle:budget         within budget
+                          entry, raw               670.0 kB / 678 kB
+                          entry, gzipped           209.1 kB / 211 kB
+                          initial download, raw    752.9 kB / 761 kB
+```
+
+Run individually during the pass, and again inside the suite above:
+
+```
+vitest run tests/layout/axe-past-the-commit.layout.test.ts               3 passed   (new)
+vitest run tests/layout/what-a-colour-and-a-direction-mean.layout.test.ts 3 passed  (new)
+vitest run tests/layout/what-the-eye-ranks-first.layout.test.ts          green after the P2 fix
+vitest run tests/client/reveal-order.test.tsx                            green after the tag change
+vitest run tests/client/the-reveal-is-a-path-not-a-toolbox.test.tsx      9 passed
+```
+
+**Bundle cost of this pass: 0.29 kB of CSS** (84.65 → 84.94 kB raw). No dependency was added, no
+library was introduced, no icon was added. The ~220 lines of stylesheet comment are stripped by the
+minifier and cost nothing.
+
+**Browser evidence** was produced by probes kept out of the tree under `audit.local/` (ignored by
+`.gitignore`'s `*.local`): the viewport matrix, the axe runs on unaudited states, the fade-chain
+walk, the contrast grouping, the bidi Range measurement, the pre-commit stimulus search, and the
+thirteen-row falsification harness. Everything they found that is worth keeping is either a test in
+`tests/layout/` or a number in this document.
+
+## 15. OWNER-REQUIRED
+
+1. **Is the palette liked?** (#56 Q9.) Still open, and still not answerable from here. No hue moved
+   in #55 or in this pass, so there is not even a before/after to compare. Tokenised, both themes
+   declared, every pair now measurable — that is *systematic and accessible*, and it is not *liked*.
+2. **Ratify, amend or reject the Art Direction Contract in §6.** It is drafted from what the built
+   product already is, not proposed for it. Claude may document it and may not approve it.
+3. **The 12 px prose.** ~10 paragraphs sit at `--panel-label`, whose declaration also says "never a
+   sentence". Moving them to the body rank is defensible by the same argument that moved the 11 px
+   ones, and it materially changes how much of `REFLECT` fits on a screen. That trade is a
+   preference, so it was not taken.
+4. **Is `EXPERIMENTAL_LEARNING_ENABLED` the right resolution**, versus keeping the default and
+   renaming the surface? #56 left both open; this pass took the direction the brief named.
+5. **Does the product have enough character**, or is "quiet instrument on paper" too austere?
+
+## 16. FIELD-REQUIRED
+
+1. **Is there simply too much on these screens?** (#56 Q10.) Explicitly **not** resolved here. §D
+   says the counts do not establish it: `REFLECT`'s 127 runs are not obviously excessive for a mode
+   whose contract is "what the record can and cannot say", and choosing between two defensible
+   densities is what a person using the product decides.
+2. **Does 14 px read better than 11 px for these sentences in Hebrew**, beyond the contrast
+   requirement that forced the change anyway?
+3. **Is the reveal understood as a hypothesis rather than a verdict?**
+4. **Do players find the next action without reading the whole screen?** The grayscale,
+   copy-stripped and blur diagnostics in §12 approximate this and do not measure it.
+5. **Does opt-in learning strand a returning player** who has seen the composer before?
+6. **Screen readers.** No screen reader was run. axe checks names, roles and structure; whether an
+   announcement makes sense to a person hearing it is not something axe can answer.
+
+## 17. Status
+
+```
+PRE-FIELD FRONTEND TECHNICAL DOD: PASS
+OWNER VISUAL ACCEPTANCE:          PENDING
+PRE-FIELD FRONTEND DOD:           PENDING
+```
+
+The middle line is not a formality and cannot be moved from here. #56 withdrew #55's pass precisely
+because §41's owner gate *"was not failed — it was absent"*, and four green rows plus a sixth that
+cannot be self-assessed added up to a pass. The gate is named here, and it is open.
