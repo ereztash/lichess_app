@@ -1,5 +1,23 @@
 # `docs/measurement/`
 
+> **AMENDED 2026-09-01 by [`D25`](../decisions/D25-evidence-architecture.md).** The rule-class search
+> below found exactly one eligible class, `RC-06 answer-the-mate-threat`, on gate `G5`, which reads
+> `separation = B_valid|T+ − B_valid|T−`. **Those two terms are computed under different definitions
+> of `B`** — on trigger-positive items *"the opponent has no mate in one"*, on trigger-negative items
+> *"the opponent has no check at all"*. Under one fixed predicate, separation is **−0.048**, not
+> +0.768, because 99.5% of legal moves satisfy the rule when its trigger is absent.
+>
+> **Nothing below is deleted and no number below is wrong.** `RC-06`'s positive cell — the engine's
+> best move satisfying `B` on 242 of 242 items at a median of one centipawn — stands, and is a real
+> fact about chess. What is withdrawn is reading the *difference* between the cells as a specificity
+> statistic. See [`../evidence-architecture/RECONCILIATION.md`](../evidence-architecture/RECONCILIATION.md)
+> §2.6a, and `C11` in [`ACTION_MODEL_DECISION.md`](../evidence-architecture/ACTION_MODEL_DECISION.md)
+> for the guard that would have caught it.
+>
+> **Two classes are affected**, not one: `RC-12` inflates the same way (+0.815).
+> **The two anchors have never been checked for it**, so every comparison in
+> [`RULE_CLASS_SEARCH.md`](RULE_CLASS_SEARCH.md) is against an ungraded reference.
+
 A decision about whether to build a behavioural-transfer feature. **The decision was no**, and
 these are the artifacts that reached it.
 
@@ -19,6 +37,7 @@ Read in this order:
 | [`EVIDENCE_MANIFEST.json`](EVIDENCE_MANIFEST.json) | every source, with its evidence tier and where it was used |
 | [`STRONGEST_PERMITTED_CLAIM.json`](STRONGEST_PERMITTED_CLAIM.json) | the machine-readable version of what may and may not be said |
 | [`RULE_CLASS_SCREEN.json`](RULE_CLASS_SCREEN.json) | the rule-class gates and their outcome, derived from the measurements rather than written by hand |
+| [`../evidence-architecture/`](../evidence-architecture/) | **the fifth round.** Whether `separation` means what the screen reads it as → **`CONSTRUCT-UNDERIDENTIFIED`** |
 
 Scripts and results: [`research/measurement/`](../../research/measurement/). Executable controls:
 `tests/research/measurement-*.test.ts`.
