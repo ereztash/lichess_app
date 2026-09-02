@@ -53,8 +53,8 @@ refuted until something touches it.
 reason and repairs the record on the way, so the cost is a wasted click rather than a wrong
 measurement. The repository knows about it and has sized it.
 
-**What it means for the operating system.** It is the standing counterexample to `L1 derive, don't
-declare` — and it is a *read-path* counterexample, which is exactly the shape `L12 a surface must
+**What it means for the operating system.** It is the standing counterexample to `RNL-01 derive, don't
+declare` — and it is a *read-path* counterexample, which is exactly the shape `RNL-12 a surface must
 read the record, not its private copy` names. The two laws agree; the code has not caught up on one
 surface.
 
@@ -87,10 +87,10 @@ written under an independent adversary's PASS. `results/POST_FREEZE_AMENDMENTS.m
 to carry post-freeze changes and is *the first thing Gate 2 is asked to audit*. The mechanism
 worked; one of the two records was not re-stamped.
 
-**What it means for the operating system.** It is the standing counterexample to `L7 freeze refuses
+**What it means for the operating system.** It is the standing counterexample to `RNL-07 freeze refuses
 rather than silently repairs`, and it is a *second-authority* failure rather than a freeze failure:
 two records answer "what is the identity of this frozen document?" and only one was updated. That
-is `L5` (one authority per question) violated inside a mechanism built to enforce `L6`.
+is `RNL-05` (one authority per question) violated inside a mechanism built to enforce `RNL-06`.
 
 ---
 
@@ -247,7 +247,7 @@ closed"*. The header is a dated snapshot inside a history document, not a live c
 **Why this is not a contradiction.** The document is the argument; the scanner is the authority, and
 the document says so: *"The level is derived, not declared… A declaration is a comment: it can be
 wrong the day it is written and stays wrong."* The prose numbers are the state at the time the
-argument was made. **This is `L1` working**, not failing: the derived number moved and nothing had
+argument was made. **This is `RNL-01` working**, not failing: the derived number moved and nothing had
 to be edited for the repository to still be right about itself.
 
 ---
@@ -263,7 +263,7 @@ different subject, different data.
 
 **Why `NOMINAL_ONLY` and not `REAL_CONTRADICTION`.** Neither asserts anything about the other, and
 they have never been on the same ref, so no artifact currently mixes them. **Why it is recorded
-anyway:** `L6 identity follows semantics, not labels` is a repo-native law, and this is the one place
+anyway:** `RNL-06 identity follows semantics, not labels` is a repo-native law, and this is the one place
 in the tree where a label is doing work that semantics should. If the branch is ever merged, two
 directories named `b3*` will sit side by side and every citation of "B3" becomes ambiguous. This is
 a **consolidation hazard**, and it is listed in `REPO_NATIVE_OPERATING_SYSTEM.md` §K.
@@ -328,4 +328,284 @@ Recorded because a concordance that only lists hits is not a search.
 | an experiment whose label's semantics changed | X-15 only, and it is cross-ref rather than in-place |
 | two documents assigning different evidence authority to one claim | none — `E`-levels are carried per node and no two nodes claim the same question |
 | a workflow allowing repair during freeze while another refuses | X-02's near-miss; the B3 amendment channel is a *declared* channel with an adversary on it, not a silent repair |
-| test-pass treated as sufficient where another process requires a positive control | none in the gate set (28/28 have controls); **the bundle budget is the one enforced check with no control**, recorded in `LOCAL_SOLUTION_GAPS.md` as `G-04` rather than here, because it is a gap and not a conflict |
+| test-pass treated as sufficient where another process requires a positive control | none in the gate set (28/28 have controls); **the bundle budget is the one enforced check with no control**, recorded in `LOCAL_SOLUTION_GAPS.md` as `G-02` rather than here, because it is a gap and not a conflict |
+
+
+---
+
+# Study v2 — contradictions found by attacking the study itself
+
+`X-17` … `X-26` were found in a second pass whose job was to falsify Study v1. Eight of the ten
+are **inside the study's own artefacts**, in a study whose central concern is reconciliation. They
+are listed here rather than quietly fixed, and the fix for each is recorded beside it.
+
+`X-24` is the only one of the ten that is a finding about the **repository**; the rest are findings
+about the **study**. `X-26` is the only one found by a machine.
+
+## Summary, v2
+
+| class | v1 | new | total |
+| --- | ---: | ---: | ---: |
+| `REAL_CONTRADICTION` | 3 | 8 | **11** |
+| `DIFFERENT_SCOPE` | 6 | 0 | 6 |
+| `HISTORICAL_SUPERSESSION` | 4 | 0 | 4 |
+| `NOMINAL_ONLY` | 3 | 2 | **5** |
+| `UNRESOLVED` | 0 | 0 | **0** |
+| **total** | 16 | 10 | **26** |
+
+**Still no `UNRESOLVED`, and still no P0.** But the `REAL_CONTRADICTION` count more than tripled,
+and every new one was inside the study.
+
+---
+
+## X-17 · `EXTERNAL_CROSSWALK.md` carries the pre-narrowing `RNL-16`
+
+**Class: `REAL_CONTRADICTION`. Severity: P1. Location: the study.**
+
+`REPO_NATIVE_OPERATING_SYSTEM.md` §B publishes:
+
+> **RNL-16** — The adversary is scheduled, and may repair the *instrument* in either direction while
+> only ever weakening a *claim*.
+
+`EXTERNAL_CROSSWALK.md:27` still reads:
+
+> `RNL-16 the adversary is scheduled and may only weaken`
+
+**Why it is a `REAL_CONTRADICTION` and not historical wording.** The crosswalk row is not a
+quotation of a superseded claim — it is the row's *subject*, the thing the external analogue is
+being compared against. A reader consulting the crosswalk to see how `RNL-16` maps onto ACM artifact
+evaluation is handed the refuted form of the law. `ADVERSARIAL_REVIEW.md:330` also quotes the old
+wording, and that one **is** legitimate: it is the sentence Attack 11 exists to refute, with the
+refutation attached in the next paragraph. Same words, two statuses, and the difference is whether
+the refutation travels with them.
+
+**Chain, in the repository's own shape:**
+
+```
+observation      running evaluate.py showed Gate 3's repair moved the verdict UP
+→ contradiction  the published RNL-16 said the adversary may only weaken
+→ authority      REPO_NATIVE_OPERATING_SYSTEM.md §B is declared the authority for law text (X-25)
+→ correction     EXTERNAL_CROSSWALK.md row RNL-16 restated to the two-role form
+→ reconciliation selfcheck.py holds every law statement in every study file against §B
+```
+
+**Evidence that X-17 existed is preserved** in this entry, in `selfcheck.py`'s test case, and in
+the git history of the crosswalk file.
+
+---
+
+## X-18 · The adversarial review publishes both four kernels and five
+
+**Class: `REAL_CONTRADICTION`. Severity: P1. Location: the study.**
+
+`ADVERSARIAL_REVIEW.md` Attack 2 dissolves the fifth kernel and states the separation published at
+that point — **1.44×**, the v1 figure, since superseded by 1.39× under `X-26`. Three later passages
+in the same file contradict it:
+
+| line | text | conflicts with |
+| ---: | --- | --- |
+| 90 | *"only weakly supported by their co-occurrence in the corpus (**1.58×**)"* — inside Attack 2's own applied-change list | Attack 2's own §2, seven lines below, which published the v1 figure |
+| 234 | *"Compressing eighteen laws into **five kernel rules**"* | §B publishes four |
+| 245–246 | *"the **five kernel rules** appear as a *reading* of them, with the **1.58×** caveat attached"* | §B publishes four, and a different separation figure |
+
+**Why it is real.** Attack 8's applied-change is a statement about what §B currently publishes, and
+it is false. A reader who reads Attack 8 and stops has the wrong kernel count and the flattering
+separation number — the exact number Attack 2 said it was rejecting in favour of the worse one.
+
+**Fix:** Attack 8's case and applied-change restated to four kernels and to the v1 separation
+figure (the v1 1.44×, itself later superseded — see `X-26`); Attack 2's
+applied-change §1 corrected. The 1.58× figure is kept everywhere it describes the **draft**, which
+is what it is.
+
+---
+
+## X-19 · "Two live counterexamples" after there were three
+
+**Class: `NOMINAL_ONLY`. Severity: P2. Location: the study.**
+
+`ADVERSARIAL_REVIEW.md:148` (Attack 4) says *"A law with two live counterexamples"*.
+`REPO_NATIVE_OPERATING_SYSTEM.md` §A says three.
+
+**Why `NOMINAL_ONLY` and not real.** Attack 4 was written before `X-16` existed and its sentence is
+about `RNL-01` and `RNL-07` specifically, which is still exactly two. The count reads as a claim about the
+study's total only if lifted out of its paragraph. **Fix:** the sentence is scoped to name its two
+laws, so the number cannot be read as a total.
+
+---
+
+## X-20 · Attack 2 asserts what Attack 1 refuted
+
+**Class: `REAL_CONTRADICTION`. Severity: P2. Location: the study.**
+
+`ADVERSARIAL_REVIEW.md` Attack 2 §3: *"every failure supporting it was found by an audit rather
+than by a runtime, a browser, a control, a bot, the owner or another model."*
+
+Attack 1, patched later in the same pass, computes the opposite: **all eighteen laws have at least
+one non-authoring case**, and `RNL-11`'s is `C30` — a positive control that came back green.
+
+**Fix:** Attack 2 §3 restated to the measured claim — `RNL-11` is weakest because it has **one** such
+case against `RNL-17`'s nineteen, not because it has none.
+
+---
+
+## X-21 · The study reuses `RNL-06` for two different things, in adjacent rows of its own authority table
+
+**Class: `REAL_CONTRADICTION`. Severity: P1. Location: the study. Found by grep, not by reading.**
+
+`REPO_NATIVE_OPERATING_SYSTEM.md` §B, compliance table:
+
+```
+| `L14` | 1 | `L6` deployment rung is zero ...        |   ← L6 = the test-reality rung
+| `L6`  | 1 | two studies named "B3" on two refs ...  |   ← L6 = the law "identity follows semantics"
+```
+
+Two adjacent rows. Same token. Two referents.
+
+And `EVIDENCE_MODEL.md:124` writes the collision into a sentence about the collision:
+
+> *"Do rename one of the two `L` ladders. They are different dimensions sharing a label, which is
+> exactly what `RNL-06 identity follows semantics, not labels` forbids."*
+
+Two lines after using `L1–L6` and `L0–L5` for the two ladders.
+
+**Why this is the worst of the nine.** It is not a stale copy. It is a **live ambiguity inside the
+document that publishes the law**, and the law it violates is the one it is violating. The study
+identified the repository's two-`L`-ladder collision as a defect (`EVIDENCE_MODEL.md` §"The one
+genuine redundancy") and then added a third meaning for the same token without noticing.
+
+**Fix:** the study's laws are renamed **`RNL-01` … `RNL-18`** (*repo-native law*) throughout. `RNL-`
+collides with nothing in the tree — `P0/P1/P2` is already severity and `LAW 1`…`LAW 12` is already
+`docs/INERTIAL_UX_LAWS.md`, so neither was available. `L1–L6` and `L0–L5` are left to the two
+ladders they already name in the repository, because those are the
+repository's tokens and the study does not get to rename the repository's vocabulary — only its
+own. `selfcheck.py` fails if a bare `L<n>` reappears as a law reference in any study file.
+
+---
+
+## X-22 · The contradiction register cites the wrong gap id
+
+**Class: `NOMINAL_ONLY`. Severity: P2. Location: the study.**
+
+`CONTRADICTIONS.md`'s "What was searched for and NOT found" table says the bundle budget is
+*"recorded in `LOCAL_SOLUTION_GAPS.md` as `G-04`"*. It is `G-02`. `G-04` is the register-scan gap.
+
+**Why `NOMINAL_ONLY`.** A wrong pointer, not a wrong claim: the bundle budget genuinely is recorded,
+under a different id. **Fix:** the pointer is corrected, and `selfcheck.py` now resolves every
+`G-nn` and `X-nn` cross-reference in every study file.
+
+---
+
+## X-23 · "47 cycles" is a maximum, not a count
+
+**Class: `REAL_CONTRADICTION`. Severity: P2. Location: the study.**
+
+Re-derived in this pass:
+
+```
+lines starting "## Cycle" in PRODUCTION_READINESS_LEDGER.md : 43
+sections after splitting on "## "                           : 43
+with a positive-control mention                             : 21
+without                                                     : 22
+cycles numbered  <34 : 7/29 mention a control
+cycles numbered >=34 : 14/14
+```
+
+**43 sections, numbered up to 47** — the numbering merges three ranges (`Cycles 23–26`,
+`27–28`, `29–30`), so the highest number is 47 and the count is 43.
+
+The study wrote **47** as a count in four places (`§A`, `ADVERSARIAL_REVIEW` lines 38, 115, 123) and
+**43** as a count in one (`ADVERSARIAL_REVIEW:128`). The 7/29 and 14/14 figures are computed over
+sections and are correct; only the total was wrong.
+
+**Why it is real rather than nominal.** The adoption curve is the study's headline evidence against
+"this is documentation style", and it was published with an inflated denominator. The finding
+survives — 7/29 → 14/14 is unchanged — but the sentence *"scanning all 47 cycles"* is false.
+
+**Fix:** every count restated as **43 cycle sections (cycles numbered 1–47)**, and `selfcheck.py`
+re-derives it.
+
+---
+
+## X-24 · A migration outside the directory CI applies
+
+**Class: `REAL_CONTRADICTION`. Severity: P2. Location: the repository.**
+
+`drizzle/0001_verified_learning.sql` — 1,512 bytes, hand-numbered — sits at the top of `drizzle/`.
+CI applies `drizzle/migrations/*.sql`, nineteen files, in lexicographic order, and its glob never
+reaches the stray. Checked in this pass: **it is not byte-identical to any migration inside**; its
+closest relative is `0012_redundant_sally_floyd.sql` at 0.78 sequence similarity.
+
+**Why it is real.** Two artefacts answer *"what migrations define this schema?"* and nothing scopes
+the second. `GATE-REGISTER-RECONCILED` does not look at `drizzle/`.
+
+**Why P2 and not higher.** Nothing applies it, so it cannot corrupt a database. The cost is a
+reader who opens `drizzle/` and finds two migration sets.
+
+**Not fixed here.** It is a repository artefact and this mission may not modify one. It is recorded,
+and it is the evidence for authority question `Q25`.
+
+---
+
+## X-25 · The study names no authority for its own numbers
+
+**Class: `REAL_CONTRADICTION`. Severity: P1. Location: the study. This is the cause of X-17 … X-23.**
+
+The study publishes eighteen laws, four kernel rules, eighteen classifications, twenty-five
+contradiction entries, ten ranked gaps, thirty-two authority questions and two scores, spread across
+fifteen files — and **no file claims authority for any of them**. `PROCESS_CORPUS.md` names its JSON
+authoritative for the corpus; nothing else is named at all.
+
+`REPO_NATIVE_OPERATING_SYSTEM.md` §B publishes `RNL-05`/`P5`: *one authority per question*. The study
+violated it about itself, and the violation produced **seven measurable drifts in fifteen files
+within one authoring pass** — a defect rate of roughly one drift per two files.
+
+**This is the strongest self-application evidence in the study, and it points the wrong way for the
+study's conclusion.** A reconstruction that could not hold itself to the law it was publishing is a
+reconstruction whose *application* is unproven, whatever its *description* scores.
+
+**Fix, in the repository's own idiom:**
+
+1. `REPO_NATIVE_OPERATING_SYSTEM.md` §B is **declared** the authority for law text, law
+   classification and the kernel; `PROCESS_CORPUS.json` for the corpus; `SCORING_METHOD_V2.md` for
+   the formulas; `AUTHORITY_MAP_V2_ATTACK.md` for the authority-question count.
+2. `docs/consolidation-research/selfcheck.py` **derives** every cross-file claim and fails on
+   disagreement — the study's own `G-04`, applied to the study.
+3. `selfcheck.py` carries a **positive control**: a fixture copy of the study with each of X-17,
+   X-18, X-20, X-21, X-22 and X-23 re-injected, on which it must go red. A checker that has not
+   demonstrated failure is not a checker.
+
+---
+
+## X-26 · A domain law inside a kernel rule
+
+**Class: `REAL_CONTRADICTION`. Severity: P1. Location: the study. Found by `selfcheck.py`, not by a
+reader.**
+
+`REPO_NATIVE_OPERATING_SYSTEM.md` §B classifies `RNL-09` and `RNL-12` as `DOMAIN LAW` — two
+domains each — and `ADVERSARIAL_REVIEW.md` Attack 2 states the consequence: *"`RNL-09` is published
+outside the kernel as a domain law."*
+
+It says nothing about `RNL-12`, and v1's `K1` membership line read:
+
+```
+> *`RNL-01` `RNL-06` `RNL-07` `RNL-12` `RNL-18` — 25/48 cases, 10/12 domains*
+```
+
+So the study applied two different rules to two laws of the same class: `RNL-09` excluded from the
+kernel, `RNL-12` left inside it. A kernel rule is the compression of the **repo-wide** laws; a
+domain law inside one silently widens what the kernel claims to explain.
+
+**Why it matters beyond tidiness.** `K1`'s published coverage — *25/48 cases* — was computed with
+`RNL-12`'s six cases folded in. Recomputed without it, `K1` covers **23/48**, and the kernel's
+within/between separation falls from the v1 **1.44×** to **1.39×**. The correction makes the study's own
+central structural claim weaker, which is the direction a correction found by a checker should be
+allowed to go.
+
+**Fix:** `RNL-12` removed from `K1`; both domain laws published outside the kernel; `K1`'s coverage
+and the separation figure recomputed and republished at their worse values. `selfcheck.py` `SC-02`
+now fails if any law classified `DOMAIN LAW` appears in a kernel, and fails if a repo-wide law
+appears in none.
+
+**This is the first defect in this study found by a machine rather than by a person**, and it is the
+argument for `selfcheck.py` existing at all: six readings of §B by the author did not see it.
+

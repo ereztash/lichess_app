@@ -9,12 +9,19 @@ consolidation. Baseline in [`BASELINE.md`](BASELINE.md); corpus in
 
 ## A. Executive conclusion
 
-# `STRONG_REPO_NATIVE_OS`
+# `PARTIAL_REPO_NATIVE_OS`
 
-A coherent in-house operating system exists. It is not a documentation convention and it is not a
-restatement of ordinary engineering practice.
+> **Study v2.** Study v1 published `STRONG_REPO_NATIVE_OS` at `97.78 / 100`. That verdict was
+> attacked rather than defended, and it did not survive intact. The v1 record is preserved in
+> [`AMENDMENT_CHAIN.md`](AMENDMENT_CHAIN.md), with the formulas that produced it and the six
+> defects that moved it.
 
-Three things decide it, and each was measured rather than read:
+A coherent in-house operating system exists, it is enforced rather than described, and it covers
+the surfaces this repository was built to care about. It does **not** cover the operational
+surface at all, and the study can prove that only for the fraction of the tree it actually read.
+`PARTIAL` names both limits.
+
+**What is `STRONG`.** Three things decide it, and each was measured rather than read:
 
 **1. It is enforced, not described.** 28 named gates run on every build, **28 of 28 green on the real
 tree and 28 of 28 red against deliberately-broken fixtures** — both executed in this study. Every
@@ -22,9 +29,9 @@ gate carries a `rule` id pointing back to the document that states the rule it e
 scanners derive facts the documents claim (`test-level-scan`, `register-scan`, `said-once-scan`,
 `two-hands-scan`), and one of them reddens when a *document* drifts from the tree.
 
-**2. It was learned at a datable point, not declared at the start.** Scanning all 47 cycles of
-`PRODUCTION_READINESS_LEDGER.md` for a positive-control mention: **7 of 29 before cycle 34, 14 of 14
-from cycle 34 onward.** A style is uniform from the first page. This is a discipline that arrived,
+**2. It was learned at a datable point, not declared at the start.** Scanning all **43 cycle sections** of
+`PRODUCTION_READINESS_LEDGER.md` (cycles numbered 1–47; three headings cover ranges) for a
+positive-control mention: **7 of 29 before cycle 34, 14 of 14 from cycle 34 onward.** A style is uniform from the first page. This is a discipline that arrived,
 and then held.
 
 **3. Its strongest scientific artefact is a program, and the program reproduces.** `evaluate.py`,
@@ -32,37 +39,77 @@ run here in a fresh session, returns `INVALID_EXPERIMENT` from `analysis_final.j
 `GENERAL_REGULARITY_ONLY` level 3 from `analysis_repaired.json` — matching both committed verdict
 files exactly, including all seven failed H2 conditions.
 
-The verdict is `STRONG` and not `PARTIAL` because there are **no incompatible process families**:
-two clustering passes over 48 cases agree on four families at purity 0.50–0.71, and the two things
-they disagree about (identity/provenance, supersession) turn out not to be families at all but
-operations that run inside every family.
+There are **no incompatible process families**: two clustering passes over 48 cases agree on four
+families at purity 0.50–0.71, and the two things they disagree about (identity/provenance,
+supersession) turn out not to be families at all but operations that run inside every family. That
+was v1's whole argument for `STRONG`, and it still holds. It is not sufficient.
 
-It is `STRONG` **with three live counterexamples** — two P1, one P2, none critical. Two are named by
-the repository itself; the third was found by running it. All three are in
+**What makes it `PARTIAL`.** Three things, and v1 could not see any of them because v1 never asked
+a question it had not already answered:
+
+**1. Four critical questions have no authority at all, and they cluster.** The completeness attack
+([`AUTHORITY_MAP_V2_ATTACK.md`](AUTHORITY_MAP_V2_ATTACK.md)) raised the denominator from 24 to 32.
+**Rollback, observability, retention and supported runtimes** have no answer anywhere in the tree —
+not a weak answer, not a deferred one, *none*. That is not a random scatter: it is the entire
+operational surface. An operating system with no rule for how a bad deploy is undone is partial by
+the ordinary meaning of the word, however disciplined the rest of it is.
+
+And the repository has an idiom for *not yet* — `DEFER` with a written trigger, used on `D06` for
+two years without embarrassment. It was not used here. These four are not deferred. They are
+unnoticed.
+
+**2. The study can vouch for a fraction of the tree.** `D1b` scores **2.59 / 6**: of 85
+load-bearing implementation files, **16 were quoted**. The other 69 were named as evidence and not
+reproduced, and roughly 200 more were never opened. `STRONG` is a claim about a repository; this
+study read a governance corpus in full and an implementation corpus in part, and the corrected
+score is built to make that visible rather than to excuse it.
+
+**3. The study broke its own laws about itself.** `X-17` … `X-26`: ten contradictions, eight of
+them inside the study's own artefacts, in a study whose subject is reconciliation. It violated
+`RNL-01` (published counts it did not derive), `RNL-05` (no authority for its own numbers) and
+`RNL-06` (reused one law id for two things). A reconstruction that cannot hold itself to the
+operating system it reconstructs has not finished demonstrating that the operating system
+generalises.
+
+It is `PARTIAL` **with three live counterexamples in the repository** — two P1, one P2, none
+critical — and **eight in the study**, all now repaired. Two of the repository's three are named by
+the repository itself; the third was found by running it. All are in
 [`CONTRADICTIONS.md`](CONTRADICTIONS.md).
+
+**What `PARTIAL` does not mean.** It does not mean the operating system is weak, unenforced or
+unreal. Every measurement in §M that tests *whether the model is right* came back at or near
+ceiling: `κ = 1.000`, separation `1.000`, admissibility `1.000`, 26 of 26 contradictions
+classified, 16 of 16 repo-wide laws with executed enforcement. The points were lost on **coverage**
+and **authority completeness** — on how much of the repository the study can speak for, and on how
+many questions the repository has answers to. Those are the two honest limits, and they are the
+verdict.
 
 ---
 
 ## B. The kernel
 
-Four rules explain the corpus. Each covers 52–81% of the 48 cases on its own; together they cover
-**48 of 48**, and each spans 9–12 of the 12 domains.
+Four rules explain the corpus. Each covers 48–81% of the 48 cases on its own; together they cover
+**48 of 48**, and each spans 9–12 of the 12 domains. **Both domain laws sit outside the kernel** —
+Study v1 left `RNL-12` inside `K1` while excluding `RNL-09`, which `selfcheck.py` caught (`X-26`).
 
 **The kernel is a logical grouping of the sixteen laws below, and only weakly supported by their
-co-occurrence (within/between Jaccard 1.44×).** The adversary forced that sentence and it stays.
+co-occurrence (within/between Jaccard **1.39×**).** The adversary forced that sentence and it stays,
+and the figure fell again in Study v2 when a domain law was removed from `K1` — 1.58× (five-rule
+draft) → 1.44× (four-rule v1) → **1.39×** (four-rule v2). Every revision made it worse and every
+revision published the worse number.
 The eighteen laws are the operative units; the four rules are how they hang together.
 
 > ### K1 · The record decides. Where it cannot answer, refuse rather than fabricate.
-> *`L1` `L6` `L7` `L12` `L18` — 25/48 cases, 10/12 domains*
+> *`RNL-01` `RNL-06` `RNL-07` `RNL-18` — 23/48 cases, 10/12 domains*
 >
 > ### K2 · Nothing gains authority until a step ran that could have taken it away, and the taking-away condition was written first.
-> *`L2` `L3` `L4` `L15` `L16` — 31/48 cases, 12/12 domains*
+> *`RNL-02` `RNL-03` `RNL-04` `RNL-15` `RNL-16` — 31/48 cases, 12/12 domains*
 >
 > ### K3 · One current authority per question, with its lineage kept and its way of losing written down.
-> *`L5` `L10` `L13` — 30/48 cases, 9/12 domains*
+> *`RNL-05` `RNL-10` `RNL-13` — 30/48 cases, 9/12 domains*
 >
 > ### K4 · A claim may not outrun its evidence, and the bound is measured rather than judged.
-> *`L8` `L11` `L14` `L17` — 39/48 cases, 12/12 domains*
+> *`RNL-08` `RNL-11` `RNL-14` `RNL-17` — 39/48 cases, 12/12 domains*
 
 ### The laws
 
@@ -72,24 +119,24 @@ a channel **other than authoring**). Domain counts are computed from the corpus,
 
 | law | statement | dom | op | fail | non-auth | class |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
-| **L1** | **Derive, don't declare** — and the direction is the opposite of GitOps: the *tree* is authoritative and the *declaration* is reconciled toward it. `register-scan.ts` is drift detection with no actuator, deliberately. | 7 | 7 | 5 | 8 | **REPO-NATIVE LAW** |
-| **L2** | **Promote only after contradiction was possible.** | 7 | 5 | 4 | 9 | **REPO-NATIVE LAW** |
-| **L3** | **Build the judge before the contender**, and put it where it can say no. | 7 | 4 | 2 | 7 | **REPO-NATIVE LAW** |
-| **L4** | **A gate that has not demonstrated failure is not a gate** — same predicate, broken input, red *for its own reason*. Universal for gates since ledger cycle 34; sporadic before. | 4 | 5 | 4 | 9 | **REPO-NATIVE LAW** |
-| **L5** | **One authority per **question**, not one source of truth for everything.** It is a rule about questions, not files: merging two documents that answer different questions destroys the property. | 5 | 5 | 4 | 7 | **REPO-NATIVE LAW** |
-| **L6** | **Identity follows semantics, not labels.** | 4 | 4 | 3 | 3 | **REPO-NATIVE LAW** |
-| **L7** | **Freeze refuses rather than silently repairs.** | 3 | 4 | 2 | 4 | **REPO-NATIVE LAW** |
-| **L8** | **Evidence authority may never exceed evidence level.** | 10 | 6 | 3 | 8 | **REPO-NATIVE LAW** |
-| **L9** | Derivation → shadow → ownership. | **2** | 4 | 2 | 1 | `DOMAIN LAW` — measurement surfaces |
-| **L10** | **Failed history is provenance, not clutter** — kept unmodified, with an explicit and *scoped* replacement pointer. | 8 | 5 | 3 | 9 | **REPO-NATIVE LAW** |
-| **L11** | **Do not change the intervention and the measuring instrument at the same time.** | 3 | 4 | 2 | **1** | **REPO-NATIVE LAW** — *weakest; see §I* |
-| **L12** | A surface must read the record, not its private copy. | **2** | 3 | 3 | 5 | `DOMAIN LAW` — client surfaces |
-| **L13** | **A claim must specify what would reverse it** — there is no `status: solved` without one, and a fired trigger must be evaluated and recorded, not left in the table. | 6 | 4 | 3 | 9 | **REPO-NATIVE LAW** |
-| **L14** | **The level of reality in the test must match the level in the claim** — derived, with a severity floor. Higher is *not* always better. | 6 | 4 | 3 | 6 | **REPO-NATIVE LAW** |
-| **L15** | **Declare the rejection rule before the run, and do not move it after** — even when the rule turns out to be the thing that was wrong. | 6 | 4 | 3 | 8 | **REPO-NATIVE LAW** |
-| **L16** | **The adversary is scheduled, and may repair the *instrument* in either direction while only ever weakening a *claim*.** *(narrowed by execution — see §I)* | 3 | 4 | 3 | 4 | **REPO-NATIVE LAW** |
-| **L17** | **Say what this does not establish**, in the same shape, every time. | 12 | 5 | 3 | 19 | **REPO-NATIVE LAW** |
-| **L18** | **Refuse rather than skip** — `NOT-MEASURED` is not `PASS`. | 5 | 5 | 3 | 6 | **REPO-NATIVE LAW** |
+| **RNL-01** | **Derive, don't declare** — and the direction is the opposite of GitOps: the *tree* is authoritative and the *declaration* is reconciled toward it. `register-scan.ts` is drift detection with no actuator, deliberately. | 7 | 7 | 5 | 8 | **REPO-NATIVE LAW** |
+| **RNL-02** | **Promote only after contradiction was possible.** | 7 | 5 | 4 | 9 | **REPO-NATIVE LAW** |
+| **RNL-03** | **Build the judge before the contender**, and put it where it can say no. | 7 | 4 | 2 | 7 | **REPO-NATIVE LAW** |
+| **RNL-04** | **A gate that has not demonstrated failure is not a gate** — same predicate, broken input, red *for its own reason*. Universal for gates since ledger cycle 34; sporadic before. | 4 | 5 | 4 | 9 | **REPO-NATIVE LAW** |
+| **RNL-05** | **One authority per **question**, not one source of truth for everything.** It is a rule about questions, not files: merging two documents that answer different questions destroys the property. | 5 | 5 | 4 | 7 | **REPO-NATIVE LAW** |
+| **RNL-06** | **Identity follows semantics, not labels.** | 4 | 4 | 3 | 3 | **REPO-NATIVE LAW** |
+| **RNL-07** | **Freeze refuses rather than silently repairs.** | 3 | 4 | 2 | 4 | **REPO-NATIVE LAW** |
+| **RNL-08** | **Evidence authority may never exceed evidence level.** | 10 | 6 | 3 | 8 | **REPO-NATIVE LAW** |
+| **RNL-09** | Derivation → shadow → ownership. | **2** | 4 | 2 | 1 | `DOMAIN LAW` — measurement surfaces |
+| **RNL-10** | **Failed history is provenance, not clutter** — kept unmodified, with an explicit and *scoped* replacement pointer. | 8 | 5 | 3 | 9 | **REPO-NATIVE LAW** |
+| **RNL-11** | **Do not change the intervention and the measuring instrument at the same time.** | 3 | 4 | 2 | **1** | **REPO-NATIVE LAW** — *weakest; see §I* |
+| **RNL-12** | A surface must read the record, not its private copy. | **2** | 3 | 3 | 5 | `DOMAIN LAW` — client surfaces |
+| **RNL-13** | **A claim must specify what would reverse it** — there is no `status: solved` without one, and a fired trigger must be evaluated and recorded, not left in the table. | 6 | 4 | 3 | 9 | **REPO-NATIVE LAW** |
+| **RNL-14** | **The level of reality in the test must match the level in the claim** — derived, with a severity floor. Higher is *not* always better. | 6 | 4 | 3 | 6 | **REPO-NATIVE LAW** |
+| **RNL-15** | **Declare the rejection rule before the run, and do not move it after** — even when the rule turns out to be the thing that was wrong. | 6 | 4 | 3 | 8 | **REPO-NATIVE LAW** |
+| **RNL-16** | **The adversary is scheduled, and may repair the *instrument* in either direction while only ever weakening a *claim*.** *(narrowed by execution — see §I)* | 3 | 4 | 3 | 4 | **REPO-NATIVE LAW** |
+| **RNL-17** | **Say what this does not establish**, in the same shape, every time. | 12 | 5 | 3 | 19 | **REPO-NATIVE LAW** |
+| **RNL-18** | **Refuse rather than skip** — `NOT-MEASURED` is not `PASS`. | 5 | 5 | 3 | 6 | **REPO-NATIVE LAW** |
 
 **16 `REPO-NATIVE LAW` · 2 `DOMAIN LAW` · 0 `LOCAL PATTERN` · 0 `UNSUPPORTED GENERALIZATION`.**
 
@@ -100,11 +147,11 @@ decided and not finished.
 
 | law | live counterexamples | where |
 | --- | ---: | --- |
-| `L1` | 2 | `LearningQueue.tsx:111` renders the stored grade (`X-01`); `results/selftest.json` declares a result its own code no longer produces (`X-16`) |
-| `L7` | 1 | `PREREGISTRATION_FREEZE.json`'s amended hash is stale for `DATA_PROTOCOL.md` (`X-02`) |
-| `L2` / `L4` | 1 | `npm run bundle:budget` is enforced and has no positive control (`G-02`) |
-| `L14` | 1 | `L6` deployment rung is zero and the one run that found a defect does not re-run (`G-07`) |
-| `L6` | 1 | two studies named "B3" on two refs (`X-15`) |
+| `RNL-01` | 2 | `LearningQueue.tsx:111` renders the stored grade (`X-01`); `results/selftest.json` declares a result its own code no longer produces (`X-16`) |
+| `RNL-07` | 1 | `PREREGISTRATION_FREEZE.json`'s amended hash is stale for `DATA_PROTOCOL.md` (`X-02`) |
+| `RNL-02` / `RNL-04` | 1 | `npm run bundle:budget` is enforced and has no positive control (`G-02`) |
+| `RNL-14` | 1 | `L6` deployment rung is zero and the one run that found a defect does not re-run (`G-07`) |
+| `RNL-06` | 1 | two studies named "B3" on two refs (`X-15`) |
 | every other law | 0 | — |
 
 ---
@@ -266,9 +313,9 @@ is not the top of the ladder, it is the top of what a single-repository study ca
 
 | stays domain-specific | why |
 | --- | --- |
-| `L9` derivation → shadow → ownership | 2 domains. It costs a measured **+16.1 kB raw / +5.1 kB gzipped** on two hot routes and a ledger nobody reads. It is for a derivation that would change **what a person is sent to** — not for one that answers a question about the repository. `register-scan` and `test-level-scan` correctly took ownership on day one. |
-| `L12` a surface must read the record | 2 domains, both client-side. It is a rule about the *read path and its key*, not about caching. |
-| `L16` the scheduled adversary | Costs a full independent context per gate — B3 spent four plus three re-reads. Spend it where a result will be believed and is expensive to redo. It is not a repository-wide rule. |
+| `RNL-09` derivation → shadow → ownership | 2 domains. It costs a measured **+16.1 kB raw / +5.1 kB gzipped** on two hot routes and a ledger nobody reads. It is for a derivation that would change **what a person is sent to** — not for one that answers a question about the repository. `register-scan` and `test-level-scan` correctly took ownership on day one. |
+| `RNL-12` a surface must read the record | 2 domains, both client-side. It is a rule about the *read path and its key*, not about caching. |
+| `RNL-16` the scheduled adversary | Costs a full independent context per gate — B3 spent four plus three re-reads. Spend it where a result will be believed and is expensive to redo. It is not a repository-wide rule. |
 | `E0–E6` | A ladder for **research promotion**. Product defects legitimately have no E-level; extending it to debt rows would manufacture a claim. |
 | The `L0–L5` ecological ladder | A property of a *research task*, not of a test. |
 
@@ -276,8 +323,10 @@ is not the top of the ladder, it is the top of what a single-repository study ca
 
 ## I. Contradictions
 
-Full register in [`CONTRADICTIONS.md`](CONTRADICTIONS.md): **16 entries: 3 `REAL_CONTRADICTION` · 6
-`DIFFERENT_SCOPE` · 4 `HISTORICAL_SUPERSESSION` · 3 `NOMINAL_ONLY` · 0 `UNRESOLVED` · 0 critical.**
+Full register in [`CONTRADICTIONS.md`](CONTRADICTIONS.md): **26 entries: 11 `REAL_CONTRADICTION` · 6
+`DIFFERENT_SCOPE` · 4 `HISTORICAL_SUPERSESSION` · 5 `NOMINAL_ONLY` · 0 `UNRESOLVED` · 0 critical.**
+Ten of the twenty-six were added in Study v2, and **eight of those ten are inside the study
+itself** — one of them found by a machine rather than by a reader.
 
 The three live ones:
 
@@ -287,8 +336,8 @@ stated plainly"*.
 
 **`X-02`** — `PREREGISTRATION_FREEZE.json`'s `amended_sha256` says `DATA_PROTOCOL.md` is `cf263394…`;
 the file is `6560f3d7…`, and `FINAL_HOLDOUT_SEALED.json` records the correct value. Verified against
-git in this study: the change landed in the seal commit itself. It is `L5` violated inside a
-mechanism built to enforce `L6`.
+git in this study: the change landed in the seal commit itself. It is `RNL-05` violated inside a
+mechanism built to enforce `RNL-06`.
 
 **`X-16`** — found by **running** the oracle, not by reading it. `results/selftest.json` records the
 plant `one-game-only` at `delta 0.45, passes: false`, with a `plants_off_target` entry;
@@ -299,11 +348,11 @@ by a different method. Together they are what makes gap rank 1 the highest-value
 
 ### Two narrowings this study made, and where they came from
 
-**`L1` was inverted by an external framing and had to be stated with its direction.** OpenGitOps'
+**`RNL-01` was inverted by an external framing and had to be stated with its direction.** OpenGitOps'
 *continuously reconciled* holds the declaration authoritative and converges the world. This
 repository does the opposite. Importing the framing would reverse the law.
 
-**`L16` was too strong, and execution proved it.** Running `evaluate.py` in this session on both
+**`RNL-16` was too strong, and execution proved it.** Running `evaluate.py` in this session on both
 committed analyses showed Gate 3's repair moved the verdict **up** — `INVALID_EXPERIMENT` →
 `GENERAL_REGULARITY_ONLY` level 3. The repository runs two adversarial roles and the draft had
 collapsed them: an **instrument adversary**, which may move a number in either direction under a
@@ -312,8 +361,8 @@ weakening or a qualification"*.
 
 ### The weakest law, named
 
-**`L11`** meets the stated bar (3 domains, 4 operational instances, 2 failures) but has **one**
-non-authoring case against `L17`'s nineteen. Everything supporting it was found by an audit, except
+**`RNL-11`** meets the stated bar (3 domains, 4 operational instances, 2 failures) but has **one**
+non-authoring case against `RNL-17`'s nineteen. Everything supporting it was found by an audit, except
 `C30`, whose green positive control supports four other laws more centrally. **What would strengthen
 it:** a measured case where a protocol version bump and an interface change happened in the same
 step and a later comparison was demonstrably wrong because of it. No such case exists in the tree.
@@ -324,8 +373,8 @@ step and a later comparison was demonstrably wrong because of it. No such case e
 
 **Consolidation governed by this operating system is not a merge.**
 
-`L5` (one authority per question) reads like a licence to merge and is not one — it is a rule about
-*questions*. `L10` (failed history is provenance) is its other half, and a consolidation that reads
+`RNL-05` (one authority per question) reads like a licence to merge and is not one — it is a rule about
+*questions*. `RNL-10` (failed history is provenance) is its other half, and a consolidation that reads
 one without the other destroys the repository's strongest property. What consolidation becomes
 under this model is four steps, none of which is a file move:
 
@@ -400,80 +449,153 @@ control is deleted.
 
 ## M. Final score
 
-Computed by [`SCORING_METHOD.md`](SCORING_METHOD.md), which was written before the numbers.
+> ### THIS SCORE EVALUATES THE RECONSTRUCTION STUDY.
+> ### IT IS NOT A SCORE OF THE APPLICATION.
+>
+> It says how well this repository's operating system was reconstructed. It says nothing about
+> whether the product is production-ready, whether the science is valid, whether the code is
+> maintainable, or whether consolidation is safe on any axis this study did not measure.
+> [`SCORING_METHOD_V2.md`](SCORING_METHOD_V2.md) §7 lists what is knowingly outside it.
+
+Computed by [`SCORING_METHOD_V2.md`](SCORING_METHOD_V2.md), which was written before the numbers,
+by [`score_v2.py`](score_v2.py), which reads its inputs out of the published artefacts rather than
+taking them by hand. Study v1's score and its method are preserved unchanged in
+[`SCORING_METHOD.md`](SCORING_METHOD.md) and [`AMENDMENT_CHAIN.md`](AMENDMENT_CHAIN.md).
 
 | dimension | formula input | score |
 | --- | --- | ---: |
-| 1 · Corpus coverage | 169 / 169 governing files classified = 100%; every mandatory document present | **20.00** / 20 |
-| 2 · Cross-domain replication | 16 repo-native of 18 candidates = 0.889; kernel = 4 rules, no parsimony penalty | **17.78** / 20 |
-| 3 · Contradiction resolution | 16 / 16 classified with direct evidence; 0 `UNRESOLVED`; 0 critical | **15.00** / 15 |
-| 4 · Authority resolution | 24 / 24 with one current authority and a known lineage | **15.00** / 15 |
-| 5 · Falsifiability | 18 / 18 laws carry a counterexample search, a failure condition and a boundary | **15.00** / 15 |
-| 6 · Operational grounding | 16 / 16 repo-wide laws have ≥2 executable enforcements; the 12-point cap does not apply because enforcements were **executed** (`EXECUTION_LOG.md`) | **15.00** / 15 |
+| 1a · Governance coverage | 169 / 169 governing files classified; every mandatory document present | **10.00** / 10 |
+| 1b · Implementation evidence | **16 of 85** load-bearing files `QUOTED`; the rest `NAMED` | **2.59** / 6 |
+| 1c · Support evidence | 2,928 / 2,954 tests executed; 19 / 19 migrations applied in CI | **3.98** / 4 |
+| 2 · Classification quality | separation 1.000 · κ 1.000 · falsification 0.944 · admissibility 1.000 | **19.83** / 20 |
+| 3 · Contradiction resolution | 26 / 26 classified with direct evidence; 0 `UNRESOLVED`; 0 critical | **15.00** / 15 |
+| 4 · Authority resolution | **24 / 32** after the completeness attack | **11.25** / 15 |
+| 5 · Falsifiability | 17 / 18 laws carry a counterexample search, a failure condition and a boundary | **14.17** / 15 |
+| 6 · Operational grounding | 16 / 16 repo-wide laws with ≥2 executable enforcements, **executed** | **15.00** / 15 |
 
-# 97.78 / 100
+# 91.82 / 100 — target > 95 NOT MET
 
-The additional requirements for a score above 95 are each met: no critical corpus gap; no unresolved
-P0 contradiction; every repo-wide law operationally grounded; the authority map complete for every
-critical question; at least one falsification attempt per law. **The 2.22 points lost are entirely
-Dimension 2**, and they are the two candidate laws that were **downgraded** to `DOMAIN LAW`.
+**Study v1 published 97.78 and it was wrong.** Where the 5.96 points went:
+
+```
+D1b implementation evidence      −3.41   the study quoted 16 of 85 load-bearing files
+D4  authority resolution         −3.75   24/32, after eight omitted questions were found
+D5  falsifiability               −0.83   RNL-17 carries no counterexample search at all
+D1c support evidence             −0.02   26 tests present and not executed
+D2  classification quality       +2.06   the corrected formula scores the analysis HIGHER
+                                 ─────
+                                 −5.96
+```
+
+**The dimension rebuilt to remove a bias gave the study more credit, not less.** Once `D2` measured
+discrimination instead of generosity, it rose from 17.78 to 19.83. The score fell on **coverage**
+and **authority completeness** — where the study was actually weak. That is the shape of a
+correction rather than of a punishment.
+
+**The additional requirements for a score above 95 are not all met**, and the two that fail are
+named rather than argued away:
+
+| requirement | met |
+| --- | --- |
+| no critical corpus gap | **no** — 69 of 85 load-bearing implementation files were named and never quoted |
+| no unresolved P0 contradiction | yes — 0 of 26 |
+| every repo-wide law operationally grounded | yes — 16 / 16, enforcement executed |
+| the authority map complete against a denominator that survived a completeness attack | **no** — 8 of 32 questions unresolved, 4 with no authority at all |
+| at least one falsification attempt per law | **no** — `RNL-17` has none |
+| `selfcheck.py` green on the study, every injected drift red on its fixture | yes — 11 / 11 and 6 / 6 |
+
+**`RNL-17`'s missing counterexample search is left standing.** It costs `D5` 0.83 points and `D2`
+0.17. Writing one now, after the score is known, is the move
+[`SCORING_METHOD_V2.md`](SCORING_METHOD_V2.md) exists to forbid.
+
+**94.6 was not rounded to 95, and 91.82 was not rounded to anything.** The threshold failed. The
+threshold was not moved.
 
 ---
 
-## N. Final evidential confidence
+## N. Final evidential support
 
-52 weighted conclusions, weights and strengths assigned per `SCORING_METHOD.md` Part 2.
+**Renamed.** v1 called this *evidential confidence* and reported `96.35 %`. It is not a confidence.
+Defect C, [`SCORING_METHOD_V2.md`](SCORING_METHOD_V2.md) §0-C.
+
+75 weighted conclusions, weights and strengths per `SCORING_METHOD_V2.md` §5, computed by
+[`wes_v2.py`](wes_v2.py).
 
 ```
-Σ weight              = 96
-Σ (weight × strength) = 92.50
+Σ weight              = 132
+Σ (weight × strength) = 127.40
 
-Confidence = 92.50 / 96 × 100 = 96.35 %
+WEIGHTED_EVIDENCE_SUPPORT = 127.40 / 132 × 100 = 96.52
+WES₉₀ (share of weight at strength ≥ 0.90)     = 100.00 %
 ```
 
-Strength distribution: **30 conclusions at 1.00** (`DIRECT_EXECUTABLE_EVIDENCE`) and **22 at 0.90**
-(`DIRECT_AUTHORED_EVIDENCE`). Nothing below 0.90 entered the calculation, because nothing that
-could not be traced to a run or a cited path was published as a conclusion.
+# 96.52 `WES` — target > 95.5 % MET
 
-**The figure rose from 95.21% to 96.35% during the study, and it rose by gathering evidence rather
-than by re-weighting.** The first calculation was made after reading; nine conclusions were then
-upgraded by running things that had only been read — the oracle self-test, the freeze-refusal tests,
-the B3 pytest modules, and `evaluate.py` on both committed analyses. `EXECUTION_LOG.md` lists which
-command upgraded which conclusion.
+> **This metric is not `P(the model is correct)`.**
+>
+> It has no calibration model and no reference class. It measures the evidence behind what was
+> **published**, not the chance that what was published is true. It cannot fall when a conclusion
+> is omitted rather than published — and, as this study demonstrated on itself, **publishing one
+> more well-evidenced conclusion raises it**: adding Defect E moved it from `96.46` to `96.52`.
+> A reader who wants a confidence will not find one here.
 
-**Ceilings, all checked and none applied:**
+Read it as: *draw one published conclusion at random, weighted by consequence; the expected
+evidence strength of that draw is 0.965.* Strength distribution: **44 conclusions at 1.00**
+(`DIRECT_EXECUTABLE_EVIDENCE`) and **31 at 0.90** (`DIRECT_AUTHORED_EVIDENCE`). Nothing below 0.90
+entered, because nothing that could not be traced to a run or a cited path was published.
 
-| ceiling | condition | applies |
-| ---: | --- | --- |
-| 90% | an unresolved critical contradiction | no — 0 `UNRESOLVED`, 0 critical |
-| 92% | incomplete core process corpus | no — 169/169 |
-| 90% | a repo-wide law supported by only one domain | no — minimum is 3 |
-| 90% | current authority unknown for a critical scientific claim | no — 24/24 |
-| 85% | cannot distinguish current from historical evidence | no — 3 `HISTORICAL` items, each labelled by the repository itself |
+**Why it did not fall when the score did.** The score measures how much of the repository the study
+can speak for and how complete its questions were. `WES` measures how well-evidenced the things it
+did say are. Those are different quantities, and the study's failure mode was **saying too little
+about too little**, not saying it on thin evidence. A metric that fell in sympathy would be
+measuring nothing.
 
-# 96.35 % — target > 95.5 % MET
+**Ceilings, each computed from a published artefact rather than asserted** (Defect E repair):
+
+| ceiling | condition | applies | measured |
+| ---: | --- | --- | --- |
+| 90% | an unresolved critical contradiction | no | 0 `UNRESOLVED`, 0 at P0 |
+| 92% | incomplete core process corpus | no | governance 169 / 169 |
+| 90% | a repo-wide law supported by only one domain | no | weakest is `RNL-07` at 3 domains |
+| 90% | current authority unknown for a critical scientific claim | no | 8 unresolved, none scientific; `Q32` repaired by `LAW_SUPPORT.json` + `selfcheck.py` |
+| 85% | cannot distinguish current from historical evidence | no | 3 items carry an explicit `HISTORICAL` label |
 
 ### What would raise it further, exactly
 
 | conclusion | at | what would make it 1.00 |
 | --- | ---: | --- |
-| `L17` say what this does not establish | 0.90 | execute `src/write_report.py`'s forbidden-phrase check and observe it refuse to write |
-| `L11` do not change intervention and instrument together | 0.90 | a measured case in the tree where a version bump and a stimulus change in one step invalidated a later comparison — none exists |
-| `L16` the scheduled adversary | 0.90 | an independently-dispatched review in this session, reproducing a gate's findings |
-| authority / evidence / transition models | 0.90 | a scanner that derives the authority of each question from the tree, which does not exist |
-| `X-03`–`X-06`, `X-08`–`X-10`, `X-13` | 0.90 | these are supersession scopes stated in prose; W3C PROV edges (§G) would make them executable |
 | the executive verdict | 0.90 | an independent reader reproducing this reconstruction from the corpus alone |
+| `RNL-17` say what this does not establish | 0.90 | execute `src/write_report.py`'s forbidden-phrase check and observe it refuse to write |
+| `RNL-11` do not change intervention and instrument together | 0.90 | a measured case in the tree where a version bump and a stimulus change in one step invalidated a later comparison — none exists |
+| `RNL-16` the scheduled adversary | 0.90 | an independently-dispatched review in this session, reproducing a gate's findings |
+| authority / evidence / transition models | 0.90 | a scanner that derives the authority of each question from the tree, which does not exist |
+| `Q26` `Q27` `Q29` `Q30` | 0.90 | nothing this study can run — the repository has no artefact to execute |
+| `X-03`–`X-06`, `X-08`–`X-10`, `X-13` | 0.90 | these are supersession scopes stated in prose; W3C PROV edges (§G) would make them executable |
 
 ---
 
 ## Final statement
 
-`REPO-NATIVE OS RESOLVED — READY TO DESIGN CONSOLIDATION`
+`REPO-NATIVE OS PARTIALLY VALIDATED — the model holds and its enforcement reproduces, but the study
+can vouch for only 16 of 85 load-bearing implementation files, and 8 of 32 critical questions have
+no single current authority, 4 of them no authority at all.`
 
-**Score 97.78 / 100. Confidence 96.35 %.**
+**Study v2 score 91.82 / 100 — target > 95 NOT MET.**
+**Weighted evidence support 96.52 (`WES₉₀` 100.00 %) — target > 95.5 MET.**
+**Verdict `PARTIAL_REPO_NATIVE_OS`, downgraded from `STRONG_REPO_NATIVE_OS`.**
 
-Nothing in the repository was moved, renamed, deleted, merged, reformatted or rewritten by this
-mission. The only additions are the fourteen files in `docs/consolidation-research/`. One tracked
-file — `research/discovery-oracle/results/selftest.json` — was overwritten by running the oracle's
-own self-test and was restored immediately with `git checkout --`; the incident, and the finding its
-diff produced, are recorded in `BASELINE.md` Amendment 1 and `CONTRADICTIONS.md` X-16.
+Study v1 published `97.78 / 100`, `96.35 %` and `STRONG_REPO_NATIVE_OS`. Six methodological defects
+moved all three. Every v1 figure, formula and classification is preserved — `SCORING_METHOD.md`
+unchanged, `AUTHORITY_MAP.md` unchanged, the chain in
+[`AMENDMENT_CHAIN.md`](AMENDMENT_CHAIN.md) — because the repository's own `RNL-10` says failed
+history is provenance, and a study that quietly replaces its own numbers cannot be audited.
+
+**The number fell because the instrument was repaired, not because the repository changed.** No
+file outside `docs/consolidation-research/` differs between the two scores.
+
+Nothing in the repository was moved, renamed, deleted, merged, reformatted or rewritten by either
+pass. The additions are the twenty-two files in `docs/consolidation-research/`. One tracked file —
+`research/discovery-oracle/results/selftest.json` — was overwritten by running the oracle's own
+self-test during Study v1 and was restored immediately with `git checkout --`; the incident, and
+the finding its diff produced, are recorded in `BASELINE.md` Amendment 1 and `CONTRADICTIONS.md`
+`X-16`.

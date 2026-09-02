@@ -25,7 +25,7 @@ repository. This is checkable against the corpus rather than argued.
 
 | pair | can a case sit at any combination? | evidence |
 | --- | --- | --- |
-| E-level × L-level | **yes** | `D09` is `E2` proven at `L1/L2` (SHA-256 differenced against `node:crypto`). `D04` is `E3` proven only in simulation — no `L` rung applies, because the ladder is about the *product's* runtime. `R-19` is a P0 defect at `L5` with no E-level at all. |
+| E-level × L-level | **yes** | `D09` is `E2` proven at `L1/L2` (SHA-256 differenced against `node:crypto`). `D04` is `E3` proven only in simulation — no `L` rung applies, because the ladder is about the *product's* runtime. `R-19` is a P0 defect at `RNL-05` with no E-level at all. |
 | E-level × severity | **yes** | `D25` is `E1` and its consequence was a **P0** (a `VERIFIED` surface shipping default-on). `D02` is `E3` and its consequence is `P2`-or-nothing (a measurement that reads nothing). |
 | L-level × severity | **constrained in one direction only** | `tests/LEVELS.md` sets a **floor**: `P0 → L4`, `P1 → L2`. A P0 may be proven at `L5` (four are). A P2 carries no floor. So severity implies a minimum rung and nothing more. |
 | evidence authority × E-level | **yes** | `refuted` is the *strongest* evidence the product produces and it is the end of a claim's life; `E5` is a promotion. The two run in different directions by design. |
@@ -121,7 +121,7 @@ the tuple has legitimate holes and a schema that required all six would be wrong
 1. **Do not unify the ladders.** Six dimensions, and the repository has already paid to learn that
    `refuted` has no place on a confidence scale.
 2. **Do rename one of the two `L` ladders.** They are different dimensions sharing a label, which is
-   exactly what `L6 identity follows semantics, not labels` forbids.
+   exactly what `RNL-06 identity follows semantics, not labels` forbids.
 3. **The tuple is a reading aid, not a schema to impose.** Its holes are load-bearing: a product
    defect legitimately has no E-level, and forcing one would manufacture a claim.
 4. **The one place a machine-readable form already exists** —

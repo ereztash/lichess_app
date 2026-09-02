@@ -1,0 +1,1129 @@
+{
+ "_what": "The evidence behind REPO_NATIVE_OPERATING_SYSTEM.md section B, published so the table can be audited rather than believed. Study v2 repair for Defect E and X-25.",
+ "_authority": "REPO_NATIVE_OPERATING_SYSTEM.md section B is the authority for law TEXT and CLASS. This file is the authority for the EVIDENCE COUNTS in that table.",
+ "_derivation": {
+  "domains": "DERIVED: distinct PROCESS_CORPUS.json `domain` values over corpus_cases. Reproduced by score_v2.py.",
+  "non_authoring_cases": "DERIVED: corpus cases whose supporting evidence was found by a channel other than authoring.",
+  "operational": "DECLARED and ENUMERATED: len(operational_instances). Each entry names a gate, type, scanner or refusal in code.",
+  "failures": "DECLARED and ENUMERATED: len(failures_explained). Each entry names a real failure in this repository."
+ },
+ "_note": "`operational` and `failures` are enumerated rather than derived from a machine pass. They are auditable one by one and they are not reproducible by a command. That is a real limitation of D2's inputs and it is recorded in SCORING_METHOD_V2.md section 0-E.",
+ "laws": {
+  "RNL-01": {
+   "title": "Derive, don't declare",
+   "statement": "State that can be computed from the record is computed, not asserted; where it genuinely cannot be, the exception is named, guarded at the layer that owns the race, and never re-derived.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 7,
+    "operational": 7,
+    "failures": 5,
+    "non_authoring_cases": 8,
+    "corpus_cases": 14
+   },
+   "domains": [
+    "governance",
+    "product-engineering",
+    "product-measurement",
+    "product-ux",
+    "research-discovery",
+    "research-evidence-architecture",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C02-point-in-time-contract",
+    "C04-what-a-search-may-read",
+    "C08-frozen-hypothesis-identity",
+    "C09-protocol-matching-union",
+    "C10-feedback-exposure-deferred",
+    "C14-construct-underidentified",
+    "C22-master-debt-register",
+    "C24-test-level-ladder",
+    "C28-availability-was-never-measured",
+    "C29-derived-grade-vs-stored-grade",
+    "C35-acquisition-ledger",
+    "C37-evidence-policy-one-table",
+    "C40-decisions-trigger-table",
+    "C45-interaction-mode-table"
+   ],
+   "non_authoring_cases": [
+    "C08-frozen-hypothesis-identity",
+    "C09-protocol-matching-union",
+    "C14-construct-underidentified",
+    "C22-master-debt-register",
+    "C24-test-level-ladder",
+    "C28-availability-was-never-measured",
+    "C29-derived-grade-vs-stored-grade",
+    "C40-decisions-trigger-table"
+   ],
+   "operational_instances": [
+    "scripts/test-level-scan.ts derives a test's level from imports and environment; an @level override REQUIRES a reason and is refused without one",
+    "scripts/register-scan.ts derives the set of enforced gates from run_gates.ts and reddens on any law naming a gate that does not run (verified red in this session's control run)",
+    "shared/record-service.ts gradeFromRecord derives the learning grade before deciding anything; `retired` is the one declared exception, guarded in the STORE",
+    "shared/discovery/claim-class.ts derives the required protocol as the UNION over a predicate's features; validation-protocol.ts reads that table instead of a second key list",
+    "shared/discovery/hypothesis-manifest.ts freeze() re-derives validation_protocol from the feature registry instead of trusting the caller",
+    "commitDecision re-derives phase from the entry FEN and refuses if the client disagrees",
+    "research/b3_population_expertise/src/run.py refuses to read data/final/ until the seal file exists"
+   ],
+   "failures_explained": [
+    "C29: a stored grade let beginLearningTransfer preregister a new transfer on a rule the record had already refuted",
+    "C22: three register rows drifted from the tree while sitting perfectly still; a P0 was fixed and never given a row",
+    "C40: D04 sat in the 'not yet opened' table with its trigger column reading 'now'",
+    "C28: Boolean(await getDb()) was a test of whether a string was set, wearing the name of a test of whether the database was up",
+    "BASELINE.md section 1: this study's own container held a stale origin/main ref and reading it was wrong"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "shared/interaction-mode.ts is a DECLARED table, not a derivation",
+     "outcome": "RESOLVED: it is differenced against makingEvidence and engineMayRun, the two functions that actually enforce the rules"
+    },
+    {
+     "counterexample": "the bundle budget's ceilings are declared constants",
+     "outcome": "RESOLVED: they are a ratchet with a written argument, checked against a measured build; a derived ceiling would have nothing to ratchet against"
+    },
+    {
+     "counterexample": "`retired` on a learning rule cannot be derived",
+     "outcome": "RESOLVED: named as an act of the player's, guarded in all three stores, never re-derived"
+    },
+    {
+     "counterexample": "LearningQueue.tsx still renders the STORED grade",
+     "outcome": "OPEN and stated plainly in the ledger; damage bounded to a wasted click"
+    }
+   ],
+   "boundary": "Does not apply to a fact about a person's intent (retirement, an owner's identity preference), to a commitment that must not move (a frozen threshold), or to a ratchet whose whole function is to be a declared line."
+  },
+  "RNL-02": {
+   "title": "Promote only after contradiction was possible",
+   "statement": "Nothing rises in authority until a step ran that could have produced the opposite result, and the condition for that opposite was written down first.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 7,
+    "operational": 5,
+    "failures": 4,
+    "non_authoring_cases": 9,
+    "corpus_cases": 14
+   },
+   "domains": [
+    "governance",
+    "research-b2",
+    "research-b3",
+    "research-discovery",
+    "research-evidence-architecture",
+    "research-learning",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C01-oracle-before-product",
+    "C02-point-in-time-contract",
+    "C03-unit-of-inference-rejected",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C12-learning-first-experiment",
+    "C14-construct-underidentified",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C23-gate-positive-controls",
+    "C25-bundle-budget-ratchet",
+    "C44-external-pointer-cannot-promote",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "non_authoring_cases": [
+    "C01-oracle-before-product",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C14-construct-underidentified",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C23-gate-positive-controls",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "operational_instances": [
+    "scripts/run_gates.ts --positive-controls: 28 controls must go red (verified in this session)",
+    "GATE-PREREG: a drill cannot start without a stored refutation_condition AND direction",
+    "shared/evidence-authority.ts mayPrescribe is true only for `tested` -- a prospective test that could have failed",
+    "research/b3_population_expertise/src/evaluate.py applies VERDICT_RULES.md mechanically before any narrative exists",
+    "research/b3_population_expertise/src/write_report.py refuses to write on a forbidden phrase"
+   ],
+   "failures_explained": [
+    "C12/C13: the transfer bar had no null model -- `replicated` arrived 9-65% of the time whether or not anything was learned",
+    "C14: RC-06's separation compared two terms under two definitions of B, so the contrast could not have come out the other way",
+    "C30 and Cycle 42: a positive control came back GREEN and that was the finding -- the arm was stored, parsed and quietly not applied",
+    "PRODUCTION_READINESS_LEDGER Cycle 7: the existing test was passing BECAUSE of the defect"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "the bundle budget has no positive control",
+     "outcome": "OPEN, and recorded in DERIVATION_AUDIT as a gap"
+    },
+    {
+     "counterexample": "GATE-CLAIM-ANCHOR began as a ratchet rather than a bar",
+     "outcome": "RESOLVED and argued: a gate red on the day it is written, with seven pieces of unplanned work between it and green, gets deleted rather than met"
+    }
+   ],
+   "boundary": "Cannot apply where no contradicting observation exists yet -- the four 'blocked on people' rows, and L6 deployment. There the correct move is to name the block, not to invent a weaker test."
+  },
+  "RNL-03": {
+   "title": "Build the judge before the contender",
+   "statement": "Before a method is built, build the thing that can grade it, and put the grader where it can say no.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 7,
+    "operational": 4,
+    "failures": 2,
+    "non_authoring_cases": 7,
+    "corpus_cases": 10
+   },
+   "domains": [
+    "design",
+    "governance",
+    "product-measurement",
+    "product-ux",
+    "research-b2",
+    "research-b3",
+    "research-discovery"
+   ],
+   "corpus_cases": [
+    "C01-oracle-before-product",
+    "C03-unit-of-inference-rejected",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C11-next-action-shadow",
+    "C17-blitz-computation-stop-d",
+    "C19-b3-four-gates",
+    "C33-design-council-repo-first",
+    "C39-adr001-invariants-before-code",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "non_authoring_cases": [
+    "C01-oracle-before-product",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C17-blitz-computation-stop-d",
+    "C19-b3-four-gates",
+    "C33-design-council-repo-first",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "operational_instances": [
+    "research/discovery-oracle/ exists and no search algorithm was written in either language until M0 passed",
+    "tests/fixtures/* are the controls; each gate and its control run the SAME predicate over different input",
+    "research/b3_population_expertise: VERDICT_RULES.md and evaluate.py exist before FINAL is scored",
+    "docs/measurement/INTERPRETATION_USE_ARGUMENT.md is frozen before evidence is collected"
+   ],
+   "failures_explained": [
+    "C01: the oracle caught its own generator defect (1.1 points of calibration gap leaked into every phase bucket of a null world) before it caught the product's -- had the search been written first, that leak would have surfaced as a finding about a player",
+    "C17: the ground truth every downstream metric is defined against did not exist at any affordable budget, and only a judge-first design could report that as the result"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "docs/measurement's first rounds designed the screen and the rule classes together",
+     "outcome": "PARTIALLY RESOLVED: C11 is the guard that would have caught it and was built afterwards, in the fifth round"
+    },
+    {
+     "counterexample": "the design pass measured its own baseline and then judged its own output",
+     "outcome": "RESOLVED by four independent passes, one of them BLIND"
+    }
+   ],
+   "boundary": "Expensive. It is worth it where the contender's output would be believed; it is not worth it for a change whose own failure is immediately visible."
+  },
+  "RNL-04": {
+   "title": "A gate that has not demonstrated failure is not a gate",
+   "statement": "Every enforced check must be shown to go red, for its own reason, against a deliberately broken input running the same predicate.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 4,
+    "operational": 5,
+    "failures": 4,
+    "non_authoring_cases": 9,
+    "corpus_cases": 10
+   },
+   "domains": [
+    "deployment",
+    "product-engineering",
+    "product-ux",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C11-next-action-shadow",
+    "C23-gate-positive-controls",
+    "C24-test-level-ladder",
+    "C26-ci-real-dependencies",
+    "C28-availability-was-never-measured",
+    "C30-experimental-arm-lost-on-reload",
+    "C31-cross-user-leak-and-the-cache-that-outlived-it",
+    "C32-inertial-laws-and-their-gates",
+    "C43-said-once",
+    "C46-merge-of-two-repositories"
+   ],
+   "non_authoring_cases": [
+    "C23-gate-positive-controls",
+    "C24-test-level-ladder",
+    "C26-ci-real-dependencies",
+    "C28-availability-was-never-measured",
+    "C30-experimental-arm-lost-on-reload",
+    "C31-cross-user-leak-and-the-cache-that-outlived-it",
+    "C32-inertial-laws-and-their-gates",
+    "C43-said-once",
+    "C46-merge-of-two-repositories"
+   ],
+   "operational_instances": [
+    "28/28 gates PASS and 28/28 controls FAIL, both run in this session",
+    "runVitestFile treats a name filter matching nothing as a HARNESS ERROR",
+    "the gate runner's third status NOT-MEASURED is never counted as success",
+    "tests/layout/browser.ts THROWS rather than skipping when no Chromium is present",
+    "GATE-TWO-HANDS runs in BOTH directions and its control reddens twice"
+   ],
+   "failures_explained": [
+    "C23: the first two inertial gates shipped as one gate over one file, so a control red for either defect left one gate passing its control for the other defect's reason",
+    "C28: two controls survived their first form, both satisfied by the fixture rather than the code",
+    "C30: deleting the restore wiring broke nothing -- the control was green and that was the finding",
+    "C24: two working gates were scored as no evidence at all because the resolver could only read *.test.ts filenames"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "GATE-EXPOSURE-CONTEXT is named in the laws and does not exist",
+     "outcome": "RESOLVED: register-scan exempts it BY NAME and reddens if the sentence explaining the absence disappears"
+    },
+    {
+     "counterexample": "the bundle budget has no control",
+     "outcome": "OPEN"
+    }
+   ],
+   "boundary": "A control is only meaningful where the same predicate can be pointed at a broken input. Where the check is a measurement of the world (an npm advisory, a deployment header), the control is the world and cannot be fabricated."
+  },
+  "RNL-05": {
+   "title": "One authority per question, not one source of truth",
+   "statement": "Every question a reader can ask has exactly one current answer with a named owner; other documents keep different questions and are not merged into a single truth.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 5,
+    "operational": 5,
+    "failures": 4,
+    "non_authoring_cases": 7,
+    "corpus_cases": 14
+   },
+   "domains": [
+    "governance",
+    "product-measurement",
+    "product-ux",
+    "research-discovery",
+    "research-learning"
+   ],
+   "corpus_cases": [
+    "C01-oracle-before-product",
+    "C09-protocol-matching-union",
+    "C10-feedback-exposure-deferred",
+    "C13-learning-architecture-narrow",
+    "C22-master-debt-register",
+    "C32-inertial-laws-and-their-gates",
+    "C34-value-clarity-lenses",
+    "C35-acquisition-ledger",
+    "C36-evidence-authority-vocabulary",
+    "C37-evidence-policy-one-table",
+    "C38-two-things-called-accuracy",
+    "C40-decisions-trigger-table",
+    "C43-said-once",
+    "C47-preserve-the-failure"
+   ],
+   "non_authoring_cases": [
+    "C01-oracle-before-product",
+    "C09-protocol-matching-union",
+    "C22-master-debt-register",
+    "C32-inertial-laws-and-their-gates",
+    "C36-evidence-authority-vocabulary",
+    "C40-decisions-trigger-table",
+    "C43-said-once"
+   ],
+   "operational_instances": [
+    "GATE-REGISTER-RECONCILED holds four registers against the tree and against each other (verified red in this session's control run)",
+    "shared/evidence-policy.ts: one table, one authority, one version, and a test asserting that deleting any single cell reddens a control",
+    "shared/evidence-authority.ts: total mappings, so a screen with no authority has nothing to render",
+    "shared/promise.ts imported by the front door and the card builder; a test holds the two copies that cannot import",
+    "shared/reveal.ts theOneThing is the branch source of truth and is never re-derived"
+   ],
+   "failures_explained": [
+    "C22: 'what is still open?' had four possible answers and no two agreed",
+    "C34: the share card and the front door disagreed for the length of one edit",
+    "C36: three vocabularies for one question a player asks on every screen",
+    "C38: two different quantities carried the name `accuracy`"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "two STRONGEST_PERMITTED_CLAIM files exist",
+     "outcome": "RESOLVED BY SCOPE: 2.2.0 supersedes 1.3.0 for the claims it contradicts ONLY, and says so in its own `supersedes` field"
+    },
+    {
+     "counterexample": "STRONGEST_PERMITTED_CLAIM exists as both .md and .json",
+     "outcome": "RESOLVED: the prose says the JSON is authoritative where they differ"
+    },
+    {
+     "counterexample": "PRODUCTION_READINESS_LEDGER still opens with a stale 'Source of truth' table",
+     "outcome": "RESOLVED BY SUPERSESSION: MASTER_PRODUCT_DEBT R-01 names it, explains it, and is the reason that file carries no branch header of its own"
+    }
+   ],
+   "boundary": "It is a rule about QUESTIONS, not about files. Merging two documents that answer different questions destroys the property it is trying to create."
+  },
+  "RNL-06": {
+   "title": "Identity follows semantics, not labels",
+   "statement": "A thing's identity is a function of what it commits to. Change the commitment and the identity changes; keep the commitment and a rename changes nothing.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 4,
+    "operational": 4,
+    "failures": 3,
+    "non_authoring_cases": 3,
+    "corpus_cases": 5
+   },
+   "domains": [
+    "product-engineering",
+    "product-measurement",
+    "research-b2",
+    "research-discovery"
+   ],
+   "corpus_cases": [
+    "C02-point-in-time-contract",
+    "C08-frozen-hypothesis-identity",
+    "C15-b2-time-representation",
+    "C30-experimental-arm-lost-on-reload",
+    "C38-two-things-called-accuracy"
+   ],
+   "non_authoring_cases": [
+    "C08-frozen-hypothesis-identity",
+    "C15-b2-time-representation",
+    "C30-experimental-arm-lost-on-reload"
+   ],
+   "operational_instances": [
+    "hypothesis_id = SHA256(canonicalJson(manifest)); twelve one-change variants must produce thirteen distinct ids",
+    "canonicalJson refuses undefined, non-finite numbers and -0 because each collides under JSON.stringify",
+    "PREREGISTRATION_FREEZE.json and FINAL_HOLDOUT_SEALED.json hash five documents by content",
+    "shared/position-key.ts: the four fields that determine the legal moves, not the whole FEN"
+   ],
+   "failures_explained": [
+    "C08: a name stopped working the moment a subgroup carried a number",
+    "PRODUCTION_READINESS_LEDGER Cycle 4: knights out and back reach an identical board with the counters advanced, so a position the player had been shown the answer for entered as unseen",
+    "BASELINE section 4: two different studies are both called B3, on two different refs"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "docs/decisions/ uses filename ids (D00..D25) with gaps",
+     "outcome": "RESOLVED BY SCOPE: those are human addresses for a decision NODE, not identities for a frozen commitment; the reversal condition is what changes a node, and it is written in the file"
+    },
+    {
+     "counterexample": "research/b3 and research/b3_population_expertise share a name",
+     "outcome": "OPEN -- carried in CONTRADICTIONS.md as C-B3-NAME"
+    }
+   ],
+   "boundary": "Content-addressing costs a canonicaliser and a class of failures (a Map, a Date, a class instance throws). It is worth it only where evidence ACCUMULATES against the identity."
+  },
+  "RNL-07": {
+   "title": "Freeze refuses rather than silently repairs",
+   "statement": "At the moment of commitment, an input that cannot be committed to is REFUSED. Repairing it would freeze something nobody wrote.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 3,
+    "operational": 4,
+    "failures": 2,
+    "non_authoring_cases": 4,
+    "corpus_cases": 4
+   },
+   "domains": [
+    "product-engineering",
+    "research-b3",
+    "research-discovery"
+   ],
+   "corpus_cases": [
+    "C08-frozen-hypothesis-identity",
+    "C09-protocol-matching-union",
+    "C19-b3-four-gates",
+    "C30-experimental-arm-lost-on-reload"
+   ],
+   "non_authoring_cases": [
+    "C08-frozen-hypothesis-identity",
+    "C09-protocol-matching-union",
+    "C19-b3-four-gates",
+    "C30-experimental-arm-lost-on-reload"
+   ],
+   "operational_instances": [
+    "freeze() refuses a too-deep conjunction, a predicate no protocol can reproduce, a feature with no recorded formula version, a claim with no minimum meaningful effect, a budget with nothing left to spend",
+    "run.py require_seal() genuinely raises (audited at Gate 2, which found score.py had no seal at all and made it fix that)",
+    "a stored position that cannot say which experimental arm it was in is NOT restored -- the game is forgotten",
+    "detect() throws on an unknown bucket key rather than returning the ordinary 'no patterns' answer"
+   ],
+   "failures_explained": [
+    "C08: the first freeze took validation_protocol on trust, so a caller could freeze a predicate whose stated validation removes the condition the claim is about",
+    "C30: the arm was stored and parsed and quietly not applied"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "B3's DATA_PROTOCOL.md changed AFTER the freeze",
+     "outcome": "PARTIALLY RESOLVED: the seal record carries the new hash and POST_FREEZE_AMENDMENTS.md exists, but PREREGISTRATION_FREEZE.json's amended_sha256 block was not updated -- carried as C-B3-DATAPROTO"
+    },
+    {
+     "counterexample": "B3 permitted post-freeze amendments at all",
+     "outcome": "RESOLVED: they are audited by an independent adversary as the FIRST thing Gate 2 reads, and each is ruled REPAIR or not"
+    }
+   ],
+   "boundary": "A freeze that refuses everything is a freeze nobody uses. B3's answer is an amendment channel with an adversary on it, not a softer freeze."
+  },
+  "RNL-08": {
+   "title": "Evidence authority may never exceed evidence level",
+   "statement": "What a claim is ALLOWED to become is bounded by what was done to it, and the bound is enforced rather than remembered.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 10,
+    "operational": 6,
+    "failures": 3,
+    "non_authoring_cases": 8,
+    "corpus_cases": 16
+   },
+   "domains": [
+    "design",
+    "governance",
+    "product-measurement",
+    "product-ux",
+    "research-b2",
+    "research-b3",
+    "research-discovery",
+    "research-evidence-architecture",
+    "research-learning",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C01-oracle-before-product",
+    "C04-what-a-search-may-read",
+    "C05-candidate-search-measured",
+    "C07-attribution-veto",
+    "C12-learning-first-experiment",
+    "C13-learning-architecture-narrow",
+    "C14-construct-underidentified",
+    "C17-blitz-computation-stop-d",
+    "C20-b3-gate4-claim-audit",
+    "C25-bundle-budget-ratchet",
+    "C33-design-council-repo-first",
+    "C34-value-clarity-lenses",
+    "C35-acquisition-ledger",
+    "C36-evidence-authority-vocabulary",
+    "C42-blocked-on-people",
+    "C44-external-pointer-cannot-promote"
+   ],
+   "non_authoring_cases": [
+    "C01-oracle-before-product",
+    "C05-candidate-search-measured",
+    "C07-attribution-veto",
+    "C14-construct-underidentified",
+    "C17-blitz-computation-stop-d",
+    "C20-b3-gate4-claim-audit",
+    "C33-design-council-repo-first",
+    "C36-evidence-authority-vocabulary"
+   ],
+   "operational_instances": [
+    "GATE-EXTERNAL: promotion from a pointer is a COMPILE ERROR (7 permissive paths rejected, verified this session)",
+    "GATE-GRADE: no claim renders above its grade",
+    "GATE-CLAIM-ANCHOR: a debt row may not claim more reality than its proof ever ran against -- 0 rows currently do",
+    "mayPrescribe true only for `tested`",
+    "E0-E6 in docs/decisions/README.md; every node carries its level",
+    "STRONGEST_PERMITTED_CLAIM.json as the machine-readable ceiling in two programmes"
+   ],
+   "failures_explained": [
+    "C36: a surface named VERIFIED shipped ON BY DEFAULT over an underidentified construct",
+    "C20: the report printed the definition of the verdict the study did NOT reach as the meaning of the verdict it did",
+    "C44: an inherited claim ('29 of 29') was not present in the repository at any commit"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "the design constitution assigns visual weight by grade, which is a judgement",
+     "outcome": "RESOLVED: recorded as taste at level 12 of a twelve-level authority order, and named as taste wherever it decided anything"
+    }
+   ],
+   "boundary": "The ladders are not interchangeable: E-level says what an action is permitted, L-level says how much reality a test touched, P-level says severity. Collapsing them loses the distinction that makes the bound checkable."
+  },
+  "RNL-09": {
+   "title": "Derivation, then shadow, then ownership",
+   "statement": "A derivation that would take over a decision runs beside the current authority first, records its disagreements, explains them, and takes ownership only on evidence.",
+   "published_class": "DOMAIN LAW",
+   "counts": {
+    "domains": 2,
+    "operational": 4,
+    "failures": 2,
+    "non_authoring_cases": 1,
+    "corpus_cases": 3
+   },
+   "domains": [
+    "product-engineering",
+    "product-ux"
+   ],
+   "corpus_cases": [
+    "C11-next-action-shadow",
+    "C29-derived-grade-vs-stored-grade",
+    "C45-interaction-mode-table"
+   ],
+   "non_authoring_cases": [
+    "C29-derived-grade-vs-stored-grade"
+   ],
+   "operational_instances": [
+    "shared/next-action.ts and client/src/lib/next-action-shadow.ts: the shadow runs on the front door and the screen ignores it",
+    "shared/interaction-mode.ts: the table decides nothing yet and is differenced against the enforcing functions",
+    "shared/discovery/clustering.ts: read by no product path, changes no threshold",
+    "shared/discovery/attribution.ts: implemented, gated, measured, called from nothing"
+   ],
+   "failures_explained": [
+    "C11: the shadow's own two inputs were fabricated, so it measured its own description of a screen",
+    "C11: the ledger deduplicated per NAME rather than per surface, so two thirds of the product was invisible to it"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "C29's derived grade took ownership immediately, with no shadow",
+     "outcome": "RESOLVED BY SEVERITY: the stored grade was actively causing a preregistration on a refuted rule; the derivation is idempotent and writes only when it repairs something"
+    },
+    {
+     "counterexample": "register-scan and test-level-scan took ownership immediately",
+     "outcome": "RESOLVED BY SCOPE: they own a claim ABOUT the repository, not a decision the player meets"
+    }
+   ],
+   "boundary": "A shadow costs a real page weight (+16.1 kB raw on two hot routes, measured) and a ledger nobody reads. It is for derivations that would change what a PERSON is sent to; it is not for derivations that answer a question about the repository."
+  },
+  "RNL-10": {
+   "title": "Failed history is provenance, not clutter",
+   "statement": "A superseded result is kept unmodified beside the one that replaced it, with an explicit and SCOPED replacement relationship, and the earlier reasoning is readable.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 8,
+    "operational": 5,
+    "failures": 3,
+    "non_authoring_cases": 9,
+    "corpus_cases": 12
+   },
+   "domains": [
+    "governance",
+    "product-engineering",
+    "product-measurement",
+    "research-b2",
+    "research-b3",
+    "research-discovery",
+    "research-evidence-architecture",
+    "research-learning"
+   ],
+   "corpus_cases": [
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C13-learning-architecture-narrow",
+    "C14-construct-underidentified",
+    "C15-b2-time-representation",
+    "C16-engine-parity-stop",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C22-master-debt-register",
+    "C38-two-things-called-accuracy",
+    "C46-merge-of-two-repositories",
+    "C47-preserve-the-failure"
+   ],
+   "non_authoring_cases": [
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C14-construct-underidentified",
+    "C15-b2-time-representation",
+    "C16-engine-parity-stop",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C22-master-debt-register",
+    "C46-merge-of-two-repositories"
+   ],
+   "operational_instances": [
+    "research/b2/as-published-75/ preserved with its own evidence sha256 and a README saying it is not a backup",
+    "PREREGISTRATION_FREEZE.json carries both the freeze and the amended hash sets",
+    "analysis_final.json is kept beside analysis_repaired.json; both verdicts are published",
+    "MASTER_PRODUCT_DEBT has a Refuted section: measured, found wrong, recorded so it is not reopened",
+    "docs/design-council/04-ADVERSARIAL-REVIEW.md records findings that were NOT acted on"
+   ],
+   "failures_explained": [
+    "C15: the study was published twice on a corpus missing a third of its games; keeping both is what made the correction legible",
+    "C19 F8: a control was deleted along with the stale duplicates beside it",
+    "C13: D24 had to withdraw a sentence rather than quietly restate the section"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "docs/evidence-architecture/CURRENT_STATE.md is a stale snapshot of main and three then-open PRs",
+     "outcome": "RESOLVED IN TEXT: 'the labels are left in place rather than swept, because what each claim was checked against is a fact about the check and does not change when the branch does'"
+    }
+   ],
+   "boundary": "Preservation without an explicit supersession pointer produces the four-tracker problem. The pointer, its scope and its date are the load-bearing part, not the keeping."
+  },
+  "RNL-11": {
+   "title": "Do not change the intervention and the instrument at the same time",
+   "statement": "Friction that is part of the measurement is changed only behind an experiment, and never in the same step as friction that is not.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 3,
+    "operational": 4,
+    "failures": 2,
+    "non_authoring_cases": 1,
+    "corpus_cases": 5
+   },
+   "domains": [
+    "product-engineering",
+    "product-measurement",
+    "research-b3"
+   ],
+   "corpus_cases": [
+    "C10-feedback-exposure-deferred",
+    "C21-n-of-1-timing-prereg",
+    "C30-experimental-arm-lost-on-reload",
+    "C37-evidence-policy-one-table",
+    "C39-adr001-invariants-before-code"
+   ],
+   "non_authoring_cases": [
+    "C30-experimental-arm-lost-on-reload"
+   ],
+   "operational_instances": [
+    "LAW 9 -- instrument friction is research-gated",
+    "CURRENT_PROTOCOL_VERSION and protocolVersion as a StratumKey axis, so two regimes do not pool",
+    "EVIDENCE_POLICY_VERSION carried by anything whose meaning depends on it",
+    "ADR-004: a blitz decision does not become a commitment-loop atom, because a text box between every move would change the variable"
+   ],
+   "failures_explained": [
+    "C10 Finding 2: LAW 1's decision focus changed the stimulus and the version had not moved",
+    "C10 Finding 1: a version that moves while nothing stratifies on it is worse than one that never moves"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "the design pass changed the pre-commit screen's colour",
+     "outcome": "RESOLVED: treated as protocol-relevant rather than cosmetic, and the protocol version was bumped -- the ledger records the cost"
+    }
+   ],
+   "boundary": "It is a scheduling rule and it only binds where a measurement is running. It does not forbid changing an instrument; it forbids changing it in the same step as the thing it measures."
+  },
+  "RNL-12": {
+   "title": "A surface must read the record, not its private copy",
+   "statement": "A screen renders from the durable record; a component holding its own copy can report a state the record refused.",
+   "published_class": "DOMAIN LAW",
+   "counts": {
+    "domains": 2,
+    "operational": 3,
+    "failures": 3,
+    "non_authoring_cases": 5,
+    "corpus_cases": 6
+   },
+   "domains": [
+    "product-engineering",
+    "product-ux"
+   ],
+   "corpus_cases": [
+    "C11-next-action-shadow",
+    "C27-record-vs-private-copy",
+    "C28-availability-was-never-measured",
+    "C29-derived-grade-vs-stored-grade",
+    "C30-experimental-arm-lost-on-reload",
+    "C31-cross-user-leak-and-the-cache-that-outlived-it"
+   ],
+   "non_authoring_cases": [
+    "C27-record-vs-private-copy",
+    "C28-availability-was-never-measured",
+    "C29-derived-grade-vs-stored-grade",
+    "C30-experimental-arm-lost-on-reload",
+    "C31-cross-user-leak-and-the-cache-that-outlived-it"
+   ],
+   "operational_instances": [
+    "tests/layout/what-the-record-holds-after-a-game.layout.test.ts reads localStorage, not the card",
+    "GATE-STALE: a result rendered against an input it was not computed for is marked stale",
+    "the L4/L5 rungs exist to make this checkable"
+   ],
+   "failures_explained": [
+    "C27: the browser audit asserted a CARD the screen drew from its own in-memory copy, while the store had refused every game",
+    "C31: the react-query cache served one account's record to another with no request to the server involved",
+    "C30: component state decided which experimental arm a reloaded game was in"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "LearningQueue.tsx renders the stored grade rather than the derived one",
+     "outcome": "OPEN, stated in the ledger, damage bounded"
+    }
+   ],
+   "boundary": "A cache is legitimate; a cache keyed on the wrong thing is not. The rule is about the KEY and the read path, not about caching."
+  },
+  "RNL-13": {
+   "title": "A claim must specify what would reverse it",
+   "statement": "There is no `status: solved` without a reversal condition, and a fired condition must be evaluated and recorded rather than left in the table.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 6,
+    "operational": 4,
+    "failures": 3,
+    "non_authoring_cases": 9,
+    "corpus_cases": 19
+   },
+   "domains": [
+    "governance",
+    "product-measurement",
+    "product-ux",
+    "research-discovery",
+    "research-evidence-architecture",
+    "research-learning"
+   ],
+   "corpus_cases": [
+    "C01-oracle-before-product",
+    "C02-point-in-time-contract",
+    "C03-unit-of-inference-rejected",
+    "C04-what-a-search-may-read",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C08-frozen-hypothesis-identity",
+    "C09-protocol-matching-union",
+    "C10-feedback-exposure-deferred",
+    "C11-next-action-shadow",
+    "C13-learning-architecture-narrow",
+    "C14-construct-underidentified",
+    "C22-master-debt-register",
+    "C37-evidence-policy-one-table",
+    "C39-adr001-invariants-before-code",
+    "C40-decisions-trigger-table",
+    "C45-interaction-mode-table",
+    "C47-preserve-the-failure"
+   ],
+   "non_authoring_cases": [
+    "C01-oracle-before-product",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C08-frozen-hypothesis-identity",
+    "C09-protocol-matching-union",
+    "C14-construct-underidentified",
+    "C22-master-debt-register",
+    "C40-decisions-trigger-table"
+   ],
+   "operational_instances": [
+    "every file in docs/decisions/ ends with one; the README states the rule",
+    "GATE-PREREG requires a stored refutation_condition AND direction before a drill may start",
+    "register-scan holds the decisions README against the runner and the tree",
+    "docs/*/FALSIFICATION_REGISTER.md in four separate programmes, each with a required field shape"
+   ],
+   "failures_explained": [
+    "C07: D08's reversal condition 2 fired and was WRONG as written -- the condition conflated two claims",
+    "C40: D04's fired trigger sat in the unfired table for a wave",
+    "C22: three register rows drifted while sitting still"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "20 of 48 corpus cases carry `reversal_condition: UNKNOWN`",
+     "outcome": "EXPLAINED: those are engineering fixes and audits, where the reversal condition is the failing test; the rule is applied to CLAIMS, not to repairs"
+    }
+   ],
+   "boundary": "It binds a claim about the world. A defect repair's reversal condition is its own red test, and demanding prose for that is bureaucracy."
+  },
+  "RNL-14": {
+   "title": "The level of reality in the test must match the level in the claim",
+   "statement": "A claim is evidence only at the rung its proof actually ran against; the rung is derived, and a severity implies a floor.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 6,
+    "operational": 4,
+    "failures": 3,
+    "non_authoring_cases": 6,
+    "corpus_cases": 8
+   },
+   "domains": [
+    "deployment",
+    "product-engineering",
+    "product-measurement",
+    "product-ux",
+    "research-b2",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C16-engine-parity-stop",
+    "C24-test-level-ladder",
+    "C25-bundle-budget-ratchet",
+    "C26-ci-real-dependencies",
+    "C27-record-vs-private-copy",
+    "C32-inertial-laws-and-their-gates",
+    "C38-two-things-called-accuracy",
+    "C41-l6-is-zero"
+   ],
+   "non_authoring_cases": [
+    "C16-engine-parity-stop",
+    "C24-test-level-ladder",
+    "C26-ci-real-dependencies",
+    "C27-record-vs-private-copy",
+    "C32-inertial-laws-and-their-gates",
+    "C41-l6-is-zero"
+   ],
+   "operational_instances": [
+    "scripts/test-level-scan.ts derives L1-L6 (re-run this session: 81/84/77/5/17/0 over 264 files)",
+    "GATE-CLAIM-ANCHOR enforces the floor; 0 rows currently outrun their proof",
+    "the CI job runs a real MySQL and a real Chromium and refuses to skip",
+    "docs/measurement/ECOLOGICAL_EXTRAPOLATION_GAP.md is the same ladder for tasks vs games"
+   ],
+   "failures_explained": [
+    "C24: five defects shipped past 246 green test files, and not one was a wrong test",
+    "C16: every prior accuracy number came from an engine the product does not ship; 13.61% of decisions flip verdict",
+    "C41: L6 is zero, and the one deployment run that found a defect does not re-run"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "higher is not always better -- defect 5 needed L3 to ask a better question",
+     "outcome": "RESOLVED IN THE LAW ITSELF: 'a ladder is not a promise that higher is always better; it is a way to ask WHICH rung a claim needs'"
+    }
+   ],
+   "boundary": "The floor is a choice (P0->L4, P1->L2) and the file says it could have been chosen differently. The law is that the rung is derived and the claim is held to it, not that any particular floor is right."
+  },
+  "RNL-15": {
+   "title": "Declare the rejection rule before the run, and do not move it after",
+   "statement": "Before a measurement, write down what result would reject the candidate; after it, score against that rule even when the rule turns out to be the thing that was wrong.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 6,
+    "operational": 4,
+    "failures": 3,
+    "non_authoring_cases": 8,
+    "corpus_cases": 13
+   },
+   "domains": [
+    "product-measurement",
+    "product-ux",
+    "research-b2",
+    "research-b3",
+    "research-discovery",
+    "research-learning"
+   ],
+   "corpus_cases": [
+    "C03-unit-of-inference-rejected",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C12-learning-first-experiment",
+    "C15-b2-time-representation",
+    "C16-engine-parity-stop",
+    "C17-blitz-computation-stop-d",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C21-n-of-1-timing-prereg",
+    "C34-value-clarity-lenses",
+    "C39-adr001-invariants-before-code"
+   ],
+   "non_authoring_cases": [
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C07-attribution-veto",
+    "C15-b2-time-representation",
+    "C16-engine-parity-stop",
+    "C17-blitz-computation-stop-d",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates"
+   ],
+   "operational_instances": [
+    "D04's rejection rule, D05's choice rule (committed at 1774b66 before the harness produced a number), D08's k rule",
+    "VERDICT_RULES.md applied by evaluate.py before any narrative exists",
+    "FINAL_HOLDOUT_SEALED.json records the EXPECTED verdict before the holdout is opened",
+    "docs/learning/EXPERIMENT.md declares the outcome that says the current design is fine"
+   ],
+   "failures_explained": [
+    "C06: condition 2 was a question NEITHER arm could answer; it was scored FAIL as declared and the HARNESS was repaired in a new rule",
+    "C18: the prediction failed and two of three declared refuters fired",
+    "C16: T2 was the smallest of six bars; against the mean this would have passed"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "D08's ATTRIBUTION_K could have been re-chosen as 3.0 after the size sweep",
+     "outcome": "NOT DONE, and the refusal is recorded as the reason the number is trustworthy"
+    }
+   ],
+   "boundary": "A rule that turns out unanswerable is still scored as written; the repair is a NEW registration, never a re-score."
+  },
+  "RNL-16": {
+   "title": "The adversary is scheduled, and it may only weaken",
+   "statement": "An independent reviewer runs at a fixed point before the expensive step, in a separate context, and its findings may narrow or downgrade and never upgrade -- and the repairs get their own review.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 3,
+    "operational": 4,
+    "failures": 3,
+    "non_authoring_cases": 4,
+    "corpus_cases": 4
+   },
+   "domains": [
+    "design",
+    "governance",
+    "research-b3"
+   ],
+   "corpus_cases": [
+    "C19-b3-four-gates",
+    "C20-b3-gate4-claim-audit",
+    "C33-design-council-repo-first",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "non_authoring_cases": [
+    "C19-b3-four-gates",
+    "C20-b3-gate4-claim-audit",
+    "C33-design-council-repo-first",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "operational_instances": [
+    "four B3 gates with four review artifacts, plus the re-reads Gate 1's own PASS loop required",
+    "the design pass's four passes, one BLIND (ten screenshots and nothing else)",
+    "the ledger's sweeps, run because the last two findings were found by accident",
+    ".claude/agents/fable-scientific-reviewer.md defines the role"
+   ],
+   "failures_explained": [
+    "C48: twelve of thirteen Gate 1 changes were applied and NINE new defects arrived with them, three on quantities the verdict reads",
+    "C19 M4: the hashed condition-6 estimator returned exactly zero on six of six simulated runs",
+    "C20: the report's front matter asserted the proposition the study did not support"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "the MODEL_LEDGER records a ROUTING DEVIATION: project-local agent definitions were not picked up, so gates ran as general-purpose subagents with a model override",
+     "outcome": "RESOLVED IN TEXT: the routing is preserved, the packaging differs, and independence is argued rather than assumed"
+    }
+   ],
+   "boundary": "It costs a full context per gate. It is for work whose result will be believed and is expensive to redo; it is not for a one-line fix."
+  },
+  "RNL-17": {
+   "title": "Say what this does not establish",
+   "statement": "Every finding carries, in the same shape, what it forbids and what it does NOT establish -- and the last line is the load-bearing one.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 12,
+    "operational": 5,
+    "failures": 3,
+    "non_authoring_cases": 19,
+    "corpus_cases": 31
+   },
+   "domains": [
+    "deployment",
+    "design",
+    "governance",
+    "product-engineering",
+    "product-measurement",
+    "product-ux",
+    "research-b2",
+    "research-b3",
+    "research-discovery",
+    "research-evidence-architecture",
+    "research-learning",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C01-oracle-before-product",
+    "C02-point-in-time-contract",
+    "C03-unit-of-inference-rejected",
+    "C04-what-a-search-may-read",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C09-protocol-matching-union",
+    "C10-feedback-exposure-deferred",
+    "C12-learning-first-experiment",
+    "C13-learning-architecture-narrow",
+    "C14-construct-underidentified",
+    "C15-b2-time-representation",
+    "C16-engine-parity-stop",
+    "C17-blitz-computation-stop-d",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C20-b3-gate4-claim-audit",
+    "C21-n-of-1-timing-prereg",
+    "C24-test-level-ladder",
+    "C32-inertial-laws-and-their-gates",
+    "C33-design-council-repo-first",
+    "C34-value-clarity-lenses",
+    "C35-acquisition-ledger",
+    "C36-evidence-authority-vocabulary",
+    "C41-l6-is-zero",
+    "C42-blocked-on-people",
+    "C43-said-once",
+    "C44-external-pointer-cannot-promote",
+    "C46-merge-of-two-repositories",
+    "C47-preserve-the-failure",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "non_authoring_cases": [
+    "C01-oracle-before-product",
+    "C05-candidate-search-measured",
+    "C06-blitz-time-rejected-twice",
+    "C09-protocol-matching-union",
+    "C14-construct-underidentified",
+    "C15-b2-time-representation",
+    "C16-engine-parity-stop",
+    "C17-blitz-computation-stop-d",
+    "C18-account-bridge-prediction-failed",
+    "C19-b3-four-gates",
+    "C20-b3-gate4-claim-audit",
+    "C24-test-level-ladder",
+    "C32-inertial-laws-and-their-gates",
+    "C33-design-council-repo-first",
+    "C36-evidence-authority-vocabulary",
+    "C41-l6-is-zero",
+    "C43-said-once",
+    "C46-merge-of-two-repositories",
+    "C48-adversary-inside-the-schedule"
+   ],
+   "operational_instances": [
+    "the six-field block in docs/design-council/00-REPO-NATIVE-CONSTITUTION.md, used on every row",
+    "src/write_report.py's forbidden-phrase check, which refuses to write",
+    "STRONGEST_PERMITTED_CLAIM.json's `refuted` and `not_permitted` sections",
+    "docs/*/FALSIFICATION_REGISTER.md's required CLAIM/OBSERVATION/COMPETING EXPLANATION/FALSIFIER/LEVEL/REVERSAL shape",
+    "'WHAT IS EXPLICITLY NOT DECIDED' sections in D04, D22, D23"
+   ],
+   "failures_explained": [
+    "C20: the meaning of a verdict was printed as the proposition the study did not support",
+    "C05: the first search's winning region was a restatement of the target",
+    "C06: 'a relative bucket does not recover blitz effects' is a sentence the run does not license, and it is named as unmeasured rather than implied"
+   ],
+   "counterexample_search": [],
+   "boundary": "It is a documentation discipline with two executable enforcements (the forbidden-phrase check and the JSON ceiling). Generalising it to every commit message would be bureaucracy."
+  },
+  "RNL-18": {
+   "title": "Refuse rather than skip",
+   "statement": "A check that cannot run says so loudly and distinctly; it never reports the absence of a measurement as a pass.",
+   "published_class": "REPO-NATIVE LAW",
+   "counts": {
+    "domains": 5,
+    "operational": 5,
+    "failures": 3,
+    "non_authoring_cases": 6,
+    "corpus_cases": 7
+   },
+   "domains": [
+    "deployment",
+    "governance",
+    "product-engineering",
+    "research-b3",
+    "testing"
+   ],
+   "corpus_cases": [
+    "C19-b3-four-gates",
+    "C23-gate-positive-controls",
+    "C26-ci-real-dependencies",
+    "C27-record-vs-private-copy",
+    "C28-availability-was-never-measured",
+    "C41-l6-is-zero",
+    "C42-blocked-on-people"
+   ],
+   "non_authoring_cases": [
+    "C19-b3-four-gates",
+    "C23-gate-positive-controls",
+    "C26-ci-real-dependencies",
+    "C27-record-vs-private-copy",
+    "C28-availability-was-never-measured",
+    "C41-l6-is-zero"
+   ],
+   "operational_instances": [
+    "the gate runner's NOT-MEASURED status, distinct from PASS",
+    "tests/layout/browser.ts THROWS rather than skipping",
+    "the CI job sets DATABASE_URL so the database suite RUNS instead of skipping",
+    "UNKNOWN dispatches to `no-verdict`, which is a protocol in the table rather than an absence",
+    "run.py require_seal() raises"
+   ],
+   "failures_explained": [
+    "C26: drizzle-store.test.ts skipped on every run anywhere, so DrizzleRecordStore had never executed a statement",
+    "C28: /api/health answered {ok:true} unconditionally",
+    "C28/Cycle 14: a hung health check is worse than a red one -- a monitor reads a timeout as 'the whole deployment is gone'"
+   ],
+   "counterexample_search": [
+    {
+     "counterexample": "the CI job ALLOWS `playwright install --with-deps` to fail",
+     "outcome": "RESOLVED: the browser is installed either way and browser.ts throws if it is absent, so the failure surface that is not about this repository is isolated without creating a quiet green"
+    }
+   ],
+   "boundary": "Refusing needs somewhere to refuse to. Where nothing can observe the refusal -- L6, the field arms -- the honest form is a named, dated gap, which is what the repository does."
+  }
+ }
+}
