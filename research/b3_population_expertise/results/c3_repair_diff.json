@@ -1,0 +1,272 @@
+{
+ "development": {
+  "tae_rating_gradient": {
+   "shipped": {
+    "point": 3.1985690533843646e-07,
+    "lo": -0.0008847542172880593,
+    "hi": 0.0009027181547456059,
+    "sd": 0.0005005903869433392,
+    "mc_se": 3.539708572044329e-05,
+    "sd_units_from_zero": 0.0006389593441686294,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": 3.1985690533843646e-07,
+    "lo": -0.0008847542172880593,
+    "hi": 0.0009027181547456059,
+    "sd": 0.0005005903869433392,
+    "mc_se": 3.539708572044329e-05,
+    "sd_units_from_zero": 0.0006389593441686294,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "metric_a_time_vs_rating": {
+   "shipped": {
+    "point": 2.4885465846668718e-05,
+    "lo": -0.0007182058862550598,
+    "hi": 0.0009586135406832757,
+    "sd": 0.00043914183171918364,
+    "mc_se": 3.1052016711131645e-05,
+    "sd_units_from_zero": 0.05666840198130369,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": 3.415828642852575e-05,
+    "lo": -0.0009049148716496124,
+    "hi": 0.001201222889033265,
+    "sd": 0.0005579974878005752,
+    "mc_se": 3.945638075088445e-05,
+    "sd_units_from_zero": 0.061215842679086946,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "extreme_ut_vs_rating": {
+   "shipped": {
+    "point": -4.827105161407668e-06,
+    "lo": -0.00024662917266779364,
+    "hi": 0.0002048803348461504,
+    "sd": 0.00011514566619971804,
+    "mc_se": 8.142028139406327e-06,
+    "sd_units_from_zero": 0.04192172680676616,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -4.047228232832458e-06,
+    "lo": -0.0003103793808237732,
+    "hi": 0.00026056901410570325,
+    "sd": 0.00014604932812544672,
+    "mc_se": 1.0327247030524254e-05,
+    "sd_units_from_zero": 0.02771137864705654,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "allocation_loss_vs_rating": {
+   "shipped": {
+    "point": 5.2365364780053974e-06,
+    "lo": -0.0004103983990117635,
+    "hi": 0.00041632777034619897,
+    "sd": 0.00021062215934719052,
+    "mc_se": 1.4893235714255199e-05,
+    "sd_units_from_zero": 0.024862229568985983,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": 8.301260401484959e-06,
+    "lo": -0.0005166531272129264,
+    "hi": 0.0005267085613666952,
+    "sd": 0.0002672048592409233,
+    "mc_se": 1.889423679352538e-05,
+    "sd_units_from_zero": 0.031067026344757404,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  }
+ },
+ "validation": {
+  "tae_rating_gradient": {
+   "shipped": {
+    "point": -3.4506323201755775e-05,
+    "lo": -0.0010513241658739044,
+    "hi": 0.000963224426051386,
+    "sd": 0.0005363447709966891,
+    "mc_se": 3.792530246257048e-05,
+    "sd_units_from_zero": 0.06433608579353295,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -3.4506323201755775e-05,
+    "lo": -0.0010513241658739044,
+    "hi": 0.000963224426051386,
+    "sd": 0.0005363447709966891,
+    "mc_se": 3.792530246257048e-05,
+    "sd_units_from_zero": 0.06433608579353295,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "metric_a_time_vs_rating": {
+   "shipped": {
+    "point": -0.00015667822555213908,
+    "lo": -0.0010410888842235263,
+    "hi": 0.0007304427665418299,
+    "sd": 0.0004912487523317375,
+    "mc_se": 3.4736532402320236e-05,
+    "sd_units_from_zero": 0.3189386737543003,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -1.902708440369438e-05,
+    "lo": -0.0011279660198746397,
+    "hi": 0.00110509783054365,
+    "sd": 0.0006194063925858564,
+    "mc_se": 4.379864605077559e-05,
+    "sd_units_from_zero": 0.030718256433004156,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "extreme_ut_vs_rating": {
+   "shipped": {
+    "point": 2.6374001760335596e-05,
+    "lo": -0.00024762944511243316,
+    "hi": 0.00031741687427311235,
+    "sd": 0.0001435543753444248,
+    "mc_se": 1.0150827227504171e-05,
+    "sd_units_from_zero": 0.18372133692935105,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -9.681223137122553e-06,
+    "lo": -0.00035486299041074794,
+    "hi": 0.0003631429623994227,
+    "sd": 0.0001810723402999291,
+    "mc_se": 1.2803747971139804e-05,
+    "sd_units_from_zero": 0.053466051861297686,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "allocation_loss_vs_rating": {
+   "shipped": {
+    "point": -0.00011602527498641716,
+    "lo": -0.0005227320740812301,
+    "hi": 0.0002939073471174111,
+    "sd": 0.00023263945736407853,
+    "mc_se": 1.6450093787369862e-05,
+    "sd_units_from_zero": 0.498734291684831,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -1.8415898119930943e-06,
+    "lo": -0.0005283236798624693,
+    "hi": 0.0005223303206201126,
+    "sd": 0.0002932333642394332,
+    "mc_se": 2.073473003238481e-05,
+    "sd_units_from_zero": 0.006280287431717302,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  }
+ },
+ "final": {
+  "tae_rating_gradient": {
+   "shipped": {
+    "point": -2.0355486396681823e-05,
+    "lo": -0.0010596260105793294,
+    "hi": 0.0010641035520202783,
+    "sd": 0.0005373800052951913,
+    "mc_se": 3.799850458182926e-05,
+    "sd_units_from_zero": 0.037879128728468846,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -2.0355486396681823e-05,
+    "lo": -0.0010596260105793294,
+    "hi": 0.0010641035520202783,
+    "sd": 0.0005373800052951913,
+    "mc_se": 3.799850458182926e-05,
+    "sd_units_from_zero": 0.037879128728468846,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "metric_a_time_vs_rating": {
+   "shipped": {
+    "point": -0.0011453023837900314,
+    "lo": -0.0019871618171299183,
+    "hi": -0.0003679451836582444,
+    "sd": 0.00045655157101741003,
+    "mc_se": 3.228307118277823e-05,
+    "sd_units_from_zero": 2.508593675929672,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -3.610545065837817e-05,
+    "lo": -0.0010693670361079594,
+    "hi": 0.000927498796940098,
+    "sd": 0.0005763231720881454,
+    "mc_se": 4.0752202313846915e-05,
+    "sd_units_from_zero": 0.06264792464887399,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "extreme_ut_vs_rating": {
+   "shipped": {
+    "point": -0.00012343447395314367,
+    "lo": -0.00043547380342281593,
+    "hi": 0.00013901947517415978,
+    "sd": 0.00014730144525995097,
+    "mc_se": 1.0415785082189035e-05,
+    "sd_units_from_zero": 0.8379719135498777,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -1.1325213715909759e-05,
+    "lo": -0.0003962943512279902,
+    "hi": 0.000319156686130212,
+    "sd": 0.00018622610127216055,
+    "mc_se": 1.3168173904347747e-05,
+    "sd_units_from_zero": 0.06081432000425386,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "allocation_loss_vs_rating": {
+   "shipped": {
+    "point": -0.0003564366371057222,
+    "lo": -0.0008234870212855462,
+    "hi": 4.193046541832629e-05,
+    "sd": 0.00023445102750231596,
+    "mc_se": 1.6578191140304135e-05,
+    "sd_units_from_zero": 1.5203031562836773,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "repaired": {
+    "point": -8.328796964704146e-06,
+    "lo": -0.0005965737133742436,
+    "hi": 0.0004959732185610949,
+    "sd": 0.00029627012379170216,
+    "mc_se": 2.0949461359609047e-05,
+    "sd_units_from_zero": 0.02811217296604585,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  }
+ }
+}

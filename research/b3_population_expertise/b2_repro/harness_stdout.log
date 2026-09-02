@@ -1,0 +1,8 @@
+{
+  "repeats": true,
+  "repeatsPerDecision": true,
+  "orderIndependent": true,
+  "orderIndependentWithWarmHash": false,
+  "largestBucketShiftPp": 1.488833746898266,
+  "clearedCostRatio": 1.4050489622600633
+}

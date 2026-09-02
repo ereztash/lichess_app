@@ -1,0 +1,3406 @@
+{
+ "_cache_key": "02c0a505063fcf30fa7d38281545679159e14f91a0cb050b3049619e713950df",
+ "estimates": {
+  "n_decisions": 81624,
+  "n_players": 2331,
+  "n_games": 2447,
+  "rating_range": [
+   801,
+   2595
+  ],
+  "adequately_powered": {
+   "800-999": true,
+   "1000-1199": true,
+   "1200-1399": true,
+   "1400-1599": true,
+   "1600-1799": true,
+   "1800-1999": true,
+   "2000-2199": true,
+   "2200-2399": true,
+   "2400-2599": true
+  },
+  "mean_quality_loss": 0.05006559352533792,
+  "mean_seconds": 3.4796873468587672,
+  "median_seconds": 2.0,
+  "accurate_rate": 0.55826717632069,
+  "censored_voc_share": 0.10269038518082917,
+  "zero_time_share": 0.09665049495246496,
+  "book_share": 0.054640791923943936,
+  "beta": {
+   "point": 0.013419210887702484,
+   "lo": 0.012429412276264883,
+   "hi": 0.01431165795688802,
+   "replicates": 400
+  },
+  "beta_by_band": {
+   "800-999": {
+    "point": 0.012821704673574302,
+    "lo": 0.008481360896966834,
+    "hi": 0.017353415754264627,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.014424998660331024,
+    "lo": 0.01121626709641792,
+    "hi": 0.01725212162642433,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.016205087607453986,
+    "lo": 0.012956692475176303,
+    "hi": 0.01918229862367161,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.015379097277531208,
+    "lo": 0.012757805618964238,
+    "hi": 0.018175332380489642,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.01377344314768873,
+    "lo": 0.010866677623051938,
+    "hi": 0.01653381833715971,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.013633607991079101,
+    "lo": 0.010382746141553677,
+    "hi": 0.016815383344487612,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.01099965326319696,
+    "lo": 0.008717630577609272,
+    "hi": 0.013328983852067046,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.012921207691690143,
+    "lo": 0.010572111991901991,
+    "hi": 0.015463148779074285,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.0105047248198277,
+    "lo": 0.008663367547577516,
+    "hi": 0.012440508925718402,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "beta_at_mean_rating": 0.01368286284075675,
+  "beta_rating_interaction": {
+   "point": -0.00022242315833090396,
+   "lo": -0.0004267160249093532,
+   "hi": -2.161505891663988e-05,
+   "replicates": 400
+  },
+  "metric_a_time_vs_rating": {
+   "point": -0.010685313291812019,
+   "lo": -0.012313362528283368,
+   "hi": -0.009461359004581157,
+   "replicates": 400
+  },
+  "metric_a_by_band": {
+   "800-999": {
+    "point": -0.014542579208209847,
+    "lo": -0.03161580443647517,
+    "hi": -0.0003856872685059285,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": -0.010074999576887263,
+    "lo": -0.017591506191193443,
+    "hi": -0.0037956163990329147,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": -0.01013850109617594,
+    "lo": -0.01739312091430103,
+    "hi": -0.0028510675931150476,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": -0.01580023997263504,
+    "lo": -0.023387083323462284,
+    "hi": -0.008375834476954253,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": -0.016842201636768472,
+    "lo": -0.024176756334023546,
+    "hi": -0.009682343365700306,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": -0.023465526532845258,
+    "lo": -0.03165021012502522,
+    "hi": -0.017241421342309857,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": -0.012320097787286322,
+    "lo": -0.018908252224402854,
+    "hi": -0.0049032924522090455,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": -0.010431384375206442,
+    "lo": -0.017672952255436327,
+    "hi": -0.0037369896981532037,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": -0.02257270488060661,
+    "lo": -0.028562109874228782,
+    "hi": -0.01651068674428193,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "tae_by_band": {
+   "800-999": {
+    "point": 0.0058874031374006024,
+    "lo": -0.011067493343000391,
+    "hi": 0.020873391792029277,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.007796472631373639,
+    "lo": -0.009558922442458513,
+    "hi": 0.022971934420416017,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.007195166963701826,
+    "lo": -0.00687543471093221,
+    "hi": 0.02266801310240618,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.010316141740963975,
+    "lo": -0.002303871023234935,
+    "hi": 0.024455500452501677,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.007346427174635187,
+    "lo": -0.004906758111039085,
+    "hi": 0.021748873158382722,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.011936340276098929,
+    "lo": -0.0016126782505467387,
+    "hi": 0.0280392164048542,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.01777589967136428,
+    "lo": 0.0021372280902679764,
+    "hi": 0.03130071858104328,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.015311003493713749,
+    "lo": -0.0018664711090302538,
+    "hi": 0.03141387563706582,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.010299548186859188,
+    "lo": -0.0008226445552163092,
+    "hi": 0.022064914510684465,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "tae_pooled": {
+   "tau2": 0.0,
+   "mean": 0.010371996771204305,
+   "shrunk": [
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305,
+    0.010371996771204305
+   ]
+  },
+  "tae_rating_gradient": {
+   "point": 0.0005318273002991697,
+   "lo": -0.000335831578974248,
+   "hi": 0.0015099013877194812,
+   "replicates": 400
+  },
+  "tae_partial_correlation_by_band": {
+   "800-999": {
+    "point": 0.008230656007132917,
+    "lo": -0.014690617813347344,
+    "hi": 0.029154935728718325,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.012097005112259201,
+    "lo": -0.015333416498901797,
+    "hi": 0.03521114741115316,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.011361289087910127,
+    "lo": -0.010892433977288169,
+    "hi": 0.03484696753058937,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.01511226274829487,
+    "lo": -0.00324489080814388,
+    "hi": 0.034971726010927774,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.011707536947815119,
+    "lo": -0.008402652635726583,
+    "hi": 0.033717243545917513,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.018500137439536025,
+    "lo": -0.002411801254919705,
+    "hi": 0.0417309283866928,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.027320459409979455,
+    "lo": 0.0035632664780747966,
+    "hi": 0.04796310057478244,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.02613778163820616,
+    "lo": -0.002945675774202213,
+    "hi": 0.056418556271402374,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.016477894985764387,
+    "lo": -0.001294229697404035,
+    "hi": 0.03446632814377436,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "allocation_loss_by_band": {
+   "800-999": {
+    "point": 0.2599666983747548,
+    "lo": 0.2489224678624577,
+    "hi": 0.2719935079306829,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.24207049878299455,
+    "lo": 0.23237531198148195,
+    "hi": 0.25065558705810853,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.2304430064617587,
+    "lo": 0.22272708530269633,
+    "hi": 0.2379580261714467,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.23495028817574712,
+    "lo": 0.2271691345101919,
+    "hi": 0.24295451983665833,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.22565648572069927,
+    "lo": 0.21941499062982064,
+    "hi": 0.2331028798553122,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.2206508049359954,
+    "lo": 0.21333168628463073,
+    "hi": 0.2287303849416354,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.2247546304463075,
+    "lo": 0.2174920793458728,
+    "hi": 0.2337870391625838,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.23071737675883489,
+    "lo": 0.22302205058879454,
+    "hi": 0.23941975763400314,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.22805150443392894,
+    "lo": 0.2198090311806856,
+    "hi": 0.23599369718788604,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "allocation_loss_vs_rating": {
+   "point": -0.002141464787178552,
+   "lo": -0.0031614166894126192,
+   "hi": -0.0012335315417100054,
+   "replicates": 400
+  },
+  "overthinking_by_band": {
+   "800-999": {
+    "point": 0.21018214929436352,
+    "lo": 0.19821516404624026,
+    "hi": 0.22240515845945236,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.1857635247521899,
+    "lo": 0.17710507427237865,
+    "hi": 0.19477806278827467,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.17002486537527015,
+    "lo": 0.16206717208597154,
+    "hi": 0.17790015112324092,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.17313540870215194,
+    "lo": 0.16530632315200156,
+    "hi": 0.1809532212595351,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.16776798447656643,
+    "lo": 0.16141298323457476,
+    "hi": 0.17501724158394283,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.1629079631222057,
+    "lo": 0.15646504182824375,
+    "hi": 0.1700296759174687,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.1659187884285579,
+    "lo": 0.15793895502035724,
+    "hi": 0.17500825179735216,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.16145202536289546,
+    "lo": 0.15345953311676516,
+    "hi": 0.17049580217294846,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.15700772335874658,
+    "lo": 0.14918493650398407,
+    "hi": 0.1638300263630342,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "premature_commitment_by_band": {
+   "800-999": {
+    "point": 0.049784549080391295,
+    "lo": 0.045130931871891766,
+    "hi": 0.054847050917587646,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.05630697403080463,
+    "lo": 0.05187160935616678,
+    "hi": 0.06110597325540522,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.06041814108648851,
+    "lo": 0.0555658010009819,
+    "hi": 0.0652403588450634,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.06181487947359516,
+    "lo": 0.057658051870616754,
+    "hi": 0.06675870281404507,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.05788850124413284,
+    "lo": 0.05373086470512116,
+    "hi": 0.06207574427828709,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.05774284181378971,
+    "lo": 0.053206871943332776,
+    "hi": 0.06234861210067525,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.05883584201774963,
+    "lo": 0.05418826013946475,
+    "hi": 0.06333243071240845,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.06926535139593938,
+    "lo": 0.06403763261756988,
+    "hi": 0.07510222284161151,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.07104378107518235,
+    "lo": 0.06623805940768815,
+    "hi": 0.07564119867692802,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "extreme_ut_by_band": {
+   "800-999": {
+    "point": 0.059571088165210485,
+    "lo": 0.052743984004766924,
+    "hi": 0.06672753494330878,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.04750088621056363,
+    "lo": 0.04218425708121466,
+    "hi": 0.052922304538003104,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.04435233160621762,
+    "lo": 0.03995815869895772,
+    "hi": 0.04951138906035621,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.046352012034599474,
+    "lo": 0.04218613347088127,
+    "hi": 0.05076906417308552,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.04440377576574841,
+    "lo": 0.04026104771961783,
+    "hi": 0.049230141614271736,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.04719175805915587,
+    "lo": 0.04275953096367901,
+    "hi": 0.05176313531545117,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.052380398091025494,
+    "lo": 0.04690118908869396,
+    "hi": 0.05730781472491732,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.05100591715976331,
+    "lo": 0.04585540997879721,
+    "hi": 0.05640430136663451,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.0524179912073047,
+    "lo": 0.04746768845810222,
+    "hi": 0.05730970948045541,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "extreme_ut_vs_rating": {
+   "point": 5.9867577047895105e-05,
+   "lo": -0.0006731171935039499,
+   "hi": 0.0005235117344371942,
+   "replicates": 400
+  },
+  "friction_burden_by_band": {
+   "800-999": {
+    "point": 0.020753487545856923,
+    "lo": 0.009991960376750353,
+    "hi": 0.033226236024974404,
+    "replicates": 400,
+    "n": 7554,
+    "players": 248
+   },
+   "1000-1199": {
+    "point": 0.01981094031296282,
+    "lo": 0.009483659599184091,
+    "hi": 0.028840199503183717,
+    "replicates": 400,
+    "n": 8463,
+    "players": 272
+   },
+   "1200-1399": {
+    "point": 0.02570533914135194,
+    "lo": 0.016118964343563094,
+    "hi": 0.035926778411220446,
+    "replicates": 400,
+    "n": 9650,
+    "players": 301
+   },
+   "1400-1599": {
+    "point": 0.028126959673029535,
+    "lo": 0.01749258200271988,
+    "hi": 0.03893236724654667,
+    "replicates": 400,
+    "n": 10636,
+    "players": 313
+   },
+   "1600-1799": {
+    "point": 0.022110960708621296,
+    "lo": 0.012920517067624253,
+    "hi": 0.03168687937112171,
+    "replicates": 400,
+    "n": 10382,
+    "players": 301
+   },
+   "1800-1999": {
+    "point": 0.026940558237771754,
+    "lo": 0.01704156616558624,
+    "hi": 0.03870045552952355,
+    "replicates": 400,
+    "n": 9027,
+    "players": 256
+   },
+   "2000-2199": {
+    "point": 0.015252872351786764,
+    "lo": 0.007878732799631513,
+    "hi": 0.022726085563889997,
+    "replicates": 400,
+    "n": 8591,
+    "players": 226
+   },
+   "2200-2399": {
+    "point": 0.019641855606322468,
+    "lo": 0.011349887430701604,
+    "hi": 0.028587744937134115,
+    "replicates": 400,
+    "n": 8450,
+    "players": 217
+   },
+   "2400-2599": {
+    "point": 0.016603642509894455,
+    "lo": 0.010274532832837278,
+    "hi": 0.023382051582740034,
+    "replicates": 400,
+    "n": 8871,
+    "players": 206
+   }
+  },
+  "powered_bands": [
+   "800-999",
+   "1000-1199",
+   "1200-1399",
+   "1400-1599",
+   "1600-1799",
+   "1800-1999",
+   "2000-2199",
+   "2200-2399",
+   "2400-2599"
+  ],
+  "beta_band_spearman": -0.5666666666666667,
+  "beta_pooled": {
+   "tau2": 2.3619886318225083e-06,
+   "mean": 0.013234711171035139,
+   "shrunk": [
+    0.013104371556977492,
+    0.0138287397164004,
+    0.014671162317170637,
+    0.014420349434136875,
+    0.013520530777289779,
+    0.013421106220547197,
+    0.011825360293713035,
+    0.013045751310604202,
+    0.011275028912476635
+   ]
+  },
+  "beta_expected_sign": 1,
+  "tae_band_spearman": 0.7166666666666667,
+  "tae_expected_sign": 1,
+  "allocation_loss_band_spearman": -0.6333333333333333,
+  "allocation_loss_pooled": {
+   "tau2": 7.550556024021367e-05,
+   "mean": 0.23242445744781895,
+   "shrunk": [
+    0.25130507256698187,
+    0.23991353554107447,
+    0.23077316744383167,
+    0.23450373619383333,
+    0.22659743942574112,
+    0.22264867981531955,
+    0.2261830025395377,
+    0.23103855603534004,
+    0.22885692746871078
+   ]
+  },
+  "allocation_loss_expected_sign": -1,
+  "extreme_ut_band_spearman": 0.2,
+  "extreme_ut_pooled": {
+   "tau2": 1.1737834003037414e-05,
+   "mean": 0.049059565431810774,
+   "shrunk": [
+    0.05410320707173254,
+    0.04810873334150689,
+    0.04593388770448445,
+    0.047137165891831104,
+    0.045839798874717286,
+    0.04777092564099569,
+    0.05113453288904256,
+    0.05026327959347017,
+    0.05124455787851623
+   ]
+  },
+  "extreme_ut_expected_sign": -1,
+  "rating_on_quality": {
+   "point": -0.0024291192463274853,
+   "lo": -0.002605268214607428,
+   "hi": -0.0022588984905267248,
+   "replicates": 400
+  },
+  "tae_spread_low_to_high": {
+   "point": 0.004412145049458586,
+   "lo": -0.012556043337746185,
+   "hi": 0.023341379321442313,
+   "replicates": 400
+  },
+  "tae_spread_bands": [
+   "800-999",
+   "2400-2599"
+  ],
+  "tae_rating_gradient_excluding_top_band": {
+   "point": 0.0008240939507982888,
+   "lo": -0.00036485344011454995,
+   "hi": 0.0021868104665928373,
+   "replicates": 400
+  },
+  "beta_excluding_top_band": {
+   "point": 0.013825847560042794,
+   "lo": 0.01277294291301208,
+   "hi": 0.014830034161747307,
+   "replicates": 400
+  },
+  "top_band_dropped": "2400-2599",
+  "beta_sign_agreement": 1.0
+ },
+ "controls": {
+  "C1_shuffled_quality": {
+   "beta": {
+    "point": 0.00031116691183838733,
+    "lo": -0.000557388304212242,
+    "hi": 0.0012753846654242357,
+    "sd": 0.00048653985170719405,
+    "mc_se": 3.4403562845965414e-05,
+    "sd_units_from_zero": 0.6395507187058781,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "C2_shuffled_time": {
+   "beta": {
+    "point": -0.00025820567961544575,
+    "lo": -0.0008460897494481641,
+    "hi": 0.000370810386577164,
+    "sd": 0.00029465536004318456,
+    "mc_se": 2.0835280319949947e-05,
+    "sd_units_from_zero": 0.8762972429132232,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "C3_shuffled_rating": {
+   "tae_rating_gradient": {
+    "point": -2.0355486396681823e-05,
+    "lo": -0.0010596260105793294,
+    "hi": 0.0010641035520202783,
+    "sd": 0.0005373800052951913,
+    "mc_se": 3.799850458182926e-05,
+    "sd_units_from_zero": 0.037879128728468846,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.0011453023837900314,
+    "lo": -0.0019871618171299183,
+    "hi": -0.0003679451836582444,
+    "sd": 0.00045655157101741003,
+    "mc_se": 3.228307118277823e-05,
+    "sd_units_from_zero": 2.508593675929672,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "extreme_ut_vs_rating": {
+    "point": -0.00012343447395314367,
+    "lo": -0.00043547380342281593,
+    "hi": 0.00013901947517415978,
+    "sd": 0.00014730144525995097,
+    "mc_se": 1.0415785082189035e-05,
+    "sd_units_from_zero": 0.8379719135498777,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "allocation_loss_vs_rating": {
+    "point": -0.0003564366371057222,
+    "lo": -0.0008234870212855462,
+    "hi": 4.193046541832629e-05,
+    "sd": 0.00023445102750231596,
+    "mc_se": 1.6578191140304135e-05,
+    "sd_units_from_zero": 1.5203031562836773,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   }
+  },
+  "C4_shuffled_voc": {
+   "tae_rating_gradient": {
+    "point": -3.896626311027779e-05,
+    "lo": -0.0009395657891061484,
+    "hi": 0.0008067886671444722,
+    "sd": 0.0004858897167327956,
+    "mc_se": 3.435759136105704e-05,
+    "sd_units_from_zero": 0.08019569414288806,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "tae_pooled": {
+    "point": -2.2533818925023435e-05,
+    "lo": -0.004378854605809525,
+    "hi": 0.00395407030940704,
+    "sd": 0.002312846564731844,
+    "mc_se": 0.0001635429489765898,
+    "sd_units_from_zero": 0.009742894002843656,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "tae_rating_gradient_raw_column_permuted": {
+    "point": -0.0008063176384336418,
+    "lo": -0.0015460772321435046,
+    "hi": -0.00011177372665283338,
+    "sd": 0.0003834969569902858,
+    "mc_se": 2.7117329885223682e-05,
+    "sd_units_from_zero": 2.1025398604507473,
+    "permutations": 200,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "note": "the pass condition reads the permutation of voc_resid, the regressor the estimator uses; permuting the raw column leaves the frozen fit's deterministic part in place and is reported beside it"
+  },
+  "C5_planted_regularity": {
+   "lambda": 0.02,
+   "beta": {
+    "point": 0.033417778482744014,
+    "lo": 0.03242852274823484,
+    "hi": 0.03431023145474008,
+    "replicates": 400
+   },
+   "beta_unplanted": 0.013419210887702484
+  },
+  "C6_planted_expertise": {
+   "planted_gradient_per_100elo": 0.002777777777777778,
+   "tae_rating_gradient": {
+    "point": 0.0029441933176546143,
+    "lo": 0.002148855837870753,
+    "hi": 0.003907275354328334,
+    "sd": 0.0005105761215194074,
+    "mc_se": 7.220636756765994e-05,
+    "sd_units_from_zero": 5.766414043988353,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "player_level_gradient": {
+    "point": 0.0028417831503184414,
+    "lo": 0.0018110778281817308,
+    "hi": 0.003907519125983103,
+    "sd": 0.0005408573028707048,
+    "mc_se": 7.648877330282834e-05,
+    "sd_units_from_zero": 5.254219801110436,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "player_level_note": "reported, not a pass condition: what condition 6's own estimator recovers from a planted gradient"
+  },
+  "C7_no_effect_synthetic": {
+   "beta": {
+    "point": 3.8923589410927434e-05,
+    "lo": -0.0007901439926533626,
+    "hi": 0.0007157082937180548,
+    "sd": 0.00040698255318134206,
+    "mc_se": 5.755602463582833e-05,
+    "sd_units_from_zero": 0.09563945458267342,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "tae_rating_gradient": {
+    "point": -7.561927458462348e-05,
+    "lo": -0.0010674057725078509,
+    "hi": 0.0007005538666611079,
+    "sd": 0.0005228495448244492,
+    "mc_se": 7.394209173713355e-05,
+    "sd_units_from_zero": 0.1446291296093855,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "metric_a_time_vs_rating": {
+    "point": -9.660420672478933e-05,
+    "lo": -0.0008201411516592505,
+    "hi": 0.0006980982138594614,
+    "sd": 0.0004584255552850143,
+    "mc_se": 6.483116376224843e-05,
+    "sd_units_from_zero": 0.21073041328319525,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "extreme_ut_vs_rating": {
+    "point": -0.00015549133279036553,
+    "lo": -0.0004099215227713253,
+    "hi": 0.00015288502435276987,
+    "sd": 0.00016092072491152184,
+    "mc_se": 2.2757627163678415e-05,
+    "sd_units_from_zero": 0.9662604544930957,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "note": "time generated from T2P (the fullest model without rating) and quality from Q0, with independent noise and no UT-quality link, so the true beta, the true rating effect on time and the true allocation gradient are all zero; extreme_ut has no rating structure in such data by construction"
+  },
+  "C7b_omitted_difficulty_simulation": {
+   "beta_manufactured": {
+    "point": 0.0004886480830951772,
+    "lo": -0.00022381709273517491,
+    "hi": 0.0013516001493242757,
+    "sd": 0.00038985330701888293,
+    "mc_se": 5.5133583412210634e-05,
+    "sd_units_from_zero": 1.2534152572200934,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "factor_strength_on_log_time": 0.12830935954347136,
+   "factor_strength_on_quality": 0.0013527476474101921,
+   "calibrated_to": "the engine-difficulty block, i.e. what T1P adds to T0",
+   "true_beta": 0.0,
+   "note": "reported, not a pass condition. A magnitude for alternative explanation A2: the beta that one more unmeasured difficulty factor, as strong as the measured ones and absent from the expected-time model, would manufacture on its own. The observed beta must be read against this number."
+  },
+  "C5b_planted_foreign_residual": {
+   "lambda": 0.02,
+   "beta": {
+    "point": 0.032896461722411924,
+    "lo": 0.03188884602159421,
+    "hi": 0.03380926713959635,
+    "replicates": 400
+   },
+   "beta_unplanted": 0.013419210887702484,
+   "recovered_fraction": 0.973862541735472,
+   "note": "recovered_fraction is the share of a signal defined outside this pipeline's own residual that the frozen linear specification detects -- algebraically the regression slope of the tree residual on the linear residual, so it is the attenuation of a signal OF THAT SHAPE and of nothing else"
+  },
+  "C8_player_influence": {
+   "beta_full": 0.013419210887702484,
+   "beta_without_busiest_1pct": {
+    "point": 0.013495287423971903,
+    "lo": 0.012532537130829118,
+    "hi": 0.014486490777012136,
+    "replicates": 400
+   },
+   "tae_gradient_without_busiest_1pct": {
+    "point": 0.0004923643857480565,
+    "lo": -0.0005420570204040423,
+    "hi": 0.0014936251329436797,
+    "replicates": 400
+   },
+   "relative_change": 0.005669225776840311,
+   "max_single_player_relative_shift": 0.005214035342623494,
+   "most_influential_player": "fdd900b280f39eb8",
+   "players_dropped": 23
+  },
+  "C19_own_pace_added": {
+   "beta": {
+    "point": 0.013449846973946822,
+    "lo": 0.012446209054128098,
+    "hi": 0.014351485627165464,
+    "replicates": 400
+   }
+  },
+  "C10_binary_outcome": {
+   "beta_on_inaccuracy": {
+    "point": 0.06720439166915028,
+    "lo": 0.06101932161444369,
+    "hi": 0.07316191821028827,
+    "replicates": 400
+   }
+  },
+  "C11_no_book": {
+   "n": 77164,
+   "players": 2331,
+   "beta": {
+    "point": 0.013848914158077512,
+    "lo": 0.012869505383121824,
+    "hi": 0.01482767658110654,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.0005485849386233128,
+    "lo": -0.00034235063689316017,
+    "hi": 0.001555014150822532,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.010432768423177944,
+    "lo": -0.012177796424936715,
+    "hi": -0.009166273142843745,
+    "replicates": 400
+   }
+  },
+  "C17_no_zero_time": {
+   "n": 73735,
+   "players": 2331,
+   "beta": {
+    "point": 0.014927811209738757,
+    "lo": 0.013731321965042531,
+    "hi": 0.016115955352494268,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.00033435994303043114,
+    "lo": -0.00046983797342846166,
+    "hi": 0.001293141797063055,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.006295958110788193,
+    "lo": -0.007944424884634963,
+    "hi": -0.005076532994655675,
+    "replicates": 400
+   }
+  },
+  "C18_first_40_plies": {
+   "n": 44464,
+   "players": 2331,
+   "beta": {
+    "point": 0.01173516041576711,
+    "lo": 0.010478372800040879,
+    "hi": 0.012850738395103799,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.0013078464012784604,
+    "lo": -0.00014925919434543168,
+    "hi": 0.002822375912563194,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.011330349235687279,
+    "lo": -0.013404166768851186,
+    "hi": -0.00967267596288191,
+    "replicates": 400
+   }
+  },
+  "C12_phase_opening": {
+   "n": 23082,
+   "players": 2331,
+   "beta": {
+    "point": 0.007964363054942901,
+    "lo": 0.006423760917432459,
+    "hi": 0.009548060049512985,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.004484215320329165,
+    "lo": 0.00219140002498752,
+    "hi": 0.0070113302432412376,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.014854608327922347,
+    "lo": -0.016749552617011925,
+    "hi": -0.013080102623039505,
+    "replicates": 400
+   }
+  },
+  "C12_phase_middlegame": {
+   "n": 48468,
+   "players": 2299,
+   "beta": {
+    "point": 0.016078302090405693,
+    "lo": 0.014705508585826305,
+    "hi": 0.01754852955528175,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": -0.00013913925644616816,
+    "lo": -0.0012584281878457446,
+    "hi": 0.0008386108048191402,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.009027565776841676,
+    "lo": -0.011183097481003304,
+    "hi": -0.007293582870427008,
+    "replicates": 400
+   }
+  },
+  "C12_phase_endgame": {
+   "n": 10074,
+   "players": 671,
+   "beta": {
+    "point": 0.008567713230658901,
+    "lo": 0.005316348788924494,
+    "hi": 0.011400592890159213,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": -0.0013678961211824959,
+    "lo": -0.004478604774254,
+    "hi": 0.0017414611310169808,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.00882402976794975,
+    "lo": -0.012708782115003385,
+    "hi": -0.004781807219043572,
+    "replicates": 400
+   }
+  },
+  "C13_standing_winning": {
+   "n": 27094,
+   "players": 1952,
+   "beta": {
+    "point": 0.019334668041133,
+    "lo": 0.016882946566883904,
+    "hi": 0.021527805445499957,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 7.628172443742014e-05,
+    "lo": -0.001198599412940744,
+    "hi": 0.0013083035303775123,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.009062850777800752,
+    "lo": -0.011380418101749534,
+    "hi": -0.007018509696318864,
+    "replicates": 400
+   }
+  },
+  "C13_standing_level": {
+   "n": 32702,
+   "players": 2318,
+   "beta": {
+    "point": 0.011606094979761648,
+    "lo": 0.010244092205681342,
+    "hi": 0.013142973899905314,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.0013879169673731951,
+    "lo": -0.0003282270942071058,
+    "hi": 0.0032606564709335645,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.011466355894402492,
+    "lo": -0.013194436753118589,
+    "hi": -0.009859160172945606,
+    "replicates": 400
+   }
+  },
+  "C13_standing_losing": {
+   "n": 21828,
+   "players": 1670,
+   "beta": {
+    "point": 0.00906766779868989,
+    "lo": 0.007940906177893082,
+    "hi": 0.010231042359807001,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.00018654872914769765,
+    "lo": -0.0017907276526245822,
+    "hi": 0.002719881368626749,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.011387539093857342,
+    "lo": -0.015464092576264984,
+    "hi": -0.008155073648113978,
+    "replicates": 400
+   }
+  },
+  "C14_clock_pressure_t0": {
+   "n": 26664,
+   "players": 2331,
+   "beta": {
+    "point": 0.008755699871664028,
+    "lo": 0.007427988257616887,
+    "hi": 0.010151739741552483,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.002158279937175573,
+    "lo": -3.632997986477979e-05,
+    "hi": 0.004471613129707488,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.011724627361375094,
+    "lo": -0.013327248940086564,
+    "hi": -0.010159662835210002,
+    "replicates": 400
+   }
+  },
+  "C14_clock_pressure_t1": {
+   "n": 27851,
+   "players": 2283,
+   "beta": {
+    "point": 0.015604896959809688,
+    "lo": 0.014304129284958956,
+    "hi": 0.01706361542073465,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": 0.00063105346935845,
+    "lo": -0.0006951428901529692,
+    "hi": 0.0024089145853935542,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.0073232925139594075,
+    "lo": -0.010940887289136647,
+    "hi": -0.0045701822418824966,
+    "replicates": 400
+   }
+  },
+  "C14_clock_pressure_t2": {
+   "n": 27109,
+   "players": 1620,
+   "beta": {
+    "point": 0.014827314281984381,
+    "lo": 0.012971479203196678,
+    "hi": 0.016778900936168593,
+    "replicates": 400
+   },
+   "tae_rating_gradient": {
+    "point": -0.0004792140407664435,
+    "lo": -0.0020086393610265676,
+    "hi": 0.0007890952270264382,
+    "replicates": 400
+   },
+   "metric_a_time_vs_rating": {
+    "point": -0.012725916698747222,
+    "lo": -0.015108270820159099,
+    "hi": -0.010402999326799273,
+    "replicates": 400
+   }
+  }
+ },
+ "matched": {
+  "beta": {
+   "point": 0.016828601806292382,
+   "lo": 0.01476444638524144,
+   "hi": 0.01870285552693338,
+   "replicates": 400
+  },
+  "tae_rating_gradient": {
+   "point": -0.0032211687590524814,
+   "lo": -0.006237607864036584,
+   "hi": 0.0005295714753628547,
+   "replicates": 400
+  },
+  "metric_a_time_vs_rating": {
+   "point": -0.013987439836878822,
+   "lo": -0.0157531615745947,
+   "hi": -0.012050880143163195,
+   "replicates": 400
+  },
+  "weights": "coarsened exact matching cell weights, applied as weighted least squares",
+  "balance": {
+   "cells": 117,
+   "matched_decisions": 26343,
+   "matched_players": 2320,
+   "share_of_decisions_retained": 0.32273596001176125,
+   "bands_compared": [
+    "800-999",
+    "1000-1199",
+    "1200-1399",
+    "1400-1599",
+    "1600-1799",
+    "1800-1999",
+    "2000-2199",
+    "2200-2399",
+    "2400-2599"
+   ],
+   "balance_lowest_vs_highest_band": {
+    "ambiguity_entropy": {
+     "smd_before": -0.07134164043056532,
+     "smd_after": -0.142200690270224
+    },
+    "gap12": {
+     "smd_before": 0.04143097669076005,
+     "smd_after": 0.1622354723704113
+    },
+    "wp1": {
+     "smd_before": -0.014402861886239671,
+     "smd_after": -0.002558297382406833
+    },
+    "voc_z": {
+     "smd_before": 0.0654010194893146,
+     "smd_after": 0.1524654716206841
+    },
+    "clock_pressure": {
+     "smd_before": 0.15470133650330614,
+     "smd_after": 0.14320376069845564
+    },
+    "ply": {
+     "smd_before": 0.31541943104051856,
+     "smd_after": 0.1797620586983879
+    },
+    "legal_moves": {
+     "smd_before": 0.1534378129812631,
+     "smd_after": 0.09012715166441504
+    },
+    "n_near": {
+     "smd_before": -0.09332063508674021,
+     "smd_after": -0.13645366051224286
+    },
+    "eval_volatility": {
+     "smd_before": 0.174077399410456,
+     "smd_after": 0.2840140174616825
+    },
+    "best_move_changes": {
+     "smd_before": -0.11635585994315129,
+     "smd_after": -0.0913611195694198
+    }
+   }
+  }
+ },
+ "frontier": [
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 664,
+   "players": 235,
+   "mean_seconds": 3.0466867469879517,
+   "mean_log_time": 1.1501082300208536,
+   "mean_quality_loss": 0.07882214350075344,
+   "sem_quality_loss": 0.004152436338146141
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 1023,
+   "players": 241,
+   "mean_seconds": 4.189638318670577,
+   "mean_log_time": 1.4001223130894345,
+   "mean_quality_loss": 0.09684637348454762,
+   "sem_quality_loss": 0.004171054885395681
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 680,
+   "players": 154,
+   "mean_seconds": 3.9573529411764707,
+   "mean_log_time": 1.3299341998274339,
+   "mean_quality_loss": 0.1072513824851078,
+   "sem_quality_loss": 0.005985650599749017
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 98,
+   "players": 77,
+   "mean_seconds": 2.9591836734693877,
+   "mean_log_time": 1.215061605404545,
+   "mean_quality_loss": 0.08544818226660297,
+   "sem_quality_loss": 0.010191248116519716
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 178,
+   "players": 117,
+   "mean_seconds": 5.52808988764045,
+   "mean_log_time": 1.6189401009475275,
+   "mean_quality_loss": 0.0935238882146714,
+   "sem_quality_loss": 0.007754338458475302
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 109,
+   "players": 66,
+   "mean_seconds": 3.8256880733944953,
+   "mean_log_time": 1.3340070485254423,
+   "mean_quality_loss": 0.10022739958369338,
+   "sem_quality_loss": 0.013905677971062291
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 632,
+   "players": 244,
+   "mean_seconds": 2.8322784810126582,
+   "mean_log_time": 1.1345495841975262,
+   "mean_quality_loss": 0.053837154635910864,
+   "sem_quality_loss": 0.0024181516184702163
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 574,
+   "players": 220,
+   "mean_seconds": 5.083623693379791,
+   "mean_log_time": 1.5512284911187877,
+   "mean_quality_loss": 0.058715951279652547,
+   "sem_quality_loss": 0.003337290596385134
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 421,
+   "players": 139,
+   "mean_seconds": 3.9334916864608074,
+   "mean_log_time": 1.3461024996815856,
+   "mean_quality_loss": 0.046755950945517245,
+   "sem_quality_loss": 0.004354996759047749
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 392,
+   "players": 205,
+   "mean_seconds": 3.1505102040816326,
+   "mean_log_time": 1.1785025465922416,
+   "mean_quality_loss": 0.06254595520419103,
+   "sem_quality_loss": 0.0036179810479507585
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 447,
+   "players": 195,
+   "mean_seconds": 5.250559284116331,
+   "mean_log_time": 1.604839674940079,
+   "mean_quality_loss": 0.06652410367811708,
+   "sem_quality_loss": 0.004668740512717684
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 286,
+   "players": 117,
+   "mean_seconds": 4.615384615384615,
+   "mean_log_time": 1.46475686815293,
+   "mean_quality_loss": 0.06130882614459767,
+   "sem_quality_loss": 0.0048559168533148
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 522,
+   "players": 216,
+   "mean_seconds": 2.099616858237548,
+   "mean_log_time": 0.965999657660267,
+   "mean_quality_loss": 0.030460744198196436,
+   "sem_quality_loss": 0.0018176427641376338
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 461,
+   "players": 164,
+   "mean_seconds": 4.086767895878525,
+   "mean_log_time": 1.3667398249028517,
+   "mean_quality_loss": 0.024098908826366578,
+   "sem_quality_loss": 0.0021136843981134183
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 675,
+   "players": 134,
+   "mean_seconds": 2.797037037037037,
+   "mean_log_time": 1.1021675949925287,
+   "mean_quality_loss": 0.014583521029767448,
+   "sem_quality_loss": 0.0013381288428273126
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 359,
+   "players": 179,
+   "mean_seconds": 2.6434540389972145,
+   "mean_log_time": 1.0970907908373857,
+   "mean_quality_loss": 0.0312603727320503,
+   "sem_quality_loss": 0.002368745306018431
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 485,
+   "players": 179,
+   "mean_seconds": 4.575257731958763,
+   "mean_log_time": 1.493409833349577,
+   "mean_quality_loss": 0.02982882872044859,
+   "sem_quality_loss": 0.0027657600070059066
+  },
+  {
+   "rating_band": "1000-1199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 457,
+   "players": 126,
+   "mean_seconds": 3.5076586433260393,
+   "mean_log_time": 1.2832705807072615,
+   "mean_quality_loss": 0.027211243896548144,
+   "sem_quality_loss": 0.0029892262002174036
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 753,
+   "players": 267,
+   "mean_seconds": 2.8193891102257638,
+   "mean_log_time": 1.1257783176671654,
+   "mean_quality_loss": 0.06936260247987246,
+   "sem_quality_loss": 0.003451217669275243
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 1179,
+   "players": 269,
+   "mean_seconds": 4.182357930449533,
+   "mean_log_time": 1.4041851025709653,
+   "mean_quality_loss": 0.09031566388248387,
+   "sem_quality_loss": 0.0038692866732805333
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 737,
+   "players": 163,
+   "mean_seconds": 3.1587516960651287,
+   "mean_log_time": 1.1842101488810266,
+   "mean_quality_loss": 0.09214396115470949,
+   "sem_quality_loss": 0.005468389918541048
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 111,
+   "players": 94,
+   "mean_seconds": 3.7387387387387387,
+   "mean_log_time": 1.245735307415584,
+   "mean_quality_loss": 0.07850351878056552,
+   "sem_quality_loss": 0.006850760411506779
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 236,
+   "players": 155,
+   "mean_seconds": 4.944915254237288,
+   "mean_log_time": 1.5166414594804098,
+   "mean_quality_loss": 0.1019016582001205,
+   "sem_quality_loss": 0.008067467653478766
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 126,
+   "players": 75,
+   "mean_seconds": 4.103174603174603,
+   "mean_log_time": 1.3502447504533006,
+   "mean_quality_loss": 0.10051563587164597,
+   "sem_quality_loss": 0.010378062307888574
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 764,
+   "players": 277,
+   "mean_seconds": 2.493455497382199,
+   "mean_log_time": 1.0570623800356447,
+   "mean_quality_loss": 0.05067607342087935,
+   "sem_quality_loss": 0.0020704229262082075
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 682,
+   "players": 257,
+   "mean_seconds": 4.558651026392962,
+   "mean_log_time": 1.5134343880736474,
+   "mean_quality_loss": 0.05026490991213604,
+   "sem_quality_loss": 0.0024861977432947806
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 470,
+   "players": 148,
+   "mean_seconds": 3.293617021276596,
+   "mean_log_time": 1.2454624500792268,
+   "mean_quality_loss": 0.03818041747074057,
+   "sem_quality_loss": 0.0029401892077792736
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 415,
+   "players": 220,
+   "mean_seconds": 2.744578313253012,
+   "mean_log_time": 1.1063634893981564,
+   "mean_quality_loss": 0.05470133895565605,
+   "sem_quality_loss": 0.0030623167170353432
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 554,
+   "players": 237,
+   "mean_seconds": 4.855595667870036,
+   "mean_log_time": 1.561275204920369,
+   "mean_quality_loss": 0.052904121533855,
+   "sem_quality_loss": 0.0025881502299008857
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 340,
+   "players": 143,
+   "mean_seconds": 4.452941176470588,
+   "mean_log_time": 1.410297578079996,
+   "mean_quality_loss": 0.046901269174719144,
+   "sem_quality_loss": 0.0035321268261550606
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 629,
+   "players": 255,
+   "mean_seconds": 2.149443561208267,
+   "mean_log_time": 0.9477144468633366,
+   "mean_quality_loss": 0.02865900751685345,
+   "sem_quality_loss": 0.0013458288995474624
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 470,
+   "players": 194,
+   "mean_seconds": 4.097872340425532,
+   "mean_log_time": 1.4279175031632372,
+   "mean_quality_loss": 0.026626845113035737,
+   "sem_quality_loss": 0.002640875893327483
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 711,
+   "players": 149,
+   "mean_seconds": 2.6315049226441634,
+   "mean_log_time": 1.0633735123100838,
+   "mean_quality_loss": 0.019463419703850446,
+   "sem_quality_loss": 0.0021057540020003136
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 424,
+   "players": 209,
+   "mean_seconds": 2.6462264150943398,
+   "mean_log_time": 1.0310425606021443,
+   "mean_quality_loss": 0.03147020463747525,
+   "sem_quality_loss": 0.0020498204084734586
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 492,
+   "players": 195,
+   "mean_seconds": 4.6016260162601625,
+   "mean_log_time": 1.5343812311590361,
+   "mean_quality_loss": 0.026578758578917575,
+   "sem_quality_loss": 0.0016134835619101662
+  },
+  {
+   "rating_band": "1200-1399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 557,
+   "players": 143,
+   "mean_seconds": 3.245960502692998,
+   "mean_log_time": 1.235108595097266,
+   "mean_quality_loss": 0.02323426580932282,
+   "sem_quality_loss": 0.0016696829892503125
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 840,
+   "players": 277,
+   "mean_seconds": 2.525,
+   "mean_log_time": 1.045339450931585,
+   "mean_quality_loss": 0.07435801494473512,
+   "sem_quality_loss": 0.003428265460527109
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 1280,
+   "players": 284,
+   "mean_seconds": 4.26015625,
+   "mean_log_time": 1.3972346466169447,
+   "mean_quality_loss": 0.0927203982994917,
+   "sem_quality_loss": 0.0036305594891781843
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 925,
+   "players": 175,
+   "mean_seconds": 3.522162162162162,
+   "mean_log_time": 1.2037442689214235,
+   "mean_quality_loss": 0.08646917676205879,
+   "sem_quality_loss": 0.004778245983008635
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 129,
+   "players": 109,
+   "mean_seconds": 3.1550387596899223,
+   "mean_log_time": 1.212558159936158,
+   "mean_quality_loss": 0.0767011351680029,
+   "sem_quality_loss": 0.006073928070378978
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 237,
+   "players": 146,
+   "mean_seconds": 4.9789029535864975,
+   "mean_log_time": 1.548965229137848,
+   "mean_quality_loss": 0.08573688761428945,
+   "sem_quality_loss": 0.006112221643763287
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 203,
+   "players": 100,
+   "mean_seconds": 3.916256157635468,
+   "mean_log_time": 1.3260974090895088,
+   "mean_quality_loss": 0.09279749793524995,
+   "sem_quality_loss": 0.008644224217420077
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 862,
+   "players": 286,
+   "mean_seconds": 2.1542923433874708,
+   "mean_log_time": 0.9436579809586839,
+   "mean_quality_loss": 0.04348749835075436,
+   "sem_quality_loss": 0.001473949736702821
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 687,
+   "players": 255,
+   "mean_seconds": 4.770014556040757,
+   "mean_log_time": 1.5169755930838782,
+   "mean_quality_loss": 0.05225894970707412,
+   "sem_quality_loss": 0.0026652008308071986
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 557,
+   "players": 162,
+   "mean_seconds": 3.556552962298025,
+   "mean_log_time": 1.2534472453606202,
+   "mean_quality_loss": 0.04223078478230677,
+   "sem_quality_loss": 0.0030892137863842367
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 485,
+   "players": 250,
+   "mean_seconds": 2.5443298969072163,
+   "mean_log_time": 1.0761949214224142,
+   "mean_quality_loss": 0.04850630950267786,
+   "sem_quality_loss": 0.002067790357711533
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 568,
+   "players": 235,
+   "mean_seconds": 4.882042253521127,
+   "mean_log_time": 1.5463942793019732,
+   "mean_quality_loss": 0.05714983007608064,
+   "sem_quality_loss": 0.003107575503985386
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 402,
+   "players": 158,
+   "mean_seconds": 4.0945273631840795,
+   "mean_log_time": 1.3407300361009056,
+   "mean_quality_loss": 0.049771813206054234,
+   "sem_quality_loss": 0.0029724582453190033
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 686,
+   "players": 264,
+   "mean_seconds": 2.043731778425656,
+   "mean_log_time": 0.9146164557816573,
+   "mean_quality_loss": 0.02757089470727167,
+   "sem_quality_loss": 0.0015243815140281102
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 453,
+   "players": 195,
+   "mean_seconds": 4.328918322295806,
+   "mean_log_time": 1.4815781982431033,
+   "mean_quality_loss": 0.036757031557577355,
+   "sem_quality_loss": 0.0034281891953585417
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 700,
+   "players": 143,
+   "mean_seconds": 2.45,
+   "mean_log_time": 0.9779707535741111,
+   "mean_quality_loss": 0.016896351869451872,
+   "sem_quality_loss": 0.0015606117281582572
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 521,
+   "players": 245,
+   "mean_seconds": 2.4625719769673706,
+   "mean_log_time": 1.0073555211579297,
+   "mean_quality_loss": 0.03037810548290583,
+   "sem_quality_loss": 0.0019522143831171978
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 487,
+   "players": 197,
+   "mean_seconds": 4.650924024640657,
+   "mean_log_time": 1.508056171525615,
+   "mean_quality_loss": 0.03438007785605208,
+   "sem_quality_loss": 0.0024340789705496
+  },
+  {
+   "rating_band": "1400-1599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 614,
+   "players": 146,
+   "mean_seconds": 3.1579804560260585,
+   "mean_log_time": 1.174579687991598,
+   "mean_quality_loss": 0.022985328559601243,
+   "sem_quality_loss": 0.001917356419247433
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 809,
+   "players": 269,
+   "mean_seconds": 2.426452410383189,
+   "mean_log_time": 1.0181370857946002,
+   "mean_quality_loss": 0.06788580248865592,
+   "sem_quality_loss": 0.003243726325421701
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 1271,
+   "players": 271,
+   "mean_seconds": 4.090479937057435,
+   "mean_log_time": 1.3599830557325325,
+   "mean_quality_loss": 0.07953172606691204,
+   "sem_quality_loss": 0.00320000490042146
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 811,
+   "players": 182,
+   "mean_seconds": 3.3649815043156597,
+   "mean_log_time": 1.2208973157418277,
+   "mean_quality_loss": 0.07655512170595108,
+   "sem_quality_loss": 0.0047301610833426246
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 124,
+   "players": 103,
+   "mean_seconds": 2.9193548387096775,
+   "mean_log_time": 1.1795129408503484,
+   "mean_quality_loss": 0.08368209623511783,
+   "sem_quality_loss": 0.006460036155932908
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 214,
+   "players": 151,
+   "mean_seconds": 5.074766355140187,
+   "mean_log_time": 1.5904868068378335,
+   "mean_quality_loss": 0.09312723843914955,
+   "sem_quality_loss": 0.0065527534830028475
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 167,
+   "players": 92,
+   "mean_seconds": 4.413173652694611,
+   "mean_log_time": 1.4252320694152694,
+   "mean_quality_loss": 0.08555697955798088,
+   "sem_quality_loss": 0.009396239620201034
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 821,
+   "players": 288,
+   "mean_seconds": 2.197320341047503,
+   "mean_log_time": 0.950613177389662,
+   "mean_quality_loss": 0.045175236678976445,
+   "sem_quality_loss": 0.0018577851900923419
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 711,
+   "players": 259,
+   "mean_seconds": 4.827004219409282,
+   "mean_log_time": 1.523520230547268,
+   "mean_quality_loss": 0.05340866016835692,
+   "sem_quality_loss": 0.0030013561093952756
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 542,
+   "players": 160,
+   "mean_seconds": 3.2195571955719555,
+   "mean_log_time": 1.1716870253319787,
+   "mean_quality_loss": 0.039401809148274666,
+   "sem_quality_loss": 0.0033069901399783446
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 464,
+   "players": 239,
+   "mean_seconds": 2.3383620689655173,
+   "mean_log_time": 0.9895108169048752,
+   "mean_quality_loss": 0.047564584071772435,
+   "sem_quality_loss": 0.002473076685500867
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 538,
+   "players": 227,
+   "mean_seconds": 4.881040892193308,
+   "mean_log_time": 1.5283829723828792,
+   "mean_quality_loss": 0.05711885157351347,
+   "sem_quality_loss": 0.0027156986843547195
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 392,
+   "players": 141,
+   "mean_seconds": 3.951530612244898,
+   "mean_log_time": 1.3354760783555024,
+   "mean_quality_loss": 0.046605523070755654,
+   "sem_quality_loss": 0.0033560232889842056
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 806,
+   "players": 265,
+   "mean_seconds": 1.7729528535980148,
+   "mean_log_time": 0.8433987986536059,
+   "mean_quality_loss": 0.024238079445081533,
+   "sem_quality_loss": 0.0010255609767331475
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 384,
+   "players": 168,
+   "mean_seconds": 4.463541666666667,
+   "mean_log_time": 1.440883423120015,
+   "mean_quality_loss": 0.026289954747789234,
+   "sem_quality_loss": 0.002627581074724802
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 731,
+   "players": 142,
+   "mean_seconds": 2.369357045143639,
+   "mean_log_time": 0.997530456189538,
+   "mean_quality_loss": 0.01581077852545475,
+   "sem_quality_loss": 0.0017683985327693018
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 552,
+   "players": 236,
+   "mean_seconds": 2.2246376811594204,
+   "mean_log_time": 0.9306566791534506,
+   "mean_quality_loss": 0.027907104840997864,
+   "sem_quality_loss": 0.0014316282986575506
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 454,
+   "players": 189,
+   "mean_seconds": 4.440528634361233,
+   "mean_log_time": 1.4835492132922654,
+   "mean_quality_loss": 0.03394278952387616,
+   "sem_quality_loss": 0.0027389370681618285
+  },
+  {
+   "rating_band": "1600-1799",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 591,
+   "players": 138,
+   "mean_seconds": 3.1353637901861253,
+   "mean_log_time": 1.1760546855638243,
+   "mean_quality_loss": 0.023265240047038643,
+   "sem_quality_loss": 0.0023249216094364212
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 701,
+   "players": 233,
+   "mean_seconds": 2.660485021398003,
+   "mean_log_time": 0.9922509878030316,
+   "mean_quality_loss": 0.05220121731909488,
+   "sem_quality_loss": 0.002645136173226734
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 1041,
+   "players": 241,
+   "mean_seconds": 4.213256484149856,
+   "mean_log_time": 1.3619975071585,
+   "mean_quality_loss": 0.07337506942100369,
+   "sem_quality_loss": 0.003280709419975209
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 856,
+   "players": 150,
+   "mean_seconds": 3.294392523364486,
+   "mean_log_time": 1.1732252066387474,
+   "mean_quality_loss": 0.076425360434731,
+   "sem_quality_loss": 0.004088948050206184
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 116,
+   "players": 88,
+   "mean_seconds": 2.7758620689655173,
+   "mean_log_time": 1.0809617859159761,
+   "mean_quality_loss": 0.06378190848620113,
+   "sem_quality_loss": 0.005605196711367803
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 232,
+   "players": 142,
+   "mean_seconds": 5.068965517241379,
+   "mean_log_time": 1.5362133527160236,
+   "mean_quality_loss": 0.08787999762386846,
+   "sem_quality_loss": 0.00545729252590335
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 176,
+   "players": 99,
+   "mean_seconds": 3.903409090909091,
+   "mean_log_time": 1.2918798495433104,
+   "mean_quality_loss": 0.07181238558120995,
+   "sem_quality_loss": 0.0070757283573073156
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 815,
+   "players": 245,
+   "mean_seconds": 2.1104294478527605,
+   "mean_log_time": 0.912896710272869,
+   "mean_quality_loss": 0.04275543228888975,
+   "sem_quality_loss": 0.001600356295737916
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 550,
+   "players": 207,
+   "mean_seconds": 4.847272727272728,
+   "mean_log_time": 1.4903541307551913,
+   "mean_quality_loss": 0.054140313105392066,
+   "sem_quality_loss": 0.0031212550033274883
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 433,
+   "players": 133,
+   "mean_seconds": 3.376443418013857,
+   "mean_log_time": 1.2359744094353042,
+   "mean_quality_loss": 0.04843225501625483,
+   "sem_quality_loss": 0.004483209151538734
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 404,
+   "players": 202,
+   "mean_seconds": 2.3366336633663365,
+   "mean_log_time": 0.991235107354054,
+   "mean_quality_loss": 0.044959957862814634,
+   "sem_quality_loss": 0.0021325207234953983
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 443,
+   "players": 191,
+   "mean_seconds": 5.347629796839729,
+   "mean_log_time": 1.5866433790220549,
+   "mean_quality_loss": 0.05417613084742642,
+   "sem_quality_loss": 0.0029243282218353117
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 316,
+   "players": 114,
+   "mean_seconds": 4.14873417721519,
+   "mean_log_time": 1.365575045784669,
+   "mean_quality_loss": 0.049127508904663976,
+   "sem_quality_loss": 0.004305991360988604
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 750,
+   "players": 223,
+   "mean_seconds": 1.796,
+   "mean_log_time": 0.8150124995802265,
+   "mean_quality_loss": 0.023223867239215948,
+   "sem_quality_loss": 0.0013592227913658383
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 361,
+   "players": 149,
+   "mean_seconds": 4.224376731301939,
+   "mean_log_time": 1.3968942237343211,
+   "mean_quality_loss": 0.029428572705418023,
+   "sem_quality_loss": 0.0022385840874856013
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 546,
+   "players": 118,
+   "mean_seconds": 2.4853479853479854,
+   "mean_log_time": 1.0067237839783758,
+   "mean_quality_loss": 0.017148494522694905,
+   "sem_quality_loss": 0.0017340226179205444
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 471,
+   "players": 198,
+   "mean_seconds": 1.940552016985138,
+   "mean_log_time": 0.862960564724926,
+   "mean_quality_loss": 0.02479757969687779,
+   "sem_quality_loss": 0.0017071198032146378
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 377,
+   "players": 159,
+   "mean_seconds": 4.599469496021221,
+   "mean_log_time": 1.4806364053865992,
+   "mean_quality_loss": 0.03121176968629836,
+   "sem_quality_loss": 0.0026943358019666463
+  },
+  {
+   "rating_band": "1800-1999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 439,
+   "players": 124,
+   "mean_seconds": 3.69248291571754,
+   "mean_log_time": 1.2425734785223237,
+   "mean_quality_loss": 0.026421800431768745,
+   "sem_quality_loss": 0.0028583968499496944
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 617,
+   "players": 201,
+   "mean_seconds": 2.2576985413290114,
+   "mean_log_time": 0.9711666825004771,
+   "mean_quality_loss": 0.05166412067667208,
+   "sem_quality_loss": 0.0027863723919048025
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 918,
+   "players": 211,
+   "mean_seconds": 4.258169934640523,
+   "mean_log_time": 1.3460818713991671,
+   "mean_quality_loss": 0.06141196427405271,
+   "sem_quality_loss": 0.0029394354423308853
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 851,
+   "players": 153,
+   "mean_seconds": 3.253819036427732,
+   "mean_log_time": 1.137105421474511,
+   "mean_quality_loss": 0.06822081390476627,
+   "sem_quality_loss": 0.003872331908346505
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 99,
+   "players": 74,
+   "mean_seconds": 2.6161616161616164,
+   "mean_log_time": 1.0509087683483642,
+   "mean_quality_loss": 0.06333506435710032,
+   "sem_quality_loss": 0.006531384278637254
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 188,
+   "players": 121,
+   "mean_seconds": 5.287234042553192,
+   "mean_log_time": 1.589229338623416,
+   "mean_quality_loss": 0.07797440531663911,
+   "sem_quality_loss": 0.005730041792267027
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 197,
+   "players": 100,
+   "mean_seconds": 4.055837563451776,
+   "mean_log_time": 1.3649903770233744,
+   "mean_quality_loss": 0.07908126898515899,
+   "sem_quality_loss": 0.006683837098357189
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 730,
+   "players": 220,
+   "mean_seconds": 2.2794520547945205,
+   "mean_log_time": 0.9400332969868898,
+   "mean_quality_loss": 0.038804769707620264,
+   "sem_quality_loss": 0.001565345726673086
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 540,
+   "players": 193,
+   "mean_seconds": 5.033333333333333,
+   "mean_log_time": 1.525627108107581,
+   "mean_quality_loss": 0.046640155293924845,
+   "sem_quality_loss": 0.002409352796765847
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 498,
+   "players": 140,
+   "mean_seconds": 3.5823293172690764,
+   "mean_log_time": 1.2184273702181532,
+   "mean_quality_loss": 0.037048467340822545,
+   "sem_quality_loss": 0.002847260052127921
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 363,
+   "players": 171,
+   "mean_seconds": 2.4710743801652892,
+   "mean_log_time": 1.0131188639542335,
+   "mean_quality_loss": 0.04130056659700247,
+   "sem_quality_loss": 0.0023803881335723908
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 414,
+   "players": 174,
+   "mean_seconds": 5.270531400966184,
+   "mean_log_time": 1.5850801818381486,
+   "mean_quality_loss": 0.0506278806883842,
+   "sem_quality_loss": 0.0027715420842168055
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 396,
+   "players": 137,
+   "mean_seconds": 4.431818181818182,
+   "mean_log_time": 1.389505068181017,
+   "mean_quality_loss": 0.042645939837092424,
+   "sem_quality_loss": 0.0025413748494342086
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 639,
+   "players": 195,
+   "mean_seconds": 1.702660406885759,
+   "mean_log_time": 0.7951489597155078,
+   "mean_quality_loss": 0.020069499180977106,
+   "sem_quality_loss": 0.00102954667056829
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 288,
+   "players": 133,
+   "mean_seconds": 4.878472222222222,
+   "mean_log_time": 1.518246674510849,
+   "mean_quality_loss": 0.025965041147909842,
+   "sem_quality_loss": 0.002013833393081114
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 584,
+   "players": 115,
+   "mean_seconds": 2.357876712328767,
+   "mean_log_time": 0.9508128174335617,
+   "mean_quality_loss": 0.015737793098297433,
+   "sem_quality_loss": 0.0017575013283179272
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 443,
+   "players": 184,
+   "mean_seconds": 2.0,
+   "mean_log_time": 0.8768003991815022,
+   "mean_quality_loss": 0.02233031675476696,
+   "sem_quality_loss": 0.001091332466186343
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 327,
+   "players": 129,
+   "mean_seconds": 5.590214067278287,
+   "mean_log_time": 1.624704467966939,
+   "mean_quality_loss": 0.033035558613377994,
+   "sem_quality_loss": 0.0030603510808197396
+  },
+  {
+   "rating_band": "2000-2199",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 499,
+   "players": 123,
+   "mean_seconds": 3.246492985971944,
+   "mean_log_time": 1.1598083276012208,
+   "mean_quality_loss": 0.025687717581340697,
+   "sem_quality_loss": 0.0027041809539850577
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 522,
+   "players": 186,
+   "mean_seconds": 2.442528735632184,
+   "mean_log_time": 0.9572188574275043,
+   "mean_quality_loss": 0.04799802680577543,
+   "sem_quality_loss": 0.003038427174493338
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 906,
+   "players": 203,
+   "mean_seconds": 4.1655629139072845,
+   "mean_log_time": 1.3138783624822608,
+   "mean_quality_loss": 0.061325734815375,
+   "sem_quality_loss": 0.002898137277020847
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 1003,
+   "players": 162,
+   "mean_seconds": 2.9541375872382853,
+   "mean_log_time": 1.06734823548731,
+   "mean_quality_loss": 0.06170162425970413,
+   "sem_quality_loss": 0.0032735624581187064
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 93,
+   "players": 68,
+   "mean_seconds": 2.6774193548387095,
+   "mean_log_time": 1.08712579975007,
+   "mean_quality_loss": 0.07047316842602548,
+   "sem_quality_loss": 0.005849686590892307
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 193,
+   "players": 124,
+   "mean_seconds": 4.772020725388601,
+   "mean_log_time": 1.4838095031562977,
+   "mean_quality_loss": 0.0841151492452198,
+   "sem_quality_loss": 0.006959905548502552
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 215,
+   "players": 98,
+   "mean_seconds": 3.8790697674418606,
+   "mean_log_time": 1.1707101395050405,
+   "mean_quality_loss": 0.07355793861451383,
+   "sem_quality_loss": 0.0056535113961146
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 645,
+   "players": 203,
+   "mean_seconds": 2.272868217054264,
+   "mean_log_time": 0.959740703845908,
+   "mean_quality_loss": 0.03376423593151891,
+   "sem_quality_loss": 0.001322341577213934
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 520,
+   "players": 182,
+   "mean_seconds": 4.976923076923077,
+   "mean_log_time": 1.5277373497091489,
+   "mean_quality_loss": 0.04493941937487396,
+   "sem_quality_loss": 0.002291585041658686
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 558,
+   "players": 146,
+   "mean_seconds": 3.3082437275985663,
+   "mean_log_time": 1.153433091019671,
+   "mean_quality_loss": 0.03792072879444692,
+   "sem_quality_loss": 0.0025683260555841277
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 355,
+   "players": 175,
+   "mean_seconds": 2.8647887323943664,
+   "mean_log_time": 1.0611162561533245,
+   "mean_quality_loss": 0.03917415182717454,
+   "sem_quality_loss": 0.0019669827623266063
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 402,
+   "players": 169,
+   "mean_seconds": 5.800995024875622,
+   "mean_log_time": 1.6215381778389055,
+   "mean_quality_loss": 0.04416758079692162,
+   "sem_quality_loss": 0.0022199703391416093
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 392,
+   "players": 132,
+   "mean_seconds": 3.5051020408163267,
+   "mean_log_time": 1.2319368910161457,
+   "mean_quality_loss": 0.04151778945462683,
+   "sem_quality_loss": 0.0025390942542802865
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 637,
+   "players": 201,
+   "mean_seconds": 1.9215070643642072,
+   "mean_log_time": 0.8798673252926175,
+   "mean_quality_loss": 0.018350179541698187,
+   "sem_quality_loss": 0.0009213010486362411
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 290,
+   "players": 134,
+   "mean_seconds": 5.189655172413793,
+   "mean_log_time": 1.5659730913362457,
+   "mean_quality_loss": 0.027795128543519856,
+   "sem_quality_loss": 0.0022115158900175205
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 554,
+   "players": 123,
+   "mean_seconds": 2.453068592057762,
+   "mean_log_time": 0.9402081466760316,
+   "mean_quality_loss": 0.017296159654997544,
+   "sem_quality_loss": 0.001700702337846996
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 416,
+   "players": 171,
+   "mean_seconds": 1.8245192307692308,
+   "mean_log_time": 0.8386705697023212,
+   "mean_quality_loss": 0.021458780246235914,
+   "sem_quality_loss": 0.0011256258868998102
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 271,
+   "players": 130,
+   "mean_seconds": 5.4206642066420665,
+   "mean_log_time": 1.5943732862497784,
+   "mean_quality_loss": 0.030569285277719346,
+   "sem_quality_loss": 0.0023612272842832966
+  },
+  {
+   "rating_band": "2200-2399",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 478,
+   "players": 128,
+   "mean_seconds": 2.598326359832636,
+   "mean_log_time": 0.9980280850397713,
+   "mean_quality_loss": 0.02447614819320177,
+   "sem_quality_loss": 0.0018251937392123824
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 510,
+   "players": 177,
+   "mean_seconds": 2.3254901960784315,
+   "mean_log_time": 0.9213668694065478,
+   "mean_quality_loss": 0.0399054410077329,
+   "sem_quality_loss": 0.0023733031794538778
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 1044,
+   "players": 196,
+   "mean_seconds": 4.241379310344827,
+   "mean_log_time": 1.2851333576206314,
+   "mean_quality_loss": 0.056412240904593826,
+   "sem_quality_loss": 0.002536961576796193
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 1099,
+   "players": 147,
+   "mean_seconds": 2.6751592356687897,
+   "mean_log_time": 0.9953042541075747,
+   "mean_quality_loss": 0.06051777492230643,
+   "sem_quality_loss": 0.0032070189218945553
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 92,
+   "players": 71,
+   "mean_seconds": 3.1956521739130435,
+   "mean_log_time": 1.1305157051606793,
+   "mean_quality_loss": 0.056428112958269556,
+   "sem_quality_loss": 0.0052504556509256825
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 201,
+   "players": 126,
+   "mean_seconds": 6.109452736318408,
+   "mean_log_time": 1.6227899740612133,
+   "mean_quality_loss": 0.08081992078443616,
+   "sem_quality_loss": 0.005433601301880362
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 209,
+   "players": 94,
+   "mean_seconds": 3.535885167464115,
+   "mean_log_time": 1.1895251937938207,
+   "mean_quality_loss": 0.07375354109198828,
+   "sem_quality_loss": 0.006126310265055321
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 718,
+   "players": 200,
+   "mean_seconds": 2.2743732590529246,
+   "mean_log_time": 0.9684900065687262,
+   "mean_quality_loss": 0.029935274571974393,
+   "sem_quality_loss": 0.0011797371855262232
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 512,
+   "players": 174,
+   "mean_seconds": 5.767578125,
+   "mean_log_time": 1.6030858389562554,
+   "mean_quality_loss": 0.043884890480172925,
+   "sem_quality_loss": 0.002141670664873021
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 532,
+   "players": 129,
+   "mean_seconds": 3.281954887218045,
+   "mean_log_time": 1.1232846917501358,
+   "mean_quality_loss": 0.03722275986137541,
+   "sem_quality_loss": 0.0026541473585341593
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 382,
+   "players": 161,
+   "mean_seconds": 3.183246073298429,
+   "mean_log_time": 1.109276028649848,
+   "mean_quality_loss": 0.036469515079468884,
+   "sem_quality_loss": 0.0019701572068735475
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 401,
+   "players": 156,
+   "mean_seconds": 5.665835411471321,
+   "mean_log_time": 1.5894875007516716,
+   "mean_quality_loss": 0.04380640994816317,
+   "sem_quality_loss": 0.0019978932089046793
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 401,
+   "players": 123,
+   "mean_seconds": 3.264339152119701,
+   "mean_log_time": 1.1381982126591026,
+   "mean_quality_loss": 0.043555817994252045,
+   "sem_quality_loss": 0.002737057782173423
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 682,
+   "players": 181,
+   "mean_seconds": 1.6715542521994136,
+   "mean_log_time": 0.8112360919566914,
+   "mean_quality_loss": 0.01623582126032448,
+   "sem_quality_loss": 0.0007186818556977217
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 258,
+   "players": 121,
+   "mean_seconds": 5.395348837209302,
+   "mean_log_time": 1.6013808659994397,
+   "mean_quality_loss": 0.02612172071283752,
+   "sem_quality_loss": 0.0023068278165618438
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 608,
+   "players": 107,
+   "mean_seconds": 1.9703947368421053,
+   "mean_log_time": 0.8217531397008194,
+   "mean_quality_loss": 0.01673990433643972,
+   "sem_quality_loss": 0.001813052644546188
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 462,
+   "players": 176,
+   "mean_seconds": 2.1774891774891776,
+   "mean_log_time": 0.9208666363465545,
+   "mean_quality_loss": 0.019329263728924878,
+   "sem_quality_loss": 0.0009613782153354994
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 272,
+   "players": 129,
+   "mean_seconds": 5.169117647058823,
+   "mean_log_time": 1.5502378416829927,
+   "mean_quality_loss": 0.036677120667901145,
+   "sem_quality_loss": 0.003607428763625435
+  },
+  {
+   "rating_band": "2400-2599",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 488,
+   "players": 108,
+   "mean_seconds": 2.4385245901639343,
+   "mean_log_time": 0.9163283485603331,
+   "mean_quality_loss": 0.02170379426825137,
+   "sem_quality_loss": 0.0014132110772573
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 543,
+   "players": 211,
+   "mean_seconds": 3.47329650092081,
+   "mean_log_time": 1.278532707427855,
+   "mean_quality_loss": 0.08998659621550913,
+   "sem_quality_loss": 0.005102274918573302
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 879,
+   "players": 220,
+   "mean_seconds": 4.676905574516496,
+   "mean_log_time": 1.503636955414976,
+   "mean_quality_loss": 0.10463333799689552,
+   "sem_quality_loss": 0.0048343430101797915
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 656,
+   "players": 147,
+   "mean_seconds": 3.9679878048780486,
+   "mean_log_time": 1.341444534469837,
+   "mean_quality_loss": 0.11645728966017231,
+   "sem_quality_loss": 0.00685188853042628
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 88,
+   "players": 69,
+   "mean_seconds": 3.409090909090909,
+   "mean_log_time": 1.3091293139010733,
+   "mean_quality_loss": 0.07662020065645427,
+   "sem_quality_loss": 0.009084564931157281
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 155,
+   "players": 102,
+   "mean_seconds": 5.245161290322581,
+   "mean_log_time": 1.6056806489786581,
+   "mean_quality_loss": 0.11515962107274709,
+   "sem_quality_loss": 0.01010839622884665
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 0,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 127,
+   "players": 77,
+   "mean_seconds": 5.0078740157480315,
+   "mean_log_time": 1.571735072688004,
+   "mean_quality_loss": 0.09236829775350776,
+   "sem_quality_loss": 0.011920819594542373
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 536,
+   "players": 219,
+   "mean_seconds": 3.4402985074626864,
+   "mean_log_time": 1.254998725389845,
+   "mean_quality_loss": 0.06343798507492342,
+   "sem_quality_loss": 0.003461007772947651
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 529,
+   "players": 201,
+   "mean_seconds": 5.260869565217392,
+   "mean_log_time": 1.594401472767118,
+   "mean_quality_loss": 0.05365671824160829,
+   "sem_quality_loss": 0.0033215723079657944
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 433,
+   "players": 136,
+   "mean_seconds": 3.868360277136259,
+   "mean_log_time": 1.3343811078859886,
+   "mean_quality_loss": 0.049093236619703065,
+   "sem_quality_loss": 0.004392760412103201
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 278,
+   "players": 156,
+   "mean_seconds": 3.223021582733813,
+   "mean_log_time": 1.2293535382893814,
+   "mean_quality_loss": 0.06626254740690184,
+   "sem_quality_loss": 0.005151664615852183
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 355,
+   "players": 172,
+   "mean_seconds": 5.732394366197183,
+   "mean_log_time": 1.6744448385336332,
+   "mean_quality_loss": 0.05910621531758478,
+   "sem_quality_loss": 0.004227138415354618
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 1,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 303,
+   "players": 125,
+   "mean_seconds": 4.343234323432343,
+   "mean_log_time": 1.4195183361985295,
+   "mean_quality_loss": 0.06403567148877119,
+   "sem_quality_loss": 0.006272517861834177
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 0,
+   "n": 432,
+   "players": 196,
+   "mean_seconds": 2.946759259259259,
+   "mean_log_time": 1.1021420450257786,
+   "mean_quality_loss": 0.03402382607867173,
+   "sem_quality_loss": 0.0021255281799291994
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 1,
+   "n": 487,
+   "players": 151,
+   "mean_seconds": 4.420944558521561,
+   "mean_log_time": 1.4823436144624629,
+   "mean_quality_loss": 0.028226401973242957,
+   "sem_quality_loss": 0.0024369619258630456
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 1,
+   "clock_tercile": 2,
+   "n": 632,
+   "players": 125,
+   "mean_seconds": 3.0237341772151898,
+   "mean_log_time": 1.1496939779543909,
+   "mean_quality_loss": 0.01917492508643525,
+   "sem_quality_loss": 0.0026768446938394016
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 0,
+   "n": 263,
+   "players": 156,
+   "mean_seconds": 3.3041825095057034,
+   "mean_log_time": 1.2083629735953614,
+   "mean_quality_loss": 0.04206814058625275,
+   "sem_quality_loss": 0.004251178664865493
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 1,
+   "n": 432,
+   "players": 157,
+   "mean_seconds": 4.988425925925926,
+   "mean_log_time": 1.566034300280277,
+   "mean_quality_loss": 0.026924440100605882,
+   "sem_quality_loss": 0.0023696030518548855
+  },
+  {
+   "rating_band": "800-999",
+   "difficulty_tercile": 2,
+   "voc_tercile": 2,
+   "clock_tercile": 2,
+   "n": 426,
+   "players": 118,
+   "mean_seconds": 3.708920187793427,
+   "mean_log_time": 1.2694841965025692,
+   "mean_quality_loss": 0.03157564128696899,
+   "sem_quality_loss": 0.003674219931796667
+  }
+ ],
+ "player_level": {
+  "players": 1967,
+  "mean_decisions_per_player": 38.76309100152517,
+  "tae_mean": 0.010408830155245762,
+  "tau2": 0.000976634050102033,
+  "tau2_collapsed_to_zero": false,
+  "tae_vs_rating_per_100elo": {
+   "point": 3.418618076990834e-05,
+   "lo": -0.000890996960480042,
+   "hi": 0.0009149596686203937
+  },
+  "tae_vs_rating_shrunk_reported_only": 1.553335870931014e-05,
+  "quality_vs_rating_per_100elo": -0.0014142020312590713
+ },
+ "model_comparison": {
+  "T0": 0.2584361556253497,
+  "T1P": 0.28839188395653403,
+  "T2P": 0.28875445293690827,
+  "T2R": 0.2932169018373937,
+  "Q0": 0.16479703921596056,
+  "Q1": 0.17409155191623565,
+  "q1_minus_q0_r2": 0.009294512700275093,
+  "beta_ladder": {
+   "T0R_context_only": 0.013929827717097727,
+   "T1R_plus_engine_difficulty": 0.013608596947930728,
+   "T2R_plus_value_of_computation": 0.013419210887702484,
+   "note": "what the whole measured engine-difficulty block removes from beta, measured directly rather than simulated; read beside control C7b"
+  },
+  "gbt_r2_development_in_sample": 0.355434224440653,
+  "gbt_r2": 0.3065588300771197,
+  "note": "predictive comparator only; supplies no reported scientific quantity"
+ }
+}

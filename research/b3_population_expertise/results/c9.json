@@ -1,0 +1,34 @@
+{
+ "n_common_decisions": 5000,
+ "players": 1865,
+ "beta_60k": 0.016075216101690354,
+ "beta_150k": 0.016309678397820375,
+ "r_beta": {
+  "point": 1.0145853277894887,
+  "lo": 0.9528355210661816,
+  "hi": 1.0752814489750866,
+  "replicates": 400
+ },
+ "tae_gradient_60k": -0.0008640850901875591,
+ "tae_gradient_150k": 0.0004142424004202772,
+ "r_tae": {
+  "point": -0.4794000094717077,
+  "lo": -15.553318128692693,
+  "hi": 11.89739044033181,
+  "replicates": 400
+ },
+ "threshold": 0.5,
+ "budget_agreement": {
+  "corr_ut_resid": 0.9952628004703195,
+  "corr_q_resid": 0.9592004225568691,
+  "corr_voc_resid": 0.6214140458527736,
+  "corr_voc_regret": 0.6432965692512551,
+  "corr_voc_rank": 0.493951246768575,
+  "corr_quality_loss": 0.9588165687526046,
+  "same_best_move_share": 0.6844,
+  "median_depth_60k": 12.0,
+  "median_depth_150k": 14.0
+ },
+ "favours_difficulty_proxy": false,
+ "reading": "r_beta does not fall below the preregistered threshold"
+}

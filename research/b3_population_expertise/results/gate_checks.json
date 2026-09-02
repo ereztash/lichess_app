@@ -1,0 +1,35 @@
+{
+ "checked_at": "2026-09-02T00:00:52Z",
+ "period_rescored": "development",
+ "leakage_tests_passed": true,
+ "leakage": {
+  "passed": true,
+  "exit_code": 0,
+  "tail": "12 passed in 2.28s",
+  "seconds": 2.6
+ },
+ "engine_nondeterminism_detected": false,
+ "determinism": {
+  "decisions_rescored": 250,
+  "fields_compared": [
+   "wp1",
+   "gap12",
+   "gap1k",
+   "ambiguity_entropy",
+   "n_near",
+   "best_move_changes",
+   "eval_volatility",
+   "pv_instability",
+   "final_depth",
+   "voc_switch",
+   "voc_regret",
+   "voc_drift",
+   "voc_rank",
+   "quality_loss",
+   "accurate"
+  ],
+  "mismatches": [],
+  "mismatch_count": 0,
+  "deterministic": true
+ }
+}

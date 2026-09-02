@@ -1,0 +1,62 @@
+{
+ "frozen_at": "2026-09-01T22:28:23Z",
+ "git_commit_at_freeze": "8141c5b",
+ "gate_1_verdict": "PASS_WITH_REQUIRED_CHANGES x3, all applied; the third re-read named seven text edits as the condition for hashing and all seven are in",
+ "reviews": [
+  "reviews/FABLE_GATE_1_PREREG_REVIEW.md sections: original (R1-R13), GATE 1 RE-REVIEW (N1-N9), GATE 1 THIRD RE-READ (M1-M5)"
+ ],
+ "sha256": {
+  "PREREGISTRATION.md": "039c93756ee57a9b1cd5bc22e20802a0daabee10f837399b2f5e528c5bef8a7f",
+  "DATA_PROTOCOL.md": "cf2633949929171a7d2019d3c0f132dc0a2ef5107d5fdf1f26680b6649a57f72",
+  "FEATURE_SCHEMA.md": "9a5c11022aff9111bc829e870bb74b5cc9cc19bd02e033b34c935881416f7359",
+  "MODEL_SPEC.md": "537c77be3da5be5ad04e14332d10a0c5b1388d3735d53855abfe095a639e24d5",
+  "VERDICT_RULES.md": "75dc019dd56dcf20239ed06071f187efc8f4954ae2905cd1ef95a0d3bb85bbb7"
+ },
+ "rates": {
+  "primary": {
+   "1000-1199": 0.004999,
+   "1200-1399": 0.002809,
+   "1400-1599": 0.001756,
+   "1600-1799": 0.001305,
+   "1800-1999": 0.001241,
+   "2000-2199": 0.001897,
+   "2200-2399": 0.004621,
+   "2400-2599": 0.0153,
+   "800-999": 0.011649
+  },
+  "secondary": {
+   "1000-1199": 0.002094,
+   "1200-1399": 0.001474,
+   "1400-1599": 0.001163,
+   "1600-1799": 0.001155,
+   "1800-1999": 0.001527,
+   "2000-2199": 0.003623,
+   "2200-2399": 0.019828,
+   "2400-2599": 0.355731,
+   "800-999": 0.003829
+  }
+ },
+ "engine": {
+  "binary": "stockfish-17.1-avx2",
+  "sha256": "7fecbc0b26454b62be5e3b237b58dc5666401b56e520aeb1b0bf8f53fa8f2ef3",
+  "nodes": 60000,
+  "multipv": 4,
+  "threads": 1,
+  "hash_mb": 32,
+  "clear_hash_between_positions": true
+ },
+ "seed": 20260901,
+ "state_at_freeze": "DEVELOPMENT engine scoring in progress; no run.py output produced or read; VALIDATION and FINAL untouched; the cost pilot is the only computed result",
+ "note": "A change to any hashed document after this point is a new experiment, not this one.",
+ "amended_sha256": {
+  "PREREGISTRATION.md": "039c93756ee57a9b1cd5bc22e20802a0daabee10f837399b2f5e528c5bef8a7f",
+  "DATA_PROTOCOL.md": "cf2633949929171a7d2019d3c0f132dc0a2ef5107d5fdf1f26680b6649a57f72",
+  "FEATURE_SCHEMA.md": "9a5c11022aff9111bc829e870bb74b5cc9cc19bd02e033b34c935881416f7359",
+  "MODEL_SPEC.md": "a92cb57275987db5276eea95170f89d31dc13b04a37a9eb644d4dd8704fb81aa",
+  "VERDICT_RULES.md": "75dc019dd56dcf20239ed06071f187efc8f4954ae2905cd1ef95a0d3bb85bbb7"
+ },
+ "amended_at": "2026-09-02T00:46:57Z",
+ "amendments": "results/POST_FREEZE_AMENDMENTS.md -- four repairs to how destructive controls are computed, plus C7b. No estimand, outcome, exclusion, band, threshold or model family changed. Audited at FABLE GATE 2.",
+ "amended_commit": "e70a0de",
+ "commit_note": "Corrected at Gate 2. The earlier values were the PARENT commits: the hash was taken inside the working tree before the commit that carried it, so `git rev-parse HEAD` returned the commit before. 8141c5b is the freeze commit; e70a0de is the commit carrying the amendments."
+}
