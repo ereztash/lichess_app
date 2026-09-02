@@ -87,6 +87,12 @@ an upper bound no real analysis can exceed. E5 says to measure `P(Y|X)` and `P(Y
 The repository's answer is that on a saturated class **the comparison carries no information at
 all**, and that this is a property of the item set, not of the sample size.
 
+**Re-derived rather than quoted.** `research/evidence-architecture/identifiability_simulation.py`
+was re-run in this cycle against the same measured item chance rates, and its output matches the
+published one on **all 122 numeric values, exactly** — including the beta sensitivity
+`[0.515, 0.500, 0.500, 0.500, 0.500]`. The 0.500 is not a number this crosswalk is taking on
+authority.
+
 E5 is not refuted. It is **conditioned**: it is a valid endpoint *only on a rule class whose
 trigger-negative cell is not saturated*. That condition is now `C11`, and it eliminated 10 of 17
 classes. Every falsifier in `FALSIFICATION_REGISTER.md` that names ΔP(Y|X) inherits this condition,
