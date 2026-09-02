@@ -22,8 +22,19 @@ import { gzipSync } from "node:zlib";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const ASSETS = "dist/public/assets";
-const INDEX = "dist/public/index.html";
+/**
+ * The build to measure. `dist/public` in every ordinary run.
+ *
+ * `BUNDLE_ROOT` EXISTS FOR THE POSITIVE CONTROL AND FOR NOTHING ELSE. This was the one enforced,
+ * blocking check in the repository with no way to demonstrate its own failure -- `G-02` in
+ * `LOCAL_SOLUTION_GAPS.md`, and the study's note on it says a fixture with a deliberately oversized
+ * entry graph is buildable. It is: `tests/fixtures/bundle`, and `npm run bundle:budget:control`
+ * runs THIS FILE over it and requires a non-zero exit. Same predicate, different input, which is
+ * what every other gate here already gets.
+ */
+const ROOT = process.env.BUNDLE_ROOT ?? "dist/public";
+const ASSETS = `${ROOT}/assets`;
+const INDEX = `${ROOT}/index.html`;
 
 /**
  * Raw bytes of the entry chunk. What the browser must download and parse before anything runs.

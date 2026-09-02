@@ -16,7 +16,10 @@
     "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
     "verify": "npm run check && npm run build && npm test && npm run gates && npm run gates:controls && npm run bundle:budget",
-    "bundle:budget": "tsx scripts/check_bundle_budget.ts"
+    "bundle:budget": "tsx scripts/check_bundle_budget.ts",
+    "check:control": "tsc --noEmit -p tests/fixtures/typecheck/tsconfig.json",
+    "bundle:budget:control": "BUNDLE_ROOT=tests/fixtures/bundle tsx scripts/check_bundle_budget.ts",
+    "falsification": "tsx scripts/falsification-report.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

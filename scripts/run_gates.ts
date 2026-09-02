@@ -37,6 +37,7 @@ import {
 } from "./inertia-scan";
 import { findRegisterDrift } from "./register-scan";
 import { findAuthorityDrift } from "./authority-scan";
+import { findFalsificationDrift } from "./falsification-scan";
 import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
@@ -171,6 +172,9 @@ const RESEARCH_FIXTURES = "tests/fixtures/research";
 /** And for the authority map: an answer deleted, a competitor unscoped, a gap quietly closed. */
 const AUTHORITY_FIXTURES = "tests/fixtures/authority";
 
+/** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
+const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
+
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
   findings.length
@@ -202,6 +206,12 @@ const authorityDrift = (root: string) =>
   fromFindings(
     findAuthorityDrift(root),
     "every named authority is in the tree, every competitor is scoped, and every capability gap is still a gap",
+  );
+
+const falsificationDrift = (root: string) =>
+  fromFindings(
+    findFalsificationDrift(root),
+    "every blocking check is classified, and every named falsification mechanism exists",
   );
 
 const asksAgain = (roots: string[]) =>
@@ -1023,6 +1033,25 @@ export const GATES: Gate[] = [
      */
     run: () => authorityDrift("."),
     positiveControl: () => authorityDrift(AUTHORITY_FIXTURES),
+  },
+  {
+    id: "GATE-FALSIFICATION-INVENTORY",
+    rule: "R-01",
+    description: "Every blocking check is classified by what can honestly falsify it.",
+    /*
+     * `RNL-04` -- a gate that has not demonstrated failure is not a gate -- was applied to thirty
+     * predicates and never to the CI job that runs them. Of the blocking steps in
+     * verify-build.yml, two could demonstrate their own failure and the rest could not.
+     *
+     * FORCING ALL OF THEM INTO A SYNTHETIC FIXTURE WOULD BE WRONG, and the study said so about
+     * `npm audit` by name: a fabricated vulnerability asserts that npm can read a manifest, which
+     * is a claim about npm rather than about this build's exposure. A control that proves the
+     * wrong thing is worse than an absent one, because it looks like coverage. So the deliverable
+     * is the CLASSIFICATION, and this gate keeps it from falling behind the job: a step with no row
+     * reddens, and so does a row naming a command that does not exist.
+     */
+    run: () => falsificationDrift("."),
+    positiveControl: () => falsificationDrift(FALSIFICATION_FIXTURES),
   },
 ];
 
