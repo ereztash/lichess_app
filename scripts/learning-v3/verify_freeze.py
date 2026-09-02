@@ -2,11 +2,21 @@
 """
 The freeze is only worth something if a command can tell that it held.
 
-TWO CLAIMS, TWO CHECKS. `FREEZE.json` asserts (1) that the two frozen documents still have the
-content they had when they were frozen, and (2) that they were frozen BEFORE the repository's
-learning architecture was audited. A hash answers the first. Only git answers the second, and it is
-the one that matters: a synthesis edited to agree with the audit is exactly the failure the ordering
-rule exists to prevent, and it leaves the hash intact if the hash is recomputed at the same time.
+WHAT THIS ADDS TO THE GATE, which is the question worth answering before writing a second checker.
+`GATE-RESEARCH-RECONCILED` already re-hashes both frozen documents on every `npm run gates`, and it
+runs whether or not anybody remembers this file exists. So the hash is not what this is for.
+
+A hash cannot catch the failure the ordering rule actually exists to prevent: a synthesis edited to
+agree with the audit, with the hash recomputed in the same commit. Only git sees that, and this
+checks three things git can answer and a hash cannot:
+
+  1. ONE COMMIT introduced both frozen documents. Two commits mean the freeze is about two moments.
+  2. That commit TOUCHED NOTHING ELSE. A commit that freezes a prior and changes the system is not
+     a freeze.
+  3. NO LATER COMMIT MODIFIED THEM. This is the one that matters, and the one the hash structurally
+     cannot make, because an edit plus a recomputed hash is self-consistent.
+
+The order check is topological rather than by timestamp: author dates can be set to anything.
 
 WHY THE ORDER CHECK IS COMMIT-BASED AND NOT TIMESTAMP-BASED. Author dates can be set to anything.
 The check is topological: the commit that introduced the crosswalk must be a descendant of the
@@ -45,17 +55,17 @@ def main() -> int:
         return 1
     freeze = json.loads(FREEZE.read_text())
 
-    # (1) content
+    # (1) content -- duplicated from the gate on purpose, so this file is runnable alone
     for rel, expected in freeze["files"].items():
         p = ROOT / rel
         if not p.exists():
             problems.append(f"{rel} was frozen and is now missing")
             continue
         actual = hashlib.sha256(p.read_bytes()).hexdigest()
-        if actual != expected["sha256"]:
+        if actual != expected:
             problems.append(
                 f"{rel} has been edited since the freeze\n"
-                f"      frozen  {expected['sha256']}\n"
+                f"      frozen  {expected}\n"
                 f"      current {actual}\n"
                 f"      A frozen prior may be CONTRADICTED by later evidence, in the crosswalk.\n"
                 f"      It may not be rewritten to agree with it."
@@ -82,6 +92,17 @@ def main() -> int:
                 + ", ".join(stray)
                 + "\n      A commit that freezes a prior and changes the system is not a freeze."
             )
+        # (3) no later commit touched them. The one a hash cannot make.
+        for rel in freeze["files"]:
+            later = [c for c in git("log", "--format=%H", "--", rel).splitlines() if c != freeze_sha]
+            if later:
+                problems.append(
+                    f"{rel} was modified after the freeze, in "
+                    + ", ".join(c[:12] for c in later)
+                    + "\n      The hashes may well agree -- an edit that recomputes its own hash is\n"
+                    + "      self-consistent. That is precisely why this check is by commit."
+                )
+
         cross_sha = first_commit_touching(CROSSWALK)
         if cross_sha:
             ancestor = subprocess.run(

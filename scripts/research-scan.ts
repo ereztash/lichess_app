@@ -117,6 +117,14 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "what the seal was taken over; the holdout may not be opened against a different text",
   },
   {
+    artefact: "docs/learning-v3/FREEZE.json",
+    keyPath: "files.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (_artefact, leaf) => leaf,
+    why: "the external prior E1-E5 and its falsifiers, hashed before the repository's learning architecture was read. The ordering is the whole claim, so the hash has to be checked by something that runs on its own -- `verify_freeze.py` is a command somebody has to remember, this gate is not. The `<doc>` key IS the tree path, which is why `subject` is the identity",
+  },
+  {
     artefact: "docs/measurement/STRONGEST_PERMITTED_CLAIM.json",
     keyPath: "board_predicate_sha256",
     kind: "HASH_OF_TREE_FILE",
