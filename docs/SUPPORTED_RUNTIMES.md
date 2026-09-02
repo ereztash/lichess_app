@@ -19,7 +19,8 @@ statement has no enforcement, it says so.
 | what | baseline | what enforces it |
 | --- | --- | --- |
 | **browser engine** | Chromium, the version Playwright pins | `tests/layout/browser.ts` launches it and **throws when it is absent** rather than skipping; `@playwright/test ^1.62.1` in `package.json` pins which one |
-| **Node, for the build and the serverless entry** | **22** | `.github/workflows/verify-build.yml` sets `node-version: 22`; the Vercel runtime follows the platform default for the project |
+| **Node, in CI** | **22** | `.github/workflows/verify-build.yml` sets `node-version: 22` |
+| **Node, on the deployed runtime** | **24.x** | the Vercel project's `nodeVersion`. **These two differ**, and the difference was found while writing this file rather than by a check. CI proves the build and the tests work on 22; the serverless entry runs on 24. Nothing here holds them together, and `Q36` (dependency upgrades) is the capability gap that would |
 | **database** | MySQL 8 | the `mysql:8` service in `verify-build.yml`. The store was first exercised locally against MariaDB 10.11, and the two together are the evidence that it depends on neither |
 | **module format** | ES modules, `tsc --noEmit` clean under the repo's `tsconfig.json` | `npm run check`, blocking in CI |
 
@@ -29,6 +30,11 @@ statement has no enforcement, it says so.
 `tests/layout/*` measure boxes in one engine, and a box that is right in Chromium can be wrong
 elsewhere — which is the whole reason those tests exist rather than jsdom. A second engine is not
 claimed and would need its own run to be.
+
+**That CI and the deployed runtime run the same Node.** They do not: 22 and 24.x. Every test result
+in this repository is evidence about 22, and every request a player makes is served by 24.x. That is
+a real gap between what is proved and what is served, it is recorded here rather than closed, and
+closing it means pinning one to the other in a place a command reads.
 
 **That any minimum version is enforced at runtime.** There is no `browserslist`, so nothing
 transpiles or polyfills to a stated floor and nothing refuses an old browser. The floor is
