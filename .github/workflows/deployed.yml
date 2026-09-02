@@ -29,9 +29,18 @@ on:
 
 jobs:
   l6:
-    # `deployment_status` fires for every state Vercel reports. Only a finished deployment has an
-    # origin to check; running on `pending` would test the previous build and call it this one.
-    if: github.event_name != 'deployment_status' || github.event.deployment_status.state == 'success'
+    # `deployment_status` fires for every state Vercel reports, for previews as well as production.
+    #
+    # ONLY PRODUCTION IS CHECKED AUTOMATICALLY, and the first run of this workflow is why. It fired
+    # for a preview, whose deployment protection answers every path with a 302 to an SSO login, and
+    # the suite spent five seconds proving that Vercel's login page is not this application. A
+    # preview can be checked by hand through `workflow_dispatch` once somebody supplies an origin
+    # that is actually reachable; it cannot be checked automatically without a bypass token, and a
+    # job that needs a secret nobody has set is a job that reports red forever.
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'production')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

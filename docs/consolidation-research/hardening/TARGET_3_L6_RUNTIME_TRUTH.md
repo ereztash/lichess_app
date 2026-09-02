@@ -119,6 +119,44 @@ deployment: its SPA routes, its asset MIME types, its served CSP, its API functi
 That is the suite discriminating on its first run, and it is the reason the identity check comes
 first: without it, those five passes would have been reported as evidence about *this* branch.
 
+## 6b. What the first AUTOMATIC run found, which was a defect in this target
+
+`deployed.yml` fired on the pull request's own preview deployment and went red. The suite was right
+to refuse and **its explanation was wrong**, which is the worse half.
+
+Vercel protects preview deployments. `/build-identity.json` answered **302** to an SSO login, the
+fetch followed the redirect, and the suite read `200 text/html` from Vercel's own Next.js login
+page — served with a CSP full of `*.stripe.com` and `vercel.live`, and an HTML shell full of
+`_next/static/immutable/chunks/`. It then reported:
+
+> *"this origin is serving a build that predates the build identity"*
+
+**Confident, specific and false.** Following the redirect threw away the one fact that separated
+*"behind an authentication wall"* from *"serving an older build"*, and the suite named the wrong
+one. A test that misnames the cause of its own failure is worse than one that fails vaguely,
+because somebody acts on the name — and this whole mission exists to stop two parts of the
+repository telling different stories about the same reality.
+
+**Two repairs:**
+
+| | |
+| --- | --- |
+| `tests/deployment/origin.ts` | `redirect: "manual"`. A 3xx is now reported as itself, naming the host it points at and saying in the message that **this is not a statement about the build** |
+| `.github/workflows/deployed.yml` | automatic runs restricted to `deployment_status` where `environment == 'production'`. A preview cannot be checked without a bypass token, and a job that needs a secret nobody has set is a job that reports red forever. `workflow_dispatch` can still target a preview by hand |
+
+Verified against all three origins after the repair:
+
+```
+protected preview   302 -> "answered 302 to vercel.com. The origin is behind deployment
+                            protection ... this is NOT a statement about the build"
+production          200 text/html -> "an SPA fallback answers every unknown path this way,
+                            so this origin is serving a build that predates the build identity"
+example.com         3 failed (3)   -- the control, unchanged
+no origin           7 skipped      -- unchanged
+```
+
+**The two cases now produce different sentences, and both are true.**
+
 ## 7. Found while writing this, and not by a check
 
 The Vercel project runs **Node 24.x**; `verify-build.yml` pins **22**. Every test result in this

@@ -67,6 +67,8 @@ exits; `GATE-FALSIFICATION-INVENTORY` derives the inventory from the workflow.
 | `authority-scan.ts` | `Q28` was first written as `ONE_CURRENT_AUTHORITY` over two files. That answers a question about *permission* with a description of *capacity* — v1's exact mistake — and it was demoted to `PARTIAL_AUTHORITY` |
 | `falsification-scan.ts` | first-substring matching classified *"Typecheck positive control"* as the typecheck, so the inventory reported a control as having a control of its own |
 | `README.md` | the gate table fell behind twice, and `the-table-that-fell-behind` caught it both times — the drift it exists for, on the change that created it |
+| `tests/deployment/origin.ts` | **found by the first automatic run.** `redirect: "follow"` turned a preview's `302` to an SSO login into `200 text/html`, and the suite reported *"serving a build that predates the build identity"* — confident, specific and false. A test that misnames the cause of its own failure is worse than one that fails vaguely |
+| `.github/workflows/deployed.yml` | it ran automatically against protected previews, which cannot be checked without a bypass token. Restricted to production |
 
 ## 4. Controls and falsification
 
@@ -77,6 +79,7 @@ exits; `GATE-FALSIFICATION-INVENTORY` derives the inventory from the workflow.
 | `npm run bundle:budget:control` | non-zero | **exit 1**, ceiling **and** eager-engine |
 | `deployed-origin.control` | 3 red | **3 failed (3)** |
 | the T4 disagreement fixture | red on the old read path | **1 failed \| 2 passed**, green after |
+| `tests/deployment` vs a protected preview | names the redirect, not the build | **302 to vercel.com**, *"NOT a statement about the build"* |
 | supersession guard, tested by hand | red when the successor stops covering | **red**, naming `DATA_PROTOCOL.md` |
 
 ## 5. Authority, before → after

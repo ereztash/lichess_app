@@ -45,17 +45,42 @@ export interface Fetched {
   body: string;
 }
 
+/**
+ * REDIRECTS ARE NOT FOLLOWED, and that is a correction rather than a preference.
+ *
+ * The first version followed them, and the first automatic run pointed at a protected Vercel
+ * preview: `/build-identity.json` answered `302` to an SSO login, the fetch followed it, and the
+ * suite read `200 text/html` from Vercel's own Next.js login page. It then reported *"this origin
+ * is serving a build that predates the build identity"* -- a confident, specific and WRONG
+ * diagnosis, produced because following the redirect threw away the one fact that distinguished the
+ * two cases.
+ *
+ * A test that misnames the cause of its own failure is worse than one that fails vaguely, because
+ * somebody acts on the name. `manual` keeps the 3xx visible and `buildIdentity` reports it as what
+ * it is.
+ */
 export async function get(path: string, origin = DEPLOYED_ORIGIN): Promise<Fetched> {
   const response = await fetch(`${origin}${path}`, {
-    redirect: "follow",
+    redirect: "manual",
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   return {
     status: response.status,
     contentType: response.headers.get("content-type") ?? "",
     headers: response.headers,
-    body: await response.text(),
+    body: response.status >= 300 && response.status < 400 ? "" : await response.text(),
   };
+}
+
+/** Where a 3xx is pointing, host only, so a failure message can name it without leaking a token. */
+function redirectHost(fetched: Fetched): string {
+  const location = fetched.headers.get("location");
+  if (!location) return "somewhere it did not name";
+  try {
+    return new URL(location, "https://example.invalid").host;
+  } catch {
+    return location.slice(0, 60);
+  }
 }
 
 /**
@@ -75,6 +100,15 @@ export async function buildIdentity(
     fetched = await get(BUILD_IDENTITY_PATH, origin);
   } catch (error) {
     return { problem: `${origin}${BUILD_IDENTITY_PATH} could not be reached: ${String(error)}` };
+  }
+  if (fetched.status >= 300 && fetched.status < 400) {
+    return {
+      problem:
+        `${origin}${BUILD_IDENTITY_PATH} answered ${fetched.status} to ` +
+        `${redirectHost(fetched)}. The origin is behind deployment protection or is an alias for ` +
+        `somewhere else; nothing about this application can be checked through it, and this is NOT ` +
+        `a statement about the build`,
+    };
   }
   if (fetched.status !== 200) {
     return { problem: `${origin}${BUILD_IDENTITY_PATH} answered ${fetched.status}` };
