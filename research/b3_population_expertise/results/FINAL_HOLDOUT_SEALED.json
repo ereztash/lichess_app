@@ -1,0 +1,40 @@
+{
+ "sealed": true,
+ "written_at": "2026-09-02T02:08:13Z",
+ "authority": "FABLE GATE 2 (Fable 5.1, independent adversary, fresh context) returned PASS_WITH_REQUIRED_CHANGES with nine required changes R1-R9, all of which have been applied. Its closing sentence: 'the holdout should be opened once, mechanically, the moment it is fixed'.",
+ "review": "reviews/FABLE_GATE_2_PREHOLDOUT_REVIEW.md",
+ "sealing_findings": [
+  "no byte of the 2026-06 dump exists on disk, in any manifest, on any git ref, or in the dangling objects",
+  "every frozen constant, knot, acceptance rate, threshold and coefficient was independently refit from the manifest penalties and reproduced to 0.0",
+  "post-freeze code changes moved zero DEVELOPMENT estimates",
+  "run.require_seal() genuinely raises; the finding that score.py had no seal at all is fixed and tested"
+ ],
+ "amendment_rulings": {
+  "A1 permutation tests": "REPAIR of the ruler; the text overclaimed and is corrected",
+  "A1b C3 construction": "REPAIR in substance; was undocumented, now has its own entry",
+  "A2 permute voc_resid": "REPAIR",
+  "A3 C7 generator": "REPAIR of a transcription defect; the diagnosis is corrected",
+  "A4 C7b": "a legitimate diagnostic whose headline reading was the flattering one; corrected"
+ },
+ "required_changes_applied": {
+  "R1": "deterministic control seeds (blake2b), open periods re-run, control table re-issued",
+  "R2": "C7's extreme_ut_vs_rating computed rather than a literal",
+  "R3": "C6 exercises condition 6's own estimator; reported, not a pass condition",
+  "R4": "the seal covers score.py, rescore.py, gate_checks.py and make_report.py",
+  "R5": "POST_FREEZE_AMENDMENTS.md corrected on all six points",
+  "R6": "freeze commits corrected to 8141c5b / e70a0de; MODEL_LEDGER.md appended",
+  "R7": "report-language obligations (a)-(e) recorded before the holdout was opened",
+  "R8": "condition 5 with the top band dropped is reported unconditionally",
+  "R9": "the stale C7b comment fixed; analysis_develop.json labelled pre-amendment"
+ },
+ "expectation_recorded_before_opening": "On everything the two open periods show, this holdout is expected to return GENERAL_REGULARITY_ONLY: H1 holds by every reading and Metric B -- a required component of the strongest verdict -- is null by five. Recorded here so that a FINAL result agreeing with it cannot later be presented as a prediction that was not made, and a FINAL result disagreeing with it cannot be quietly absorbed.",
+ "git_commit": "da15833038ada2dd37b61505cb34b31c5704f1dc",
+ "document_sha256": {
+  "PREREGISTRATION.md": "039c93756ee57a9b1cd5bc22e20802a0daabee10f837399b2f5e528c5bef8a7f",
+  "DATA_PROTOCOL.md": "6560f3d7000de83c44f5bf91c26b347c17ecf40cfa3a9c4ce2446a20a5241635",
+  "FEATURE_SCHEMA.md": "9a5c11022aff9111bc829e870bb74b5cc9cc19bd02e033b34c935881416f7359",
+  "MODEL_SPEC.md": "a92cb57275987db5276eea95170f89d31dc13b04a37a9eb644d4dd8704fb81aa",
+  "VERDICT_RULES.md": "75dc019dd56dcf20239ed06071f187efc8f4954ae2905cd1ef95a0d3bb85bbb7"
+ },
+ "opens": "data/final (2026-06-01 UTC, rated Standard 180+0) and data/secondary (300+0)"
+}
