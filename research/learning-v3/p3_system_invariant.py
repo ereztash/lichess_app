@@ -23,11 +23,22 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str((ROOT / "measurement").resolve()))
+# `parents[1]` IS `research/`, NOT THE REPOSITORY ROOT. This file lives at
+# `research/learning-v3/p3_system_invariant.py`, so `parents[2]` pointed one level too high and both
+# paths below missed: `rule_classes` is in `research/measurement/` and the corpus in
+# `research/learning-v3/corpus/`. The import failed first, so the corpus path never got its turn.
+#
+# It was reachable in CI only because the temporary runner supplied a `PYTHONPATH` and a symlink,
+# and that runner has since been removed -- so a plain `python research/learning-v3/
+# p3_system_invariant.py` from a clean checkout is now the only way anybody reruns this, and it has
+# to work. Nothing the preregistration freezes is touched: it fixes the feature list, the seed, the
+# bootstrap unit, the regret threshold, the model family and the decision rule, and carries no hash
+# of this file.
+RESEARCH = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str((RESEARCH / "measurement").resolve()))
 import rule_classes as rc  # noqa: E402
 
-CORPUS = ROOT / "learning-v3" / "corpus"
+CORPUS = RESEARCH / "learning-v3" / "corpus"
 CLASSES = ("RC-07", "RC-08", "RC-09")
 SEED = 20260902
 BOOTSTRAPS = 5000
