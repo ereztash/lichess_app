@@ -45,6 +45,12 @@ FORBIDDEN = [
     "a null the instrument could have broken",
     "negative result on the headline claim",
     "do not concentrate their seconds",
+    # Added after GATE 4. Each is a sentence the audit found in the first draft and ruled out.
+    "no response to the clock",
+    "does not respond to the resource",
+    "does not respond to how much clock",
+    "differs systematically with rating",   # VERDICT_RULES 3.1's level-4 definition (F1)
+    "only post-holdout change in the study",
 ]
 
 
@@ -102,7 +108,7 @@ def main() -> None:
     w("```")
     w(f"MECHANICAL VERDICT, AS THE CODE SHIPPED:  {S['verdict']}")
     w(f"VERDICT AFTER THE PINNED C3 REPAIR:       {V['verdict']}")
-    w(f"SCIENTIFIC LEVEL:                         {V['level']}")
+    w(f"SCIENTIFIC LEVEL:                         {V['level']} after the repair; none as shipped")
     w("SECONDARY TIME CONTROL:                   not evaluable (see section 9)")
     w("```\n")
     w("Both verdicts are the output of `evaluate.py`, run unmodified, on the same estimates. The "
@@ -111,7 +117,15 @@ def main() -> None:
       "periods, and repaired in one line. The repair changed no estimate, and the seven failed "
       "conditions of the strongest verdict are identical before and after it. Section 2 is that "
       "story in full; nothing in this report rests on the reader taking it on trust.\n")
-    w("**What the repaired verdict label is allowed to mean.** " + V.get("label_means", "") + "\n")
+    # GATE 4 F1. `evaluate.py` writes `label_means` unconditionally and its text is the
+    # VERDICT_RULES.md 3.1 definition of EXPERTISE_ADAPTATION_SUPPORTED -- the H2 proposition this
+    # study did not support. It may not be printed as the meaning of GENERAL_REGULARITY_ONLY.
+    w("**What the repaired verdict label means.** `GENERAL_REGULARITY_ONLY`: H1 holds on FINAL "
+      "(`beta` > 0, interval excluding 0, above `BETA_FLOOR`) and the conditions of "
+      "`VERDICT_RULES.md` §2.5 were not all met. It asserts nothing about whether the time / "
+      "value-of-computation relation varies with rating. The sentence in §3.1 defines what "
+      "`EXPERTISE_ADAPTATION_SUPPORTED` would have meant; that verdict was not reached, and the "
+      "mechanical verdict as shipped is `INVALID_EXPERIMENT`.\n")
     w("---\n")
 
     # ---- the paragraph -------------------------------------------------------------------
@@ -122,8 +136,9 @@ def main() -> None:
       f"`beta` = {iv(b)} of win probability per unit of `log(1 + seconds)`. It holds in "
       f"{V['band_sign_agreement']['agree']} of {V['band_sign_agreement']['of']} adequately powered "
       f"rating bands, in every stratum of phase, standing and clock pressure, within a single "
-      f"player's own decisions and within a single game, and it replicates across three "
-      f"independent months. Its interpretation is narrower than it looks: about three quarters of "
+      f"player's own decisions and within a single game, and it is reproduced out of sample in "
+      f"the two later months (three periods in all, the first being the period every nuisance "
+      f"model was fitted on). Its interpretation is narrower than it looks: about three quarters of "
       f"it is carried by outright blunders, and about a seventh of it is present even on the "
       f"decisions where the player found the engine's own move. Section 4 is that decomposition.\n")
     w(f"The expertise claim the study was built to test was not supported. Time Allocation "
@@ -132,7 +147,8 @@ def main() -> None:
       f"100 Elo, an interval on zero. **That is a null of the preregistered instrument, and this "
       f"report does not read it as a fact about players.** The instrument has a "
       f"{gf['zero_regret_share']:.1%} point mass at zero, a partial correlation with residual "
-      f"thinking time of {gf['tae_partial_correlation']:.3f}, no response to the clock, and a "
+      f"thinking time of {gf['tae_partial_correlation']:.3f}, no detectable response to the clock, "
+      f"and a "
       f"construction under which a live positive gradient would have produced this same reading. "
       f"Section 5 is that analysis, and it is the most important section in the report.\n")
     w("---\n")
@@ -164,8 +180,9 @@ def main() -> None:
     w("")
     w("The last column is the freeze made visible. On DEVELOPMENT the frozen partial of rating is "
       "orthogonal to its own residual; four months later it is not.\n")
-    w("**The repair, in full.** One line, pinned by the adversary before any variant was tried, "
-      "applied to all three slope-based C3 fields whether or not each had failed:\n")
+    w("**The repair, in full.** One line: \"one construction, no variants\", \"pinned by the "
+      "adversary, not chosen by the researchers\" (Gate 3 §1.6, §1.9), applied to all three "
+      "slope-based C3 fields whether or not each had failed:\n")
     w("```python")
     w("# controls.py, C3 block")
     w("perm_resid = perm_rating          # was: perm_rating - ratinghat")
@@ -264,7 +281,8 @@ def main() -> None:
     w("### 4.1 Where the regularity lives\n")
     w(f"Centring both residuals **within a player**, `beta` is {num(gf['beta_within_player'])}; "
       f"**within a game**, {num(gf['beta_within_game'])}; the slope of player means against each "
-      f"other -- the purely between-player part -- is {num(gf['beta_between_players'])}. The "
+      f"other -- the purely between-player part -- is {num(gf['beta_between_players'])} (point "
+      f"estimates; no interval was computed for the within-player and within-game forms). The "
       f"association is inside a single player's own decisions, so \"slower players are weaker "
       f"players\" does not account for it.\n")
     w("### 4.2 It is a blunder regularity\n")
@@ -292,8 +310,8 @@ def main() -> None:
       f"rest, {iv(gf['beta_when_engine_move_not_played'])}. When the played move *is* the engine's "
       f"best, the measured loss is depth asymmetry between two searches and carries nothing about "
       f"the human's choice, so a positive slope there is engine noise that grows with residual "
-      f"position sharpness. It is unmeasured difficulty measured directly, in the one place the "
-      f"design can see it. The rate of finding the engine's move falls from "
+      f"position sharpness. It is unmeasured, engine-measurable difficulty seen directly, in the "
+      f"one place the design can see it. The rate of finding the engine's move falls from "
       f"{gf['engine_best_rate_fastest_ut_decile']:.2f} in the fastest decile of unexpected time to "
       f"{gf['engine_best_rate_slowest_ut_decile']:.2f} in the slowest; holding that indicator "
       f"fixed, `beta` is {num(gf['beta_holding_engine_best_fixed'])}. This is a diagnostic on a "
@@ -310,8 +328,8 @@ def main() -> None:
       "probability is not one unit across standings. \"The association is strongest when winning\" "
       "is a statement about the scale, and this report does not make it as a behavioural claim.\n")
     w(f"**Practical magnitude.** Mean quality loss on FINAL is {F['mean_quality_loss']:.4f} win "
-      f"probability. A decision taking e times longer than the model expects -- 2.7 seconds where "
-      f"it expected 1 -- is associated with {b['point']:.4f} more, about "
+      f"probability. A decision whose `1 + seconds` is e times what the model expects -- about "
+      f"4.4 seconds where it expected 1 -- is associated with {b['point']:.4f} more, about "
       f"{100 * b['point'] / F['mean_quality_loss']:.0f}% of a typical error, concentrated as 4.2 "
       f"describes. It is an adjusted association in an observational sample.\n")
     w("---\n")
@@ -346,10 +364,11 @@ def main() -> None:
     w(f"Stronger players take less time on positions matched for measured difficulty: "
       f"{iv(F['metric_a_time_vs_rating'])} log-seconds per 100 Elo. Two qualifications travel with "
       f"it. First, {F['zero_time_share']:.1%} of FINAL decisions have `T = 0` -- under a second on "
-      f"a whole-second clock, which for many is a premove decided on the previous position -- and "
-      f"that share rises from {gf['zero_time_share_by_band']['800-999']:.1%} in the lowest band to "
-      f"{gf['zero_time_share_by_band']['2400-2599']:.1%} in the highest. Remove them and Metric A "
-      f"is {num(gf['metric_a_no_zero_time'])}: two fifths of the metric is the premove share. "
+      f"a whole-second clock, which includes premoves, decided on the previous position, in a share "
+      f"the dump does not record -- and that share rises from "
+      f"{gf['zero_time_share_by_band']['800-999']:.1%} in the lowest band to "
+      f"{gf['zero_time_share_by_band']['2400-2599']:.1%} in the highest. Remove those rows and "
+      f"Metric A is {num(gf['metric_a_no_zero_time'])}: two fifths of the metric rests on them. "
       f"Second, Metric A is a directional check only; it was never a sufficient condition for "
       f"anything, and it is not evidence about allocation.\n")
     w("### 5.2 Metric B: what the instrument is\n")
@@ -370,11 +389,24 @@ def main() -> None:
       f"\"the engine changed its mind between the shallow and the deep search, and the human spent "
       f"about one percent longer\".")
     tercile = gf.get("tae_pooled_by_clock_tercile", {})
+    order = ("fullest", "middle", "emptiest")
     if tercile:
-        w(f"* **It does not respond to the resource.** An allocation instrument should react to how "
-          f"much clock is left. Across clock terciles the pooled relation is "
-          + ", ".join(f"{iv(tercile[k], 4)} ({k})" for k in ("fullest", "middle", "emptiest")
-                      if k in tercile) + ". Flat.")
+        # GATE 4 F3. The FINAL intervals each hide a doubling and the point ordering differs on
+        # every period, so the licensed statement is "undetectable", not "does not respond".
+        def terciles(block):
+            return ", ".join(f"{block[k]['point']:+.4f}" for k in order if k in block)
+
+        others = "; ".join(
+            f"{name} ({terciles(block)})"
+            for name, block in (("DEVELOPMENT", gd.get("tae_pooled_by_clock_tercile", {})),
+                                ("VALIDATION", gv.get("tae_pooled_by_clock_tercile", {})))
+            if block)
+        w(f"* **Its response to the resource is undetectable.** An allocation instrument should "
+          f"react to how much clock is left. On FINAL the pooled relation by clock tercile is "
+          + ", ".join(f"{iv(tercile[k], 4)} ({k})" for k in order if k in tercile)
+          + f": not detectably different, but each interval is wide enough to hide a doubling, and "
+            f"the point ordering differs by period -- {others}, against fullest, middle, emptiest. "
+            f"The design cannot tell whether the instrument responds to the clock.")
     w(f"* **Reliability.** Across engine budgets on the C9 subset, the residual instrument "
       f"correlates {ba.get('corr_voc_resid', float('nan')):.2f} and raw regret "
       f"{ba.get('corr_voc_regret', float('nan')):.2f}. Its validity against anything a human "
@@ -385,22 +417,29 @@ def main() -> None:
     w(f"On a zero-regret row the standardised value is a constant, so the preregistered regressor "
       f"is exactly *minus the position-predicted* value of computation. On "
       f"{gf['zero_regret_share']:.0%} of rows, therefore, Metric B is reading a different quantity "
-      f"with its sign flipped -- and that quantity has the largest rating-dependent structure in "
-      f"these data.\n")
+      f"with its sign flipped -- and that quantity carries a large, replicated rating-dependent "
+      f"structure.\n")
     w("| gradient per 100 Elo | DEVELOPMENT | VALIDATION | **FINAL** |")
     w("|---|---|---|---|")
     for label, key in (("residual time on **predicted** VoC x rating, all rows",
                         "ey_on_predicted_voc_x_rating"),
                        ("Metric B gradient, zero-regret rows", "tae_gradient_zero_regret_rows"),
+                       ("residual time on **minus predicted** VoC x rating, zero-regret rows",
+                        "ey_on_minus_predicted_voc_x_rating_zero_rows"),
                        ("Metric B gradient, rows where the regressor varies",
                         "tae_gradient_varying_rows"),
                        ("Metric B gradient, all rows (**the preregistered estimand**)",
                         "tae_gradient_all_rows"),
                        ("residual time on **raw** VoC x rating", "ey_on_raw_voc_x_rating")):
-        w(f"| {label} | {iv(gd[key], 5)} | {iv(gv[key], 5)} | {iv(gf[key], 5)} |")
+        # One row is a point identity, not an estimate: it has no interval, and printing "n/a"
+        # for it would hide the very thing it is in the table to let the reader check.
+        cell = lambda blk: (iv(blk[key], 5) if isinstance(blk[key], dict)  # noqa: E731
+                            else f"{blk[key]:+.5f} (point identity)")
+        w(f"| {label} | {cell(gd)} | {cell(gv)} | {cell(gf)} |")
     w("")
-    w("The second row is the first row with a minus sign, on the rows where the algebra forces "
-      "them to be the same quantity. The preregistered estimand is a mixture of a large replicated "
+    w("The second and third rows are equal to the digit, which is the algebra: on those rows the "
+      "preregistered regressor *is* minus the predicted value, so the metric reads that channel "
+      "backwards. The first row is the same channel measured over all rows. The preregistered estimand is a mixture of a large replicated "
       "negative component that says nothing about how a player responds to residual value of "
       "computation -- there is no residual value of computation on those rows -- and a small "
       "positive component on the rows where the regressor actually varies.\n")
@@ -458,8 +497,8 @@ def main() -> None:
       "result.\n")
     w("**Not licensed.** That the gradient is absent in the world. That this is a negative finding "
       "about how strong players use their time. That the instrument had a fair chance and took it. "
-      "That the un-preregistered positive gradients in 5.3 support the hypothesis. The verdict "
-      "label is correct because it asserts only that the conditions were not met.\n")
+      "That the un-preregistered positive gradients in 5.3 support the hypothesis. The repaired "
+      "verdict label is correct because it asserts only that the conditions were not met.\n")
     w("---\n")
 
     # ================= 6. controls ===========================================================
@@ -513,11 +552,16 @@ def main() -> None:
       "scale. It does not demonstrate that a realistic gradient would have been detected -- section "
       "5.4 gives the size that would have been -- and because the signal is planted in the "
       "instrument's units it is silent on whether the instrument measures allocation at all.\n")
-    w("### 6.3 Every FINAL null carries a drift offset\n")
-    w("The frozen models were fitted in February and applied in June. Their misfit shows up in "
-      "every destructive null as an offset from zero, larger than on the April period, and the "
-      "\"contains zero\" pass rule tolerates it up to about two null standard deviations. As "
-      "shipped:\n")
+    w("### 6.3 The FINAL nulls' offsets from zero, as shipped\n")
+    w("The frozen models were fitted in February and applied in June. Their misfit shows up in the "
+      "C3 nulls as an offset from zero that grows from April to June (Metric A 0.32 -> 2.51 null "
+      "SDs; Metric C 0.50 -> 1.52; Metric D 0.18 -> 0.84), and the \"contains zero\" pass rule "
+      "tolerates it up to about two null standard deviations. The C1 and C2 offsets are of similar "
+      "size on both periods (C1 -0.00044 in April, +0.00031 in June; C2 -0.00022, -0.00026). The "
+      "raw-column C4 value is in the table for completeness but is not drift: it is -0.00115 "
+      "(3.3 null SDs) on DEVELOPMENT itself, the deterministic recognition-channel term of section "
+      "5.3 diluted by the permutation variance. The C3 -> Metric B, pass-condition C4 and C7 nulls "
+      "sit within 0.1 null SD of zero on FINAL. As shipped:\n")
     w("| control | FINAL null | offset (null SDs) |")
     w("|---|---|---|")
     w("| C1 (destroyed outcome, `beta`) | +0.00031 | 0.64 |")
@@ -527,8 +571,9 @@ def main() -> None:
     w("| C4 raw column | -0.00081 | 2.10 |")
     w("| C3 -> Metric A | -0.00115 | 2.51 |")
     w("")
-    w("The passes recorded in this study are passes of **offset** nulls, not of centred ones. The "
-      "one that crossed the tolerance is the one section 2 is about.\n")
+    w("The passes recorded in this study are passes of **offset** nulls, not of centred ones. Two "
+      "of the six exclude zero; the verdict-bearing one, C3 -> Metric A, is the one section 2 is "
+      "about; the raw-column C4 is discussed below and is not a pass condition.\n")
     raw_c4 = CF["C4_shuffled_voc"].get("tae_rating_gradient_raw_column_permuted")
     if raw_c4:
         w(f"**The raw-column form of C4** -- permuting the raw value-of-computation column rather "
@@ -549,15 +594,43 @@ def main() -> None:
       f"both thinking time and move quality with strengths calibrated to a factor the study does "
       f"measure -- the engine-difficulty block. It manufactures `beta` = {iv(c7b)} on FINAL when "
       f"the true value is zero.\n")
+    # GATE 4 F2. The first version wrote `sqrt(ratio)` here. That is not amendment A5(a)'s
+    # algebra: `beta_manufactured = (b / a) x f` with `f = a^2 / (a^2 + var(ut_resid))`, and
+    # scaling a and b together leaves `b / a` fixed -- so on FINAL, where the engine block's
+    # quality-per-time ratio is below `beta`, no factor "k times the block on both axes"
+    # reproduces `beta` at any k. The DEVELOPMENT figure A5(a) quotes is derived here, not typed.
+    def single_factor_multiple(block, target, var_resid):
+        """How many times the engine block, on both axes, one factor would have to be."""
+        a_block = block["factor_strength_on_log_time"]
+        share = target / (block["factor_strength_on_quality"] / a_block)
+        if not 0.0 < share < 1.0:
+            return float("nan")
+        return ((share * var_resid / (1.0 - share)) ** 0.5) / a_block
+
+    c7b_block = CF["C7b_omitted_difficulty_simulation"]
+    exchange = (c7b_block["factor_strength_on_quality"]
+                / c7b_block["factor_strength_on_log_time"])
+    var_ut = gf["var_ut_resid"]
+    needed_all = b["point"] / exchange
+    dev_multiple = single_factor_multiple(
+        A["controls"]["development"]["C7b_omitted_difficulty_simulation"],
+        D["beta"]["point"], gd["var_ut_resid"])
     w(f"The observed `beta` is {ratio:.0f} times that. **That does not mean the alternative needs "
-      f"{ratio:.0f} unmeasured factors.** The manufactured value is an exchange rate -- the "
-      f"factor's quality-per-time ratio times its share of residual time variance -- so a *single* "
-      f"latent factor about {ratio ** 0.5:.0f} times the engine block on both axes reproduces the "
-      f"observed `beta` by itself. A single dominant latent, *how hard this position actually was "
-      f"for this human*, is the natural form of the alternative, not many independent small ones. "
-      f"The anchor is weak by this study's own numbers: the measured engine-difficulty block "
-      f"explains about 3% of residual time variance, so multiples of it sound larger than they "
-      f"are.\n")
+      f"{ratio:.0f} unmeasured factors, and it does not mean one factor a few times the engine "
+      f"block would do.** The manufactured value is an exchange rate -- the factor's "
+      f"quality-per-time ratio times its share of residual time variance -- and scaling a factor "
+      f"up on both axes leaves that ratio unchanged. On FINAL the engine block's ratio is "
+      f"{exchange:.4f} win probability per log-second, below `beta` = {b['point']:.4f}, so a "
+      f"single factor with the block's own ratio cannot reproduce `beta` at any strength. What the "
+      f"alternative requires is a latent factor whose quality-per-time ratio is at least "
+      f"{needed_all:.1f} times the engine block's -- and that only if it explained nearly all of "
+      f"the residual time variance ({var_ut:.3f}) -- or, for example, {needed_all / 0.2:.1f} times "
+      f"the block's ratio while explaining a fifth of it. On DEVELOPMENT, where the block's ratio "
+      f"is higher, the same arithmetic gives one factor about {dev_multiple:.1f} times the block on "
+      f"both axes (amendment A5(a)). A single dominant latent, *how hard this position actually "
+      f"was for this human*, is the natural form of the alternative, not many independent small "
+      f"ones. The anchor is weak by this study's own numbers: the measured engine-difficulty block "
+      f"explains about 3% of log-time variance, so multiples of it sound larger than they are.\n")
     w("**The nuisance ladder, a direct measurement.** `beta` under three nested adjustments, each "
       "fitted on DEVELOPMENT and frozen:\n")
     w("| nuisance set | FINAL `beta` |")
@@ -576,6 +649,12 @@ def main() -> None:
           f"at 150,000 nodes, 2.5 times the primary budget, every nuisance model refitted per "
           f"budget: `beta`(60k) = {c9['beta_60k']:.5f}, `beta`(150k) = {c9['beta_150k']:.5f}, ratio "
           f"{iv(c9['r_beta'], 3)}.\n")
+        w(f"The lower bound {c9['r_beta']['lo']:.3f} excludes attenuation greater than "
+          f"{100 * (1 - c9['r_beta']['lo']):.1f}% for the re-measurement this budget change "
+          f"produced, and the preregistration's own reading applies: a C9 that does not fire is "
+          f"not evidence against unmeasured difficulty (`VERDICT_RULES.md` §2.5c); at "
+          f"n = {c9['n_common_decisions']:,} the trigger could only have fired for attenuation of "
+          f"roughly two-thirds or more.\n")
         w("What actually changed between the budgets, and what did not:\n")
         w("| quantity | agreement across budgets |")
         w("|---|---|")
@@ -603,7 +682,9 @@ def main() -> None:
       "difficulty is constrained by these three measurements. The *human-perceived* form -- a "
       "position that is hard for a person in a way a search at this depth does not register -- is "
       "exactly where the preregistration put it: **cannot be excluded**. Section 4.3 is the closest "
-      "this design comes to seeing it, and there it is visible.\n")
+      "this design comes to seeing unmeasured difficulty at all, and what is visible there is its "
+      "engine-measurable form -- evaluation instability the frozen features did not capture, "
+      "tracked by residual time. The human-perceived form is touched by no measurement here.\n")
     w("---\n")
 
     # ================= 8. replication ========================================================
@@ -620,9 +701,10 @@ def main() -> None:
     if dj:
         w(f"{dj.get('overlapping_players', 0):,} of {dj.get('final_players', 0):,} FINAL players "
           f"also appear in an earlier period. Both the full and the restricted estimate are "
-          f"reported; neither was chosen after seeing them. The restricted Metric B gradient is "
-          f"what fails the `player_disjoint_holds` condition, on the same instrument section 5 "
-          f"describes.\n")
+          f"reported; neither was chosen after seeing them. The restricted Metric B readings -- "
+          f"pooled gradient, matched, `T = 0` removed, low clock pressure, spread -- are what fail "
+          f"the `player_disjoint_holds` condition, on the same instrument section 5 describes; the "
+          f"restricted `beta` passes.\n")
     w("---\n")
 
     # ================= 9. secondary ==========================================================
@@ -645,8 +727,10 @@ def main() -> None:
       "destructive control was run on the secondary period, so the pipeline's own C1 -- which "
       "would have failed at roughly a hundred null standard deviations -- never had the chance to "
       "say so. That omission is recorded as a process failure.\n")
-    w("Preregistered condition §2.6 is therefore **not evaluable**, and no cross-context claim of "
-      "any kind is made from this data.\n")
+    w("Preregistered condition §2.6 is therefore **not evaluable** -- and it could not have "
+      "applied in any case: §2.6 is reachable only from `EXPERTISE_ADAPTATION_SUPPORTED`, which "
+      "neither verdict reached, so the secondary block's failure cost the study no verdict. No "
+      "cross-context claim of any kind is made from this data.\n")
     w("As an **exploratory, non-preregistered** check, and labelled as such wherever it is quoted: "
       "with the nuisance models refitted on the secondary period itself, the Gate 3 adversary's "
       "reconstruction gives `beta` = +0.01245 [+0.01131, +0.01358] and Metric A = -0.01079 "
@@ -670,7 +754,9 @@ def main() -> None:
             w(f"* **Metric {pretty}** -- {'met' if detail['passes'] else 'did **not** meet'} its "
               f"conditions: {iv(detail['interval'])}, expected sign "
               f"{'positive' if detail['expected_sign'] > 0 else 'negative'}"
-              + (f", band Spearman {detail['band_spearman']:.2f} against a bar of 0.6"
+              + (f", band Spearman {detail['band_spearman']:+.2f} against a required "
+                 f"{0.6 * detail['expected_sign']:+.1f} (expected direction "
+                 f"{'positive' if detail['expected_sign'] > 0 else 'negative'})"
                  if detail.get("band_spearman") is not None else "") + ".")
     w("")
     if V.get("failed_conditions"):
@@ -711,8 +797,8 @@ def main() -> None:
       "its human-perceived form. Section 7.")
     w("3. **The primary instrument does not measure what its name says.** Time Allocation "
       "Efficiency is built on an engine-derived value of computation with a large point mass, a "
-      "1.7% partial correlation with residual time, no response to the clock, and no validation "
-      "against human perception. Section 5.2.")
+      "1.7% partial correlation with residual time, no detectable response to the clock, and no "
+      "validation against human perception. Section 5.2.")
     w("4. **Allocation versus recognition.** No metric here separates a better allocation policy "
       "from better recognition of which positions deserve computation. This matters most for "
       "reading the null: whichever of the two would have produced a gradient, the composite "
@@ -727,10 +813,11 @@ def main() -> None:
       "2300-rated games and is applied here from 800 to 2600; section 4.4 shows the scale "
       "consequence.")
     w("9. **The account-status lookup is a snapshot** whose lag differs by period, leaving FINAL's "
-      "top band the least cleaned -- a direction that favours the hypothesis. Every band condition "
-      "is therefore also reported with the top band dropped.")
-    w("10. **Frozen models drift.** Four months after the fit, every destructive null carries a "
-      "visible offset and one crossed its tolerance. Section 6.3.")
+      "top band the least cleaned -- a direction that favours the hypothesis. `beta` and the "
+      "primary Metric B gradient are therefore also reported with the top band dropped (sections 4 "
+      "and 5).")
+    w("10. **Frozen models drift.** Four months after the fit, the C3 nulls carry a visible drift "
+      "offset and one crossed its tolerance. Section 6.3.")
     w("11. **`unexpected_time` is a regression residual of a clock difference.** It is not "
       "confusion, hesitation, indecision or any cognitive state, and it is named neutrally "
       "everywhere in this repository for that reason.\n")
@@ -747,12 +834,23 @@ def main() -> None:
     w("* That unmeasured difficulty has been ruled out in the form that matters.")
     w("* That anything here replicates at a different time control.")
     w("* Any prediction of a player's rating from these behavioural metrics.\n")
-    w("The strongest phrasing the preregistration permits for what *was* found is a **cross-rating "
-      "law-like regularity**, and it carries its own qualification in the same breath: the "
-      f"`beta` x rating interaction on FINAL is {iv(F['beta_rating_interaction'])} per 100 Elo and "
-      "the band values run from about 0.0105 to 0.0162, so the magnitude falls by roughly a third "
-      "from the bottom of the rating range to the top. It is invariant in sign and in shape. It is "
-      "not invariant in size.\n")
+    bands = F["beta_by_band"]
+    powered = [x for x in V["adequately_powered_bands"] if x in bands]
+    lo_band, hi_band = powered[0], powered[-1]
+    biggest = max(powered, key=lambda x: bands[x]["point"])
+    at_centre = F["beta_at_mean_rating"]
+    per_100 = F["beta_rating_interaction"]["point"]
+    at_800, at_2600 = at_centre + per_100 * -8.0, at_centre + per_100 * 10.0
+    w("Under the repaired verdict -- the mechanical verdict as shipped is `INVALID_EXPERIMENT` "
+      "(section 2) and licenses no level language at all -- the strongest phrasing the "
+      "preregistration permits for what *was* found is a **cross-rating law-like regularity**, and "
+      "it carries its own qualification in the same breath: the `beta` x rating interaction on "
+      f"FINAL is {iv(F['beta_rating_interaction'])} per 100 Elo; the raw band values run from "
+      f"{bands[biggest]['point']:.4f} ({biggest}) to {bands[hi_band]['point']:.4f} ({hi_band}), the "
+      f"lowest band is {bands[lo_band]['point']:.4f}, and the fitted interaction implies a fall of "
+      f"about a quarter across 800-2600 ({at_800:.4f} to {at_2600:.4f}). It is invariant in sign "
+      f"({V['band_sign_agreement']['agree']} of {V['band_sign_agreement']['of']} bands) and both "
+      "halves of its dose-response are positive (section 4). It is not invariant in size.\n")
     w("---\n")
 
     # ================= 14. next experiment ===================================================
@@ -771,7 +869,8 @@ def main() -> None:
       "check returns to the design gate.")
     w("2. **Estimands.** The rating gradient of the time response reported as two named quantities "
       "-- the response to the residual component and to the predicted component -- so the channel "
-      "found here at +0.007 to +0.010 per 100 Elo is a preregistered quantity with its "
+      "observed here at +0.007 to +0.010 per 100 Elo, un-preregistered and confounded by "
+      "construction (section 5.3), becomes a preregistered quantity with its "
       "recognition/allocation ambiguity stated, instead of a contaminant entering the primary "
       "metric with its sign flipped.")
     w("3. **Floor and power.** The floor fixed at freeze as a *relative* change in the DEVELOPMENT "
@@ -802,16 +901,31 @@ def main() -> None:
       f"`tae_pooled_slope_at_centre`, the retained `C3_shuffled_rating_as_shipped`, and a "
       f"`_repair` provenance stanza |")
     w(f"| the repair itself | `src/repair_c3.py`, diff in `results/c3_repair_diff.json` |")
-    w(f"| diagnostics in this report | `results/report_diagnostics.json` |")
+    w(f"| diagnostics in this report | `results/report_diagnostics.json`, from "
+      f"`src/report_diagnostics.py` |")
     w(f"| leakage tests | passed: {A.get('leakage_tests_passed')} |")
     w(f"| engine determinism re-score | non-determinism detected: "
       f"{A.get('engine_nondeterminism_detected')} |")
     w("")
-    w("Numbers attributed in the text to a gate review's own reconstruction (the secondary-period "
-      "refits in section 9, the null predictions in section 2, and the offset table in 6.3) come "
-      "from `reviews/FABLE_GATE_3_RESULT_ADVERSARY.md`, which was produced independently and "
-      "against this pipeline. Every other number in this report is interpolated from the JSON "
-      "files above by `src/write_report.py`.\n")
+    w("**Numbers that come from a gate review rather than from this pipeline**, all from "
+      "`reviews/FABLE_GATE_3_RESULT_ADVERSARY.md`, which was produced independently and read-only "
+      "against this repository:\n")
+    w("* Section 2: the analytic predictions of the C3 null and their Monte-Carlo standard errors, "
+      "the `cov(ratinghat, rating_resid)` column, and the ratio 61,676 / 298,552.")
+    w("* Section 6.3: the drift-offset table (the FINAL nulls and their offsets in null SDs; the "
+      "VALIDATION and DEVELOPMENT comparisons in the paragraph above it are from "
+      "`analysis_repaired.json`).")
+    w("* Section 9: every extrapolation diagnostic on the secondary period -- the -7.35 floor of "
+      "the frozen prediction, the two-thirds out-of-range share, the fivefold residual standard "
+      "deviation, the +0.0114 destroyed-outcome null, the -0.00005 raw slope, the \"about a "
+      "hundred null standard deviations\", the refit estimates, and the top-band player counts.")
+    w("")
+    w("Every other number is interpolated from the JSON files above by `src/write_report.py`. The "
+      "three-estimator table in section 2 is this pipeline's own recomputation and agrees with "
+      "amendment A7.5's independent reconstruction to the fourth decimal. The `label_means` field "
+      "in both verdict files holds `VERDICT_RULES.md` §3.1's definition of "
+      "`EXPERTISE_ADAPTATION_SUPPORTED`, which `evaluate.py` writes whichever gate fires; it is "
+      "not the meaning of the verdict either file records, and this report does not print it.\n")
 
     text = "\n".join(out) + "\n"
     lowered = text.lower()

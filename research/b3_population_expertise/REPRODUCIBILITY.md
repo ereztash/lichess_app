@@ -115,7 +115,8 @@ python src/evaluate.py --analysis results/analysis_repaired.json \
 # 5. the C9 engine-budget comparison
 python src/c9.py --base data/validation_60k --alt data/validation_150k --out results/c9.json
 # 6. figures, tables, diagnostics, report
-python src/make_report.py
+python src/make_report.py --analysis results/analysis_repaired.json \
+                          --verdict  results/verdict_repaired.json
 python src/report_diagnostics.py
 python src/write_report.py                      # refuses to write if forbidden language appears
 # 7. the test suite
@@ -127,9 +128,18 @@ and refuses to write if it is not. Step 6's report generator checks the finished
 list of phrases the preregistration (§9), Gate 2 (amendment A5) and Gate 3 (§3.6) forbid, and
 raises rather than writing a report that contains one.
 
+Step 6's `make_report.py` defaults to the shipped analysis and the shipped verdict; the committed
+tables and figures were produced with the repaired ones, as above, which is why
+`12_controls.csv` carries both C3 blocks and `14_second_time_control.csv` carries its
+NOT EVALUABLE status.
+
 **What is not reproducible from this repository alone.** The four gate reviews were produced by an
 independent adversary in a fresh context, read-only, and are recorded as artifacts rather than as
-code: `reviews/FABLE_GATE_{1,2,3,4}_*.md`. Three numbers quoted in `REPORT.md` come from that
-adversary's own reconstruction rather than from this pipeline -- the analytic predictions of the C3
-null in section 2, the drift-offset table in 6.3, and the secondary-period refits in section 9 --
-and each is attributed where it appears.
+code: `reviews/FABLE_GATE_{1,2,3,4}_*.md`. Three groups of numbers quoted in `REPORT.md` come from
+that adversary's own reconstruction rather than from this pipeline, and each is attributed where it
+appears: (1) section 2's analytic predictions of the C3 null with their Monte-Carlo standard errors,
+the `cov(ratinghat, rating_resid)` column, and the ratio 61,676 / 298,552; (2) section 6.3's
+drift-offset table; (3) every extrapolation diagnostic on the secondary period in section 9 -- the
+-7.35 floor, the two-thirds out-of-range share, the fivefold residual standard deviation, the
++0.0114 destroyed-outcome null, the -0.00005 raw slope, the "about a hundred null standard
+deviations", the refit estimates, and the top-band player counts.

@@ -83,8 +83,10 @@ individual, and §3 says why it must not be turned into something that does.
 ## 7. What the run taught about these models (added after the result; nothing above was edited)
 
 1. **They drift, and the drift is visible in the controls before it is visible anywhere else.**
-   Fitted in February and applied in June, every destructive null carries an offset from zero
-   (0.6 to 2.5 null standard deviations on FINAL, larger than on April). One crossed the tolerance
+   Fitted in February and applied in June, the destructive nulls carry offsets from zero of 0.6 to
+   2.5 null standard deviations on FINAL; the C3 offsets are larger than on April, the C1 and C2
+   offsets are not, and the raw-column C4 offset is largest on the fitting period itself and is not
+   drift at all but the deterministic recognition-channel term. One offset crossed the tolerance
    and failed the mechanical verdict; the derivation, the repair and the offset table are in
    amendment A7 and `REPORT.md` section 6.3. The estimates themselves moved about 2% under
    drift-free re-estimation, because the estimator's regressor is correlated with the frozen
@@ -94,12 +96,15 @@ individual, and §3 says why it must not be turned into something that does.
    three-minute clocks; on five-minute clocks about two thirds of decisions are outside the knot
    range and the frozen prediction of log-time runs negative. Every number in the secondary block
    is an artefact of that. A second time control needs its own development day and its own fits.
-3. **`T1P` explains about 3% of residual time variance.** The whole fourteen-feature
-   engine-difficulty block moves `beta` by 3.7%. That is consistent with `beta` being robust to
+3. **`T1P` explains about 3% of log-time variance.** The whole fourteen-feature engine-difficulty
+   block moves `beta` by 2.3% (0.01393 -> 0.01361); adding value of computation on top of it takes
+   the total to 3.7%. That is consistent with `beta` being robust to
    measured difficulty and equally consistent with the features measuring very little of what makes
    a human slow and wrong. The model card cannot choose between those and neither does the report.
 4. **`voc_z`, as a model input, is not the instrument its name suggests.** It is zero by
-   construction on 59% of decisions, correlates 0.62 with itself across engine budgets, has a 1.7%
-   partial correlation with residual thinking time, and does not respond to how much clock is left.
+   construction on 59% of decisions; its frozen residual correlates 0.62 with itself across engine
+   budgets and the raw `voc_regret` 0.64; it has a 1.7% partial correlation with residual thinking
+   time; and it shows no detectable response to how much clock is left, with the tercile ordering
+   differing across periods.
    Any future use of it as a measure of "how much further thinking is worth here" should read
    `REPORT.md` section 5.2 first.

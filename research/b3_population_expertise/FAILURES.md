@@ -125,11 +125,16 @@ model was fitted on.
 **Why it mattered:** it failed the whole experiment on a defect in a control rather than on
 anything the experiment measured -- and the class had been derived at Gate 2 for a different
 control and not applied to this one.
-**Fix:** one line, pinned by the adversary before any variant was tried
-(`perm_resid = perm_rating`), applied to all three slope-based fields, with the shipped block
+**Fix:** one line -- "one construction, no variants", "pinned by the adversary, not chosen by the
+researchers" (Gate 3 §1.6, §1.9) -- `perm_resid = perm_rating`, applied to all three slope-based
+fields, with the shipped block
 retained beside the repaired one and byte-identity asserted everywhere else. Amendment A7 and
 section 2 of `REPORT.md` carry the whole derivation, both verdicts, and the Gate 2 miss.
-**Disclosure:** this is the only post-holdout change in the study.
+**Disclosure:** this is the only post-holdout change to a control's construction, and no
+estimate, verdict-bearing quantity or threshold changed after the holdout. The other post-holdout
+code changes -- F12's key rename, the C9 budget-agreement correlations, the report generator and
+its diagnostics, and the table and figure labelling -- are in commit `67a2683` and produce no
+number a verdict reads.
 
 ## F11. The secondary time control was run without checking that the frozen models were in range
 

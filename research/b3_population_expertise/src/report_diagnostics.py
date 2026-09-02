@@ -97,15 +97,22 @@ def diagnostics_for(scored, basis, boot):
     loss = scored["quality_loss"].to_numpy(float)
     seconds = scored["seconds_taken"].to_numpy(float)
     qhat = loss - q
-    uthat = scored["unexpected_time_population"].to_numpy(float) - u
+    # `ut_resid` is the residual of `unexpected_time_within_rating` (analysis.residualise), so the
+    # frozen prediction it implies is of THAT column. Gate 4 F-10: the first version of this file
+    # subtracted it from `unexpected_time_population`, which makes the third regressor
+    # `UThat + (Yhat_T2R - Yhat_T2P)` and not the frozen prediction the section describes.
+    ut_within = scored["unexpected_time_within_rating"].to_numpy(float)
+    uthat = ut_within - u
     vochat = scored["voc_z"].to_numpy(float) - v
     ratinghat = rating - scored["rating_resid"].to_numpy(float)
     out = {}
 
     # ---- A7.5: the same quantity under three estimators -------------------------------------
     out["beta_frozen"] = float(an.slope(q, u))
-    out["beta_3param"] = float(_ols(loss, [scored["unexpected_time_population"].to_numpy(float),
-                                           qhat, uthat])[0])
+    out["beta_3param"] = float(_ols(loss, [ut_within, qhat, uthat])[0])
+    # A5(a)'s exchange rate needs the residual time variance the manufactured beta divides by, so
+    # the report can state the single-factor arithmetic instead of a square root of the ratio.
+    out["var_ut_resid"] = float(np.var(u))
     out["metric_a_frozen"] = float(100.0 * an.slope(y, scored["rating_resid"].to_numpy(float)))
     out["metric_a_3param"] = float(100.0 * _ols(
         scored["log_time"].to_numpy(float),
