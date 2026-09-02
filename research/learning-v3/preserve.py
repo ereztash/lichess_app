@@ -160,9 +160,25 @@ def main() -> int:
             within = row.get("within_b") or []
             satisfying = [p["move"] for p in within]
 
-            def emit(kind: str, moves: list[str], policy: str, cp, xs, extra: dict | None = None):
+            def emit(kind: str, moves: list[str], policy: str, cp, xs, extra: dict | None = None,
+                     root: list[str] | None = None):
+                """
+                THE ROOT SET IS PART OF A MULTIPV LINE'S IDENTITY, and leaving it out was wrong.
+
+                The first version keyed a move evaluation on (fen, move, build, nodes, policy),
+                which merges two MultiPV searches over DIFFERENT root sets. They are different
+                searches: restricting the root to B(RC-21) and to B(RC-09) gives the engine
+                different work, and on a shared position the same move can come back with a
+                different value. It did -- one entry in RC-21's pooled regret came back .502 where
+                its own run produced .996, because another class had emitted that key first.
+
+                This is the same mistake the policy field exists to prevent, one level deeper. A
+                MultiPV line restricted to B is not a full-width search; a line restricted to
+                B(RC-21) is not one restricted to B(RC-09).
+                """
                 nonlocal collisions
-                key = (h("move", fen, moves[0], build, nodes, policy) if kind == "move"
+                scope = ",".join(sorted(root)) if root else ""
+                key = (h("move", fen, moves[0], build, nodes, policy, scope) if kind == "move"
                        else h("set", fen, ",".join(sorted(moves)), build, nodes, policy))
                 if key in seen_keys:
                     collisions += 1
@@ -173,6 +189,7 @@ def main() -> int:
                 evals.write(json.dumps({
                     "key": key,
                     "kind": kind,
+                    "root_set": sorted(root) if root else None,
                     "position_id": pid,
                     "fen": fen,
                     "moves": moves,
@@ -193,7 +210,8 @@ def main() -> int:
             for p in within:
                 emit("move", [p["move"]], POLICY_MULTIPV, p.get("cp"), p.get("xs"),
                      {"satisfies_b": True, "rank_within_b": rank_of.get(p["move"]),
-                      "n_in_b": len(within)})
+                      "n_in_b": len(within)},
+                     root=satisfying)
 
             # 2. the full-width search: the engine's own best move and the position's value
             if row.get("engine_best_move"):
@@ -241,6 +259,11 @@ def main() -> int:
                 "opponent_elo": src.get("opponent_elo"),
                 "time_control": src.get("time_control"),
                 "phase": src.get("phase"),
+                # THE MOVES IN B, BY NAME. Without this an evaluation cannot be scoped to the
+                # class it was made for: 581 positions in this bank serve more than one rule
+                # class and 269 of those have a different |B| per class, so "every evaluation at
+                # this position" is not "every permitted move of this class".
+                "b_moves": [p["move"] for p in (row.get("within_b") or [])],
                 "n_legal": row.get("n_legal"),
                 "n_satisfying": row.get("n_satisfying"),
                 "n_violating": row.get("n_violating"),

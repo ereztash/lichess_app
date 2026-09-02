@@ -1,6 +1,6 @@
 # What the engine run bought, beyond the gate it was run for
 
-**54,959 Stockfish 17.1 searches at 200,000 nodes each. About 11.0 billion nodes, an hour of
+**55,699 Stockfish 17.1 searches at 200,000 nodes each. About 11.1 billion nodes, an hour of
 four-way CPU, and 0 engine failures.**
 
 A gate verdict is a few bytes of that. This file is the audit of everything else it bought, and —
@@ -17,10 +17,10 @@ derived artifact disagrees with them, the disagreement is the finding.
 
 | | |
 | --- | --- |
-| evaluations | **70,258**, content-addressed |
+| evaluations | **70,595**, content-addressed |
 | distinct positions | **8,021** |
 | items, with provenance | **9,441** — 8,310 natural, 378 minimal twins, 378 sham controls, 375 re-scored sources |
-| committed size | **4.29 MB**, zstd-19 — about **12,800 searches per megabyte** |
+| committed size | **4.48 MB**, zstd-19 — about **12,400 searches per megabyte** |
 | checked by | `GATE-RESEARCH-RECONCILED`, on every `npm run gates`. Verified by tampering: the gate names the file and both hashes |
 
 Per **(position, move)**, for every member of `B`: a real evaluation, in centipawns and expected
@@ -59,6 +59,30 @@ every candidate rather than naming one.
 observations. `extract.py::natural` removes constructed positions and collapses repeats before any
 table, which is why the natural corpus is **8,310** rather than 9,441.
 
+**An evaluation must be scoped to the class whose `B` it belongs to.** The index attached every
+`multipv-over-B` evaluation at a position to every rule class that position serves. **581 positions
+serve more than one class and 269 of those have a different `|B|` per class**, so one class's
+permitted moves entered another's regret distribution. Ten of seventeen false-comfort rates moved
+when it was fixed. The membership lives on the item — `b_moves` — because the evaluation record
+cannot carry it: an evaluation is a position, a move and a policy, all class-independent. What is
+class-dependent is *which* moves were searched.
+
+**The root set is part of a MultiPV line's identity, and the key did not carry it.** Chasing the
+previous defect turned up a deeper one. Two MultiPV searches over different root sets are different
+searches — restricting to `B(RC-21)` and to `B(RC-09)` gives the engine different work — and on a
+position both classes fire at, the same move came back with a different value. One entry in `RC-21`'s
+pooled regret read **.502** where its own run produced **.996**, because another class had emitted
+that key first. **337 evaluations were being merged that are distinct measurements.** The key now
+carries the root set, and the atlas cross-checks exactly against `gate_a.json` on every class where
+the two use the same item set: **17 classes, 0 mismatches.**
+
+**A mate-score guard that never fires.** `python-chess` returns `mate_score - n` for a mate in n, so
+`abs(cp) >= MATE_SCORE` catches nothing and mate encodings walk into centipawn quantiles — a p90 of
+**93,891**, which is a mate wearing a decimal point. `played_move_cost.py` now excludes anything
+within 1,000 of the ceiling and reports how many items that is: **239 of 370**, because these are
+promotion positions. `BARRIER_DECISION.md` §2 carries the corrected table, and the correction makes
+that document's verdict stronger.
+
 ---
 
 ## 2. Questions now answerable for zero engine cost
@@ -92,22 +116,30 @@ T+ cells, natural items only:
 | class | n | false alarm | false comfort |
 | --- | --- | --- | --- |
 | RC-13 underpromote-to-knight | 67 | **.806** | .000 |
-| RC-21 push-the-unstoppable-passer | 250 | **.532** | .036 |
-| RC-05 safe-promotion | 313 | **.428** | .058 |
-| RC-20 defend-the-piece-in-place | 205 | .390 | .122 |
-| RC-12 stop-the-promotion | 188 | .314 | .229 |
-| RC-14 capture-the-mating-piece | 240 | .271 | .083 |
+| RC-21 push-the-unstoppable-passer | 250 | **.532** | .032 |
+| RC-05 safe-promotion | 313 | **.428** | **.000** |
+| RC-20 defend-the-piece-in-place | 205 | .390 | .112 |
+| RC-12 stop-the-promotion | 188 | .314 | .223 |
+| RC-14 capture-the-mating-piece | 240 | .271 | .029 |
 | RC-09 answer-the-minor-threat | 247 | .219 | .316 |
-| RC-08 answer-the-rook-threat | 246 | .195 | .329 |
+| RC-08 answer-the-rook-threat | 246 | .195 | .325 |
 | RC-11 move-the-threatened-minor | 246 | .187 | .378 |
 | RC-18 move-the-piece-that-must-move | 248 | .157 | **.431** |
-| RC-02 recapture | 247 | .154 | .162 |
-| RC-01 loose-piece | 249 | .149 | .076 |
+| RC-02 recapture | 247 | .154 | .146 |
+| RC-01 loose-piece | 249 | .149 | .056 |
 | RC-04 save-the-attacked-piece | 250 | .148 | **.416** |
-| RC-07 answer-the-queen-threat | 245 | .118 | .355 |
+| RC-07 answer-the-queen-threat | 245 | .118 | .351 |
 | RC-03 capture-the-checker | 250 | .044 | .096 |
 | RC-06 answer-the-mate-threat | 236 | .000 | **.415** |
-| RC-00 mate-in-one *(ceiling)* | 247 | .000 | **.547** |
+| RC-00 mate-in-one *(ceiling)* | 247 | .000 | **.543** |
+
+> **These false-comfort rates were wrong in the first version of this file, on ten of seventeen
+> classes.** The evaluation index attached every permitted-move evaluation at a position to *every*
+> rule class that position serves — 581 positions here, 269 of them with a different `|B|` per class
+> — so one class's permitted moves leaked into another's distribution. `RC-05`'s false comfort read
+> `.058` and is **`.000`**, which it has to be: `|B| = 1` on all its items, so there is no second
+> permitted move to be comfortable about. Found by a review bot on the PR; the fix and a second
+> defect it led to are in §1.
 
 **The binary screen is wrong in one direction for narrow prescriptions and in the other for wide
 ones.** `RC-21`'s `b_valid | T+` of .172 is *half false alarms*: on 53.2% of its items the argmax is
@@ -271,4 +303,4 @@ model?* Answering it needed the run. These came out of the same searches at no e
 **The ratio this run was optimised for** is not *did Gate A pass*. It is
 `reusable scientific information / expensive engine computation`, and the honest accounting is: one
 gate verdict, one gate control, one closed blocker, three new datasets, four pre-screens and a cache,
-for 4.29 MB and about an hour of CPU.
+for 4.48 MB and about an hour of CPU.

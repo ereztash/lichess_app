@@ -2,7 +2,7 @@
 THE RULE THIS FILE ENFORCES: no research step may rerun an engine evaluation this repository
 already has.
 
-52,691 searches at 200,000 nodes is about fifty minutes of four-way CPU, and the reason it is
+55,699 searches at 200,000 nodes is about an hour of four-way CPU, and the reason it is
 committed rather than reproduced on demand is that a download is cheap and a search is not. That
 argument only holds if a later run can actually FIND what was bought, which needs an identity a
 program can compute rather than a filename somebody has to remember.
@@ -12,7 +12,7 @@ the same move under different search policies are different measurements -- a Mu
 restricted to B is not a full-width search -- and merging them under one key would be the silent
 instrument change this repository keeps catching in other people's work and in its own.
 
-    move  sha256("move|" + fen + "|" + uci + "|" + build + "|" + nodes + "|" + policy)
+    move  sha256("move|" + fen + "|" + uci + "|" + build + "|" + nodes + "|" + policy + "|" + root)
     set   sha256("set|"  + fen + "|" + ",".join(sorted(uci)) + "|" + build + "|" + nodes + "|" + policy)
 
 A MISS IS AN ANSWER. `lookup` returns None rather than raising, because the caller's next step is
@@ -37,10 +37,22 @@ DEFAULT_BUILD = "Stockfish 17.1"
 DEFAULT_NODES = "200000"
 
 
-def key_for(fen: str, moves: list[str], build: str, nodes: str, policy: str) -> str:
+def key_for(fen: str, moves: list[str], build: str, nodes: str, policy: str,
+            root: list[str] | None = None) -> str:
+    """
+    The identity of one evaluation.
+
+    `root` IS REQUIRED FOR A MULTIPV LINE and is what a first version left out. Two MultiPV searches
+    over different root sets are different searches -- restricting to `B(RC-21)` and to `B(RC-09)`
+    gives the engine different work, and on a position both classes fire at, the same move comes
+    back with a different value. It did: one entry differed by .494 in expected score. A key that
+    merges them answers *"is this the same measurement?"* with yes when it is not.
+    """
     kind = "move" if len(moves) == 1 and policy != "root-restricted-max" else "set"
     body = moves[0] if kind == "move" else ",".join(sorted(moves))
-    return hashlib.sha256("|".join([kind, fen, body, build, nodes, policy]).encode()).hexdigest()
+    scope = ",".join(sorted(root)) if root else ""
+    parts = [kind, fen, body, build, nodes, policy] + ([scope] if kind == "move" else [])
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()
 
 
 def rows(path: Path = CORPUS):
@@ -56,10 +68,24 @@ def index(path: Path = CORPUS) -> dict[str, dict]:
     return {r["key"]: r for r in rows(path)}
 
 
-def lookup(fen: str, moves: list[str], policy: str, build: str = DEFAULT_BUILD,
-           nodes: str = DEFAULT_NODES, idx: dict | None = None) -> dict | None:
+def lookup(fen: str, moves: list[str], policy: str, build: str, nodes: str,
+           root: list[str] | None = None, idx: dict | None = None) -> dict | None:
+    """
+    A cached evaluation, or None.
+
+    `build` AND `nodes` ARE REQUIRED, WITHOUT DEFAULTS, and that is a correction. They defaulted to
+    Stockfish 17.1 at 200,000 nodes, which is what this corpus holds -- so a caller running a
+    different budget or a different build would have looked up the defaults, got a hit, and combined
+    it with a value produced under their own configuration. The result is a cross-policy comparison
+    of exactly the kind the policy field in the key exists to prevent, arrived at through an
+    argument nobody had to pass.
+
+    A convenience default on a function whose whole job is to say *"is this the same measurement?"*
+    is a default that answers yes when it should not. The CLI still has defaults, where a reader
+    can see them.
+    """
     idx = idx if idx is not None else index()
-    return idx.get(key_for(fen, moves, build, nodes, policy))
+    return idx.get(key_for(fen, moves, build, nodes, policy, root))
 
 
 def main() -> int:
@@ -68,6 +94,8 @@ def main() -> int:
     ap.add_argument("--fen")
     ap.add_argument("--move", action="append", default=[])
     ap.add_argument("--policy", default="multipv-over-B")
+    ap.add_argument("--root", action="append", default=[],
+                    help="the root set a multipv line was searched over; part of its identity")
     ap.add_argument("--build", default=DEFAULT_BUILD)
     ap.add_argument("--nodes", default=DEFAULT_NODES)
     a = ap.parse_args()
@@ -96,7 +124,7 @@ def main() -> int:
 
     if not a.fen or not a.move:
         ap.error("--fen and at least one --move, or --stats")
-    hit = lookup(a.fen, a.move, a.policy, a.build, a.nodes)
+    hit = lookup(a.fen, a.move, a.policy, a.build, a.nodes, a.root or None)
     print(json.dumps(hit if hit else {"hit": False, "note": "not evaluated; a search is required"},
                      indent=1))
     return 0

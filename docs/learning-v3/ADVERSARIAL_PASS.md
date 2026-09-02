@@ -67,6 +67,33 @@ this reaches **1.263**.
 It bounds what `B-PASS` is about: the bank, not the class. **Correction applied** to
 `EXCHANGEABILITY_AUDIT.md` §7.
 
+### A-9 — three defects a review bot found, and the one it led to
+
+Not one of the fifteen angles; a code review on the PR. Recorded here because the mission's rule is
+that failures are retained, and because the third was mine to find and I had not.
+
+| | finding | verified | consequence |
+| --- | --- | --- | --- |
+| **P1** | the evaluation index attached every permitted-move evaluation at a position to **every** rule class there | **581 positions serve >1 class, 269 with a different `\|B\|`** | ten of seventeen false-comfort rates moved. `RC-05`'s read `.058` and must be `.000`, since `\|B\| = 1` |
+| **P1** | `cache.lookup` defaulted the engine build and node budget, so a caller on a different budget would get a silent hit | latent — this cycle used the defaults | `build` and `nodes` are now required parameters. A convenience default on a function whose job is *"is this the same measurement?"* answers yes when it should not |
+| **P2** | `played_move_cost.py` took `U` from a `multipv-over-B` cache line and searched `V*` full-width, against its own docstring | **6 negative regrets** in the committed output | the reuse is removed; both terms are searched in one run, and the basis gap is reported rather than clamped. Negatives fell to 2 |
+
+**And the one the first finding led to.** Fixing the scoping left `RC-21` still disagreeing with
+`gate_a.json` by one value in 384. The cause was deeper than the report: **the cache key did not
+carry the root set.** Two MultiPV searches over different root sets are different searches, and on a
+shared position the same move came back at **.502** under one class and **.996** under its own.
+**337 evaluations were being merged that are distinct measurements.** The key now carries the root
+set, and the atlas reproduces `gate_a.json` exactly on every class where both use the same item set —
+17 classes, 0 mismatches.
+
+**And the one that changed a published number.** Chasing the P2 finding exposed a mate-score guard
+written `abs(cp) >= MATE_SCORE`, which never fires because python-chess returns `mate_score - n`.
+`BARRIER_DECISION.md` had read *"in material, declining is a real error — five times the rate"* on
+`.041` against `.203`. Both were mate encodings in a quantile. Corrected: **239 of 370 items have a
+mate on one side**, and on the third where centipawns mean anything the two groups sit at **.210**
+and **.232**. The verdict is unchanged and better supported — the caveat that argued against it was
+the artefact.
+
 ---
 
 ## The other thirteen
@@ -84,7 +111,7 @@ It bounds what `B-PASS` is about: the bank, not the class. **Correction applied*
 | 11 | does immediate drill performance masquerade as learning? | **No drill ran.** `THEORY_EVIDENCE.md` V4 is called the methodological spine of the programme and this cycle did not test it |
 | 12 | does the graph convert uncertainty into a permanent player label? | **No graph.** The requirement — a finding that no longer separates must visibly decay — is `evidence-decayed` in the spec |
 | 13 | does the UI reveal information the evidence has not earned? | **No UI.** But the existing mechanism is weaker than it looks: `mayPrescribe` has **one consumer** in the whole tree and it renders a restraint *sentence*. It gates nothing. Recorded in `AUTHORITY_MAP.md` §2 |
-| 14 | did implementation complexity outrun evidence value? | **The strongest surviving attack.** ~1,400 lines of research Python, 4.3 MB of data and one gate, for a verdict of *not worth teaching*. Answered below |
+| 14 | did implementation complexity outrun evidence value? | **The strongest surviving attack.** ~1,400 lines of research Python, 4.5 MB of data and one gate, for a verdict of *not worth teaching*. Answered below |
 | 15 | would removing the packet change the primary endpoint? | **No packet.** And the honest form of the question was answered: removing the *rule* changes the endpoint on 5.4% of the 42.5% of opportunities where players decline — about `4.7e-5` per position |
 
 ---
@@ -98,11 +125,11 @@ the objection. What it fixes is that nothing stopped the next trigger from being
 and the packet spec lists that as refusal 9 — one of three the system could not make. Its control
 fires on the transitive case, which is the one a declaration-only check would miss.
 
-**The Python: yes, and the ratio is stated.** 54,959 searches bought one gate verdict, one gate
+**The Python: yes, and the ratio is stated.** 55,699 searches bought one gate verdict, one gate
 control, one closed research blocker, three new datasets, four engine-free pre-screens and a cache
 that has already saved 2,268 searches. `COMPUTE_VALUE_EXTRACTION.md` is the accounting.
 
-**The 4.3 MB: yes, and it is checked.** It costs an hour of four-way CPU to reproduce and a
+**The 4.5 MB: yes, and it is checked.** It costs an hour of four-way CPU to reproduce and a
 `git clone` to have. `GATE-RESEARCH-RECONCILED` re-hashes it on every gate run, verified by
 tampering.
 
@@ -125,5 +152,8 @@ was measured — **which is not a gap in this pass but its subject**: the pre-hu
 `INSUFFICIENT_OPPORTUNITIES` can be reached without asking anybody for their time, and that is what
 happened.
 
-**P0 / P1 methodological issues found: two, both in this cycle's own claims, both corrected in the
-files that made them.** Neither blocks a product claim, because no product claim is made.
+**P0 / P1 methodological issues found: five.** Two by this pass (A-2, A-8), two by a review bot on
+the PR, and one found by chasing the bot's first finding down to the cache key. **All five were in
+this cycle's own claims and all five are corrected in the files that made them**, with the old
+numbers quoted beside the new ones rather than replaced. None blocks a product claim, because no
+product claim is made.

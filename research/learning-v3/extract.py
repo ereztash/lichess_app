@@ -1,5 +1,5 @@
 """
-COMPUTE VALUE EXTRACTION: what else the 52,691 searches already bought.
+COMPUTE VALUE EXTRACTION: what else the 55,699 searches already bought.
 
 THE QUESTION THIS ANSWERS. An engine run is usually spent on one gate and thrown away. The
 evaluations are the expensive part and the gate verdict is a few bytes of it. So before any further
@@ -424,14 +424,33 @@ def main() -> int:
 
     items = list(stream("item_bank.jsonl.zst"))
     evals_by_pos: dict = collections.defaultdict(list)
-    pos_class: dict = {}
-    for it in items:
-        pos_class.setdefault(it["position_id"], set()).add(it["rule_class"])
+
+    # AN EVALUATION IS SCOPED TO THE CLASS WHOSE B IT BELONGS TO, and the first version of this
+    # was wrong in a way that only shows up in a corpus with shared positions. It attached every
+    # `multipv-over-B` evaluation at a position to EVERY rule class that position serves --
+    # 581 positions here, 269 of them with a different |B| per class -- so one class's permitted
+    # moves leaked into another class's regret distribution. `b_moves` on the item row is the
+    # membership the evaluation record cannot carry, because the evaluation itself is
+    # class-independent: a position, a move and a policy. What is class-dependent is WHICH moves
+    # were evaluated, and that lives on the item.
+    b_moves: dict = {(it["position_id"], it["rule_class"]): set(it.get("b_moves") or [])
+                     for it in items}
+    at_position: dict = collections.defaultdict(list)
     for e in stream("engine_evaluations.jsonl.zst"):
         if e["policy"] != "multipv-over-B":
             continue
-        for rc in pos_class.get(e["position_id"], ()):  # a position can serve several classes
-            evals_by_pos[(e["position_id"], rc)].append(e)
+        at_position[e["position_id"]].append(e)
+    for (pos, rc), moves in b_moves.items():
+        if not moves:
+            continue
+        # THE ROOT SET, NOT JUST MEMBERSHIP. A move can be in two classes' B sets at one position
+        # and carry a different value in each, because a MultiPV search over B(RC-21) and one over
+        # B(RC-09) are different searches. Matching on membership alone picked whichever was
+        # emitted first; matching on the root set picks the one made for THIS class.
+        want = sorted(moves)
+        evals_by_pos[(pos, rc)] = [e for e in at_position.get(pos, ())
+                                   if e["moves"] and e["moves"][0] in moves
+                                   and (e.get("root_set") or []) == want]
 
     nat = natural(items)
     result = {

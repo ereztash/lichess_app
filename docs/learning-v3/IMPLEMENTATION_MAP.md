@@ -17,7 +17,7 @@ auditable rather than to claim it.
 | its positive control | `tests/fixtures/cue/research/measurement/rule_classes.py` | three triggers: one honest, one that reads a centipawn score, one that is four clean lines calling a helper that does. The third is the case a declaration-only scanner would pass |
 | the freeze verifier | `scripts/learning-v3/verify_freeze.py` | checks the three things a hash cannot: one commit introduced both frozen documents, it touched nothing else, and no later commit modified them |
 | research instruments | `research/learning-v3/{gate_a,minimal_twins,gate_b,sham_twins,played_move_cost,extract,preserve,cache}.py` | the measurements this cycle ran |
-| the preserved corpus | `research/learning-v3/corpus/` | 70,258 evaluations, content-addressed, 4.3 MB, re-hashed by `GATE-RESEARCH-RECONCILED` on every gate run |
+| the preserved corpus | `research/learning-v3/corpus/` | 70,595 evaluations, content-addressed, 4.5 MB, re-hashed by `GATE-RESEARCH-RECONCILED` on every gate run |
 
 **The gate passes today and fixes nothing.** Every trigger in the register is already board geometry.
 What it fixes is that nothing stopped the next one from not being — and the first version of the

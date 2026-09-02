@@ -8,11 +8,23 @@ applied a better one.
 
 The corpus cannot answer this, and the reason is exact: `action_set.py` evaluated `V_B`, `V_notB`
 and every member of `B`, and **the played move is usually not in `B`** on precisely the items in
-question -- that is what makes them the gap. So the played move's value was never searched. This is
-the one line in `COMPUTE_VALUE_EXTRACTION.md` §3 that is cheap to close: ONE root-restricted search
-per item, against values already in the cache.
+question -- that is what makes them the gap. So the played move's value was never searched.
 
     regret_played = V*(s) - U(s, played)
+
+BOTH TERMS ARE SEARCHED HERE, AND THE FIRST VERSION OF THIS FILE DID NOT DO THAT. It took
+`U(s, played)` from the cache where the move happened to be in `B` -- a `multipv-over-B` line -- and
+searched `V*` full-width in this run. Those are two different search policies, which is exactly why
+`cache.py` puts the policy in its key: *"a MultiPV line restricted to B is not a full-width
+search"*. Mixing them is the cross-policy comparison this repository's own cache design exists to
+prevent, and it showed up as **six negative regrets** in the committed output -- a move worth more
+than the position it was played in.
+
+So no value is reused here. `U` is a root-restricted search over the single played move and `V*` is
+a full-width search, both in this run, and the disagreement between the two bases is REPORTED rather
+than assumed away -- the same treatment `action_set.py` gives it under the name `basis_gap_cp`,
+*"reported per item so a reader can see the search noise rather than discover it in a negative
+regret"*.
 
 WHAT THIS IS NOT. It is not evidence about recognition. A player who was worse off after not
 promoting may have seen the promotion and rejected it, or never considered it; the move alone cannot
@@ -34,11 +46,27 @@ import chess.engine
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "measurement"))
-from cache import lookup  # noqa: E402
 from rule_classes import BY_ID, Context  # noqa: E402
 
 RC = "RC-05"
+
+#: The same encoding `action_set.py` uses: a ceiling that makes a subtraction defined, not a
+#: material quantity.
 MATE_SCORE = 100_000
+
+#: WHAT COUNTS AS A MATE SCORE, and the first version of this file got it wrong.
+#:
+#: `python-chess` returns `mate_score - n` for a mate in n, NOT `mate_score`. So a guard written as
+#: `abs(cp) >= MATE_SCORE` never fires on a real mate, and mate encodings walk into the centipawn
+#: quantiles: a run with that guard reported a p90 of **93,891** for the followed group, which is a
+#: mate wearing a decimal point. Anything within a thousand of the ceiling is a mate and no real
+#: evaluation is. The `xs` columns need no such guard, because a forced mate maps to exactly 1.0 or
+#: 0.0 there -- which is the whole reason `xs` is the primary scale and cp is the diagnostic.
+MATE_BAND = 1_000
+
+
+def is_mate(cp: int | None) -> bool:
+    return cp is not None and abs(cp) > MATE_SCORE - MATE_BAND
 
 
 def expected_score(pov, ply: int) -> float:
@@ -67,8 +95,9 @@ def main() -> int:
     engine = chess.engine.SimpleEngine.popen_uci(a.engine, timeout=600.0)
     engine.configure({"Threads": 1, "Hash": 64})
     limit = chess.engine.Limit(nodes=a.nodes)
+    build = engine.id.get("name", "unknown")
 
-    rows, reused, searched, failed = [], 0, 0, 0
+    rows, searched, failed, negative, mated = [], 0, 0, 0, 0
     for r in items:
         board = chess.Board(r["fen"])
         try:
@@ -82,31 +111,37 @@ def main() -> int:
         ply = board.ply()
         satisfies = rc.satisfies(board, played, ctx)
 
-        # V* comes from the cache where the position was adjudicated; only the PLAYED move is new.
-        cached = lookup(r["fen"], [played.uci()], "multipv-over-B")
-        if cached and cached.get("xs") is not None:
-            u_xs, u_cp = cached["xs"], cached["cp"]
-            reused += 1
-        else:
-            info = engine.analyse(board, limit, root_moves=[played])
-            searched += 1
-            pov = info["score"].pov(board.turn)
-            u_xs = expected_score(pov, ply)
-            u_cp = pov.score(mate_score=MATE_SCORE)
+        info = engine.analyse(board, limit, root_moves=[played])
+        searched += 1
+        pov = info["score"].pov(board.turn)
+        u_xs = expected_score(pov, ply)
+        u_cp = pov.score(mate_score=MATE_SCORE)
 
         info_full = engine.analyse(board, limit)
         searched += 1
         pov_full = info_full["score"].pov(board.turn)
         v_star_xs = expected_score(pov_full, ply)
         v_star_cp = pov_full.score(mate_score=MATE_SCORE)
+        if v_star_xs - u_xs < 0:
+            negative += 1
+        cp_scorable = not (is_mate(u_cp) or is_mate(v_star_cp))
+        if not cp_scorable:
+            mated += 1
 
         rows.append({
             "fen": r["fen"],
             "move_played": played.uci(),
             "satisfies_rule": bool(satisfies),
             "regret_played_xs": v_star_xs - u_xs,
-            "regret_played_cp": (None if abs(u_cp) >= MATE_SCORE or abs(v_star_cp) >= MATE_SCORE
-                                 else v_star_cp - u_cp),
+            "u_cp": u_cp,
+            "v_star_cp": v_star_cp,
+            "u_xs": u_xs,
+            "v_star_xs": v_star_xs,
+            "regret_played_cp": (v_star_cp - u_cp) if cp_scorable else None,
+            # The full-width search against the single-move search it is supposed to dominate. A
+            # negative regret is this quantity, not a discovery about chess.
+            "basis_gap_cp": min(0, v_star_cp - u_cp) if cp_scorable else None,
+            "mate_on_either_side": not cp_scorable,
             "actor_elo": r.get("actor_elo"),
         })
     engine.quit()
@@ -116,10 +151,21 @@ def main() -> int:
 
     def summarise(xs: list[dict]) -> dict:
         rs = sorted(x["regret_played_xs"] for x in xs)
+        cps = sorted(x["regret_played_cp"] for x in xs if x["regret_played_cp"] is not None)
         if not rs:
             return {}
+
+        def q(v, p):
+            return v[int(p * (len(v) - 1))] if v else None
+
         return {
             "n": len(rs),
+            "n_cp_scorable": len(cps),
+            "cp_median": q(cps, 0.5),
+            "cp_p75": q(cps, 0.75),
+            "cp_p90": q(cps, 0.9),
+            "cp_share_losing_100_or_more": (
+                (sum(1 for c in cps if c >= 100) / len(cps)) if cps else None),
             "mean_regret_xs": statistics.fmean(rs),
             "median_regret_xs": rs[len(rs) // 2],
             "p90_regret_xs": rs[int(0.9 * (len(rs) - 1))],
@@ -137,7 +183,16 @@ def main() -> int:
         "items": len(rows),
         "unusable_move_records": failed,
         "engine_searches": searched,
-        "evaluations_reused_from_cache": reused,
+        "engine_build": build,
+        "engine_nodes": a.nodes,
+        "no_value_reused": ("both terms are searched in this run. See the module docstring: taking "
+                            "U from a multipv-over-B cache line and V* from a full-width search "
+                            "here is a cross-policy comparison"),
+        "negative_regrets": negative,
+        "items_with_a_mate_on_either_side": mated,
+        "negative_regrets_note": ("the full-width search disagreeing with the single-move search it "
+                                  "should dominate. Reported, not clamped; `share_free` counts them "
+                                  "with the exact zeros because both mean the move cost nothing"),
         "followed_the_rule": summarise(followed),
         "declined_the_rule": summarise(declined),
         "what_this_does_not_establish": [
@@ -151,7 +206,7 @@ def main() -> int:
     }
     json.dump(out, open(a.out, "w", encoding="utf-8"), indent=1)
     print(json.dumps({k: out[k] for k in
-                      ("items", "engine_searches", "evaluations_reused_from_cache",
+                      ("items", "engine_searches", "negative_regrets",
                        "followed_the_rule", "declined_the_rule")}, indent=1))
     return 0
 

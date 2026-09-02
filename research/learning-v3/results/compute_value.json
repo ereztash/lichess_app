@@ -11,11 +11,11 @@
    "b_share_of_legal_mean": 0.05879151313480422,
    "advantage_xs_mean": -0.28266800000000003,
    "regret_b_xs_mean": 0.2973840000000001,
-   "per_action_regret_median": 0.09899999999999996,
+   "per_action_regret_median": 0.125,
    "per_action_regret_p90": 1.0,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.442102,
-   "share_of_permitted_actions_with_any_regret": 0.6533238095238094,
+   "worst_in_b_regret_mean": 0.44085399999999997,
+   "share_of_permitted_actions_with_any_regret": 0.6543238095238094,
    "b_valid": 0.192
   },
   "RC-00::positive": {
@@ -28,8 +28,8 @@
    "per_action_regret_median": 0.0,
    "per_action_regret_p90": 1.0,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.5147226720647773,
-   "share_of_permitted_actions_with_any_regret": 0.3008884390463338,
+   "worst_in_b_regret_mean": 0.5105080971659919,
+   "share_of_permitted_actions_with_any_regret": 0.29873562110404217,
    "b_valid": 1.0
   },
   "RC-01::negative": {
@@ -39,11 +39,11 @@
    "b_share_of_legal_mean": 0.03077557391297474,
    "advantage_xs_mean": -0.21688999999999992,
    "regret_b_xs_mean": 0.23212799999999997,
-   "per_action_regret_median": 0.022499999999999992,
+   "per_action_regret_median": 0.027249999999999983,
    "per_action_regret_p90": 0.8732000000000009,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.257472,
-   "share_of_permitted_actions_with_any_regret": 0.6436410256410257,
+   "worst_in_b_regret_mean": 0.24763,
+   "share_of_permitted_actions_with_any_regret": 0.648,
    "b_valid": 0.18
   },
   "RC-01::positive": {
@@ -54,10 +54,10 @@
    "advantage_xs_mean": 0.23614658634538152,
    "regret_b_xs_mean": 0.02897590361445783,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.49605000000000016,
+   "per_action_regret_p90": 0.09960000000000012,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.08743373493975903,
-   "share_of_permitted_actions_with_any_regret": 0.2581389048256518,
+   "worst_in_b_regret_mean": 0.06524698795180724,
+   "share_of_permitted_actions_with_any_regret": 0.24899598393574296,
    "b_valid": 0.7911646586345381
   },
   "RC-02::negative": {
@@ -67,11 +67,11 @@
    "b_share_of_legal_mean": 0.03385334889792077,
    "advantage_xs_mean": -0.21143469387755107,
    "regret_b_xs_mean": 0.23801428571428576,
-   "per_action_regret_median": 0.028999999999999998,
-   "per_action_regret_p90": 0.9585,
+   "per_action_regret_median": 0.0050000000000000044,
+   "per_action_regret_p90": 0.9802500000000001,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.304565306122449,
-   "share_of_permitted_actions_with_any_regret": 0.565552316164561,
+   "worst_in_b_regret_mean": 0.2854326530612245,
+   "share_of_permitted_actions_with_any_regret": 0.5530612244897959,
    "b_valid": 0.2612244897959184
   },
   "RC-02::positive": {
@@ -81,11 +81,11 @@
    "b_share_of_legal_mean": 0.04983109629487671,
    "advantage_xs_mean": 0.08712753036437246,
    "regret_b_xs_mean": 0.08231578947368423,
-   "per_action_regret_median": 0.0007500000000000284,
-   "per_action_regret_p90": 0.5605000000000006,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.5132500000000001,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.19954453441295547,
-   "share_of_permitted_actions_with_any_regret": 0.4634181607865818,
+   "worst_in_b_regret_mean": 0.1796052631578947,
+   "share_of_permitted_actions_with_any_regret": 0.45175438596491224,
    "b_valid": 0.6518218623481782
   },
   "RC-03::negative": {
@@ -123,11 +123,11 @@
    "b_share_of_legal_mean": 0.18533019000700898,
    "advantage_xs_mean": -0.09929599999999997,
    "regret_b_xs_mean": 0.14475400000000002,
-   "per_action_regret_median": 0.137,
-   "per_action_regret_p90": 1.0,
+   "per_action_regret_median": 0.14349999999999996,
+   "per_action_regret_p90": 0.9995,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.463944,
-   "share_of_permitted_actions_with_any_regret": 0.6356279942279942,
+   "worst_in_b_regret_mean": 0.46248,
+   "share_of_permitted_actions_with_any_regret": 0.6354994227994227,
    "b_valid": 0.28
   },
   "RC-04::positive": {
@@ -141,7 +141,7 @@
    "per_action_regret_p90": 0.999,
    "per_action_regret_max": 1.0,
    "worst_in_b_regret_mean": 0.460066,
-   "share_of_permitted_actions_with_any_regret": 0.6024353489797022,
+   "share_of_permitted_actions_with_any_regret": 0.6034656520100052,
    "b_valid": 0.692
   },
   "RC-05::negative": {
@@ -152,10 +152,10 @@
    "advantage_xs_mean": -0.12619281045751635,
    "regret_b_xs_mean": 0.13115196078431374,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.506,
+   "per_action_regret_p90": 0.50025,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.16015522875816993,
-   "share_of_permitted_actions_with_any_regret": 0.2838235294117647,
+   "worst_in_b_regret_mean": 0.13112418300653594,
+   "share_of_permitted_actions_with_any_regret": 0.2647058823529412,
    "b_valid": 0.12418300653594772
   },
   "RC-05::positive": {
@@ -166,10 +166,10 @@
    "advantage_xs_mean": -0.028493610223642177,
    "regret_b_xs_mean": 0.052888178913738024,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.5,
+   "per_action_regret_p90": 0.004199999999999976,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.11804313099041533,
-   "share_of_permitted_actions_with_any_regret": 0.14895893066819585,
+   "worst_in_b_regret_mean": 0.05270766773162939,
+   "share_of_permitted_actions_with_any_regret": 0.11182108626198083,
    "b_valid": 0.4728434504792332
   },
   "RC-06::negative": {
@@ -179,11 +179,11 @@
    "b_share_of_legal_mean": 0.10128752581198495,
    "advantage_xs_mean": -0.08774278846153846,
    "regret_b_xs_mean": 0.1205913461538462,
-   "per_action_regret_median": 0.17775,
-   "per_action_regret_p90": 0.96025,
+   "per_action_regret_median": 0.16574999999999998,
+   "per_action_regret_p90": 0.9825500000000001,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.43545215311004787,
-   "share_of_permitted_actions_with_any_regret": 0.6737189710873921,
+   "worst_in_b_regret_mean": 0.43407211538461543,
+   "share_of_permitted_actions_with_any_regret": 0.6728327228327229,
    "b_valid": 0.21686746987951808
   },
   "RC-06::positive": {
@@ -196,8 +196,8 @@
    "per_action_regret_median": 0.0,
    "per_action_regret_p90": 1.0,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.32471097046413505,
-   "share_of_permitted_actions_with_any_regret": 0.40560925943487186,
+   "worst_in_b_regret_mean": 0.3260868644067797,
+   "share_of_permitted_actions_with_any_regret": 0.40857222576150604,
    "b_valid": 0.9672131147540983
   },
   "RC-07::negative": {
@@ -207,11 +207,11 @@
    "b_share_of_legal_mean": 0.1756348209899924,
    "advantage_xs_mean": -0.01798878923766816,
    "regret_b_xs_mean": 0.07941928251121075,
-   "per_action_regret_median": 0.06849999999999995,
-   "per_action_regret_p90": 0.7343499999999996,
+   "per_action_regret_median": 0.07075000000000001,
+   "per_action_regret_p90": 0.7455500000000003,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.3702165178571429,
-   "share_of_permitted_actions_with_any_regret": 0.5733466991837527,
+   "worst_in_b_regret_mean": 0.37210313901345293,
+   "share_of_permitted_actions_with_any_regret": 0.5768036709180207,
    "b_valid": 0.38362068965517243
   },
   "RC-07::positive": {
@@ -224,8 +224,8 @@
    "per_action_regret_median": 0.0005,
    "per_action_regret_p90": 0.6485,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.30698775510204085,
-   "share_of_permitted_actions_with_any_regret": 0.4786995204342143,
+   "worst_in_b_regret_mean": 0.3008448979591836,
+   "share_of_permitted_actions_with_any_regret": 0.4784017456466436,
    "b_valid": 0.804
   },
   "RC-08::negative": {
@@ -236,10 +236,10 @@
    "advantage_xs_mean": -0.015771493212669685,
    "regret_b_xs_mean": 0.06490723981900452,
    "per_action_regret_median": 0.0235,
-   "per_action_regret_p90": 0.7076000000000007,
+   "per_action_regret_p90": 0.72,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.3530896860986547,
-   "share_of_permitted_actions_with_any_regret": 0.5254600407066775,
+   "worst_in_b_regret_mean": 0.3555429864253394,
+   "share_of_permitted_actions_with_any_regret": 0.5323637147166559,
    "b_valid": 0.3574468085106383
   },
   "RC-08::positive": {
@@ -252,8 +252,8 @@
    "per_action_regret_median": 0.0,
    "per_action_regret_p90": 1.0,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.32724390243902435,
-   "share_of_permitted_actions_with_any_regret": 0.4089185092233873,
+   "worst_in_b_regret_mean": 0.3252134146341463,
+   "share_of_permitted_actions_with_any_regret": 0.4084267584267584,
    "b_valid": 0.692
   },
   "RC-09::negative": {
@@ -263,11 +263,11 @@
    "b_share_of_legal_mean": 0.19042751230041705,
    "advantage_xs_mean": -0.00018669527896995677,
    "regret_b_xs_mean": 0.048225321888412026,
-   "per_action_regret_median": 0.05099999999999996,
-   "per_action_regret_p90": 0.6001999999999998,
+   "per_action_regret_median": 0.05074999999999996,
+   "per_action_regret_p90": 0.6175,
    "per_action_regret_max": 1.0,
    "worst_in_b_regret_mean": 0.4114227467811159,
-   "share_of_permitted_actions_with_any_regret": 0.5804524993366195,
+   "share_of_permitted_actions_with_any_regret": 0.5788243230303316,
    "b_valid": 0.47520661157024796
   },
   "RC-09::positive": {
@@ -278,10 +278,10 @@
    "advantage_xs_mean": 0.11393117408906879,
    "regret_b_xs_mean": 0.03660526315789474,
    "per_action_regret_median": 0.0024999999999999467,
-   "per_action_regret_p90": 0.9379000000000004,
+   "per_action_regret_p90": 0.8772999999999993,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.3356923076923077,
-   "share_of_permitted_actions_with_any_regret": 0.5351701194997218,
+   "worst_in_b_regret_mean": 0.32517813765182185,
+   "share_of_permitted_actions_with_any_regret": 0.533533306020803,
    "b_valid": 0.644
   },
   "RC-11::negative": {
@@ -291,11 +291,11 @@
    "b_share_of_legal_mean": 0.043368536423884434,
    "advantage_xs_mean": -0.14835028248587567,
    "regret_b_xs_mean": 0.1589971751412429,
-   "per_action_regret_median": 0.01699999999999996,
-   "per_action_regret_p90": 0.51915,
+   "per_action_regret_median": 0.00024999999999997247,
+   "per_action_regret_p90": 0.52005,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.23132620320855615,
-   "share_of_permitted_actions_with_any_regret": 0.5048996458087367,
+   "worst_in_b_regret_mean": 0.2033361581920904,
+   "share_of_permitted_actions_with_any_regret": 0.4858757062146893,
    "b_valid": 0.13025210084033614
   },
   "RC-11::positive": {
@@ -305,11 +305,11 @@
    "b_share_of_legal_mean": 0.17899889461497984,
    "advantage_xs_mean": 0.06025609756097562,
    "regret_b_xs_mean": 0.0631178861788618,
-   "per_action_regret_median": 0.01675,
+   "per_action_regret_median": 0.019000000000000017,
    "per_action_regret_p90": 0.906,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.42729878048780484,
-   "share_of_permitted_actions_with_any_regret": 0.6188587383709335,
+   "worst_in_b_regret_mean": 0.42729674796747963,
+   "share_of_permitted_actions_with_any_regret": 0.6214543812104787,
    "b_valid": 0.6104417670682731
   },
   "RC-12::negative": {
@@ -319,11 +319,11 @@
    "b_share_of_legal_mean": 0.1918912345507176,
    "advantage_xs_mean": -0.007134782608695658,
    "regret_b_xs_mean": 0.06988043478260868,
-   "per_action_regret_median": 0.0205,
-   "per_action_regret_p90": 0.913,
+   "per_action_regret_median": 0.02100000000000002,
+   "per_action_regret_p90": 0.8985,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.3648717391304348,
-   "share_of_permitted_actions_with_any_regret": 0.5584183570053136,
+   "worst_in_b_regret_mean": 0.36476086956521736,
+   "share_of_permitted_actions_with_any_regret": 0.5601384002470959,
    "b_valid": 0.42857142857142855
   },
   "RC-12::positive": {
@@ -336,8 +336,8 @@
    "per_action_regret_median": 0.0,
    "per_action_regret_p90": 1.0,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.25480104712041884,
-   "share_of_permitted_actions_with_any_regret": 0.2543118167463717,
+   "worst_in_b_regret_mean": 0.2535398936170213,
+   "share_of_permitted_actions_with_any_regret": 0.25742224678394887,
    "b_valid": 0.46184738955823296
   },
   "RC-13::negative": {
@@ -348,10 +348,10 @@
    "advantage_xs_mean": -0.22052200000000005,
    "regret_b_xs_mean": 0.22052200000000005,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.9911000000000003,
+   "per_action_regret_p90": 1.0,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.232776,
-   "share_of_permitted_actions_with_any_regret": 0.30856324786324785,
+   "worst_in_b_regret_mean": 0.229002,
+   "share_of_permitted_actions_with_any_regret": 0.362,
    "b_valid": 0.0
   },
   "RC-13::positive": {
@@ -364,8 +364,8 @@
    "per_action_regret_median": 0.0,
    "per_action_regret_p90": 0.5,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.13296268656716417,
-   "share_of_permitted_actions_with_any_regret": 0.18034825870646767,
+   "worst_in_b_regret_mean": 0.09563432835820895,
+   "share_of_permitted_actions_with_any_regret": 0.19154228855721395,
    "b_valid": 0.029850746268656716
   },
   "RC-14::negative": {
@@ -376,10 +376,10 @@
    "advantage_xs_mean": 0.012592000000000006,
    "regret_b_xs_mean": 0.12036000000000001,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.5252,
+   "per_action_regret_p90": 0.50925,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.167682,
-   "share_of_permitted_actions_with_any_regret": 0.4305555555555555,
+   "worst_in_b_regret_mean": 0.15198599999999998,
+   "share_of_permitted_actions_with_any_regret": 0.42133333333333334,
    "b_valid": 0.512
   },
   "RC-14::positive": {
@@ -390,10 +390,10 @@
    "advantage_xs_mean": 0.11044166666666667,
    "regret_b_xs_mean": 0.05980833333333334,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 1.0,
+   "per_action_regret_p90": 0.18470000000000136,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.13565624999999998,
-   "share_of_permitted_actions_with_any_regret": 0.2426297549343215,
+   "worst_in_b_regret_mean": 0.07900625,
+   "share_of_permitted_actions_with_any_regret": 0.1986111111111111,
    "b_valid": 0.625
   },
   "RC-18::negative": {
@@ -403,11 +403,11 @@
    "b_share_of_legal_mean": 0.04884195270557268,
    "advantage_xs_mean": -0.11677500000000005,
    "regret_b_xs_mean": 0.13481388888888893,
-   "per_action_regret_median": 0.014,
-   "per_action_regret_p90": 0.5115,
+   "per_action_regret_median": 0.001,
+   "per_action_regret_p90": 0.5267000000000001,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.22541145833333334,
-   "share_of_permitted_actions_with_any_regret": 0.5237638663419913,
+   "worst_in_b_regret_mean": 0.18394166666666664,
+   "share_of_permitted_actions_with_any_regret": 0.5069444444444444,
    "b_valid": 0.14345991561181434
   },
   "RC-18::positive": {
@@ -418,10 +418,10 @@
    "advantage_xs_mean": 0.0898568548387097,
    "regret_b_xs_mean": 0.06208467741935483,
    "per_action_regret_median": 0.0695,
-   "per_action_regret_p90": 0.8949999999999997,
+   "per_action_regret_p90": 0.8974000000000002,
    "per_action_regret_max": 1.0,
    "worst_in_b_regret_mean": 0.4479032258064516,
-   "share_of_permitted_actions_with_any_regret": 0.6528865847414235,
+   "share_of_permitted_actions_with_any_regret": 0.653390616999488,
    "b_valid": 0.6330645161290323
   },
   "RC-20::negative": {
@@ -431,11 +431,11 @@
    "b_share_of_legal_mean": 0.15876558056799164,
    "advantage_xs_mean": -0.0592733644859813,
    "regret_b_xs_mean": 0.1010841121495327,
-   "per_action_regret_median": 0.11249999999999996,
-   "per_action_regret_p90": 0.866,
+   "per_action_regret_median": 0.11650000000000005,
+   "per_action_regret_p90": 0.872,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.4376169724770642,
-   "share_of_permitted_actions_with_any_regret": 0.6487812518775822,
+   "worst_in_b_regret_mean": 0.43880140186915884,
+   "share_of_permitted_actions_with_any_regret": 0.6603721564001939,
    "b_valid": 0.2966101694915254
   },
   "RC-20::positive": {
@@ -445,11 +445,11 @@
    "b_share_of_legal_mean": 0.09504662974654497,
    "advantage_xs_mean": -0.09703902439024387,
    "regret_b_xs_mean": 0.12281219512195121,
-   "per_action_regret_median": 0.016750000000000008,
-   "per_action_regret_p90": 0.9982000000000001,
+   "per_action_regret_median": 0.01775000000000001,
+   "per_action_regret_p90": 0.9995,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.3976571428571428,
-   "share_of_permitted_actions_with_any_regret": 0.5563401016972446,
+   "worst_in_b_regret_mean": 0.3862146341463415,
+   "share_of_permitted_actions_with_any_regret": 0.5511426107767571,
    "b_valid": 0.2248995983935743
   },
   "RC-21::negative": {
@@ -460,10 +460,10 @@
    "advantage_xs_mean": -0.170048,
    "regret_b_xs_mean": 0.171892,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.8835,
+   "per_action_regret_p90": 0.8822000000000002,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.182294,
-   "share_of_permitted_actions_with_any_regret": 0.38401904761904765,
+   "worst_in_b_regret_mean": 0.176286,
+   "share_of_permitted_actions_with_any_regret": 0.386,
    "b_valid": 0.088
   },
   "RC-21::positive": {
@@ -474,10 +474,10 @@
    "advantage_xs_mean": -0.12544,
    "regret_b_xs_mean": 0.13276000000000002,
    "per_action_regret_median": 0.0,
-   "per_action_regret_p90": 0.5093,
+   "per_action_regret_p90": 0.6318999999999985,
    "per_action_regret_max": 1.0,
-   "worst_in_b_regret_mean": 0.16505,
-   "share_of_permitted_actions_with_any_regret": 0.3387777777777778,
+   "worst_in_b_regret_mean": 0.161048,
+   "share_of_permitted_actions_with_any_regret": 0.341,
    "b_valid": 0.172
   }
  },
@@ -1099,46 +1099,46 @@
    "n": 247,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 0,
    "false_alarm_rate": 0.0,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 135,
-   "false_comfort_rate": 0.5465587044534413,
-   "false_comfort_worst_regret_mean": 0.9401444444444444,
-   "agree": 112
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 134,
+   "false_comfort_rate": 0.5425101214574899,
+   "false_comfort_worst_regret_mean": 0.9394029850746268,
+   "agree": 113
   },
   "RC-01::negative": {
    "n": 250,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 61,
    "false_alarm_rate": 0.244,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 4,
-   "false_comfort_rate": 0.016,
-   "false_comfort_worst_regret_mean": 0.75875,
-   "agree": 185
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 3,
+   "false_comfort_rate": 0.012,
+   "false_comfort_worst_regret_mean": 0.6785,
+   "agree": 186
   },
   "RC-01::positive": {
    "n": 249,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 37,
    "false_alarm_rate": 0.14859437751004015,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 19,
-   "false_comfort_rate": 0.07630522088353414,
-   "false_comfort_worst_regret_mean": 0.6384473684210527,
-   "agree": 193
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 14,
+   "false_comfort_rate": 0.05622489959839357,
+   "false_comfort_worst_regret_mean": 0.5335714285714286,
+   "agree": 198
   },
   "RC-02::negative": {
    "n": 245,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 64,
    "false_alarm_rate": 0.2612244897959184,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 14,
-   "false_comfort_rate": 0.05714285714285714,
-   "false_comfort_worst_regret_mean": 0.6957142857142857,
-   "agree": 167
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 9,
+   "false_comfort_rate": 0.036734693877551024,
+   "false_comfort_worst_regret_mean": 0.7300555555555556,
+   "agree": 172
   },
   "RC-02::positive": {
    "n": 247,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 38,
    "false_alarm_rate": 0.15384615384615385,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 40,
-   "false_comfort_rate": 0.16194331983805668,
-   "false_comfort_worst_regret_mean": 0.6064375,
-   "agree": 169
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 36,
+   "false_comfort_rate": 0.145748987854251,
+   "false_comfort_worst_regret_mean": 0.588375,
+   "agree": 173
   },
   "RC-03::negative": {
    "n": 250,
@@ -1180,19 +1180,19 @@
    "n": 306,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 187,
    "false_alarm_rate": 0.6111111111111112,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 6,
-   "false_comfort_rate": 0.0196078431372549,
-   "false_comfort_worst_regret_mean": 0.66525,
-   "agree": 113
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 119
   },
   "RC-05::positive": {
    "n": 313,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 134,
    "false_alarm_rate": 0.4281150159744409,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 18,
-   "false_comfort_rate": 0.05750798722044728,
-   "false_comfort_worst_regret_mean": 0.7721111111111111,
-   "agree": 161
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 179
   },
   "RC-06::negative": {
    "n": 208,
@@ -1218,17 +1218,17 @@
    "false_alarm_rate": 0.33183856502242154,
    "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 57,
    "false_comfort_rate": 0.2556053811659193,
-   "false_comfort_worst_regret_mean": 0.5911052631578947,
+   "false_comfort_worst_regret_mean": 0.5919912280701753,
    "agree": 92
   },
   "RC-07::positive": {
    "n": 245,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 29,
    "false_alarm_rate": 0.11836734693877551,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 87,
-   "false_comfort_rate": 0.3551020408163265,
-   "false_comfort_worst_regret_mean": 0.6883620689655173,
-   "agree": 129
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 86,
+   "false_comfort_rate": 0.3510204081632653,
+   "false_comfort_worst_regret_mean": 0.6788662790697675,
+   "agree": 130
   },
   "RC-08::negative": {
    "n": 221,
@@ -1236,17 +1236,17 @@
    "false_alarm_rate": 0.3665158371040724,
    "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 44,
    "false_comfort_rate": 0.19909502262443438,
-   "false_comfort_worst_regret_mean": 0.6547613636363636,
+   "false_comfort_worst_regret_mean": 0.6527613636363636,
    "agree": 96
   },
   "RC-08::positive": {
    "n": 246,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 48,
    "false_alarm_rate": 0.1951219512195122,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 81,
-   "false_comfort_rate": 0.32926829268292684,
-   "false_comfort_worst_regret_mean": 0.7151111111111111,
-   "agree": 117
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 80,
+   "false_comfort_rate": 0.3252032520325203,
+   "false_comfort_worst_regret_mean": 0.71780625,
+   "agree": 118
   },
   "RC-09::negative": {
    "n": 233,
@@ -1263,17 +1263,17 @@
    "false_alarm_rate": 0.21862348178137653,
    "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 78,
    "false_comfort_rate": 0.3157894736842105,
-   "false_comfort_worst_regret_mean": 0.6749487179487179,
+   "false_comfort_worst_regret_mean": 0.6607820512820513,
    "agree": 115
   },
   "RC-11::negative": {
    "n": 177,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 77,
    "false_alarm_rate": 0.4350282485875706,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 9,
-   "false_comfort_rate": 0.05084745762711865,
-   "false_comfort_worst_regret_mean": 0.4959444444444444,
-   "agree": 91
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 6,
+   "false_comfort_rate": 0.03389830508474576,
+   "false_comfort_worst_regret_mean": 0.46308333333333335,
+   "agree": 94
   },
   "RC-11::positive": {
    "n": 246,
@@ -1281,7 +1281,7 @@
    "false_alarm_rate": 0.18699186991869918,
    "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 93,
    "false_comfort_rate": 0.3780487804878049,
-   "false_comfort_worst_regret_mean": 0.6688064516129032,
+   "false_comfort_worst_regret_mean": 0.6688010752688173,
    "agree": 107
   },
   "RC-12::negative": {
@@ -1290,17 +1290,17 @@
    "false_alarm_rate": 0.3130434782608696,
    "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 59,
    "false_comfort_rate": 0.2565217391304348,
-   "false_comfort_worst_regret_mean": 0.6523135593220339,
+   "false_comfort_worst_regret_mean": 0.6531694915254237,
    "agree": 99
   },
   "RC-12::positive": {
    "n": 188,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 59,
    "false_alarm_rate": 0.31382978723404253,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 43,
-   "false_comfort_rate": 0.22872340425531915,
-   "false_comfort_worst_regret_mean": 0.7679069767441861,
-   "agree": 86
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 42,
+   "false_comfort_rate": 0.22340425531914893,
+   "false_comfort_worst_regret_mean": 0.7623809523809525,
+   "agree": 87
   },
   "RC-13::negative": {
    "n": 250,
@@ -1324,28 +1324,28 @@
    "n": 250,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 47,
    "false_alarm_rate": 0.188,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 12,
-   "false_comfort_rate": 0.048,
-   "false_comfort_worst_regret_mean": 0.5711666666666667,
-   "agree": 191
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 7,
+   "false_comfort_rate": 0.028,
+   "false_comfort_worst_regret_mean": 0.55,
+   "agree": 196
   },
   "RC-14::positive": {
    "n": 240,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 65,
    "false_alarm_rate": 0.2708333333333333,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 20,
-   "false_comfort_rate": 0.08333333333333333,
-   "false_comfort_worst_regret_mean": 0.711325,
-   "agree": 155
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 7,
+   "false_comfort_rate": 0.029166666666666667,
+   "false_comfort_worst_regret_mean": 0.5329285714285714,
+   "agree": 168
   },
   "RC-18::negative": {
    "n": 180,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 71,
    "false_alarm_rate": 0.39444444444444443,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 11,
-   "false_comfort_rate": 0.06111111111111111,
-   "false_comfort_worst_regret_mean": 0.6311818181818182,
-   "agree": 98
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 6,
+   "false_comfort_rate": 0.03333333333333333,
+   "false_comfort_worst_regret_mean": 0.6251666666666666,
+   "agree": 103
   },
   "RC-18::positive": {
    "n": 248,
@@ -1360,19 +1360,19 @@
    "n": 214,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 58,
    "false_alarm_rate": 0.27102803738317754,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 49,
-   "false_comfort_rate": 0.22897196261682243,
-   "false_comfort_worst_regret_mean": 0.6368877551020408,
-   "agree": 107
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 47,
+   "false_comfort_rate": 0.21962616822429906,
+   "false_comfort_worst_regret_mean": 0.6424574468085106,
+   "agree": 109
   },
   "RC-20::positive": {
    "n": 205,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 80,
    "false_alarm_rate": 0.3902439024390244,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 25,
-   "false_comfort_rate": 0.12195121951219512,
-   "false_comfort_worst_regret_mean": 0.7317400000000001,
-   "agree": 100
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 23,
+   "false_comfort_rate": 0.11219512195121951,
+   "false_comfort_worst_regret_mean": 0.7603695652173914,
+   "agree": 102
   },
   "RC-21::negative": {
    "n": 250,
@@ -1387,10 +1387,10 @@
    "n": 250,
    "false_alarm_argmax_outside_B_but_obeying_is_free": 133,
    "false_alarm_rate": 0.532,
-   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 9,
-   "false_comfort_rate": 0.036,
-   "false_comfort_worst_regret_mean": 0.7217222222222222,
-   "agree": 108
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 8,
+   "false_comfort_rate": 0.032,
+   "false_comfort_worst_regret_mean": 0.7494375,
+   "agree": 109
   }
  },
  "5_item_bank": {

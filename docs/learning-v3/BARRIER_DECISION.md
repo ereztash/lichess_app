@@ -55,21 +55,30 @@ anything?
 | **expected score** | | |
 | median regret | 0.0000 | **0.0000** |
 | p90 regret | 0.0000 | **0.0000** |
-| share costing nothing | .982 | **.926** |
-| share costing ≥ 0.10 | .000 | **.054** |
-| **centipawns** | | |
-| median regret | 0 | **2** |
-| p75 | 0 | **66** |
-| p90 | 1 | **360** |
-| **share losing ≥ 100 cp** | **.041** | **.203** |
+| share costing nothing | .969 | **.912** |
+| share costing ≥ 0.10 | .005 | **.054** |
+| **centipawns**, on the third of items where cp means anything | | |
+| items scorable in cp | 62 | 69 |
+| median regret | 37 | **37** |
+| p75 | 80 | **98** |
+| p90 | 169 | **178** |
+| **share losing ≥ 100 cp** | **.210** | **.232** |
 
-### The two scales say different things and both are true
+> **The centipawn half of this table was wrong in the first version of this file, and the correction
+> makes the verdict stronger rather than weaker.** It read `.041` against `.203` and said *"in
+> material, declining is a real error — five times the rate among those who followed"*. That was an
+> artefact of a mate-score guard written as `abs(cp) >= MATE_SCORE`, which never fires:
+> python-chess returns `mate_score - n` for a mate in n, so mate encodings walked into the
+> centipawn quantiles. **239 of 370 items have a mate on one side** — they are promotion positions
+> — so cp is meaningful on barely a third of them, and on that third the two groups sit within .022
+> of each other. Found by chasing a review bot's finding about cache scoping. See
+> `ADVERSARIAL_PASS.md` A-9.
 
-**In material, declining is a real error.** A fifth of the players who declined lost at least 100
-centipawns — five times the rate among those who followed the rule. The rule has content.
+### Both scales now say the same thing
 
-**In game outcome, declining is almost free.** 92.6% of declines cost nothing at all in expected
-score, and only 5.4% cost 0.10 or more.
+**Declining a safe promotion costs almost nothing, on either scale.** 91.2% of declines cost nothing
+at all in expected score and only 5.4% cost 0.10 or more; on the third of items where centipawns
+mean anything, declining blunders at **.232** against **.210** for following.
 
 **The reconciliation is in the positions.** `V*` on `RC-05`'s trigger-positive cell:
 

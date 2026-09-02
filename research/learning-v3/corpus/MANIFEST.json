@@ -1,8 +1,8 @@
 {
  "version": "1.0.0",
  "what": "every engine evaluation this cycle bought, addressed by content so no future run repeats one",
- "built_at": "2026-09-02T15:03:31Z",
- "build_seconds": 9.5,
+ "built_at": "2026-09-02T15:51:29Z",
+ "build_seconds": 9.6,
  "corpus": {
   "games_seen": 60834,
   "games_used": 60000,
@@ -29,9 +29,9 @@
  ],
  "counts": {
   "items": 9441,
-  "eval_move": 36889,
+  "eval_move": 37226,
   "eval_set": 33369,
-  "cache_hits": 5637
+  "cache_hits": 5300
  },
  "per_class": {
   "RC-00": {
@@ -120,11 +120,41 @@
   "any evaluation under a WDL model other than sf16. The cp column is preserved, so a different mapping is a pure post-processing step and needs no engine"
  ],
  "wall_time_last_line": {},
+ "committed_sha256": {
+  "engine_evaluations.jsonl.zst": "f70ed839858e65f1ac3f0d958834c5e99f3c8c62e74925500b9f08c33d1b4642",
+  "item_bank.jsonl.zst": "366ef1303ffdf12e2993d0332e94acd941a0bb3664ec1cbe39f562b4607a2d17",
+  "sham.jsonl.zst": "57621e3992beaf68adb8da6491a03fd24c03276cbe241f40bef2eaea133c7b35",
+  "twin_bank.jsonl.zst": "eba1a3a473d96b4084c927fa533facb3e7897b2bfc74f6a66a51bc44a9c33921",
+  "twins.jsonl.zst": "8405bbd4a429340e3a3b91873f3a626bf694f2c2d308bb316666ac74d59a492c"
+ },
+ "committed_bytes": {
+  "engine_evaluations.jsonl.zst": 3797953,
+  "item_bank.jsonl.zst": 602944,
+  "sham.jsonl.zst": 23651,
+  "twin_bank.jsonl.zst": 35276,
+  "twins.jsonl.zst": 23682
+ },
+ "uncompressed_sha256": {
+  "engine_evaluations.jsonl": "c04202b7cc55e1d430d1215c3669ada4444552dcd66ce7b3935db797510d5cdd",
+  "item_bank.jsonl": "ae03a07e5a51248e6885aea7fbecfb2ebe5a095303b8914a9b29e440c0f4d925"
+ },
+ "uncompressed_bytes": {
+  "engine_evaluations.jsonl": 37842534,
+  "item_bank.jsonl": 7814679
+ },
+ "uncompressed_lines": {
+  "engine_evaluations.jsonl": 70595,
+  "item_bank.jsonl": 9441
+ },
+ "hash_blocks": {
+  "committed_sha256": "the files in this directory, checked on every `npm run gates` by GATE-RESEARCH-RECONCILED. This is the block that makes the corpus tamper-evident",
+  "uncompressed_sha256": "what was compressed. These files are NOT in the tree -- only the .zst are -- so nothing can check them here; they let a reader who decompresses verify they got the same bytes"
+ },
  "storage": {
   "decision": "committed to git, zstd level 19",
   "why": "the source corpora are deliberately not vendored because they are a download; this is not. It is 54,959 Stockfish searches at 200,000 nodes -- about an hour of four-way CPU -- and under 5 MB is a smaller cost than reproducing it",
   "decompress": "zstd -d research/learning-v3/corpus/engine_evaluations.jsonl.zst",
-  "total_bytes": 4296388
+  "total_bytes": 4483506
  },
  "compute_cost_ledger": {
   "runs": {
@@ -150,17 +180,24 @@
     "records": 580852,
     "engine": "none",
     "wall_clock": "about 8 minutes"
+   },
+   "sf171-rc05-played-move-cost": {
+    "items": 370,
+    "searches": 740,
+    "engine_failures": 0,
+    "wall_clock": "about 5 minutes",
+    "note": "both terms searched in one run; no value reused, see COMPUTE_VALUE_EXTRACTION section 1"
    }
   },
   "totals": {
-   "engine_searches": 54959,
-   "nodes_at_200k_each": 10991800000,
+   "engine_searches": 55699,
+   "nodes_at_200k_each": 11139800000,
    "workers": 4,
-   "evaluations_preserved": 70258,
-   "duplicate_evaluations_skipped": 5637,
-   "duplicate_share": 0.0743,
-   "output_bytes_compressed": 4294619,
-   "searches_per_committed_megabyte": 12797.2
+   "evaluations_preserved": 70595,
+   "duplicate_evaluations_skipped": 5300,
+   "duplicate_share": 0.0698,
+   "output_bytes_compressed": 4483506,
+   "searches_per_committed_megabyte": 12423.1
   },
   "searches_avoided_by_reuse": {
    "count": 2268,
@@ -168,48 +205,20 @@
   },
   "per_run_policy_counts": {
    "sf171-full-corpus::full-width": 7706,
-   "sf171-full-corpus::multipv-over-B": 27432,
+   "sf171-full-corpus::multipv-over-B": 27762,
    "sf171-full-corpus::root-restricted-max": 30067,
    "sf171-rc05-sham-control::full-width": 378,
    "sf171-rc05-sham-control::multipv-over-B": 378,
    "sf171-rc05-sham-control::root-restricted-max": 1456,
    "sf171-rc05-twins::full-width": 505,
-   "sf171-rc05-twins::multipv-over-B": 490,
+   "sf171-rc05-twins::multipv-over-B": 497,
    "sf171-rc05-twins::root-restricted-max": 1846
-  }
+  },
+  "evaluations_unmerged_by_the_root_set_fix": 337
  },
  "known_corpus_properties": [
   "the SAMPLE contains repeated positions. Two games that transpose reach the same board and the scan writes one record per game, so 52 (class, position) pairs appear more than once among the 8,307 items -- one of them eleven times, from 1.e4 e5 2.Nf3, at Elos from 1204 to 1902. Items drawn from one position are not independent observations; `extract.py::natural` deduplicates before any corpus-level table",
-  "47 rows carry `provenance_ambiguous`: the raw row could not be tied to exactly one source game even after keying on Elo and the played move. Every candidate is listed rather than one chosen"
- ],
- "committed_sha256": {
-  "engine_evaluations.jsonl.zst": "e9373269ce1221083a00b39162e3441f982f3a18055e0f62eb4f9fe9878c24ca",
-  "item_bank.jsonl.zst": "bdebf2ebae7d867723a3c379ea702b65237722cd0b16e12dabdd1e9b331040f5",
-  "sham.jsonl.zst": "57621e3992beaf68adb8da6491a03fd24c03276cbe241f40bef2eaea133c7b35",
-  "twin_bank.jsonl.zst": "eba1a3a473d96b4084c927fa533facb3e7897b2bfc74f6a66a51bc44a9c33921",
-  "twins.jsonl.zst": "8405bbd4a429340e3a3b91873f3a626bf694f2c2d308bb316666ac74d59a492c"
- },
- "committed_bytes": {
-  "engine_evaluations.jsonl.zst": 3673803,
-  "item_bank.jsonl.zst": 539976,
-  "sham.jsonl.zst": 23651,
-  "twin_bank.jsonl.zst": 35276,
-  "twins.jsonl.zst": 23682
- },
- "uncompressed_sha256": {
-  "engine_evaluations.jsonl": "f113506dea373e7287f5049c77c5c9d26d68cd314ca36c625df0c2f5acbbfdfc",
-  "item_bank.jsonl": "84be086627efeb5a568e6b606babcaa03f6608d16f439e2684745746d0ebf414"
- },
- "uncompressed_bytes": {
-  "engine_evaluations.jsonl": 35043353,
-  "item_bank.jsonl": 7272402
- },
- "uncompressed_lines": {
-  "engine_evaluations.jsonl": 70258,
-  "item_bank.jsonl": 9441
- },
- "hash_blocks": {
-  "committed_sha256": "the files in this directory, checked on every `npm run gates` by GATE-RESEARCH-RECONCILED. This is the block that makes the corpus tamper-evident",
-  "uncompressed_sha256": "what was compressed. These files are NOT in the tree -- only the .zst are -- so nothing can check them here; they let a reader who decompresses verify they got the same bytes"
- }
+  "47 rows carry `provenance_ambiguous`: the raw row could not be tied to exactly one source game even after keying on Elo and the played move. Every candidate is listed rather than one chosen",
+  "581 positions serve more than one rule class and 269 of those have a different |B| per class, so an evaluation must be scoped by `b_moves` AND by `root_set`. A MultiPV search over B(RC-21) is not one over B(RC-09), and 337 evaluations were merged before the key carried the root set"
+ ]
 }

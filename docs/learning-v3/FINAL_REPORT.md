@@ -80,9 +80,11 @@ declining costs >= 0.10 expected score             5.4%
 a decision worth changing, per position            ~4.7e-5
 ```
 
-Of the 148 real players who declined a safe promotion, **92.6% lost nothing at all** in expected
-score. In centipawns it is a real error — **20.3% lost ≥ 100 cp** against 4.1% of those who
-followed — but **83% of these positions are already won**, so material lost is rarely a game lost.
+Of the 148 real players who declined a safe promotion, **91.2% lost nothing at all** in expected
+score. On the third of items where centipawns mean anything — 239 of 370 have a mate on one side —
+declining blunders at **.232** against **.210** for following. **83% of these positions are already
+won.** (An earlier draft read .203 against .041 and called it *"a real error in material"*; that was
+a mate-score guard that never fired, corrected in `ADVERSARIAL_PASS.md` A-9.)
 
 **A frozen falsifier fired.** `F-E5-c`, written before the repository was read and marked as one of
 only three executable without participants, on evidence gathered after it was frozen.
@@ -150,7 +152,7 @@ register was written for.
 declaration-only scanner would pass.
 
 **Everything else is research and documents:** eight Python instruments under
-`research/learning-v3/`, a content-addressed corpus of **70,258 evaluations** (4.3 MB, re-hashed by
+`research/learning-v3/`, a content-addressed corpus of **70,595 evaluations** (4.5 MB, re-hashed by
 `GATE-RESEARCH-RECONCILED` on every gate run), and thirteen documents under `docs/learning-v3/`.
 
 **No production behaviour changed. No flag flipped. No surface added. No research history rewritten.**
