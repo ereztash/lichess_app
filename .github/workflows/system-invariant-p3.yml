@@ -19,4 +19,6 @@ jobs:
       - name: Install analysis-only dependencies
         run: python -m pip install --quiet python-chess==1.999 zstandard pandas scikit-learn
       - name: Run frozen P3 cross-rule system-invariant experiment
+        env:
+          PYTHONPATH: research/measurement
         run: python research/learning-v3/p3_system_invariant.py
