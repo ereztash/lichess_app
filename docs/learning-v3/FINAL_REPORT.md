@@ -180,7 +180,12 @@ build clean · bundle within budget · both inverted controls fail as required.
 ## 13. Before any claim of learning is allowed
 
 * **Level 3 or above** on the outcome hierarchy: the player detects `X` without a rule-specific cue
-  and chooses `Y`. Nothing here reached Level 2.
+  and chooses `Y`, **in an ordinary game**. Nothing in *this* cycle reached Level 2 — it recruited
+  nobody. `HUMAN_CUE_N1_RESULT.md`, added to this branch after this report was written, reaches
+  Level 2 on a **presented item bank** for **one** participant: the cue was withheld at test, but
+  the positions were handed to them, which is L2 on the ecological ladder and not the L5 target. Its
+  own list of what it does not establish names transfer to ordinary games and natural trigger
+  recognition under time pressure, so the requirement above is unchanged.
 * **The trigger-negative term reported beside it.** A rise in both is `CRITERION_SHIFT`.
 * **A non-saturated noise cell.** Under a saturated one the two hypotheses are observationally
   equivalent to a classifier handed the truth — 0.500, re-derived in this cycle and matching the
@@ -188,6 +193,24 @@ build clean · bundle within budget · both inverted controls fail as required.
 * **`mayPrescribe` at `tested`**, which requires a forward test that could have come back negative.
 * **A fix for `finishLearningTransfer`**, which currently scores rule use as engine agreement.
   Unreachable today because the flag is off; a blocker the moment it is not.
+
+---
+
+## What arrived on this branch after this report was written
+
+`P3-PASS` (`SYSTEM_INVARIANT_P3_RESULT.md`) and `P4-N1-PASS` (`HUMAN_CUE_N1_RESULT.md`) are
+`ereztash`'s, not this cycle's, and they are noted here rather than folded in because a report that
+absorbed somebody else's result would erase who measured what.
+
+**They do not change this report's outcome.** `INSUFFICIENT_OPPORTUNITIES` is about `RC-05`'s
+opportunity rate in ordinary play; P4 is an offline item bank on `RC-07/08/09` with the positions
+supplied. Its own closing question is the one this report reaches by a different route:
+
+> *"After the cue is no longer shown, does the participant use it appropriately when matching
+> situations arise naturally in ordinary games?"*
+
+**What they do change is §6 of `BASELINE.md`.** *"Field evidence: zero"* was true of `main` at
+`c848f244` and is not true of this branch. The snapshot is kept and annotated rather than rewritten.
 
 ---
 

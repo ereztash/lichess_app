@@ -132,6 +132,8 @@ today the product is entirely the first kind.
 
 ## 6. Field evidence count
 
+**Zero, at `c848f244` — and no longer true on this branch.** See the note below the table.
+
 **Zero.** Not approximately zero.
 
 | statement | source |
@@ -141,6 +143,13 @@ today the product is entirely the first kind.
 | *"Zero participants remains the correct cost."* | `D25:132` |
 | *"zero participants are the correct cost until Gate A and Gate B are finished"* | `docs/learning-v2/EXPERIMENT.md:244` |
 | *"no human has adjudicated a single item"* | `docs/measurement/FALSIFICATION_REGISTER.md:343`, `OT-5` |
+
+> **Superseded on this branch, and the snapshot is kept rather than edited.** Every row above was
+> true of `main` at `c848f244`, which is what this file records and why it is not rewritten. Since
+> then `docs/learning-v3/HUMAN_CUE_N1_RESULT.md` reports **one participant** measured in an N-of-1
+> pilot on a locked item bank — `P4-N1-PASS`, baseline 9/12, unseen test 12/12. That document is the
+> authority for what it establishes and for the eight things it lists as not established, among them
+> population efficacy, causality against a randomized control, and transfer to ordinary games.
 
 No telemetry, no analytics, no recruited cohort, no production record store with player rows. Every
 number in `docs/measurement/` and `docs/evidence-architecture/` is engine-and-corpus, not person.
