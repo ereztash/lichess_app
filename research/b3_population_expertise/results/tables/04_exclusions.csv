@@ -37,3 +37,41 @@ validation,decision,forced (one legal move),699
 validation,decision,over the per-side decision cap,125
 validation,decision,impossible think time,11
 validation,kept,decisions analysed,74450
+final,game,time control,2412758
+final,game,termination: Abandoned,2026
+final,game,neither side in the studied rating range,2737
+final,game,not rated (no RatingDiff),1592
+final,game,rating out of sanity range,450
+final,game,shorter than 20 plies,97
+final,game,bot,415
+final,game,berserk or impossible starting clock,62
+final,game,termination: Insufficient material,52
+final,game,second side of the same game (one analysed side per game),8
+final,game,termination: Rules infraction,6
+final,game,over the per-player game cap,11
+final,game,account closed or tosViolation at the lookup date,74
+final,decision,no derivable think time (player's first move),2447
+final,decision,last ply of the game,1190
+final,decision,over the per-side decision cap,140
+final,decision,forced (one legal move),845
+final,kept,decisions analysed,81624
+secondary,game,time control,2589766
+secondary,game,termination: Abandoned,1153
+secondary,game,not rated (no RatingDiff),1686
+secondary,game,bot,273
+secondary,game,neither side in the studied rating range,3886
+secondary,game,termination: Insufficient material,57
+secondary,game,rating out of sanity range,1388
+secondary,game,berserk or impossible starting clock,50
+secondary,game,shorter than 20 plies,47
+secondary,game,second side of the same game (one analysed side per game),12
+secondary,game,termination: Rules infraction,6
+secondary,game,clock trace does not match the movetext,1
+secondary,game,over the per-player game cap,119
+secondary,game,account closed or tosViolation at the lookup date,40
+secondary,decision,no derivable think time (player's first move),1404
+secondary,decision,last ply of the game,683
+secondary,decision,forced (one legal move),399
+secondary,decision,over the per-side decision cap,101
+secondary,decision,impossible think time,1
+secondary,kept,decisions analysed,46647
