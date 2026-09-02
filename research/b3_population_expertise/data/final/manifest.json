@@ -1,0 +1,133 @@
+{
+ "period": "final",
+ "month": "2026-06",
+ "window_utc_date": "2026.06.01",
+ "time_control": "180+0",
+ "source_url": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-06.pgn.zst",
+ "prefix_bytes_consumed": 970610375,
+ "prefix_sha256": "3bfc59335d58ceebfb4b8d082c0a03db1552fb0f7fbe7d050cfdbbe08f3e2561",
+ "max_bytes_requested": 1258291200,
+ "seed": 20260901,
+ "account_status_lookup_date": "2026-09-02T02:09:03Z",
+ "account_status_checked": true,
+ "account_exclusions": {
+  "closed_or_tos": 74,
+  "unknown_to_endpoint": 0
+ },
+ "account_closed_by_band": {
+  "800-999": 6,
+  "1400-1599": 3,
+  "2200-2399": 15,
+  "2400-2599": 11,
+  "2000-2199": 11,
+  "1600-1799": 8,
+  "1800-1999": 3,
+  "1200-1399": 13,
+  "1000-1199": 4
+ },
+ "account_unknown_by_band": {},
+ "account_checked_sides_by_band": {
+  "800-999": 271,
+  "1200-1399": 320,
+  "1000-1199": 284,
+  "1600-1799": 314,
+  "1400-1599": 324,
+  "2400-2599": 254,
+  "1800-1999": 270,
+  "2200-2399": 239,
+  "2000-2199": 245
+ },
+ "account_closed_rate_by_band": {
+  "800-999": 0.02214,
+  "1200-1399": 0.04063,
+  "1000-1199": 0.01408,
+  "1600-1799": 0.02548,
+  "1400-1599": 0.00926,
+  "2400-2599": 0.04331,
+  "1800-1999": 0.01111,
+  "2200-2399": 0.06276,
+  "2000-2199": 0.0449
+ },
+ "acceptance_rates": {
+  "1000-1199": 0.004999,
+  "1200-1399": 0.002809,
+  "1400-1599": 0.001756,
+  "1600-1799": 0.001305,
+  "1800-1999": 0.001241,
+  "2000-2199": 0.001897,
+  "2200-2399": 0.004621,
+  "2400-2599": 0.0153,
+  "800-999": 0.011649
+ },
+ "games_per_player_cap": 2,
+ "max_decisions_per_side": 60,
+ "engine": {
+  "binary": "stockfish-17.1-avx2",
+  "nodes": 60000,
+  "multipv": 4,
+  "threads": 1,
+  "hash_mb": 32,
+  "clear_hash_between_positions": true
+ },
+ "games_in_window": 2966208,
+ "candidate_sides_by_band": {
+  "1400-1599": 184136,
+  "1600-1799": 241781,
+  "1000-1199": 64519,
+  "1800-1999": 235079,
+  "1200-1399": 119519,
+  "2200-2399": 55915,
+  "2400-2599": 17370,
+  "2000-2199": 143564,
+  "800-999": 26527
+ },
+ "game_exclusions": {
+  "time control": 2412758,
+  "termination: Abandoned": 2026,
+  "neither side in the studied rating range": 2737,
+  "not rated (no RatingDiff)": 1592,
+  "rating out of sanity range": 450,
+  "shorter than 20 plies": 97,
+  "bot": 415,
+  "berserk or impossible starting clock": 62,
+  "termination: Insufficient material": 52,
+  "second side of the same game (one analysed side per game)": 8,
+  "termination: Rules infraction": 6,
+  "over the per-player game cap": 11,
+  "account closed or tosViolation at the lookup date": 74
+ },
+ "decision_exclusions": {
+  "no derivable think time (player's first move)": 2447,
+  "last ply of the game": 1190,
+  "over the per-side decision cap": 140,
+  "forced (one legal move)": 845
+ },
+ "sampled_sides": 2447,
+ "players": 2331,
+ "games": 2447,
+ "decisions": 81624,
+ "decisions_by_band": {
+  "1000-1199": 8463,
+  "1200-1399": 9650,
+  "1400-1599": 10636,
+  "1600-1799": 10382,
+  "1800-1999": 9027,
+  "2000-2199": 8591,
+  "2200-2399": 8450,
+  "2400-2599": 8871,
+  "800-999": 7554
+ },
+ "players_by_band": {
+  "1000-1199": 272,
+  "1200-1399": 301,
+  "1400-1599": 313,
+  "1600-1799": 301,
+  "1800-1999": 256,
+  "2000-2199": 226,
+  "2200-2399": 217,
+  "2400-2599": 206,
+  "800-999": 248
+ },
+ "ingest_seconds": 67.3,
+ "scoring_seconds": 2623.8
+}
