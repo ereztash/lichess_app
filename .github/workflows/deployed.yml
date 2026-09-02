@@ -1,0 +1,94 @@
+name: Deployed
+
+# THE RUNG BELOW THIS ONE ENDS AT THE BUILT ASSETS. `verify` proves source -> build -> Chromium and
+# stops, because at the moment it runs there is nothing deployed to check: the deployment is a
+# consequence of the merge it is gating. So the L6 checks live here instead of there, and they run
+# when there IS an origin:
+#
+#   deployment_status  Vercel finishes a deployment and says where it is and which commit it came
+#                      from. This is the one that makes the checks STANDING rather than occasional:
+#                      every deployment is checked, automatically, against the SHA it claims.
+#   schedule           once a day against production, because a deployment can stop being correct
+#                      without anybody deploying -- an expired certificate, a changed alias, an
+#                      edge config someone edited in a dashboard.
+#   workflow_dispatch  for a one-off run against a preview.
+#
+# IT DOES NOT GATE MERGES, and that is deliberate rather than lenient. A required check that cannot
+# run until after the merge is a required check that blocks every pull request forever.
+
+on:
+  deployment_status:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: "Origin to check (defaults to production)"
+        required: false
+        default: "https://lichessapp.vercel.app"
+
+jobs:
+  l6:
+    # `deployment_status` fires for every state Vercel reports, for previews as well as production.
+    #
+    # ONLY PRODUCTION IS CHECKED AUTOMATICALLY, and the first run of this workflow is why. It fired
+    # for a preview, whose deployment protection answers every path with a 302 to an SSO login, and
+    # the suite spent five seconds proving that Vercel's login page is not this application. A
+    # preview can be checked by hand through `workflow_dispatch` once somebody supplies an origin
+    # that is actually reachable; it cannot be checked automatically without a bypass token, and a
+    # job that needs a secret nobody has set is a job that reports red forever.
+    if: >-
+      github.event_name != 'deployment_status' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment_status.environment == 'production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Name the origin and the commit it should be serving
+        id: target
+        run: |
+          set -e
+          if [ "${{ github.event_name }}" = "deployment_status" ]; then
+            echo "origin=${{ github.event.deployment_status.environment_url }}" >> "$GITHUB_OUTPUT"
+            echo "sha=${{ github.event.deployment.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "origin=${{ github.event.inputs.origin || 'https://lichessapp.vercel.app' }}" >> "$GITHUB_OUTPUT"
+            # No expected SHA on a scheduled run: production is whatever was last deployed, and
+            # asserting this checkout's HEAD against it would fail every day that main moved.
+            # The suite says so rather than passing quietly -- the claim is the weaker one.
+            echo "sha=" >> "$GITHUB_OUTPUT"
+          fi
+
+      # THE CONTROL FIRST, so a suite that has stopped checking anything cannot report green on the
+      # real origin. Same predicates, pointed at an origin known not to be this application; it MUST
+      # fail. `!` inverts the exit code, exactly as `gates:controls` inverts its own.
+      - name: L6 positive control (the same predicates against a wrong origin must go red)
+        run: |
+          if npx vitest run --config vitest.controls.config.ts \
+               tests/fixtures/controls/deployed-origin.control.test.ts; then
+            echo "::error::the L6 predicates PASSED against example.com. They are not checking this application."
+            exit 1
+          fi
+          echo "control went red, as required"
+
+      - name: L6 against the deployed origin
+        env:
+          DEPLOYED_ORIGIN: ${{ steps.target.outputs.origin }}
+          DEPLOYED_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -e
+          # A skip here is a failure of this workflow, not a licence: the whole point of the job is
+          # that DEPLOYED_ORIGIN is set. Empty means the event did not carry an origin.
+          if [ -z "$DEPLOYED_ORIGIN" ]; then
+            echo "::error::no origin to check -- the event carried none and no default applied"
+            exit 1
+          fi
+          echo "checking $DEPLOYED_ORIGIN ${DEPLOYED_SHA:+for $DEPLOYED_SHA}"
+          npx vitest run tests/deployment/

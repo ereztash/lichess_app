@@ -1,0 +1,34 @@
+name: Verify (fixture)
+
+on: [workflow_dispatch]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: echo fixture
+      - name: Audit the dependencies this build ships
+        run: echo fixture
+      - name: Install Chromium for the layout tests
+        run: echo fixture
+      - name: Typecheck
+        run: echo fixture
+      - name: Typecheck positive control (must fail)
+        run: echo fixture
+      - name: Build the database schema
+        run: echo fixture
+      - name: Build
+        run: echo fixture
+      - name: Test
+        run: echo fixture
+      - name: Gates
+        run: echo fixture
+      - name: Gate positive controls (each must go red)
+        run: echo fixture
+      - name: Bundle budget
+        run: echo fixture
+      - name: Bundle budget positive control (must fail)
+        run: echo fixture
+      - name: Publish the release notes
+        run: echo a blocking step nobody classified

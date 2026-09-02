@@ -58,5 +58,7 @@
  "amended_at": "2026-09-02T00:46:57Z",
  "amendments": "results/POST_FREEZE_AMENDMENTS.md -- four repairs to how destructive controls are computed, plus C7b. No estimand, outcome, exclusion, band, threshold or model family changed. Audited at FABLE GATE 2.",
  "amended_commit": "e70a0de",
- "commit_note": "Corrected at Gate 2. The earlier values were the PARENT commits: the hash was taken inside the working tree before the commit that carried it, so `git rev-parse HEAD` returned the commit before. 8141c5b is the freeze commit; e70a0de is the commit carrying the amendments."
+ "commit_note": "Corrected at Gate 2. The earlier values were the PARENT commits: the hash was taken inside the working tree before the commit that carried it, so `git rev-parse HEAD` returned the commit before. 8141c5b is the freeze commit; e70a0de is the commit carrying the amendments.",
+ "amended_sha256_superseded_by": "results/FINAL_HOLDOUT_SEALED.json document_sha256",
+ "supersession_note": "The amended block is a snapshot taken at 2026-09-02T00:46:57Z. FABLE GATE 2 then required a change to DATA_PROTOCOL.md -- the diff is labelled 'Fixed at Gate 2' and says 'it changes no verdict': a reporting rule with a judgement call inside it was made unconditional -- and the document was edited at 02:07:45Z in commit da15833, which carried this file unchanged. FINAL_HOLDOUT_SEALED.json, written at 02:08:13Z, records the post-edit hash of all five documents and is the CURRENT record of what the seal was taken over. Not one value above is modified: an amendment is only auditable beside what it amended. Recorded as X-02 in docs/consolidation-research/CONTRADICTIONS.md. GATE-RESEARCH-RECONCILED checks the successor on every run and refuses a supersession that names no successor."
 }

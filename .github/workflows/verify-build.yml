@@ -86,6 +86,16 @@ jobs:
         run: npx playwright install --with-deps chromium || npx playwright install chromium
       - name: Typecheck
         run: npm run check
+      # THE SAME COMPILER OVER A FILE THAT MUST NOT COMPILE. A green typecheck and a typecheck that
+      # is not running look identical from outside, which is the one thing `RNL-04` exists to make
+      # impossible. `!` inverts the exit, exactly as the gate controls invert theirs.
+      - name: Typecheck positive control (must fail)
+        run: |
+          if npm run check:control; then
+            echo "::error::the typecheck PASSED over a file with a type error. It is not running."
+            exit 1
+          fi
+          echo "control went red, as required"
       # Schema from the generated SQL, not from a hand-written file that can drift from schema.ts.
       # `--> statement-breakpoint` is drizzle-kit's separator and is not SQL.
       #
@@ -126,3 +136,12 @@ jobs:
       # warning nobody can fail becomes. This one fails.
       - name: Bundle budget
         run: npm run bundle:budget
+      # G-02's named gap. The same script over a fixture whose entry chunk is a kilobyte over the
+      # ratchet and whose index.html eagerly preloads the engine: it must catch both.
+      - name: Bundle budget positive control (must fail)
+        run: |
+          if npm run bundle:budget:control; then
+            echo "::error::the bundle budget PASSED over an oversized fixture. It is not measuring."
+            exit 1
+          fi
+          echo "control went red, as required"

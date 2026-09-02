@@ -36,6 +36,9 @@ import {
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
 import { findRegisterDrift } from "./register-scan";
+import { findAuthorityDrift } from "./authority-scan";
+import { findFalsificationDrift } from "./falsification-scan";
+import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
@@ -163,6 +166,15 @@ const INERTIA_FIXTURES = "tests/fixtures/inertia";
 /** A whole repository in miniature, carrying the drifts the real registers actually had. */
 const REGISTER_FIXTURES = "tests/fixtures/registers";
 
+/** The same idea for the research corpus: X-02 and X-16, as the tree actually carried them. */
+const RESEARCH_FIXTURES = "tests/fixtures/research";
+
+/** And for the authority map: an answer deleted, a competitor unscoped, a gap quietly closed. */
+const AUTHORITY_FIXTURES = "tests/fixtures/authority";
+
+/** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
+const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
+
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
   findings.length
@@ -182,6 +194,24 @@ const registerDrift = (root: string) =>
   fromFindings(
     findRegisterDrift(root),
     "debt register, laws, ledger and runner agree with the tree",
+  );
+
+const researchDrift = (root: string) =>
+  fromFindings(
+    findResearchDrift(root),
+    "every frozen hash, generated value and classified claim in the research corpus agrees with the tree",
+  );
+
+const authorityDrift = (root: string) =>
+  fromFindings(
+    findAuthorityDrift(root),
+    "every named authority is in the tree, every competitor is scoped, and every capability gap is still a gap",
+  );
+
+const falsificationDrift = (root: string) =>
+  fromFindings(
+    findFalsificationDrift(root),
+    "every blocking check is classified, and every named falsification mechanism exists",
   );
 
 const asksAgain = (roots: string[]) =>
@@ -959,6 +989,69 @@ export const GATES: Gate[] = [
      */
     run: () => registerDrift("."),
     positiveControl: () => registerDrift(REGISTER_FIXTURES),
+  },
+  {
+    id: "GATE-RESEARCH-RECONCILED",
+    rule: "R-01",
+    description: "The research corpus agrees with the tree, and every hash claim in it is classified.",
+    /*
+     * THE SAME GATE, ONE DIRECTORY OVER. `GATE-REGISTER-RECONCILED` above holds four product and
+     * governance registers against the tree and it works. It reached nothing under `research/`, and
+     * two failures of exactly that shape were already sitting there, both found by hand rather than
+     * by a command:
+     *
+     *   X-02  the CURRENT block of `PREREGISTRATION_FREEZE.json` named a sha256 for
+     *         `DATA_PROTOCOL.md` that the document had not had since Gate 2 amended it. A frozen
+     *         document record that no longer matches the document is the one thing a freeze is for.
+     *   X-16  `discovery-oracle/results/selftest.json` recorded plant `one-game-only` at
+     *         `delta 0.45` while `oracle/worlds.py`, committed beside it, declared `0.22`.
+     *
+     * Same detection class, different causes, different repairs -- and a third predicate so the
+     * coverage cannot rot: a sha256 in a research artefact that `RESEARCH_RELATIONS` does not
+     * classify is itself a finding. Without that, "the research corpus is reconciled" decays into
+     * "the part of it somebody last looked at is reconciled".
+     */
+    run: () => researchDrift("."),
+    positiveControl: () => researchDrift(RESEARCH_FIXTURES),
+  },
+  {
+    id: "GATE-AUTHORITY-RESOLVED",
+    rule: "R-01",
+    description: "Every question's authority is in the tree, and every capability gap is still a gap.",
+    /*
+     * `AUTHORITY_MAP.md` answers "who decides X?" for thirty-six questions and it is prose, which
+     * is the one artefact here no command reads. It decays in three ways that nobody has to touch
+     * it to cause: the named authority is deleted, a competitor stops being scoped, or a capability
+     * gap quietly becomes a capability while the record still says it is open.
+     *
+     * THE THIRD IS WHY THIS IS A SCANNER AND NOT SIX NEW MARKDOWN FILES. Six of the thirty-six
+     * questions -- rollback, observability, retention, who may deploy, dependency upgrades, and
+     * what may be recorded -- are questions about capabilities this repository does not have. A
+     * document cannot be the authority for a capability that does not exist, so the absence is
+     * recorded with a trigger, in the repository's own DEFER idiom, and the absence is CHECKED. A
+     * gap you cannot claim without evidence is a gap that cannot be used to look finished.
+     */
+    run: () => authorityDrift("."),
+    positiveControl: () => authorityDrift(AUTHORITY_FIXTURES),
+  },
+  {
+    id: "GATE-FALSIFICATION-INVENTORY",
+    rule: "R-01",
+    description: "Every blocking check is classified by what can honestly falsify it.",
+    /*
+     * `RNL-04` -- a gate that has not demonstrated failure is not a gate -- was applied to thirty
+     * predicates and never to the CI job that runs them. Of the blocking steps in
+     * verify-build.yml, two could demonstrate their own failure and the rest could not.
+     *
+     * FORCING ALL OF THEM INTO A SYNTHETIC FIXTURE WOULD BE WRONG, and the study said so about
+     * `npm audit` by name: a fabricated vulnerability asserts that npm can read a manifest, which
+     * is a claim about npm rather than about this build's exposure. A control that proves the
+     * wrong thing is worse than an absent one, because it looks like coverage. So the deliverable
+     * is the CLASSIFICATION, and this gate keeps it from falling behind the job: a step with no row
+     * reddens, and so does a row naming a command that does not exist.
+     */
+    run: () => falsificationDrift("."),
+    positiveControl: () => falsificationDrift(FALSIFICATION_FIXTURES),
   },
 ];
 
