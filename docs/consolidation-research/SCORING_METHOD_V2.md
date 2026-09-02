@@ -1,0 +1,560 @@
+# SCORING_METHOD — v2
+
+> ### THIS SCORE EVALUATES THE RECONSTRUCTION STUDY.
+> ### IT IS NOT A SCORE OF THE APPLICATION.
+>
+> It says how well the repository's operating system was *reconstructed*. It says nothing about
+> whether the product is production-ready, whether the science is valid, whether the code is
+> maintainable, or whether consolidation is safe on any axis this study did not measure. §7 lists
+> what is knowingly outside it.
+
+**Written before the v2 numbers were computed, and not revised after seeing them.**
+`SCORING_METHOD.md` (v1) is preserved unchanged. Where the two disagree, **this file is the
+authority for the formulas**; v1 is the record of what v1 computed.
+
+---
+
+## 0. Why there is a v2
+
+Three defects were found in v1's method by a review whose job was to falsify it. Each is recorded
+here with the old formula intact, because a method that quietly replaces itself cannot be audited.
+
+### Defect A — Dimension 2 rewarded promotion
+
+v1:
+
+```
+D2 = 20 × repo_native_laws / candidate_laws
+```
+
+and asserted, in v1's own words: *"A method that promoted everything would score the same as one
+that promoted nothing."*
+
+**That sentence is false.** `18/18 → 20 points`; `0/18 → 0 points`. The function is monotonically
+increasing in the promotion rate, and the promotion rate is the thing under test. v1 scored
+**17.78 / 20** on this dimension, and it would have scored **20 / 20** by classifying two more
+laws as repository-wide — the exact move the study existed to resist.
+
+### Defect B — the coverage denominator did not measure "corpus coverage"
+
+v1 scored **20 / 20** for `169 / 169 governing files` and called it corpus coverage. The mission's
+scope names `shared/**`, `client/src/**`, `server/**`, `api/**`, schema and migrations, tests,
+research code and documentation. v1's own classification counted **479 `authored-sot` files**, of
+which 169 were the governing subset. `169/169` is a real and useful number; it is not repository
+coverage, and calling it that made a partial reading look total.
+
+### Defect D — `rule_fidelity` was inflated by the base rate
+
+**Found by D2's own control, before the v2 total was computed.** The first draft of the corrected
+D2 used
+
+```
+rule_fidelity = |{ L : published_class(L) == bar(L) }| / candidates
+```
+
+and `scoring_selftest.py` returned **P1 (promote everything) = 12.11 / 20 — above half marks**,
+against a stated requirement that it must not be. The reason is a base rate: 16 of the 18
+candidates genuinely qualify as repository-wide, so a classifier that promotes all 18 agrees with
+the bar on 16 of them **by construction**, and scores 0.889 on a term meant to measure whether it
+followed the rule.
+
+An agreement measure that is high when a classifier makes no distinctions is measuring the
+distribution, not the classifier. It is the same defect as Defect A one level down: the term still
+rewarded the promotion rate, just less obviously.
+
+**Repair, applied before any v2 number was computed.** `rule_fidelity` is replaced by a
+chance-corrected agreement — Cohen's κ between the published classification and the bar's — which
+is 0 for any classifier that assigns one class to everything, whatever the base rate:
+
+```
+κ = (p_observed − p_expected) / (1 − p_expected)
+classification_agreement = max(0, κ)
+```
+
+The threshold was not moved, the weights were not moved, and the study's own score had not been
+computed when this was found. `scoring_selftest.py` is re-run after the repair and its result is
+recorded in `EXECUTION_LOG.md`.
+
+### Defect C — the confidence metric was not a confidence
+
+v1 computed `Σ(weight × strength) / Σ(weight)` and named the result *evidential confidence*, at
+**96.35 %**. That quantity is the weight-averaged evidence strength of the conclusions the study
+**chose to publish**. It is not `P(the reconstruction is correct)`, it has no calibration model,
+and it cannot fall when a conclusion is omitted rather than published.
+
+### Defect E — the corrected `D2` was computed in a way that could not disagree with itself
+
+**Found by reading the computation, not by reading its output.** The first implementation of the
+corrected `D2` built the "published" classification as
+
+```python
+published = {law: bar(evidence[law]) for law in evidence}
+```
+
+so the two sides of both chance-corrected terms were the same function of the same input.
+`separation = 1.000` and `κ = 1.000` were **structurally guaranteed**, not measured. A study that
+had misclassified half its candidates would have scored exactly the same `19.833 / 20`.
+
+This is the mission's own principle failing inside the repair for Defect A: *nothing gains authority
+until a step ran that could have taken it away*. A comparison that cannot fail is not a step.
+`D6` carried the same defect one dimension over — `grounded / repo_wide` was written as `16/16` by
+hand rather than counted.
+
+**Repair, and what it cost.** Both sides are now read:
+
+| input | before | after |
+| --- | --- | --- |
+| the published classification | generated by `bar()` | parsed out of `REPO_NATIVE_OPERATING_SYSTEM.md` §B's table |
+| the evidence counts | hand-transcribed into the scoring script | read from [`LAW_SUPPORT.json`](LAW_SUPPORT.json), newly published |
+| the domain counts | trusted | **re-derived** from `PROCESS_CORPUS.json` and asserted equal, per candidate |
+| falsification coverage | entered as `17/18` | computed per candidate from the published counterexample search, failure list and boundary |
+| `D6` grounding | entered as `16/16` | counted from each repo-wide law's operational-instance list |
+| `scoring_selftest.py`'s fixture | frozen, unchecked | frozen **and** checked against the published table, as a seventh control |
+
+The repair required publishing [`LAW_SUPPORT.json`](LAW_SUPPORT.json) — the law-to-case, law-to-
+enforcement and law-to-failure mapping Study v1 computed and then kept only in a working file. §B's
+four count columns are now auditable rather than believed, which is the same hole `X-25` names.
+
+**The number did not move.** The frozen pre-repair total was `91.82`; the post-repair total is
+`91.82`; the measured disagreement between the published classification and the bar is **0 of 18**,
+and `D6`'s counted grounding is **16 of 16**. That is the point: the repair could have moved it,
+and the fact that it did not is now evidence rather than an artefact of the arithmetic.
+
+**One thing the repair did change.** Falsification coverage, once computed per candidate instead of
+entered, names its miss: **`RNL-17` carries no counterexample search at all** — not a recorded null,
+an empty list. v1 had entered `17/18` with the right numerator and no way to say which one. The
+miss is left standing and costs `D5` 0.83 points and `D2` 0.17; writing a counterexample search for
+`RNL-17` now, after the score is known, is exactly the move this file exists to forbid.
+
+### Defect G — `D1b`'s denominator was chosen by the study, exactly as `D4`'s had been
+
+**Found by the second adversarial pass, attacking the repair for Defect B.** `D1b`'s population was
+defined as
+
+> the **load-bearing** subset: every implementation file named as evidence by a corpus case, an
+> authority-map row, or a law's operational-instance list.
+
+Every one of those three is a study artefact. **The study picks its own denominator**, and picking
+a smaller one raises the score: cite 85 files and quote 16 → `2.59 / 6`; cite only the 16 you
+quoted → `6.00 / 6`. Nothing else in the score falls far enough to pay for the narrowing —
+`admissibility` needs one corpus case and one operational instance per law, which 16 files can
+still supply.
+
+**This is Defect F's shape, one dimension over**, and the repair for Defect B introduced it: `D1a`
+was fixed by giving it a population defined by path, and `D1b` was given a population defined by
+the study's own citations. Fixing one denominator and leaving the other self-chosen is the kind of
+half-repair that only an attack on the repair will find.
+
+**The rationale for "load-bearing" was and is correct.** A `.tsx` component that no rule touches
+carries no evidence about the operating system, and a path-glob denominator would score reading
+theatre. The defect is not the concept. It is that the study, rather than the repository, decides
+membership.
+
+**Repair, written before the corrected `D1b` was computed.** The population becomes a property of
+the **tree**:
+
+> **`D1b` population.** Every implementation file (`shared/**`, `client/src/**`, `server/**`,
+> `api/**`, `drizzle/**` at `.ts/.tsx/.sql`, and `research/**` code at `.py/.ts/.mjs/.sh`) whose
+> path is **named by at least one of the 169 governance files**. A governance document naming a
+> file is the repository asserting that the file carries a rule; the study cannot add to that set
+> or remove from it.
+
+Declining to cite a file no longer removes it from the denominator. The inspection modes
+(`QUOTED` / `NAMED` / `CLASSIFIED`) and the formula are unchanged:
+
+```
+D1b = 6 × ( 0.7 × quoted / named_by_governance  +  0.3 )
+```
+
+**What may not be concluded**, restated: that the files no governance document names are
+unimportant, only that this study has no repository-side warrant for calling them load-bearing.
+
+**The frozen pre-repair result is `91.82 / 100`**, recorded before the new population was counted.
+
+#### Deriving the numerator, and five wrong answers on the way
+
+`quoted` was a hand count in v1 and in v2's first pass. Under Defect E's discipline it had to be
+derived, and `d1b_population.py` derives it. The first derivations were wrong, each in a way an
+inspection of its hits exposed, and the sequence is published because a measurement that only
+shows its last value is asking to be trusted rather than checked:
+
+| # | change | population | quoted | `D1b` | why it changed |
+| --: | --- | ---: | ---: | ---: | --- |
+| 0 | the study's own citation list; `quoted` counted by hand | 85 | 16 | 2.591 | the frozen v2 value |
+| 1 | population = files named by governance; `quoted` = any 40 identical characters | 167 | 55 | 3.183 | matched `'urn 0 if __name__ == "__main__": sys.exi'` and `'"" from __future__ import annotations im'` — boilerplate in dozens of files, evidence about none |
+| 2 | the window must occur in **exactly one** file of the population | 167 | 41 | 2.831 | still matched `'----------------------------------------'`, unique only by accident of length |
+| 3 | study text = its `.md` and `.json`, not its own `.py`; windows must carry ≥4 words and ≥20 letters | 167 | 27 | 2.479 | the study's own scripts share `os.path.dirname(os.path.abspath(__file__))` with the repository's |
+| 4 | a window that is mostly a **file path** does not count | 167 | 24 | 2.404 | a source comment naming `docs/measurement/FALSIFICATION_REGISTER.md` matched the study naming the same document; neither had read the other |
+| 5 | a **bare basename** names a file when it is unique in the corpus | **204** | 28 | 2.376 | `PRODUCTION_READINESS_LEDGER.md:1308` writes ``​`LearningQueue.tsx` renders `rule.grade`​`` and never the full path. Step 5 raised **both** counts and the dimension still fell |
+| 6 | distinctiveness judged on the **line** a window comes from, not on the window | 204 | 26 | 2.335 | `if __name__ == "__main__": sys.exit(main())` is in dozens of files, but a 40-character window at an arbitrary offset inside it differs between them, so each file owned its own slice of a shared idiom |
+| 7 | the study text excludes **this script's own audit trail** | **204** | **26** | **2.335** | `d1b_population.json` records the window each file matched on, so the next run read its own output: `research/b2/controls.py` counted as QUOTED on a string that appeared nowhere else in the study |
+
+Every step was decided by looking at what the detector matched, never at what the score did — and
+step 5 is the proof: it corrected an *under*-count, added 37 files to the population and 4 to the
+numerator, and lowered `D1b` anyway. A tuner would not have shipped step 5.
+
+**Two of the seven wrong answers were caused by the study writing about the study.** Step 6's two
+survivors — `'urn 0 if __name__ == "__main__": sys.exi'` and `'.path.dirname(os.path.abspath(__file__))'` —
+matched because §0-G **quotes them, right here, as examples of false positives**, and because the
+audit trail records them. A measurement whose input includes its own documentation will read its
+documentation. The detector now ignores its own output and judges distinctiveness by line, and it
+returns the same 26 on two consecutive runs.
+
+**`D1b` is a live measurement over the study's own prose, and it moves as the study writes.** The
+published figure is pinned to the run recorded in `EXECUTION_LOG.md` entry 33, with
+[`d1b_population.json`](d1b_population.json) as that run's audit trail. Quoting one more file
+raises it; that is the metric working, not drifting.
+
+**`client/src/components/LearningQueue.tsx` is in the population only because of step 5**, and it
+is the file at the centre of `X-01` and `G-01`. A denominator that could not see it would have
+excluded the study's best-evidenced implementation finding.
+
+---
+
+## 1. Dimension 1 — corpus coverage, 20 points, split three ways
+
+Each sub-dimension states its population, what was inspected, the inspection mode, what counts as
+sufficient, and what may not be concluded.
+
+### D1a — Governance corpus coverage, **10 points**
+
+**Population.** Every file that can state, enforce or record a rule, policy, protocol, authority or
+decision: `docs/**`, `README.md`, `VERCEL_DEPLOYMENT.md`, `tests/LEVELS.md`, `research/**/*.md`,
+`.github/**`, `scripts/**`, `.claude/**`. Defined by path, reproducibly.
+
+**Sufficient inspection.** Every file classified with a *kind*, the *question it answers*, and a
+*status* (`CURRENT-AUTHORITY` / `FROZEN` / `HISTORICAL` / `SUPERSEDED-…` / …). A governance file
+whose question and status are known has been read sufficiently to place it in the operating model;
+reading every sentence of a 2,355-line measurement register is not required to know what it is the
+authority for.
+
+```
+D1a = 10 × min(1, classified / population / 0.95)
+```
+
+**Mandatory.** Every `docs/decisions/D*.md`; `MASTER_PRODUCT_DEBT.md`,
+`PRODUCTION_READINESS_LEDGER.md`, `FINDINGS.md`, `ACTION_PLAN.md`, `INERTIAL_UX_LAWS.md`,
+`INTERACTION_GEOMETRY.md`, `VALUE_CLARITY.md`, `VALUE_CLARITY_FIELD_PROTOCOL.md`,
+`ACQUISITION_EVIDENCE.md`, `MEASUREMENTS.md`, `tests/LEVELS.md`, all seven `design-council/` files,
+`.github/workflows/verify-build.yml`, `scripts/run_gates.ts`. A miss is a hard zero for D1a.
+
+**What may not be concluded.** That the study read every line of every governance file. It did not.
+Classification is not exegesis.
+
+### D1b — Implementation evidence coverage, **6 points**
+
+**Population.** `shared/**`, `client/src/**`, `server/**`, `api/**`, `drizzle/**` at `.ts/.tsx/.sql`,
+plus `research/**` code at `.py/.ts/.mjs/.sh`.
+
+**Sampling rule, stated rather than assumed.** A `.tsx` component that no law and no corpus case
+depends on carries no evidence about the operating system, and reading it line by line would be
+theatre. What must be inspected is the **load-bearing** subset.
+
+> **Amended by Defect G.** v2's first definition of load-bearing was *"every implementation file
+> named as evidence by a corpus case, an authority-map row, or a law's operational-instance
+> list"* — all three of which are study artefacts, so the study chose its own denominator and a
+> thinner study would have scored higher. The population is now **every implementation file whose
+> path is named by at least one of the 169 governance files**: a property of the tree, which the
+> study can neither extend nor shrink.
+
+**Inspection modes, in descending strength:**
+
+| mode | definition, mechanically checkable |
+| --- | --- |
+| `QUOTED` | the study reproduces ≥ 40 consecutive characters of the file, or cites a line number in it |
+| `NAMED` | the file is cited as evidence and nothing from it is reproduced |
+| `CLASSIFIED` | placed in a class by path alone |
+
+```
+D1b = 6 × ( 0.7 × quoted / named_by_governance  +  0.3 )
+```
+
+where `named_by_governance` is the count of implementation files whose path appears in at least one
+of the 169 governance files, and `quoted` is how many of those the study reproduces ≥ 40 consecutive
+characters of, or cites a line number in.
+
+Full marks require **every** load-bearing implementation file to be `QUOTED`. Naming a file is
+evidence that it was found, not that it was read.
+
+**What may not be concluded.** That the implementation is correct, that the unread 200-odd files
+contain no counterexample, or that a law holds in code the study never opened. **This is the
+study's largest inferential gap and D1b is scored to make it visible rather than to excuse it.**
+
+### D1c — Support evidence coverage, **4 points**
+
+**Population.** `tests/**` at `.ts/.tsx` and `drizzle/migrations/*.sql`.
+
+**Sufficient inspection.** *Execution*, not reading. A test's evidential value is whether it runs
+and what it does when the code is broken; a migration's is whether it applies.
+
+```
+D1c = 4 × ( 0.6 × tests_executed / tests_present
+          + 0.4 × migrations_applied_in_CI / migrations_present )
+```
+
+**What may not be concluded.** That the suite is adequate. `tests/LEVELS.md` and `GATE-CLAIM-ANCHOR`
+are the repository's own answer to that, and the study reports their numbers rather than replacing
+them.
+
+---
+
+## 2. Dimension 2 — classification quality, 20 points
+
+### What D2 is meant to measure
+
+**How well the analysis discriminated** between principles that earned repository-wide status and
+principles that did not — the quality of the classification, not its generosity.
+
+### What must increase it
+
+- classifications that follow the stated bar when the evidence is applied to it;
+- a real evidential gap between the promoted and the unpromoted;
+- a counterexample search, a failure condition and a domain boundary for every candidate;
+- candidates that carry actual evidence.
+
+### What must NOT increase it
+
+- promoting more candidates;
+- demoting more candidates;
+- adding candidates of any kind to move a ratio;
+- adding obviously-rejectable candidates to look discriminating.
+
+### The formula
+
+```
+D2 = 20 × ( 0.35 × separation
+          + 0.40 × classification_agreement
+          + 0.15 × falsification_coverage
+          + 0.10 × admissibility )
+```
+
+Both of the first two terms are **chance-corrected**: each is 0 for a classifier that makes no
+distinctions, whatever the base rate of the classes. That is the whole content of Defect D.
+
+**separation** — does the published classification track the evidence?
+
+```
+AUC = P(domains(promoted) > domains(unpromoted)) + ½·P(equal)     over all cross pairs
+separation = 2 × max(0, AUC − 0.5)                                0 at chance, 1 at perfect
+separation = 0 if either group is empty
+```
+
+**classification_agreement** — does the classification obey its own stated bar, *beyond chance*?
+
+```
+bar(L) = REPO-NATIVE   iff domains ≥ 3 and operational ≥ 2 and failures ≥ 1
+                       and non-authoring cases ≥ 1
+         DOMAIN        iff domains == 2
+         LOCAL         otherwise
+
+p_observed = share of candidates where published_class == bar
+p_expected = Σ_c  P(published = c) × P(bar = c)          from the two marginals
+κ          = (p_observed − p_expected) / (1 − p_expected)
+classification_agreement = max(0, κ)
+```
+
+A classifier that assigns one class to every candidate has no variation in its marginal, so
+`p_expected == p_observed` and `κ = 0` — **however many it happens to get right**. That is the
+repair for Defect D.
+
+**falsification_coverage** — the fraction of candidates carrying all three of: a counterexample
+search with a recorded outcome (a hit **or** a recorded null), a stated failure condition, and a
+stated domain boundary.
+
+**admissibility** — the fraction of candidates supported by ≥ 1 corpus case **and** ≥ 1 operational
+instance. A candidate with neither is a straw.
+
+### Pathological strategies, and why the formula resists them
+
+| # | strategy | what happens |
+| --: | --- | --- |
+| **P1** | **promote every candidate as repo-wide.** | unpromoted group is empty → `separation = 0`; one class for everything → `κ = 0`. Scores the floor set by the two uncorrected terms. |
+| **P2** | **demote everything to local to avoid falsification risk.** | promoted group is empty → `separation = 0`; `κ = 0`. Same floor. |
+| **P3** | **discriminate correctly** — strong cross-domain laws promoted, bounded ones held at domain scope, each with its evidence. | `separation` high, `κ` high → the strongest score. |
+| **P4** | **pad the denominator with straw candidates and reject them all**, to look discriminating. | `separation` rises, but `admissibility` falls by one point of its weight per straw and `falsification_coverage` falls unless each straw is given a real search. Net effect is negative. |
+| **P5** | **classify at random.** | `AUC ≈ 0.5 → separation ≈ 0`; `κ ≈ 0`. |
+
+**A rigorous analysis that promotes few principles can score as highly as one that promotes many**,
+because nothing in the formula reads the promotion rate. `P2` fails not because it promotes little
+but because it makes no distinction at all — and after Defect D's repair, neither does `P1`.
+
+### The self-test
+
+`scoring_selftest.py` computes D2 under P1–P5 against the same evidence table and asserts:
+
+```
+D2(P3)  >  D2(P1)     and     D2(P3)  >  D2(P2)
+D2(P3)  >  D2(P4)     and     D2(P3)  >  D2(P5)
+D2(P1) and D2(P2) both below half marks
+```
+
+**The scoring method now has a positive and a negative control**, which is what `RNL-04` requires
+of anything this repository enforces.
+
+### What was deliberately left out, and why
+
+**Parsimony is not scored.** The obvious measure — how few kernel rules cover the corpus — is
+computable (three of the four published rules cover 48/48) and it would be wrong to score on it. A
+taxonomy that keeps a real distinction while a smaller one covers the same cases is *better*, not
+worse, and no mechanical test in this study can tell a redundant rule from a distinct one. Scoring
+it would punish exactly the excellent analysis §6 asks about. It is reported as a diagnostic in
+`REPO_NATIVE_OPERATING_SYSTEM.md` §B and scored at zero weight.
+
+---
+
+## 3. Dimensions 3–6 — unchanged from v1 except where stated
+
+### D3 — contradiction resolution, 15 points
+
+```
+D3 = 0 if any UNRESOLVED contradiction is critical (P0)
+     else 15 × classified/total − 3 × (non-critical UNRESOLVED count)
+```
+Unchanged. The denominator grows as contradictions are found; a study that finds more and
+classifies them all is not penalised, and one that finds none is not rewarded.
+
+### D4 — authority resolution, 15 points
+
+```
+D4 = 15 × questions_with_one_current_authority_and_known_lineage / questions_enumerated
+```
+Formula unchanged. **The denominator is corrected**: v1 enumerated 24 questions it had already
+found answers for. `AUTHORITY_MAP_V2_ATTACK.md` runs the completeness attack the mission specifies
+and the denominator is now **32**.
+
+### D5 — falsifiability, 15 points
+
+```
+D5 = 15 × laws_with_counterexample_search_AND_failure_condition_AND_boundary / laws
+```
+Unchanged.
+
+### D6 — operational grounding, 15 points
+
+```
+D6 = 15 × repo_wide_laws_with_≥2_executable_enforcements / repo_wide_laws
+     capped at 12 unless ≥1 enforcement was EXECUTED in this study
+```
+Unchanged.
+
+---
+
+## 4. The >95 bar
+
+Unchanged, and one clause added:
+
+- no critical corpus gap;
+- no unresolved P0 contradiction;
+- every repo-wide law operationally grounded;
+- the authority map complete **against a denominator that survived a completeness attack**;
+- at least one falsification attempt for every law;
+- **`selfcheck.py` green on the study, and every injected drift red on its fixture.**
+
+**94.6 is not rounded to 95.**
+
+---
+
+## 5. The evidence metric, renamed
+
+### What the formula computes
+
+```
+WES = Σ(weight_i × strength_i) / Σ(weight_i) × 100
+```
+
+over the conclusions the study **publishes**, weighted by consequence. It is a **weight-averaged
+evidence strength**, on the six-level scale below.
+
+### The name
+
+**`WEIGHTED_EVIDENCE_SUPPORT` (`WES`)**. Not "confidence". Not "certainty". Not a probability.
+
+> **This metric is not P(the model is correct).**
+>
+> It has no calibration model and no reference class. It cannot fall when a conclusion is omitted
+> rather than published, so a study that published only its safest conclusions would score higher
+> than one that published its shakiest as well. It measures **the evidence behind what was said**,
+> not the chance that what was said is true.
+
+`96.35 %` is preserved as **the value of v1's metric under v1's definition and v1's conclusion set**.
+
+### The strength scale, unchanged
+
+| support | strength |
+| --- | ---: |
+| `DIRECT_EXECUTABLE_EVIDENCE` — a command run in this study, or a type that will not compile | 1.00 |
+| `DIRECT_AUTHORED_EVIDENCE` — a sentence read at a cited path | 0.90 |
+| `MULTIPLE_CONVERGING_INDIRECT` | 0.75 |
+| `SINGLE_INDIRECT` | 0.50 |
+| `INFERENCE` | 0.25 |
+| `UNKNOWN` | 0.00 |
+
+### What `> 95.5` means operationally
+
+> Draw one published conclusion at random, with probability proportional to its consequence weight.
+> `WES > 95.5` means the **expected evidence strength of that draw exceeds 0.955** — i.e. the
+> published set is dominated by conclusions backed by a command that was run or a sentence read at a
+> cited path, with only a small weighted remainder below that.
+
+It does **not** mean a 95.5 % chance of being right about anything.
+
+### A second figure, reported beside it
+
+Because a mean can hide a tail, the study also reports:
+
+```
+WES₉₀ = (weight at strength ≥ 0.90) / (total weight) × 100
+```
+
+the share of published consequence backed by direct evidence of either kind. A high `WES` with a
+low `WES₉₀` would mean a few very strong conclusions carrying many weak ones.
+
+---
+
+## 6. The two questions the mission requires answering before publishing
+
+### How could an incompetent analyst game this score upward?
+
+| strategy | does the formula resist it? |
+| --- | --- |
+| promote every candidate | **yes** — `separation = 0`, `rule_fidelity` collapses (D2) |
+| demote every candidate | **yes** — same |
+| pad with straw candidates | **yes** — `admissibility` and `falsification_coverage` fall |
+| enumerate only authority questions that already have answers | **yes, now** — D4's denominator survived a documented completeness attack, and the attack is published so a reader can extend it |
+| define "corpus" as the subset already read | **yes, now** — D1 is split, and D1b's denominator is fixed by the tree |
+| **shrink `D1b`'s denominator by citing fewer files as evidence** | **yes, now** — Defect G. The population is the set of implementation files the *governance corpus* names; declining to cite one does not remove it |
+| publish only the conclusions with the strongest evidence | **NO. This is a live limitation.** `WES` cannot see an omitted conclusion. The only defence is that the conclusion set is published in full and a reader can add to it. |
+| call an authored sentence executable evidence | **partly** — `EXECUTION_LOG.md` names the command behind every 1.00, so a reader can check; nothing stops a wrong claim except that check |
+| **compute the "published" classification by applying the bar to the evidence**, so `D2`'s two chance-corrected terms cannot disagree | **yes, now** — Defect E. `score_v2.py` parses the classification out of §B and the counts out of `LAW_SUPPORT.json`, re-derives the domain counts from the corpus, and prints the disagreement count. It is 0, and it is a measurement |
+| pick the 0.90 tier for a conclusion that is really inference | **NO. A live limitation.** The scale has no external referee. |
+
+### What genuinely excellent analysis could this score unfairly punish?
+
+| case | verdict |
+| --- | --- |
+| an analysis finding that **no** coherent OS exists, correctly | D2 would score it well (`separation` and `rule_fidelity` do not require promotion), D5 and D6 would score it poorly — a study with no laws has no laws to ground. **This is a real unfairness and it is not repaired**, because repairing it would require a different scoring model for a different verdict, and choosing the model after seeing the verdict is the defect this whole file exists to remove. It is recorded as a limitation. |
+| an analysis publishing a **larger** taxonomy because the distinctions are real | would have been punished by a parsimony term. **Repaired before computing**: parsimony is not scored. |
+| an analysis that finds **many** contradictions | D3's denominator grows with them, so finding more is neutral rather than costly. Correct. |
+| an analysis on a repository with **no** executable enforcement at all | D6 → 0 through no fault of the analysis. **A real unfairness, recorded.** D6 measures the repository as much as the study. |
+
+Both unrepaired unfairnesses are recorded rather than smoothed away, and neither applies to this
+study, which is exactly why they must be stated: a limitation that only bites someone else is the
+easiest kind to forget.
+
+---
+
+## 7. What this score is not, restated
+
+It does not measure, and nothing in it should be read as evidence about:
+
+- **`L6` deployment coverage** — zero, and named as zero;
+- **live field validation** — no player has used this build under any protocol;
+- **intervention evidence** — nothing shows the product changes anyone's chess;
+- **release governance** — no changelog, no version identity beyond a commit SHA, no rollback procedure;
+- **observability** — no error sink, no log destination;
+- **structural maintainability** — `Home.tsx` is one 108 kB component, under a ratchet;
+- **security and supply chain** — nothing signed, actions pinned by tag, `main` unprotected.
+
+Four of those seven are authority questions with **no answer at all** in the repository
+(`AUTHORITY_MAP_V2_ATTACK.md` `Q26`, `Q27`, `Q29`, `Q30`). This mission does not solve them. It
+exists to stop a high reconstruction score being read as evidence that they are solved.
