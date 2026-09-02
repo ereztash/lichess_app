@@ -5,13 +5,15 @@ name: Deployed
 # consequence of the merge it is gating. So the L6 checks live here instead of there, and they run
 # when there IS an origin:
 #
-#   deployment_status  Vercel finishes a deployment and says where it is and which commit it came
-#                      from. This is the one that makes the checks STANDING rather than occasional:
-#                      every deployment is checked, automatically, against the SHA it claims.
+#   deployment_status  Vercel finishes a deployment and says which commit it came from. The
+#                      deployment-specific URL may still be behind Vercel Authentication even for a
+#                      production deployment, so the standing production check uses the project's
+#                      public production alias and keeps the deployment event's SHA as the expected
+#                      build identity.
 #   schedule           once a day against production, because a deployment can stop being correct
 #                      without anybody deploying -- an expired certificate, a changed alias, an
 #                      edge config someone edited in a dashboard.
-#   workflow_dispatch  for a one-off run against a preview.
+#   workflow_dispatch  for a one-off run against a preview or another explicit origin.
 #
 # IT DOES NOT GATE MERGES, and that is deliberate rather than lenient. A required check that cannot
 # run until after the merge is a required check that blocks every pull request forever.
@@ -31,12 +33,13 @@ jobs:
   l6:
     # `deployment_status` fires for every state Vercel reports, for previews as well as production.
     #
-    # ONLY PRODUCTION IS CHECKED AUTOMATICALLY, and the first run of this workflow is why. It fired
-    # for a preview, whose deployment protection answers every path with a 302 to an SSO login, and
-    # the suite spent five seconds proving that Vercel's login page is not this application. A
-    # preview can be checked by hand through `workflow_dispatch` once somebody supplies an origin
-    # that is actually reachable; it cannot be checked automatically without a bypass token, and a
-    # job that needs a secret nobody has set is a job that reports red forever.
+    # ONLY PRODUCTION IS CHECKED AUTOMATICALLY. Preview deployment URLs are behind Vercel's
+    # protection on this project. Production is different: the stable public alias is reachable
+    # without the preview protection wall, while the event's deployment-specific URL can still
+    # redirect to Vercel Authentication. Therefore the automatic production check deliberately
+    # verifies `lichessapp.vercel.app` and binds what it sees to the SHA from the deployment event.
+    # A preview can still be checked by hand through `workflow_dispatch` when a reachable origin or
+    # an appropriate bypass path is supplied.
     if: >-
       github.event_name != 'deployment_status' ||
       (github.event.deployment_status.state == 'success' &&
@@ -56,7 +59,7 @@ jobs:
         run: |
           set -e
           if [ "${{ github.event_name }}" = "deployment_status" ]; then
-            echo "origin=${{ github.event.deployment_status.environment_url }}" >> "$GITHUB_OUTPUT"
+            echo "origin=https://lichessapp.vercel.app" >> "$GITHUB_OUTPUT"
             echo "sha=${{ github.event.deployment.sha }}" >> "$GITHUB_OUTPUT"
           else
             echo "origin=${{ github.event.inputs.origin || 'https://lichessapp.vercel.app' }}" >> "$GITHUB_OUTPUT"
