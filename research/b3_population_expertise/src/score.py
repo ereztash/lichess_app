@@ -25,7 +25,7 @@ import zstandard
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import account_status  # noqa: E402
-from common import rating_band  # noqa: E402
+from common import require_seal_for, rating_band  # noqa: E402
 from engine import Engine  # noqa: E402
 from ingest import Sampler, eligible_decisions, parse_time_control, stream_games  # noqa: E402
 from position_features import (  # noqa: E402
@@ -134,6 +134,8 @@ def main() -> None:
                     help="implementation smoke tests only; never for a scored period")
     args = ap.parse_args()
 
+    require_seal_for(args.period)
+    require_seal_for(args.out)
     month, day = PERIODS[args.period]
     base_seconds, increment = parse_time_control(args.time_control)
     rates = json.load(open(args.rates))

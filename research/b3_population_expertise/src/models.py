@@ -70,6 +70,7 @@ RIDGE_GRID = [0.01, 0.1, 1.0, 10.0, 100.0]
 
 SPECS = {
     "T0": (T0_NUMERIC, T0_CATEGORICAL, []),
+    "T0R": (T0_NUMERIC + ["rating"], T0_CATEGORICAL, []),
     "T2R_C19": (T2_NUMERIC + ["rating"] + C19_EXTRA, T2_CATEGORICAL + ["own_prev_think_missing"],
                 INTERACTIONS),
     "T1P": (T1_NUMERIC, T1_CATEGORICAL, []),

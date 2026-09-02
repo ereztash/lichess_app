@@ -136,3 +136,66 @@ produce `EXPERTISE_ADAPTATION_SUPPORTED` on a scientifically weak result.
 
 Return `PASS` or `FAIL`. `PASS_WITH_CHANGES` only if the change can be made without observing
 FINAL.
+
+---
+
+# ADDENDUM: the control table re-issued from regenerable nulls (Gate 2, R1)
+
+Every null below is drawn from `blake2b(SEED|tag)` and can be reproduced by anyone who runs the
+code. The previous table came from `hash()`, which Python salts per process, so no number in it
+could be regenerated -- and the amendments document's own figures already disagreed with the
+committed file for that reason.
+
+Each null's mean is printed with its Monte-Carlo standard error and its distance from zero in
+null standard deviations, because a permutation interval can contain zero while its mean sits a
+long way from it, and that offset is a fact about the frozen fit rather than about the data.
+
+| Control | DEVELOPMENT | sd from 0 | VALIDATION | sd from 0 |
+|---|---|---|---|---|
+| `C1_shuffled_quality.beta` | -0.00002 [-0.00093, +0.00081] | 0.0 | -0.00044 [-0.00161, +0.00047] | 0.8 |
+| `C2_shuffled_time.beta` | -0.00002 [-0.00056, +0.00049] | 0.1 | -0.00021 [-0.00076, +0.00045] | 0.7 |
+| `C3_shuffled_rating.tae_rating_gradient` | +0.00000 [-0.00088, +0.00090] | 0.0 | -0.00003 [-0.00105, +0.00096] | 0.1 |
+| `C3_shuffled_rating.metric_a_time_vs_rating` | +0.00002 [-0.00072, +0.00096] | 0.1 | -0.00016 [-0.00104, +0.00073] | 0.3 |
+| `C3_shuffled_rating.extreme_ut_vs_rating` | -0.00000 [-0.00025, +0.00020] | 0.0 | +0.00003 [-0.00025, +0.00032] | 0.2 |
+| `C3_shuffled_rating.allocation_loss_vs_rating` | +0.00001 [-0.00041, +0.00042] | 0.0 | -0.00012 [-0.00052, +0.00029] | 0.5 |
+| `C4_shuffled_voc.tae_rating_gradient` | +0.00003 [-0.00067, +0.00104] | 0.1 | -0.00001 [-0.00099, +0.00111] | 0.0 |
+| `C4_shuffled_voc.tae_rating_gradient_raw_column_permuted` | -0.00115 [-0.00184, -0.00045] | 3.3 | -0.00089 [-0.00176, -0.00012] | 2.2 |
+| `C7_no_effect_synthetic.beta` | -0.00004 [-0.00074, +0.00073] | 0.1 | -0.00004 [-0.00103, +0.00084] | 0.1 |
+| `C7_no_effect_synthetic.tae_rating_gradient` | -0.00000 [-0.00104, +0.00086] | 0.0 | -0.00005 [-0.00086, +0.00111] | 0.1 |
+| `C7_no_effect_synthetic.metric_a_time_vs_rating` | +0.00004 [-0.00106, +0.00095] | 0.1 | +0.00011 [-0.00073, +0.00120] | 0.2 |
+| `C7_no_effect_synthetic.extreme_ut_vs_rating` | -0.00001 [-0.00033, +0.00039] | 0.1 | -0.00007 [-0.00034, +0.00029] | 0.4 |
+
+| Positive / diagnostic | DEVELOPMENT | VALIDATION |
+|---|---|---|
+| C5 (implementation check; unplanted + 0.02) | +0.03270 [+0.03182, +0.03367] | +0.03412 [+0.03308, +0.03511] |
+| C6 pooled gradient (planted 0.00278) | +0.00291 [+0.00200, +0.00372] | +0.00286 [+0.00210, +0.00400] |
+| **C6 through condition 6's own estimator** (planted 0.00278) | +0.00285 [+0.00198, +0.00383] | +0.00280 [+0.00199, +0.00389] |
+| C7b: beta an unmeasured difficulty factor manufactures | +0.00079 [+0.00012, +0.00137] | +0.00070 [-0.00014, +0.00132] |
+| C5b recovered fraction (floor 0.5) | 0.940 | 0.974 |
+
+**Every destructive control passes on both periods.** C6 now recovers the planted gradient
+through the player-level estimator condition 6 actually reads, which the previous
+shrink-then-regress version could not have done.
+
+## The nuisance ladder (Gate 2, R7a)
+
+`beta` under three nested nuisance sets, each with rating, each frozen on DEVELOPMENT:
+
+| nuisance set | DEVELOPMENT | VALIDATION |
+|---|---|---|
+| T0R -- context only | 0.01379 | 0.01522 |
+| T1R -- plus the engine-difficulty block | 0.01289 | 0.01429 |
+| T2R -- plus value of computation (shipped) | 0.01270 | 0.01412 |
+
+The whole fourteen-feature engine-difficulty block removes 0.0009 of `beta`, about 6.5%,
+agreeing in magnitude with what C7b simulates. Two readings are admissible and the report
+may not choose: either `beta` is robust to measured difficulty, or depth-12 engine features
+capture so little of what makes a human slow *and* wrong that their failure to move `beta`
+says little about what would.
+
+## Condition 5 with the top band dropped, reported unconditionally (Gate 2, R8)
+
+| | DEVELOPMENT | VALIDATION |
+|---|---|---|
+| beta, top band dropped | +0.01300 [+0.01200, +0.01421] | +0.01471 [+0.01358, +0.01579] |
+| Metric B gradient, top band dropped | +0.00067 [-0.00058, +0.00192] | +0.00068 [-0.00039, +0.00186] |

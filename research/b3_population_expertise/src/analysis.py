@@ -58,6 +58,22 @@ def fit_all(dev, groups):
                                             penalty=fits["T1P"]["penalty"])
     # The comparator, and the residual control C5b plants -- one the linear pipeline did not make.
     fits["gbt"] = models.fit_gbt(dev)
+
+    # THE NUISANCE LADDER (Gate 2, R7a). The cheapest honest calibration of "what does a measured
+    # difficulty block do to beta" is to leave it out and look. Three nuisance sets -- context only,
+    # plus the engine-difficulty block, plus value-of-computation -- each with rating, each fitted on
+    # DEVELOPMENT and frozen, each giving its own beta. The report prints all three beside C7b,
+    # because the movement between them is a direct measurement of the same thing C7b simulates.
+    for name in ("T0R", "T1R"):
+        fits[f"Q0_{name}"] = models.fit_frozen(dev, name, "quality_loss", groups,
+                                               penalty=fits["Q0"]["penalty"])
+        column = f"_ut_{name}"
+        dev[column] = dev["log_time"] - models.predict(
+            models.fit_frozen(dev, name, "log_time", groups, penalty=fits["T2R"]["penalty"]), dev)
+        fits[f"T_{name}"] = models.fit_frozen(dev, name, "log_time", groups,
+                                              penalty=fits["T2R"]["penalty"])
+        fits[f"partial_ut_{name}"] = models.fit_frozen(dev, name, column, groups,
+                                                       penalty=fits["Q0"]["penalty"])
     return fits, dev
 
 
@@ -121,6 +137,12 @@ def residualise(frame, fits, constants):
                          > constants.get("ut_q95", float("inf"))).astype(float)
     if "gbt" in fits:
         out["ut_gbt"] = out["log_time"] - models.gbt_predict(fits["gbt"], out)
+    for name in ("T0R", "T1R"):
+        if f"Q0_{name}" in fits:
+            ut_name = out["log_time"] - models.predict(fits[f"T_{name}"], out)
+            out[f"q_resid_{name}"] = out["quality_loss"] - models.predict(fits[f"Q0_{name}"], out)
+            out[f"ut_resid_{name}"] = ut_name - models.predict(fits[f"partial_ut_{name}"], out)
+
     # N1(c): Metrics C and D read residualised outcomes, not raw ones.
     if "partial_allocation" in fits:
         out["allocation_resid"] = (out["allocation_loss"]

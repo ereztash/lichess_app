@@ -211,6 +211,22 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
         out["tae_spread_low_to_high"] = {"point": float("nan"), "lo": float("nan"),
                                          "hi": float("nan"), "replicates": 0}
 
+    # ALWAYS, not when a rate "differs materially" (Gate 2, R8). The account-status lookup is later
+    # relative to the games for DEVELOPMENT than for FINAL, so FINAL's top band is the least cleaned
+    # of the three -- a direction that favours the hypothesis. Reported unconditionally, so no
+    # judgement sits inside the rule.
+    if len(powered) >= 2:
+        not_top = (frame["rating_band"] != powered[-1]).to_numpy()
+        out["tae_rating_gradient_excluding_top_band"] = boot.interval(
+            lambda i: gradient_with_main_effect(
+                y_resid[i][not_top[i]], voc_resid[i][not_top[i]],
+                rating_c[i][not_top[i]], rating_block[i][not_top[i]])[1]
+        )
+        out["beta_excluding_top_band"] = boot.interval(
+            lambda i: slope(q_resid[i][not_top[i]], ut_resid[i][not_top[i]])
+        )
+        out["top_band_dropped"] = powered[-1]
+
     out["beta_sign_agreement"] = (
         float(np.mean([out["beta_by_band"][b]["point"] > 0 for b in powered]))
         if powered and "beta_by_band" in out else float("nan")
@@ -218,7 +234,7 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     return out
 
 
-def player_level(frame: pd.DataFrame) -> dict:
+def player_level(frame: pd.DataFrame, bootstrap: bool = True) -> dict:
     """Per-player estimates, shrunk, then regressed on player rating.
 
     A player with 20 decisions must not be able to produce an extreme coefficient, so every player
@@ -286,7 +302,7 @@ def player_level(frame: pd.DataFrame) -> dict:
 
     rng = np.random.default_rng(20260901)
     replicates = []
-    for _ in range(400):
+    for _ in range(400 if bootstrap else 0):
         draw = rng.integers(0, ok.sum(), ok.sum())
         d, t, ww = design[draw], y[ok][draw], w[draw]
         try:

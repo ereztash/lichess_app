@@ -1,6 +1,6 @@
 {
  "frozen_at": "2026-09-01T22:28:23Z",
- "git_commit_at_freeze": "3b5fd72e93d96a14260cb84561219b9a40760657",
+ "git_commit_at_freeze": "8141c5b",
  "gate_1_verdict": "PASS_WITH_REQUIRED_CHANGES x3, all applied; the third re-read named seven text edits as the condition for hashing and all seven are in",
  "reviews": [
   "reviews/FABLE_GATE_1_PREREG_REVIEW.md sections: original (R1-R13), GATE 1 RE-REVIEW (N1-N9), GATE 1 THIRD RE-READ (M1-M5)"
@@ -57,5 +57,6 @@
  },
  "amended_at": "2026-09-02T00:46:57Z",
  "amendments": "results/POST_FREEZE_AMENDMENTS.md -- four repairs to how destructive controls are computed, plus C7b. No estimand, outcome, exclusion, band, threshold or model family changed. Audited at FABLE GATE 2.",
- "amended_commit": "4387189a17c9ce8d63f05c3b25251cd7b0bc219f"
+ "amended_commit": "e70a0de",
+ "commit_note": "Corrected at Gate 2. The earlier values were the PARENT commits: the hash was taken inside the working tree before the commit that carried it, so `git rev-parse HEAD` returned the commit before. 8141c5b is the freeze commit; e70a0de is the commit carrying the amendments."
 }

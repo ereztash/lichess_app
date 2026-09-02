@@ -30,7 +30,7 @@ import chess
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import dataset  # noqa: E402
-from common import unit_hash  # noqa: E402
+from common import require_seal_for, unit_hash  # noqa: E402
 from engine import Engine  # noqa: E402
 from position_features import MULTIPV, engine_features  # noqa: E402
 from quality import quality_from  # noqa: E402
@@ -110,6 +110,7 @@ def main() -> None:
     ap.add_argument("--binary", default="/opt/b3/stockfish-17.1-avx2")
     args = ap.parse_args()
 
+    require_seal_for(args.period)
     leakage = run_leakage_suite()
     determinism = redetermine(os.path.join(args.data, args.period), args.sample, args.binary,
                               args.nodes)

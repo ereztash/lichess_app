@@ -119,8 +119,11 @@ would not be. Reported, not corrected.
 February and FINAL games in June, but the lookups happen within days of each other, so Lichess has
 had four months longer to close a DEVELOPMENT account than a FINAL one. **FINAL's top band is the
 least cleaned of the three.** The lookup date is recorded per period, the per-band exclusion rate is
-reported per period, and if the top-band rate differs materially between periods, the primary
-Metric B condition is additionally reported with the top band dropped -- the fallback R10 named.
+reported per period, and the primary Metric B condition is **always** additionally reported with the
+top adequately powered band dropped. Fixed at Gate 2: the first wording made that conditional on the
+rate differing "materially" between periods, which is a judgement call sitting inside a rule, made
+after the rates are visible. It is now unconditional. It is a reporting rule, not a threshold, and
+it changes no verdict.
 This is the direction that matters: the exclusion removes accounts whose time tracks engine
 difficulty with low loss, which is what Metric B rewards, so under-cleaning FINAL's top band works
 **in favour** of the hypothesis.

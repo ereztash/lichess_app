@@ -39,7 +39,7 @@ import zstandard
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import dataset  # noqa: E402
-from common import unit_hash  # noqa: E402
+from common import require_seal_for, unit_hash  # noqa: E402
 from engine import Engine  # noqa: E402
 from position_features import (  # noqa: E402
     MULTIPV, board_features, clock_features, engine_features, search_trace,
@@ -107,6 +107,8 @@ def main() -> None:
     ap.add_argument("--binary", default="/opt/b3/stockfish-17.1-avx2")
     args = ap.parse_args()
 
+    require_seal_for(args.source)
+    require_seal_for(args.out)
     frame = dataset.load(args.source)
     rows = frame.to_dict("records")
     # A seeded draw, not the first N: which decisions are re-scored must not depend on file order.

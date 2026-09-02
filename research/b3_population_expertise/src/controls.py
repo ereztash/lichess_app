@@ -32,6 +32,8 @@ control that refits is asking a different question.
 """
 from __future__ import annotations
 
+import hashlib
+
 import numpy as np
 import pandas as pd
 
@@ -39,14 +41,22 @@ from analysis import (
     PlayerBootstrap, RatingBasis, gradient_with_main_effect, residualise, slope,
 )
 from common import rating_band
-from estimands import estimate
+from estimands import estimate, player_level
 
 SEED = 20260901
 PERMUTATIONS = 200
 
 
 def _rng(tag: str) -> np.random.Generator:
-    return np.random.default_rng(abs(hash((SEED, tag))) % (2**32))
+    """A seed that is the same in every process, on every machine, in every Python build.
+
+    This was `abs(hash((SEED, tag))) % 2**32`. `hash` on a str is salted per interpreter process
+    unless PYTHONHASHSEED is set, so every one of these nulls was drawn from a seed nobody could
+    write down -- and a control whose null cannot be regenerated is a control a reader has to take
+    on trust. Found at Gate 2.
+    """
+    digest = hashlib.blake2b(f"{SEED}|{tag}".encode(), digest_size=8).digest()
+    return np.random.default_rng(int.from_bytes(digest, "big") % (2**32))
 
 
 def _null(values) -> dict:
@@ -56,8 +66,16 @@ def _null(values) -> dict:
         return {"point": float("nan"), "lo": float("nan"), "hi": float("nan"),
                 "permutations": int(finite.size)}
     lo, hi = np.percentile(finite, [2.5, 97.5])
+    sd = float(finite.std(ddof=1))
     return {"point": float(finite.mean()), "lo": float(lo), "hi": float(hi),
-            "sd": float(finite.std()), "permutations": int(finite.size),
+            "sd": sd,
+            # The Monte-Carlo standard error of the null's OWN MEAN. The permutation interval can
+            # contain zero while the mean sits many of these away from it -- a small systematic
+            # offset that the pass condition tolerates and the report must print rather than pass
+            # over (Gate 2, R5iii).
+            "mc_se": sd / np.sqrt(finite.size),
+            "sd_units_from_zero": abs(float(finite.mean())) / sd if sd > 0 else float("nan"),
+            "permutations": int(finite.size),
             "note": "distribution across permutations, not a bootstrap around one of them"}
 
 
@@ -192,13 +210,31 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
         rng = _rng("C6")
         sd = float(np.std(y_resid))
         planted_slope = 0.05 + 0.05 * (rating - 800) / 1800.0
-        values = []
+        values, player_values = [], []
+        work = scored.copy()
         for _ in range(max(20, PERMUTATIONS // 4)):
             synth = yhat_t1p + planted_slope * voc_z + rng.normal(0.0, sd, len(rating))
             values.append(gradient(synth - yhat_t1p, voc_resid, rating))
+            # R3 (Gate 2): ALSO RUN THE ESTIMATOR CONDITION 6 ACTUALLY READS.
+            #
+            # The hashed §7 says C6 must exercise the player-level statistic, and it did not -- it
+            # only checked the pooled gradient. That is how the shrink-then-regress estimator
+            # survived two review passes returning exactly zero on a planted gradient: the control
+            # that was supposed to catch it was looking somewhere else.
+            work["y_resid_T1"] = synth - yhat_t1p
+            # Point estimate only: the spread across synthetic draws IS the interval here, and a
+            # 400-replicate bootstrap inside each of fifty draws would be twenty thousand weighted
+            # regressions to produce an interval this loop already has.
+            player_values.append(
+                player_level(work, bootstrap=False)
+                .get("tae_vs_rating_per_100elo", {}).get("point", float("nan"))
+            )
         results["C6_planted_expertise"] = {
             "planted_gradient_per_100elo": float(0.05 / 18.0),
             "tae_rating_gradient": _null(values),
+            "player_level_gradient": _null(player_values),
+            "player_level_note": "reported, not a pass condition: what condition 6's own estimator "
+                                 "recovers from a planted gradient",
         }
 
     # C7 -- nothing planted. The pipeline must not invent the hypothesis.
@@ -221,6 +257,9 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
         # was testing for the absence of. T2P leaves beta at zero (quality is independent noise
         # around Q0) while making the true rating effect on time zero as well.
         yhat_t2p = scored["yhat_T2P"].to_numpy(float)
+        extreme_hat = scored["extreme_ut"].to_numpy(float) - extreme_resid
+        q95 = float(constants["ut_q95"])
+        d_v = []
         for _ in range(draws):
             synth_lt = yhat_t2p + rng.normal(0.0, sd_y, len(rating))
             synth_q = qhat + rng.normal(0.0, sd_q, len(rating))
@@ -228,25 +267,41 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
             b_v.append(slope(synth_q - qhat, synth_ut_resid))
             tae_v.append(gradient(synth_lt - yhat_t1p, voc_resid, rating))
             a_v.append(100.0 * slope(synth_lt - yhat_t1p, rating_resid))
+            # R2 (Gate 2): COMPUTED, not a literal. A required control field that is a constant is
+            # not a control. The synthetic population residual is rebuilt against the same frozen
+            # T2P, thresholded at the same frozen q95, and residualised through the same frozen
+            # `partial_extreme` prediction as the real one.
+            synth_extreme = ((synth_lt - yhat_t2p) > q95).astype(float)
+            d_v.append(100.0 * slope(synth_extreme - extreme_hat, rating_resid))
         results["C7_no_effect_synthetic"] = {
             "beta": _null(b_v), "tae_rating_gradient": _null(tae_v),
             "metric_a_time_vs_rating": _null(a_v),
-            "extreme_ut_vs_rating": _null([0.0] * len(b_v)),
+            "extreme_ut_vs_rating": _null(d_v),
             "note": "time generated from T2P (the fullest model without rating) and quality from "
                     "Q0, with independent noise and no UT-quality link, so the true beta, the true "
                     "rating effect on time and the true allocation gradient are all zero; "
                     "extreme_ut has no rating structure in such data by construction",
         }
 
-    # C7b -- HOW MUCH BETA AN OMITTED DETERMINANT OF THINKING TIME MANUFACTURES.
+    # C7b -- HOW MUCH BETA AN UNMEASURED DIFFICULTY FACTOR MANUFACTURES.
     #
     # Not a pass/fail control: a magnitude for alternative explanation A2, which the design has
     # called its central irreducible limitation from the first draft and which had no number
-    # attached to it. Thinking time is generated from T1P -- the model WITHOUT the
-    # value-of-computation block -- while the residual is still taken against T2R. That is exactly
-    # the situation A2 describes: a real determinant of time that the expected-time model does not
-    # contain. Quality is generated from Q0 with independent noise, so the TRUE beta is zero and
-    # whatever comes back is the inflation the omission produces.
+    # attached to it.
+    #
+    # A LATENT FACTOR, not an omitted block. An earlier version omitted the VoC block from the
+    # generator and measured zero, because a factor that moves only TIME manufactures nothing --
+    # A2's mechanism needs a factor that moves time AND quality. So an unobserved standard normal,
+    # independent of everything measured, is added to both, with its two strengths calibrated to a
+    # factor the study does measure.
+    #
+    # WHAT THE NUMBER IS, EXACTLY: `beta_manufactured = (b / a) x f`, where `f` is the factor's
+    # share of the residual time variance. Reading it as "the observed beta needs seventeen such
+    # factors" is the flattering reading and the report may not lead with it: ONE latent factor
+    # several times stronger than the engine block on both axes reproduces the observed beta by
+    # itself, and nothing here excludes that. The anchor is weak by the study's own numbers -- the
+    # measured block explains about 3% of residual time variance -- so multiples of it sound larger
+    # than they are.
     if wanted("C7b"):
         rng = _rng("C7b")
         sd_y, sd_q = float(np.std(y_resid)), float(np.std(q_resid))

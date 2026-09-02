@@ -78,6 +78,16 @@ def model_comparison(frame, fits, groups=None) -> dict:
     total = q - q.mean()
     out["Q1"] = out["Q0"] + (beta**2 * float(uc @ uc)) / float(total @ total)
     out["q1_minus_q0_r2"] = out["Q1"] - out["Q0"]
+    # The nuisance ladder: beta under three nested difficulty adjustments (Gate 2, R7a).
+    out["beta_ladder"] = {
+        "T0R_context_only": an.slope(frame["q_resid_T0R"], frame["ut_resid_T0R"])
+        if "q_resid_T0R" in frame else None,
+        "T1R_plus_engine_difficulty": an.slope(frame["q_resid_T1R"], frame["ut_resid_T1R"])
+        if "q_resid_T1R" in frame else None,
+        "T2R_plus_value_of_computation": an.slope(frame["q_resid"], frame["ut_resid"]),
+        "note": "what the whole measured engine-difficulty block removes from beta, measured "
+                "directly rather than simulated; read beside control C7b",
+    }
     return out
 
 

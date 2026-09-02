@@ -155,3 +155,28 @@ def rating_band(rating: int) -> str | None:
     if rating < RATING_MIN or rating >= RATING_MAX:
         return None
     return BAND_LABELS[(rating - RATING_MIN) // BAND_WIDTH]
+
+
+SEALED_PERIODS = ("final", "secondary")
+
+
+def require_seal_for(period_or_path: str) -> None:
+    """Refuse to touch the holdout, or the secondary control, without the seal file.
+
+    R4 FROM GATE 2, and the finding was exact: `run.py` refused to ANALYSE `data/final/`, and
+    `score.py` -- the script that would stream 2026-06 off the network in the first place -- had no
+    seal at all. The README's sentence about a mechanical seal was therefore not true of the step
+    that matters most. Every script that can reach a sealed period checks now.
+    """
+    name = str(period_or_path).lower()
+    if not any(period in name for period in SEALED_PERIODS):
+        return
+    seal = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "results", "FINAL_HOLDOUT_SEALED.json")
+    if not os.path.exists(seal):
+        raise SystemExit(
+            f"REFUSING to touch a sealed period ({period_or_path}): {seal} does not exist. "
+            "It is written only when FABLE GATE 2 returns PASS."
+        )
+    if not json.load(open(seal)).get("sealed"):
+        raise SystemExit(f"REFUSING to touch a sealed period ({period_or_path}): the seal is false")

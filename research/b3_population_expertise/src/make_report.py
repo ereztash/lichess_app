@@ -19,7 +19,7 @@ import analysis as an  # noqa: E402
 import dataset  # noqa: E402
 import matching  # noqa: E402
 import report as rp  # noqa: E402
-from common import BAND_LABELS  # noqa: E402
+from common import BAND_LABELS, require_seal_for  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -36,6 +36,7 @@ def load_periods(data_dir, names):
         path = os.path.join(data_dir, name)
         if not os.path.exists(os.path.join(path, "decisions.jsonl.zst")):
             continue
+        require_seal_for(name)
         frame = dataset.apply_frozen(dataset.load(path), constants)
         out[name] = an.residualise(frame, fits, constants)
     return out, fits, constants

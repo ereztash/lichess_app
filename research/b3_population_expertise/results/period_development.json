@@ -1,5 +1,5 @@
 {
- "_cache_key": "78662831f251d0bce35d92ace2820bc510e152f042149c21788fc423ef23edbb",
+ "_cache_key": "844a674f715282ae5f7e7736a53b87d02f78b008a415f0994b5fd0f5ca15bcca",
  "estimates": {
   "n_decisions": 85139,
   "n_players": 2428,
@@ -824,85 +824,116 @@
    "800-999",
    "2400-2599"
   ],
+  "tae_rating_gradient_excluding_top_band": {
+   "point": 0.0006674295607058046,
+   "lo": -0.0005833135528544208,
+   "hi": 0.0019205219336829431,
+   "replicates": 400
+  },
+  "beta_excluding_top_band": {
+   "point": 0.013004485701643555,
+   "lo": 0.011999992508785865,
+   "hi": 0.014211783865132206,
+   "replicates": 400
+  },
+  "top_band_dropped": "2400-2599",
   "beta_sign_agreement": 1.0
  },
  "controls": {
   "C1_shuffled_quality": {
    "beta": {
-    "point": -3.1443636807447883e-06,
-    "lo": -0.0007351613238643412,
-    "hi": 0.0009005354101116419,
-    "sd": 0.00041313485342121456,
+    "point": -2.236961014660029e-05,
+    "lo": -0.0009346648570413716,
+    "hi": 0.0008115073185041447,
+    "sd": 0.00045075717303976414,
+    "mc_se": 3.187334537248952e-05,
+    "sd_units_from_zero": 0.04962674247809901,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    }
   },
   "C2_shuffled_time": {
    "beta": {
-    "point": -3.568754537378045e-06,
-    "lo": -0.0006117749200669054,
-    "hi": 0.0005078304530272973,
-    "sd": 0.00028067304261907233,
+    "point": -2.2386683495121793e-05,
+    "lo": -0.0005589077714389917,
+    "hi": 0.0004907271570837398,
+    "sd": 0.00027739353940878995,
+    "mc_se": 1.9614685277329317e-05,
+    "sd_units_from_zero": 0.0807036946240155,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    }
   },
   "C3_shuffled_rating": {
    "tae_rating_gradient": {
-    "point": -1.8510402988134762e-05,
-    "lo": -0.0009055601425637,
-    "hi": 0.0011452862032045293,
-    "sd": 0.000546628118800303,
+    "point": 3.1985690533843646e-07,
+    "lo": -0.0008847542172880593,
+    "hi": 0.0009027181547456059,
+    "sd": 0.0005005903869433392,
+    "mc_se": 3.539708572044329e-05,
+    "sd_units_from_zero": 0.0006389593441686294,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "metric_a_time_vs_rating": {
-    "point": 5.899717720144769e-05,
-    "lo": -0.0006713981024314169,
-    "hi": 0.0009029126469461249,
-    "sd": 0.00043645265338827696,
+    "point": 2.4885465846668718e-05,
+    "lo": -0.0007182058862550598,
+    "hi": 0.0009586135406832757,
+    "sd": 0.00043914183171918364,
+    "mc_se": 3.1052016711131645e-05,
+    "sd_units_from_zero": 0.05666840198130369,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "extreme_ut_vs_rating": {
-    "point": -1.1527462990326824e-05,
-    "lo": -0.00025881955788118225,
-    "hi": 0.0002002220784611139,
-    "sd": 0.0001244059288388881,
+    "point": -4.827105161407668e-06,
+    "lo": -0.00024662917266779364,
+    "hi": 0.0002048803348461504,
+    "sd": 0.00011514566619971804,
+    "mc_se": 8.142028139406327e-06,
+    "sd_units_from_zero": 0.04192172680676616,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "allocation_loss_vs_rating": {
-    "point": -8.279764664655535e-06,
-    "lo": -0.0004996754138746238,
-    "hi": 0.00042548899949999776,
-    "sd": 0.00023250078315558843,
+    "point": 5.2365364780053974e-06,
+    "lo": -0.0004103983990117635,
+    "hi": 0.00041632777034619897,
+    "sd": 0.00021062215934719052,
+    "mc_se": 1.4893235714255199e-05,
+    "sd_units_from_zero": 0.024862229568985983,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    }
   },
   "C4_shuffled_voc": {
    "tae_rating_gradient": {
-    "point": 4.870484548009224e-05,
-    "lo": -0.0007545237427024101,
-    "hi": 0.0009355365696397789,
-    "sd": 0.0004427503493553277,
+    "point": 3.365073671927416e-05,
+    "lo": -0.0006687983989775831,
+    "hi": 0.0010384830941101968,
+    "sd": 0.0004313740100715404,
+    "mc_se": 3.0502748774922024e-05,
+    "sd_units_from_zero": 0.07800826181830801,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "tae_pooled": {
-    "point": 0.00029339534223835734,
-    "lo": -0.0035750875745156445,
-    "hi": 0.004144400796312241,
-    "sd": 0.002145496882705699,
+    "point": -0.00015135332908775576,
+    "lo": -0.004281739215924735,
+    "hi": 0.0035585075919058323,
+    "sd": 0.002168456398261324,
+    "mc_se": 0.0001533330223917939,
+    "sd_units_from_zero": 0.0697977276412435,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "tae_rating_gradient_raw_column_permuted": {
-    "point": -0.001165900575305381,
-    "lo": -0.0018684282805138932,
-    "hi": -0.0004885063295783378,
-    "sd": 0.00037162877817719986,
+    "point": -0.0011500490992972505,
+    "lo": -0.0018372918469170612,
+    "hi": -0.00045337616348162084,
+    "sd": 0.00035333977716643655,
+    "mc_se": 2.498489524973309e-05,
+    "sd_units_from_zero": 3.254796582824394,
     "permutations": 200,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
@@ -921,44 +952,65 @@
   "C6_planted_expertise": {
    "planted_gradient_per_100elo": 0.002777777777777778,
    "tae_rating_gradient": {
-    "point": 0.003012973738802642,
-    "lo": 0.002078757891417563,
-    "hi": 0.0038778178687716644,
-    "sd": 0.0004467008741474947,
+    "point": 0.0029065718987537313,
+    "lo": 0.001995009836789037,
+    "hi": 0.003723110026124029,
+    "sd": 0.0005056545534509087,
+    "mc_se": 7.151035273659862e-05,
+    "sd_units_from_zero": 5.748137496077971,
     "permutations": 50,
     "note": "distribution across permutations, not a bootstrap around one of them"
-   }
+   },
+   "player_level_gradient": {
+    "point": 0.0028504073841102086,
+    "lo": 0.001982793861321028,
+    "hi": 0.0038303331051195893,
+    "sd": 0.0005318354074206756,
+    "mc_se": 7.521288461245399e-05,
+    "sd_units_from_zero": 5.359566783893292,
+    "permutations": 50,
+    "note": "distribution across permutations, not a bootstrap around one of them"
+   },
+   "player_level_note": "reported, not a pass condition: what condition 6's own estimator recovers from a planted gradient"
   },
   "C7_no_effect_synthetic": {
    "beta": {
-    "point": 8.588775994124231e-05,
-    "lo": -0.0006583632176396688,
-    "hi": 0.0008295236758973721,
-    "sd": 0.0004128842078689433,
+    "point": -3.864518157554838e-05,
+    "lo": -0.0007440514220085733,
+    "hi": 0.0007262386341854316,
+    "sd": 0.00044259180280355827,
+    "mc_se": 6.259193301199505e-05,
+    "sd_units_from_zero": 0.087315628827181,
     "permutations": 50,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "tae_rating_gradient": {
-    "point": 3.286191566259329e-05,
-    "lo": -0.0007885777548261181,
-    "hi": 0.000819381045641351,
-    "sd": 0.00039313041517767035,
+    "point": -1.5373406127755322e-06,
+    "lo": -0.001036393145154484,
+    "hi": 0.0008578887238405246,
+    "sd": 0.00045808186842369157,
+    "mc_se": 6.478255910019922e-05,
+    "sd_units_from_zero": 0.0033560389937844185,
     "permutations": 50,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "metric_a_time_vs_rating": {
-    "point": 9.65843055454568e-05,
-    "lo": -0.000731246902179588,
-    "hi": 0.001117972730404289,
-    "sd": 0.0005325632453783676,
+    "point": 4.3006747635577424e-05,
+    "lo": -0.0010605651442230364,
+    "hi": 0.0009514049561631298,
+    "sd": 0.00048304035587016364,
+    "mc_se": 6.831222224451117e-05,
+    "sd_units_from_zero": 0.08903344640450125,
     "permutations": 50,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
    "extreme_ut_vs_rating": {
-    "point": 0.0,
-    "lo": 0.0,
-    "hi": 0.0,
-    "sd": 0.0,
+    "point": -1.4788875534022476e-05,
+    "lo": -0.0003308397065827229,
+    "hi": 0.000387403969913554,
+    "sd": 0.0001866752486125874,
+    "mc_se": 2.639986683472904e-05,
+    "sd_units_from_zero": 0.07922247670184847,
     "permutations": 50,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
@@ -966,10 +1018,12 @@
   },
   "C7b_omitted_difficulty_simulation": {
    "beta_manufactured": {
-    "point": 0.0007628276376647753,
-    "lo": 0.00010255873378553336,
-    "hi": 0.0013990299567861017,
-    "sd": 0.00040590236339194157,
+    "point": 0.0007898950541141405,
+    "lo": 0.0001151509808983675,
+    "hi": 0.0013662967733678172,
+    "sd": 0.0003593210353950907,
+    "mc_se": 5.081566815016801e-05,
+    "sd_units_from_zero": 2.1982989480301733,
     "permutations": 50,
     "note": "distribution across permutations, not a bootstrap around one of them"
    },
@@ -3339,6 +3393,12 @@
   "Q0": 0.16960006986020537,
   "Q1": 0.1785061967575201,
   "q1_minus_q0_r2": 0.008906126897314737,
+  "beta_ladder": {
+   "T0R_context_only": 0.013787101579801854,
+   "T1R_plus_engine_difficulty": 0.012889781751562685,
+   "T2R_plus_value_of_computation": 0.012696802888889903,
+   "note": "what the whole measured engine-difficulty block removes from beta, measured directly rather than simulated; read beside control C7b"
+  },
   "gbt_r2_development_in_sample": 0.355434224440653,
   "gbt_r2": 0.355434224440653,
   "note": "predictive comparator only; supplies no reported scientific quantity"

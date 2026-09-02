@@ -3403,5 +3403,6 @@
  "leakage_tests_passed": false,
  "engine_nondeterminism_detected": true,
  "gate_checks_note": "results/gate_checks.json is absent; run src/gate_checks.py",
- "elapsed_seconds": 2684.9
+ "elapsed_seconds": 2684.9,
+ "_label": "PRE-AMENDMENT. Written at commit 4387189, before the destructive controls were repaired. Its control values are the ones POST_FREEZE_AMENDMENTS.md section A0 tabulates as having failed; its periods block is otherwise unchanged by the amendments. Kept as the record of what was seen when. Not the analysis of record."
 }
