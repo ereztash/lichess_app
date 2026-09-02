@@ -1,0 +1,18 @@
+{
+  "what": "The external synthesis (E1-E5) and its falsifiers, frozen before the repository's learning architecture was read in this cycle.",
+  "why": "A prior that can be edited after the audit is not a prior. A falsifier written after the evidence is a description of the evidence.",
+  "frozen_at_main_sha": "c848f244d380e13a8622c590791b22a2bef7a39b",
+  "ordering_rule": "external synthesis -> freeze -> repo audit -> crosswalk -> falsification -> product decision",
+  "files": {
+    "docs/learning-v3/FROZEN_EXTERNAL_SYNTHESIS.md": {
+      "sha256": "64a86b69c7d5aebe737ba2bcd2bb449196bdb42eb6483eee3ad3c8e663ae4c79",
+      "bytes": 6100
+    },
+    "docs/learning-v3/FALSIFICATION_REGISTER.md": {
+      "sha256": "91c38899c3af9a50e1aad869c78acadf7eb6bc0bd4714733c9ef961f20f59d65",
+      "bytes": 8164
+    }
+  },
+  "checked_by": "scripts/learning-v3/verify_freeze.py, run by `npm run learning-v3:freeze`",
+  "what_this_does_not_establish": "That E1-E5 are correct. Only that they were fixed before the audit. A hash proves order, not truth."
+}
