@@ -98,7 +98,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
               setCopied(true);
             }}
           >
-            <Copy size={13} /> {copied ? "הועתק" : "העתיקו את הדוח"}
+            <Copy size={14} /> {copied ? "הועתק" : "העתיקו את הדוח"}
           </button>
         )}
       </div>
@@ -134,7 +134,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
               setProgressCopied(true);
             }}
           >
-            <Copy size={13} /> {progressCopied ? "הועתק" : "העתיקו את מהלך הביקורים"}
+            <Copy size={14} /> {progressCopied ? "הועתק" : "העתיקו את מהלך הביקורים"}
           </button>
           <button
             className="ghost-control"

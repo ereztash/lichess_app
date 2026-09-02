@@ -6,10 +6,7 @@ import {
   Clipboard,
   FlipVertical2,
   HelpCircle,
-  History,
-  Link2,
   Moon,
-  Plus,
   Stethoscope,
   Sun,
 } from "lucide-react";
@@ -26,6 +23,8 @@ import { isAnchorFen } from "@shared/anchor-set";
 import { decisionPurposeFor, type DecisionPurpose } from "@shared/confidence-asked";
 import { CounterfactualProbe } from "@/components/CounterfactualProbe";
 import { SilentGame } from "@/components/SilentGame";
+import { BrandLockup } from "@/components/BrandLockup";
+import { ControlRail } from "@/components/ControlRail";
 import { RevealPanel } from "@/components/RevealPanel";
 import { recordTrialEvent, revealsPresented, trialEventSeen } from "@/lib/progress-record";
 import { continuationStarted } from "@/lib/acquisition-evidence";
@@ -1833,13 +1832,7 @@ export default function Home() {
           * header already points on every other site -- and because the alternative was a
           * fifth unlabelled icon in a row that has already been trimmed once for overflowing.
           */}
-        <button type="button" className="brand-lockup" onClick={() => navigate("/")}>
-          <div className="brand-mark">♞</div>
-          <div>
-            <p className="brand-name">DECISION LAB</p>
-            <span>COMMIT · THEN REVEAL</span>
-          </div>
-        </button>
+        <BrandLockup onNavigate={() => navigate("/")} />
         {/* `תור / לבן` was read here AND in `.workspace-meta` beside the board -- one fact at one
             rank, 400px apart, both competing with the task heading. The one next to the board is
             where the fact is used; nothing moved behind a disclosure. */}
@@ -1879,7 +1872,7 @@ export default function Home() {
             aria-expanded={showHelp}
             onClick={() => setShowHelp((v) => !v)}
           >
-            <HelpCircle size={17} />
+            <HelpCircle size={16} />
           </button>
           <button
             className="icon-control"
@@ -1887,14 +1880,14 @@ export default function Home() {
             aria-expanded={showSelfCheck}
             onClick={() => setShowSelfCheck((v) => !v)}
           >
-            <Stethoscope size={17} />
+            <Stethoscope size={16} />
           </button>
           <button
             className="icon-control"
             aria-label="הפוך את הלוח"
             onClick={() => setOrientation((v) => (v === "w" ? "b" : "w"))}
           >
-            <FlipVertical2 size={17} />
+            <FlipVertical2 size={16} />
           </button>
           {toggleTheme && (
             <button
@@ -1903,7 +1896,7 @@ export default function Home() {
               aria-pressed={theme === "dark"}
               onClick={toggleTheme}
             >
-              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
             </button>
           )}
         </div>
@@ -1943,230 +1936,19 @@ export default function Home() {
           the rail left the board in the toolbox's 132px track: see `.workbench` in index.css. */}
       <section className={focus ? "workbench workbench-focus" : "workbench"}>
         {/*
-          * THREE QUESTIONS, THREE ENTRIES -- not six controls at one weight.
+          * THE ORDER OF THESE THREE IS THE READING ORDER, AND IT USED TO BE THE OTHER WAY ROUND.
           *
-          * The rail held משחק חדש / טעינת PGN / ייבוא לפי שם / קריאה שמורה / Lichess / קובץ, and
-          * the first, second, third and sixth of those all answer "give me a different position".
-          * They are one door now; see components/PositionSource.tsx. The other two are NOT the
-          * same question -- one connects an account, one reopens a measurement already paid for --
-          * so collapsing them into the same door would have been a label that lies.
+          * `.workbench` names its tracks and each child names its own, so what decides which
+          * column a player meets FIRST is the direction the document runs in: on a right-to-left
+          * page track 1 is the right edge. The task column was declared last, so on a Hebrew page
+          * the surface the player WRITES INTO sat at the far left. Measured at 1440x900:
+          * `.commitment-screen` at x=24..354, `.board-workspace` at x=382..1416.
           *
-          * NOTHING HERE IS `prominent` ANY MORE. `משחק חדש` was a filled blue button, permanently
-          * the loudest thing on the page, and what it offers is discarding the position the
-          * product exists to measure. The blue belongs to the commitment panel's submit.
+          * The task goes first now, which puts it at the reading start in either direction, and
+          * the DOM order is the visual order so the tab order does not have to be repaired with
+          * `order` or `tabindex`. `docs/INTERACTION_GEOMETRY.md`'s keyboard walk asserted the old
+          * sequence and asserts this one.
           */}
-        {/*
-          * NOT ON SCREEN WHILE A DECISION IS OPEN (LAW 1, LAW 2).
-          *
-          * Every control in this rail answers "give me something else": another position, another
-          * account, a reading from another day. Offered beside an open decision they are four
-          * equal-weight ways to discard the thing being measured -- and the panel's submit, which
-          * is the one primary action of this state, has to compete with them for the eye.
-          *
-          * ABSENT RATHER THAN DISABLED. A disabled control still says "there is a thing here you
-          * could be doing", which is the cost this removes. It comes back at the reveal, where
-          * choosing what to do next is exactly what the player is there for.
-          */}
-        {!focus && (
-        <aside className="control-rail">
-          <div className="rail-label">כלי עבודה</div>
-          <button
-            className="rail-button"
-            aria-expanded={showPositionSource}
-            onClick={() => (showPositionSource ? closePositionSource() : openPositionSource())}
-          >
-            <Plus size={18} />
-            <span>עמדה אחרת</span>
-          </button>
-          {/*
-            * The way back to a reading that has already been paid for.
-            *
-            * Deliberately NOT promoted: same `rail-button`, same rail. The reading is a set of
-            * accuracy rates, and accuracy is precisely what this product argues is not the thing
-            * worth measuring -- putting it on the front page would make the app say the opposite
-            * of what its own empty calibration column says. What was broken was that a 43-second
-            * scan could not be reopened at all; that is a reachability defect, not an argument
-            * for a headline.
-            *
-            * The entry renders only once something is behind it. A button that opens an empty
-            * panel is a button that lies about what the record holds.
-            */}
-          {importReading.reading && (
-            <button
-              className="rail-button"
-              onClick={() => {
-                setShowReading((v) => !v);
-                closePositionSource();
-              }}
-            >
-              <History size={18} />
-              <span>קריאה שמורה</span>
-            </button>
-          )}
-          {/* Not a position source: this connects an account and enables the analysis layers. */}
-          <button className="rail-button" onClick={openLichess}>
-            <Link2 size={18} />
-            <span>Lichess</span>
-          </button>
-          <input
-            ref={fileRef}
-            hidden
-            type="file"
-            accept=".pgn,text/plain"
-            onChange={async (e) => {
-              const f = e.target.files?.[0];
-              if (f) importPgn(await f.text());
-            }}
-          />
-        </aside>
-        )}
-
-        <section className="board-workspace">
-          <div className="workspace-meta">
-            <div>
-              {/* `focus`, not `deciding`: the narrower reading said REVEAL at `committed`, where
-                  the counterfactual is open and the engine has not run, and at `blocked`, where the
-                  write failed. `MODE_OF_STAGE` calls all four DECIDE. Measured in a browser. */}
-              <p>{focus ? "DECIDE" : "REVEAL"}</p>
-              {/* "7. Bb3" is a Latin run: under the page's RTL direction it rendered "Bb3 .7". */}
-              <h1>
-                {activeMove ? (
-                  <span dir="ltr">{`${Math.ceil((activeMove.ply + 1) / 2)}. ${activeMove.san}`}</span>
-                ) : (
-                  "עמדת פתיחה"
-                )}
-              </h1>
-            </div>
-            <div className="turn-reading">
-              <span>תור</span>
-              <b>{sideToMove}</b>
-            </div>
-          </div>
-
-          {/*
-           * All three of these are transient panels, and all three used to render as a block
-           * above the board -- which pushed the board below the fold by their own height. See
-           * components/Overlay.tsx for the measurements.
-           */}
-          <ExplainerOverlays
-            help={showHelp}
-            selfCheck={showSelfCheck}
-            onCloseHelp={() => setShowHelp(false)}
-            onCloseSelfCheck={() => setShowSelfCheck(false)}
-          />
-
-          {/*
-            * ONE OVERLAY, FOUR ROOMS -- not one overlay per source stacked on the last.
-            *
-            * `showNewGame`, `showPgn` and `showImport` were three sibling overlays, and reaching
-            * a second one meant closing the first from a rail button that had to remember to.
-            * This is a single surface whose body is either the menu or the chosen source, with a
-            * way back that does not close the door. Nothing nests, so nothing has to be unstacked.
-            */}
-          {showPositionSource && (
-            <PositionSourceOverlay
-              choice={positionChoice}
-              onChoose={choosePositionSource}
-              onBack={() => setPositionChoice(null)}
-              onClose={closePositionSource}
-            >
-              {positionChoice === "new" && (
-                <NewGameSetup
-                  color={setup.color}
-                  depth={setup.depth}
-                  revealTiming={setup.revealTiming}
-                  onColor={setup.setColor}
-                  onDepth={setup.setDepth}
-                  onRevealTiming={setup.setRevealTiming}
-                  onStart={() => {
-                    setup.remember();
-                    newGame(setup.color, setup.depth, setup.revealTiming);
-                  }}
-                  onCancel={closePositionSource}
-                />
-              )}
-              {positionChoice === "username" && (
-                <ImportGames
-                  keepReading={saveImportReading.mutateAsync}
-                  onLoad={loadLichessGame}
-                  onClose={closePositionSource}
-                  analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
-                  /* The account the record already knows about, so it is not asked for twice. */
-                  lastUsername={importReading.reading?.username}
-                />
-              )}
-              {positionChoice === "pgn" && (
-                <PgnDrawer
-                  value={pgnInput}
-                  onChange={setPgnInput}
-                  onLoad={() => importPgn(pgnInput)}
-                  onSample={() => setPgnInput(DEFAULT_PGN)}
-                  onClose={closePositionSource}
-                />
-              )}
-            </PositionSourceOverlay>
-          )}
-
-          {showReading && importReading.reading && (
-            <SavedReadingOverlay
-              reading={importReading.reading}
-              onClose={() => setShowReading(false)}
-            />
-          )}
-
-          <div className="board-assembly">
-            {/* The evaluation bar does not exist while deciding. Not hidden -- absent. */}
-            {stage === "revealed" && <EvaluationBar analysis={analysis} currentFen={activeFen} />}
-            <ChessBoard
-              board={board}
-              orientation={orientation}
-              selectedSquare={selectedSquare}
-              legalTargets={legalTargets}
-              lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}
-              /* STALE ARTIFACT (section 4.3): a suggested move computed for another position
-                 must not remain on the board, where drag-and-drop keeps it actionable. */
-              suggestedMove={
-                stage === "revealed" && analysis && !isStale(analysis, activeFen)
-                  ? uciToSquares(analysis.bestMove)
-                  : undefined
-              }
-              /* The player's own proposal, while deciding. Not the same mark as the engine's
-                 arrow above: one is a guess, the other is an answer. */
-              chosenMove={
-                stage === "deciding" && candidateMove ? uciToSquares(candidateMove) : undefined
-              }
-              onSelect={setSelectedSquare}
-              onMove={handleBoardMove}
-            />
-          </div>
-
-          <RecordModeNotice {...recordMode} />
-
-          {/*
-           * The opponent thinking, said out loud. The whole defect this replaces was a board
-           * that changed nothing while something was happening, so a silent search would put
-           * it straight back.
-           */}
-          {opponentThinking && (
-            <p className="opponent-thinking" role="status">
-              היריב חושב…
-            </p>
-          )}
-
-          <div className="board-note">
-            <i />
-            {notice}
-            <button
-              onClick={async () => {
-                await navigator.clipboard?.writeText(activeFen);
-                setNotice("FEN הועתק.");
-              }}
-            >
-              <Clipboard size={13} /> העתק FEN
-            </button>
-          </div>
-        </section>
-
         <aside className="analysis-stack">
           <LoopStrip
             drill={
@@ -2384,6 +2166,181 @@ export default function Home() {
             </>
           )}
         </aside>
+
+        <section className="board-workspace">
+          <div className="workspace-meta">
+            <div>
+              {/* `focus`, not `deciding`: the narrower reading said REVEAL at `committed`, where
+                  the counterfactual is open and the engine has not run, and at `blocked`, where the
+                  write failed. `MODE_OF_STAGE` calls all four DECIDE. Measured in a browser. */}
+              <p>{focus ? "DECIDE" : "REVEAL"}</p>
+              {/* "7. Bb3" is a Latin run: under the page's RTL direction it rendered "Bb3 .7". */}
+              <h1>
+                {activeMove ? (
+                  <span dir="ltr">{`${Math.ceil((activeMove.ply + 1) / 2)}. ${activeMove.san}`}</span>
+                ) : (
+                  "עמדת פתיחה"
+                )}
+              </h1>
+            </div>
+            <div className="turn-reading">
+              <span>תור</span>
+              <b>{sideToMove}</b>
+            </div>
+          </div>
+
+          {/*
+           * All three of these are transient panels, and all three used to render as a block
+           * above the board -- which pushed the board below the fold by their own height. See
+           * components/Overlay.tsx for the measurements.
+           */}
+          <ExplainerOverlays
+            help={showHelp}
+            selfCheck={showSelfCheck}
+            onCloseHelp={() => setShowHelp(false)}
+            onCloseSelfCheck={() => setShowSelfCheck(false)}
+          />
+
+          {/*
+            * ONE OVERLAY, FOUR ROOMS -- not one overlay per source stacked on the last.
+            *
+            * `showNewGame`, `showPgn` and `showImport` were three sibling overlays, and reaching
+            * a second one meant closing the first from a rail button that had to remember to.
+            * This is a single surface whose body is either the menu or the chosen source, with a
+            * way back that does not close the door. Nothing nests, so nothing has to be unstacked.
+            */}
+          {showPositionSource && (
+            <PositionSourceOverlay
+              choice={positionChoice}
+              onChoose={choosePositionSource}
+              onBack={() => setPositionChoice(null)}
+              onClose={closePositionSource}
+            >
+              {positionChoice === "new" && (
+                <NewGameSetup
+                  color={setup.color}
+                  depth={setup.depth}
+                  revealTiming={setup.revealTiming}
+                  onColor={setup.setColor}
+                  onDepth={setup.setDepth}
+                  onRevealTiming={setup.setRevealTiming}
+                  onStart={() => {
+                    setup.remember();
+                    newGame(setup.color, setup.depth, setup.revealTiming);
+                  }}
+                  onCancel={closePositionSource}
+                />
+              )}
+              {positionChoice === "username" && (
+                <ImportGames
+                  keepReading={saveImportReading.mutateAsync}
+                  onLoad={loadLichessGame}
+                  onClose={closePositionSource}
+                  analyze={async (fen, depth) => (await ensureEngine()).analyze(fen, depth)}
+                  /* The account the record already knows about, so it is not asked for twice. */
+                  lastUsername={importReading.reading?.username}
+                />
+              )}
+              {positionChoice === "pgn" && (
+                <PgnDrawer
+                  value={pgnInput}
+                  onChange={setPgnInput}
+                  onLoad={() => importPgn(pgnInput)}
+                  onSample={() => setPgnInput(DEFAULT_PGN)}
+                  onClose={closePositionSource}
+                />
+              )}
+            </PositionSourceOverlay>
+          )}
+
+          {showReading && importReading.reading && (
+            <SavedReadingOverlay
+              reading={importReading.reading}
+              onClose={() => setShowReading(false)}
+            />
+          )}
+
+          <div className="board-assembly">
+            {/* The evaluation bar does not exist while deciding. Not hidden -- absent. */}
+            {stage === "revealed" && <EvaluationBar analysis={analysis} currentFen={activeFen} />}
+            <ChessBoard
+              board={board}
+              orientation={orientation}
+              selectedSquare={selectedSquare}
+              legalTargets={legalTargets}
+              lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}
+              /* STALE ARTIFACT (section 4.3): a suggested move computed for another position
+                 must not remain on the board, where drag-and-drop keeps it actionable. */
+              suggestedMove={
+                stage === "revealed" && analysis && !isStale(analysis, activeFen)
+                  ? uciToSquares(analysis.bestMove)
+                  : undefined
+              }
+              /* The player's own proposal, while deciding. Not the same mark as the engine's
+                 arrow above: one is a guess, the other is an answer. */
+              chosenMove={
+                stage === "deciding" && candidateMove ? uciToSquares(candidateMove) : undefined
+              }
+              onSelect={setSelectedSquare}
+              onMove={handleBoardMove}
+            />
+          </div>
+
+          <RecordModeNotice {...recordMode} />
+
+          {/*
+           * The opponent thinking, said out loud. The whole defect this replaces was a board
+           * that changed nothing while something was happening, so a silent search would put
+           * it straight back.
+           */}
+          {opponentThinking && (
+            <p className="opponent-thinking" role="status">
+              היריב חושב…
+            </p>
+          )}
+
+          <div className="board-note">
+            <i />
+            {notice}
+            <button
+              onClick={async () => {
+                await navigator.clipboard?.writeText(activeFen);
+                setNotice("FEN הועתק.");
+              }}
+            >
+              <Clipboard size={14} /> העתק FEN
+            </button>
+          </div>
+        </section>
+
+        {/*
+          * NOT ON SCREEN WHILE A DECISION IS OPEN (LAW 1, LAW 2).
+          *
+          * Every control in this rail answers "give me something else": another position, another
+          * account, a reading from another day. Offered beside an open decision they are four
+          * equal-weight ways to discard the thing being measured -- and the panel's submit, which
+          * is the one primary action of this state, has to compete with them for the eye.
+          *
+          * ABSENT RATHER THAN DISABLED. A disabled control still says "there is a thing here you
+          * could be doing", which is the cost this removes. It comes back at the reveal, where
+          * choosing what to do next is exactly what the player is there for.
+          */}
+        {!focus && (
+          <ControlRail
+            showPositionSource={showPositionSource}
+            onTogglePositionSource={() =>
+              showPositionSource ? closePositionSource() : openPositionSource()
+            }
+            savedReading={Boolean(importReading.reading)}
+            onOpenSavedReading={() => {
+              setShowReading((v) => !v);
+              closePositionSource();
+            }}
+            onOpenLichess={openLichess}
+            fileRef={fileRef}
+            onImportPgn={importPgn}
+          />
+        )}
       </section>
 
       <MoveTimeline moves={history} currentPly={currentPly} onNavigate={setCurrentPly} />

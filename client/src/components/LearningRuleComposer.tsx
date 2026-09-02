@@ -145,7 +145,7 @@ export function LearningRuleComposer({
         */}
       <details className="learning-composer-body">
         <summary className="learning-heading">
-          <BookOpenCheck size={15} />
+          <BookOpenCheck size={14} />
           <div>
             <span>אחרי החשיפה</span>
             <h3>נסחו כלל שאפשר להפריך</h3>

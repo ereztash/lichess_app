@@ -361,8 +361,21 @@ describe("the decision on a phone", () => {
   /*
    * SEQUENCE AND NOT COORDINATES (the mobile invariant). At <=680px the workbench is a flex column
    * and the order is set by `order`, not by the DOM, so this is exactly the case the accessibility
-   * constraints call suspect: it asserts the VISUAL order and, separately, that the DOM order the
-   * keyboard and a screen reader follow has not been inverted to produce it.
+   * constraints call suspect: it asserts the VISUAL order and, separately, what the DOM order the
+   * keyboard and a screen reader follow actually is.
+   *
+   * THE TWO USED TO BE THE SAME AND ARE NOT ANY MORE, and the change was deliberate. The task
+   * column moved to the reading start on desktop -- track 1, which on a right-to-left page is the
+   * right edge -- and the DOM moved with it, so the desktop tab order follows the eye without an
+   * `order` to repair it. On a phone the axis is vertical and the rule is a different one: the
+   * move is made ON THE BOARD and the panel's first field is filled by making it, so the board
+   * stays first.
+   *
+   * ONE OF THE TWO ORDERS HAS TO GIVE, AND THIS IS WHICH. Both sequences carry the same meaning,
+   * which is what 1.3.2 asks: a screen reader hears the question and then reaches the grid it is
+   * about; a sighted phone user sees the board and then the question under it. Neither reorders
+   * one meaning into another. It is asserted in both directions so a later change to either
+   * cannot pass quietly.
    */
   it("puts the board first, the task under it and the tools last", async () => {
     const page = await openPlay(390, 844);
@@ -378,8 +391,33 @@ describe("the decision on a phone", () => {
     expect(board, JSON.stringify(order)).toBeTruthy();
     expect(task, JSON.stringify(order)).toBeTruthy();
     expect(board!.top, JSON.stringify(order)).toBeLessThan(task!.top);
-    /* And the DOM says the same thing, so `order` is not reversing anything a reader follows. */
-    expect(order.map((c) => c.className)).toEqual(["board-workspace", "analysis-stack"]);
+    /* And the DOM order is the desktop reading order, stated rather than assumed. */
+    expect(order.map((c) => c.className)).toEqual(["analysis-stack", "board-workspace"]);
+    await page.close();
+  }, 120_000);
+
+  it("is the only place the visual order and the DOM order differ", async () => {
+    /*
+     * `order` IS THE INSTRUMENT AND IT IS SCOPED TO THE PHONE. On desktop the DOM order is the
+     * visual order, so the desktop keyboard walk needs nothing to repair it -- which is what
+     * `docs/INTERACTION_GEOMETRY.md`'s walk asserts and what this keeps true.
+     */
+    const page = await openPlay(1440, 900);
+    const desktop = await page.evaluate(() => {
+      const workbench = document.querySelector(".workbench")!;
+      return [...workbench.children].map((child) => ({
+        className: String(child.className).split(" ")[0],
+        order: getComputedStyle(child).order,
+        x: Math.round(child.getBoundingClientRect().x),
+      }));
+    });
+    expect(desktop.map((c) => c.className)).toEqual(["analysis-stack", "board-workspace"]);
+    expect(
+      desktop.every((c) => c.order === "0"),
+      `something is reordered at desktop: ${JSON.stringify(desktop)}`,
+    ).toBe(true);
+    /* RTL: the DOM's first child is the rightmost, so the DOM order IS the reading order. */
+    expect(desktop[0].x, JSON.stringify(desktop)).toBeGreaterThan(desktop[1].x);
     await page.close();
   }, 120_000);
 
@@ -417,8 +455,15 @@ describe("the toolbox returning", () => {
      * and 132 + 32 is 164, which is twice 82 because the board is centred in its own track: adding
      * the toolbox's track SHRINKS the board's by 164 from one end -- measured at 1440, x=386 w=1030
      * becomes x=386 w=866 -- and a centred box inside it moves by half of that. So the assertion is
-     * `displacement === (rail track + gap) / 2`, at every desktop breakpoint, which holds for the
+     * `|displacement| === (rail track + gap) / 2`, at every desktop breakpoint, which holds for the
      * >1050 template and the narrower one alike and goes red for any movement with another cause.
+     *
+     * THE MAGNITUDE IS THE INVARIANT AND THE SIGN IS NOT, which is what moving the task column to
+     * the reading start taught this assertion. The rail is the LAST track now, so the board's
+     * track shrinks from the end and a centred box moves toward the start rather than away from
+     * it: the same identity with the sign flipped. And the rail's width is read BY NAME rather
+     * than as track zero, because track zero is the task column now, and an index is a fact about
+     * a template rather than about the thing being measured.
      *
      * A STYLESHEET PROBE AND IT SAYS SO. Reaching a stored reveal needs the engine and a completed
      * write, which this file does not do; the geometry of the three-child state is decided
@@ -439,14 +484,17 @@ describe("the toolbox returning", () => {
       const rail = document.createElement("aside");
       rail.className = "control-rail";
       rail.innerHTML = '<div class="rail-label">x</div>';
-      workbench.insertBefore(rail, workbench.firstChild);
+      /* Appended, which is where the real app renders it: last in the DOM and last in the tracks. */
+      workbench.append(rail);
       const style = getComputedStyle(workbench);
+      /* By NAME. The computed value carries `[rail] 132px`, and an index would follow a template. */
+      const named = /\[rail\]\s+([\d.]+)px/.exec(style.gridTemplateColumns);
       return {
         before,
         after: stage(),
         beforeTracks,
         afterTracks: sizes(style.gridTemplateColumns).length,
-        railTrack: sizes(style.gridTemplateColumns)[0],
+        railTrack: named ? Number.parseFloat(named[1]) : Number.NaN,
         gap: Number.parseFloat(style.columnGap),
         /* The toolbox landed in the track named for it, rather than displacing anybody. */
         railColumn: getComputedStyle(rail).gridColumnStart,
@@ -459,10 +507,18 @@ describe("the toolbox returning", () => {
     expect(moved.after.width, "the board resized when the toolbox appeared").toBe(
       moved.before.width,
     );
+    expect(moved.railTrack, `no [rail] track to measure: ${JSON.stringify(moved)}`).toBeGreaterThan(
+      0,
+    );
     expect(
-      moved.before.x - moved.after.x,
+      Math.abs(moved.after.x - moved.before.x),
       `the board moved by something other than the new column: ${JSON.stringify(moved)}`,
     ).toBe(Math.round((moved.railTrack + moved.gap) / 2));
+    /* And it moved TOWARDS the reading start, because the column that appeared is behind it. */
+    expect(
+      moved.after.x,
+      `the board moved away from the new column rather than towards the start: ${JSON.stringify(moved)}`,
+    ).toBeGreaterThan(moved.before.x);
     await page.close();
   }, 120_000);
 });

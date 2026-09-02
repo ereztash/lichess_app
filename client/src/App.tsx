@@ -9,6 +9,7 @@ import {
   visitsOnRecord,
 } from "@/lib/progress-record";
 import { readAcquisitionContext } from "@/lib/acquisition-evidence";
+import { INTERFACE_DIRECTION, INTERFACE_LANGUAGE } from "@shared/interface-language";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -65,6 +66,22 @@ export default function App() {
    * scoped by it. It is here rather than in a page because a visit is a page LOAD, and both
    * routes are reached without one.
    */
+  /*
+   * THE DOCUMENT'S LANGUAGE AND DIRECTION, DERIVED RATHER THAN REPEATED.
+   *
+   * `client/index.html` still carries them as literals, because it is static and is read by
+   * crawlers and by the first paint before any script runs -- the same reason it carries the only
+   * uncompiled copy of the promise. What it must not do is DISAGREE with the module, which is what
+   * `tests/client/one-direction-one-language.test.ts` holds, in both directions, the way
+   * `the-link-someone-was-sent` holds the promise.
+   *
+   * This effect is what makes the module the source rather than a second opinion: if the two ever
+   * part company, the running app follows the module and the test says so before anybody ships.
+   */
+  useEffect(() => {
+    document.documentElement.lang = INTERFACE_LANGUAGE;
+    document.documentElement.dir = INTERFACE_DIRECTION;
+  }, []);
   useEffect(() => {
     beginVisit();
     /*

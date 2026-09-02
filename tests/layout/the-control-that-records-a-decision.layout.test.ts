@@ -194,7 +194,7 @@ describe("the ready submit is the loudest control in the state that records a de
     }
     await page.waitForTimeout(400);
     const weights = await page.evaluate(() => {
-      const accent = getComputedStyle(document.documentElement).getPropertyValue("--blue").trim();
+      const accent = getComputedStyle(document.documentElement).getPropertyValue("--action").trim();
       const submit = document.querySelector(".commitment-submit")!;
       return {
         ready: !submit.className.includes("not-ready"),
@@ -203,8 +203,21 @@ describe("the ready submit is the loudest control in the state that records a de
       };
     });
     expect(weights.ready, "the panel never reached the ready state").toBe(true);
-    /* --blue is #1e5b72 in the light palette. Compare as painted, not as a literal. */
-    expect(weights.ground).toBe("rgb(30, 91, 114)");
+    /*
+     * COMPARED TO THE TOKEN AS PAINTED, not to a literal. This asserted `rgb(30, 91, 114)` while
+     * the primary act was `--blue`; the act is `--action` now, and the hue that was here means
+     * the engine (`GATE-TWO-HANDS`). What is being held is unchanged: the control that RECORDS a
+     * measurement wears the same fill as the product's other primary action, whatever that is.
+     */
+    const painted = await page.evaluate((token: string) => {
+      const probe = document.createElement("span");
+      probe.style.color = token;
+      document.body.append(probe);
+      const rgb = getComputedStyle(probe).color;
+      probe.remove();
+      return rgb;
+    }, weights.accent);
+    expect(weights.ground).toBe(painted);
     await page.close();
   });
 });

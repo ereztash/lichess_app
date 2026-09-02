@@ -1,0 +1,46 @@
+/*
+ * A STYLESHEET WITH BOTH DEFECTS, and two rather than one because the gate runs in two
+ * directions and a fixture carrying one of them would leave the other half unproven.
+ *
+ * Defect 1: a control painted in the engine's colour. This is the shape the shipped stylesheet
+ * was in at `b9a228c`, where `.primary-control`, `.commitment-submit`, `.read-chip.selected`,
+ * `:focus-visible` and `.selected-square` all reached for the same hue as the engine's arrow.
+ *
+ * Defect 2: the engine's own largest object drawn in the page's material. Also the shape the
+ * shipped stylesheet was in: `.evaluation-track` was `--ink`, 16x584, at five times the squint
+ * mass of the object its mode contract names central.
+ */
+:root {
+  --blue: #1e5b72;
+  --machine: var(--blue);
+  --ink: #17221f;
+  --action: var(--ink);
+}
+.primary-control {
+  background: var(--machine);
+  color: #fff;
+}
+.evaluation-track {
+  background: var(--ink);
+}
+.board-vectors line {
+  stroke: var(--machine);
+}
+.board-vectors circle {
+  stroke: var(--machine);
+}
+.evaluation-instrument {
+  background: var(--surface-machine);
+}
+.analysis-column {
+  background: var(--surface-machine);
+}
+.reveal-secondary {
+  background: var(--surface-machine);
+}
+.cloud-score {
+  color: var(--machine);
+}
+.opponent-thinking {
+  color: var(--machine);
+}

@@ -873,6 +873,34 @@ export const GATES: Gate[] = [
       ),
   },
   {
+    id: "GATE-TWO-HANDS",
+    rule: "R3",
+    description:
+      "The machine's colour is never something a player can press, and the machine's own surfaces are never drawn in the player's material.",
+    /*
+     * R3 IN THE STYLESHEET, WHERE IT HAD NEVER REACHED. The rule is enforced three ways in code --
+     * a state machine, a type that makes a commitment carrying an evaluation unbuildable, and a
+     * dynamic import that keeps the engine out of the initial module graph -- and none of them can
+     * see a colour. Measured on the build this gate was written against: one hue carried nine jobs,
+     * two of which were the engine's arrow and the player's own selected square, on the same board
+     * in the same state.
+     *
+     * BOTH DIRECTIONS, so the control has to redden twice. A check that only asked whether a
+     * control wears the engine's hue is satisfied by deleting the hue.
+     */
+    run: () =>
+      runVitestFile(
+        "tests/gates/two-hands.test.ts",
+        "the machine may speak and may not ask for anything",
+      ),
+    positiveControl: () =>
+      runVitestFile(
+        "tests/fixtures/controls/two-hands.control.test.ts",
+        "a control in the engine's hue, and the engine's own object in the page's ink",
+        "vitest.controls.config.ts",
+      ),
+  },
+  {
     id: "GATE-CLAIM-ANCHOR",
     rule: "L2",
     description: "A debt row may not claim more reality than its proof ever ran against.",

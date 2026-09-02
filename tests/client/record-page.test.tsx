@@ -262,8 +262,20 @@ describe("the record is the front door", () => {
     expect(screen.queryByText("ללוח")).toBeNull();
     mount({ reading: { data: withRecord(12), isLoading: false, isError: false } });
     expect(screen.getByRole("button", { name: "ללוח" })).toBeTruthy();
+    /*
+     * THE CHAIN IS TWO FILES NOW, and both halves are held.
+     *
+     * The lockup was inline in `Home.tsx`, which is why this could read one file. It is a shared
+     * component because the game route had no header, no brand and no way back at all -- a mark
+     * that exists on one route out of three is a decoration, not an identity. Asserting only the
+     * call site would pass over a component that renders nothing; asserting only the component
+     * would pass over a board that never mounts it.
+     */
     const home = code("client/src/pages/Home.tsx");
-    expect(home, "the board is a dead end").toMatch(/className="brand-lockup"[\s\S]{0,80}navigate\("\/"\)/);
+    expect(home, "the board is a dead end").toMatch(/<BrandLockup[\s\S]{0,60}navigate\("\/"\)/);
+    const lockup = code("client/src/components/BrandLockup.tsx");
+    expect(lockup, "the lockup does not render the lockup").toMatch(/className="brand-lockup"/);
+    expect(lockup, "the lockup does not call what it was given").toMatch(/onClick=\{onNavigate\}/);
   });
 
   it("does not offer the bare board on a cold record, and is still not a dead end (P1.6)", () => {

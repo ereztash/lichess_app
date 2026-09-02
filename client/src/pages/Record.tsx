@@ -327,6 +327,38 @@ function FirstDecision({
           עמדה מהסט המשותף
         </button>
       </div>
+      {/*
+        * THIRD, AND IT WAS NOT THERE AT ALL.
+        *
+        * `/blitz` is linked from ONE place in the product -- `ResumeScreen`, which opens with
+        * `if (!returning) return null;`. `returning` is `visitsOnRecord() > 1`. The other control
+        * that leaves this page, `ללוח`, is gated on `measured > 0`. So a first arrival could
+        * connect an account or take a bank position, and there was no path to a game at all: the
+        * product that measures decisions inside a timed game had no door to one.
+        *
+        * SECONDARY, AND DELIBERATELY NOT A SECOND PRIMARY. `LAW 2` and
+        * `GATE-ONE-PRIMARY-ACTION` exist because this exact screen once offered two products at
+        * one weight -- the gate's positive control IS this screen -- so this control carries no
+        * `data-primary-action`, sits below both other paths, and says what it is instead of
+        * competing for the same click. The one primary act of a cold record is still the first
+        * decision.
+        *
+        * WHICH PATH A COLD ARRIVAL SHOULD TAKE IS FIELD-REQUIRED. The acquisition ledger already
+        * records `first_position_presented` and `decision_committed`; nothing here guesses.
+        */}
+      <div className="first-decision-alt">
+        <p>
+          מעדיפים לשחק? משחק בליץ קצר רושם החלטה בכל מהלך, עם השעון רץ, והמנוע שותק עד סוף המשחק.
+        </p>
+        <button
+          type="button"
+          className="ghost-control"
+          disabled={busy}
+          onClick={() => navigate("/blitz")}
+        >
+          משחק בליץ קצר
+        </button>
+      </div>
     </section>
   );
 }

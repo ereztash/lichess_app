@@ -196,7 +196,7 @@ describe.each(VIEWPORTS)("every blitz state, on $name", ({ width }) => {
      * clocks beside it. A count of 64 squares was true the whole time.
      */
     const board = await page.locator(".board-stage").boundingBox();
-    const column = await page.locator("main.blitz").boundingBox();
+    const column = await page.locator("main .blitz").boundingBox();
     expect(board, "no board box at all").not.toBeNull();
     expect(column, "no blitz column at all").not.toBeNull();
     /*

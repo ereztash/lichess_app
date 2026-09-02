@@ -98,7 +98,7 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
       )}
       {layers.isLoading && (
         <div className="layer-loading">
-          <LoaderCircle size={15} /> מאתר שכבות ניתוח…
+          <LoaderCircle size={14} /> מאתר שכבות ניתוח…
         </div>
       )}
       {layers.isError && (
@@ -202,7 +202,7 @@ export function LichessLayersPanel({ fen, source, enabled, onConnect, debugPerso
             onClick={() => void layers.refetch()}
             disabled={layers.isFetching}
           >
-            <RefreshCw size={13} /> רעננו שכבות
+            <RefreshCw size={14} /> רעננו שכבות
           </button>
         </div>
       )}
