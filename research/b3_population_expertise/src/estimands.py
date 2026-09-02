@@ -48,8 +48,7 @@ def _by_band(frame, boot, fn):
         stat = lambda idx, m=mask: fn(idx[m[idx]])  # noqa: E731
         interval = boot.interval(stat, point=point)
         interval["n"] = int(mask.sum())
-        interval["players"] = int(frame["player"].to_numpy()[rows].__class__ is not None
-                                  and pd.unique(frame["player"].to_numpy()[rows]).size)
+        interval["players"] = int(pd.unique(frame["player"].to_numpy()[rows]).size)
         out[band] = interval
     return out
 
@@ -59,7 +58,15 @@ def _centred_rating(frame):
 
 
 def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
-             rating_basis: RatingBasis | None = None) -> dict:
+             rating_basis: RatingBasis | None = None, only: set[str] | None = None) -> dict:
+    """`only` restricts which intervals are computed. It changes nothing that is reported.
+
+    A stratum control keeps three numbers and the full estimate computes about ninety, each of them
+    400 bootstrap replicates over the whole stratum. Thirteen strata later that is most of the run
+    spent on quantities nobody reads. The keys named in `only` are computed exactly as they are in a
+    full pass -- same estimator, same seed, same replicates -- so a stratum's `beta` is the number a
+    full estimate would have produced.
+    """
     if boot is None:
         boot = PlayerBootstrap(frame["player"].to_numpy())
     if rating_basis is None:
@@ -95,7 +102,8 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
 
     # --- H1 -----------------------------------------------------------------------------------
     out["beta"] = boot.interval(lambda i: slope(q_resid[i], ut_resid[i]))
-    out["beta_by_band"] = _by_band(frame, boot, lambda i: slope(q_resid[i], ut_resid[i]))
+    if want("beta_by_band"):
+        out["beta_by_band"] = _by_band(frame, boot, lambda i: slope(q_resid[i], ut_resid[i]))
     main, inter = gradient_with_main_effect(q_resid, ut_resid, rating_c, rating_block)
     out["beta_at_mean_rating"] = main
     out["beta_rating_interaction"] = boot.interval(
@@ -108,12 +116,17 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
         lambda i: 100.0 * slope(y_resid[i], rating_resid[i])
     )
 
-    out["metric_a_by_band"] = _by_band(
-        frame, boot, lambda i: 100.0 * slope(y_resid[i], rating_resid[i])
-    )
+    def want(key: str) -> bool:
+        return only is None or key in only
+
+    if want("metric_a_by_band"):
+        out["metric_a_by_band"] = _by_band(
+            frame, boot, lambda i: 100.0 * slope(y_resid[i], rating_resid[i])
+        )
 
     # --- Metric B: time allocation efficiency (PRIMARY) ----------------------------------------
-    out["tae_by_band"] = _by_band(frame, boot, lambda i: slope(y_resid[i], voc_resid[i]))
+    if want("tae_by_band"):
+        out["tae_by_band"] = _by_band(frame, boot, lambda i: slope(y_resid[i], voc_resid[i]))
     tae_main, tae_inter = gradient_with_main_effect(y_resid, voc_resid, rating_c, rating_block)
     out["tae_pooled"] = tae_main
     out["tae_rating_gradient"] = boot.interval(
@@ -122,24 +135,27 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     )
     # The partial-correlation form, so a band whose thinking times are merely more variable cannot
     # read as more efficient. Centred within the band, per N1(a).
-    out["tae_partial_correlation_by_band"] = _by_band(
-        frame, boot, lambda i: partial_correlation(y_resid[i], voc_resid[i])
-    )
+    if want("tae_partial_correlation_by_band"):
+        out["tae_partial_correlation_by_band"] = _by_band(
+            frame, boot, lambda i: partial_correlation(y_resid[i], voc_resid[i])
+        )
 
     # --- Metric C: allocation loss --------------------------------------------------------------
-    out["allocation_loss_by_band"] = _by_band(frame, boot, lambda i: float(allocation[i].mean()))
+    if want("allocation_loss_by_band"):
+        out["allocation_loss_by_band"] = _by_band(frame, boot,
+                                                  lambda i: float(allocation[i].mean()))
     out["allocation_loss_vs_rating"] = boot.interval(
         lambda i: 100.0 * slope(allocation_resid[i], rating_resid[i])
     )
-    out["overthinking_by_band"] = _by_band(
-        frame, boot, lambda i: float(frame["overthinking"].to_numpy(float)[i].mean())
-    )
-    out["premature_commitment_by_band"] = _by_band(
-        frame, boot, lambda i: float(frame["premature_commitment"].to_numpy(float)[i].mean())
-    )
+    if want("overthinking_by_band"):
+        over = frame["overthinking"].to_numpy(float)
+        prem = frame["premature_commitment"].to_numpy(float)
+        out["overthinking_by_band"] = _by_band(frame, boot, lambda i: float(over[i].mean()))
+        out["premature_commitment_by_band"] = _by_band(frame, boot, lambda i: float(prem[i].mean()))
 
     # --- Metric D: extreme unexpected-time exposure ---------------------------------------------
-    out["extreme_ut_by_band"] = _by_band(frame, boot, lambda i: float(extreme[i].mean()))
+    if want("extreme_ut_by_band"):
+        out["extreme_ut_by_band"] = _by_band(frame, boot, lambda i: float(extreme[i].mean()))
     out["extreme_ut_vs_rating"] = boot.interval(
         lambda i: 100.0 * slope(extreme_resid[i], rating_resid[i])
     )
@@ -151,17 +167,20 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
             return float("nan")
         return float(q_resid[i][hot].mean() - q_resid[i][~hot].mean())
 
-    out["friction_burden_by_band"] = _by_band(frame, boot, burden)
+    if want("friction_burden_by_band"):
+        out["friction_burden_by_band"] = _by_band(frame, boot, burden)
 
     # --- shape across bands ---------------------------------------------------------------------
     powered = [b for b in BAND_LABELS if out["adequately_powered"][b]]
     out["powered_bands"] = powered
     for name, table, expect in (
-        ("beta", out["beta_by_band"], +1),
-        ("tae", out["tae_by_band"], +1),
-        ("allocation_loss", out["allocation_loss_by_band"], -1),
-        ("extreme_ut", out["extreme_ut_by_band"], -1),
+        ("beta", out.get("beta_by_band"), +1),
+        ("tae", out.get("tae_by_band"), +1),
+        ("allocation_loss", out.get("allocation_loss_by_band"), -1),
+        ("extreme_ut", out.get("extreme_ut_by_band"), -1),
     ):
+        if table is None:
+            continue
         values = [table[b]["point"] for b in powered]
         idx = list(range(len(powered)))
         out[f"{name}_band_spearman"] = spearman(idx, values) if len(values) >= 3 else float("nan")
@@ -177,7 +196,7 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     out["rating_on_quality"] = boot.interval(lambda i: 100.0 * slope(qn[i], rq[i]))
 
     # VERDICT_RULES 2.5.5: the TAE spread between the extreme adequately powered bands.
-    if len(powered) >= 2:
+    if len(powered) >= 2 and want("tae_spread_low_to_high"):
         low_mask = (frame["rating_band"] == powered[0]).to_numpy()
         high_mask = (frame["rating_band"] == powered[-1]).to_numpy()
 
@@ -193,7 +212,8 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
                                          "hi": float("nan"), "replicates": 0}
 
     out["beta_sign_agreement"] = (
-        float(np.mean([out["beta_by_band"][b]["point"] > 0 for b in powered])) if powered else float("nan")
+        float(np.mean([out["beta_by_band"][b]["point"] > 0 for b in powered]))
+        if powered and "beta_by_band" in out else float("nan")
     )
     return out
 

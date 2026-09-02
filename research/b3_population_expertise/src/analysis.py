@@ -264,13 +264,17 @@ class PlayerBootstrap:
         self.index_by_player = np.split(order, np.cumsum(np.bincount(inverse))[:-1])
         self.replicates = replicates
         self.rng = np.random.default_rng(seed)
-        self._draws = [
-            self.rng.integers(0, len(self.unique), len(self.unique))
-            for _ in range(replicates)
-        ]
+        draws = [self.rng.integers(0, len(self.unique), len(self.unique))
+                 for _ in range(replicates)]
+        # BUILT ONCE. The draws are fixed at construction, so the row indices they select are too --
+        # and rebuilding them per statistic meant concatenating a few thousand small arrays about
+        # ninety times over, once for every interval this study reports. Same numbers, two orders of
+        # magnitude less work.
+        self._resamples = [np.concatenate([self.index_by_player[p] for p in draw]) for draw in draws]
+        self.n_rows = sum(len(i) for i in self.index_by_player)
 
     def indices(self, replicate: int) -> np.ndarray:
-        return np.concatenate([self.index_by_player[p] for p in self._draws[replicate]])
+        return self._resamples[replicate]
 
     def interval(self, statistic, point=None):
         """`statistic(idx) -> float`. Returns `(point, lo, hi, n_ok)`."""
@@ -283,7 +287,7 @@ class PlayerBootstrap:
             if np.isfinite(value):
                 values.append(value)
         if point is None:
-            point = statistic(np.arange(sum(len(i) for i in self.index_by_player)))
+            point = statistic(np.arange(self.n_rows))
         if len(values) < 20:
             return {"point": float(point), "lo": float("nan"), "hi": float("nan"),
                     "replicates": len(values)}

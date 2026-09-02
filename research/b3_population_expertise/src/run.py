@@ -18,6 +18,8 @@ import os
 import sys
 import time
 
+import hashlib
+
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -98,6 +100,28 @@ def tree_comparator(dev, frame, fits) -> dict:
     }
 
 
+def _cache_key(path, fits, constants) -> str:
+    """What a cached period result depends on: the corpus, the analysis code, and the frozen fits.
+
+    A period's analysis is deterministic given those three, and it costs the better part of an hour,
+    so `--stage validate` recomputing DEVELOPMENT is an hour spent reproducing a file it already
+    has. The key changes whenever any source file under `src/` changes, so an edit cannot leave a
+    stale result behind.
+    """
+    digest = hashlib.sha256()
+    decisions = os.path.join(path, "decisions.jsonl.zst")
+    stat = os.stat(decisions)
+    digest.update(f"{decisions}|{stat.st_size}|{int(stat.st_mtime)}".encode())
+    for source in sorted(os.listdir(os.path.dirname(os.path.abspath(__file__)))):
+        if source.endswith(".py"):
+            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), source), "rb") as fh:
+                digest.update(fh.read())
+    digest.update(json.dumps(constants, sort_keys=True, default=str).encode())
+    digest.update(json.dumps({k: v.get("penalty") for k, v in fits.items()
+                              if isinstance(v, dict)}, sort_keys=True).encode())
+    return digest.hexdigest()
+
+
 def analyse_period(name, path, fits, constants, basis, want_controls=True, want_matching=True):
     frame = dataset.apply_frozen(dataset.load(path), constants)
     scored = an.residualise(frame, fits, constants)
@@ -165,18 +189,40 @@ def main() -> None:
         sys.stderr.write(f"final holdout seal accepted: {seal.get('written_at')}\n")
 
     for name in wanted:
-        sys.stderr.write(f"analysing {name}\n")
-        out = analyse_period(name, os.path.join(args.data, name), fits, constants, basis)
-        periods[name] = out["estimates"]
-        controls[name] = out["controls"]
-        matched[name] = out["matched"]
-        frontiers[name] = out["frontier"]
-        players[name] = out["player_level"]
-        comparison[name] = {**out["estimates"].pop("model_comparison"),
-                            **tree_comparator(dev, out["scored"], fits)}
-        scored_frames[name] = out["scored"]
-        out["scored"] = None
-        out["raw"] = None
+        period_path = os.path.join(args.data, name)
+        cache_path = os.path.join(args.results, f"period_{name}.json")
+        key = _cache_key(period_path, fits, constants)
+        cached = None
+        if os.path.exists(cache_path):
+            candidate = json.load(open(cache_path))
+            if candidate.get("_cache_key") == key:
+                cached = candidate
+                sys.stderr.write(f"reusing the cached analysis of {name}\n")
+
+        if cached is None:
+            sys.stderr.write(f"analysing {name}\n")
+            started_period = time.time()
+            out = analyse_period(name, period_path, fits, constants, basis)
+            comparison[name] = {**out["estimates"].pop("model_comparison"),
+                                **tree_comparator(dev, out["scored"], fits)}
+            scored_frames[name] = out["scored"]
+            block = {"_cache_key": key, "estimates": out["estimates"],
+                     "controls": out["controls"], "matched": out["matched"],
+                     "frontier": out["frontier"], "player_level": out["player_level"],
+                     "model_comparison": comparison[name]}
+            json.dump(block, open(cache_path, "w"), indent=1, default=float)
+            sys.stderr.write(f"  {name} took {time.time() - started_period:.0f}s\n")
+        else:
+            block = cached
+            comparison[name] = cached["model_comparison"]
+            frame = dataset.apply_frozen(dataset.load(period_path), constants)
+            scored_frames[name] = an.residualise(frame, fits, constants)
+
+        periods[name] = block["estimates"]
+        controls[name] = block["controls"]
+        matched[name] = block["matched"]
+        frontiers[name] = block["frontier"]
+        players[name] = block["player_level"]
 
     # ---- the player-disjoint restriction of FINAL (N6; PREREGISTRATION.md §3) -------------------
     #

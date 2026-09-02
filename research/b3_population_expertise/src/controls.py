@@ -249,7 +249,8 @@ def run(raw: pd.DataFrame, scored: pd.DataFrame, fits, constants, which=None, ba
             results[name] = {"n": int(len(subset)), "note": "too few decisions"}
             continue
         sub_boot = PlayerBootstrap(subset["player"].to_numpy())
-        out = estimate(subset, sub_boot, basis)
+        # Only what this control reports. Identical numbers, a fraction of the work.
+        out = estimate(subset, sub_boot, basis, only=set())
         results[name] = {
             "n": out["n_decisions"],
             "players": out["n_players"],
