@@ -683,8 +683,45 @@ export async function createLearningRule(
   return { rule, reflection: reflectionOutcome, storedReflection: atom.feedback ?? null };
 }
 
+/**
+ * The learning queue, GRADED FROM THE RECORD rather than read off the stored columns.
+ *
+ * WHY IT CHANGED. `grade`, `retrieval_step`, `next_due_at` and `last_evaluated_at` are a
+ * materialized projection: `gradeFromRecord` folds them from the results and writes them back when
+ * they differ. But it only runs when a transfer touches the rule, so a rule nobody is drilling
+ * keeps whatever projection it last had, indefinitely -- and the learning queue is precisely the
+ * surface that lists the rules nobody is drilling.
+ *
+ * Four read sites in `LearningQueue.tsx` consumed the stored values: the retired filter, the
+ * due-ness computation, the grade badge, and the button that is hidden on `refuted`. All four are
+ * fixed here rather than there, because the read authority is a service boundary and not a
+ * component: the same function feeds the local store and the tRPC route, so both paths get the same
+ * answer, and a fifth surface added tomorrow gets it without knowing to ask.
+ *
+ * THIS IS NOT "DERIVE EVERYTHING". `gradeLearningRule` returns a `retired` rule unchanged, because
+ * retirement is an act of the player's and no fold produces it. That exemption is the whole reason
+ * the stored column still exists, and it is the store -- all three implementations -- that refuses
+ * to take a rule off `retired`.
+ *
+ * NO WRITE-BACK. A read that repairs is a read that can fail, and this one is on the path that
+ * renders a list. The projection stays stale in storage until the next transfer runs
+ * `gradeFromRecord`, and nothing downstream can see the difference because nothing downstream reads
+ * the columns any more. `tests/shared/the-queue-that-showed-a-refuted-rule.test.ts` holds the
+ * disagreement open on purpose and proves which side wins.
+ *
+ * COST. One result query per rule. The alternative is a batched read the store interface does not
+ * have, and for a queue holding one player's rules the N+1 is smaller than the machinery to avoid
+ * it. If that stops being true, the fix is a batch method on `RecordStore`, not a return to reading
+ * a projection nothing repairs.
+ */
 export async function learningRules(store: RecordStore) {
-  return { rules: await store.listLearningRules() };
+  const stored = await store.listLearningRules();
+  const rules = await Promise.all(
+    stored.map(async (rule) =>
+      gradeLearningRule(rule, await store.listLearningTransferResults(rule.rule_id)),
+    ),
+  );
+  return { rules };
 }
 
 export async function beginLearningTransfer(
