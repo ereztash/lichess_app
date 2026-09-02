@@ -1,0 +1,10 @@
+rating_band,development_players,development_games,development_decisions,development_adequately_powered,validation_players,validation_games,validation_decisions,validation_adequately_powered
+800-999,241,256,7010,True,233,245,6962,True
+1000-1199,249,256,7668,True,268,277,7951,True
+1200-1399,305,312,9739,True,270,276,8638,True
+1400-1599,309,317,10507,True,264,268,9110,True
+1600-1799,266,272,8973,True,258,259,8615,True
+1800-1999,272,278,9819,True,225,227,7831,True
+2000-2199,273,282,10172,True,235,238,9026,True
+2200-2399,251,267,9767,True,211,218,8264,True
+2400-2599,265,301,11484,True,185,208,8053,True

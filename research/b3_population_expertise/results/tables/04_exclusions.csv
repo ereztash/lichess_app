@@ -1,0 +1,39 @@
+period,level,reason,count
+development,game,time control,2427467
+development,game,neither side in the studied rating range,3159
+development,game,termination: Abandoned,2386
+development,game,rating out of sanity range,558
+development,game,not rated (no RatingDiff),1674
+development,game,bot,210
+development,game,berserk or impossible starting clock,144
+development,game,shorter than 20 plies,104
+development,game,termination: Insufficient material,36
+development,game,second side of the same game (one analysed side per game),4
+development,game,termination: Rules infraction,1
+development,game,over the per-player game cap,14
+development,game,account closed or tosViolation at the lookup date,102
+development,decision,no derivable think time (player's first move),2541
+development,decision,last ply of the game,1341
+development,decision,over the per-side decision cap,154
+development,decision,forced (one legal move),778
+development,decision,impossible think time,5
+development,kept,decisions analysed,85139
+validation,game,time control,2355486
+validation,game,termination: Abandoned,1961
+validation,game,neither side in the studied rating range,2475
+validation,game,termination: Insufficient material,37
+validation,game,not rated (no RatingDiff),1298
+validation,game,bot,339
+validation,game,rating out of sanity range,529
+validation,game,berserk or impossible starting clock,49
+validation,game,shorter than 20 plies,95
+validation,game,second side of the same game (one analysed side per game),3
+validation,game,clock trace does not match the movetext,1
+validation,game,over the per-player game cap,8
+validation,game,account closed or tosViolation at the lookup date,77
+validation,decision,no derivable think time (player's first move),2216
+validation,decision,last ply of the game,1105
+validation,decision,forced (one legal move),699
+validation,decision,over the per-side decision cap,125
+validation,decision,impossible think time,11
+validation,kept,decisions analysed,74450
