@@ -423,8 +423,8 @@ The strongest phrasing the preregistration permits for what *was* found is a **c
 | post-freeze amendments | `results/POST_FREEZE_AMENDMENTS.md` (A0-A7) |
 | holdout seal | `results/FINAL_HOLDOUT_SEALED.json` |
 | gate reviews | `reviews/FABLE_GATE_{1,2,3}_*.md` |
-| analysis as shipped | `results/analysis_final.json`, verdict `results/verdict.json` |
-| analysis after the C3 repair | `results/analysis_repaired.json`, verdict `results/verdict_repaired.json` |
+| analysis as shipped | `results/analysis_final.json` (FINAL stage), `results/analysis_secondary.json` (that run plus the secondary block), verdict `results/verdict.json` |
+| analysis after the C3 repair | `results/analysis_repaired.json`, verdict `results/verdict_repaired.json`. It is `analysis_secondary.json` with the C3 blocks recomputed; the only other differences are the added `tae_pooled_slope_at_centre`, the retained `C3_shuffled_rating_as_shipped`, and a `_repair` provenance stanza |
 | the repair itself | `src/repair_c3.py`, diff in `results/c3_repair_diff.json` |
 | diagnostics in this report | `results/report_diagnostics.json` |
 | leakage tests | passed: True |

@@ -793,9 +793,14 @@ def main() -> None:
     w(f"| post-freeze amendments | `results/POST_FREEZE_AMENDMENTS.md` (A0-A7) |")
     w(f"| holdout seal | `results/FINAL_HOLDOUT_SEALED.json` |")
     w(f"| gate reviews | `reviews/FABLE_GATE_{{1,2,3}}_*.md` |")
-    w(f"| analysis as shipped | `results/analysis_final.json`, verdict `results/verdict.json` |")
+    w(f"| analysis as shipped | `results/analysis_final.json` (FINAL stage), "
+      f"`results/analysis_secondary.json` (that run plus the secondary block), verdict "
+      f"`results/verdict.json` |")
     w(f"| analysis after the C3 repair | `results/analysis_repaired.json`, verdict "
-      f"`results/verdict_repaired.json` |")
+      f"`results/verdict_repaired.json`. It is `analysis_secondary.json` with the C3 blocks "
+      f"recomputed; the only other differences are the added "
+      f"`tae_pooled_slope_at_centre`, the retained `C3_shuffled_rating_as_shipped`, and a "
+      f"`_repair` provenance stanza |")
     w(f"| the repair itself | `src/repair_c3.py`, diff in `results/c3_repair_diff.json` |")
     w(f"| diagnostics in this report | `results/report_diagnostics.json` |")
     w(f"| leakage tests | passed: {A.get('leakage_tests_passed')} |")
