@@ -1,0 +1,8 @@
+{
+ "source": "data/validation",
+ "nodes": 150000,
+ "requested": 5000,
+ "scored": 5000,
+ "seed": 20260901,
+ "seconds": 400.7
+}

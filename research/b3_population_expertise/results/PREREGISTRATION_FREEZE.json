@@ -47,5 +47,15 @@
  },
  "seed": 20260901,
  "state_at_freeze": "DEVELOPMENT engine scoring in progress; no run.py output produced or read; VALIDATION and FINAL untouched; the cost pilot is the only computed result",
- "note": "A change to any hashed document after this point is a new experiment, not this one."
+ "note": "A change to any hashed document after this point is a new experiment, not this one.",
+ "amended_sha256": {
+  "PREREGISTRATION.md": "039c93756ee57a9b1cd5bc22e20802a0daabee10f837399b2f5e528c5bef8a7f",
+  "DATA_PROTOCOL.md": "cf2633949929171a7d2019d3c0f132dc0a2ef5107d5fdf1f26680b6649a57f72",
+  "FEATURE_SCHEMA.md": "9a5c11022aff9111bc829e870bb74b5cc9cc19bd02e033b34c935881416f7359",
+  "MODEL_SPEC.md": "a92cb57275987db5276eea95170f89d31dc13b04a37a9eb644d4dd8704fb81aa",
+  "VERDICT_RULES.md": "75dc019dd56dcf20239ed06071f187efc8f4954ae2905cd1ef95a0d3bb85bbb7"
+ },
+ "amended_at": "2026-09-02T00:46:57Z",
+ "amendments": "results/POST_FREEZE_AMENDMENTS.md -- four repairs to how destructive controls are computed, plus C7b. No estimand, outcome, exclusion, band, threshold or model family changed. Audited at FABLE GATE 2.",
+ "amended_commit": "4387189a17c9ce8d63f05c3b25251cd7b0bc219f"
 }

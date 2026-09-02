@@ -286,16 +286,24 @@ a plain statement of practical magnitude. A p-value is never the headline.
 Each has a **pass condition** fixed here. A control that fails is reported as failed; it is not
 reinterpreted.
 
+**A destructive control is a permutation TEST** (amended after validation; see
+`results/POST_FREEZE_AMENDMENTS.md`). Each runs **200 permutations** and reports the distribution
+across them -- the mean as the point, the 2.5/97.5 percentiles as the interval. "The interval
+contains 0" then means what it was always meant to mean. A player-bootstrap interval around a
+*single* permutation measures how precisely that one draw was estimated and says nothing about
+whether it is consistent with zero.
+
 | # | Construction | Pass condition |
 |---|---|---|
-| C1 | permute `quality_loss` across all decisions in the period | `beta` interval contains 0 |
-| C2 | permute `Y` across decisions before residuals are formed | `beta` interval contains 0 |
-| C3 | permute `rating` **across players** (whole player, keeping their decisions together) | every H2 rating gradient interval contains 0 |
-| C4 | permute `voc_z` across decisions | Metric B gradient interval contains 0 |
+| C1 | permute `quality_loss`, 200 draws | the permutation interval contains 0 |
+| C2 | permute `Y` before residuals are formed, 200 draws | the permutation interval contains 0 |
+| C3 | permute `rating` **across players** (whole player, decisions kept together), 200 draws | every H2 rating gradient's permutation interval contains 0 |
+| C4 | permute `voc_resid` -- the regressor the estimator uses -- 200 draws. Permuting the raw `voc_z` column instead leaves the frozen fit's deterministic part in place, which still carries rating structure; that version is reported beside it and is not the pass condition. | Metric B gradient's permutation interval contains 0 |
 | C5 | add `0.02 * unexpected_time_within_rating` to `quality_loss` | `beta` recovered, interval excludes 0, point estimate within 30% of `0.02` above the unplanted estimate. **An implementation check** (Gate 1, R11): the planted term is linear in the estimator's own regressor, so recovery follows from linear algebra and this can only fail on a code bug. |
 | C5b | add `0.02 * (Y - Yhat_GBT)` to `quality_loss` -- the residual of the pinned gradient-boosted comparator (`FEATURE_SCHEMA.md` §1), a quantity the linear pipeline never produced | sign recovered **and** `recovered_fraction = (beta_planted - beta) / 0.02 >= 0.5`. The shortfall below 1.0 is the attenuation of a signal **of that shape** -- algebraically it is the regression slope of the tree residual on the linear residual, i.e. one minus the share of the linear residual's variance the tree additionally explains. It is **not** "the attenuation factor for every real signal", and the report may not call it that (re-review, N9iv). A shortfall is **not** an `INVALID_EXPERIMENT` trigger; failing the 0.5 bar is. |
 | C6 | rebuild `Y` as `Y_synth = Yhat(T1P) + (0.05 + 0.05 * (rating-800)/1800) * voc_z + N(0, sd of the real residual)` | Metric B gradient recovered with the right sign, interval excludes 0 |
-| C7 | rebuild both `Y` and `quality_loss` from their T1P/Q0 fits plus independent noise, no UT term, no rating term | `beta` interval contains 0 **and** every H2 gradient interval contains 0 |
+| C7 | rebuild `Y` from **T2P** -- the fullest model without rating -- and `quality_loss` from `Q0`, both plus independent noise, with no UT term, so the true `beta`, the true rating effect on time and the true allocation gradient are all zero. 50 draws. | `beta` interval contains 0 **and** every H2 gradient interval contains 0 |
+| C7b | **Reported, not a pass condition.** An unobserved standard-normal factor, independent of everything measured, added to both time and quality with strengths calibrated to a **measured** difficulty factor -- the engine-difficulty block, i.e. what T1P adds to T0. The true `beta` is zero. | none: the number is the answer. It is the `beta` that **one more unmeasured difficulty factor, as strong as the ones we do measure and absent from the expected-time model, would manufacture on its own** -- the magnitude alternative explanation A2 has never had attached to it, and the scale the observed `beta` must be read against. |
 | C8 | (a) drop the 1% of players contributing the most decisions; (b) jackknife over players | (a) `beta` within +/-25% and interval still excludes 0; (b) no single player shifts `beta` by more than 20% |
 | C9 | re-score a **VALIDATION** subset of 5,000 decisions -- never the fitting period, never FINAL -- drawn by `unit_hash(SEED, "c9", game_id, ply)`, at `nodes 150000`. Every nuisance model is **refitted on the subset at each budget** with the frozen recipe (knot rule, penalty grid, grouped CV), because the feature scales move with the budget (`final_depth`, `eval_volatility`, `nodes_to_depth10`, and the shallow-to-deep gap `voc_regret` is built from). Report `r_beta = beta(150k)/beta(60k)` and `r_TAE = gradient(150k)/gradient(60k)` with player-bootstrap intervals. | **Not "same sign"** (Gate 1, R12). Under A2, `beta` is positive at every budget and shrinks toward zero as difficulty is measured better, so a sign test passes while the study's central limitation goes unfalsified. The preregistered reading: **if the upper interval bound of `r_beta` is below 0.5**, the report must state that the evidence favours the difficulty-proxy explanation over H1, and level 3 and higher language is withheld. |
 | C10 | binary `accurate` outcome, logistic | same sign |
@@ -318,3 +326,7 @@ is there and no negative verdict from it is informative.
 C5 is an implementation check and is listed with them only for continuity with the mission plan's
 numbering. Its recovery is a fact about linear algebra, not about the study, and the earlier claim
 that it made a negative verdict meaningful is withdrawn (Gate 1, R11).
+
+C7b is neither a positive nor a negative control. It is the only place in this design where the size
+of the central limitation is a number rather than a caveat, and the report must quote it beside
+`beta`.

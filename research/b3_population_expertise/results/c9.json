@@ -1,0 +1,23 @@
+{
+ "n_common_decisions": 5000,
+ "players": 1865,
+ "beta_60k": 0.016075216101690354,
+ "beta_150k": 0.016309678397820375,
+ "r_beta": {
+  "point": 1.0145853277894887,
+  "lo": 0.9528355210661816,
+  "hi": 1.0752814489750866,
+  "replicates": 400
+ },
+ "tae_gradient_60k": -0.0008640850901875591,
+ "tae_gradient_150k": 0.0004142424004202772,
+ "r_tae": {
+  "point": -0.4794000094717077,
+  "lo": -15.553318128692693,
+  "hi": 11.89739044033181,
+  "replicates": 400
+ },
+ "threshold": 0.5,
+ "favours_difficulty_proxy": false,
+ "reading": "r_beta does not fall below the preregistered threshold"
+}

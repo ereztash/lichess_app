@@ -73,6 +73,9 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
         rating_basis = RatingBasis(frame["rating"].to_numpy(float))
     rating_block = rating_basis.transform(frame["rating"].to_numpy(float))
 
+    def want(key: str) -> bool:
+        return only is None or key in only
+
     q_resid = frame["q_resid"].to_numpy(float)
     ut_resid = frame["ut_resid"].to_numpy(float)
     y_resid = frame["y_resid_T1"].to_numpy(float)
@@ -115,9 +118,6 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     out["metric_a_time_vs_rating"] = boot.interval(
         lambda i: 100.0 * slope(y_resid[i], rating_resid[i])
     )
-
-    def want(key: str) -> bool:
-        return only is None or key in only
 
     if want("metric_a_by_band"):
         out["metric_a_by_band"] = _by_band(
