@@ -105,9 +105,19 @@ Regret of a permitted move, in expected score, pooled over every member of B on 
 Read the **p90** column. A regret of 1.0000 in expected score is the whole game: a permitted move
 that turns a win into a loss.
 
-**`RC-05` is alone.** It is the only class in the corpus whose *seventy-fifth and ninetieth*
-percentile permitted move costs **nothing at all**. Nine in ten moves that satisfy *"if a pawn can
-promote to a square nothing attacks, promote"* are as good as the best move on the board.
+**`RC-05`'s column is perfect and it is also trivial, and the second half of that sentence was
+missing from the first version of this file.** `|B| = 1` on **every one of its 435 trigger-positive
+items**, because the trigger requires all queen promotions to go to a single square and `satisfies`
+is `move.promotion == QUEEN`. There is exactly one permitted move, so the per-action distribution
+*is* the per-item `regret_B` distribution and says nothing `regret_B` did not.
+
+What the column does say about `RC-05` is the true and smaller claim: **its one permitted move costs
+nothing at the ninetieth percentile**. What it does not say is that a permitted *set* is safe
+throughout, because there is no set. `ADVERSARIAL_PASS.md` A-2 is where this was caught.
+
+The column is not trivial elsewhere: **`RC-06`'s median `|B|` is 9** and only 3.6% of its items have
+a singleton, `RC-00`'s median is 3, and `RC-03`'s is 1 with 55.6% singletons. For those classes the
+distribution is a genuinely independent question, and it is where `RC-06` fails.
 
 **Five classes have a p90 of 1.0000**, and one of them is the **ceiling anchor**. That is not a
 surprise once `RC-00`'s own `scope_claim` is read — its `satisfies` is *"gives check"*, not *"gives

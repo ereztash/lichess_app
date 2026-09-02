@@ -37,6 +37,7 @@ import {
 } from "./inertia-scan";
 import { findRegisterDrift } from "./register-scan";
 import { findAuthorityDrift } from "./authority-scan";
+import { findUnobservableCues } from "./cue-scan.js";
 import { findFalsificationDrift } from "./falsification-scan";
 import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
@@ -171,6 +172,7 @@ const RESEARCH_FIXTURES = "tests/fixtures/research";
 
 /** And for the authority map: an answer deleted, a competitor unscoped, a gap quietly closed. */
 const AUTHORITY_FIXTURES = "tests/fixtures/authority";
+const CUE_FIXTURES = "tests/fixtures/cue";
 
 /** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
 const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
@@ -212,6 +214,12 @@ const falsificationDrift = (root: string) =>
   fromFindings(
     findFalsificationDrift(root),
     "every blocking check is classified, and every named falsification mechanism exists",
+  );
+
+const unobservableCues = (root: string) =>
+  fromFindings(
+    findUnobservableCues(root),
+    "every rule-class trigger computes from the board alone, with no evaluation",
   );
 
 const asksAgain = (roots: string[]) =>
@@ -1052,6 +1060,37 @@ export const GATES: Gate[] = [
      */
     run: () => falsificationDrift("."),
     positiveControl: () => falsificationDrift(FALSIFICATION_FIXTURES),
+  },
+  {
+    id: "GATE-CUE-PLAYER-OBSERVABLE",
+    rule: "R-01",
+    description: "No behavioural cue may require engine-only knowledge at decision time.",
+    /*
+     * THE PRECONDITION FOR THE WHOLE LEARNING PROGRAMME, and until now the only one with no check.
+     * A packet says `WHEN X -> DO Y` and the construct dies if the player cannot notice `X` during
+     * an ordinary game with no engine and nobody pointing at it. `docs/learning-v2/KNOWLEDGE_MAP.md`
+     * supplies the mechanism -- focal cues retrieve spontaneously, nonfocal ones need monitoring --
+     * and then supplies the counterexample: *"`mechanism_class` labels are nonfocal by
+     * construction"*. A cue defined by a centipawn number is worse than nonfocal. It is
+     * unobservable, and a packet built on one is untestable rather than merely weak.
+     *
+     * IT PASSES TODAY, AND THAT IS THE POINT. Every trigger in the register is board geometry
+     * already; nothing is being fixed. What is being fixed is that nothing stopped the next one
+     * from not being, and `docs/learning-v3/BEHAVIORAL_PACKET_SPEC.md` lists this as refusal 9 --
+     * one of three the system could not yet make.
+     *
+     * A SEARCH IS NOT AN ENGINE. `RC-00`'s trigger enumerates legal moves looking for mate in one,
+     * which is a search and is also something a player does. The line is at the EVALUATION
+     * FUNCTION: `mate` is a rule of chess, `+0.34` is a program's opinion.
+     *
+     * THE FIRST VERSION OF THE SCANNER FAILED ON THE REAL TREE, twice, and both findings were
+     * docstrings saying *"no SEE, no engine"*. A gate that reddens on the sentence asserting the
+     * property it checks is a gate somebody fixes by deleting the sentence, so comments and
+     * docstrings are stripped -- with their line count preserved, so a finding still points at the
+     * real line.
+     */
+    run: () => unobservableCues("."),
+    positiveControl: () => unobservableCues(CUE_FIXTURES),
   },
 ];
 

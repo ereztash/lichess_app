@@ -22,6 +22,7 @@ EXTERNAL_REPO_CROSSWALK.md     mechanism against mechanism, not summary against 
 ↓
 ACTION_SET_AUDIT.md            Gate A -- is the final action a valid observation of rule use?
 EXCHANGEABILITY_AUDIT.md       Gate B -- are T+ and T- comparable enough to attribute a difference?
+COMPUTE_VALUE_EXTRACTION.md    what the hour of Stockfish bought beyond the gate it was run for
 ↓
 BARRIER_DECISION.md            which barrier is first, and therefore which packet
 BEHAVIORAL_PACKET_SPEC.md      the object, before any component
@@ -30,6 +31,7 @@ INTERVENTION_EXPERIMENT.md     the smallest comparison that answers a product de
 FIELD_PROTOCOL.md              what recruiting would require
 IMPLEMENTATION_MAP.md          what would be built, and in what order
 AUTHORITY_MAP.md               one authority per question, named
+ADVERSARIAL_PASS.md            fifteen attacks; the two that landed, and the files they corrected
 FINAL_REPORT.md                one outcome, chosen
 ```
 

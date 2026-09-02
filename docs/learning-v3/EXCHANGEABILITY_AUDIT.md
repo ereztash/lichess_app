@@ -215,11 +215,29 @@ Against the mission's four outcomes:
   is the opposite of the confounded signature.
 - **not `B-PREDICATE-FAIL`** — `B` is a property of the move and is identical on both cells;
   prescription size differs by +0.0003.
-- **`B-DOMAIN-LIMIT` applies in part, and is recorded rather than hidden**: **49% of `RC-05`'s items
-  admit no minimal twin at all.** A promotion square attacked by two pieces cannot be freed by
-  moving one; a position with no spare enemy piece cannot be made to attack the square without
-  changing something else. The bank is therefore drawn from the half of the class that admits a
-  single-piece flip, and that half may differ from the other in ways nothing here measures.
+- **`B-DOMAIN-LIMIT` applies, and it is larger than "half the items are missing".** 49% of
+  `RC-05`'s items admit no minimal twin — a square attacked by two pieces cannot be freed by moving
+  one; a position with no spare enemy piece cannot be made to attack it. **And the half that does
+  admit a twin is not like the half that does not**, which `ADVERSARIAL_PASS.md` A-8 measured
+  because this file's first version asserted it *"may differ … in ways nothing here measures"* and
+  then did not measure it:
+
+  | covariate | twin-able (307) | not (128) | SMD |
+  | --- | --- | --- | --- |
+  | piece count | 11.84 | 7.75 | **+1.263** |
+  | material balance | +0.96 | +7.03 | **−1.112** |
+  | `V*` | 0.813 | 0.977 | −0.606 |
+  | **unaided human rule-consistent rate** | **.485** | **.727** | −0.508 |
+  | `regret_B` | 0.080 | 0.004 | +0.495 |
+  | Elo | 1625.8 | 1626.1 | −0.001 |
+
+  The selection is structural rather than accidental: a twin needs a relocatable enemy piece, so the
+  bank is drawn from **busier, more balanced, less-won positions** — and from positions where real
+  players followed the rule *less* often. `GO_NO_GO.md` treated max \|SMD\| **0.573** as
+  disqualifying for the natural item sets; this selection reaches **1.263**.
+
+  **This does not touch the within-pair contrast**, which is its own control and which the sham
+  answers. It bounds what the contrast is *about*: the bank, not the class.
 - **`B-PASS`** on the half that does: a valid rule-use task is admissible for humans on this bank.
 
 ### What `B-PASS` does not establish
