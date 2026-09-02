@@ -229,6 +229,120 @@ def gain_ci(per_pos_a, per_pos_b, rng, reps=BOOTSTRAPS):
     return [float(lo), float(hi)]
 
 
+
+# --------------------------------------------------------------------------------------------
+# Functional invariance (freeze section 7) and the D04 scope map (freeze section 8)
+
+
+def exposure_pair_accuracy(rows, geometry=None):
+    """Model-free: among within-position pairs whose exposure differs, does lower exposure mean
+    lower regret?
+
+    This is the region score for the scope map, and it is deliberately NOT a fitted model. A ridge
+    refitted inside every candidate region would make each region's score depend on how much data
+    that region happened to have, and the scope map would then partly be a map of sample size. A
+    pairwise heuristic has no parameters to fit, so a region's number means the same thing in a
+    thin cell as in a thick one.
+
+    `geometry` optionally restricts to pairs that are geometrically alike or unlike, which is what
+    the functional-invariance question needs.
+    """
+    by_pos = collections.defaultdict(list)
+    for i, r in enumerate(rows):
+        by_pos[(r["game_id"], r["ply"])].append(i)
+    per_pos = {}
+    for pos, idx in by_pos.items():
+        c = t = 0.0
+        for a in range(len(idx)):
+            for b in range(a + 1, len(idx)):
+                i, j = idx[a], idx[b]
+                de = rows[i]["exposure_post"] - rows[j]["exposure_post"]
+                dr = rows[i]["regret"] - rows[j]["regret"]
+                if de == 0 or abs(dr) < PAIR_EPSILON:
+                    continue
+                if geometry is not None:
+                    same_piece = rows[i]["moving_piece_type"] == rows[j]["moving_piece_type"]
+                    same_target = (rows[i]["to_file"], rows[i]["to_rank"]) == (rows[j]["to_file"], rows[j]["to_rank"])
+                    same_capture = rows[i]["capture_flag"] == rows[j]["capture_flag"]
+                    alike = same_piece and same_capture
+                    if geometry == "alike" and not alike:
+                        continue
+                    if geometry == "unlike" and (alike or same_target):
+                        continue
+                t += 1
+                if (de > 0) == (dr > 0):
+                    c += 1.0
+        if t:
+            per_pos[pos] = (c, t)
+    c = sum(v[0] for v in per_pos.values())
+    n = sum(v[1] for v in per_pos.values())
+    return {"accuracy": c / n if n else None, "pairs": int(n), "positions": len(per_pos)}, per_pos
+
+
+def accuracy_ci(per_pos, rng, reps=2000):
+    keys = np.array(sorted(per_pos), dtype=object)
+    if len(keys) == 0:
+        return [None, None]
+    out = np.empty(reps)
+    for i in range(reps):
+        pick = rng.choice(len(keys), size=len(keys), replace=True)
+        c = n = 0.0
+        for k in pick:
+            cc, nn = per_pos[keys[k]]
+            c += cc
+            n += nn
+        out[i] = c / n if n else np.nan
+    lo, hi = np.nanquantile(out, [0.025, 0.975])
+    return [float(lo), float(hi)]
+
+
+def tertile_cuts(rows, key):
+    v = np.array([r[key] for r in rows], dtype=float)
+    return [float(x) for x in np.quantile(v, [1 / 3, 2 / 3])]
+
+
+def build_selectors(derivation_rows):
+    """The frozen vocabulary of freeze section 8. Cuts come from the derivation subset ONLY, so no
+    cut is a function of the rows it is later judged on."""
+    cuts = {k: tertile_cuts(derivation_rows, k)
+            for k in ("clock_pressure", "non_pawn_material", "legal_moves", "n_near")}
+
+    def tertile(key):
+        lo, hi = cuts[key]
+        def f(r):
+            v = r[key]
+            return "low" if v <= lo else ("mid" if v <= hi else "high")
+        return f
+
+    fams = {
+        "band": lambda r: r["band"],
+        "phase": lambda r: r["phase"],
+        "standing": lambda r: r["standing"],
+        "in_check": lambda r: "yes" if r["in_check"] else "no",
+        "clock_pressure": tertile("clock_pressure"),
+        "non_pawn_material": tertile("non_pawn_material"),
+        "legal_moves": tertile("legal_moves"),
+        "n_near": tertile("n_near"),
+    }
+    return fams, cuts
+
+
+MIN_REGION_PAIRS = 200
+
+
+def label_region(der_acc, held, ci):
+    if held["pairs"] < MIN_REGION_PAIRS:
+        return "INSUFFICIENT"
+    if ci[0] is None:
+        return "INSUFFICIENT"
+    if ci[0] > 0.5:
+        keeps = (held["accuracy"] - 0.5) >= 0.5 * (der_acc - 0.5) if der_acc > 0.5 else False
+        return "SUPPORTED" if keeps else "WEAK"
+    if ci[1] < 0.5:
+        return "REVERSED"
+    return "WEAK"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--table-a", required=True)
@@ -391,6 +505,76 @@ def main() -> int:
         "consequence_share_at_or_above_accurate_threshold":
             float((costs_arr >= ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(costs_arr) else None,
     }
+
+
+    # ---- functional invariance (freeze section 7)
+    fi = {}
+    for geom in (None, "alike", "unlike"):
+        stat, pp = exposure_pair_accuracy(test, geometry=geom)
+        stat["ci95_cluster_position"] = accuracy_ci(pp, rng)
+        fi["all_pairs" if geom is None else f"{geom}_geometry"] = stat
+    fi["what_unlike_means"] = "different moving piece type or different capture status, and a different destination square"
+    result["functional_invariance"] = fi
+
+    # ---- D04 scope map (freeze section 8)
+    der_rows = [r for r in B if r["player"] in derivation]
+    fams, cuts = build_selectors(der_rows)
+    der_overall, _ = exposure_pair_accuracy(der_rows)
+    held_overall, held_pp = exposure_pair_accuracy(test)
+    held_overall["ci95_cluster_position"] = accuracy_ci(held_pp, rng)
+
+    depth1 = {}
+    for fam, fn in fams.items():
+        for value in sorted({fn(r) for r in der_rows}):
+            key = f"{fam}={value}"
+            d, _ = exposure_pair_accuracy([r for r in der_rows if fn(r) == value])
+            h, hpp = exposure_pair_accuracy([r for r in test if fn(r) == value])
+            if h["pairs"] == 0:
+                depth1[key] = {"label": "INSUFFICIENT", "derivation": d, "held_out": h}
+                continue
+            ci = accuracy_ci(hpp, rng)
+            h["ci95_cluster_position"] = ci
+            depth1[key] = {"label": label_region(d["accuracy"] or 0.5, h, ci),
+                           "derivation": d, "held_out": h}
+
+    # depth 2, searched on derivation only; exactly one winner is frozen and then judged
+    fam_names = sorted(fams)
+    best = None
+    for a in range(len(fam_names)):
+        for b in range(a + 1, len(fam_names)):
+            fa, fb = fams[fam_names[a]], fams[fam_names[b]]
+            for va in sorted({fa(r) for r in der_rows}):
+                for vb in sorted({fb(r) for r in der_rows}):
+                    sub = [r for r in der_rows if fa(r) == va and fb(r) == vb]
+                    if len(sub) < 50:
+                        continue
+                    d, _ = exposure_pair_accuracy(sub)
+                    if d["pairs"] < MIN_REGION_PAIRS or d["accuracy"] is None:
+                        continue
+                    if best is None or d["accuracy"] > best[0]:
+                        best = (d["accuracy"], fam_names[a], va, fam_names[b], vb, d)
+    scope = {
+        "selector_vocabulary": sorted(fams),
+        "tertile_cuts_from_derivation_only": cuts,
+        "min_region_pairs": MIN_REGION_PAIRS,
+        "overall_derivation": der_overall,
+        "overall_held_out": held_overall,
+        "depth1": depth1,
+    }
+    if best is not None:
+        _, fa_name, va, fb_name, vb, d = best
+        fa, fb = fams[fa_name], fams[fb_name]
+        h, hpp = exposure_pair_accuracy([r for r in test if fa(r) == va and fb(r) == vb])
+        ci = accuracy_ci(hpp, rng) if h["pairs"] else [None, None]
+        h["ci95_cluster_position"] = ci
+        scope["depth2_frozen_winner"] = {
+            "region": f"{fa_name}={va} AND {fb_name}={vb}",
+            "chosen_on": "derivation players only",
+            "derivation": d,
+            "held_out": h,
+            "label": label_region(d["accuracy"], h, ci),
+        }
+    result["scope_map"] = scope
 
     print("===SI_RESULT_BEGIN===")
     print(json.dumps(result, indent=2, sort_keys=True))
