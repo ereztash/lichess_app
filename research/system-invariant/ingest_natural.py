@@ -78,10 +78,24 @@ def main() -> int:
 
     base, inc = b3.parse_time_control(TIME_CONTROL)
     rows = []
+    per_side = []
     excl: collections.Counter = collections.Counter()
     for side in sides:
+        # AMENDMENT_01 section C.3 needs the COMPLETE eligible sequence, because B3's per-side cap
+        # of 60 makes "rows in the table" and "the side's decisions" different things on long games.
+        # The uncapped call is made first and only its LENGTH is kept; the capped call below is what
+        # produces the rows, unchanged, so the emitted data is identical to the pre-amendment run.
+        full, _ = b3.eligible_decisions(side, base, inc, 10 ** 9)
         decisions, counts = b3.eligible_decisions(side, base, inc, MAX_DECISIONS_PER_SIDE)
         excl.update(counts)
+        per_side.append({
+            "player": side["player"], "game_id": side["game_id"], "side": side["side"],
+            "band": side["band"], "rating": side["rating"],
+            "eligible_decisions_uncapped": len(full),
+            "decisions_in_table": len(decisions),
+            "capped": len(full) > MAX_DECISIONS_PER_SIDE,
+            "plies_in_game": len(side["moves"]),
+        })
         for d in decisions:
             board = chess.Board(d["fen_before"])
             rows.append({
@@ -111,6 +125,9 @@ def main() -> int:
     with open(out, "w") as fh:
         for r in rows:
             fh.write(json.dumps(r, sort_keys=True) + "\n")
+    with open(out.parent / "per_side.jsonl", "w") as fh:
+        for r in per_side:
+            fh.write(json.dumps(r, sort_keys=True) + "\n")
 
     manifest = {
         "protocol": "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md",
@@ -134,6 +151,12 @@ def main() -> int:
         "players": len({s["player"] for s in sides}),
         "decisions": len(rows),
         "decisions_by_band": dict(collections.Counter(r["band"] for r in rows)),
+        # AMENDMENT_01 section C.2: O4's weights are the band shares of CANDIDATE sides in this
+        # prefix, counted here rather than borrowed from B3's month. Without this the only pooled
+        # number available would be O6, which describes the sampler.
+        "candidate_sides_by_band": dict(sampler.seen_candidates),
+        "sides_capped_at_per_side_limit": sum(1 for r in per_side if r["capped"]),
+        "sides_uncapped": sum(1 for r in per_side if not r["capped"]),
         "players_by_band": {
             b: len({r["player"] for r in rows if r["band"] == b})
             for b in sorted({r["band"] for r in rows})

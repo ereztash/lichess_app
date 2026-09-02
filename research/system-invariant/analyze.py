@@ -347,6 +347,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--table-a", required=True)
     ap.add_argument("--table-b", required=True)
+    ap.add_argument("--per-side", required=True)
+    ap.add_argument("--ingest-manifest", required=True)
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
@@ -380,6 +382,7 @@ def main() -> int:
         "median": float(np.median(ql)) if len(ql) else None,
         "share_above_zero": float((ql > 1e-9).mean()) if len(ql) else None,
         "share_above_accurate_threshold": float((ql > ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(ql) else None,
+        "p95": float(np.quantile(ql, 0.95)) if len(ql) else None,
     }
 
     # ---- Test A
@@ -455,57 +458,155 @@ def main() -> int:
     result["test_b"] = {"models": stats, "comparisons": comparisons,
                         "held_out_on": "players not in the derivation 60%"}
 
-    # ---- ecology: opportunity, headroom, consequence
+    # ---- ecology, under AMENDMENT_01 section C.
+    # Six estimands with stated denominators. The naive pooled rate survives only as O6 and is
+    # labelled, because B3 accepts sides at band rates spanning more than twelvefold and a pooled
+    # prevalence over this sample would describe the sampler rather than chess.
+    per_side = {r["game_id"]: r for r in (json.loads(l) for l in open(args.per_side))}
+    manifest = json.loads(Path(args.ingest_manifest).read_text())
+    cand = manifest["candidate_sides_by_band"]
+    total_cand = sum(cand.values())
+    W = {b: cand[b] / total_cand for b in cand}
+
     by_pos = collections.defaultdict(list)
     for r in B:
         by_pos[(r["game_id"], r["ply"])].append(r)
     a_by_pos = {(r["game_id"], r["ply"]): r for r in A}
 
-    opps = 0
-    reasonable_ge2 = 0
-    headroom_num = 0
-    headroom_den = 0
-    unclassifiable = 0
-    costs = []
-    opp_rows = []
+    pos_info = {}
     for pos, cands in by_pos.items():
         best = max(c["cand_wp"] for c in cands)
         reasonable = [c for c in cands if best - c["cand_wp"] <= REASONABLE_BAND]
-        if len(reasonable) >= 2:
-            reasonable_ge2 += 1
         exps = {c["exposure_post"] for c in reasonable}
-        if len(reasonable) >= 2 and len(exps) >= 2:
-            opps += 1
-            arow = a_by_pos.get(pos)
-            opp_rows.append((pos, reasonable, arow))
+        is_opp = len(reasonable) >= 2 and len(exps) >= 2
+        rec = {"is_opp": is_opp, "band": cands[0]["band"], "player": cands[0]["player"],
+               "game_id": cands[0]["game_id"], "chose_higher": None, "cost": None,
+               "played_in_reasonable": None,
+               "two_plus_reasonable": len(reasonable) >= 2}
+        if is_opp:
             played = [c for c in reasonable if c["is_played"]]
-            if not played:
-                unclassifiable += 1
-            else:
-                headroom_den += 1
+            rec["played_in_reasonable"] = bool(played)
+            if played:
                 lo = min(c["exposure_post"] for c in reasonable)
-                if played[0]["exposure_post"] > lo:
-                    headroom_num += 1
-                    if arow is not None:
-                        costs.append(arow["quality_loss"])
-    costs_arr = np.array(costs) if costs else np.array([])
-    result["ecology"] = {
-        "definition": "at least 2 candidates within 0.05 wp of best AND differing in exposure_post by at least 1",
-        "positions": len(by_pos),
-        "positions_with_2plus_reasonable": reasonable_ge2,
-        "opportunities": opps,
-        "opportunity_rate_of_decisions": opps / len(by_pos) if by_pos else None,
-        "headroom_denominator_played_move_in_reasonable_set": headroom_den,
-        "headroom_numerator_chose_higher_exposure": headroom_num,
-        "headroom_rate": headroom_num / headroom_den if headroom_den else None,
-        "opportunities_where_played_move_not_in_reasonable_set": unclassifiable,
-        "consequence_n": int(len(costs_arr)),
-        "consequence_mean_quality_loss": float(costs_arr.mean()) if len(costs_arr) else None,
-        "consequence_median_quality_loss": float(np.median(costs_arr)) if len(costs_arr) else None,
-        "consequence_share_at_or_above_accurate_threshold":
-            float((costs_arr >= ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(costs_arr) else None,
+                rec["chose_higher"] = played[0]["exposure_post"] > lo
+                arow = a_by_pos.get(pos)
+                if rec["chose_higher"] and arow is not None:
+                    rec["cost"] = arow["quality_loss"]
+        pos_info[pos] = rec
+
+    infos = list(pos_info.values())
+    bands = sorted({i["band"] for i in infos})
+
+    # O1: per-decision opportunity rate within band. Denominator: analysed decisions in that band.
+    O1 = {}
+    for b in bands:
+        sub = [i for i in infos if i["band"] == b]
+        O1[b] = {"rate": sum(1 for i in sub if i["is_opp"]) / len(sub),
+                 "opportunities": sum(1 for i in sub if i["is_opp"]),
+                 "denominator_decisions": len(sub)}
+
+    # O2: opportunities per game within band, on UNCAPPED sides only, where the scored decisions
+    # ARE the side's complete eligible sequence. Exact, not extrapolated.
+    opp_by_game = collections.Counter()
+    dec_by_game = collections.Counter()
+    for i in infos:
+        dec_by_game[i["game_id"]] += 1
+        if i["is_opp"]:
+            opp_by_game[i["game_id"]] += 1
+    uncapped = {g for g, r in per_side.items() if not r["capped"]}
+    O2 = {}
+    for b in bands:
+        games = [g for g in dec_by_game
+                 if g in uncapped and per_side.get(g, {}).get("band") == b]
+        if not games:
+            O2[b] = {"opportunities_per_game": None, "games": 0}
+            continue
+        tot = sum(opp_by_game[g] for g in games)
+        O2[b] = {"opportunities_per_game": tot / len(games),
+                 "opportunities": tot,
+                 "denominator_games_uncapped_sides": len(games),
+                 "games_needed_for_one_opportunity_O3": (len(games) / tot) if tot else None}
+
+    capped_games = [g for g in dec_by_game if g in per_side and per_side[g]["capped"]]
+    capped_note = {
+        "capped_sides_excluded_from_O2": len(capped_games),
+        "their_uncapped_eligible_decisions": sum(per_side[g]["eligible_decisions_uncapped"]
+                                                 for g in capped_games),
+        "their_decisions_in_table": sum(per_side[g]["decisions_in_table"] for g in capped_games),
+        "bias_direction": "excluding them biases O2 DOWNWARD with respect to long games",
     }
 
+    # O4: pooled population rate, weighted by each band's share of candidate sides in THIS prefix.
+    O4 = sum(W[b] * O1[b]["rate"] for b in bands if b in W)
+    # O5: player-weighted, every player one observation regardless of how many decisions they gave.
+    by_player = collections.defaultdict(list)
+    for i in infos:
+        by_player[i["player"]].append(i)
+    player_rates = [sum(1 for x in v if x["is_opp"]) / len(v) for v in by_player.values()]
+    # O6: the naive pooled rate. Sampler-weighted. Never a population rate.
+    O6 = sum(1 for i in infos if i["is_opp"]) / len(infos)
+
+    # headroom and consequence, overall and by band
+    def headroom_of(sub):
+        den = [i for i in sub if i["is_opp"] and i["played_in_reasonable"]]
+        num = [i for i in den if i["chose_higher"]]
+        return {"rate": len(num) / len(den) if den else None,
+                "numerator_chose_higher_exposure": len(num),
+                "denominator_opportunities_with_played_move_reasonable": len(den)}
+
+    costs = np.array([i["cost"] for i in infos if i["cost"] is not None], dtype=float)
+    noise = result["outcome_noise_floor"]
+    noise_p95 = noise.get("p95")
+    share_frozen = float((costs >= ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(costs) else None
+    share_secondary = (float((costs >= noise_p95).mean())
+                       if len(costs) and noise_p95 is not None else None)
+
+    # AMENDMENT_01 B.4: is the consequence rate separable from the noise floor at all?
+    cost_games = [i["game_id"] for i in infos if i["cost"] is not None]
+    game_keys = sorted(set(cost_games))
+    ci_cons = [None, None]
+    if game_keys:
+        idx_by_game = collections.defaultdict(list)
+        for k, g in enumerate(cost_games):
+            idx_by_game[g].append(k)
+        reps = np.empty(2000)
+        for r_i in range(2000):
+            pick = rng.choice(len(game_keys), size=len(game_keys), replace=True)
+            vals = np.concatenate([costs[idx_by_game[game_keys[k]]] for k in pick])
+            reps[r_i] = (vals >= ACCURATE_WIN_PROBABILITY_LOSS).mean()
+        lo, hi = np.quantile(reps, [0.025, 0.975])
+        ci_cons = [float(lo), float(hi)]
+    noise_rate = noise.get("share_above_accurate_threshold")
+    separable = (ci_cons[0] is not None and noise_rate is not None and ci_cons[0] > noise_rate)
+
+    result["ecology"] = {
+        "estimand_authority": "docs/system-invariant/AMENDMENT_01.md section C",
+        "definition": "at least 2 candidates within 0.05 wp of best AND differing in exposure_post by at least 1",
+        "target_population_for_O4": "analysed-eligible sides of rated 180+0 standard games played 2026-07-01 UTC, ratings 800-2599, inside the 520,000,000-byte prefix this mission consumed",
+        "O4_weights_band_share_of_candidate_sides": W,
+        "O1_per_decision_rate_by_band": O1,
+        "O2_opportunities_per_game_by_band_uncapped_sides_only": O2,
+        "O2_capped_sides": capped_note,
+        "O4_pooled_population_weighted_rate": O4,
+        "O5_player_weighted_rate": float(np.mean(player_rates)) if player_rates else None,
+        "O5_players": len(player_rates),
+        "O6_decision_weighted_rate_SAMPLER_WEIGHTED_NOT_A_POPULATION_RATE": O6,
+        "positions": len(infos),
+        "positions_with_2plus_reasonable": sum(1 for i in infos if i["two_plus_reasonable"]),
+        "headroom_overall": headroom_of(infos),
+        "headroom_by_band": {b: headroom_of([i for i in infos if i["band"] == b]) for b in bands},
+        "opportunities_where_played_move_not_in_reasonable_set":
+            sum(1 for i in infos if i["is_opp"] and not i["played_in_reasonable"]),
+        "consequence_n": int(len(costs)),
+        "consequence_mean_quality_loss": float(costs.mean()) if len(costs) else None,
+        "consequence_median_quality_loss": float(np.median(costs)) if len(costs) else None,
+        "consequence_share_at_or_above_FROZEN_threshold_0_02761": share_frozen,
+        "consequence_share_ci95_game_cluster": ci_cons,
+        "consequence_share_at_or_above_noise_p95_SECONDARY": share_secondary,
+        "noise_floor_share_above_frozen_threshold": noise_rate,
+        "separable_from_noise_floor": bool(separable),
+        "measurement_limited_if_not_separable": "AMENDMENT_01 section B.4",
+    }
 
     # ---- functional invariance (freeze section 7)
     fi = {}
