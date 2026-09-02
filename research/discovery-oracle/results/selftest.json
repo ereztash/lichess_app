@@ -656,11 +656,11 @@
     },
     {
       "plant": "one-game-only",
-      "delta": 0.45,
-      "realised": 0.2167235731057564,
-      "share_inside": 0.012703965034941846,
+      "delta": 0.22,
+      "realised": 0.27135242686471767,
+      "share_inside": 0.012042995735910632,
       "expressible_as": null,
-      "passes": false
+      "passes": true
     },
     {
       "plant": "every-game-first-moves",
@@ -680,15 +680,6 @@
     }
   ],
   "null_leaks": [],
-  "plants_off_target": [
-    {
-      "plant": "one-game-only",
-      "delta": 0.45,
-      "realised": 0.2167235731057564,
-      "share_inside": 0.012703965034941846,
-      "expressible_as": null,
-      "passes": false
-    }
-  ],
-  "passed": false
+  "plants_off_target": [],
+  "passed": true
 }

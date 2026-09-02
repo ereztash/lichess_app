@@ -36,6 +36,7 @@ import {
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
 import { findRegisterDrift } from "./register-scan";
+import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
   deriveNextAction,
@@ -163,6 +164,9 @@ const INERTIA_FIXTURES = "tests/fixtures/inertia";
 /** A whole repository in miniature, carrying the drifts the real registers actually had. */
 const REGISTER_FIXTURES = "tests/fixtures/registers";
 
+/** The same idea for the research corpus: X-02 and X-16, as the tree actually carried them. */
+const RESEARCH_FIXTURES = "tests/fixtures/research";
+
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
   findings.length
@@ -182,6 +186,12 @@ const registerDrift = (root: string) =>
   fromFindings(
     findRegisterDrift(root),
     "debt register, laws, ledger and runner agree with the tree",
+  );
+
+const researchDrift = (root: string) =>
+  fromFindings(
+    findResearchDrift(root),
+    "every frozen hash, generated value and classified claim in the research corpus agrees with the tree",
   );
 
 const asksAgain = (roots: string[]) =>
@@ -959,6 +969,30 @@ export const GATES: Gate[] = [
      */
     run: () => registerDrift("."),
     positiveControl: () => registerDrift(REGISTER_FIXTURES),
+  },
+  {
+    id: "GATE-RESEARCH-RECONCILED",
+    rule: "R-01",
+    description: "The research corpus agrees with the tree, and every hash claim in it is classified.",
+    /*
+     * THE SAME GATE, ONE DIRECTORY OVER. `GATE-REGISTER-RECONCILED` above holds four product and
+     * governance registers against the tree and it works. It reached nothing under `research/`, and
+     * two failures of exactly that shape were already sitting there, both found by hand rather than
+     * by a command:
+     *
+     *   X-02  the CURRENT block of `PREREGISTRATION_FREEZE.json` named a sha256 for
+     *         `DATA_PROTOCOL.md` that the document had not had since Gate 2 amended it. A frozen
+     *         document record that no longer matches the document is the one thing a freeze is for.
+     *   X-16  `discovery-oracle/results/selftest.json` recorded plant `one-game-only` at
+     *         `delta 0.45` while `oracle/worlds.py`, committed beside it, declared `0.22`.
+     *
+     * Same detection class, different causes, different repairs -- and a third predicate so the
+     * coverage cannot rot: a sha256 in a research artefact that `RESEARCH_RELATIONS` does not
+     * classify is itself a finding. Without that, "the research corpus is reconciled" decays into
+     * "the part of it somebody last looked at is reconciled".
+     */
+    run: () => researchDrift("."),
+    positiveControl: () => researchDrift(RESEARCH_FIXTURES),
   },
 ];
 

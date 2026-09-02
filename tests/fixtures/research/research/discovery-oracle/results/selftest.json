@@ -1,0 +1,25 @@
+{
+ "seed": 20260830,
+ "plants": [
+  {
+   "plant": "clean-middlegame",
+   "delta": 0.18,
+   "realised": 0.1744,
+   "passes": true
+  },
+  {
+   "plant": "one-game-only",
+   "delta": 0.45,
+   "realised": 0.2167,
+   "passes": false
+  }
+ ],
+ "plants_off_target": [
+  {
+   "plant": "one-game-only",
+   "delta": 0.45,
+   "passes": false
+  }
+ ],
+ "passed": false
+}

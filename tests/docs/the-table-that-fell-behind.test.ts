@@ -93,6 +93,7 @@ describe("the README's gate table cannot fall behind the gates", () => {
       26: "עשרים ושישה",
       27: "עשרים ושבעה",
       28: "עשרים ושמונה",
+      29: "עשרים ותשעה",
     };
     const word = hebrewNumeral[declared.length];
     expect(
