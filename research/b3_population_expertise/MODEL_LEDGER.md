@@ -44,3 +44,31 @@ this session's reasoning.
 | 34 | 2026-09-02 04:50 | REPORT.md | Opus 5 | write the report with every Gate 2 language obligation and every Gate 3 downgrade applied, and a forbidden-phrase check that refuses to write | read/write | report generated; the secondary block reported as not evaluable; `NEXT_EXPERIMENT` recorded | `src/write_report.py`, `REPORT.md` |
 | 35 | 2026-09-02 05:15 | **Gate 4, claim audit** | **Fable 5.1** | audit every claim in `REPORT.md` against the evidence in the repository | read-only, one review artifact | `PASS_WITH_REQUIRED_CHANGES`: 24 findings, 15 required. The worst was the front-matter line printing `VERDICT_RULES.md` §3.1's definition of `EXPERTISE_ADAPTATION_SUPPORTED` as the meaning of `GENERAL_REGULARITY_ONLY` -- the H2 proposition the study did not support, printed as the meaning of its verdict. Also: the A5(a) single-factor arithmetic was a square root and not the amendment's exchange rate; "no response to the clock" was a property the three periods cannot establish; the drift sentence was contradicted by the pipeline's own C1 and C4 blocks; and §2.5c's hashed attenuation obligation was missed | `reviews/FABLE_GATE_4_CLAIM_AUDIT.md` |
 | 36 | 2026-09-02 05:20 | Apply Gate 4 | Opus 5 | fifteen required and nine recommended changes, every one a weakening or a qualification | read/write | applied; no verdict, level, threshold or estimate changed; `report_diagnostics.py` repaired so the three-parameter `beta` is the regression the text describes | `src/write_report.py`, `src/report_diagnostics.py`, `REPORT.md`, `FAILURES.md`, `MODEL_CARD.md`, `REPRODUCIBILITY.md` |
+
+---
+
+## The minimum table the plan requires
+
+| Phase | Model |
+|---|---|
+| Repository audit | Opus 5 |
+| B2 reproduction | Opus 5 |
+| Draft preregistration | Opus 5 |
+| Preregistration adversary | Fable 5.1 |
+| Implementation | Opus 5 |
+| Development | Opus 5 |
+| Validation | Opus 5 |
+| Pre-holdout seal audit | Fable 5.1 |
+| Final holdout execution | Opus 5 |
+| Mechanical verdict | Opus 5 |
+| Result adversary | Fable 5.1 |
+| Secondary replication | Opus 5 |
+| Report drafting | Opus 5 |
+| Final claim audit | Fable 5.1 |
+| Final fixes / documentation | Opus 5 |
+
+No Fable invocation in this study was outside the four scientific gates: four dispatches, one per
+gate, plus the three Gate 1 re-reads the gate's own PASS loop required. Every implementation
+problem, debugging problem, statistical execution and document edit was handled by the main
+session. `FABLE_GATE_UNAVAILABLE` was never recorded: Fable 5.1 was available and served every
+gate, under the packaging described in the routing note at the top of this file.
