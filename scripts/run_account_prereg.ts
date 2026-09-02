@@ -32,10 +32,13 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { runImportDiagnostic, type AnalysableGame } from "../client/src/lib/import-run.js";
 import {
   decisionsFromGame,
+  diagnoseImportedGames,
   resolutionFactor,
   worstBucketVerdict,
   type ImportDiagnostic,
 } from "../shared/import-diagnostic.js";
+import type { ImportedGameInput } from "../shared/import-diagnostic.js";
+import type { BookLookup } from "../shared/opening-book.js";
 import { hypothesisFromImport, importProgress } from "../shared/prereg.js";
 import type { EngineLine } from "../client/src/lib/engine-line.js";
 import { UciEngine } from "./uci-engine.js";
@@ -105,10 +108,16 @@ async function runOnce(games: AnalysableGame[], username: string, binary: string
         process.stderr.write(`  ${done}/${total} positions, ${gamesDone}/${games.length} games\n`);
       },
     });
-    const rows = result.inputs.flatMap((input, gameIndex) =>
+    /*
+     * LABELLED BY `keptGameIndexes`, NOT BY POSITION. `inputs` holds one entry per readable game,
+     * so pairing it with `games` by index mislabels every row after the first game the run dropped
+     * -- and this corpus drops 48 of 2,209, every Lichess "From Position" game, because
+     * `gamePositions` replays SAN from the standard opening. See ImportRunResult.keptGameIndexes.
+     */
+    const rows = result.inputs.flatMap((input, position) =>
       decisionsFromGame(input, result.isBook).map((d) => ({
-        gameIndex,
-        gameId: games[gameIndex]?.id ?? null,
+        gameIndex: result.keptGameIndexes[position]!,
+        gameId: games[result.keptGameIndexes[position]!]?.id ?? null,
         ply: d.ply,
         phase: d.phase,
         secondsTaken: d.secondsTaken,
@@ -121,10 +130,101 @@ async function runOnce(games: AnalysableGame[], username: string, binary: string
         speed: d.speed,
       })),
     );
-    return { diagnostic: result.diagnostic, rows, elapsedMs: Date.now() - started };
+    return {
+      diagnostic: result.diagnostic,
+      rows,
+      elapsedMs: Date.now() - started,
+      inputs: result.inputs,
+      keptGameIndexes: result.keptGameIndexes,
+      isBook: result.isBook,
+      unreadable: result.unreadable,
+    };
   } finally {
     engine.quit();
   }
+}
+
+/**
+ * A second reading of the SAME evaluations, over a declared subset of the games.
+ *
+ * WHY THIS IS HERE AND NOT IN A SCRIPT BESIDE THE REPORT. `ACCOUNT_BRIDGE_FULL_PREREG.md` §4 names
+ * two analyses as CO-PRIMARY -- every admissible game, and standard chess only -- with neither
+ * privileged. A co-primary analysis computed by an ad-hoc reader of the evidence file would be a
+ * second definition of what the verdict means, and the audit's own rule is that no rule it judges
+ * has two definitions. So the subset goes through `diagnoseImportedGames` and the bridge, exactly
+ * as the full set does.
+ *
+ * It costs no engine time: the evaluations are already in `inputs`, and only the denominator moves.
+ * Same shape as the harness's `withoutBook` reading, for the same reason.
+ *
+ * IT SELECTS BY `keptGameIndexes`, WHICH IS THE WHOLE REASON THAT FIELD EXISTS. `runImportDiagnostic`
+ * drops a game whose PGN chess.js will not replay, so `inputs[i]` is `games[i]` only while nothing
+ * was dropped. The first version of this function could only refuse when they came apart -- and on
+ * the full corpus they did, on all 48 "From Position" games at once, so the co-primary analysis the
+ * preregistration demanded could not be computed at all. Selecting by source index is the fix, and
+ * it makes the refusal unnecessary rather than merely rarer.
+ */
+function readSubset(
+  run: { inputs: ImportedGameInput[]; keptGameIndexes: number[]; isBook: BookLookup },
+  games: AnalysableGame[],
+  keep: (game: AnalysableGame) => boolean,
+): ImportDiagnostic {
+  return diagnoseImportedGames(
+    run.inputs.filter((_, position) => keep(games[run.keptGameIndexes[position]!]!)),
+    run.isBook,
+  );
+}
+
+/**
+ * The verdict and the bridge for one diagnostic, so every declared analysis shares ONE definition.
+ *
+ * `ACCOUNT_BRIDGE_FULL_PREREG.md` §4 names two analyses as co-primary. A second analysis judged by
+ * a near-copy of this logic would be a measurement of the near-copy -- the defect
+ * `research/discovery-oracle/README.md` states as a rule: no rule the audit judges may have two
+ * definitions.
+ */
+function judge(diagnostic: ImportDiagnostic, games: number) {
+  const verdict = worstBucketVerdict(diagnostic);
+  const outcome = hypothesisFromImport(diagnostic, {
+    registered_at: new Date().toISOString(),
+    decisions_before: DECISIONS_BEFORE,
+    games,
+  });
+  return {
+    verdict: verdict && {
+      worst: {
+        key: verdict.worst.key,
+        n: verdict.worst.n,
+        accurateRate: verdict.worst.accurateRate,
+      },
+      runnerUp: verdict.runnerUp && {
+        key: verdict.runnerUp.key,
+        n: verdict.runnerUp.n,
+        accurateRate: verdict.runnerUp.accurateRate,
+      },
+      separation: verdict.separation,
+      threshold: verdict.threshold,
+      separable: verdict.separable,
+    },
+    outcome,
+    /*
+     * `registered: false` is the truth about this run: the bridge SAYS a hypothesis may be
+     * registered, and nothing here writes one to a record. Passing true would make the pipeline
+     * claim a stage it has not reached.
+     */
+    progress: importProgress(outcome, false),
+    resolutionFactor: verdict && verdict.runnerUp ? resolutionFactor(verdict) : null,
+  };
+}
+
+/**
+ * The `[Variant]` tag. Absent means standard, which is what Lichess omits it for.
+ *
+ * Read off the PGN rather than carried on `AnalysableGame`, because that type is the product's and
+ * this is a research distinction the product has no use for.
+ */
+function variantOf(game: AnalysableGame): string {
+  return game.pgn.match(/\[Variant "(.*?)"\]/)?.[1] ?? "Standard";
 }
 
 async function main() {
@@ -152,34 +252,49 @@ async function main() {
   const orderIndependent = fa === JSON.stringify(fingerprint(c.diagnostic));
 
   /*
-   * THE BRIDGE, on the canonical run. Called once, on run A, and not on whichever of the three
-   * gave the friendliest answer -- which is why A is named the canonical one in the
-   * preregistration rather than picked here.
+   * THE BRIDGE, on the canonical run. Called on run A, and not on whichever of the three gave the
+   * friendliest answer -- which is why A is named the canonical one in the preregistration rather
+   * than picked here.
    */
-  const verdict = worstBucketVerdict(a.diagnostic);
-  const outcome = hypothesisFromImport(a.diagnostic, {
-    registered_at: new Date().toISOString(),
-    decisions_before: DECISIONS_BEFORE,
-    games: player.games.length,
-  });
-  /*
-   * `registered: false` is the truth about this run: the bridge SAYS a hypothesis may be
-   * registered, and nothing here writes one to a record. Passing true would make the pipeline claim
-   * a stage it has not reached.
-   */
-  const progress = importProgress(outcome, false);
+  const primary = judge(a.diagnostic, player.games.length);
 
   /*
-   * The predicted window for the larger run, computed HERE rather than after seeing a second
-   * result, per §8. It only exists when the reading has a separation to scale, and its assumption
-   * -- that the rates stay where they are -- is the reason it is a prediction and not a promise.
+   * ANALYSIS B, co-primary per ACCOUNT_BRIDGE_FULL_PREREG.md §4: standard chess only, because a
+   * standard engine scoring an Atomic game produces a number that means nothing and a From Position
+   * game starts outside the opening book. Declared before the run and reported whatever it says.
+   * It does NOT replace analysis A -- if the two disagree on the outcome, that disagreement is the
+   * finding, and neither is presented as the truth.
    */
-  const factor = verdict && verdict.runnerUp ? resolutionFactor(verdict) : null;
+  const isStandard = (game: AnalysableGame) => variantOf(game) === "Standard";
+  const standardGames = player.games.filter(isStandard);
+  const standardDiagnostic = readSubset(a, player.games, isStandard);
+  const standardOnly = {
+    games: standardGames.length,
+    excludedGames: player.games.length - standardGames.length,
+    /*
+     * Zero on this corpus, and that is the finding rather than a null result: every non-standard
+     * game was ALREADY absent from analysis A, because `gamePositions` cannot replay one. The
+     * filter the preregistration named as co-primary turns out to be a no-op the product performs
+     * on its own, so A and B are the same reading and must agree exactly.
+     */
+    readableGamesRemoved: a.keptGameIndexes.filter((i) => !isStandard(player.games[i]!)).length,
+    reading: fingerprint(standardDiagnostic),
+    ...judge(standardDiagnostic, standardGames.length),
+  };
+
+  /*
+   * The predicted window for a larger run, computed HERE rather than after seeing a second result.
+   * It only exists when the reading has a separation to scale, and its assumption -- that the rates
+   * stay where they are -- is the reason it is a prediction and not a promise.
+   */
   const prediction =
-    outcome.kind === "not-separable" && factor !== null
+    primary.outcome.kind === "not-separable" && primary.resolutionFactor !== null
       ? {
-          resolutionFactor: factor,
-          predictedWindow: Math.min(2209, Math.ceil(player.games.length * factor)),
+          resolutionFactor: primary.resolutionFactor,
+          predictedWindow: Math.min(
+            2209,
+            Math.ceil(player.games.length * primary.resolutionFactor),
+          ),
           assumption:
             "holds only if the bucket rates stay where they are; it is the size at which a gap THIS BIG would become readable, not a prediction that the gap survives",
         }
@@ -191,7 +306,7 @@ async function main() {
 
   const report = {
     generatedAt: new Date().toISOString(),
-    preregistration: "docs/research/ACCOUNT_BRIDGE_PREREG.md",
+    preregistration: arg("prereg", "docs/research/ACCOUNT_BRIDGE_PREREG.md"),
     engine: engineName,
     engineInvokedAs: binary.split("/").pop(),
     engineOptions: { Threads: 1, Hash: 16, clearHashBetweenPositions: true },
@@ -200,29 +315,31 @@ async function main() {
     playerId: player.playerId,
     games: player.games.length,
     decisions: a.rows.length,
-    reproducibility: { repeats, orderIndependent, elapsedMsA: a.elapsedMs },
-    reading: fingerprint(a.diagnostic),
-    verdict: verdict && {
-      worst: {
-        key: verdict.worst.key,
-        n: verdict.worst.n,
-        accurateRate: verdict.worst.accurateRate,
-      },
-      runnerUp: verdict.runnerUp && {
-        key: verdict.runnerUp.key,
-        n: verdict.runnerUp.n,
-        accurateRate: verdict.runnerUp.accurateRate,
-      },
-      separation: verdict.separation,
-      threshold: verdict.threshold,
-      separable: verdict.separable,
+    reproducibility: {
+      repeats,
+      orderIndependent,
+      elapsedMsA: a.elapsedMs,
+      unreadableGames: a.unreadable,
     },
-    bridge: { outcome, progress, prediction },
+    reading: fingerprint(a.diagnostic),
+    verdict: primary.verdict,
+    bridge: { outcome: primary.outcome, progress: primary.progress, prediction },
+    /* Co-primary, not a footnote. ACCOUNT_BRIDGE_FULL_PREREG.md §4. */
+    standardOnly,
     evidenceSha256: createHash("sha256").update(evidence).digest("hex"),
   };
   writeFileSync(`${dataDir}/prereg_report.json`, JSON.stringify(report, null, 2));
   process.stdout.write(
-    `${JSON.stringify({ outcome: outcome.kind, verdict: report.verdict, reproducibility: report.reproducibility, prediction }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        A: { outcome: primary.outcome.kind, verdict: primary.verdict },
+        B: standardOnly,
+        reproducibility: report.reproducibility,
+        prediction,
+      },
+      null,
+      2,
+    )}\n`,
   );
 }
 

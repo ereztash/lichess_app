@@ -253,23 +253,43 @@ needs more games. A bucket this player's time controls cannot fill.
 The 48-game figure was the second-largest in that table and it was inflated by a small sample. Named
 because §2 printed it without flagging it, and the endgame figure got the caveat instead.
 
-### The `fromPosition` contamination, measured rather than filtered (§6)
+### The `fromPosition` contamination — CORRECTED
 
-The 20 non-standard games in this window contributed **463 eligible decisions, 1.57%** of 29,465,
-scoring 64.6% against 62.4% for the standard-only remainder. All 463 fall in `opening` (140) and
-`middlegame` (323) — so they land on the registered bucket, which is the case that had to be
-checked. [obs]
+> **CORRECTION, added after `ACCOUNT_BRIDGE_FULL_RESULTS.md` §6.** The numbers this section
+> originally reported were produced by a defect in how per-decision evidence was labelled, and they
+> were wrong. They are replaced below rather than quietly edited, because a corrected number with no
+> record of the correction is worth less than the original mistake.
+>
+> **What it said:** the 20 non-standard games in this window "contributed **463 eligible decisions,
+> 1.57%** of 29,465, scoring 64.6% against 62.4% for the standard-only remainder", and a sensitivity
+> check recomputed the verdict without them at 1.1708 pp against a bar of 1.1536 pp.
+>
+> **What is true:** those 20 games contributed **zero** decisions. `gamePositions` replays SAN from
+> the standard opening position, so a Lichess `From Position` game throws on its first move and
+> `prepare` drops it — every one of the 20, and every one of the 48 in the full corpus.
+> `runImportDiagnostic` returns one `inputs` entry per _readable_ game, and this harness paired that
+> array with the caller's games **by index**, which is correct only until the first drop. The 463
+> rows carrying those game ids are standard-game decisions wearing a shifted label, and the
+> "sensitivity check" removed a mislabelled slice rather than the variant games.
+>
+> **What this does not touch.** The diagnostic, the verdict and the bridge outcome are computed from
+> `inputs` and never read a game id. **Every number in §0 through §5 and §7 of this document stands
+> as reported**, including the registration itself. What was wrong was the per-game evidence and the
+> one paragraph built on it.
+>
+> **Where the conclusion lands.** The paragraph concluded that the registration does not depend on
+> the non-standard games. That conclusion survives and is now stronger than a sensitivity check
+> could make it: those games contributed nothing to any reading, so **no result here could have
+> depended on them.** The standard-only analysis is not an alternative reading of this corpus — it
+> is the same reading, because the product already excludes them.
+>
+> **The fix** is `ImportRunResult.keptGameIndexes`, used by both harnesses and pinned by
+> `tests/client/import-run.test.ts`. `run_import_harness.ts` now records `unreadableGames` per
+> player, because whether the canonical six-player record was ever affected **cannot be determined
+> from `harness_report.json`** — that manifest never recorded how many games were dropped.
 
-Dropping them — **as a sensitivity check reported beside the result, not as a change to the selection
-rule**:
-
-|                     |    separation |       bar | separable |
-| ------------------- | ------------: | --------: | --------- |
-| as preregistered    |     1.1583 pp | 1.1450 pp | yes       |
-| standard games only | **1.1708 pp** | 1.1536 pp | **yes**   |
-
-The registration does not depend on them, and it is marginally stronger without them. [obs] The
-filter still belongs in the _next_ preregistration rather than this one, for the reason §6 gives.
+The variant filter still belongs in a _later_ preregistration rather than this one, for the reason
+§6 gives — and `ACCOUNT_BRIDGE_FULL_PREREG.md` §4 is where it was registered.
 
 ### The think-time gradient, at 24 times the sample
 

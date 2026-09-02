@@ -7,11 +7,14 @@
  * cannot be read -- so that is what this covers.
  */
 import { describe, expect, it, vi } from "vitest";
-import { playerColour, runImportDiagnostic, type AnalysableGame } from "../../client/src/lib/import-run";
+import {
+  playerColour,
+  runImportDiagnostic,
+  type AnalysableGame,
+} from "../../client/src/lib/import-run";
 import type { EngineLine } from "../../client/src/lib/engine-line";
 
-const PGN = (moves: string) =>
-  `[TimeControl "300+3"]\n[Result "*"]\n\n${moves} *`;
+const PGN = (moves: string) => `[TimeControl "300+3"]\n[Result "*"]\n\n${moves} *`;
 
 const game = (over: Partial<AnalysableGame> = {}): AnalysableGame => ({
   id: "a1",
@@ -85,7 +88,9 @@ describe("progress across the whole run", () => {
   it("ends on the total it started with", async () => {
     let last = { done: 0, total: -1 };
     await runImportDiagnostic([game(), game({ id: "b2" })], "erez", flat, {
-      onProgress: (p) => { last = p; },
+      onProgress: (p) => {
+        last = p;
+      },
     });
     expect(last.done).toBe(last.total);
   });
@@ -109,7 +114,10 @@ describe("stopping early", () => {
     // Every bucket still reported, by key rather than count: the count also carries the
     // import-only standing buckets now, and a bare number would pass with one silently gone.
     for (const key of ["phase-opening", "standing-level"]) {
-      expect(result.diagnostic.buckets.some((b) => b.key === key), `${key} missing`).toBe(true);
+      expect(
+        result.diagnostic.buckets.some((b) => b.key === key),
+        `${key} missing`,
+      ).toBe(true);
     }
   });
 });
@@ -154,5 +162,63 @@ describe("what reaches the reading", () => {
     expect(result.diagnostic.missingClockData).toBe(true);
     const fast = result.diagnostic.buckets.find((b) => b.key === "fast-under-45s")!;
     expect(fast.unmeasurableReason).toBe("no-clock-data");
+  });
+});
+
+/**
+ * Which game each reading came from, when the run did not read all of them.
+ *
+ * `inputs` holds one entry per READABLE game, so pairing it with the caller's array by position is
+ * correct only while nothing was dropped and silently wrong from the first drop onward. Every
+ * harness in this repository dumped per-decision evidence that way, and on one real account it
+ * attributed 463 decisions to 20 games that had produced no positions at all.
+ *
+ * The games it drops are not exotic. `gamePositions` replays SAN from the standard opening, so a
+ * Lichess "From Position" game throws on its first move -- 48 of one account's 2,209 admissible
+ * games, because `admissible()` does not look at the variant.
+ *
+ * The diagnostic was never affected: it reads `inputs` and never looks at a game id. Evidence was,
+ * and evidence that cannot be traced to its game is the one thing a harness exists to produce.
+ */
+describe("which game a reading came from", () => {
+  /* A PGN chess.js cannot replay, which is what a "From Position" game is to `gamePositions`. */
+  const unreadable = (id: string): AnalysableGame =>
+    game({ id, pgn: PGN("1. Qh8 Ra1 2. Kf9 Nz3") });
+
+  it("maps every kept input back to the game it came from, not to its position", async () => {
+    const games = [
+      game({ id: "keep-0" }),
+      unreadable("drop-1"),
+      game({ id: "keep-2" }),
+      unreadable("drop-3"),
+      game({ id: "keep-4" }),
+    ];
+
+    const result = await runImportDiagnostic(games, "erez", flat);
+
+    expect(result.unreadable).toBe(2);
+    // By position this would read [0, 1, 2] and name "drop-1" as the source of a real reading.
+    expect(result.keptGameIndexes).toEqual([0, 2, 4]);
+    expect(result.keptGameIndexes.map((i) => games[i]!.id)).toEqual(["keep-0", "keep-2", "keep-4"]);
+  });
+
+  it("stays parallel to inputs, which is the property every caller relies on", async () => {
+    const games = [unreadable("drop-0"), game({ id: "keep-1" }), game({ id: "keep-2" })];
+
+    const result = await runImportDiagnostic(games, "erez", flat);
+
+    expect(result.keptGameIndexes).toHaveLength(result.inputs.length);
+    // The first game is the one dropped, so an off-by-one here is not a subtle mislabel: every
+    // single row would name the wrong game.
+    expect(result.keptGameIndexes[0]).toBe(1);
+  });
+
+  it("is the identity when nothing was dropped, so the common case is unchanged", async () => {
+    const games = [game({ id: "a" }), game({ id: "b" }), game({ id: "c" })];
+
+    const result = await runImportDiagnostic(games, "erez", flat);
+
+    expect(result.unreadable).toBe(0);
+    expect(result.keptGameIndexes).toEqual([0, 1, 2]);
   });
 });

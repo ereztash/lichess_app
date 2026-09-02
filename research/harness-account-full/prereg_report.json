@@ -1,0 +1,168 @@
+{
+  "generatedAt": "2026-09-02T02:26:32.271Z",
+  "preregistration": "docs/research/ACCOUNT_BRIDGE_FULL_PREREG.md",
+  "engine": "Stockfish 18 Lite WASM",
+  "engineInvokedAs": "sf-wasm.sh",
+  "engineOptions": {
+    "Threads": 1,
+    "Hash": 16,
+    "clearHashBetweenPositions": true
+  },
+  "importDepth": 12,
+  "corpus": {
+    "source": "https://lichess.org/api/games/user/erez281?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+    "fetchedAt": "2026-09-01T21:42:06.876Z",
+    "gamesReturned": 3195,
+    "gamesAdmissible": 2209,
+    "rejected": {
+      "termination:Abandoned": 124,
+      "termination:Time forfeit": 724,
+      "under-20-plies": 134,
+      "no-clocks": 4
+    },
+    "window": 2209,
+    "windowRule": "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
+    "speedsInWindow": {
+      "blitz": 1899,
+      "rapid": 203,
+      "bullet": 103,
+      "ultrabullet": 3,
+      "classical": 1
+    },
+    "pgnSpeedCheck": {
+      "agreed": 2144,
+      "missingFromPgn": 65,
+      "disagreed": 0,
+      "examples": []
+    }
+  },
+  "playerId": "8633c23fa6918be9",
+  "games": 2209,
+  "decisions": 59419,
+  "reproducibility": {
+    "repeats": true,
+    "orderIndependent": true,
+    "elapsedMsA": 5449958,
+    "unreadableGames": 48
+  },
+  "reading": {
+    "scored": 59419,
+    "forced": 325,
+    "book": 6213,
+    "eligible": 52881,
+    "withoutTime": 0,
+    "withoutClock": 0,
+    "timeBucketSpeed": "blitz",
+    "excludedForSpeed": 6879,
+    "buckets": [
+      {
+        "key": "fast-under-45s",
+        "scope": "החלטות תחת פחות מ-45 שניות",
+        "n": 45883,
+        "accurateRate": 0.6271167970708106,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "slow-over-2m",
+        "scope": "החלטות אחרי יותר משתי דקות",
+        "n": 4,
+        "accurateRate": null,
+        "measurable": false,
+        "unmeasurableReason": "too-few"
+      },
+      {
+        "key": "phase-opening",
+        "scope": "החלטות בפתיחה",
+        "n": 15386,
+        "accurateRate": 0.642597166255037,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "phase-middlegame",
+        "scope": "החלטות באמצע המשחק",
+        "n": 34905,
+        "accurateRate": 0.6034665520699041,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "phase-endgame",
+        "scope": "החלטות בסיום",
+        "n": 2590,
+        "accurateRate": 0.8042471042471042,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "clock-under-1m",
+        "scope": "החלטות עם פחות מדקה על השעון",
+        "n": 3752,
+        "accurateRate": 0.6937633262260128,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-winning",
+        "scope": "החלטות מתוך עמדה מנצחת",
+        "n": 18542,
+        "accurateRate": 0.6377952755905512,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-level",
+        "scope": "החלטות מתוך עמדה שקולה",
+        "n": 20217,
+        "accurateRate": 0.6096849186328338,
+        "measurable": true,
+        "unmeasurableReason": null
+      },
+      {
+        "key": "standing-losing",
+        "scope": "החלטות מתוך עמדה מפסידה",
+        "n": 14122,
+        "accurateRate": 0.6289477411131568,
+        "measurable": true,
+        "unmeasurableReason": null
+      }
+    ]
+  },
+  "verdict": {
+    "worst": {
+      "key": "phase-middlegame",
+      "n": 34905,
+      "accurateRate": 0.6034665520699041
+    },
+    "runnerUp": {
+      "key": "standing-level",
+      "n": 20217,
+      "accurateRate": 0.6096849186328338
+    },
+    "separation": 0.0062183665629297336,
+    "threshold": 0.008631650366284719,
+    "separable": false
+  },
+  "bridge": {
+    "outcome": {
+      "kind": "not-separable",
+      "worstKey": "phase-middlegame",
+      "separation": 0.0062183665629297336,
+      "threshold": 0.008631650366284719
+    },
+    "progress": {
+      "reached": "measured",
+      "blockedReason": "הסוגים קרובים זה לזה יותר מטעות הדגימה שלהם, ולכן אין מועמד לבחור בו."
+    },
+    "prediction": {
+      "resolutionFactor": 1.9267929212497668,
+      "predictedWindow": 2209,
+      "assumption": "holds only if the bucket rates stay where they are; it is the size at which a gap THIS BIG would become readable, not a prediction that the gap survives"
+    }
+  },
+  "standardOnly": {
+    "unavailable": "a game produced no positions, so inputs and games are not aligned"
+  },
+  "evidenceSha256": "497860adff3e08ccea289423605fbcfde794a1dc4d0b74a5819fc8389ca10f5a"
+}
