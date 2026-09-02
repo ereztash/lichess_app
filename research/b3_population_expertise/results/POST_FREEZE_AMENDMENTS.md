@@ -226,3 +226,158 @@ and every verdict gate. `evaluate.py` reads the same fields it read before the f
 
 The amended documents are re-hashed in `PREREGISTRATION_FREEZE.json` under `amended_sha256`, with
 the original hashes retained beside them so the diff is auditable.
+
+## A7. C3 null construction repaired after the holdout was opened (Gate 3, ruling 1.5-1.7)
+
+This is the only amendment written after FINAL was opened. It changes a **control's construction**
+and no estimate. It was pinned verbatim by the Gate 3 adversary, not chosen by the researchers, and
+the diff below is the whole of it.
+
+**Label for the run:** *B3, C3 null construction repaired after the holdout (amendment A7);
+mechanical verdict as emitted `INVALID_EXPERIMENT`; repaired verdict `GENERAL_REGULARITY_ONLY`,
+level 3.*
+
+### A7.1 Both verdicts
+
+| | verdict | level | failed H2 conditions |
+|---|---|---|---|
+| as shipped | `INVALID_EXPERIMENT` | -- | identical list |
+| repaired | `GENERAL_REGULARITY_ONLY` | 3 | `h2_includes_tae`, `h2_tae_matched`, `h2_tae_no_zero_time`, `h2_tae_low_clock_pressure`, `h2_tae_spread`, `h2_player_level`, `player_disjoint_holds` |
+
+`evaluate.py` was run unmodified on both. The failed-condition list is identical: the repair moves no
+verdict-bearing condition of H2.
+
+### A7.2 The derivation (Gate 3 §1.2)
+
+The shipped C3 permutes each player's rating across players and forms
+`perm_resid = perm_rating - ratinghat`, where `ratinghat` is the DEVELOPMENT-frozen ridge prediction
+of rating from the T1P features, then reads `100 * slope(y_resid, perm_resid)`.
+
+Writing `cov` and `var` over rows, `slope(y, perm - h) = [cov(y, perm) - cov(y, h)] / var(perm - h)`.
+Under a uniform permutation of player ratings `E[perm_i] = R_bar` for every row, so
+`E[cov(y, perm)] = 0` and `E[cov(perm, h)] = 0` exactly. What is left is deterministic:
+
+    E[C3 -> A]  ~=  -100 * cov(y_resid, ratinghat) / [ var(rating) + var(ratinghat) ]
+
+`cov(y_resid, ratinghat)` is zero only where the T1P residual is orthogonal to the T1P column space,
+which is the period the ridge was fitted on. On any later period the frozen fit's misfit has a
+component along `ratinghat`, and the null inherits it. The identical algebra gives the Metric D and
+Metric C nulls with `extreme_resid` and `allocation_resid` in place of `y_resid`. The TAE-gradient
+null subtracts nothing and was never at issue.
+
+### A7.3 Verification (Gate 3 §1.3; deterministic seeds, 200 permutations)
+
+| period | shipped null | predicted by A7.2 | MC SE | `R2(rating \| T1P)` frozen | `cov(ratinghat, rating_resid)` |
+|---|---|---|---|---|---|
+| DEVELOPMENT | +0.000025 (sd 0.000439) | -0.000001 | 0.000031 | 0.269 | +130 |
+| VALIDATION | -0.000157 (sd 0.000491) | -0.000138 | 0.000035 | 0.247 | -1,403 |
+| **FINAL** | **-0.001145** (sd 0.000457, z 2.51) | **-0.001094** | 0.000032 | 0.216 | **-5,311** |
+
+The prediction lands within 1.6 Monte-Carlo standard errors on FINAL and within one on the others.
+The last column is the freeze made visible: on DEVELOPMENT the frozen partial of rating is orthogonal
+to its residual; four months later it is not.
+
+### A7.4 The corrected explanation, replacing the Gate 3 packet's
+
+The packet attributed the offset to permuting **over players rather than over rows**. That is wrong
+and is withdrawn. The packet's own quantity `-100 * slope(y_resid, ratinghat)` divides by
+`var(ratinghat)` where the null divides by `var(rating) + var(ratinghat)`; the ratio
+`61,676 / 298,552 = 0.207` on FINAL is the packet's unexplained "factor of four". The mechanism is the
+**denominator**, not the permutation unit. The same dilution explains the raw-column C4 null: the
+deterministic gradient of `eY` on `-vochat x rating` is -0.0098 / -0.0081 / -0.0068 across the three
+periods and dividing by `var(voc_z) + var(vochat)` (about 1.13) reproduces the shipped -0.00115 /
+-0.00089 / -0.00081. One mechanism, two controls.
+
+### A7.5 The estimator does not share the defect
+
+The deterministic term does sit inside Metric A, and there it cancels: the estimator's regressor is
+`rating - ratinghat` with the two correlated, so the misfit along `ratinghat` enters both
+`cov(y, rating)` and `cov(y, ratinghat)`. In the null, `perm_rating` is uncorrelated with `ratinghat`
+and nothing cancels, which is why the null overstates the drift's effect on the estimate by an order
+of magnitude. Metric A and `beta` on FINAL under three estimators:
+
+| quantity | frozen (reported) | three-parameter | nuisance refit on FINAL |
+|---|---|---|---|
+| Metric A | -0.01069 | -0.01056 | -0.01046 |
+| `beta` | 0.01342 | 0.01346 | 0.01344 |
+
+The drift-free values are **reported beside** the frozen ones and do not enter the verdict. Replacing
+the verdict estimator with a drift-free one is a scientific choice, would be B3.1, and was not done.
+
+### A7.6 The repair, exactly
+
+One construction, no variants, applied to all three slope-based C3 fields whether or not they failed:
+
+    # controls.py, C3 block
+    perm_resid = perm_rating          # was: perm_rating - ratinghat
+
+`slope()` centres, so each frozen residual is regressed on the permuted rating minus its mean: the
+partial of `perm_rating` under the null, where `E[perm_rating | x]` is a constant and the frozen
+`ratinghat(x)` is the partial of the *real* rating, not the permuted one. It is the same principle as
+the pre-holdout C4 repair ("permute the regressor the estimator uses"). C1 and C2 were left as
+shipped; their pass status is unchanged under either form.
+
+Procedure followed: `controls.run(..., which={"C3"})` re-run on the three periods only; every other
+block of every analysis file byte-identical (verified by sha256 over the analysis with the C3 blocks
+excised: `d2794b40...` before and after); the shipped C3 block retained beside the repaired one in
+`results/c3_repair_diff.json`; `evaluate.py` run unmodified. No feature, outcome, exclusion, band,
+hyperparameter, model family, threshold or estimate changed, and no byte of the FINAL period was
+re-read, re-scored or re-sampled.
+
+Repaired FINAL nulls: Metric A -0.000036 [-0.00107, +0.00093] (sd 0.000576); Metric D -0.000011;
+Metric C -0.000008. DEVELOPMENT +0.000034; VALIDATION -0.000019.
+
+### A7.7 What the repaired controls now are
+
+After the repair, **every destructive null in the study is a code check that can fail only on a
+defect** in the code that computes it. Gate 2 already required this sentence for C1, C2, C4 and C7;
+C3 joins them. A destructive control that passes is evidence the pipeline is wired correctly. It is
+not independent evidence that the estimate is causal, and the report may not read it as such.
+
+### A7.8 The class, in a table (Gate 3 §1.8.4)
+
+Every FINAL destructive null's offset from zero, in null standard deviations, as shipped:
+
+| control | FINAL null | offset (null SDs) |
+|---|---|---|
+| C1 (destroyed outcome, `beta`) | +0.00031 | 0.64 |
+| C2 (destroyed time, `beta`) | -0.00026 | 0.88 |
+| C3 -> Metric D | -0.00012 | 0.84 |
+| C3 -> Metric C | -0.00036 | 1.52 |
+| C4 (raw column) | -0.00081 | 2.10 |
+| C3 -> Metric A | -0.00115 | 2.51 |
+
+These offsets are the frozen models' misfit on a June population, and they are larger than on the
+April one. The "contains zero" pass rule tolerates them up to about two null SDs. The passes recorded
+in this study are therefore **passes of offset nulls**, not passes of centred ones.
+
+### A7.9 The Gate 2 miss, in the reviewer's words
+
+> "The class was characterised before the holdout was opened: the Gate 2 review derived C1's null as
+> `-slope(Qhat0, ut_resid)`, called it 'the fingerprint of the freeze', and stated that the amended
+> rule 'can only fail when the estimator's bias under the null exceeds about two null SDs'. C3's
+> Metric A null on FINAL is that prediction realised at 2.5. That the same reviewer -- me -- endorsed
+> the C3 construction in the same document without applying the derivation to it is a miss the report
+> must record, not a reason to fail the study for it."
+
+### A7.10 Rescue risk, in the adversary's words
+
+> "The repair does not serve H2, which fails identically before and after. It does serve H1: a run
+> that was `INVALID` becomes a level-3 positive result the researchers want. So the risk is lower than
+> 'fixing the control that broke the headline' but it is not zero, and I did not rely on the direction
+> of the outcome to rule. What makes this a repair rather than a rescue is: the offset is predicted
+> analytically from `cov(y_resid, ratinghat)`, a quantity that does not involve `beta`, rating's
+> effect, or any hypothesis; C3 never touches `beta`, and `beta`'s own destroyed-outcome nulls sit at
+> 2% of it; the class was written down by the adversary before the holdout was opened; the repair is
+> pinned by the adversary, not chosen by the researchers; and the expectation recorded in
+> `FINAL_HOLDOUT_SEALED.json` before opening was exactly the repaired outcome. I would have ruled the
+> other way if the repair had flipped any verdict-bearing condition (it flips none), if the offset had
+> not reproduced from first principles, or if `beta`'s nulls had shown offsets of comparable size."
+
+### A7.11 What A7 does not license
+
+It does not license re-running FINAL for any other reason, changing the verdict estimator, dropping
+the Metric A check from C3, choosing among repair variants after seeing which passes, or reading the
+repaired pass as new evidence for H1. Both verdicts are reported. `INVALID_EXPERIMENT` was the
+mechanical output of the preregistered rules on the shipped code and is printed beside the repaired
+one wherever the repaired one appears.

@@ -48,6 +48,7 @@ def main() -> None:
     ap.add_argument("--data", default=os.path.join(ROOT, "data"))
     ap.add_argument("--figures", default=os.path.join(ROOT, "results", "figures"))
     ap.add_argument("--tables", default=os.path.join(ROOT, "results", "tables"))
+    ap.add_argument("--verdict", default=os.path.join(ROOT, "results", "verdict.json"))
     args = ap.parse_args()
     os.makedirs(args.figures, exist_ok=True)
     os.makedirs(args.tables, exist_ok=True)
@@ -134,7 +135,8 @@ def main() -> None:
     if secondary:
         rp.control_figure(f"{args.figures}/13_primary_vs_secondary_time_control.png",
                           F["beta"], secondary.get("beta", {}),
-                          "C16: 3+0 against 5+0, frozen pipeline, no retuning",
+                          "C16 NOT EVALUABLE: the frozen models extrapolate at 5+0; the 5+0 value "
+                          "equals its own destroyed-outcome null",
                           "beta (win probability per log-second)")
 
     # --- tables ------------------------------------------------------------------------------------
@@ -214,10 +216,11 @@ def main() -> None:
     if secondary:
         rp.write_table(f"{args.tables}/14_second_time_control.csv",
                        [{"metric": k, "point": v.get("point"), "lo": v.get("lo"),
-                         "hi": v.get("hi")}
+                         "hi": v.get("hi"),
+                         "status": "NOT EVALUABLE: frozen models extrapolate at 5+0 (REPORT.md 9)"}
                         for k, v in secondary.items() if isinstance(v, dict) and "point" in v])
 
-    verdict_path = os.path.join(ROOT, "results", "verdict.json")
+    verdict_path = args.verdict
     if os.path.exists(verdict_path):
         verdict = json.load(open(verdict_path))
         rp.write_table(f"{args.tables}/15_failed_hypotheses.csv",

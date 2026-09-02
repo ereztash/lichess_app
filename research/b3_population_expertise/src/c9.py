@@ -22,6 +22,15 @@ import models  # noqa: E402
 R_BETA_THRESHOLD = 0.5
 
 
+def _corr(a, b) -> float:
+    a = np.asarray(a, float)
+    b = np.asarray(b, float)
+    ok = np.isfinite(a) & np.isfinite(b)
+    if ok.sum() < 3:
+        return float("nan")
+    return float(np.corrcoef(a[ok], b[ok])[0, 1])
+
+
 def estimates_for(path):
     """Refit the frozen RECIPE on this budget's own subset, then take the two slopes."""
     raw = dataset.load(path)
@@ -65,6 +74,11 @@ def main() -> None:
             side[column] = side[column][keep][ranking]
         side["block"] = side["block"][keep][ranking]
         side["players"] = side["frame"]["player"].to_numpy()[keep][ranking]
+        for column in ("voc_regret", "voc_rank", "quality_loss", "final_depth"):
+            side[column] = side["frame"][column].to_numpy(float)[keep][ranking]
+        side["best_move"] = np.array(
+            [t["top_moves"][0] if t.get("top_moves") else ""
+             for t in side["frame"]["trace"].to_numpy()], dtype=object)[keep][ranking]
 
     boot = an.PlayerBootstrap(base["players"])
 
@@ -94,6 +108,21 @@ def main() -> None:
                                                           alt["block"])[1],
         "r_tae": ratio("y", "v", gradient=True),
         "threshold": R_BETA_THRESHOLD,
+        # What actually differs between the budgets. Gate 2 obligation (c) and Gate 3 F-B4: an
+        # interval on `r_beta` is only informative about the engine budget to the extent the two
+        # budgets disagree, so the report prints the agreement alongside the ratio. These are
+        # descriptive correlations over the common decisions; they enter no verdict.
+        "budget_agreement": {
+            "corr_ut_resid": _corr(base["u"], alt["u"]),
+            "corr_q_resid": _corr(base["q"], alt["q"]),
+            "corr_voc_resid": _corr(base["v"], alt["v"]),
+            "corr_voc_regret": _corr(base["voc_regret"], alt["voc_regret"]),
+            "corr_voc_rank": _corr(base["voc_rank"], alt["voc_rank"]),
+            "corr_quality_loss": _corr(base["quality_loss"], alt["quality_loss"]),
+            "same_best_move_share": float(np.mean(base["best_move"] == alt["best_move"])),
+            "median_depth_60k": float(np.median(base["final_depth"])),
+            "median_depth_150k": float(np.median(alt["final_depth"])),
+        },
     }
     upper = out["r_beta"]["hi"]
     out["favours_difficulty_proxy"] = bool(np.isfinite(upper) and upper < R_BETA_THRESHOLD)

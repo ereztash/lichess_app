@@ -128,7 +128,10 @@ def estimate(frame: pd.DataFrame, boot: PlayerBootstrap | None = None,
     if want("tae_by_band"):
         out["tae_by_band"] = _by_band(frame, boot, lambda i: slope(y_resid[i], voc_resid[i]))
     tae_main, tae_inter = gradient_with_main_effect(y_resid, voc_resid, rating_c, rating_block)
-    out["tae_pooled"] = tae_main
+    # Named for what it is: the main effect of the Metric B gradient fit, i.e. the pooled
+    # slope evaluated at the centred rating. It was called "tae_pooled" until Gate 3 F-O1
+    # showed the band-shape loop below overwrites that key with the DerSimonian-Laird dict.
+    out["tae_pooled_slope_at_centre"] = tae_main
     out["tae_rating_gradient"] = boot.interval(
         lambda i: gradient_with_main_effect(y_resid[i], voc_resid[i], rating_c[i],
                                             rating_block[i])[1], point=tae_inter

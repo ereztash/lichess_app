@@ -1,0 +1,145 @@
+{
+ "verdict": "GENERAL_REGULARITY_ONLY",
+ "level": 3,
+ "reasons": [
+  "beta = 0.01342 [0.01243, 0.01431], floor 0.002; Q1 - Q0 held-out R^2 = 0.00929; conditions that failed: ['h2_includes_tae', 'h2_tae_matched', 'h2_tae_no_zero_time', 'h2_tae_low_clock_pressure', 'h2_tae_spread', 'h2_player_level', 'player_disjoint_holds']"
+ ],
+ "checks": {
+  "h1_interval_excludes_zero": true,
+  "h1_positive": true,
+  "h1_above_floor": true,
+  "h1_band_agreement": true,
+  "h2_includes_tae": false,
+  "h2_second_metric": true,
+  "h2_tae_matched": false,
+  "h2_tae_no_zero_time": false,
+  "h2_tae_low_clock_pressure": false,
+  "h2_tae_spread": false,
+  "h2_enough_bands": true,
+  "h2_player_level": false,
+  "c3_passes": true,
+  "c4_passes": true,
+  "c8_passes": true,
+  "matched_beta_consistent": true,
+  "temporal_sign_agreement": true,
+  "player_disjoint_holds": false
+ },
+ "failed_conditions": [
+  "h2_includes_tae",
+  "h2_tae_matched",
+  "h2_tae_no_zero_time",
+  "h2_tae_low_clock_pressure",
+  "h2_tae_spread",
+  "h2_player_level",
+  "player_disjoint_holds"
+ ],
+ "metrics": {
+  "A_matched_time": {
+   "interval": {
+    "point": -0.010685313291812019,
+    "lo": -0.012313362528283368,
+    "hi": -0.009461359004581157,
+    "replicates": 400
+   },
+   "expected_sign": -1,
+   "directional": true,
+   "band_spearman": null,
+   "monotone_enough": true,
+   "passes": true
+  },
+  "B_time_allocation_efficiency": {
+   "interval": {
+    "point": 0.0005318273002991697,
+    "lo": -0.000335831578974248,
+    "hi": 0.0015099013877194812,
+    "replicates": 400
+   },
+   "expected_sign": 1,
+   "directional": false,
+   "band_spearman": 0.7166666666666667,
+   "monotone_enough": true,
+   "passes": false
+  },
+  "D_extreme_ut_exposure": {
+   "interval": {
+    "point": 5.9867577047895105e-05,
+    "lo": -0.0006731171935039499,
+    "hi": 0.0005235117344371942,
+    "replicates": 400
+   },
+   "expected_sign": -1,
+   "directional": false,
+   "band_spearman": 0.2,
+   "monotone_enough": false,
+   "passes": false
+  },
+  "C_allocation_loss": {
+   "interval": {
+    "point": -0.002141464787178552,
+    "lo": -0.0031614166894126192,
+    "hi": -0.0012335315417100054,
+    "replicates": 400
+   },
+   "role": "descriptive; a transform of Metric B"
+  },
+  "E_friction_burden": {
+   "role": "descriptive; no directional prediction"
+  }
+ },
+ "adequately_powered_bands": [
+  "800-999",
+  "1000-1199",
+  "1200-1399",
+  "1400-1599",
+  "1600-1799",
+  "1800-1999",
+  "2000-2199",
+  "2200-2399",
+  "2400-2599"
+ ],
+ "band_sign_agreement": {
+  "agree": 9,
+  "of": 9,
+  "needed": 8
+ },
+ "tae_spread": {
+  "point": 0.004412145049458586,
+  "lo": -0.012556043337746185,
+  "hi": 0.023341379321442313,
+  "replicates": 400
+ },
+ "player_disjoint": {
+  "overlapping_players": 106,
+  "final_players": 2331,
+  "overlapping_decisions": 4093,
+  "restricted_decisions": 77531,
+  "powered_bands": [
+   "800-999",
+   "1000-1199",
+   "1200-1399",
+   "1400-1599",
+   "1600-1799",
+   "1800-1999",
+   "2000-2199",
+   "2200-2399",
+   "2400-2599"
+  ]
+ },
+ "c9_reading": "r_beta does not fall below the preregistered threshold",
+ "rating_on_quality": {
+  "point": -0.0024291192463274853,
+  "lo": -0.002605268214607428,
+  "hi": -0.0022588984905267248,
+  "replicates": 400
+ },
+ "h2_metrics_meeting_the_bar": [
+  "A_matched_time"
+ ],
+ "development_censored_voc_share": 0.1016690353422051,
+ "final_censored_voc_share": 0.10269038518082917,
+ "c5b_recovered_fraction": 0.973862541735472,
+ "notes": [
+  "beta agrees in sign in 9/9 adequately powered bands (needed 8); Spearman across bands -0.57"
+ ],
+ "label_means": "the time / value-of-computation relation differs systematically with rating, net of matched position and clock state -- NOT that expertise changes how players manage the process (VERDICT_RULES.md 3.1)"
+}

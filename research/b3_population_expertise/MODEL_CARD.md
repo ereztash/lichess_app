@@ -77,3 +77,29 @@ period's `manifest.json`. Determinism is measured, not assumed:
 No plaintext username reaches any committed artifact; players are `blake2b` pseudonyms. The source
 is Lichess's own public database dump, published for research. Nothing here identifies an
 individual, and §3 says why it must not be turned into something that does.
+
+---
+
+## 7. What the run taught about these models (added after the result; nothing above was edited)
+
+1. **They drift, and the drift is visible in the controls before it is visible anywhere else.**
+   Fitted in February and applied in June, every destructive null carries an offset from zero
+   (0.6 to 2.5 null standard deviations on FINAL, larger than on April). One crossed the tolerance
+   and failed the mechanical verdict; the derivation, the repair and the offset table are in
+   amendment A7 and `REPORT.md` section 6.3. The estimates themselves moved about 2% under
+   drift-free re-estimation, because the estimator's regressor is correlated with the frozen
+   prediction and the misfit cancels. **A frozen nuisance model is safer inside an estimate than
+   inside a null.**
+2. **They do not extrapolate to another time control.** The frozen time models were fitted on
+   three-minute clocks; on five-minute clocks about two thirds of decisions are outside the knot
+   range and the frozen prediction of log-time runs negative. Every number in the secondary block
+   is an artefact of that. A second time control needs its own development day and its own fits.
+3. **`T1P` explains about 3% of residual time variance.** The whole fourteen-feature
+   engine-difficulty block moves `beta` by 3.7%. That is consistent with `beta` being robust to
+   measured difficulty and equally consistent with the features measuring very little of what makes
+   a human slow and wrong. The model card cannot choose between those and neither does the report.
+4. **`voc_z`, as a model input, is not the instrument its name suggests.** It is zero by
+   construction on 59% of decisions, correlates 0.62 with itself across engine budgets, has a 1.7%
+   partial correlation with residual thinking time, and does not respond to how much clock is left.
+   Any future use of it as a measure of "how much further thinking is worth here" should read
+   `REPORT.md` section 5.2 first.

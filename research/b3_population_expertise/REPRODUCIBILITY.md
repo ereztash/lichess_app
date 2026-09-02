@@ -91,3 +91,45 @@ Engine determinism was **measured** before any B3 data existed (`tests/test_engi
 with the hash cleared, a search repeats exactly in a fresh process, does not depend on the order
 positions are sent in, and does not depend on `Hash` size. Without clearing, it does not repeat --
 which is why clearing is not optional.
+
+---
+
+## 3. Reproducing the B3 result
+
+Everything below is deterministic: fixed seeds, a fixed engine binary, a fixed node budget and a
+prefix of the public dump identified by byte count and sha256 in each period's `manifest.json`.
+
+```
+# 1. scoring (slow; the engine is the cost)
+python src/score.py --period development        # then validation, final, secondary
+# 2. the frozen pipeline, once per stage
+python src/run.py --stage develop
+python src/run.py --stage validate
+python src/run.py --stage final                 # writes results/analysis_final.json
+# 3. the mechanical verdict, applied before any narrative
+python src/evaluate.py --analysis results/analysis_final.json --out results/verdict.json
+# 4. the post-holdout C3 repair (amendment A7), and the verdict re-run unmodified on it
+python src/repair_c3.py
+python src/evaluate.py --analysis results/analysis_repaired.json \
+                       --out results/verdict_repaired.json
+# 5. the C9 engine-budget comparison
+python src/c9.py --base data/validation_60k --alt data/validation_150k --out results/c9.json
+# 6. figures, tables, diagnostics, report
+python src/make_report.py
+python src/report_diagnostics.py
+python src/write_report.py                      # refuses to write if forbidden language appears
+# 7. the test suite
+python -m pytest tests -q
+```
+
+Step 4 asserts that everything outside the C3 block is byte-identical before and after the repair
+and refuses to write if it is not. Step 6's report generator checks the finished text against the
+list of phrases the preregistration (§9), Gate 2 (amendment A5) and Gate 3 (§3.6) forbid, and
+raises rather than writing a report that contains one.
+
+**What is not reproducible from this repository alone.** The four gate reviews were produced by an
+independent adversary in a fresh context, read-only, and are recorded as artifacts rather than as
+code: `reviews/FABLE_GATE_{1,2,3,4}_*.md`. Three numbers quoted in `REPORT.md` come from that
+adversary's own reconstruction rather than from this pipeline -- the analytic predictions of the C3
+null in section 2, the drift-offset table in 6.3, and the secondary-period refits in section 9 --
+and each is attributed where it appears.
