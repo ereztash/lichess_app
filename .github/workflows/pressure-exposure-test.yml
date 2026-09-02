@@ -24,3 +24,7 @@ jobs:
         env:
           PYTHONPATH: research/measurement
         run: python research/learning-v3/pressure_exposure_test.py
+      - name: Run exploratory pressure-count diagnostic
+        env:
+          PYTHONPATH: research/measurement
+        run: python research/learning-v3/pressure_exposure_diagnostic.py
