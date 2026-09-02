@@ -117,6 +117,21 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "what the seal was taken over; the holdout may not be opened against a different text",
   },
   {
+    artefact: "research/learning-v3/corpus/MANIFEST.json",
+    keyPath: "committed_sha256.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (artefact, leaf) => join(dirname(artefact), leaf),
+    why: "the preserved engine corpus, 54,959 Stockfish searches at 200,000 nodes. It is committed rather than reproduced because a download is cheap and an hour of four-way CPU is not, and a corpus nothing checks is a corpus that can rot into a different corpus without anybody noticing",
+  },
+  {
+    artefact: "research/learning-v3/corpus/MANIFEST.json",
+    keyPath: "uncompressed_sha256.<doc>",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "what was compressed. The uncompressed files are deliberately NOT in the tree, so nothing here can check these; they exist so a reader who decompresses can verify they got the same bytes. Classified rather than removed because a digest with no checker is still a claim somebody made",
+  },
+  {
     artefact: "docs/learning-v3/FREEZE.json",
     keyPath: "files.<doc>",
     kind: "HASH_OF_TREE_FILE",

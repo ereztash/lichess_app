@@ -120,40 +120,6 @@
   "any evaluation under a WDL model other than sf16. The cp column is preserved, so a different mapping is a pure post-processing step and needs no engine"
  ],
  "wall_time_last_line": {},
- "files": {
-  "engine_evaluations.jsonl": {
-   "bytes": 35043353,
-   "sha256": "f113506dea373e7287f5049c77c5c9d26d68cd314ca36c625df0c2f5acbbfdfc",
-   "lines": 70258
-  },
-  "item_bank.jsonl": {
-   "bytes": 7272402,
-   "sha256": "84be086627efeb5a568e6b606babcaa03f6608d16f439e2684745746d0ebf414",
-   "lines": 9441
-  }
- },
- "committed_files": {
-  "engine_evaluations.jsonl.zst": {
-   "bytes": 3673803,
-   "sha256": "e9373269ce1221083a00b39162e3441f982f3a18055e0f62eb4f9fe9878c24ca"
-  },
-  "item_bank.jsonl.zst": {
-   "bytes": 539976,
-   "sha256": "bdebf2ebae7d867723a3c379ea702b65237722cd0b16e12dabdd1e9b331040f5"
-  },
-  "sham.jsonl.zst": {
-   "bytes": 23651,
-   "sha256": "57621e3992beaf68adb8da6491a03fd24c03276cbe241f40bef2eaea133c7b35"
-  },
-  "twin_bank.jsonl.zst": {
-   "bytes": 35276,
-   "sha256": "eba1a3a473d96b4084c927fa533facb3e7897b2bfc74f6a66a51bc44a9c33921"
-  },
-  "twins.jsonl.zst": {
-   "bytes": 23682,
-   "sha256": "8405bbd4a429340e3a3b91873f3a626bf694f2c2d308bb316666ac74d59a492c"
-  }
- },
  "storage": {
   "decision": "committed to git, zstd level 19",
   "why": "the source corpora are deliberately not vendored because they are a download; this is not. It is 54,959 Stockfish searches at 200,000 nodes -- about an hour of four-way CPU -- and under 5 MB is a smaller cost than reproducing it",
@@ -215,5 +181,35 @@
  "known_corpus_properties": [
   "the SAMPLE contains repeated positions. Two games that transpose reach the same board and the scan writes one record per game, so 52 (class, position) pairs appear more than once among the 8,307 items -- one of them eleven times, from 1.e4 e5 2.Nf3, at Elos from 1204 to 1902. Items drawn from one position are not independent observations; `extract.py::natural` deduplicates before any corpus-level table",
   "47 rows carry `provenance_ambiguous`: the raw row could not be tied to exactly one source game even after keying on Elo and the played move. Every candidate is listed rather than one chosen"
- ]
+ ],
+ "committed_sha256": {
+  "engine_evaluations.jsonl.zst": "e9373269ce1221083a00b39162e3441f982f3a18055e0f62eb4f9fe9878c24ca",
+  "item_bank.jsonl.zst": "bdebf2ebae7d867723a3c379ea702b65237722cd0b16e12dabdd1e9b331040f5",
+  "sham.jsonl.zst": "57621e3992beaf68adb8da6491a03fd24c03276cbe241f40bef2eaea133c7b35",
+  "twin_bank.jsonl.zst": "eba1a3a473d96b4084c927fa533facb3e7897b2bfc74f6a66a51bc44a9c33921",
+  "twins.jsonl.zst": "8405bbd4a429340e3a3b91873f3a626bf694f2c2d308bb316666ac74d59a492c"
+ },
+ "committed_bytes": {
+  "engine_evaluations.jsonl.zst": 3673803,
+  "item_bank.jsonl.zst": 539976,
+  "sham.jsonl.zst": 23651,
+  "twin_bank.jsonl.zst": 35276,
+  "twins.jsonl.zst": 23682
+ },
+ "uncompressed_sha256": {
+  "engine_evaluations.jsonl": "f113506dea373e7287f5049c77c5c9d26d68cd314ca36c625df0c2f5acbbfdfc",
+  "item_bank.jsonl": "84be086627efeb5a568e6b606babcaa03f6608d16f439e2684745746d0ebf414"
+ },
+ "uncompressed_bytes": {
+  "engine_evaluations.jsonl": 35043353,
+  "item_bank.jsonl": 7272402
+ },
+ "uncompressed_lines": {
+  "engine_evaluations.jsonl": 70258,
+  "item_bank.jsonl": 9441
+ },
+ "hash_blocks": {
+  "committed_sha256": "the files in this directory, checked on every `npm run gates` by GATE-RESEARCH-RECONCILED. This is the block that makes the corpus tamper-evident",
+  "uncompressed_sha256": "what was compressed. These files are NOT in the tree -- only the .zst are -- so nothing can check them here; they let a reader who decompresses verify they got the same bytes"
+ }
 }
