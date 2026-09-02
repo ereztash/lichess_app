@@ -1,0 +1,875 @@
+{
+  "model_version": "1.0.0",
+  "instrument": "action-set decision model (efficacy / necessity / robustness)",
+  "engine": {
+    "nodes": 200000,
+    "workers": 4,
+    "wdl_model": "sf16",
+    "build": "Stockfish 17.1"
+  },
+  "provenance_warning": "THIS IS NOT THE PUBLISHED ENGINE. The published screen ran Stockfish 17.1 at 200,000 nodes; this run's build is recorded above. Every comparison in this file is therefore WITHIN this run -- b_valid is recomputed here by the published method so that the reordering is measured against a column produced by the same engine. No number here may be subtracted from a number in RULE_CLASS_SEARCH.md.",
+  "anchors": {
+    "ceiling": "RC-00",
+    "ceiling_separation": 0.3433120000000001,
+    "floor": "RC-01",
+    "floor_separation": 0.568936
+  },
+  "rows": [
+    {
+      "id": "RC-00",
+      "name": "mate-in-one",
+      "family": "immediate mate threats",
+      "role": "ceiling-anchor",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "ANCHOR",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.0,
+        "regret_b_xs_mean_t_minus": 0.29738400000000004,
+        "separation_regret_xs": 0.29738400000000004,
+        "obeying_loses_100cp_or_more_t_plus": 0.0,
+        "advantage_xs_mean_t_plus": 0.121032,
+        "chance_advantage_xs_mean_t_plus": -0.21304000000000006,
+        "advantage_over_chance_t_plus": 0.3340720000000001,
+        "advantage_over_chance_t_plus_ci95": [
+          0.25885409030473483,
+          0.40928990969526535
+        ],
+        "advantage_over_chance_t_minus": -0.009240000000000002,
+        "separation_advantage_over_chance_xs": 0.3433120000000001,
+        "permitted_moves_safe_t_plus": 0.48428835489833644,
+        "worst_permitted_loses_100cp_t_plus": 0.768,
+        "max_regret_in_b_xs_mean_t_plus": 0.5123820000000001,
+        "b_valid_t_plus": 1.0,
+        "b_valid_t_minus": 0.192,
+        "separation_b_valid": 0.808,
+        "prescription_size_mean_t_plus": 0.11023148974425427,
+        "prescription_size_mean_t_minus": 0.058791513134804206,
+        "position_between_anchors": 1.0
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": true
+      }
+    },
+    {
+      "id": "RC-01",
+      "name": "loose-piece",
+      "family": "elementary tactical safety relations",
+      "role": "incumbent-floor",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "ANCHOR",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.02886,
+        "regret_b_xs_mean_t_minus": 0.232128,
+        "separation_regret_xs": 0.203268,
+        "obeying_loses_100cp_or_more_t_plus": 0.128,
+        "advantage_xs_mean_t_plus": 0.23720399999999997,
+        "chance_advantage_xs_mean_t_plus": -0.4137519999999998,
+        "advantage_over_chance_t_plus": 0.6509560000000001,
+        "advantage_over_chance_t_plus_ci95": [
+          0.5633264888327575,
+          0.7385855111672427
+        ],
+        "advantage_over_chance_t_minus": 0.08202000000000005,
+        "separation_advantage_over_chance_xs": 0.568936,
+        "permitted_moves_safe_t_plus": 0.8041543026706232,
+        "worst_permitted_loses_100cp_t_plus": 0.232,
+        "max_regret_in_b_xs_mean_t_plus": 0.06551599999999999,
+        "b_valid_t_plus": 0.792,
+        "b_valid_t_minus": 0.18,
+        "separation_b_valid": 0.6120000000000001,
+        "prescription_size_mean_t_plus": 0.04618482014993355,
+        "prescription_size_mean_t_minus": 0.030775573912974703,
+        "position_between_anchors": -0.0
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-02",
+      "name": "recapture",
+      "family": "recapture decisions",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.081812,
+        "regret_b_xs_mean_t_minus": 0.23383599999999993,
+        "separation_regret_xs": 0.15202399999999994,
+        "obeying_loses_100cp_or_more_t_plus": 0.228,
+        "advantage_xs_mean_t_plus": 0.08559799999999998,
+        "chance_advantage_xs_mean_t_plus": -0.36064200000000035,
+        "advantage_over_chance_t_plus": 0.4462400000000001,
+        "advantage_over_chance_t_plus_ci95": [
+          0.37059513220132606,
+          0.5218848677986742
+        ],
+        "advantage_over_chance_t_minus": 0.13569999999999993,
+        "separation_advantage_over_chance_xs": 0.31054000000000015,
+        "permitted_moves_safe_t_plus": 0.6641221374045801,
+        "worst_permitted_loses_100cp_t_plus": 0.444,
+        "max_regret_in_b_xs_mean_t_plus": 0.17852600000000002,
+        "b_valid_t_plus": 0.648,
+        "b_valid_t_minus": 0.272,
+        "separation_b_valid": 0.376,
+        "prescription_size_mean_t_plus": 0.0496616945679096,
+        "prescription_size_mean_t_minus": 0.03383464306197197,
+        "position_between_anchors": 1.1452505052653972
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-03",
+      "name": "capture-the-checker",
+      "family": "responding to check / escaping check",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.0,
+        "regret_b_xs_mean_t_minus": 0.038988,
+        "separation_regret_xs": 0.038988,
+        "obeying_loses_100cp_or_more_t_plus": 0.02,
+        "advantage_xs_mean_t_plus": 0.3189768041237113,
+        "chance_advantage_xs_mean_t_plus": -0.0645257731958763,
+        "advantage_over_chance_t_plus": 0.3835025773195876,
+        "advantage_over_chance_t_plus_ci95": [
+          0.2939848235612259,
+          0.4730203310779493
+        ],
+        "advantage_over_chance_t_minus": 0.2378086956521739,
+        "separation_advantage_over_chance_xs": 0.14569388166741368,
+        "permitted_moves_safe_t_plus": 0.8532338308457711,
+        "worst_permitted_loses_100cp_t_plus": 0.192,
+        "max_regret_in_b_xs_mean_t_plus": 0.05575,
+        "b_valid_t_plus": 0.956,
+        "b_valid_t_minus": 0.692,
+        "separation_b_valid": 0.264,
+        "prescription_size_mean_t_plus": 0.5430095238095243,
+        "prescription_size_mean_t_minus": 0.39638571428571434,
+        "position_between_anchors": 1.875873658531834
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-04",
+      "name": "save-the-attacked-piece",
+      "family": "forced defensive responses",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.04336000000000001,
+        "regret_b_xs_mean_t_minus": 0.14475400000000002,
+        "separation_regret_xs": 0.10139400000000001,
+        "obeying_loses_100cp_or_more_t_plus": 0.144,
+        "advantage_xs_mean_t_plus": 0.10002200000000001,
+        "chance_advantage_xs_mean_t_plus": -0.13117599999999985,
+        "advantage_over_chance_t_plus": 0.23119800000000001,
+        "advantage_over_chance_t_plus_ci95": [
+          0.1737970983023011,
+          0.2885989016976989
+        ],
+        "advantage_over_chance_t_minus": 0.022402000000000026,
+        "separation_advantage_over_chance_xs": 0.20879599999999998,
+        "permitted_moves_safe_t_plus": 0.3103953147877013,
+        "worst_permitted_loses_100cp_t_plus": 0.96,
+        "max_regret_in_b_xs_mean_t_plus": 0.4600659999999999,
+        "b_valid_t_plus": 0.692,
+        "b_valid_t_minus": 0.28,
+        "separation_b_valid": 0.4119999999999999,
+        "prescription_size_mean_t_plus": 0.24033275447336322,
+        "prescription_size_mean_t_minus": 0.18533019000700915,
+        "position_between_anchors": 1.596195440201398
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-05",
+      "name": "safe-promotion",
+      "family": "promotion-race decisions",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.038307999999999995,
+        "regret_b_xs_mean_t_minus": 0.126546,
+        "separation_regret_xs": 0.088238,
+        "obeying_loses_100cp_or_more_t_plus": 0.176,
+        "advantage_xs_mean_t_plus": -0.014084,
+        "chance_advantage_xs_mean_t_plus": -0.13278199999999998,
+        "advantage_over_chance_t_plus": 0.118698,
+        "advantage_over_chance_t_plus_ci95": [
+          0.07586825512038786,
+          0.16152774487961213
+        ],
+        "advantage_over_chance_t_minus": 0.056428,
+        "separation_advantage_over_chance_xs": 0.06227,
+        "permitted_moves_safe_t_plus": 0.848,
+        "worst_permitted_loses_100cp_t_plus": 0.152,
+        "max_regret_in_b_xs_mean_t_plus": 0.03791,
+        "b_valid_t_plus": 0.512,
+        "b_valid_t_minus": 0.108,
+        "separation_b_valid": 0.404,
+        "prescription_size_mean_t_plus": 0.053010118780938836,
+        "prescription_size_mean_t_minus": 0.05053487663656727,
+        "position_between_anchors": 2.2456210332234168
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-06",
+      "name": "answer-the-mate-threat",
+      "family": "threat recognition",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.0,
+        "regret_b_xs_mean_t_minus": 0.12239234449760765,
+        "separation_regret_xs": 0.12239234449760765,
+        "obeying_loses_100cp_or_more_t_plus": 0.0,
+        "advantage_xs_mean_t_plus": 0.3506877637130802,
+        "chance_advantage_xs_mean_t_plus": -0.11075316455696202,
+        "advantage_over_chance_t_plus": 0.46144092827004235,
+        "advantage_over_chance_t_plus_ci95": [
+          0.38282362408308485,
+          0.5400582324569999
+        ],
+        "advantage_over_chance_t_minus": 0.08220095693779904,
+        "separation_advantage_over_chance_xs": 0.3792399713322433,
+        "permitted_moves_safe_t_plus": 0.2871817775792765,
+        "worst_permitted_loses_100cp_t_plus": 0.8636363636363636,
+        "max_regret_in_b_xs_mean_t_plus": 0.3307727272727273,
+        "b_valid_t_plus": 0.968,
+        "b_valid_t_minus": 0.216,
+        "separation_b_valid": 0.752,
+        "prescription_size_mean_t_plus": 0.31730699716181077,
+        "prescription_size_mean_t_minus": 0.10102030674321982,
+        "position_between_anchors": 0.840761748164011
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": true
+      }
+    },
+    {
+      "id": "RC-07",
+      "name": "answer-the-queen-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.020644897959183672,
+        "regret_b_xs_mean_t_minus": 0.07413485477178422,
+        "separation_regret_xs": 0.05348995681260055,
+        "obeying_loses_100cp_or_more_t_plus": 0.06938775510204082,
+        "advantage_xs_mean_t_plus": 0.25292857142857145,
+        "chance_advantage_xs_mean_t_plus": -0.19732244897959184,
+        "advantage_over_chance_t_plus": 0.4502510204081631,
+        "advantage_over_chance_t_plus_ci95": [
+          0.3721858006358576,
+          0.5283162401804686
+        ],
+        "advantage_over_chance_t_minus": 0.08910373443983403,
+        "separation_advantage_over_chance_xs": 0.36114728596832907,
+        "permitted_moves_safe_t_plus": 0.46648793565683644,
+        "worst_permitted_loses_100cp_t_plus": 0.8612244897959184,
+        "max_regret_in_b_xs_mean_t_plus": 0.3008448979591836,
+        "b_valid_t_plus": 0.804,
+        "b_valid_t_minus": 0.4,
+        "separation_b_valid": 0.404,
+        "prescription_size_mean_t_plus": 0.15743404357009744,
+        "prescription_size_mean_t_minus": 0.18037266035131255,
+        "position_between_anchors": 0.9209512907832103
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-08",
+      "name": "answer-the-rook-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.034947154471544714,
+        "regret_b_xs_mean_t_minus": 0.06134533898305084,
+        "separation_regret_xs": 0.026398184511506127,
+        "obeying_loses_100cp_or_more_t_plus": 0.16666666666666666,
+        "advantage_xs_mean_t_plus": 0.13960772357723575,
+        "chance_advantage_xs_mean_t_plus": -0.16598170731707315,
+        "advantage_over_chance_t_plus": 0.30558943089430896,
+        "advantage_over_chance_t_plus_ci95": [
+          0.23634776956811715,
+          0.37483109222050076
+        ],
+        "advantage_over_chance_t_minus": 0.07379025423728813,
+        "separation_advantage_over_chance_xs": 0.23179917665702082,
+        "permitted_moves_safe_t_plus": 0.4151359294636297,
+        "worst_permitted_loses_100cp_t_plus": 0.7723577235772358,
+        "max_regret_in_b_xs_mean_t_plus": 0.3252134146341463,
+        "b_valid_t_plus": 0.692,
+        "b_valid_t_minus": 0.388,
+        "separation_b_valid": 0.30399999999999994,
+        "prescription_size_mean_t_plus": 0.187527471936588,
+        "prescription_size_mean_t_minus": 0.17852461475231343,
+        "position_between_anchors": 1.494241850791491
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-09",
+      "name": "answer-the-minor-threat",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.03660526315789473,
+        "regret_b_xs_mean_t_minus": 0.0483091286307054,
+        "separation_regret_xs": 0.011703865472810666,
+        "obeying_loses_100cp_or_more_t_plus": 0.1214574898785425,
+        "advantage_xs_mean_t_plus": 0.1139311740890688,
+        "chance_advantage_xs_mean_t_plus": -0.19054858299595148,
+        "advantage_over_chance_t_plus": 0.30447975708502034,
+        "advantage_over_chance_t_plus_ci95": [
+          0.24183153753298028,
+          0.3671279766370604
+        ],
+        "advantage_over_chance_t_minus": 0.07541286307053942,
+        "separation_advantage_over_chance_xs": 0.22906689401448094,
+        "permitted_moves_safe_t_plus": 0.4821020563594821,
+        "worst_permitted_loses_100cp_t_plus": 0.7732793522267206,
+        "max_regret_in_b_xs_mean_t_plus": 0.3252692307692307,
+        "b_valid_t_plus": 0.644,
+        "b_valid_t_minus": 0.472,
+        "separation_b_valid": 0.17200000000000004,
+        "prescription_size_mean_t_plus": 0.1521313766760192,
+        "prescription_size_mean_t_minus": 0.19180880409812748,
+        "position_between_anchors": 1.5063517444310854
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-11",
+      "name": "move-the-threatened-minor",
+      "family": "prescription-shape control",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.06286234817813764,
+        "regret_b_xs_mean_t_minus": 0.15469230769230768,
+        "separation_regret_xs": 0.09182995951417004,
+        "obeying_loses_100cp_or_more_t_plus": 0.19838056680161945,
+        "advantage_xs_mean_t_plus": 0.061945344129554665,
+        "chance_advantage_xs_mean_t_plus": -0.20379149797570845,
+        "advantage_over_chance_t_plus": 0.2657368421052631,
+        "advantage_over_chance_t_plus_ci95": [
+          0.20753117149337322,
+          0.32394251271715296
+        ],
+        "advantage_over_chance_t_minus": 0.09116483516483517,
+        "separation_advantage_over_chance_xs": 0.17457200694042793,
+        "permitted_moves_safe_t_plus": 0.3726541554959786,
+        "worst_permitted_loses_100cp_t_plus": 0.951417004048583,
+        "max_regret_in_b_xs_mean_t_plus": 0.42750000000000005,
+        "b_valid_t_plus": 0.612,
+        "b_valid_t_minus": 0.136,
+        "separation_b_valid": 0.476,
+        "prescription_size_mean_t_plus": 0.17918612484297147,
+        "prescription_size_mean_t_minus": 0.0423627087445035,
+        "position_between_anchors": 1.747881400292399
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-12",
+      "name": "stop-the-promotion",
+      "family": "severity ladder: defensive threat answering",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.03958201058201058,
+        "regret_b_xs_mean_t_minus": 0.06759710743801653,
+        "separation_regret_xs": 0.02801509685600595,
+        "obeying_loses_100cp_or_more_t_plus": 0.164021164021164,
+        "advantage_xs_mean_t_plus": 0.06574338624338626,
+        "chance_advantage_xs_mean_t_plus": -0.1256746031746032,
+        "advantage_over_chance_t_plus": 0.19141798941798943,
+        "advantage_over_chance_t_plus_ci95": [
+          0.11705479450597206,
+          0.2657811843300068
+        ],
+        "advantage_over_chance_t_minus": 0.08257644628099173,
+        "separation_advantage_over_chance_xs": 0.1088415431369977,
+        "permitted_moves_safe_t_plus": 0.42097902097902096,
+        "worst_permitted_loses_100cp_t_plus": 0.7354497354497355,
+        "max_regret_in_b_xs_mean_t_plus": 0.254510582010582,
+        "b_valid_t_plus": 0.464,
+        "b_valid_t_minus": 0.428,
+        "separation_b_valid": 0.03600000000000003,
+        "prescription_size_mean_t_plus": 0.1288437390915538,
+        "prescription_size_mean_t_minus": 0.19468969632933272,
+        "position_between_anchors": 2.0392088468558422
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-13",
+      "name": "underpromote-to-knight",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.06343283582089553,
+        "regret_b_xs_mean_t_minus": 0.220522,
+        "separation_regret_xs": 0.15708916417910446,
+        "obeying_loses_100cp_or_more_t_plus": 0.6268656716417911,
+        "advantage_xs_mean_t_plus": -0.06343283582089553,
+        "chance_advantage_xs_mean_t_plus": -0.13584328358208955,
+        "advantage_over_chance_t_plus": 0.07241044776119406,
+        "advantage_over_chance_t_plus_ci95": [
+          0.009510222377719549,
+          0.13531067314466855
+        ],
+        "advantage_over_chance_t_minus": -0.039566,
+        "separation_advantage_over_chance_xs": 0.11197644776119406,
+        "permitted_moves_safe_t_plus": 0.34615384615384615,
+        "worst_permitted_loses_100cp_t_plus": 0.6417910447761194,
+        "max_regret_in_b_xs_mean_t_plus": 0.09563432835820895,
+        "b_valid_t_plus": 0.029850746268656716,
+        "b_valid_t_minus": 0.0,
+        "separation_b_valid": 0.029850746268656716,
+        "prescription_size_mean_t_plus": 0.05520908344593641,
+        "prescription_size_mean_t_minus": 0.048820100958425844,
+        "position_between_anchors": 2.0253144711502595
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": false,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-14",
+      "name": "capture-the-mating-piece",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.05980833333333333,
+        "regret_b_xs_mean_t_minus": 0.12036,
+        "separation_regret_xs": 0.06055166666666666,
+        "obeying_loses_100cp_or_more_t_plus": 0.21666666666666667,
+        "advantage_xs_mean_t_plus": 0.11044166666666667,
+        "chance_advantage_xs_mean_t_plus": -0.3368270833333334,
+        "advantage_over_chance_t_plus": 0.44726875,
+        "advantage_over_chance_t_plus_ci95": [
+          0.35881458183147696,
+          0.535722918168523
+        ],
+        "advantage_over_chance_t_minus": 0.3870420000000002,
+        "separation_advantage_over_chance_xs": 0.060226749999999774,
+        "permitted_moves_safe_t_plus": 0.7194244604316546,
+        "worst_permitted_loses_100cp_t_plus": 0.3,
+        "max_regret_in_b_xs_mean_t_plus": 0.07912916666666667,
+        "b_valid_t_plus": 0.625,
+        "b_valid_t_minus": 0.512,
+        "separation_b_valid": 0.11299999999999999,
+        "prescription_size_mean_t_plus": 0.04511824281582772,
+        "prescription_size_mean_t_minus": 0.0381721937646552,
+        "position_between_anchors": 2.254677029039466
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-18",
+      "name": "move-the-piece-that-must-move",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.061588,
+        "regret_b_xs_mean_t_minus": 0.12907712765957446,
+        "separation_regret_xs": 0.06748912765957446,
+        "obeying_loses_100cp_or_more_t_plus": 0.188,
+        "advantage_xs_mean_t_plus": 0.09334,
+        "chance_advantage_xs_mean_t_plus": -0.2267619999999999,
+        "advantage_over_chance_t_plus": 0.32010199999999994,
+        "advantage_over_chance_t_plus_ci95": [
+          0.25863639194327365,
+          0.38156760805672624
+        ],
+        "advantage_over_chance_t_minus": 0.09454787234042554,
+        "separation_advantage_over_chance_xs": 0.2255541276595744,
+        "permitted_moves_safe_t_plus": 0.3509979353062629,
+        "worst_permitted_loses_100cp_t_plus": 0.964,
+        "max_regret_in_b_xs_mean_t_plus": 0.44852000000000014,
+        "b_valid_t_plus": 0.636,
+        "b_valid_t_minus": 0.164,
+        "separation_b_valid": 0.472,
+        "prescription_size_mean_t_plus": 0.16436275962252261,
+        "prescription_size_mean_t_minus": 0.04775163353047425,
+        "position_between_anchors": 1.5219208609918529
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-20",
+      "name": "defend-the-piece-in-place",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": false,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A3_efficacious, A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.1234004854368932,
+        "regret_b_xs_mean_t_minus": 0.09545614035087718,
+        "separation_regret_xs": -0.027944345086016023,
+        "obeying_loses_100cp_or_more_t_plus": 0.4077669902912621,
+        "advantage_xs_mean_t_plus": -0.09775242718446597,
+        "chance_advantage_xs_mean_t_plus": -0.2275946601941747,
+        "advantage_over_chance_t_plus": 0.12984223300970874,
+        "advantage_over_chance_t_plus_ci95": [
+          0.07909536926334723,
+          0.18058909675607024
+        ],
+        "advantage_over_chance_t_minus": 0.08051535087719297,
+        "separation_advantage_over_chance_xs": 0.049326882132515765,
+        "permitted_moves_safe_t_plus": 0.2614155251141553,
+        "worst_permitted_loses_100cp_t_plus": 0.8932038834951457,
+        "max_regret_in_b_xs_mean_t_plus": 0.38882524271844654,
+        "b_valid_t_plus": 0.224,
+        "b_valid_t_minus": 0.316,
+        "separation_b_valid": -0.092,
+        "prescription_size_mean_t_plus": 0.09531509187620738,
+        "prescription_size_mean_t_minus": 0.163173138551819,
+        "position_between_anchors": 2.3029869068338673
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    },
+    {
+      "id": "RC-21",
+      "name": "push-the-unstoppable-passer",
+      "family": "noise-cell-first: committal acts",
+      "role": "candidate",
+      "gates": {
+        "A1_measurable": true,
+        "A2_beats_chance": true,
+        "A3_efficacious": true,
+        "A4_discriminating": true,
+        "A5_beats_incumbent": false
+      },
+      "eligible": false,
+      "verdict": "fails A5_beats_incumbent",
+      "measurements": {
+        "regret_b_xs_mean_t_plus": 0.13276,
+        "regret_b_xs_mean_t_minus": 0.17189200000000002,
+        "separation_regret_xs": 0.03913200000000003,
+        "obeying_loses_100cp_or_more_t_plus": 0.488,
+        "advantage_xs_mean_t_plus": -0.12544,
+        "chance_advantage_xs_mean_t_plus": -0.16781200000000004,
+        "advantage_over_chance_t_plus": 0.042372,
+        "advantage_over_chance_t_plus_ci95": [
+          0.006907666152209044,
+          0.07783633384779096
+        ],
+        "advantage_over_chance_t_minus": 0.025894,
+        "separation_advantage_over_chance_xs": 0.016478,
+        "permitted_moves_safe_t_plus": 0.4140625,
+        "worst_permitted_loses_100cp_t_plus": 0.6,
+        "max_regret_in_b_xs_mean_t_plus": 0.161048,
+        "b_valid_t_plus": 0.172,
+        "b_valid_t_minus": 0.088,
+        "separation_b_valid": 0.08399999999999999,
+        "prescription_size_mean_t_plus": 0.0690843306523586,
+        "prescription_size_mean_t_minus": 0.05174066798444204,
+        "position_between_anchors": 2.448578165443394
+      },
+      "published_gates_this_engine": {
+        "G4_beats_chance": true,
+        "G5_beats_incumbent": false
+      }
+    }
+  ],
+  "eligible_ranked": [],
+  "recommended": null,
+  "verdict_changes": {
+    "promoted_by_decision_model": [],
+    "demoted_by_decision_model": [
+      "RC-06"
+    ],
+    "agree": [
+      "RC-02",
+      "RC-03",
+      "RC-04",
+      "RC-05",
+      "RC-07",
+      "RC-08",
+      "RC-09",
+      "RC-11",
+      "RC-12",
+      "RC-13",
+      "RC-14",
+      "RC-18",
+      "RC-20",
+      "RC-21"
+    ]
+  },
+  "reordering": {
+    "n_rule_classes": 17,
+    "b_valid_vs_advantage": {
+      "rho": 0.8436543584494394,
+      "p": 2.0839359134601396e-05,
+      "n": 17
+    },
+    "b_valid_vs_efficacy": {
+      "rho": 0.6315145270370076,
+      "p": 0.006546534780555198,
+      "n": 17
+    },
+    "advantage_vs_efficacy": {
+      "rho": 0.7377450980392158,
+      "p": 0.0007238246704990691,
+      "n": 17
+    },
+    "b_valid_vs_advantage_over_chance": {
+      "rho": 0.7296138710427564,
+      "p": 0.0008866546366024277,
+      "n": 17
+    },
+    "rank_by_b_valid": [
+      "RC-00",
+      "RC-06",
+      "RC-01",
+      "RC-11",
+      "RC-18",
+      "RC-04",
+      "RC-05",
+      "RC-07",
+      "RC-02",
+      "RC-08",
+      "RC-03",
+      "RC-09",
+      "RC-14",
+      "RC-21",
+      "RC-12",
+      "RC-13",
+      "RC-20"
+    ],
+    "rank_by_advantage": [
+      "RC-01",
+      "RC-06",
+      "RC-00",
+      "RC-02",
+      "RC-07",
+      "RC-11",
+      "RC-18",
+      "RC-04",
+      "RC-03",
+      "RC-13",
+      "RC-08",
+      "RC-09",
+      "RC-05",
+      "RC-14",
+      "RC-12",
+      "RC-21",
+      "RC-20"
+    ],
+    "rank_by_advantage_over_chance": [
+      "RC-01",
+      "RC-06",
+      "RC-07",
+      "RC-00",
+      "RC-02",
+      "RC-08",
+      "RC-09",
+      "RC-18",
+      "RC-04",
+      "RC-11",
+      "RC-03",
+      "RC-13",
+      "RC-12",
+      "RC-05",
+      "RC-14",
+      "RC-20",
+      "RC-21"
+    ],
+    "rank_by_efficacy": [
+      "RC-00",
+      "RC-01",
+      "RC-13",
+      "RC-02",
+      "RC-06",
+      "RC-04",
+      "RC-11",
+      "RC-05",
+      "RC-18",
+      "RC-14",
+      "RC-07",
+      "RC-21",
+      "RC-03",
+      "RC-12",
+      "RC-08",
+      "RC-09",
+      "RC-20"
+    ],
+    "reading": "A high rho means the decision model AGREES with the top-1 screen and the published ordering stands. A low rho means the published ordering is an artefact of measuring argmax agreement instead of value, and every design rule inferred from that ordering was inferred from the wrong column."
+  },
+  "eligibility_is_not_sufficiency": "Exchangeability is untouched by this instrument. A class passing A1-A5 still faces the max |SMD| that ended the first iteration, and robustness is reported rather than gated because no non-arbitrary cut for it exists."
+}

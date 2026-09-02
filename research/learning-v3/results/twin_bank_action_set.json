@@ -1,0 +1,689 @@
+{
+ "action_set_version": "1.0.0",
+ "what_this_is": "The same seventeen rule classes and the same sampled items as the published screen, scored as a decision problem: efficacy (what obeying costs), necessity (what disobeying costs) and robustness (what the worst permitted move costs), in expected score as well as centipawns.",
+ "engine": {
+  "nodes": 200000,
+  "workers": 4,
+  "wdl_model": "sf16",
+  "build": "Stockfish 17.1"
+ },
+ "provenance_warning": "THIS IS NOT THE PUBLISHED ENGINE. The published screen ran Stockfish 17.1 at 200,000 nodes; this run's build is recorded above. Every comparison in this file is therefore WITHIN this run -- b_valid is recomputed here by the published method so that the reordering is measured against a column produced by the same engine. No number here may be subtracted from a number in RULE_CLASS_SEARCH.md.",
+ "sample_per_cell": 1000,
+ "seed": 20260831,
+ "items_adjudicated": 756,
+ "searches": 4536,
+ "searches_per_item_median": 6,
+ "engine_failures": 0,
+ "corpus": {
+  "pgn": "/tmp/corpus/lichess_db_standard_rated_2013-01.pgn.zst",
+  "seed": 20260831,
+  "per_game": 3,
+  "games_seen": 60834,
+  "games_used": 60000,
+  "positions_sampled": 180000,
+  "positions_in_check": 12119,
+  "records_written": 580852,
+  "rule_class_version": "1.0.0",
+  "trigger_counts": {
+   "RC-00": {
+    "positive": 1171,
+    "negative": 78582
+   },
+   "RC-01": {
+    "positive": 13685,
+    "negative": 46899
+   },
+   "RC-02": {
+    "positive": 21969,
+    "negative": 31709
+   },
+   "RC-03": {
+    "positive": 2057,
+    "negative": 1286
+   },
+   "RC-04": {
+    "positive": 22239,
+    "negative": 30168
+   },
+   "RC-05": {
+    "positive": 370,
+    "negative": 366
+   },
+   "RC-06": {
+    "positive": 2080,
+    "negative": 80332
+   },
+   "RC-07": {
+    "positive": 9717,
+    "negative": 22373
+   },
+   "RC-08": {
+    "positive": 7432,
+    "negative": 22373
+   },
+   "RC-09": {
+    "positive": 16982,
+    "negative": 22373
+   },
+   "RC-11": {
+    "positive": 16982,
+    "negative": 22373
+   },
+   "RC-12": {
+    "positive": 602,
+    "negative": 22312
+   },
+   "RC-13": {
+    "positive": 67,
+    "negative": 702
+   },
+   "RC-14": {
+    "positive": 240,
+    "negative": 9726
+   },
+   "RC-18": {
+    "positive": 9009,
+    "negative": 22373
+   },
+   "RC-20": {
+    "positive": 7709,
+    "negative": 22373
+   },
+   "RC-21": {
+    "positive": 3293,
+    "negative": 8928
+   }
+  },
+  "note": "one record per (position, rule class that fired). A position can appear under several rule classes; they are different items and are never pooled."
+ },
+ "rule_classes": {
+  "RC-00": {
+   "name": "mate-in-one",
+   "family": "immediate mate threats",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-01": {
+   "name": "loose-piece",
+   "family": "elementary tactical safety relations",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-02": {
+   "name": "recapture",
+   "family": "recapture decisions",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-03": {
+   "name": "capture-the-checker",
+   "family": "responding to check / escaping check",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-04": {
+   "name": "save-the-attacked-piece",
+   "family": "forced defensive responses",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-05": {
+   "name": "safe-promotion",
+   "family": "promotion-race decisions",
+   "role": "candidate",
+   "prescription": "if a pawn can promote to a square nothing attacks, promote",
+   "t_plus": {
+    "n": 378,
+    "b_valid": {
+     "k": 202,
+     "n": 378,
+     "p": 0.5343915343915344,
+     "ci95": [
+      0.48401155049654954,
+      0.5840795113468956
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 378,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.0100607162760684
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 378,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.0100607162760684
+     ]
+    },
+    "regret_b_cp": {
+     "n": 378,
+     "median": 0,
+     "q1": 0,
+     "q3": 105,
+     "p90": 617
+    },
+    "regret_b_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.004500000000000004,
+     "mean": 0.05721428571428572,
+     "share_nonzero": 0.10317460317460317
+    },
+    "obeying_is_optimal": {
+     "k": 234,
+     "n": 378,
+     "p": 0.6190476190476191,
+     "ci95": [
+      0.5691258989134081,
+      0.6665739305446708
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 95,
+     "n": 378,
+     "p": 0.25132275132275134,
+     "ci95": [
+      0.21024389320752138,
+      0.29740535192449147
+     ]
+    },
+    "advantage_cp": {
+     "n": 378,
+     "median": 1,
+     "q1": -105,
+     "q3": 180,
+     "p90": 99050
+    },
+    "advantage_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.014847883597883605,
+     "share_nonzero": 0.19047619047619047
+    },
+    "regret_nb_cp": {
+     "n": 378,
+     "median": 1,
+     "q1": 0,
+     "q3": 180,
+     "p90": 99050
+    },
+    "regret_nb_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.04236640211640212,
+     "share_nonzero": 0.0873015873015873
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 109,
+     "n": 378,
+     "p": 0.28835978835978837,
+     "ci95": [
+      0.24500192786838115,
+      0.33597615309503404
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 378,
+     "median": 0,
+     "q1": -5,
+     "q3": 89,
+     "p90": 590
+    },
+    "max_regret_in_b_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.02949999999999997,
+     "mean": 0.058416666666666665,
+     "share_nonzero": 0.1349206349206349
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 93,
+     "n": 378,
+     "p": 0.24603174603174602,
+     "ci95": [
+      0.20531107376528823,
+      0.29186262339081004
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 285,
+     "n": 378,
+     "p": 0.753968253968254,
+     "ci95": [
+      0.70813737660919,
+      0.7946889262347118
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": -0.5,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.2477592592592592,
+     "share_nonzero": 0.36772486772486773
+    },
+    "chance_advantage_cp": {
+     "n": 378,
+     "median": -902,
+     "q1": -99330,
+     "q3": -97,
+     "p90": 0
+    },
+    "chance_regret_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.5,
+     "p90": 1.0,
+     "mean": 0.25175661375661373,
+     "share_nonzero": 0.35714285714285715
+    },
+    "advantage_over_chance_xs": {
+     "n": 378,
+     "mean": 0.2329113756613756,
+     "ci95": [
+      0.18554976883110325,
+      0.28027298249164795
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 378,
+     "mean": 0.19454232804232793,
+     "ci95": [
+      0.15551030254356474,
+      0.23357435354109113
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 378,
+     "median": -1,
+     "q1": -39,
+     "q3": 0,
+     "p90": 9
+    },
+    "prescription_size_median": 0.041666666666666664
+   },
+   "t_minus": {
+    "n": 378,
+    "b_valid": {
+     "k": 47,
+     "n": 378,
+     "p": 0.12433862433862433,
+     "ci95": [
+      0.09480618647684555,
+      0.16142990723321646
+     ]
+    },
+    "no_satisfying_move": {
+     "k": 0,
+     "n": 378,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.0100607162760684
+     ]
+    },
+    "no_violating_move": {
+     "k": 0,
+     "n": 378,
+     "p": 0.0,
+     "ci95": [
+      0.0,
+      0.0100607162760684
+     ]
+    },
+    "regret_b_cp": {
+     "n": 378,
+     "median": 260,
+     "q1": 7,
+     "q3": 777,
+     "p90": 99342
+    },
+    "regret_b_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.3345,
+     "p90": 0.5065,
+     "mean": 0.16605687830687826,
+     "share_nonzero": 0.29894179894179895
+    },
+    "obeying_is_optimal": {
+     "k": 60,
+     "n": 378,
+     "p": 0.15873015873015872,
+     "ci95": [
+      0.12534992457142258,
+      0.19897723098208442
+     ]
+    },
+    "obeying_loses_100cp_or_more": {
+     "k": 242,
+     "n": 378,
+     "p": 0.6402116402116402,
+     "ci95": [
+      0.5906410453107634,
+      0.686960976050974
+     ]
+    },
+    "advantage_cp": {
+     "n": 378,
+     "median": -260,
+     "q1": -777,
+     "q3": -7,
+     "p90": 4
+    },
+    "advantage_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": -0.3345,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.16336507936507938,
+     "share_nonzero": 0.30687830687830686
+    },
+    "regret_nb_cp": {
+     "n": 378,
+     "median": 0,
+     "q1": 0,
+     "q3": 0,
+     "p90": 4
+    },
+    "regret_nb_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": 0.002691798941798942,
+     "share_nonzero": 0.007936507936507936
+    },
+    "disobeying_loses_100cp_or_more": {
+     "k": 18,
+     "n": 378,
+     "p": 0.047619047619047616,
+     "ci95": [
+      0.030330396630376375,
+      0.0740102514289236
+     ]
+    },
+    "max_regret_in_b_cp": {
+     "n": 378,
+     "median": 262,
+     "q1": 13,
+     "q3": 926,
+     "p90": 99332
+    },
+    "max_regret_in_b_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.3345,
+     "p90": 0.505,
+     "mean": 0.16648544973544974,
+     "share_nonzero": 0.29365079365079366
+    },
+    "worst_permitted_move_loses_100cp_or_more": {
+     "k": 254,
+     "n": 378,
+     "p": 0.671957671957672,
+     "ci95": [
+      0.6231035389855634,
+      0.7173517702316617
+     ]
+    },
+    "permitted_moves_safe": {
+     "k": 124,
+     "n": 378,
+     "p": 0.328042328042328,
+     "ci95": [
+      0.28264822976833814,
+      0.37689646101443663
+     ]
+    },
+    "chance_advantage_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": -0.43900000000000006,
+     "q3": 0.0,
+     "p90": 0.0,
+     "mean": -0.1907936507936508,
+     "share_nonzero": 0.3253968253968254
+    },
+    "chance_advantage_cp": {
+     "n": 378,
+     "median": -387,
+     "q1": -1411,
+     "q3": -36,
+     "p90": 0
+    },
+    "chance_regret_xs": {
+     "n": 378,
+     "median": 0.0,
+     "q1": 0.0,
+     "q3": 0.43900000000000006,
+     "p90": 1.0,
+     "mean": 0.1920978835978836,
+     "share_nonzero": 0.32275132275132273
+    },
+    "advantage_over_chance_xs": {
+     "n": 378,
+     "mean": 0.027428571428571424,
+     "ci95": [
+      -0.007063611292550686,
+      0.06192075414969353
+     ]
+    },
+    "regret_under_chance_xs": {
+     "n": 378,
+     "mean": 0.02604100529100529,
+     "ci95": [
+      -0.006768565587498818,
+      0.058850576169509394
+     ]
+    },
+    "basis_gap_cp": {
+     "n": 378,
+     "median": -1,
+     "q1": -40,
+     "q3": 0,
+     "p90": 37
+    },
+    "prescription_size_median": 0.041666666666666664
+   },
+   "separation_b_valid": 0.4100529100529101,
+   "separation_advantage_xs": 0.14851719576719577,
+   "separation_advantage_cp": 261,
+   "separation_regret_xs": 0.10884259259259255,
+   "separation_regret_cp": 260,
+   "separation_advantage_over_chance_xs": 0.20548280423280418,
+   "t_plus_advantage_over_chance_xs": {
+    "n": 378,
+    "mean": 0.2329113756613756,
+    "ci95": [
+     0.18554976883110325,
+     0.28027298249164795
+    ]
+   },
+   "t_minus_advantage_over_chance_xs": {
+    "n": 378,
+    "mean": 0.027428571428571424,
+    "ci95": [
+     -0.007063611292550686,
+     0.06192075414969353
+    ]
+   },
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-06": {
+   "name": "answer-the-mate-threat",
+   "family": "threat recognition",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-07": {
+   "name": "answer-the-queen-threat",
+   "family": "severity ladder: defensive threat answering",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-08": {
+   "name": "answer-the-rook-threat",
+   "family": "severity ladder: defensive threat answering",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-09": {
+   "name": "answer-the-minor-threat",
+   "family": "severity ladder: defensive threat answering",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-11": {
+   "name": "move-the-threatened-minor",
+   "family": "prescription-shape control",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-12": {
+   "name": "stop-the-promotion",
+   "family": "severity ladder: defensive threat answering",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-13": {
+   "name": "underpromote-to-knight",
+   "family": "noise-cell-first: committal acts",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-14": {
+   "name": "capture-the-mating-piece",
+   "family": "noise-cell-first: committal acts",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-18": {
+   "name": "move-the-piece-that-must-move",
+   "family": "noise-cell-first: committal acts",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-20": {
+   "name": "defend-the-piece-in-place",
+   "family": "noise-cell-first: committal acts",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  },
+  "RC-21": {
+   "name": "push-the-unstoppable-passer",
+   "family": "noise-cell-first: committal acts",
+   "verdict": "UNTESTED",
+   "anchor_separation_b_valid": null,
+   "anchor_separation_advantage_xs": null,
+   "anchor_separation_regret_xs": null,
+   "anchor_separation_advantage_over_chance_xs": null
+  }
+ },
+ "reordering": {
+  "n_rule_classes": 1,
+  "b_valid_vs_advantage": {
+   "rho": null,
+   "p": null,
+   "n": 1
+  },
+  "b_valid_vs_efficacy": {
+   "rho": null,
+   "p": null,
+   "n": 1
+  },
+  "advantage_vs_efficacy": {
+   "rho": null,
+   "p": null,
+   "n": 1
+  },
+  "b_valid_vs_advantage_over_chance": {
+   "rho": null,
+   "p": null,
+   "n": 1
+  },
+  "rank_by_b_valid": [
+   "RC-05"
+  ],
+  "rank_by_advantage": [
+   "RC-05"
+  ],
+  "rank_by_advantage_over_chance": [
+   "RC-05"
+  ],
+  "rank_by_efficacy": [
+   "RC-05"
+  ],
+  "reading": "A high rho means the decision model AGREES with the top-1 screen and the published ordering stands. A low rho means the published ordering is an artefact of measuring argmax agreement instead of value, and every design rule inferred from that ordering was inferred from the wrong column."
+ }
+}

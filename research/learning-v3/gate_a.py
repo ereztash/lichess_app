@@ -172,7 +172,8 @@ def main() -> int:
             "c11_grade": c11.get(rid, {}).get("c11_grade"),
             "cells": {},
         }
-        for cell, key in (("t_plus", "T+"), ("t_minus", "T-")):
+        # The raw rows say `positive` / `negative`; the aggregate says `t_plus` / `t_minus`.
+        for cell, key in (("t_plus", "positive"), ("t_minus", "negative")):
             rs = by_cell.get((rid, key), [])
             if not rs:
                 continue
@@ -215,13 +216,18 @@ def main() -> int:
             rid = row["id"]
             m = row.get("measurements", {})
             here = classes.get(rid, {})
+            # `b_valid` lives on the CELL in this run's own output, not on the class -- the
+            # published model flattens it onto the row. Reading it from the class would have
+            # published a column of nulls beside a column of numbers, which is worse than
+            # publishing neither.
+            here_cell = out_classes.get(rid, {}).get("cells", {}).get("t_plus", {})
             deltas[rid] = {
                 "published_separation_advantage_over_chance_xs": m.get(
                     "separation_advantage_over_chance_xs"),
                 "here_separation_advantage_over_chance_xs": here.get(
                     "separation_advantage_over_chance_xs"),
                 "published_b_valid_t_plus": m.get("b_valid_t_plus"),
-                "here_b_valid_t_plus": here.get("b_valid_t_plus"),
+                "here_b_valid_t_plus": here_cell.get("b_valid"),
                 "published_verdict": row.get("verdict"),
             }
         result["against_published"] = {

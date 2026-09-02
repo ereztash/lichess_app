@@ -1,0 +1,219 @@
+{
+ "version": "1.0.0",
+ "what": "every engine evaluation this cycle bought, addressed by content so no future run repeats one",
+ "built_at": "2026-09-02T15:03:31Z",
+ "build_seconds": 9.5,
+ "corpus": {
+  "games_seen": 60834,
+  "games_used": 60000,
+  "positions_sampled": 180000,
+  "positions_in_check": 12119,
+  "records_written": 580852,
+  "seed": 20260831,
+  "per_game": 3,
+  "rule_class_version": "1.0.0"
+ },
+ "runs": [
+  {
+   "run_id": "sf171-full-corpus",
+   "aggregate": "/tmp/ga/results/action_set_sf171.json"
+  },
+  {
+   "run_id": "sf171-rc05-twins",
+   "aggregate": "/tmp/ga/results/twin_bank.json"
+  },
+  {
+   "run_id": "sf171-rc05-sham-control",
+   "aggregate": "/tmp/ga/results/sham_action_set.json"
+  }
+ ],
+ "counts": {
+  "items": 9441,
+  "eval_move": 36889,
+  "eval_set": 33369,
+  "cache_hits": 5637
+ },
+ "per_class": {
+  "RC-00": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-01": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-02": {
+   "negative": 250,
+   "positive": 250
+  },
+  "RC-03": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-04": {
+   "negative": 250,
+   "positive": 250
+  },
+  "RC-05": {
+   "positive": 813,
+   "negative": 821
+  },
+  "RC-06": {
+   "negative": 250,
+   "positive": 250
+  },
+  "RC-07": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-08": {
+   "negative": 250,
+   "positive": 250
+  },
+  "RC-09": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-11": {
+   "negative": 250,
+   "positive": 250
+  },
+  "RC-12": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-13": {
+   "negative": 250,
+   "positive": 67
+  },
+  "RC-14": {
+   "negative": 250,
+   "positive": 240
+  },
+  "RC-18": {
+   "positive": 250,
+   "negative": 250
+  },
+  "RC-20": {
+   "negative": 250,
+   "positive": 250
+  },
+  "RC-21": {
+   "positive": 250,
+   "negative": 250
+  }
+ },
+ "cache_identity": {
+  "move_eval": "sha256(\"move|\"+fen+\"|\"+uci+\"|\"+build+\"|\"+nodes+\"|\"+policy)",
+  "set_eval": "sha256(\"set|\"+fen+\"|\"+\",\".join(sorted(uci))+\"|\"+build+\"|\"+nodes+\"|\"+policy)",
+  "policies": [
+   "multipv-over-B",
+   "full-width",
+   "root-restricted-max"
+  ],
+  "rule": "no future research step may rerun an identical engine evaluation if the same key already exists here"
+ },
+ "what_was_not_preserved": [
+  "a value for each individual move OUTSIDE B. The complement was searched as a SET and only its maximum kept, so per-move regret outside B is new engine work",
+  "the levels of the two chance-partition halves. Their difference is preserved; their values are not, because action_set.py stored the derived quantities",
+  "search depth. The search policy is a fixed node budget, which is preserved; the depth each search reached was not recorded by the instrument",
+  "any evaluation under a WDL model other than sf16. The cp column is preserved, so a different mapping is a pure post-processing step and needs no engine"
+ ],
+ "wall_time_last_line": {},
+ "files": {
+  "engine_evaluations.jsonl": {
+   "bytes": 35043353,
+   "sha256": "f113506dea373e7287f5049c77c5c9d26d68cd314ca36c625df0c2f5acbbfdfc",
+   "lines": 70258
+  },
+  "item_bank.jsonl": {
+   "bytes": 7272402,
+   "sha256": "84be086627efeb5a568e6b606babcaa03f6608d16f439e2684745746d0ebf414",
+   "lines": 9441
+  }
+ },
+ "committed_files": {
+  "engine_evaluations.jsonl.zst": {
+   "bytes": 3673803,
+   "sha256": "e9373269ce1221083a00b39162e3441f982f3a18055e0f62eb4f9fe9878c24ca"
+  },
+  "item_bank.jsonl.zst": {
+   "bytes": 539976,
+   "sha256": "bdebf2ebae7d867723a3c379ea702b65237722cd0b16e12dabdd1e9b331040f5"
+  },
+  "sham.jsonl.zst": {
+   "bytes": 23651,
+   "sha256": "57621e3992beaf68adb8da6491a03fd24c03276cbe241f40bef2eaea133c7b35"
+  },
+  "twin_bank.jsonl.zst": {
+   "bytes": 35276,
+   "sha256": "eba1a3a473d96b4084c927fa533facb3e7897b2bfc74f6a66a51bc44a9c33921"
+  },
+  "twins.jsonl.zst": {
+   "bytes": 23682,
+   "sha256": "8405bbd4a429340e3a3b91873f3a626bf694f2c2d308bb316666ac74d59a492c"
+  }
+ },
+ "storage": {
+  "decision": "committed to git, zstd level 19",
+  "why": "the source corpora are deliberately not vendored because they are a download; this is not. It is 54,959 Stockfish searches at 200,000 nodes -- about an hour of four-way CPU -- and under 5 MB is a smaller cost than reproducing it",
+  "decompress": "zstd -d research/learning-v3/corpus/engine_evaluations.jsonl.zst",
+  "total_bytes": 4296388
+ },
+ "compute_cost_ledger": {
+  "runs": {
+   "sf171-full-corpus": {
+    "items": 8307,
+    "searches": 48155,
+    "engine_failures": 0,
+    "wall_clock": "13:56Z to 14:44Z, about 48 minutes"
+   },
+   "sf171-rc05-twins": {
+    "items": 756,
+    "searches": 4536,
+    "engine_failures": 0,
+    "wall_clock": "14:44Z to 14:47Z, about 3 minutes"
+   },
+   "sf171-rc05-sham-control": {
+    "items": 378,
+    "searches": 2268,
+    "engine_failures": 0,
+    "wall_clock": "15:02Z to 15:04Z, about 2 minutes"
+   },
+   "scan_rule_classes": {
+    "records": 580852,
+    "engine": "none",
+    "wall_clock": "about 8 minutes"
+   }
+  },
+  "totals": {
+   "engine_searches": 54959,
+   "nodes_at_200k_each": 10991800000,
+   "workers": 4,
+   "evaluations_preserved": 70258,
+   "duplicate_evaluations_skipped": 5637,
+   "duplicate_share": 0.0743,
+   "output_bytes_compressed": 4294619,
+   "searches_per_committed_megabyte": 12797.2
+  },
+  "searches_avoided_by_reuse": {
+   "count": 2268,
+   "where": "the sham control needed the 378 SOURCE positions and they were already evaluated in the twin run. Only the 378 sham positions were searched. This is the caching rule applied to the run that motivated it"
+  },
+  "per_run_policy_counts": {
+   "sf171-full-corpus::full-width": 7706,
+   "sf171-full-corpus::multipv-over-B": 27432,
+   "sf171-full-corpus::root-restricted-max": 30067,
+   "sf171-rc05-sham-control::full-width": 378,
+   "sf171-rc05-sham-control::multipv-over-B": 378,
+   "sf171-rc05-sham-control::root-restricted-max": 1456,
+   "sf171-rc05-twins::full-width": 505,
+   "sf171-rc05-twins::multipv-over-B": 490,
+   "sf171-rc05-twins::root-restricted-max": 1846
+  }
+ },
+ "known_corpus_properties": [
+  "the SAMPLE contains repeated positions. Two games that transpose reach the same board and the scan writes one record per game, so 52 (class, position) pairs appear more than once among the 8,307 items -- one of them eleven times, from 1.e4 e5 2.Nf3, at Elos from 1204 to 1902. Items drawn from one position are not independent observations; `extract.py::natural` deduplicates before any corpus-level table",
+  "47 rows carry `provenance_ambiguous`: the raw row could not be tied to exactly one source game even after keying on Elo and the played move. Every candidate is listed rather than one chosen"
+ ]
+}

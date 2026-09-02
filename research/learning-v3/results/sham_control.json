@@ -1,0 +1,196 @@
+{
+ "version": "1.0.0",
+ "what": "sham control: same perturbation, trigger NOT flipped",
+ "prediction": "on sham pairs, regret_b_xs and advantage_xs should have 95% intervals that include zero. If they do not, the twin design measures perturbation and Gate B does not hold",
+ "pairs_scored": 378,
+ "pairs_unscored": 0,
+ "reused_source_evaluations": 378,
+ "note": "the 378 source positions were NOT re-searched. Their values come from the twin-bank raw, which is the caching rule applied to the run that motivated it: 2,268 searches saved",
+ "contrast": {
+  "regret_b_xs": {
+   "n_pairs": 378,
+   "mean_difference": 0.02045899470899471,
+   "sd": 0.24351304909189528,
+   "se": 0.012524959744787595,
+   "ci95": [
+    -0.004089926390788975,
+    0.0450079158087784
+   ],
+   "t": 1.6334579212926377,
+   "share_positive": 0.14814814814814814,
+   "share_zero": 0.7645502645502645
+  },
+  "advantage_xs": {
+   "n_pairs": 378,
+   "mean_difference": -0.02765079365079365,
+   "sd": 0.2732025506828838,
+   "se": 0.014052022929519056,
+   "ci95": [
+    -0.055192758592651006,
+    -0.00010882870893630034
+   ],
+   "t": -1.9677447004948794,
+   "share_positive": 0.1111111111111111,
+   "share_zero": 0.7142857142857143
+  },
+  "b_valid": {
+   "n_pairs": 378,
+   "mean_difference": -0.07407407407407407,
+   "sd": 0.5148354168419426,
+   "se": 0.026480276499280576,
+   "ci95": [
+    -0.125975416012664,
+    -0.022172732135484145
+   ],
+   "t": -2.7973300836222967,
+   "share_positive": 0.09788359788359788,
+   "share_zero": 0.7301587301587301
+  },
+  "v_star_xs_gap": {
+   "n_pairs": 378,
+   "mean_difference": -0.051433862433862436,
+   "sd": 0.24138152519830086,
+   "se": 0.012415325985685642,
+   "ci95": [
+    -0.0757679013658063,
+    -0.027099823501918578
+   ],
+   "t": -4.142771804233216,
+   "share_positive": 0.04497354497354497,
+   "share_zero": 0.8386243386243386
+  },
+  "prescription_size": {
+   "n_pairs": 378,
+   "mean_difference": 0.001378310452981435,
+   "sd": 0.009259497895853624,
+   "se": 0.0004762571814323851,
+   "ci95": [
+    0.00044484637737396003,
+    0.0023117745285889096
+   ],
+   "t": 2.8940465503030226,
+   "share_positive": 0.2751322751322751,
+   "share_zero": 0.4656084656084656
+  }
+ },
+ "difference_of_differences": {
+  "regret_b_xs": {
+   "real": {
+    "n": 378,
+    "mean": -0.10884259259259259,
+    "ci95": [
+     -0.14112627647833242,
+     -0.07655890870685275
+    ],
+    "t": -6.608027827199516
+   },
+   "sham": {
+    "n": 378,
+    "mean": 0.02249074074074074,
+    "ci95": [
+     -0.002040062845778675,
+     0.04702154432726016
+    ],
+    "t": 1.7969999105971588
+   },
+   "difference_of_differences": {
+    "n": 378,
+    "mean": -0.13133333333333333,
+    "ci95": [
+     -0.16564304666473548,
+     -0.09702362000193118
+    ],
+    "t": -7.502637251641925
+   }
+  },
+  "advantage_xs": {
+   "real": {
+    "n": 378,
+    "mean": 0.14851719576719577,
+    "ci95": [
+     0.11287716967487307,
+     0.18415722185951847
+    ],
+    "t": 8.167606357796938
+   },
+   "sham": {
+    "n": 378,
+    "mean": -0.03266931216931217,
+    "ci95": [
+     -0.06015522064854058,
+     -0.005183403690083757
+    ],
+    "t": -2.3296247202540843
+   },
+   "difference_of_differences": {
+    "n": 378,
+    "mean": 0.18118650793650795,
+    "ci95": [
+     0.14313297444181086,
+     0.21924004143120504
+    ],
+    "t": 9.332262287943477
+   }
+  },
+  "b_valid": {
+   "real": {
+    "n": 378,
+    "mean": 0.41005291005291006,
+    "ci95": [
+     0.35524243662125377,
+     0.46486338348456635
+    ],
+    "t": 14.663323510712772
+   },
+   "sham": {
+    "n": 378,
+    "mean": -0.1164021164021164,
+    "ci95": [
+     -0.16750586599121958,
+     -0.06529836681301321
+    ],
+    "t": -4.464411124086989
+   },
+   "difference_of_differences": {
+    "n": 378,
+    "mean": 0.5264550264550265,
+    "ci95": [
+     0.4724387977574558,
+     0.5804712551525972
+    ],
+    "t": 19.102626687047064
+   }
+  },
+  "v_star_xs": {
+   "real": {
+    "n": 378,
+    "mean": 0.13672883597883598,
+    "ci95": [
+     0.10020434601911127,
+     0.1732533259385607
+    ],
+    "t": 7.337228221777429
+   },
+   "sham": {
+    "n": 378,
+    "mean": -0.03458730158730159,
+    "ci95": [
+     -0.05922289136526891,
+     -0.009951711809334265
+    ],
+    "t": -2.751755152691316
+   },
+   "difference_of_differences": {
+    "n": 378,
+    "mean": 0.17131613756613756,
+    "ci95": [
+     0.1353940921402715,
+     0.2072381829920036
+    ],
+    "t": 9.3474529539971
+   }
+  },
+  "n_pairs": 378,
+  "what": "the sham control's own contrast, and the difference of differences. The second is the estimate that is not confounded by 'a piece moved': it subtracts a matched perturbation that did not flip the trigger from one that did, on the same source position"
+ }
+}
