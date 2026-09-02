@@ -55,6 +55,7 @@ add("D2 defect A (promotion incentive) and its repair", 2, 1.00)
 add("D2 defect D (base-rate inflation) and its repair", 2, 1.00)
 add("D2/D6 defect E (a comparison that could not fail) and its repair", 2, 1.00)
 add("coverage denominator split (defect B)", 2, 1.00)
+add("D1b defect G (a denominator the study chose) and its repair", 2, 1.00)
 add("metric renamed WES, not a probability (defect C)", 2, 0.90)
 
 for g in ("G-04", "G-02", "G-01"):
@@ -72,8 +73,14 @@ for x, s in [("X-03", 0.90), ("X-04", 0.90), ("X-05", 0.90), ("X-06", 0.90), ("X
              ("X-13", 0.90), ("X-14", 1.00), ("X-15", 1.00), ("X-19", 0.90), ("X-22", 1.00)]:
     add(f"contradiction class {x}", 1, s)
 for q, s in [("Q25", 1.00), ("Q26", 0.90), ("Q27", 0.90), ("Q28", 0.90), ("Q29", 0.90),
-             ("Q30", 0.90), ("Q31", 0.90), ("Q32", 1.00)]:
+             ("Q30", 0.90), ("Q31", 0.90), ("Q32", 1.00),
+             ("Q33", 1.00), ("Q34", 1.00), ("Q35", 0.90), ("Q36", 1.00)]:
     add(f"omitted authority question {q}", 1, s)
+
+# findings of the second adversarial pass, each produced by a command
+add("3 of 18 laws sit exactly at the 3-domain bar; one miscount demotes each", 2, 1.00)
+add("two different 3-kernel subsets cover 48/48, so coverage cannot pick the taxonomy", 2, 1.00)
+add("the authority denominator is a lower bound: a second attack found 4 more", 2, 1.00)
 
 
 # --------------------------------------------------------------------------------------------
@@ -124,7 +131,8 @@ def ceiling_scientific_authority_unknown() -> tuple[bool, str]:
     # LAW_SUPPORT.json for the counts, and selfcheck.py holds every other file against them.
     q32_repaired = "LAW_SUPPORT.json" in read("SCORING_METHOD_V2.md")
     if q32_repaired and hits == ["Q32"]:
-        return False, "8 unresolved, none scientific (Q32 repaired in v2 by LAW_SUPPORT.json + selfcheck.py)"
+        return False, (f"{len(unresolved)} unresolved, none scientific "
+                       f"(Q32 repaired in v2 by LAW_SUPPORT.json + selfcheck.py)")
     return bool(hits), f"{len(unresolved)} unresolved, scientific among them: {hits or 'none'}"
 
 

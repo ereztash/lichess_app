@@ -94,7 +94,7 @@ of the tree instead.
 | 30 | **`python3 docs/consolidation-research/selfcheck.py`** | **11 predicates: 11 pass** | every study file agrees with `REPO_NATIVE_OPERATING_SYSTEM.md` §B |
 | 31 | **`python3 docs/consolidation-research/selfcheck.py --positive-controls`** | **8 injected drifts, 7 of 11 predicates red, every predicate with an injection went red** | the checker has demonstrated failure (`RNL-04`) |
 | 32 | **`python3 docs/consolidation-research/scoring_selftest.py`** | **7 of 7 controls hold**: P1 5.00 · P2 5.00 · **P3 20.00** · P4 19.29 · P5 5.00 | `D2` discriminates, and its fixture still matches the published table |
-| 33 | **`python3 docs/consolidation-research/score_v2.py`** and **`wes_v2.py`** | **91.82 / 100** and **96.52 `WES`, `WES₉₀` 100.00 %**; published classification vs the bar: **0 disagreements of 18** | §M and §N, computed from the published artefacts |
+| 33 | **`python3 docs/consolidation-research/score_v2.py`** and **`wes_v2.py`** | **90.73 / 100** and **96.74 `WES`, `WES₉₀` 100.00 %**; published classification vs the bar: **0 disagreements of 18** | §M and §N, computed from the published artefacts |
 
 ## What re-execution changed
 

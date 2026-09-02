@@ -126,6 +126,89 @@ an empty list. v1 had entered `17/18` with the right numerator and no way to say
 miss is left standing and costs `D5` 0.83 points and `D2` 0.17; writing a counterexample search for
 `RNL-17` now, after the score is known, is exactly the move this file exists to forbid.
 
+### Defect G — `D1b`'s denominator was chosen by the study, exactly as `D4`'s had been
+
+**Found by the second adversarial pass, attacking the repair for Defect B.** `D1b`'s population was
+defined as
+
+> the **load-bearing** subset: every implementation file named as evidence by a corpus case, an
+> authority-map row, or a law's operational-instance list.
+
+Every one of those three is a study artefact. **The study picks its own denominator**, and picking
+a smaller one raises the score: cite 85 files and quote 16 → `2.59 / 6`; cite only the 16 you
+quoted → `6.00 / 6`. Nothing else in the score falls far enough to pay for the narrowing —
+`admissibility` needs one corpus case and one operational instance per law, which 16 files can
+still supply.
+
+**This is Defect F's shape, one dimension over**, and the repair for Defect B introduced it: `D1a`
+was fixed by giving it a population defined by path, and `D1b` was given a population defined by
+the study's own citations. Fixing one denominator and leaving the other self-chosen is the kind of
+half-repair that only an attack on the repair will find.
+
+**The rationale for "load-bearing" was and is correct.** A `.tsx` component that no rule touches
+carries no evidence about the operating system, and a path-glob denominator would score reading
+theatre. The defect is not the concept. It is that the study, rather than the repository, decides
+membership.
+
+**Repair, written before the corrected `D1b` was computed.** The population becomes a property of
+the **tree**:
+
+> **`D1b` population.** Every implementation file (`shared/**`, `client/src/**`, `server/**`,
+> `api/**`, `drizzle/**` at `.ts/.tsx/.sql`, and `research/**` code at `.py/.ts/.mjs/.sh`) whose
+> path is **named by at least one of the 169 governance files**. A governance document naming a
+> file is the repository asserting that the file carries a rule; the study cannot add to that set
+> or remove from it.
+
+Declining to cite a file no longer removes it from the denominator. The inspection modes
+(`QUOTED` / `NAMED` / `CLASSIFIED`) and the formula are unchanged:
+
+```
+D1b = 6 × ( 0.7 × quoted / named_by_governance  +  0.3 )
+```
+
+**What may not be concluded**, restated: that the files no governance document names are
+unimportant, only that this study has no repository-side warrant for calling them load-bearing.
+
+**The frozen pre-repair result is `91.82 / 100`**, recorded before the new population was counted.
+
+#### Deriving the numerator, and five wrong answers on the way
+
+`quoted` was a hand count in v1 and in v2's first pass. Under Defect E's discipline it had to be
+derived, and `d1b_population.py` derives it. The first derivations were wrong, each in a way an
+inspection of its hits exposed, and the sequence is published because a measurement that only
+shows its last value is asking to be trusted rather than checked:
+
+| # | change | population | quoted | `D1b` | why it changed |
+| --: | --- | ---: | ---: | ---: | --- |
+| 0 | the study's own citation list; `quoted` counted by hand | 85 | 16 | 2.591 | the frozen v2 value |
+| 1 | population = files named by governance; `quoted` = any 40 identical characters | 167 | 55 | 3.183 | matched `'urn 0 if __name__ == "__main__": sys.exi'` and `'"" from __future__ import annotations im'` — boilerplate in dozens of files, evidence about none |
+| 2 | the window must occur in **exactly one** file of the population | 167 | 41 | 2.831 | still matched `'----------------------------------------'`, unique only by accident of length |
+| 3 | study text = its `.md` and `.json`, not its own `.py`; windows must carry ≥4 words and ≥20 letters | 167 | 27 | 2.479 | the study's own scripts share `os.path.dirname(os.path.abspath(__file__))` with the repository's |
+| 4 | a window that is mostly a **file path** does not count | 167 | 24 | 2.404 | a source comment naming `docs/measurement/FALSIFICATION_REGISTER.md` matched the study naming the same document; neither had read the other |
+| 5 | a **bare basename** names a file when it is unique in the corpus | **204** | 28 | 2.376 | `PRODUCTION_READINESS_LEDGER.md:1308` writes ``​`LearningQueue.tsx` renders `rule.grade`​`` and never the full path. Step 5 raised **both** counts and the dimension still fell |
+| 6 | distinctiveness judged on the **line** a window comes from, not on the window | 204 | 26 | 2.335 | `if __name__ == "__main__": sys.exit(main())` is in dozens of files, but a 40-character window at an arbitrary offset inside it differs between them, so each file owned its own slice of a shared idiom |
+| 7 | the study text excludes **this script's own audit trail** | **204** | **26** | **2.335** | `d1b_population.json` records the window each file matched on, so the next run read its own output: `research/b2/controls.py` counted as QUOTED on a string that appeared nowhere else in the study |
+
+Every step was decided by looking at what the detector matched, never at what the score did — and
+step 5 is the proof: it corrected an *under*-count, added 37 files to the population and 4 to the
+numerator, and lowered `D1b` anyway. A tuner would not have shipped step 5.
+
+**Two of the seven wrong answers were caused by the study writing about the study.** Step 6's two
+survivors — `'urn 0 if __name__ == "__main__": sys.exi'` and `'.path.dirname(os.path.abspath(__file__))'` —
+matched because §0-G **quotes them, right here, as examples of false positives**, and because the
+audit trail records them. A measurement whose input includes its own documentation will read its
+documentation. The detector now ignores its own output and judges distinctiveness by line, and it
+returns the same 26 on two consecutive runs.
+
+**`D1b` is a live measurement over the study's own prose, and it moves as the study writes.** The
+published figure is pinned to the run recorded in `EXECUTION_LOG.md` entry 33, with
+[`d1b_population.json`](d1b_population.json) as that run's audit trail. Quoting one more file
+raises it; that is the metric working, not drifting.
+
+**`client/src/components/LearningQueue.tsx` is in the population only because of step 5**, and it
+is the file at the centre of `X-01` and `G-01`. A denominator that could not see it would have
+excluded the study's best-evidenced implementation finding.
+
 ---
 
 ## 1. Dimension 1 — corpus coverage, 20 points, split three ways
@@ -165,8 +248,14 @@ plus `research/**` code at `.py/.ts/.mjs/.sh`.
 
 **Sampling rule, stated rather than assumed.** A `.tsx` component that no law and no corpus case
 depends on carries no evidence about the operating system, and reading it line by line would be
-theatre. What must be inspected is the **load-bearing** subset: every implementation file named as
-evidence by a corpus case, an authority-map row, or a law's operational-instance list.
+theatre. What must be inspected is the **load-bearing** subset.
+
+> **Amended by Defect G.** v2's first definition of load-bearing was *"every implementation file
+> named as evidence by a corpus case, an authority-map row, or a law's operational-instance
+> list"* — all three of which are study artefacts, so the study chose its own denominator and a
+> thinner study would have scored higher. The population is now **every implementation file whose
+> path is named by at least one of the 169 governance files**: a property of the tree, which the
+> study can neither extend nor shrink.
 
 **Inspection modes, in descending strength:**
 
@@ -177,9 +266,12 @@ evidence by a corpus case, an authority-map row, or a law's operational-instance
 | `CLASSIFIED` | placed in a class by path alone |
 
 ```
-D1b = 6 × ( 0.7 × quoted / load_bearing  +  0.3 × load_bearing / load_bearing )
-    = 6 × ( 0.7 × quoted/load_bearing + 0.3 )        [every load-bearing file is at least NAMED]
+D1b = 6 × ( 0.7 × quoted / named_by_governance  +  0.3 )
 ```
+
+where `named_by_governance` is the count of implementation files whose path appears in at least one
+of the 169 governance files, and `quoted` is how many of those the study reproduces ≥ 40 consecutive
+characters of, or cites a line number in.
 
 Full marks require **every** load-bearing implementation file to be `QUOTED`. Naming a file is
 evidence that it was found, not that it was read.
@@ -429,7 +521,8 @@ low `WES₉₀` would mean a few very strong conclusions carrying many weak ones
 | demote every candidate | **yes** — same |
 | pad with straw candidates | **yes** — `admissibility` and `falsification_coverage` fall |
 | enumerate only authority questions that already have answers | **yes, now** — D4's denominator survived a documented completeness attack, and the attack is published so a reader can extend it |
-| define "corpus" as the subset already read | **yes, now** — D1 is split, and D1b's denominator is the load-bearing implementation set, not the files that happen to have been opened |
+| define "corpus" as the subset already read | **yes, now** — D1 is split, and D1b's denominator is fixed by the tree |
+| **shrink `D1b`'s denominator by citing fewer files as evidence** | **yes, now** — Defect G. The population is the set of implementation files the *governance corpus* names; declining to cite one does not remove it |
 | publish only the conclusions with the strongest evidence | **NO. This is a live limitation.** `WES` cannot see an omitted conclusion. The only defence is that the conclusion set is published in full and a reader can add to it. |
 | call an authored sentence executable evidence | **partly** — `EXECUTION_LOG.md` names the command behind every 1.00, so a reader can check; nothing stops a wrong claim except that check |
 | **compute the "published" classification by applying the bar to the evidence**, so `D2`'s two chance-corrected terms cannot disagree | **yes, now** — Defect E. `score_v2.py` parses the classification out of §B and the counts out of `LAW_SUPPORT.json`, re-derives the domain counts from the corpus, and prints the disagreement count. It is 0, and it is a measurement |

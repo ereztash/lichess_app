@@ -406,7 +406,7 @@ INJECTIONS = [
     (AUTHORITY, "| **RNL-06** | **Identity follows semantics, not labels.**",
                 "| **RNL-06** | **L6 identity follows semantics, not labels.**"),
     # SC-11, the plain path: a score on an unlabelled line, in no table, under no v1 heading
-    ("README.md", "**Study v2 score 91.82 / 100 — target > 95 NOT MET.**",
+    ("README.md", "**Study v2 score 90.77 / 100 — target > 95 NOT MET.**",
                   "**Study v2 score 93.40 / 100 — target > 95 NOT MET.**"),
     # SC-11, the column path: strip the column header that labels v1's figures as v1's
     ("AMENDMENT_CHAIN.md", "| field | Study v1 | Study v2 | Δ |",
@@ -425,6 +425,8 @@ def build_fixture(dest: str) -> list[str]:
         if old in s:
             open(p, "w", encoding="utf-8").write(s.replace(old, new, 1))
             applied.append(f"{name}: {old[:44]}…")
+        else:
+            applied.append(f"NOT APPLIED -- {name}: {old[:60]!r} is no longer in the file")
     return applied
 
 

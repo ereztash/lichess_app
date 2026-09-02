@@ -64,6 +64,51 @@ reviewer preparing this product for real users would ask on the first day, and t
 no answer to any of them. One (`Q25`) is a genuine second claimant found in the tree. One (`Q32`)
 is the study's own failure, and it produced seven measurable drifts.
 
+## Round two — the attack was itself incomplete
+
+The second adversarial pass ran the same test again, on the assumption that a reader who found
+eight omissions had probably not found all of them. **It found four more.** Each was checked
+against the tree at the baseline commit.
+
+| # | question | what the tree actually says | verdict |
+| --- | --- | --- | --- |
+| **Q33** | **What is the licence, and what may be reused?** | `LICENSE` at the root — GPL-3.0, *"Decision Lab — a chess instrument that records a decision before the engine answers. Copyright (C) 2026 Erez Tash"* — and `package.json` `"license": "GPL-3.0-or-later"`. Two artefacts, one answer, no third claimant. | **RESOLVED** |
+| **Q34** | **Who may deploy, and what approves a merge to the branch that deploys?** | `.github/` contains exactly one file, `workflows/verify-build.yml`. No `CODEOWNERS`, no branch-protection document, no required-review rule, and `BASELINE.md` §3 records `main` as unprotected. Vercel deploys `main` on push. The gate that must pass is written down; **who may cause it to run is not**. | **NO AUTHORITY** |
+| **Q35** | **What accessibility conformance target must the UI meet?** | WCAG is cited in seven documents and specific criteria are named (`2.2`, `1.4.3`, `2.5.8`), with real enforcement behind some of them — a 44 px tap floor, `forced-colors`, 200 % zoom. No document states the conformance level the product claims, so a reviewer cannot tell whether a new surface is compliant or merely unmentioned. | **PARTIAL** — criteria without a target. Counts as not resolved |
+| **Q36** | **How is a dependency upgraded, and what proves an upgrade safe?** | Nothing. No `dependabot.yml`, no `renovate.json`, no upgrade policy, no pinning rule. `npm audit` runs in CI as a blocking step, which detects a problem and prescribes no response. | **NO AUTHORITY** |
+
+### The corrected count, round two
+
+```
+round-one denominator                              32
+found by the second attack                        + 4
+                                                 ────
+                                                   36
+
+resolved with exactly one current authority
+and a known lineage:
+   round one                                       24
+   Q33 licence                                    + 1
+   Q34, Q36 no authority; Q35 partial              + 0
+                                                 ────
+                                                   25
+
+AUTHORITY RESOLUTION  =  25 / 36  =  0.694
+```
+
+**`D4` is an upper bound, not a measurement.** Two attacks on the same denominator found twelve
+omissions between them, and the second found four after the first had "finished". Nothing here
+establishes that a third attack would find none. The honest statement is:
+
+> **At least 36 critical questions exist. At most 25 of them have one current authority. A further
+> attack can only lower the ratio.**
+
+That is a weaker claim than `24 / 32` and much weaker than v1's `24 / 24`, and it is the strongest
+claim the evidence supports. **Six questions now have no authority at all** — rollback,
+observability, retention, supported runtimes, who may deploy, and dependency upgrades — and the
+cluster named in round one has not merely held, it has grown: every one of the six is
+**operational**.
+
 ## What this does and does not mean
 
 **It does not mean the v1 rows were wrong.** All 24 were re-checked in this pass and all 24 still
@@ -74,9 +119,15 @@ chose to ask, how many have an authority"*, which is close to a tautology, becau
 enumerating questions naturally enumerates the ones they have just found answers to. The honest
 denominator is the set of questions a newcomer would ask, and it is larger.
 
-**And it means the repository has a real, previously unnamed gap.** Four questions with no
+**And it means the repository has a real, previously unnamed gap.** Six questions with no
 authority at all, clustered in exactly one place: **the operational surface** — rollback,
-observability, retention, supported runtimes. That cluster is not random. It is what a repository
-optimised for *evidence discipline* rather than *operations* looks like, and the study's own §H
-never named it because §H was derived from what the repository writes about, not from what a
-newcomer would ask.
+observability, retention, supported runtimes, who may deploy, and dependency upgrades. That cluster
+is not random. It is what a repository optimised for *evidence discipline* rather than *operations*
+looks like, and the study's own §H never named it because §H was derived from what the repository
+writes about, not from what a newcomer would ask.
+
+**A note on what this section is worth.** Round one called `24/24` "close to a tautology" and
+replaced it with `24/32`. Round two found four more questions in an afternoon and made it `25/36`.
+The lesson is not that `36` is right. It is that **an enumeration produced by the party being
+measured is a lower bound**, and the only honest way to publish one is to say so and to show the
+attack that extended it, so the next reader can extend it again.

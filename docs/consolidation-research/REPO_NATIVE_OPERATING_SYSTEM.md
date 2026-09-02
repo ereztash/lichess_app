@@ -47,22 +47,27 @@ was v1's whole argument for `STRONG`, and it still holds. It is not sufficient.
 **What makes it `PARTIAL`.** Three things, and v1 could not see any of them because v1 never asked
 a question it had not already answered:
 
-**1. Four critical questions have no authority at all, and they cluster.** The completeness attack
-([`AUTHORITY_MAP_V2_ATTACK.md`](AUTHORITY_MAP_V2_ATTACK.md)) raised the denominator from 24 to 32.
-**Rollback, observability, retention and supported runtimes** have no answer anywhere in the tree —
-not a weak answer, not a deferred one, *none*. That is not a random scatter: it is the entire
-operational surface. An operating system with no rule for how a bad deploy is undone is partial by
-the ordinary meaning of the word, however disciplined the rest of it is.
+**1. Six critical questions have no authority at all, and they cluster.** Two rounds of the
+completeness attack ([`AUTHORITY_MAP_V2_ATTACK.md`](AUTHORITY_MAP_V2_ATTACK.md)) raised the
+denominator from 24 to 32 and then to **36**. **Rollback, observability, retention, supported
+runtimes, who may deploy, and dependency upgrades** have no answer anywhere in the tree — not a
+weak answer, not a deferred one, *none*. That is not a random scatter: it is the entire operational
+surface. An operating system with no rule for how a bad deploy is undone is partial by the ordinary
+meaning of the word, however disciplined the rest of it is.
+
+And the denominator is a **lower bound**. Round one found eight omissions; round two, run only
+because the first enumeration came from the party being measured, found four more. `24 / 36` is not
+a measurement of completeness — it is the best upper bound two attacks could establish.
 
 And the repository has an idiom for *not yet* — `DEFER` with a written trigger, used on `D06` for
 two years without embarrassment. It was not used here. These four are not deferred. They are
 unnoticed.
 
-**2. The study can vouch for a fraction of the tree.** `D1b` scores **2.59 / 6**: of 85
-load-bearing implementation files, **16 were quoted**. The other 69 were named as evidence and not
-reproduced, and roughly 200 more were never opened. `STRONG` is a claim about a repository; this
-study read a governance corpus in full and an implementation corpus in part, and the corrected
-score is built to make that visible rather than to excuse it.
+**2. The study can vouch for a fraction of the tree.** `D1b` scores **2.34 / 6**: of the 204
+implementation files the repository's own governance names, **26 were quoted**. The other 178 were
+named and not reproduced, and 106 more are outside the governance corpus entirely. `STRONG` is a
+claim about a repository; this study read a governance corpus in full and an implementation corpus
+in part, and the corrected score is built to make that visible rather than to excuse it.
 
 **3. The study broke its own laws about itself.** `X-17` … `X-26`: ten contradictions, eight of
 them inside the study's own artefacts, in a study whose subject is reconciliation. It violated
@@ -93,7 +98,15 @@ Four rules explain the corpus. Each covers 48–81% of the 48 cases on its own; 
 Study v1 left `RNL-12` inside `K1` while excluding `RNL-09`, which `selfcheck.py` caught (`X-26`).
 
 **The kernel is a logical grouping of the sixteen laws below, and only weakly supported by their
-co-occurrence (within/between Jaccard **1.39×**).** The adversary forced that sentence and it stays,
+co-occurrence (within/between Jaccard **1.39×**).**
+
+> **Four is a judgement, not a result.** Study v2's Attack 18 measured whether the corpus forces
+> four rules. It does not: **`K1+K2+K3` covers 48/48 and so does `K1+K2+K4`**, so two different
+> triples already explain every case and coverage cannot even say which rule to drop. The weakest
+> seam is `K2`–`K4` at pairwise Jaccard `0.628`, against `K1`–`K2` at `0.200`. Four rules stand on
+> the claim that *promotion* (`K2`) and *scope* (`K4`) are different things, which is a reading,
+> not a measurement. `SCORING_METHOD_V2.md` §2 declines to score parsimony and says why; this is
+> what declining costs. The adversary forced that sentence and it stays,
 and the figure fell again in Study v2 when a domain law was removed from `K1` — 1.58× (five-rule
 draft) → 1.44× (four-rule v1) → **1.39×** (four-rule v2). Every revision made it worse and every
 revision published the worse number.
@@ -139,6 +152,15 @@ a channel **other than authoring**). Domain counts are computed from the corpus,
 | **RNL-18** | **Refuse rather than skip** — `NOT-MEASURED` is not `PASS`. | 5 | 5 | 3 | 6 | **REPO-NATIVE LAW** |
 
 **16 `REPO-NATIVE LAW` · 2 `DOMAIN LAW` · 0 `LOCAL PATTERN` · 0 `UNSUPPORTED GENERALIZATION`.**
+
+> **Three of the sixteen sit exactly on the bar.** `RNL-07`, `RNL-11` and `RNL-16` each carry
+> **3 domains** against a threshold of 3; a single domain miscount demotes each to `DOMAIN LAW`,
+> taking the model to 13 + 5 and removing a member from `K1`, `K2` and `K4`. Study v2's Attack 19
+> re-examined all three and downgraded none, which is a weaker result than it sounds: the
+> classification is correct **if the mapping is correct**, and κ cannot see a wrong count because
+> the bar reads the same numbers the study assigned. The mapping now ships as
+> [`LAW_SUPPORT.json`](LAW_SUPPORT.json) so a second reader can recount all 48 cases against all 18
+> laws. That is the model's sharpest remaining fragility.
 
 ### Compliance, counted rather than asserted
 
@@ -465,27 +487,30 @@ taking them by hand. Study v1's score and its method are preserved unchanged in
 | dimension | formula input | score |
 | --- | --- | ---: |
 | 1a · Governance coverage | 169 / 169 governing files classified; every mandatory document present | **10.00** / 10 |
-| 1b · Implementation evidence | **16 of 85** load-bearing files `QUOTED`; the rest `NAMED` | **2.59** / 6 |
+| 1b · Implementation evidence | **26 of 204** files the governance corpus names are `QUOTED`; the rest `NAMED` | **2.34** / 6 |
 | 1c · Support evidence | 2,928 / 2,954 tests executed; 19 / 19 migrations applied in CI | **3.98** / 4 |
 | 2 · Classification quality | separation 1.000 · κ 1.000 · falsification 0.944 · admissibility 1.000 | **19.83** / 20 |
 | 3 · Contradiction resolution | 26 / 26 classified with direct evidence; 0 `UNRESOLVED`; 0 critical | **15.00** / 15 |
-| 4 · Authority resolution | **24 / 32** after the completeness attack | **11.25** / 15 |
+| 4 · Authority resolution | **25 / 36** after two rounds of the completeness attack | **10.42** / 15 |
 | 5 · Falsifiability | 17 / 18 laws carry a counterexample search, a failure condition and a boundary | **14.17** / 15 |
 | 6 · Operational grounding | 16 / 16 repo-wide laws with ≥2 executable enforcements, **executed** | **15.00** / 15 |
 
-# 91.82 / 100 — target > 95 NOT MET
+# 90.73 / 100 — target > 95 NOT MET
 
-**Study v1 published 97.78 and it was wrong.** Where the 5.96 points went:
+**Study v1 published 97.78 and it was wrong.** Where the 7.05 points went:
 
 ```
-D1b implementation evidence      −3.41   the study quoted 16 of 85 load-bearing files
-D4  authority resolution         −3.75   24/32, after eight omitted questions were found
+D4  authority resolution         −4.58   25/36, after twelve omitted questions were found
+D1b implementation evidence      −3.67   26 of the 204 files governance names are quoted
 D5  falsifiability               −0.83   RNL-17 carries no counterexample search at all
 D1c support evidence             −0.02   26 tests present and not executed
 D2  classification quality       +2.06   the corrected formula scores the analysis HIGHER
                                  ─────
-                                 −5.96
+                                 −7.05
 ```
+
+**Both losses are denominators the study used to choose.** `D1b` and `D4` account for `−8.25`;
+everything else nets `+1.20`.
 
 **The dimension rebuilt to remove a bias gave the study more credit, not less.** Once `D2` measured
 discrimination instead of generosity, it rose from 17.78 to 19.83. The score fell on **coverage**
@@ -497,10 +522,10 @@ named rather than argued away:
 
 | requirement | met |
 | --- | --- |
-| no critical corpus gap | **no** — 69 of 85 load-bearing implementation files were named and never quoted |
+| no critical corpus gap | **no** — 178 of the 204 implementation files the governance corpus names were never quoted |
 | no unresolved P0 contradiction | yes — 0 of 26 |
 | every repo-wide law operationally grounded | yes — 16 / 16, enforcement executed |
-| the authority map complete against a denominator that survived a completeness attack | **no** — 8 of 32 questions unresolved, 4 with no authority at all |
+| the authority map complete against a denominator that survived a completeness attack | **no** — 11 of 36 unresolved, 6 with no authority at all, and the denominator is a lower bound |
 | at least one falsification attempt per law | **no** — `RNL-17` has none |
 | `selfcheck.py` green on the study, every injected drift red on its fixture | yes — 11 / 11 and 6 / 6 |
 
@@ -508,7 +533,7 @@ named rather than argued away:
 0.17. Writing one now, after the score is known, is the move
 [`SCORING_METHOD_V2.md`](SCORING_METHOD_V2.md) exists to forbid.
 
-**94.6 was not rounded to 95, and 91.82 was not rounded to anything.** The threshold failed. The
+**94.6 was not rounded to 95, and 90.73 was not rounded to anything.** The threshold failed. The
 threshold was not moved.
 
 ---
@@ -518,30 +543,32 @@ threshold was not moved.
 **Renamed.** v1 called this *evidential confidence* and reported `96.35 %`. It is not a confidence.
 Defect C, [`SCORING_METHOD_V2.md`](SCORING_METHOD_V2.md) §0-C.
 
-75 weighted conclusions, weights and strengths per `SCORING_METHOD_V2.md` §5, computed by
+83 weighted conclusions, weights and strengths per `SCORING_METHOD_V2.md` §5, computed by
 [`wes_v2.py`](wes_v2.py).
 
 ```
-Σ weight              = 132
-Σ (weight × strength) = 127.40
+Σ weight              = 144
+Σ (weight × strength) = 139.30
 
-WEIGHTED_EVIDENCE_SUPPORT = 127.40 / 132 × 100 = 96.52
+WEIGHTED_EVIDENCE_SUPPORT = 139.30 / 144 × 100 = 96.74
 WES₉₀ (share of weight at strength ≥ 0.90)     = 100.00 %
 ```
 
-# 96.52 `WES` — target > 95.5 % MET
+# 96.74 `WES` — target > 95.5 % MET
 
 > **This metric is not `P(the model is correct)`.**
 >
 > It has no calibration model and no reference class. It measures the evidence behind what was
 > **published**, not the chance that what was published is true. It cannot fall when a conclusion
 > is omitted rather than published — and, as this study demonstrated on itself, **publishing one
-> more well-evidenced conclusion raises it**: adding Defect E moved it from `96.46` to `96.52`.
+> more well-evidenced conclusion raises it**: publishing Defect E moved it `96.46 → 96.52`,
+> Defect G `→ 96.57`, and the second adversarial pass's own findings `→ 96.74` — rising three times
+> in the pass in which the score fell twice.
 > A reader who wants a confidence will not find one here.
 
 Read it as: *draw one published conclusion at random, weighted by consequence; the expected
-evidence strength of that draw is 0.965.* Strength distribution: **44 conclusions at 1.00**
-(`DIRECT_EXECUTABLE_EVIDENCE`) and **31 at 0.90** (`DIRECT_AUTHORED_EVIDENCE`). Nothing below 0.90
+evidence strength of that draw is 0.965.* Strength distribution: **51 conclusions at 1.00**
+(`DIRECT_EXECUTABLE_EVIDENCE`) and **32 at 0.90** (`DIRECT_AUTHORED_EVIDENCE`). Nothing below 0.90
 entered, because nothing that could not be traced to a run or a cited path was published.
 
 **Why it did not fall when the score did.** The score measures how much of the repository the study
@@ -557,7 +584,7 @@ measuring nothing.
 | 90% | an unresolved critical contradiction | no | 0 `UNRESOLVED`, 0 at P0 |
 | 92% | incomplete core process corpus | no | governance 169 / 169 |
 | 90% | a repo-wide law supported by only one domain | no | weakest is `RNL-07` at 3 domains |
-| 90% | current authority unknown for a critical scientific claim | no | 8 unresolved, none scientific; `Q32` repaired by `LAW_SUPPORT.json` + `selfcheck.py` |
+| 90% | current authority unknown for a critical scientific claim | no | 11 unresolved, none scientific; `Q32` repaired by `LAW_SUPPORT.json` + `selfcheck.py` |
 | 85% | cannot distinguish current from historical evidence | no | 3 items carry an explicit `HISTORICAL` label |
 
 ### What would raise it further, exactly
@@ -569,7 +596,7 @@ measuring nothing.
 | `RNL-11` do not change intervention and instrument together | 0.90 | a measured case in the tree where a version bump and a stimulus change in one step invalidated a later comparison — none exists |
 | `RNL-16` the scheduled adversary | 0.90 | an independently-dispatched review in this session, reproducing a gate's findings |
 | authority / evidence / transition models | 0.90 | a scanner that derives the authority of each question from the tree, which does not exist |
-| `Q26` `Q27` `Q29` `Q30` | 0.90 | nothing this study can run — the repository has no artefact to execute |
+| `Q26` `Q27` `Q29` `Q30` `Q35` | 0.90 | nothing this study can run — the repository has no artefact to execute |
 | `X-03`–`X-06`, `X-08`–`X-10`, `X-13` | 0.90 | these are supersession scopes stated in prose; W3C PROV edges (§G) would make them executable |
 
 ---
@@ -577,14 +604,15 @@ measuring nothing.
 ## Final statement
 
 `REPO-NATIVE OS PARTIALLY VALIDATED — the model holds and its enforcement reproduces, but the study
-can vouch for only 16 of 85 load-bearing implementation files, and 8 of 32 critical questions have
-no single current authority, 4 of them no authority at all.`
+can vouch for only 26 of the 204 implementation files its own governance names, and at least 11
+of at least 36 critical questions have no single current authority, 6 of them no authority at
+all.`
 
-**Study v2 score 91.82 / 100 — target > 95 NOT MET.**
-**Weighted evidence support 96.52 (`WES₉₀` 100.00 %) — target > 95.5 MET.**
+**Study v2 score 90.73 / 100 — target > 95 NOT MET.**
+**Weighted evidence support 96.74 (`WES₉₀` 100.00 %) — target > 95.5 MET.**
 **Verdict `PARTIAL_REPO_NATIVE_OS`, downgraded from `STRONG_REPO_NATIVE_OS`.**
 
-Study v1 published `97.78 / 100`, `96.35 %` and `STRONG_REPO_NATIVE_OS`. Six methodological defects
+Study v1 published `97.78 / 100`, `96.35 %` and `STRONG_REPO_NATIVE_OS`. Seven methodological defects
 moved all three. Every v1 figure, formula and classification is preserved — `SCORING_METHOD.md`
 unchanged, `AUTHORITY_MAP.md` unchanged, the chain in
 [`AMENDMENT_CHAIN.md`](AMENDMENT_CHAIN.md) — because the repository's own `RNL-10` says failed
@@ -594,7 +622,7 @@ history is provenance, and a study that quietly replaces its own numbers cannot 
 file outside `docs/consolidation-research/` differs between the two scores.
 
 Nothing in the repository was moved, renamed, deleted, merged, reformatted or rewritten by either
-pass. The additions are the twenty-two files in `docs/consolidation-research/`. One tracked file —
+pass. The additions are the twenty-four files in `docs/consolidation-research/`. One tracked file —
 `research/discovery-oracle/results/selftest.json` — was overwritten by running the oracle's own
 self-test during Study v1 and was restored immediately with `git checkout --`; the incident, and
 the finding its diff produced, are recorded in `BASELINE.md` Amendment 1 and `CONTRADICTIONS.md`

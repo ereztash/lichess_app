@@ -361,3 +361,233 @@ repair or license Gate 4 to strengthen a sentence.
 **Applied change.** `RNL-16`'s statement in §B is replaced with the two-role form above, and §I records
 that the narrowing was found by execution rather than by reading — which is the same channel that
 produced most of the evidence this whole model rests on.
+
+---
+
+# Study v2 — the second adversarial pass
+
+Attacks 1–11 attacked the **model**. Attacks 12–19 attack the **repairs**, on the mission's own
+principle applied one level up: *nothing gains authority until a step ran that could have taken it
+away.* A corrected score has not earned authority until something tried to break the correction.
+
+Two of the eight found defects. Both are recorded in `SCORING_METHOD_V2.md` §0 with the frozen
+pre-repair number beside them, and both **lowered** the result.
+
+---
+
+## Attack 12 · The corrected `D2` still cannot see a wrong evidence count
+
+**Claim under attack.** `D2 = 19.83 / 20` on separation `1.000` and κ `1.000`, so the
+classification is excellent.
+
+**The attack.** Cohen's κ compares two raters. Here rater two is `bar()`, a deterministic function
+of `domains`, `operational`, `failures` and `non-authoring` — **the same four numbers the study
+assigned**. κ therefore measures whether the study applied its own bar to its own counts
+consistently. It cannot see a wrong count. A study that quietly recorded `RNL-11` at four domains
+instead of three would score κ `1.000` and be wrong.
+
+**What was measured instead.** How close each classification sits to flipping:
+
+| law | domains | margin to the nearest boundary | a −1 miscount would make it |
+| --- | ---: | ---: | --- |
+| `RNL-07` | **3** | **0** | `DOMAIN LAW` |
+| `RNL-11` | **3** | **0** | `DOMAIN LAW` |
+| `RNL-16` | **3** | **0** | `DOMAIN LAW` |
+| `RNL-04` `RNL-06` | 4 | 1 | unchanged (another count binds first) |
+| `RNL-03` | 7 | 1 on *failures* | unchanged |
+| the other twelve | 4–12 | ≥ 2 | unchanged |
+
+**VERDICT: UPHELD, and not repaired.** **Three of the sixteen repository-wide laws sit exactly on
+the bar**, and a single domain miscount demotes each. Under that worst case the model is 13
+repository-wide and 5 domain laws, and `K1`, `K2` and `K4` each lose a member.
+
+The repair would be an independent re-derivation of the domain sets by a reader who did not write
+them, and this study cannot supply one — it is a single reader. What it can supply is the
+**mapping**, now published in [`LAW_SUPPORT.json`](LAW_SUPPORT.json), so the next reader can
+recount all 48 cases against all 18 laws and this attack becomes checkable rather than
+hypothetical. `D2` is not reduced for it, because reducing a dimension after seeing its score is
+the defect `SCORING_METHOD_V2.md` exists to prevent. It is published as the model's sharpest
+remaining fragility instead.
+
+---
+
+## Attack 13 · `D1b`'s denominator was chosen by the study — a defect, found and repaired
+
+**Claim under attack.** `D1` was split (Defect B) so coverage could no longer be defined as the
+subset already read.
+
+**The attack.** `D1a`'s population is a path rule. `D1b`'s was *"every implementation file named as
+evidence by a corpus case, an authority-map row, or a law's operational-instance list"* — three
+study artefacts. **Cite 85 files and quote 16 → `2.59 / 6`. Cite only the 16 you quoted →
+`6.00 / 6`.** Nothing else in the score falls far enough to pay for the narrowing.
+
+**VERDICT: UPHELD. Defect G**, `SCORING_METHOD_V2.md` §0-G. The repair for Defect B introduced it:
+one denominator was fixed and its neighbour left self-chosen.
+
+**Applied change.** The population is now every implementation file that **at least one of the 169
+governance files names** — a property of the tree. `quoted` is derived too, by
+[`d1b_population.py`](d1b_population.py), through five wrong detectors published in §0-G. Result:
+**204 files, 26 quoted, `D1b` 2.335 / 6**, and the total fell from `91.82` to `91.56`; round two of Attack 15 then took it to `90.73`.
+
+---
+
+## Attack 14 · `WES` passes its threshold on self-assigned strengths
+
+**Claim under attack.** `WES = 96.74 > 95.5`, with `WES₉₀ = 100 %`.
+
+**The attack.** Every conclusion sits at `1.00` or `0.90`, so
+
+```
+WES = 90 + 10 × (share of weight at 1.00)
+```
+
+and `WES > 95.5` is exactly the claim **"more than 55 % of published consequence is backed by a
+command that was run"**. The current share is 74 %. Nothing external audits which conclusions
+earned `1.00`; `EXECUTION_LOG.md` names the command behind each, and a reader must check.
+
+**Worse, the metric rose three times in this pass while the score fell twice.** Publishing Defect E
+moved it `96.46 → 96.52`; Defect G, `→ 96.57`; the round-two authority questions and this pass's
+own findings, `→ 96.74`. **Every well-evidenced thing the study says about its own failures raises
+its evidence-support figure.**
+
+**VERDICT: UPHELD, unrepairable inside this study, and published rather than smoothed.** It is why
+the metric was renamed. A reader who wants to know whether the model is right should read `D2`,
+`D5` and the contradiction register, not `WES`.
+
+---
+
+## Attack 15 · The completeness attack was itself incomplete
+
+**Claim under attack.** `AUTHORITY_MAP_V2_ATTACK.md` corrected `24 / 24` to `24 / 32` by finding
+eight omitted questions, and `D4` is now honest.
+
+**The attack.** The round-one enumeration was produced by the same reader whose enumeration had
+just been shown too small. Running the same test again found **four more**: the licence (`Q33`,
+resolved), **who may deploy or approve a merge** (`Q34`, no authority — `.github/` holds one
+workflow, no `CODEOWNERS`, `main` unprotected), the accessibility conformance target (`Q35`,
+partial — criteria without a target), and **dependency upgrade policy** (`Q36`, no authority — no
+`dependabot`, no `renovate`, and `npm audit` blocking with no prescribed response).
+
+**VERDICT: UPHELD.** `D4` falls from `11.25` to `10.42` and the total from `91.56` to `90.73`.
+
+**And the deeper finding.** Two attacks found twelve omissions between them, the second finding
+four after the first had finished. **`D4` is an upper bound, not a measurement.** The published
+claim is now the weaker and true one: *at least 36 critical questions exist, at most 25 have one
+current authority, and a further attack can only lower the ratio.*
+
+Six questions now have no authority at all — rollback, observability, retention, supported
+runtimes, who may deploy, dependency upgrades — and **all six are operational**. The cluster round
+one found did not merely hold. It grew.
+
+---
+
+## Attack 16 · Self-consistency is checked by a program the study wrote about itself
+
+**Claim under attack.** `selfcheck.py` holds every study file against `REPO_NATIVE_OPERATING_SYSTEM.md`
+§B, 11 / 11 green.
+
+**The attack, and what it produced.** The checker was written by the party it checks, so the
+question is not whether it passes but **whether it can fail**. It was tested by writing new files
+and watching:
+
+- `AMENDMENT_CHAIN.md`, written in this pass, immediately turned `SC-04` and `SC-11` red. The
+  predicates read only the line a figure sits on and could not see a `### Study v1` heading or a
+  `| field | Study v1 | Study v2 |` column header. **The predicates were widened** — to the nearest
+  preceding heading and to the figure's own column, column-indexed so a `v1` header cannot exempt
+  the `v2` column — and **two injections were added** so the widened paths have themselves
+  demonstrated failure.
+- `SC-09` was then found to have missed a live drift: `EXECUTION_LOG.md` said *"all 47 cycle
+  sections"* where there are **43 numbered 1–47**, and the pattern required the count to sit next
+  to the noun. Widening it introduced a false positive on *"22 of 43 cycle sections"*, which was
+  excluded before either fix was published.
+
+**VERDICT: PARTIALLY UPHELD.** The checker is real — it caught `X-26` and two fresh drifts nothing
+else would have — and it is not complete. It cannot see a claim it has no predicate for, and both
+gaps found in this pass were of exactly that kind. The fixture now carries **eight** injected
+drifts rather than six, and every predicate covering one goes red.
+
+---
+
+## Attack 17 · Does `PARTIAL` follow, or is it a compromise between `STRONG` and the score?
+
+**The attack.** A downgrade published beside a fallen score looks like the verdict tracking the
+number. Both remaining labels were tested against the evidence rather than against the total.
+
+**Could it still be `STRONG`?** No. v1's argument was *no incompatible process families*, which
+still holds — but it answers "is the model coherent?", not "does the operating system cover the
+repository?". Six critical questions with **no authority at all**, all operational, is a coverage
+failure the coherence argument does not touch. And the repository's own idiom for *not yet* —
+`DEFER` with a written trigger, used on `D06` — was not used for any of the six. They are not
+deferred; they are unnoticed.
+
+**Could it be `WEAK` or "no OS"?** No, and this is the harder half. Every measurement that tests
+whether the model is *right* came back at ceiling: κ `1.000`, separation `1.000`, admissibility
+`1.000`, 26 of 26 contradictions classified with 0 unresolved and 0 critical, 16 of 16
+repository-wide laws with executed enforcement, 28 gates green and 28 controls red, both B3
+verdicts byte-identical on re-run. A weak operating system does not produce those.
+
+**VERDICT: `PARTIAL_REPO_NATIVE_OS` UPHELD, on evidence that points in both directions at once.**
+The model is right about what it covers, and what it covers is not the whole repository.
+
+---
+
+## Attack 18 · Four kernel rules are not forced by the data
+
+**Claim under attack.** Four rules explain the corpus; together they cover 48 / 48.
+
+**The attack.** If four is the right compression, no three should reach 48. Measured over
+`LAW_SUPPORT.json`:
+
+| subset | cases covered | missing |
+| --- | ---: | --- |
+| `K1+K2+K3` | **48 / 48** | — |
+| `K1+K2+K4` | **48 / 48** | — |
+| `K1+K3+K4` | 47 / 48 | `C29` derived grade vs stored grade |
+| `K2+K3+K4` | 47 / 48 | `C31` cross-user leak and the cache that outlived it |
+
+**Two different triples already cover everything.** Coverage cannot choose the taxonomy — it does
+not even choose which rule to drop. The pairwise overlap says where the seam is weakest:
+`K2`–`K4` at Jaccard **0.628**, against `K1`–`K2` at **0.200**.
+
+**VERDICT: UPHELD as stated, and the claim is weakened.** Four rules are a **judgement** that
+`K2` (*nothing gains authority until a step ran that could have taken it away*) and `K4` (*a claim
+may not outrun its evidence*) say different things — one about promotion, one about scope — not a
+result the corpus forces. `SCORING_METHOD_V2.md` §2 already declines to score parsimony, with the
+reason; this attack supplies the number that declining costs. §B carries it.
+
+---
+
+## Attack 19 · Should any repository-wide law be downgraded?
+
+**The attack.** Attack 12 found three laws on the bar. Each was re-examined for whether the
+published class survives its own evidence.
+
+| law | why it is at the bar | verdict |
+| --- | --- | --- |
+| `RNL-07` freeze refuses rather than silently repairs | 3 domains, 2 failures | **HELD.** The three are `research-b3`, `research-discovery` and `testing`, and the enforcement is executable in all three (`run.py`'s seal, `freeze()` throwing, the freeze-refusal tests run in this study) |
+| `RNL-11` do not change intervention and instrument together | 3 domains, **1 non-authoring case** — the joint minimum in the model | **HELD, and already flagged.** §B marks it *weakest* and §I explains why; no case in the tree shows the failure it forbids, only the discipline that avoids it. It is the one law supported mainly by the repository's own practice rather than by a scar |
+| `RNL-16` the scheduled adversary | 3 domains, narrowed by Attack 11 | **HELD.** It was already weakened once in this study by execution, and the narrowed form is what the diff supports |
+
+**VERDICT: NO DOWNGRADES, and that is a weaker result than it sounds.** All three hold on the
+counts as published, and all three would flip on a single miscount. The classification is correct
+if the mapping is correct, and the mapping now ships with the study so a second reader can decide
+whether it is.
+
+---
+
+## What the second pass changed
+
+| | |
+| --- | --- |
+| defects found | **2** — `G` (`D1b`'s self-chosen denominator) and the round-two incompleteness of `D4`'s |
+| score | `91.82` → `91.56` → **`90.73`** |
+| `WES` | `96.46` → **`96.74`**, rising as the score fell, which is the metric's declared limitation demonstrating itself |
+| authority questions | `32` → **`36`**, resolved `24` → **`25`**, and now published as a **lower bound** |
+| laws downgraded | **0**, with three shown to be one miscount from demotion |
+| kernel rules | **4**, with the coverage argument for four shown not to exist |
+| verdict | `PARTIAL_REPO_NATIVE_OS` **upheld** against both neighbours |
+| new predicates and controls | `SC-04`, `SC-09` and `SC-11` widened; injections `6` → **`8`** |
+
+**Nothing was repaired by moving a threshold, a weight or a formula toward a number.** Both
+repairs were written before the figure they changed, both lowered it, and the frozen pre-repair
+totals are recorded beside each.

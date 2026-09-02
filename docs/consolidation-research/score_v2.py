@@ -15,7 +15,7 @@ REPO_NATIVE_OPERATING_SYSTEM.md section B, the counts out of LAW_SUPPORT.json, a
 counts re-derived from PROCESS_CORPUS.json. The comparison can now fail.
 """
 from __future__ import annotations
-import json, os, re, sys
+import importlib.util, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OS_DOC = os.path.join(HERE, "REPO_NATIVE_OPERATING_SYSTEM.md")
@@ -28,13 +28,11 @@ REPO, DOMAIN, LOCAL = "REPO-NATIVE", "DOMAIN", "LOCAL"
 # MEASURED — every one of these came from a command or a count recorded in EXECUTION_LOG.md
 # --------------------------------------------------------------------------------------------
 GOV_POPULATION, GOV_CLASSIFIED = 169, 169        # PROCESS_CORPUS.json governance classification
-LB_IMPL, QUOTED_IMPL = 34, 11                    # shared|client/src|server|api|drizzle, coverage scan
-LB_RESEARCH, QUOTED_RESEARCH = 51, 5             # research/** code, coverage scan
 TESTS_PRESENT, TESTS_EXECUTED = 2954, 2928       # npm test
 MIGRATIONS_PRESENT, MIGRATIONS_APPLIED = 19, 19  # drizzle/migrations/*.sql, applied by CI
 CONTRA_TOTAL, CONTRA_CLASSIFIED = 26, 26         # CONTRADICTIONS.md
 CONTRA_UNRESOLVED, CONTRA_CRITICAL = 0, 0        # CONTRADICTIONS.md
-AUTHORITY_TOTAL, AUTHORITY_RESOLVED = 32, 24     # AUTHORITY_MAP_V2_ATTACK.md
+AUTHORITY_TOTAL, AUTHORITY_RESOLVED = 36, 25     # AUTHORITY_MAP_V2_ATTACK.md, after round two
 ENFORCEMENT_EXECUTED = True                      # npm run gates && npm run gates:controls
 
 
@@ -95,6 +93,31 @@ def recheck_domain_counts() -> None:
             sys.exit(f"score_v2: {law} operational count does not match its list")
         if len(v["failures_explained"]) != v["counts"]["failures"]:
             sys.exit(f"score_v2: {law} failure count does not match its list")
+
+
+def d1b_population() -> tuple[int, int]:
+    """D1b's denominator and numerator, DERIVED. Defect G.
+
+    Runs `d1b_population.py`'s derivation over the baseline tree: the population is every
+    implementation file the 169 governance files name, and the numerator is how many of those the
+    study QUOTES. The study cannot shrink either by citing less. Takes about half a minute.
+
+    `--cached` reads the published `d1b_population.json` instead, which that script writes; the
+    counts are the same and the audit trail is in the file. There is no third path: if neither the
+    derivation nor its audit trail is available the score REFUSES rather than using a constant.
+    """
+    if "--cached" in sys.argv:
+        path = os.path.join(HERE, "d1b_population.json")
+        if not os.path.exists(path):
+            sys.exit("score_v2 --cached: d1b_population.json absent; run d1b_population.py first")
+        doc = json.load(open(path, encoding="utf-8"))
+        return doc["population"], doc["quoted"]
+    spec = importlib.util.spec_from_file_location("d1b", os.path.join(HERE, "d1b_population.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    r = mod.compute()
+    mod.write_cache(r)
+    return len(r["population"]), len(r["quoted"])
 
 
 def bar(ev) -> str:
@@ -162,7 +185,7 @@ def main() -> int:
 
     # D1
     d1a = 10 * min(1, (GOV_CLASSIFIED / GOV_POPULATION) / 0.95)
-    lb, quoted = LB_IMPL + LB_RESEARCH, QUOTED_IMPL + QUOTED_RESEARCH
+    lb, quoted = d1b_population()                 # DERIVED from the tree, not entered (Defect G)
     d1b = 6 * (0.7 * (quoted / lb) + 0.3)
     d1c = 4 * (0.6 * (TESTS_EXECUTED / TESTS_PRESENT)
                + 0.4 * (MIGRATIONS_APPLIED / MIGRATIONS_PRESENT))
@@ -222,7 +245,8 @@ def main() -> int:
 
     print("\nother inputs, each measured elsewhere in this study:")
     print(f"  governance classified            {GOV_CLASSIFIED}/{GOV_POPULATION}")
-    print(f"  load-bearing impl+research code  {lb}, of which QUOTED {quoted}  ({quoted/lb*100:.1f}%)")
+    print(f"  D1b population (named by governance) {lb}, of which QUOTED {quoted}"
+          f"  ({quoted/lb*100:.1f}%)   [derived by d1b_population.py]")
     print(f"  tests executed                   {TESTS_EXECUTED}/{TESTS_PRESENT}"
           f"  ({TESTS_EXECUTED/TESTS_PRESENT*100:.1f}%)")
     print(f"  migrations applied in CI         {MIGRATIONS_APPLIED}/{MIGRATIONS_PRESENT}")
