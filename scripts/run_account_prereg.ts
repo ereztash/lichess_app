@@ -108,10 +108,16 @@ async function runOnce(games: AnalysableGame[], username: string, binary: string
         process.stderr.write(`  ${done}/${total} positions, ${gamesDone}/${games.length} games\n`);
       },
     });
-    const rows = result.inputs.flatMap((input, gameIndex) =>
+    /*
+     * LABELLED BY `keptGameIndexes`, NOT BY POSITION. `inputs` holds one entry per readable game,
+     * so pairing it with `games` by index mislabels every row after the first game the run dropped
+     * -- and this corpus drops 48 of 2,209, every Lichess "From Position" game, because
+     * `gamePositions` replays SAN from the standard opening. See ImportRunResult.keptGameIndexes.
+     */
+    const rows = result.inputs.flatMap((input, position) =>
       decisionsFromGame(input, result.isBook).map((d) => ({
-        gameIndex,
-        gameId: games[gameIndex]?.id ?? null,
+        gameIndex: result.keptGameIndexes[position]!,
+        gameId: games[result.keptGameIndexes[position]!]?.id ?? null,
         ply: d.ply,
         phase: d.phase,
         secondsTaken: d.secondsTaken,
@@ -129,6 +135,7 @@ async function runOnce(games: AnalysableGame[], username: string, binary: string
       rows,
       elapsedMs: Date.now() - started,
       inputs: result.inputs,
+      keptGameIndexes: result.keptGameIndexes,
       isBook: result.isBook,
       unreadable: result.unreadable,
     };
@@ -150,19 +157,20 @@ async function runOnce(games: AnalysableGame[], username: string, binary: string
  * It costs no engine time: the evaluations are already in `inputs`, and only the denominator moves.
  * Same shape as the harness's `withoutBook` reading, for the same reason.
  *
- * INDEX ALIGNMENT IS CHECKED RATHER THAN ASSUMED. `runImportDiagnostic` drops a game whose PGN
- * yields no positions, so `inputs[i]` is `games[i]` only while nothing was dropped. The existing row
- * dump already assumes that; here the assumption is made explicit and the caller is handed `null`
- * instead of a quietly misaligned reading.
+ * IT SELECTS BY `keptGameIndexes`, WHICH IS THE WHOLE REASON THAT FIELD EXISTS. `runImportDiagnostic`
+ * drops a game whose PGN chess.js will not replay, so `inputs[i]` is `games[i]` only while nothing
+ * was dropped. The first version of this function could only refuse when they came apart -- and on
+ * the full corpus they did, on all 48 "From Position" games at once, so the co-primary analysis the
+ * preregistration demanded could not be computed at all. Selecting by source index is the fix, and
+ * it makes the refusal unnecessary rather than merely rarer.
  */
 function readSubset(
-  run: { inputs: ImportedGameInput[]; isBook: BookLookup; unreadable: number },
+  run: { inputs: ImportedGameInput[]; keptGameIndexes: number[]; isBook: BookLookup },
   games: AnalysableGame[],
   keep: (game: AnalysableGame) => boolean,
-): ImportDiagnostic | null {
-  if (run.unreadable !== 0 || run.inputs.length !== games.length) return null;
+): ImportDiagnostic {
   return diagnoseImportedGames(
-    run.inputs.filter((_, index) => keep(games[index]!)),
+    run.inputs.filter((_, position) => keep(games[run.keptGameIndexes[position]!]!)),
     run.isBook,
   );
 }
@@ -260,14 +268,19 @@ async function main() {
   const isStandard = (game: AnalysableGame) => variantOf(game) === "Standard";
   const standardGames = player.games.filter(isStandard);
   const standardDiagnostic = readSubset(a, player.games, isStandard);
-  const standardOnly = standardDiagnostic
-    ? {
-        games: standardGames.length,
-        excludedGames: player.games.length - standardGames.length,
-        reading: fingerprint(standardDiagnostic),
-        ...judge(standardDiagnostic, standardGames.length),
-      }
-    : { unavailable: "a game produced no positions, so inputs and games are not aligned" };
+  const standardOnly = {
+    games: standardGames.length,
+    excludedGames: player.games.length - standardGames.length,
+    /*
+     * Zero on this corpus, and that is the finding rather than a null result: every non-standard
+     * game was ALREADY absent from analysis A, because `gamePositions` cannot replay one. The
+     * filter the preregistration named as co-primary turns out to be a no-op the product performs
+     * on its own, so A and B are the same reading and must agree exactly.
+     */
+    readableGamesRemoved: a.keptGameIndexes.filter((i) => !isStandard(player.games[i]!)).length,
+    reading: fingerprint(standardDiagnostic),
+    ...judge(standardDiagnostic, standardGames.length),
+  };
 
   /*
    * The predicted window for a larger run, computed HERE rather than after seeing a second result.

@@ -118,6 +118,7 @@ async function runOnce(
   withoutBook: ImportDiagnostic;
   rows: unknown[];
   elapsedMs: number;
+  unreadable: number;
 }> {
   const engine = await UciEngine.spawn(binary, { Threads: 1, Hash: 16 });
   engineName = engine.name;
@@ -129,10 +130,23 @@ async function runOnce(
      * own `decisionsFromGame` rather than re-deriving anything is what makes this a dump of the
      * run instead of a second opinion about it.
      */
-    const rows = result.inputs.flatMap((input, gameIndex) =>
+    /*
+     * LABELLED BY `keptGameIndexes`, NOT BY POSITION, and this used to be by position.
+     *
+     * `inputs` holds one entry per READABLE game -- `prepare` returns null for a PGN chess.js will
+     * not replay -- so pairing it with `games` by index mislabels every row after the first dropped
+     * game. Found on a different corpus, where it attributed 463 decisions to 20 games that had
+     * produced no positions at all. The diagnostic was never wrong, because it reads `inputs` and
+     * never looks at a game id; the EVIDENCE was, and evidence that cannot be traced to the game it
+     * came from is what this harness exists to produce.
+     *
+     * Whether it ever bit the canonical record cannot be read off `harness_report.json`, because
+     * that manifest did not record how many games were dropped. It does now.
+     */
+    const rows = result.inputs.flatMap((input, position) =>
       decisionsFromGame(input, result.isBook).map((d) => ({
-        gameIndex,
-        gameId: games[gameIndex]?.id ?? null,
+        gameIndex: result.keptGameIndexes[position]!,
+        gameId: games[result.keptGameIndexes[position]!]?.id ?? null,
         ply: d.ply,
         phase: d.phase,
         secondsTaken: d.secondsTaken,
@@ -155,6 +169,7 @@ async function runOnce(
       withoutBook: diagnoseImportedGames(result.inputs, NO_BOOK),
       rows,
       elapsedMs: Date.now() - started,
+      unreadable: result.unreadable,
     };
   } finally {
     engine.quit();
@@ -209,6 +224,8 @@ async function main() {
     report.push({
       playerId: player.playerId,
       games: player.games.length,
+      /* Games whose PGN produced no positions. Zero is the answer this record needs on file. */
+      unreadableGames: a.unreadable,
       reading: fingerprint(a.diagnostic),
       readingWithoutBook: fingerprint(a.withoutBook),
       /* What the book changed, per bucket, in percentage points of accuracy. */

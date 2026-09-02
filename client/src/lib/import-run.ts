@@ -70,6 +70,24 @@ export interface ImportRunResult {
    * Nothing in the UI reads it; it costs one reference to an array that already exists.
    */
   inputs: ImportedGameInput[];
+  /**
+   * Which of the caller's games each entry of `inputs` came from, as an index into the array that
+   * was passed in.
+   *
+   * WHY THIS HAD TO EXIST. `inputs` holds one entry per READABLE game, and `prepare` returns null
+   * for a game whose PGN chess.js will not replay -- so `inputs[i]` is `games[i]` only while
+   * nothing was dropped, and silently stops being so at the first drop. Every caller that dumped
+   * per-decision evidence paired them by position and therefore mislabelled every row after the
+   * first dropped game.
+   *
+   * That is not hypothetical and the games it drops are not exotic. `gamePositions` replays SAN
+   * from the standard opening position, so a Lichess `From Position` game throws on its first move
+   * and is dropped -- 48 of one real account's 2,209 admissible games, because `admissible()` does
+   * not look at the variant. The diagnostic was never wrong: it reads `inputs` and never looks at a
+   * game id. The EVIDENCE was, and evidence that cannot be traced to the game it came from is the
+   * thing a harness exists to produce.
+   */
+  keptGameIndexes: number[];
   /** The book the run used, so a caller auditing the inputs can reproduce the same exclusions. */
   isBook: BookLookup;
   /** True when the run was stopped early. The diagnostic then covers only what was scored. */
@@ -152,13 +170,16 @@ export async function runImportDiagnostic(
   const isBook = await loadBook();
   const prepared = games.map((g) => prepare(g, username));
   const readable = prepared.filter((p): p is Prepared => p !== null);
+  /* Where each readable game sat in the caller's array, so evidence can name the game it came from. */
+  const readableIndexes = prepared.flatMap((p, index) => (p ? [index] : []));
   const total = readable.reduce((sum, p) => sum + p.fens.length, 0);
 
   const inputs: ImportedGameInput[] = [];
+  const keptGameIndexes: number[] = [];
   let done = 0;
   let gamesDone = 0;
 
-  for (const p of readable) {
+  for (const [position, p] of readable.entries()) {
     if (options.signal?.aborted) break;
     const before = done;
     const evalScores = await analyzePositions(p.fens, analyze, {
@@ -173,6 +194,7 @@ export async function runImportDiagnostic(
      * were scored, and the decisions drawn from them are real. `decisionsFromGame` stops at the
      * end of evalScores on its own.
      */
+    keptGameIndexes.push(readableIndexes[position]!);
     inputs.push({
       fens: p.fens,
       evalScores,
@@ -188,6 +210,7 @@ export async function runImportDiagnostic(
   return {
     diagnostic: diagnoseImportedGames(inputs, isBook),
     inputs,
+    keptGameIndexes,
     isBook,
     unreadable: games.length - readable.length,
     aborted: options.signal?.aborted === true,
