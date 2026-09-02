@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
+    "build": "vite build && tsx scripts/write-build-identity.ts",
     "check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

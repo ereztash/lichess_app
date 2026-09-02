@@ -1,3 +1,23 @@
+-- SUPERSEDED. This file is NOT applied by any pipeline.
+--
+-- CI applies `drizzle/migrations/*.sql` in order, and this file sits outside that directory, so it
+-- has never been applied by the build. It was hand-written on 2026-08-22 (e910084, "feat: add
+-- verified learning transfer loop") before the migration set was generated.
+--
+-- All three tables it creates -- `learning_rules`, `learning_transfers` and
+-- `learning_transfer_results` -- are column-for-column IDENTICAL to their definitions in
+-- `drizzle/migrations/0000_cold_titanium_man.sql`, which is what CI actually runs. It is not a
+-- rival schema; it is a leftover that reads like one, which is worse, because a reader who finds it
+-- has no way to tell.
+--
+-- The authority for the schema is `drizzle/migrations/`, and `verify-build.yml` says so in its own
+-- words: "Schema from the generated SQL, not from a hand-written file that can drift from
+-- schema.ts." Kept rather than deleted because a reader who finds it needs to be told what happened
+-- to it, which is what this header is. Recorded as X-24 in
+-- docs/consolidation-research/CONTRADICTIONS.md and Q25 in scripts/authority-scan.ts, whose
+-- findUnscopedMigrations predicate reddens if any future .sql outside drizzle/migrations/ arrives
+-- without a header like this one.
+
 CREATE TABLE IF NOT EXISTS `learning_rules` (
   `rule_id` varchar(64) NOT NULL,
   `source_decision_id` varchar(36) NOT NULL,
