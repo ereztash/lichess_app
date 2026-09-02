@@ -18,6 +18,8 @@ jobs:
           python-version: '3.12'
       - name: Install analysis-only dependencies
         run: python -m pip install --quiet python-chess==1.999 zstandard pandas scikit-learn
+      - name: Prepare runner-only path aliases
+        run: ln -s research/learning-v3 learning-v3
       - name: Run frozen P3 cross-rule system-invariant experiment
         env:
           PYTHONPATH: research/measurement
