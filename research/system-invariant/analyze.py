@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
-"""The frozen analysis: Test A, Test B, the falsifiers, the scope map and the ecology.
+"""The frozen analysis: Test A, Test B, the falsifiers, functional invariance, the D04 scope map
+and the ecology.
 
-Protocol authority: docs/system-invariant/RESEARCH_QUESTION_FREEZE.md
-Falsifier authority: docs/system-invariant/FALSIFIERS.md
+Protocol authority:      docs/system-invariant/RESEARCH_QUESTION_FREEZE.md
+Falsifier authority:     docs/system-invariant/FALSIFIERS.md
+Interpretation contract: docs/system-invariant/AMENDMENT_01.md
 
-Every threshold this script compares against was written down before the data existed. It reports
-the comparison; it does not choose it. Nothing here refits a threshold, and no section reads a
-result to decide what the next section should do.
+Every threshold compared against here was written down before the data existed. This script reports
+the comparison; it does not choose it. No section reads a result to decide what a later section does.
+
+WHY THE RESAMPLING IS VECTORISED. A position-cluster bootstrap written as a Python loop over 18,000
+positions times 5,000 replicates is 90 million iterations per comparison, and there are dozens of
+comparisons. Every bootstrap below reduces first to per-cluster (correct, total) pairs and then
+resamples cluster INDICES with numpy. Same estimator, same resampling unit, three orders of
+magnitude faster.
 """
 from __future__ import annotations
 
@@ -14,7 +21,6 @@ import argparse
 import collections
 import io
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -27,6 +33,7 @@ PAIR_EPSILON = 0.01
 REASONABLE_BAND = 0.05
 ACCURATE_WIN_PROBABILITY_LOSS = 0.02761
 DERIVATION_SHARE = 0.60
+MIN_REGION_PAIRS = 200
 
 L_FEATURES = [
     "moving_piece_type", "capture_flag", "captured_piece_value", "promotion_piece_type",
@@ -66,8 +73,7 @@ def matrix(rows, cols):
 
 
 def standardize(X):
-    mu = X.mean(axis=0)
-    sd = X.std(axis=0)
+    mu, sd = X.mean(axis=0), X.std(axis=0)
     sd[sd < 1e-12] = 1.0
     return (X - mu) / sd
 
@@ -83,15 +89,30 @@ def ridge_predict(beta, X):
     return np.hstack([X, np.ones((len(X), 1))]) @ beta
 
 
-def cluster_bootstrap(values_by_cluster, stat, rng, reps=BOOTSTRAPS):
-    """Percentile interval, resampling whole clusters. The unit is the cluster, always."""
-    keys = np.array(sorted(values_by_cluster))
-    if len(keys) == 0:
+def ratio_ci(c, n, rng, reps=BOOTSTRAPS):
+    """Cluster bootstrap of sum(c)/sum(n); each element of c and n is one cluster."""
+    K = len(n)
+    if K == 0:
         return [None, None]
     out = np.empty(reps)
-    for i in range(reps):
-        pick = rng.choice(keys, size=len(keys), replace=True)
-        out[i] = stat([values_by_cluster[k] for k in pick])
+    for r in range(reps):
+        idx = rng.integers(0, K, K)
+        tot = n[idx].sum()
+        out[r] = c[idx].sum() / tot if tot else np.nan
+    lo, hi = np.nanquantile(out, [0.025, 0.975])
+    return [float(lo), float(hi)]
+
+
+def diff_ci(ca, na, cb, nb, rng, reps=BOOTSTRAPS):
+    """Cluster bootstrap of a difference of two ratios over the SAME clusters."""
+    K = len(na)
+    if K == 0:
+        return [None, None]
+    out = np.empty(reps)
+    for r in range(reps):
+        idx = rng.integers(0, K, K)
+        ta, tb = na[idx].sum(), nb[idx].sum()
+        out[r] = (ca[idx].sum() / ta if ta else np.nan) - (cb[idx].sum() / tb if tb else np.nan)
     lo, hi = np.nanquantile(out, [0.025, 0.975])
     return [float(lo), float(hi)]
 
@@ -100,16 +121,18 @@ def cluster_bootstrap(values_by_cluster, stat, rng, reps=BOOTSTRAPS):
 # Test A
 
 
-def standardized_coefficient(rows, target, controls, cluster_key, rng, demean_by=None,
-                             permute_target_within=None):
-    """Standardized coefficient of `target` on `quality_loss`, with a cluster interval.
+def standardized_coefficient(rows, target, controls, rng, demean_by=None,
+                             permute_target_within=None, reps=1000):
+    """Standardized coefficient of `target` on `quality_loss`, with a player-cluster interval.
 
-    `demean_by` gives the within-estimator (falsifiers A4 and A5): subtracting the group mean from
-    the outcome and from every regressor leaves only variation inside the group, so a between-group
-    composition effect cannot produce a coefficient.
+    `demean_by` is the within-estimator (F-A4, F-A5): subtracting the group mean from the outcome
+    and from every regressor leaves only variation inside the group, so a between-group composition
+    effect cannot produce a coefficient.
     """
-    cols = [target] + controls
     rows = [r for r in rows if r.get(target) is not None]
+    if len(rows) < len(controls) + 30:
+        return {"beta_standardized": None, "ci95_cluster": [None, None], "n": len(rows),
+                "clusters": 0, "note": "too few rows"}
     if permute_target_within is not None:
         groups = collections.defaultdict(list)
         for i, r in enumerate(rows):
@@ -123,10 +146,10 @@ def standardized_coefficient(rows, target, controls, cluster_key, rng, demean_by
                 shuffled[i] = v
         rows = [dict(r, **{target: v}) for r, v in zip(rows, shuffled)]
 
-    X = standardize(matrix(rows, cols))
+    X = standardize(matrix(rows, [target] + controls))
     y = np.array([r["quality_loss"] for r in rows], dtype=float)
     y = (y - y.mean()) / (y.std() or 1.0)
-    groups = np.array([r[cluster_key] for r in rows])
+    players = np.array([r["player"] for r in rows])
 
     if demean_by is not None:
         g = np.array([r[demean_by] for r in rows])
@@ -134,166 +157,102 @@ def standardized_coefficient(rows, target, controls, cluster_key, rng, demean_by
         gi = np.array([order[v] for v in g])
         counts = np.bincount(gi, minlength=len(order)).astype(float)
         keep = counts[gi] >= 2
-        X, y, gi, groups = X[keep], y[keep], gi[keep], groups[keep]
+        X, y, gi, players = X[keep], y[keep], gi[keep], players[keep]
+        if len(y) < len(controls) + 30:
+            return {"beta_standardized": None, "ci95_cluster": [None, None], "n": int(len(y)),
+                    "clusters": 0, "note": "too few rows after demeaning"}
+        order = {k: i for i, k in enumerate(sorted(set(gi.tolist())))}
+        gi = np.array([order[v] for v in gi])
         counts = np.bincount(gi, minlength=len(order)).astype(float)
-        for arr in (X,):
-            means = np.zeros((len(order), arr.shape[1]))
-            np.add.at(means, gi, arr)
-            means /= np.maximum(counts, 1)[:, None]
-            arr -= means[gi]
-        ymeans = np.zeros(len(order))
-        np.add.at(ymeans, gi, y)
-        ymeans /= np.maximum(counts, 1)
-        y = y - ymeans[gi]
+        means = np.zeros((len(order), X.shape[1]))
+        np.add.at(means, gi, X)
+        X = X - (means / counts[:, None])[gi]
+        ym = np.zeros(len(order))
+        np.add.at(ym, gi, y)
+        y = y - (ym / counts)[gi]
 
-    beta = ridge_fit(X, y)[0]
-
-    by_cluster = collections.defaultdict(list)
-    for i, gkey in enumerate(groups):
-        by_cluster[gkey].append(i)
-
-    def stat(index_lists):
-        idx = np.concatenate([np.array(v) for v in index_lists]) if index_lists else np.array([], int)
-        if len(idx) < len(CONTROLS) + 5:
-            return np.nan
-        return ridge_fit(X[idx], y[idx])[0]
-
-    ci = cluster_bootstrap(dict(by_cluster), stat, rng, reps=1000)
-    return {"beta_standardized": float(beta), "ci95_cluster": ci, "n": int(len(y)),
-            "clusters": int(len(by_cluster))}
+    beta = float(ridge_fit(X, y)[0])
+    uniq, inv = np.unique(players, return_inverse=True)
+    idx_by_cluster = [np.where(inv == k)[0] for k in range(len(uniq))]
+    K = len(uniq)
+    out = np.empty(reps)
+    for r in range(reps):
+        pick = rng.integers(0, K, K)
+        idx = np.concatenate([idx_by_cluster[k] for k in pick])
+        try:
+            out[r] = ridge_fit(X[idx], y[idx])[0]
+        except np.linalg.LinAlgError:
+            out[r] = np.nan
+    lo, hi = np.nanquantile(out, [0.025, 0.975])
+    return {"beta_standardized": beta, "ci95_cluster": [float(lo), float(hi)],
+            "n": int(len(y)), "clusters": int(K)}
 
 
 # --------------------------------------------------------------------------------------------
-# Test B
+# Within-position pair machinery, built once and reused by every later section
 
 
-def pair_index(rows):
-    by_pos = collections.defaultdict(list)
-    for i, r in enumerate(rows):
-        by_pos[(r["game_id"], r["ply"])].append(i)
-    pairs = collections.defaultdict(list)
-    for pos, idx in by_pos.items():
-        for a in range(len(idx)):
-            for b in range(a + 1, len(idx)):
-                i, j = idx[a], idx[b]
-                if abs(rows[i]["regret"] - rows[j]["regret"]) >= PAIR_EPSILON:
-                    pairs[pos].append((i, j))
-    return pairs
+class PairTable:
+    def __init__(self, rows):
+        by_pos = collections.defaultdict(list)
+        for i, r in enumerate(rows):
+            by_pos[(r["game_id"], r["ply"])].append(i)
+        self.rows = rows
+        self.pos_list = sorted(by_pos)
+        pos_index = {p: k for k, p in enumerate(self.pos_list)}
+        I, J, P = [], [], []
+        for p in self.pos_list:
+            idx = by_pos[p]
+            for a in range(len(idx)):
+                for b in range(a + 1, len(idx)):
+                    i, j = idx[a], idx[b]
+                    if abs(rows[i]["regret"] - rows[j]["regret"]) < PAIR_EPSILON:
+                        continue
+                    I.append(i)
+                    J.append(j)
+                    P.append(pos_index[p])
+        self.i = np.array(I, dtype=int)
+        self.j = np.array(J, dtype=int)
+        self.pos = np.array(P, dtype=int)
+        self.npos = len(self.pos_list)
+        ei = np.array([rows[k]["exposure_post"] for k in I], dtype=float)
+        ej = np.array([rows[k]["exposure_post"] for k in J], dtype=float)
+        ri = np.array([rows[k]["regret"] for k in I], dtype=float)
+        rj = np.array([rows[k]["regret"] for k in J], dtype=float)
+        self.dtrue = ri - rj
+        de = ei - ej
+        self.exposure_differs = de != 0
+        self.exposure_agree = ((de > 0) == (self.dtrue > 0)).astype(float)
+        pi = np.array([rows[k]["moving_piece_type"] for k in I])
+        pj = np.array([rows[k]["moving_piece_type"] for k in J])
+        ci = np.array([rows[k]["capture_flag"] for k in I])
+        cj = np.array([rows[k]["capture_flag"] for k in J])
+        self.alike = (pi == pj) & (ci == cj)
+
+    def cluster_counts(self, correct, mask=None):
+        m = np.ones(len(self.pos), dtype=bool) if mask is None else mask
+        c = np.bincount(self.pos[m], weights=correct[m], minlength=self.npos)
+        n = np.bincount(self.pos[m], minlength=self.npos).astype(float)
+        keep = n > 0
+        return c[keep], n[keep]
+
+    def score(self, pred):
+        dp = pred[self.i] - pred[self.j]
+        return np.where(np.abs(dp) < 1e-12, 0.5, ((self.dtrue > 0) == (dp > 0)).astype(float))
 
 
-def ranking_accuracy(rows, pred, pairs):
-    per_pos = {}
-    for pos, plist in pairs.items():
-        c = t = 0.0
-        for i, j in plist:
-            dt = rows[i]["regret"] - rows[j]["regret"]
-            dp = pred[i] - pred[j]
-            t += 1
-            if abs(dp) < 1e-12:
-                c += 0.5
-            elif (dt > 0) == (dp > 0):
-                c += 1.0
-        if t:
-            per_pos[pos] = (c, t)
-    c = sum(v[0] for v in per_pos.values())
-    n = sum(v[1] for v in per_pos.values())
-    return {"accuracy": c / n if n else None, "pairs": int(n), "positions": len(per_pos)}, per_pos
-
-
-def fit_and_rank(train_rows, test_rows, cols, test_pairs):
-    Xtr = standardize(matrix(train_rows, cols))
-    ytr = np.array([r["regret"] for r in train_rows], dtype=float)
-    beta = ridge_fit(Xtr, ytr)
+def fit_predict(train_rows, test_rows, cols):
     raw = matrix(train_rows, cols)
     mu, sd = raw.mean(axis=0), raw.std(axis=0)
     sd[sd < 1e-12] = 1.0
-    Xte = (matrix(test_rows, cols) - mu) / sd
-    pred = ridge_predict(beta, Xte)
-    return ranking_accuracy(test_rows, pred, test_pairs)
+    beta = ridge_fit((raw - mu) / sd, np.array([r["regret"] for r in train_rows], dtype=float))
+    return ridge_predict(beta, (matrix(test_rows, cols) - mu) / sd)
 
 
-def gain_ci(per_pos_a, per_pos_b, rng, reps=BOOTSTRAPS):
-    keys = np.array(sorted(set(per_pos_a) & set(per_pos_b)), dtype=object)
-    if len(keys) == 0:
-        return [None, None]
-    out = np.empty(reps)
-    for i in range(reps):
-        pick = rng.choice(len(keys), size=len(keys), replace=True)
-        ca = na = cb = nb = 0.0
-        for k in pick:
-            key = keys[k]
-            c, n = per_pos_a[key]; ca += c; na += n
-            c, n = per_pos_b[key]; cb += c; nb += n
-        out[i] = ca / na - cb / nb
-    lo, hi = np.quantile(out, [0.025, 0.975])
-    return [float(lo), float(hi)]
-
-
-
-# --------------------------------------------------------------------------------------------
-# Functional invariance (freeze section 7) and the D04 scope map (freeze section 8)
-
-
-def exposure_pair_accuracy(rows, geometry=None):
-    """Model-free: among within-position pairs whose exposure differs, does lower exposure mean
-    lower regret?
-
-    This is the region score for the scope map, and it is deliberately NOT a fitted model. A ridge
-    refitted inside every candidate region would make each region's score depend on how much data
-    that region happened to have, and the scope map would then partly be a map of sample size. A
-    pairwise heuristic has no parameters to fit, so a region's number means the same thing in a
-    thin cell as in a thick one.
-
-    `geometry` optionally restricts to pairs that are geometrically alike or unlike, which is what
-    the functional-invariance question needs.
-    """
-    by_pos = collections.defaultdict(list)
-    for i, r in enumerate(rows):
-        by_pos[(r["game_id"], r["ply"])].append(i)
-    per_pos = {}
-    for pos, idx in by_pos.items():
-        c = t = 0.0
-        for a in range(len(idx)):
-            for b in range(a + 1, len(idx)):
-                i, j = idx[a], idx[b]
-                de = rows[i]["exposure_post"] - rows[j]["exposure_post"]
-                dr = rows[i]["regret"] - rows[j]["regret"]
-                if de == 0 or abs(dr) < PAIR_EPSILON:
-                    continue
-                if geometry is not None:
-                    same_piece = rows[i]["moving_piece_type"] == rows[j]["moving_piece_type"]
-                    same_target = (rows[i]["to_file"], rows[i]["to_rank"]) == (rows[j]["to_file"], rows[j]["to_rank"])
-                    same_capture = rows[i]["capture_flag"] == rows[j]["capture_flag"]
-                    alike = same_piece and same_capture
-                    if geometry == "alike" and not alike:
-                        continue
-                    if geometry == "unlike" and (alike or same_target):
-                        continue
-                t += 1
-                if (de > 0) == (dr > 0):
-                    c += 1.0
-        if t:
-            per_pos[pos] = (c, t)
-    c = sum(v[0] for v in per_pos.values())
-    n = sum(v[1] for v in per_pos.values())
-    return {"accuracy": c / n if n else None, "pairs": int(n), "positions": len(per_pos)}, per_pos
-
-
-def accuracy_ci(per_pos, rng, reps=2000):
-    keys = np.array(sorted(per_pos), dtype=object)
-    if len(keys) == 0:
-        return [None, None]
-    out = np.empty(reps)
-    for i in range(reps):
-        pick = rng.choice(len(keys), size=len(keys), replace=True)
-        c = n = 0.0
-        for k in pick:
-            cc, nn = per_pos[keys[k]]
-            c += cc
-            n += nn
-        out[i] = c / n if n else np.nan
-    lo, hi = np.nanquantile(out, [0.025, 0.975])
-    return [float(lo), float(hi)]
+def summarize(c, n, rng, reps=BOOTSTRAPS):
+    tot = n.sum()
+    return {"accuracy": float(c.sum() / tot) if tot else None, "pairs": int(tot),
+            "positions": int(len(n)), "ci95_cluster_position": ratio_ci(c, n, rng, reps)}
 
 
 def tertile_cuts(rows, key):
@@ -302,19 +261,15 @@ def tertile_cuts(rows, key):
 
 
 def build_selectors(derivation_rows):
-    """The frozen vocabulary of freeze section 8. Cuts come from the derivation subset ONLY, so no
-    cut is a function of the rows it is later judged on."""
+    """The frozen vocabulary of freeze section 8. Cuts come from the derivation subset ONLY."""
     cuts = {k: tertile_cuts(derivation_rows, k)
             for k in ("clock_pressure", "non_pawn_material", "legal_moves", "n_near")}
 
     def tertile(key):
         lo, hi = cuts[key]
-        def f(r):
-            v = r[key]
-            return "low" if v <= lo else ("mid" if v <= hi else "high")
-        return f
+        return lambda r: "low" if r[key] <= lo else ("mid" if r[key] <= hi else "high")
 
-    fams = {
+    return {
         "band": lambda r: r["band"],
         "phase": lambda r: r["phase"],
         "standing": lambda r: r["standing"],
@@ -323,24 +278,38 @@ def build_selectors(derivation_rows):
         "non_pawn_material": tertile("non_pawn_material"),
         "legal_moves": tertile("legal_moves"),
         "n_near": tertile("n_near"),
-    }
-    return fams, cuts
+    }, cuts
 
 
-MIN_REGION_PAIRS = 200
-
-
-def label_region(der_acc, held, ci):
-    if held["pairs"] < MIN_REGION_PAIRS:
-        return "INSUFFICIENT"
-    if ci[0] is None:
+def label_region(der_acc, held_acc, held_pairs, ci):
+    if held_pairs < MIN_REGION_PAIRS or ci[0] is None or held_acc is None:
         return "INSUFFICIENT"
     if ci[0] > 0.5:
-        keeps = (held["accuracy"] - 0.5) >= 0.5 * (der_acc - 0.5) if der_acc > 0.5 else False
-        return "SUPPORTED" if keeps else "WEAK"
+        if der_acc is None or der_acc <= 0.5:
+            return "WEAK"
+        return "SUPPORTED" if (held_acc - 0.5) >= 0.5 * (der_acc - 0.5) else "WEAK"
     if ci[1] < 0.5:
         return "REVERSED"
     return "WEAK"
+
+
+def region_stats(pt, pos_mask, rng, reps=2000):
+    m = pos_mask[pt.pos] & pt.exposure_differs
+    c, n = pt.cluster_counts(pt.exposure_agree, m)
+    tot = n.sum()
+    if not tot:
+        return {"accuracy": None, "pairs": 0, "positions": 0}, [None, None]
+    return ({"accuracy": float(c.sum() / tot), "pairs": int(tot), "positions": int(len(n))},
+            ratio_ci(c, n, rng, reps))
+
+
+def pos_attr(pt, fn):
+    first = {}
+    for r in pt.rows:
+        key = (r["game_id"], r["ply"])
+        if key not in first:
+            first[key] = str(fn(r))
+    return np.array([first[p] for p in pt.pos_list], dtype=object)
 
 
 def main() -> int:
@@ -357,111 +326,166 @@ def main() -> int:
     B = list(read_zst(args.table_b))
 
     players = sorted({r["player"] for r in A})
-    rng_split = np.random.default_rng(SEED)
-    perm = rng_split.permutation(len(players))
-    n_der = int(round(DERIVATION_SHARE * len(players)))
-    derivation = {players[i] for i in perm[:n_der]}
+    perm = np.random.default_rng(SEED).permutation(len(players))
+    derivation = {players[i] for i in perm[: int(round(DERIVATION_SHARE * len(players)))]}
+
     result = {
         "protocol": "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md",
-        "seed": SEED,
-        "engine_searches_run": 0,
-        "n_decisions": len(A),
-        "n_candidate_rows": len(B),
-        "n_players": len(players),
+        "interpretation_contract": "docs/system-invariant/AMENDMENT_01.md",
+        "seed": SEED, "engine_searches_run": 0,
+        "n_decisions": len(A), "n_candidate_rows": len(B), "n_players": len(players),
         "derivation_players": len(derivation),
         "judgement_players": len(players) - len(derivation),
     }
 
-    # ---- noise floor: what the outcome reads when the human played the engine's own best move
     best_rows = [r for r in A if r["played_is_best"]]
     ql = np.array([r["quality_loss"] for r in best_rows])
     result["outcome_noise_floor"] = {
-        "what": "quality_loss on decisions where the human played the engine's own best move; it should be 0 and is not, because the parent and child searches are different searches",
-        "n": len(best_rows),
-        "mean": float(ql.mean()) if len(ql) else None,
-        "median": float(np.median(ql)) if len(ql) else None,
-        "share_above_zero": float((ql > 1e-9).mean()) if len(ql) else None,
-        "share_above_accurate_threshold": float((ql > ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(ql) else None,
-        "p95": float(np.quantile(ql, 0.95)) if len(ql) else None,
+        "what": "quality_loss where the human played the engine's own best move; it should be 0",
+        "n": len(best_rows), "mean": float(ql.mean()), "median": float(np.median(ql)),
+        "share_above_zero": float((ql > 1e-9).mean()),
+        "share_above_accurate_threshold": float((ql > ACCURATE_WIN_PROBABILITY_LOSS).mean()),
+        "p95": float(np.quantile(ql, 0.95)),
     }
 
-    # ---- Test A
-    testa = {}
-    for target in ("exposure_delta", "exposure_post"):
-        testa[target] = standardized_coefficient(A, target, CONTROLS, "player", rng)
-    no_value = [c for c in CONTROLS if c not in VALUE_CONTROLS]
+    print("Test A ...", flush=True)
+    testa = {t: standardized_coefficient(A, t, CONTROLS, rng)
+             for t in ("exposure_delta", "exposure_post")}
     testa["exposure_delta_without_value_controls"] = standardized_coefficient(
-        A, "exposure_delta", no_value, "player", rng)
+        A, "exposure_delta", [c for c in CONTROLS if c not in VALUE_CONTROLS], rng)
     result["test_a"] = testa
 
-    # ---- Test A falsifiers
-    fals = {}
-    fals["F_A1_rating_bands"] = {
-        band: standardized_coefficient([r for r in A if r["band"] == band], "exposure_delta",
-                                       CONTROLS, "player", rng)
-        for band in sorted({r["band"] for r in A})
-    }
-    fals["F_A2_phase"] = {
-        ph: standardized_coefficient([r for r in A if r["phase"] == ph], "exposure_delta",
-                                     CONTROLS, "player", rng)
-        for ph in sorted({r["phase"] for r in A})
-    }
+    print("Test A falsifiers ...", flush=True)
     cp = np.array([r["clock_pressure"] for r in A])
     t1, t2 = np.quantile(cp, [1 / 3, 2 / 3])
-    def clock_tertile(r):
-        return "low" if r["clock_pressure"] <= t1 else ("mid" if r["clock_pressure"] <= t2 else "high")
-    fals["F_A3_clock_tertile"] = {
-        t: standardized_coefficient([r for r in A if clock_tertile(r) == t], "exposure_delta",
-                                    CONTROLS, "player", rng)
-        for t in ("low", "mid", "high")
-    }
-    fals["F_A3_cuts"] = {"tertile_1": float(t1), "tertile_2": float(t2)}
-    fals["F_A4_within_player"] = standardized_coefficient(A, "exposure_delta", CONTROLS, "player",
-                                                          rng, demean_by="player")
-    fals["F_A5_within_game"] = standardized_coefficient(A, "exposure_delta", CONTROLS, "player",
-                                                        rng, demean_by="game_id")
-    fals["F_A9_permuted_within_player"] = standardized_coefficient(
-        A, "exposure_delta", CONTROLS, "player", rng, permute_target_within="player")
-    result["test_a_falsifiers"] = fals
 
-    # ---- Test B, judged on held-out players
+    def tert(r):
+        return "low" if r["clock_pressure"] <= t1 else ("mid" if r["clock_pressure"] <= t2 else "high")
+
+    result["test_a_falsifiers"] = {
+        "F_A1_rating_bands": {b: standardized_coefficient(
+            [r for r in A if r["band"] == b], "exposure_delta", CONTROLS, rng, reps=400)
+            for b in sorted({r["band"] for r in A})},
+        "F_A2_phase": {p: standardized_coefficient(
+            [r for r in A if r["phase"] == p], "exposure_delta", CONTROLS, rng, reps=400)
+            for p in sorted({r["phase"] for r in A})},
+        "F_A3_clock_tertile": {t: standardized_coefficient(
+            [r for r in A if tert(r) == t], "exposure_delta", CONTROLS, rng, reps=400)
+            for t in ("low", "mid", "high")},
+        "F_A3_cuts": {"tertile_1": float(t1), "tertile_2": float(t2)},
+        "F_A4_within_player": standardized_coefficient(A, "exposure_delta", CONTROLS, rng,
+                                                       demean_by="player"),
+        "F_A5_within_game": standardized_coefficient(A, "exposure_delta", CONTROLS, rng,
+                                                     demean_by="game_id"),
+        "F_A9_permuted_within_player": standardized_coefficient(
+            A, "exposure_delta", CONTROLS, rng, permute_target_within="player"),
+    }
+
+    print("Test B ...", flush=True)
     train = [r for r in B if r["player"] in derivation]
     test = [r for r in B if r["player"] not in derivation]
-    test_pairs = pair_index(test)
-    ladder = {
-        "L": L_FEATURES,
-        "L_Epost": L_FEATURES + ["exposure_post"],
-        "L_Edelta": L_FEATURES + ["exposure_delta"],
-        "L_Material": L_FEATURES + MATERIAL_FEATURES,
-        "L_Mobility": L_FEATURES + MOBILITY_FEATURES,
-    }
+    PT = PairTable(test)
+    ladder = {"L": L_FEATURES,
+              "L_Epost": L_FEATURES + ["exposure_post"],
+              "L_Edelta": L_FEATURES + ["exposure_delta"],
+              "L_Material": L_FEATURES + MATERIAL_FEATURES,
+              "L_Mobility": L_FEATURES + MOBILITY_FEATURES}
     for name, col in NEG_CONTROLS.items():
         ladder[f"L_{name}"] = L_FEATURES + [col]
 
-    stats, per_pos = {}, {}
+    counts, stats = {}, {}
     for name, cols in ladder.items():
-        s, pp = fit_and_rank(train, test, cols, test_pairs)
-        stats[name] = s
-        per_pos[name] = pp
+        c, n = PT.cluster_counts(PT.score(fit_predict(train, test, cols)))
+        counts[name] = (c, n)
+        stats[name] = summarize(c, n, rng)
+
     comparisons = {}
     for a, b in (("L_Epost", "L"), ("L_Edelta", "L"), ("L_Epost", "L_Material"),
                  ("L_Epost", "L_Mobility"), ("L_Epost", "L_Edelta")):
         comparisons[f"{a}_minus_{b}"] = {
             "gain": stats[a]["accuracy"] - stats[b]["accuracy"],
-            "ci95_cluster_position": gain_ci(per_pos[a], per_pos[b], rng),
-        }
+            "ci95_cluster_position": diff_ci(*counts[a], *counts[b], rng)}
     for name in NEG_CONTROLS:
         comparisons[f"L_{name}_minus_L"] = {
             "gain": stats[f"L_{name}"]["accuracy"] - stats["L"]["accuracy"],
-            "ci95_cluster_position": gain_ci(per_pos[f"L_{name}"], per_pos["L"], rng),
-        }
+            "ci95_cluster_position": diff_ci(*counts[f"L_{name}"], *counts["L"], rng)}
     result["test_b"] = {"models": stats, "comparisons": comparisons,
                         "held_out_on": "players not in the derivation 60%"}
 
-    # ---- ecology, under AMENDMENT_01 section C.
-    # Six estimands with stated denominators. The naive pooled rate survives only as O6 and is
-    # labelled, because B3 accepts sides at band rates spanning more than twelvefold and a pooled
-    # prevalence over this sample would describe the sampler rather than chess.
+    print("functional invariance ...", flush=True)
+    fi = {}
+    for label, mask in (("all_pairs", PT.exposure_differs),
+                        ("alike_geometry", PT.exposure_differs & PT.alike),
+                        ("unlike_geometry", PT.exposure_differs & ~PT.alike)):
+        c, n = PT.cluster_counts(PT.exposure_agree, mask)
+        fi[label] = summarize(c, n, rng, reps=2000)
+    fi["unlike_minus_alike_gain"] = (
+        (fi["unlike_geometry"]["accuracy"] or 0) - (fi["alike_geometry"]["accuracy"] or 0))
+    fi["what_alike_means"] = "same moving piece type and same capture status"
+    result["functional_invariance"] = fi
+
+    print("scope map ...", flush=True)
+    der_rows = [r for r in B if r["player"] in derivation]
+    fams, cuts = build_selectors(der_rows)
+    PT_der = PairTable(der_rows)
+    der_overall, der_ci = region_stats(PT_der, np.ones(PT_der.npos, dtype=bool), rng)
+    held_overall, held_ci = region_stats(PT, np.ones(PT.npos, dtype=bool), rng)
+    der_overall["ci95_cluster_position"] = der_ci
+    held_overall["ci95_cluster_position"] = held_ci
+
+    attrs_der = {f: pos_attr(PT_der, fn) for f, fn in fams.items()}
+    attrs_held = {f: pos_attr(PT, fn) for f, fn in fams.items()}
+    depth1 = {}
+    for fam in sorted(fams):
+        for value in sorted(set(attrs_der[fam].tolist())):
+            d, _ = region_stats(PT_der, attrs_der[fam] == value, rng, reps=600)
+            h, ci = region_stats(PT, attrs_held[fam] == value, rng, reps=600)
+            h["ci95_cluster_position"] = ci
+            depth1[f"{fam}={value}"] = {
+                "label": label_region(d["accuracy"], h["accuracy"], h["pairs"], ci),
+                "derivation": d, "held_out": h}
+
+    fam_names = sorted(fams)
+    best = None
+    for a in range(len(fam_names)):
+        for b in range(a + 1, len(fam_names)):
+            fa, fb = fam_names[a], fam_names[b]
+            for va in sorted(set(attrs_der[fa].tolist())):
+                for vb in sorted(set(attrs_der[fb].tolist())):
+                    mask = (attrs_der[fa] == va) & (attrs_der[fb] == vb)
+                    if mask.sum() < 30:
+                        continue
+                    m = mask[PT_der.pos] & PT_der.exposure_differs
+                    c, n = PT_der.cluster_counts(PT_der.exposure_agree, m)
+                    tot = n.sum()
+                    if tot < MIN_REGION_PAIRS:
+                        continue
+                    acc = float(c.sum() / tot)
+                    if best is None or acc > best[0]:
+                        best = (acc, fa, va, fb, vb, int(tot), int(len(n)))
+
+    scope = {
+        "selector_vocabulary": fam_names,
+        "tertile_cuts_from_derivation_only": cuts,
+        "min_region_pairs": MIN_REGION_PAIRS,
+        "region_score": "model-free: among within-position pairs whose exposure differs, how often the lower-exposure move has the lower regret",
+        "overall_derivation": der_overall,
+        "overall_held_out": held_overall,
+        "depth1": depth1,
+    }
+    if best is not None:
+        acc, fa, va, fb, vb, tot, npos = best
+        h, ci = region_stats(PT, (attrs_held[fa] == va) & (attrs_held[fb] == vb), rng, reps=2000)
+        h["ci95_cluster_position"] = ci
+        scope["depth2_frozen_winner"] = {
+            "region": f"{fa}={va} AND {fb}={vb}",
+            "chosen_on": "derivation players only, before any held-out number was read",
+            "derivation": {"accuracy": acc, "pairs": tot, "positions": npos},
+            "held_out": h,
+            "label": label_region(acc, h["accuracy"], h["pairs"], ci)}
+    result["scope_map"] = scope
+
+    print("ecology ...", flush=True)
     per_side = {r["game_id"]: r for r in (json.loads(l) for l in open(args.per_side))}
     manifest = json.loads(Path(args.ingest_manifest).read_text())
     cand = manifest["candidate_sides_by_band"]
@@ -473,16 +497,14 @@ def main() -> int:
         by_pos[(r["game_id"], r["ply"])].append(r)
     a_by_pos = {(r["game_id"], r["ply"]): r for r in A}
 
-    pos_info = {}
+    infos = []
     for pos, cands in by_pos.items():
-        best = max(c["cand_wp"] for c in cands)
-        reasonable = [c for c in cands if best - c["cand_wp"] <= REASONABLE_BAND]
-        exps = {c["exposure_post"] for c in reasonable}
-        is_opp = len(reasonable) >= 2 and len(exps) >= 2
+        best_wp = max(c["cand_wp"] for c in cands)
+        reasonable = [c for c in cands if best_wp - c["cand_wp"] <= REASONABLE_BAND]
+        is_opp = len(reasonable) >= 2 and len({c["exposure_post"] for c in reasonable}) >= 2
         rec = {"is_opp": is_opp, "band": cands[0]["band"], "player": cands[0]["player"],
                "game_id": cands[0]["game_id"], "chose_higher": None, "cost": None,
-               "played_in_reasonable": None,
-               "two_plus_reasonable": len(reasonable) >= 2}
+               "played_in_reasonable": None, "two_plus_reasonable": len(reasonable) >= 2}
         if is_opp:
             played = [c for c in reasonable if c["is_played"]]
             rec["played_in_reasonable"] = bool(played)
@@ -492,12 +514,9 @@ def main() -> int:
                 arow = a_by_pos.get(pos)
                 if rec["chose_higher"] and arow is not None:
                     rec["cost"] = arow["quality_loss"]
-        pos_info[pos] = rec
+        infos.append(rec)
 
-    infos = list(pos_info.values())
     bands = sorted({i["band"] for i in infos})
-
-    # O1: per-decision opportunity rate within band. Denominator: analysed decisions in that band.
     O1 = {}
     for b in bands:
         sub = [i for i in infos if i["band"] == b]
@@ -505,10 +524,7 @@ def main() -> int:
                  "opportunities": sum(1 for i in sub if i["is_opp"]),
                  "denominator_decisions": len(sub)}
 
-    # O2: opportunities per game within band, on UNCAPPED sides only, where the scored decisions
-    # ARE the side's complete eligible sequence. Exact, not extrapolated.
-    opp_by_game = collections.Counter()
-    dec_by_game = collections.Counter()
+    opp_by_game, dec_by_game = collections.Counter(), collections.Counter()
     for i in infos:
         dec_by_game[i["game_id"]] += 1
         if i["is_opp"]:
@@ -516,37 +532,38 @@ def main() -> int:
     uncapped = {g for g, r in per_side.items() if not r["capped"]}
     O2 = {}
     for b in bands:
-        games = [g for g in dec_by_game
-                 if g in uncapped and per_side.get(g, {}).get("band") == b]
-        if not games:
-            O2[b] = {"opportunities_per_game": None, "games": 0}
-            continue
+        games = [g for g in dec_by_game if g in uncapped and per_side.get(g, {}).get("band") == b]
         tot = sum(opp_by_game[g] for g in games)
-        O2[b] = {"opportunities_per_game": tot / len(games),
-                 "opportunities": tot,
-                 "denominator_games_uncapped_sides": len(games),
-                 "games_needed_for_one_opportunity_O3": (len(games) / tot) if tot else None}
+        O2[b] = {"opportunities_per_game": (tot / len(games)) if games else None,
+                 "opportunities": tot, "denominator_games": len(games),
+                 "O3_games_needed_for_one_opportunity_UPPER_BOUND":
+                     (len(games) / tot) if tot else None}
 
-    capped_games = [g for g in dec_by_game if g in per_side and per_side[g]["capped"]]
-    capped_note = {
-        "capped_sides_excluded_from_O2": len(capped_games),
-        "their_uncapped_eligible_decisions": sum(per_side[g]["eligible_decisions_uncapped"]
-                                                 for g in capped_games),
-        "their_decisions_in_table": sum(per_side[g]["decisions_in_table"] for g in capped_games),
-        "bias_direction": "excluding them biases O2 DOWNWARD with respect to long games",
+    unc_sides = [r for r in per_side.values() if not r["capped"]]
+    scored_unc = sum(r["decisions_in_table"] for r in unc_sides)
+    oplies_unc = sum(r["opportunity_eligible_plies"] for r in unc_sides)
+    exactness = {
+        "question": "on uncapped sides, is the scored-decision sequence identical to the complete sequence of plies the frozen opportunity definition could apply to?",
+        "answer": "NO",
+        "uncapped_sides": len(unc_sides),
+        "sides_where_sequences_match": sum(
+            1 for r in unc_sides if r["decisions_in_table"] == r["opportunity_eligible_plies"]),
+        "scored_decisions": scored_unc,
+        "opportunity_eligible_plies": oplies_unc,
+        "coverage": scored_unc / oplies_unc,
+        "missing_plies": oplies_unc - scored_unc,
+        "why": "B3 excludes the player's first move (no derivable think time), the last ply of the game, and impossible think times. All three could host an opportunity. Forced positions are the only harmless exclusion, since one legal move cannot yield two reasonable candidates.",
+        "consequence": "O2 is NOT exact and is NOT repaired. It counts opportunities per game over B3-ELIGIBLE decisions.",
+        "bias_direction": "O2 is a LOWER bound on opportunities per game; O3 an UPPER bound on games needed. Conservative with respect to the GO threshold.",
     }
 
-    # O4: pooled population rate, weighted by each band's share of candidate sides in THIS prefix.
     O4 = sum(W[b] * O1[b]["rate"] for b in bands if b in W)
-    # O5: player-weighted, every player one observation regardless of how many decisions they gave.
     by_player = collections.defaultdict(list)
     for i in infos:
         by_player[i["player"]].append(i)
     player_rates = [sum(1 for x in v if x["is_opp"]) / len(v) for v in by_player.values()]
-    # O6: the naive pooled rate. Sampler-weighted. Never a population rate.
     O6 = sum(1 for i in infos if i["is_opp"]) / len(infos)
 
-    # headroom and consequence, overall and by band
     def headroom_of(sub):
         den = [i for i in sub if i["is_opp"] and i["played_in_reasonable"]]
         num = [i for i in den if i["chose_higher"]]
@@ -555,29 +572,17 @@ def main() -> int:
                 "denominator_opportunities_with_played_move_reasonable": len(den)}
 
     costs = np.array([i["cost"] for i in infos if i["cost"] is not None], dtype=float)
-    noise = result["outcome_noise_floor"]
-    noise_p95 = noise.get("p95")
-    share_frozen = float((costs >= ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(costs) else None
-    share_secondary = (float((costs >= noise_p95).mean())
-                       if len(costs) and noise_p95 is not None else None)
-
-    # AMENDMENT_01 B.4: is the consequence rate separable from the noise floor at all?
     cost_games = [i["game_id"] for i in infos if i["cost"] is not None]
-    game_keys = sorted(set(cost_games))
+    noise = result["outcome_noise_floor"]
     ci_cons = [None, None]
-    if game_keys:
-        idx_by_game = collections.defaultdict(list)
-        for k, g in enumerate(cost_games):
-            idx_by_game[g].append(k)
-        reps = np.empty(2000)
-        for r_i in range(2000):
-            pick = rng.choice(len(game_keys), size=len(game_keys), replace=True)
-            vals = np.concatenate([costs[idx_by_game[game_keys[k]]] for k in pick])
-            reps[r_i] = (vals >= ACCURATE_WIN_PROBABILITY_LOSS).mean()
-        lo, hi = np.quantile(reps, [0.025, 0.975])
-        ci_cons = [float(lo), float(hi)]
-    noise_rate = noise.get("share_above_accurate_threshold")
-    separable = (ci_cons[0] is not None and noise_rate is not None and ci_cons[0] > noise_rate)
+    if len(costs):
+        gk = sorted(set(cost_games))
+        gi = {g: k for k, g in enumerate(gk)}
+        arr = np.array([gi[g] for g in cost_games])
+        hit = (costs >= ACCURATE_WIN_PROBABILITY_LOSS).astype(float)
+        ci_cons = ratio_ci(np.bincount(arr, weights=hit, minlength=len(gk)),
+                           np.bincount(arr, minlength=len(gk)).astype(float), rng)
+    noise_rate = noise["share_above_accurate_threshold"]
 
     result["ecology"] = {
         "estimand_authority": "docs/system-invariant/AMENDMENT_01.md section C",
@@ -585,10 +590,12 @@ def main() -> int:
         "target_population_for_O4": "analysed-eligible sides of rated 180+0 standard games played 2026-07-01 UTC, ratings 800-2599, inside the 520,000,000-byte prefix this mission consumed",
         "O4_weights_band_share_of_candidate_sides": W,
         "O1_per_decision_rate_by_band": O1,
-        "O2_opportunities_per_game_by_band_uncapped_sides_only": O2,
-        "O2_capped_sides": capped_note,
+        "O2_opportunities_per_game_over_B3_ELIGIBLE_DECISIONS_by_band": O2,
+        "O2_exactness_check": exactness,
+        "O2_capped_sides_excluded": sum(1 for g in dec_by_game
+                                        if g in per_side and per_side[g]["capped"]),
         "O4_pooled_population_weighted_rate": O4,
-        "O5_player_weighted_rate": float(np.mean(player_rates)) if player_rates else None,
+        "O5_player_weighted_rate": float(np.mean(player_rates)),
         "O5_players": len(player_rates),
         "O6_decision_weighted_rate_SAMPLER_WEIGHTED_NOT_A_POPULATION_RATE": O6,
         "positions": len(infos),
@@ -600,82 +607,15 @@ def main() -> int:
         "consequence_n": int(len(costs)),
         "consequence_mean_quality_loss": float(costs.mean()) if len(costs) else None,
         "consequence_median_quality_loss": float(np.median(costs)) if len(costs) else None,
-        "consequence_share_at_or_above_FROZEN_threshold_0_02761": share_frozen,
+        "consequence_share_at_or_above_FROZEN_threshold_0_02761":
+            float((costs >= ACCURATE_WIN_PROBABILITY_LOSS).mean()) if len(costs) else None,
         "consequence_share_ci95_game_cluster": ci_cons,
-        "consequence_share_at_or_above_noise_p95_SECONDARY": share_secondary,
+        "consequence_share_at_or_above_noise_p95_SECONDARY":
+            float((costs >= noise["p95"]).mean()) if len(costs) else None,
         "noise_floor_share_above_frozen_threshold": noise_rate,
-        "separable_from_noise_floor": bool(separable),
+        "separable_from_noise_floor": bool(ci_cons[0] is not None and ci_cons[0] > noise_rate),
         "measurement_limited_if_not_separable": "AMENDMENT_01 section B.4",
     }
-
-    # ---- functional invariance (freeze section 7)
-    fi = {}
-    for geom in (None, "alike", "unlike"):
-        stat, pp = exposure_pair_accuracy(test, geometry=geom)
-        stat["ci95_cluster_position"] = accuracy_ci(pp, rng)
-        fi["all_pairs" if geom is None else f"{geom}_geometry"] = stat
-    fi["what_unlike_means"] = "different moving piece type or different capture status, and a different destination square"
-    result["functional_invariance"] = fi
-
-    # ---- D04 scope map (freeze section 8)
-    der_rows = [r for r in B if r["player"] in derivation]
-    fams, cuts = build_selectors(der_rows)
-    der_overall, _ = exposure_pair_accuracy(der_rows)
-    held_overall, held_pp = exposure_pair_accuracy(test)
-    held_overall["ci95_cluster_position"] = accuracy_ci(held_pp, rng)
-
-    depth1 = {}
-    for fam, fn in fams.items():
-        for value in sorted({fn(r) for r in der_rows}):
-            key = f"{fam}={value}"
-            d, _ = exposure_pair_accuracy([r for r in der_rows if fn(r) == value])
-            h, hpp = exposure_pair_accuracy([r for r in test if fn(r) == value])
-            if h["pairs"] == 0:
-                depth1[key] = {"label": "INSUFFICIENT", "derivation": d, "held_out": h}
-                continue
-            ci = accuracy_ci(hpp, rng)
-            h["ci95_cluster_position"] = ci
-            depth1[key] = {"label": label_region(d["accuracy"] or 0.5, h, ci),
-                           "derivation": d, "held_out": h}
-
-    # depth 2, searched on derivation only; exactly one winner is frozen and then judged
-    fam_names = sorted(fams)
-    best = None
-    for a in range(len(fam_names)):
-        for b in range(a + 1, len(fam_names)):
-            fa, fb = fams[fam_names[a]], fams[fam_names[b]]
-            for va in sorted({fa(r) for r in der_rows}):
-                for vb in sorted({fb(r) for r in der_rows}):
-                    sub = [r for r in der_rows if fa(r) == va and fb(r) == vb]
-                    if len(sub) < 50:
-                        continue
-                    d, _ = exposure_pair_accuracy(sub)
-                    if d["pairs"] < MIN_REGION_PAIRS or d["accuracy"] is None:
-                        continue
-                    if best is None or d["accuracy"] > best[0]:
-                        best = (d["accuracy"], fam_names[a], va, fam_names[b], vb, d)
-    scope = {
-        "selector_vocabulary": sorted(fams),
-        "tertile_cuts_from_derivation_only": cuts,
-        "min_region_pairs": MIN_REGION_PAIRS,
-        "overall_derivation": der_overall,
-        "overall_held_out": held_overall,
-        "depth1": depth1,
-    }
-    if best is not None:
-        _, fa_name, va, fb_name, vb, d = best
-        fa, fb = fams[fa_name], fams[fb_name]
-        h, hpp = exposure_pair_accuracy([r for r in test if fa(r) == va and fb(r) == vb])
-        ci = accuracy_ci(hpp, rng) if h["pairs"] else [None, None]
-        h["ci95_cluster_position"] = ci
-        scope["depth2_frozen_winner"] = {
-            "region": f"{fa_name}={va} AND {fb_name}={vb}",
-            "chosen_on": "derivation players only",
-            "derivation": d,
-            "held_out": h,
-            "label": label_region(d["accuracy"], h, ci),
-        }
-    result["scope_map"] = scope
 
     print("===SI_RESULT_BEGIN===")
     print(json.dumps(result, indent=2, sort_keys=True))

@@ -46,6 +46,37 @@ GAMES_PER_PLAYER = 2
 MAX_DECISIONS_PER_SIDE = 60
 
 
+
+def opportunity_eligible_plies(side_record: dict) -> dict:
+    """Count the plies that the FROZEN opportunity definition could apply to.
+
+    The user's amendment asks whether the scored sequence equals the complete sequence of positions
+    eligible under that definition. It does not, and this measures the gap rather than arguing it.
+
+    A position can host an opportunity only if the analysed player is to move and at least two legal
+    moves exist, because "two candidates within 0.05 wp of best" cannot be satisfied with one. B3's
+    other exclusions -- the player's first move, the last ply of the game, an impossible think time
+    -- remove positions that COULD have hosted one. Forced positions are the only exclusion that is
+    harmless to the opportunity denominator.
+    """
+    board = chess.Board()
+    want_white = side_record["side"] == "w"
+    total = forced = 0
+    for san in side_record["moves"]:
+        is_players = (board.turn == chess.WHITE) == want_white
+        if is_players:
+            n = board.legal_moves.count()
+            if n >= 2:
+                total += 1
+            else:
+                forced += 1
+        try:
+            board.push_san(san)
+        except ValueError:
+            break
+    return {"opportunity_eligible_plies": total, "forced_plies": forced}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-bytes", type=int, default=520_000_000)
@@ -88,6 +119,7 @@ def main() -> int:
         full, _ = b3.eligible_decisions(side, base, inc, 10 ** 9)
         decisions, counts = b3.eligible_decisions(side, base, inc, MAX_DECISIONS_PER_SIDE)
         excl.update(counts)
+        opp_plies = opportunity_eligible_plies(side)
         per_side.append({
             "player": side["player"], "game_id": side["game_id"], "side": side["side"],
             "band": side["band"], "rating": side["rating"],
@@ -95,6 +127,7 @@ def main() -> int:
             "decisions_in_table": len(decisions),
             "capped": len(full) > MAX_DECISIONS_PER_SIDE,
             "plies_in_game": len(side["moves"]),
+            **opp_plies,
         })
         for d in decisions:
             board = chess.Board(d["fen_before"])

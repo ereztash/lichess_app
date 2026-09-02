@@ -1,0 +1,1157 @@
+{
+  "derivation_players": 800,
+  "ecology": {
+    "O1_per_decision_rate_by_band": {
+      "1000-1199": {
+        "denominator_decisions": 4948,
+        "opportunities": 1746,
+        "rate": 0.3528698464025869
+      },
+      "1200-1399": {
+        "denominator_decisions": 5330,
+        "opportunities": 1814,
+        "rate": 0.3403377110694184
+      },
+      "1400-1599": {
+        "denominator_decisions": 5473,
+        "opportunities": 1883,
+        "rate": 0.3440526219623607
+      },
+      "1600-1799": {
+        "denominator_decisions": 4996,
+        "opportunities": 1728,
+        "rate": 0.3458767013610889
+      },
+      "1800-1999": {
+        "denominator_decisions": 5302,
+        "opportunities": 1849,
+        "rate": 0.3487363259147492
+      },
+      "2000-2199": {
+        "denominator_decisions": 4698,
+        "opportunities": 1592,
+        "rate": 0.3388676032354193
+      },
+      "2200-2399": {
+        "denominator_decisions": 4505,
+        "opportunities": 1518,
+        "rate": 0.3369589345172031
+      },
+      "2400-2599": {
+        "denominator_decisions": 6091,
+        "opportunities": 2036,
+        "rate": 0.33426366770645216
+      },
+      "800-999": {
+        "denominator_decisions": 3953,
+        "opportunities": 1524,
+        "rate": 0.38552997723248167
+      }
+    },
+    "O2_capped_sides_excluded": 80,
+    "O2_exactness_check": {
+      "answer": "NO",
+      "bias_direction": "O2 is a LOWER bound on opportunities per game; O3 an UPPER bound on games needed. Conservative with respect to the GO threshold.",
+      "consequence": "O2 is NOT exact and is NOT repaired. It counts opportunities per game over B3-ELIGIBLE decisions.",
+      "coverage": 0.9544865298041342,
+      "missing_plies": 1931,
+      "opportunity_eligible_plies": 42427,
+      "question": "on uncapped sides, is the scored-decision sequence identical to the complete sequence of plies the frozen opportunity definition could apply to?",
+      "scored_decisions": 40496,
+      "sides_where_sequences_match": 0,
+      "uncapped_sides": 1303,
+      "why": "B3 excludes the player's first move (no derivable think time), the last ply of the game, and impossible think times. All three could host an opportunity. Forced positions are the only harmless exclusion, since one legal move cannot yield two reasonable candidates."
+    },
+    "O2_opportunities_per_game_over_B3_ELIGIBLE_DECISIONS_by_band": {
+      "1000-1199": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.1003627569528416,
+        "denominator_games": 166,
+        "opportunities": 1654,
+        "opportunities_per_game": 9.963855421686747
+      },
+      "1200-1399": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.09915356711003627,
+        "denominator_games": 164,
+        "opportunities": 1654,
+        "opportunities_per_game": 10.085365853658537
+      },
+      "1400-1599": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.0948905109489051,
+        "denominator_games": 169,
+        "opportunities": 1781,
+        "opportunities_per_game": 10.538461538461538
+      },
+      "1600-1799": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.08819714656290532,
+        "denominator_games": 136,
+        "opportunities": 1542,
+        "opportunities_per_game": 11.338235294117647
+      },
+      "1800-1999": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.09205020920502092,
+        "denominator_games": 154,
+        "opportunities": 1673,
+        "opportunities_per_game": 10.863636363636363
+      },
+      "2000-2199": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.08344923504867872,
+        "denominator_games": 120,
+        "opportunities": 1438,
+        "opportunities_per_game": 11.983333333333333
+      },
+      "2200-2399": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.08475783475783476,
+        "denominator_games": 119,
+        "opportunities": 1404,
+        "opportunities_per_game": 11.798319327731093
+      },
+      "2400-2599": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.08606811145510836,
+        "denominator_games": 139,
+        "opportunities": 1615,
+        "opportunities_per_game": 11.618705035971223
+      },
+      "800-999": {
+        "O3_games_needed_for_one_opportunity_UPPER_BOUND": 0.09170600134861767,
+        "denominator_games": 136,
+        "opportunities": 1483,
+        "opportunities_per_game": 10.904411764705882
+      }
+    },
+    "O4_pooled_population_weighted_rate": 0.3453504161303776,
+    "O4_weights_band_share_of_candidate_sides": {
+      "1000-1199": 0.05834016414179746,
+      "1200-1399": 0.10857949543094812,
+      "1400-1599": 0.16914093728811844,
+      "1600-1799": 0.21878826517704444,
+      "1800-1999": 0.22188321172807648,
+      "2000-2199": 0.1341435852805354,
+      "2200-2399": 0.05025282424414153,
+      "2400-2599": 0.01583566930116613,
+      "800-999": 0.02303584740817201
+    },
+    "O5_player_weighted_rate": 0.3461275743812888,
+    "O5_players": 1333,
+    "O6_decision_weighted_rate_SAMPLER_WEIGHTED_NOT_A_POPULATION_RATE": 0.34638820204874604,
+    "consequence_mean_quality_loss": 0.017364126067421545,
+    "consequence_median_quality_loss": 0.010958307546227175,
+    "consequence_n": 4215,
+    "consequence_share_at_or_above_FROZEN_threshold_0_02761": 0.2431791221826809,
+    "consequence_share_at_or_above_noise_p95_SECONDARY": 0.1129300118623962,
+    "consequence_share_ci95_game_cluster": [
+      0.22954563297118882,
+      0.2566758089179043
+    ],
+    "definition": "at least 2 candidates within 0.05 wp of best AND differing in exposure_post by at least 1",
+    "estimand_authority": "docs/system-invariant/AMENDMENT_01.md section C",
+    "headroom_by_band": {
+      "1000-1199": {
+        "denominator_opportunities_with_played_move_reasonable": 1223,
+        "numerator_chose_higher_exposure": 461,
+        "rate": 0.3769419460343418
+      },
+      "1200-1399": {
+        "denominator_opportunities_with_played_move_reasonable": 1283,
+        "numerator_chose_higher_exposure": 493,
+        "rate": 0.3842556508183944
+      },
+      "1400-1599": {
+        "denominator_opportunities_with_played_move_reasonable": 1374,
+        "numerator_chose_higher_exposure": 483,
+        "rate": 0.35152838427947597
+      },
+      "1600-1799": {
+        "denominator_opportunities_with_played_move_reasonable": 1321,
+        "numerator_chose_higher_exposure": 476,
+        "rate": 0.360333080999243
+      },
+      "1800-1999": {
+        "denominator_opportunities_with_played_move_reasonable": 1351,
+        "numerator_chose_higher_exposure": 495,
+        "rate": 0.36639526276831974
+      },
+      "2000-2199": {
+        "denominator_opportunities_with_played_move_reasonable": 1245,
+        "numerator_chose_higher_exposure": 435,
+        "rate": 0.3493975903614458
+      },
+      "2200-2399": {
+        "denominator_opportunities_with_played_move_reasonable": 1196,
+        "numerator_chose_higher_exposure": 402,
+        "rate": 0.33612040133779264
+      },
+      "2400-2599": {
+        "denominator_opportunities_with_played_move_reasonable": 1700,
+        "numerator_chose_higher_exposure": 571,
+        "rate": 0.33588235294117647
+      },
+      "800-999": {
+        "denominator_opportunities_with_played_move_reasonable": 1010,
+        "numerator_chose_higher_exposure": 399,
+        "rate": 0.39504950495049507
+      }
+    },
+    "headroom_overall": {
+      "denominator_opportunities_with_played_move_reasonable": 11703,
+      "numerator_chose_higher_exposure": 4215,
+      "rate": 0.36016406049730837
+    },
+    "measurement_limited_if_not_separable": "AMENDMENT_01 section B.4",
+    "noise_floor_share_above_frozen_threshold": 0.10889599398156856,
+    "opportunities_where_played_move_not_in_reasonable_set": 3987,
+    "positions": 45296,
+    "positions_with_2plus_reasonable": 36572,
+    "separable_from_noise_floor": true,
+    "target_population_for_O4": "analysed-eligible sides of rated 180+0 standard games played 2026-07-01 UTC, ratings 800-2599, inside the 520,000,000-byte prefix this mission consumed"
+  },
+  "engine_searches_run": 0,
+  "functional_invariance": {
+    "alike_geometry": {
+      "accuracy": 0.6207691442707748,
+      "ci95_cluster_position": [
+        0.610512489459918,
+        0.6318323163441175
+      ],
+      "pairs": 17786,
+      "positions": 6633
+    },
+    "all_pairs": {
+      "accuracy": 0.5815340909090909,
+      "ci95_cluster_position": [
+        0.5751162217653508,
+        0.5877661306804094
+      ],
+      "pairs": 98560,
+      "positions": 10732
+    },
+    "unlike_geometry": {
+      "accuracy": 0.5728947433580113,
+      "ci95_cluster_position": [
+        0.5662586225669558,
+        0.5796457911061964
+      ],
+      "pairs": 80774,
+      "positions": 10525
+    },
+    "unlike_minus_alike_gain": -0.047874400912763515,
+    "what_alike_means": "same moving piece type and same capture status"
+  },
+  "interpretation_contract": "docs/system-invariant/AMENDMENT_01.md",
+  "judgement_players": 533,
+  "n_candidate_rows": 348571,
+  "n_decisions": 45296,
+  "n_players": 1333,
+  "outcome_noise_floor": {
+    "mean": 0.010232253918206717,
+    "median": 0.0023774843939197154,
+    "n": 15951,
+    "p95": 0.04285696971669292,
+    "share_above_accurate_threshold": 0.10889599398156856,
+    "share_above_zero": 0.5563287568177544,
+    "what": "quality_loss where the human played the engine's own best move; it should be 0"
+  },
+  "protocol": "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md",
+  "scope_map": {
+    "depth1": {
+      "band=1000-1199": {
+        "derivation": {
+          "accuracy": 0.5873325366375244,
+          "pairs": 15899,
+          "positions": 1753
+        },
+        "held_out": {
+          "accuracy": 0.5883156149419682,
+          "ci95_cluster_position": [
+            0.5692667700746633,
+            0.6076183462591105
+          ],
+          "pairs": 10253,
+          "positions": 1080
+        },
+        "label": "SUPPORTED"
+      },
+      "band=1200-1399": {
+        "derivation": {
+          "accuracy": 0.5832601330154348,
+          "pairs": 15938,
+          "positions": 1756
+        },
+        "held_out": {
+          "accuracy": 0.5995399044416917,
+          "ci95_cluster_position": [
+            0.581895466907773,
+            0.6192480748897485
+          ],
+          "pairs": 11302,
+          "positions": 1255
+        },
+        "label": "SUPPORTED"
+      },
+      "band=1400-1599": {
+        "derivation": {
+          "accuracy": 0.5809675221439927,
+          "pairs": 17612,
+          "positions": 1960
+        },
+        "held_out": {
+          "accuracy": 0.5833740353619224,
+          "ci95_cluster_position": [
+            0.5646206758881842,
+            0.6034486022366077
+          ],
+          "pairs": 10237,
+          "positions": 1159
+        },
+        "label": "SUPPORTED"
+      },
+      "band=1600-1799": {
+        "derivation": {
+          "accuracy": 0.5703803823131879,
+          "pairs": 15537,
+          "positions": 1726
+        },
+        "held_out": {
+          "accuracy": 0.5844305622296972,
+          "ci95_cluster_position": [
+            0.563736402146397,
+            0.6024387344950753
+          ],
+          "pairs": 10405,
+          "positions": 1180
+        },
+        "label": "SUPPORTED"
+      },
+      "band=1800-1999": {
+        "derivation": {
+          "accuracy": 0.5792299713222283,
+          "pairs": 16389,
+          "positions": 1799
+        },
+        "held_out": {
+          "accuracy": 0.5679195515990768,
+          "ci95_cluster_position": [
+            0.5505564325608598,
+            0.5855202120874572
+          ],
+          "pairs": 12132,
+          "positions": 1315
+        },
+        "label": "SUPPORTED"
+      },
+      "band=2000-2199": {
+        "derivation": {
+          "accuracy": 0.5617159571010725,
+          "pairs": 15385,
+          "positions": 1661
+        },
+        "held_out": {
+          "accuracy": 0.5564568764568765,
+          "ci95_cluster_position": [
+            0.5360569904472334,
+            0.5764860006327163
+          ],
+          "pairs": 10725,
+          "positions": 1141
+        },
+        "label": "SUPPORTED"
+      },
+      "band=2200-2399": {
+        "derivation": {
+          "accuracy": 0.5580706230965512,
+          "pairs": 12149,
+          "positions": 1366
+        },
+        "held_out": {
+          "accuracy": 0.5705452501405284,
+          "ci95_cluster_position": [
+            0.553279416131317,
+            0.5876134460174725
+          ],
+          "pairs": 12453,
+          "positions": 1336
+        },
+        "label": "SUPPORTED"
+      },
+      "band=2400-2599": {
+        "derivation": {
+          "accuracy": 0.5823084200567644,
+          "pairs": 21140,
+          "positions": 2262
+        },
+        "held_out": {
+          "accuracy": 0.5764336340206185,
+          "ci95_cluster_position": [
+            0.559015414123437,
+            0.5933889816589467
+          ],
+          "pairs": 12416,
+          "positions": 1325
+        },
+        "label": "SUPPORTED"
+      },
+      "band=800-999": {
+        "derivation": {
+          "accuracy": 0.582216999608304,
+          "pairs": 12765,
+          "positions": 1398
+        },
+        "held_out": {
+          "accuracy": 0.61769132800741,
+          "ci95_cluster_position": [
+            0.5977089444845943,
+            0.6370945927598142
+          ],
+          "pairs": 8637,
+          "positions": 941
+        },
+        "label": "SUPPORTED"
+      },
+      "clock_pressure=high": {
+        "derivation": {
+          "accuracy": 0.6162971765766504,
+          "pairs": 48806,
+          "positions": 5463
+        },
+        "held_out": {
+          "accuracy": 0.6253678720242432,
+          "ci95_cluster_position": [
+            0.6143228287672466,
+            0.6360135776048346
+          ],
+          "pairs": 34319,
+          "positions": 3824
+        },
+        "label": "SUPPORTED"
+      },
+      "clock_pressure=low": {
+        "derivation": {
+          "accuracy": 0.541231033188569,
+          "pairs": 37302,
+          "positions": 4278
+        },
+        "held_out": {
+          "accuracy": 0.5275593693873478,
+          "ci95_cluster_position": [
+            0.5149950424874795,
+            0.5406495860600069
+          ],
+          "pairs": 25055,
+          "positions": 2834
+        },
+        "label": "SUPPORTED"
+      },
+      "clock_pressure=mid": {
+        "derivation": {
+          "accuracy": 0.5663774556484322,
+          "pairs": 56706,
+          "positions": 5940
+        },
+        "held_out": {
+          "accuracy": 0.5776552850507835,
+          "ci95_cluster_position": [
+            0.5679351816764131,
+            0.5868443285133844
+          ],
+          "pairs": 39186,
+          "positions": 4074
+        },
+        "label": "SUPPORTED"
+      },
+      "in_check=no": {
+        "derivation": {
+          "accuracy": 0.5718027469609771,
+          "pairs": 139354,
+          "positions": 14850
+        },
+        "held_out": {
+          "accuracy": 0.5775862068965517,
+          "ci95_cluster_position": [
+            0.5706795759959531,
+            0.5840710490552767
+          ],
+          "pairs": 96396,
+          "positions": 10214
+        },
+        "label": "SUPPORTED"
+      },
+      "in_check=yes": {
+        "derivation": {
+          "accuracy": 0.7809248554913295,
+          "pairs": 3460,
+          "positions": 831
+        },
+        "held_out": {
+          "accuracy": 0.7573937153419593,
+          "ci95_cluster_position": [
+            0.7268287688761141,
+            0.7858927573077154
+          ],
+          "pairs": 2164,
+          "positions": 518
+        },
+        "label": "SUPPORTED"
+      },
+      "legal_moves=high": {
+        "derivation": {
+          "accuracy": 0.5428804632994539,
+          "pairs": 51457,
+          "positions": 5176
+        },
+        "held_out": {
+          "accuracy": 0.5449422003197987,
+          "ci95_cluster_position": [
+            0.5334692454769732,
+            0.5550646960204144
+          ],
+          "pairs": 38149,
+          "positions": 3786
+        },
+        "label": "SUPPORTED"
+      },
+      "legal_moves=low": {
+        "derivation": {
+          "accuracy": 0.6353579865527894,
+          "pairs": 44024,
+          "positions": 5510
+        },
+        "held_out": {
+          "accuracy": 0.6492118441837798,
+          "ci95_cluster_position": [
+            0.6379690266622504,
+            0.6604251142179509
+          ],
+          "pairs": 29753,
+          "positions": 3720
+        },
+        "label": "SUPPORTED"
+      },
+      "legal_moves=mid": {
+        "derivation": {
+          "accuracy": 0.559419432531215,
+          "pairs": 47333,
+          "positions": 4995
+        },
+        "held_out": {
+          "accuracy": 0.5613869136930002,
+          "ci95_cluster_position": [
+            0.550704506258658,
+            0.5736420291893004
+          ],
+          "pairs": 30658,
+          "positions": 3226
+        },
+        "label": "SUPPORTED"
+      },
+      "n_near=high": {
+        "derivation": {
+          "accuracy": 0.5584160269612433,
+          "pairs": 21364,
+          "positions": 3530
+        },
+        "held_out": {
+          "accuracy": 0.5519429024583664,
+          "ci95_cluster_position": [
+            0.5360438690026433,
+            0.567440506117546
+          ],
+          "pairs": 15132,
+          "positions": 2498
+        },
+        "label": "SUPPORTED"
+      },
+      "n_near=low": {
+        "derivation": {
+          "accuracy": 0.5813216417516244,
+          "pairs": 94655,
+          "positions": 9270
+        },
+        "held_out": {
+          "accuracy": 0.5853381786957388,
+          "ci95_cluster_position": [
+            0.5779747962126174,
+            0.593032261583234
+          ],
+          "pairs": 65217,
+          "positions": 6297
+        },
+        "label": "SUPPORTED"
+      },
+      "n_near=mid": {
+        "derivation": {
+          "accuracy": 0.575853704049263,
+          "pairs": 26795,
+          "positions": 2881
+        },
+        "held_out": {
+          "accuracy": 0.592499039042337,
+          "ci95_cluster_position": [
+            0.5775786269028901,
+            0.6071797467501767
+          ],
+          "pairs": 18211,
+          "positions": 1937
+        },
+        "label": "SUPPORTED"
+      },
+      "non_pawn_material=high": {
+        "derivation": {
+          "accuracy": 0.5239885222381636,
+          "pairs": 34850,
+          "positions": 3902
+        },
+        "held_out": {
+          "accuracy": 0.5155367822341181,
+          "ci95_cluster_position": [
+            0.5035325409518477,
+            0.527578463704889
+          ],
+          "pairs": 23911,
+          "positions": 2643
+        },
+        "label": "SUPPORTED"
+      },
+      "non_pawn_material=low": {
+        "derivation": {
+          "accuracy": 0.6410669327950282,
+          "pairs": 44089,
+          "positions": 5167
+        },
+        "held_out": {
+          "accuracy": 0.6505969374513366,
+          "ci95_cluster_position": [
+            0.639561023242457,
+            0.6608121710622463
+          ],
+          "pairs": 30824,
+          "positions": 3633
+        },
+        "label": "SUPPORTED"
+      },
+      "non_pawn_material=mid": {
+        "derivation": {
+          "accuracy": 0.5614090019569472,
+          "pairs": 63875,
+          "positions": 6612
+        },
+        "held_out": {
+          "accuracy": 0.5689674843126069,
+          "ci95_cluster_position": [
+            0.5591089224145398,
+            0.5777755852720345
+          ],
+          "pairs": 43825,
+          "positions": 4456
+        },
+        "label": "SUPPORTED"
+      },
+      "phase=endgame": {
+        "derivation": {
+          "accuracy": 0.707422056770591,
+          "pairs": 8596,
+          "positions": 1127
+        },
+        "held_out": {
+          "accuracy": 0.7220186072737524,
+          "ci95_cluster_position": [
+            0.6995334097376827,
+            0.7442839021856688
+          ],
+          "pairs": 7094,
+          "positions": 911
+        },
+        "label": "SUPPORTED"
+      },
+      "phase=middlegame": {
+        "derivation": {
+          "accuracy": 0.5769601858779979,
+          "pairs": 101572,
+          "positions": 10832
+        },
+        "held_out": {
+          "accuracy": 0.5817856988488193,
+          "ci95_cluster_position": [
+            0.5740403215238066,
+            0.5896895747994858
+          ],
+          "pairs": 69407,
+          "positions": 7315
+        },
+        "label": "SUPPORTED"
+      },
+      "phase=opening": {
+        "derivation": {
+          "accuracy": 0.5422103779942412,
+          "pairs": 32646,
+          "positions": 3722
+        },
+        "held_out": {
+          "accuracy": 0.535563715490276,
+          "ci95_cluster_position": [
+            0.5216714173031184,
+            0.5483260657270941
+          ],
+          "pairs": 22059,
+          "positions": 2506
+        },
+        "label": "SUPPORTED"
+      },
+      "standing=level": {
+        "derivation": {
+          "accuracy": 0.5644206426484908,
+          "pairs": 51350,
+          "positions": 5648
+        },
+        "held_out": {
+          "accuracy": 0.5602824614497767,
+          "ci95_cluster_position": [
+            0.5492516276046271,
+            0.5707346250049524
+          ],
+          "pairs": 34695,
+          "positions": 3798
+        },
+        "label": "SUPPORTED"
+      },
+      "standing=losing": {
+        "derivation": {
+          "accuracy": 0.6208378088077336,
+          "pairs": 39102,
+          "positions": 4608
+        },
+        "held_out": {
+          "accuracy": 0.6355150253114565,
+          "ci95_cluster_position": [
+            0.6240020207409743,
+            0.646301253456451
+          ],
+          "pairs": 27853,
+          "positions": 3260
+        },
+        "label": "SUPPORTED"
+      },
+      "standing=winning": {
+        "derivation": {
+          "accuracy": 0.5562430770406019,
+          "pairs": 52362,
+          "positions": 5425
+        },
+        "held_out": {
+          "accuracy": 0.5602576918804842,
+          "ci95_cluster_position": [
+            0.5490298259815394,
+            0.5707860040931438
+          ],
+          "pairs": 36012,
+          "positions": 3674
+        },
+        "label": "SUPPORTED"
+      }
+    },
+    "depth2_frozen_winner": {
+      "chosen_on": "derivation players only, before any held-out number was read",
+      "derivation": {
+        "accuracy": 0.868421052631579,
+        "pairs": 342,
+        "positions": 74
+      },
+      "held_out": {
+        "accuracy": 0.84,
+        "ci95_cluster_position": [
+          0.7321249999999999,
+          0.9360544397463002
+        ],
+        "pairs": 175,
+        "positions": 44
+      },
+      "label": "INSUFFICIENT",
+      "region": "in_check=yes AND phase=endgame"
+    },
+    "min_region_pairs": 200,
+    "overall_derivation": {
+      "accuracy": 0.5768692145027798,
+      "ci95_cluster_position": [
+        0.5712989816035436,
+        0.5821647459373019
+      ],
+      "pairs": 142814,
+      "positions": 15681
+    },
+    "overall_held_out": {
+      "accuracy": 0.5815340909090909,
+      "ci95_cluster_position": [
+        0.575529722967538,
+        0.5878531029476352
+      ],
+      "pairs": 98560,
+      "positions": 10732
+    },
+    "region_score": "model-free: among within-position pairs whose exposure differs, how often the lower-exposure move has the lower regret",
+    "selector_vocabulary": [
+      "band",
+      "clock_pressure",
+      "in_check",
+      "legal_moves",
+      "n_near",
+      "non_pawn_material",
+      "phase",
+      "standing"
+    ],
+    "tertile_cuts_from_derivation_only": {
+      "clock_pressure": [
+        0.10659584626581911,
+        0.5601714978691457
+      ],
+      "legal_moves": [
+        29.0,
+        36.0
+      ],
+      "n_near": [
+        2.0,
+        4.0
+      ],
+      "non_pawn_material": [
+        37.0,
+        56.0
+      ]
+    }
+  },
+  "seed": 20260902,
+  "test_a": {
+    "exposure_delta": {
+      "beta_standardized": 0.10144319489850015,
+      "ci95_cluster": [
+        0.09077404646094114,
+        0.1133946032314068
+      ],
+      "clusters": 1333,
+      "n": 45296
+    },
+    "exposure_delta_without_value_controls": {
+      "beta_standardized": 0.06695819945136092,
+      "ci95_cluster": [
+        0.05599742374473458,
+        0.07870353030039172
+      ],
+      "clusters": 1333,
+      "n": 45296
+    },
+    "exposure_post": {
+      "beta_standardized": 0.0876657378473161,
+      "ci95_cluster": [
+        0.0742572833532338,
+        0.10328940153526264
+      ],
+      "clusters": 1333,
+      "n": 45296
+    }
+  },
+  "test_a_falsifiers": {
+    "F_A1_rating_bands": {
+      "1000-1199": {
+        "beta_standardized": 0.14290380084686022,
+        "ci95_cluster": [
+          0.1098933167642901,
+          0.175164304535397
+        ],
+        "clusters": 165,
+        "n": 4948
+      },
+      "1200-1399": {
+        "beta_standardized": 0.1235723803008258,
+        "ci95_cluster": [
+          0.0944877430895279,
+          0.15256956682988265
+        ],
+        "clusters": 170,
+        "n": 5330
+      },
+      "1400-1599": {
+        "beta_standardized": 0.122183529489867,
+        "ci95_cluster": [
+          0.09144479792117059,
+          0.15235600888495146
+        ],
+        "clusters": 172,
+        "n": 5473
+      },
+      "1600-1799": {
+        "beta_standardized": 0.08318094289029114,
+        "ci95_cluster": [
+          0.05591742345585666,
+          0.11386586193771704
+        ],
+        "clusters": 145,
+        "n": 4996
+      },
+      "1800-1999": {
+        "beta_standardized": 0.08740165428889317,
+        "ci95_cluster": [
+          0.0539752586384525,
+          0.11775120698386393
+        ],
+        "clusters": 163,
+        "n": 5302
+      },
+      "2000-2199": {
+        "beta_standardized": 0.05104766818048033,
+        "ci95_cluster": [
+          0.016976020213557708,
+          0.08503434521941873
+        ],
+        "clusters": 126,
+        "n": 4698
+      },
+      "2200-2399": {
+        "beta_standardized": 0.06607255832376847,
+        "ci95_cluster": [
+          0.026323209035244193,
+          0.10355191878750926
+        ],
+        "clusters": 119,
+        "n": 4505
+      },
+      "2400-2599": {
+        "beta_standardized": 0.035387523480074214,
+        "ci95_cluster": [
+          0.0029418052470407494,
+          0.060752849102779
+        ],
+        "clusters": 142,
+        "n": 6091
+      },
+      "800-999": {
+        "beta_standardized": 0.16217137825906908,
+        "ci95_cluster": [
+          0.1247358041930527,
+          0.20417293575389023
+        ],
+        "clusters": 136,
+        "n": 3953
+      }
+    },
+    "F_A2_phase": {
+      "endgame": {
+        "beta_standardized": 0.09925341092998068,
+        "ci95_cluster": [
+          0.06645600673011752,
+          0.13277998053746962
+        ],
+        "clusters": 376,
+        "n": 5163
+      },
+      "middlegame": {
+        "beta_standardized": 0.09965662303107271,
+        "ci95_cluster": [
+          0.08758301450672437,
+          0.11366829958411545
+        ],
+        "clusters": 1303,
+        "n": 27120
+      },
+      "opening": {
+        "beta_standardized": 0.10705975046809287,
+        "ci95_cluster": [
+          0.08582658643189048,
+          0.12790779853393708
+        ],
+        "clusters": 1333,
+        "n": 13013
+      }
+    },
+    "F_A3_clock_tertile": {
+      "high": {
+        "beta_standardized": 0.09058389355529874,
+        "ci95_cluster": [
+          0.07134696411097999,
+          0.10824161195214937
+        ],
+        "clusters": 893,
+        "n": 14928
+      },
+      "low": {
+        "beta_standardized": 0.10788366124435293,
+        "ci95_cluster": [
+          0.08813073999837914,
+          0.12960042408628808
+        ],
+        "clusters": 1333,
+        "n": 15292
+      },
+      "mid": {
+        "beta_standardized": 0.10587470891491255,
+        "ci95_cluster": [
+          0.08823464613642723,
+          0.12310844764307223
+        ],
+        "clusters": 1294,
+        "n": 15076
+      }
+    },
+    "F_A3_cuts": {
+      "tertile_1": 0.11903381755803609,
+      "tertile_2": 0.6100322738494387
+    },
+    "F_A4_within_player": {
+      "beta_standardized": 0.09752755153943318,
+      "ci95_cluster": [
+        0.0863822807052018,
+        0.10867967941625942
+      ],
+      "clusters": 1333,
+      "n": 45296
+    },
+    "F_A5_within_game": {
+      "beta_standardized": 0.09757326664805006,
+      "ci95_cluster": [
+        0.0862975267228721,
+        0.10946952911421638
+      ],
+      "clusters": 1333,
+      "n": 45296
+    },
+    "F_A9_permuted_within_player": {
+      "beta_standardized": 0.00804835928738186,
+      "ci95_cluster": [
+        -0.0007614460654768378,
+        0.01624292450833616
+      ],
+      "clusters": 1333,
+      "n": 45296
+    }
+  },
+  "test_b": {
+    "comparisons": {
+      "L_Edelta_minus_L": {
+        "ci95_cluster_position": [
+          0.0264393361976443,
+          0.030721992796277593
+        ],
+        "gain": 0.02855146192250063
+      },
+      "L_Epost_minus_L": {
+        "ci95_cluster_position": [
+          0.050786953472884755,
+          0.05675575637983201
+        ],
+        "gain": 0.053810118860784184
+      },
+      "L_Epost_minus_L_Edelta": {
+        "ci95_cluster_position": [
+          0.023533780796431293,
+          0.026936882021307836
+        ],
+        "gain": 0.025258656938283552
+      },
+      "L_Epost_minus_L_Material": {
+        "ci95_cluster_position": [
+          0.05161335856552668,
+          0.0575739516851447
+        ],
+        "gain": 0.05452671850662999
+      },
+      "L_Epost_minus_L_Mobility": {
+        "ci95_cluster_position": [
+          0.03654638203197551,
+          0.04304735448205296
+        ],
+        "gain": 0.03985419270015933
+      },
+      "L_NC1_redundant_defense_minus_L": {
+        "ci95_cluster_position": [
+          0.0003969298443665781,
+          0.002105708426989561
+        ],
+        "gain": 0.0012673745802561642
+      },
+      "L_NC2_defense_dependency_minus_L": {
+        "ci95_cluster_position": [
+          -0.0003460233965783321,
+          0.0002546953598617562
+        ],
+        "gain": -4.4417333420199157e-05
+      },
+      "L_NC3_king_ring_defense_minus_L": {
+        "ci95_cluster_position": [
+          0.0044360622277778245,
+          0.007102882976327081
+        ],
+        "gain": 0.005747602944573049
+      }
+    },
+    "held_out_on": "players not in the derivation 60%",
+    "models": {
+      "L": {
+        "accuracy": 0.49626302168158104,
+        "ci95_cluster_position": [
+          0.4933720629221952,
+          0.499124208421202
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_Edelta": {
+        "accuracy": 0.5248144836040817,
+        "ci95_cluster_position": [
+          0.5218122565450316,
+          0.5278184480556743
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_Epost": {
+        "accuracy": 0.5500731405423652,
+        "ci95_cluster_position": [
+          0.547000332320656,
+          0.5530670932909564
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_Material": {
+        "accuracy": 0.49554642203573523,
+        "ci95_cluster_position": [
+          0.49276186442255776,
+          0.4983922990811842
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_Mobility": {
+        "accuracy": 0.5102189478422059,
+        "ci95_cluster_position": [
+          0.5073054127646324,
+          0.5130657907902572
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_NC1_redundant_defense": {
+        "accuracy": 0.4975303962618372,
+        "ci95_cluster_position": [
+          0.4946206205878471,
+          0.5003259454523502
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_NC2_defense_dependency": {
+        "accuracy": 0.49621860434816084,
+        "ci95_cluster_position": [
+          0.49340639291212496,
+          0.49909728227990846
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      },
+      "L_NC3_king_ring_defense": {
+        "accuracy": 0.5020106246261541,
+        "ci95_cluster_position": [
+          0.49911033534868077,
+          0.504802516572136
+        ],
+        "pairs": 337706,
+        "positions": 17691
+      }
+    }
+  }
+}
