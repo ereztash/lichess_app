@@ -128,6 +128,46 @@ shows a completion difference at that step.
 
 ---
 
+## B2. Adversarial pass on the `O-1` change, 2026-09-03
+
+Four claims, attacked rather than confirmed. Driven in Chromium against the built app with the
+shipped engine, five consecutive routes in one session.
+
+**A-1 — "Direct-next does not record continuation before a move." SURVIVES.**
+`next_decision_started` is written in exactly one file, `client/src/lib/continuation-event.ts`; the
+grep over `client`, `shared` and `server` finds no other writer and no `recordTrialEvent` call with
+a computed name. Measured in the walk: the ledger carries **1** `next_decision_started` against
+**6** `reveal_presented` and **6** `decision_committed`, and the browser assertions confirm it is
+absent before the press, absent after the press, and present after the move.
+
+**A-2 — "The player is always handed a position they may act in." SURVIVES, with a scope note.**
+Five consecutive routes, five positions, five accepted moves, and `staleReveals=0` on every one.
+The scope note is real and is a property of the bank rather than of the route: an anchor is a
+loaded position with **no opponent**, so `positionIsActionable`'s turn clause
+(`opponent === null || turn === opponent.playerColor`) is vacuous there and the player answers for
+whichever side is to move. The sides across the five were `w, b, b, w, b`. That is what an anchor
+is — *"what would you play here"* — and not the `c1d7293` defect, which was a **live** game whose
+turn had been passed to a side nobody was playing. Recorded so nobody later reads
+`positionWasActionable` as a claim about colour.
+
+**A-3 — "Reveal #2 does enable the value-reconstruction prompt." SURVIVES.**
+`value_reconstruction_prompted: 1` against six reveals: put once, after the second, and never
+again — which is `ASK_AFTER_REVEALS = 2` and *once per browser*, both unchanged. The dedicated walk
+also asserts it is **absent** on the first reveal, which is the half that matters, because a
+question there would be measured instead of the continuation it interrupts.
+
+**A-4 — "Routing did not damage the record, history or decision ownership." SURVIVES.**
+Five decisions, **five distinct game ids** (`lichess-abcd1234`, then four `anchor-*`), so no game
+was forked, truncated or merged — the `LAW 4` failure that cost a loaded PGN seven plies is not
+reachable by this route, which serves a new game rather than advancing an old one. Purposes are
+intact: `first` on the imported decision and `anchor` on all four bank decisions, which is
+`firstDecisionPly: null` doing its load-bearing job. No decision carries two names.
+
+**What this pass does not claim.** That these are the only ways the change could break. Four
+attacks were named in advance and four were run; nothing here asserts coverage.
+
+---
+
 ## C. The falsification pass — every fix deliberately broken, and what went red
 
 Run after implementation, on the built app in Chromium. Each break was applied alone, rebuilt, and

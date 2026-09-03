@@ -344,6 +344,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/consolidation-research/`](docs/consolidation-research/hardening/FINAL_REPORT.md) | חיזוק לפני איחוד. הציונים שם מעריכים את **מחקר השחזור**, לא את האפליקציה | אנגלית |
 | [`docs/blitz/`](docs/blitz/AUDIT.md) | ביקורת אמת-המאגר לפני מדידה ילידת-בליץ, וארבעה ADR שנגזרו ממנה | אנגלית |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
+| [`docs/PRE_HUMAN_CEILING.md`](docs/PRE_HUMAN_CEILING.md) | **`REPO PRE-HUMAN CEILING REACHED`** — מה נסגר, שלושת הדברים החיצוניים שנשארו, וגבול ה-FIELD עם המכנה וההסקה האסורה של כל שאלה | אנגלית |
 | [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) | לאן הולכות תקלות בייצור, מה הבריאות אומרת, ומה הפלטפורמה לא נותנת ומי צריך להחליט | אנגלית |
 | [`docs/ROLLBACK.md`](docs/ROLLBACK.md) | מתי מחזירים לאחור, איך, ומה סוגר את האירוע: ריצת L6 ירוקה הקשורה ל-SHA שחזרו אליו | אנגלית |
 | [`docs/RETENTION.md`](docs/RETENTION.md) | איפה הנתונים, מה מותר לרשום ומה לעולם לא, איך מוחקים ואיך מורידים | אנגלית |
