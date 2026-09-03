@@ -40,6 +40,14 @@ describe("the L6 predicates, pointed at an origin that is not this application",
     ).toMatch(/<div id="root"/);
   });
 
+  it("refuses an origin whose health route does not name a build", async () => {
+    const response = await get("/api/health", WRONG);
+    expect(
+      response.contentType,
+      "the health check passed against example.com, so it is not reading the function's answer",
+    ).toContain("application/json");
+  });
+
   it("refuses an origin that does not serve this application's CSP", async () => {
     const response = await get("/", WRONG);
     expect(

@@ -15,7 +15,14 @@
  */
 import { Chess } from "chess.js";
 import { describe, expect, it } from "vitest";
-import { chooseOpponentMove, OPPONENT_FAILURE_TEXT } from "../../client/src/lib/opponent";
+import {
+  chooseOpponentMove,
+  OPPONENT_FAILURE_TEXT,
+  OPPONENT_KIND,
+  OPPONENT_VARIETY,
+  pickAmongCandidates,
+  searchWithVariety,
+} from "../../client/src/lib/opponent";
 
 const OPENING = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 // Fool's mate, from White's side of it: 1.f3 e5 2.g4 Qh4#. White is to move and has no move.
@@ -97,6 +104,88 @@ describe("chooseOpponentMove", () => {
     const before = OPENING;
     await chooseOpponentMove(before, searchReturning({ bestMove: "e2e4" }));
     expect(before).toBe(OPENING);
+  });
+});
+
+/*
+ * THE OPPONENT VARIES. Owner-observed on the deployed build: every blitz game answered 1.e4 with
+ * 1...d5, because a deterministic engine at a fixed depth is one line, not an opponent. The choice
+ * is among the engine's own near-equals and nothing else, and the band is on the record.
+ */
+describe("an opponent that does not play the same game every time", () => {
+  const AFTER_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
+  const candidates = [
+    { move: "d7d5", scoreCp: -20 },
+    { move: "e7e5", scoreCp: -25 },
+    { move: "c7c5", scoreCp: -35 },
+    { move: "g8f6", scoreCp: -110 },
+  ];
+  /** A deterministic sequence standing in for Math.random, so the test is not itself a lottery. */
+  const sequence = (values: number[]) => {
+    let i = 0;
+    return () => values[i++ % values.length];
+  };
+
+  it("plays more than one reply to 1.e4 across games", async () => {
+    const seen = new Set<string>();
+    const random = sequence([0.05, 0.5, 0.95, 0.3, 0.7]);
+    for (let game = 0; game < 10; game++) {
+      const move = await chooseOpponentMove(AFTER_E4, async () => ({ bestMove: "d7d5", candidates }), 4, random);
+      if (move.ok) seen.add(`${move.from}${move.to}`);
+    }
+    expect(seen.size, `ten games, ${[...seen].join(",")}`).toBeGreaterThan(1);
+  });
+
+  it("never plays a candidate outside the band, however the dice fall", () => {
+    for (const roll of [0, 0.1, 0.33, 0.5, 0.66, 0.9, 0.999]) {
+      const move = pickAmongCandidates("d7d5", candidates, () => roll);
+      expect(["d7d5", "e7e5", "c7c5"], `roll ${roll} chose ${move}`).toContain(move);
+      expect(move).not.toBe("g8f6");
+    }
+  });
+
+  it("plays the mate when there is one, and never a near-equal instead", () => {
+    const withMate = [{ move: "d8h4", mate: 1 }, { move: "d7d5", scoreCp: 900 }];
+    for (const roll of [0, 0.5, 0.99]) expect(pickAmongCandidates("d8h4", withMate, () => roll)).toBe("d8h4");
+  });
+
+  it("does not pick a line that walks into a mate as if it were within 30cp", () => {
+    const trap = [{ move: "d7d5", scoreCp: 10 }, { move: "f7f6", mate: -2 }];
+    for (const roll of [0, 0.5, 0.99]) expect(pickAmongCandidates("d7d5", trap, () => roll)).toBe("d7d5");
+  });
+
+  it("falls back to the engine's bestMove when it was handed no candidates", () => {
+    expect(pickAmongCandidates("e7e5", undefined, () => 0.7)).toBe("e7e5");
+    expect(pickAmongCandidates("e7e5", [], () => 0.7)).toBe("e7e5");
+  });
+
+  it("still hands back a move and no evaluation", async () => {
+    const move = await chooseOpponentMove(AFTER_E4, async () => ({ bestMove: "d7d5", candidates }), 4, () => 0.9);
+    expect(move.ok).toBe(true);
+    expect(Object.keys(move).sort()).toEqual(["from", "ok", "to"]);
+    expect(JSON.stringify(move)).not.toMatch(/-20|-25|-35|scoreCp/);
+  });
+
+  it("asks the engine for the stated number of lines and reads them into candidates", async () => {
+    const asked: number[] = [];
+    const search = searchWithVariety(async (_fen, _depth, count) => {
+      asked.push(count);
+      return [
+        { bestMove: "d7d5", pv: ["d7d5", "e4d5"], scoreCp: -20 },
+        { pv: ["e7e5", "g1f3"], scoreCp: -25 },
+        { pv: [], scoreCp: -30 },
+      ];
+    });
+    const answer = await search(AFTER_E4, 4);
+    expect(asked).toEqual([OPPONENT_VARIETY.lines]);
+    expect(answer.bestMove).toBe("d7d5");
+    expect(answer.candidates?.map((c) => c.move)).toEqual(["d7d5", "e7e5"]);
+  });
+
+  it("records the band in the provenance kind, so varied and single-line games are two populations", () => {
+    expect(OPPONENT_KIND).toBe("engine-varied-3x30cp");
+    expect(OPPONENT_KIND).not.toBe("engine");
+    expect(OPPONENT_KIND.length).toBeLessThanOrEqual(32); /* opponent_kind varchar(32) */
   });
 });
 

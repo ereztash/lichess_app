@@ -8,6 +8,17 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Nothing here writes to the repository. Read the checkout and no more.
+permissions:
+  contents: read
+
+# A push that supersedes a running verification cancels it: the run was about a tree that no longer
+# heads the branch, and the queue it holds is the queue the next run waits in. Not on main -- there
+# every run is about a commit that deployed, and each deserves its own verdict.
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -39,10 +50,14 @@ jobs:
           --health-retries=20
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # PINNED TO A COMMIT, NOT A TAG -- see docs/DEPENDENCY_POLICY.md. The version is in the
+      # comment so a reader can tell what the hash is; Dependabot keeps both in step.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          # `engines.node` in package.json: the one statement of which Node this runs on. Vercel
+          # reads the same field, so CI and the function cannot disagree about the major.
+          node-version-file: package.json
       # `ci`, NOT `install`. `npm install` is free to resolve a dependency to something the lock
       # file does not name -- which means CI could be testing a tree no developer has, and a
       # green run would be evidence about that tree rather than about the one that ships. `npm ci`

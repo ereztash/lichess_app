@@ -27,7 +27,15 @@ import type { RecordServerStatus } from "@/lib/record-api";
 const SHARED_BROWSER = "הרשומה נשמרת בדפדפן הזה, והיא של הדפדפן — לא של החשבון שלכם.";
 
 const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
-  "signed-out": "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והמידע לא עוזב את המחשב שלך.",
+  /*
+   * "הרשומה" AND NOT "המידע", and the difference is now load-bearing. The record -- decisions, reads,
+   * confidences, positions -- never leaves. What does leave, on a failure only, is the NAME of the
+   * failure: a code from a closed list, the screen it happened on, the build. Saying "nothing leaves"
+   * while that is sent would be the product's central honesty claim made false by its own error
+   * reporting, so the sentence says exactly what stays and what goes.
+   */
+  "signed-out":
+    "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והרשומה לא עוזבת את המחשב שלכם. אם משהו נכשל, נשלח לשרת רק שם התקלה, בלי תוכן.",
   unknown: "בודקים אם בשרת יש מאגר החלטות זמין. עד שתתקבל תשובה ההחלטות נשמרות בדפדפן הזה.",
   "no-database":
     "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים.",

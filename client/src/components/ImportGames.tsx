@@ -17,6 +17,7 @@ import { PreregisterBridge } from "./PreregisterBridge";
 import type { ImportDiagnostic } from "@shared/import-diagnostic";
 import { MIN_BUCKET_N, PREREGISTERED_THRESHOLDS } from "@shared/detector";
 import { scanFailureText } from "@/lib/commit-error";
+import { reportEngineFailure, reportFailure } from "@/lib/error-sink";
 
 type Props = {
   onLoad: (game: ImportedGame) => void;
@@ -139,7 +140,10 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
     const result = await fetchGames(source, username, 20);
     setLoading(false);
     if (result.ok) setGames(result.games);
-    else setFailure(result.failure.message);
+    else {
+      reportFailure(result.failure.kind, "import");
+      setFailure(result.failure.message);
+    }
   };
 
   /*
@@ -191,6 +195,7 @@ export function ImportGames({ onLoad, onClose, analyze, keepReading, lastUsernam
        * everything that is not already Hebrew -- and R-09 arrived as exactly that sentence, so the
        * report it produced could not say which of six causes had stopped the scan.
        */
+      reportEngineFailure(error, "import");
       setScanFailure(scanFailureText(error, "הסריקה נעצרה לפני שהספיקה למדוד משהו."));
     } finally {
       setProgress(null);

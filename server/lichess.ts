@@ -1,5 +1,60 @@
 import { TRPCError } from "@trpc/server";
+import { emit } from "./_core/telemetry.js";
 const LICHESS_ORIGIN = "https://lichess.org";
+
+/**
+ * How long an upstream call may take before it is called a failure, in one place.
+ *
+ * NONE OF THESE FETCHES HAD A BOUND. The function has 30 seconds in total (`vercel.json`), so a
+ * Lichess that accepted the connection and said nothing ended as a platform timeout: the process is
+ * killed, `onError` never runs, the client gets a platform error page instead of the authored
+ * sentence below, and no log line names Lichess as the subsystem. Ten seconds is generous for the
+ * endpoints this reaches and leaves the function room to say what happened.
+ */
+export const UPSTREAM_TIMEOUT_MS = 10_000;
+
+/** The sentence the player gets when Lichess does not answer in time. Authored, so it passes the wire. */
+const UPSTREAM_TIMEOUT_MESSAGE = "Lichess לא ענה בזמן. אפשר לנסות שוב בעוד רגע.";
+
+/**
+ * `fetch` with the bound, and the timeout turned into an authored refusal that names its cause.
+ *
+ * The runtime raises `TimeoutError` (a DOMException) when `AbortSignal.timeout` fires; anything else
+ * a fetch rejects with is a network refusal, and both are BAD_GATEWAY to the player -- the same
+ * code the non-ok branches below already use, so the client's handling does not change.
+ */
+async function boundedFetch(url: string, init: RequestInit, subsystem: string): Promise<Response> {
+  try {
+    return await fetch(url, { ...init, signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS) });
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
+    emit({
+      code: timedOut ? "upstream-lichess-timeout" : "upstream-lichess-error",
+      failureClass: timedOut ? "timeout" : "upstream-provider",
+      path: subsystem,
+      detail: timedOut ? `no answer within ${UPSTREAM_TIMEOUT_MS}ms` : (error instanceof Error ? error.name : typeof error),
+    });
+    throw new TRPCError({
+      code: "BAD_GATEWAY",
+      message: timedOut ? UPSTREAM_TIMEOUT_MESSAGE : "לא ניתן היה לקבל נתונים מ־Lichess כרגע.",
+    });
+  }
+}
+
+/** One line per upstream refusal, by status class, so the operator can count them. */
+function noteUpstream(status: number, subsystem: string): void {
+  emit({
+    code:
+      status === 429
+        ? "upstream-lichess-429"
+        : status === 401 || status === 403
+          ? "upstream-lichess-auth"
+          : "upstream-lichess-error",
+    failureClass: "upstream-provider",
+    path: subsystem,
+    detail: `status ${status}`,
+  });
+}
 const EXPLORER_ORIGIN = "https://explorer.lichess.org";
 const GAME_ID = /^[A-Za-z0-9]{8,16}$/;
 const STUDY_ID = /^[A-Za-z0-9]{8}$/;
@@ -59,9 +114,12 @@ function token() {
   return value;
 }
 async function lichessFetch(path: string, accept: string) {
-  const response = await fetch(`${LICHESS_ORIGIN}${path}`, {
-    headers: { Authorization: `Bearer ${token()}`, Accept: accept },
-  });
+  const response = await boundedFetch(
+    `${LICHESS_ORIGIN}${path}`,
+    { headers: { Authorization: `Bearer ${token()}`, Accept: accept } },
+    "lichess",
+  );
+  if (!response.ok) noteUpstream(response.status, "lichess");
   if (response.status === 429)
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
@@ -88,12 +146,17 @@ function ensurePostGame(source: AnalysisSource) {
     });
 }
 async function explorerFetch(path: string) {
-  const response = await fetch(`${EXPLORER_ORIGIN}${path}`, {
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      Accept: "application/x-ndjson, application/json",
+  const response = await boundedFetch(
+    `${EXPLORER_ORIGIN}${path}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token()}`,
+        Accept: "application/x-ndjson, application/json",
+      },
     },
-  });
+    "lichess-explorer",
+  );
+  if (!response.ok) noteUpstream(response.status, "lichess-explorer");
   if (response.status === 401 || response.status === 403)
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -142,10 +205,13 @@ async function getExplorer(path: string): Promise<OpeningExplorer> {
 }
 async function getCloudEvaluation(fen: string): Promise<CloudEvaluation | null> {
   const query = new URLSearchParams({ fen, multiPv: "3" });
-  const response = await fetch(`${LICHESS_ORIGIN}/api/cloud-eval?${query}`, {
-    headers: { Authorization: `Bearer ${token()}`, Accept: "application/json" },
-  });
+  const response = await boundedFetch(
+    `${LICHESS_ORIGIN}/api/cloud-eval?${query}`,
+    { headers: { Authorization: `Bearer ${token()}`, Accept: "application/json" } },
+    "lichess-cloud-eval",
+  );
   if (response.status === 404) return null;
+  if (!response.ok) noteUpstream(response.status, "lichess-cloud-eval");
   if (response.status === 429)
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
@@ -229,9 +295,11 @@ export async function getLichessStudyPgn(studyReference: string): Promise<string
     response = await lichessFetch(path, "application/x-chess-pgn");
   } catch (error) {
     if (!(error instanceof TRPCError) || error.code !== "UNAUTHORIZED") throw error;
-    response = await fetch(`${LICHESS_ORIGIN}${path}`, {
-      headers: { Accept: "application/x-chess-pgn" },
-    });
+    response = await boundedFetch(
+      `${LICHESS_ORIGIN}${path}`,
+      { headers: { Accept: "application/x-chess-pgn" } },
+      "lichess-study",
+    );
     if (!response.ok)
       throw new TRPCError({
         code: "FORBIDDEN",

@@ -19,8 +19,8 @@ statement has no enforcement, it says so.
 | what | baseline | what enforces it |
 | --- | --- | --- |
 | **browser engine** | Chromium, the version Playwright pins | `tests/layout/browser.ts` launches it and **throws when it is absent** rather than skipping; `@playwright/test ^1.62.1` in `package.json` pins which one |
-| **Node, in CI** | **22** | `.github/workflows/verify-build.yml` sets `node-version: 22` |
-| **Node, on the deployed runtime** | **24.x** | the Vercel project's `nodeVersion`. **These two differ**, and the difference was found while writing this file rather than by a check. CI proves the build and the tests work on 22; the serverless entry runs on 24. Nothing here holds them together, and `Q36` (dependency upgrades) is the capability gap that would |
+| **Node, in CI** | **24.x** | both workflows read `node-version-file: package.json`, which names `engines.node` |
+| **Node, on the deployed runtime** | **24.x** | the Vercel project's `nodeVersion`, and `engines.node` in `package.json`, which Vercel also reads. **These used to differ** (CI on 22, the function on 24.x) and nothing held them together; now one field is read by both, and `tests/docs/a-dependency-exception-that-expires.test.ts` fails a workflow that names a Node version of its own. |
 | **database** | MySQL 8 | the `mysql:8` service in `verify-build.yml`. The store was first exercised locally against MariaDB 10.11, and the two together are the evidence that it depends on neither |
 | **module format** | ES modules, `tsc --noEmit` clean under the repo's `tsconfig.json` | `npm run check`, blocking in CI |
 
@@ -31,8 +31,9 @@ statement has no enforcement, it says so.
 elsewhere — which is the whole reason those tests exist rather than jsdom. A second engine is not
 claimed and would need its own run to be.
 
-**That CI and the deployed runtime run the same Node.** They do not: 22 and 24.x. Every test result
-in this repository is evidence about 22, and every request a player makes is served by 24.x. That is
+**That CI and the deployed runtime run the same Node.** They did not, for most of this repository's
+life: 22 and 24.x, so every test result was evidence about 22 while every request was served by
+24.x. They are held together now by `engines.node`, read by both. What remains true is that this
 a real gap between what is proved and what is served, it is recorded here rather than closed, and
 closing it means pinning one to the other in a place a command reads.
 

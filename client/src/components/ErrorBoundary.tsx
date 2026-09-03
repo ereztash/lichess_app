@@ -11,6 +11,7 @@
 import { AlertTriangle, RotateCcw } from "lucide-react";
 import { Component, ReactNode } from "react";
 import { isChunkLoadError } from "@/lib/lazy-chunk";
+import { reportFailure } from "@/lib/error-sink";
 
 interface Props {
   children: ReactNode;
@@ -28,6 +29,14 @@ class ErrorBoundary extends Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
+  }
+
+  /*
+   * The one place a render crash is known, so the one place it is counted. The code says which
+   * of the two sentences below the player got; the stack stays on this screen and goes nowhere.
+   */
+  componentDidCatch(error: Error): void {
+    reportFailure(isChunkLoadError(error) ? "stale-build-stuck" : "render-crash", "app");
   }
 
   render() {

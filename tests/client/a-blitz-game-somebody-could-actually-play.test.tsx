@@ -46,6 +46,10 @@ vi.mock("@/lib/stockfish", () => ({
       /* A legal reply from the opening position, and a flat evaluation. */
       return { scoreCp: 0, depth: 1, pv: ["e7e5"], bestMove: "e7e5", fen };
     }
+    /* The opponent asks for alternatives; one line back is the single-line case in MultiPV form. */
+    async analyzeAlternatives(fen: string, depth: number, _count: number) {
+      return [await this.analyze(fen, depth)];
+    }
   },
 }));
 

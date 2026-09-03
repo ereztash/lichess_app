@@ -192,6 +192,17 @@ describe("nothing reads it back", () => {
      * this list without a check for the thing it could become would be the list weakening itself.
      */
     "client/src/lib/next-action-shadow.ts",
+    /*
+     * THE ERROR SINK, WHICH WRITES ONE EVENT AND READS NOTHING.
+     *
+     * `error-sink.ts` records `failure_observed` -- a code from a closed list, its class, the
+     * surface -- so a visit that stopped after `worker-refused` stops being the same row as a visit
+     * that stopped for no reason. It calls `recordTrialEvent` and no read at all: it cannot know how
+     * far along the player is, and nothing it does reaches a screen. The other thing it does with
+     * the same five fields is send them to the same origin, which is the one transmission this
+     * ledger permits and docs/OBSERVABILITY.md states; a code is not a decision.
+     */
+    "client/src/lib/error-sink.ts",
   ]);
 
   function sources(dir: string): string[] {

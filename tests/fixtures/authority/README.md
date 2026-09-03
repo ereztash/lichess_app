@@ -14,12 +14,13 @@ Four drifts, one per way an authority map decays without anybody touching it:
    is what makes a second claimant harmless; unscoped, `Q21` has two answers again — which is
    exactly the state `X-02` was found in.
 
-3. **A capability gap that quietly closed.** `docs/ROLLBACK.md` exists. `Q26` is recorded as a
+3. **A capability gap that quietly closed.** `.github/CODEOWNERS` exists. `Q34` is recorded as a
    `CAPABILITY_GAP`, and a gap that has become a capability makes the record the stale one. This is
    the predicate that keeps the classification honest **in both directions**: without it the
-   repository could keep saying it cannot roll back long after somebody wrote the script, and a
-   reader who added the document would believe the question answered while the record said
-   otherwise.
+   repository could keep saying nobody may deploy long after somebody wrote the file, and a reader
+   who added it would believe the question answered while the record said otherwise. (This drift
+   used to be `docs/ROLLBACK.md` against `Q26`; that gap closed for real, the record was updated,
+   and the drift moved to the next open gap, which is what a control that stays red must do.)
 
 4. **An unscoped migration.** `drizzle/0002_unscoped.sql` sits outside the directory CI applies and
    says nothing about what superseded it. CI's glob never reaches it, so it can claim anything about

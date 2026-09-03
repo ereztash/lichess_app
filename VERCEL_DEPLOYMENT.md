@@ -66,9 +66,12 @@ once, and each fails differently:
 
 ## Deployment protection
 
-Vercel SSO protection is enabled for this project on all non-custom domains, so a `*.vercel.app`
-preview or production URL asks for a Vercel login before the app loads at all. That is a
-deployment setting, not an application one; a custom domain bypasses it.
+Deployment protection on this project is **all except custom domains** in name, and in effect it
+walls the deployment-specific `*.vercel.app` URLs (every preview, and production's own
+`<deployment>.vercel.app` address) behind a Vercel login, while the stable production alias
+`lichessapp.vercel.app` is public. That is why `deployed.yml` checks the alias and not the URL the
+deployment event carries, and why a preview can only be checked by hand. It is a deployment
+setting, not an application one.
 
 ## Layer C is mounted and off
 

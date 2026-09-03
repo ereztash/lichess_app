@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 type Theme = "light" | "dark";
 
@@ -24,7 +25,7 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(() => {
     if (!switchable) return defaultTheme;
     try {
-      const stored = localStorage.getItem("theme");
+      const stored = localStorage.getItem(STORAGE_KEYS.theme.key);
       return stored === "light" || stored === "dark" ? stored : defaultTheme;
     } catch {
       // Private windows and blocked site data make this throw. A theme preference is not
@@ -66,7 +67,7 @@ export function ThemeProvider({
         setTheme((prev) => {
           const next = prev === "light" ? "dark" : "light";
           try {
-            localStorage.setItem("theme", next);
+            localStorage.setItem(STORAGE_KEYS.theme.key, next);
           } catch {
             // Private windows and blocked site data make this throw. The theme still switches
             // for this session; it simply does not persist.

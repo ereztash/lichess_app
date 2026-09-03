@@ -51,6 +51,31 @@ export interface BuildIdentity {
   protocolVersion: string;
 }
 
+/**
+ * The identity, derived from the environment a build or a process is running in.
+ *
+ * ONE DERIVATION, TWO CALLERS. `scripts/write-build-identity.ts` runs it at build time and writes the
+ * answer beside the static assets; `server/_core/build.ts` runs it at request time inside the
+ * serverless function, whose bundle Vercel produces separately and which therefore cannot read the
+ * file the build wrote. Two copies of "which variable names the commit" would drift the first time
+ * a platform renamed one, and the L6 suite would then be comparing two different notions of build.
+ *
+ * `fallbackSha` is what a caller found out on its own -- `git rev-parse` at build time, nothing at
+ * runtime -- and `unknown` is the honest answer when neither the platform nor the caller knows.
+ */
+export function deriveBuildIdentity(
+  env: Readonly<Record<string, string | undefined>>,
+  fallbackSha: string | null = null,
+  builtAt: string = new Date().toISOString(),
+): BuildIdentity {
+  return {
+    gitSha: env.VERCEL_GIT_COMMIT_SHA ?? env.GITHUB_SHA ?? fallbackSha ?? "unknown",
+    builtAt,
+    target: env.VERCEL_ENV ?? (env.CI ? "ci" : "local"),
+    protocolVersion: MEASUREMENT_PROTOCOL_VERSION,
+  };
+}
+
 /** A shape check with a reason, so a malformed identity fails where it is read rather than later. */
 export function isBuildIdentity(value: unknown): value is BuildIdentity {
   if (!value || typeof value !== "object") return false;
