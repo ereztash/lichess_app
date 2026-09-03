@@ -158,7 +158,7 @@ describe("no event is a judgement about a person", () => {
 describe("the reveal branch recorded is the reveal branch rendered", () => {
   const panel = (inputs: RevealInputs, decisionId: string | null) =>
     render(
-      <RevealPanel inputs={inputs} analysis={null} fen={FEN} statedKnown="" decisionId={decisionId} />,
+      <RevealPanel inputs={inputs} analysis={null} fen={FEN} boardFen={FEN} statedKnown="" decisionId={decisionId} />,
     );
 
   /** Four inputs that reach four different branches, plus the one that reaches none. */
@@ -210,10 +210,10 @@ describe("the reveal branch recorded is the reveal branch rendered", () => {
     // Every rate in the funnel has this as a denominator; a double count inflates all of them.
     const view = panel(BASE, "d-once");
     view.rerender(
-      <RevealPanel inputs={BASE} analysis={null} fen={FEN} statedKnown="" decisionId="d-once" />,
+      <RevealPanel inputs={BASE} analysis={null} fen={FEN} boardFen={FEN} statedKnown="" decisionId="d-once" />,
     );
     view.rerender(
-      <RevealPanel inputs={{ ...BASE }} analysis={null} fen={FEN} statedKnown="" decisionId="d-once" />,
+      <RevealPanel inputs={{ ...BASE }} analysis={null} fen={FEN} boardFen={FEN} statedKnown="" decisionId="d-once" />,
     );
     expect(events().filter((event) => event.name === "reveal_presented")).toHaveLength(1);
     expect(revealsPresented()).toBe(1);

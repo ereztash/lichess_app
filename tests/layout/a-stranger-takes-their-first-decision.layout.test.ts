@@ -401,7 +401,20 @@ describe("a stranger takes their first decision", () => {
      * that the decision is kept and the player can go on; where the loaded game holds no further
      * position, going on is the record, which is where the decision now is.
      */
-    await page.getByRole("button", { name: "להחלטה הבאה" }).click();
+    /*
+     * BY THE ACT IT NAMES, not by a constant label. The control used to say "להחלטה הבאה" whatever
+     * it did, and once it learned to route to the record where no next decision exists it named one
+     * act and performed another. It carries `data-primary-action` now, so this asks for the way out
+     * and then checks that its words match it.
+     */
+    const wayOut = page.locator(".reveal-failure-next");
+    const act = await wayOut.getAttribute("data-primary-action");
+    const said = (await wayOut.innerText()).trim();
+    expect(
+      act === "next-decision" ? said === "להחלטה הבאה" : said === "חזרה לרשומה",
+      `the way out names ${act} and says "${said}"`,
+    ).toBe(true);
+    await wayOut.click();
     await page
       .locator(".commitment-screen, .resume-screen, .record-dashboard, #first-decision-username")
       .first()

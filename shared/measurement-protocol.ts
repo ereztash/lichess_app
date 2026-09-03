@@ -288,6 +288,45 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  * that had left those two disagreeing would have changed the instrument for one population and
  * not the other, which is a worse problem than a version number.
  */
+/*
+ * 4, THIRD ROUND: THE BOARD'S AUTHORITY AND THE REVEAL'S WAY OUT. NO BUMP, AND HERE IS THE REASON.
+ *
+ * WHAT CHANGED. The board stops accepting a gesture at `committing` and at `revealed` (it used to
+ * PLAY one, for whichever side was to move); the reveal marks itself when the board is not on the
+ * position it describes; the continuation advances a loaded game instead of forking it, and is
+ * offered only where it can be taken, so on the front door's one-position handoff the reveal's act
+ * is `return-record` rather than `next-decision`; the board's note is rewritten twice; and the
+ * counterfactual probe now validates its answer against the position it asked about rather than
+ * against whatever ply the timeline is showing.
+ *
+ * THE RULE THIS FILE SETS: *"BUMP THIS when anything changes about HOW a decision is produced. Not
+ * when a bug is fixed in something that reads one."* And the 2 -> 3 note widened it: what is on
+ * screen while the answer is given is the same kind of fact as a sampling rate.
+ *
+ * SO THE QUESTION IS ASKED OF THE DECISION-PRODUCING SCREENS ONLY, and the answer is measured
+ * rather than asserted. On `DECIDE` -- `stage === "deciding"`, where every scored decision is
+ * produced -- the board's authority is `propose`, which is what it did before: the same selection,
+ * the same targets, the same proposal mark, the same notice. Driven in Chromium at 1440x900,
+ * 1920x1080, 390x844 and 1024x500: 12 of 13 own pieces offer targets, squares 100/77/45/44px, no
+ * control moved, no word changed. `ANSWER_INSTRUMENT` is untouched. Everything else on the list
+ * above lands at `committing` or later -- after the commit, which is where decision time is
+ * measured to.
+ *
+ * THE PROBE IS THE ONE THAT NEEDED ARGUING, because LAW 9 protects it and it is asked at
+ * `committed`. What changed is not its rate, its wording, its moment or its scale: it is that an
+ * answer illegal in the position the question is about is refused instead of stored with
+ * `cpLoss: null` -- a row `readCounterfactuals` drops, so the treatment arm lost it silently.
+ * Refusing an answer the instrument cannot score is `RNL-18`, not a friction change.
+ *
+ * WHAT WOULD MAKE THIS WRONG. A measured difference on `DECIDE` between the two builds. None was
+ * found by looking; none could be found by measurement, because nothing has been measured under 4
+ * at all -- which is the same fact the second round leaned on, and it still holds: no build
+ * stamping 4 has reached a player. THAT EXEMPTION STILL EXPIRES ON THE FIRST ONE THAT DOES.
+ *
+ * WHAT REMAINED IDENTICAL: every question, the order they are asked in, the confidence scale and
+ * its sampling, the probe's rate, reveal timing, engine timing, thresholds, eligibility, scoring,
+ * the measurement schema, and every control on `DECIDE`.
+ */
 export const CURRENT_PROTOCOL_VERSION = 4;
 
 /**

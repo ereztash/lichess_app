@@ -16,6 +16,8 @@ back. The second is every question it could not answer, with what would resolve 
 | C5 | The fixes hold each of those four properties in the built app | `L5` — `tests/layout/the-hand-that-may-move-the-board.layout.test.ts`, six cases | any of its six cases going red, or a path around it that the file does not drive |
 | C6 | Controls on the primary loop are **not** perceptually inert | `L5`, computed styles before/after each press | a control on that loop with no self-delta and no screen advance |
 | C7 | The geometry defect of `INTERACTION_GEOMETRY.md` does not recur | `L5`, four viewports | a rendered square below `--tap-floor` at any width |
+| C8 | A piece of the side not to move cannot be selected, and the player's own hand still can | `L5` | either half of that case going red |
+| C9 | The counterfactual probe refuses an alternative illegal in the position it asked about | `L2` — a pure function and its map; the browser walk that found it is in the adversarial record | `boardAuthorityFor` granting `name-alternative` off the question's position |
 
 **What C1–C4 do not establish:** that these were the *only* ways the loop could break. They are what
 five attacks found. `evidence/` records what was driven; nothing claims coverage.
@@ -59,8 +61,11 @@ front door and does nothing else has never had a second reveal available. This i
 
 **`F-1` Is the reveal's payoff perceptible where it is put?**
 Measured, not judged: at 1440x900 and 1920x1080 the finding block begins at y=444 in a viewport of
-900/1080 — above the fold. At 390x844 the reveal begins at **y=893 in an 844px viewport**, and the
-finding at y=1120, so a handset shows the board and nothing else after a commit. The order of the
+900/1080 — above the fold. At 390x844 the reveal begins at **y=899 in an 844px viewport** and the
+finding at **y=1144**, so a handset shows the board and nothing else after a commit. (The first
+version of this row said 893 and **1120**. 893 was the baseline figure and 1120 was neither: the
+baseline evidence says 1138 and the repaired tree measures 1144. An adversarial pass caught it.
+Both figures are re-measured on the tree they describe.) The order of the
 four blocks is declared non-negotiable in `RevealPanel`'s own header and **was not touched**;
 nothing measured here licenses moving it. **Trigger:** the acquisition trial, whose funnel already
 separates `reveal_presented` from what a person did next.
@@ -83,6 +88,19 @@ responding" is a change to what a player experiences between the commit and the 
 it changes decision time or completion is not measured here. **Trigger:** the burden/reactivity
 protocol `docs/INERTIAL_UX_LAWS.md` already names for instrument friction, if the acquisition trial
 shows a completion difference at that step.
+
+**`R-2` A live game whose committed move ends the game.**
+`continuationAfter` checks the landing on the `advance` branch and cannot on `play`: the landing is
+the position after the committed move **and** the opponent's reply, neither of which exists when it
+runs. A player who commits mate therefore reaches `deciding` on a finished board. Established from
+source by an adversarial pass, not driven. **Trigger:** a live game walked to mate in Chromium, which
+would say whether the opponent effect already covers it.
+
+**`R-3` The board still announces an affordance it does not have.**
+At `revealed` the grid's label reads *"חצים להזזת המיקוד, Enter לבחירה"* and all 64 squares stay
+enabled, while Enter correctly selects nothing. Measured. Whether an AT user is better served by a
+label that changes with the authority or by one that stays stable is an interpretation question, and
+this mission has no evidence either way.
 
 ### `NOT-A-DEFECT`
 
@@ -117,3 +135,44 @@ press lights a target at all. Both halves go red under B1.
 **What is NOT claimed.** That these five breaks are the only ways to reintroduce the defects.
 `GATE-BOARD-AUTHORITY` covers the one a type cannot see — a board whose authority is a constant —
 and its own control is `tests/fixtures/inertia/BoardThatAlwaysAccepts.tsx`, which typechecks.
+
+---
+
+## D. The adversarial pass, and what it found in the fix
+
+Run in a separate context against the merged branch, with the brief to attack rather than to
+confirm. It ran twelve attack classes and found something in six of them. Everything below was
+reproduced before it was repaired.
+
+**In the change itself.** The board note asserted where the board was, contradicting the banner the
+same commit added (`ULI-X-06`). `RevealFailure`'s control said *"להחלטה הבאה"* while going to the
+record, and on a write failure sat beside a second control to the same place. `Blitz.tsx` granted
+`play` in two states that refuse. `RevealPanel.boardFen` was optional against the reason its own
+docblock gave. `continuationAfter`'s docblock claimed a landing check the `live` branch does not do.
+
+**In the gate.** `GATE-BOARD-AUTHORITY`'s scanner matched one spelling of a constant, so
+`authority={"propose"}` and `authority={ALWAYS}` typechecked and produced `34 gates: 34 pass`. And
+its positive control returned FAIL on both branches, so deleting the fixture left `gates:controls`
+green — a control satisfied by deleting the thing it controls, which is the one shape `RNL-04`
+exists to refuse. Both are repaired; the deletion case is now a `HARNESS_ERROR`, which the runner
+already counts as red for the wrong reason, and `GATE-TOOLBOX-OUTSIDE-FOCUS` had the same hole and
+says so now too.
+
+**Predating the change.** The counterfactual probe validated its answer against the board rather
+than against the position it asked about, so an alternative illegal in the decision's position was
+accepted, offered and **written to the record** with `cpLoss: null` — a row `readCounterfactuals`
+drops. That is the most serious thing this mission found, and it was found after the fix shipped.
+Also: the engine-failure path left the "engine is computing" note standing; the deferred-timing arm
+played the committed move at whatever ply the timeline had reached.
+
+**Attacks that found nothing**, recorded because a register of hits only makes a pass look better
+than it was: pre-commit engine leakage; decision N's reveal attached to N+1; `revealAt` going stale
+across every loader and the resume path; `RevealPanel`'s staleness derivation; `Record.tsx`'s
+handoffs, drills and transfers (the board is rendered in exactly two files); `revealPly + 2` parity
+and the mate/stalemate landing on the `advance` branch; `GATE-ONE-PRIMARY-ACTION` on the new reveal
+states; keyboard Enter and Space at the reveal; drag at the reveal.
+
+**Not repaired, and named.** A live game whose committed move is mate still reaches `deciding` on a
+finished board: the landing does not exist when `continuationAfter` runs, so the check would have to
+move to the caller, and nothing in this mission drove it. `ChessBoard`'s grid still announces
+*"Enter לבחירה"* at `revealed`, where Enter correctly does nothing. Both are in `B` above.

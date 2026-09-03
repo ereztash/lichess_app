@@ -262,6 +262,7 @@ describe("the rendered cost distinguishes a measurement from a ceiling", () => {
         inputs={{ ...INPUTS, ...over }}
         analysis={null}
         fen={WHITE_TO_MOVE}
+        boardFen={WHITE_TO_MOVE}
         statedKnown="המלך חשוף"
       />,
     );

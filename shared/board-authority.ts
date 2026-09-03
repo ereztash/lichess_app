@@ -90,6 +90,33 @@ export function boardAuthorityOf(stage: DecisionStage): BoardAuthority {
   return BOARD_AUTHORITY_OF_STAGE[stage];
 }
 
+/**
+ * The authority once the POSITION is taken into account as well as the stage.
+ *
+ * WHY THE STAGE IS NOT ENOUGH, and it took an adversarial pass to show it. `committed` grants
+ * `name-alternative` because the counterfactual probe asks, of one named position, what would have
+ * been played instead. The move timeline is live in that stage, so the board can be somewhere else
+ * when the gesture lands -- and `Home.tsx` validated the answer against the board rather than
+ * against the question. Reproduced end to end: a decision committed as White at `12. d6`, the
+ * timeline walked back to `10. Bb3` where Black is to move, and `b8a6` accepted, offered as
+ * *"רשמו b8a6 כחלופה"*, and written to the record. `b8a6` is not a legal move in the position the
+ * probe asked about. It landed in the probed arm with `cpLoss: null`, which `readCounterfactuals`
+ * drops -- so the row left the experiment silently, which is the exact failure `Home.tsx`'s own
+ * retry comment says was closed.
+ *
+ * AN ANSWER TO A QUESTION ABOUT A POSITION IS ONLY AN ANSWER ON THAT POSITION. Everywhere else the
+ * board grants nothing, which is the same sentence `revealed` already lives by.
+ */
+export function boardAuthorityFor(input: {
+  stage: DecisionStage;
+  /** Is the board showing the position the open instrument question is about? */
+  onTheQuestionsPosition: boolean;
+}): BoardAuthority {
+  const authority = boardAuthorityOf(input.stage);
+  if (authority === "name-alternative" && !input.onTheQuestionsPosition) return "none";
+  return authority;
+}
+
 /** Whether a gesture on the board may reach the position at all. */
 export function boardAccepts(authority: BoardAuthority): boolean {
   return authority !== "none";

@@ -105,3 +105,39 @@ export function formatEvaluation(scoreCp: number, mate?: number) {
   const score = scoreCp / 100;
   return `${score > 0 ? "+" : ""}${score.toFixed(2)}`;
 }
+
+/**
+ * ONE MOVE APPLIED TO A NAMED PLY OF A GAME, as a value rather than as three state setters.
+ *
+ * WHY IT LIVES HERE. `Home.tsx` held this inline and closed over `currentPly` and `activeFen`, so
+ * "the ply the decision was taken at" and "the ply the board is on" were the same expression --
+ * which is how the continuation came to play a committed move four plies back. It takes the ply
+ * and the position as arguments now, and this is the whole of the transform: the caller does
+ * nothing but store what comes out.
+ *
+ * NULL IS AN ILLEGAL MOVE, and it is the only reason this returns null. The board is the thing
+ * that decides whether a gesture may be made at all (`shared/board-authority.ts`); this decides
+ * only whether it is a move.
+ */
+export function applyMoveAt(
+  history: readonly GameSnapshot[],
+  at: { ply: number; fen: string },
+  from: string,
+  to: string,
+): { history: GameSnapshot[]; ply: number; san: string } | null {
+  const game = new Chess(at.fen);
+  try {
+    const move = game.move({ from, to, promotion: "q" });
+    const ply = at.ply + 1;
+    return {
+      history: [
+        ...history.slice(0, ply),
+        { ply, san: move.san, from: move.from, to: move.to, color: move.color, fen: game.fen() },
+      ],
+      ply,
+      san: move.san,
+    };
+  } catch {
+    return null;
+  }
+}

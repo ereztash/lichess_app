@@ -575,7 +575,7 @@ const INDEX = `${ROOT}/index.html`;
  *
  * 683, 215 AND 771 LEAVE 2.0, 1.7 AND 2.1 kB, the headroom every raise in this file has taken.
  */
-const ENTRY_RAW_KB = 683;
+const ENTRY_RAW_KB = 684;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 215;
 /**
@@ -652,7 +652,36 @@ const ENTRY_GZIP_KB = 215;
  * the raise is 2 kB rather than 1.4 so the next stylesheet change is not forced to come with a
  * budget commit of its own.
  */
-const INITIAL_RAW_KB = 771;
+/*
+ * 683 -> 684 and 771 -> 772: the board saying whose hand it is, and two controls that stopped lying.
+ *
+ *     entry raw, before            682.6 kB
+ *     entry raw, after             683.2 kB     +0.6
+ *     initial download, before     770.7 kB
+ *     initial download, after      771.3 kB     +0.6
+ *
+ * WHAT THE BYTES ARE, and none of it is a panel. `ChessBoard` gained a required `sideToMove` and
+ * one refusal, which is what stopped every piece of the side not to move taking `.selected-square`
+ * with no target behind it -- 14 of 14 measured, and 0 of 14 after. `boardAuthorityFor` binds the
+ * counterfactual probe's gesture to the position the probe asked about, which is the difference
+ * between refusing an illegal alternative and storing it with `cpLoss: null` for
+ * `readCounterfactuals` to drop. And `RevealFailure`'s way out now carries its own label and act
+ * instead of a constant, because the caller learned to route to the record while the button went
+ * on saying "to the next decision".
+ *
+ * IT CANNOT BE DEFERRED. All three are on the decision screen at the moment the gesture lands. A
+ * refusal that arrives in a later chunk is a refusal that did not happen, and the two that are
+ * about a control's honesty are useless the instant after it is pressed.
+ *
+ * THE GZIP CEILING DID NOT FIRE -- 214.1 against 215 -- and keeps its number: raising a ceiling
+ * that has not been crossed is loosening a budget for free. Both raw ceilings were crossed by the
+ * same 0.6 kB, which is the whole of the change: it is all in the entry chunk, none of it deferred.
+ *
+ * THE SMALLEST RAISE THAT CLEARS EACH. 683.2 -> 684 and 771.3 -> 772, leaving 0.8 and 0.7 kB --
+ * the ratchet keeps its property of sitting just above the build.
+ */
+
+const INITIAL_RAW_KB = 772;
 
 interface Asset {
   name: string;

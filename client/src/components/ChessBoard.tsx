@@ -17,9 +17,28 @@ interface ChessBoardProps {
    *
    * THE REFUSAL LIVES HERE AND NOT IN THE CALLER. A caller that passed `legalTargets={[]}` to mean
    * "not now" was answering the same question twice, and the second answer is the one that drifts.
-   * The board is handed what it would offer and decides whether it may.
+   * The board is handed what it would offer and decides whether it may. `Blitz.tsx` proved the
+   * point inside one commit: it kept `legal` gated on `phase === "running"` while its authority
+   * read only `reviewing`, so a finished game granted `play` over an empty target list and a press
+   * lit a square with nothing behind it. Its authority is `onMove`'s own condition now.
    */
   authority: BoardAuthority;
+  /**
+   * Whose turn it is in the position on the board.
+   *
+   * WHY THE BOARD NEEDS IT. Authority answers "may a gesture reach the position at all"; this
+   * answers "is this piece one the gesture could be about". Without it, every piece of the side
+   * NOT to move took `.selected-square` and `aria-selected="true"` with no target behind it --
+   * measured on the handed-over position, 14 of 14 black pieces while White was to move, and 16 of
+   * 16 at the start of a live game. A press that lights up and can never lead anywhere is an
+   * acknowledgment of authority the player does not have, which is what "the control feels inert"
+   * turns out to mean on a chessboard.
+   *
+   * IT IS A CHESS FACT AND NOT A PRODUCT ONE, which is why it is safe here. It does not ask which
+   * side the PLAYER is -- an imported game is decided from whichever side is to move, and that is
+   * what importing is for -- only which side the position is waiting on.
+   */
+  sideToMove: "w" | "b";
   selectedSquare?: string;
   legalTargets: string[];
   lastMove?: { from: string; to: string };
@@ -98,6 +117,7 @@ export function ChessBoard({
   board,
   orientation,
   authority,
+  sideToMove,
   selectedSquare: proposedSelection,
   legalTargets: offeredTargets,
   lastMove,
@@ -131,6 +151,9 @@ export function ChessBoard({
   };
   const arrowStart = suggestedMove ? point(suggestedMove.from) : undefined;
   const arrowEnd = suggestedMove ? point(suggestedMove.to) : undefined;
+  /* Declared above `selectSquare`, which writes to it directly when it refuses a press. */
+  const [announcement, setAnnouncement] = useState("");
+
   const selectSquare = (square: string) => {
     /*
      * SILENTLY, AND THAT IS DELIBERATE. The screen already says what state it is in -- the note
@@ -140,6 +163,17 @@ export function ChessBoard({
     if (!live) return;
     if (selectedSquare && legalTargets.includes(square)) {
       onMove(selectedSquare, square);
+      return;
+    }
+    /*
+     * A PIECE OF THE SIDE NOT TO MOVE IS NOT SELECTABLE, and it is said out loud rather than
+     * ignored: an AT user who presses Enter and gets nothing has learnt less than one who is told
+     * whose turn it is. Deselecting whatever was selected is left alone -- pressing an empty
+     * square still clears.
+     */
+    const piece = getPiece(square);
+    if (piece && piece.color !== sideToMove) {
+      setAnnouncement(`${squareLabel(square, piece)}. התור של הצד השני.`);
       return;
     }
     onSelect(selectedSquare === square ? undefined : square);
@@ -231,7 +265,6 @@ export function ChessBoard({
    * the last move of a restored game to someone who just opened the page. The first pass only
    * records what it saw.
    */
-  const [announcement, setAnnouncement] = useState("");
   const seen = useRef<{ selected?: string; chosen: string; last: string } | null>(null);
   const chosenKey = chosenMove ? `${chosenMove.from}${chosenMove.to}` : "";
   const lastKey = lastMove ? `${lastMove.from}${lastMove.to}` : "";

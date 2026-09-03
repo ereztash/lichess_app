@@ -250,10 +250,10 @@ describe("silence says WHICH kind of silence, because there are two", () => {
     const { render } = await import("@testing-library/react");
 
     const { container: quiet } = render(
-      <RevealPanel inputs={inputs({ cpLoss: 10, confidence: CONFIDENCE_LEVELS - 1 })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
+      <RevealPanel inputs={inputs({ cpLoss: 10, confidence: CONFIDENCE_LEVELS - 1 })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" boardFen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
     );
     const { container: band } = render(
-      <RevealPanel inputs={inputs({ cpLoss: 60, confidence: CONFIDENCE_LEVELS })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
+      <RevealPanel inputs={inputs({ cpLoss: 60, confidence: CONFIDENCE_LEVELS })} analysis={null} fen="8/8/8/8/8/8/8/K6k w - - 0 1" boardFen="8/8/8/8/8/8/8/K6k w - - 0 1" statedKnown="" />,
     );
     const quietText = quiet.querySelector(".one-thing-none")!.textContent ?? "";
     const bandText = band.querySelector(".one-thing-none")!.textContent ?? "";

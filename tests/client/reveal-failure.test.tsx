@@ -27,17 +27,34 @@ import { RevealFailure } from "../../client/src/components/RevealFailure";
 describe("both failures offer a way out", () => {
   for (const kind of ["engine", "write"] as const) {
     it(`renders an advance control on a ${kind} failure`, () => {
-      const onNext = vi.fn();
-      render(<RevealFailure kind={kind} onNext={onNext} />);
+      const go = vi.fn();
+      render(<RevealFailure kind={kind} next={{ label: "להחלטה הבאה", act: "next-decision", go }} />);
       const advance = screen.getByRole("button", { name: /להחלטה הבאה/ });
       fireEvent.click(advance);
-      expect(onNext).toHaveBeenCalledTimes(1);
+      expect(go).toHaveBeenCalledTimes(1);
+    });
+
+    /*
+     * THE LABEL AND THE ACT TRAVEL TOGETHER. The control used to say "להחלטה הבאה" whatever the
+     * caller did, so once the caller learned to route to the record where no next decision exists,
+     * it named one act and performed another. An adversarial pass walked exactly that.
+     */
+    it(`names the act it performs on a ${kind} failure`, () => {
+      render(
+        <RevealFailure
+          kind={kind}
+          next={{ label: "חזרה לרשומה", act: "return-record", go: vi.fn() }}
+        />,
+      );
+      const advance = screen.getByRole("button", { name: /חזרה לרשומה/ });
+      expect(advance.getAttribute("data-primary-action")).toBe("return-record");
+      expect(screen.queryByRole("button", { name: /להחלטה הבאה/ })).toBeNull();
     });
 
     it(`says the decision is safe on a ${kind} failure`, () => {
       // The first thing said, on both, because it is the part that is not bad news: the commit
       // is written before the engine is ever started, so a failure here cannot cost it.
-      render(<RevealFailure kind={kind} onNext={vi.fn()} />);
+      render(<RevealFailure kind={kind} next={{ label: "להחלטה הבאה", act: "next-decision", go: vi.fn() }} />);
       expect(screen.getByText(/ההחלטה עצמה נרשמה/)).toBeTruthy();
     });
   }
@@ -45,8 +62,8 @@ describe("both failures offer a way out", () => {
   it("does not render the two failures with the same words", () => {
     // They are different events. An engine that never answered leaves no evaluation to show; a
     // failed write leaves a valid reveal on screen that simply will not count.
-    const engine = render(<RevealFailure kind="engine" onNext={vi.fn()} />).container.textContent;
-    const write = render(<RevealFailure kind="write" onNext={vi.fn()} />).container.textContent;
+    const engine = render(<RevealFailure kind="engine" next={{ label: "להחלטה הבאה", act: "next-decision", go: vi.fn() }} />).container.textContent;
+    const write = render(<RevealFailure kind="write" next={{ label: "להחלטה הבאה", act: "next-decision", go: vi.fn() }} />).container.textContent;
     expect(engine).not.toBe(write);
     expect(engine).toMatch(/המנוע לא סיים/);
     expect(write).toMatch(/לא נשמרה/);

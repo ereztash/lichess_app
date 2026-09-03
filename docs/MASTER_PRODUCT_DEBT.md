@@ -1247,9 +1247,11 @@ screen.
 
 **What is closed.** The continuation is offered only where it can be taken; a loaded game now
 continues along itself rather than being forked; and where the game holds no further position, the
-screen says so and offers `return-record`. `/` then hands over the anchor set's next position, which
-is a decision on the player's own side and the one reading here comparable between players. Held by
-`tests/layout/the-hand-that-may-move-the-board.layout.test.ts`.
+screen says so and offers `return-record`. `/` then hands over the anchor set's next position, which is
+the one reading here comparable between players because everyone answers the same bank in the same
+order. It is **not** a position on the player's own side — measured, it is Black to move for a
+visitor handed White — and it is stamped `purpose: "anchor"` rather than pretending otherwise. Held
+by `tests/layout/the-hand-that-may-move-the-board.layout.test.ts`.
 
 **What is open, and why it is not closed here.** Whether the reveal should route to that position
 directly, rather than through the record, changes what the acquisition funnel's continuation stage

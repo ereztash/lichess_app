@@ -23,6 +23,7 @@ const base = {
   orientation: "w" as const,
   /* The marks are about what is on the board, not about whether it may be pressed. */
   authority: "propose" as const,
+  sideToMove: "w" as const,
   legalTargets: [],
   onSelect: () => undefined,
   onMove: () => undefined,

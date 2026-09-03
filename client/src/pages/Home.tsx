@@ -32,7 +32,7 @@ import { continuationStarted } from "@/lib/acquisition-evidence";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
-import { NO_FURTHER_POSITION, RevealNoContinuation } from "@/components/RevealNoContinuation";
+import { RevealNoContinuation } from "@/components/RevealNoContinuation";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { readPosition, writePosition } from "@/lib/session-position";
 import { LoopStrip } from "@/components/LoopStrip";
@@ -44,7 +44,7 @@ import {
 } from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
 import { transferObservation } from "@shared/learning-record";
-import { boardAuthorityOf } from "@shared/board-authority";
+import { boardAuthorityFor } from "@shared/board-authority";
 import { PROBE_STAGE } from "@shared/counterfactual-stage";
 import { continuationAfter } from "@/lib/continuation";
 import { effectiveTiming, mayShowVerdictNow, type RevealTiming } from "@shared/reveal-timing";
@@ -122,6 +122,7 @@ import {
   type GameSnapshot,
   type Orientation,
   uciToSquares,
+  applyMoveAt,
 } from "@/lib/game-data";
 import {
   buildCommitEvent,
@@ -185,14 +186,6 @@ const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע יד
  * game. It is only a live game that needs someone across the board.
  */
 type Opponent = { playerColor: "w" | "b"; depth: OpponentDepth };
-
-function snapshot(
-  game: Chess,
-  move: { san: string; from: string; to: string; color: "w" | "b" },
-  ply: number,
-): GameSnapshot {
-  return { ply, san: move.san, from: move.from, to: move.to, color: move.color, fen: game.fen() };
-}
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -735,17 +728,13 @@ export default function Home() {
   /** `at` names the position played from and defaults to the one on screen; LAW 11 is why. */
   const playMove = useCallback(
     (from: string, to: string, at = { ply: currentPly, fen: activeFen }) => {
-      const game = new Chess(at.fen);
-      try {
-        const move = game.move({ from, to, promotion: "q" });
-        setHistory((prev) => [...prev.slice(0, at.ply + 1), snapshot(game, move, at.ply + 1)]);
-        setCurrentPly(at.ply + 1);
-        return move.san;
-      } catch {
-        return null;
-      }
+      const played = applyMoveAt(history, at, from, to);
+      if (!played) return null;
+      setHistory(played.history);
+      setCurrentPly(played.ply);
+      return played.san;
     },
-    [activeFen, currentPly],
+    [activeFen, currentPly, history],
   );
 
   /**
@@ -828,9 +817,10 @@ export default function Home() {
        */
       if (stage === PROBE_STAGE) {
         try {
-          new Chess(activeFen).move({ from, to, promotion: "q" });
+          /* Against the position the PROBE asked about, not the one the timeline is showing. */
+          new Chess(probe?.positionFen ?? activeFen).move({ from, to, promotion: "q" });
         } catch {
-          setNotice("המהלך אינו חוקי בעמדה זו.");
+          setNotice("המהלך אינו חוקי בעמדה שעליה נשאלתם.");
           return;
         }
         setProbeAlternative(uci);
@@ -849,7 +839,7 @@ export default function Home() {
       setCandidatesConsidered((prev) => (prev.includes(uci) ? prev : [...prev, uci]));
       setNotice(`${uci} נבחר. אפשר עדיין לשנות עד לרישום.`);
     },
-    [activeFen, playMove, stage],
+    [activeFen, playMove, probe, stage],
   );
 
   /**
@@ -1031,9 +1021,13 @@ export default function Home() {
         };
         if (speak) {
           setRevealInputs(inputs);
-          /* The commit's note still said the engine was computing, and a board that goes quiet
-             has to say so or it reads as broken. */
-          setNotice("ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה.");
+          /*
+           * IT SAYS WHAT THE BOARD DOES, NOT WHERE IT IS. This ended "...נעול על העמדה שהחלטתם בה"
+           * for one release, and the timeline is live at `revealed` -- so one press had this
+           * `role="status"` asserting what `.reveal-elsewhere` denied. Where the board is belongs
+           * to the banner, which derives it.
+           */
+          setNotice("ההחלטה נרשמה והמנוע ענה. הלוח כבר לא מקבל מהלכים.");
         }
 
         /*
@@ -1124,7 +1118,9 @@ export default function Home() {
          */
         if (!speak) {
           const played = uciToSquares(draft.chosenMove!);
-          if (played) playMove(played.from, played.to);
+          /* On the position it was taken in, like `nextDecision`: the timeline is live in the
+             deferred wait, and `playMove` truncates from wherever it is told. */
+          if (played) playMove(played.from, played.to, { ply: positionPly, fen: positionFen });
           setStage("deciding");
           setNotice("ההחלטה נרשמה. העמדה הבאה.");
         }
@@ -1134,6 +1130,8 @@ export default function Home() {
         reportEngineFailure(error, "board");
         setRevealFailure("engine");
         setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
+        /* The commit's note said the engine was computing, and here it never will be again. */
+        setNotice("ההחלטה נרשמה. המנוע לא סיים, והלוח כבר לא מקבל מהלכים.");
       }
     },
     [
@@ -1593,10 +1591,8 @@ export default function Home() {
       void advanceDrill();
       return;
     }
-    if (!continuation) {
-      setNotice(NO_FURTHER_POSITION);
-      return;
-    }
+    /* `canContinue` gates every caller, so `continuation` is non-null here by construction. */
+    if (!continuation) return;
     /* A loaded game continues along itself rather than being forked (LAW 4). */
     if (continuation.kind === "advance") {
       setCurrentPly(continuation.ply);
@@ -2074,13 +2070,10 @@ export default function Home() {
                   fen={revealAt.fen}
                   boardFen={activeFen}
                   statedKnown={committedDraft.known}
-                  /* Null until the reveal has actually been written: an unrecorded reveal is not
-                     a funnel stage, and an id that does not name a committed decision cannot be
-                     joined to one. */
+                  /* Null until the reveal is written: an unrecorded reveal is not a funnel stage,
+                     and an id naming no committed decision cannot be joined to one. */
                   decisionId={revealedDecisionId}
-                  /* Same condition the header control uses: a transfer run works through a
-                     pre-registered set and has its own way forward. */
-                  /* Not offered where it cannot be honoured: `lib/continuation.ts`. */
+                  /* A transfer keeps its own control; and not offered where it cannot be honoured. */
                   onContinue={
                     revealedDecisionId &&
                     (!learningTransfer || learningTransferStage === "running") &&
@@ -2092,7 +2085,8 @@ export default function Home() {
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
               ) : null}
-              {revealInputs && !canContinue && (
+              {/* Not beside a failure panel, which owns the way out. */}
+              {revealInputs && !canContinue && !revealFailure && (
                 <RevealNoContinuation onReturnToRecord={() => navigate("/")} />
               )}
               {/*
@@ -2120,7 +2114,11 @@ export default function Home() {
               {revealFailure && (
                 <RevealFailure
                   kind={revealFailure}
-                  onNext={canContinue ? nextDecision : () => navigate("/")}
+                  next={
+                    canContinue
+                      ? { label: "להחלטה הבאה", act: "next-decision", go: nextDecision }
+                      : { label: "חזרה לרשומה", act: "return-record", go: () => navigate("/") }
+                  }
                 />
               )}
               {learningTransfer && learningTransferPanel}
@@ -2315,7 +2313,9 @@ export default function Home() {
             <ChessBoard
               board={board}
               orientation={orientation}
-              authority={boardAuthorityOf(stage)} /* shared/board-authority.ts */
+              /* The stage, and whether the board is on the position the probe asked about. */
+              authority={boardAuthorityFor({ stage, onTheQuestionsPosition: !probe || activeFen === probe.positionFen })}
+              sideToMove={activeGame.turn()}
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}

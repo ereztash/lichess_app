@@ -40,7 +40,9 @@ const base = {
   board,
   orientation: "w" as const,
   /* Every case in this file is about a board the player may act on; the refusal has its own file. */
+  /* White to move: the fixture is the opening position. */
   authority: "propose" as const,
+  sideToMove: "w" as const,
   legalTargets: [],
   onSelect: () => undefined,
   onMove: () => undefined,
@@ -228,6 +230,7 @@ function KeyboardOnlyBoard({ onPlayed }: { onPlayed: (move: string) => void }) {
       board={chess.board()}
       orientation="w"
       authority="propose"
+      sideToMove="w"
       legalTargets={targets}
       selectedSquare={selected}
       onSelect={setSelected}

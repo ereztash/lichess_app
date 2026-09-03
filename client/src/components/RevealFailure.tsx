@@ -15,6 +15,7 @@
  * is written by `commitDecision` before the engine is ever started (R3), so a failure here can
  * never cost the player the thing they actually did.
  */
+import { primaryAction, type PrimaryAction } from "@shared/primary-action";
 import { CircleAlert } from "lucide-react";
 
 export type RevealFailureKind = "engine" | "write";
@@ -43,7 +44,22 @@ const COPY: Record<RevealFailureKind, { what: string; detail: string }> = {
   },
 };
 
-export function RevealFailure({ kind, onNext }: { kind: RevealFailureKind; onNext: () => void }) {
+/**
+ * THE WAY OUT, NAMED BY WHAT IT DOES.
+ *
+ * The label used to be the constant "להחלטה הבאה" while the handler was whatever the caller passed
+ * -- and once the caller learned to route to the record where no next decision exists, the control
+ * said "to the next decision" and went to `/`. An adversarial pass walked it. A control that names
+ * one act and performs another is the defect this repository built `shared/primary-action.ts` to
+ * see, so the act travels with the label and the attribute is set from it.
+ */
+interface WayOut {
+  label: string;
+  act: PrimaryAction;
+  go: () => void;
+}
+
+export function RevealFailure({ kind, next }: { kind: RevealFailureKind; next: WayOut }) {
   const copy = COPY[kind];
   return (
     <section className="reveal-failure" role="alert" aria-label="החשיפה נכשלה">
@@ -55,8 +71,13 @@ export function RevealFailure({ kind, onNext }: { kind: RevealFailureKind; onNex
         ההחלטה עצמה נרשמה. היא נכתבת לרשומה לפני שהמנוע מופעל בכלל, כך שכשל כאן לא מוחק אותה.
       </p>
       <p className="reveal-failure-detail">{copy.detail}</p>
-      <button type="button" className="reveal-failure-next" onClick={onNext}>
-        להחלטה הבאה
+      <button
+        type="button"
+        className="reveal-failure-next"
+        {...primaryAction(next.act)}
+        onClick={next.go}
+      >
+        {next.label}
       </button>
     </section>
   );
