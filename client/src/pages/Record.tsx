@@ -53,7 +53,7 @@ import { pickFirstDecision } from "@/lib/first-decision";
 import { primaryAction } from "@shared/primary-action";
 import { ANCHOR_POSITIONS } from "@shared/anchor-set";
 import { PROMISE, PROMISE_RETURNING } from "@shared/promise";
-import { nextAnchor } from "@/lib/anchor-run";
+import { handOverBankPosition } from "@/lib/bank-handover";
 import { writePosition } from "@/lib/session-position";
 import { ImportDiagnosticPanel } from "@/components/ImportDiagnostic";
 import { WhatIsUnclear } from "@/components/WhatIsUnclear";
@@ -98,41 +98,6 @@ const RecordDashboard = lazyChunk(() =>
 const ResumeScreen = lazyChunk(() =>
   import("@/components/ResumeScreen").then((m) => ({ default: m.ResumeScreen })),
 );
-
-/**
- * Hand a bank position to the board.
- *
- * ONE COPY, TWO CALLERS, and the second caller is the reason it was lifted out of
- * `AnchorRunControl`. The bank is now reachable from two places -- the returning player's control
- * inside the record layer, and the cold arrival who has no account to import from -- and a second
- * transcription of this handoff is a second chance for the two routes to disagree about what a
- * bank decision is. `firstDecisionPly: null` in particular is load-bearing: an anchor is always
- * asked on its own purpose, and stamping it `first` as well would put two names on one decision.
- */
-async function handOverBankPosition(
-  answered: readonly string[],
-  navigate: (to: string) => void,
-): Promise<"served" | "set-complete"> {
-  const next = await nextAnchor(answered);
-  if (!next) return "set-complete";
-  /*
-   * The same handoff a first decision uses. The board restores from this store on mount, so an
-   * anchor position arrives by the path a returning player's own game already takes.
-   */
-  writePosition({
-    sans: [...next.sans],
-    ply: next.ply,
-    source: "finished",
-    // An anchor position is one decision, so the coached loop -- the same as the handoff above.
-    revealTiming: "per-decision",
-    firstDecisionPly: null,
-    orientation: next.sans.length % 2 === 0 ? "w" : "b",
-    opponent: null,
-    gameId: `anchor-${next.id}`,
-  });
-  navigate("/play");
-  return "served";
-}
 
 function FirstDecision({
   knownUsername,

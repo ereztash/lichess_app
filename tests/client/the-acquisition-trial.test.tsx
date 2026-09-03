@@ -228,26 +228,65 @@ describe("the reveal branch recorded is the reveal branch rendered", () => {
 });
 
 describe("continuation is an act, not a location", () => {
+  /*
+   * O-2, ENUMERATED AS EXCLUSIONS RATHER THAN AS ONE POSITIVE CASE.
+   *
+   * The owner decision names five things that are NOT continuation -- a route change, a press of
+   * the way-on control, a render of a position, entry to a screen, and the selection of a game --
+   * and one thing that is: a legal move placed by the player, on their own side, after a reveal.
+   *
+   * None of the five can reach `continuationStarted` with `movePlaced: true`, because nothing but
+   * a validated board gesture sets the candidate move. So each is expressed as the input state it
+   * actually produces, and the point of the block is that the predicate refuses all of them.
+   */
+  const AFTER_A_REVEAL = { revealsPresented: 1, alreadyRecorded: false };
+
   it("is not started by being on the board before any reveal", () => {
     expect(
-      continuationStarted({ movePlaced: true, revealsPresented: 0, alreadyRecorded: false }),
+      continuationStarted({
+        movePlaced: true,
+        positionWasActionable: true,
+        revealsPresented: 0,
+        alreadyRecorded: false,
+      }),
       "the first decision of the session was counted as a continuation",
     ).toBe(false);
   });
 
-  it("is not started by a render with no move placed", () => {
-    expect(continuationStarted({ movePlaced: false, revealsPresented: 2, alreadyRecorded: false })).toBe(
-      false,
-    );
+  it.each([
+    ["a route change", { movePlaced: false, positionWasActionable: false }],
+    ["a press of the way-on control", { movePlaced: false, positionWasActionable: false }],
+    ["a position rendered and not acted in", { movePlaced: false, positionWasActionable: true }],
+    ["entry to a screen", { movePlaced: false, positionWasActionable: false }],
+    ["selecting a game", { movePlaced: false, positionWasActionable: false }],
+  ])("is not started by %s", (_what, state) => {
+    expect(continuationStarted({ ...state, ...AFTER_A_REVEAL })).toBe(false);
   });
 
-  it("is started by placing a move after a reveal, once", () => {
-    expect(continuationStarted({ movePlaced: true, revealsPresented: 1, alreadyRecorded: false })).toBe(
-      true,
-    );
-    expect(continuationStarted({ movePlaced: true, revealsPresented: 1, alreadyRecorded: true })).toBe(
-      false,
-    );
+  it("is not started by a move placed where the player has no turn to take", () => {
+    /*
+     * The `c1d72935c038` defect, now excluded by the definition rather than only by the board.
+     * A move placed on a position that is not the player's to act in is not their decision, and
+     * before O-2 this input returned true.
+     */
+    expect(
+      continuationStarted({ movePlaced: true, positionWasActionable: false, ...AFTER_A_REVEAL }),
+      "a move placed outside the player's own actionable position was counted",
+    ).toBe(false);
+  });
+
+  it("is started by placing a legal move in an actionable position after a reveal, once", () => {
+    expect(
+      continuationStarted({ movePlaced: true, positionWasActionable: true, ...AFTER_A_REVEAL }),
+    ).toBe(true);
+    expect(
+      continuationStarted({
+        movePlaced: true,
+        positionWasActionable: true,
+        revealsPresented: 1,
+        alreadyRecorded: true,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -503,6 +542,12 @@ describe("no third-party telemetry was installed to do any of this", () => {
       "client/src/components/ValueReconstruction.tsx",
       "client/src/lib/acquisition-evidence.ts",
       "client/src/lib/progress-record.ts",
+      /*
+       * The continuation event's one writer, extracted from `Home.tsx` under `O-2` so that
+       * `GATE-CONTINUATION-IS-A-MOVE` has a single file to point at. It imports one predicate and
+       * writes one event; it returns void, so nothing it can see reaches a render.
+       */
+      "client/src/lib/continuation-event.ts",
     ]);
     const sources = (dir: string): string[] => {
       const out: string[] = [];

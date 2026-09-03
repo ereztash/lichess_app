@@ -1187,19 +1187,49 @@ from `docs/ROLLBACK.md` section 7.
 | | |
 | --- | --- |
 | type | evidence |
-| state | **open** |
+| state | **fixed** |
 | severity | P2 |
-| basis | **verified** — `tests/deployment/` asserts headers, MIME types, the CSP string, health and the build identity as served; it never creates the engine worker; the one defect L6 exists for (R-09, the CSP that broke the worker) is held only by the CSP-string assertion |
+| basis | **verified** — the probe was written, run green under the policy production actually serves, and run red under two policies that break the engine |
 
 A policy string that contains `worker-src 'self'` is strong evidence and not the fact. The fact is a
-worker that starts under the served policy, and the self-check already knows how to probe it in a
-browser. Running that probe from Chromium against `DEPLOYED_ORIGIN` is the missing rung, and it is
-read-only, so the "no writes, ever" rule of the L6 suite holds.
+worker that starts under the served policy, and the one defect `L6` exists for — `R-09`, a CSP that
+broke the worker — was held only by that string.
 
-**Gate:** a deployment test beside `tests/deployment/origin.ts` (the-engine-that-speaks) opens the
-deployed front door in Chromium (`tests/layout/browser.ts`), runs the worker probe, and fails when
-the worker does not answer `uciok` under the served headers; the wrong-origin control goes red on it
-too.
+`tests/deployment/the-engine-that-speaks.deployment.test.ts` opens the deployed origin in Chromium,
+finds the engine assets **in the bundle the origin serves**, builds the Worker URL the way
+`stockfish.ts` builds it, and fails unless the engine answers `uciok` with nothing refused. It runs
+in `deployed.yml`, after the deployment, against the origin people are being served — which is where
+it has to be while `R-21` is open, because `verify` runs after the merge.
+
+**Measured, all three directions:**
+
+| policy | verdict |
+| --- | --- |
+| the one production actually serves, captured live | **`UCIOK`**, 687 ms, 0 refusals, "Stockfish 18 Lite WASM" |
+| `worker-src 'none'` — the `R-09` class | **`WORKER_ERROR`** |
+| no `'wasm-unsafe-eval'` — the silent one | **`TIMEOUT`** |
+
+The second control is the one worth having. A blocked worker throws in milliseconds and anybody
+would notice; a policy without wasm permission lets the worker start and never compile, so the app
+looks alive and every reveal is empty. During a field trial that reads as *the product told me
+nothing*, and it would be recorded as an absence of value.
+
+**Gate:** `tests/fixtures/controls/deployed-engine.control.test.ts`, run by `deployed.yml` and
+required to fail.
+
+**What it does not cover, so a green run is not read for more than it says.** One browser engine,
+the Chromium the runner has. That the engine STARTS, not that it plays: a build whose engine starts
+and then answers nonsense passes here. And it runs when the workflow runs, so an origin changed
+between deployments is caught by the daily schedule rather than by this file.
+
+**One limitation of this session's own verification, recorded rather than papered over.** The
+green run was against a local origin serving the shipped bundle under the CSP captured live from
+production, not against `lichessapp.vercel.app` itself: Chromium in the sandbox this was written in
+cannot complete a TLS handshake through its egress proxy. The served policy, the served MIME types
+and the shipped bytes were all exercised; the TLS path was not. In `deployed.yml` there is no such
+proxy and the probe reaches the real origin directly. **Until one green run of `deployed.yml`
+carries this case, that last hop is asserted rather than verified.**
+
 
 ### R-28 · `users` is a table nothing writes and one query reads
 
@@ -1225,43 +1255,49 @@ and the test itself; or the migration that drops the table.
 | | |
 | --- | --- |
 | type | product |
-| state | **open** — the opponent's turn is no longer put to the player; how the reveal reaches the next position is not decided |
+| state | **fixed** — owner decision `O-1` = A, the direct route, implemented and walked end to end |
 | severity | P1 |
-| basis | **verified** — driven in Chromium against the built app, and reproduced in a clean worktree of `c1d72935c038` so it is not an artefact of the branch that found it |
+| basis | **verified** — driven in Chromium against the built app, before and after |
 
 `Record`'s front door hands over exactly one position, on purpose: `pickFirstDecision` trims the
-game to the ply before the decision *"so nothing after it can leak"*. Three other places assume a
-second decision is reachable from there — `session-position.ts` says *"every decision AFTER it is an
-ordinary one"*, `docs/ACQUISITION_EVIDENCE.md` defines the continue step as *"board accepts the next
-move"*, and `ASK_AFTER_REVEALS = 2` puts the value question after the **second** reveal. None of
-them is reachable on that path.
+game to the ply before the decision *"so nothing after it can leak"*. Three other places assumed a
+second decision was reachable from there, and none of them was on that path.
 
-What was measured at `c1d7293`: the board read `תור לבן` before the decision and `תור שחור` after
-the continuation. Playing the committed move passed the turn to a side nobody was going to play, and
-a move proposed there was accepted, answered and **written to the record** — a decision taken for the
-opponent, carrying a stated confidence, stored indistinguishably from one taken for the player's own
-side. `docs/FINDINGS.md` had already found and named this failure — *"the app asked the player to
-decide for that side too"* — and closed it by giving the **live** game an opponent.
-`docs/user-loop-integrity/evidence/before-06-the-opponents-turn-handed-to-the-player.png` is that
-screen.
+**What the owner decided.** After a reveal whose game holds no further position, the player is
+routed **directly** to the anchor set's next unanswered position, in one press. The reason is a
+measurement reason and it is recorded in
+`docs/user-loop-integrity/FALSIFICATION_REGISTER.md` `O-1`: the first trial measures whether the
+reveal created enough value to take another decision, and the two-press route put navigation
+friction inside that measurement.
 
-**What is closed.** The continuation is offered only where it can be taken; a loaded game now
-continues along itself rather than being forked; and where the game holds no further position, the
-screen says so and offers `return-record`. `/` then hands over the anchor set's next position, which is
-the one reading here comparable between players because everyone answers the same bank in the same
-order. It is **not** a position on the player's own side — measured, it is Black to move for a
-visitor handed White — and it is stamped `purpose: "anchor"` rather than pretending otherwise. Held
-by `tests/layout/the-hand-that-may-move-the-board.layout.test.ts`.
+**What that cost, and it was not free.** The first implementation called the record's own handoff,
+which writes the position and then navigates to `/play`. From the reveal the player is already on
+`/play`, so the call moved nothing: measured in Chromium, the url did not change, the reveal stayed
+on screen, and the board refused every move. Serving is now split from routing, and the reveal
+hands the position to the component that owns the board.
 
-**What is open, and why it is not closed here.** Whether the reveal should route to that position
-directly, rather than through the record, changes what the acquisition funnel's continuation stage
-counts, and `RNL-11` forbids moving the intervention and the instrument in one step.
-`OWNER-REQUIRED`, with its trigger in
-`docs/user-loop-integrity/FALSIFICATION_REGISTER.md` `O-1`.
+**What the route hands over, said exactly.** The bank's next position is the one reading here
+comparable between players, because everyone answers the same bank in the same order. It is **not**
+a position on the player's own side — measured, `"11. O-O-O תור שחור"` for a visitor handed White at
+the front door — and it is stamped `purpose: "anchor"` rather than pretending otherwise. An earlier
+draft of this row called it *"a decision on the player's own side"*; an adversarial pass measured
+that and it was wrong. `O-2`'s continuation definition is the thing that carries the own-side
+clause, and it carries it about the **move the player then makes**, not about the position served.
 
-**Reversal condition.** A front-door walk that reaches a second reveal in one press from the first.
-That is also what would give `next_decision_started` a denominator on that path that counts a move
-the player made on their own side.
+**What `O-1` did not do.** It did not lower the continuation bar. `O-2` fixed
+`next_decision_started` to a legal move placed by the player on their own side after a prior
+reveal, added the clause the board's guard used to carry alone, and `GATE-CONTINUATION-IS-A-MOVE`
+holds it against three named decay modes, each of which was deliberately introduced and went red.
+`ASK_AFTER_REVEALS = 2` was not moved; the new route makes it reachable from the front door, which
+is what `O-3` verified rather than changed.
+
+**Gate.** `tests/layout/the-loop-a-stranger-can-close.layout.test.ts`, two walks on the built app
+with the shipped engine: the one-press route lands on a position the player may move in and records
+no continuation until they do, and the value question arrives on the second reveal.
+
+**Reversal condition.** A front-door walk that reaches a second reveal without a move having been
+placed, or a one-press route that lands the player where they cannot legally move.
+
 
 ## Refuted — measured, found wrong, and recorded so it is not reopened
 

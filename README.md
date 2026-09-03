@@ -222,7 +222,7 @@ npm run verify   # typecheck → build → tests → gates → gate controls →
 
 ## שערים
 
-שלושים וארבעה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל
+שלושים וחמישה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל
 לא הוכח כשער. `gates:controls` יוצא עם קוד שגיאה גם אם בקרה נשארת ירוקה וגם אם בקרה מעולם לא רצה.
 
 ```bash
@@ -250,6 +250,7 @@ npm run gates:controls   # חייב להיות אדום על פיקסצ'רים �
 | GATE-DECISION-FOCUS | LAW 1 | מסך שמראה לשחקן קריאה מהרשומה בזמן שהוא מוסר את ההחלטה |
 | GATE-ONE-BOARD-ONE-STORY | LAW 11 | שני לוחות במסך אחד, כלומר שתי תשובות לשאלה איפה אני |
 | GATE-BOARD-AUTHORITY | LAW 3 | לוח שמקבל מחווה באותו אופן בכל מצב, גם אחרי שההחלטה נרשמה |
+| GATE-CONTINUATION-IS-A-MOVE | O-2 | אירוע ההמשכיות של הניסוי נכתב ביותר ממקום אחד, או מסעיף שנקבע קבוע, או בלי להתייעץ עם ההגדרה |
 | GATE-REUSE-CONFIG | LAW 8 | מסך שמתחיל משחק בלי לקרוא את התשובה שהשחקן כבר נתן |
 | GATE-PENDING-WORK-LIVENESS | LAW 4 | ניתוח שמסך יכול לבטל ביציאה, ושורש שלא יסיים אותו לעולם |
 | GATE-NEXT-ACTION-RESOLVES-BLOCKER | LAW 3 | חסם שנענה בפעולה שמגדילה בדיוק את מה שחוסם |
@@ -329,7 +330,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/PRODUCTION_READINESS_LEDGER.md`](docs/PRODUCTION_READINESS_LEDGER.md) | מה מוכן, מה לא, ולמה | אנגלית |
 | [`docs/VERIFIED_LEARNING.md`](docs/VERIFIED_LEARNING.md) | חוזה כללי הפעולה: טריגר, מנגנון, תנאי הפרכה | אנגלית |
 | [`docs/VALUE_CLARITY.md`](docs/VALUE_CLARITY.md) · [`_FIELD_PROTOCOL`](docs/VALUE_CLARITY_FIELD_PROTOCOL.md) | האם שחקן קר מבין מה זה — ציון, ופרוטוקול שדה | אנגלית |
-| [`docs/ACQUISITION_EVIDENCE.md`](docs/ACQUISITION_EVIDENCE.md) | משפך הרכישה והראיות עליו | אנגלית |
+| [`docs/ACQUISITION_EVIDENCE.md`](docs/ACQUISITION_EVIDENCE.md) · [`_PROTOCOL_V1`](docs/ACQUISITION_PROTOCOL_V1.md) | משפך הרכישה והראיות עליו, והפרוטוקול שהוקפא לפני ניסוי השדה הראשון: מסלול אחרי ה-reveal, הגדרת `next_decision_started`, מכנים והסקות אסורות | אנגלית |
 | [`docs/COMPETITIVE_BENCHMARK.md`](docs/COMPETITIVE_BENCHMARK.md) | מה כלים אחרים עושים, ומה לא | אנגלית |
 | [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
@@ -343,6 +344,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/consolidation-research/`](docs/consolidation-research/hardening/FINAL_REPORT.md) | חיזוק לפני איחוד. הציונים שם מעריכים את **מחקר השחזור**, לא את האפליקציה | אנגלית |
 | [`docs/blitz/`](docs/blitz/AUDIT.md) | ביקורת אמת-המאגר לפני מדידה ילידת-בליץ, וארבעה ADR שנגזרו ממנה | אנגלית |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
+| [`docs/PRE_HUMAN_CEILING.md`](docs/PRE_HUMAN_CEILING.md) | **`REPO PRE-HUMAN CEILING REACHED`** — מה נסגר, שלושת הדברים החיצוניים שנשארו, וגבול ה-FIELD עם המכנה וההסקה האסורה של כל שאלה | אנגלית |
 | [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) | לאן הולכות תקלות בייצור, מה הבריאות אומרת, ומה הפלטפורמה לא נותנת ומי צריך להחליט | אנגלית |
 | [`docs/ROLLBACK.md`](docs/ROLLBACK.md) | מתי מחזירים לאחור, איך, ומה סוגר את האירוע: ריצת L6 ירוקה הקשורה ל-SHA שחזרו אליו | אנגלית |
 | [`docs/RETENTION.md`](docs/RETENTION.md) | איפה הנתונים, מה מותר לרשום ומה לעולם לא, איך מוחקים ואיך מורידים | אנגלית |

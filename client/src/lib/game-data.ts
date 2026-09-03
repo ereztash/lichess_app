@@ -141,3 +141,30 @@ export function applyMoveAt(
     return null;
   }
 }
+
+/** What the board is worth, per side, counted from the pieces standing on it. */
+export interface Material {
+  white: number;
+  black: number;
+}
+
+/**
+ * COUNTED FROM THE BOARD, NOT FROM THE ENGINE, and that is the whole point of it living here.
+ *
+ * `AnalysisPanel` labels this value's provenance "נספר מהלוח" -- a player-side count, not an
+ * evaluation -- so it must stay derivable with no search, no wasm and no network. Keeping it in
+ * the same file as the position itself is what makes that checkable at a glance.
+ *
+ * The values are the textbook ones. They are not a claim about the position: two rooks against a
+ * queen is not a decided game, and nothing downstream reads this as an assessment.
+ */
+export function countMaterial(board: ReturnType<Chess["board"]>): Material {
+  const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+  return board.flat().reduce<Material>(
+    (total, piece) => {
+      if (piece) total[piece.color === "w" ? "white" : "black"] += values[piece.type];
+      return total;
+    },
+    { white: 0, black: 0 },
+  );
+}

@@ -574,8 +574,47 @@ const INDEX = `${ROOT}/index.html`;
  * and the chunk list is the same set before and after -- nothing created, nothing merged away.
  *
  * 683, 215 AND 771 LEAVE 2.0, 1.7 AND 2.1 kB, the headroom every raise in this file has taken.
+ *
+ * ---
+ *
+ * 683 -> 685 AND 771 -> 773: `O-1`'s direct route, attributed per commit. The gzip ceiling did
+ * not fire and is NOT raised: 214.3 against 215.
+ *
+ * Measured by building each commit of the branch in its own worktree against the same
+ * `node_modules`, which is the only way to tell a branch's cost from a rebuild's noise:
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     60d84ae, before the branch          682.6      213.9       770.7
+ *     + O-1/O-2 (3012d0c)                 683.1      214.0       771.3   +0.5 / +0.1 / +0.6
+ *     + the route fix (6b03a16)           683.9      214.3       772.0   +0.8 / +0.3 / +0.7
+ *     + registers and freeze (b6e6841)    683.9      214.3       772.0   +0.0 / +0.0 / +0.0
+ *     + R-27 (1bad802)                    683.9      214.3       772.0   +0.0 / +0.0 / +0.0
+ *     + adversarial, ceiling (5c3fddc)    683.9      214.3       772.0   +0.0 / +0.0 / +0.0
+ *     + the stranger walk (2c05840)       683.9      214.3       772.0   +0.0 / +0.0 / +0.0
+ *
+ * THE WHOLE BRANCH IS 1.3 kB RAW, and the four commits after the second are documentation, a
+ * workflow, tests and fixtures, which is what those zeroes say.
+ *
+ * WHY IT IS ON THE ENTRY ROUTE. The reveal is. `RevealNextPosition` renders inside `Home`, which
+ * is the entry screen, and the way on cannot arrive in a lazy chunk without the player waiting for
+ * a download at the exact moment the trial is measuring whether they continue. `bank-handover.ts`
+ * is the position picker and the handoff write; `adopt-position.ts` is the nine assignments a
+ * stored position makes, extracted because the mount restore and the direct route both make them;
+ * `continuation-event.ts` is the one writer of `next_decision_started`, extracted so
+ * `GATE-CONTINUATION-IS-A-MOVE` has a single file to point at. `RevealNoContinuation` was deleted
+ * in the same commit, which is why the first commit costs half a kilobyte rather than two.
+ *
+ * WHAT WAS CHECKED RATHER THAN ASSUMED: `anchor-moves-*.js` is still its own chunk, so the 13 kB
+ * of movetext the bank needs is still fetched only when a position is actually served; the 7.3 MB
+ * of WebAssembly is still held out; and the chunk set is IDENTICAL before and after, name for
+ * name -- nothing created, nothing merged away.
+ *
+ * 685 AND 773 LEAVE 1.1 AND 1.0 kB, which is HALF the headroom the raises above took, and
+ * deliberately. The base was already at 682.6 against 683: main had spent 1.6 of the previous
+ * raise's 2.0 kB before this branch started. A ratchet that keeps being loosened by two stops
+ * being a ratchet.
  */
-const ENTRY_RAW_KB = 684;
+const ENTRY_RAW_KB = 685;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 215;
 /**
@@ -679,9 +718,16 @@ const ENTRY_GZIP_KB = 215;
  *
  * THE SMALLEST RAISE THAT CLEARS EACH. 683.2 -> 684 and 771.3 -> 772, leaving 0.8 and 0.7 kB --
  * the ratchet keeps its property of sitting just above the build.
+ *
+ * SUPERSEDED BY THE MERGE, AND THE NUMBERS ABOVE STAY. `O-1`'s route raised the same two ceilings
+ * from the same base, 683 -> 685 and 771 -> 773, and the two sets of bytes are disjoint. Measured
+ * on the merged tree: entry raw 684.4, gzipped 214.5, initial download 772.5 -- inside `O-1`'s
+ * ceilings, so neither moved again. Raising a ceiling that has not been crossed is loosening a
+ * budget for free, and that holds for a merge as much as for a commit. 684 and 772 were the right
+ * numbers for the tree they were measured on; this note is what happened to them.
  */
 
-const INITIAL_RAW_KB = 772;
+const INITIAL_RAW_KB = 773;
 
 interface Asset {
   name: string;

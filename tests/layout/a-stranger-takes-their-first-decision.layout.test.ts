@@ -276,6 +276,12 @@ describe("a stranger takes their first decision", () => {
     await expect(forward.count()).resolves.toBe(1);
     const act = await forward.first().getAttribute("data-primary-action");
     if (act === "next-decision") {
+      /*
+       * UNDER `O-1` = A THIS IS THE ORDINARY PATH, and it used to be the rare one. The way on from
+       * the front door's reveal now serves the anchor set's next unanswered position IN PLACE.
+       * There is no navigation to undo afterwards -- that is the point of the decision, and the
+       * `goBack()` that used to sit here would now walk the stranger off the board entirely.
+       */
       await forward.first().click();
       await page.locator(".commitment-submit").waitFor({ timeout: 15_000 });
       const moved = await page.evaluate(async () => {
@@ -289,9 +295,11 @@ describe("a stranger takes their first decision", () => {
         return false;
       });
       expect(moved, "the continuation handed over a position with no move to make").toBe(true);
-      await page.goBack({ waitUntil: "networkidle" }).catch(() => undefined);
     } else {
-      /* The other honourable answer: this game holds no further position, and the screen says so. */
+      /*
+       * The other honourable answer, now reachable only when the bank itself is exhausted: there
+       * is genuinely nowhere left to route to, and the screen says so over the record.
+       */
       expect(act).toBe("return-record");
       await expect(page.locator(".reveal-no-continuation").count()).resolves.toBe(1);
     }
@@ -305,7 +313,18 @@ describe("a stranger takes their first decision", () => {
     expect(Object.keys(after?.reveals ?? {}), "the reload lost or duplicated the reveal").toHaveLength(1);
     const position = await page.evaluate(() => localStorage.getItem("decision-lab.position.v1"));
     expect(position, "the board's position was not kept for the return").not.toBeNull();
-    expect(JSON.parse(position!).gameId).toBe(`lichess-${GAME.id}`);
+    /*
+     * WHICH GAME, AND WHY IT IS NO LONGER ALWAYS THE IMPORTED ONE. What this step is about is that
+     * a reload keeps A position and loses no decision. Before `O-1` the board could only still be
+     * the imported game, so naming it was free; now the way on serves a bank position in place, so
+     * after taking it the board is legitimately an anchor. Both are accepted and nothing else is:
+     * an empty or unrecognised game id is still a lost handoff.
+     */
+    const keptGame = JSON.parse(position!).gameId as string;
+    expect(
+      keptGame === `lichess-${GAME.id}` || keptGame.startsWith("anchor-"),
+      `the reload kept a position belonging to no known game: ${keptGame}`,
+    ).toBe(true);
 
     expect(crashes, "unhandled errors along the primary journey").toEqual([]);
     await context.close();
@@ -406,19 +425,36 @@ describe("a stranger takes their first decision", () => {
      * it did, and once it learned to route to the record where no next decision exists it named one
      * act and performed another. It carries `data-primary-action` now, so this asks for the way out
      * and then checks that its words match it.
+     *
+     * ASSERTED AS A RULE AND NOT AS ONE PAIR, which is what `O-1` forced. There are now three
+     * legitimate ways out of a failed reveal -- on inside the loaded game, on to the bank's next
+     * position, and back to the record once the bank is exhausted -- and the first two are both
+     * `next-decision`, because both land the player on a board that will accept a move. So what
+     * has to hold is the PAIRING: `next-decision` may say either forward sentence and must not
+     * wear the record's, and `return-record` must.
      */
-    const wayOut = page.locator(".reveal-failure-next");
+    const wayOut = page.locator(".reveal-failure [data-primary-action]:visible");
+    expect(await wayOut.count(), "a failed reveal offered no single declared way out").toBe(1);
     const act = await wayOut.getAttribute("data-primary-action");
     const said = (await wayOut.innerText()).trim();
-    expect(
-      act === "next-decision" ? said === "להחלטה הבאה" : said === "חזרה לרשומה",
-      `the way out names ${act} and says "${said}"`,
-    ).toBe(true);
+    const allowed = act === "return-record" ? ["חזרה לרשומה"] : ["להחלטה הבאה", "לעמדה הבאה"];
+    expect(allowed.includes(said), `the way out declares ${act} and says "${said}"`).toBe(true);
     await wayOut.click();
-    await page
-      .locator(".commitment-screen, .resume-screen, .record-dashboard, #first-decision-username")
-      .first()
-      .waitFor({ timeout: 15_000 });
+    /*
+     * AND WHAT IT LANDS ON IS A BOARD, which is the recovery contract rather than a route change.
+     * This used to wait for `.commitment-screen, .resume-screen, .record-dashboard,
+     * #first-decision-username` -- a set of destinations that made sense while every way out was a
+     * navigation. Under `O-1` the forward routes adopt a position in place: the url does not
+     * change, `Home` does not remount, and the only thing that moves is the position on the board.
+     * So the assertion is that the alarm is gone and there is a live board under it.
+     */
+    await page.locator(".reveal-failure").waitFor({ state: "detached", timeout: 30_000 });
+    await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(400);
+    expect(
+      await page.locator(".board-square").count(),
+      "the way out of a failed reveal did not land on a board",
+    ).toBe(64);
     /* Nothing was written that the engine never produced. */
     const record = await storedRecord(page);
     expect(Object.keys(record?.reveals ?? {})).toHaveLength(0);

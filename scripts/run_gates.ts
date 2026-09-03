@@ -28,6 +28,7 @@ import {
   findUnimplementedAriaPatterns,
   sourceFiles,
   type Finding,
+  findContinuationDefinitionDrift,
 } from "./gate-scan";
 import {
   findBoardsWithUncheckedAuthority,
@@ -180,6 +181,9 @@ const CUE_FIXTURES = "tests/fixtures/cue";
 const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
 const ROLLBACK_FIXTURES = "tests/fixtures/rollback";
 
+/** And for O-2: the clause accepted and ignored, and the way-on press counted as a move. */
+const CONTINUATION_FIXTURES = "tests/fixtures/continuation";
+
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
   findings.length
@@ -223,6 +227,19 @@ const boardAuthorityDerived = (roots: string[]): GateResult => {
   }
   return fromFindings(findings, "every board declares whose hand it is, and derives it from state");
 };
+
+/**
+ * O-2, READ FROM THE SOURCE RATHER THAN FROM THE UNIT TESTS.
+ *
+ * The tests fix the predicate's truth table. They cannot see a caller that stops consulting it,
+ * hard-codes a clause, or writes the event from a second place -- which is how a definition that
+ * everyone agrees with quietly stops being the one the product uses.
+ */
+const continuationIsAMove = (roots: string[]) =>
+  fromFindings(
+    findContinuationDefinitionDrift(roots),
+    "next_decision_started is written in one place, from the four clauses O-2 requires",
+  );
 
 const registerDrift = (root: string) =>
   fromFindings(
@@ -847,6 +864,14 @@ export const GATES: Gate[] = [
       "A board says whose hand it is, and derives it from state rather than granting it always.",
     run: () => boardAuthorityDerived(["client/src"]),
     positiveControl: () => boardAuthorityDerived([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-CONTINUATION-IS-A-MOVE",
+    rule: "O-2",
+    description:
+      "The trial's continuation event is written once, and only from a legal move the player placed on their own side.",
+    run: () => continuationIsAMove(["client/src"]),
+    positiveControl: () => continuationIsAMove([CONTINUATION_FIXTURES]),
   },
   {
     id: "GATE-REUSE-CONFIG",

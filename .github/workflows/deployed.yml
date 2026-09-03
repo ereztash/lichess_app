@@ -125,6 +125,30 @@ jobs:
           fi
           echo "control went red, as required"
 
+      # THE ENGINE CONTROL NEEDS A BROWSER AND THE BUILT BUNDLE, and neither is needed by the other
+      # two, so both are installed here rather than at the top of the job. The build is the fixture:
+      # the control serves THIS repository's shipped assets under a policy that breaks them, so the
+      # only thing that differs from the real deployment is the header.
+      - name: Chromium and a build, for the engine control
+        run: |
+          npx playwright install --with-deps chromium || npx playwright install chromium
+          npm run build
+
+      # THE THIRD CONTROL: the engine probe (R-27). `worker-src 'self'` in the policy STRING is what
+      # this suite used to assert, and R-09 -- a CSP that broke the worker -- was held by nothing
+      # else. The probe starts the shipped Worker under the served headers, and it is worth having
+      # only if it goes red when those headers forbid the engine. Two breaks, because they fail
+      # differently: a blocked worker throws in milliseconds, while a policy with no wasm permission
+      # lets the worker start and never compiles -- silent, and the one that would ship.
+      - name: L6 positive control (the engine probe must go red on a policy that breaks the engine)
+        run: |
+          if npx vitest run --config vitest.controls.config.ts \
+               tests/fixtures/controls/deployed-engine.control.test.ts; then
+            echo "::error::the engine probe PASSED under policies that forbid the engine. It is not reading them."
+            exit 1
+          fi
+          echo "control went red, as required"
+
       - name: L6 against the deployed origin
         env:
           DEPLOYED_ORIGIN: ${{ steps.target.outputs.origin }}
