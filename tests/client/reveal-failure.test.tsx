@@ -23,21 +23,90 @@ import { resolve } from "node:path";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { RevealFailure } from "../../client/src/components/RevealFailure";
+import { NEXT_POSITION_CTA } from "../../client/src/components/RevealNextPosition";
+
+/** The three sentences a way out of a failed reveal is allowed to say, named once. */
+const IN_GAME_CTA = "להחלטה הבאה";
+const RECORD_CTA = "חזרה לרשומה";
+
+/**
+ * What the caller has to supply, with the bank route left inert.
+ *
+ * `onContinue` is a spy because a test needs to know whether the press reached it. The bank route
+ * is handed to `RevealNextPosition`, which owns its own label, act and press -- so nothing here
+ * asserts on its behaviour, only that the failure panel hands the question to it.
+ */
+function props() {
+  return {
+    onContinue: vi.fn(),
+    bank: { answered: [], onServed: vi.fn(), navigate: vi.fn() },
+  };
+}
 
 describe("both failures offer a way out", () => {
   for (const kind of ["engine", "write"] as const) {
     it(`renders an advance control on a ${kind} failure`, () => {
-      const onNext = vi.fn();
-      render(<RevealFailure kind={kind} onNext={onNext} />);
+      const h = props();
+      render(<RevealFailure kind={kind} continues {...h} />);
       const advance = screen.getByRole("button", { name: /להחלטה הבאה/ });
       fireEvent.click(advance);
-      expect(onNext).toHaveBeenCalledTimes(1);
+      expect(h.onContinue).toHaveBeenCalledTimes(1);
+    });
+
+    /*
+     * THE LABEL AND THE ACT TRAVEL TOGETHER, AND NEITHER IS THE CALLER'S TO STATE.
+     *
+     * HISTORY, kept because it is the reason this test exists. The label was once the constant
+     * "להחלטה הבאה" while the handler was whatever the caller passed. When the caller learned to
+     * route to the record, the control named one act and performed another; an adversarial pass
+     * walked exactly that. The first repair had the caller pass label, act and handler as one
+     * object -- which only moved the mismatch one layer up, where nothing could see it.
+     *
+     * So what is asserted is the pairing rule itself, over whichever control the panel renders:
+     * a control declaring `next-decision` leads to a board and must not wear the record's words;
+     * a control declaring `return-record` must. That holds for the in-game way on, for the bank
+     * route, and for the exhausted-set case the bank route re-renders into.
+     */
+    for (const continues of [true, false]) {
+      it(`pairs its words with the act it declares (${kind}, continues=${continues})`, () => {
+        render(<RevealFailure kind={kind} continues={continues} {...props()} />);
+        const ways = screen
+          .getAllByRole("button")
+          .filter((button) => button.hasAttribute("data-primary-action"));
+        expect(ways, "a failed reveal offered no declared way out").toHaveLength(1);
+        const act = ways[0].getAttribute("data-primary-action");
+        const said = (ways[0].textContent ?? "").trim();
+        if (act === "return-record") expect(said).toBe(RECORD_CTA);
+        else {
+          expect(act, `an undeclared act said "${said}"`).toBe("next-decision");
+          expect([IN_GAME_CTA, NEXT_POSITION_CTA], `next-decision said "${said}"`).toContain(said);
+        }
+      });
+    }
+
+    /*
+     * AND THE FORWARD CASE IS THE ONE THE PANEL OWNS. Where the game on the board holds another
+     * position, the way out is this panel's own control and it stays inside the game. Where it
+     * does not, the panel hands the question to the component that can answer it after the press.
+     */
+    it(`hands the bank route over rather than labelling it early (${kind})`, () => {
+      const { unmount } = render(<RevealFailure kind={kind} continues {...props()} />);
+      expect(screen.getByRole("button", { name: IN_GAME_CTA }).className).toContain(
+        "reveal-failure-next",
+      );
+      unmount();
+      render(<RevealFailure kind={kind} continues={false} {...props()} />);
+      // `RevealNextPosition`'s control, brought in whole: it carries its own chrome, so a
+      // `.reveal-failure-next` here would be a div wearing a button's border.
+      expect(screen.getByRole("button", { name: NEXT_POSITION_CTA }).className).toContain(
+        "primary-control",
+      );
     });
 
     it(`says the decision is safe on a ${kind} failure`, () => {
       // The first thing said, on both, because it is the part that is not bad news: the commit
       // is written before the engine is ever started, so a failure here cannot cost it.
-      render(<RevealFailure kind={kind} onNext={vi.fn()} />);
+      render(<RevealFailure kind={kind} continues {...props()} />);
       expect(screen.getByText(/ההחלטה עצמה נרשמה/)).toBeTruthy();
     });
   }
@@ -45,8 +114,8 @@ describe("both failures offer a way out", () => {
   it("does not render the two failures with the same words", () => {
     // They are different events. An engine that never answered leaves no evaluation to show; a
     // failed write leaves a valid reveal on screen that simply will not count.
-    const engine = render(<RevealFailure kind="engine" onNext={vi.fn()} />).container.textContent;
-    const write = render(<RevealFailure kind="write" onNext={vi.fn()} />).container.textContent;
+    const engine = render(<RevealFailure kind="engine" continues {...props()} />).container.textContent;
+    const write = render(<RevealFailure kind="write" continues {...props()} />).container.textContent;
     expect(engine).not.toBe(write);
     expect(engine).toMatch(/המנוע לא סיים/);
     expect(write).toMatch(/לא נשמרה/);

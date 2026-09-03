@@ -13,6 +13,7 @@ import {
   BOARD_AUTHORITIES,
   BOARD_AUTHORITY_OF_STAGE,
   boardAccepts,
+  boardAuthorityFor,
   boardAuthorityOf,
 } from "@shared/board-authority";
 import { MODE_CONTRACT, deriveInteractionMode } from "@shared/interaction-mode";
@@ -60,6 +61,31 @@ describe("the authority agrees with the two functions the product already runs o
   it("grants a gesture only while the player is still producing evidence", () => {
     for (const stage of DECISION_STAGES) {
       if (boardAccepts(boardAuthorityOf(stage))) expect(makingEvidence(stage)).toBe(true);
+    }
+  });
+});
+
+describe("an answer is only an answer on the position the question was about", () => {
+  /*
+   * `committed` is the one stage that grants a gesture over a position the screen can leave: the
+   * move timeline is live, and the counterfactual probe asks about ONE named position. `Home.tsx`
+   * validated the answer against the board instead of against the question, so a walk back to
+   * another ply had `b8a6` accepted, offered as the alternative, and written to the record with
+   * `cpLoss: null` -- a row `readCounterfactuals` drops, so the treatment arm lost it silently.
+   */
+  it("grants nothing at the probe when the board has left the question's position", () => {
+    expect(boardAuthorityFor({ stage: "committed", onTheQuestionsPosition: false })).toBe("none");
+    expect(boardAuthorityFor({ stage: "committed", onTheQuestionsPosition: true })).toBe(
+      "name-alternative",
+    );
+  });
+
+  it("changes nothing in any other stage, because no other stage asks about one position", () => {
+    for (const stage of DECISION_STAGES) {
+      if (stage === "committed") continue;
+      expect(boardAuthorityFor({ stage, onTheQuestionsPosition: false })).toBe(
+        boardAuthorityOf(stage),
+      );
     }
   });
 });

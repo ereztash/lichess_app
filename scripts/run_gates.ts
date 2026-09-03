@@ -210,8 +210,20 @@ const twoBoards = (roots: string[]) =>
 const boardAuthorityDerived = (roots: string[]): GateResult => {
   const findings = findBoardsWithUncheckedAuthority(roots);
   if (findings.length === 0 && roots.every((r) => r === INERTIA_FIXTURES)) {
-    /* Same argument as the toolbox control: a directory with no board in it is not a red control. */
-    return fail("the control fixture renders no board at all");
+    /*
+     * A HARNESS ERROR AND NOT A FAIL, and the difference is the whole validity of this control.
+     *
+     * It used to be a plain `fail`, so `boardAuthorityDerived([INERTIA_FIXTURES])` returned FAIL on
+     * BOTH branches: with the fixture in place because the predicate fired, and with the fixture
+     * DELETED because it had not. `npm run gates:controls` stayed green either way, and nothing in
+     * `npm test` referenced the fixture -- so the control was satisfied by deleting the thing it
+     * controls, which is the one shape `RNL-04` exists to refuse. An adversarial pass demonstrated
+     * it by moving the file out of the tree.
+     *
+     * `HARNESS_ERROR` is the device this runner already has for exactly this: the control mode
+     * counts it as "red for the wrong reason" and exits non-zero.
+     */
+    return fail(`${HARNESS_ERROR} the control fixture renders no board the predicate can see`);
   }
   return fromFindings(findings, "every board declares whose hand it is, and derives it from state");
 };
@@ -299,8 +311,12 @@ const toolboxBehindItsDoor = (roots: string[]): GateResult => {
     /*
      * A CONTROL THAT FINDS NOTHING IS NOT A RED CONTROL. The fixture must actually render the
      * explorer, or this gate would report "clean" over a directory that never mentions it.
+     *
+     * A HARNESS ERROR RATHER THAN A FAIL, since a plain `fail` here is indistinguishable from the
+     * control working and would let the fixture be deleted with `gates:controls` still green. The
+     * same hole was found in `GATE-BOARD-AUTHORITY`, which copied this block; both say it now.
      */
-    return fail("the control fixture does not render the explorer at all");
+    return fail(`${HARNESS_ERROR} the control fixture does not render the explorer at all`);
   }
   return fromFindings(findings, "the toolbox is behind a control and behind a lazy chunk");
 };

@@ -396,7 +396,8 @@ export default function Blitz() {
    * THE ONE BOARD'S TWO MODES (LAW 11). `final` is the game's own position; `review` is a position
    * from the record the player asked to look at. Same element, same place on the page, one FEN.
    */
-  const boardSquares = new Chess(reviewing ? reviewing.fen : game.fen).board();
+  const shown = new Chess(reviewing ? reviewing.fen : game.fen);
+  const boardSquares = shown.board();
   const legal =
     selected && game.phase === "running"
       ? new Chess(game.fen).moves({ square: selected as never, verbose: true }).map((m) => m.to)
@@ -439,11 +440,29 @@ export default function Blitz() {
         * no-op handlers -- correct, and four separate answers to one question. It is the same
         * rule `Home.tsx` did not have at all, so it moved to `shared/board-authority.ts` where
         * both screens read it. `play` and not `propose`: a blitz move is played, not committed.
+        *
+        * AND `reviewing` WAS ONLY A THIRD OF IT. The first version of this line read
+        * `reviewing ? "none" : "play"`, so a FINISHED game and a game with an instrument question
+        * open both granted `play` -- while `legal` is computed only while `phase === "running"`
+        * and `onMove` refuses. A press then lit `.selected-square` on any of thirty-two pieces
+        * with no target behind it, which is `ULI-X-07` verbatim on the screen this module holds
+        * up as the one that had the rule right. Found by an adversarial pass.
+        *
+        * THE CONDITION IS `onMove`'S OWN, character for character, plus `reviewing`. Two guards
+        * that must agree are one guard, and the one that drifts is the copy.
         */}
       <ChessBoard
         board={boardSquares}
         orientation={PLAYER}
-        authority={reviewing ? "none" : "play"}
+        sideToMove={shown.turn()}
+        authority={
+          game.phase === "running" &&
+          game.active === PLAYER &&
+          !awaitingAnswer(session) &&
+          !reviewing
+            ? "play"
+            : "none"
+        }
         selectedSquare={selected}
         legalTargets={legal}
         onSelect={setSelected}

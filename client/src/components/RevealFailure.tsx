@@ -15,6 +15,9 @@
  * is written by `commitDecision` before the engine is ever started (R3), so a failure here can
  * never cost the player the thing they actually did.
  */
+import { primaryAction } from "@shared/primary-action";
+import { RevealNextPosition } from "./RevealNextPosition";
+import type { StoredPosition } from "@/lib/session-position";
 import { CircleAlert } from "lucide-react";
 
 export type RevealFailureKind = "engine" | "write";
@@ -43,7 +46,43 @@ const COPY: Record<RevealFailureKind, { what: string; detail: string }> = {
   },
 };
 
-export function RevealFailure({ kind, onNext }: { kind: RevealFailureKind; onNext: () => void }) {
+/**
+ * THE WAY OUT, NAMED BY WHAT IT DOES, AND WHY THE PAIRING IS NOT THE CALLER'S TO STATE.
+ *
+ * The label used to be the constant "להחלטה הבאה" while the handler was whatever the caller passed
+ * -- and once the caller learned to route elsewhere, the control said "to the next decision" and
+ * went somewhere else. An adversarial pass walked it. A control that names one act and performs
+ * another is the defect `shared/primary-action.ts` exists to see.
+ *
+ * The first repair had the caller pass label, act and handler together as one object. That only
+ * moved the mismatch one layer up, where nothing checked it. So the caller now says WHICH CASE it
+ * is, and the words belong to whichever component owns the act.
+ *
+ * AND FOR THE BANK ROUTE THAT IS NOT THIS COMPONENT. Whether the anchor set still holds a position
+ * is only knowable after the press -- `serveNextBankPosition` has to be asked -- so a control
+ * labelled before the press can be wrong, and on an exhausted set it would say *"to the next
+ * position"* and land on the record. `RevealNextPosition` already resolves that by re-rendering
+ * with the record's own words once the set comes back complete. It is therefore rendered here
+ * rather than re-implemented: one authority for the question *"where does this player go next"*,
+ * whether or not the engine answered (`RNL-05`).
+ */
+export function RevealFailure({
+  kind,
+  continues,
+  onContinue,
+  bank,
+}: {
+  kind: RevealFailureKind;
+  /** Is there a next decision inside the game on the board, or does the way on come from the bank? */
+  continues: boolean;
+  onContinue: () => void;
+  /** What `RevealNextPosition` needs, passed through untouched. */
+  bank: {
+    answered: readonly string[];
+    onServed: (position: StoredPosition) => void;
+    navigate: (to: string) => void;
+  };
+}) {
   const copy = COPY[kind];
   return (
     <section className="reveal-failure" role="alert" aria-label="החשיפה נכשלה">
@@ -55,9 +94,21 @@ export function RevealFailure({ kind, onNext }: { kind: RevealFailureKind; onNex
         ההחלטה עצמה נרשמה. היא נכתבת לרשומה לפני שהמנוע מופעל בכלל, כך שכשל כאן לא מוחק אותה.
       </p>
       <p className="reveal-failure-detail">{copy.detail}</p>
-      <button type="button" className="reveal-failure-next" onClick={onNext}>
-        להחלטה הבאה
-      </button>
+      {continues ? (
+        <button
+          type="button"
+          className="reveal-failure-next"
+          {...primaryAction("next-decision")}
+          onClick={onContinue}
+        >
+          להחלטה הבאה
+        </button>
+      ) : (
+        /* NO `.reveal-failure-next` WRAPPER. That class is button chrome, and this branch's
+           control brings its own (`.primary-control`, already inside the tap floor). A div
+           wearing a button's border was the first thing this looked like. */
+        <RevealNextPosition {...bank} />
+      )}
     </section>
   );
 }

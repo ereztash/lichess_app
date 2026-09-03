@@ -8,7 +8,7 @@ Audited by complete user job, not by component. Every row was driven in Chromium
 | --- | --- | --- | --- |
 | **L-A** | front door → a position from the player's own game → propose → commitment → commit → wait → reveal → payoff → next | yes, 5 viewports | **stops at "next"** |
 | **L-B** | live game vs the engine opponent: my turn → decide → commit → reveal → opponent → my turn | yes | **continues, and the player could take the opponent's turn as well** |
-| **L-C** | blitz: start → play → finish → persist → analysis → post-game → continue | source read; board authority already correct there | board authority **held** (`reviewing ? ... : ...`) |
+| **L-C** | blitz: start → play → finish → persist → analysis → post-game → continue | source read; **not driven** | board authority held for `reviewing` and **for nothing else** — see below |
 | **L-D** | imported / history: PGN or Lichess → position → decision → stored evidence | yes | **continuing destroyed the loaded game** |
 | **L-E** | record / claim: evidence accumulates → enough or not → claim or silence | not driven | not examined by this mission |
 | **L-F** | learning: finding → rule → drill → prospective observation | not driven | not examined by this mission |
@@ -32,6 +32,7 @@ loop and the two loops that feed it.
 | reveal | panel arrives; note **still says the engine is computing** | **acknowledgment** |
 | board, after | **a press plays a move — for either side** | **authority** |
 | payoff | at 1440x900 the finding sits at y=444 of a 900px viewport; at 390x844 the reveal begins at y=893 of an 844px viewport | measured, see `evidence/attack-KM.json` |
+| — | *(the same measurement on the repaired tree: 899 and 1144 at 390x844, 199 and 444 at 1440x900)* | re-measured |
 | next | the continuation plays the committed move and hands over **the opponent's turn**, and a decision taken there is recorded as the player's own | **loop closes on the wrong hand** |
 
 ## The one that decided the mission, and the correction that sharpened it
@@ -51,6 +52,18 @@ The player commits, the committed move is played, and the position handed back i
 opponent's turn**. A move proposed there is accepted, the commitment is answered, and the decision
 is **written to the record** — indistinguishable from a decision the player took for their own
 side.
+
+### `L-C`, corrected
+
+This row said the blitz board's authority was **held**. It was held for one of three states.
+`Blitz.tsx` read `reviewing ? "none" : "play"`, so a **finished** game and a game with an instrument
+question open both granted `play` — while `legal` is computed only while `phase === "running"` and
+`onMove` refuses. A press there lit a square with nothing behind it, which is `ULI-X-07` on the
+screen this mission held up as the one that had the rule right. Found by an adversarial pass, from
+source. The authority is now `onMove`'s own condition, character for character, plus `reviewing`:
+two guards that must agree are one guard, and the one that drifts is the copy.
+
+**`L-C` was still not driven.** It is read, not walked, and this row says so now.
 
 > ### A correction, kept rather than tidied away
 >

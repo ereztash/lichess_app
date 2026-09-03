@@ -33,7 +33,7 @@ import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
 import { RevealNextPosition } from "@/components/RevealNextPosition";
-import { NO_CONTINUATION_IN_THIS_GAME, serveNextBankPosition } from "@/lib/bank-handover";
+import { NO_CONTINUATION_IN_THIS_GAME } from "@/lib/bank-handover";
 import { useContinuationEvent } from "@/lib/continuation-event";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { adoptStoredPosition } from "@/lib/adopt-position";
@@ -47,7 +47,7 @@ import {
 } from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
 import { transferObservation } from "@shared/learning-record";
-import { boardAuthorityOf } from "@shared/board-authority";
+import { boardAuthorityFor } from "@shared/board-authority";
 import { PROBE_STAGE } from "@shared/counterfactual-stage";
 import { continuationAfter } from "@/lib/continuation";
 import { effectiveTiming, mayShowVerdictNow, type RevealTiming } from "@shared/reveal-timing";
@@ -125,6 +125,8 @@ import {
   type GameSnapshot,
   type Orientation,
   uciToSquares,
+  applyMoveAt,
+  countMaterial,
 } from "@/lib/game-data";
 import {
   buildCommitEvent,
@@ -188,14 +190,6 @@ const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע יד
  * game. It is only a live game that needs someone across the board.
  */
 type Opponent = { playerColor: "w" | "b"; depth: OpponentDepth };
-
-function snapshot(
-  game: Chess,
-  move: { san: string; from: string; to: string; color: "w" | "b" },
-  ply: number,
-): GameSnapshot {
-  return { ply, san: move.san, from: move.from, to: move.to, color: move.color, fen: game.fen() };
-}
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -499,16 +493,7 @@ export default function Home() {
    */
   useContinuationEvent({ movePlaced: candidateMove !== null, positionIsActionable });
 
-  const material = useMemo(() => {
-    const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
-    return board.flat().reduce(
-      (t, piece) => {
-        if (piece) t[piece.color === "w" ? "white" : "black"] += values[piece.type];
-        return t;
-      },
-      { white: 0, black: 0 },
-    );
-  }, [board]);
+  const material = useMemo(() => countMaterial(board), [board]);
 
   const legalTargets = useMemo(() => {
     if (!selectedSquare) return [];
@@ -710,17 +695,13 @@ export default function Home() {
   /** `at` names the position played from and defaults to the one on screen; LAW 11 is why. */
   const playMove = useCallback(
     (from: string, to: string, at = { ply: currentPly, fen: activeFen }) => {
-      const game = new Chess(at.fen);
-      try {
-        const move = game.move({ from, to, promotion: "q" });
-        setHistory((prev) => [...prev.slice(0, at.ply + 1), snapshot(game, move, at.ply + 1)]);
-        setCurrentPly(at.ply + 1);
-        return move.san;
-      } catch {
-        return null;
-      }
+      const played = applyMoveAt(history, at, from, to);
+      if (!played) return null;
+      setHistory(played.history);
+      setCurrentPly(played.ply);
+      return played.san;
     },
-    [activeFen, currentPly],
+    [activeFen, currentPly, history],
   );
 
   /**
@@ -803,9 +784,10 @@ export default function Home() {
        */
       if (stage === PROBE_STAGE) {
         try {
-          new Chess(activeFen).move({ from, to, promotion: "q" });
+          /* Against the position the PROBE asked about, not the one the timeline is showing. */
+          new Chess(probe?.positionFen ?? activeFen).move({ from, to, promotion: "q" });
         } catch {
-          setNotice("המהלך אינו חוקי בעמדה זו.");
+          setNotice("המהלך אינו חוקי בעמדה שעליה נשאלתם.");
           return;
         }
         setProbeAlternative(uci);
@@ -824,7 +806,7 @@ export default function Home() {
       setCandidatesConsidered((prev) => (prev.includes(uci) ? prev : [...prev, uci]));
       setNotice(`${uci} נבחר. אפשר עדיין לשנות עד לרישום.`);
     },
-    [activeFen, playMove, stage],
+    [activeFen, playMove, probe, stage],
   );
 
   /**
@@ -1006,9 +988,13 @@ export default function Home() {
         };
         if (speak) {
           setRevealInputs(inputs);
-          /* The commit's note still said the engine was computing, and a board that goes quiet
-             has to say so or it reads as broken. */
-          setNotice("ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה.");
+          /*
+           * IT SAYS WHAT THE BOARD DOES, NOT WHERE IT IS. This ended "...נעול על העמדה שהחלטתם בה"
+           * for one release, and the timeline is live at `revealed` -- so one press had this
+           * `role="status"` asserting what `.reveal-elsewhere` denied. Where the board is belongs
+           * to the banner, which derives it.
+           */
+          setNotice("ההחלטה נרשמה והמנוע ענה. הלוח כבר לא מקבל מהלכים.");
         }
 
         /*
@@ -1099,7 +1085,9 @@ export default function Home() {
          */
         if (!speak) {
           const played = uciToSquares(draft.chosenMove!);
-          if (played) playMove(played.from, played.to);
+          /* On the position it was taken in, like `nextDecision`: the timeline is live in the
+             deferred wait, and `playMove` truncates from wherever it is told. */
+          if (played) playMove(played.from, played.to, { ply: positionPly, fen: positionFen });
           setStage("deciding");
           setNotice("ההחלטה נרשמה. העמדה הבאה.");
         }
@@ -1109,6 +1097,8 @@ export default function Home() {
         reportEngineFailure(error, "board");
         setRevealFailure("engine");
         setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
+        /* The commit's note said the engine was computing, and here it never will be again. */
+        setNotice("ההחלטה נרשמה. המנוע לא סיים, והלוח כבר לא מקבל מהלכים.");
       }
     },
     [
@@ -1559,11 +1549,13 @@ export default function Home() {
     resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
   };
 
-  /** The way on when the engine never answered: the same route, or the record if the bank is done. */
-  const wayOnAfterFailure = () =>
-    void serveNextBankPosition(recordReading.data?.anchorAnswered ?? []).then((served) =>
-      served === "set-complete" ? navigate("/") : takeBankPosition(served),
-    );
+  /* ONE DESCRIPTION OF THE BANK ROUTE, read by the reveal and by the failure panel. Two copies
+     were two chances for the way on to differ depending on whether the engine answered. */
+  const bankWayOn = {
+    answered: recordReading.data?.anchorAnswered ?? [],
+    onServed: takeBankPosition,
+    navigate,
+  };
 
   /** Where the next decision comes from, or null: `lib/continuation.ts`. */
   const continuation = useMemo(
@@ -2065,13 +2057,10 @@ export default function Home() {
                   fen={revealAt.fen}
                   boardFen={activeFen}
                   statedKnown={committedDraft.known}
-                  /* Null until the reveal has actually been written: an unrecorded reveal is not
-                     a funnel stage, and an id that does not name a committed decision cannot be
-                     joined to one. */
+                  /* Null until the reveal is written: an unrecorded reveal is not a funnel stage,
+                     and an id naming no committed decision cannot be joined to one. */
                   decisionId={revealedDecisionId}
-                  /* Same condition the header control uses: a transfer run works through a
-                     pre-registered set and has its own way forward. */
-                  /* Not offered where it cannot be honoured: `lib/continuation.ts`. */
+                  /* A transfer keeps its own control; and not offered where it cannot be honoured. */
                   onContinue={
                     revealedDecisionId &&
                     (!learningTransfer || learningTransferStage === "running") &&
@@ -2083,14 +2072,16 @@ export default function Home() {
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
               ) : null}
-              {/* O-1 = A: the reveal routes straight to the bank's next position rather than
-                  sending the player to the record. `RevealNextPosition` carries the argument. */}
-              {revealInputs && !canContinue && (
-                <RevealNextPosition
-                  answered={recordReading.data?.anchorAnswered ?? []}
-                  onServed={takeBankPosition}
-                  navigate={navigate}
-                />
+              {/*
+                * O-1 = A: the reveal routes straight to the bank's next position rather than
+                * sending the player to the record. `RevealNextPosition` carries the argument.
+                *
+                * NOT BESIDE A FAILURE PANEL, which owns the way out when there is one. Two
+                * controls to the same place is the defect an adversarial pass measured on the
+                * write-failure path, where this panel and that one both rendered.
+                */}
+              {revealInputs && !canContinue && !revealFailure && (
+                <RevealNextPosition {...bankWayOn} />
               )}
               {/*
                 * DIRECTLY UNDER THE REVEAL, and only from the second one onward.
@@ -2118,8 +2109,11 @@ export default function Home() {
                 <RevealFailure
                   kind={revealFailure}
                   /* O-1: the way on after a failure is the way on after a reveal, or the funnel's
-                     continuation stage would depend on whether the engine answered. */
-                  onNext={canContinue ? nextDecision : wayOnAfterFailure}
+                     continuation stage would depend on whether the engine answered. The bank route
+                     is handed over whole rather than re-derived here. */
+                  continues={canContinue}
+                  onContinue={nextDecision}
+                  bank={bankWayOn}
                 />
               )}
               {learningTransfer && learningTransferPanel}
@@ -2314,7 +2308,9 @@ export default function Home() {
             <ChessBoard
               board={board}
               orientation={orientation}
-              authority={boardAuthorityOf(stage)} /* shared/board-authority.ts */
+              /* The stage, and whether the board is on the position the probe asked about. */
+              authority={boardAuthorityFor({ stage, onTheQuestionsPosition: !probe || activeFen === probe.positionFen })}
+              sideToMove={activeGame.turn()}
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}

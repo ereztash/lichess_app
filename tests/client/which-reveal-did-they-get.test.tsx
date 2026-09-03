@@ -63,7 +63,7 @@ const SILENT: RevealInputs = { ...BASE, cpLoss: ENGINE_NOISE_CP - 5, confidence:
 
 const ANALYSIS: EngineLine = { scoreCp: 180, depth: 20, pv: ["f8c5"], bestMove: "f8c5", fen: FEN };
 const panel = (inputs: RevealInputs) =>
-  render(<RevealPanel inputs={inputs} analysis={ANALYSIS} fen={FEN} statedKnown="מרכז פתוח" />)
+  render(<RevealPanel inputs={inputs} analysis={ANALYSIS} fen={FEN} boardFen={FEN} statedKnown="מרכז פתוח" />)
     .container;
 
 describe("every finding says which kind of evidence it rests on", () => {

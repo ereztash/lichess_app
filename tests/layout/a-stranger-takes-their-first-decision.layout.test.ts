@@ -420,11 +420,41 @@ describe("a stranger takes their first decision", () => {
      * that the decision is kept and the player can go on; where the loaded game holds no further
      * position, going on is the record, which is where the decision now is.
      */
-    await page.getByRole("button", { name: "להחלטה הבאה" }).click();
-    await page
-      .locator(".commitment-screen, .resume-screen, .record-dashboard, #first-decision-username")
-      .first()
-      .waitFor({ timeout: 15_000 });
+    /*
+     * BY THE ACT IT NAMES, not by a constant label. The control used to say "להחלטה הבאה" whatever
+     * it did, and once it learned to route to the record where no next decision exists it named one
+     * act and performed another. It carries `data-primary-action` now, so this asks for the way out
+     * and then checks that its words match it.
+     *
+     * ASSERTED AS A RULE AND NOT AS ONE PAIR, which is what `O-1` forced. There are now three
+     * legitimate ways out of a failed reveal -- on inside the loaded game, on to the bank's next
+     * position, and back to the record once the bank is exhausted -- and the first two are both
+     * `next-decision`, because both land the player on a board that will accept a move. So what
+     * has to hold is the PAIRING: `next-decision` may say either forward sentence and must not
+     * wear the record's, and `return-record` must.
+     */
+    const wayOut = page.locator(".reveal-failure [data-primary-action]:visible");
+    expect(await wayOut.count(), "a failed reveal offered no single declared way out").toBe(1);
+    const act = await wayOut.getAttribute("data-primary-action");
+    const said = (await wayOut.innerText()).trim();
+    const allowed = act === "return-record" ? ["חזרה לרשומה"] : ["להחלטה הבאה", "לעמדה הבאה"];
+    expect(allowed.includes(said), `the way out declares ${act} and says "${said}"`).toBe(true);
+    await wayOut.click();
+    /*
+     * AND WHAT IT LANDS ON IS A BOARD, which is the recovery contract rather than a route change.
+     * This used to wait for `.commitment-screen, .resume-screen, .record-dashboard,
+     * #first-decision-username` -- a set of destinations that made sense while every way out was a
+     * navigation. Under `O-1` the forward routes adopt a position in place: the url does not
+     * change, `Home` does not remount, and the only thing that moves is the position on the board.
+     * So the assertion is that the alarm is gone and there is a live board under it.
+     */
+    await page.locator(".reveal-failure").waitFor({ state: "detached", timeout: 30_000 });
+    await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(400);
+    expect(
+      await page.locator(".board-square").count(),
+      "the way out of a failed reveal did not land on a board",
+    ).toBe(64);
     /* Nothing was written that the engine never produced. */
     const record = await storedRecord(page);
     expect(Object.keys(record?.reveals ?? {})).toHaveLength(0);

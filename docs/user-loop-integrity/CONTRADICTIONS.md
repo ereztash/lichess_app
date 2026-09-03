@@ -108,9 +108,13 @@ Reproduced in a clean worktree of the untouched baseline, so it is not an artefa
 
 **Fixed by** offering the continuation only where it can be taken, which on the front door's
 one-position handoff is nowhere — the screen says so and offers `return-record`, and `/` hands over
-the anchor set's next position, which is a decision on the player's own side and comparable between
-players by construction. Measured: `return-record` → the record → *"העמדה הבאה"* → a position the
-player can decide in.
+the anchor set's next position. Measured: `return-record` → the record → *"העמדה הבאה"* → `/play`,
+`"11. O-O-O תור שחור"`, and `b5-b4` offered. What is established is that the position **can be
+decided in** and that everyone answers the same bank in the same order, which is what makes that one
+reading comparable between players. What was claimed once and is **not** established: that it is
+"a decision on the player's own side". It is a position from a game the player never played, and at
+the one measured it is Black to move for a visitor handed White at the front door. It is stamped
+`purpose: "anchor"`, which is the honest label and is not the same claim.
 
 **The residue:** whether the reveal itself should route there, rather than the player passing
 through the record, changes what `docs/ACQUISITION_EVIDENCE.md`'s continuation stage counts. It is
@@ -119,21 +123,47 @@ through the record, changes what `docs/ACQUISITION_EVIDENCE.md`'s continuation s
 ---
 
 ### `ULI-X-06` — the note said the engine was still computing after it had answered
-**P1. Fixed.**
+**P1. Fixed, and the first fix was itself wrong.**
 
 `setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.")` fires at the commit and nothing replaced it.
 Measured in every walk: the note said the engine was computing with the reveal on screen. `F0`
 asserting one thing while `F1` showed another.
 
+**Two things the first repair got wrong, both found by an adversarial pass and both measured.**
+
+It replaced the sentence on the engine-**success** path only. On an engine failure the note still
+said `המנוע מחשב עכשיו` beside a panel saying the engine never finished. Fixed.
+
+And the replacement asserted something else that a live surface denies. It ended
+*"...הלוח נעול על העמדה שהחלטתם בה"* — locked **on the position you decided in** — while the move
+timeline is live at `revealed`, so one press had a `role="status"` region asserting exactly what
+`.reveal-elsewhere` was denying beside it. Two live regions contradicting each other is worse than
+the stale note it replaced. The note says what the board **does** now; where the board **is** belongs
+to the banner, which derives it. Measured after the repair: note
+*"ההחלטה נרשמה והמנוע ענה. הלוח כבר לא מקבל מהלכים"*, banner
+*"הלוח מציג עכשיו עמדה אחרת"* — no contradiction.
+
 ---
 
 ### `ULI-X-07` — the board acknowledged a selection it had no authority to act on
-**P1. Fixed.**
+**P1. Fixed. It was marked fixed once before it was, and that is recorded here rather than tidied.**
 
 Measured: 14 of 14 opponent pieces at the handed-over position, and 16 of 16 at the start of a live
 game, took `selected-square`, `aria-selected="true"` and the full focus ring, with zero legal
 targets. A press that lights up and can never lead anywhere is an acknowledgment of authority the
 player does not have — which is what *"several controls feel inert"* looks like on a chessboard.
+
+**The first repair closed it only where the board's authority is `none`.** At `deciding` the
+authority is `propose`, and an adversarial pass re-measured the same handed-over position: still
+**14 of 14**, `aria-selected="true"`, zero targets. This register had said *"Fixed"*.
+
+**What closes it.** `ChessBoard` takes `sideToMove` and refuses to select a piece of the side that
+is not to move — a fact about the position, not about the player, so an imported game decided from
+either side is untouched (`decisionPurposeFor` stamps those `import`, and deciding at any ply is
+what importing is for). It announces the refusal rather than swallowing it, because an AT user who
+presses Enter and gets silence has learnt less than one who is told whose turn it is. Measured
+after: **0 of 14**, with the player's own hand unchanged — which the judge asserts in the same case,
+so the fix cannot pass by disabling the board.
 
 ---
 
@@ -154,6 +184,11 @@ Recorded because a register that lists only what was found makes the pass look b
   engine spoke, on every walk. R3 was never observed to leak.
 - **The loop was never locked.** The corrected measurement above is the reason this register says
   so twice: a claim that flattered the finding was withdrawn rather than left standing.
+- **Three rows of this register said "Fixed" for defects that measurably persisted** (`ULI-X-06`,
+  `ULI-X-07`, and `LOOP_CORPUS.md`'s blitz row). An adversarial pass measured all three. They are
+  fixed now and the wrong claims are above, struck through by their own corrections rather than
+  deleted, because a register that only ever recorded its successes is the one thing this
+  repository's registers are built not to be.
 - **Deciding at an arbitrary ply of an imported game is not the same defect.** Measured on the
   fixed tree: a pasted PGN, rewound to ply 2, a decision recorded for Black. That is what importing
   is for, and `decisionPurposeFor` stamps it `purpose: "import"` rather than pretending it is the

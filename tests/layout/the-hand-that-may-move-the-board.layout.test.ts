@@ -172,6 +172,22 @@ async function openTheSamplePgn(page: Page): Promise<void> {
   await page.waitForTimeout(700);
 }
 
+/** Arrive at the handed-over position and stop there, with the decision still open. */
+async function walkToADecision(): Promise<Page> {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.route("https://lichess.org/api/games/user/**", (route: Route) =>
+    route.fulfill({ status: 200, contentType: "application/x-ndjson", body: LICHESS_BODY }),
+  );
+  await page.goto(`${origin}/`, { waitUntil: "networkidle" });
+  await page.locator("#first-decision-username").fill(USERNAME);
+  await page.getByRole("button", { name: "קחו אותי לעמדה" }).click();
+  await page.waitForURL(/\/play$/, { timeout: 30_000 });
+  await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
+  await page.waitForTimeout(500);
+  return page;
+}
+
 /** Arrive, take one decision, and stop when the reveal is on screen. */
 async function walkToAReveal(): Promise<Page> {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -251,6 +267,34 @@ describe("once a decision is committed the board is nobody's to move", () => {
       await page.locator(".selected-square").count(),
       "a square reported itself selected while the board had no authority",
     ).toBe(0);
+    await page.context().close();
+  }, 300_000);
+});
+
+/*
+ * THE SIDE NOT TO MOVE IS NOT THE PLAYER'S TO SELECT EITHER, and this is the half the first pass of
+ * this file recorded as fixed and had not fixed. `ULI-X-07` was closed against the states where the
+ * board's authority is `none`; at `deciding` the authority is `propose` and all fourteen of the
+ * opponent's pieces still took `.selected-square` and `aria-selected="true"` with no target behind
+ * them. An adversarial pass measured 14 of 14 and the register said "Fixed". It says so now.
+ */
+describe("a piece of the side not to move is not selectable", () => {
+  it("lights nothing, on any of them, while a decision is open", async () => {
+    const page = await walkToADecision();
+    /* The handoff puts White to move, so Black is the side the gesture may not be about. */
+    const opponent = await piecesOf(page, "b");
+    expect(opponent.length, "the fixture position has no opponent pieces").toBeGreaterThan(10);
+    for (const square of opponent) {
+      await page.locator(`[data-square="${square}"]`).click();
+      await page.waitForTimeout(30);
+    }
+    expect(
+      await page.locator(".selected-square").count(),
+      "a piece of the side not to move reported itself selected",
+    ).toBe(0);
+    /* And the player's own hand still works, so this cannot pass by disabling the board. */
+    const own = await tryToMove(page, "w");
+    expect(own, "the fix disabled the board it was supposed to leave alone").not.toBeNull();
     await page.context().close();
   }, 300_000);
 });

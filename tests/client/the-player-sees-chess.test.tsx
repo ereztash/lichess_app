@@ -43,7 +43,7 @@ const BASE: RevealInputs = {
 const NEVER_PLACED: RevealInputs = { ...BASE, candidatesConsidered: ["f8c5", "d7d6"] };
 
 const panel = (inputs: RevealInputs) =>
-  render(<RevealPanel inputs={inputs} analysis={null} fen={FEN} statedKnown="" />).container;
+  render(<RevealPanel inputs={inputs} analysis={null} fen={FEN} boardFen={FEN} statedKnown="" />).container;
 
 /**
  * Words that assert something about the player's MIND.

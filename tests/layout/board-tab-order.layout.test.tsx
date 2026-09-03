@@ -80,6 +80,7 @@ describe("crossing the board with the Tab key", () => {
       board={board}
       orientation="w"
       authority="propose"
+      sideToMove="w"
       legalTargets={[]}
       onSelect={() => undefined}
       onMove={() => undefined}
@@ -138,6 +139,7 @@ describe("what the board says out loud is hidden from the eye only", () => {
         board={board}
         orientation="w"
         authority="propose"
+        sideToMove="w"
         legalTargets={[]}
         onSelect={() => undefined}
         onMove={() => undefined}
@@ -174,6 +176,7 @@ describe("what the board says out loud is hidden from the eye only", () => {
         board={board}
         orientation="w"
         authority="propose"
+        sideToMove="w"
         legalTargets={[]}
         onSelect={() => undefined}
         onMove={() => undefined}
