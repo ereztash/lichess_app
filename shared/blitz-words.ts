@@ -379,6 +379,22 @@ export function patternCounts(pattern: BlitzPattern): string {
 }
 
 /**
+ * The `no-games` sentence, which is two sentences because it describes two different records.
+ *
+ * SINGULAR IS WRITTEN OUT rather than rendered as "1 החלטות". Hebrew does not tolerate the digit
+ * there, and a player whose whole record is one decision is precisely the player this branch was
+ * added for, so the one case it was added for cannot be the ungrammatical one.
+ */
+function elsewhereSentence(elsewhere: number): string {
+  if (elsewhere <= 0) return "עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.";
+  const held =
+    elsewhere === 1
+      ? "החלטה אחת שלך נרשמה ונקראת בחלק אחר של הרשומה"
+      : `${elsewhere} החלטות שלך נרשמו ונקראות בחלק אחר של הרשומה`;
+  return `${held}. כאן נמדדים משחקים ששיחקת, ועוד לא שיחקת אחד.`;
+}
+
+/**
  * WHY THERE IS NOTHING TO SAY YET, per blocker, with the number when there is one.
  *
  * §13 VERBATIM WHERE IT APPLIES: "לא הצטבר עדיין מספיק מידע. עוד שני משחקים יאפשרו בדיקה ראשונה."
@@ -394,7 +410,26 @@ export function patternCounts(pattern: BlitzPattern): string {
 export function nothingYetSentence(knows: Extract<ResumeKnowledge, { kind: "nothing-yet" }>): string {
   switch (knows.because) {
     case "no-games":
-      return "עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.";
+      /*
+       * TWO STATES, AND THEY MUST NOT SHARE A SENTENCE.
+       *
+       * A record with nothing in it and a record holding completed decisions that this reading
+       * does not cover are both `no-games`, because a bank answer is not a blitz game. The
+       * blocker is the same and what the player has done is not, and one sentence for both told
+       * somebody who had committed two decisions, declared a confidence before the engine spoke
+       * and read two reveals that they had not played and there was nothing to measure.
+       *
+       * THE SECOND SENTENCE CHANGES NO NUMBER. It says the decisions exist, and it says they are
+       * read under another heading, which is the same thing the loop strip says about the same
+       * count. The floor, the denominator and what makes a decision eligible are untouched: this
+       * is the record surface reporting a fact it already had and was not saying.
+       *
+       * `נרשמו` AND NOT `נמדדו`. `readElsewhere` is every atom outside the discovery stratum,
+       * which is a statement about where a decision is read and not about whether an engine
+       * scored it. The stronger verb would be the surface inventing a measurement claim out of a
+       * count that does not carry one.
+       */
+      return elsewhereSentence(knows.elsewhere);
     case "nothing-scored":
       return "יש משחקים שמורים, והמנוע עוד לא עבר על אף אחד מהם.";
     case "nothing-asked":

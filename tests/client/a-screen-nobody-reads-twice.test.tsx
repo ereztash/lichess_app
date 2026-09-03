@@ -154,6 +154,26 @@ vi.mock("@/lib/blitz-reading-api", () => ({
  * and driving it through storage would make every case here depend on jsdom's storage as well. The
  * module's own read-and-write behaviour has one job and is asserted where it lives.
  */
+/**
+ * The claim view, for the one field this screen reads out of it.
+ *
+ * `N-3`: the record surface says how many decisions it holds outside the personal-game
+ * population, and `readElsewhere` is where that count comes from. Stubbed here because the case
+ * that matters for the glance budget is the one where it is NOT zero, and an unstubbed query
+ * returns undefined and renders the empty-record sentence forever.
+ */
+const claim = vi.hoisted(() => ({ readElsewhere: 0 }));
+
+/*
+ * PARTIAL, because `next-action-shadow` reads `useDecisionCount` and `useRecordReading` from the
+ * same module and this screen mounts it. Replacing the module wholesale removed them and the
+ * suite failed to import before a single case ran.
+ */
+vi.mock("@/lib/record-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/record-api")>()),
+  useClaimView: () => ({ data: { readElsewhere: claim.readElsewhere }, isLoading: false }),
+}));
+
 const seen = vi.hoisted(() => ({ at: null as string | null, remembered: [] as string[] }));
 
 vi.mock("@/lib/last-seen", () => ({
@@ -191,6 +211,7 @@ const glance = (): string => {
 };
 
 beforeEach(() => {
+  claim.readElsewhere = 0;
   reading.current = undefined;
   reading.loading = false;
   seen.at = null;
@@ -374,17 +395,36 @@ describe("a screen nobody reads twice", () => {
 
   describe("the glance budget", () => {
     it.each([
-      ["an empty record", () => readBlitzOf([], [])],
-      ["a thin record", () => readBlitzOf([game()], thinRun("g1", 8))],
-      ["a record with a finding", () => readBlitzOf([game()], plantedRun("g1", MIN_BUCKET_N * 4))],
-      ["a record where nothing separated", () => readBlitzOf([game()], thinRun("g1", MIN_BUCKET_N * 4))],
-    ])("stays inside the budget on %s", (_name, build) => {
+      ["an empty record", () => readBlitzOf([], []), 0],
+      ["a thin record", () => readBlitzOf([game()], thinRun("g1", 8)), 0],
+      ["a record with a finding", () => readBlitzOf([game()], plantedRun("g1", MIN_BUCKET_N * 4)), 0],
+      ["a record where nothing separated", () => readBlitzOf([game()], thinRun("g1", MIN_BUCKET_N * 4)), 0],
+      /*
+       * `N-3`: an empty blitz record that nonetheless holds decisions, which is what every cold
+       * arrival looks like the moment they answer the bank position the front door hands them.
+       * It is the longest of the five sentences, so it is the one the budget has to survive.
+       */
+      ["a record holding decisions it does not count", () => readBlitzOf([], []), 12],
+    ])("stays inside the budget on %s", (_name, build, elsewhere) => {
+      claim.readElsewhere = elsewhere;
       reading.current = build();
       show(true);
       const text = glance();
       expect(text.length, `the resume screen asked for ${text.length} characters`).toBeLessThanOrEqual(
         GLANCE_BUDGET_CHARS,
       );
+    });
+
+    it("actually renders the sentence the case above is budgeting for", () => {
+      /*
+       * Without this, the budget case is vacuous: a screen that ignored `readElsewhere` would
+       * render the short empty-record sentence, stay well inside 400 characters, and pass.
+       */
+      claim.readElsewhere = 12;
+      reading.current = readBlitzOf([], []);
+      show(true);
+      expect(glance()).toContain("12 החלטות");
+      expect(glance()).not.toContain("עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד");
     });
 
     it("keeps the instrumentation behind the disclosure, not in the glance", async () => {
