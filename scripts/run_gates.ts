@@ -38,6 +38,7 @@ import {
 import { findRegisterDrift } from "./register-scan";
 import { findAuthorityDrift } from "./authority-scan";
 import { findFalsificationDrift } from "./falsification-scan";
+import { rollbackDrift as findRollbackDrift } from "./rollback-scan";
 import { findResearchDrift } from "./research-scan";
 import { BLITZ_BLOCKERS, type BlitzStanding } from "../shared/blitz-reading";
 import {
@@ -174,6 +175,7 @@ const AUTHORITY_FIXTURES = "tests/fixtures/authority";
 
 /** And for the falsification inventory: a step nobody classified, a mechanism that is not there. */
 const FALSIFICATION_FIXTURES = "tests/fixtures/falsification";
+const ROLLBACK_FIXTURES = "tests/fixtures/rollback";
 
 /** One shape for all four scanning gates: findings mean red, and each names its own file. */
 const fromFindings = (findings: Finding[], clean: string): GateResult =>
@@ -212,6 +214,12 @@ const falsificationDrift = (root: string) =>
   fromFindings(
     findFalsificationDrift(root),
     "every blocking check is classified, and every named falsification mechanism exists",
+  );
+
+const rollbackDrift = (root: string) =>
+  fromFindings(
+    findRollbackDrift(root),
+    "the workflow takes a SHA, the suite binds to it, the binding is shown to fail, and the build installs the lock",
   );
 
 const asksAgain = (roots: string[]) =>
@@ -1052,6 +1060,20 @@ export const GATES: Gate[] = [
      */
     run: () => falsificationDrift("."),
     positiveControl: () => falsificationDrift(FALSIFICATION_FIXTURES),
+  },
+  {
+    id: "GATE-ROLLBACK-EVIDENCE",
+    rule: "R-01",
+    description: "The rollback procedure's evidence chain is wired: the workflow takes a SHA, the suite binds to it, the binding can fail, the build installs the lock.",
+    /*
+     * A ROLLBACK IS A CLAIM ABOUT WHAT IS SERVED, and the repository could not make one. Vercel
+     * offers an instant rollback and emits no `deployment_status` for it, so the L6 run that would
+     * prove the alias now serves the good build never fired. `docs/ROLLBACK.md` closes that with a
+     * `workflow_dispatch` that names the expected commit. The document is prose; this holds the
+     * four files it rests on to what it says, and the control softens each in turn.
+     */
+    run: () => rollbackDrift("."),
+    positiveControl: () => rollbackDrift(ROLLBACK_FIXTURES),
   },
 ];
 

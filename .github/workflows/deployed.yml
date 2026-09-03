@@ -28,6 +28,20 @@ on:
         description: "Origin to check (defaults to production)"
         required: false
         default: "https://lichessapp.vercel.app"
+      # THE ROLLBACK'S EVIDENCE. Vercel's instant rollback emits no deployment_status, so the run
+      # that would prove the alias now serves the good build never fires on its own. After a
+      # rollback the operator dispatches this with the commit that was rolled back TO; a green run
+      # bound to that SHA closes the incident, and a red one says the alias still serves the bad
+      # build. docs/ROLLBACK.md is the procedure; this input is what makes it checkable.
+      sha:
+        description: "Commit the origin must be serving (40 hex). Empty = any coherent build."
+        required: false
+        default: ""
+
+# Nothing here writes to the repository, opens an issue or touches a deployment. Read the checkout
+# and no more; a token that can do nothing else is a token whose leak does nothing else.
+permissions:
+  contents: read
 
 jobs:
   l6:
@@ -47,26 +61,44 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # PINNED TO A COMMIT, NOT A TAG. A tag can be moved to any commit by whoever holds the
+      # action's repository; a SHA cannot. docs/DEPENDENCY_POLICY.md states the rule and Dependabot
+      # proposes the bumps, with the version kept in the comment so a reader can tell what it is.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          # ONE STATEMENT OF THE RUNTIME. `engines.node` in package.json is what Vercel builds and
+          # runs the function on; reading it here means CI cannot quietly test a different major.
+          node-version-file: package.json
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
       - name: Name the origin and the commit it should be serving
         id: target
+        # INPUTS THROUGH THE ENVIRONMENT, NOT INTERPOLATED INTO THE SCRIPT. `${{ inputs.x }}`
+        # inside `run:` is pasted into the shell before it runs, so a crafted input is a command.
+        # An environment variable is a value.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SHA: ${{ github.event.deployment.sha }}
+          INPUT_ORIGIN: ${{ inputs.origin }}
+          INPUT_SHA: ${{ inputs.sha }}
         run: |
           set -e
-          if [ "${{ github.event_name }}" = "deployment_status" ]; then
+          if [ "$EVENT_NAME" = "deployment_status" ]; then
             echo "origin=https://lichessapp.vercel.app" >> "$GITHUB_OUTPUT"
-            echo "sha=${{ github.event.deployment.sha }}" >> "$GITHUB_OUTPUT"
+            echo "sha=$EVENT_SHA" >> "$GITHUB_OUTPUT"
           else
-            echo "origin=${{ github.event.inputs.origin || 'https://lichessapp.vercel.app' }}" >> "$GITHUB_OUTPUT"
-            # No expected SHA on a scheduled run: production is whatever was last deployed, and
-            # asserting this checkout's HEAD against it would fail every day that main moved.
-            # The suite says so rather than passing quietly -- the claim is the weaker one.
-            echo "sha=" >> "$GITHUB_OUTPUT"
+            echo "origin=${INPUT_ORIGIN:-https://lichessapp.vercel.app}" >> "$GITHUB_OUTPUT"
+            # A dispatched run may name the commit it expects (the rollback case). A scheduled run
+            # has none: production is whatever was last deployed, and asserting this checkout's
+            # HEAD against it would fail every day that main moved. The suite says so rather than
+            # passing quietly -- the claim is the weaker one.
+            if [ -n "$INPUT_SHA" ] && ! echo "$INPUT_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+              echo "::error::sha must be 40 hex characters, got '$INPUT_SHA'"
+              exit 1
+            fi
+            echo "sha=$INPUT_SHA" >> "$GITHUB_OUTPUT"
           fi
 
       # THE CONTROL FIRST, so a suite that has stopped checking anything cannot report green on the
@@ -77,6 +109,18 @@ jobs:
           if npx vitest run --config vitest.controls.config.ts \
                tests/fixtures/controls/deployed-origin.control.test.ts; then
             echo "::error::the L6 predicates PASSED against example.com. They are not checking this application."
+            exit 1
+          fi
+          echo "control went red, as required"
+
+      # THE SECOND CONTROL: the SHA binding itself. The rollback procedure closes on "a green run
+      # bound to the good commit", which is worth nothing unless a run bound to the WRONG commit
+      # goes red. Pure predicate, no origin needed; it must fail.
+      - name: L6 positive control (the SHA binding must go red on a mismatch)
+        run: |
+          if npx vitest run --config vitest.controls.config.ts \
+               tests/fixtures/controls/deployed-sha.control.test.ts; then
+            echo "::error::the SHA binding PASSED on a mismatch. A failed rollback would report as a success."
             exit 1
           fi
           echo "control went red, as required"

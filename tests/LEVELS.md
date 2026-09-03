@@ -65,8 +65,10 @@ hand-built inputs in a simulated environment. That is not an indictment: L1 and 
 is stated precisely and cheaply, and a repository with no L1 tests is worse off. It is a statement
 about what the suite can and cannot be read as evidence for.
 
-**L6 is zero.** The deployment run that found defect 2 was a throwaway script, and R-09's own row
-says the scan now works there — on evidence that is not in this suite and does not re-run.
+**L6 was zero when this was written.** The deployment run that found defect 2 was a throwaway
+script. It is no longer zero: `tests/deployment/` runs against the production alias on every
+`deployment_status`, daily, and on dispatch, bound to the commit it expects (`docs/ROLLBACK.md`).
+The table above is the count at the time of writing; `npm run levels` is the current one.
 
 ## Which rung each claim stands on
 
@@ -126,5 +128,6 @@ That a higher rung is better. Defect 5 needed L3 to ask a better question, not L
 be read off a file with certainty — the derivation is a heuristic and its misses are worth writing
 down, as two are above. And that zero means finished: it means no row currently claims more than its
 proof ran against, on a floor this file chose (**P0 → L4**, **P1 → L2**) and could have chosen
-differently. **L6 is still zero**, and R-09's strongest evidence — the engine running on the actual
-deployment — remains a thing that was done once and does not re-run.
+differently. **L6 re-runs now** (headers, MIME types, CSP, health and build identity as served);
+R-09's strongest evidence — the engine running on the actual deployment — is still not among them,
+because a deployed engine check would need a browser against production and that is not built.
