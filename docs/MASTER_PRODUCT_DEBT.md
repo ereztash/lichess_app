@@ -1222,13 +1222,32 @@ the Chromium the runner has. That the engine STARTS, not that it plays: a build 
 and then answers nonsense passes here. And it runs when the workflow runs, so an origin changed
 between deployments is caught by the daily schedule rather than by this file.
 
-**One limitation of this session's own verification, recorded rather than papered over.** The
-green run was against a local origin serving the shipped bundle under the CSP captured live from
-production, not against `lichessapp.vercel.app` itself: Chromium in the sandbox this was written in
-cannot complete a TLS handshake through its egress proxy. The served policy, the served MIME types
-and the shipped bytes were all exercised; the TLS path was not. In `deployed.yml` there is no such
-proxy and the probe reaches the real origin directly. **Until one green run of `deployed.yml`
-carries this case, that last hop is asserted rather than verified.**
+**The one limitation this row carried is now closed, by the run it named.** When this was written
+the green run was against a local origin serving the shipped bundle under the CSP captured live
+from production, not against `lichessapp.vercel.app` itself: Chromium in the sandbox it was written
+in cannot complete a TLS handshake through its egress proxy. The served policy, MIME types and
+bytes were exercised; the TLS path was not, and the row said so and named its own closing
+condition: *"until one green run of `deployed.yml` carries this case, that last hop is asserted
+rather than verified."*
+
+That run has now happened. Merging `#80` deployed `9d03bbb` to production, which fired
+`deployed.yml` [run 33763175591](https://github.com/ereztash/lichess_app/actions/runs/33763175591),
+job `100674284960`:
+
+```
+checking https://lichessapp.vercel.app for 9d03bbb514fa6153f7878e8930b33f76db1a2afe
+  the engine speaks on the deployed origin
+    starts a worker under the served policy and answers uciok   1955 ms
+```
+
+**It ran rather than skipped**, which is the thing worth checking rather than assuming: the suite
+skips itself when `DEPLOYED_ORIGIN` is empty, and the log shows the origin and the SHA it was bound
+to. The engine control in the same run went red first, as required
+(`Expected: "UCIOK" / Received: "TIMEOUT"`), so the probe that passed is the same probe that fails
+when the policy forbids the engine. Nine deployment tests passed in all.
+
+The last hop is **verified**. What still is not, and is unchanged: one browser engine, that the
+engine STARTS rather than plays, and only at the moments the workflow runs.
 
 
 ### R-28 · `users` is a table nothing writes and one query reads
