@@ -105,10 +105,14 @@ const SECRET_SHAPES: readonly RegExp[] = [
 const DETAIL_MAX = 200;
 
 export function redact(value: string): string {
-  let out = value.length > DETAIL_MAX ? `${value.slice(0, DETAIL_MAX)}…` : value;
+  /* Redact FIRST: a token that straddles the cut would otherwise keep its first half. */
+  let out = value;
   for (const shape of SECRET_SHAPES) out = out.replace(shape, "[redacted]");
-  return out;
+  return out.length > DETAIL_MAX ? `${out.slice(0, DETAIL_MAX)}…` : out;
 }
+
+/** What a platform request id looks like: `iad1::iad1::ftv9g-1788385416839-787fa53fc372`. */
+const REQUEST_ID_SHAPE = /^[A-Za-z0-9:_.-]{1,120}$/;
 
 /** The sink, replaceable so a test can hold the line rather than scrape stderr. */
 export type Sink = (level: "error" | "warn", line: string) => void;
@@ -161,7 +165,12 @@ export function emit(event: OperatorEvent, now: Date = new Date()): OperatorLine
 export function requestIdFrom(headers: Readonly<Record<string, unknown>>): string {
   const raw = headers["x-vercel-id"];
   const fromPlatform = Array.isArray(raw) ? raw[0] : raw;
-  if (typeof fromPlatform === "string" && fromPlatform.length > 0 && fromPlatform.length <= 120) {
+  /*
+   * SHAPE-CHECKED, because on a direct request the header is whatever the sender put there, and
+   * it is copied into the log line and the error body verbatim. An id is letters, digits and
+   * `:_.-`; anything else is not an id and gets a local one.
+   */
+  if (typeof fromPlatform === "string" && REQUEST_ID_SHAPE.test(fromPlatform)) {
     return fromPlatform;
   }
   return `local-${Math.random().toString(36).slice(2, 10)}`;

@@ -84,7 +84,8 @@ interface CommitmentScreenProps {
   chosenMove: string | null;
   /** Other moves the player looked at before choosing. */
   candidatesConsidered: string[];
-  onCommit: (draft: DraftDecision, secondsTaken: number) => void;
+  /** May return a promise; the in-flight guard is released when it settles. */
+  onCommit: (draft: DraftDecision, secondsTaken: number) => void | Promise<unknown>;
   pending: boolean;
   error?: CommitFailureText;
 }
@@ -316,7 +317,23 @@ export function CommitmentScreen({
     }
     inFlight.current = true;
     closeAttempt("recorded");
-    onCommit(live, (Date.now() - startedAt.current) / 1000);
+    /*
+     * RELEASED WHEN THE COMMIT SETTLES, not only when `pending` clears. Two refusal paths in
+     * `Home.onCommit` set the stage to committing and back within one synchronous run, so React
+     * batches them and `pending` never turns true -- the guard would then hold for as long as the
+     * position did, and a player who fixed the refusal could never commit it (adversarial review,
+     * attack 11). Settling covers both: a stored decision and a refused one.
+     */
+    let settled: Promise<unknown>;
+    try {
+      /* Called synchronously: the parent's `pending` and the record write start in this tick. */
+      settled = Promise.resolve(onCommit(live, (Date.now() - startedAt.current) / 1000));
+    } catch (error) {
+      settled = Promise.reject(error);
+    }
+    void settled.catch(() => undefined).finally(() => {
+      inFlight.current = false;
+    });
   };
 
   const missing = problems[0];

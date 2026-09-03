@@ -173,13 +173,28 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
           <a
             className="ghost-control"
             download="decision-lab-record.json"
-            href={`data:application/json;charset=utf-8,${encodeURIComponent(
-              exportLocalRecord()?.json ?? "null",
-            )}`}
+            href="#record"
             onClick={(event) => {
-              if (exportLocalRecord() === null) {
+              /*
+               * BUILT ON THE PRESS. A `data:` URL computed at render time re-encoded the whole
+               * record on every render and, past Chromium's URL ceiling, failed silently on a large
+               * one (adversarial review, attack 13). A Blob has no such ceiling; the `data:` form
+               * is the fallback where `createObjectURL` is missing.
+               */
+              const exported = exportLocalRecord();
+              if (exported === null) {
                 event.preventDefault();
                 setErase("nothing");
+                return;
+              }
+              const anchor = event.currentTarget;
+              if (typeof URL.createObjectURL === "function") {
+                if (anchor.dataset.blob) URL.revokeObjectURL(anchor.dataset.blob);
+                const url = URL.createObjectURL(new Blob([exported.json], { type: "application/json" }));
+                anchor.dataset.blob = url;
+                anchor.href = url;
+              } else {
+                anchor.href = `data:application/json;charset=utf-8,${encodeURIComponent(exported.json)}`;
               }
             }}
           >
@@ -193,8 +208,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
                 setErase(exportLocalRecord() === null ? "nothing" : "armed");
                 return;
               }
-              deleteLocalRecord();
-              setErase("done");
+              void deleteLocalRecord().then(() => setErase("done"));
             }}
           >
             {erase === "armed" ? "לחצו שוב כדי למחוק את הרשומה מהדפדפן הזה" : "מחקו את הרשומה מהדפדפן הזה"}

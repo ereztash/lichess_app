@@ -49,12 +49,27 @@ export function rollbackDrift(root: string): Finding[] {
         out.push({ file: ROLLBACK_DOC, line: 1, text: `does not name ${named}, which its evidence rests on` });
       }
     }
+    /* The evidence step itself, as the operator types it: not a mention, the dispatch. */
+    if (!/Run workflow[\s\S]{0,200}\bsha:\s*<40-hex/.test(doc)) {
+      out.push({
+        file: ROLLBACK_DOC,
+        line: 1,
+        text: "does not show the dispatch with its `sha:` input, so a reader cannot run the evidence step from it",
+      });
+    }
   }
 
   if (workflow === null) {
     out.push({ file: DEPLOYED_WORKFLOW, line: 1, text: "the L6 workflow is gone" });
   } else {
-    if (!/workflow_dispatch:[\s\S]*?inputs:[\s\S]*?\n\s+sha:/.test(workflow)) {
+    /*
+     * ANCHORED TO THE INPUTS BLOCK: `sha:` must be a direct child of `workflow_dispatch.inputs`, at
+     * the indentation of its siblings, not a `with: sha:` on some step further down (the first
+     * version matched any later `sha:` key; adversarial review, attack 6).
+     */
+    const dispatch = /^on:[\s\S]*?^ {2}workflow_dispatch:\s*\n((?: {4,}.*\n|\s*#.*\n)*)/m.exec(workflow);
+    const inputs = dispatch ? /^ {4}inputs:\s*\n((?: {6,}.*\n|\s*#.*\n)*)/m.exec(dispatch[1]) : null;
+    if (!inputs || !/^ {6}sha:/m.test(inputs[1])) {
       out.push({
         file: DEPLOYED_WORKFLOW,
         line: lineOf(workflow, "workflow_dispatch"),

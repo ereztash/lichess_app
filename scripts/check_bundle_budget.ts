@@ -535,10 +535,49 @@ const INDEX = `${ROOT}/index.html`;
  * self-check runs.
  *
  * 678 LEAVES 1.9 kB. The gzip ceiling still did not fire, with 1.0 kB to spare.
+ *
+ * ---
+ *
+ * 678 -> 683, 211 -> 215 and 761 -> 771: the customer-readiness branch, attributed per commit.
+ *
+ * All three fired, and two of them fired on the FIRST commit of the branch and were not noticed
+ * until the pull request's `verify` run, because the test step failed first and the budget step
+ * never ran. Measured by building each commit in its own worktree against the same node_modules:
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     c848f244, before the branch         670.9      209.4       758.8
+ *     + observability (fa41edb)           676.9      211.9       764.7   +6.0 / +2.5 / +5.9
+ *     + journey (3f342c1)                 677.7      212.3       765.5   +0.8 / +0.4 / +0.8
+ *     + privacy (1ea2332)                 681.0      213.4       768.9   +3.3 / +1.1 / +3.4
+ *     + adversarial fixes (this commit)   681.0      213.3       768.9   +0.0 / -0.1 / +0.0
+ *
+ * OBSERVABILITY IS SIX OF THE TEN KILOBYTES, and it is on the entry route because the failures
+ * are. `shared/failure-class.ts` is two runtime arrays (the client codes and the classes) and the
+ * two maps that fold every code onto a class -- data zod checks against, so a later chunk cannot
+ * bring it. `error-sink.ts` is the beacon and the trial-ledger write, wired into `main.tsx`'s two
+ * cache subscribers and the window's error events: a reporter that arrives in a lazy chunk is
+ * absent from exactly the case it exists for, a browser that could not load a chunk. The rest is
+ * `AuthFailureNotice` (five Hebrew sentences at two bytes a character, on the front door because
+ * that is where a failed sign-in lands) and `build-identity.ts`, which the self-check needs before
+ * anything else it says can be tied to a build.
+ *
+ * PRIVACY IS THREE. `storage-keys.ts` is ten keys and their areas (the sentences describing each
+ * were moved out of the shipped object into `STORAGE_KEY_NOTES` before this was measured, and the
+ * move cost nothing measurable, which says the strings were already compressing to almost nothing);
+ * `exportLocalRecord` and `deleteLocalRecord` on a store constructed on the entry route; and one
+ * more sentence on `WhatThisIs`. `SelfCheck` is behind a lazy chunk, and its new controls are there
+ * -- checked, not assumed: `decision-lab-record.json` appears in `SelfCheck-*.js` and nowhere else.
+ *
+ * JOURNEY IS UNDER ONE. The opponent's candidate picker and the commit guard.
+ *
+ * WHAT WAS CHECKED RATHER THAN ASSUMED: the 7.1 MB of WebAssembly is still held out of the entry,
+ * and the chunk list is the same set before and after -- nothing created, nothing merged away.
+ *
+ * 683, 215 AND 771 LEAVE 2.0, 1.7 AND 2.1 kB, the headroom every raise in this file has taken.
  */
-const ENTRY_RAW_KB = 678;
+const ENTRY_RAW_KB = 683;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 211;
+const ENTRY_GZIP_KB = 215;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -613,7 +652,7 @@ const ENTRY_GZIP_KB = 211;
  * the raise is 2 kB rather than 1.4 so the next stylesheet change is not forced to come with a
  * budget commit of its own.
  */
-const INITIAL_RAW_KB = 761;
+const INITIAL_RAW_KB = 771;
 
 interface Asset {
   name: string;

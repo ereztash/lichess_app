@@ -15,6 +15,7 @@ deleted*. The code this rests on is `client/src/lib/storage-keys.ts`, `client/sr
 | this browser, other keys | preferences and trial bookkeeping; the full list with what each holds is `STORAGE_KEYS` in `client/src/lib/storage-keys.ts` | the same | each has its own clear; the trial ledger has a button beside the record's |
 | the server, MySQL, the tables in `RECORD_TABLES` | the same record, when the owner signs in on a deployment with `DATABASE_URL` | the one account `OWNER_OPEN_ID` names, through `ownerProcedure` | the operator runs `npm run purge -- --yes` (section 4) |
 | the server, `users` | the OAuth identity: openId, display name, role, last sign-in; email is never written | the gate | not part of the record; removed with the deployment |
+| this browser, cookies | `app_session_id`, the HttpOnly session (one year, `SameSite=Lax`); `__Host-oauth_state`, the ten-minute sign-in nonce | the server on each request; no script | sign-out clears the session; the nonce expires or is cleared by the callback |
 | the platform's function log | operator lines: failure names, classes, request ids, build; never content (`docs/OBSERVABILITY.md` section 3) | the operator, in the Vercel dashboard | one hour (Hobby plan) |
 | the platform's request log | method, path, status, request id | the same | one hour |
 | Lichess, Chess.com | the username typed into the import box, in the request that fetches that account's public games | those services, under their own terms | not ours to state |

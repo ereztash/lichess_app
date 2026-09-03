@@ -16,9 +16,10 @@ import { MAX_PER_LOAD } from "../../client/src/lib/error-sink";
 const doc = readFileSync("docs/OBSERVABILITY.md", "utf8");
 
 describe("docs/OBSERVABILITY.md", () => {
-  it("names every operator event code the server can emit", () => {
+  it("names every operator event code the server can emit, as a row of the event table", () => {
     for (const code of OPERATOR_EVENT_CODES) {
-      expect(doc, `event code ${code} is not in the document`).toContain(`\`${code}\``);
+      /* A row, not a mention: a code listed under "removed" would otherwise pass. */
+      expect(doc, `event code ${code} has no row in section 3.1`).toMatch(new RegExp(`^\\| \\\`${code}\\\` \\|`, "m"));
     }
   });
 

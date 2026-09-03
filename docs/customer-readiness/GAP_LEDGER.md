@@ -112,8 +112,17 @@ stated rather than hidden.
 
 ## Lane G, adversary
 
-Run after implementation by an independent reviewer against the twenty attacks in
-`AFTER.md` section 3, which records each verdict and what was changed in response.
+Run after implementation by an independent reviewer against twenty named attacks. `AFTER.md`
+section 3 records every verdict; the two that were broken are here because they would have shipped.
+
+| # | finding | severity | disposition |
+| --: | --- | --- | --- |
+| G1 | the client sent every tRPC query as POST and the server answered 405: only half of the privacy change had landed, and no test ran the real client link against the real app | P0 | **closed** in the adversarial commit: `allowMethodOverride` on the middleware, and a test that drives `httpBatchLink({ methodOverride: "POST" })` against `createApp()` |
+| G2 | the commit guard was released only when `pending` cleared; two synchronous refusal paths never turned it on, so a refused position could never be committed | P1 | **closed** in the adversarial commit: released when `onCommit` settles; a new jsdom test holds the double press and both refusal shapes; the Chromium double-press case stays green |
+| G3 | `redact` truncated before redacting; `requestId` taken verbatim from a sender-controlled header; `__proto__` accepted by `.strict()`; `deleteLocalRecord` outside the write lock; download URL rebuilt per render; scanner regex loose; doc tests presence-only; two over-claims; stale ladder table; cookies missing from the inventory | P2 | **closed**, each with a test or a fixture where one applies (`AFTER.md` section 3, rows 1, 3, 6, 13, 14, 18, 19, 20) |
+| G4 | `VERCEL_GIT_COMMIT_SHA` reaching the function at runtime; the platform overwriting an inbound `x-vercel-id` | untestable here | **FIELD-REQUIRED**: one `curl` of `/api/health` with a forged header after this branch deploys; noted in `docs/OBSERVABILITY.md` section 2 |
+| G5 | the pull request's first `verify` run went red on two things only the runner's MySQL could show: a health test asserting `not-configured` unconditionally, and `GATE-CLAIM-ANCHOR` refusing R-22 as a P1 row with no anchored proof | CI | **closed**: the assertion follows `DATABASE_URL`; R-22 is P2 with the register's rule as the written reason |
+| G6 | the bundle budget was crossed by the first commit of the branch (gzipped +2.5 kB, initial +5.9 kB) and nobody noticed until the pull request, because the test step failed first | CI | **closed**: ceilings raised 678/211/761 to 683/215/771 with the growth attributed per commit by building each in a worktree (`scripts/check_bundle_budget.ts`); six of the ten kilobytes are the failure taxonomy and the error sink, on the entry route because the failures are |
 
 ## Lane H, claims
 

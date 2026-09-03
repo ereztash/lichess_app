@@ -32,9 +32,9 @@ operator who is already looking. This document does not pretend otherwise.
 
 ## 2. The health contract
 
-`GET /api/health` answers JSON, always, from the function and never from the SPA fallback. The L6
-suite (`tests/deployment/`) checks the content type as served, because a broken function build
-would otherwise answer `200 text/html`.
+`GET /api/health` is meant to answer JSON from the function. A broken function build answers
+`200 text/html` from the SPA fallback instead, which is why the L6 suite (`tests/deployment/`)
+checks the content type as served rather than trusting this sentence.
 
 ```json
 {
@@ -59,7 +59,10 @@ browser-local record. That is a valid production state, not a degradation, and t
 (section 3) distinguishes them.
 
 `build.gitSha` is read from `VERCEL_GIT_COMMIT_SHA` at runtime, the same variable
-`scripts/write-build-identity.ts` reads at build time. The L6 suite asserts the two agree, so a
+`scripts/write-build-identity.ts` reads at build time. Both depend on the project exposing system
+environment variables (a Vercel project setting, on by default); with it off the build falls back
+to `git rev-parse` and the function has no fallback, so the health body says `unknown` and the L6
+comparison goes red on a healthy deployment. That red names the setting, not a bad build. The L6 suite asserts the two agree, so a
 static bundle served against a function from another deployment is a red L6 run, not a mystery.
 
 The body names no variable, host, port or user. `tests/server/a-health-check-that-measures-health.test.ts`
@@ -143,8 +146,9 @@ Browsers fail where the server cannot see: the engine worker, a chunk that no lo
 a deploy, a render crash. `client/src/lib/error-sink.ts` sends one report per such failure to
 `POST /api/client-event`, same origin, by `sendBeacon` or a keepalive fetch.
 
-The body is exactly five enumerated fields and the server refuses anything else with 400 and an
-empty body:
+The body is exactly five enumerated fields. The server checks the own keys first (exactly these
+five, so an own `__proto__` key is refused too), then the schema, and answers 400 with an empty body
+to anything else:
 
 | field | domain |
 | --- | --- |

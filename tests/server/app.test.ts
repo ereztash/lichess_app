@@ -38,8 +38,12 @@ describe("unified app over HTTP", () => {
       requestId: string;
     };
     expect(body.ok).toBe(true);
-    /* No DATABASE_URL in this test: a supported deployment, and the body says so by role. */
-    expect(body.checks).toEqual({ storage: "not-configured" });
+    /*
+     * BY ROLE, AND BY WHAT THIS RUN HAS. Locally there is no DATABASE_URL and the body says so;
+     * in CI the workflow sets one and the service is up, so the same body says `reachable`. The
+     * first version asserted `not-configured` unconditionally and went red only on the runner.
+     */
+    expect(body.checks).toEqual({ storage: process.env.DATABASE_URL ? "reachable" : "not-configured" });
     expect(typeof body.build.gitSha).toBe("string");
     expect(body.build.protocolVersion).toMatch(/^\d+\.\d+\.\d+$/);
     expect(body.requestId.length).toBeGreaterThan(0);

@@ -20,6 +20,8 @@ import { emit, requestIdFrom } from "./_core/telemetry.js";
 import { failureClassOfTrpcCode } from "../shared/failure-class.js";
 import { clientFailureEventSchema } from "../shared/failure-event.js";
 
+const CLIENT_EVENT_FIELDS = ["code", "failureClass", "surface", "build", "at"];
+
 export function createApp({ store = recordStore }: { store?: RecordStore } = {}) {
   const app = express();
   /*
@@ -104,6 +106,17 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
    * 204 on success and 400 on a body the schema refuses, with nothing echoed either way.
    */
   app.post("/api/client-event", express.json({ limit: "2kb" }), (req, res) => {
+    /*
+     * OWN KEYS FIRST. zod's `.strict()` refuses unknown keys but lets an own `__proto__` key through
+     * (found by the adversarial review); nothing read it, so nothing leaked, but "any other field
+     * is refused" has to be true of every key, not most. Five names, exactly, before parsing.
+     */
+    const body: unknown = req.body;
+    const ownKeys = body !== null && typeof body === "object" && !Array.isArray(body) ? Object.keys(body) : null;
+    if (!ownKeys || ownKeys.length !== CLIENT_EVENT_FIELDS.length || ownKeys.some((k) => !CLIENT_EVENT_FIELDS.includes(k))) {
+      res.status(400).end();
+      return;
+    }
     const parsed = clientFailureEventSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).end();
@@ -191,6 +204,14 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
     createExpressMiddleware({
       router: buildAppRouter(store),
       createContext,
+      /*
+       * QUERIES ARRIVE AS POST. The client sends every query with `methodOverride: "POST"` so no
+       * input (a FEN, a username) lands in a URL the platform logs. Without this flag tRPC answers
+       * every such query 405, which the adversarial review found on the branch that added the client
+       * half: the privacy change would have taken the whole read path down on deploy. Held by
+       * `tests/server/a-query-that-travels-in-the-body.test.ts`, which uses the real client link.
+       */
+      allowMethodOverride: true,
       /*
        * The operator's half of the error, which is NOT the player's half.
        *

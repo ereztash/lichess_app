@@ -126,6 +126,11 @@ describe("every failed request leaves one line, and the line names the request",
     /* An array header (proxies do this) takes the first; an absurdly long one is refused. */
     expect(requestIdFrom({ "x-vercel-id": ["one", "two"] })).toBe("one");
     expect(requestIdFrom({ "x-vercel-id": "x".repeat(500) })).toMatch(/^local-/);
+    /* The header is sender-controlled on a direct request: a value that is not an id is not used. */
+    expect(requestIdFrom({ "x-vercel-id": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR <script>" })).toMatch(/^local-/);
+    expect(requestIdFrom({ "x-vercel-id": "iad1::iad1::ftv9g-1788385416839-787fa53fc372" })).toBe(
+      "iad1::iad1::ftv9g-1788385416839-787fa53fc372",
+    );
   });
 });
 
@@ -219,6 +224,13 @@ describe("the client beacon takes five enumerated fields and nothing else", () =
     expect(lines.filter((l) => l.code === "client-failure")).toHaveLength(0);
   });
 
+  it("refuses an own `__proto__` key, which zod's strict mode alone lets through", async () => {
+    await serve();
+    const response = await post(`{"code":"worker-refused","failureClass":"engine","surface":"board","build":"${valid.build}","at":"${valid.at}","__proto__":{"polluted":true}}`);
+    expect(response.status).toBe(400);
+    expect(lines.filter((l) => l.code === "client-failure")).toHaveLength(0);
+  });
+
   it("refuses a code, a class, a surface or a build that is not on the list", async () => {
     await serve();
     for (const bad of [
@@ -286,6 +298,9 @@ describe("the vocabulary is total and the redaction is real", () => {
     }
     expect(logged).toContain("[redacted]");
     expect(redact("x".repeat(500)).length).toBeLessThan(220);
+    /* Redaction runs before truncation, so a token straddling the cut is not half-kept. */
+    const straddling = `${"x".repeat(190)} eyJhbGciOiJIUzI1NiJ9.eyJvcGVuSWQiOiJ4In0.abcdefghijklmnop`;
+    expect(redact(straddling)).not.toContain("eyJhbGciOiJIUzI1NiJ9");
   });
 
   it("never throws when the sink does", () => {

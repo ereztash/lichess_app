@@ -52,15 +52,15 @@ without one is a number pretending to be an argument, and the scan refuses it.
 ## Where the tests actually are
 
 ```
-L1 pure          73   29.4%
-L2 contract      83   33.5%
-L3 render        76   30.6%
-L4 store          5    2.0%
-L5 browser       11    4.4%
-L6 deployment     0    0.0%
+L1 pure          83   30.2%
+L2 contract      85   30.9%
+L3 render        80   29.1%
+L4 store          8    2.9%
+L5 browser       18    6.5%
+L6 deployment     1    0.4%
 ```
 
-**16 of 248 — 6.5% — run against anything the product actually meets.** The other 93% run against
+**27 of 275 — 9.8% — run against anything the product actually meets.** The other 90% run against
 hand-built inputs in a simulated environment. That is not an indictment: L1 and L2 are where a rule
 is stated precisely and cheaply, and a repository with no L1 tests is worse off. It is a statement
 about what the suite can and cannot be read as evidence for.

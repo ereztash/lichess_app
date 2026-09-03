@@ -10,7 +10,7 @@
  */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { SelfCheck } from "../../client/src/components/SelfCheck";
 import {
@@ -21,7 +21,7 @@ import {
   resetSessionFallbackForTests,
   setLocalRecordIdentity,
 } from "../../client/src/lib/local-record-store";
-import { STORAGE_KEYS, registeredKeys } from "../../client/src/lib/storage-keys";
+import { STORAGE_KEYS, STORAGE_KEY_NOTES, registeredKeys } from "../../client/src/lib/storage-keys";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 
 function* walk(dir: string): Generator<string> {
@@ -43,6 +43,10 @@ describe("every key this browser is asked to hold is registered", () => {
         if (m[1].endsWith(".write") || m[1].endsWith(".json")) continue;
         offenders.push(`${file}: ${m[1]}`);
       }
+      /* And any storage call handed a literal of any name, `theme` included. */
+      for (const m of text.matchAll(/(?:localStorage|sessionStorage)\.(?:setItem|getItem|removeItem)\(\s*["'`]([^"'`]+)["'`]/g)) {
+        offenders.push(`${file}: literal key ${m[1]}`);
+      }
     }
     expect(offenders, "register these in client/src/lib/storage-keys.ts").toEqual([]);
   });
@@ -50,8 +54,8 @@ describe("every key this browser is asked to hold is registered", () => {
   it("registers a distinct key for every entry, and says which area and what it holds", () => {
     const keys = registeredKeys();
     expect(new Set(keys).size).toBe(keys.length);
-    for (const entry of Object.values(STORAGE_KEYS)) {
-      expect(entry.holds.length).toBeGreaterThan(10);
+    for (const [name, entry] of Object.entries(STORAGE_KEYS)) {
+      expect(STORAGE_KEY_NOTES[name as keyof typeof STORAGE_KEYS].length, name).toBeGreaterThan(10);
       expect(["localStorage", "sessionStorage"]).toContain(entry.area);
     }
   });
@@ -113,7 +117,7 @@ describe("the record can be taken out and erased", () => {
     await new LocalRecordStore().commitDecision({ ...decision, decisionId: "theirs" });
     setLocalRecordIdentity(null);
 
-    deleteLocalRecord();
+    await deleteLocalRecord();
 
     expect(localStorage.getItem(STORAGE_KEYS.record.key)).toBeNull();
     expect(localRecordHealth()).toEqual({ kind: "absent" });
@@ -123,12 +127,26 @@ describe("the record can be taken out and erased", () => {
     expect(localStorage.getItem(`${STORAGE_KEYS.record.key}:someone-else`), "another account's record went with it").toContain("theirs");
   });
 
+  it("cannot be resurrected by a write that was already in flight when the erase ran", async () => {
+    const store = new LocalRecordStore();
+    await store.commitDecision(decision);
+    /* Both queue on the same lock, in order: the write lands, then the erase removes it. */
+    const write = store.commitDecision({ ...decision, decisionId: "late" });
+    const erase = deleteLocalRecord();
+    await Promise.all([write, erase]);
+    expect(localStorage.getItem(STORAGE_KEYS.record.key)).toBeNull();
+    expect(await store.countDecisions()).toBe(0);
+  });
+
   it("offers both from the self-check drawer: a download of the stored JSON, and a two-press erase", async () => {
     await new LocalRecordStore().commitDecision(decision);
     render(<SelfCheck onClose={() => {}} />);
 
     const download = screen.getByRole("link", { name: "הורידו את הרשומה" });
     expect(download).toHaveAttribute("download", "decision-lab-record.json");
+    /* The file is built on the press (jsdom has no createObjectURL, so the data: fallback is taken). */
+    download.addEventListener("click", (event) => event.preventDefault());
+    fireEvent.click(download);
     expect(decodeURIComponent(download.getAttribute("href") ?? "")).toContain("d-erase-1");
 
     const erase = screen.getByRole("button", { name: "מחקו את הרשומה מהדפדפן הזה" });
@@ -136,8 +154,8 @@ describe("the record can be taken out and erased", () => {
     /* One press arms; the record is still there. */
     expect(localStorage.getItem(STORAGE_KEYS.record.key)).toContain("d-erase-1");
     fireEvent.click(screen.getByRole("button", { name: /לחצו שוב כדי למחוק/ }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("הרשומה נמחקה מהדפדפן הזה"));
     expect(localStorage.getItem(STORAGE_KEYS.record.key)).toBeNull();
-    expect(screen.getByRole("status")).toHaveTextContent("הרשומה נמחקה מהדפדפן הזה");
   });
 
   it("says so when there is nothing to erase, rather than reporting an erase that erased nothing", () => {

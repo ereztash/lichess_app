@@ -960,26 +960,6 @@ decision. `docs/ROLLBACK.md` is what stands until then.
 the commit. This row closes when a screenshot of the ruleset is not needed because a PR without a
 green `verify` cannot merge.
 
-### R-22 · Production migrations are applied by hand and recorded nowhere
-
-| | |
-| --- | --- |
-| type | ops |
-| state | **open** |
-| severity | P1 |
-| basis | **verified** — CI applies `drizzle/migrations/*.sql` in lexicographic order with raw `mysql` and no bookkeeping table; no document, script or workflow applies them to the production database or records which of 0000 to 0018 it holds. |
-
-CI proves the schema loads from zero. It proves nothing about the database a deployment actually
-meets, and a function built against a column the database has not gained fails at the first write,
-not at deploy. `docs/ROLLBACK.md` section 5 states the rule (additive first, remove later, in a
-separate release) and cannot enforce it.
-
-**Gate:** `/api/health` compares the columns `drizzle/schema.ts` declares against
-`information_schema.columns` and answers `checks.schema: "behind"` with 503 when the database lacks
-one; the L6 suite then reddens on a deployment whose migration did not run. Not built here because
-it changes the health contract this mission just froze, and belongs with the first migration that
-ships after it.
-
 ## P2 — real, bounded, and not blocking anything
 
 ### R-10 · A confidence scale can be re-meant without the record noticing
@@ -1101,6 +1081,33 @@ cause, and the row's own argument — that there is no version of "this componen
 piece of state" that is better than putting it somewhere else — leaves no room to keep.
 
 ---
+
+### R-22 · Production migrations are applied by hand and recorded nowhere
+
+| | |
+| --- | --- |
+| type | ops |
+| state | **open** |
+| severity | P2 |
+| basis | **verified** — CI applies `drizzle/migrations/*.sql` in lexicographic order with raw `mysql` and no bookkeeping table; no document, script or workflow applies them to the production database or records which of 0000 to 0018 it holds. |
+
+CI proves the schema loads from zero. It proves nothing about the database a deployment actually
+meets, and a function built against a column the database has not gained fails at the first write,
+not at deploy. `docs/ROLLBACK.md` section 5 states the rule (additive first, remove later, in a
+separate release) and cannot enforce it.
+
+**P2, not P1, and the reason is the register's own rule.** A P1 claim needs proof that ran at L2 or
+above, and the gate below is not built; a severity the tree cannot anchor is a number pretending to
+be a measurement (`GATE-CLAIM-ANCHOR`). The consequence is bounded as well: one operator, one
+database, and a write that fails loudly at the first missing column rather than a record that
+silently means something else. It becomes P1 the day a second deployment or a second operator
+exists.
+
+**Gate:** `/api/health` compares the columns `drizzle/schema.ts` declares against
+`information_schema.columns` and answers `checks.schema: "behind"` with 503 when the database lacks
+one; the L6 suite then reddens on a deployment whose migration did not run. Not built here because
+it changes the health contract this mission just froze, and belongs with the first migration that
+ships after it.
 
 ### R-23 · Failures are observable for one hour, by an operator who is already looking
 
