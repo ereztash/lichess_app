@@ -206,6 +206,17 @@ export function CommitmentScreen({
    * leaves the screen -- a confidence question that stops being asked in free play, say -- leaves
    * this too, instead of being reported as permanently unanswered.
    */
+  /*
+   * ONE COMMIT PER GESTURE, AND THE GUARD IS SYNCHRONOUS. The button is `disabled={pending}`, but
+   * `pending` arrives through a state update, so the second press of a double-tap lands before
+   * React has re-rendered and `onCommit` runs twice -- two decisions, two ids, one gesture.
+   * `tests/layout/a-stranger-takes-their-first-decision.layout.test.ts` clicks twice in one task
+   * and had two decisions on c848f244. A ref is read in the same tick it was written.
+   */
+  const inFlight = useRef(false);
+  useEffect(() => {
+    if (!pending) inFlight.current = false;
+  }, [pending]);
   const attempt = useRef({ done, open: openStep, startedAt: startedAt.current, refusals: 0, closed: false });
   attempt.current.done = done;
   attempt.current.open = openStep;
@@ -231,6 +242,7 @@ export function CommitmentScreen({
   useEffect(() => {
     attempt.current.closed = false;
     attempt.current.refusals = 0;
+    inFlight.current = false;
     return () => closeAttempt("left");
     // The closure reads everything it needs through the ref, so it must not re-run on state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,6 +298,7 @@ export function CommitmentScreen({
    */
   const openBody = useRef<HTMLDivElement>(null);
   const submit = () => {
+    if (inFlight.current) return;
     if (!ready) {
       // A player who WANTED to finish and was stopped reads nothing like one who wandered off.
       attempt.current.refusals += 1;
@@ -301,6 +314,7 @@ export function CommitmentScreen({
       });
       return;
     }
+    inFlight.current = true;
     closeAttempt("recorded");
     onCommit(live, (Date.now() - startedAt.current) / 1000);
   };

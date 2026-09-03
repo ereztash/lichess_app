@@ -373,13 +373,11 @@ describe("a stranger takes their first decision", () => {
   }, 180_000);
 
   /*
-   * KNOWN RED AT c848f244, RECORDED AS SUCH. `it.fails` passes while the defect stands and goes red
-   * the day it is fixed, which is the signal to flip it back to `it`. A landed finding committed
-   * as a green test would be the finding erased; committed as a red test it would be CI lying about
-   * the tree. This is the third option: the failure is on the record and the build says what it
-   * knows.
+   * RED AT c848f244 AND RECORDED AS `it.fails` THERE: two synchronous clicks wrote two decisions.
+   * Fixed by a synchronous in-flight guard in `CommitmentScreen.submit`; flipped to `it` the same
+   * commit, so the test that found the defect is the test that holds the fix.
    */
-  it.fails("records one decision when the record button is pressed twice in one gesture", async () => {
+  it("records one decision when the record button is pressed twice in one gesture", async () => {
     /*
      * The button is `disabled={pending}`, and `pending` arrives through a state update -- so the
      * second press of a double-tap can land before React has re-rendered. Two synchronous clicks

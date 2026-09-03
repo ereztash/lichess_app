@@ -154,6 +154,7 @@ import { engineBuildId } from "@/lib/engine-identity";
  */
 import {
   chooseOpponentMove,
+  searchWithVariety,
   DEFAULT_OPPONENT_DEPTH,
   OPPONENT_DEPTHS,
   OPPONENT_FAILURE_TEXT,
@@ -776,7 +777,7 @@ export default function Home() {
         const engine = await ensureEngine();
         const move = await chooseOpponentMove(
           activeFen,
-          (fen, depth) => engine.analyze(fen, depth),
+          searchWithVariety((fen, depth, count) => engine.analyzeAlternatives(fen, depth, count)),
           opponent.depth,
         );
         if (cancelled) return;
