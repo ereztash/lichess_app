@@ -20,7 +20,7 @@
  * containers with separate headings, and the test holds that they never merge.
  */
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { readCounterfactuals } from "@shared/counterfactual-reading";
@@ -37,6 +37,17 @@ const code = (path: string) =>
   readFileSync(resolve(root, path), "utf8")
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/^\s*\/\/.*$/gm, "");
+
+/** Every client source, repo-relative, so an invariant can be asserted over the tree not a file. */
+function clientSources(dir = "client/src"): string[] {
+  return readdirSync(resolve(root, dir), { withFileTypes: true }).flatMap((entry) =>
+    entry.isDirectory()
+      ? clientSources(`${dir}/${entry.name}`)
+      : /\.tsx?$/.test(entry.name)
+        ? [`${dir}/${entry.name}`]
+        : [],
+  );
+}
 
 const state = vi.hoisted(() => ({
   reading: { data: undefined as RecordReading | undefined, isLoading: false, isError: false },
@@ -461,10 +472,29 @@ describe("the arrival with no account has a route to a decision that measures so
     expect(text.indexOf("עמדה מהסט המשותף")).toBeGreaterThan(text.indexOf("קחו אותי לעמדה"));
   });
 
-  it("serves both routes from one handoff, so they cannot disagree about what a bank decision is", () => {
-    // Two callers, one function. A second transcription is a second chance to drift.
-    const page = code("client/src/pages/Record.tsx");
-    expect(page.match(/handOverBankPosition/g)?.length, "the handoff was transcribed twice").toBe(3);
-    expect(page.match(/gameId: `anchor-/g)?.length).toBe(1);
+  it("serves every route from one handoff, so they cannot disagree about what a bank decision is", () => {
+    /*
+     * ONE DEFINITION, NOW THREE CALLERS. This used to count mentions inside `Record.tsx`, because
+     * the handoff lived there and had two callers. `O-1` added the third -- the reveal itself --
+     * and the function moved to `lib/bank-handover.ts`, which is what its own comment had been
+     * arguing for. Counting mentions in one page would now pass on a tree where the reveal
+     * transcribed its own copy, so the assertion moved to where the invariant actually is: the
+     * position is written in exactly one file, and everybody else imports it.
+     */
+    const files = clientSources();
+    const writers = files.filter((f) => /gameId: `anchor-/.test(code(f)));
+    expect(writers, "a bank decision is constructed in more than one place").toEqual([
+      "client/src/lib/bank-handover.ts",
+    ]);
+
+    const callers = files.filter(
+      (f) => f !== "client/src/lib/bank-handover.ts" && /handOverBankPosition/.test(code(f)),
+    );
+    expect(callers.length, "nothing calls the shared handoff").toBeGreaterThanOrEqual(2);
+    for (const caller of callers) {
+      expect(code(caller), `${caller} uses the handoff without importing it`).toMatch(
+        /import \{[^}]*handOverBankPosition[^}]*\} from "@\/lib\/bank-handover"/,
+      );
+    }
   });
 });

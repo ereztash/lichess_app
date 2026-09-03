@@ -203,6 +203,17 @@ describe("nothing reads it back", () => {
      * ledger permits and docs/OBSERVABILITY.md states; a code is not a decision.
      */
     "client/src/lib/error-sink.ts",
+    /*
+     * THE CONTINUATION EVENT'S ONE WRITER, AND WHY IT IS ON THIS LIST RATHER THAN IN `Home`.
+     *
+     * `O-2` makes `next_decision_started` the trial's most contestable definition, and it was an
+     * effect in the middle of a 2,400-line component. `R-13`'s ratchet forced it out and
+     * `GATE-CONTINUATION-IS-A-MOVE` now scans `client/src` for a second writer, so the file has to
+     * be somewhere a scan can point at. It reads `revealsPresented` and `trialEventSeen` to decide
+     * whether the event has already been recorded, which is the ledger answering a question about
+     * ITSELF -- not the ledger telling a screen what to show. Nothing it returns reaches a render.
+     */
+    "client/src/lib/continuation-event.ts",
   ]);
 
   function sources(dir: string): string[] {

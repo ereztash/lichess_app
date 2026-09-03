@@ -369,12 +369,27 @@ export const ANSWER_MAX = 1000;
  * Whether placing a move on the board counts as having started another decision.
  *
  * A FUNCTION RATHER THAN A CONDITION INSIDE AN EFFECT, because "continuation" is the single most
- * contestable definition in the trial and it should be readable and testable in one place. Three
- * things have to be true and each excludes a way of getting this wrong:
+ * contestable definition in the trial and it should be readable and testable in one place.
+ *
+ * OWNER DECISION `O-2` FIXES IT TO A BEHAVIOUR, and the wording is the decision's own: the event
+ * is recorded only when, after a prior reveal, the player is shown a legal position in which it is
+ * THEIR turn, and they then place a legal move in it. It is deliberately NOT recorded on a route
+ * change, a press of the way-on control, a render of a position, entry to a screen, or the
+ * selection of a game. `O-1` removed the navigation confound from the route; it did not lower this
+ * bar, and this function is where that is enforced rather than hoped for.
+ *
+ * FOUR THINGS HAVE TO BE TRUE and each excludes a way of getting this wrong:
  *
  *   `movePlaced`        the player did something. Being on the board's route is not continuation,
  *                       and neither is a re-render -- both are true of somebody who read the
  *                       reveal and stopped.
+ *   `positionWasActionable`
+ *                       the position was one they could legally act in, on their own side. This
+ *                       is `O-2`'s first clause and it used to be carried only by the board's own
+ *                       guard. At `c1d72935c038` that guard was absent on the front door and a
+ *                       move placed for the OPPONENT satisfied this event; the guard is fixed now,
+ *                       but a definition that depends on a component staying correct is not a
+ *                       definition. The same predicate gates `first_position_presented`.
  *   `revealsPresented`  they had seen what the product had to say. A move placed before any
  *                       reveal is the FIRST decision, and counting it would make every arrival
  *                       who reached a board look like a continuation.
@@ -383,10 +398,16 @@ export const ANSWER_MAX = 1000;
  */
 export function continuationStarted(input: {
   movePlaced: boolean;
+  positionWasActionable: boolean;
   revealsPresented: number;
   alreadyRecorded: boolean;
 }): boolean {
-  return input.movePlaced && input.revealsPresented > 0 && !input.alreadyRecorded;
+  return (
+    input.movePlaced &&
+    input.positionWasActionable &&
+    input.revealsPresented > 0 &&
+    !input.alreadyRecorded
+  );
 }
 
 /** How many reveals must have been presented before the value question is put. */
