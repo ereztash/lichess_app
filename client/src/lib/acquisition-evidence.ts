@@ -33,6 +33,7 @@
  * reacted to it would be inside the thing it is measuring.
  */
 import type { OneThingKind } from "@shared/reveal";
+import type { ClientFailureCode, ClientSurface, FailureClass } from "@shared/failure-class";
 import type { DecisionPurpose } from "@shared/confidence-asked";
 import type { NextActionKind, ShadowSurface } from "@shared/next-action";
 import type { PrimaryAction } from "@shared/primary-action";
@@ -268,6 +269,26 @@ export type TrialEvent =
       agrees: boolean;
       /** Inputs this surface could not supply, so a disagreement can be read correctly. */
       blind: string[];
+    }
+  /**
+   * SOMETHING THE PRODUCT NAMED AS BROKEN WAS SHOWN TO THE PLAYER.
+   *
+   * The one event in this ledger that is about the software rather than the funnel, and it is here
+   * because the funnel cannot be read without it: a visit that stopped after `worker-refused` and a
+   * visit that stopped because the player lost interest were the same rows until now.
+   *
+   * A CODE FROM A CLOSED LIST, AND NOTHING OF THE ERROR. Not the message, not the stack, not what
+   * was on the board. `shared/failure-class.ts` is the list; `client/src/lib/error-sink.ts` is the
+   * only writer and the only thing that also sends the same five fields to the same origin, which
+   * docs/OBSERVABILITY.md states as the one exception to "never transmitted" -- because none of
+   * the five is about the player.
+   */
+  | {
+      name: "failure_observed";
+      at: string;
+      code: ClientFailureCode;
+      failureClass: FailureClass;
+      surface: ClientSurface;
     };
 
 export type TrialEventName = TrialEvent["name"];

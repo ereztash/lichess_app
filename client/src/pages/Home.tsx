@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { retryOnce } from "@/lib/retry-once";
+import { reportEngineFailure, reportFailure } from "@/lib/error-sink";
 import { Chess } from "chess.js";
 import {
   Activity,
@@ -1093,6 +1094,7 @@ export default function Home() {
         } catch {
           // The decision itself is on the record; only the engine's verdict failed to store.
           // The reveal above is valid and stays: `revealInputs` was set before this write.
+          reportFailure("reveal-write-failed", "board");
           setRevealFailure("write");
           setNotice("ההחלטה נרשמה, אבל תוצאת המנוע לא נשמרה.");
           if (transfer) {
@@ -1116,9 +1118,10 @@ export default function Home() {
           setStage("deciding");
           setNotice("ההחלטה נרשמה. העמדה הבאה.");
         }
-      } catch {
+      } catch (error) {
         // No evaluation exists, so there is no reveal to render. Without this the screen
         // sat on "המנוע מחשב…" forever, with no control that advances.
+        reportEngineFailure(error, "board");
         setRevealFailure("engine");
         setEngineStatus({ mode: "error", detail: "המנוע לא סיים את החישוב." });
       }
@@ -1236,6 +1239,7 @@ export default function Home() {
       } catch (error) {
         // R2: a decision that was not stored must never look like one that was. We do not
         // advance to reveal, and we say what happened.
+        reportFailure("commit-failed", "board");
         setStage("deciding");
         // Never the raw message: on the default unauthenticated path this is LocalRecordStore's
         // English invariant text, and it lands on the screen that has to say the decision was not

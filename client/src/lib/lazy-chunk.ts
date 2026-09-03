@@ -31,6 +31,7 @@
  * now telling the truth.
  */
 import { lazy, type ComponentType } from "react";
+import { reportFailure } from "./error-sink";
 
 /** Set for exactly one page load, between deciding to reload and the load that follows. */
 const RELOAD_MARK = "decision-lab.chunk-reload";
@@ -118,6 +119,8 @@ export function lazyChunk<T extends ComponentType<any>>(
       } catch (second) {
         if (!isChunkLoadError(second) || alreadyReloaded()) throw second;
         rememberReload();
+        /* Counted before the page goes: every deploy does this to every open tab, and nobody knew how many. */
+        reportFailure("stale-build-reload", "app");
         reload();
         /*
          * Never resolves, on purpose. The page is on its way out; resolving with anything would

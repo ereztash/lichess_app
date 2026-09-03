@@ -1,12 +1,16 @@
-import { z } from "zod";
 import { ENV } from "./env.js";
-import { protectedProcedure, publicProcedure, router } from "./trpc.js";
+import { protectedProcedure, router } from "./trpc.js";
 
+/*
+ * `system.health` IS GONE, AND IT WAS THE DEFECT `/api/health` FIXED, ONE ROUTE OVER.
+ *
+ * It returned `{ ok: true }` unconditionally -- a test that a line of code ran, wearing the name of
+ * a health check -- while `/api/health` had already been rewritten to measure the database and say
+ * so in its own comment. Two health endpoints that disagree are worse than one that is wrong: a
+ * monitor pointed at the second would have watched a dead database stay "ok". Nothing in the client
+ * called it. One health authority: `/api/health` in server/app.ts.
+ */
 export const systemRouter = router({
-  health: publicProcedure
-    .input(z.object({ timestamp: z.number().min(0) }))
-    .query(() => ({ ok: true })),
-
   /**
    * Which server-side pieces the Lichess integration needs, and whether each is present.
    *

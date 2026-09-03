@@ -194,15 +194,18 @@ export const AUTHORITY_QUESTIONS: AuthorityQuestion[] = [
   {
     id: "Q27",
     question: "Where do runtime errors go, and what is observable in production?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: ["docs/OBSERVABILITY.md", "client/src/lib/error-sink.ts", "server/_core/telemetry.ts"],
-      trigger:
-        "the first defect reported by a player rather than by a test. /api/health answers " +
-        "liveness and deliberately cannot distinguish 'no database configured' from 'database " +
-        "reachable'; beyond it there is no error sink and no log destination.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`, absent `docs/OBSERVABILITY.md`, `server/_core/telemetry.ts` and
+     * `client/src/lib/error-sink.ts`. All three now exist: every server failure is one structured
+     * stderr line carrying a class, the platform request id and the build; the health body names
+     * the build and the storage subsystem by role; browsers report an enumerated failure name and
+     * nothing else to `/api/client-event`. The document states what the platform still does not
+     * give (one-hour retention, no alerting) as EXTERNAL_CONFIGURATION_REQUIRED rather than as
+     * solved, and `tests/docs/the-observability-vocabulary-is-written-down.test.ts` holds it to the
+     * code.
+     */
+    resolution: one(["docs/OBSERVABILITY.md", "server/_core/telemetry.ts", "client/src/lib/error-sink.ts"]),
   },
   {
     id: "Q28",

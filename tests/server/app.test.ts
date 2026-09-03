@@ -28,23 +28,43 @@ afterAll(async () => {
 });
 
 describe("unified app over HTTP", () => {
-  it("serves the health route", async () => {
+  it("serves the health route, and the body says which build and which subsystem", async () => {
     const response = await fetch(`${origin}/api/health`);
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ ok: true });
+    const body = (await response.json()) as {
+      ok: boolean;
+      build: { gitSha: string; target: string; protocolVersion: string };
+      checks: { storage: string };
+      requestId: string;
+    };
+    expect(body.ok).toBe(true);
+    /* No DATABASE_URL in this test: a supported deployment, and the body says so by role. */
+    expect(body.checks).toEqual({ storage: "not-configured" });
+    expect(typeof body.build.gitSha).toBe("string");
+    expect(body.build.protocolVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(body.requestId.length).toBeGreaterThan(0);
   });
 
   it("mounts the tRPC router", async () => {
-    const input = encodeURIComponent(JSON.stringify({ json: { timestamp: 1 } }));
-    const response = await fetch(`${origin}/api/trpc/system.health?input=${input}`);
+    /*
+     * `auth.me` rather than `system.health`, which is gone: it answered `{ok:true}` unconditionally,
+     * the exact defect `/api/health` was rewritten to remove, one route over. A public query that
+     * answers `null` for nobody-signed-in proves the router is mounted and claims nothing else.
+     */
+    const response = await fetch(`${origin}/api/trpc/auth.me`);
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { result: { data: { json: { ok: boolean } } } };
-    expect(body.result.data.json).toEqual({ ok: true });
+    const body = (await response.json()) as { result: { data: { json: unknown } } };
+    expect(body.result.data.json).toBeNull();
   });
 
-  it("registers the OAuth callback route and rejects a missing state", async () => {
+  it("registers the OAuth callback route and sends a malformed callback home with a reason", async () => {
+    /*
+     * This was a 400 with English JSON, on a page with no control. A visitor whose portal sent them
+     * back without a state is now sent to the front door, which renders the reason in Hebrew.
+     */
     const response = await fetch(`${origin}/api/oauth/callback?code=abc`, { redirect: "manual" });
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("/?auth=failed&reason=oauth-malformed");
   });
 
   it("gates Lichess procedures behind auth", async () => {

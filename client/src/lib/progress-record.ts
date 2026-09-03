@@ -349,6 +349,8 @@ function eventDetail(event: TrialEvent): string {
       return `afterReveals=${event.afterReveals}`;
     case "value_reconstruction_submitted":
       return event.outcome === "answered" ? `answered: „${event.answer ?? ""}”` : "dismissed";
+    case "failure_observed":
+      return `${event.failureClass}/${event.code} on ${event.surface}`;
     case "next_action_shadow":
       /*
        * THE DISAGREEMENT FIRST, because that is the only row anybody reading this report is looking

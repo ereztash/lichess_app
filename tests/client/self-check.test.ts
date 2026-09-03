@@ -34,6 +34,18 @@ function healthyEnv(overrides: Partial<CheckEnv> = {}): CheckEnv {
       if (url.endsWith(".js")) {
         return response("// engine", { headers: { "content-type": "application/javascript" } });
       }
+      /* A healthy origin names its build, the way a deployed one does at /build-identity.json. */
+      if (url.endsWith("/build-identity.json")) {
+        return response(
+          JSON.stringify({
+            gitSha: "c848f244d380e13a8622c590791b22a2bef7a39b",
+            builtAt: "2026-09-02T12:43:22.048Z",
+            target: "production",
+            protocolVersion: "1.0.0",
+          }),
+          { headers: { "content-type": "application/json; charset=utf-8" } },
+        );
+      }
       return response("{}", { status: 401 });
     }) as unknown as typeof fetch,
     engineUrls: async () => ({ js: "/assets/engine.js", wasm: "/assets/engine.wasm" }),
