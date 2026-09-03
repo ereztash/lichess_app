@@ -160,7 +160,7 @@ npm run verify   # typecheck → build → tests → gates → gate controls →
 
 ## שערים
 
-שלושים ושניים שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל
+שלושים ושלושה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל
 לא הוכח כשער. `gates:controls` יוצא עם קוד שגיאה גם אם בקרה נשארת ירוקה וגם אם בקרה מעולם לא רצה.
 
 ```bash
@@ -202,6 +202,7 @@ npm run gates:controls   # חייב להיות אדום על פיקסצ'רים �
 | GATE-AUTHORITY-RESOLVED | R-01 | מפת הסמכות כפי שהיא נרקבת: תשובה שנמחקה, מתחרה שאיבד את הסימון שתחם אותו, ופער יכולת שנסגר בשקט בזמן שהרישום עדיין אומר שהוא פתוח |
 | GATE-FALSIFICATION-INVENTORY | R-01 | מלאי הבדיקות החוסמות מול העבודה שמריצה אותן: שלב חוסם שאיש לא סיווג, ומנגנון הפרכה ששמו נכתב ואינו קיים |
 | GATE-CUE-PLAYER-OBSERVABLE | R-01 | טריגר במרשם מחלקות-הכללים שמחשב ממשהו שאינו הלוח: רמז שהשחקן אינו יכול להעריך בעצמו אינו רמז |
+| GATE-ROLLBACK-EVIDENCE | R-01 | שרשרת הראיות של החזרה לאחור: ה-workflow מקבל SHA, החבילה נקשרת אליו, הקשירה מודגמת נכשלת, והבנייה מתקינה את קובץ הנעילה בדיוק |
 
 שמונה מהם — מ-`GATE-DECISION-FOCUS` ועד `GATE-TOOLBOX-OUTSIDE-FOCUS` — הם **החוקים
 האינרציאליים** ([`docs/INERTIAL_UX_LAWS.md`](docs/INERTIAL_UX_LAWS.md)), והם טענה מסוג אחר
@@ -271,6 +272,11 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
 | [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) · [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — נרשם מראש, נמדד, ולא אומץ | אנגלית |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
+| [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) | לאן הולכות תקלות בייצור, מה הבריאות אומרת, ומה הפלטפורמה לא נותנת ומי צריך להחליט | אנגלית |
+| [`docs/ROLLBACK.md`](docs/ROLLBACK.md) | מתי מחזירים לאחור, איך, ומה סוגר את האירוע: ריצת L6 ירוקה הקשורה ל-SHA שחזרו אליו | אנגלית |
+| [`docs/RETENTION.md`](docs/RETENTION.md) | איפה הנתונים, מה מותר לרשום ומה לעולם לא, איך מוחקים ואיך מורידים | אנגלית |
+| [`docs/DEPENDENCY_POLICY.md`](docs/DEPENDENCY_POLICY.md) | איך תלות מתעדכנת ומה מוכיח שעדכון בטוח | אנגלית |
+| [`docs/customer-readiness/`](docs/customer-readiness/BASELINE.md) | מוכנות ללקוח: קו הבסיס שהוקפא לפני התיקונים, פנקס הפערים, והציון אחרי | אנגלית |
 | [`docs/discovery-v2/M0_AUDIT.md`](docs/discovery-v2/M0_AUDIT.md) | ארבע שאלות על מכשיר המדידה עצמו, לפני שנבנה מנוע discovery חדש — ומה שנמצא הפך את הכיוון | אנגלית |
 | [`docs/decisions/`](docs/decisions/README.md) | פנקס ההכרעות: מה נבחר, מה נדחה, איזה מימוש חיצוני כבר קיים, ומה יהפוך כל הכרעה | אנגלית |
 | [`docs/INTERACTION_GEOMETRY.md`](docs/INTERACTION_GEOMETRY.md) | מה המסך מסודר סביבו בכל מצב, נמדד בדפדפן: הפריסה של `DECIDE`, המעברים, מסע ההפרכה, ומה דורש שדה | אנגלית |

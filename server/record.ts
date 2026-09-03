@@ -51,6 +51,8 @@ import type {
   LearningTransferResult,
 } from "../shared/learning-record.js";
 import { getDb } from "./db.js";
+import { emit } from "./_core/telemetry.js";
+import { describeForOperator } from "./_core/safe-error.js";
 
 /**
  * The contract now lives in shared/record-store.ts so the browser can implement it too.
@@ -233,8 +235,19 @@ export class DrizzleRecordStore implements RecordStore {
     try {
       await withDeadline(db.execute(sql`select 1`), AVAILABILITY_PROBE_MS);
       return true;
-    } catch {
-      // Every failure means the same thing to the caller: do not send a decision here.
+    } catch (error) {
+      /*
+       * Every failure means the same thing to the CALLER: do not send a decision here. It does not
+       * mean the same thing to the OPERATOR, for whom a firewalled host that says nothing and a
+       * host that refuses are two different fixes -- and until now both were a silent `false`.
+       * The line names the cause class and nothing of the connection string.
+       */
+      const timedOut = error instanceof Error && error.message === "timed out";
+      emit({
+        code: timedOut ? "storage-timeout" : "storage-unreachable",
+        failureClass: timedOut ? "timeout" : "storage",
+        detail: timedOut ? `no answer within ${AVAILABILITY_PROBE_MS}ms` : describeForOperator(error),
+      });
       return false;
     }
   }

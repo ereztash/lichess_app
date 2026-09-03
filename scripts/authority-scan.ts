@@ -181,68 +181,58 @@ export const AUTHORITY_QUESTIONS: AuthorityQuestion[] = [
   {
     id: "Q26",
     question: "How is a bad deployment rolled back?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: ["docs/ROLLBACK.md", "scripts/rollback.ts", ".github/workflows/rollback.yml"],
-      trigger:
-        "the first deployment that has to be undone, or the first release this repository cuts " +
-        "that is not simply the tip of main. Vercel exposes a rollback affordance; nothing here " +
-        "states when to use it, who may, or what evidence closes the incident.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`. Vercel's rollback affordance existed and nothing here said when to
+     * use it or what closed the incident. `docs/ROLLBACK.md` now does, and the evidence step is
+     * mechanical: `deployed.yml` takes the commit the origin must be serving, the L6 suite binds
+     * to it through `servesExpectedBuild`, and a control shows the binding fails on a mismatch.
+     * `GATE-ROLLBACK-EVIDENCE` holds the four files to the document. The alias-moving rehearsal
+     * is FIELD-REQUIRED and the document says it has not been done.
+     */
+    resolution: one(["docs/ROLLBACK.md", ".github/workflows/deployed.yml", "tests/deployment/origin.ts"]),
   },
   {
     id: "Q27",
     question: "Where do runtime errors go, and what is observable in production?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: ["docs/OBSERVABILITY.md", "client/src/lib/error-sink.ts", "server/_core/telemetry.ts"],
-      trigger:
-        "the first defect reported by a player rather than by a test. /api/health answers " +
-        "liveness and deliberately cannot distinguish 'no database configured' from 'database " +
-        "reachable'; beyond it there is no error sink and no log destination.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`, absent `docs/OBSERVABILITY.md`, `server/_core/telemetry.ts` and
+     * `client/src/lib/error-sink.ts`. All three now exist: every server failure is one structured
+     * stderr line carrying a class, the platform request id and the build; the health body names
+     * the build and the storage subsystem by role; browsers report an enumerated failure name and
+     * nothing else to `/api/client-event`. The document states what the platform still does not
+     * give (one-hour retention, no alerting) as EXTERNAL_CONFIGURATION_REQUIRED rather than as
+     * solved, and `tests/docs/the-observability-vocabulary-is-written-down.test.ts` holds it to the
+     * code.
+     */
+    resolution: one(["docs/OBSERVABILITY.md", "server/_core/telemetry.ts", "client/src/lib/error-sink.ts"]),
   },
   {
     id: "Q28",
     question: "What may the product record about a person, and what may it never record?",
-    gap: "DERIVABLE_BUT_NOT_DERIVED",
+    gap: "RESOLVED",
     /*
-     * `ACQUISITION_EVIDENCE.md` is a real authority for the acquisition ledger -- "opaque id +
-     * enums + a counter. No FEN, no move, no confidence value, no typed text" -- and
-     * `read_vocabulary.ts` states a rule locally about what the self-check drawer may hand over.
-     * Neither answers the question for the decision record as a whole, and the answer IS derivable:
-     * the columns are declared in `drizzle/schema.ts`.
-     *
-     * NOT RESOLVED, and deliberately not made to look resolved. `schema.ts` says what the record
-     * CAN hold; the question asks what it MAY hold, and those differ by a policy nobody has
-     * written. Naming both files as "the authority" would answer a question about permission with
-     * a description of capacity, which is the move `AUTHORITY_MAP.md` v1 made when it counted
-     * 24 of the 24 questions it had already answered.
+     * WAS `PARTIAL_AUTHORITY`: the acquisition ledger had its rule per event and the decision record
+     * had none, only a schema that says what it CAN hold. `docs/RETENTION.md` sections 2 and 3 now
+     * say what it MAY hold and what it may never hold, and name for each prohibition the mechanism
+     * that enforces it. `ACQUISITION_EVIDENCE.md` stays the authority for its own ledger and the
+     * retention document defers to it there rather than restating it.
      */
-    resolution: {
-      kind: "PARTIAL_AUTHORITY",
-      covers: "the acquisition ledger, where ACQUISITION_EVIDENCE.md states the rule per event",
-      authority: ["docs/ACQUISITION_EVIDENCE.md", "scripts/read_vocabulary.ts"],
-      uncovered:
-        "the decision record itself, which carries FENs, moves, confidences and free text with no " +
-        "statement of what may never be recorded. drizzle/schema.ts declares what it CAN hold, " +
-        "which is a different question.",
-    },
+    resolution: one(["docs/RETENTION.md", "docs/ACQUISITION_EVIDENCE.md", "scripts/read_vocabulary.ts"]),
   },
   {
     id: "Q29",
     question: "How long is a record kept, and how is it deleted?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: ["docs/RETENTION.md", "scripts/purge.ts", "server/_core/retention.ts"],
-      trigger:
-        "the first record belonging to somebody who is not the author, or the first request to " +
-        "delete one. There is no retention statement, no deletion path and no erasure procedure; " +
-        "the only 'retention' in the tree is the retrieval-interval literature, a different word.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`. The record is kept until the person erases it or the operator purges
+     * it, and both paths now exist: `deleteLocalRecord` behind a two-press control in the self-check
+     * drawer, and `scripts/purge.ts` over every table in `RECORD_TABLES`, proven against MySQL in
+     * CI. `docs/RETENTION.md` states the policy and the export beside it. No time-based retention,
+     * and the document says why rather than leaving it to be inferred.
+     */
+    resolution: one(["docs/RETENTION.md", "scripts/purge.ts", "client/src/lib/storage-keys.ts"]),
   },
   {
     id: "Q30",
@@ -314,15 +304,16 @@ export const AUTHORITY_QUESTIONS: AuthorityQuestion[] = [
   {
     id: "Q36",
     question: "How is a dependency upgraded, and what proves an upgrade safe?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: [".github/dependabot.yml", "renovate.json", ".renovaterc", ".renovaterc.json"],
-      trigger:
-        "the first `npm audit` failure that is not fixed by `npm audit fix`. The check that " +
-        "detects the problem is blocking in CI and nothing prescribes the response, so the " +
-        "repository can tell you an upgrade is needed and not what makes one safe.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`, and its trigger fired: `npm audit` went red on `qs` with the fix
+     * outside express's range, which is exactly the case "`npm audit fix` cannot" names. The
+     * response is now written: `docs/DEPENDENCY_POLICY.md` says what proves an upgrade safe (the
+     * `verify` job, nothing else), when an `overrides` entry is allowed (an advisory behind it),
+     * and that an exception carries an expiry a test enforces. Dependabot proposes; actions are
+     * pinned to commits.
+     */
+    resolution: one(["docs/DEPENDENCY_POLICY.md", ".github/dependabot.yml"]),
   },
 ];
 

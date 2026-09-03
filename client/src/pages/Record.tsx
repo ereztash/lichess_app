@@ -60,6 +60,8 @@ import { WhatIsUnclear } from "@/components/WhatIsUnclear";
 import { WhatIsUnderTest } from "@/components/WhatIsUnderTest";
 import { whatIsUnclear, whatIsUnderTest } from "@shared/record-order";
 import { visitsOnRecord } from "@/lib/progress-record";
+import { reportFailure } from "@/lib/error-sink";
+import { AuthFailureNotice } from "@/components/AuthFailureNotice";
 
 /**
  * How many games to pull for the first decision.
@@ -167,6 +169,7 @@ function FirstDecision({
     try {
       const result = await fetchGames(source, username, GAMES_FOR_FIRST_DECISION);
       if (!result.ok) {
+        reportFailure(result.failure.kind, "front-door");
         setError(result.failure.message);
         return;
       }
@@ -213,6 +216,7 @@ function FirstDecision({
       });
       navigate("/play");
     } catch {
+      reportFailure("blocked", "front-door");
       setError(
         `לא הצלחתי להגיע ל-${SOURCE_LABEL[source]}. אפשר לנסות שוב, או לטעון משחק ידנית מהלוח.`,
       );
@@ -449,6 +453,8 @@ export default function Record() {
 
   return (
     <main className="record-page">
+      {/* A sign-in that did not complete lands here with a reason, rendered before anything else. */}
+      <AuthFailureNotice search={typeof window === "undefined" ? "" : window.location.search} />
       {/*
         * TWO IDENTITIES, BECAUSE THERE ARE TWO VISITORS, and the page already branches on exactly
         * this distinction one element below.

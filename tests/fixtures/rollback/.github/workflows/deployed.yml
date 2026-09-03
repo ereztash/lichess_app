@@ -1,0 +1,13 @@
+name: Deployed
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      origin:
+        description: "Origin to check"
+        required: false
+jobs:
+  l6:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npx vitest run tests/deployment/

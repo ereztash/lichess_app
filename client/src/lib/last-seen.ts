@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from "./storage-keys";
 /**
  * WHEN THIS BROWSER LAST SAW A READING. Product memory, and deliberately NOT the trial log.
  *
@@ -29,7 +30,7 @@
  * second device all return null, and the resume screen renders no "what changed" line at all rather
  * than reporting that nothing changed -- which is a different statement and one it cannot support.
  */
-const KEY = "decision-lab.last-seen.v1";
+const KEY = STORAGE_KEYS.lastSeen.key;
 
 /**
  * When a reading was last shown in this browser, or null.
