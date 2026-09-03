@@ -166,6 +166,47 @@ describe("every position carries its basis", () => {
   });
 });
 
+describe("two registers, never one verb", () => {
+  /*
+   * THE STATE A NEWCOMER LANDS IN. The front door hands a cold arrival a bank position, so their
+   * very first strip has `readElsewhere: 1` and `scored: 0`: the decision was measured, and it is
+   * read under another heading with its own denominator.
+   *
+   * Both sentences then appeared nineteen pixels apart carrying the same verb and different
+   * numbers -- `1 נמדדו ונקראות בחלק אחר` above `0 נמדדו מתוך 1 שנרשמו` -- and a number that
+   * changes beside a number that does not, under one verb, reads as a broken record rather than
+   * as two registers. Measured in Chromium on production, walked from an empty profile.
+   *
+   * The fix was a noun, not an arithmetic change. This holds it to that: neither number may move
+   * and the two lines may not share `נמדדו`.
+   */
+  const firstArrival = inputs({ recorded: 1, scored: 0, readElsewhere: 1, scoredStillNeeded: 60 });
+
+  it("does not report this search's count with the verb the other register uses", () => {
+    const at = loopPosition(firstArrival);
+    expect(at.headline, "the other register must keep its own verb").toContain("נמדדו ונקראות");
+    expect(
+      at.basis,
+      `this search's line still says נמדדו beside a different number: "${at.basis}"`,
+    ).not.toContain("נמדדו");
+  });
+
+  it("holds for the narrowed search too, which carries the same sentence", () => {
+    const at = loopPosition({ ...firstArrival, narrowedTo: "פתיחה" });
+    expect(at.headline).toContain("נמדדו ונקראות");
+    expect(at.basis).not.toContain("נמדדו");
+  });
+
+  it("moves neither number", () => {
+    // A rename that changed a count would be a different change, and not this one.
+    for (const at of [loopPosition(firstArrival), loopPosition({ ...firstArrival, narrowedTo: "פתיחה" })]) {
+      expect(at.basis, "the denominator is the decisions on the record").toContain("1 שנרשמו");
+      expect(at.basis, "the numerator is what this search counts").toMatch(/^0 מתוך/);
+    }
+    expect(loopPosition(firstArrival).headline).toContain("עוד 60 החלטות מדודות");
+  });
+});
+
 describe("the rail draws the whole loop", () => {
   it("always returns every step, not only the reached ones", () => {
     // A rail that renders only what you have reached hides how far the loop actually goes,

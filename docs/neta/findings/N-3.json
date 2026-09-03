@@ -1,0 +1,36 @@
+{
+  "status": "DISCRIMINATE_FIRST",
+  "raw_signal": "עשיתי שתי החלטות שלמות. חזרתי לדלת הראשית, והמסך אמר לי שעוד לא עשיתי כלום.",
+  "observations": [
+    "Two complete decisions in one clean profile: move placed, reading marked, cannot-assess marked, confidence declared before the engine spoke, both revealed.",
+    "Returning to / in the same profile, the first line reads 'עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.'",
+    "Below it: '0 החלטות מדודות · חסרות עוד 60'.",
+    "The only wide control above the fold is 'שחק משחק קצר' at y=186. There is no control that resumes or names the two decisions already recorded.",
+    "The strip on the play screen had said '2 נמדדו ונקראות בחלק אחר של הרשומה', so the record does hold them."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "The return screen's threshold is own-game decisions only, and it words its zero as an absence of play",
+      "explains": "Why the record holds two decisions and the return screen reports none, and why the CTA is to play rather than to continue.",
+      "does_not_explain": "Why the sentence is 'you have not played a game here' rather than 'these two are recorded and read separately'.",
+      "discriminator": "Do the same walk through the blitz-game route instead of the bank route. If the return screen then counts them, the gate is provenance, and the wording is the defect rather than the count."
+    },
+    {
+      "name": "The return screen reads a different store than the play screen",
+      "explains": "A zero on one surface and a two on another.",
+      "does_not_explain": "That the play screen itself shows both numbers, so it is not two disconnected stores but one policy.",
+      "discriminator": "Compare the two surfaces' inputs in the code."
+    }
+  ],
+  "design_distinction": "next_decision_started and user_satisfied are separate, and so are record_holds_it and screen_credits_it. A returning participant reads the second, and the trial's stop-reason analysis reads the first.",
+  "rejected_explanations": [
+    "localStorage cleared between visits: the same page carried '0 נמדדו מתוך 2 שנרשמו', so the record survived the reload."
+  ],
+  "authority": "DESIGN_MECHANISM",
+  "evidence_state": "REPRODUCED",
+  "intervention": null,
+  "must_not_change": "The 60-decision threshold, the definition of a measured decision, and the exclusion of bank decisions from the personal denominator. The instrument is right; the sentence is what is under review.",
+  "perceptual_success_criterion": "A returning person can say, without help, whether the decisions they made last time still exist.",
+  "check": null,
+  "next_step": "Run the discriminator first: repeat the walk through the blitz route and see whether the return screen counts those. It decides whether this is one sentence or the whole acquisition path, and it costs one session."
+}

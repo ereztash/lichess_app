@@ -1,0 +1,37 @@
+{
+  "status": "DISCRIMINATE_FIRST",
+  "raw_signal": "לחצתי, המסך אמר REVEAL, וראיתי בדיוק אותו לוח. הייתי צריך לגלול פעם וחצי כדי למצוא מה הוא אמר לי.",
+  "observations": [
+    "390x844, after commit: the word REVEAL renders at y=236 at 14px, the position header at y=254, and then 645px of board.",
+    "The first reveal heading is at y=899, its finding sentence at y=1133, the continuation control at y=1454. Page height 1844.",
+    "Nothing in the reveal's four blocks is inside the first viewport. The page does not scroll itself.",
+    "Above the fold, the post-commit screen and the pre-commit screen carry the same masthead, the same counter strip, a 74x14px label, a header and the same board. The label text changes from DECIDE to REVEAL.",
+    "At 1440x900 the same blocks begin at y=213 and are visible without scrolling."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "One column, source order, no viewport-conditional placement",
+      "explains": "Why the desktop two-column layout puts the reveal beside the board and the handset puts it after 645px of board.",
+      "does_not_explain": "Why no scroll-into-view or collapse accompanies the state change on the narrow layout.",
+      "discriminator": "Measure the same reveal at 768px and 1024px. If the blocks stay below the board at every width under the two-column breakpoint, placement is purely source order."
+    },
+    {
+      "name": "The board is treated as the reveal's subject and therefore kept first",
+      "explains": "Why the board stays full-size after commit and carries the move arrow and evaluation bar.",
+      "does_not_explain": "Why the label that distinguishes the two states is 14px and the board that does not distinguish them is 405x405.",
+      "discriminator": "Ask the owner whether the arrow and evaluation bar are intended as the handset's primary reveal, with the four text blocks secondary."
+    }
+  ],
+  "design_distinction": "reveal_presented is a render event. reveal_read is a person having the finding in view. On a handset these are separated by one and a half screens of scrolling, and the funnel currently cannot tell them apart.",
+  "rejected_explanations": [
+    "Slow rendering: the blocks are in the DOM within 2.2s of the press; they are placed low, not late.",
+    "A stylesheet failing on narrow viewports: the desktop and handset layouts differ deliberately and both render cleanly."
+  ],
+  "authority": "DESIGN_MECHANISM",
+  "evidence_state": "MEASURED",
+  "intervention": null,
+  "must_not_change": "The four-block order and the commit-then-reveal sequence are frozen by ACQUISITION_PROTOCOL_V1. Any change to where the reveal lands changes what reveal_presented denominates, so it needs a protocol version, not a CSS fix.",
+  "perceptual_success_criterion": "A person on a handset, without being told to scroll, restates one sentence from the reveal that is not the position name.",
+  "check": null,
+  "next_step": "This is F-1 and it stays FIELD until a person is watched reading it. Before that: state in the protocol whether reveal_presented is defined as rendered or as in-viewport, because the two give different denominators for F-3 and the code currently supports only the first."
+}

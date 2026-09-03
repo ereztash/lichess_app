@@ -1,0 +1,36 @@
+{
+  "status": "BUILD_READY",
+  "raw_signal": "אותו מסך אומר לי גם 1 נמדדו וגם 0 נמדדו. אני לא יודע מי משניהם עלי.",
+  "observations": [
+    "After one complete decision the strip reads: 'עוד 60 החלטות מדודות עד שאפשר לומר משהו. 1 נמדדו ונקראות בחלק אחר של הרשומה' at y=108, and '0 נמדדו מתוך 1 שנרשמו' at y=127.",
+    "The two lines are 19px apart and both use the verb נמדדו.",
+    "After the second decision they read '2 נמדדו' and '0 נמדדו מתוך 2 שנרשמו'.",
+    "The headline number 60 does not move across either decision."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "Two registers, one verb",
+      "explains": "The first line counts decisions measured anywhere including the shared bank; the second counts decisions measured inside the personal 60-decision denominator, where bank decisions do not count.",
+      "does_not_explain": "Why both use נמדדו rather than one naming its own register.",
+      "discriminator": "Read the two numbers' sources in the code. If they are the same field filtered differently, the wording is the whole defect."
+    },
+    {
+      "name": "The second line is stale and has not re-rendered",
+      "explains": "A zero next to a one.",
+      "does_not_explain": "That the zero updates its own denominator correctly, 1 then 2, in the same render.",
+      "discriminator": "Already run: the denominator moves and the numerator does not, across two decisions. This mechanism is falsified."
+    }
+  ],
+  "design_distinction": "A number that changes and a number that does not, side by side under the same verb, reads as a bug rather than as two registers. Naming the register is cheaper than explaining it.",
+  "rejected_explanations": [
+    "A race between two stores: both lines update in the same frame, and the second is internally consistent."
+  ],
+  "authority": "REPO",
+  "evidence_state": "REPRODUCED",
+  "intervention": "Give each line its own noun instead of sharing נמדדו. The second line already carries its denominator; the first needs to say which record it is counting.",
+  "must_not_change": "Neither number, neither denominator, and not the 60 threshold. This is wording on an existing render, not a change to what is counted.",
+  "perceptual_success_criterion": "A person reading the strip after one decision can say which of the two numbers is about them, without opening anything.",
+  "check": "A layout walk asserting that the two count lines never share a bare verb with different values.",
+  "reversal_condition": "If the owner intends the first line to be read as the personal count, the fix is the opposite one and this finding is wrong about which line is authoritative.",
+  "next_step": "Confirm with the owner which line the participant is meant to act on, then rename the other. One sentence of copy, no counted quantity touched."
+}
