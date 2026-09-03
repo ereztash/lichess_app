@@ -344,6 +344,7 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/consolidation-research/`](docs/consolidation-research/hardening/FINAL_REPORT.md) | חיזוק לפני איחוד. הציונים שם מעריכים את **מחקר השחזור**, לא את האפליקציה | אנגלית |
 | [`docs/blitz/`](docs/blitz/AUDIT.md) | ביקורת אמת-המאגר לפני מדידה ילידת-בליץ, וארבעה ADR שנגזרו ממנה | אנגלית |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
+| [`docs/neta/PRE_HUMAN_UX_PASS_2_3_4.md`](docs/neta/PRE_HUMAN_UX_PASS_2_3_4.md) | עלות מול תמורה בכל שלב, מה הרשומה כבר מחזיקה ומה משטח הצטברות יכול לומר בלי probe חדש, ולמה probe נוסף אינו מוצדק: הוא כבר קיים, כבר מרונדם וכבר נרשם | אנגלית |
 | [`docs/neta/PRE_HUMAN_UX_PASS_1.md`](docs/neta/PRE_HUMAN_UX_PASS_1.md) | מעבר UX ראשון לפני חשיפה: חמישה סוגי פקדים נלחצו בדפדפן ואף אחד לא השתנה, והמתנה של 3.2 שניות רצה בלי שדבר על המסך זז. מה תוקן, מה נמדד ולא נגעתי בו, ולמה | אנגלית |
 | [`docs/neta/NETA_EMBODIED_RUN_001.md`](docs/neta/NETA_EMBODIED_RUN_001.md) | המוצר נמדד כחוויה, לא כקוד: הרצה של `Product-Perception-Sensemaking-Architect` מול הדיפלוי החי. אותות גולמיים לפני פרשנות, שישה ממצאים מול הסכימה שלו, וארבעה ממצאים שכמעט נכתבו ונהרגו על ידי דיסקרימינטור | אנגלית, אותות בעברית |
 | [`docs/PRE_HUMAN_CEILING.md`](docs/PRE_HUMAN_CEILING.md) | **`REPO PRE-HUMAN CEILING REACHED`** — מה נסגר, שלושת הדברים החיצוניים שנשארו, וגבול ה-FIELD עם המכנה וההסקה האסורה של כל שאלה | אנגלית |

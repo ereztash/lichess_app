@@ -8,14 +8,15 @@
     "Frequency: it fired on 6 of 15 clean first decisions across separate browser contexts.",
     "It did not co-vary with the move played: b5b4, which the engine also chose, and a6a5 and h7h6, which it did not, all appeared in both outcomes.",
     "It did not co-vary with the number of squares clicked before placing the move, nor with elapsed time before placing it: a 33-click prefix and a time-matched idle prefix each produced one gated and one ungated run.",
-    "Where it did not fire, the press reached the engine's answer in 2.2s on a cold engine and 0.3s on a warm one."
+    "Where it did not fire, the press reached the engine's answer in 2.2s on a cold engine and 0.3s on a warm one.",
+    "SETTLED IN THE REPOSITORY, which is where the finding said to settle it. `probeSchema.assignment` is `probed | not-probed | ineligible`, described in its own source as which arm the decision was randomised into, and it is present on every decision including the ones nothing was asked on. `legal_moves` is stored beside it as a covariate rather than used as a filter."
   ],
   "candidate_mechanisms": [
     {
       "name": "A randomised arm of the acquisition protocol",
       "explains": "A rate near half that is unpredicted by the move, the clicks or the time, on identical clean profiles.",
       "does_not_explain": "Nothing observed contradicts it, which is exactly why it must not be assumed.",
-      "discriminator": "One grep for the assignment. If it is randomised, the record must carry the arm, or every reveal-to-continuation rate mixes two different experiences under one number."
+      "discriminator": "One read of `shared/decision-atom.ts`. RUN: `probe.assignment` is a randomised arm and it is on every decision, so the record already separates the two experiences and no rate pools them."
     },
     {
       "name": "Triggered by a property of the position or the engine's state at press time",
@@ -36,10 +37,10 @@
     "My own harness swallowing the reveal: my earlier REVEAL detector was matching the masthead tagline COMMIT · THEN REVEAL. That was an instrument artifact and it is corrected here."
   ],
   "authority": "REPO",
-  "evidence_state": "REPRODUCED",
+  "evidence_state": "MEASURED",
   "intervention": null,
   "must_not_change": "The counterfactual question itself. It is the only thing that separates 'did not see the engine's move' from 'saw it and rejected it', which is the distinction the reveal explicitly says it cannot make without it. Removing it because it delays the reveal would be instrument damage.",
   "perceptual_success_criterion": "A person who has pressed commit can tell, without scrolling and without waiting, whether the product is working or waiting for them.",
   "check": null,
-  "next_step": "Settle the trigger in the repository before any field trial: if it is randomised, the arm must be in the record, because reveal_presented and next_decision_started are otherwise averaged across two different products. This is one read, and it changes what F-3's numbers mean."
+  "next_step": "Closed as a data question and it needed no build. The arm is recorded, the denominator is recorded, and the covariate is recorded, so trial 1's reveal-to-continuation rates can be read within arm rather than across it. What is still unresolved is only the screen: a person whose eye is on the board cannot tell a second DECIDE from a slow REVEAL, and that is `N-1`'s question about where a state change is announced, not this one's about what is stored."
 }
