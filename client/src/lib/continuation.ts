@@ -30,8 +30,16 @@
  * `revealPly + 2` is the reply. Their next turn is two plies on; landing on the intermediate one
  * would ask them to decide for the other side.
  *
- * AND THE LANDING IS CHECKED RATHER THAN ASSUMED. Mate and stalemate are how games end, and a
+ * AND THE LANDING IS CHECKED ON THE `advance` BRANCH. Mate and stalemate are how games end, and a
  * continuation into one is the same lock wearing a legal position.
+ *
+ * IT IS NOT CHECKED ON `play`, AND THAT IS A GAP RATHER THAN A DECISION. A live game's landing is
+ * the position after the committed move AND the opponent's reply, neither of which exists yet when
+ * this runs -- so the check would have to move to the caller. A player who commits mate therefore
+ * still reaches `deciding` on a finished board. Nothing in this mission drove it, an adversarial
+ * pass established it from source, and it is recorded in
+ * `docs/user-loop-integrity/FALSIFICATION_REGISTER.md` rather than repaired by guesswork about
+ * what a finished live game should offer.
  *
  * NULL IS A FIRST-CLASS ANSWER. The front door hands over exactly one position on purpose --
  * `pickFirstDecision` trims the game *"so nothing after it can leak"* -- so a loaded handoff

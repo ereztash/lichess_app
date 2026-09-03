@@ -33,7 +33,7 @@ const ANALYSIS: EngineLine = {
 };
 
 const renderPanel = (inputs = INPUTS, analysis: EngineLine | null = ANALYSIS) =>
-  render(<RevealPanel inputs={inputs} analysis={analysis} fen={FEN} statedKnown="מרכז פתוח" />);
+  render(<RevealPanel inputs={inputs} analysis={analysis} fen={FEN} boardFen={FEN} statedKnown="מרכז פתוח" />);
 
 /*
  * `h2`, because the reveal's three blocks became `h2` when axe found `heading-order` on them: the

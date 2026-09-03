@@ -48,10 +48,14 @@ interface RevealPanelProps {
    * position no longer on screen, with the same sentence and the same number. Only the engine's
    * arrow was guarded.
    *
-   * OPTIONAL, because most callers of this panel are tests rendering it in isolation, where there
-   * is no board and therefore nothing it could be stale against.
+   * REQUIRED, and it was optional for one release. The docblock cited `EvaluationBar`'s
+   * *"so a caller cannot forget to mark it"* as its authority and then made forgetting possible --
+   * silently, since `GATE-STALE` is about `StockfishClient`'s superseded searches and never sees
+   * this panel. An adversarial pass named the contradiction. `authority` on `ChessBoard` is
+   * required for exactly this argument; so is this. A test rendering the panel in isolation passes
+   * the same FEN twice, which is what "the board is on the decision's position" means.
    */
-  boardFen?: string;
+  boardFen: string;
   statedKnown: string;
   /**
    * The decision this reveal is about, or null when it is not being rendered for a real one.
@@ -88,7 +92,7 @@ export function RevealPanel({
    * is that the board in front of the reader is the position it is about, and that is one fact
    * about the whole panel rather than a fifth section inside it.
    */
-  const elsewhere = boardFen !== undefined && boardFen !== fen;
+  const elsewhere = boardFen !== fen;
   const limits = inferenceLimits(inputs);
   const oneThing = theOneThing(inputs);
   const question = nextQuestion(inputs);

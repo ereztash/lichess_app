@@ -64,7 +64,7 @@ const OUTCOMES: Record<string, RevealInputs> = {
 
 const ANALYSIS: EngineLine = { scoreCp: 180, depth: 20, pv: ["f8c5"], bestMove: "f8c5", fen: FEN };
 const panel = (inputs: RevealInputs) =>
-  render(<RevealPanel inputs={inputs} analysis={ANALYSIS} fen={FEN} statedKnown="" />).container;
+  render(<RevealPanel inputs={inputs} analysis={ANALYSIS} fen={FEN} boardFen={FEN} statedKnown="" />).container;
 
 describe("the same proposition after every outcome", () => {
   it("covers both a finding and a silence, so the invariance below is not trivial", () => {
@@ -175,6 +175,7 @@ describe("the button names the experiment rather than the movement", () => {
         inputs={OUTCOMES.outplayed}
         analysis={ANALYSIS}
         fen={FEN}
+        boardFen={FEN}
         statedKnown=""
         onContinue={() => {}}
       />,

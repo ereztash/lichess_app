@@ -105,3 +105,66 @@ export function formatEvaluation(scoreCp: number, mate?: number) {
   const score = scoreCp / 100;
   return `${score > 0 ? "+" : ""}${score.toFixed(2)}`;
 }
+
+/**
+ * ONE MOVE APPLIED TO A NAMED PLY OF A GAME, as a value rather than as three state setters.
+ *
+ * WHY IT LIVES HERE. `Home.tsx` held this inline and closed over `currentPly` and `activeFen`, so
+ * "the ply the decision was taken at" and "the ply the board is on" were the same expression --
+ * which is how the continuation came to play a committed move four plies back. It takes the ply
+ * and the position as arguments now, and this is the whole of the transform: the caller does
+ * nothing but store what comes out.
+ *
+ * NULL IS AN ILLEGAL MOVE, and it is the only reason this returns null. The board is the thing
+ * that decides whether a gesture may be made at all (`shared/board-authority.ts`); this decides
+ * only whether it is a move.
+ */
+export function applyMoveAt(
+  history: readonly GameSnapshot[],
+  at: { ply: number; fen: string },
+  from: string,
+  to: string,
+): { history: GameSnapshot[]; ply: number; san: string } | null {
+  const game = new Chess(at.fen);
+  try {
+    const move = game.move({ from, to, promotion: "q" });
+    const ply = at.ply + 1;
+    return {
+      history: [
+        ...history.slice(0, ply),
+        { ply, san: move.san, from: move.from, to: move.to, color: move.color, fen: game.fen() },
+      ],
+      ply,
+      san: move.san,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** What the board is worth, per side, counted from the pieces standing on it. */
+export interface Material {
+  white: number;
+  black: number;
+}
+
+/**
+ * COUNTED FROM THE BOARD, NOT FROM THE ENGINE, and that is the whole point of it living here.
+ *
+ * `AnalysisPanel` labels this value's provenance "נספר מהלוח" -- a player-side count, not an
+ * evaluation -- so it must stay derivable with no search, no wasm and no network. Keeping it in
+ * the same file as the position itself is what makes that checkable at a glance.
+ *
+ * The values are the textbook ones. They are not a claim about the position: two rooks against a
+ * queen is not a decided game, and nothing downstream reads this as an assessment.
+ */
+export function countMaterial(board: ReturnType<Chess["board"]>): Material {
+  const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+  return board.flat().reduce<Material>(
+    (total, piece) => {
+      if (piece) total[piece.color === "w" ? "white" : "black"] += values[piece.type];
+      return total;
+    },
+    { white: 0, black: 0 },
+  );
+}

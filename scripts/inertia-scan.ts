@@ -120,6 +120,18 @@ export function findScreensWithTwoBoards(roots: string[]): Finding[] {
  *
  * IT CANNOT BE SATISFIED BY DELETION. Removing the prop does not silence this scanner; it stops
  * the build.
+ *
+ * A CONSTANT HAS FIVE SPELLINGS AND THE FIRST VERSION OF THIS SAW ONE. It tested `^"(.*)"$` against
+ * the raw attribute value, so `authority={"propose"}` -- one pair of braces -- and
+ * `authority={ALWAYS}` beside `const ALWAYS = "play"` were both read as derived. An adversarial pass
+ * put two such boards in `client/src`, ran `npm run gates`, and got `34 gates: 34 pass`. A gate that
+ * a different spelling walks past is not a gate; it is a suggestion with a red control attached.
+ * So the value is NORMALISED first -- braces stripped, quotes of all three kinds, a template with
+ * no substitution, and an identifier resolved against a `const` in the same file -- and only what
+ * survives that is called derived.
+ *
+ * WHAT IS DELIBERATELY NOT REJECTED: a member expression, a call, a conditional, a prop. Those are
+ * where the answer comes from state, which is the thing being asked for.
  */
 export function findBoardsWithUncheckedAuthority(roots: string[]): Finding[] {
   const out: Finding[] = [];
@@ -128,19 +140,21 @@ export function findBoardsWithUncheckedAuthority(roots: string[]): Finding[] {
       const path = posix(relative(process.cwd(), file));
       if (path.endsWith("/components/ChessBoard.tsx")) continue;
       const source = read(file);
-      for (const props of openingTags(source, "ChessBoard")) {
-        const declared = /\bauthority=(\{[^}]*\}|"[^"]*")/.exec(props.text);
-        if (!declared) {
-          out.push({ file: path, line: props.line, text: "<ChessBoard> with no declared authority" });
-          continue;
-        }
-        const constant = /^"(.*)"$/.exec(declared[1]);
-        if (constant && constant[1] !== "none") {
-          out.push({
-            file: path,
-            line: props.line,
-            text: `<ChessBoard authority="${constant[1]}"> is the same in every state`,
-          });
+      for (const tag of boardTagNames(source)) {
+        for (const props of openingTags(source, tag)) {
+          const declared = /\bauthority\s*=\s*(\{[\s\S]*?\}|"[^"]*"|'[^']*')/.exec(props.text);
+          if (!declared) {
+            out.push({ file: path, line: props.line, text: `<${tag}> with no declared authority` });
+            continue;
+          }
+          const constant = constantValue(declared[1], source);
+          if (constant !== null && constant !== "none") {
+            out.push({
+              file: path,
+              line: props.line,
+              text: `<${tag} authority=${declared[1]}> is the same in every state`,
+            });
+          }
         }
       }
     }
@@ -149,12 +163,51 @@ export function findBoardsWithUncheckedAuthority(roots: string[]): Finding[] {
 }
 
 /**
+ * Every local name `ChessBoard` is rendered under in one file.
+ *
+ * AN ALIAS IS A RENAME, NOT A DIFFERENT COMPONENT. `import { ChessBoard as Board }` and then
+ * `<Board authority="play" />` is the same board with the same defect, and a scanner that greps
+ * for one string walks past it. `RNL-06`: identity follows semantics, not labels.
+ */
+function boardTagNames(source: string): string[] {
+  const names = new Set<string>();
+  if (/\bChessBoard\b/.test(source)) names.add("ChessBoard");
+  for (const m of source.matchAll(/\bChessBoard\s+as\s+([A-Za-z_$][\w$]*)/g)) names.add(m[1]);
+  return [...names];
+}
+
+/**
+ * The constant an authority expression is, or null when it is genuinely derived.
+ *
+ * ONE LAYER OF BRACES IS STRIPPED and no more: `authority={cond ? "none" : "play"}` keeps its
+ * conditional and is derived, which is right. A template literal carrying `${` is derived for the
+ * same reason -- something is substituted into it.
+ *
+ * AN IDENTIFIER IS RESOLVED IN ITS OWN FILE ONLY. Following it across modules would need a
+ * resolver, and a scanner that half-followed imports would report differently depending on how a
+ * file happened to be split. In-file is the case that was demonstrated and the case a screen
+ * actually writes.
+ */
+function constantValue(raw: string, source: string): string | null {
+  const inner = /^\{([\s\S]*)\}$/.exec(raw.trim());
+  const value = (inner ? inner[1] : raw).trim();
+  const quoted = /^(["'`])([\s\S]*)\1$/.exec(value);
+  if (quoted) return quoted[1] === "`" && quoted[2].includes("${") ? null : quoted[2];
+  if (!/^[A-Za-z_$][\w$]*$/.test(value)) return null;
+  const declared = new RegExp(
+    `\\bconst\\s+${value}\\s*(?::[^=]*)?=\\s*(["'\`])([^"'\`]*)\\1`,
+  ).exec(source);
+  return declared ? declared[2] : null;
+}
+
+/**
  * Every opening tag of one component, with its whole prop list and the line it starts on.
  *
- * BRACE DEPTH RATHER THAN THE FIRST `/>`, because a prop's value is an expression and an
- * expression can contain anything. A scanner that stopped at the first slash would read half a
- * prop list on any board whose props hold a comment or a regular expression, and would read it
- * silently.
+ * BRACE DEPTH AND QUOTES, not the first `/>`. A prop's value is an expression, and the two things
+ * that end a tag early if you ignore them are a `>` inside a brace and a `>` inside a STRING --
+ * `aria-label="a > b"` truncated the tag text and made the board after it report "no declared
+ * authority", which is a finding for the wrong reason. It failed safe and it was still wrong, and
+ * an adversarial pass demonstrated it.
  */
 function openingTags(source: string, component: string): Array<{ text: string; line: number }> {
   const out: Array<{ text: string; line: number }> = [];
@@ -162,16 +215,21 @@ function openingTags(source: string, component: string): Array<{ text: string; l
   let match: RegExpExecArray | null;
   while ((match = tag.exec(source)) !== null) {
     let depth = 0;
-    let end = match.index;
+    let quote: string | null = null;
+    let end = source.length - 1;
     for (let i = match.index; i < source.length; i += 1) {
       const c = source[i];
-      if (c === "{") depth += 1;
+      if (quote) {
+        if (c === quote && source[i - 1] !== "\\") quote = null;
+        continue;
+      }
+      if (c === '"' || c === "'" || c === "`") quote = c;
+      else if (c === "{") depth += 1;
       else if (c === "}") depth -= 1;
       else if (depth === 0 && c === ">") {
         end = i;
         break;
       }
-      end = i;
     }
     out.push({
       text: source.slice(match.index, end + 1),

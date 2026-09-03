@@ -14,6 +14,7 @@ export function BoardThatAlwaysAccepts() {
       board={[]}
       orientation="w"
       authority="propose"
+      sideToMove="w"
       legalTargets={[]}
       onSelect={() => undefined}
       onMove={() => undefined}
