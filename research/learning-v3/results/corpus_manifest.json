@@ -1,0 +1,82 @@
+{
+  "pgn": "/tmp/corpus/lichess_db_standard_rated_2013-01.pgn.zst",
+  "seed": 20260831,
+  "per_game": 3,
+  "games_seen": 60834,
+  "games_used": 60000,
+  "positions_sampled": 180000,
+  "positions_in_check": 12119,
+  "records_written": 580852,
+  "rule_class_version": "1.0.0",
+  "trigger_counts": {
+    "RC-00": {
+      "positive": 1171,
+      "negative": 78582
+    },
+    "RC-01": {
+      "positive": 13685,
+      "negative": 46899
+    },
+    "RC-02": {
+      "positive": 21969,
+      "negative": 31709
+    },
+    "RC-03": {
+      "positive": 2057,
+      "negative": 1286
+    },
+    "RC-04": {
+      "positive": 22239,
+      "negative": 30168
+    },
+    "RC-05": {
+      "positive": 370,
+      "negative": 366
+    },
+    "RC-06": {
+      "positive": 2080,
+      "negative": 80332
+    },
+    "RC-07": {
+      "positive": 9717,
+      "negative": 22373
+    },
+    "RC-08": {
+      "positive": 7432,
+      "negative": 22373
+    },
+    "RC-09": {
+      "positive": 16982,
+      "negative": 22373
+    },
+    "RC-11": {
+      "positive": 16982,
+      "negative": 22373
+    },
+    "RC-12": {
+      "positive": 602,
+      "negative": 22312
+    },
+    "RC-13": {
+      "positive": 67,
+      "negative": 702
+    },
+    "RC-14": {
+      "positive": 240,
+      "negative": 9726
+    },
+    "RC-18": {
+      "positive": 9009,
+      "negative": 22373
+    },
+    "RC-20": {
+      "positive": 7709,
+      "negative": 22373
+    },
+    "RC-21": {
+      "positive": 3293,
+      "negative": 8928
+    }
+  },
+  "note": "one record per (position, rule class that fired). A position can appear under several rule classes; they are different items and are never pooled."
+}

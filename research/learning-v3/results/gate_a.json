@@ -1,0 +1,3375 @@
+{
+ "gate_a_version": "1.0.0",
+ "what_this_is": "Gate A re-run on the seventeen already-screened rule classes. The action-set quantities come from research/measurement/action_set.py unchanged; what is new here is the engine and the pooled regret distribution across every member of B.",
+ "engine": {
+  "nodes": 200000,
+  "workers": 4,
+  "wdl_model": "sf16",
+  "build": "Stockfish 17.1"
+ },
+ "corpus": {
+  "pgn": "/tmp/corpus/lichess_db_standard_rated_2013-01.pgn.zst",
+  "seed": 20260831,
+  "per_game": 3,
+  "games_seen": 60834,
+  "games_used": 60000,
+  "positions_sampled": 180000,
+  "positions_in_check": 12119,
+  "records_written": 580852,
+  "rule_class_version": "1.0.0",
+  "trigger_counts": {
+   "RC-00": {
+    "positive": 1171,
+    "negative": 78582
+   },
+   "RC-01": {
+    "positive": 13685,
+    "negative": 46899
+   },
+   "RC-02": {
+    "positive": 21969,
+    "negative": 31709
+   },
+   "RC-03": {
+    "positive": 2057,
+    "negative": 1286
+   },
+   "RC-04": {
+    "positive": 22239,
+    "negative": 30168
+   },
+   "RC-05": {
+    "positive": 370,
+    "negative": 366
+   },
+   "RC-06": {
+    "positive": 2080,
+    "negative": 80332
+   },
+   "RC-07": {
+    "positive": 9717,
+    "negative": 22373
+   },
+   "RC-08": {
+    "positive": 7432,
+    "negative": 22373
+   },
+   "RC-09": {
+    "positive": 16982,
+    "negative": 22373
+   },
+   "RC-11": {
+    "positive": 16982,
+    "negative": 22373
+   },
+   "RC-12": {
+    "positive": 602,
+    "negative": 22312
+   },
+   "RC-13": {
+    "positive": 67,
+    "negative": 702
+   },
+   "RC-14": {
+    "positive": 240,
+    "negative": 9726
+   },
+   "RC-18": {
+    "positive": 9009,
+    "negative": 22373
+   },
+   "RC-20": {
+    "positive": 7709,
+    "negative": 22373
+   },
+   "RC-21": {
+    "positive": 3293,
+    "negative": 8928
+   }
+  },
+  "note": "one record per (position, rule class that fired). A position can appear under several rule classes; they are different items and are never pooled."
+ },
+ "sample_per_cell": 250,
+ "seed": 20260831,
+ "items_adjudicated": 8307,
+ "searches": 48155,
+ "engine_failures_in_raw": 0,
+ "wdl_model": "sf16, held fixed across engines so a difference is attributable to the engine",
+ "classes": {
+  "RC-00": {
+   "name": "mate-in-one",
+   "role": "ceiling-anchor",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.5046499999999999,
+      "max": 1.0,
+      "mean": 0.121032
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.487,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.21304000000000006
+     },
+     "b_valid": 1.0,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.02040816326530612,
+      "p25": 0.05032051282051282,
+      "median": 0.09090909090909091,
+      "p75": 0.14756944444444445,
+      "p90": 0.21233766233766233,
+      "max": 0.3488372093023256,
+      "mean": 0.11023148974425422
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 1082,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.9325000000000001,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.2761395563770795
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1082,
+       "min": 0,
+       "p25": 1.0,
+       "median": 99083.5,
+       "p75": 100133.0,
+       "p90": 100495.8,
+       "max": 199996
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.50375,
+       "p75": 1.0,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.5123820000000001
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.996125,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.31141199999999997
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5157116451016636,
+      "permitted_actions_scored_on_cp": 1082,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.46057777777777764
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.5075000000000001,
+      "median": -0.02049999999999999,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.9345,
+      "mean": -0.2826680000000001
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.02049999999999999,
+      "p75": 0.5075000000000001,
+      "p90": 0.99575,
+      "max": 1.0,
+      "mean": 0.29738400000000004
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.5,
+      "median": -0.02824999999999997,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.49550000000000005,
+      "mean": -0.27342799999999984
+     },
+     "b_valid": 0.192,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0196078431372549,
+      "p25": 0.027777777777777776,
+      "median": 0.041666666666666664,
+      "p75": 0.06666666666666667,
+      "p90": 0.11914285714285713,
+      "max": 0.3225806451612903,
+      "mean": 0.05879151313480417
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 497,
+       "min": -0.0010000000000000009,
+       "p25": 0.0,
+       "median": 0.125,
+       "p75": 0.8295,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.3689597585513081
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 497,
+       "min": -98976,
+       "p25": 90.0,
+       "median": 449.0,
+       "p75": 807.0,
+       "p90": 1441.6000000000008,
+       "max": 199984
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.48475,
+       "p75": 0.914875,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.44085399999999997
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.43975,
+       "p75": 0.817125,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.40287799999999996
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.7323943661971831,
+      "permitted_actions_scored_on_cp": 497,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.7219285714285716
+     }
+    }
+   }
+  },
+  "RC-01": {
+   "name": "loose-piece",
+   "role": "incumbent-floor",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.5005,
+      "p90": 0.9956,
+      "max": 1.0,
+      "mean": 0.23720399999999997
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": 0.02886
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.9550000000000001,
+      "median": -0.47150000000000003,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.4137519999999998
+     },
+     "b_valid": 0.792,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.01694915254237288,
+      "p25": 0.02702702702702703,
+      "median": 0.036375661375661374,
+      "p75": 0.05518018018018018,
+      "p90": 0.07692307692307693,
+      "max": 0.25,
+      "mean": 0.04618482014993356
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 337,
+       "min": -0.178,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0025000000000000577,
+       "p90": 0.11240000000000087,
+       "max": 1.0,
+       "mean": 0.05293916913946587
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 337,
+       "min": -99014,
+       "p25": -7.0,
+       "median": 7.0,
+       "p75": 58.0,
+       "p90": 346.2000000000006,
+       "max": 99975
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.178,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.003500000000000031,
+       "p90": 0.24239999999999992,
+       "max": 1.0,
+       "mean": 0.06551599999999999
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.178,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0033749999999999605,
+       "p90": 0.1905999999999999,
+       "max": 1.0,
+       "mean": 0.059768
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.19584569732937684,
+      "permitted_actions_scored_on_cp": 337,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.17966666666666667
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.447125,
+      "median": -0.01824999999999999,
+      "p75": 0.0,
+      "p90": 0.0005499999999999976,
+      "max": 0.984,
+      "mean": -0.2168899999999999
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.01824999999999999,
+      "p75": 0.447125,
+      "p90": 0.8807499999999998,
+      "max": 1.0,
+      "mean": 0.232128
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.5001249999999999,
+      "median": -0.11524999999999999,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.494,
+      "mean": -0.29890999999999995
+     },
+     "b_valid": 0.18,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.016666666666666666,
+      "p25": 0.024390243902439025,
+      "median": 0.027777777777777776,
+      "p75": 0.03306451612903226,
+      "p90": 0.04367588932806323,
+      "max": 0.09523809523809523,
+      "mean": 0.0307755739129747
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 268,
+       "min": -0.04299999999999998,
+       "p25": 0.0,
+       "median": 0.027249999999999983,
+       "p75": 0.48125,
+       "p90": 0.8732000000000009,
+       "max": 1.0,
+       "mean": 0.2380541044776119
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 268,
+       "min": -76,
+       "p25": 27.5,
+       "median": 177.5,
+       "p75": 461.75,
+       "p90": 738.3000000000006,
+       "max": 100368
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.04299999999999998,
+       "p25": 0.0,
+       "median": 0.03125,
+       "p75": 0.4885,
+       "p90": 0.9705499999999999,
+       "max": 1.0,
+       "mean": 0.24761199999999997
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.04299999999999998,
+       "p25": 0.0,
+       "median": 0.03125,
+       "p75": 0.4885,
+       "p90": 0.9705499999999999,
+       "max": 1.0,
+       "mean": 0.24761199999999997
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5932835820895522,
+      "permitted_actions_scored_on_cp": 268,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5866666666666668
+     }
+    }
+   }
+  },
+  "RC-02": {
+   "name": "recapture",
+   "role": "candidate",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.3077500000000001,
+      "p90": 0.5199999999999999,
+      "max": 1.0,
+      "mean": 0.08559799999999998
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.41089999999999993,
+      "max": 1.0,
+      "mean": 0.081812
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.533375,
+      "median": -0.39075,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.03500000000000003,
+      "mean": -0.36064200000000035
+     },
+     "b_valid": 0.648,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0196078431372549,
+      "p25": 0.02963458110516934,
+      "median": 0.043478260869565216,
+      "p75": 0.0625,
+      "p90": 0.07723076923076921,
+      "max": 0.2,
+      "mean": 0.04966169456790954
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 393,
+       "min": -0.24750000000000003,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.07999999999999996,
+       "p90": 0.5127,
+       "max": 1.0,
+       "mean": 0.1315165394402036
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 393,
+       "min": -47,
+       "p25": 0.0,
+       "median": 33.0,
+       "p75": 179.0,
+       "p90": 498.20000000000005,
+       "max": 100082
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.08950000000000002,
+       "p25": 0.0,
+       "median": 0.004249999999999976,
+       "p75": 0.302,
+       "p90": 0.5889499999999999,
+       "max": 1.0,
+       "mean": 0.17852600000000002
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.08950000000000002,
+       "p25": 0.0,
+       "median": 0.0030000000000000027,
+       "p75": 0.2025,
+       "p90": 0.51805,
+       "max": 1.0,
+       "mean": 0.155478
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.33587786259541985,
+      "permitted_actions_scored_on_cp": 393,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.3430000000000001
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.49725,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.030449999999999994,
+      "max": 1.0,
+      "mean": -0.20632000000000014
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.49725,
+      "p90": 0.9633499999999999,
+      "max": 1.0,
+      "mean": 0.23383599999999993
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.5233749999999999,
+      "median": -0.27925,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.9995,
+      "mean": -0.34202000000000027
+     },
+     "b_valid": 0.272,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.017543859649122806,
+      "p25": 0.025,
+      "median": 0.029411764705882353,
+      "p75": 0.037037037037037035,
+      "p90": 0.05277382645803697,
+      "max": 0.1111111111111111,
+      "mean": 0.03383464306197197
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 289,
+       "min": -0.07150000000000001,
+       "p25": 0.0,
+       "median": 0.0050000000000000044,
+       "p75": 0.502,
+       "p90": 0.979,
+       "max": 1.0,
+       "mean": 0.2616193771626297
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 289,
+       "min": -83,
+       "p25": 16.0,
+       "median": 179.0,
+       "p75": 472.0,
+       "p90": 755.1999999999996,
+       "max": 100046
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.05249999999999999,
+       "p25": 0.0,
+       "median": 0.008249999999999976,
+       "p75": 0.5135,
+       "p90": 0.99235,
+       "max": 1.0,
+       "mean": 0.2802599999999999
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.05249999999999999,
+       "p25": 0.0,
+       "median": 0.006500000000000006,
+       "p75": 0.507,
+       "p90": 0.99235,
+       "max": 1.0,
+       "mean": 0.27540599999999993
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5605536332179931,
+      "permitted_actions_scored_on_cp": 289,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.564
+     }
+    }
+   }
+  },
+  "RC-03": {
+   "name": "capture-the-checker",
+   "role": "candidate",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 194,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.01,
+      "p75": 0.54375,
+      "p90": 1.0,
+      "max": 1.0,
+      "mean": 0.3189768041237113
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+     },
+     "chance_advantage_xs": {
+      "n": 194,
+      "min": -1.0,
+      "p25": -0.11762499999999998,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.4962500000000002,
+      "max": 1.0,
+      "mean": -0.0645257731958763
+     },
+     "b_valid": 0.956,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.14285714285714285,
+      "p25": 0.2976190476190476,
+      "median": 0.5,
+      "p75": 0.75,
+      "p90": 1.0,
+      "max": 1.0,
+      "mean": 0.5430095238095237
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 402,
+       "min": -0.30900000000000005,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.007374999999999965,
+       "p90": 0.1248500000000009,
+       "max": 0.9975,
+       "mean": 0.044498756218905464
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 402,
+       "min": -98887,
+       "p25": -1.0,
+       "median": 8.0,
+       "p75": 46.0,
+       "p90": 143.80000000000007,
+       "max": 99350
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.12399999999999997,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.007249999999999951,
+       "p90": 0.21924999999999983,
+       "max": 0.9975,
+       "mean": 0.05575
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.12399999999999997,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.004750000000000004,
+       "p90": 0.14469999999999986,
+       "max": 0.9975,
+       "mean": 0.045678
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.14676616915422885,
+      "permitted_actions_scored_on_cp": 402,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.10866666666666666
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 230,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.07225,
+      "p90": 0.7584999999999998,
+      "max": 1.0,
+      "mean": 0.12736521739130433
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": 0.038988
+     },
+     "chance_advantage_xs": {
+      "n": 230,
+      "min": -1.0,
+      "p25": -0.03712499999999999,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 4.9999999999997156e-05,
+      "max": 1.0,
+      "mean": -0.11044347826086963
+     },
+     "b_valid": 0.692,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.1111111111111111,
+      "p25": 0.25,
+      "median": 0.3333333333333333,
+      "p75": 0.5,
+      "p90": 0.6666666666666666,
+      "max": 1.0,
+      "mean": 0.3963857142857143
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 311,
+       "min": -0.15400000000000003,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.46199999999999997,
+       "max": 1.0,
+       "mean": 0.08921221864951769
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 311,
+       "min": -98986,
+       "p25": 0.0,
+       "median": 17.0,
+       "p75": 149.0,
+       "p90": 525.0,
+       "max": 100382
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.08199999999999996,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.49144999999999994,
+       "max": 1.0,
+       "mean": 0.106064
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.08199999999999996,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.48669999999999997,
+       "max": 1.0,
+       "mean": 0.10003200000000001
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.3054662379421222,
+      "permitted_actions_scored_on_cp": 311,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.2786666666666666
+     }
+    }
+   }
+  },
+  "RC-04": {
+   "name": "save-the-attacked-piece",
+   "role": "candidate",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -0.999,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.13749999999999996,
+      "p90": 0.5,
+      "max": 1.0,
+      "mean": 0.10002200000000001
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.02819999999999976,
+      "max": 0.999,
+      "mean": 0.04336000000000001
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.275375,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.03194999999999995,
+      "max": 1.0,
+      "mean": -0.13117599999999985
+     },
+     "b_valid": 0.692,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.02040816326530612,
+      "p25": 0.15427350427350428,
+      "median": 0.21621621621621623,
+      "p75": 0.31857142857142856,
+      "p90": 0.39296536796536796,
+      "max": 0.9230769230769231,
+      "mean": 0.24033275447336336
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 2049,
+       "min": -0.17049999999999998,
+       "p25": 0.0,
+       "median": 0.014499999999999957,
+       "p75": 0.504,
+       "p90": 0.999,
+       "max": 1.0,
+       "mean": 0.2914907271839924
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 2049,
+       "min": -122,
+       "p25": 61.0,
+       "median": 268.0,
+       "p75": 578.0,
+       "p90": 913.2,
+       "max": 100599
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.00550000000000006,
+       "p25": 0.0,
+       "median": 0.49375,
+       "p75": 0.9625,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.4600659999999999
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.00550000000000006,
+       "p25": 0.0,
+       "median": 0.12125,
+       "p75": 0.5005,
+       "p90": 0.98505,
+       "max": 1.0,
+       "mean": 0.30455799999999994
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6896046852122987,
+      "permitted_actions_scored_on_cp": 2049,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.673193586957754
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.16399999999999998,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.09709999999999985,
+      "max": 1.0,
+      "mean": -0.099296
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.16399999999999998,
+      "p90": 0.51215,
+      "max": 1.0,
+      "mean": 0.14475400000000002
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.21574999999999997,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0005000000000000056,
+      "max": 0.5,
+      "mean": -0.12169799999999996
+     },
+     "b_valid": 0.28,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.03125,
+      "p25": 0.13513513513513514,
+      "median": 0.17142857142857143,
+      "p75": 0.21428571428571427,
+      "p90": 0.28125,
+      "max": 0.7,
+      "mean": 0.18533019000700904
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 1531,
+       "min": -0.17350000000000002,
+       "p25": 0.0,
+       "median": 0.14349999999999996,
+       "p75": 0.5095000000000001,
+       "p90": 0.9995,
+       "max": 1.0,
+       "mean": 0.32128543435662965
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1531,
+       "min": -98,
+       "p25": 97.5,
+       "median": 310.0,
+       "p75": 619.5,
+       "p90": 1088.0,
+       "max": 199991
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.0020000000000000018,
+       "p25": 0.0,
+       "median": 0.49624999999999997,
+       "p75": 0.956,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.46248
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.0020000000000000018,
+       "p25": 0.0,
+       "median": 0.20349999999999996,
+       "p75": 0.5093749999999999,
+       "p90": 0.99405,
+       "max": 1.0,
+       "mean": 0.32329
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.7478772044415415,
+      "permitted_actions_scored_on_cp": 1531,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.7256689500042439
+     }
+    }
+   }
+  },
+  "RC-05": {
+   "name": "safe-promotion",
+   "role": "candidate",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.014084
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": 0.038307999999999995
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.13278199999999998
+     },
+     "b_valid": 0.512,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.015151515151515152,
+      "p25": 0.03225806451612903,
+      "median": 0.043478260869565216,
+      "p75": 0.0625,
+      "p90": 0.09181818181818177,
+      "max": 0.25,
+      "mean": 0.05301011878093888
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.0,
+       "max": 1.0,
+       "mean": 0.03791
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 250,
+       "min": -99437,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 1.0,
+       "p90": 335.5999999999999,
+       "max": 199996
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.0,
+       "max": 1.0,
+       "mean": 0.03791
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.0,
+       "max": 1.0,
+       "mean": 0.03791
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.152,
+      "permitted_actions_scored_on_cp": 250,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.152
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.003499999999999987,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.12054
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.003499999999999987,
+      "p90": 0.5,
+      "max": 1.0,
+      "mean": 0.126546
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.26675000000000004,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.5,
+      "mean": -0.1769679999999999
+     },
+     "b_valid": 0.108,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.017543859649122806,
+      "p25": 0.029411764705882353,
+      "median": 0.038461538461538464,
+      "p75": 0.05555555555555555,
+      "p90": 0.1,
+      "max": 0.2,
+      "mean": 0.05053487663656722
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0020000000000000018,
+       "p90": 0.5,
+       "max": 1.0,
+       "mean": 0.12660000000000002
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 250,
+       "min": -98980,
+       "p25": 5.0,
+       "median": 155.5,
+       "p75": 494.25,
+       "p90": 99222.8,
+       "max": 199998
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0020000000000000018,
+       "p90": 0.5,
+       "max": 1.0,
+       "mean": 0.12660000000000002
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0020000000000000018,
+       "p90": 0.5,
+       "max": 1.0,
+       "mean": 0.12660000000000002
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.564,
+      "permitted_actions_scored_on_cp": 250,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.564
+     }
+    }
+   }
+  },
+  "RC-06": {
+   "name": "answer-the-mate-threat",
+   "role": "candidate",
+   "c11_grade": "SATURATED",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 237,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0085,
+      "p75": 0.7225,
+      "p90": 1.0,
+      "max": 1.0,
+      "mean": 0.3506877637130802
+     },
+     "regret_b_xs": {
+      "n": 242,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.0,
+      "mean": 0.0
+     },
+     "chance_advantage_xs": {
+      "n": 237,
+      "min": -1.0,
+      "p25": -0.033500000000000085,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.008700000000000003,
+      "max": 1.0,
+      "mean": -0.11075316455696202
+     },
+     "b_valid": 0.968,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.18715393133997785,
+      "median": 0.2967967967967968,
+      "p75": 0.41379310344827586,
+      "p90": 0.5367729831144465,
+      "max": 1.0,
+      "mean": 0.3173069971618106
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 242,
+      "per_action_regret_xs": {
+       "n": 2239,
+       "min": -0.108,
+       "p25": 0.0,
+       "median": 0.0004999999999999449,
+       "p75": 0.5,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.26058441268423455
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 2239,
+       "min": -70,
+       "p25": 69.0,
+       "median": 362.0,
+       "p75": 1103.5,
+       "p90": 99629.0,
+       "max": 199997
+      },
+      "per_item_worst_regret_xs": {
+       "n": 242,
+       "min": -0.07650000000000001,
+       "p25": 0.0,
+       "median": 0.00075,
+       "p75": 0.5511250000000001,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.3307727272727273
+      },
+      "per_item_median_regret_xs": {
+       "n": 242,
+       "min": -0.07650000000000001,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.5,
+       "p90": 0.9957,
+       "max": 1.0,
+       "mean": 0.2529586776859504
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.7128182224207236,
+      "permitted_actions_scored_on_cp": 2239,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.6231783044000657
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 209,
+      "min": -1.0,
+      "p25": -0.107,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.013600000000000062,
+      "max": 1.0,
+      "mean": -0.08970095693779902
+     },
+     "regret_b_xs": {
+      "n": 209,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.107,
+      "p90": 0.49760000000000004,
+      "max": 1.0,
+      "mean": 0.12239234449760765
+     },
+     "chance_advantage_xs": {
+      "n": 209,
+      "min": -1.0,
+      "p25": -0.3495,
+      "median": -0.007500000000000007,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.472,
+      "mean": -0.17190191387559803
+     },
+     "b_valid": 0.216,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.03571428571428571,
+      "median": 0.08001422475106686,
+      "p75": 0.15625,
+      "p90": 0.20725952813067147,
+      "max": 0.75,
+      "mean": 0.10102030674321968
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 209,
+      "per_action_regret_xs": {
+       "n": 825,
+       "min": -0.15800000000000003,
+       "p25": 0.0,
+       "median": 0.1735,
+       "p75": 0.4985,
+       "p90": 0.9824000000000002,
+       "max": 1.0,
+       "mean": 0.294509090909091
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 825,
+       "min": -140,
+       "p25": 52.0,
+       "median": 160.0,
+       "p75": 465.0,
+       "p90": 766.0000000000006,
+       "max": 100394
+      },
+      "per_item_worst_regret_xs": {
+       "n": 209,
+       "min": -0.009500000000000064,
+       "p25": 0.0015,
+       "median": 0.474,
+       "p75": 0.708,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.4343732057416268
+      },
+      "per_item_median_regret_xs": {
+       "n": 209,
+       "min": -0.009500000000000064,
+       "p25": 0.0,
+       "median": 0.238,
+       "p75": 0.5,
+       "p90": 0.9451000000000006,
+       "max": 1.0,
+       "mean": 0.3088133971291866
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6133333333333333,
+      "permitted_actions_scored_on_cp": 825,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.634396424946664
+     }
+    }
+   }
+  },
+  "RC-07": {
+   "name": "answer-the-queen-threat",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 245,
+      "min": -0.7375,
+      "p25": 0.0,
+      "median": 0.003,
+      "p75": 0.501,
+      "p90": 0.9993000000000001,
+      "max": 1.0,
+      "mean": 0.25292857142857145
+     },
+     "regret_b_xs": {
+      "n": 245,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.7375,
+      "mean": 0.020644897959183672
+     },
+     "chance_advantage_xs": {
+      "n": 245,
+      "min": -1.0,
+      "p25": -0.45299999999999996,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.9975,
+      "mean": -0.19732244897959184
+     },
+     "b_valid": 0.804,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.10825499412455934,
+      "median": 0.15184453227931488,
+      "p75": 0.2,
+      "p90": 0.25,
+      "max": 0.4583333333333333,
+      "mean": 0.15743404357009746
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 245,
+      "per_action_regret_xs": {
+       "n": 1492,
+       "min": -0.22999999999999998,
+       "p25": 0.0,
+       "median": 0.0005,
+       "p75": 0.37125,
+       "p90": 0.6485,
+       "max": 1.0,
+       "mean": 0.19637500000000022
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1492,
+       "min": -54,
+       "p25": 32.0,
+       "median": 113.0,
+       "p75": 352.75,
+       "p90": 853.2000000000007,
+       "max": 199996
+      },
+      "per_item_worst_regret_xs": {
+       "n": 245,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.07499999999999996,
+       "p75": 0.508,
+       "p90": 0.9981000000000001,
+       "max": 1.0,
+       "mean": 0.3008448979591836
+      },
+      "per_item_median_regret_xs": {
+       "n": 245,
+       "min": -0.013000000000000001,
+       "p25": 0.0,
+       "median": 0.0045000000000000005,
+       "p75": 0.4405,
+       "p90": 0.6736999999999997,
+       "max": 1.0,
+       "mean": 0.20822448979591837
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5335120643431636,
+      "permitted_actions_scored_on_cp": 1492,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5056947814090671
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 241,
+      "min": -1.0,
+      "p25": -0.0034999999999999476,
+      "median": 0.0,
+      "p75": 0.009499999999999953,
+      "p90": 0.26399999999999996,
+      "max": 0.9995,
+      "mean": -0.016186721991701156
+     },
+     "regret_b_xs": {
+      "n": 241,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0034999999999999476,
+      "p90": 0.3410000000000001,
+      "max": 1.0,
+      "mean": 0.07413485477178422
+     },
+     "chance_advantage_xs": {
+      "n": 241,
+      "min": -1.0,
+      "p25": -0.09649999999999997,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.02999999999999997,
+      "max": 0.5055,
+      "mean": -0.10529045643153528
+     },
+     "b_valid": 0.4,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.11456043956043956,
+      "median": 0.18181818181818182,
+      "p75": 0.2413793103448276,
+      "p90": 0.2813301282051282,
+      "max": 0.5454545454545454,
+      "mean": 0.18037266035131252
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 241,
+      "per_action_regret_xs": {
+       "n": 1402,
+       "min": -0.08599999999999997,
+       "p25": 0.0,
+       "median": 0.086,
+       "p75": 0.48675,
+       "p90": 0.6711000000000008,
+       "max": 1.0,
+       "mean": 0.2577860199714695
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1402,
+       "min": -38,
+       "p25": 54.0,
+       "median": 140.0,
+       "p75": 487.0,
+       "p90": 757.6000000000004,
+       "max": 199997
+      },
+      "per_item_worst_regret_xs": {
+       "n": 241,
+       "min": -0.02650000000000008,
+       "p25": 0.0,
+       "median": 0.4695,
+       "p75": 0.5415,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.38118049792531117
+      },
+      "per_item_median_regret_xs": {
+       "n": 241,
+       "min": -0.02650000000000008,
+       "p25": 0.0,
+       "median": 0.05500000000000005,
+       "p75": 0.457,
+       "p90": 0.5415000000000001,
+       "max": 1.0,
+       "mean": 0.23195020746887962
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6105563480741797,
+      "permitted_actions_scored_on_cp": 1402,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5888514321086935
+     }
+    }
+   }
+  },
+  "RC-08": {
+   "name": "answer-the-rook-threat",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 246,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.33487500000000003,
+      "p90": 0.53375,
+      "max": 1.0,
+      "mean": 0.13960772357723575
+     },
+     "regret_b_xs": {
+      "n": 246,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0005,
+      "max": 1.0,
+      "mean": 0.034947154471544714
+     },
+     "chance_advantage_xs": {
+      "n": 246,
+      "min": -1.0,
+      "p25": -0.428,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.16598170731707315
+     },
+     "b_valid": 0.692,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0956221198156682,
+      "median": 0.16129032258064516,
+      "p75": 0.2609447004608295,
+      "p90": 0.35742857142857143,
+      "max": 0.6666666666666666,
+      "mean": 0.18752747193658806
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 246,
+      "per_action_regret_xs": {
+       "n": 1361,
+       "min": -0.08950000000000002,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.48350000000000004,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.22600955180014703
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1361,
+       "min": -235,
+       "p25": 26.0,
+       "median": 160.0,
+       "p75": 596.0,
+       "p90": 98846.0,
+       "max": 199996
+      },
+      "per_item_worst_regret_xs": {
+       "n": 246,
+       "min": -0.04299999999999998,
+       "p25": 0.0,
+       "median": 0.0005,
+       "p75": 0.5438750000000001,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.3252134146341463
+      },
+      "per_item_median_regret_xs": {
+       "n": 246,
+       "min": -0.05149999999999999,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.425125,
+       "p90": 0.9985,
+       "max": 1.0,
+       "mean": 0.21184552845528457
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5848640705363704,
+      "permitted_actions_scored_on_cp": 1361,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5267837966008697
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 236,
+      "min": -1.0,
+      "p25": -0.006875000000000046,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.14175,
+      "max": 1.0,
+      "mean": -0.014781779661016934
+     },
+     "regret_b_xs": {
+      "n": 236,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.006875000000000046,
+      "p90": 0.17149999999999996,
+      "max": 1.0,
+      "mean": 0.06134533898305084
+     },
+     "chance_advantage_xs": {
+      "n": 236,
+      "min": -1.0,
+      "p25": -0.04137500000000005,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.003500000000000003,
+      "max": 0.661,
+      "mean": -0.0885720338983051
+     },
+     "b_valid": 0.388,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.11823529411764705,
+      "median": 0.18421052631578946,
+      "p75": 0.2413793103448276,
+      "p90": 0.2943355119825708,
+      "max": 0.39473684210526316,
+      "mean": 0.17852461475231335
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 236,
+      "per_action_regret_xs": {
+       "n": 1451,
+       "min": -0.13,
+       "p25": 0.0,
+       "median": 0.028000000000000025,
+       "p75": 0.43999999999999995,
+       "p90": 0.616,
+       "max": 1.0,
+       "mean": 0.22148173673328778
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1451,
+       "min": -42,
+       "p25": 52.0,
+       "median": 138.0,
+       "p75": 401.5,
+       "p90": 748.0,
+       "max": 101042
+      },
+      "per_item_worst_regret_xs": {
+       "n": 236,
+       "min": -0.0005000000000000004,
+       "p25": 0.0,
+       "median": 0.32725,
+       "p75": 0.534125,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.36074576271186437
+      },
+      "per_item_median_regret_xs": {
+       "n": 236,
+       "min": -0.0005000000000000004,
+       "p25": 0.0,
+       "median": 0.02250000000000002,
+       "p75": 0.427625,
+       "p90": 0.5795,
+       "max": 1.0,
+       "mean": 0.2188177966101695
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5954514128187457,
+      "permitted_actions_scored_on_cp": 1451,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5921289750738907
+     }
+    }
+   }
+  },
+  "RC-09": {
+   "name": "answer-the-minor-threat",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 247,
+      "min": -0.9915,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.196,
+      "p90": 0.5118,
+      "max": 1.0,
+      "mean": 0.1139311740890688
+     },
+     "regret_b_xs": {
+      "n": 247,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.05990000000000009,
+      "max": 0.9915,
+      "mean": 0.03660526315789473
+     },
+     "chance_advantage_xs": {
+      "n": 247,
+      "min": -1.0,
+      "p25": -0.41525,
+      "median": -0.0005,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.8475,
+      "mean": -0.19054858299595148
+     },
+     "b_valid": 0.644,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0956221198156682,
+      "median": 0.14119601328903653,
+      "p75": 0.19230769230769232,
+      "p90": 0.2559468438538206,
+      "max": 0.47058823529411764,
+      "mean": 0.152131376676019
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 247,
+      "per_action_regret_xs": {
+       "n": 1313,
+       "min": -0.11499999999999999,
+       "p25": 0.0,
+       "median": 0.0024999999999999467,
+       "p75": 0.39749999999999996,
+       "p90": 0.8772999999999993,
+       "max": 1.0,
+       "mean": 0.20856778370144732
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1313,
+       "min": -56,
+       "p25": 27.0,
+       "median": 104.0,
+       "p75": 331.0,
+       "p90": 755.1999999999998,
+       "max": 100806
+      },
+      "per_item_worst_regret_xs": {
+       "n": 247,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.1245,
+       "p75": 0.509,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.3252692307692307
+      },
+      "per_item_median_regret_xs": {
+       "n": 247,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.01899999999999999,
+       "p75": 0.39325,
+       "p90": 0.5363,
+       "max": 1.0,
+       "mean": 0.20264777327935218
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5178979436405179,
+      "permitted_actions_scored_on_cp": 1313,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.46515706350488456
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 241,
+      "min": -0.6585,
+      "p25": -0.00649999999999995,
+      "median": 0.0,
+      "p75": 0.0025000000000000022,
+      "p90": 0.1060000000000001,
+      "max": 1.0,
+      "mean": -0.001784232365145238
+     },
+     "regret_b_xs": {
+      "n": 241,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.00649999999999995,
+      "p90": 0.194,
+      "max": 0.6585,
+      "mean": 0.0483091286307054
+     },
+     "chance_advantage_xs": {
+      "n": 241,
+      "min": -1.0,
+      "p25": -0.07300000000000006,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0050000000000000044,
+      "max": 0.493,
+      "mean": -0.07719709543568466
+     },
+     "b_valid": 0.472,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.13115942028985506,
+      "median": 0.19047619047619047,
+      "p75": 0.2562611806797853,
+      "p90": 0.3076923076923077,
+      "max": 0.4230769230769231,
+      "mean": 0.1918088040981274
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 241,
+      "per_action_regret_xs": {
+       "n": 1568,
+       "min": -0.04999999999999993,
+       "p25": 0.0,
+       "median": 0.0615,
+       "p75": 0.482,
+       "p90": 0.6001999999999998,
+       "max": 1.0,
+       "mean": 0.23510076530612226
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1568,
+       "min": -60,
+       "p25": 51.0,
+       "median": 138.0,
+       "p75": 441.25,
+       "p90": 780.3,
+       "max": 100589
+      },
+      "per_item_worst_regret_xs": {
+       "n": 241,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.4875,
+       "p75": 0.5985,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.4144937759336101
+      },
+      "per_item_median_regret_xs": {
+       "n": 241,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.052000000000000046,
+       "p75": 0.404,
+       "p90": 0.506,
+       "max": 1.0,
+       "mean": 0.19860165975103738
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5816326530612245,
+      "permitted_actions_scored_on_cp": 1568,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5451597215601364
+     }
+    }
+   }
+  },
+  "RC-11": {
+   "name": "move-the-threatened-minor",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 247,
+      "min": -0.8195,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.06349999999999997,
+      "p90": 0.4913,
+      "max": 1.0,
+      "mean": 0.061945344129554665
+     },
+     "regret_b_xs": {
+      "n": 247,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.40880000000000005,
+      "max": 0.8195,
+      "mean": 0.06286234817813764
+     },
+     "chance_advantage_xs": {
+      "n": 247,
+      "min": -1.0,
+      "p25": -0.48524999999999996,
+      "median": -0.007000000000000006,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.20379149797570845
+     },
+     "b_valid": 0.612,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.13544226044226043,
+      "median": 0.17370689655172414,
+      "p75": 0.21875,
+      "p90": 0.2572350230414746,
+      "max": 0.5714285714285714,
+      "mean": 0.17918612484297147
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 247,
+      "per_action_regret_xs": {
+       "n": 1492,
+       "min": -0.1725,
+       "p25": 0.0,
+       "median": 0.023999999999999994,
+       "p75": 0.4975,
+       "p90": 0.9057500000000003,
+       "max": 1.0,
+       "mean": 0.2570636729222523
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1492,
+       "min": -48,
+       "p25": 50.0,
+       "median": 191.5,
+       "p75": 422.25,
+       "p90": 617.0,
+       "max": 100408
+      },
+      "per_item_worst_regret_xs": {
+       "n": 247,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.4795,
+       "p75": 0.808,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.42750000000000005
+      },
+      "per_item_median_regret_xs": {
+       "n": 247,
+       "min": -0.0015000000000000568,
+       "p25": 0.0,
+       "median": 0.11499999999999999,
+       "p75": 0.5,
+       "p90": 0.8741000000000003,
+       "max": 1.0,
+       "mean": 0.28566396761133606
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6273458445040214,
+      "permitted_actions_scored_on_cp": 1492,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.6296446243814663
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 182,
+      "min": -1.0,
+      "p25": -0.222375,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0014500000000000042,
+      "max": 0.8170000000000001,
+      "mean": -0.14388461538461528
+     },
+     "regret_b_xs": {
+      "n": 182,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.222375,
+      "p90": 0.51045,
+      "max": 1.0,
+      "mean": 0.15469230769230768
+     },
+     "chance_advantage_xs": {
+      "n": 182,
+      "min": -1.0,
+      "p25": -0.4805,
+      "median": -0.006999999999999951,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.04149999999999998,
+      "mean": -0.23504945054945056
+     },
+     "b_valid": 0.136,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.034482758620689655,
+      "p75": 0.058403361344537816,
+      "p90": 0.08033333333333331,
+      "max": 0.4,
+      "mean": 0.04236270874450345
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 182,
+      "per_action_regret_xs": {
+       "n": 272,
+       "min": -0.09499999999999997,
+       "p25": 0.0,
+       "median": 0.0005,
+       "p75": 0.40625,
+       "p90": 0.519,
+       "max": 1.0,
+       "mean": 0.18169852941176473
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 272,
+       "min": -99021,
+       "p25": 30.75,
+       "median": 134.0,
+       "p75": 354.25,
+       "p90": 646.2000000000003,
+       "max": 100553
+      },
+      "per_item_worst_regret_xs": {
+       "n": 182,
+       "min": -0.09499999999999997,
+       "p25": 0.0,
+       "median": 0.0012499999999999734,
+       "p75": 0.439375,
+       "p90": 0.52035,
+       "max": 1.0,
+       "mean": 0.19847252747252747
+      },
+      "per_item_median_regret_xs": {
+       "n": 182,
+       "min": -0.09499999999999997,
+       "p25": 0.0,
+       "median": 0.0012499999999999734,
+       "p75": 0.439375,
+       "p90": 0.52035,
+       "max": 1.0,
+       "mean": 0.19847252747252747
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5441176470588235,
+      "permitted_actions_scored_on_cp": 272,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5238095238095238
+     }
+    }
+   }
+  },
+  "RC-12": {
+   "name": "stop-the-promotion",
+   "role": "candidate",
+   "c11_grade": "SATURATED",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 189,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.5,
+      "max": 1.0,
+      "mean": 0.06574338624338626
+     },
+     "regret_b_xs": {
+      "n": 189,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": 0.03958201058201058
+     },
+     "chance_advantage_xs": {
+      "n": 189,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.1256746031746032
+     },
+     "b_valid": 0.464,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.03777777777777778,
+      "median": 0.125,
+      "p75": 0.17925824175824176,
+      "p90": 0.29470588235294115,
+      "max": 0.48484848484848486,
+      "mean": 0.1288437390915537
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 189,
+      "per_action_regret_xs": {
+       "n": 715,
+       "min": -0.058499999999999996,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.498,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.2036167832167832
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 715,
+       "min": -93,
+       "p25": 10.0,
+       "median": 223.0,
+       "p75": 1071.0,
+       "p90": 99531.8,
+       "max": 100716
+      },
+      "per_item_worst_regret_xs": {
+       "n": 189,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.5,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.254510582010582
+      },
+      "per_item_median_regret_xs": {
+       "n": 189,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.21300000000000002,
+       "p90": 0.5154000000000009,
+       "max": 1.0,
+       "mean": 0.1724656084656085
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.579020979020979,
+      "permitted_actions_scored_on_cp": 715,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5061635821556457
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 242,
+      "min": -1.0,
+      "p25": -0.0014999999999999866,
+      "median": 0.0,
+      "p75": 0.007874999999999964,
+      "p90": 0.2201500000000001,
+      "max": 1.0,
+      "mean": -0.0077190082644627706
+     },
+     "regret_b_xs": {
+      "n": 242,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0014999999999999866,
+      "p90": 0.3044000000000009,
+      "max": 1.0,
+      "mean": 0.06759710743801653
+     },
+     "chance_advantage_xs": {
+      "n": 242,
+      "min": -1.0,
+      "p25": -0.059375,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.019349999999999975,
+      "max": 1.0,
+      "mean": -0.09029545454545457
+     },
+     "b_valid": 0.428,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.125,
+      "median": 0.19782608695652176,
+      "p75": 0.25,
+      "p90": 0.3,
+      "max": 0.4230769230769231,
+      "mean": 0.1946896963293328
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 242,
+      "per_action_regret_xs": {
+       "n": 1528,
+       "min": -0.11649999999999999,
+       "p25": 0.0,
+       "median": 0.0295,
+       "p75": 0.45812500000000006,
+       "p90": 0.856,
+       "max": 1.0,
+       "mean": 0.2314253926701569
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1528,
+       "min": -146,
+       "p25": 47.0,
+       "median": 132.5,
+       "p75": 418.5,
+       "p90": 769.8999999999999,
+       "max": 199996
+      },
+      "per_item_worst_regret_xs": {
+       "n": 242,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.39749999999999996,
+       "p75": 0.569,
+       "p90": 0.99995,
+       "max": 1.0,
+       "mean": 0.3722355371900827
+      },
+      "per_item_median_regret_xs": {
+       "n": 242,
+       "min": -0.039000000000000035,
+       "p25": 0.0,
+       "median": 0.021250000000000012,
+       "p75": 0.365625,
+       "p90": 0.5386000000000002,
+       "max": 1.0,
+       "mean": 0.20449173553719
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5916230366492147,
+      "permitted_actions_scored_on_cp": 1528,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5588542541021883
+     }
+    }
+   }
+  },
+  "RC-13": {
+   "name": "underpromote-to-knight",
+   "role": "candidate",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 67,
+     "advantage_xs": {
+      "n": 67,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.0,
+      "mean": -0.06343283582089553
+     },
+     "regret_b_xs": {
+      "n": 67,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.22009999999999935,
+      "max": 1.0,
+      "mean": 0.06343283582089553
+     },
+     "chance_advantage_xs": {
+      "n": 67,
+      "min": -1.0,
+      "p25": -0.0012499999999999734,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.0,
+      "mean": -0.13584328358208955
+     },
+     "b_valid": 0.029850746268656716,
+     "prescription_size": {
+      "n": 67,
+      "min": 0.019230769230769232,
+      "p25": 0.031754032258064516,
+      "median": 0.047619047619047616,
+      "p75": 0.0625,
+      "p90": 0.09714285714285714,
+      "max": 0.2,
+      "mean": 0.055209083445936426
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 67,
+      "per_action_regret_xs": {
+       "n": 78,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.5,
+       "max": 1.0,
+       "mean": 0.09147435897435897
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 78,
+       "min": -32,
+       "p25": 12.25,
+       "median": 455.0,
+       "p75": 99283.5,
+       "p90": 99589.5,
+       "max": 199991
+      },
+      "per_item_worst_regret_xs": {
+       "n": 67,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.5,
+       "max": 1.0,
+       "mean": 0.09563432835820895
+      },
+      "per_item_median_regret_xs": {
+       "n": 67,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.5,
+       "max": 1.0,
+       "mean": 0.09324626865671641
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6538461538461539,
+      "permitted_actions_scored_on_cp": 78,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.6194029850746269
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.495,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.0,
+      "mean": -0.22052200000000002
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.495,
+      "p90": 1.0,
+      "max": 1.0,
+      "mean": 0.220522
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.456375,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.18095600000000006
+     },
+     "b_valid": 0.0,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.015151515151515152,
+      "p25": 0.030303030303030304,
+      "median": 0.0392156862745098,
+      "p75": 0.05263157894736842,
+      "p90": 0.08333333333333333,
+      "max": 0.25,
+      "mean": 0.04882010095842583
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 258,
+       "min": -0.0004999999999999449,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.497,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.2272887596899225
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 258,
+       "min": -1,
+       "p25": 123.25,
+       "median": 445.0,
+       "p75": 99178.75,
+       "p90": 99727.90000000001,
+       "max": 199997
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.0004999999999999449,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.497,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.229002
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.0004999999999999449,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.497,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.229002
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.7674418604651163,
+      "permitted_actions_scored_on_cp": 258,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.762
+     }
+    }
+   }
+  },
+  "RC-14": {
+   "name": "capture-the-mating-piece",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 240,
+     "advantage_xs": {
+      "n": 240,
+      "min": -1.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.00725,
+      "p90": 0.9806499999999999,
+      "max": 1.0,
+      "mean": 0.11044166666666667
+     },
+     "regret_b_xs": {
+      "n": 240,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0005,
+      "max": 1.0,
+      "mean": 0.05980833333333333
+     },
+     "chance_advantage_xs": {
+      "n": 240,
+      "min": -1.0,
+      "p25": -1.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 1.0,
+      "mean": -0.3368270833333334
+     },
+     "b_valid": 0.625,
+     "prescription_size": {
+      "n": 240,
+      "min": 0.018518518518518517,
+      "p25": 0.029201680672268908,
+      "median": 0.037037037037037035,
+      "p75": 0.05263157894736842,
+      "p90": 0.07407407407407407,
+      "max": 0.18181818181818182,
+      "mean": 0.04511824281582771
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 240,
+      "per_action_regret_xs": {
+       "n": 278,
+       "min": -0.0635,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.18470000000000136,
+       "max": 1.0,
+       "mean": 0.07464568345323741
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 278,
+       "min": -99019,
+       "p25": 0.0,
+       "median": 14.0,
+       "p75": 170.75,
+       "p90": 99214.3,
+       "max": 199995
+      },
+      "per_item_worst_regret_xs": {
+       "n": 240,
+       "min": -0.0635,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.34804999999999964,
+       "max": 1.0,
+       "mean": 0.07912916666666667
+      },
+      "per_item_median_regret_xs": {
+       "n": 240,
+       "min": -0.0635,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0,
+       "p90": 0.2850499999999992,
+       "max": 1.0,
+       "mean": 0.07883749999999999
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.2805755395683453,
+      "permitted_actions_scored_on_cp": 278,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.2618055555555555
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.007375000000000001,
+      "median": 0.0,
+      "p75": 0.004000000000000003,
+      "p90": 0.50555,
+      "max": 1.0,
+      "mean": 0.012591999999999996
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.007375000000000001,
+      "p90": 0.50035,
+      "max": 1.0,
+      "mean": 0.12036
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.83275,
+      "median": -0.25425000000000003,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.5,
+      "mean": -0.37444999999999995
+     },
+     "b_valid": 0.512,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.018518518518518517,
+      "p25": 0.02564102564102564,
+      "median": 0.03125,
+      "p75": 0.041666666666666664,
+      "p90": 0.05919117647058821,
+      "max": 0.2857142857142857,
+      "mean": 0.03817219376465519
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 304,
+       "min": -0.10650000000000004,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.032624999999999994,
+       "p90": 0.50925,
+       "max": 1.0,
+       "mean": 0.12829934210526317
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 304,
+       "min": -58,
+       "p25": 0.0,
+       "median": 26.5,
+       "p75": 204.0,
+       "p90": 500.7,
+       "max": 199997
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.10650000000000004,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.07112500000000001,
+       "p90": 0.5613999999999999,
+       "max": 1.0,
+       "mean": 0.15198000000000003
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.10650000000000004,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.06575,
+       "p90": 0.5613999999999999,
+       "max": 1.0,
+       "mean": 0.14968
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.35855263157894735,
+      "permitted_actions_scored_on_cp": 304,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.3453333333333334
+     }
+    }
+   }
+  },
+  "RC-18": {
+   "name": "move-the-piece-that-must-move",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -0.9955,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.34312499999999996,
+      "p90": 0.5067499999999999,
+      "max": 1.0,
+      "mean": 0.09334
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.3208999999999999,
+      "max": 0.9955,
+      "mean": 0.061588
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.48512500000000003,
+      "median": -0.03849999999999998,
+      "p75": 0.0,
+      "p90": 0.0025999999999999465,
+      "max": 0.9960000000000001,
+      "mean": -0.2267619999999999
+     },
+     "b_valid": 0.636,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.047619047619047616,
+      "p25": 0.13793103448275862,
+      "median": 0.16666666666666666,
+      "p75": 0.19444444444444445,
+      "p90": 0.2222222222222222,
+      "max": 0.3333333333333333,
+      "mean": 0.16436275962252256
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 1453,
+       "min": -0.13150000000000006,
+       "p25": 0.0,
+       "median": 0.0695,
+       "p75": 0.496,
+       "p90": 0.8872999999999996,
+       "max": 1.0,
+       "mean": 0.27492291810048197
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1453,
+       "min": -46,
+       "p25": 47.0,
+       "median": 182.0,
+       "p75": 402.0,
+       "p90": 585.1999999999998,
+       "max": 100637
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0011250000000000001,
+       "median": 0.4905,
+       "p75": 0.752375,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.44852000000000014
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": 0.0,
+       "p25": 0.0,
+       "median": 0.177,
+       "p75": 0.496125,
+       "p90": 0.7529999999999999,
+       "max": 1.0,
+       "mean": 0.28807800000000006
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6490020646937371,
+      "permitted_actions_scored_on_cp": 1453,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.6442666666666669
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 188,
+      "min": -1.0,
+      "p25": -0.10337500000000008,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.029200000000000146,
+      "max": 0.9435,
+      "mean": -0.10923936170212765
+     },
+     "regret_b_xs": {
+      "n": 188,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.10337500000000008,
+      "p90": 0.5003,
+      "max": 1.0,
+      "mean": 0.12907712765957446
+     },
+     "chance_advantage_xs": {
+      "n": 188,
+      "min": -1.0,
+      "p25": -0.47425,
+      "median": -0.014750000000000034,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.973,
+      "mean": -0.20378723404255333
+     },
+     "b_valid": 0.164,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.020944148936170214,
+      "median": 0.037037037037037035,
+      "p75": 0.0625,
+      "p90": 0.08369565217391302,
+      "max": 0.6666666666666666,
+      "mean": 0.04775163353047425
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 188,
+      "per_action_regret_xs": {
+       "n": 298,
+       "min": -0.058499999999999996,
+       "p25": 0.0,
+       "median": 0.0010000000000000009,
+       "p75": 0.1735,
+       "p90": 0.5205500000000002,
+       "max": 1.0,
+       "mean": 0.157488255033557
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 298,
+       "min": -20,
+       "p25": 24.0,
+       "median": 104.5,
+       "p75": 296.5,
+       "p90": 608.0000000000005,
+       "max": 100453
+      },
+      "per_item_worst_regret_xs": {
+       "n": 188,
+       "min": -0.01649999999999996,
+       "p25": 0.0,
+       "median": 0.005000000000000003,
+       "p75": 0.3165,
+       "p90": 0.5283000000000001,
+       "max": 1.0,
+       "mean": 0.17737234042553185
+      },
+      "per_item_median_regret_xs": {
+       "n": 188,
+       "min": -0.01649999999999996,
+       "p25": 0.0,
+       "median": 0.004500000000000002,
+       "p75": 0.28712499999999996,
+       "p90": 0.52695,
+       "max": 1.0,
+       "mean": 0.17467021276595743
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5134228187919463,
+      "permitted_actions_scored_on_cp": 298,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5093085106382979
+     }
+    }
+   }
+  },
+  "RC-20": {
+   "name": "defend-the-piece-in-place",
+   "role": "candidate",
+   "c11_grade": "VACANT",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 206,
+      "min": -1.0,
+      "p25": -0.096,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.007250000000000003,
+      "max": 1.0,
+      "mean": -0.09775242718446597
+     },
+     "regret_b_xs": {
+      "n": 206,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.096,
+      "p90": 0.49124999999999996,
+      "max": 1.0,
+      "mean": 0.1234004854368932
+     },
+     "chance_advantage_xs": {
+      "n": 206,
+      "min": -1.0,
+      "p25": -0.49512500000000004,
+      "median": -0.0007499999999999723,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.9495,
+      "mean": -0.2275946601941747
+     },
+     "b_valid": 0.224,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.03362068965517241,
+      "median": 0.08633540372670807,
+      "p75": 0.14285714285714285,
+      "p90": 0.2,
+      "max": 0.36666666666666664,
+      "mean": 0.09531509187620735
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 206,
+      "per_action_regret_xs": {
+       "n": 876,
+       "min": -0.066,
+       "p25": 0.0,
+       "median": 0.020750000000000008,
+       "p75": 0.5005,
+       "p90": 0.9995,
+       "max": 1.0,
+       "mean": 0.2810119863013701
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 876,
+       "min": -98935,
+       "p25": 93.5,
+       "median": 286.5,
+       "p75": 611.25,
+       "p90": 98983.0,
+       "max": 100794
+      },
+      "per_item_worst_regret_xs": {
+       "n": 206,
+       "min": -0.0019999999999999463,
+       "p25": 0.0,
+       "median": 0.21999999999999997,
+       "p75": 0.928125,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.38882524271844654
+      },
+      "per_item_median_regret_xs": {
+       "n": 206,
+       "min": -0.0019999999999999463,
+       "p25": 0.0,
+       "median": 0.024749999999999984,
+       "p75": 0.5,
+       "p90": 0.9905,
+       "max": 1.0,
+       "mean": 0.28024029126213595
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.7385844748858448,
+      "permitted_actions_scored_on_cp": 876,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.7112543605262054
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 228,
+      "min": -1.0,
+      "p25": -0.04012500000000002,
+      "median": 0.0,
+      "p75": 0.0016250000000000006,
+      "p90": 0.0670500000000001,
+      "max": 1.0,
+      "mean": -0.055438596491228086
+     },
+     "regret_b_xs": {
+      "n": 228,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.04012500000000002,
+      "p90": 0.4495500000000001,
+      "max": 1.0,
+      "mean": 0.09545614035087718
+     },
+     "chance_advantage_xs": {
+      "n": 228,
+      "min": -1.0,
+      "p25": -0.208375,
+      "median": -0.002750000000000029,
+      "p75": 0.0,
+      "p90": 0.019499999999999962,
+      "max": 0.505,
+      "mean": -0.13595394736842098
+     },
+     "b_valid": 0.316,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.10278514588859416,
+      "median": 0.17192118226600986,
+      "p75": 0.23333333333333334,
+      "p90": 0.26560477849676456,
+      "max": 0.4,
+      "mean": 0.1631731385518189
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 228,
+      "per_action_regret_xs": {
+       "n": 1314,
+       "min": -0.08399999999999996,
+       "p25": 0.0004999999999999449,
+       "median": 0.13275,
+       "p75": 0.48975,
+       "p90": 0.828,
+       "max": 1.0,
+       "mean": 0.27832191780821963
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 1314,
+       "min": -99213,
+       "p25": 53.0,
+       "median": 142.5,
+       "p75": 437.5,
+       "p90": 700.0,
+       "max": 199994
+      },
+      "per_item_worst_regret_xs": {
+       "n": 228,
+       "min": -0.005499999999999998,
+       "p25": 0.001375,
+       "median": 0.4875,
+       "p75": 0.57925,
+       "p90": 1.0,
+       "max": 1.0,
+       "mean": 0.4419934210526315
+      },
+      "per_item_median_regret_xs": {
+       "n": 228,
+       "min": -0.005499999999999998,
+       "p25": 0.0,
+       "median": 0.12150000000000002,
+       "p75": 0.47775,
+       "p90": 0.8460500000000003,
+       "max": 1.0,
+       "mean": 0.2676973684210527
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.6004566210045662,
+      "permitted_actions_scored_on_cp": 1314,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.584173002923003
+     }
+    }
+   }
+  },
+  "RC-21": {
+   "name": "push-the-unstoppable-passer",
+   "role": "candidate",
+   "c11_grade": "MEASURABLE",
+   "cells": {
+    "t_plus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.004125,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.9980000000000001,
+      "mean": -0.12544
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.004125,
+      "p90": 0.5023,
+      "max": 1.0,
+      "mean": 0.13276
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.17737500000000006,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.5,
+      "mean": -0.16781200000000004
+     },
+     "b_valid": 0.172,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.01694915254237288,
+      "p25": 0.03125,
+      "median": 0.041666666666666664,
+      "p75": 0.06666666666666667,
+      "p90": 0.12903225806451613,
+      "max": 0.8,
+      "mean": 0.06908433065235854
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 384,
+       "min": -0.0045000000000000595,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.0365,
+       "p90": 0.6318999999999985,
+       "max": 1.0,
+       "mean": 0.16227343749999998
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 384,
+       "min": -99079,
+       "p25": 20.25,
+       "median": 145.0,
+       "p75": 549.75,
+       "p90": 99428.0,
+       "max": 100608
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.0045000000000000595,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.04437500000000003,
+       "p90": 0.5526999999999992,
+       "max": 1.0,
+       "mean": 0.161048
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.0045000000000000595,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.03624999999999999,
+       "p90": 0.5290999999999999,
+       "max": 1.0,
+       "mean": 0.15475399999999997
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5859375,
+      "permitted_actions_scored_on_cp": 384,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.5655
+     }
+    },
+    "t_minus": {
+     "n": 250,
+     "advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.14025,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.3565,
+      "mean": -0.17004799999999998
+     },
+     "regret_b_xs": {
+      "n": 250,
+      "min": 0.0,
+      "p25": 0.0,
+      "median": 0.0,
+      "p75": 0.14025,
+      "p90": 0.8694,
+      "max": 1.0,
+      "mean": 0.17189200000000002
+     },
+     "chance_advantage_xs": {
+      "n": 250,
+      "min": -1.0,
+      "p25": -0.358875,
+      "median": 0.0,
+      "p75": 0.0,
+      "p90": 0.0,
+      "max": 0.51,
+      "mean": -0.19594200000000003
+     },
+     "b_valid": 0.088,
+     "prescription_size": {
+      "n": 250,
+      "min": 0.017543859649122806,
+      "p25": 0.02857142857142857,
+      "median": 0.038461538461538464,
+      "p75": 0.06202651515151515,
+      "p90": 0.09134199134199132,
+      "max": 0.25,
+      "mean": 0.05174066798444196
+     },
+     "robustness": {
+      "items_with_a_permitted_set": 250,
+      "per_action_regret_xs": {
+       "n": 322,
+       "min": -0.0020000000000000018,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.264375,
+       "p90": 0.8822000000000002,
+       "max": 1.0,
+       "mean": 0.17847360248447208
+      },
+      "per_action_regret_cp_excluding_mates": {
+       "n": 322,
+       "min": -334,
+       "p25": 31.5,
+       "median": 126.5,
+       "p75": 394.0,
+       "p90": 897.0000000000003,
+       "max": 199996
+      },
+      "per_item_worst_regret_xs": {
+       "n": 250,
+       "min": -0.0004999999999999449,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.197125,
+       "p90": 0.8798,
+       "max": 1.0,
+       "mean": 0.176286
+      },
+      "per_item_median_regret_xs": {
+       "n": 250,
+       "min": -0.0004999999999999449,
+       "p25": 0.0,
+       "median": 0.0,
+       "p75": 0.197125,
+       "p90": 0.8798,
+       "max": 1.0,
+       "mean": 0.176284
+      },
+      "share_of_permitted_actions_losing_100cp_or_more": 0.5527950310559007,
+      "permitted_actions_scored_on_cp": 322,
+      "mean_share_of_an_items_permitted_set_that_blunders": 0.552
+     }
+    }
+   }
+  }
+ },
+ "against_published": {
+  "published_engine": {
+   "nodes": 200000,
+   "workers": 4,
+   "wdl_model": "sf16",
+   "build": "Stockfish 16"
+  },
+  "published_provenance_warning": "THIS IS NOT THE PUBLISHED ENGINE. The published screen ran Stockfish 17.1 at 200,000 nodes; this run's build is recorded above. Every comparison in this file is therefore WITHIN this run -- b_valid is recomputed here by the published method so that the reordering is measured against a column produced by the same engine. No number here may be subtracted from a number in RULE_CLASS_SEARCH.md.",
+  "per_class": {
+   "RC-00": {
+    "published_separation_advantage_over_chance_xs": 0.3444920000000001,
+    "here_separation_advantage_over_chance_xs": 0.3433120000000001,
+    "published_b_valid_t_plus": 1.0,
+    "here_b_valid_t_plus": 1.0,
+    "published_verdict": "ANCHOR"
+   },
+   "RC-01": {
+    "published_separation_advantage_over_chance_xs": 0.564136,
+    "here_separation_advantage_over_chance_xs": 0.568936,
+    "published_b_valid_t_plus": 0.788,
+    "here_b_valid_t_plus": 0.792,
+    "published_verdict": "ANCHOR"
+   },
+   "RC-02": {
+    "published_separation_advantage_over_chance_xs": 0.3088700000000002,
+    "here_separation_advantage_over_chance_xs": 0.31054000000000015,
+    "published_b_valid_t_plus": 0.648,
+    "here_b_valid_t_plus": 0.648,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-03": {
+    "published_separation_advantage_over_chance_xs": 0.14965445988346016,
+    "here_separation_advantage_over_chance_xs": 0.14569388166741368,
+    "published_b_valid_t_plus": 0.964,
+    "here_b_valid_t_plus": 0.956,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-04": {
+    "published_separation_advantage_over_chance_xs": 0.197984,
+    "here_separation_advantage_over_chance_xs": 0.20879599999999998,
+    "published_b_valid_t_plus": 0.704,
+    "here_b_valid_t_plus": 0.692,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-05": {
+    "published_separation_advantage_over_chance_xs": 0.063718,
+    "here_separation_advantage_over_chance_xs": 0.06227,
+    "published_b_valid_t_plus": 0.52,
+    "here_b_valid_t_plus": 0.512,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-06": {
+    "published_separation_advantage_over_chance_xs": 0.3911067167342983,
+    "here_separation_advantage_over_chance_xs": 0.3792399713322433,
+    "published_b_valid_t_plus": 0.968,
+    "here_b_valid_t_plus": 0.968,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-07": {
+    "published_separation_advantage_over_chance_xs": 0.3733331442120418,
+    "here_separation_advantage_over_chance_xs": 0.36114728596832907,
+    "published_b_valid_t_plus": 0.82,
+    "here_b_valid_t_plus": 0.804,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-08": {
+    "published_separation_advantage_over_chance_xs": 0.21894246933994782,
+    "here_separation_advantage_over_chance_xs": 0.23179917665702082,
+    "published_b_valid_t_plus": 0.7,
+    "here_b_valid_t_plus": 0.692,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-09": {
+    "published_separation_advantage_over_chance_xs": 0.23256140910847178,
+    "here_separation_advantage_over_chance_xs": 0.22906689401448094,
+    "published_b_valid_t_plus": 0.652,
+    "here_b_valid_t_plus": 0.644,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-11": {
+    "published_separation_advantage_over_chance_xs": 0.17217134181607857,
+    "here_separation_advantage_over_chance_xs": 0.17457200694042793,
+    "published_b_valid_t_plus": 0.6,
+    "here_b_valid_t_plus": 0.612,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-12": {
+    "published_separation_advantage_over_chance_xs": 0.11436870873234507,
+    "here_separation_advantage_over_chance_xs": 0.1088415431369977,
+    "published_b_valid_t_plus": 0.464,
+    "here_b_valid_t_plus": 0.464,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-13": {
+    "published_separation_advantage_over_chance_xs": 0.11580638805970153,
+    "here_separation_advantage_over_chance_xs": 0.11197644776119406,
+    "published_b_valid_t_plus": 0.0,
+    "here_b_valid_t_plus": 0.029850746268656716,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-14": {
+    "published_separation_advantage_over_chance_xs": 0.05701616666666687,
+    "here_separation_advantage_over_chance_xs": 0.060226749999999774,
+    "published_b_valid_t_plus": 0.6666666666666666,
+    "here_b_valid_t_plus": 0.625,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-18": {
+    "published_separation_advantage_over_chance_xs": 0.23142114893617005,
+    "here_separation_advantage_over_chance_xs": 0.2255541276595744,
+    "published_b_valid_t_plus": 0.612,
+    "here_b_valid_t_plus": 0.636,
+    "published_verdict": "fails A5_beats_incumbent"
+   },
+   "RC-20": {
+    "published_separation_advantage_over_chance_xs": 0.0520645120081758,
+    "here_separation_advantage_over_chance_xs": 0.049326882132515765,
+    "published_b_valid_t_plus": 0.224,
+    "here_b_valid_t_plus": 0.224,
+    "published_verdict": "fails A3_efficacious, A5_beats_incumbent"
+   },
+   "RC-21": {
+    "published_separation_advantage_over_chance_xs": 0.017033999999999966,
+    "here_separation_advantage_over_chance_xs": 0.016478,
+    "published_b_valid_t_plus": 0.18,
+    "here_b_valid_t_plus": 0.172,
+    "published_verdict": "fails A5_beats_incumbent"
+   }
+  }
+ }
+}

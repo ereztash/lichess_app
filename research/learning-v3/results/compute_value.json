@@ -1,0 +1,1841 @@
+{
+ "version": "1.0.0",
+ "natural_items_after_dedup": 8310,
+ "items_in_bank": 9441,
+ "derived_from": "the frozen corpus only. No engine search was run to produce this file.",
+ "1_action_set_atlas": {
+  "RC-00::negative": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 4.0,
+   "b_share_of_legal_mean": 0.05879151313480422,
+   "advantage_xs_mean": -0.28266800000000003,
+   "regret_b_xs_mean": 0.2973840000000001,
+   "per_action_regret_median": 0.125,
+   "per_action_regret_p90": 1.0,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.44085399999999997,
+   "share_of_permitted_actions_with_any_regret": 0.6543238095238094,
+   "b_valid": 0.192
+  },
+  "RC-00::positive": {
+   "items": 247,
+   "b_size_median": 3.0,
+   "b_size_p90": 9.0,
+   "b_share_of_legal_mean": 0.11081262552519679,
+   "advantage_xs_mean": 0.11272874493927125,
+   "regret_b_xs_mean": 0.0,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 1.0,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.5105080971659919,
+   "share_of_permitted_actions_with_any_regret": 0.29873562110404217,
+   "b_valid": 1.0
+  },
+  "RC-01::negative": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 1.0,
+   "b_share_of_legal_mean": 0.03077557391297474,
+   "advantage_xs_mean": -0.21688999999999992,
+   "regret_b_xs_mean": 0.23212799999999997,
+   "per_action_regret_median": 0.027249999999999983,
+   "per_action_regret_p90": 0.8732000000000009,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.24763,
+   "share_of_permitted_actions_with_any_regret": 0.648,
+   "b_valid": 0.18
+  },
+  "RC-01::positive": {
+   "items": 249,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.04606137333558362,
+   "advantage_xs_mean": 0.23614658634538152,
+   "regret_b_xs_mean": 0.02897590361445783,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.09960000000000012,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.06524698795180724,
+   "share_of_permitted_actions_with_any_regret": 0.24899598393574296,
+   "b_valid": 0.7911646586345381
+  },
+  "RC-02::negative": {
+   "items": 245,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.03385334889792077,
+   "advantage_xs_mean": -0.21143469387755107,
+   "regret_b_xs_mean": 0.23801428571428576,
+   "per_action_regret_median": 0.0050000000000000044,
+   "per_action_regret_p90": 0.9802500000000001,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.2854326530612245,
+   "share_of_permitted_actions_with_any_regret": 0.5530612244897959,
+   "b_valid": 0.2612244897959184
+  },
+  "RC-02::positive": {
+   "items": 247,
+   "b_size_median": 1.0,
+   "b_size_p90": 3.0,
+   "b_share_of_legal_mean": 0.04983109629487671,
+   "advantage_xs_mean": 0.08712753036437246,
+   "regret_b_xs_mean": 0.08231578947368423,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.5132500000000001,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.1796052631578947,
+   "share_of_permitted_actions_with_any_regret": 0.45175438596491224,
+   "b_valid": 0.6518218623481782
+  },
+  "RC-03::negative": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.3963857142857143,
+   "advantage_xs_mean": 0.12736521739130435,
+   "regret_b_xs_mean": 0.038988,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.46199999999999997,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.106064,
+   "share_of_permitted_actions_with_any_regret": 0.18533333333333335,
+   "b_valid": 0.692
+  },
+  "RC-03::positive": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 3.0,
+   "b_share_of_legal_mean": 0.5430095238095238,
+   "advantage_xs_mean": 0.31897680412371127,
+   "regret_b_xs_mean": 0.0,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.1248500000000009,
+   "per_action_regret_max": 0.9975,
+   "worst_in_b_regret_mean": 0.05575,
+   "share_of_permitted_actions_with_any_regret": 0.272,
+   "b_valid": 0.956
+  },
+  "RC-04::negative": {
+   "items": 250,
+   "b_size_median": 6.0,
+   "b_size_p90": 9.0,
+   "b_share_of_legal_mean": 0.18533019000700898,
+   "advantage_xs_mean": -0.09929599999999997,
+   "regret_b_xs_mean": 0.14475400000000002,
+   "per_action_regret_median": 0.14349999999999996,
+   "per_action_regret_p90": 0.9995,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.46248,
+   "share_of_permitted_actions_with_any_regret": 0.6354994227994227,
+   "b_valid": 0.28
+  },
+  "RC-04::positive": {
+   "items": 250,
+   "b_size_median": 7.0,
+   "b_size_p90": 14.099999999999994,
+   "b_share_of_legal_mean": 0.24033275447336325,
+   "advantage_xs_mean": 0.10002199999999997,
+   "regret_b_xs_mean": 0.04336000000000001,
+   "per_action_regret_median": 0.014499999999999957,
+   "per_action_regret_p90": 0.999,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.460066,
+   "share_of_permitted_actions_with_any_regret": 0.6034656520100052,
+   "b_valid": 0.692
+  },
+  "RC-05::negative": {
+   "items": 306,
+   "b_size_median": 1.0,
+   "b_size_p90": 1.0,
+   "b_share_of_legal_mean": 0.051146205677736555,
+   "advantage_xs_mean": -0.12619281045751635,
+   "regret_b_xs_mean": 0.13115196078431374,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.50025,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.13112418300653594,
+   "share_of_permitted_actions_with_any_regret": 0.2647058823529412,
+   "b_valid": 0.12418300653594772
+  },
+  "RC-05::positive": {
+   "items": 313,
+   "b_size_median": 1.0,
+   "b_size_p90": 1.0,
+   "b_share_of_legal_mean": 0.05245967706999357,
+   "advantage_xs_mean": -0.028493610223642177,
+   "regret_b_xs_mean": 0.052888178913738024,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.004199999999999976,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.05270766773162939,
+   "share_of_permitted_actions_with_any_regret": 0.11182108626198083,
+   "b_valid": 0.4728434504792332
+  },
+  "RC-06::negative": {
+   "items": 249,
+   "b_size_median": 3.0,
+   "b_size_p90": 7.0,
+   "b_share_of_legal_mean": 0.10128752581198495,
+   "advantage_xs_mean": -0.08774278846153846,
+   "regret_b_xs_mean": 0.1205913461538462,
+   "per_action_regret_median": 0.16574999999999998,
+   "per_action_regret_p90": 0.9825500000000001,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.43407211538461543,
+   "share_of_permitted_actions_with_any_regret": 0.6728327228327229,
+   "b_valid": 0.21686746987951808
+  },
+  "RC-06::positive": {
+   "items": 244,
+   "b_size_median": 8.0,
+   "b_size_p90": 16.0,
+   "b_share_of_legal_mean": 0.3166220799488493,
+   "advantage_xs_mean": 0.34641774891774896,
+   "regret_b_xs_mean": 0.0,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 1.0,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.3260868644067797,
+   "share_of_permitted_actions_with_any_regret": 0.40857222576150604,
+   "b_valid": 0.9672131147540983
+  },
+  "RC-07::negative": {
+   "items": 232,
+   "b_size_median": 5.0,
+   "b_size_p90": 10.0,
+   "b_share_of_legal_mean": 0.1756348209899924,
+   "advantage_xs_mean": -0.01798878923766816,
+   "regret_b_xs_mean": 0.07941928251121075,
+   "per_action_regret_median": 0.07075000000000001,
+   "per_action_regret_p90": 0.7455500000000003,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.37210313901345293,
+   "share_of_permitted_actions_with_any_regret": 0.5768036709180207,
+   "b_valid": 0.38362068965517243
+  },
+  "RC-07::positive": {
+   "items": 250,
+   "b_size_median": 6.0,
+   "b_size_p90": 10.0,
+   "b_share_of_legal_mean": 0.1574340435700975,
+   "advantage_xs_mean": 0.2529285714285716,
+   "regret_b_xs_mean": 0.020644897959183676,
+   "per_action_regret_median": 0.0005,
+   "per_action_regret_p90": 0.6485,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.3008448979591836,
+   "share_of_permitted_actions_with_any_regret": 0.4784017456466436,
+   "b_valid": 0.804
+  },
+  "RC-08::negative": {
+   "items": 235,
+   "b_size_median": 5.0,
+   "b_size_p90": 11.0,
+   "b_share_of_legal_mean": 0.17443329583936978,
+   "advantage_xs_mean": -0.015771493212669685,
+   "regret_b_xs_mean": 0.06490723981900452,
+   "per_action_regret_median": 0.0235,
+   "per_action_regret_p90": 0.72,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.3555429864253394,
+   "share_of_permitted_actions_with_any_regret": 0.5323637147166559,
+   "b_valid": 0.3574468085106383
+  },
+  "RC-08::positive": {
+   "items": 250,
+   "b_size_median": 5.0,
+   "b_size_p90": 9.099999999999994,
+   "b_share_of_legal_mean": 0.18752747193658809,
+   "advantage_xs_mean": 0.13960772357723586,
+   "regret_b_xs_mean": 0.034947154471544714,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 1.0,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.3252134146341463,
+   "share_of_permitted_actions_with_any_regret": 0.4084267584267584,
+   "b_valid": 0.692
+  },
+  "RC-09::negative": {
+   "items": 242,
+   "b_size_median": 6.0,
+   "b_size_p90": 11.0,
+   "b_share_of_legal_mean": 0.19042751230041705,
+   "advantage_xs_mean": -0.00018669527896995677,
+   "regret_b_xs_mean": 0.048225321888412026,
+   "per_action_regret_median": 0.05074999999999996,
+   "per_action_regret_p90": 0.6175,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.4114227467811159,
+   "share_of_permitted_actions_with_any_regret": 0.5788243230303316,
+   "b_valid": 0.47520661157024796
+  },
+  "RC-09::positive": {
+   "items": 250,
+   "b_size_median": 5.0,
+   "b_size_p90": 9.0,
+   "b_share_of_legal_mean": 0.152131376676019,
+   "advantage_xs_mean": 0.11393117408906879,
+   "regret_b_xs_mean": 0.03660526315789474,
+   "per_action_regret_median": 0.0024999999999999467,
+   "per_action_regret_p90": 0.8772999999999993,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.32517813765182185,
+   "share_of_permitted_actions_with_any_regret": 0.533533306020803,
+   "b_valid": 0.644
+  },
+  "RC-11::negative": {
+   "items": 238,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.043368536423884434,
+   "advantage_xs_mean": -0.14835028248587567,
+   "regret_b_xs_mean": 0.1589971751412429,
+   "per_action_regret_median": 0.00024999999999997247,
+   "per_action_regret_p90": 0.52005,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.2033361581920904,
+   "share_of_permitted_actions_with_any_regret": 0.4858757062146893,
+   "b_valid": 0.13025210084033614
+  },
+  "RC-11::positive": {
+   "items": 249,
+   "b_size_median": 6.0,
+   "b_size_p90": 8.0,
+   "b_share_of_legal_mean": 0.17899889461497984,
+   "advantage_xs_mean": 0.06025609756097562,
+   "regret_b_xs_mean": 0.0631178861788618,
+   "per_action_regret_median": 0.019000000000000017,
+   "per_action_regret_p90": 0.906,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.42729674796747963,
+   "share_of_permitted_actions_with_any_regret": 0.6214543812104787,
+   "b_valid": 0.6104417670682731
+  },
+  "RC-12::negative": {
+   "items": 238,
+   "b_size_median": 6.0,
+   "b_size_p90": 10.0,
+   "b_share_of_legal_mean": 0.1918912345507176,
+   "advantage_xs_mean": -0.007134782608695658,
+   "regret_b_xs_mean": 0.06988043478260868,
+   "per_action_regret_median": 0.02100000000000002,
+   "per_action_regret_p90": 0.8985,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.36476086956521736,
+   "share_of_permitted_actions_with_any_regret": 0.5601384002470959,
+   "b_valid": 0.42857142857142855
+  },
+  "RC-12::positive": {
+   "items": 249,
+   "b_size_median": 2.0,
+   "b_size_p90": 7.0,
+   "b_share_of_legal_mean": 0.12909926659270726,
+   "advantage_xs_mean": 0.06376861702127659,
+   "regret_b_xs_mean": 0.03979255319148936,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 1.0,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.2535398936170213,
+   "share_of_permitted_actions_with_any_regret": 0.25742224678394887,
+   "b_valid": 0.46184738955823296
+  },
+  "RC-13::negative": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 1.0,
+   "b_share_of_legal_mean": 0.04882010095842588,
+   "advantage_xs_mean": -0.22052200000000005,
+   "regret_b_xs_mean": 0.22052200000000005,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 1.0,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.229002,
+   "share_of_permitted_actions_with_any_regret": 0.362,
+   "b_valid": 0.0
+  },
+  "RC-13::positive": {
+   "items": 67,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.05520908344593641,
+   "advantage_xs_mean": -0.06343283582089553,
+   "regret_b_xs_mean": 0.06343283582089553,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.5,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.09563432835820895,
+   "share_of_permitted_actions_with_any_regret": 0.19154228855721395,
+   "b_valid": 0.029850746268656716
+  },
+  "RC-14::negative": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.03817219376465522,
+   "advantage_xs_mean": 0.012592000000000006,
+   "regret_b_xs_mean": 0.12036000000000001,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.50925,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.15198599999999998,
+   "share_of_permitted_actions_with_any_regret": 0.42133333333333334,
+   "b_valid": 0.512
+  },
+  "RC-14::positive": {
+   "items": 240,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.04511824281582774,
+   "advantage_xs_mean": 0.11044166666666667,
+   "regret_b_xs_mean": 0.05980833333333334,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.18470000000000136,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.07900625,
+   "share_of_permitted_actions_with_any_regret": 0.1986111111111111,
+   "b_valid": 0.625
+  },
+  "RC-18::negative": {
+   "items": 237,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.04884195270557268,
+   "advantage_xs_mean": -0.11677500000000005,
+   "regret_b_xs_mean": 0.13481388888888893,
+   "per_action_regret_median": 0.001,
+   "per_action_regret_p90": 0.5267000000000001,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.18394166666666664,
+   "share_of_permitted_actions_with_any_regret": 0.5069444444444444,
+   "b_valid": 0.14345991561181434
+  },
+  "RC-18::positive": {
+   "items": 248,
+   "b_size_median": 6.0,
+   "b_size_p90": 7.0,
+   "b_share_of_legal_mean": 0.16392415284528483,
+   "advantage_xs_mean": 0.0898568548387097,
+   "regret_b_xs_mean": 0.06208467741935483,
+   "per_action_regret_median": 0.0695,
+   "per_action_regret_p90": 0.8974000000000002,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.4479032258064516,
+   "share_of_permitted_actions_with_any_regret": 0.653390616999488,
+   "b_valid": 0.6330645161290323
+  },
+  "RC-20::negative": {
+   "items": 236,
+   "b_size_median": 5.0,
+   "b_size_p90": 9.0,
+   "b_share_of_legal_mean": 0.15876558056799164,
+   "advantage_xs_mean": -0.0592733644859813,
+   "regret_b_xs_mean": 0.1010841121495327,
+   "per_action_regret_median": 0.11650000000000005,
+   "per_action_regret_p90": 0.872,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.43880140186915884,
+   "share_of_permitted_actions_with_any_regret": 0.6603721564001939,
+   "b_valid": 0.2966101694915254
+  },
+  "RC-20::positive": {
+   "items": 249,
+   "b_size_median": 3.0,
+   "b_size_p90": 7.0,
+   "b_share_of_legal_mean": 0.09504662974654497,
+   "advantage_xs_mean": -0.09703902439024387,
+   "regret_b_xs_mean": 0.12281219512195121,
+   "per_action_regret_median": 0.01775000000000001,
+   "per_action_regret_p90": 0.9995,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.3862146341463415,
+   "share_of_permitted_actions_with_any_regret": 0.5511426107767571,
+   "b_valid": 0.2248995983935743
+  },
+  "RC-21::negative": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 2.0,
+   "b_share_of_legal_mean": 0.051740667984442046,
+   "advantage_xs_mean": -0.170048,
+   "regret_b_xs_mean": 0.171892,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.8822000000000002,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.176286,
+   "share_of_permitted_actions_with_any_regret": 0.386,
+   "b_valid": 0.088
+  },
+  "RC-21::positive": {
+   "items": 250,
+   "b_size_median": 1.0,
+   "b_size_p90": 4.0,
+   "b_share_of_legal_mean": 0.0690843306523586,
+   "advantage_xs_mean": -0.12544,
+   "regret_b_xs_mean": 0.13276000000000002,
+   "per_action_regret_median": 0.0,
+   "per_action_regret_p90": 0.6318999999999985,
+   "per_action_regret_max": 1.0,
+   "worst_in_b_regret_mean": 0.161048,
+   "share_of_permitted_actions_with_any_regret": 0.341,
+   "b_valid": 0.172
+  }
+ },
+ "2_rule_class_viability": {
+  "RC-00": {
+   "name": "mate-in-one",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.11023148974425422,
+    "prescription_size_t_minus": 0.05879151313480417,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 1.0,
+    "regret_b_xs_t_plus": 0.0,
+    "advantage_xs_t_plus": 0.121032
+   },
+   "safety": {
+    "per_action_regret_p90": 1.0,
+    "share_permitted_losing_100cp": 0.5157116451016636,
+    "mean_share_of_B_that_blunders": 0.46057777777777764
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.29738400000000004,
+    "b_valid_t_minus": 0.192
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0011799999999999589,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-01": {
+   "name": "loose-piece",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.04618482014993356,
+    "prescription_size_t_minus": 0.0307755739129747,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.792,
+    "regret_b_xs_t_plus": 0.02886,
+    "advantage_xs_t_plus": 0.23720399999999997
+   },
+   "safety": {
+    "per_action_regret_p90": 0.11240000000000087,
+    "share_permitted_losing_100cp": 0.19584569732937684,
+    "mean_share_of_B_that_blunders": 0.17966666666666667
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.232128,
+    "b_valid_t_minus": 0.18
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0048000000000000265,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-02": {
+   "name": "recapture",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.04966169456790954,
+    "prescription_size_t_minus": 0.03383464306197197,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.648,
+    "regret_b_xs_t_plus": 0.081812,
+    "advantage_xs_t_plus": 0.08559799999999998
+   },
+   "safety": {
+    "per_action_regret_p90": 0.5127,
+    "share_permitted_losing_100cp": 0.33587786259541985,
+    "mean_share_of_B_that_blunders": 0.3430000000000001
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.23383599999999993,
+    "b_valid_t_minus": 0.272
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0016699999999999493,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-03": {
+   "name": "capture-the-checker",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.5430095238095237,
+    "prescription_size_t_minus": 0.3963857142857143,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.956,
+    "regret_b_xs_t_plus": 0.0,
+    "advantage_xs_t_plus": 0.3189768041237113
+   },
+   "safety": {
+    "per_action_regret_p90": 0.1248500000000009,
+    "share_permitted_losing_100cp": 0.14676616915422885,
+    "mean_share_of_B_that_blunders": 0.10866666666666666
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.038988,
+    "b_valid_t_minus": 0.692
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.003960578216046479,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-04": {
+   "name": "save-the-attacked-piece",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.24033275447336336,
+    "prescription_size_t_minus": 0.18533019000700904,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.692,
+    "regret_b_xs_t_plus": 0.04336000000000001,
+    "advantage_xs_t_plus": 0.10002200000000001
+   },
+   "safety": {
+    "per_action_regret_p90": 0.999,
+    "share_permitted_losing_100cp": 0.6896046852122987,
+    "mean_share_of_B_that_blunders": 0.673193586957754
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.14475400000000002,
+    "b_valid_t_minus": 0.28
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.010811999999999988,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-05": {
+   "name": "safe-promotion",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.05301011878093888,
+    "prescription_size_t_minus": 0.05053487663656722,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.512,
+    "regret_b_xs_t_plus": 0.038307999999999995,
+    "advantage_xs_t_plus": -0.014084
+   },
+   "safety": {
+    "per_action_regret_p90": 0.0,
+    "share_permitted_losing_100cp": 0.152,
+    "mean_share_of_B_that_blunders": 0.152
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.126546,
+    "b_valid_t_minus": 0.108
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.001447999999999998,
+   "twin_availability": {
+    "attempted": true,
+    "pairs": {
+     "positive": 185,
+     "negative": 193
+    },
+    "yield": {
+     "positive": 0.5,
+     "negative": 0.5273224043715847
+    }
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-06": {
+   "name": "answer-the-mate-threat",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.3173069971618106,
+    "prescription_size_t_minus": 0.10102030674321968,
+    "c11_grade": "SATURATED",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.968,
+    "regret_b_xs_t_plus": 0.0,
+    "advantage_xs_t_plus": 0.3506877637130802
+   },
+   "safety": {
+    "per_action_regret_p90": 1.0,
+    "share_permitted_losing_100cp": 0.7128182224207236,
+    "mean_share_of_B_that_blunders": 0.6231783044000657
+   },
+   "negative_cell": {
+    "c11_grade": "SATURATED",
+    "regret_b_xs_t_minus": 0.12239234449760765,
+    "b_valid_t_minus": 0.216
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.011866745402055012,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-07": {
+   "name": "answer-the-queen-threat",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.15743404357009746,
+    "prescription_size_t_minus": 0.18037266035131252,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.804,
+    "regret_b_xs_t_plus": 0.020644897959183672,
+    "advantage_xs_t_plus": 0.25292857142857145
+   },
+   "safety": {
+    "per_action_regret_p90": 0.6485,
+    "share_permitted_losing_100cp": 0.5335120643431636,
+    "mean_share_of_B_that_blunders": 0.5056947814090671
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.07413485477178422,
+    "b_valid_t_minus": 0.4
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.01218585824371271,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-08": {
+   "name": "answer-the-rook-threat",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.18752747193658806,
+    "prescription_size_t_minus": 0.17852461475231335,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.692,
+    "regret_b_xs_t_plus": 0.034947154471544714,
+    "advantage_xs_t_plus": 0.13960772357723575
+   },
+   "safety": {
+    "per_action_regret_p90": 1.0,
+    "share_permitted_losing_100cp": 0.5848640705363704,
+    "mean_share_of_B_that_blunders": 0.5267837966008697
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.06134533898305084,
+    "b_valid_t_minus": 0.388
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.012856707317073002,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-09": {
+   "name": "answer-the-minor-threat",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.152131376676019,
+    "prescription_size_t_minus": 0.1918088040981274,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.644,
+    "regret_b_xs_t_plus": 0.03660526315789473,
+    "advantage_xs_t_plus": 0.1139311740890688
+   },
+   "safety": {
+    "per_action_regret_p90": 0.8772999999999993,
+    "share_permitted_losing_100cp": 0.5178979436405179,
+    "mean_share_of_B_that_blunders": 0.46515706350488456
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.0483091286307054,
+    "b_valid_t_minus": 0.472
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0034945150939908465,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-11": {
+   "name": "move-the-threatened-minor",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.17918612484297147,
+    "prescription_size_t_minus": 0.04236270874450345,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.612,
+    "regret_b_xs_t_plus": 0.06286234817813764,
+    "advantage_xs_t_plus": 0.061945344129554665
+   },
+   "safety": {
+    "per_action_regret_p90": 0.9057500000000003,
+    "share_permitted_losing_100cp": 0.6273458445040214,
+    "mean_share_of_B_that_blunders": 0.6296446243814663
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.15469230769230768,
+    "b_valid_t_minus": 0.136
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0024006651243493604,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-12": {
+   "name": "stop-the-promotion",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.1288437390915537,
+    "prescription_size_t_minus": 0.1946896963293328,
+    "c11_grade": "SATURATED",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.464,
+    "regret_b_xs_t_plus": 0.03958201058201058,
+    "advantage_xs_t_plus": 0.06574338624338626
+   },
+   "safety": {
+    "per_action_regret_p90": 1.0,
+    "share_permitted_losing_100cp": 0.579020979020979,
+    "mean_share_of_B_that_blunders": 0.5061635821556457
+   },
+   "negative_cell": {
+    "c11_grade": "SATURATED",
+    "regret_b_xs_t_minus": 0.06759710743801653,
+    "b_valid_t_minus": 0.428
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.005527165595347369,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-13": {
+   "name": "underpromote-to-knight",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.055209083445936426,
+    "prescription_size_t_minus": 0.04882010095842583,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.029850746268656716,
+    "regret_b_xs_t_plus": 0.06343283582089553,
+    "advantage_xs_t_plus": -0.06343283582089553
+   },
+   "safety": {
+    "per_action_regret_p90": 0.5,
+    "share_permitted_losing_100cp": 0.6538461538461539,
+    "mean_share_of_B_that_blunders": 0.6194029850746269
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.220522,
+    "b_valid_t_minus": 0.0
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0038299402985074726,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-14": {
+   "name": "capture-the-mating-piece",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.04511824281582771,
+    "prescription_size_t_minus": 0.03817219376465519,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.625,
+    "regret_b_xs_t_plus": 0.05980833333333333,
+    "advantage_xs_t_plus": 0.11044166666666667
+   },
+   "safety": {
+    "per_action_regret_p90": 0.18470000000000136,
+    "share_permitted_losing_100cp": 0.2805755395683453,
+    "mean_share_of_B_that_blunders": 0.2618055555555555
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.12036,
+    "b_valid_t_minus": 0.512
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.003210583333332906,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-18": {
+   "name": "move-the-piece-that-must-move",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.16436275962252256,
+    "prescription_size_t_minus": 0.04775163353047425,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.636,
+    "regret_b_xs_t_plus": 0.061588,
+    "advantage_xs_t_plus": 0.09334
+   },
+   "safety": {
+    "per_action_regret_p90": 0.8872999999999996,
+    "share_permitted_losing_100cp": 0.6490020646937371,
+    "mean_share_of_B_that_blunders": 0.6442666666666669
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.12907712765957446,
+    "b_valid_t_minus": 0.164
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.005867021276595663,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-20": {
+   "name": "defend-the-piece-in-place",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.09531509187620735,
+    "prescription_size_t_minus": 0.1631731385518189,
+    "c11_grade": "VACANT",
+    "predicate_branches_on_trigger": true
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.224,
+    "regret_b_xs_t_plus": 0.1234004854368932,
+    "advantage_xs_t_plus": -0.09775242718446597
+   },
+   "safety": {
+    "per_action_regret_p90": 0.9995,
+    "share_permitted_losing_100cp": 0.7385844748858448,
+    "mean_share_of_B_that_blunders": 0.7112543605262054
+   },
+   "negative_cell": {
+    "c11_grade": "VACANT",
+    "regret_b_xs_t_minus": 0.09545614035087718,
+    "b_valid_t_minus": 0.316
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.002737629875660036,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  },
+  "RC-21": {
+   "name": "push-the-unstoppable-passer",
+   "trigger_specificity": {
+    "prescription_size_t_plus": 0.06908433065235854,
+    "prescription_size_t_minus": 0.05174066798444196,
+    "c11_grade": "MEASURABLE",
+    "predicate_branches_on_trigger": false
+   },
+   "action_model_validity": {
+    "b_valid_t_plus": 0.172,
+    "regret_b_xs_t_plus": 0.13276,
+    "advantage_xs_t_plus": -0.12544
+   },
+   "safety": {
+    "per_action_regret_p90": 0.6318999999999985,
+    "share_permitted_losing_100cp": 0.5859375,
+    "mean_share_of_B_that_blunders": 0.5655
+   },
+   "negative_cell": {
+    "c11_grade": "MEASURABLE",
+    "regret_b_xs_t_minus": 0.17189200000000002,
+    "b_valid_t_minus": 0.088
+   },
+   "engine_sensitivity_abs_delta_sep_aoc": 0.0005559999999999662,
+   "twin_availability": {
+    "attempted": false,
+    "why": "the transformation is trigger-specific -- for RC-05 it relocates an attacker of the promotion square -- so a bank for another class needs its own transformation designed. Construction is ENGINE-FREE; only scoring the bank costs searches"
+   },
+   "human_required": [
+    "whether the cue is recognisable without being told (no gate exists)",
+    "whether recognising it changes the move (Study D)",
+    "whether the change survives a trigger-negative condition",
+    "whether any of it appears in an ordinary game with no prompt"
+   ]
+  }
+ },
+ "3_single_best_move_approximation": {
+  "RC-00::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 62,
+   "false_alarm_rate": 0.248,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 19,
+   "false_comfort_rate": 0.076,
+   "false_comfort_worst_regret_mean": 0.8700000000000001,
+   "agree": 169
+  },
+  "RC-00::positive": {
+   "n": 247,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 0,
+   "false_alarm_rate": 0.0,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 134,
+   "false_comfort_rate": 0.5425101214574899,
+   "false_comfort_worst_regret_mean": 0.9394029850746268,
+   "agree": 113
+  },
+  "RC-01::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 61,
+   "false_alarm_rate": 0.244,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 3,
+   "false_comfort_rate": 0.012,
+   "false_comfort_worst_regret_mean": 0.6785,
+   "agree": 186
+  },
+  "RC-01::positive": {
+   "n": 249,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 37,
+   "false_alarm_rate": 0.14859437751004015,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 14,
+   "false_comfort_rate": 0.05622489959839357,
+   "false_comfort_worst_regret_mean": 0.5335714285714286,
+   "agree": 198
+  },
+  "RC-02::negative": {
+   "n": 245,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 64,
+   "false_alarm_rate": 0.2612244897959184,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 9,
+   "false_comfort_rate": 0.036734693877551024,
+   "false_comfort_worst_regret_mean": 0.7300555555555556,
+   "agree": 172
+  },
+  "RC-02::positive": {
+   "n": 247,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 38,
+   "false_alarm_rate": 0.15384615384615385,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 36,
+   "false_comfort_rate": 0.145748987854251,
+   "false_comfort_worst_regret_mean": 0.588375,
+   "agree": 173
+  },
+  "RC-03::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 58,
+   "false_alarm_rate": 0.232,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 24,
+   "false_comfort_rate": 0.096,
+   "false_comfort_worst_regret_mean": 0.6762291666666668,
+   "agree": 168
+  },
+  "RC-03::positive": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 11,
+   "false_alarm_rate": 0.044,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 24,
+   "false_comfort_rate": 0.096,
+   "false_comfort_worst_regret_mean": 0.5122916666666667,
+   "agree": 215
+  },
+  "RC-04::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 83,
+   "false_alarm_rate": 0.332,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 50,
+   "false_comfort_rate": 0.2,
+   "false_comfort_worst_regret_mean": 0.7634000000000001,
+   "agree": 117
+  },
+  "RC-04::positive": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 37,
+   "false_alarm_rate": 0.148,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 104,
+   "false_comfort_rate": 0.416,
+   "false_comfort_worst_regret_mean": 0.7279326923076923,
+   "agree": 109
+  },
+  "RC-05::negative": {
+   "n": 306,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 187,
+   "false_alarm_rate": 0.6111111111111112,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 119
+  },
+  "RC-05::positive": {
+   "n": 313,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 134,
+   "false_alarm_rate": 0.4281150159744409,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 179
+  },
+  "RC-06::negative": {
+   "n": 208,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 59,
+   "false_alarm_rate": 0.28365384615384615,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 39,
+   "false_comfort_rate": 0.1875,
+   "false_comfort_worst_regret_mean": 0.6287435897435898,
+   "agree": 110
+  },
+  "RC-06::positive": {
+   "n": 236,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 0,
+   "false_alarm_rate": 0.0,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 98,
+   "false_comfort_rate": 0.4152542372881356,
+   "false_comfort_worst_regret_mean": 0.7746428571428572,
+   "agree": 138
+  },
+  "RC-07::negative": {
+   "n": 223,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 74,
+   "false_alarm_rate": 0.33183856502242154,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 57,
+   "false_comfort_rate": 0.2556053811659193,
+   "false_comfort_worst_regret_mean": 0.5919912280701753,
+   "agree": 92
+  },
+  "RC-07::positive": {
+   "n": 245,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 29,
+   "false_alarm_rate": 0.11836734693877551,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 86,
+   "false_comfort_rate": 0.3510204081632653,
+   "false_comfort_worst_regret_mean": 0.6788662790697675,
+   "agree": 130
+  },
+  "RC-08::negative": {
+   "n": 221,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 81,
+   "false_alarm_rate": 0.3665158371040724,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 44,
+   "false_comfort_rate": 0.19909502262443438,
+   "false_comfort_worst_regret_mean": 0.6527613636363636,
+   "agree": 96
+  },
+  "RC-08::positive": {
+   "n": 246,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 48,
+   "false_alarm_rate": 0.1951219512195122,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 80,
+   "false_comfort_rate": 0.3252032520325203,
+   "false_comfort_worst_regret_mean": 0.71780625,
+   "agree": 118
+  },
+  "RC-09::negative": {
+   "n": 233,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 56,
+   "false_alarm_rate": 0.24034334763948498,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 68,
+   "false_comfort_rate": 0.2918454935622318,
+   "false_comfort_worst_regret_mean": 0.6701691176470588,
+   "agree": 109
+  },
+  "RC-09::positive": {
+   "n": 247,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 54,
+   "false_alarm_rate": 0.21862348178137653,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 78,
+   "false_comfort_rate": 0.3157894736842105,
+   "false_comfort_worst_regret_mean": 0.6607820512820513,
+   "agree": 115
+  },
+  "RC-11::negative": {
+   "n": 177,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 77,
+   "false_alarm_rate": 0.4350282485875706,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 6,
+   "false_comfort_rate": 0.03389830508474576,
+   "false_comfort_worst_regret_mean": 0.46308333333333335,
+   "agree": 94
+  },
+  "RC-11::positive": {
+   "n": 246,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 46,
+   "false_alarm_rate": 0.18699186991869918,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 93,
+   "false_comfort_rate": 0.3780487804878049,
+   "false_comfort_worst_regret_mean": 0.6688010752688173,
+   "agree": 107
+  },
+  "RC-12::negative": {
+   "n": 230,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 72,
+   "false_alarm_rate": 0.3130434782608696,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 59,
+   "false_comfort_rate": 0.2565217391304348,
+   "false_comfort_worst_regret_mean": 0.6531694915254237,
+   "agree": 99
+  },
+  "RC-12::positive": {
+   "n": 188,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 59,
+   "false_alarm_rate": 0.31382978723404253,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 42,
+   "false_comfort_rate": 0.22340425531914893,
+   "false_comfort_worst_regret_mean": 0.7623809523809525,
+   "agree": 87
+  },
+  "RC-13::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 160,
+   "false_alarm_rate": 0.64,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 90
+  },
+  "RC-13::positive": {
+   "n": 67,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 54,
+   "false_alarm_rate": 0.8059701492537313,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 13
+  },
+  "RC-14::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 47,
+   "false_alarm_rate": 0.188,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 7,
+   "false_comfort_rate": 0.028,
+   "false_comfort_worst_regret_mean": 0.55,
+   "agree": 196
+  },
+  "RC-14::positive": {
+   "n": 240,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 65,
+   "false_alarm_rate": 0.2708333333333333,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 7,
+   "false_comfort_rate": 0.029166666666666667,
+   "false_comfort_worst_regret_mean": 0.5329285714285714,
+   "agree": 168
+  },
+  "RC-18::negative": {
+   "n": 180,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 71,
+   "false_alarm_rate": 0.39444444444444443,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 6,
+   "false_comfort_rate": 0.03333333333333333,
+   "false_comfort_worst_regret_mean": 0.6251666666666666,
+   "agree": 103
+  },
+  "RC-18::positive": {
+   "n": 248,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 39,
+   "false_alarm_rate": 0.15725806451612903,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 107,
+   "false_comfort_rate": 0.4314516129032258,
+   "false_comfort_worst_regret_mean": 0.6792102803738318,
+   "agree": 102
+  },
+  "RC-20::negative": {
+   "n": 214,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 58,
+   "false_alarm_rate": 0.27102803738317754,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 47,
+   "false_comfort_rate": 0.21962616822429906,
+   "false_comfort_worst_regret_mean": 0.6424574468085106,
+   "agree": 109
+  },
+  "RC-20::positive": {
+   "n": 205,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 80,
+   "false_alarm_rate": 0.3902439024390244,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 23,
+   "false_comfort_rate": 0.11219512195121951,
+   "false_comfort_worst_regret_mean": 0.7603695652173914,
+   "agree": 102
+  },
+  "RC-21::negative": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 134,
+   "false_alarm_rate": 0.536,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 0,
+   "false_comfort_rate": 0.0,
+   "false_comfort_worst_regret_mean": null,
+   "agree": 116
+  },
+  "RC-21::positive": {
+   "n": 250,
+   "false_alarm_argmax_outside_B_but_obeying_is_free": 133,
+   "false_alarm_rate": 0.532,
+   "false_comfort_argmax_in_B_but_a_permitted_move_loses_0.25_xs": 8,
+   "false_comfort_rate": 0.032,
+   "false_comfort_worst_regret_mean": 0.7494375,
+   "agree": 109
+  }
+ },
+ "5_item_bank": {
+  "totals": {
+   "positive": 4620,
+   "boundary_permitted_set_contains_a_losing_move": 2329,
+   "negative": 4821,
+   "hard_negative_rule_names_a_move_and_it_is_wrong": 1100,
+   "soft_negative_rule_names_a_move_and_it_is_fine": 3488,
+   "degenerate_no_permitted_move": 361,
+   "degenerate_every_move_permitted": 81,
+   "minimal_functional_twin": 378,
+   "sham_control_matched_perturbation_no_trigger_flip": 378
+  },
+  "per_class": {
+   "RC-00": {
+    "positive": 250,
+    "boundary_permitted_set_contains_a_losing_move": 242,
+    "negative": 250,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 116,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 134
+   },
+   "RC-01": {
+    "positive": 250,
+    "negative": 250,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 100,
+    "boundary_permitted_set_contains_a_losing_move": 67,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 150
+   },
+   "RC-02": {
+    "negative": 250,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 89,
+    "boundary_permitted_set_contains_a_losing_move": 114,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 161,
+    "positive": 250
+   },
+   "RC-03": {
+    "positive": 250,
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 234,
+    "boundary_permitted_set_contains_a_losing_move": 30,
+    "degenerate_every_move_permitted": 76,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 16
+   },
+   "RC-04": {
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 180,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 70,
+    "boundary_permitted_set_contains_a_losing_move": 231,
+    "positive": 250
+   },
+   "RC-05": {
+    "positive": 813,
+    "negative": 821,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 200,
+    "boundary_permitted_set_contains_a_losing_move": 171,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 621,
+    "minimal_functional_twin": 378,
+    "sham_control_matched_perturbation_no_trigger_flip": 378
+   },
+   "RC-06": {
+    "negative": 250,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 54,
+    "boundary_permitted_set_contains_a_losing_move": 174,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 155,
+    "degenerate_no_permitted_move": 49,
+    "positive": 250,
+    "degenerate_every_move_permitted": 5
+   },
+   "RC-07": {
+    "positive": 250,
+    "boundary_permitted_set_contains_a_losing_move": 161,
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 207,
+    "degenerate_no_permitted_move": 14,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 34
+   },
+   "RC-08": {
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 208,
+    "boundary_permitted_set_contains_a_losing_move": 162,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 28,
+    "positive": 250,
+    "degenerate_no_permitted_move": 18
+   },
+   "RC-09": {
+    "positive": 250,
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 210,
+    "boundary_permitted_set_contains_a_losing_move": 177,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 31,
+    "degenerate_no_permitted_move": 12
+   },
+   "RC-11": {
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 133,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 49,
+    "boundary_permitted_set_contains_a_losing_move": 133,
+    "degenerate_no_permitted_move": 71,
+    "positive": 250
+   },
+   "RC-12": {
+    "positive": 250,
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 214,
+    "boundary_permitted_set_contains_a_losing_move": 147,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 28,
+    "degenerate_no_permitted_move": 69
+   },
+   "RC-13": {
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 168,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 82,
+    "boundary_permitted_set_contains_a_losing_move": 68,
+    "positive": 67
+   },
+   "RC-14": {
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 206,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 44,
+    "boundary_permitted_set_contains_a_losing_move": 53,
+    "positive": 240
+   },
+   "RC-18": {
+    "positive": 250,
+    "boundary_permitted_set_contains_a_losing_move": 142,
+    "negative": 250,
+    "degenerate_no_permitted_move": 62,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 141,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 47
+   },
+   "RC-20": {
+    "negative": 250,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 47,
+    "boundary_permitted_set_contains_a_losing_move": 177,
+    "positive": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 181,
+    "degenerate_no_permitted_move": 66
+   },
+   "RC-21": {
+    "positive": 250,
+    "boundary_permitted_set_contains_a_losing_move": 80,
+    "negative": 250,
+    "soft_negative_rule_names_a_move_and_it_is_fine": 185,
+    "hard_negative_rule_names_a_move_and_it_is_wrong": 65
+   }
+  }
+ },
+ "6_failure_ontology": {
+  "per_class": {
+   "RC-00": {
+    "name": "mate-in-one",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 1.000 expected score"
+    ]
+   },
+   "RC-01": {
+    "name": "loose-piece",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast"
+    ]
+   },
+   "RC-02": {
+    "name": "recapture",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.513 expected score"
+    ]
+   },
+   "RC-03": {
+    "name": "capture-the-checker",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "none of the machine-checkable failures fired"
+    ]
+   },
+   "RC-04": {
+    "name": "save-the-attacked-piece",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.999 expected score"
+    ]
+   },
+   "RC-05": {
+    "name": "safe-promotion",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "NOT NECESSARY: on average the best permitted move is no better than the best forbidden one when the trigger fires"
+    ]
+   },
+   "RC-06": {
+    "name": "answer-the-mate-threat",
+    "c11": "SATURATED",
+    "reasons": [
+     "SATURATED noise cell: nearly every legal move satisfies the rule when the trigger is absent, so separation is a fact about the predicate",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 1.000 expected score"
+    ]
+   },
+   "RC-07": {
+    "name": "answer-the-queen-threat",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.648 expected score"
+    ]
+   },
+   "RC-08": {
+    "name": "answer-the-rook-threat",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 1.000 expected score"
+    ]
+   },
+   "RC-09": {
+    "name": "answer-the-minor-threat",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.877 expected score"
+    ]
+   },
+   "RC-11": {
+    "name": "move-the-threatened-minor",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.906 expected score"
+    ]
+   },
+   "RC-12": {
+    "name": "stop-the-promotion",
+    "c11": "SATURATED",
+    "reasons": [
+     "SATURATED noise cell: nearly every legal move satisfies the rule when the trigger is absent, so separation is a fact about the predicate",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 1.000 expected score"
+    ]
+   },
+   "RC-13": {
+    "name": "underpromote-to-knight",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.500 expected score",
+     "NOT NECESSARY: on average the best permitted move is no better than the best forbidden one when the trigger fires"
+    ]
+   },
+   "RC-14": {
+    "name": "capture-the-mating-piece",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast"
+    ]
+   },
+   "RC-18": {
+    "name": "move-the-piece-that-must-move",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.887 expected score"
+    ]
+   },
+   "RC-20": {
+    "name": "defend-the-piece-in-place",
+    "c11": "VACANT",
+    "reasons": [
+     "VACANT noise cell: the rule names no act at all on >=95% of T- items, so its negative cell carries no information about the rule",
+     "the response predicate BRANCHES on the trigger: a hit and a false alarm score different behaviours, so no matching can repair the contrast",
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 1.000 expected score",
+     "NOT NECESSARY: on average the best permitted move is no better than the best forbidden one when the trigger fires"
+    ]
+   },
+   "RC-21": {
+    "name": "push-the-unstoppable-passer",
+    "c11": "MEASURABLE",
+    "reasons": [
+     "UNSAFE PERMITTED SET: the 90th-percentile permitted move costs 0.632 expected score",
+     "NOT NECESSARY: on average the best permitted move is no better than the best forbidden one when the trigger fires"
+    ]
+   }
+  },
+  "recurring_mechanisms": {
+   "unsafe permitted set": 13,
+   "vacant noise cell": 8,
+   "branching response predicate": 10,
+   "not necessary": 4,
+   "saturated noise cell": 2
+  },
+  "engine_free_pre_screens": [
+   {
+    "mechanism": "vacant or saturated noise cell",
+    "check": "C11: prescription size on the trigger-negative cell under the class's own prescription sentence",
+    "cost": "no engine, no participants, no new corpus",
+    "would_have_retired": 10
+   },
+   {
+    "mechanism": "branching response predicate",
+    "check": "does `satisfies` call the trigger, or recompute the same board condition? `branching_audit.py` already does this and found the source-text detector misses RC-12",
+    "cost": "static, no engine",
+    "would_have_retired": 2
+   },
+   {
+    "mechanism": "the predicate scores a DIFFERENT ACT on the negative cell than the class's own prescription sentence names",
+    "check": "C11's `substitutes_the_antecedent_on_T_minus`: read the shipped predicate against the prescription sentence and ask whether the antecedent is the same object on both cells",
+    "cost": "static, no engine, no corpus",
+    "would_have_retired": 0,
+    "note": "10 of 17 classes do this, which is why C11 grades them on the AS-STATED reading. It is not itself a disqualification -- it is the reason a separation statistic cannot be read at face value, and it is the single most common machine-checkable defect in the register"
+   },
+   {
+    "mechanism": "prescription covers most legal moves",
+    "check": "prescription size on T+; RC-03's is .543",
+    "cost": "no engine",
+    "would_have_retired": 0,
+    "note": "a wide prescription is not a failure, but it caps how much the rule can say"
+   }
+  ],
+  "what_still_needs_an_engine": [
+   "safety of the permitted set: the regret distribution over B needs a value per move",
+   "necessity: V_notB needs a search over the complement",
+   "any statement about what obeying COSTS"
+  ]
+ },
+ "7_natural_retest_assets": {
+  "per_class": {
+   "RC-00": {
+    "positions": 247,
+    "with_human_move": 247,
+    "human_followed_rule": 205,
+    "human_rule_consistent_rate": 0.8299595141700404
+   },
+   "RC-01": {
+    "positions": 249,
+    "with_human_move": 249,
+    "human_followed_rule": 198,
+    "human_rule_consistent_rate": 0.7951807228915663
+   },
+   "RC-02": {
+    "positions": 247,
+    "with_human_move": 247,
+    "human_followed_rule": 190,
+    "human_rule_consistent_rate": 0.7692307692307693
+   },
+   "RC-03": {
+    "positions": 250,
+    "with_human_move": 250,
+    "human_followed_rule": 239,
+    "human_rule_consistent_rate": 0.956
+   },
+   "RC-04": {
+    "positions": 250,
+    "with_human_move": 250,
+    "human_followed_rule": 175,
+    "human_rule_consistent_rate": 0.7
+   },
+   "RC-05": {
+    "positions": 313,
+    "with_human_move": 313,
+    "human_followed_rule": 180,
+    "human_rule_consistent_rate": 0.5750798722044729
+   },
+   "RC-06": {
+    "positions": 244,
+    "with_human_move": 244,
+    "human_followed_rule": 176,
+    "human_rule_consistent_rate": 0.7213114754098361
+   },
+   "RC-07": {
+    "positions": 250,
+    "with_human_move": 250,
+    "human_followed_rule": 198,
+    "human_rule_consistent_rate": 0.792
+   },
+   "RC-08": {
+    "positions": 250,
+    "with_human_move": 250,
+    "human_followed_rule": 176,
+    "human_rule_consistent_rate": 0.704
+   },
+   "RC-09": {
+    "positions": 250,
+    "with_human_move": 250,
+    "human_followed_rule": 166,
+    "human_rule_consistent_rate": 0.664
+   },
+   "RC-11": {
+    "positions": 249,
+    "with_human_move": 249,
+    "human_followed_rule": 156,
+    "human_rule_consistent_rate": 0.6265060240963856
+   },
+   "RC-12": {
+    "positions": 249,
+    "with_human_move": 249,
+    "human_followed_rule": 120,
+    "human_rule_consistent_rate": 0.4819277108433735
+   },
+   "RC-13": {
+    "positions": 67,
+    "with_human_move": 67,
+    "human_followed_rule": 0,
+    "human_rule_consistent_rate": 0.0
+   },
+   "RC-14": {
+    "positions": 240,
+    "with_human_move": 240,
+    "human_followed_rule": 153,
+    "human_rule_consistent_rate": 0.6375
+   },
+   "RC-18": {
+    "positions": 248,
+    "with_human_move": 248,
+    "human_followed_rule": 166,
+    "human_rule_consistent_rate": 0.6693548387096774
+   },
+   "RC-20": {
+    "positions": 249,
+    "with_human_move": 249,
+    "human_followed_rule": 56,
+    "human_rule_consistent_rate": 0.2248995983935743
+   },
+   "RC-21": {
+    "positions": 250,
+    "with_human_move": 250,
+    "human_followed_rule": 60,
+    "human_rule_consistent_rate": 0.24
+   }
+  },
+  "what_this_supports": [
+   "the base rate at which each trigger fires in ordinary play, already in the corpus manifest's trigger_counts",
+   "the unaided rate at which real players made a rule-consistent move on T+ items",
+   "a calibration set for a cue matcher: positions where the trigger is known to fire"
+  ],
+  "what_this_does_not_support": [
+   "that any of these players recognised the trigger; the move is all that is observed",
+   "any ecological claim. The retest the product needs happens during a game with no prompt, and nothing here was collected that way"
+  ]
+ }
+}
