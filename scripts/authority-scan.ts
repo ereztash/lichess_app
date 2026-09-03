@@ -181,15 +181,16 @@ export const AUTHORITY_QUESTIONS: AuthorityQuestion[] = [
   {
     id: "Q26",
     question: "How is a bad deployment rolled back?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: ["docs/ROLLBACK.md", "scripts/rollback.ts", ".github/workflows/rollback.yml"],
-      trigger:
-        "the first deployment that has to be undone, or the first release this repository cuts " +
-        "that is not simply the tip of main. Vercel exposes a rollback affordance; nothing here " +
-        "states when to use it, who may, or what evidence closes the incident.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`. Vercel's rollback affordance existed and nothing here said when to
+     * use it or what closed the incident. `docs/ROLLBACK.md` now does, and the evidence step is
+     * mechanical: `deployed.yml` takes the commit the origin must be serving, the L6 suite binds
+     * to it through `servesExpectedBuild`, and a control shows the binding fails on a mismatch.
+     * `GATE-ROLLBACK-EVIDENCE` holds the four files to the document. The alias-moving rehearsal
+     * is FIELD-REQUIRED and the document says it has not been done.
+     */
+    resolution: one(["docs/ROLLBACK.md", ".github/workflows/deployed.yml", "tests/deployment/origin.ts"]),
   },
   {
     id: "Q27",
@@ -317,15 +318,16 @@ export const AUTHORITY_QUESTIONS: AuthorityQuestion[] = [
   {
     id: "Q36",
     question: "How is a dependency upgraded, and what proves an upgrade safe?",
-    gap: "CAPABILITY_GAP",
-    resolution: {
-      kind: "CAPABILITY_GAP",
-      absent: [".github/dependabot.yml", "renovate.json", ".renovaterc", ".renovaterc.json"],
-      trigger:
-        "the first `npm audit` failure that is not fixed by `npm audit fix`. The check that " +
-        "detects the problem is blocking in CI and nothing prescribes the response, so the " +
-        "repository can tell you an upgrade is needed and not what makes one safe.",
-    },
+    gap: "RESOLVED",
+    /*
+     * WAS `CAPABILITY_GAP`, and its trigger fired: `npm audit` went red on `qs` with the fix
+     * outside express's range, which is exactly the case "`npm audit fix` cannot" names. The
+     * response is now written: `docs/DEPENDENCY_POLICY.md` says what proves an upgrade safe (the
+     * `verify` job, nothing else), when an `overrides` entry is allowed (an advisory behind it),
+     * and that an exception carries an expiry a test enforces. Dependabot proposes; actions are
+     * pinned to commits.
+     */
+    resolution: one(["docs/DEPENDENCY_POLICY.md", ".github/dependabot.yml"]),
   },
 ];
 

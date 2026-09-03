@@ -4,6 +4,9 @@
   "private": true,
   "license": "GPL-3.0-or-later",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build && tsx scripts/write-build-identity.ts",
@@ -66,5 +69,8 @@
     "tsx": "^4.23.12",
     "typescript": "5.9.3",
     "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "qs": "^6.16.0"
   }
 }

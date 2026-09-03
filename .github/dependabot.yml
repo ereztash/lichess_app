@@ -1,0 +1,31 @@
+# Dependabot proposes; nothing here merges. Every proposal runs `verify`, which installs the lock
+# exactly, audits what the build ships, typechecks, builds, runs the suite and the gates. That job
+# is what makes an upgrade safe or not; docs/DEPENDENCY_POLICY.md says which proposals are taken.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for the things that only the workbench sees; a vulnerability in vitest is conveyed
+      # to nobody, and one review beats twelve.
+      workbench:
+        dependency-type: development
+        update-types: [minor, patch]
+      # Patch and minor of what the build ships, together. A major is its own PR and its own read.
+      shipped-minor:
+        dependency-type: production
+        update-types: [minor, patch]
+    ignore:
+      # The engine is a conveyed component with a licence notice bound to its version
+      # (GATE-NOTICE). A bump is a licence review, not a dependency review; taken by hand.
+      - dependency-name: stockfish
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Actions are pinned to commits with the version in a trailing comment; Dependabot updates both.
