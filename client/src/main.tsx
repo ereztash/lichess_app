@@ -58,6 +58,12 @@ const trpcClient = trpc.createClient({
       url: "/api/trpc",
       transformer: superjson,
       /*
+       * QUERIES GO AS POST. A GET carries its input in the URL, and the URL is what the platform's
+       * request log keeps: a FEN, a Lichess username, an opening line, for an hour, on a plan whose
+       * log the product does not control. The body is not logged. docs/RETENTION.md section 3.
+       */
+      methodOverride: "POST",
+      /*
        * THE `manus-cookie` BEARER BLOCK IS GONE. It read a sessionStorage key nothing in this
        * repository ever wrote and sent it as `Authorization: Bearer`: dead scaffolding from the
        * template this app started as, and a latent path for a session token to live somewhere any

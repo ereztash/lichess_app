@@ -73,6 +73,7 @@ export const SOURCE_PLACEHOLDER: Record<GameSource, string> = {
  * that lets it happen without anyone noticing.
  */
 import type { TimeControlMs } from "@shared/pgn-clock";
+import { STORAGE_KEYS } from "./storage-keys";
 export { NO_TIME_CONTROL, type TimeControlMs } from "@shared/pgn-clock";
 
 export type ImportedGame = {
@@ -137,7 +138,7 @@ export const clampMax = (max: number) => Math.min(Math.max(max, 1), 50);
  * convenience, no measurement reads it, and a browser that refuses storage simply starts on the
  * default -- which is why every access is wrapped rather than assumed.
  */
-const PREFERENCE_KEY = "decision-lab.game-source";
+const PREFERENCE_KEY = STORAGE_KEYS.gameSource.key;
 
 export function preferredSource(): GameSource {
   try {

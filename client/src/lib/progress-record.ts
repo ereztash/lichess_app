@@ -16,9 +16,11 @@
  * into the running app at all -- `tests/client/a-record-of-the-trial-not-of-the-player.test.ts`
  * holds that as an assertion over the imports rather than as an intention.
  *
- * WHAT IT DELIBERATELY DOES NOT HOLD. No FEN, no move, no confidence value, no typed text, no
- * account. Step IDS, counts and whole seconds. That is enough to answer "where did it get
- * expensive" and not enough to reconstruct a single thing anyone thought.
+ * WHAT IT DELIBERATELY DOES NOT HOLD. No FEN, no move, no confidence value, no account, and no
+ * typed text save one: the free-text answer to the value question (`value_reconstruction_submitted`,
+ * docs/ACQUISITION_EVIDENCE.md section 6), which is stored on purpose because it IS the evidence.
+ * Everything else is step ids, counts, failure names and whole seconds -- enough to answer "where
+ * did it get expensive" and not enough to reconstruct what anyone thought about a position.
  *
  * WHERE IT LIVES. This browser, and nowhere else. It is not sent anywhere; the tester copies it
  * out of the self-check panel by hand, which keeps handing it over an act rather than a default.
@@ -29,8 +31,9 @@ import {
   type TrialEvent,
   type TrialEventName,
 } from "./acquisition-evidence";
+import { STORAGE_KEYS } from "./storage-keys";
 
-const KEY = "decision-lab.progress";
+const KEY = STORAGE_KEYS.progress.key;
 
 /** Visits kept. A ring, because this must never be the write that fills the quota. */
 const MAX_VISITS = 20;

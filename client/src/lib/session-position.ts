@@ -21,10 +21,11 @@
  * nothing measured.
  */
 import { ANALYSIS_SOURCES, type AnalysisSource } from "@shared/analysis-source";
+import { STORAGE_KEYS } from "./storage-keys";
 import { REVEAL_TIMINGS, type RevealTiming } from "@shared/reveal-timing";
 import type { OpponentDepth } from "@/lib/opponent";
 
-const KEY = "decision-lab.position.v1";
+const KEY = STORAGE_KEYS.position.key;
 
 export interface StoredPosition {
   /** The moves, in SAN, in order. A bare SAN movetext is valid input to `buildHistory`. */

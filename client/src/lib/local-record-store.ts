@@ -14,6 +14,7 @@
  * the deployment -- it never leaves the machine.
  */
 import type { PreregisteredHypothesis } from "@shared/prereg";
+import { STORAGE_KEYS } from "./storage-keys";
 import type { StoredImportDiagnostic } from "@shared/import-diagnostic";
 import type { Claim, ProspectiveDrillResult } from "@shared/claim";
 import type {
@@ -68,7 +69,7 @@ import type {
  * product cannot separate identities it was never given. What it can do is stop merging the ones
  * it WAS given, which is what this does.
  */
-const KEY_ROOT = "decision-lab.record.v1";
+const KEY_ROOT = STORAGE_KEYS.record.key;
 
 /** The account whose record this browser is keeping, or null when nobody has signed in. */
 let identity: string | null = null;
@@ -395,6 +396,43 @@ function write(state: Persisted): void {
  */
 export function localRecordAvailable(): boolean {
   return true;
+}
+
+/**
+ * The record as this browser holds it, for the person it belongs to.
+ *
+ * THE STORED FORM, NOT A REPORT. What is handed over is exactly the JSON under the key, so nothing
+ * is summarised, redacted or reinterpreted on the way out -- a player asking "what do you keep
+ * about me?" gets the answer the storage would give, plus which key it came from. `null` when the
+ * record is absent or unreadable in a way `read()` refused; the caller says which.
+ */
+export function exportLocalRecord(): { key: string; json: string } | null {
+  const key = storageKey();
+  if (session !== null) {
+    return { key, json: JSON.stringify({ ...session, version: LOCAL_RECORD_VERSION }) };
+  }
+  try {
+    const raw = localStorage.getItem(key);
+    return raw === null ? null : { key, json: raw };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Erase this browser's record for the current identity. The key is removed, the memory fallback is
+ * dropped, and the health says `absent`, which is what a fresh browser says. Other identities'
+ * records under their own suffixed keys are untouched, and so is everything that is not the record
+ * (preferences, the trial ledger): `docs/RETENTION.md` lists them and each has its own clear.
+ */
+export function deleteLocalRecord(): void {
+  session = null;
+  health = { kind: "absent" };
+  try {
+    localStorage.removeItem(storageKey());
+  } catch {
+    /* Removing threw, which a privacy setting can do; there was nothing readable to keep either. */
+  }
 }
 
 /** Test seam. Clears the in-memory fallback so a case can start from a known backing. */

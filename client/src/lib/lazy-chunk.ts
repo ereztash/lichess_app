@@ -31,10 +31,11 @@
  * now telling the truth.
  */
 import { lazy, type ComponentType } from "react";
+import { STORAGE_KEYS } from "./storage-keys";
 import { reportFailure } from "./error-sink";
 
 /** Set for exactly one page load, between deciding to reload and the load that follows. */
-const RELOAD_MARK = "decision-lab.chunk-reload";
+const RELOAD_MARK = STORAGE_KEYS.chunkReload.key;
 
 /**
  * Whether a failure is a missing chunk rather than a fault in the module itself.

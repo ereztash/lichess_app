@@ -1,3 +1,4 @@
+import { STORAGE_KEYS } from "./storage-keys";
 /**
  * What the interface is allowed to notice about how you are using it.
  *
@@ -26,7 +27,7 @@ export type DeviceClass = "phone" | "tablet" | "desktop";
 export type InputClass = "touch" | "pointer";
 export type SignalStrength = "strong" | "weak";
 
-const USAGE_KEY = "decision-lab-usage-v1";
+const USAGE_KEY = STORAGE_KEYS.usage.key;
 const DAY_MS = 86_400_000;
 /** Below this many days, a return is just the next sitting and needs no re-orientation. */
 export const RETURN_GAP_DAYS = 3;
