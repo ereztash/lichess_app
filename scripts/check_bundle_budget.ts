@@ -725,9 +725,31 @@ const ENTRY_GZIP_KB = 215;
  * ceilings, so neither moved again. Raising a ceiling that has not been crossed is loosening a
  * budget for free, and that holds for a merge as much as for a commit. 684 and 772 were the right
  * numbers for the tree they were measured on; this note is what happened to them.
+ *
+ * 773 -> 774: THE PRESS LAYER, AND ALL OF IT IS STYLESHEET.
+ *
+ *     entry, raw               684.4 kB      unchanged
+ *     entry, gzipped           214.5 kB      unchanged
+ *     initial download, before 773.0 kB
+ *     initial download, after  773.6 kB      +0.6
+ *
+ * The entry chunk did not move at all, which is the check that says this is what it claims to be:
+ * one `:active` rule, one `:focus-visible` rule, and a two-pixel sweep on the waiting line, plus
+ * their comments. No JavaScript, no new import, no new chunk. `aria-busy` on one element in
+ * `Home.tsx` is four attribute characters and did not register at this resolution.
+ *
+ * WHY IT IS SPENT HERE. Measured on the built app: five control classes were held down in
+ * Chromium and NONE of them changed a computed visual property; the whole stylesheet carried two
+ * `:active` rules in 90 kB. And the commit's three-second wait ran with `aria-busy` on zero
+ * elements and `animationName !== "none"` on zero elements -- nothing on the page moved for three
+ * seconds after the most consequential press in the product. Six hundred bytes is the price of a
+ * product that answers the hand, and it is the cheapest thing in this file's history.
+ *
+ * ONE, NOT TWO. 773.6 rounds up to 774 and leaves 0.4 kB, which is less headroom than any raise
+ * before it. The ratchet stays a ratchet.
  */
 
-const INITIAL_RAW_KB = 773;
+const INITIAL_RAW_KB = 774;
 
 interface Asset {
   name: string;

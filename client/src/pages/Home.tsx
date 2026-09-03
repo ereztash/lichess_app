@@ -2070,7 +2070,9 @@ export default function Home() {
                   }
                 />
               ) : revealFailure === null ? (
-                <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
+                <p className="reveal-waiting" role="status" aria-busy="true">
+                  המנוע מחשב את העמדה שהחלטת עליה…
+                </p>
               ) : null}
               {/*
                 * O-1 = A: the reveal routes straight to the bank's next position rather than
