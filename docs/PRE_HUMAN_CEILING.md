@@ -29,7 +29,7 @@ it.
 | --- | --- |
 | ☑ | 35 gates pass, and all 35 positive controls go red under deliberate break |
 | ☑ | production serves exactly what `main` builds — build identity, all assets, `Deployed` L6 green |
-| ☑ | the shipped engine starts under the policy production serves: `UCIOK`, 0 refusals |
+| ☑ | the shipped engine starts **on `lichessapp.vercel.app` itself**, over real TLS: `uciok` in 1,955 ms, `deployed.yml` [run 33763175591](https://github.com/ereztash/lichess_app/actions/runs/33763175591) bound to `9d03bbb`. Its control went red in the same run |
 | ☑ | one authoritative debt register, which names every other tracker and what it is for |
 
 ---
