@@ -1,0 +1,29 @@
+{
+ "candidate_values_preserved": 348571,
+ "committed_sha256": {
+  "ingest_manifest.json": "716030f32b10d5766c1c43183429fbaeb5c4225173168716bb71fd1b3da83d55",
+  "per_side.jsonl": "fb6536d6b47674f5533454ce279ab03eb1b7b3aefe1b4d64c81cf25d53f76eb2",
+  "scored.jsonl.zst": "6533ee479898304589f463643cf78d09e4e8878c8d93444aa75e1bde8e485a83"
+ },
+ "decisions": 45296,
+ "does_not_collide_with_learning_v3": "that corpus is multipv-over-B and full-width at 200,000 nodes; these are multipv-8-full-width and post-move-best at 60,000. Different policy and different budget are different measurements and get different keys.",
+ "engine": {
+  "build": "Stockfish 17.1",
+  "hash_cleared_between_searches": true,
+  "hash_mb": 32,
+  "multipv_post": 1,
+  "multipv_pre": 8,
+  "nodes": 60000,
+  "post_policy": "post-move-best",
+  "pre_policy": "multipv-8-full-width",
+  "threads": 1
+ },
+ "protocol": "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md",
+ "searches": 90592,
+ "uncompressed_sha256": {
+  "scored.jsonl.zst": "44f1e6301519e99ba90190e850fc19e0f7bd2e751256ab7e6b09ac2c270517c4"
+ },
+ "version": "1.0.0",
+ "what": "every Stockfish value this mission bought on natural blitz decisions, preserved so no future run repeats one",
+ "why_per_decision_rows": "one row per decision carrying its candidate list, not one row per evaluation: the FEN appears once instead of nine times. research/system-invariant/score_natural.py::lookup_move answers the standing no-repeat rule over these rows using research/learning-v3/cache.py's key_for."
+}

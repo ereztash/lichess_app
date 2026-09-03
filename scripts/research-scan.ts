@@ -140,6 +140,29 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "the external prior E1-E5 and its falsifiers, hashed before the repository's learning architecture was read. The ordering is the whole claim, so the hash has to be checked by something that runs on its own -- `verify_freeze.py` is a command somebody has to remember, this gate is not. The `<doc>` key IS the tree path, which is why `subject` is the identity",
   },
   {
+    artefact: "research/system-invariant/corpus/MANIFEST.json",
+    keyPath: "committed_sha256.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (artefact, leaf) => join(dirname(artefact), leaf),
+    why: "the natural-play corpus, 90,592 Stockfish searches at 60,000 nodes on 45,296 decisions. Committed rather than reproduced for the same reason the learning-v3 corpus is: the download is cheap and forty minutes of three-way CPU is not, and a corpus nothing checks can rot into a different corpus without anybody noticing",
+  },
+  {
+    artefact: "research/system-invariant/corpus/MANIFEST.json",
+    keyPath: "uncompressed_sha256.<doc>",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "what was compressed. The uncompressed file is deliberately not in the tree, so nothing here can check this; it exists so a reader who decompresses can verify they got the same bytes. Classified rather than removed, because a digest with no checker is still a claim somebody made",
+  },
+  {
+    artefact: "docs/system-invariant/FREEZE.json",
+    keyPath: "files.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (_artefact, leaf) => leaf,
+    why: "the OwnExposure research question, its construct and its falsifiers, hashed before any natural-play outcome was computed. Same idiom and same reason as the learning-v3 freeze above: the ordering is the whole claim, so it is checked by the gate rather than by a command somebody has to remember. The `<doc>` key IS the tree path, hence the identity `subject`",
+  },
+  {
     artefact: "docs/measurement/STRONGEST_PERMITTED_CLAIM.json",
     keyPath: "board_predicate_sha256",
     kind: "HASH_OF_TREE_FILE",
@@ -153,6 +176,13 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     kind: "EXTERNAL_ARTEFACT",
     status: "CURRENT",
     why: "stockfish-17.1-avx2, not in this tree. Checkable only where the binary is, which is where the determinism test already refuses rather than skips",
+  },
+  {
+    artefact: "research/system-invariant/corpus/ingest_manifest.json",
+    keyPath: "prefix_sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the 520,000,000-byte prefix of the 2026-07 Lichess dump this mission consumed. Same class as B3's below: the bytes are deliberately not committed, and the digest exists so a rerun can prove it read the same prefix",
   },
   {
     artefact: "research/b3_population_expertise/data/**/manifest.json",

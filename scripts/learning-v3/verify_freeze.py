@@ -31,8 +31,20 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-FREEZE = ROOT / "docs/learning-v3/FREEZE.json"
-CROSSWALK = "docs/learning-v3/EXTERNAL_REPO_CROSSWALK.md"
+
+# WHY THIS TAKES AN ARGUMENT NOW. A second mission (docs/system-invariant/) froze a research
+# question under the same idiom, and the choice was between copying this file and generalising it.
+# Copying would have produced two checkers that can drift, which is the exact failure X-02 and
+# X-16 are in the tree to remember. The defaults below reproduce the learning-v3 behaviour
+# exactly, so `python scripts/learning-v3/verify_freeze.py` with no argument still means what it
+# meant.
+#
+# The file stays at this path deliberately. `docs/learning-v3/FROZEN_EXTERNAL_SYNTHESIS.md` names
+# it, and that document is frozen: moving the script would make a frozen document wrong, and a
+# frozen document may be contradicted by later evidence but not edited for tidiness.
+DEFAULT_FREEZE = "docs/learning-v3/FREEZE.json"
+DEFAULT_DOWNSTREAM = "docs/learning-v3/EXTERNAL_REPO_CROSSWALK.md"
+DEFAULT_PREFIXES = ("docs/learning-v3/", "scripts/learning-v3/")
 
 
 def git(*args: str) -> str:
@@ -50,10 +62,19 @@ def first_commit_touching(path: str) -> str:
 def main() -> int:
     problems: list[str] = []
 
-    if not FREEZE.exists():
-        print(f"FAIL: {FREEZE} is missing. There is no freeze to verify.")
+    rel_freeze = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_FREEZE
+    freeze_path = ROOT / rel_freeze
+    if not freeze_path.exists():
+        print(f"FAIL: {freeze_path} is missing. There is no freeze to verify.")
         return 1
-    freeze = json.loads(FREEZE.read_text())
+    freeze = json.loads(freeze_path.read_text())
+
+    # A freeze that names its own downstream artefact and its own allowed prefixes carries the
+    # order claim with it, instead of leaving it here where a second mission would have to edit
+    # this script. Absent keys fall back to learning-v3, whose FREEZE.json is itself frozen and
+    # so cannot be given the keys retroactively.
+    downstream = freeze.get("downstream_artifact", DEFAULT_DOWNSTREAM)
+    prefixes = tuple(freeze.get("allowed_prefixes", DEFAULT_PREFIXES))
 
     # (1) content -- duplicated from the gate on purpose, so this file is runnable alone
     for rel, expected in freeze["files"].items():
@@ -85,7 +106,7 @@ def main() -> int:
     else:
         freeze_sha = freeze_commits.pop()
         touched = git("show", "--name-only", "--format=", freeze_sha).split()
-        stray = [t for t in touched if not t.startswith("docs/learning-v3/") and not t.startswith("scripts/learning-v3/")]
+        stray = [t for t in touched if not any(t.startswith(pref) for pref in prefixes)]
         if stray:
             problems.append(
                 "the freeze commit also touched: "
@@ -103,7 +124,7 @@ def main() -> int:
                     + "      self-consistent. That is precisely why this check is by commit."
                 )
 
-        cross_sha = first_commit_touching(CROSSWALK)
+        cross_sha = first_commit_touching(downstream)
         if cross_sha:
             ancestor = subprocess.run(
                 ["git", "merge-base", "--is-ancestor", freeze_sha, cross_sha],
@@ -112,12 +133,12 @@ def main() -> int:
             )
             if ancestor.returncode != 0:
                 problems.append(
-                    f"the crosswalk commit {cross_sha[:12]} is not a descendant of the freeze "
+                    f"the downstream commit {cross_sha[:12]} is not a descendant of the freeze "
                     f"commit {freeze_sha[:12]}\n"
                     f"      The audit did not happen after the freeze."
                 )
         else:
-            print(f"note: {CROSSWALK} does not exist yet; the order claim is not yet testable")
+            print(f"note: {downstream} does not exist yet; the order claim is not yet testable")
 
     if problems:
         print("FREEZE VIOLATED")

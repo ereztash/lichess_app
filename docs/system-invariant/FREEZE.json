@@ -1,0 +1,24 @@
+{
+  "what": "The OwnExposure research question, its construct, its outcome, its controls, its falsifiers, its scope vocabulary and its GO/NARROW/STOP thresholds, frozen before any natural-play outcome was computed.",
+  "why": "The mission's own words: a negative answer is a successful result if it is well measured. That is only true if what counts as negative was fixed first. Thresholds chosen after a number is seen are a description of the number.",
+  "frozen_at_main_sha": "c848f244d380e13a8622c590791b22a2bef7a39b",
+  "frozen_from_pr66_head": "03fcea95ce70ad1e8e875c34e5fb47f0496d7b5e",
+  "ordering_rule": "repository reconciliation -> construct located in the implementation -> freeze -> new compute -> analysis -> scope -> gate -> verdict",
+  "downstream_artifact": "docs/system-invariant/NATURAL_GENERALIZATION.md",
+  "allowed_prefixes": [
+    "docs/system-invariant/"
+  ],
+  "files": {
+    "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md": "58e41a1191d0c2e8f6beb8f2f626689d27183a8218c6ef8f9b43f59413828df3",
+    "docs/system-invariant/FALSIFIERS.md": "0909f7ab76c47d7e8fa98d62aa98862ebd9dca97a16492a210c00fe7199c728b"
+  },
+  "bytes": {
+    "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md": 19616,
+    "docs/system-invariant/FALSIFIERS.md": 6591
+  },
+  "checked_by": [
+    "GATE-RESEARCH-RECONCILED, on every `npm run gates`, via RESEARCH_RELATIONS in scripts/research-scan.ts",
+    "scripts/learning-v3/verify_freeze.py docs/system-invariant/FREEZE.json, which adds what a hash cannot: that one commit introduced both documents and touched nothing outside docs/system-invariant/, that no later commit modified them, and that the downstream analysis commit is a descendant of this one"
+  ],
+  "what_this_does_not_establish": "That the frozen question is the right question, or that OwnExposure is a real invariant. A hash proves order, not truth."
+}

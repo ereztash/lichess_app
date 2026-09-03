@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+"""Sample natural blitz decisions for the OwnExposure natural-generalization test.
+
+Protocol authority: docs/system-invariant/RESEARCH_QUESTION_FREEZE.md section 4.2.
+
+THIS DRIVES B3's SAMPLER RATHER THAN REIMPLEMENTING IT. `research/b3_population_expertise/src/
+ingest.py` already encodes the header qualification, the structural rated check, the bot and
+termination exclusions, the one-analysed-side-per-game rule (Gate 1 R6), the per-player game cap by
+reservoir and the per-side decision cap by even ply spacing. A second sampler would be a second
+authority for the same question, and the two would drift.
+
+THE ACCEPTANCE RATES ARE B3's, UNMODIFIED. `src/rates_primary.json` is used as it stands, so the
+rating-band composition of this sample is B3's composition and not a parameter of this mission. The
+sample size is set by the byte prefix instead, which is the one knob B3 itself exposes
+(`max_bytes_requested` in its own manifests).
+
+WHAT IS DIFFERENT FROM B3, stated rather than buried: this reads a prefix of one day rather than the
+whole day, so it covers the earlier UTC hours of 2026-07-01 and inherits whatever time-of-day
+composition those hours have. B3's periods reached the end of their day. This is recorded in the
+manifest as `covers_full_day: false` and is a real limit on population representativeness.
+
+No engine is run here. Output is positions and moves only.
+"""
+from __future__ import annotations
+
+import argparse
+import collections
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+B3 = ROOT / "research" / "b3_population_expertise" / "src"
+sys.path.insert(0, str(B3))
+
+import chess  # noqa: E402
+import common  # noqa: E402  (B3's)
+import ingest as b3  # noqa: E402  (B3's)
+
+MONTH = "2026-07"
+DAY = "2026.07.01"
+TIME_CONTROL = "180+0"
+GAMES_PER_PLAYER = 2
+MAX_DECISIONS_PER_SIDE = 60
+
+
+
+def opportunity_eligible_plies(side_record: dict) -> dict:
+    """Count the plies that the FROZEN opportunity definition could apply to.
+
+    The user's amendment asks whether the scored sequence equals the complete sequence of positions
+    eligible under that definition. It does not, and this measures the gap rather than arguing it.
+
+    A position can host an opportunity only if the analysed player is to move and at least two legal
+    moves exist, because "two candidates within 0.05 wp of best" cannot be satisfied with one. B3's
+    other exclusions -- the player's first move, the last ply of the game, an impossible think time
+    -- remove positions that COULD have hosted one. Forced positions are the only exclusion that is
+    harmless to the opportunity denominator.
+    """
+    board = chess.Board()
+    want_white = side_record["side"] == "w"
+    total = forced = 0
+    for san in side_record["moves"]:
+        is_players = (board.turn == chess.WHITE) == want_white
+        if is_players:
+            n = board.legal_moves.count()
+            if n >= 2:
+                total += 1
+            else:
+                forced += 1
+        try:
+            board.push_san(san)
+        except ValueError:
+            break
+    return {"opportunity_eligible_plies": total, "forced_plies": forced}
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--max-bytes", type=int, default=520_000_000)
+    ap.add_argument("--out", required=True)
+    args = ap.parse_args()
+
+    rates = json.loads((B3 / "rates_primary.json").read_text())
+    sampler = b3.Sampler(TIME_CONTROL, rates, games_per_player=GAMES_PER_PLAYER)
+    tally: dict = {}
+
+    t0 = time.time()
+    seen = 0
+
+    def progress(n):
+        rate = n / max(time.time() - t0, 1e-9)
+        print(f"  {n:,} games scanned, {rate:,.0f}/s, {len(sampler.accepted)} players accepted",
+              flush=True)
+
+    for headers, movetext in b3.stream_games(MONTH, DAY, args.max_bytes, progress=progress,
+                                             tally=tally):
+        seen += 1
+        sampler.offer(headers, movetext)
+
+    sides = sampler.finalise()
+    stream = tally.get("stream")
+    consumed = stream.bytes_read if stream else None
+    prefix_sha = stream.digest.hexdigest() if stream else None
+    print(f"scanned {seen:,} games in {time.time() - t0:.0f}s; {len(sides)} sides accepted",
+          flush=True)
+
+    base, inc = b3.parse_time_control(TIME_CONTROL)
+    rows = []
+    per_side = []
+    excl: collections.Counter = collections.Counter()
+    for side in sides:
+        # AMENDMENT_01 section C.3 needs the COMPLETE eligible sequence, because B3's per-side cap
+        # of 60 makes "rows in the table" and "the side's decisions" different things on long games.
+        # The uncapped call is made first and only its LENGTH is kept; the capped call below is what
+        # produces the rows, unchanged, so the emitted data is identical to the pre-amendment run.
+        full, _ = b3.eligible_decisions(side, base, inc, 10 ** 9)
+        decisions, counts = b3.eligible_decisions(side, base, inc, MAX_DECISIONS_PER_SIDE)
+        excl.update(counts)
+        opp_plies = opportunity_eligible_plies(side)
+        per_side.append({
+            "player": side["player"], "game_id": side["game_id"], "side": side["side"],
+            "band": side["band"], "rating": side["rating"],
+            "eligible_decisions_uncapped": len(full),
+            "decisions_in_table": len(decisions),
+            "capped": len(full) > MAX_DECISIONS_PER_SIDE,
+            "plies_in_game": len(side["moves"]),
+            **opp_plies,
+        })
+        for d in decisions:
+            board = chess.Board(d["fen_before"])
+            rows.append({
+                "player": side["player"],
+                "game_id": side["game_id"],
+                "side": side["side"],
+                "rating": side["rating"],
+                "band": side["band"],
+                "rating_diff": side["rating"] - side["opponent_rating"],
+                "ply": d["ply"],
+                "fen_before": d["fen_before"],
+                "move_uci": d["move_uci"],
+                "legal_moves": d["legal_moves"],
+                "in_check": bool(d["in_check"]),
+                "seconds_taken": d["seconds_taken"],
+                "clock_ms_self": d["clock_ms_self"],
+                "clock_ms_opp": d["clock_ms_opp"],
+                "opp_prev_think_s": d["opp_prev_think_s"],
+                "own_prev_think_s": d["own_prev_think_s"],
+                "phase": common.classify_phase(board, d["ply"]),
+                "non_pawn_material": common.non_pawn_material(board),
+                "move_number": board.fullmove_number,
+            })
+
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "w") as fh:
+        for r in rows:
+            fh.write(json.dumps(r, sort_keys=True) + "\n")
+    with open(out.parent / "per_side.jsonl", "w") as fh:
+        for r in per_side:
+            fh.write(json.dumps(r, sort_keys=True) + "\n")
+
+    manifest = {
+        "protocol": "docs/system-invariant/RESEARCH_QUESTION_FREEZE.md",
+        "month": MONTH,
+        "window_utc_date": DAY,
+        "time_control": TIME_CONTROL,
+        "source_url": b3.BASE_URL.format(month=MONTH),
+        "max_bytes_requested": args.max_bytes,
+        "prefix_bytes_consumed": consumed,
+        "prefix_sha256": prefix_sha,
+        "covers_full_day": False,
+        "acceptance_rates": rates,
+        "acceptance_rates_source": "research/b3_population_expertise/src/rates_primary.json, unmodified",
+        "seed": b3.SEED,
+        "games_per_player_cap": GAMES_PER_PLAYER,
+        "max_decisions_per_side": MAX_DECISIONS_PER_SIDE,
+        "games_seen": sampler.games_seen,
+        "game_exclusions": dict(sampler.excluded),
+        "decision_exclusions": dict(excl),
+        "sides": len(sides),
+        "players": len({s["player"] for s in sides}),
+        "decisions": len(rows),
+        "decisions_by_band": dict(collections.Counter(r["band"] for r in rows)),
+        # AMENDMENT_01 section C.2: O4's weights are the band shares of CANDIDATE sides in this
+        # prefix, counted here rather than borrowed from B3's month. Without this the only pooled
+        # number available would be O6, which describes the sampler.
+        "candidate_sides_by_band": dict(sampler.seen_candidates),
+        "sides_capped_at_per_side_limit": sum(1 for r in per_side if r["capped"]),
+        "sides_uncapped": sum(1 for r in per_side if not r["capped"]),
+        "players_by_band": {
+            b: len({r["player"] for r in rows if r["band"] == b})
+            for b in sorted({r["band"] for r in rows})
+        },
+        "ingest_seconds": round(time.time() - t0, 1),
+        "engine_searches_run": 0,
+    }
+    print("===INGEST_MANIFEST_BEGIN===")
+    print(json.dumps(manifest, indent=2, sort_keys=True))
+    print("===INGEST_MANIFEST_END===")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

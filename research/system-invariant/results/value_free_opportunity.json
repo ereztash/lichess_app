@@ -1,0 +1,12 @@
+{
+  "engine_searches_run": 0,
+  "exposure_spread_mean": 1.4623,
+  "exposure_spread_p90": 2.0,
+  "mean_distinct_exposure_values": 2.4582,
+  "mean_legal_moves": 30.0723,
+  "sample_of": 45296,
+  "sampled_positions": 10000,
+  "seed": 20260902,
+  "value_free_opportunity_rate": 0.9542,
+  "what": "at least two LEGAL moves differ in OwnExposure_post; no engine, no value filter"
+}

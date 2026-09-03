@@ -41,3 +41,8 @@ research/b3_population_expertise/data/**/*.jsonl.zst
 research/b3_population_expertise/b2_repro/*.jsonl
 research/b3_population_expertise/b2_repro/corpus.json
 .venv-b3/
+
+# system-invariant: the natural sample and its scores are rebuilt by
+# research/system-invariant/{ingest_natural,score_natural}.py; only the preserved corpus under
+# research/system-invariant/corpus/ and its manifest are committed.
+research/system-invariant/work/
