@@ -1,0 +1,56 @@
+[
+  {
+    "name": "01-front-door",
+    "url": "http://127.0.0.1:41793/",
+    "meta": {
+      "squares": 0,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 0,
+      "notice": "",
+      "announcer": "",
+      "primaryActions": [
+        "play-first-decision"
+      ]
+    },
+    "boardPieces": 0,
+    "sigHash": 0,
+    "record": null
+  },
+  {
+    "name": "02-position-handed-over",
+    "url": "http://127.0.0.1:41793/play",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 1,
+      "notice": "חזרתם למשחק שהייתם בו — 24 חצאי־מהלכים. העתק FEN",
+      "announcer": "על הלוח: d7 אל d6.",
+      "primaryActions": [
+        "commit-decision"
+      ]
+    },
+    "boardPieces": 27,
+    "sigHash": 512,
+    "record": null
+  },
+  {
+    "name": "attackA-pre-commit-selection",
+    "whiteWithTargets": 12,
+    "blackWithTargets": 0
+  }
+]

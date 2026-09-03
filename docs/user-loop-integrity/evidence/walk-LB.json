@@ -1,0 +1,173 @@
+[
+  {
+    "name": "LB-00-source-menu",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 1,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 27,
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  },
+  {
+    "name": "LB-01-setup",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 1,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 27,
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  },
+  {
+    "name": "LB-02-game-started",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 1,
+      "notice": "משחק חדש. אתם משחקים לבן ופותחים. היריב הוא Stockfish בעומק 4. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "commit-decision"
+      ]
+    },
+    "pieces": 32,
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  },
+  {
+    "name": "LB-attackA-pre-commit-black",
+    "blackSelectable": 16,
+    "blackWithTargets": 0
+  },
+  {
+    "name": "LB-03-after-commit",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 2,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "המהלך שהצעתם: a2 אל a4.",
+      "primaryActions": []
+    },
+    "pieces": 32,
+    "record": {
+      "decisions": 2,
+      "reveals": 1
+    }
+  },
+  {
+    "name": "LB-attackA-post-commit",
+    "w": {
+      "from": "b2",
+      "to": "b4"
+    },
+    "b": {
+      "from": "b8",
+      "to": "a6"
+    },
+    "changed": true
+  },
+  {
+    "name": "LB-04-after-attack",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "b8",
+        "a6"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 32,
+    "record": {
+      "decisions": 2,
+      "reveals": 2
+    }
+  },
+  {
+    "name": "LB-05-settled",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "b8",
+        "a6"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 32,
+    "record": {
+      "decisions": 2,
+      "reveals": 2
+    }
+  }
+]

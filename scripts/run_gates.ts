@@ -30,6 +30,7 @@ import {
   type Finding,
 } from "./gate-scan";
 import {
+  findBoardsWithUncheckedAuthority,
   findPendingWorkLeaks,
   findReadingsOutsideTheirSurface,
   findScreensWithTwoBoards,
@@ -193,6 +194,23 @@ const readingsOutside = (roots: string[]) =>
 
 const twoBoards = (roots: string[]) =>
   fromFindings(findScreensWithTwoBoards(roots), "one board per screen");
+
+/**
+ * WHOSE HAND THE BOARD IS, derived rather than constant.
+ *
+ * The compiler already refuses a board with no authority at all. This is the half a type cannot
+ * see: a board whose authority is the same string in every state, which is the defect that shipped
+ * -- `Home.tsx` accepted a gesture at `committing` and at `revealed` and played it, for whichever
+ * side was to move.
+ */
+const boardAuthorityDerived = (roots: string[]): GateResult => {
+  const findings = findBoardsWithUncheckedAuthority(roots);
+  if (findings.length === 0 && roots.every((r) => r === INERTIA_FIXTURES)) {
+    /* Same argument as the toolbox control: a directory with no board in it is not a red control. */
+    return fail("the control fixture renders no board at all");
+  }
+  return fromFindings(findings, "every board declares whose hand it is, and derives it from state");
+};
 
 const registerDrift = (root: string) =>
   fromFindings(
@@ -805,6 +823,14 @@ export const GATES: Gate[] = [
     description: "No screen renders two boards, because two boards is two answers to 'where am I'.",
     run: () => twoBoards(["client/src"]),
     positiveControl: () => twoBoards([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-BOARD-AUTHORITY",
+    rule: "LAW 3",
+    description:
+      "A board says whose hand it is, and derives it from state rather than granting it always.",
+    run: () => boardAuthorityDerived(["client/src"]),
+    positiveControl: () => boardAuthorityDerived([INERTIA_FIXTURES]),
   },
   {
     id: "GATE-REUSE-CONFIG",

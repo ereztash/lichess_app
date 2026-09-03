@@ -32,6 +32,7 @@ import { continuationStarted } from "@/lib/acquisition-evidence";
 import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
+import { NO_FURTHER_POSITION, RevealNoContinuation } from "@/components/RevealNoContinuation";
 import { ContextRibbon } from "@/components/ContextRibbon";
 import { readPosition, writePosition } from "@/lib/session-position";
 import { LoopStrip } from "@/components/LoopStrip";
@@ -43,7 +44,9 @@ import {
 } from "@/components/LearningTransferRunner";
 import type { DrillSpec } from "@shared/claim";
 import { transferObservation } from "@shared/learning-record";
+import { boardAuthorityOf } from "@shared/board-authority";
 import { PROBE_STAGE } from "@shared/counterfactual-stage";
+import { continuationAfter } from "@/lib/continuation";
 import { effectiveTiming, mayShowVerdictNow, type RevealTiming } from "@shared/reveal-timing";
 import type { LearningTransfer, LearningTransferObservation } from "@shared/learning-record";
 import { LichessLayersPanel } from "@/components/LichessLayersPanel";
@@ -285,6 +288,8 @@ export default function Home() {
     decisionId: string;
     draft: DraftDecision;
     positionFen: string;
+    /** The ply `positionFen` is, carried for the same reason it is. */
+    positionPly: number;
     isDrillDecision: boolean;
     /** The transfer run this decision belongs to, frozen at commit. See `runReveal`. */
     transfer: LearningTransfer | null;
@@ -302,7 +307,8 @@ export default function Home() {
   /** The engine's second-best line at the analysed position, when one was computed. */
   const [alternative, setAlternative] = useState<EngineLine | null>(null);
   const [committedDraft, setCommittedDraft] = useState<DraftDecision | null>(null);
-  const [revealFen, setRevealFen] = useState<string>("");
+  /** The position the open reveal is about, and its ply: two fields that must agree are one. */
+  const [revealAt, setRevealAt] = useState<{ fen: string; ply: number }>({ fen: "", ply: -1 });
   const [revealedDecisionId, setRevealedDecisionId] = useState<string>();
   /*
    * `EXPLORE`: the player asked to see the rest of the record (P1.7).
@@ -726,16 +732,14 @@ export default function Home() {
     // asked. Browsing away simply makes the existing result stale, and it is marked as such.
   }, [activeFen]);
 
+  /** `at` names the position played from and defaults to the one on screen; LAW 11 is why. */
   const playMove = useCallback(
-    (from: string, to: string) => {
-      const game = new Chess(activeFen);
+    (from: string, to: string, at = { ply: currentPly, fen: activeFen }) => {
+      const game = new Chess(at.fen);
       try {
         const move = game.move({ from, to, promotion: "q" });
-        setHistory((prev) => [
-          ...prev.slice(0, currentPly + 1),
-          snapshot(game, move, currentPly + 1),
-        ]);
-        setCurrentPly(currentPly + 1);
+        setHistory((prev) => [...prev.slice(0, at.ply + 1), snapshot(game, move, at.ply + 1)]);
+        setCurrentPly(at.ply + 1);
         return move.san;
       } catch {
         return null;
@@ -833,10 +837,8 @@ export default function Home() {
         setProbeError(undefined);
         return;
       }
-      if (stage !== "deciding") {
-        if (!playMove(from, to)) setNotice("המהלך אינו חוקי בעמדה זו.");
-        return;
-      }
+      /* Every other stage refuses: `shared/board-authority.ts`, enforced in `ChessBoard`. */
+      if (stage !== "deciding") return;
       try {
         new Chess(activeFen).move({ from, to, promotion: "q" });
       } catch {
@@ -864,6 +866,8 @@ export default function Home() {
       draft: DraftDecision,
       decisionId: string,
       positionFen: string,
+      /** The ply `positionFen` is; passed in for the reason `transfer` above is. */
+      positionPly: number,
       isDrillDecision: boolean,
       /**
        * The transfer run this decision belongs to, or null.
@@ -892,7 +896,7 @@ export default function Home() {
       if (isDrillDecision) setDrillDecisionIds((prev) => [...prev, decisionId]);
       if (speak) {
         setCommittedDraft(draft);
-        setRevealFen(positionFen);
+        setRevealAt({ fen: positionFen, ply: positionPly });
         setStage("revealed");
         setNotice("ההחלטה נרשמה. המנוע מחשב עכשיו.");
       } else {
@@ -1025,7 +1029,12 @@ export default function Home() {
            */
           clampedMate: best.mate !== undefined || chosen?.mate !== undefined,
         };
-        if (speak) setRevealInputs(inputs);
+        if (speak) {
+          setRevealInputs(inputs);
+          /* The commit's note still said the engine was computing, and a board that goes quiet
+             has to say so or it reads as broken. */
+          setNotice("ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה.");
+        }
 
         /*
          * ONE RETRY, WITH THE SAME OBJECT rather than a recomputed one.
@@ -1175,6 +1184,7 @@ export default function Home() {
         probe.draft,
         probe.decisionId,
         probe.positionFen,
+        probe.positionPly,
         probe.isDrillDecision,
         probe.transfer,
         stored,
@@ -1271,6 +1281,7 @@ export default function Home() {
 
       // Only now may the engine run at all.
       const positionFen = activeFen;
+      const positionPly = currentPly;
       setDecisionsThisGame((n) => n + 1);
 
       /*
@@ -1288,6 +1299,7 @@ export default function Home() {
           decisionId,
           draft,
           positionFen,
+          positionPly,
           isDrillDecision,
           transfer: isLearningTransferDecision ? learningTransfer : null,
           timing,
@@ -1302,6 +1314,7 @@ export default function Home() {
         draft,
         decisionId,
         positionFen,
+        positionPly,
         isDrillDecision,
         isLearningTransferDecision ? learningTransfer : null,
         null,
@@ -1563,6 +1576,14 @@ export default function Home() {
     setNotice(message);
   };
 
+  /** Where the next decision comes from, or null: `lib/continuation.ts`. */
+  const continuation = useMemo(
+    () => continuationAfter({ source, history, revealPly: revealAt.ply }),
+    [history, revealAt.ply, source],
+  );
+  /** A run has its own way forward; otherwise the game the board came from decides. */
+  const canContinue = inDrill || inLearningTransfer || continuation !== null;
+
   const nextDecision = () => {
     if (learningTransfer && learningTransferStage === "running") {
       void advanceLearningTransfer();
@@ -1572,12 +1593,22 @@ export default function Home() {
       void advanceDrill();
       return;
     }
+    if (!continuation) {
+      setNotice(NO_FURTHER_POSITION);
+      return;
+    }
+    /* A loaded game continues along itself rather than being forked (LAW 4). */
+    if (continuation.kind === "advance") {
+      setCurrentPly(continuation.ply);
+      resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
+      return;
+    }
     // Play the move that was committed, then hand over the next position. If an opponent is
     // configured it answers from the effect below, which watches the position rather than this
     // call -- that way the opening move of a game the player takes as black is covered too.
     if (committedDraft?.chosenMove) {
       const move = uciToSquares(committedDraft.chosenMove);
-      if (move) playMove(move.from, move.to);
+      if (move) playMove(move.from, move.to, revealAt); // the position it was taken in
     }
     resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
   };
@@ -2040,7 +2071,8 @@ export default function Home() {
                 <RevealPanel
                   inputs={revealInputs}
                   analysis={analysis}
-                  fen={revealFen}
+                  fen={revealAt.fen}
+                  boardFen={activeFen}
                   statedKnown={committedDraft.known}
                   /* Null until the reveal has actually been written: an unrecorded reveal is not
                      a funnel stage, and an id that does not name a committed decision cannot be
@@ -2048,8 +2080,11 @@ export default function Home() {
                   decisionId={revealedDecisionId}
                   /* Same condition the header control uses: a transfer run works through a
                      pre-registered set and has its own way forward. */
+                  /* Not offered where it cannot be honoured: `lib/continuation.ts`. */
                   onContinue={
-                    revealedDecisionId && (!learningTransfer || learningTransferStage === "running")
+                    revealedDecisionId &&
+                    (!learningTransfer || learningTransferStage === "running") &&
+                    canContinue
                       ? nextDecision
                       : undefined
                   }
@@ -2057,6 +2092,9 @@ export default function Home() {
               ) : revealFailure === null ? (
                 <p className="reveal-waiting">המנוע מחשב את העמדה שהחלטת עליה…</p>
               ) : null}
+              {revealInputs && !canContinue && (
+                <RevealNoContinuation onReturnToRecord={() => navigate("/")} />
+              )}
               {/*
                 * DIRECTLY UNDER THE REVEAL, and only from the second one onward.
                 *
@@ -2078,7 +2116,13 @@ export default function Home() {
                 * on its own when the engine never answered. Either way it carries the only
                 * control that advances: the header's is gated on a reveal that was stored.
                 */}
-              {revealFailure && <RevealFailure kind={revealFailure} onNext={nextDecision} />}
+              {/* The way on after a failure has to be one that works, so it obeys the same rule. */}
+              {revealFailure && (
+                <RevealFailure
+                  kind={revealFailure}
+                  onNext={canContinue ? nextDecision : () => navigate("/")}
+                />
+              )}
               {learningTransfer && learningTransferPanel}
               {EXPERIMENTAL_LEARNING_ENABLED &&
                 !learningTransfer &&
@@ -2271,6 +2315,7 @@ export default function Home() {
             <ChessBoard
               board={board}
               orientation={orientation}
+              authority={boardAuthorityOf(stage)} /* shared/board-authority.ts */
               selectedSquare={selectedSquare}
               legalTargets={legalTargets}
               lastMove={activeMove ? { from: activeMove.from, to: activeMove.to } : undefined}

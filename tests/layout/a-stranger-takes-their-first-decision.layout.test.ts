@@ -261,8 +261,40 @@ describe("a stranger takes their first decision", () => {
     expect(record?.decisions).toHaveLength(1);
     expect(Object.keys(record?.reveals ?? {})).toHaveLength(1);
 
-    /* 7. There is a way forward, and it is one control. */
-    await expect(page.locator("[data-primary-action]").count()).resolves.toBeGreaterThan(0);
+    /*
+     * 7. There is a way forward, it is one control, AND IT CAN BE TAKEN.
+     *
+     * NARROWED FROM "a control exists", and the narrowing is the finding. This assertion was green
+     * at `c1d7293` over a control that led somewhere wrong: pressing `לבדוק אם זה חוזר` played the
+     * committed move into a game with no opponent, so the board went from `תור לבן` to `תור שחור`
+     * and the stranger was asked to decide for the other side -- and the answer was recorded. A
+     * control that exists is not a way forward, which is the exact gap `docs/user-loop-integrity/`
+     * was sent to find. What is asserted now is that the act on offer is one the screen can
+     * honour.
+     */
+    const forward = page.locator("[data-primary-action]");
+    await expect(forward.count()).resolves.toBe(1);
+    const act = await forward.first().getAttribute("data-primary-action");
+    if (act === "next-decision") {
+      await forward.first().click();
+      await page.locator(".commitment-submit").waitFor({ timeout: 15_000 });
+      const moved = await page.evaluate(async () => {
+        for (const el of document.querySelectorAll<HTMLElement>("[data-square]")) {
+          if (!el.querySelector(".piece")) continue;
+          el.click();
+          await new Promise((r) => setTimeout(r, 60));
+          if (document.querySelector(".legal-square")) return true;
+          el.click();
+        }
+        return false;
+      });
+      expect(moved, "the continuation handed over a position with no move to make").toBe(true);
+      await page.goBack({ waitUntil: "networkidle" }).catch(() => undefined);
+    } else {
+      /* The other honourable answer: this game holds no further position, and the screen says so. */
+      expect(act).toBe("return-record");
+      await expect(page.locator(".reveal-no-continuation").count()).resolves.toBe(1);
+    }
 
     /* 8. A reload keeps the record and puts the board back; nothing crashes; nothing was double-counted. */
     await page.reload({ waitUntil: "networkidle" });
@@ -363,8 +395,17 @@ describe("a stranger takes their first decision", () => {
     const text = await failure.innerText();
     expect(text).toContain("המנוע לא סיים את החישוב");
     expect(text).toContain("ההחלטה עצמה נרשמה");
+    /*
+     * NARROWED, for the same reason as step 7 above. This waited for `.commitment-screen`, and at
+     * `c1d7293` that screen was the opponent's turn put to the player. The recovery contract is
+     * that the decision is kept and the player can go on; where the loaded game holds no further
+     * position, going on is the record, which is where the decision now is.
+     */
     await page.getByRole("button", { name: "להחלטה הבאה" }).click();
-    await page.locator(".commitment-screen").waitFor({ timeout: 15_000 });
+    await page
+      .locator(".commitment-screen, .resume-screen, .record-dashboard, #first-decision-username")
+      .first()
+      .waitFor({ timeout: 15_000 });
     /* Nothing was written that the engine never produced. */
     const record = await storedRecord(page);
     expect(Object.keys(record?.reveals ?? {})).toHaveLength(0);

@@ -37,6 +37,21 @@ interface RevealPanelProps {
   analysis: EngineLine | null;
   /** The position the analysis was computed for. */
   fen: string;
+  /**
+   * The position on the board right now, so staleness is derived here rather than passed in.
+   *
+   * SECTION 4.3, THE RULE `GATE-STALE` STATES: a result rendered against an input it was not
+   * computed for is marked stale. `EvaluationBar` derives it from `currentFen` for exactly this
+   * reason -- *"so a caller cannot forget to mark it"* -- and this panel was the one result on the
+   * screen that did not. Measured in Chromium: with the reveal up, one press on the move timeline
+   * took the board four plies back, and the reveal went on saying `g5d8 עלה 484 ס״פ` about a
+   * position no longer on screen, with the same sentence and the same number. Only the engine's
+   * arrow was guarded.
+   *
+   * OPTIONAL, because most callers of this panel are tests rendering it in isolation, where there
+   * is no board and therefore nothing it could be stale against.
+   */
+  boardFen?: string;
   statedKnown: string;
   /**
    * The decision this reveal is about, or null when it is not being rendered for a real one.
@@ -62,10 +77,18 @@ export function RevealPanel({
   inputs,
   analysis,
   fen,
+  boardFen,
   statedKnown,
   decisionId = null,
   onContinue,
 }: RevealPanelProps) {
+  /*
+   * NOT A REASON TO HIDE ANY OF THE FOUR BLOCKS. Everything below is still true OF THE DECISION --
+   * it was measured, it is on the record, and the record is not what moved. What is no longer true
+   * is that the board in front of the reader is the position it is about, and that is one fact
+   * about the whole panel rather than a fifth section inside it.
+   */
+  const elsewhere = boardFen !== undefined && boardFen !== fen;
   const limits = inferenceLimits(inputs);
   const oneThing = theOneThing(inputs);
   const question = nextQuestion(inputs);
@@ -104,7 +127,12 @@ export function RevealPanel({
   }, [decisionId, oneThing?.kind]);
 
   return (
-    <section className="reveal-panel" aria-label="חשיפה">
+    <section className={`reveal-panel${elsewhere ? " reveal-panel-elsewhere" : ""}`} aria-label="חשיפה">
+      {elsewhere && (
+        <p className="reveal-elsewhere" role="status">
+          הלוח מציג עכשיו עמדה אחרת. מה שכתוב כאן נמדד על העמדה שבה החלטתם.
+        </p>
+      )}
       {/* 1 -- before any number */}
       <section className="reveal-block reveal-limits">
         <h2>

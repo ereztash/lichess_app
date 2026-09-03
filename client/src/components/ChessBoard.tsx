@@ -1,10 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 
+import { boardAccepts, type BoardAuthority } from "@shared/board-authority";
 import { PIECES, type Orientation } from "@/lib/game-data";
 type BoardPiece = { type: string; color: "w" | "b" } | null;
 interface ChessBoardProps {
   board: BoardPiece[][];
   orientation: Orientation;
+  /**
+   * WHOSE HAND THIS BOARD IS, AND THEREFORE WHETHER A PRESS REACHES THE POSITION AT ALL.
+   *
+   * REQUIRED, so that a screen cannot render a board without saying what it is for -- the same
+   * device `GATE-EXTERNAL` uses one layer down, where the wrong promotion is a compile error
+   * rather than a review comment. `Blitz.tsx` had this rule right and expressed it four times over
+   * as `reviewing ? ... : ...`; `Home.tsx` did not have it at all, and a board interaction after
+   * the commit PLAYED a move for whichever side was to move, so one player was both hands.
+   *
+   * THE REFUSAL LIVES HERE AND NOT IN THE CALLER. A caller that passed `legalTargets={[]}` to mean
+   * "not now" was answering the same question twice, and the second answer is the one that drifts.
+   * The board is handed what it would offer and decides whether it may.
+   */
+  authority: BoardAuthority;
   selectedSquare?: string;
   legalTargets: string[];
   lastMove?: { from: string; to: string };
@@ -26,6 +41,9 @@ interface ChessBoardProps {
   onMove: (from: string, to: string) => void;
 }
 const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+/** One frozen empty list, so a board with no authority does not hand its effects a new array. */
+const EMPTY: string[] = [];
 
 /**
  * What a square is called out loud.
@@ -79,14 +97,24 @@ export function squareLabel(square: string, piece: BoardPiece): string {
 export function ChessBoard({
   board,
   orientation,
-  selectedSquare,
-  legalTargets,
+  authority,
+  selectedSquare: proposedSelection,
+  legalTargets: offeredTargets,
   lastMove,
   suggestedMove,
   chosenMove,
   onSelect,
   onMove,
 }: ChessBoardProps) {
+  /*
+   * A board with no authority shows the position and nothing else: no selection, no targets, and
+   * no gesture that reaches them. Derived once, here, so that "may the player act" has one answer
+   * on this screen rather than one per prop.
+   */
+  const live = boardAccepts(authority);
+  const selectedSquare = live ? proposedSelection : undefined;
+  const legalTargets = live ? offeredTargets : EMPTY;
+
   const displayFiles = orientation === "w" ? files : [...files].reverse();
   const displayRanks = orientation === "w" ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
   const getPiece = (square: string) => {
@@ -104,6 +132,12 @@ export function ChessBoard({
   const arrowStart = suggestedMove ? point(suggestedMove.from) : undefined;
   const arrowEnd = suggestedMove ? point(suggestedMove.to) : undefined;
   const selectSquare = (square: string) => {
+    /*
+     * SILENTLY, AND THAT IS DELIBERATE. The screen already says what state it is in -- the note
+     * under the board names it -- and a board that answered every stray press with a sentence
+     * would be arguing with a player who is reading a reveal.
+     */
+    if (!live) return;
     if (selectedSquare && legalTargets.includes(square)) {
       onMove(selectedSquare, square);
       return;
@@ -302,11 +336,17 @@ export function ChessBoard({
                 onFocus={() => setFocusSquare(square)}
                 onKeyDown={(e) => onSquareKeyDown(e, square)}
                 onClick={() => selectSquare(square)}
-                draggable={Boolean(piece)}
+                /*
+                 * DRAG IS THE SECOND WAY IN, and it does not go through `selectSquare`. A guard on
+                 * the press alone would have left a board that refuses a click and accepts a drag,
+                 * which is the shape of half-fix this repository keeps finding in its own work.
+                 */
+                draggable={live && Boolean(piece)}
                 onDragStart={(e) => e.dataTransfer.setData("text/plain", square)}
-                onDragOver={(e) => e.preventDefault()}
+                onDragOver={(e) => live && e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
+                  if (!live) return;
                   const from = e.dataTransfer.getData("text/plain");
                   if (from) onMove(from, square);
                 }}

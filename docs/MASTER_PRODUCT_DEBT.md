@@ -1220,6 +1220,47 @@ and the test itself; or the migration that drops the table.
 
 ---
 
+### R-29 · The front door hands over one decision, and the loop ends there
+
+| | |
+| --- | --- |
+| type | product |
+| state | **open** — the opponent's turn is no longer put to the player; how the reveal reaches the next position is not decided |
+| severity | P1 |
+| basis | **verified** — driven in Chromium against the built app, and reproduced in a clean worktree of `c1d72935c038` so it is not an artefact of the branch that found it |
+
+`Record`'s front door hands over exactly one position, on purpose: `pickFirstDecision` trims the
+game to the ply before the decision *"so nothing after it can leak"*. Three other places assume a
+second decision is reachable from there — `session-position.ts` says *"every decision AFTER it is an
+ordinary one"*, `docs/ACQUISITION_EVIDENCE.md` defines the continue step as *"board accepts the next
+move"*, and `ASK_AFTER_REVEALS = 2` puts the value question after the **second** reveal. None of
+them is reachable on that path.
+
+What was measured at `c1d7293`: the board read `תור לבן` before the decision and `תור שחור` after
+the continuation. Playing the committed move passed the turn to a side nobody was going to play, and
+a move proposed there was accepted, answered and **written to the record** — a decision taken for the
+opponent, carrying a stated confidence, stored indistinguishably from one taken for the player's own
+side. `docs/FINDINGS.md` had already found and named this failure — *"the app asked the player to
+decide for that side too"* — and closed it by giving the **live** game an opponent.
+`docs/user-loop-integrity/evidence/before-06-the-opponents-turn-handed-to-the-player.png` is that
+screen.
+
+**What is closed.** The continuation is offered only where it can be taken; a loaded game now
+continues along itself rather than being forked; and where the game holds no further position, the
+screen says so and offers `return-record`. `/` then hands over the anchor set's next position, which
+is a decision on the player's own side and the one reading here comparable between players. Held by
+`tests/layout/the-hand-that-may-move-the-board.layout.test.ts`.
+
+**What is open, and why it is not closed here.** Whether the reveal should route to that position
+directly, rather than through the record, changes what the acquisition funnel's continuation stage
+counts, and `RNL-11` forbids moving the intervention and the instrument in one step.
+`OWNER-REQUIRED`, with its trigger in
+`docs/user-loop-integrity/FALSIFICATION_REGISTER.md` `O-1`.
+
+**Reversal condition.** A front-door walk that reaches a second reveal in one press from the first.
+That is also what would give `next_decision_started` a denominator on that path that counts a move
+the player made on their own side.
+
 ## Refuted — measured, found wrong, and recorded so it is not reopened
 
 ### R-14 · "The detector's uncertainty is too small, and a clustered judge is the fix"

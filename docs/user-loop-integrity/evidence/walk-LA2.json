@@ -1,0 +1,309 @@
+[
+  {
+    "name": "03-proposed-not-played",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 1,
+      "chosenTo": 1,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 1,
+      "notice": "g5d8 נבחר. אפשר עדיין לשנות עד לרישום. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": [
+        "commit-decision"
+      ]
+    },
+    "pieces": 27,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|b8:piece piece-b:♞|c2:piece piece-w:♝|c3:piece piece-w:♟|c6:piece piece-b:♟|c8:piece piece-b:♝|d1:piece piece-w:♛|d4:piece piece-w:♞|d6:piece piece-b:♟|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": null
+  },
+  {
+    "name": "04-commitment-answered",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 1,
+      "chosenTo": 1,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 1,
+      "notice": "g5d8 נבחר. אפשר עדיין לשנות עד לרישום. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": [
+        "commit-decision"
+      ]
+    },
+    "pieces": 27,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|b8:piece piece-b:♞|c2:piece piece-w:♝|c3:piece piece-w:♟|c6:piece piece-b:♟|c8:piece piece-b:♝|d1:piece piece-w:♛|d4:piece piece-w:♞|d6:piece piece-b:♟|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": null
+  },
+  {
+    "name": "05-immediately-after-commit-press",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": []
+    },
+    "pieces": 27,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|b8:piece piece-b:♞|c2:piece piece-w:♝|c3:piece piece-w:♟|c6:piece piece-b:♟|c8:piece piece-b:♝|d1:piece piece-w:♛|d4:piece piece-w:♞|d6:piece piece-b:♟|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": {
+      "decisions": 1,
+      "reveals": 0
+    }
+  },
+  {
+    "name": "06-after-probe",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": []
+    },
+    "pieces": 27,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|b8:piece piece-b:♞|c2:piece piece-w:♝|c3:piece piece-w:♟|c6:piece piece-b:♟|c8:piece piece-b:♝|d1:piece piece-w:♛|d4:piece piece-w:♞|d6:piece piece-b:♟|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": {
+      "decisions": 1,
+      "reveals": 0
+    }
+  },
+  {
+    "label": "attackA-post-commit-pre-reveal",
+    "attempts": [
+      {
+        "colour": "w",
+        "from": "d4",
+        "to": "c6",
+        "boardChanged": true,
+        "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+        "announcer": "הבחירה בוטלה.",
+        "lastSquares": [
+          "c6",
+          "d4"
+        ],
+        "revealPanel": 1
+      },
+      {
+        "colour": "b",
+        "from": "b8",
+        "to": "d7",
+        "boardChanged": true,
+        "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+        "announcer": "הבחירה בוטלה.",
+        "lastSquares": [
+          "b8",
+          "d7"
+        ],
+        "revealPanel": 1
+      }
+    ]
+  },
+  {
+    "name": "07-after-attack-pre-reveal",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "b8",
+        "d7"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 26,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|c2:piece piece-w:♝|c3:piece piece-w:♟|c6:piece piece-w:♞|c8:piece piece-b:♝|d1:piece piece-w:♛|d6:piece piece-b:♟|d7:piece piece-b:♞|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  },
+  {
+    "name": "08-reveal",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "b8",
+        "d7"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 26,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|c2:piece piece-w:♝|c3:piece piece-w:♟|c6:piece piece-w:♞|c8:piece piece-b:♝|d1:piece piece-w:♛|d6:piece piece-b:♟|d7:piece piece-b:♞|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  },
+  {
+    "label": "attackA-after-reveal-1",
+    "attempts": [
+      {
+        "colour": "w",
+        "from": "c6",
+        "to": "b8",
+        "boardChanged": true,
+        "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+        "announcer": "הבחירה בוטלה.",
+        "lastSquares": [
+          "b8",
+          "c6"
+        ],
+        "revealPanel": 1
+      },
+      {
+        "colour": "b",
+        "from": "a8",
+        "to": "b8",
+        "boardChanged": true,
+        "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+        "announcer": "הבחירה בוטלה.",
+        "lastSquares": [
+          "a8",
+          "b8"
+        ],
+        "revealPanel": 1
+      }
+    ]
+  },
+  {
+    "name": "09-after-reveal-move-1",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "a8",
+        "b8"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 25,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|b7:piece piece-b:♟|b8:piece piece-b:♜|c2:piece piece-w:♝|c3:piece piece-w:♟|c8:piece piece-b:♝|d1:piece piece-w:♛|d6:piece piece-b:♟|d7:piece piece-b:♞|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g5:piece piece-w:♝|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  },
+  {
+    "label": "attackA-after-reveal-2",
+    "attempts": [
+      {
+        "colour": "w",
+        "from": "g5",
+        "to": "d8",
+        "boardChanged": true,
+        "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+        "announcer": "הבחירה בוטלה.",
+        "lastSquares": [
+          "d8",
+          "g5"
+        ],
+        "revealPanel": 1
+      },
+      {
+        "colour": "b",
+        "from": "b8",
+        "to": "a8",
+        "boardChanged": true,
+        "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+        "announcer": "הבחירה בוטלה.",
+        "lastSquares": [
+          "a8",
+          "b8"
+        ],
+        "revealPanel": 1
+      }
+    ]
+  },
+  {
+    "name": "10-after-reveal-move-2",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "a8",
+        "b8"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 25,
+    "sig": "a1:piece piece-w:♜|a2:piece piece-w:♟|a7:piece piece-b:♟|a8:piece piece-b:♜|b7:piece piece-b:♟|c2:piece piece-w:♝|c3:piece piece-w:♟|c8:piece piece-b:♝|d1:piece piece-w:♛|d6:piece piece-b:♟|d7:piece piece-b:♞|d8:piece piece-w:♝|e4:piece piece-w:♟|e5:piece piece-b:♞|e8:piece piece-b:♛|f1:piece piece-w:♜|f2:piece piece-w:♟|f7:piece piece-b:♟|f8:piece piece-b:♜|g1:piece piece-w:♚|g2:piece piece-w:♟|g7:piece piece-b:♟|g8:piece piece-b:♚|h2:piece piece-w:♟|h7:piece piece-b:♟",
+    "record": {
+      "decisions": 1,
+      "reveals": 1
+    }
+  }
+]

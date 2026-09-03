@@ -1,0 +1,30 @@
+[
+  {
+    "name": "attackD-timeline-navigation",
+    "boardChangedByNavigation": true,
+    "arrowBefore": 1,
+    "arrowAfter": 0,
+    "revealStillUp": 1,
+    "revealTextUnchanged": true,
+    "piecesBefore": 27,
+    "piecesAfter": 31,
+    "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN"
+  },
+  {
+    "name": "attackD-continue-from-navigated",
+    "afterContinue": {
+      "lastSquares": [
+        "c3",
+        "c2"
+      ],
+      "notice": "בחרו מהלך וכתבו את הקריאה שלכם. העתק FEN",
+      "commitment": 1,
+      "pieces": 31,
+      "decisions": 1
+    }
+  },
+  {
+    "name": "attackD-can-still-propose",
+    "p2": null
+  }
+]

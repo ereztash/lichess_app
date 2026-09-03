@@ -79,6 +79,7 @@ describe("crossing the board with the Tab key", () => {
     <ChessBoard
       board={board}
       orientation="w"
+      authority="propose"
       legalTargets={[]}
       onSelect={() => undefined}
       onMove={() => undefined}
@@ -136,6 +137,7 @@ describe("what the board says out loud is hidden from the eye only", () => {
       <ChessBoard
         board={board}
         orientation="w"
+        authority="propose"
         legalTargets={[]}
         onSelect={() => undefined}
         onMove={() => undefined}
@@ -171,6 +173,7 @@ describe("what the board says out loud is hidden from the eye only", () => {
       <ChessBoard
         board={board}
         orientation="w"
+        authority="propose"
         legalTargets={[]}
         onSelect={() => undefined}
         onMove={() => undefined}

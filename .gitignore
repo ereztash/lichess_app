@@ -46,3 +46,10 @@ research/b3_population_expertise/b2_repro/corpus.json
 # research/system-invariant/{ingest_natural,score_natural}.py; only the preserved corpus under
 # research/system-invariant/corpus/ and its manifest are committed.
 research/system-invariant/work/
+
+# Throwaway probes from a review or a browser walk. A walk that MATTERS becomes a file in
+# tests/layout/ where it runs on every verify; anything still called `scratch-` is by definition
+# the version that did not, and committing it would put an unrun script in the tree next to the
+# ones that run.
+scratch-*.ts
+scratch-*.tsx

@@ -1,0 +1,125 @@
+[
+  {
+    "tag": "1440x900",
+    "geo": {
+      "board": [
+        632,
+        632
+      ],
+      "square": [
+        77,
+        77
+      ],
+      "overflow": false
+    },
+    "attack": {
+      "w": null,
+      "b": null,
+      "positionChanged": false
+    },
+    "notice": "ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה. העתק FEN",
+    "primary": [
+      "return-record"
+    ],
+    "selected": 0,
+    "legal": 0,
+    "arrow": 1
+  },
+  {
+    "tag": "1920x1080",
+    "geo": {
+      "board": [
+        812,
+        812
+      ],
+      "square": [
+        100,
+        100
+      ],
+      "overflow": false
+    },
+    "attack": {
+      "w": null,
+      "b": null,
+      "positionChanged": false
+    },
+    "notice": "ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה. העתק FEN",
+    "primary": [
+      "return-record"
+    ],
+    "selected": 0,
+    "legal": 0,
+    "arrow": 1
+  },
+  {
+    "tag": "390x844",
+    "geo": {
+      "board": [
+        370,
+        370
+      ],
+      "square": [
+        45,
+        45
+      ],
+      "overflow": false
+    },
+    "attack": {
+      "w": null,
+      "b": null,
+      "positionChanged": false
+    },
+    "notice": "ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה. העתק FEN",
+    "primary": [
+      "return-record"
+    ],
+    "selected": 0,
+    "legal": 0,
+    "arrow": 1
+  },
+  {
+    "tag": "1024x500",
+    "geo": {
+      "board": [
+        366,
+        366
+      ],
+      "square": [
+        44,
+        44
+      ],
+      "overflow": false
+    },
+    "attack": {
+      "w": null,
+      "b": null,
+      "positionChanged": false
+    },
+    "notice": "ההחלטה נרשמה והמנוע ענה. הלוח נעול על העמדה שהחלטתם בה. העתק FEN",
+    "primary": [
+      "return-record"
+    ],
+    "selected": 0,
+    "legal": 0,
+    "arrow": 1
+  },
+  {
+    "name": "navigated-under-reveal",
+    "staleMark": 1,
+    "revealStillUp": 1,
+    "textGrew": true
+  },
+  {
+    "name": "front-door-end",
+    "primary": [
+      "return-record"
+    ],
+    "sentence": "למשחק שנטען אין עמדה נוספת להחליט בה. הרשומה שומרת את ההחלטה הזאת, ומשם אפשר לבחור עמדה אחרת.",
+    "rail": 1
+  },
+  {
+    "name": "after-return-record",
+    "url": "/",
+    "primary": []
+  }
+]

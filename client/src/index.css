@@ -3848,6 +3848,40 @@ button:not(:disabled) {
   width: 100%;
 }
 /* A property of the build, not of the position. Set apart from the per-position limits. */
+/*
+ * THE REVEAL IS ABOUT A POSITION, AND THE BOARD CAN BE SHOWING ANOTHER ONE.
+ *
+ * Section 4.3's rule, which `GATE-STALE` states: a result rendered against an input it was not
+ * computed for is marked stale. `.evaluation-instrument.is-stale` already does it for the
+ * evaluation; this does it for the panel, and it is deliberately NOT `--warn`. The stylesheet's
+ * own table says `--warn` may paint a failure and may never paint a standing condition, and this
+ * is a standing condition: nothing failed, the reader simply walked the board somewhere else.
+ *
+ * `--chip` is the ground of a token rather than of a card, which is what this is: one fact about
+ * the panel, sitting above it, not a fifth section inside it.
+ */
+/*
+ * The end of a loaded game's decisions, said where the control that would have continued was.
+ * Not `--warn`: nothing failed, the game simply holds no further position.
+ */
+.reveal-no-continuation {
+  max-inline-size: var(--measure);
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--panel-label);
+  line-height: 1.5;
+}
+
+.reveal-elsewhere {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: var(--chip);
+  color: var(--muted);
+  font-size: var(--panel-label);
+  line-height: 1.5;
+}
+
 .reveal-build-limit {
   max-inline-size: var(--measure);
   margin: 0.5rem 0 0;

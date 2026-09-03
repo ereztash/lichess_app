@@ -39,6 +39,8 @@ const board = game.board();
 const base = {
   board,
   orientation: "w" as const,
+  /* Every case in this file is about a board the player may act on; the refusal has its own file. */
+  authority: "propose" as const,
   legalTargets: [],
   onSelect: () => undefined,
   onMove: () => undefined,
@@ -225,6 +227,7 @@ function KeyboardOnlyBoard({ onPlayed }: { onPlayed: (move: string) => void }) {
     <ChessBoard
       board={chess.board()}
       orientation="w"
+      authority="propose"
       legalTargets={targets}
       selectedSquare={selected}
       onSelect={setSelected}

@@ -105,6 +105,83 @@ export function findScreensWithTwoBoards(roots: string[]): Finding[] {
 }
 
 /**
+ * A BOARD RENDERED WITHOUT SAYING WHOSE HAND IT IS, or saying it the same way in every state.
+ *
+ * WHAT THIS IS A GATE OVER. `shared/board-authority.ts` names what a gesture on the board may
+ * reach and as what, and `ChessBoard` refuses the gesture when the answer is `none`. The prop is
+ * required, so a board with no authority at all is already a compile error -- this scanner exists
+ * for the OTHER direction, which a type cannot see: a board whose authority is a constant. A
+ * screen that passes `authority="propose"` unconditionally has re-created exactly the defect the
+ * module was written for, and it typechecks.
+ *
+ * `"none"` IS THE ONE CONSTANT ALLOWED, because it is the safe direction: a board that never
+ * accepts anything cannot leak authority to anybody. Everything else has to be derived from state,
+ * which is the whole of `docs/INERTIAL_UX_LAWS.md` LAW 3 -- state decides, screen renders.
+ *
+ * IT CANNOT BE SATISFIED BY DELETION. Removing the prop does not silence this scanner; it stops
+ * the build.
+ */
+export function findBoardsWithUncheckedAuthority(roots: string[]): Finding[] {
+  const out: Finding[] = [];
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const path = posix(relative(process.cwd(), file));
+      if (path.endsWith("/components/ChessBoard.tsx")) continue;
+      const source = read(file);
+      for (const props of openingTags(source, "ChessBoard")) {
+        const declared = /\bauthority=(\{[^}]*\}|"[^"]*")/.exec(props.text);
+        if (!declared) {
+          out.push({ file: path, line: props.line, text: "<ChessBoard> with no declared authority" });
+          continue;
+        }
+        const constant = /^"(.*)"$/.exec(declared[1]);
+        if (constant && constant[1] !== "none") {
+          out.push({
+            file: path,
+            line: props.line,
+            text: `<ChessBoard authority="${constant[1]}"> is the same in every state`,
+          });
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Every opening tag of one component, with its whole prop list and the line it starts on.
+ *
+ * BRACE DEPTH RATHER THAN THE FIRST `/>`, because a prop's value is an expression and an
+ * expression can contain anything. A scanner that stopped at the first slash would read half a
+ * prop list on any board whose props hold a comment or a regular expression, and would read it
+ * silently.
+ */
+function openingTags(source: string, component: string): Array<{ text: string; line: number }> {
+  const out: Array<{ text: string; line: number }> = [];
+  const tag = new RegExp(`<${component}(?![A-Za-z0-9_])`, "g");
+  let match: RegExpExecArray | null;
+  while ((match = tag.exec(source)) !== null) {
+    let depth = 0;
+    let end = match.index;
+    for (let i = match.index; i < source.length; i += 1) {
+      const c = source[i];
+      if (c === "{") depth += 1;
+      else if (c === "}") depth -= 1;
+      else if (depth === 0 && c === ">") {
+        end = i;
+        break;
+      }
+      end = i;
+    }
+    out.push({
+      text: source.slice(match.index, end + 1),
+      line: source.slice(0, match.index).split("\n").length,
+    });
+  }
+  return out;
+}
+
+/**
  * A setup control that asks again rather than reading what the player already chose.
  *
  * THE PREDICATE IS "DOES THIS FILE CONSULT THE MEMORY", not "does it have a default". A default is
