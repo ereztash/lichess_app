@@ -271,6 +271,14 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
 | [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) · [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — נרשם מראש, נמדד, ולא אומץ | אנגלית |
+| [`docs/measurement/`](docs/measurement/README.md) | האם הקונסטרוקט שורד: חיפוש מחלקות-כללים, המסך, וההכרעה **`NARROW`** — מתוקן על ידי [`D25`](docs/decisions/D25-evidence-architecture.md) | אנגלית |
+| [`docs/evidence-architecture/`](docs/evidence-architecture/CURRENT_STATE.md) | ארכיטקטורת הראיות כפי שהיא, משוחזרת מהמאגר ולא מתיאור קודם שלה | אנגלית |
+| [`docs/learning/`](docs/learning/README.md) · [`docs/learning-v2/`](docs/learning-v2/PRE_HUMAN_GATES.md) | השכבה שבין תובנה שהרשומה יכולה להצדיק לבין שינוי במה שהשחקן עושה. לא נמדד על אדם, והשערים שלפני אדם הם הסיבה | אנגלית |
+| [`docs/learning-v3/`](docs/learning-v3/FINAL_REPORT.md) | Gate A ו-Gate B על קורפוס הכללים, הכרעת החסם **`INSUFFICIENT_OPPORTUNITIES`**, P3 ו-P4, ובדיקת לחץ-חשיפה שהעלתה **`PE-EXPOSURE-ONLY`**. אף תוצאה מ-A עד F לא נבחרה, והנימוק לכך בפנים | אנגלית |
+| [`docs/system-invariant/`](docs/system-invariant/FINAL_REPORT.md) | `OwnExposure` בשחמט טבעי: 45,296 החלטות, 1,333 שחקנים, 90,592 חיפושים. **`SYSTEM POLICY VALID, ECOLOGICALLY INFEASIBLE`** — שמונה קריטריונים עוברים, התשיעי נופל על 24.32% מול סף שהוקפא על 30% | אנגלית |
+| [`research/b3_population_expertise/`](research/b3_population_expertise/REPORT.md) | 81,624 החלטות בליץ טבעיות של 2,331 שחקנים: **`GENERAL_REGULARITY_ONLY`** אחרי תיקון בקרת C3, וה-null של המכשיר שהדוח מסרב לקרוא כעובדה על שחקנים | אנגלית |
+| [`docs/consolidation-research/`](docs/consolidation-research/hardening/FINAL_REPORT.md) | חיזוק לפני איחוד. הציונים שם מעריכים את **מחקר השחזור**, לא את האפליקציה | אנגלית |
+| [`docs/blitz/`](docs/blitz/AUDIT.md) | ביקורת אמת-המאגר לפני מדידה ילידת-בליץ, וארבעה ADR שנגזרו ממנה | אנגלית |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
 | [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) | לאן הולכות תקלות בייצור, מה הבריאות אומרת, ומה הפלטפורמה לא נותנת ומי צריך להחליט | אנגלית |
 | [`docs/ROLLBACK.md`](docs/ROLLBACK.md) | מתי מחזירים לאחור, איך, ומה סוגר את האירוע: ריצת L6 ירוקה הקשורה ל-SHA שחזרו אליו | אנגלית |
@@ -288,14 +296,16 @@ R5 ו-append-only נאכפים פעם אחת.
 המחקר על מסלול חיפוש בתקציבי צמתים הוכרע **`RESEARCH ONLY`**: שום דבר ממנו לא הגיע למוצר, וההשערות
 לא הופרכו — הן לא היו ניתנות לבדיקה עם המכשיר הזה.
 
-בנוסף, `tests/client/ux-contract.test.ts` מחזיק את חוזה ה-UX — 36 טענות בחמש-עשרה קבוצות, כל
+בנוסף, `tests/client/ux-contract.test.ts` מחזיק את חוזה ה-UX — 37 טענות בחמש-עשרה קבוצות, כל
 אחת נכתבה מרגרסיה שכן נשלחה בבילד שעבר `npm run verify`. הוא **לא** רואה פריסה מחושבת, ניגודיות
 מול מה שנצבע בפועל, או האם מיכל גלילה באמת גולל; המספרים האלה נמדדו בדפדפן ומתועדים ב-`docs/FINDINGS.md`.
 
 ומה שהוא לא רואה מוחזק במקום שכן:
 `tests/layout/the-board-in-the-state-that-decides.layout.test.ts` מודד את הלוח ב-Chromium אמיתי,
-במצב שהמוצר קיים כדי לאסוף — 45 טענות, ומהן **27 אדומות** מול הגיליון שנשלח. ה-18 שנשארות ירוקות
-שם הן רצפות ואינווריאנטים שנשמרו, וזה בדיוק מה שהן בשביל.
+במצב שהמוצר קיים כדי לאסוף — **46 טענות** היום. כשהוא נכתב היו 45, ומהן **27 אדומות** מול הגיליון
+שנשלח; ה-18 שנשארו ירוקות באותה הרצה היו רצפות ואינווריאנטים שנשמרו, וזה בדיוק מה שהן בשביל.
+שני המספרים האלה נספרו בהרצה, לא מהקוד: הקובץ בונה מקרים ב-`describe.each`, ולכן ספירת `it(`
+בעורך נותנת אחד-עשר ולא ארבעים ושישה.
 
 ## רישיונות
 
