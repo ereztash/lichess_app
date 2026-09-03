@@ -244,7 +244,8 @@ coordinates rendered inside the same cells as the pieces.
 ## 7. Findings
 
 Six, each validated against `schemas/finding.schema.json`. Full JSON in [`findings/`](findings/). The instrument that produced every number is in
-[`harness/`](harness/), including the two scripts whose own defects produced findings that were wrong.
+[`harness/`](harness/), kept whole rather than curated, including the scripts whose own defects
+produced findings that were wrong.
 
 | | raw signal, short | status | authority | evidence |
 | --- | --- | --- | --- | --- |
@@ -255,10 +256,11 @@ Six, each validated against `schemas/finding.schema.json`. Full JSON in [`findin
 | `N-5` | a question, not a reveal, on 6 of 15 presses | `DISCRIMINATE_FIRST` | `REPO` | `REPRODUCED` |
 | `N-6` | "nothing here" and "you were right", 60px apart | `FIELD_STOP` | `FIELD` | `FIELD_REQUIRED` |
 
-Three things were nearly written as findings and are not, because a discriminator killed them.
+Four things were nearly written as findings and are not, because a discriminator killed them.
 
 | nearly a finding | what it actually was |
 | --- | --- |
+| the product does not respond to its own primary control | my probe was truncating `innerText` at 90 characters. The button had darkened and an error had rendered, and neither was inside the window I was reading |
 | the engine does not start on production | my `REVEAL` detector was matching the masthead `COMMIT · THEN REVEAL`. The engine reaches `uciok` on production assets in this same harness |
 | the reveal shows a different position than I decided on | my confidence selector, `/^5/`, matched `5.Be3` in the move rail and scrubbed the game. The product said `הבחירה בוטלה.` and I did not read it |
 | the counterfactual question fires on engine agreement | it does not. Three moves, one of them the engine's, appeared in both outcomes |
@@ -274,7 +276,7 @@ Scored against `eval/RUBRIC.md` as a self-report, which is worth exactly what a 
 | R1 | raw signal preservation | pass | section 2 is verbatim, written before any explanation |
 | R2 | observation discipline | pass | every measurement in sections 1, 5 and 6 is a number or a quoted string |
 | R3 | hypothesis compression | pass | maximum three mechanisms per finding, schema-enforced |
-| R4 | discrimination before redesign | pass | four discriminators were run, three killed a candidate finding |
+| R4 | discrimination before redesign | pass | six discriminators were run. Four killed a candidate finding; the other two refined `N-5` and supported `N-3`'s mechanism |
 | R5 | authority assignment | pass | one `FIELD`, two `REPO`, three `DESIGN_MECHANISM` |
 | R6 | evidence calibration | pass | allowed states only, no invented percentages. `6 of 15` is a count |
 | R7 | instrument protection | pass | every finding carries `must_not_change`, and the two that touch frozen protocol are not `BUILD_READY` |
