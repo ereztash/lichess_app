@@ -106,7 +106,7 @@ stated rather than hidden.
 | --: | --- | --- |
 | F1 | two health endpoints with different meanings | **closed** `fa41edb` |
 | F2 | failure vocabularies closed per surface but not joined | **closed** `fa41edb`: `shared/failure-class.ts` is the one map; both directions total, tested |
-| F3 | `Home.tsx` at 2,349 lines under a ratchet | **unchanged by design**: 2,355 after the mission, ceiling 2,400; the register's R-13 owns it |
+| F3 | `Home.tsx` at 2,349 lines under a ratchet | **unchanged by design**: 2,354 after the mission, ceiling 2,400; the register's R-13 owns it |
 | F4 | module-level mutable latches in `record-api.ts` and `local-record-store.ts` | **unchanged**: documented in the store; `deleteLocalRecord` resets both the memory copy and the health so the latch cannot resurrect an erased record |
 | F5 | operator lines on stdout would have broken the serverless probe | **closed** `fa41edb`: stderr only, and the probe test holds it |
 
