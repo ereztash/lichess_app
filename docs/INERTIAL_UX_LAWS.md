@@ -232,6 +232,37 @@ explained by a `blind` input, and (b) ones a reader agrees the screen got wrong.
 handing the front door to a function nothing has contradicted would be exactly the move this
 document is against — acting on a claim before anything could have shown it wrong.
 
+### The board was the one surface state did not decide, and it was found in a browser
+
+`shared/interaction-mode.ts` says *"IT DECIDES NOTHING YET"*, and until this was written the board
+was where that cost the most. `Home.tsx`'s move handler read
+`if (stage !== "deciding") { playMove(from, to) }` — so at `committing` and at `revealed` a press on
+the board did not PROPOSE a move, it PLAYED one, for whichever side was to move. Alternating presses
+therefore played both hands. Measured in Chromium on the built app at `c1d72935c038`, at 1440x900,
+1920x1080, 390x844 and 1024x500, and in a live game against the Stockfish opponent, where the same
+gesture made the opponent's move for it.
+
+**`docs/FINDINGS.md` had already found this failure once** — *"A game meant playing both colours
+yourself at one commit-and-reveal cycle per half-move"* — and closed it by giving the live game an
+opponent. That repaired the symptom on one path and left the board's authority alone.
+
+**And `Blitz.tsx` had already implemented the rule**, four props deep, under a comment that states
+it exactly: *"The board does not need a twin; it needs a MODE."* One screen had it, the other did
+not, and nothing could see the difference. That is this document's own opening table — *already
+argued at … never generalised to …* — with a fifth row.
+
+`shared/board-authority.ts` is the generalisation: one value per decision stage, checked against
+`MODE_CONTRACT`, `makingEvidence` and `engineMayRun` in
+`tests/shared/what-the-board-may-do.test.ts` so a table that agreed with nothing would fail rather
+than decorate. `ChessBoard` takes it as a **required** prop and refuses selection, targets, clicks
+and drags where it is `none`, so a board with no declared authority is a compile error.
+
+**Gate:** `GATE-BOARD-AUTHORITY`, whose control is a board whose authority is the same string in
+every state — the half a type cannot see.
+
+The full walk, the four other contradictions it found, and what it deliberately did not fix:
+[`docs/user-loop-integrity/`](user-loop-integrity/README.md).
+
 ### What the first application of this law found
 
 The law's narrow form — *a screen reads the record, it does not keep its own copy of it* — was
@@ -276,6 +307,22 @@ that component staying mounted. R-02 fixed the half of this that lost the game i
 written before the engine runs — and left the analysis tied to the screen.
 
 **Gate:** `GATE-PENDING-WORK-LIVENESS`.
+
+### The second case, found in a browser: a call to action that deleted a loaded game
+
+`playMove` truncates — `history.slice(0, ply + 1)` and then the new move — and the continuation was
+the one caller that did so on a game the player had not authored. Measured: an 18-ply PGN, rewound
+to ply 9, one decision, one press of the continuation, **11 plies left**. `importPgn`'s own comment
+says why that is wrong: *"No opponent for a loaded game: the other side's moves are already in the
+PGN."* A loaded game now continues along itself (`client/src/lib/continuation.ts`).
+
+And the same press did a second thing. On the front door's one-position handoff there is nothing to
+continue into, so playing the committed move passed the turn to the side nobody plays — and a
+decision taken there was **recorded**. That is `docs/FINDINGS.md`'s *"the app asked the player to
+decide for that side too"*, on the path that document did not close. The continuation is now offered
+only where it can be taken.
+[`docs/user-loop-integrity/CONTRADICTIONS.md`](user-loop-integrity/CONTRADICTIONS.md) `ULI-X-04`,
+`ULI-X-05`.
 
 ---
 
@@ -388,7 +435,7 @@ the finished game's board.
 
 ## The gates, and the one that is missing
 
-Eight of the nine named in this document are registered in `scripts/run_gates.ts` and run on every
+Nine of the ten named in this document are registered in `scripts/run_gates.ts` and run on every
 `npm run verify`, each with a positive control that must go red:
 
 | gate | law | what its control does |
@@ -398,6 +445,7 @@ Eight of the nine named in this document are registered in `scripts/run_gates.ts
 | `GATE-REUSE-CONFIG` | 8 | a setup that asks again and keeps nothing |
 | `GATE-PENDING-WORK-LIVENESS` | 4 | an analysis a screen can cancel, and a root that never finishes it |
 | `GATE-NEXT-ACTION-RESOLVES-BLOCKER` | 3 | the mapping this product shipped, which answered `nothing-scored` with "play another game" |
+| `GATE-BOARD-AUTHORITY` | 3 | a board that accepts a gesture the same way in every state |
 
 **They are a different kind of claim from the fifteen beside them, and the same kind underneath.**
 Every gate that existed before these reads code for a claim about a *measurement*. These read code
@@ -413,7 +461,7 @@ time.** A test asserts that a screen is right today. A gate asserts that no scre
 | `GATE-NO-DUPLICATE-ACTION` | 2 | a reveal offering one act twice |
 | `GATE-TOOLBOX-OUTSIDE-FOCUS` | 2 | a toolbox loaded for every arrival and opened without a press |
 
-`GATE-EXPOSURE-CONTEXT` is deliberately absent — see LAW 12. It is the only one of the nine still
+`GATE-EXPOSURE-CONTEXT` is deliberately absent — see LAW 12. It is the only one of the ten still
 unregistered.
 
 **The first two shipped as one gate over one file, and that was wrong.** A single control holding

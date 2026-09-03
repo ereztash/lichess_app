@@ -1,0 +1,146 @@
+[
+  {
+    "name": "R1-reveal-clean",
+    "meta": {
+      "squares": 64,
+      "selected": 1,
+      "legal": 9,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d7",
+        "d6"
+      ],
+      "arrow": 1,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "המהלך שהצעתם: g5 אל d8.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 27,
+    "record": {
+      "decisions": [
+        {
+          "id": "f4f524db-450e-40f4-be3a-78e6b682ec7c",
+          "fen": "rnb1qrk1/pp3ppp/2pp4/4n1B1/3NP",
+          "move": "g5d8"
+        }
+      ],
+      "reveals": [
+        "f4f524db-450e-40f4-be3a-78e6b682ec7c"
+      ]
+    }
+  },
+  {
+    "name": "R2-after-free-play",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "a8",
+        "b8"
+      ],
+      "arrow": 0,
+      "revealPanel": 1,
+      "commitment": 0,
+      "notice": "ההחלטה נרשמה. המנוע מחשב עכשיו. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "next-decision"
+      ]
+    },
+    "pieces": 25,
+    "record": {
+      "decisions": [
+        {
+          "id": "f4f524db-450e-40f4-be3a-78e6b682ec7c",
+          "fen": "rnb1qrk1/pp3ppp/2pp4/4n1B1/3NP",
+          "move": "g5d8"
+        }
+      ],
+      "reveals": [
+        "f4f524db-450e-40f4-be3a-78e6b682ec7c"
+      ]
+    }
+  },
+  {
+    "name": "reveal-text-unchanged",
+    "unchanged": true
+  },
+  {
+    "name": "R3-after-next-decision",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d8",
+        "g5"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 1,
+      "notice": "בחרו מהלך וכתבו את הקריאה שלכם. העתק FEN",
+      "announcer": "על הלוח: g5 אל d8.",
+      "primaryActions": [
+        "commit-decision"
+      ]
+    },
+    "pieces": 25,
+    "record": {
+      "decisions": [
+        {
+          "id": "f4f524db-450e-40f4-be3a-78e6b682ec7c",
+          "fen": "rnb1qrk1/pp3ppp/2pp4/4n1B1/3NP",
+          "move": "g5d8"
+        }
+      ],
+      "reveals": [
+        "f4f524db-450e-40f4-be3a-78e6b682ec7c"
+      ]
+    }
+  },
+  {
+    "name": "R4-second-proposal",
+    "meta": {
+      "squares": 64,
+      "selected": 0,
+      "legal": 0,
+      "chosenFrom": 0,
+      "chosenTo": 0,
+      "lastSquares": [
+        "d8",
+        "g5"
+      ],
+      "arrow": 0,
+      "revealPanel": 0,
+      "commitment": 1,
+      "notice": "בחרו מהלך וכתבו את הקריאה שלכם. העתק FEN",
+      "announcer": "הבחירה בוטלה.",
+      "primaryActions": [
+        "commit-decision"
+      ]
+    },
+    "pieces": 25,
+    "record": {
+      "decisions": [
+        {
+          "id": "f4f524db-450e-40f4-be3a-78e6b682ec7c",
+          "fen": "rnb1qrk1/pp3ppp/2pp4/4n1B1/3NP",
+          "move": "g5d8"
+        }
+      ],
+      "reveals": [
+        "f4f524db-450e-40f4-be3a-78e6b682ec7c"
+      ]
+    }
+  }
+]

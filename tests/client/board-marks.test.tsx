@@ -21,6 +21,8 @@ const board = new Chess().board();
 const base = {
   board,
   orientation: "w" as const,
+  /* The marks are about what is on the board, not about whether it may be pressed. */
+  authority: "propose" as const,
   legalTargets: [],
   onSelect: () => undefined,
   onMove: () => undefined,

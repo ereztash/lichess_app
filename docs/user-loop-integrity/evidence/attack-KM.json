@@ -1,0 +1,295 @@
+[
+  {
+    "tag": "V1440",
+    "geo": {
+      "board": [
+        632,
+        632
+      ],
+      "square": [
+        77,
+        77
+      ],
+      "docScrollW": 1440,
+      "clientW": 1440
+    }
+  },
+  {
+    "tag": "V1440",
+    "prop": {
+      "from": "g5",
+      "to": "d8"
+    },
+    "ready": "commitment-submit ",
+    "fold": {
+      "viewportH": 900,
+      "pageH": 1204,
+      ".reveal-limits": {
+        "top": 199,
+        "h": 233
+      },
+      ".reveal-one-thing": {
+        "top": 444,
+        "h": 237
+      },
+      ".reveal-question": {
+        "top": 694,
+        "h": 56
+      },
+      ".reveal-secondary": {
+        "top": 762,
+        "h": 40
+      },
+      ".reveal-continue": {
+        "top": 922,
+        "h": 44
+      },
+      ".board-grid": {
+        "top": 272,
+        "h": 632
+      },
+      ".one-thing-text": {
+        "top": 492,
+        "h": 76
+      },
+      ".one-thing-none": null
+    }
+  },
+  {
+    "tag": "V1440",
+    "attack": {
+      "w": {
+        "from": "d4",
+        "to": "c6"
+      },
+      "b": {
+        "from": "b8",
+        "to": "d7"
+      },
+      "changed": true
+    }
+  },
+  {
+    "tag": "V1920",
+    "geo": {
+      "board": [
+        812,
+        812
+      ],
+      "square": [
+        100,
+        100
+      ],
+      "docScrollW": 1920,
+      "clientW": 1920
+    }
+  },
+  {
+    "tag": "V1920",
+    "prop": {
+      "from": "g5",
+      "to": "d8"
+    },
+    "ready": "commitment-submit ",
+    "fold": {
+      "viewportH": 1080,
+      "pageH": 1321,
+      ".reveal-limits": {
+        "top": 199,
+        "h": 233
+      },
+      ".reveal-one-thing": {
+        "top": 444,
+        "h": 237
+      },
+      ".reveal-question": {
+        "top": 694,
+        "h": 56
+      },
+      ".reveal-secondary": {
+        "top": 762,
+        "h": 40
+      },
+      ".reveal-continue": {
+        "top": 922,
+        "h": 44
+      },
+      ".board-grid": {
+        "top": 272,
+        "h": 812
+      },
+      ".one-thing-text": {
+        "top": 492,
+        "h": 76
+      },
+      ".one-thing-none": null
+    }
+  },
+  {
+    "tag": "V1920",
+    "attack": {
+      "w": {
+        "from": "d4",
+        "to": "c6"
+      },
+      "b": {
+        "from": "b8",
+        "to": "d7"
+      },
+      "changed": true
+    }
+  },
+  {
+    "tag": "V390",
+    "geo": {
+      "board": [
+        370,
+        370
+      ],
+      "square": [
+        45,
+        45
+      ],
+      "docScrollW": 390,
+      "clientW": 390
+    }
+  },
+  {
+    "tag": "V390",
+    "prop": {
+      "from": "g5",
+      "to": "d8"
+    },
+    "ready": "commitment-submit ",
+    "fold": {
+      "viewportH": 844,
+      "pageH": 2005,
+      ".reveal-limits": {
+        "top": 893,
+        "h": 233
+      },
+      ".reveal-one-thing": {
+        "top": 1138,
+        "h": 237
+      },
+      ".reveal-question": {
+        "top": 1387,
+        "h": 56
+      },
+      ".reveal-secondary": {
+        "top": 1455,
+        "h": 40
+      },
+      ".reveal-continue": {
+        "top": 1615,
+        "h": 44
+      },
+      ".board-grid": {
+        "top": 309,
+        "h": 370
+      },
+      ".one-thing-text": {
+        "top": 1185,
+        "h": 76
+      },
+      ".one-thing-none": null
+    }
+  },
+  {
+    "tag": "V390",
+    "attack": {
+      "w": {
+        "from": "d4",
+        "to": "c6"
+      },
+      "b": {
+        "from": "b8",
+        "to": "d7"
+      },
+      "changed": true
+    }
+  },
+  {
+    "tag": "VSHORT",
+    "geo": {
+      "board": [
+        366,
+        366
+      ],
+      "square": [
+        44,
+        44
+      ],
+      "docScrollW": 1024,
+      "clientW": 1024
+    }
+  },
+  {
+    "tag": "VSHORT",
+    "prop": {
+      "from": "g5",
+      "to": "d8"
+    },
+    "ready": "commitment-submit ",
+    "fold": {
+      "viewportH": 500,
+      "pageH": 1753,
+      ".reveal-limits": {
+        "top": 199,
+        "h": 161
+      },
+      ".reveal-one-thing": {
+        "top": 372,
+        "h": 182
+      },
+      ".reveal-question": {
+        "top": 566,
+        "h": 56
+      },
+      ".reveal-secondary": {
+        "top": 634,
+        "h": 40
+      },
+      ".reveal-continue": {
+        "top": 775,
+        "h": 44
+      },
+      ".board-grid": {
+        "top": 1042,
+        "h": 366
+      },
+      ".one-thing-text": {
+        "top": 420,
+        "h": 38
+      },
+      ".one-thing-none": null
+    }
+  },
+  {
+    "tag": "VSHORT",
+    "attack": {
+      "w": {
+        "from": "d4",
+        "to": "c6"
+      },
+      "b": {
+        "from": "b8",
+        "to": "d7"
+      },
+      "changed": true
+    }
+  },
+  {
+    "tag": "keyboard",
+    "tabsToBoard": 12,
+    "firstSquare": "a8"
+  },
+  {
+    "tag": "keyboard",
+    "proposal": {
+      "chosenFrom": 1,
+      "chosenTo": 1,
+      "notice": "h2h4 נבחר. אפשר עדיין לשנות עד לרישום. העתק FEN"
+    }
+  }
+]

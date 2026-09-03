@@ -1,0 +1,140 @@
+[
+  {
+    "label": "read-chip pass0",
+    "sel": ".read-chip:visible",
+    "text": "המרכז סגור",
+    "disabled": false,
+    "selfClassChanged": true,
+    "selfAriaChanged": true,
+    "selfStyleChanged": true,
+    "changed": {
+      "backgroundColor": [
+        "rgb(224, 214, 192)",
+        "rgb(23, 34, 31)"
+      ],
+      "borderColor": [
+        "rgb(23, 34, 31)",
+        "rgb(247, 243, 233)"
+      ],
+      "color": [
+        "rgb(23, 34, 31)",
+        "rgb(247, 243, 233)"
+      ],
+      "fontWeight": [
+        "400",
+        "700"
+      ]
+    },
+    "elementGone": false,
+    "panelChanged": true,
+    "acknowledgedOnSelf": true
+  },
+  {
+    "label": "step-next pass0",
+    "sel": ".step-next:visible",
+    "text": "הבא",
+    "disabled": false,
+    "selfClassChanged": false,
+    "selfAriaChanged": false,
+    "selfStyleChanged": false,
+    "changed": {},
+    "elementGone": false,
+    "panelChanged": false,
+    "acknowledgedOnSelf": false
+  },
+  {
+    "label": "read-chip pass1",
+    "sel": ".read-chip:visible",
+    "text": "לא רואה את הווריאציה עד הסוף",
+    "disabled": false,
+    "selfClassChanged": true,
+    "selfAriaChanged": true,
+    "selfStyleChanged": true,
+    "changed": {
+      "backgroundColor": [
+        "rgb(224, 214, 192)",
+        "rgb(23, 34, 31)"
+      ],
+      "borderColor": [
+        "rgb(23, 34, 31)",
+        "rgb(247, 243, 233)"
+      ],
+      "color": [
+        "rgb(23, 34, 31)",
+        "rgb(247, 243, 233)"
+      ],
+      "fontWeight": [
+        "400",
+        "700"
+      ]
+    },
+    "elementGone": false,
+    "panelChanged": true,
+    "acknowledgedOnSelf": true
+  },
+  {
+    "label": "step-next pass1",
+    "sel": ".step-next:visible",
+    "text": "הבא",
+    "disabled": false,
+    "selfClassChanged": null,
+    "selfAriaChanged": null,
+    "selfStyleChanged": false,
+    "changed": {},
+    "elementGone": true,
+    "panelChanged": false,
+    "acknowledgedOnSelf": false
+  },
+  {
+    "label": "confidence pass2",
+    "sel": ".confidence-row button:visible",
+    "text": "3 נוטה",
+    "disabled": false,
+    "selfClassChanged": null,
+    "selfAriaChanged": null,
+    "selfStyleChanged": false,
+    "changed": {},
+    "elementGone": true,
+    "panelChanged": true,
+    "acknowledgedOnSelf": false
+  },
+  {
+    "label": "commit submit",
+    "sel": ".commitment-submit",
+    "text": "רשמו את ההחלטה",
+    "disabled": false,
+    "selfClassChanged": null,
+    "selfAriaChanged": null,
+    "selfStyleChanged": false,
+    "changed": {},
+    "elementGone": true,
+    "panelChanged": true,
+    "acknowledgedOnSelf": false
+  },
+  {
+    "label": "reveal: secondary disclosure",
+    "sel": ".reveal-secondary summary",
+    "text": "פרטי הניתוח",
+    "disabled": false,
+    "selfClassChanged": false,
+    "selfAriaChanged": false,
+    "selfStyleChanged": false,
+    "changed": {},
+    "elementGone": false,
+    "panelChanged": true,
+    "acknowledgedOnSelf": false
+  },
+  {
+    "label": "reveal: continue",
+    "sel": ".reveal-continue",
+    "text": "לבדוק אם זה חוזר",
+    "disabled": false,
+    "selfClassChanged": null,
+    "selfAriaChanged": null,
+    "selfStyleChanged": false,
+    "changed": {},
+    "elementGone": true,
+    "panelChanged": true,
+    "acknowledgedOnSelf": false
+  }
+]

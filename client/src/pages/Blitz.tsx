@@ -432,13 +432,22 @@ export default function Blitz() {
           מהלך <span dir="ltr">{reviewing.ply}: {reviewing.san}</span>
         </p>
       )}
+      {/*
+        * THE RULE THIS SCREEN ALREADY HAD, NOW SAID ONCE INSTEAD OF FOUR TIMES.
+        *
+        * It used to be `reviewing ? undefined : selected`, `reviewing ? [] : legal`, and two
+        * no-op handlers -- correct, and four separate answers to one question. It is the same
+        * rule `Home.tsx` did not have at all, so it moved to `shared/board-authority.ts` where
+        * both screens read it. `play` and not `propose`: a blitz move is played, not committed.
+        */}
       <ChessBoard
         board={boardSquares}
         orientation={PLAYER}
-        selectedSquare={reviewing ? undefined : selected}
-        legalTargets={reviewing ? [] : legal}
-        onSelect={reviewing ? () => {} : setSelected}
-        onMove={reviewing ? () => {} : onMove}
+        authority={reviewing ? "none" : "play"}
+        selectedSquare={selected}
+        legalTargets={legal}
+        onSelect={setSelected}
+        onMove={onMove}
       />
       {reviewing && (
         <button type="button" className="blitz-board-back" onClick={() => setReviewing(null)}>

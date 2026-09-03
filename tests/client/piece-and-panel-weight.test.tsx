@@ -116,6 +116,7 @@ describe("one silhouette per piece, both colours", () => {
       <ChessBoard
         board={new Chess().board()}
         orientation="w"
+        authority="propose"
         legalTargets={[]}
         onSelect={() => {}}
         onMove={() => {}}
