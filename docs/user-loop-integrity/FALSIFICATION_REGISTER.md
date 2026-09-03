@@ -221,6 +221,28 @@ merged tree: **entry raw 684.4, gzipped 214.5, initial download 772.5** — insi
 so neither moved again, and the superseded numbers stay in `scripts/check_bundle_budget.ts` with a
 note saying what happened to them.
 
+## C3. The third repair to the way out, broken three ways
+
+The pairing rule (section D, repair 3) is a claim about a component, so it was falsified against
+`tests/client/reveal-failure.test.tsx` rather than in a browser. Each break applied alone, restored
+green after.
+
+| break | what was changed | red |
+| --- | --- | ---: |
+| B6 | the forward control declares `return-record` while keeping the forward words | **2** — the pairing rule, both kinds |
+| B7 | the forward control keeps `next-decision` and wears *"חזרה לרשומה"* | **6** — the pairing rule, the press, and the chrome check, both kinds |
+| B8 | the bank branch re-implemented as a locally labelled `next-decision` button instead of rendering `RevealNextPosition` | **2** — the delegation, both kinds |
+
+`B8` is the one that matters, because it is the shape the merge actually produced: a button labelled
+before `serveNextBankPosition` was asked. It typechecks, it looks right, and on an exhausted anchor
+set it says *"לעמדה הבאה"* and lands on the record.
+
+**What is NOT claimed.** That the rule catches a mismatch inside `RevealNextPosition` itself. That
+component owns its own two pairings, and nothing in this file asserts them; the failure panel is
+only shown to hand the question over rather than to answer it twice.
+
+---
+
 ## D. The adversarial pass, and what it found in the fix
 
 Run in a separate context against the merged branch, with the brief to attack rather than to

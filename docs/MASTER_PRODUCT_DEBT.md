@@ -1080,6 +1080,18 @@ symptom, and a ceiling with no room turns every added comment into a false alarm
 cause, and the row's own argument — that there is no version of "this component needs one more
 piece of state" that is better than putting it somewhere else — leaves no room to keep.
 
+**What the user-loop mission paid, and the row's claim of "no mechanical extraction" survived it.**
+The ceiling was crossed repeatedly and paid each time by moving something whose only tie to the
+component was that it had been typed there: `applyMoveAt` to `lib/game-data.ts`; `revealFen` and
+`revealPly` merged into one `revealAt`, which is one fewer piece of state and not just fewer lines;
+the no-continuation panel to its own file, since superseded by `RevealNextPosition` under owner
+decision `O-1`; and `countMaterial` to `lib/game-data.ts` — a pure fold over the board whose value
+`AnalysisPanel` already labels *"נספר מהלוח"*, so the file that holds the position and computes
+nothing from an engine is where it belonged.
+
+None of them touched the fifty-three-way closure this row is actually about. That is the row being
+right, not the row being paid off.
+
 ---
 
 ### R-22 · Production migrations are applied by hand and recorded nowhere
