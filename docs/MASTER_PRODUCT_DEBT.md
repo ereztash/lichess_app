@@ -1187,19 +1187,49 @@ from `docs/ROLLBACK.md` section 7.
 | | |
 | --- | --- |
 | type | evidence |
-| state | **open** |
+| state | **fixed** |
 | severity | P2 |
-| basis | **verified** — `tests/deployment/` asserts headers, MIME types, the CSP string, health and the build identity as served; it never creates the engine worker; the one defect L6 exists for (R-09, the CSP that broke the worker) is held only by the CSP-string assertion |
+| basis | **verified** — the probe was written, run green under the policy production actually serves, and run red under two policies that break the engine |
 
 A policy string that contains `worker-src 'self'` is strong evidence and not the fact. The fact is a
-worker that starts under the served policy, and the self-check already knows how to probe it in a
-browser. Running that probe from Chromium against `DEPLOYED_ORIGIN` is the missing rung, and it is
-read-only, so the "no writes, ever" rule of the L6 suite holds.
+worker that starts under the served policy, and the one defect `L6` exists for — `R-09`, a CSP that
+broke the worker — was held only by that string.
 
-**Gate:** a deployment test beside `tests/deployment/origin.ts` (the-engine-that-speaks) opens the
-deployed front door in Chromium (`tests/layout/browser.ts`), runs the worker probe, and fails when
-the worker does not answer `uciok` under the served headers; the wrong-origin control goes red on it
-too.
+`tests/deployment/the-engine-that-speaks.deployment.test.ts` opens the deployed origin in Chromium,
+finds the engine assets **in the bundle the origin serves**, builds the Worker URL the way
+`stockfish.ts` builds it, and fails unless the engine answers `uciok` with nothing refused. It runs
+in `deployed.yml`, after the deployment, against the origin people are being served — which is where
+it has to be while `R-21` is open, because `verify` runs after the merge.
+
+**Measured, all three directions:**
+
+| policy | verdict |
+| --- | --- |
+| the one production actually serves, captured live | **`UCIOK`**, 687 ms, 0 refusals, "Stockfish 18 Lite WASM" |
+| `worker-src 'none'` — the `R-09` class | **`WORKER_ERROR`** |
+| no `'wasm-unsafe-eval'` — the silent one | **`TIMEOUT`** |
+
+The second control is the one worth having. A blocked worker throws in milliseconds and anybody
+would notice; a policy without wasm permission lets the worker start and never compile, so the app
+looks alive and every reveal is empty. During a field trial that reads as *the product told me
+nothing*, and it would be recorded as an absence of value.
+
+**Gate:** `tests/fixtures/controls/deployed-engine.control.test.ts`, run by `deployed.yml` and
+required to fail.
+
+**What it does not cover, so a green run is not read for more than it says.** One browser engine,
+the Chromium the runner has. That the engine STARTS, not that it plays: a build whose engine starts
+and then answers nonsense passes here. And it runs when the workflow runs, so an origin changed
+between deployments is caught by the daily schedule rather than by this file.
+
+**One limitation of this session's own verification, recorded rather than papered over.** The
+green run was against a local origin serving the shipped bundle under the CSP captured live from
+production, not against `lichessapp.vercel.app` itself: Chromium in the sandbox this was written in
+cannot complete a TLS handshake through its egress proxy. The served policy, the served MIME types
+and the shipped bytes were all exercised; the TLS path was not. In `deployed.yml` there is no such
+proxy and the probe reaches the real origin directly. **Until one green run of `deployed.yml`
+carries this case, that last hop is asserted rather than verified.**
+
 
 ### R-28 · `users` is a table nothing writes and one query reads
 
