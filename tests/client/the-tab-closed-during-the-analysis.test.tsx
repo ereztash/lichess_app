@@ -82,6 +82,7 @@ vi.mock("@/lib/stockfish", () => ({
 
 import { resetBlitzAnalysisRunner } from "@/lib/blitz-analysis-runner";
 import Blitz from "@/pages/Blitz";
+import { OPPONENT_KIND } from "@/lib/opponent";
 
 /*
  * A CLOCK WITH A FRACTIONAL PART, BECAUSE A BROWSER'S HAS ONE.
@@ -243,7 +244,8 @@ describe("the tab closed during the analysis", () => {
     const [game] = await store.listBlitzGames();
 
     expect(game.opponent).not.toBeNull();
-    expect(game.opponent?.kind).toBe("engine");
+    /* The varied opponent is its own population; the kind says so (client/src/lib/opponent.ts). */
+    expect(game.opponent?.kind).toBe(OPPONENT_KIND);
     expect(game.opponent?.engine).toBe("stockfish");
     expect(game.opponent?.depth).toBe(4);
     /* The build is the content hash of the wasm, so it identifies a binary rather than a range. */

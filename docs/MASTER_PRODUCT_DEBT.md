@@ -940,6 +940,46 @@ alternatives and the choice rule that has to be declared before the next run.
 
 ---
 
+### R-21 · `main` deploys before `verify` has run, and nothing in the tree can change that
+
+| | |
+| --- | --- |
+| type | ops |
+| state | **blocked** |
+| severity | P1 |
+| basis | **verified** — GitHub reports `main` `protected: false`; `.github/workflows/verify-build.yml` runs on `push: branches: [main]`, after the merge; Vercel deploys `main` on push. Runs 347 and 361 on `main` were red and cancelled while their commits were live. |
+
+`verify` gates a pull request and nothing gates the merge. A red run on `main` is a report about a
+build that is already serving players. The cure is a branch ruleset (require a PR, require the
+`verify` check, block force-push) and, on Vercel, deploying only after the check passes. Both live in
+repository and project settings, not in this tree: **EXTERNAL_CONFIGURATION_REQUIRED**, owner's
+decision. `docs/ROLLBACK.md` is what stands until then.
+
+**Gate:** none can exist here. What the tree can hold is the consequence: `docs/ROLLBACK.md` and
+`GATE-ROLLBACK-EVIDENCE` make a red deployment cheap to undo, and `deployed.yml` binds the check to
+the commit. This row closes when a screenshot of the ruleset is not needed because a PR without a
+green `verify` cannot merge.
+
+### R-22 · Production migrations are applied by hand and recorded nowhere
+
+| | |
+| --- | --- |
+| type | ops |
+| state | **open** |
+| severity | P1 |
+| basis | **verified** — CI applies `drizzle/migrations/*.sql` in lexicographic order with raw `mysql` and no bookkeeping table; no document, script or workflow applies them to the production database or records which of 0000 to 0018 it holds. |
+
+CI proves the schema loads from zero. It proves nothing about the database a deployment actually
+meets, and a function built against a column the database has not gained fails at the first write,
+not at deploy. `docs/ROLLBACK.md` section 5 states the rule (additive first, remove later, in a
+separate release) and cannot enforce it.
+
+**Gate:** `/api/health` compares the columns `drizzle/schema.ts` declares against
+`information_schema.columns` and answers `checks.schema: "behind"` with 503 when the database lacks
+one; the L6 suite then reddens on a deployment whose migration did not run. Not built here because
+it changes the health contract this mission just froze, and belongs with the first migration that
+ships after it.
+
 ## P2 — real, bounded, and not blocking anything
 
 ### R-10 · A confidence scale can be re-meant without the record noticing
@@ -1059,6 +1099,117 @@ The line ceiling keeps its headroom deliberately, and the asymmetry is the point
 symptom, and a ceiling with no room turns every added comment into a false alarm. State is the
 cause, and the row's own argument — that there is no version of "this component needs one more
 piece of state" that is better than putting it somewhere else — leaves no room to keep.
+
+---
+
+### R-23 · Failures are observable for one hour, by an operator who is already looking
+
+| | |
+| --- | --- |
+| type | ops |
+| state | **blocked** |
+| severity | P2 |
+| basis | **verified** — Vercel Hobby plan: runtime logs retained one hour, no alerting; `docs/OBSERVABILITY.md` section 1 |
+
+Every failure now leaves a structured line with a class, a request id and the build
+(`server/_core/telemetry.ts`), and browsers report failure names to `/api/client-event`. Nothing
+forwards the log or watches the health route. The three closures are a log drain, an uptime monitor
+on `GET /api/health`, and a notification route: **EXTERNAL_CONFIGURATION_REQUIRED**, and a plan
+decision. Until then the client-side trial ledger (`failure_observed`) is the only trace that
+outlives the hour, and it lives with the player.
+
+**Gate:** none possible in the tree. The row closes when `docs/OBSERVABILITY.md` section 1 names the
+drain and the monitor by their configured identity and a failure older than an hour can be produced
+on request.
+
+### R-24 · No request is rate-limited, and the health probe costs a query
+
+| | |
+| --- | --- |
+| type | ops |
+| state | **open** |
+| severity | P2 |
+| basis | **verified** — no rate-limit middleware in `server/`; `/api/health` runs `select 1` under a 3 s deadline on every unauthenticated request when `DATABASE_URL` is set; `/api/client-event` accepts 2 kB per request from anyone, 25 per page load only by the honest client's own counter |
+
+Every mutation is owner-gated, so the exposure is cost, not data: a burst against the health route
+is a burst against the database, and a burst against the beacon is a burst of one-line logs. A
+Vercel Firewall rule is the platform's answer and lives outside the tree. In the tree, the health
+probe can memoise its last answer for a few seconds per warm instance; that is deliberately not done
+here because a cached "reachable" is exactly what the health route was rewritten to stop saying.
+
+**Gate:** a test that sends fifty health requests in one second to a store whose `isAvailable`
+counts calls, and asserts the store saw at most a handful; a documented Firewall rule for `/api/*`.
+
+### R-25 · The server record can be erased but not exported
+
+| | |
+| --- | --- |
+| type | UX |
+| state | **half fixed** |
+| severity | P2 |
+| basis | **verified** — `exportLocalRecord` and the self-check download cover the browser record; `scripts/purge.ts` erases the server record; no procedure assembles the server record for the owner (`docs/RETENTION.md` section 5) |
+
+The browser half is done. The server half is `mysqldump` by the operator, which is an answer for the
+operator and not for the person whose record it is. The deployment is single-tenant, so the export is
+the whole database's record tables as one JSON.
+
+**Gate:** an `ownerProcedure` `record.export` that returns every `RECORD_TABLES` row for the owner as
+one document, with a test that a row written through the record service appears in the export and a
+row in `users` does not; the self-check drawer offers it beside the local download when signed in.
+
+### R-26 · The rollback has been rehearsed on paper and in the controls, not on the alias
+
+| | |
+| --- | --- |
+| type | ops |
+| state | **open** |
+| severity | P2 |
+| basis | **verified** — `docs/ROLLBACK.md` section 7 says so; the SHA-mismatch control and `GATE-ROLLBACK-EVIDENCE` run green and red as required; no production alias has been moved and checked by the procedure |
+
+The mechanism has been falsified without touching production: the binding goes red on a mismatch,
+and the L6 suite against production went green with the right SHA and red with a wrong one during
+this mission. What has not happened is the thing itself: an alias move followed by a dispatched run
+bound to the commit it landed on. That is **FIELD-REQUIRED** and the owner's to do, on a quiet hour,
+by rolling back to the current build (a no-op move) and dispatching `deployed.yml` with its SHA.
+
+**Gate:** one green run of `deployed.yml` from `workflow_dispatch` with a non-empty `sha`, linked
+from `docs/ROLLBACK.md` section 7.
+
+### R-27 · The engine has never been run on the deployed origin by anything that re-runs
+
+| | |
+| --- | --- |
+| type | evidence |
+| state | **open** |
+| severity | P2 |
+| basis | **verified** — `tests/deployment/` asserts headers, MIME types, the CSP string, health and the build identity as served; it never creates the engine worker; the one defect L6 exists for (R-09, the CSP that broke the worker) is held only by the CSP-string assertion |
+
+A policy string that contains `worker-src 'self'` is strong evidence and not the fact. The fact is a
+worker that starts under the served policy, and the self-check already knows how to probe it in a
+browser. Running that probe from Chromium against `DEPLOYED_ORIGIN` is the missing rung, and it is
+read-only, so the "no writes, ever" rule of the L6 suite holds.
+
+**Gate:** a deployment test beside `tests/deployment/origin.ts` (the-engine-that-speaks) opens the
+deployed front door in Chromium (`tests/layout/browser.ts`), runs the worker probe, and fails when
+the worker does not answer `uciok` under the served headers; the wrong-origin control goes red on it
+too.
+
+### R-28 · `users` is a table nothing writes and one query reads
+
+| | |
+| --- | --- |
+| type | correctness |
+| state | **open** |
+| severity | P2 |
+| basis | **verified** — `server/db.ts` `upsertUser` has no callers; `authenticateRequest` hard-codes `email: null`; the JWT carries `openId`, `appId`, `name`; the table exists from migration 0000 |
+
+Harmless today and misleading tomorrow: a reader of the schema sees an identity store with an email
+column and infers the product keeps one. `docs/RETENTION.md` says it does not. Either the table goes
+in a migration or a gate asserts zero callers of `upsertUser`, so the next person who wires it up has
+to say so.
+
+**Gate:** a test that `upsertUser` and `getUserByOpenId` have no importers outside `server/db.ts`
+and the test itself; or the migration that drops the table.
 
 ---
 

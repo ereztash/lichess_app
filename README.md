@@ -271,6 +271,11 @@ R5 ו-append-only נאכפים פעם אחת.
 | [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
 | [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) · [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — נרשם מראש, נמדד, ולא אומץ | אנגלית |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
+| [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) | לאן הולכות תקלות בייצור, מה הבריאות אומרת, ומה הפלטפורמה לא נותנת ומי צריך להחליט | אנגלית |
+| [`docs/ROLLBACK.md`](docs/ROLLBACK.md) | מתי מחזירים לאחור, איך, ומה סוגר את האירוע: ריצת L6 ירוקה הקשורה ל-SHA שחזרו אליו | אנגלית |
+| [`docs/RETENTION.md`](docs/RETENTION.md) | איפה הנתונים, מה מותר לרשום ומה לעולם לא, איך מוחקים ואיך מורידים | אנגלית |
+| [`docs/DEPENDENCY_POLICY.md`](docs/DEPENDENCY_POLICY.md) | איך תלות מתעדכנת ומה מוכיח שעדכון בטוח | אנגלית |
+| [`docs/customer-readiness/`](docs/customer-readiness/BASELINE.md) | מוכנות ללקוח: קו הבסיס שהוקפא לפני התיקונים, פנקס הפערים, והציון אחרי | אנגלית |
 | [`docs/discovery-v2/M0_AUDIT.md`](docs/discovery-v2/M0_AUDIT.md) | ארבע שאלות על מכשיר המדידה עצמו, לפני שנבנה מנוע discovery חדש — ומה שנמצא הפך את הכיוון | אנגלית |
 | [`docs/decisions/`](docs/decisions/README.md) | פנקס ההכרעות: מה נבחר, מה נדחה, איזה מימוש חיצוני כבר קיים, ומה יהפוך כל הכרעה | אנגלית |
 | [`docs/INTERACTION_GEOMETRY.md`](docs/INTERACTION_GEOMETRY.md) | מה המסך מסודר סביבו בכל מצב, נמדד בדפדפן: הפריסה של `DECIDE`, המעברים, מסע ההפרכה, ומה דורש שדה | אנגלית |
