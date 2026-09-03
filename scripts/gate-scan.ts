@@ -234,3 +234,127 @@ export function findUnimplementedAriaPatterns(files: string[]): Finding[] {
   }
   return findings;
 }
+
+/**
+ * CONTINUATION IS A MOVE, AND THE DEFINITION IS NOT A COMMENT.
+ *
+ * Owner decision `O-2` fixes `next_decision_started` to one behaviour: after a prior reveal, the
+ * player is shown a legal position in which it is their turn, and places a legal move in it. Five
+ * things are named as NOT continuation -- a route change, a press of the way-on control, a render
+ * of a position, entry to a screen, and selecting a game.
+ *
+ * `O-1` gave the reveal a one-press route to the next position. That removes navigation friction
+ * from what the trial measures, and it puts a new button one line away from the event: a change
+ * that recorded continuation on that press would turn the product's own control into the
+ * player's behaviour, and every continuation rate in the funnel would then be about the button.
+ *
+ * WHAT THIS READS, AND WHY EACH CLAUSE IS SEPARATE FROM THE UNIT TESTS. The tests fix the
+ * predicate's truth table. They cannot see a caller that stops consulting it, passes a literal
+ * for a clause, or records the event from somewhere else entirely -- and those are the three ways
+ * this definition actually decays.
+ *
+ *   1. The event is recorded in exactly ONE place.
+ *   2. That place consults `continuationStarted`.
+ *   3. No clause is supplied as a literal `true` at the call site.
+ *   4. The predicate still requires all four clauses.
+ */
+const CONTINUATION_EVENT = "next_decision_started";
+const CONTINUATION_CLAUSES = [
+  "movePlaced",
+  "positionWasActionable",
+  "revealsPresented",
+  "alreadyRecorded",
+] as const;
+
+export function findContinuationDefinitionDrift(roots: string[]): Finding[] {
+  const out: Finding[] = [];
+  const files = roots.flatMap((root) => sourceFiles(root));
+  const recorders: { file: string; line: number; consults: boolean; literals: string[] }[] = [];
+  let predicate: { file: string; line: number; missing: string[] } | null = null;
+
+  for (const file of files) {
+    const source = read(file);
+    const lines = source.split("\n");
+
+    /*
+     * WHERE THE EVENT IS WRITTEN, found from the WRITE and not from the name.
+     *
+     * The first version of this matched any line carrying the string, and went red on the union
+     * member in `TrialEvent` that declares the event's own shape. A type is not a writer. So the
+     * scan starts at `recordTrialEvent(` and asks what that call names.
+     */
+    const writer = /recordTrialEvent\s*\(\s*\{([\s\S]*?)\}\s*\)/g;
+    for (let m = writer.exec(source); m; m = writer.exec(source)) {
+      if (!new RegExp(`name:\\s*["'\`]${CONTINUATION_EVENT}["'\`]`).test(m[1])) continue;
+      const i = source.slice(0, m.index).split("\n").length - 1;
+      const window = lines.slice(Math.max(0, i - 30), i + 5).join("\n");
+      const call = /continuationStarted\s*\(\s*\{([\s\S]*?)\}\s*\)/.exec(window);
+      recorders.push({
+        file,
+        line: i + 1,
+        consults: Boolean(call),
+        literals: call
+          ? CONTINUATION_CLAUSES.filter((c) =>
+              new RegExp(`${c}\\s*:\\s*(?:true|1)\\b`).test(call[1]),
+            )
+          : [],
+      });
+    }
+
+    /* And where the definition lives. */
+    /*
+     * FROM THE RETURN, NOT FROM THE SIGNATURE. Matching to the first `\n}` stopped at the closing
+     * brace of the inline parameter TYPE, so the scan read a list of clause names and concluded
+     * every clause was missing. What has to be read is what the function does with them.
+     */
+    const body =
+      /export function continuationStarted[\s\S]*?\)\s*:\s*boolean\s*\{([\s\S]*?)\n\}/.exec(source);
+    if (body) {
+      const at = source.slice(0, body.index).split("\n").length;
+      predicate = {
+        file,
+        line: at,
+        missing: CONTINUATION_CLAUSES.filter((c) => !new RegExp(`input\\.${c}\\b`).test(body[1])),
+      };
+    }
+  }
+
+  if (recorders.length === 0) {
+    out.push({ file: roots.join(", "), line: 1, text: `nothing records ${CONTINUATION_EVENT}` });
+  }
+  if (recorders.length > 1) {
+    out.push({
+      file: recorders[1].file,
+      line: recorders[1].line,
+      text: `${CONTINUATION_EVENT} is recorded in ${recorders.length} places; one definition means one writer`,
+    });
+  }
+  for (const r of recorders) {
+    if (!r.consults) {
+      out.push({
+        file: r.file,
+        line: r.line,
+        text: `records ${CONTINUATION_EVENT} without consulting continuationStarted`,
+      });
+    }
+    for (const literal of r.literals) {
+      out.push({
+        file: r.file,
+        line: r.line,
+        text: `passes ${literal}: true as a literal; a clause that is always true is not a clause`,
+      });
+    }
+  }
+  if (!predicate) {
+    out.push({ file: roots.join(", "), line: 1, text: "continuationStarted is not defined" });
+  } else {
+    for (const clause of predicate.missing) {
+      out.push({
+        file: predicate.file,
+        line: predicate.line,
+        text: `continuationStarted ignores ${clause}, which O-2 requires`,
+      });
+    }
+  }
+  return out;
+}

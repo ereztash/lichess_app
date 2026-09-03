@@ -1,5 +1,11 @@
 # Acquisition Evidence Constitution
 
+> **Frozen for trial 1.** Six of the things below are fixed until the first field trial ends:
+> the route after the reveal, the definition of `next_decision_started`, `ASK_AFTER_REVEALS`,
+> the denominators, the prohibited inferences and the value question's timing. See
+> [`ACQUISITION_PROTOCOL_V1.md`](ACQUISITION_PROTOCOL_V1.md). Changing one needs a new protocol
+> version, not an edit.
+
 The next trial does not measure chess. It measures whether this chain holds:
 
 ```

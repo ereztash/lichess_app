@@ -286,20 +286,44 @@ describe("the reveal says which position it is about", () => {
  * passed the turn to the side nobody plays, and the decision taken there was recorded.
  */
 describe("a continuation is offered only where it can be taken", () => {
-  it("says so, and leaves the toolbox reachable, when the loaded game holds no further position", async () => {
+  /*
+   * REWRITTEN UNDER OWNER DECISION `O-1` = A, AND THE DEFECT IT GUARDS IS UNCHANGED.
+   *
+   * This case used to assert that NO way on was offered here: at the time the only continuation
+   * available was the fork, and pressing it played the committed move into a game with no opponent
+   * and asked the player to decide for the other side. Offering nothing was the honest end of that
+   * path, and `RevealNoContinuation` said so over a `return-record` control.
+   *
+   * `O-1` gives the reveal a way on that is not the fork: a position from the anchor set, on the
+   * player's own side. So the assertion flips from "nothing is offered" to "what is offered is not
+   * the fork" -- which is the same guard stated against the route that now exists. The three facts
+   * below are what make it not the fork: the board changes to a different game, the player may
+   * move in it, and no reveal is left standing over it.
+   */
+  it("offers a position that is not this game's, and not the fork that used to delete it", async () => {
     const page = await walkToAReveal();
-    expect(
-      await page.locator('[data-primary-action="next-decision"]').count(),
-      "a continuation was offered on a game with no further position",
-    ).toBe(0);
-    expect(
-      await page.locator(".reveal-no-continuation").count(),
-      "the reveal ended with no control and no reason",
-    ).toBe(1);
+    const wayOn = page.locator('[data-primary-action="next-decision"]:visible');
+    expect(await wayOn.count(), "the reveal ended with no way on at all").toBe(1);
     expect(
       await page.locator(".control-rail").count(),
       "the player was left with no way to another position",
     ).toBe(1);
+
+    const before = await position(page);
+    await wayOn.click();
+    await page.waitForTimeout(1500);
+    await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(400);
+
+    expect(await position(page), "the press left the board where it was").not.toBe(before);
+    expect(
+      await page.locator(".reveal-panel").count(),
+      "a reveal was left standing over a position it does not describe",
+    ).toBe(0);
+    expect(
+      await tryToMove(page, "w") ?? (await tryToMove(page, "b")),
+      "the position offered would not accept a move from the player",
+    ).not.toBeNull();
     await page.context().close();
   }, 300_000);
 

@@ -276,6 +276,12 @@ describe("a stranger takes their first decision", () => {
     await expect(forward.count()).resolves.toBe(1);
     const act = await forward.first().getAttribute("data-primary-action");
     if (act === "next-decision") {
+      /*
+       * UNDER `O-1` = A THIS IS THE ORDINARY PATH, and it used to be the rare one. The way on from
+       * the front door's reveal now serves the anchor set's next unanswered position IN PLACE.
+       * There is no navigation to undo afterwards -- that is the point of the decision, and the
+       * `goBack()` that used to sit here would now walk the stranger off the board entirely.
+       */
       await forward.first().click();
       await page.locator(".commitment-submit").waitFor({ timeout: 15_000 });
       const moved = await page.evaluate(async () => {
@@ -289,9 +295,11 @@ describe("a stranger takes their first decision", () => {
         return false;
       });
       expect(moved, "the continuation handed over a position with no move to make").toBe(true);
-      await page.goBack({ waitUntil: "networkidle" }).catch(() => undefined);
     } else {
-      /* The other honourable answer: this game holds no further position, and the screen says so. */
+      /*
+       * The other honourable answer, now reachable only when the bank itself is exhausted: there
+       * is genuinely nowhere left to route to, and the screen says so over the record.
+       */
       expect(act).toBe("return-record");
       await expect(page.locator(".reveal-no-continuation").count()).resolves.toBe(1);
     }
@@ -305,7 +313,18 @@ describe("a stranger takes their first decision", () => {
     expect(Object.keys(after?.reveals ?? {}), "the reload lost or duplicated the reveal").toHaveLength(1);
     const position = await page.evaluate(() => localStorage.getItem("decision-lab.position.v1"));
     expect(position, "the board's position was not kept for the return").not.toBeNull();
-    expect(JSON.parse(position!).gameId).toBe(`lichess-${GAME.id}`);
+    /*
+     * WHICH GAME, AND WHY IT IS NO LONGER ALWAYS THE IMPORTED ONE. What this step is about is that
+     * a reload keeps A position and loses no decision. Before `O-1` the board could only still be
+     * the imported game, so naming it was free; now the way on serves a bank position in place, so
+     * after taking it the board is legitimately an anchor. Both are accepted and nothing else is:
+     * an empty or unrecognised game id is still a lost handoff.
+     */
+    const keptGame = JSON.parse(position!).gameId as string;
+    expect(
+      keptGame === `lichess-${GAME.id}` || keptGame.startsWith("anchor-"),
+      `the reload kept a position belonging to no known game: ${keptGame}`,
+    ).toBe(true);
 
     expect(crashes, "unhandled errors along the primary journey").toEqual([]);
     await context.close();

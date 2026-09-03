@@ -31,29 +31,64 @@ was blind to.
 
 ## B. Open, with the trigger that would close each
 
-### `OWNER-REQUIRED`
+### `OWNER-REQUIRED` — **CLOSED 2026-09-03 by owner decision**
+
+All three are settled. `O-2` and `O-3` were consequences of `O-1` and are recorded as derived
+rather than as separate decisions.
 
 **`O-1` Should the reveal route to the next position, or should the player pass through the record?**
-The mechanism exists and works: `return-record` → `/` → *"העמדה הבאה"* hands over the anchor set's
-next unanswered position, which is a decision on the player's own side and is the one reading in
-this product comparable between players. Measured end to end on the fixed tree. What is **not**
-decided is whether the reveal should offer that directly, and offering it changes what
-`docs/ACQUISITION_EVIDENCE.md`'s continuation stage counts — `next_decision_started` fires on a
-placed move, and a one-press route to another position is a different funnel from a two-press one.
-`RNL-11` forbids moving the intervention and the instrument in one step. **Trigger:** an owner
-decision, then a protocol-version consideration before it ships.
+**DECIDED: A, the direct route.** After a reveal whose game holds no further position -- which is
+every front-door arrival, because the handoff carries exactly one -- the player is routed straight
+to the anchor set's next unanswered position, in one press.
 
-**`O-2` `next_decision_started` on the front-door path.**
-It fires on `movePlaced && revealsPresented > 0`. At `c1d7293` a stranger could satisfy it — by
-placing the **opponent's** move — so any continuation figure taken from that path is counting an act
-the product should not have offered. After this branch the reveal offers `return-record` instead, so
-the event fires only once the player has reached another position and moved in it. Both readings are
-about the product's shape rather than anybody's behaviour until `O-1` is settled. **Trigger:** `O-1`.
+*The owner's reason, in the owner's terms:* the first trial measures whether the reveal created
+enough value for the player to take another decision. The route it replaced was reveal → record →
+find *"העמדה הבאה"* → land → decide, and that put navigation friction inside the measurement.
+Friction is not part of the value proposition, so it is removed from the instrument rather than
+measured as part of it.
 
-**`O-3` `ASK_AFTER_REVEALS = 2` and the front door.**
-The value-reconstruction question is put after the **second** reveal. A stranger who arrives at the
-front door and does nothing else has never had a second reveal available. This is a consequence of
-`O-1` and is recorded rather than changed: moving the threshold would change the instrument.
+*What the previous route was, kept because a decision without its alternative is not a decision:*
+`RevealNoContinuation` said the loaded game had no further position and offered `return-record`.
+That was correct at the time and for its own reason -- the only continuation then available was the
+fork, which played the committed move into a game with no opponent. `O-1` does not reverse that
+finding; it supplies a way on that is not the fork.
+
+*The set-complete case is unchanged.* A player who has answered all sixty bank positions is still
+routed to the record, because for them there genuinely is nowhere else.
+
+**Reversal condition.** A measured continuation rate on the direct route that is indistinguishable
+from the two-press rate would say the friction was not the confound the decision assumes it was.
+That comparison needs both arms and therefore a field trial; it is not a repo question. A second
+reversal is cheaper and internal: any walk in which the one press leaves the player somewhere they
+cannot legally move, which would mean the route re-introduced what it was built to remove.
+
+**Held by** `tests/layout/the-loop-a-stranger-can-close.layout.test.ts` and the rewritten
+continuation case in `tests/layout/the-hand-that-may-move-the-board.layout.test.ts`.
+
+**`O-2` `next_decision_started` on the front-door path. DERIVED FROM `O-1`, AND TIGHTENED.**
+The owner's rule: removing the navigation confound does not lower the continuation bar. The event
+is recorded only when, after a prior reveal, the player is shown a legal position in which it is
+THEIR turn, and places a legal move in it. Not on a route change, a press of the way-on control, a
+render of a position, entry to a screen, or the selection of a game.
+
+`continuationStarted` now takes four clauses rather than three; `positionWasActionable` is the new
+one and it used to be carried only by the board's own guard, which was absent on the front door at
+`c1d7293`. `GATE-CONTINUATION-IS-A-MOVE` reads the source for the three ways this decays -- a
+caller that stops consulting the predicate, a clause hard-coded at the call site, a second writer
+elsewhere in `client/src` -- and each was deliberately introduced into the real tree and went red.
+
+**Reversal condition.** A ledger carrying `next_decision_started` on a visit where no move was
+placed after a reveal.
+
+**`O-3` `ASK_AFTER_REVEALS = 2` and the front door. DERIVED FROM `O-1`. THRESHOLD UNCHANGED.**
+The value question is still put after the second reveal. Before `O-1` a front-door stranger never
+had a second reveal available, so the threshold was unreachable on that path; the decision was to
+fix the route rather than move the instrument. Walked end to end on the built app: reveal #1 → one
+press → bank position → move → decision #2 → reveal #2 → the question. The question is confirmed
+absent on the first reveal, which is the moment continuation is being measured.
+
+**Reversal condition.** A front-door walk reaching a second reveal without the question, or the
+question appearing on the first.
 
 ### `FIELD-REQUIRED`
 
@@ -90,6 +125,46 @@ shows a completion difference at that step.
 - The commitment accordion's step count. It is the instrument (LAW 9).
 - `GATE-TWO-HANDS` being chromatic. It is correct for the question it answers; it simply had no
   behavioural sibling until now.
+
+---
+
+## B2. Adversarial pass on the `O-1` change, 2026-09-03
+
+Four claims, attacked rather than confirmed. Driven in Chromium against the built app with the
+shipped engine, five consecutive routes in one session.
+
+**A-1 — "Direct-next does not record continuation before a move." SURVIVES.**
+`next_decision_started` is written in exactly one file, `client/src/lib/continuation-event.ts`; the
+grep over `client`, `shared` and `server` finds no other writer and no `recordTrialEvent` call with
+a computed name. Measured in the walk: the ledger carries **1** `next_decision_started` against
+**6** `reveal_presented` and **6** `decision_committed`, and the browser assertions confirm it is
+absent before the press, absent after the press, and present after the move.
+
+**A-2 — "The player is always handed a position they may act in." SURVIVES, with a scope note.**
+Five consecutive routes, five positions, five accepted moves, and `staleReveals=0` on every one.
+The scope note is real and is a property of the bank rather than of the route: an anchor is a
+loaded position with **no opponent**, so `positionIsActionable`'s turn clause
+(`opponent === null || turn === opponent.playerColor`) is vacuous there and the player answers for
+whichever side is to move. The sides across the five were `w, b, b, w, b`. That is what an anchor
+is — *"what would you play here"* — and not the `c1d7293` defect, which was a **live** game whose
+turn had been passed to a side nobody was playing. Recorded so nobody later reads
+`positionWasActionable` as a claim about colour.
+
+**A-3 — "Reveal #2 does enable the value-reconstruction prompt." SURVIVES.**
+`value_reconstruction_prompted: 1` against six reveals: put once, after the second, and never
+again — which is `ASK_AFTER_REVEALS = 2` and *once per browser*, both unchanged. The dedicated walk
+also asserts it is **absent** on the first reveal, which is the half that matters, because a
+question there would be measured instead of the continuation it interrupts.
+
+**A-4 — "Routing did not damage the record, history or decision ownership." SURVIVES.**
+Five decisions, **five distinct game ids** (`lichess-abcd1234`, then four `anchor-*`), so no game
+was forked, truncated or merged — the `LAW 4` failure that cost a loaded PGN seven plies is not
+reachable by this route, which serves a new game rather than advancing an old one. Purposes are
+intact: `first` on the imported decision and `anchor` on all four bank decisions, which is
+`firstDecisionPly: null` doing its load-bearing job. No decision carries two names.
+
+**What this pass does not claim.** That these are the only ways the change could break. Four
+attacks were named in advance and four were run; nothing here asserts coverage.
 
 ---
 
