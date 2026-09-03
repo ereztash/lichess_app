@@ -432,11 +432,18 @@ describe("a transfer run resumes where it stopped", () => {
      * own tests. This is the other half: the board must actually apply it. A first version of this
      * change stored and parsed the arm and quietly did not restore it, and every test still passed.
      */
+    /*
+     * READ FROM `adopt-position.ts` SINCE `O-1`. The nine assignments were inline in `Home`'s
+     * mount-restore effect until the reveal's direct route needed to make the same assignment
+     * without a remount. Two copies of nine assignments is how `revealTiming` got left out of one
+     * of them in the first place, so the extraction is the stronger version of this guard: there
+     * is now one place that can omit a field, and this points at it.
+     */
     const home = code("client/src/pages/Home.tsx");
-    const restore = home.slice(home.indexOf("const saved = readPosition()"));
-    const block = restore.slice(0, restore.indexOf("gameId.current = saved.gameId"));
+    const adopt = code("client/src/lib/adopt-position.ts");
+    const block = adopt.slice(0, adopt.indexOf("set.setGameId(saved.gameId)"));
     expect(block, "the restored game keeps whatever arm the board happened to default to").toMatch(
-      /setRevealTiming\(saved\.revealTiming\)/,
+      /set\.setRevealTiming\(saved\.revealTiming\)/,
     );
     /*
      * And written back with the game, so the next reload reads it rather than the default.

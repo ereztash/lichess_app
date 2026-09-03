@@ -30,7 +30,8 @@
 import { useState } from "react";
 
 import { primaryAction } from "@shared/primary-action";
-import { handOverBankPosition } from "@/lib/bank-handover";
+import { serveNextBankPosition } from "@/lib/bank-handover";
+import type { StoredPosition } from "@/lib/session-position";
 
 /** Shown only once the bank is exhausted: at that point the record really is the way on. */
 export const NO_FURTHER_POSITION =
@@ -42,9 +43,21 @@ export const NEXT_POSITION_CTA = "לעמדה הבאה";
 export function RevealNextPosition({
   /** The bank ids this record has already answered. Drives which position is served next. */
   answered,
+  /**
+   * Put the served position on the board.
+   *
+   * A CALLBACK AND NOT A ROUTE, and the end-to-end walk is what settled it. The reveal is already
+   * on `/play`, so `navigate("/play")` moves nothing: measured in Chromium, the handoff store was
+   * written, the url stayed put, `Home` never remounted, and the player was left on the old reveal
+   * with a board that refused every move. The component that OWNS the board has to take the
+   * position; nothing else can.
+   */
+  onServed,
+  /** Only for the exhausted-bank branch, where the record genuinely is the destination. */
   navigate,
 }: {
   answered: readonly string[];
+  onServed: (position: StoredPosition) => void;
   navigate: (to: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -57,10 +70,14 @@ export function RevealNextPosition({
      * move the player makes after landing, and a press counted as continuation would be the
      * product measuring its own button.
      */
-    if ((await handOverBankPosition(answered, navigate)) === "set-complete") {
+    const served = await serveNextBankPosition(answered);
+    if (served === "set-complete") {
       setSetComplete(true);
       setBusy(false);
+      return;
     }
+    onServed(served);
+    setBusy(false);
   }
 
   if (setComplete) {

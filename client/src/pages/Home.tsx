@@ -33,10 +33,11 @@ import { ClaimPanel } from "@/components/ClaimPanel";
 import { DrillRunner, type DrillStage } from "@/components/DrillRunner";
 import { RevealFailure, type RevealFailureKind } from "@/components/RevealFailure";
 import { RevealNextPosition } from "@/components/RevealNextPosition";
-import { handOverBankPosition, NO_CONTINUATION_IN_THIS_GAME } from "@/lib/bank-handover";
+import { NO_CONTINUATION_IN_THIS_GAME, serveNextBankPosition } from "@/lib/bank-handover";
 import { useContinuationEvent } from "@/lib/continuation-event";
 import { ContextRibbon } from "@/components/ContextRibbon";
-import { readPosition, writePosition } from "@/lib/session-position";
+import { adoptStoredPosition } from "@/lib/adopt-position";
+import { readPosition, type StoredPosition, writePosition } from "@/lib/session-position";
 import { LoopStrip } from "@/components/LoopStrip";
 import { LearningQueue } from "@/components/LearningQueue";
 import { LearningRuleComposer } from "@/components/LearningRuleComposer";
@@ -606,6 +607,17 @@ export default function Home() {
    * when a position is presented, so a half-answered commitment resumed an hour later would carry
    * an hour of thinking time into the record (R2).
    */
+  /** `O-1` gave this two callers: the mount restore, and the reveal's direct route. One copy. */
+  const adoptPosition = useCallback(
+    (saved: StoredPosition, notice: (loaded: GameSnapshot[]) => string) => {
+      const set = { setHistory, setCurrentPly, setSource, setFirstDecisionPly, setOrientation };
+      const rest = { setOpponent, setRevealTiming, setNotice };
+      const setGameId = (id: string) => void (gameId.current = id);
+      return adoptStoredPosition(saved, { ...set, ...rest, setGameId }, buildHistory, notice);
+    },
+    [],
+  );
+
   const restored = useRef(false);
   useEffect(() => {
     if (restored.current) return;
@@ -615,34 +627,15 @@ export default function Home() {
       setRestoreSettled(true);
       return;
     }
-    try {
-      const loaded = saved.sans.length ? buildHistory(saved.sans.join(" ")) : [];
-      // A ply past the end of what replayed is a stored value this build cannot honour.
-      const ply = Math.min(saved.ply, loaded.length - 1);
-      setHistory(loaded);
-      setCurrentPly(ply);
-      setSource(saved.source);
-      setFirstDecisionPly(saved.firstDecisionPly);
-      setOrientation(saved.orientation);
-      setOpponent(saved.opponent);
-      /*
-       * The arm, restored like everything else. This was the one field the handoff did not carry,
-       * so a resumed deferred game silently continued as a coached one and the record ended up
-       * holding a single game played under two conditions.
-       */
-      setRevealTiming(saved.revealTiming);
-      gameId.current = saved.gameId;
-      setNotice(
-        loaded.length
-          ? `חזרתם למשחק שהייתם בו — ${loaded.length} חצאי־מהלכים.`
-          : "חזרתם למשחק שהייתם בו.",
-      );
-    } catch {
-      /* Unreplayable. The opening position stands, which is where a fresh visit starts anyway. */
-    } finally {
-      setRestoreSettled(true);
-    }
-  }, []);
+    adoptPosition(saved, (loaded) =>
+      loaded.length
+        ? `חזרתם למשחק שהייתם בו — ${loaded.length} חצאי־מהלכים.`
+        : "חזרתם למשחק שהייתם בו.",
+    );
+    setRestoreSettled(true);
+    /* Listed although `restored.current` makes this run once: a reader cannot tell a stable
+       `useCallback` from an unstable one at the call site, which is what the guard is for. */
+  }, [adoptPosition]);
 
   /*
    * And written back whenever it changes. `sans` rather than the snapshots: chess.js derives the
@@ -1558,6 +1551,20 @@ export default function Home() {
     setNotice(message);
   };
 
+  /* What the route used to do for free: the old two-press path remounted and decision state
+     started clean. `O-1` keeps the player here, so the reset is performed -- above all the reveal,
+     since a stale reveal over a new position is defect 2 of `the-hand-that-may-move-the-board`. */
+  const takeBankPosition = (served: StoredPosition) => {
+    adoptPosition(served, () => "עמדה חדשה מהסט המשותף. בחרו מהלך וכתבו את הקריאה שלכם.");
+    resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
+  };
+
+  /** The way on when the engine never answered: the same route, or the record if the bank is done. */
+  const wayOnAfterFailure = () =>
+    void serveNextBankPosition(recordReading.data?.anchorAnswered ?? []).then((served) =>
+      served === "set-complete" ? navigate("/") : takeBankPosition(served),
+    );
+
   /** Where the next decision comes from, or null: `lib/continuation.ts`. */
   const continuation = useMemo(
     () => continuationAfter({ source, history, revealPly: revealAt.ply }),
@@ -2081,6 +2088,7 @@ export default function Home() {
               {revealInputs && !canContinue && (
                 <RevealNextPosition
                   answered={recordReading.data?.anchorAnswered ?? []}
+                  onServed={takeBankPosition}
                   navigate={navigate}
                 />
               )}
@@ -2111,15 +2119,7 @@ export default function Home() {
                   kind={revealFailure}
                   /* O-1: the way on after a failure is the way on after a reveal, or the funnel's
                      continuation stage would depend on whether the engine answered. */
-                  onNext={
-                    canContinue
-                      ? nextDecision
-                      : () =>
-                          void handOverBankPosition(
-                            recordReading.data?.anchorAnswered ?? [],
-                            navigate,
-                          )
-                  }
+                  onNext={canContinue ? nextDecision : wayOnAfterFailure}
                 />
               )}
               {learningTransfer && learningTransferPanel}

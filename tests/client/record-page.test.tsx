@@ -487,13 +487,21 @@ describe("the arrival with no account has a route to a decision that measures so
       "client/src/lib/bank-handover.ts",
     ]);
 
+    /*
+     * TWO ENTRY POINTS, ONE MODULE. `handOverBankPosition` routes to the position and is for
+     * callers who are somewhere else; `serveNextBankPosition` writes it and hands it back, for the
+     * reveal, which is already on the board and cannot route to where it already is. Both live in
+     * `bank-handover.ts`, and what matters is that nobody reaches a bank position any other way.
+     */
     const callers = files.filter(
-      (f) => f !== "client/src/lib/bank-handover.ts" && /handOverBankPosition/.test(code(f)),
+      (f) =>
+        f !== "client/src/lib/bank-handover.ts" &&
+        /handOverBankPosition|serveNextBankPosition/.test(code(f)),
     );
     expect(callers.length, "nothing calls the shared handoff").toBeGreaterThanOrEqual(2);
     for (const caller of callers) {
       expect(code(caller), `${caller} uses the handoff without importing it`).toMatch(
-        /import \{[^}]*handOverBankPosition[^}]*\} from "@\/lib\/bank-handover"/,
+        /import \{[^}]*(?:handOverBankPosition|serveNextBankPosition)[^}]*\} from "@\/lib\/bank-handover"/,
       );
     }
   });
