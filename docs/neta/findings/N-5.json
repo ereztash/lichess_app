@@ -1,0 +1,45 @@
+{
+  "status": "DISCRIMINATE_FIRST",
+  "raw_signal": "לחצתי רשמו את ההחלטה וחיכיתי למנוע ארבעים וחמש שניות. הוא לא דיבר, כי איפשהו במסך חיכתה לי שאלה שלא ראיתי.",
+  "observations": [
+    "On some clean first decisions, pressing commit does not lead to the reveal. The panel replaces itself with a second question: 'אם לא היית עושה את זה, מה כן היית עושה?' with 'המהלך שנרשם: b5b4', an instruction to play the alternative on the board, and one button 'לא היה לי מהלך אחר'.",
+    "The screen label at that moment still reads DECIDE, correctly. The board is unchanged and still carries the marks of the committed move.",
+    "The interstitial occupies y=218 to y=416 in a 291px column. The board beside it is 616x616 and gives no sign that it is now the input for a different move.",
+    "Frequency: it fired on 6 of 15 clean first decisions across separate browser contexts.",
+    "It did not co-vary with the move played: b5b4, which the engine also chose, and a6a5 and h7h6, which it did not, all appeared in both outcomes.",
+    "It did not co-vary with the number of squares clicked before placing the move, nor with elapsed time before placing it: a 33-click prefix and a time-matched idle prefix each produced one gated and one ungated run.",
+    "Where it did not fire, the press reached the engine's answer in 2.2s on a cold engine and 0.3s on a warm one."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "A randomised arm of the acquisition protocol",
+      "explains": "A rate near half that is unpredicted by the move, the clicks or the time, on identical clean profiles.",
+      "does_not_explain": "Nothing observed contradicts it, which is exactly why it must not be assumed.",
+      "discriminator": "One grep for the assignment. If it is randomised, the record must carry the arm, or every reveal-to-continuation rate mixes two different experiences under one number."
+    },
+    {
+      "name": "Triggered by a property of the position or the engine's state at press time",
+      "explains": "Why the same scripted actions give different outcomes.",
+      "does_not_explain": "That the position was byte-identical across all 15 runs, being the same bank position each time.",
+      "discriminator": "Run the same walk on two different bank positions. If the rate differs by position, the trigger is positional."
+    },
+    {
+      "name": "Triggered by something the panel recorded that I did not intend, such as considered-but-abandoned selections",
+      "explains": "That the reveal later said 'רק מהלך אחד נרשם כנשקל', so a considered-moves register exists.",
+      "does_not_explain": "That the direct two-click path, which considers nothing, also produced gated runs.",
+      "discriminator": "Read what the considered-moves register is written from."
+    }
+  ],
+  "design_distinction": "A second question after the commit press is a second DECIDE, not a slow REVEAL. Both look like waiting to a person whose eye is on the board, and the instrument counts them very differently.",
+  "rejected_explanations": [
+    "An engine failure: the same build reaches uciok on the same origin in this same harness, and the ungated runs answer in 2.2s.",
+    "My own harness swallowing the reveal: my earlier REVEAL detector was matching the masthead tagline COMMIT · THEN REVEAL. That was an instrument artifact and it is corrected here."
+  ],
+  "authority": "REPO",
+  "evidence_state": "REPRODUCED",
+  "intervention": null,
+  "must_not_change": "The counterfactual question itself. It is the only thing that separates 'did not see the engine's move' from 'saw it and rejected it', which is the distinction the reveal explicitly says it cannot make without it. Removing it because it delays the reveal would be instrument damage.",
+  "perceptual_success_criterion": "A person who has pressed commit can tell, without scrolling and without waiting, whether the product is working or waiting for them.",
+  "check": null,
+  "next_step": "Settle the trigger in the repository before any field trial: if it is randomised, the arm must be in the record, because reveal_presented and next_decision_started are otherwise averaged across two different products. This is one read, and it changes what F-3's numbers mean."
+}

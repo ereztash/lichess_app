@@ -288,7 +288,17 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
           `שני מנועים חולקים על 13.61% מהפסקים. החלטות חדשות שומרות את זה.`
         : "";
     /* Not a loss and not a wait: they are counted, under another heading, with their own
-       denominator. Saying nothing about them leaves a hole in the arithmetic on screen. */
+       denominator. Saying nothing about them leaves a hole in the arithmetic on screen.
+
+       AND THE HOLE CLOSED INTO A COLLISION. This sentence and the `basis` line below it both
+       said `נמדדו`, nineteen pixels apart, with different numbers: `1 נמדדו ונקראות בחלק אחר`
+       above `0 נמדדו מתוך 1 שנרשמו`. Both were true -- a bank decision is measured, and it is
+       not counted in this search -- and read together they said the record was broken. Walked
+       in Chromium from an empty profile: one bank decision, and the strip carried both lines.
+
+       So the two registers no longer share a bare verb. `נמדדו` stays with the decisions that
+       were measured; the line that reports this search says `נספרות`, which is what it counts.
+       Neither number moved and neither denominator moved. */
     const elsewhere =
       readElsewhere > 0
         ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של הרשומה — הסט המשותף, תרגול או משחקים שיובאו.`
@@ -303,7 +313,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
       return {
         step: "record",
         headline: `עוד ${scoredStillNeeded} החלטות מדודות שנרשמו אחרי הייבוא, בסוג אחד — ${narrowedTo}.${waiting}${passed}${unreadable}${elsewhere}`,
-        basis: `${scored} החלטות שנמדדו ברשומה · החיפוש מצומצם`,
+        basis: `${scored} מתוך ${recorded} שנרשמו נספרות בחיפוש המצומצם`,
         /*
          * Nowhere to send anyone. An import has already narrowed the search, so the one thing
          * that closes this gap is deciding on the position on screen -- and a second import
@@ -330,7 +340,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
       headline:
         `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed}${unreadable}${elsewhere} ` +
         `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם סוג אחד שנבדל מהשאר.`,
-      basis: `${scored} נמדדו מתוך ${recorded} שנרשמו`,
+      basis: `${scored} מתוך ${recorded} שנרשמו נספרות בחיפוש הזה`,
       /*
        * The only headline that names a surface out loud, and the reason this field exists: it
        * said an import can shorten the wait while the import sat four controls away in the tool

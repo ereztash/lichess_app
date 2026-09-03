@@ -105,6 +105,13 @@ without external humans, and each names what it needs.
 **`F-3` is the one the whole instrument exists to ask**, and `O-1` is the decision that decided what
 its numerator counts.
 
+`F-1`'s geometry is no longer an estimate. [`neta/NETA_EMBODIED_RUN_001.md`](neta/NETA_EMBODIED_RUN_001.md)
+walked the deployed build as an experience and measured it: on a 390×844 handset the first reveal
+heading is at y=899 and the sentence carrying the payoff at y=1133, in an 844px viewport that does
+not scroll itself. The row above said y=893, and it was measuring the heading rather than the
+finding. The run is not authority to move anything, and it did not: it recorded six findings, one of
+which was `BUILD_READY` and was a noun.
+
 ---
 
 ## The one sentence

@@ -1,0 +1,38 @@
+{
+  "status": "FIELD_STOP",
+  "raw_signal": "הוא אמר לי גם אין פה כלום וגם צדקת, בשתי שורות אחת מתחת לשנייה. אני לא יודע איזה מהם התוצאה.",
+  "observations": [
+    "First reveal, agreement case. Block 'מה קרה כאן': 'אין כאן דבר שהמדידה תומכת באמירתו. בחרת בתוך רעש ההערכה, והביטחון שלך לא היה נמוך ממנו. זו תוצאה תקינה, לא מסך ריק.'",
+    "Block 'מה שווה לבדוק', 60px below it: 'בחרת את b5b4, וזה גם המהלך של המנוע.'",
+    "Both are true and both are the intended vocabulary: the first is the finding, the second is the fact the finding rests on.",
+    "Second reveal, disagreement case, is shaped differently: 'd5d4 עלה 436 ס״פ מול d7e5' with 'מבוסס על: 436 ס״פ בעומק 14'.",
+    "The second reveal also carries 'המשפט הזה יצא מהשוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.'",
+    "Eight lines below that, the one-time question reads 'מה קיבלת כאן שלא היית מקבל מניתוח רגיל של המשחק?'"
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "The evidence vocabulary is doing exactly its job and the ordering is what a first reader cannot hold",
+      "explains": "Why both sentences are correct and why they still read as opposed.",
+      "does_not_explain": "Whether a person actually reads them as opposed, which no amount of reading the screen can settle.",
+      "discriminator": "A person, shown one reveal, restating unprompted what it claimed and what it did not."
+    },
+    {
+      "name": "The commodity disclaimer sits close enough to the O-3 question to prime its answer downward",
+      "explains": "Why an answer of 'nothing' would be cheap to produce on that screen.",
+      "does_not_explain": "Whether the answer would differ if the two were separated.",
+      "discriminator": "Ask the O-3 question on a session whose reveal carried no disclaimer, and compare. The disclaimer is conditional, so both arms already exist."
+    }
+  ],
+  "design_distinction": "A reveal can be correct and unreadable at the same time. Nothing on the screen tells them apart, and no amount of my reading it does either.",
+  "rejected_explanations": [
+    "A copy bug: neither sentence is wrong, and the pair is the intended evidence discipline.",
+    "That I could judge this myself: I am not a first reader of this product, and my own reading is not evidence about anyone else's."
+  ],
+  "authority": "FIELD",
+  "evidence_state": "FIELD_REQUIRED",
+  "intervention": null,
+  "must_not_change": "The four-block order and the evidence labels. They are frozen and this finding is not authority to move them.",
+  "perceptual_success_criterion": "A person restates, unprompted, both what the reveal claimed and what it said it could not claim.",
+  "check": null,
+  "next_step": "This is F-2 and it stops here. What can be done before a person is present: record which reveal shape preceded each O-3 answer, so the answers are not pooled across a screen that carried a commodity disclaimer and one that did not."
+}

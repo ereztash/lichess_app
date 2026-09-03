@@ -1,0 +1,37 @@
+{
+  "status": "DISCRIMINATE_FIRST",
+  "raw_signal": "רשמתי מהלך והלוח לא זז. הכלי עדיין במקום שלו, והריבוע השני נראה בדיוק כמו לפני שלחצתי.",
+  "observations": [
+    "Selecting the b5 pawn draws a gold ring on b5 and a gold ring with a centre dot on b4, its one legal destination.",
+    "Clicking b4 to choose the move leaves both marks exactly as they were. The piece stays on b5 and no piece appears on b4.",
+    "The only visible change is in a 291px side column: step 1 changes from 'בחרו מהלך על הלוח' to 'b5b4', and the commit button relabels to the next missing item.",
+    "The board occupies 616x616 at 1440x900 and 405x405 on a handset; the side column is 291px wide and, on a handset, below the board.",
+    "A live region says 'המהלך שהצעתם: b5 אל b4' and 'b5b4 נבחר. אפשר עדיין לשנות עד לרישום.'; neither is where the eye was.",
+    "Clicking an empty square, e8, gives it the same gold selection ring as a square holding a piece, with zero destinations shown."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "The board deliberately does not execute the move, because a decision is a claim and not a played move",
+      "explains": "Why the piece stays put after commit-time selection and why the move only appears as an arrow after the reveal.",
+      "does_not_explain": "Why intent and choice share one visual vocabulary, when the design has a second one available and uses it later.",
+      "discriminator": "Ask the owner directly: is 'chosen but not yet recorded' meant to be distinguishable on the board, or only in the panel?"
+    },
+    {
+      "name": "The destination marker is a hover/selection affordance reused as the chosen-move marker",
+      "explains": "Why the dot looks the same before and after the choice.",
+      "does_not_explain": "The empty-square ring, which is a third state using the same mark.",
+      "discriminator": "Select a piece with several legal destinations and choose one. If the unchosen destinations disappear, the marker is doing double duty and the states are separable; if they stay, they are not."
+    }
+  ],
+  "design_distinction": "Three states share one mark: 'I am pointing at this square', 'I could go here', and 'this is my decision'. The instrument depends on the third being a deliberate act, so it is the one that most needs its own appearance.",
+  "rejected_explanations": [
+    "Slow render: the panel updates within 400ms; the board is not lagging, it is unchanged by design."
+  ],
+  "authority": "DESIGN_MECHANISM",
+  "evidence_state": "REPRODUCED",
+  "intervention": null,
+  "must_not_change": "That the move is not played on the board before commit. That is the protocol, not a bug, and removing it would let the position advance before the decision is recorded.",
+  "perceptual_success_criterion": "A person who has chosen a move can point at the board, not at the panel, and say which move they chose.",
+  "check": null,
+  "next_step": "Run the second discriminator, it costs one session: choose among several legal destinations and see whether the rejected ones clear. Then put the owner question, because the answer decides whether this is a defect at all."
+}
