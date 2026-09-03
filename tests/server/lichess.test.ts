@@ -148,3 +148,32 @@ describe("fair-play guard (do not touch: section 7)", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
+
+describe("an upstream that does not answer is a bounded, named failure", () => {
+  it("passes a timeout signal to every fetch, so a silent Lichess cannot outlive the function", async () => {
+    fetchMock.mockImplementation(() => Promise.resolve(ok("[Event \"x\"]\n1. e4 *")));
+    await getLichessGamePgn("abcdefgh");
+    const init = fetchMock.mock.calls[0][1] as RequestInit;
+    expect(init.signal, "the upstream fetch carries no AbortSignal").toBeInstanceOf(AbortSignal);
+  });
+
+  it("turns the runtime's TimeoutError into the authored BAD_GATEWAY sentence", async () => {
+    fetchMock.mockImplementation(() =>
+      Promise.reject(new DOMException("The operation was aborted due to timeout", "TimeoutError")),
+    );
+    let caught: unknown;
+    try {
+      await getLichessGamePgn("abcdefgh");
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(TRPCError);
+    expect((caught as TRPCError).code).toBe("BAD_GATEWAY");
+    expect((caught as TRPCError).message).toContain("לא ענה בזמן");
+  });
+
+  it("turns any other network rejection into BAD_GATEWAY rather than a raw error on the wire", async () => {
+    fetchMock.mockImplementation(() => Promise.reject(new TypeError("fetch failed")));
+    expect(await codeOf(() => getLichessGamePgn("abcdefgh"))).toBe("BAD_GATEWAY");
+  });
+});

@@ -30,10 +30,11 @@
  * never chose.
  */
 import type { RequiredTimeControl } from "@shared/blitz-game-core";
+import { STORAGE_KEYS } from "./storage-keys";
 import type { RevealTiming } from "@shared/reveal-timing";
 
-const BLITZ_KEY = "decision-lab.setup.blitz";
-const GAME_KEY = "decision-lab.setup.game";
+const BLITZ_KEY = STORAGE_KEYS.blitzSetup.key;
+const GAME_KEY = STORAGE_KEYS.gameSetup.key;
 
 /** The commitment loop's setup, as the three controls the player actually sees. */
 export interface RememberedGameSetup {

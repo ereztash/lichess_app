@@ -183,6 +183,18 @@ product look differentiated far more often than it is.
 | prohibited inference | **A dismissal is not "no value articulated."** There is no text to code. It is an interruption, a closed tab, or somebody who does not like typing |
 | privacy | **the one free-text field in the ledger, stored deliberately.** It is the evidence. Never classified in the product; never included in any replay payload (there is none) |
 
+### `failure_observed`
+| | |
+| --- | --- |
+| observable fact | Something the player was doing failed, and the client named the failure |
+| trigger | `reportFailure` in `client/src/lib/error-sink.ts`: an engine that would not start, an import the source refused, a commit or reveal write that failed, a stale chunk, a render crash, an API answer that was an error |
+| properties | `code` (one of `CLIENT_FAILURE_CODES`), `failureClass` (one of `FAILURE_CLASSES`), `surface` (one of `CLIENT_SURFACES`) |
+| pre/post commit | either; the surface says where |
+| legitimate denominator | `first_position_presented`, for "how often did a decision attempt fail before the reveal" |
+| prohibited inference | Cause. `engine/worker-refused` says the worker did not start; it does not say why, and the ledger holds no message, stack or URL that could |
+| transmitted? | **The only event with a server-side twin.** The same five enumerated fields (code, class, surface, build, timestamp) are sent to `POST /api/client-event` on the same origin, because a failure the server never hears of cannot be fixed. Nothing else in the ledger is sent, and the server refuses a body with any other field (`docs/OBSERVABILITY.md`, section 5) |
+| privacy | required; enums only. No content of any kind |
+
 ---
 
 ## 4. Events deliberately absent
@@ -322,14 +334,18 @@ stage 4 of 5" would hand the reader a denominator nobody chose.
 | FEN, PGN, SAN/UCI moves, game history | **prohibited** |
 | stated confidence value, typed read/unknown text | **prohibited** |
 | IP, referrer, user agent, screen fingerprint | **not collected** |
+| failure code, failure class, surface (`failure_observed`) | required, enums; **the one event also sent to the server**, as names only |
 
 Enforced twice: the event union makes prohibited fields unrepresentable in TypeScript, and
 `prohibitedContent()` throws at the boundary — because the ledger is serialised to JSON and pasted
 into a message by a participant, so the cost of a leak is not a bad row.
 
-**Where it lives.** This browser. It is never transmitted; the participant copies it from the
-self-check drawer and sends it. That keeps handing it over an act rather than a default, and it
-keeps the product's existing statement about what stays local true.
+**Where it lives.** This browser. The ledger is never transmitted; the participant copies it from
+the self-check drawer and sends it. That keeps handing it over an act rather than a default, and it
+keeps the product's existing statement about what stays local true. The one exception is stated
+above the table and in the product's own sentence to a signed-out player: when something fails, the
+failure's name, class, surface and build go to the server. No content does, and the server is
+built to refuse it.
 
 **Stated limit.** Copy-out means a participant who never presses the button contributes nothing but
 their absence. For 8–30 people in contact with the owner this is the right trade; automating it

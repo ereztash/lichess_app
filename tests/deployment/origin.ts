@@ -137,3 +137,23 @@ export async function buildIdentity(
 export function describe(identity: BuildIdentity): string {
   return `${identity.gitSha.slice(0, 12)}@${identity.target} (protocol ${identity.protocolVersion})`;
 }
+
+/**
+ * Does the identity the origin served name the commit the caller required?
+ *
+ * PURE, so the rollback rehearsal can falsify it without a second deployment. The L6 suite calls
+ * this with the served identity and `EXPECTED_SHA`; `tests/fixtures/controls/deployed-sha.control.test.ts`
+ * calls it with an identity and a SHA that differ and must go red. If this ever answers `ok` for a
+ * mismatch, a rollback that failed to replace the build would report as a rollback that worked.
+ */
+export function servesExpectedBuild(
+  identity: BuildIdentity,
+  expectedSha: string,
+): { ok: true } | { ok: false; problem: string } {
+  if (!expectedSha) return { ok: true };
+  if (identity.gitSha === expectedSha) return { ok: true };
+  return {
+    ok: false,
+    problem: `expected ${expectedSha.slice(0, 12)}, origin is serving ${describe(identity)}`,
+  };
+}

@@ -15,6 +15,12 @@ import { recordStore, type RecordStore } from "./record.js";
 import { describeForOperator } from "./_core/safe-error.js";
 import { configurationFaults } from "./_core/configuration.js";
 import { ENV } from "./_core/env.js";
+import { runtimeBuildIdentity } from "./_core/build.js";
+import { emit, requestIdFrom } from "./_core/telemetry.js";
+import { failureClassOfTrpcCode } from "../shared/failure-class.js";
+import { clientFailureEventSchema } from "../shared/failure-event.js";
+
+const CLIENT_EVENT_FIELDS = ["code", "failureClass", "surface", "build", "at"];
 
 export function createApp({ store = recordStore }: { store?: RecordStore } = {}) {
   const app = express();
@@ -68,8 +74,65 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
     ownerOpenId: ENV.ownerOpenId,
     databaseUrl: process.env.DATABASE_URL ?? "",
   })) {
-    console.warn(`[config] ${fault.code} (${fault.variables.join(", ")}): ${fault.consequence}`);
+    /* The same line it always was, as a structured event: code, variable NAMES, consequence. */
+    emit({
+      code: "config-fault",
+      failureClass: "precondition",
+      detail: `${fault.code}: ${fault.consequence}`,
+      variables: fault.variables,
+    });
   }
+  /*
+   * `simple`, NOT EXPRESS 4's DEFAULT `extended`. The default runs `qs.parse` on every request's
+   * query string before any route or any auth, and `qs` is where this build's three open moderate
+   * advisories live (array-limit bypass, isBuffer DoS). Nothing here needs nested query objects:
+   * tRPC reads `input` and `batch` as flat strings, and the OAuth callback reads `code` and `state`.
+   * The `urlencoded` parser that used to sit below this line is gone for the same reason -- no
+   * route ever consumed a form body, and it was one more qs entry point an anonymous caller could
+   * reach with a megabyte.
+   */
+  app.set("query parser", "simple");
+  /**
+   * A browser's own report of a failure, and the strictest body this API accepts.
+   *
+   * BEFORE THE GENERAL JSON PARSER, so this route gets its own 2 KB ceiling rather than the
+   * megabyte the record routes need. The body is enums and a commit sha and nothing else --
+   * `clientFailureEventSchema` is `.strict()` and every field is a closed list -- so a report can
+   * say WHICH of the product's own named failures a browser met and on WHICH screen, and it can
+   * never carry a position, a sentence, a username or a stack. That is the whole of the privacy
+   * argument for sending it at all, and the test beside it holds it.
+   *
+   * PUBLIC, because the failures worth knowing about happen to strangers who are not signed in.
+   * 204 on success and 400 on a body the schema refuses, with nothing echoed either way.
+   */
+  app.post("/api/client-event", express.json({ limit: "2kb" }), (req, res) => {
+    /*
+     * OWN KEYS FIRST. zod's `.strict()` refuses unknown keys but lets an own `__proto__` key through
+     * (found by the adversarial review); nothing read it, so nothing leaked, but "any other field
+     * is refused" has to be true of every key, not most. Five names, exactly, before parsing.
+     */
+    const body: unknown = req.body;
+    const ownKeys = body !== null && typeof body === "object" && !Array.isArray(body) ? Object.keys(body) : null;
+    if (!ownKeys || ownKeys.length !== CLIENT_EVENT_FIELDS.length || ownKeys.some((k) => !CLIENT_EVENT_FIELDS.includes(k))) {
+      res.status(400).end();
+      return;
+    }
+    const parsed = clientFailureEventSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).end();
+      return;
+    }
+    const event = parsed.data;
+    emit({
+      code: "client-failure",
+      failureClass: event.failureClass,
+      clientCode: event.code,
+      surface: event.surface,
+      clientBuild: event.build,
+      requestId: requestIdFrom(req.headers),
+    });
+    res.status(204).end();
+  });
   /*
    * 1 MB, DOWN FROM 10. Nothing this API accepts comes close: every prose field on a decision is
    * capped by its schema at 200-300 characters, the import diagnostic is bounded at 64 KiB where
@@ -78,7 +141,6 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
    * parse the caller gets to spend before a single validator runs.
    */
   app.use(express.json({ limit: "1mb" }));
-  app.use(express.urlencoded({ limit: "1mb", extended: true }));
   /**
    * Whether this deployment can do what it says, measured rather than asserted.
    *
@@ -97,19 +159,44 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
    * unauthenticated URL. The operator gets the names after signing in. A monitor gets a status
    * code, which is what a monitor acts on.
    */
-  app.get("/api/health", (_req, res) => {
+  app.get("/api/health", (req, res) => {
     const configured = Boolean(process.env.DATABASE_URL);
     /*
+     * WHAT THE BODY NOW SAYS, AND WHY EACH FIELD IS ALLOWED TO.
+     *
+     *   ok        the contract a monitor acts on, unchanged: 200/true or 503/false.
+     *   build     which commit the FUNCTION is. `/build-identity.json` already says which commit
+     *             the CDN serves, publicly; this lets the L6 suite hold the two equal, which is
+     *             the check that catches a half-promoted deploy or a stuck alias. Same public fact,
+     *             second party to it.
+     *   checks    one word per SUBSYSTEM ROLE. `not-configured` is the supported browser-record
+     *             deployment; `reachable` and `unreachable` are the two states of a configured one.
+     *             The word is a role, never a variable name, a host, a port or a user, and the
+     *             test that forbade those strings from this body still forbids them.
+     *   requestId the platform's trace id, so "health said 503 at 14:02" can be found in the log.
+     *
+     * Liveness, readiness and dependency health are three questions and this is how one route
+     * answers them: an HTTP answer at all is liveness (the function ran); `ok` is readiness (a
+     * decision could be stored here now); `checks.storage` is the dependency that decided it.
+     *
      * NOT AN `async` HANDLER. Express 4 does not catch a rejected promise from one -- it neither
      * responds nor errors, so the request hangs until the platform kills it, and a monitor reads
      * that timeout as "the whole deployment is gone" rather than "the database is down". A hung
      * health check is worse than a red one: it pages for the wrong thing. So the probe's failure
      * is handled here as well as inside it, and every path ends in a response.
      */
-    const probe = configured ? store.isAvailable() : Promise.resolve(true);
-    probe
-      .then((ok) => res.status(ok ? 200 : 503).json({ ok }))
-      .catch(() => res.status(503).json({ ok: false }));
+    const build = runtimeBuildIdentity();
+    const requestId = requestIdFrom(req.headers);
+    const answer = (ok: boolean, storage: "not-configured" | "reachable" | "unreachable") =>
+      res.status(ok ? 200 : 503).json({ ok, build, checks: { storage }, requestId });
+    if (!configured) {
+      answer(true, "not-configured");
+      return;
+    }
+    store
+      .isAvailable()
+      .then((ok) => answer(ok, ok ? "reachable" : "unreachable"))
+      .catch(() => answer(false, "unreachable"));
   });
   registerOAuthRoutes(app);
   app.use(
@@ -118,6 +205,14 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
       router: buildAppRouter(store),
       createContext,
       /*
+       * QUERIES ARRIVE AS POST. The client sends every query with `methodOverride: "POST"` so no
+       * input (a FEN, a username) lands in a URL the platform logs. Without this flag tRPC answers
+       * every such query 405, which the adversarial review found on the branch that added the client
+       * half: the privacy change would have taken the whole read path down on deploy. Held by
+       * `tests/server/a-query-that-travels-in-the-body.test.ts`, which uses the real client link.
+       */
+      allowMethodOverride: true,
+      /*
        * The operator's half of the error, which is NOT the player's half.
        *
        * The wire now carries a fixed sentence for anything the product did not author, so without
@@ -125,9 +220,23 @@ export function createApp({ store = recordStore }: { store?: RecordStore } = {})
        * PARAMETERIZED statement -- safe by construction, every value is `?` -- and drops
        * `message` and `params`, which are the two places drizzle puts the values.
        */
-      onError: ({ error, path }) => {
-        if (error.code !== "INTERNAL_SERVER_ERROR") return;
-        console.error(`[trpc] ${path ?? "?"} ${describeForOperator(error.cause ?? error)}`);
+      onError: ({ error, path, ctx }) => {
+        /*
+         * EVERY CODE, NOT ONLY 500. A 429 from Lichess, a refused token and a rejected input each
+         * used to leave no line, so the operator could count nothing but crashes. The class says
+         * which subsystem; the detail is kept only for what the product did not author, because an
+         * authored refusal's cause is its code.
+         */
+        emit({
+          code: "request-failed",
+          failureClass: failureClassOfTrpcCode(error.code),
+          path: path ?? "?",
+          requestId: ctx?.requestId,
+          detail:
+            error.code === "INTERNAL_SERVER_ERROR"
+              ? describeForOperator(error.cause ?? error)
+              : error.code,
+        });
       },
     }),
   );

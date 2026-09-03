@@ -19,7 +19,7 @@ import { safeErrorMessage } from "./safe-error.js";
  */
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
-  errorFormatter: ({ shape, error }) => ({
+  errorFormatter: ({ shape, error, ctx }) => ({
     ...shape,
     message: safeErrorMessage(error.cause ?? error),
     /*
@@ -34,7 +34,17 @@ const t = initTRPC.context<TrpcContext>().create({
      * `path` are the client's; anything a future tRPC adds to that object arrives here having to
      * be named before it ships.
      */
-    data: { code: shape.data.code, httpStatus: shape.data.httpStatus, path: shape.data.path },
+    data: {
+      code: shape.data.code,
+      httpStatus: shape.data.httpStatus,
+      path: shape.data.path,
+      /*
+       * THE ONE ADDITION TO THE ALLOW-LIST, and it is a platform trace id rather than anything of
+       * the player's: the same `x-vercel-id` the response headers already carry, named here so a
+       * failure disclosure can show it and an operator can grep the log for it.
+       */
+      requestId: ctx?.requestId ?? null,
+    },
   }),
 });
 export const router = t.router;

@@ -2,13 +2,21 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users } from "../drizzle/schema.js";
 import { ENV } from "./_core/env.js";
+import { describeForOperator } from "./_core/safe-error.js";
+import { emit } from "./_core/telemetry.js";
 let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
       _db = drizzle(process.env.DATABASE_URL);
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      /*
+       * THE CLASS, NEVER THE OBJECT. This logged the whole error, and the one error `drizzle(url)`
+       * throws at construction is about the URL it was handed -- which is the connection string,
+       * password included. The rest of the server had already learnt to log names and not values;
+       * this line predated the rule.
+       */
+      emit({ code: "storage-init-failed", failureClass: "storage", detail: describeForOperator(error) });
       _db = null;
     }
   }

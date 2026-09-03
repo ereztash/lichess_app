@@ -27,7 +27,7 @@ import { useLocation } from "wouter";
 import { Chess } from "chess.js";
 import { BrandLockup } from "@/components/BrandLockup";
 import { ChessBoard } from "@/components/ChessBoard";
-import { chooseOpponentMove, DEFAULT_OPPONENT_DEPTH } from "@/lib/opponent";
+import { chooseOpponentMove, DEFAULT_OPPONENT_DEPTH, OPPONENT_KIND, searchWithVariety } from "@/lib/opponent";
 import type { StockfishClient } from "@/lib/stockfish";
 import { ENGINE_NAME, engineBuildId } from "@/lib/engine-identity";
 import {
@@ -201,7 +201,7 @@ export default function Blitz() {
       const engine = await ensure(opponentEngine);
       const move = await chooseOpponentMove(
         game.fen,
-        (fen, depth) => engine.analyze(fen, depth),
+        searchWithVariety((fen, depth, count) => engine.analyzeAlternatives(fen, depth, count)),
         DEFAULT_OPPONENT_DEPTH,
       );
       if (cancelled) return;
@@ -241,7 +241,8 @@ export default function Blitz() {
       startedAt,
       finishedAt: played.current.finishedAt,
       opponent: {
-        kind: "engine",
+        /* Not "engine": the varied opponent is a different population from the single-line one. */
+        kind: OPPONENT_KIND,
         engine: ENGINE_NAME,
         build: engineBuildId(),
         depth: DEFAULT_OPPONENT_DEPTH,

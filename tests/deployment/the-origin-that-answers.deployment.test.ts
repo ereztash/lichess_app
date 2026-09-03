@@ -31,6 +31,7 @@ import {
   describe as describeBuild,
   get,
   hasOrigin,
+  servesExpectedBuild,
 } from "./origin";
 
 const suite = hasOrigin ? vitestDescribe : vitestDescribe.skip;
@@ -58,10 +59,8 @@ suite(`the deployed origin ${DEPLOYED_ORIGIN}`, () => {
       expect(result.identity.gitSha.length, "the identity carries no commit").toBeGreaterThan(0);
       return;
     }
-    expect(
-      result.identity.gitSha,
-      `expected ${EXPECTED_SHA.slice(0, 12)}, origin is serving ${describeBuild(result.identity)}`,
-    ).toBe(EXPECTED_SHA);
+    const served = servesExpectedBuild(result.identity, EXPECTED_SHA);
+    expect(served.ok ? "" : served.problem).toBe("");
   });
 
   it("answers the three SPA routes with HTML, on a cold request and not only after client routing", async () => {
@@ -122,6 +121,45 @@ suite(`the deployed origin ${DEPLOYED_ORIGIN}`, () => {
     expect(response.contentType, `/api/health on ${at} did not answer as JSON`).toContain(
       "application/json",
     );
+  });
+
+  it("answers /api/health from the same build that served the static identity, and says it is ready", async () => {
+    const result = await buildIdentity();
+    if (!("identity" in result)) {
+      expect.fail(result.problem);
+    }
+    const at = describeBuild(result.identity);
+    const response = await get("/api/health");
+    /*
+     * Two builds can serve one origin: the static bundle from one deployment and the function
+     * from another, after a partial rollback or a stale alias. The static identity is written at
+     * build time from VERCEL_GIT_COMMIT_SHA and the function reads the same variable at runtime;
+     * if they disagree, this run is not about one build and must not report as if it were.
+     */
+    expect(response.status, `/api/health on ${at}`).toBe(200);
+    const body = JSON.parse(response.body) as {
+      ok: boolean;
+      build?: { gitSha: string };
+      checks?: { storage: string };
+    };
+    /*
+     * NAMED BEFORE IT IS READ. Against a function that predates the build-carrying health body
+     * this used to fail with "cannot read gitSha of undefined", which names nothing. The first
+     * production run of this assertion hit exactly that: the static bundle was c848f244 and the
+     * function answered `{"ok":true}`, so the failure is "this deployment's function is older
+     * than this test", said as such.
+     */
+    if (!body.build) {
+      expect.fail(
+        `/api/health on ${at} answers ${response.body.slice(0, 80)} with no build: the deployed ` +
+          `function predates the health contract in docs/OBSERVABILITY.md, so the two builds cannot be compared`,
+      );
+    }
+    expect(body.ok, `/api/health on ${at} says the deployment is not ready: ${JSON.stringify(body.checks)}`).toBe(true);
+    expect(
+      body.build.gitSha,
+      `the function answers as ${body.build.gitSha.slice(0, 12)} while the static bundle is ${at}`,
+    ).toBe(result.identity.gitSha);
   });
 
   it("renders the front door's own promise in the served HTML", async () => {

@@ -84,7 +84,8 @@ interface CommitmentScreenProps {
   chosenMove: string | null;
   /** Other moves the player looked at before choosing. */
   candidatesConsidered: string[];
-  onCommit: (draft: DraftDecision, secondsTaken: number) => void;
+  /** May return a promise; the in-flight guard is released when it settles. */
+  onCommit: (draft: DraftDecision, secondsTaken: number) => void | Promise<unknown>;
   pending: boolean;
   error?: CommitFailureText;
 }
@@ -206,6 +207,17 @@ export function CommitmentScreen({
    * leaves the screen -- a confidence question that stops being asked in free play, say -- leaves
    * this too, instead of being reported as permanently unanswered.
    */
+  /*
+   * ONE COMMIT PER GESTURE, AND THE GUARD IS SYNCHRONOUS. The button is `disabled={pending}`, but
+   * `pending` arrives through a state update, so the second press of a double-tap lands before
+   * React has re-rendered and `onCommit` runs twice -- two decisions, two ids, one gesture.
+   * `tests/layout/a-stranger-takes-their-first-decision.layout.test.ts` clicks twice in one task
+   * and had two decisions on c848f244. A ref is read in the same tick it was written.
+   */
+  const inFlight = useRef(false);
+  useEffect(() => {
+    if (!pending) inFlight.current = false;
+  }, [pending]);
   const attempt = useRef({ done, open: openStep, startedAt: startedAt.current, refusals: 0, closed: false });
   attempt.current.done = done;
   attempt.current.open = openStep;
@@ -231,6 +243,7 @@ export function CommitmentScreen({
   useEffect(() => {
     attempt.current.closed = false;
     attempt.current.refusals = 0;
+    inFlight.current = false;
     return () => closeAttempt("left");
     // The closure reads everything it needs through the ref, so it must not re-run on state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,6 +299,7 @@ export function CommitmentScreen({
    */
   const openBody = useRef<HTMLDivElement>(null);
   const submit = () => {
+    if (inFlight.current) return;
     if (!ready) {
       // A player who WANTED to finish and was stopped reads nothing like one who wandered off.
       attempt.current.refusals += 1;
@@ -301,8 +315,25 @@ export function CommitmentScreen({
       });
       return;
     }
+    inFlight.current = true;
     closeAttempt("recorded");
-    onCommit(live, (Date.now() - startedAt.current) / 1000);
+    /*
+     * RELEASED WHEN THE COMMIT SETTLES, not only when `pending` clears. Two refusal paths in
+     * `Home.onCommit` set the stage to committing and back within one synchronous run, so React
+     * batches them and `pending` never turns true -- the guard would then hold for as long as the
+     * position did, and a player who fixed the refusal could never commit it (adversarial review,
+     * attack 11). Settling covers both: a stored decision and a refused one.
+     */
+    let settled: Promise<unknown>;
+    try {
+      /* Called synchronously: the parent's `pending` and the record write start in this tick. */
+      settled = Promise.resolve(onCommit(live, (Date.now() - startedAt.current) / 1000));
+    } catch (error) {
+      settled = Promise.reject(error);
+    }
+    void settled.catch(() => undefined).finally(() => {
+      inFlight.current = false;
+    });
   };
 
   const missing = problems[0];

@@ -13,7 +13,12 @@ import {
   type CheckResult,
   type CheckStatus,
 } from "@/lib/self-check";
-import { localRecordAvailable, localRecordDurability } from "@/lib/local-record-store";
+import {
+  deleteLocalRecord,
+  exportLocalRecord,
+  localRecordAvailable,
+  localRecordDurability,
+} from "@/lib/local-record-store";
 import {
   blobProbeUrl,
   probeWorkerWith,
@@ -27,6 +32,8 @@ const WORD: Record<CheckStatus, string> = { pass: "עבר", fail: "נכשל", sk
 
 export function SelfCheck({ onClose }: { onClose: () => void }) {
   const [results, setResults] = useState<CheckResult[] | null>(null);
+  /** `armed` is the first press; the second erases. No `window.confirm`: it reads as the browser's, not ours. */
+  const [erase, setErase] = useState<"idle" | "armed" | "done" | "nothing">("idle");
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
   const [progressCopied, setProgressCopied] = useState(false);
@@ -123,8 +130,9 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
         */}
       <div className="self-check-progress">
         <p className="self-check-note" dir="rtl">
-          נשמר גם מהלך הביקורים בדפדפן הזה — כמה החלטות נפתחו, אילו שלבים הושלמו ואיפה נעצרתם.
-          בלי מהלכים, בלי טקסט שכתבתם ובלי רמות ביטחון, והוא לא נשלח לשום מקום מעצמו.
+          נשמר גם מהלך הביקורים בדפדפן הזה — כמה החלטות נפתחו, אילו שלבים הושלמו, איפה נעצרתם ואילו
+          תקלות נראו. בלי מהלכים ובלי רמות ביטחון. הטקסט היחיד שבו הוא התשובה החופשית לשאלת הערך, אם
+          עניתם עליה, והוא לא נשלח לשום מקום מעצמו.
         </p>
         <div className="self-check-actions">
           <button
@@ -146,6 +154,76 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
             מחקו את מהלך הביקורים
           </button>
         </div>
+      </div>
+
+      {/*
+        * THE RECORD ITSELF: TAKE IT, OR ERASE IT. "The record stays in this browser" was a promise
+        * with no door in it -- nothing let a player see what was kept or remove it. The export is
+        * the stored JSON verbatim (nothing summarised on the way out); the erase is two presses,
+        * says what it will and will not remove, and reports what it did. docs/RETENTION.md is the
+        * inventory these two act on.
+        */}
+      <div className="self-check-record">
+        <p className="self-check-note" dir="rtl">
+          הרשומה שלכם — ההחלטות, הקריאות שכתבתם, משחקי הבליץ — נשמרת בדפדפן הזה. אפשר להוריד אותה
+          כקובץ, בדיוק כפי שהיא שמורה, או למחוק אותה מהדפדפן הזה. המחיקה לא נוגעת בהעדפות ובמהלך
+          הביקורים, ולא ברשומה של חשבון אחר.
+        </p>
+        <div className="self-check-actions">
+          <a
+            className="ghost-control"
+            download="decision-lab-record.json"
+            href="#record"
+            onClick={(event) => {
+              /*
+               * BUILT ON THE PRESS. A `data:` URL computed at render time re-encoded the whole
+               * record on every render and, past Chromium's URL ceiling, failed silently on a large
+               * one (adversarial review, attack 13). A Blob has no such ceiling; the `data:` form
+               * is the fallback where `createObjectURL` is missing.
+               */
+              const exported = exportLocalRecord();
+              if (exported === null) {
+                event.preventDefault();
+                setErase("nothing");
+                return;
+              }
+              const anchor = event.currentTarget;
+              if (typeof URL.createObjectURL === "function") {
+                if (anchor.dataset.blob) URL.revokeObjectURL(anchor.dataset.blob);
+                const url = URL.createObjectURL(new Blob([exported.json], { type: "application/json" }));
+                anchor.dataset.blob = url;
+                anchor.href = url;
+              } else {
+                anchor.href = `data:application/json;charset=utf-8,${encodeURIComponent(exported.json)}`;
+              }
+            }}
+          >
+            הורידו את הרשומה
+          </a>
+          <button
+            className="ghost-control"
+            aria-pressed={erase === "armed"}
+            onClick={() => {
+              if (erase !== "armed") {
+                setErase(exportLocalRecord() === null ? "nothing" : "armed");
+                return;
+              }
+              void deleteLocalRecord().then(() => setErase("done"));
+            }}
+          >
+            {erase === "armed" ? "לחצו שוב כדי למחוק את הרשומה מהדפדפן הזה" : "מחקו את הרשומה מהדפדפן הזה"}
+          </button>
+        </div>
+        {erase === "done" && (
+          <p className="self-check-note" role="status" dir="rtl">
+            הרשומה נמחקה מהדפדפן הזה. מה שנשמר בשרת, אם התחברתם, לא נמחק כאן — ראו docs/RETENTION.md.
+          </p>
+        )}
+        {erase === "nothing" && (
+          <p className="self-check-note" role="status" dir="rtl">
+            אין רשומה בדפדפן הזה למחוק או להוריד.
+          </p>
+        )}
       </div>
 
       {results && (

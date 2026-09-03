@@ -1,0 +1,4 @@
+{
+  "$comment": "Advisories accepted without a fix, each with an expiry. docs/DEPENDENCY_POLICY.md section 4. Empty is the expected state.",
+  "exceptions": []
+}

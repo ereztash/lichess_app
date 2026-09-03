@@ -32,6 +32,8 @@ import { parseInfo } from "./engine-line";
  * a self-check whose vocabulary differs from the product's is a report nobody can act on.
  */
 import { ENGINE_REMEDY, type EngineFailure } from "@shared/engine-failure";
+import { BUILD_IDENTITY_PATH, isBuildIdentity } from "@shared/build-identity";
+import { shortSha } from "./build-identity";
 
 const WORKER_UNSUPPORTED: EngineFailure = "worker-unsupported";
 const WORKER_REFUSED: EngineFailure = "worker-refused";
@@ -421,13 +423,43 @@ function checkContext(): CheckResult {
   return ok("context", label, bits.join(" · "));
 }
 
+/**
+ * Which build this page came from, read from the file the build wrote beside it.
+ *
+ * A REPORT THAT CANNOT NAME ITS BUILD CANNOT BE ACTED ON. Two people send reports on the same day;
+ * one loaded the app before a deploy and one after, and without this line the operator cannot say
+ * which fix to confirm or which regression to attribute. The same answer the L6 suite reads, from
+ * the same path, with the same refusal: an SPA fallback answers `200 text/html` for any unknown
+ * path, so a build that predates the identity is named as such rather than read as one.
+ */
+export async function checkBuild(env: CheckEnv): Promise<CheckResult> {
+  const label = "הבילד";
+  try {
+    const res = await env.fetch(BUILD_IDENTITY_PATH, { cache: "no-store" });
+    const type = res.headers.get("content-type") ?? "";
+    if (!res.ok) return bad("build", label, `${BUILD_IDENTITY_PATH} ענה ${res.status}.`);
+    if (!type.includes("json")) {
+      return bad(
+        "build",
+        label,
+        `${BUILD_IDENTITY_PATH} ענה ${type || "בלי סוג תוכן"} ולא JSON — הבילד המוגש קדם לזהות הבילד, או שזה לא השרת של האפליקציה.`,
+      );
+    }
+    const parsed: unknown = await res.json();
+    if (!isBuildIdentity(parsed)) return bad("build", label, "התשובה היא JSON אבל לא זהות בילד.");
+    return ok("build", label, `build=${shortSha(parsed)} target=${parsed.target} protocol=${parsed.protocolVersion}`);
+  } catch (error) {
+    return bad("build", label, `לא ניתן היה לקרוא את זהות הבילד — ${reason(error)}.`);
+  }
+}
+
 /** Every check, in the order a failure cascades. */
 export async function runSelfCheck(
   env: CheckEnv,
   options: { engineTimeoutMs?: number } = {},
 ): Promise<CheckResult[]> {
   const timeout = options.engineTimeoutMs ?? 45_000;
-  const results: CheckResult[] = [checkContext(), checkStorage(env)];
+  const results: CheckResult[] = [await checkBuild(env), checkContext(), checkStorage(env)];
   results.push(await checkApi(env));
   results.push(await checkWasm());
   results.push(await checkWorker(env));
@@ -442,8 +474,11 @@ export function formatReport(results: CheckResult[], stamp: string): string {
   const lines = results.map((r) => `${mark[r.status].padEnd(4)} ${r.label}: ${r.detail}`);
   const failed = results.filter((r) => r.status === "fail").length;
   const skipped = results.filter((r) => r.status === "skip").length;
+  /* The build on the first line, so a pasted report names its release before anything else. */
+  const build = results.find((r) => r.id === "build");
+  const buildLine = build?.status === "pass" ? build.detail.split(" ")[0] : "build=unknown";
   return [
-    `DECISION LAB self-check — ${stamp}`,
+    `DECISION LAB self-check — ${stamp} — ${buildLine}`,
     `${results.length} בדיקות · ${failed} נכשלו · ${skipped} לא רצו`,
     "",
     ...lines,
