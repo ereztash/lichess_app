@@ -175,6 +175,8 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   confidence: [],
   scored: 40,
   mix: emptyMix,
+  /* Same population: this fixture has no bank, drill, transfer or imported decisions. */
+  mixAll: emptyMix,
   ...over,
 });
 

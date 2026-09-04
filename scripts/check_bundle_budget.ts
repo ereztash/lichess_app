@@ -612,11 +612,35 @@ const INDEX = `${ROOT}/index.html`;
  * 685 AND 773 LEAVE 1.1 AND 1.0 kB, which is HALF the headroom the raises above took, and
  * deliberately. The base was already at 682.6 against 683: main had spent 1.6 of the previous
  * raise's 2.0 kB before this branch started. A ratchet that keeps being loosened by two stops
- * being a ratchet.
+ * being a ratchet. *
+ * 685 -> 687, 215 -> 216, 774 -> 776: THE ACCUMULATION BLOCK ON THE REVEAL.
+ *
+ *     entry, raw               684.5 -> 686.0 kB      +1.5
+ *     entry, gzipped           214.5 -> 215.0 kB      +0.5
+ *     initial download, raw    773.7 -> 775.2 kB      +1.5
+ *
+ * WHAT THE BYTES ARE, measured rather than estimated. `CONTINUATION_PROPOSITION` was deleted and
+ * `revealAccumulation` replaced it, so the constants roughly cancel; the growth is the five entries
+ * of `ACCUMULATION_KIND_LABEL`, the block's JSX, `mixAll` through the reading and the service, the
+ * two stylesheet rules, and the `Layers` icon. The icon was measured on its own by removing it and
+ * rebuilding: 0.3 kB of the 1.5. It stays, because the four sibling blocks on that panel each carry
+ * one and a fifth without would be the odd block out for a fifth of a kilobyte.
+ *
+ * WHY IT IS SPENT HERE. Measured on the built app after three decisions: of fourteen painted
+ * elements on the reveal, ONE said anything about the record -- sixty characters of seven hundred
+ * and fifty-four -- and it sat inside the block headed "what this decision still does not say". The
+ * sentence that promised accumulation, `CONTINUATION_PROPOSITION`, was byte-identical after
+ * decision one and decision fifty. The product offered to let a player ask whether something
+ * repeats and never asked. This is the answer, and it is a count over data the record already
+ * holds: no new event, no new probe, no denominator.
+ *
+ * ONE kB OF HEADROOM ON THE ENTRY, 0.8 ON THE DOWNLOAD, which matches the 1.1 and 1.0 the raise
+ * above took and is deliberately less than the two this file warns about. The raise is two on the
+ * entry because the measurement crossed by 1.0, not because the ceiling was rounded up twice.
  */
-const ENTRY_RAW_KB = 685;
+const ENTRY_RAW_KB = 687;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 215;
+const ENTRY_GZIP_KB = 216;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -749,7 +773,7 @@ const ENTRY_GZIP_KB = 215;
  * before it. The ratchet stays a ratchet.
  */
 
-const INITIAL_RAW_KB = 774;
+const INITIAL_RAW_KB = 776;
 
 interface Asset {
   name: string;

@@ -2060,6 +2060,8 @@ export default function Home() {
                   /* Null until the reveal is written: an unrecorded reveal is not a funnel stage,
                      and an id naming no committed decision cannot be joined to one. */
                   decisionId={revealedDecisionId}
+                  /* Same query `RecordExplorer` reads, so the two cannot differ. See the prop. */
+                  mix={recordReading.data?.mixAll ?? null}
                   /* A transfer keeps its own control; and not offered where it cannot be honoured. */
                   onContinue={
                     revealedDecisionId &&
@@ -2175,7 +2177,8 @@ export default function Home() {
                   aria-expanded={exploring}
                   onClick={() => setExploring((open) => !open)}
                 >
-                  {exploring ? "חזרה לתוצאה" : "מה עוד יש כאן"}
+                  {/* Names what opens, not the act of looking: one-heading-a-screen-is-about. */}
+                  {exploring ? "חזרה לתוצאה" : "לרשומה המלאה"}
                 </button>
               )}
               {exploring && !runInProgress && (

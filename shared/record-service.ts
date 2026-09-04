@@ -1984,18 +1984,25 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * move, the engine's move and the centipawn loss. `readRecord` sees only what a bucket may look
    * at, which is the reason the two are separate types in the first place.
    */
-  const mix = oneThingMix(
-    atoms.map((atom) => ({
-      confidence: atom.bounded_action.confidence,
-      // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
-      // a row written before the field existed was written on the five-level scale by definition.
-      confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
-      candidatesConsidered: atom.bounded_action.candidate_moves_considered,
-      chosenMove: atom.decision,
-      cpLoss: atom.result?.cp_loss ?? null,
-      bestMove: atom.result?.engine_best_move ?? null,
-    })),
-  );
+  /*
+   * ONE MAPPING, TWO POPULATIONS. The described atoms answer "what does free play produce"; every
+   * atom answers "what has this instrument produced for this player at all". The reveal needs the
+   * second, because the product's own front door hands over a bank position and those are
+   * `separate` from the first -- so a reveal reading `mix` would report zero to every player who
+   * has only done what they were first offered.
+   */
+  const mixable = (atom: DecisionAtom) => ({
+    confidence: atom.bounded_action.confidence,
+    // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
+    // a row written before the field existed was written on the five-level scale by definition.
+    confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
+    candidatesConsidered: atom.bounded_action.candidate_moves_considered,
+    chosenMove: atom.decision,
+    cpLoss: atom.result?.cp_loss ?? null,
+    bestMove: atom.result?.engine_best_move ?? null,
+  });
+  const mix = oneThingMix(atoms.map(mixable));
+  const mixAll = oneThingMix(allAtoms.map(mixable));
   /*
    * ONE CALL, THREE NUMBERS. `scoreDecisions` was being called for its `scored` array and its two
    * counts thrown away on the same line -- which is how "waiting for the engine" came to be
@@ -2030,5 +2037,6 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
         (atom) => admissionFor("descriptive-history", atom).kind === "separate",
       ).length,
     },
+    mixAll,
   );
 }

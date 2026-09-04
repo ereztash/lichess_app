@@ -119,6 +119,18 @@ const withRecord = (scored: number): RecordReading => ({
     silent: 0,
     eligible: 0,
   },
+  /* Same population: this fixture has no bank, drill, transfer or imported decisions. */
+  mixAll: {
+    n: 0,
+    counts: {
+      "chose-past-it": 0,
+      "confident-and-wrong": 0,
+      outplayed: 0,
+      "trusted-it-too-little": 0,
+    },
+    silent: 0,
+    eligible: 0,
+  },
 });
 
 const keptReading = {

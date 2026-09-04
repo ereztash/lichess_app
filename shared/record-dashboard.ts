@@ -335,6 +335,27 @@ export type RecordReading = {
    * because it needs the atoms and `readRecord` only ever sees scored decisions.
    */
   mix: OneThingMix;
+  /**
+   * The same branch mix, over EVERY population rather than the described one.
+   *
+   * WHY BOTH EXIST. `mix` above answers "what does free play produce", which is a reading of the
+   * instrument on the population this dashboard describes, and it must stay that. The reveal asks
+   * a different question -- "how often has the sentence I just showed this player fired, over
+   * everything the engine has answered for them" -- and on the product's own onboarding path the
+   * answer to that from `mix` is permanently zero, because the front door hands over a BANK
+   * position and `evidence-policy.ts` files bank decisions as `separate`. A block that read `mix`
+   * would be blank for every player who has only ever done what the product first offers them.
+   *
+   * POOLING IS CORRECT HERE AND WOULD NOT BE THERE. `oneThingMix` says of itself that it is "a
+   * reading of the INSTRUMENT, not a finding about the player": which of four sentences the record
+   * produces. That question has one population -- everything the instrument ran on. The questions
+   * that must not pool are the ones that compare a player to a bank or describe free play, and
+   * both of those are computed elsewhere, from `mix`, `scored` and `anchor`, untouched by this.
+   *
+   * NO DENOMINATOR MOVES. Nothing reads this to decide eligibility, fill a bucket or grade a
+   * claim. It exists so a count on the reveal can be true.
+   */
+  mixAll: OneThingMix;
 };
 
 /**
@@ -392,6 +413,12 @@ export function readRecord(
     withoutConfidence: 0,
     readElsewhere: 0,
   },
+  /*
+   * DEFAULTS TO `mix`, WHICH IS THE SMALLER CLAIM. A caller that has not been updated says the
+   * whole record produced what the described population produced -- true whenever they are the
+   * same set, and never an invented number. `recordReading` passes the real one.
+   */
+  mixAll: OneThingMix = mix,
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -522,5 +549,6 @@ export function readRecord(
     withoutConfidence: unscored.withoutConfidence,
     readElsewhere: unscored.readElsewhere,
     mix,
+    mixAll,
   };
 }

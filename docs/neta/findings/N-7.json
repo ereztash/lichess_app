@@ -1,0 +1,45 @@
+{
+  "status": "DISCRIMINATE_FIRST",
+  "raw_signal": "הרשומה סופרת החלטה אחת יותר משעשיתי, אבל לא תמיד.",
+  "observations": [
+    "The reveal's limits block prints `נרשמו N החלטות` from `RevealInputs.decisionsOnRecord`, which `client/src/pages/Home.tsx:972` builds as `(decisionCount.data?.decisions ?? 0) + 1`.",
+    "At the third reveal of a clean profile, where the true count is three, the sentence has read both `נרשמו 3 החלטות` and `נרשמו 4 החלטות` across runs of the identical walk in `docs/neta/harness/m-the-door.mjs`.",
+    "It has differed WITHIN a single run: the desktop pass at 1440x900 read 3 and the handset pass at 390x844 read 4, over the same three decisions, with no code between them.",
+    "`docs/neta/harness/n-the-count-on-the-reveal.mjs` took five decisions in one walk and read the sentence at every reveal: 5 of 5 correct. That probe waits 1500ms after each reveal before reading. It did not reproduce the disagreement.",
+    "`decisionCount.refetch()` runs at `Home.tsx:1075`, AFTER `setRevealInputs(inputs)` in the same async function, so the query is one refetch behind at capture time.",
+    "`revealInputs` is component state, captured once; the panel does not recompute the count when the query later settles.",
+    "The commit path writes the decision to the store before the engine is asked, so the stored count at the kth reveal is k, not k-1."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "`+1` compensates for a staleness nothing guarantees",
+      "explains": "Both values from one code path: the decision being revealed is already stored, so `data` is k-1 only while the refetch has not landed, and `(k-1)+1 = k` is right by accident. Anything that lands a refetch into the window between the write and the capture makes `data` k, and `k+1` prints.",
+      "does_not_explain": "Nothing observed contradicts it, which is exactly why it must not be assumed.",
+      "discriminator": "AT CAPTURE TIME, read both numbers and compare. Instrument `Home.tsx` in a dev build to log `decisionCount.data?.decisions` and `await service.countDecisions(store)` on the line that builds `inputs`. If stored is k while `data` is k-1 on a correct run and k on a wrong one, this is the mechanism. RUN IT BY FORCING THE RACE rather than waiting for it: fire a window focus event, or call `decisionCount.refetch()` directly, between the commit and the reveal, and the wrong value should become reproducible on demand."
+    },
+    {
+      "name": "A second render captures the count after the query settles",
+      "explains": "That the value differs between two passes of one run.",
+      "does_not_explain": "That `revealInputs` is set once per decision and the panel reads the captured object rather than the live query.",
+      "discriminator": "Count `setRevealInputs` calls per decision in an instrumented build. More than one per decision is this mechanism; exactly one rules it out."
+    },
+    {
+      "name": "The engine timing changes which of the two the reader sees",
+      "explains": "Why a probe that waits 1500ms reports 5 of 5 correct and a probe that reads immediately does not.",
+      "does_not_explain": "That the captured value is frozen, so a later read of the same reveal cannot change it. If this were the mechanism the settled read would differ from the immediate one on the SAME reveal, which has not been observed.",
+      "discriminator": "Read the same reveal twice, immediately and after 1500ms, and compare. A difference is this mechanism; identity rules it out and leaves the race at capture."
+    }
+  ],
+  "design_distinction": "A count that is right because a cache has not caught up is not a correct count, it is a coincidence with a good record. The two are indistinguishable on any run that happens to win the race, which is why the discriminator has to force the losing one rather than sample for it.",
+  "rejected_explanations": [
+    "My probe reading too early: the value is captured into component state once per decision and frozen, so when the probe reads cannot change what it reads. This was the first explanation and it is ruled out by the code path rather than by more runs.",
+    "The pass-3 change: `readElsewhere`, `mixAll` and the dashboard branch do not touch `decisionCount`, `RevealInputs` or the commit path, and the disagreement was observed before them."
+  ],
+  "authority": "REPO",
+  "evidence_state": "MEASURED",
+  "intervention": null,
+  "must_not_change": "The sentence itself, until the arithmetic is settled. `נרשמו N החלטות` is in the limits block, whose comprehension is what `F-2` is about, and `decisionsOnRecord` is documented as `Recorded decisions so far, including this one`. Changing `+1` without first establishing whether the decision is stored at capture would swap a number that is sometimes wrong for one that is always wrong in the other direction.",
+  "perceptual_success_criterion": "At the kth reveal of a session, the limits block says k, on every run and every viewport.",
+  "check": "Forced-race probe: commit, force a refetch into the window before the reveal is assembled, read the sentence. The count must still say k.",
+  "next_step": "Deliberately not fixed in the accumulation-block change. The mechanism is read off the code and the disagreement is reproduced, but what is NOT established is which sentence is correct, and that is a question about what `decisionsOnRecord` means rather than about a race. It needs the discriminator above, which is a build with instrumentation and a forced refetch, and that is its own pass."
+}
