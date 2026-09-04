@@ -37,7 +37,7 @@
  * decisions on it contributes a very noisy term. RELIABILITY is biased UPWARD in small samples for
  * exactly this reason -- with one decision per level it is at its maximum by construction. The
  * per-level counts are returned alongside so a caller can see which terms are carrying weight,
- * and `reliable` says whether any of them can be read at all.
+ * and `reliable` says whether EVERY term carrying weight can be read at all -- see the field.
  */
 import { MIN_BUCKET_N, type ScoredDecision } from "./detector.js";
 
@@ -85,10 +85,32 @@ export interface CalibrationScore {
   logScore: number;
   levels: LevelOutcome[];
   /**
-   * Whether any level carries enough decisions for its term to mean anything.
+   * Whether EVERY level the player used carries enough decisions for its term to mean anything.
    *
    * False does NOT mean the numbers above are wrong -- they are exactly right for the data. It
    * means RELIABILITY is dominated by small-sample noise and must not be read as a finding.
+   *
+   * IT USED TO BE `some`, AND `some` IS A STATEMENT ABOUT ONE LEVEL WEARING THE AGGREGATE'S NAME.
+   * `reliability` is a weighted mean over every level used, and a level's weight in it is its share
+   * of the record -- which has nothing to do with whether that level cleared eligibility. So one
+   * eligible cell certified a total mostly made of ineligible ones. Measured on the smallest
+   * counterexample there is: 30 decisions at 65% of which 20 came true, and 29 at 95% of which none
+   * did. The eligible level is almost perfectly calibrated and contributes under a thousandth of
+   * the number; the level one decision short of the floor carries over 99% of it -- and the flag
+   * said the whole thing was readable, on the strength of the level contributing least.
+   *
+   * `every` RATHER THAN A COVERAGE THRESHOLD, and the reason is that this repository already
+   * answers the question one module away. `BucketReading.measurable` is
+   * `inside.n >= MIN_BUCKET_N && outside.n >= MIN_BUCKET_N` -- every cell of the detector's two-cell
+   * partition -- and `MIN_BUCKET_N` calls itself "the smallest bucket, and the smallest remainder,
+   * this detector will read at all". Generalised from two cells to seven that is `every`. A rule
+   * phrased on the SHARE of mass an ineligible level may carry would need a number nothing here has
+   * measured, and picking one would be the unjustified threshold this product exists to refuse.
+   *
+   * IT DECIDES NOTHING ABOUT THE NUMBERS. Every decision the player took is still in the
+   * decomposition, `MIN_BUCKET_N` is unchanged, and no level is dropped: composing the aggregate
+   * from eligible cells alone would move `brier`, the base rate and `uncertainty`, and would
+   * describe a player who never stated the level that was thin.
    */
   reliable: boolean;
 }
@@ -162,6 +184,10 @@ export function calibrationScore(decisions: readonly ScoredDecision[]): Calibrat
     skillScore: uncertainty > 0 ? 1 - squared / n / uncertainty : null,
     logScore: logarithmic / n,
     levels,
-    reliable: levels.some((level) => level.n >= MIN_BUCKET_N),
+    /*
+     * `every` over a NON-EMPTY list: `n === 0` returned `EMPTY` above, and a record with decisions
+     * has at least one level, so vacuous agreement cannot reach this line.
+     */
+    reliable: levels.every((level) => level.n >= MIN_BUCKET_N),
   };
 }

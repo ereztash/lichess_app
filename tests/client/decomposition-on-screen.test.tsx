@@ -114,7 +114,17 @@ describe("it refuses to split a record too small to split", () => {
     expect(calibrationScore(thin).reliable).toBe(false);
     render(<RecordDashboard reading={readRecord(thin)} />);
     expect(screen.queryByText("שגיאת הכיול")).toBeNull();
-    expect(screen.getByText(/בגודל כזה הפירוק הוא רעש, לא ממצא/)).toBeTruthy();
+    /*
+     * THE SENTENCE MOVED WITH THE RULE. `reliable` used to be `some`, so "no confidence level has
+     * been stated enough times" described every case that reached here. Under `every` it does not:
+     * a record can have a level stated thirty times and still be unreadable because another one was
+     * stated twenty-nine, and telling that player no level qualifies would be false. It now names
+     * how many of the levels they used are short and how many decisions those hold -- here both of
+     * them, holding all seven.
+     */
+    expect(screen.getByText(/רעש הדגימה שלהן, ולא ממצא עליכם/)).toBeTruthy();
+    expect(screen.getByText(/2 מתוך 2 הרמות שנאמרו/)).toBeTruthy();
+    expect(screen.getByText(/7 מתוך 7 ההחלטות/)).toBeTruthy();
   });
 
   it("still shows the heading, so the absence is visible rather than silent", () => {

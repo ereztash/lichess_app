@@ -256,7 +256,30 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           </p>
         </>
       ) : (
-        <NotMeasured reason="עוד לא נאמרה אף רמת ביטחון מספיק פעמים כדי לפרק את הפער. בגודל כזה הפירוק הוא רעש, לא ממצא." />
+        /*
+         * THE SENTENCE HAD TO CHANGE WITH THE RULE, and this is the only copy the F2 repair forced.
+         *
+         * `reliable` used to be `some`, so "no confidence level has been stated enough times" was
+         * an accurate description of every case that reached here. Under `every` it is not: the
+         * record this fix exists for HAS a level stated thirty times, and telling that player no
+         * level qualifies would be a false sentence produced by the fix.
+         *
+         * It names the levels that are short and how many decisions they hold, from `levels`, which
+         * already carries both. No new field, no percentage, and the count is what the reader can
+         * act on -- a level is short by decisions, and decisions are the thing they make.
+         */
+        <NotMeasured
+          reason={(() => {
+            const short = calibration.levels.filter((level) => level.n < MIN_BUCKET_N);
+            const held = short.reduce((n, level) => n + level.n, 0);
+            return (
+              `הפירוק נקרא רק כשכל רמת ביטחון שנאמרה נאמרה לפחות ${MIN_BUCKET_N} פעמים. ` +
+              `כרגע ${short.length} מתוך ${calibration.levels.length} הרמות שנאמרו עדיין מתחת לסף, ` +
+              `והן מחזיקות ${held} מתוך ${calibration.n} ההחלטות — פירוק שכולל אותן הוא בעיקר ` +
+              `רעש הדגימה שלהן, ולא ממצא עליכם.`
+            );
+          })()}
+        />
       )}
 
       {/*
