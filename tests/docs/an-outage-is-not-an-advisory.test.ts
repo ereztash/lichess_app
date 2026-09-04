@@ -1,12 +1,18 @@
 /**
  * The audit step retries a dead endpoint and never retries a finding.
  *
- * WHY THE STEP HAS A LOOP AT ALL. `npm audit --omit=dev --audit-level=high` went red three times
- * in two hours with no advisory in existence, against
- * `registry.npmjs.org/-/npm/v1/security/advisories/bulk`, twice with a 503 and once with a network
- * timeout. It runs BEFORE the build, the tests, the gates and the bundle budget, and a job stops
- * at its first failing step -- so an outage at npm did not cost the audit signal, it cost every
- * signal, and a red `verify` meant "npm was busy" rather than anything about the commit.
+ * WHY THE STEP HAS A LOOP AT ALL. `npm audit --omit=dev --audit-level=high` went red four times in
+ * two hours with no advisory in existence, against
+ * `registry.npmjs.org/-/npm/v1/security/advisories/bulk`, with 503s and network timeouts. It used
+ * to run BEFORE the build, the tests, the gates and the bundle budget, and a job stops at its
+ * first failing step -- so an outage at npm did not cost the audit signal, it cost every signal,
+ * and a red `verify` meant "npm was busy" rather than anything about the commit.
+ *
+ * AND WHY THE LOOP IS NOT ENOUGH ON ITS OWN. Run 33855743082 carried the loop and still failed:
+ * three attempts at 60s each, then red, because the endpoint had been down for twenty minutes
+ * rather than a moment. No honest number of retries survives that. Ordering does, which is why the
+ * step is now last and why the assertion below is about the order rather than merely permitting
+ * it.
  *
  * WHY THIS FILE EXISTS RATHER THAN TRUST IN THE COMMENT. A retry loop that cannot tell an outage
  * from a vulnerability is strictly worse than no loop: it would swallow the finding the step is
@@ -120,12 +126,13 @@ function run(mode: string): { code: number; out: string } {
 }
 
 describe("the audit step", () => {
-  it("is still the step this file is about, and still runs before the build", () => {
+  it("is still the step this file is about, and runs after the work it must not block", () => {
     /*
-     * A guard against the other honest fix. Moving the audit after the tests would also stop an
-     * outage costing every signal, and would make this file's premise false without failing it.
-     * If that day comes, this assertion is the reminder to revisit the loop rather than keep it
-     * out of habit.
+     * THE ORDER IS HALF THE FIX AND IS ASSERTED AS SUCH. A retry loop bounded by anything honest
+     * cannot outlast a twenty-minute outage; what makes the outage cost only the audit is that
+     * every other step has already run and reported by the time this one is reached. Moving it
+     * back to the front would restore the failure this file exists about, silently, so it is held
+     * here rather than in a comment.
      */
     expect(steps.length, "the step reader matched nothing, so every assertion below is vacuous")
       .toBeGreaterThan(3);
@@ -133,16 +140,15 @@ describe("the audit step", () => {
     expect(audit!.run, "the audit step no longer runs a script").toContain("npm audit");
     /*
      * Matched exactly, because "Audit the dependencies this build ships" contains the word build
-     * and a loose regex found the audit step as its own successor. The premise of this file is
-     * that the audit runs before the work, so the assertion has to be about the other steps.
+     * and a loose regex found the audit step as its own successor.
      */
-    for (const name of ["Build", "Test", "Gates"]) {
+    for (const name of ["Build", "Test", "Gates", "Bundle budget"]) {
       const at = steps.findIndex((s) => s.name === name);
       expect(at, `there is no step named ${name} any more`).toBeGreaterThanOrEqual(0);
       expect(
         steps.indexOf(audit!),
-        `the audit no longer runs before ${name}, so an outage may already cost only the audit`,
-      ).toBeLessThan(at);
+        `the audit runs before ${name} again, so an npm outage costs that signal too`,
+      ).toBeGreaterThan(at);
     }
   });
 
