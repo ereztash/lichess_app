@@ -92,6 +92,8 @@ const withRecord = (scored: number): RecordReading => ({
   scored,
   awaitingReveal: 0,
   withoutConfidence: 0,
+  /* This fixture is a free-play record: nothing of its player's is read under another heading. */
+  readElsewhere: 0,
   counterfactual: readCounterfactuals([]),
   profile: { variables: readVariables([]), crossing: crossVariables([]) },
   overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },

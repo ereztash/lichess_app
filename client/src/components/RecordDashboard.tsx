@@ -10,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { MIN_BUCKET_N } from "@shared/detector";
+import { decisionsHeldElsewhere } from "@shared/plain-reading";
 import { MIN_STABILITY_HALF } from "@shared/stability";
 import { PHASE_DIFFICULTY_N, PHASE_VARIANCE_EXPLAINED } from "@shared/phase-difficulty";
 import type { Control } from "@shared/control";
@@ -125,7 +126,33 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         ? `${reading.withoutConfidence} החלטות נחשפו, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
           "שאלת הביטחון נשאלת תמיד בסט המשותף ובתרגול, ובחלק מההחלטות במשחק חופשי. " +
           "פער כיול נקרא רק מהחלטות שנשאלו."
-        : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם.";
+        : /*
+           * THE THIRD CAUSE, and it is the one that produced the contradiction on screen.
+           *
+           * Walked in Chromium at 1440x900 and 390x844 from a clean profile: three complete bank
+           * decisions, then the explorer opened from the third reveal. One page then carried
+           * `3 נמדדו ונקראות בחלק אחר של הרשומה` at y=108, `נרשמו 4 החלטות` at y=233, and this
+           * panel at y=2089 saying no decision had been revealed. Four numbers for one player,
+           * the last contradicting the first, on a screen that was itself a reveal.
+           *
+           * `withoutConfidence` cannot catch it: the bank ALWAYS asks the confidence question, so
+           * those three decisions are scored -- in `reading.anchor`, under the bank's own
+           * heading. They are simply not in this panel's population, which is free play.
+           *
+           * IT SAYS WHERE THEY WENT AND NOT MORE. `decisionsHeldElsewhere` is the front door's
+           * own clause, from the `N-3` owner decision that this panel was missed by, so the two
+           * record surfaces acknowledge the same decisions in the same words. The tail is this
+           * screen's, because what this screen measures is a calibration gap and the front door's
+           * is games played -- and the state that has decisions elsewhere may not share its
+           * primary message with the state that has none, which is what `N-3` says in a line.
+           *
+           * NOTHING HERE IS A DENOMINATOR. `scored` is unchanged, `anchor` is unchanged, the
+           * detector and `MIN_BUCKET_N` are untouched. A sentence that was false became true.
+           */
+          reading.readElsewhere > 0
+          ? `${decisionsHeldElsewhere(reading.readElsewhere)} — הסט המשותף, תרגול או משחקים שיובאו. ` +
+            "כאן נקרא פער כיול ממשחקים ששיחקתם, ועוד אין החלטה כזאת."
+          : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם.";
     return (
       <section className="analysis-section record-dashboard">
         <div className="section-heading">

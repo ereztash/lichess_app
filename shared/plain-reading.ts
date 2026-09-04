@@ -139,6 +139,35 @@ export function confidenceWord(
 }
 
 /**
+ * WHAT A PLAYER'S DECISIONS ARE DOING WHEN THEY ARE NOT IN THE POPULATION THIS SCREEN READS.
+ *
+ * TWO SURFACES SAID THIS AND ONLY ONE OF THEM HAD BEEN WRITTEN. `elsewhereSentence` in
+ * `blitz-words.ts` says it on the front door, from the `N-3` owner decision: bank, drill,
+ * transfer and imported decisions are counted under their own headings with their own
+ * denominators, so a screen that reads only free play must say where the others went rather than
+ * report zero. `RecordDashboard` is a record surface with the same populations and the same
+ * problem, and it said "עוד לא נחשפה אף החלטה" to a player holding three revealed ones.
+ *
+ * SO THE CLAUSE IS ONE STRING IN ONE PLACE. Each caller supplies its own second sentence, because
+ * what THIS screen measures differs -- the front door measures games played, the dashboard
+ * measures a calibration gap -- but the acknowledgement itself may not drift between them.
+ *
+ * `נרשמו` AND NOT `נמדדו`, carried from `blitz-words.ts` where the choice was made and reasoned:
+ * the count is every decision outside this screen's population, and some of those are still
+ * waiting for the engine. Recorded is what all of them are; measured is what only some are. The
+ * same file also documents why the two registers must not share a bare verb -- `1 נמדדו ונקראות
+ * בחלק אחר` above `0 נמדדו מתוך 1 שנרשמו` read as a broken record when both lines were true.
+ *
+ * NOT A DENOMINATOR. Nothing here counts toward any floor, bucket or eligibility rule. It reports
+ * a number that already exists to a reader who would otherwise be told it is zero.
+ */
+export function decisionsHeldElsewhere(n: number): string {
+  return n === 1
+    ? "החלטה אחת שלך נרשמה ונקראת בחלק אחר של הרשומה"
+    : `${n} החלטות שלך נרשמו ונקראות בחלק אחר של הרשומה`;
+}
+
+/**
  * THE SMALLEST NUMBER OF OBSERVATIONS A "USUAL RANGE" CAN BE DRAWN FROM.
  *
  * At three or fewer, the first and third quartiles are two of the three values, so the "usual
