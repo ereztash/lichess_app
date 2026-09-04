@@ -24,7 +24,13 @@
  * place, so two screens cannot round the same think time differently.
  */
 import { AUTHORITY, type EvidenceAuthority } from "./evidence-authority.js";
-import { COST_BAND_WORD, type CostBand, confidenceWord, costBand } from "./plain-reading.js";
+import {
+  COST_BAND_WORD,
+  type CostBand,
+  confidenceWord,
+  costBand,
+  decisionsHeldElsewhere,
+} from "./plain-reading.js";
 import type { BlitzEvent, PostGameReading, PostGameSilence } from "./blitz-reading.js";
 
 /**
@@ -387,11 +393,9 @@ export function patternCounts(pattern: BlitzPattern): string {
  */
 function elsewhereSentence(elsewhere: number): string {
   if (elsewhere <= 0) return "עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.";
-  const held =
-    elsewhere === 1
-      ? "החלטה אחת שלך נרשמה ונקראת בחלק אחר של הרשומה"
-      : `${elsewhere} החלטות שלך נרשמו ונקראות בחלק אחר של הרשומה`;
-  return `${held}. כאן נמדדים משחקים ששיחקת, ועוד לא שיחקת אחד.`;
+  /* The clause moved to `plain-reading.ts` when `RecordDashboard` needed the same sentence.
+     The words are unchanged and a test holds them; only the tail below is this screen's. */
+  return `${decisionsHeldElsewhere(elsewhere)}. כאן נמדדים משחקים ששיחקת, ועוד לא שיחקת אחד.`;
 }
 
 /**

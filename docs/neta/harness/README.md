@@ -46,6 +46,15 @@ because each one exists because the one before it was not enough.
 | `step22-blitz.mjs` | the `N-3` control: three blitz moves, then the front door. §5 |
 | `step23-verify.mjs` | the `N-2` intervention, walked on `dist/public`. §9 |
 
+## Pass 3
+
+| file | what it measured |
+| --- | --- |
+| `k-record-spend.mjs` | every painted element of a reveal taken after three decisions, assigned to its panel block by DOM ancestry. 1 of 14 elements is about the record, and it sits in the limits block |
+| `l-where-the-record-is.mjs` | every control and every in-app route on the reveal screen. Its "no route to the record" is the killed finding above |
+| `m-the-door.mjs` | `.explore-toggle` -- where it is, what it promises, and what opens behind it. Where the five contradicting numbers on one screen were caught |
+| `n-the-count-on-the-reveal.mjs` | whether the kth reveal says k. 5 of 5 correct, which did NOT reproduce the 4/3/3 the other probes saw. The open finding in pass 3 §7 |
+
 `step23` carries its own correction: its first verdict line used `\b` around a Hebrew word, which
 never matches, and reported `STILL COLLIDING` against a fix that had worked.
 
@@ -68,3 +77,36 @@ reading their output. `c-press-feel.mjs` aimed at each control's centre, where t
 unchanged; it now asserts `matches(":active")` and names what it actually hit. `d-gap.mjs` read
 `getComputedStyle(el)` without a pseudo-element argument and reported zero animations against a page
 whose only moving thing is an `::after`.
+
+## Four biases the instruments have, measured
+
+Recorded beside the two defects above, because they are properties of the method rather than bugs in
+a script, and both were found by a claim they produced turning out to be false.
+
+**A salience proxy that ranks by area ranks prose above controls.** `ux-lib.mjs`'s score is
+`sqrt(area) x weight x contrast`, and in a product whose proposition is what it says rather than
+what you press, the longest careful paragraph wins every time. That is the proxy describing itself.
+It measures COMPETITION, which is real, and it does not measure priority. Reading a low-ranked
+button as a defect imports an assumption about what a product's priority should be.
+
+**A five-screen sweep understates the state space.** `j-800.mjs` reported zero elements at font
+weight 800 across the front door, decide, ready, reveal and return, and concluded the weight was
+dead. `.learning-grade` is weight 800 and is painted by `LearningQueue.tsx` on a rule that has been
+graded, which needs sixty measured decisions or a completed drill to exist. Any claim shaped
+"nothing in this product does X", drawn from a walk, is a claim about the walk.
+
+**An anchor probe cannot see a disclosure.** `l-where-the-record-is.mjs` listed every `a[href^="/"]`
+on the reveal screen, found none, and concluded the record was unreachable from there. `Home.tsx`
+renders `.explore-toggle` -- `מה עוד יש כאן` -- which mounts `RecordExplorer` in place, handed the
+whole record dashboard, with no navigation. Reachability is not linkage, and the probe measured
+linkage. Killed by `m-the-door.mjs`, which pressed the thing.
+
+**A leaf filter that lists tags misses the tags it does not list.** `m-the-door.mjs` reported the
+zero sentence twice, 23px apart, one copy with a leading `— `. `NotMeasured` renders an outer
+`span.value-triple` whose `innerText` is `— {reason}` around an inner `span.value-provenance` whose
+`innerText` is the reason; the filter excluded elements containing `h1,h2,h3,p,li,button,summary`
+and not `span`, so both matched. A duplicate in the instrument, not on the screen.
+
+The first two are worked through in [`../PRE_HUMAN_UX_PASS_2.md`](../PRE_HUMAN_UX_PASS_2.md), the
+second two in [`../PRE_HUMAN_UX_PASS_3.md`](../PRE_HUMAN_UX_PASS_3.md).
+

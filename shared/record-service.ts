@@ -65,6 +65,7 @@ import { oneThingMix } from "./reveal.js";
 export type { RecordReading } from "./record-dashboard.js";
 import { scoreDecisions, silenceReason, type ScoringSummary } from "./scoring.js";
 import {
+  admissionFor,
   discoverySearchPopulation,
   forAnchorReference,
   forDescriptiveHistory,
@@ -2011,6 +2012,23 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     {
       awaitingReveal: describedSummary.awaitingReveal,
       withoutConfidence: describedSummary.withoutConfidence,
+      /*
+       * COUNTED OFF THE ADMISSION, NOT BY SUBTRACTING THE POPULATION FROM THE RECORD.
+       *
+       * `allAtoms.length - atoms.length` gives the same number today and would go on giving it
+       * silently after it stopped being true. The sentence this feeds says those decisions are
+       * READ SOMEWHERE ELSE, and only `separate` means that: every non-admitted cell of
+       * `descriptive-history` is `separate` right now, and `refused` -- which the `discovery`
+       * consumer uses five times -- means read nowhere. The day someone refuses a context here,
+       * a subtraction would count it as read under another heading and the player would be
+       * pointed at a section that does not hold it.
+       *
+       * Computed here rather than in `readRecord` for the reason the mix is: `readRecord` only
+       * ever sees the described population, so it cannot see what is missing from it.
+       */
+      readElsewhere: allAtoms.filter(
+        (atom) => admissionFor("descriptive-history", atom).kind === "separate",
+      ).length,
     },
   );
 }

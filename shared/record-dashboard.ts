@@ -311,6 +311,22 @@ export type RecordReading = {
    */
   withoutConfidence: number;
   /**
+   * Decisions of this player's that are read under another heading, with another denominator.
+   *
+   * THE THIRD REASON `scored` IS ZERO, and the two counts above are both blind to it.
+   * `shared/evidence-policy.ts` files `anchor`, `drill`, `transfer` and `import` decisions as
+   * `separate` from `descriptive-history` -- correctly: the shared bank has its own denominator,
+   * a drill is taken while being taught, an import is a different loop. `recordReading` computes
+   * `awaitingReveal` and `withoutConfidence` over the DESCRIBED atoms alone, so a bank decision
+   * that was committed, revealed and scored is in neither, and `scored === 0` fell through to
+   * "עוד לא נחשפה אף החלטה" -- said to a player on the same screen that had just revealed three.
+   *
+   * IT MOVES NO DENOMINATOR. `scored` still excludes every decision counted here and `anchor`
+   * still carries the bank ones under their own heading. This is the number that makes the
+   * SENTENCE correct, not the number any floor is measured against.
+   */
+  readElsewhere: number;
+  /**
    * Which of the reveal's four sentences the record actually produced.
    *
    * A reading of the INSTRUMENT, not of the player: `chose-past-it` is the one finding here that
@@ -367,9 +383,14 @@ export function readRecord(
    * been updated makes a smaller claim -- nothing is waiting, nothing was passed over -- rather
    * than the previous one, which was that every unscored decision was waiting for the engine.
    */
-  unscored: { readonly awaitingReveal: number; readonly withoutConfidence: number } = {
+  unscored: {
+    readonly awaitingReveal: number;
+    readonly withoutConfidence: number;
+    readonly readElsewhere: number;
+  } = {
     awaitingReveal: 0,
     withoutConfidence: 0,
+    readElsewhere: 0,
   },
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
@@ -499,6 +520,7 @@ export function readRecord(
     scored: decisions.length,
     awaitingReveal: unscored.awaitingReveal,
     withoutConfidence: unscored.withoutConfidence,
+    readElsewhere: unscored.readElsewhere,
     mix,
   };
 }
