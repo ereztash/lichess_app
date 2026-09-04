@@ -48,3 +48,23 @@ because each one exists because the one before it was not enough.
 
 `step23` carries its own correction: its first verdict line used `\b` around a Hebrew word, which
 never matches, and reported `STILL COLLIDING` against a fix that had worked.
+
+## The pre-human UX pass
+
+Added for [`../PRE_HUMAN_UX_PASS_1.md`](../PRE_HUMAN_UX_PASS_1.md). These serve `dist/public`
+themselves, so they measure the built artefact rather than a dev server.
+
+| file | what it measures |
+| --- | --- |
+| `ux-lib.mjs` | serves the build, launches Chromium, and holds the three instruments: a salience ranking, a visual-system inventory, and a press sampler |
+| `a-front-door.mjs` | the front door at both viewports: what the eye is offered, ranked, and the font sizes, weights, radii, gaps, surfaces and borders actually in use |
+| `b-decide.mjs` | the deciding screen and the commit transition, sampled at 50 ms |
+| `c-press-feel.mjs` | holds five control classes down and reports which computed properties move |
+| `d-gap.mjs` | what is on screen during the wait, and whether anything says so |
+
+Two of these carried defects of their own, both corrected and both worth keeping in mind when
+reading their output. `c-press-feel.mjs` aimed at each control's centre, where the sticky
+`.commitment-submit` sits over the step heads, and recorded a control that had never been pressed as
+unchanged; it now asserts `matches(":active")` and names what it actually hit. `d-gap.mjs` read
+`getComputedStyle(el)` without a pseudo-element argument and reported zero animations against a page
+whose only moving thing is an `::after`.

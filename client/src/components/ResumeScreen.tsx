@@ -27,6 +27,7 @@ import { useEffect, useRef } from "react";
 import { FindingCard } from "./FindingCard";
 import { SCREEN_QUESTIONS } from "@shared/screen-questions";
 import { useBlitzReading } from "@/lib/blitz-reading-api";
+import { useClaimView } from "@/lib/record-api";
 import { lastSeenReading, rememberReadingSeen } from "@/lib/last-seen";
 import { readResume } from "@shared/resume-reading";
 import { changedSentence, knowsSentence, patternCounts } from "@shared/blitz-words";
@@ -54,6 +55,19 @@ export function ResumeScreen({
   onPlay: () => void;
 }) {
   const { data, isLoading } = useBlitzReading();
+  /*
+   * THE SAME VIEW THE LOOP STRIP READS, for the one number this screen was missing.
+   *
+   * `N-3`: a cold arrival is handed a bank position, and a bank answer is not a blitz game. The
+   * blitz reading correctly reported `no-games` and this screen correctly rendered the sentence
+   * for it -- to a player who had committed two complete decisions and read two reveals. The
+   * record held them the whole time, under another heading, and this surface was the one place
+   * that did not say so.
+   *
+   * NOT A SECOND SOURCE OF TRUTH. `readElsewhere` is the field the strip already shows, from the
+   * query it already runs; this adds a reader, not a number.
+   */
+  const claim = useClaimView();
   /*
    * SHADOW MODE (LAW 3, P0.5). `deriveNextAction` runs here and this screen ignores its answer.
    *
@@ -108,7 +122,12 @@ export function ResumeScreen({
    */
   if (isLoading || !data) return null;
 
-  const resume = readResume(data.reading, data.games, since.current);
+  /*
+   * ZERO WHILE THE CLAIM VIEW IS STILL FETCHING, which renders the sentence that says nothing has
+   * been played. That is the honest reading of "the record has not answered yet" and it is
+   * momentary; guessing a positive count would put a number on screen that no query returned.
+   */
+  const resume = readResume(data.reading, data.games, since.current, claim.data?.readElsewhere ?? 0);
   const changed = changedSentence(resume.changed);
   const knows = knowsSentence(resume.knows);
 

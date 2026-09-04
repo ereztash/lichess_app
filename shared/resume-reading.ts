@@ -55,7 +55,27 @@ export type ResumeKnowledge =
       /** Always the pattern's own, which is `recurred`. Carried so no screen has to look it up. */
       authority: EvidenceAuthority;
     }
-  | { kind: "nothing-yet"; because: BlitzBlocker; needs: BlitzShortfall | null };
+  | {
+      kind: "nothing-yet";
+      because: BlitzBlocker;
+      needs: BlitzShortfall | null;
+      /**
+       * Decisions the record holds that this reading does not cover, because another one does.
+       *
+       * IT IS HERE SO THE SCREEN CAN STOP SAYING "YOU HAVE NOT PLAYED" TO SOMEBODY WHO HAS
+       * DECIDED. The front door hands a cold arrival a bank position, and a bank answer is not a
+       * blitz game -- so `standingOf` correctly reports `no-games`, and the sentence for it
+       * correctly said nothing had been played. Both true, and together they told a player who
+       * had committed two complete decisions, declared a confidence before the engine spoke and
+       * read two reveals that there was nothing to measure and nothing here of theirs.
+       *
+       * IT CHANGES NO DENOMINATOR. These decisions stay outside the personal-game population and
+       * the floor stays where it was; `readElsewhere` is the same number the loop strip already
+       * carries. What changes is that the record surface now says they exist and says where they
+       * are counted, which is the whole of the owner's decision on `N-3`.
+       */
+      elsewhere: number;
+    };
 
 /**
  * WHAT TO DO NEXT, AND SOMETIMES IT IS NOT A THING TO DO.
@@ -185,6 +205,14 @@ export function readResume(
   games: readonly StoredBlitzGame[],
   /** When the previous visit began, or null on a first arrival. */
   since: string | null,
+  /**
+   * Decisions on the record read under another heading, from the same view the loop strip reads.
+   *
+   * REQUIRED RATHER THAN DEFAULTED TO ZERO. A default would let a caller that has not fetched the
+   * count render the sentence that says the player has done nothing, which is the exact failure
+   * this parameter exists to remove, and it would do it silently.
+   */
+  elsewhere: number,
 ): ResumeReading {
   const changed = since === null ? null : countChange(games, since);
 
@@ -205,7 +233,7 @@ export function readResume(
      */
     return {
       changed,
-      knows: { kind: "nothing-yet", because: "no-split-yet", needs: null },
+      knows: { kind: "nothing-yet", because: "no-split-yet", needs: null, elsewhere },
       next: NEXT_STEP["no-split-yet"],
     };
   }
@@ -213,7 +241,7 @@ export function readResume(
   const because = reading.standing.because;
   return {
     changed,
-    knows: { kind: "nothing-yet", because, needs: reading.standing.needs },
+    knows: { kind: "nothing-yet", because, needs: reading.standing.needs, elsewhere },
     next:
       because === "nothing-scored"
         ? nextWhileUnscored(games.filter((g) => g.analysisState === "pending").length)

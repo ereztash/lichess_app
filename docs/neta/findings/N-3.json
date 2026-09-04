@@ -1,36 +1,40 @@
 {
-  "status": "DISCRIMINATE_FIRST",
+  "status": "BUILD_READY",
   "raw_signal": "עשיתי שתי החלטות שלמות. חזרתי לדלת הראשית, והמסך אמר לי שעוד לא עשיתי כלום.",
   "observations": [
     "Two complete decisions in one clean profile: move placed, reading marked, cannot-assess marked, confidence declared before the engine spoke, both revealed.",
-    "Returning to / in the same profile, the first line reads 'עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.'",
-    "Below it: '0 החלטות מדודות · חסרות עוד 60'.",
-    "The only wide control above the fold is 'שחק משחק קצר' at y=186. There is no control that resumes or names the two decisions already recorded.",
-    "The strip on the play screen had said '2 נמדדו ונקראות בחלק אחר של הרשומה', so the record does hold them."
+    "Returning to / in the same profile, the first line read 'עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.'",
+    "Below it: '0 החלטות מדודות · חסרות עוד 60'. The only wide control above the fold was 'שחק משחק קצר'.",
+    "Two controls run before any change: a profile with zero decisions produced the identical sentence, and a profile with three moves played into an abandoned blitz game produced the identical sentence.",
+    "The blocker is computed correctly. `standingOf` returns `no-games` because `games.stored === 0`, and a bank answer is not a blitz game.",
+    "The record held the decisions the whole time: the play screen showed '2 נמדדו ונקראות בחלק אחר של הרשומה' from the same view the record surface could have read.",
+    "After the change, walked again on the built artefact at 1440x900 and 390x844: the primary message reads '2 החלטות שלך נרשמו ונקראות בחלק אחר של הרשומה. כאן נמדדים משחקים ששיחקת, ועוד לא שיחקת אחד.', at y=110 and y=150, above the fold on both."
   ],
   "candidate_mechanisms": [
     {
-      "name": "The return screen's threshold is own-game decisions only, and it words its zero as an absence of play",
-      "explains": "Why the record holds two decisions and the return screen reports none, and why the CTA is to play rather than to continue.",
-      "does_not_explain": "Why the sentence is 'you have not played a game here' rather than 'these two are recorded and read separately'.",
-      "discriminator": "Do the same walk through the blitz-game route instead of the bank route. If the return screen then counts them, the gate is provenance, and the wording is the defect rather than the count."
+      "name": "The return screen's threshold is own-game decisions only, and it worded its zero as an absence of play",
+      "explains": "Why the record holds two decisions and the return screen reported none, and why the CTA is to play rather than to continue.",
+      "does_not_explain": "Why the sentence was 'you have not played a game here' rather than 'these two are recorded and read separately'.",
+      "discriminator": "Do the same walk through the blitz-game route instead of the bank route. Run: three moves into an abandoned blitz game produced the identical sentence, so the gate is a completed game and the wording was the defect rather than the count."
     },
     {
       "name": "The return screen reads a different store than the play screen",
       "explains": "A zero on one surface and a two on another.",
-      "does_not_explain": "That the play screen itself shows both numbers, so it is not two disconnected stores but one policy.",
-      "discriminator": "Compare the two surfaces' inputs in the code."
+      "does_not_explain": "That the play screen itself showed both numbers, so it is not two disconnected stores but one policy.",
+      "discriminator": "Compare the two surfaces' inputs. Run: both resolve to the same claim view; the record surface simply was not reading `readElsewhere`."
     }
   ],
   "design_distinction": "next_decision_started and user_satisfied are separate, and so are record_holds_it and screen_credits_it. A returning participant reads the second, and the trial's stop-reason analysis reads the first.",
   "rejected_explanations": [
-    "localStorage cleared between visits: the same page carried '0 נמדדו מתוך 2 שנרשמו', so the record survived the reload."
+    "localStorage cleared between visits: the same page carried '0 נמדדו מתוך 2 שנרשמו', so the record survived the reload.",
+    "A miscounted denominator: the count was right and the sentence was the only thing wrong."
   ],
-  "authority": "DESIGN_MECHANISM",
+  "authority": "OWNER",
   "evidence_state": "REPRODUCED",
-  "intervention": null,
-  "must_not_change": "The 60-decision threshold, the definition of a measured decision, and the exclusion of bank decisions from the personal denominator. The instrument is right; the sentence is what is under review.",
+  "intervention": "The record surface says how many decisions the record holds outside the personal-game population, and says where they are read. `nothingYetSentence`'s `no-games` case splits on that count; `readResume` takes it from the claim view the loop strip already reads.",
+  "must_not_change": "The 60-decision threshold, the definition of a measured decision, the exclusion of bank decisions from the personal denominator, and the next step offered. All four are untouched, and a test asserts the next step is identical in both states.",
   "perceptual_success_criterion": "A returning person can say, without help, whether the decisions they made last time still exist.",
-  "check": null,
-  "next_step": "Run the discriminator first: repeat the walk through the blitz route and see whether the return screen counts those. It decides whether this is one sentence or the whole acquisition path, and it costs one session."
+  "check": "`a record that holds decisions it does not count` in tests/shared/a-record-that-explains-its-own-silence.test.ts, and the screen-level case plus glance budget in tests/client/a-screen-nobody-reads-twice.test.tsx. Five deliberate breaks, each red for its own reason: one sentence for both records, a templated singular, the verb upgraded to a measurement claim, the label dropped, and the screen ignoring the count.",
+  "reversal_condition": "A returning profile whose record holds decisions read elsewhere, showing the empty-record sentence; or the two states rendering the same primary message again; or any count, denominator or eligibility rule differing between the two states.",
+  "next_step": "The residual is that '0 החלטות מדודות · חסרות עוד 60' still stands three lines below, unqualified on its own line. It is now preceded by the sentence that frames it, so this is recorded as an observation and not as work. Whether a person reads the frame before the number is F-1's question, not this one's."
 }

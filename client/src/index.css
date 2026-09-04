@@ -5416,6 +5416,131 @@ button:not(:disabled) {
   min-width: var(--tap-floor);
 }
 
+/* ---- The press layer ---------------------------------------------------------------------- */
+/*
+ * MEASURED, AND IT IS THE OWNER'S "THE BUTTONS DO NOT FEEL RESPONSIVE" IN ITS EXACT FORM.
+ *
+ * Five control classes were held down in Chromium on the built app and every computed visual
+ * property was compared at rest, at hover, and while the mouse was down:
+ *
+ *   .ghost-control      front door, the entry that needs no account   hover: none   press: NONE
+ *   .read-chip          a reading chip, synchronous, stays mounted    hover: bg     press: NONE
+ *   [data-square]       a board square                                hover: none   press: NONE
+ *   .commitment-submit  the commit                                    hover: none   press: NONE
+ *   .step-head          a commitment step                             hover: none   press: NONE
+ *
+ * NOT ONE CONTROL IN THIS PRODUCT CHANGED APPEARANCE WHEN IT WAS PRESSED. The whole stylesheet
+ * carried two `:active` rules in 90 kB. One of the five answered hover, and hover does not exist
+ * on the handset this loop is walked on.
+ *
+ * SO THE FEELING IS NOT ABOUT LATENCY. The commit does have a three-second wait and that is a
+ * separate defect with its own fix below; but a chip that resolves in one frame felt equally dead,
+ * which is what separates "the app is slow" from "the app does not answer me". A press with no
+ * acknowledgement is a press the hand cannot confirm landed, and the second press is what a person
+ * does about it.
+ *
+ * ONE SELECTOR RATHER THAN THE FORTY-LINE FAMILY ABOVE. The tap floor enumerates its members
+ * because 44px is a claim about specific controls. This is a claim about all of them, and a rule
+ * that says "every button that is not a board square" cannot drift out of step with a list.
+ *
+ * THE BOARD IS EXCLUDED ON PURPOSE. A square already answers a press with a selection ring, and
+ * that ring is the board's own vocabulary; a second, competing acknowledgement on the one surface
+ * where the decision is made is not a clarification.
+ *
+ * COMPOSITOR-ONLY, SO NOTHING MOVES THAT IS NOT MEANT TO. A state layer painted inside the
+ * control and a one-pixel translate: no reflow, no layout shift, and no dependence on the
+ * control's own ground, which varies from transparent to filled across the family. The reduced
+ * motion block below neutralises the transition; the state layer itself is not motion and stays.
+ */
+button:not([data-square]):not(:disabled):active,
+summary:active,
+[role="button"]:not([data-square]):not([aria-disabled="true"]):active {
+  transform: translateY(1px);
+  box-shadow: inset 0 0 0 999px rgba(var(--ink-rgb), 0.09);
+}
+button:not([data-square]),
+summary,
+[role="button"]:not([data-square]) {
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+}
+/*
+ * AND THE KEYBOARD, WHICH WAS THINNER STILL: three `:focus-visible` rules in the whole file.
+ * `:focus-visible` and not `:focus`, so a mouse press does not leave a ring behind it.
+ *
+ * `--focus` AND NOT `--blue`, WHICH `GATE-TWO-HANDS` CAUGHT ON THE FIRST TRY. The ring was written
+ * in the engine's own hue, on every control a player can press, which is the exact rule that gate
+ * exists to hold: the machine speaks in `--machine`, and nothing the player operates borrows it.
+ * `--focus` is the token this file already rings with in two other places, so the fix was to use
+ * the convention rather than to invent a third one.
+ */
+button:not([data-square]):focus-visible,
+summary:focus-visible,
+[role="button"]:not([data-square]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---- The wait says it is working ---------------------------------------------------------- */
+/*
+ * MEASURED ON THE COMMIT PRESS, sampled at 50 ms on the built app, both viewports:
+ *
+ *   +61 ms    the commitment panel is gone, the text length drops
+ *   +3293 ms  the engine's sentence arrives
+ *
+ * and across that whole interval: `aria-busy` present on zero elements, spinners zero, and
+ * `animationName !== none` on ZERO elements on the page. Nothing on screen moved for 3.2 seconds
+ * after the most consequential press in the product.
+ *
+ * There WAS a sentence -- `המנוע מחשב את העמדה שהחלטת עליה…` -- at 14px, weight 400, and at
+ * `opacity: 0.75`, which is to say the one thing on screen that had something to report was the
+ * one thing being dimmed. On the handset it sat at y=728.
+ *
+ * THE BAR IS INDETERMINATE ON PURPOSE. The engine does not report progress, and a bar that
+ * implied it would be inventing a number the product does not have. This says "running", which is
+ * the whole of what is known.
+ *
+ * IT DOES NOT TOUCH THE WAIT ITSELF. Not its length, not its text, not when the reveal renders,
+ * not one recorded event. `RNL-11` and `ACQUISITION_PROTOCOL_V1` are about what is measured; this
+ * is about whether the person can tell the difference between working and broken.
+ */
+.reveal-waiting {
+  opacity: 1;
+  color: var(--muted);
+  position: relative;
+}
+.reveal-waiting::after {
+  content: "";
+  position: absolute;
+  inset-inline: 1rem;
+  bottom: 0.35rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--ink-rgb), 0.06) 0%,
+    rgba(var(--blue-rgb), 0.85) 50%,
+    rgba(var(--ink-rgb), 0.06) 100%
+  );
+  background-size: 240% 100%;
+  animation: waiting-sweep 1.25s linear infinite;
+}
+@keyframes waiting-sweep {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+/*
+ * THE SAME EXEMPTION THE SPINNER HAS, AND FOR THE SAME REASON. The blanket reduced-motion rule
+ * sets `animation-iteration-count: 1`, which stops this bar mid-sweep and leaves a frozen stripe:
+ * indistinguishable from a hang, on the indicator whose entire job is to say the opposite. It
+ * keeps sweeping, slowly enough not to be the thing the setting is about.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-waiting::after {
+    animation-duration: 3.2s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
 /* ---- Reduced motion --------------------------------------------------------------------- */
 /*
  * There was no `prefers-reduced-motion` block at all. Small surface -- one transition on the

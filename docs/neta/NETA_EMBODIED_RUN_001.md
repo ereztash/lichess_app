@@ -251,7 +251,7 @@ produced findings that were wrong.
 | --- | --- | --- | --- | --- |
 | `N-1` | the reveal is below every fold on a handset | `DISCRIMINATE_FIRST` | `DESIGN_MECHANISM` | `MEASURED` |
 | `N-2` | `1 נמדדו` and `0 נמדדו` on one screen | `BUILD_READY` | `REPO` | `REPRODUCED` |
-| `N-3` | the return screen says I have done nothing | `DISCRIMINATE_FIRST` | `DESIGN_MECHANISM` | `REPRODUCED` |
+| `N-3` | the return screen says I have done nothing | **`BUILD_READY`** | `OWNER` | `REPRODUCED` |
 | `N-4` | choosing a move does not change the board | `DISCRIMINATE_FIRST` | `DESIGN_MECHANISM` | `REPRODUCED` |
 | `N-5` | a question, not a reveal, on 6 of 15 presses | `DISCRIMINATE_FIRST` | `REPO` | `REPRODUCED` |
 | `N-6` | "nothing here" and "you were right", 60px apart | `FIELD_STOP` | `FIELD` | `FIELD_REQUIRED` |
@@ -320,10 +320,10 @@ Walked on the built artefact from an empty profile, one bank decision:
 
 3,025 tests pass, 35 gates pass, 35 positive controls red.
 
-`N-3` is the higher consequence finding and it is deliberately not here. It is one sentence away
-from `BUILD_READY` and the sentence belongs to the owner: the record surface counts completed games,
-and whether a bank decision should be visible there is a decision about what the record is for, not
-a copy fix. The discriminator has already been run twice. What is left is a choice.
+`N-3` was the higher consequence finding and was deliberately held back: the record surface counts
+completed games, and whether a bank decision should be visible there is a decision about what the
+record is for, not a copy fix. The discriminator had been run twice. What was left was a choice, and
+it has since been made. See §12.
 
 ---
 
@@ -366,3 +366,67 @@ means nothing.
 It did not touch the instrument. Confidence timing, reveal timing, the continuation definition, the
 acquisition denominators, `O-1`, `O-2`, `O-3` and the protocol version are exactly where they were.
 The one intervention this run authorises is a noun.
+
+---
+
+## 12. `N-3`, closed: the owner's decision and the rerun
+
+The decision, in the owner's terms:
+
+> Every completed measured decision must be acknowledged on the record surface.
+> Bank/shared-set decisions remain outside the personal-game denominator and must be labelled as such.
+> The zero-decision state and the measured-but-not-yet-eligible state must not share the same primary message.
+> Do not change any denominator, event, protocol rule, or eligibility criterion.
+> Implement the smallest representation change that makes the accumulation visible.
+
+### What was wrong, precisely
+
+Nothing was miscounted. `standingOf` returns `no-games` because `games.stored === 0`, and a bank
+answer is not a blitz game, so the blocker was right. The sentence for that blocker was
+`עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד`, which is literally true and was the only thing said.
+The record surface was the one place that had the count and did not read it: the play screen was
+already showing `2 נמדדו ונקראות בחלק אחר של הרשומה` from the same claim view.
+
+### The change
+
+`ResumeKnowledge`'s `nothing-yet` carries `elsewhere`, `readResume` takes it as a required argument,
+and the `no-games` sentence splits on it. `ResumeScreen` reads it from `useClaimView`, which is the
+query the loop strip already runs. Four files, one new sentence, one new reader.
+
+`נרשמו` and not `נמדדו`, deliberately. `readElsewhere` is every atom outside the discovery stratum,
+which says where a decision is read and not whether an engine scored it. The stronger verb would be
+the surface inventing a measurement claim out of a count that does not carry one. It is a superset
+of the measured decisions, so nothing measured goes unacknowledged, and the sentence claims only
+what the number supports.
+
+### The rerun, on the built artefact
+
+Same walk that produced the finding: clean profile, two complete bank decisions, then the front door
+again, at both viewports.
+
+| | before | after |
+| --- | --- | --- |
+| primary message, 2 decisions | `עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.` | `2 החלטות שלך נרשמו ונקראות בחלק אחר של הרשומה. כאן נמדדים משחקים ששיחקת, ועוד לא שיחקת אחד.` |
+| primary message, 0 decisions | identical to the above | unchanged from before |
+| where it lands, 1440x900 | y=110 | y=110, above the fold |
+| where it lands, 390x844 | y=150 | y=150, above the fold |
+| next step offered | `שחק משחק קצר` | `שחק משחק קצר`, identical |
+| `0 החלטות מדודות · חסרות עוד 60` | present | present, unchanged |
+
+Held by `a record that holds decisions it does not count`, seven cases, plus a screen-level case and
+a glance-budget case. Five deliberate breaks, each red for its own reason: one sentence for both
+records, a templated singular, the verb upgraded to a measurement claim, the label dropped, and the
+screen ignoring the count. The last of those is the one that matters most, because without it the
+budget case would pass on a screen that had quietly stopped reading the number.
+
+### What the rerun still sees, and is not calling work
+
+`0 החלטות מדודות · חסרות עוד 60` still stands three lines below the new sentence. On its own line it
+says the same thing the old primary message said. What changed is that it is now preceded by the
+frame that explains it, rather than being the frame.
+
+Whether a returning person reads that frame before reaching the number is `F-1`'s question and not
+this one's, and no amount of my reading the screen settles it. Recorded as an observation with its
+discriminator named, and not as a finding, because a method that manufactures a residual after every
+fix is a method that never closes anything.
+

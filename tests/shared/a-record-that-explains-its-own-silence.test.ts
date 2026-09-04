@@ -29,6 +29,8 @@ import {
   shortfallOf,
 } from "@shared/blitz-reading";
 import { MIN_BUCKET_N, type ScoredDecision } from "@shared/detector";
+import { knowsSentence, nothingYetSentence } from "@shared/blitz-words";
+import { readResume } from "@shared/resume-reading";
 import { CONFIDENCE_GRID_VERSION, CONFIDENCE_LEVELS } from "@shared/confidence";
 import { CURRENT_PROTOCOL_VERSION } from "@shared/measurement-protocol";
 import type { StoredBlitzDecision, StoredBlitzGame } from "@shared/blitz-record";
@@ -404,5 +406,81 @@ describe("a record that explains its own silence", () => {
     it("ignores decisions belonging to another game", () => {
       expect(blitzEventsIn(game(), [{ ...costlyConfident, gameId: "other" }])).toEqual([]);
     });
+  });
+});
+
+/**
+ * `N-3`: THE RECORD SURFACE TOLD A PLAYER WHO HAD DECIDED THAT THEY HAD NOT.
+ *
+ * The front door hands a cold arrival a position from the shared bank, and a bank answer is not a
+ * blitz game. `standingOf` therefore reports `no-games`, correctly, and the sentence for it said
+ * `עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד` -- correctly, and to somebody who had committed
+ * two complete decisions, declared a confidence before the engine spoke, and read two reveals.
+ *
+ * WALKED IN CHROMIUM ON THE DEPLOYED BUILD, with two controls: a profile with zero decisions and a
+ * profile with three moves played into an abandoned blitz game both produced the identical
+ * sentence. The screen could not tell any of the three records apart.
+ *
+ * THE OWNER'S DECISION was that every completed measured decision is acknowledged on the record
+ * surface, that bank decisions stay outside the personal-game denominator and are labelled as
+ * such, and that the two states must not share a primary message. So this holds the split and
+ * holds the promise that nothing else moved with it.
+ */
+describe("a record that holds decisions it does not count", () => {
+  const nothingYet = (elsewhere: number) =>
+    nothingYetSentence({ kind: "nothing-yet", because: "no-games", needs: null, elsewhere });
+
+  const EMPTY = "עוד לא שיחקת כאן משחק, אז אין עדיין מה למדוד.";
+
+  it("keeps the empty record's sentence exactly as it was", () => {
+    // The zero state was never wrong. It was wrong to be the only state.
+    expect(nothingYet(0)).toBe(EMPTY);
+  });
+
+  it("does not give the two states the same primary message", () => {
+    expect(nothingYet(2)).not.toBe(nothingYet(0));
+  });
+
+  it("says how many decisions the record holds", () => {
+    expect(nothingYet(2)).toContain("2 החלטות");
+  });
+
+  it("writes the singular out, because one decision is the case this exists for", () => {
+    // "1 החלטות" is what a template produces and is not Hebrew, and a player whose whole record
+    // is one bank answer is precisely who lands here.
+    const one = nothingYet(1);
+    expect(one).toContain("החלטה אחת");
+    expect(one).not.toContain("1 החלטות");
+  });
+
+  it("labels them as read somewhere else rather than as counted here", () => {
+    const two = nothingYet(2);
+    expect(two, "the decisions must be placed, not just counted").toContain(
+      "בחלק אחר של הרשומה",
+    );
+    expect(two, "and this reading must still say what it measures").toContain("משחקים ששיחקת");
+  });
+
+  it("does not claim they were measured, because the count does not carry that", () => {
+    /*
+     * `readElsewhere` is every atom outside the discovery stratum. That is a statement about
+     * where a decision is read, not about whether an engine scored it, and the surface may not
+     * upgrade it on the way to the screen.
+     */
+    expect(nothingYet(2)).not.toContain("נמדדו");
+  });
+
+  it("moves no denominator: the next step is the same in both states", () => {
+    const reading = readBlitz([], []);
+    const empty = readResume(reading, [], null, 0);
+    const holding = readResume(reading, [], null, 2);
+    expect(empty.knows).toMatchObject({ kind: "nothing-yet", because: "no-games" });
+    expect(holding.knows).toMatchObject({ kind: "nothing-yet", because: "no-games" });
+    expect(holding.next, "the blocker did not change, so the next step must not").toEqual(empty.next);
+  });
+
+  it("routes through knowsSentence, which is what the screen actually calls", () => {
+    const holding = readResume(readBlitz([], []), [], null, 3);
+    expect(knowsSentence(holding.knows)).toContain("3 החלטות");
   });
 });
