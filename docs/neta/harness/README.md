@@ -68,3 +68,23 @@ reading their output. `c-press-feel.mjs` aimed at each control's centre, where t
 unchanged; it now asserts `matches(":active")` and names what it actually hit. `d-gap.mjs` read
 `getComputedStyle(el)` without a pseudo-element argument and reported zero animations against a page
 whose only moving thing is an `::after`.
+
+## Two biases the instruments have, measured
+
+Recorded beside the two defects above, because they are properties of the method rather than bugs in
+a script, and both were found by a claim they produced turning out to be false.
+
+**A salience proxy that ranks by area ranks prose above controls.** `ux-lib.mjs`'s score is
+`sqrt(area) x weight x contrast`, and in a product whose proposition is what it says rather than
+what you press, the longest careful paragraph wins every time. That is the proxy describing itself.
+It measures COMPETITION, which is real, and it does not measure priority. Reading a low-ranked
+button as a defect imports an assumption about what a product's priority should be.
+
+**A five-screen sweep understates the state space.** `j-800.mjs` reported zero elements at font
+weight 800 across the front door, decide, ready, reveal and return, and concluded the weight was
+dead. `.learning-grade` is weight 800 and is painted by `LearningQueue.tsx` on a rule that has been
+graded, which needs sixty measured decisions or a completed drill to exist. Any claim shaped
+"nothing in this product does X", drawn from a walk, is a claim about the walk.
+
+Both are worked through in [`../PRE_HUMAN_UX_PASS_2.md`](../PRE_HUMAN_UX_PASS_2.md).
+

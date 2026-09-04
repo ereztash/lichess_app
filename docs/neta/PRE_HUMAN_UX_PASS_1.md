@@ -69,8 +69,14 @@ Ranked by area × weight × contrast, which is a proxy for competition and not f
 | --- | --- | --- |
 | front door, 1440×900 | seven paragraphs of prose | the first button is **8th** |
 | deciding, 1440×900 | five controls within 1.5% of each other | no single primary; board squares at 43% of top |
-| reveal, 1440×900 | the boilerplate that is identical on every reveal | `לעמדה הבאה` ranks **6th** |
-| reveal, 390×844 | the **privacy notice** | **nothing from the reveal's four blocks is in the first viewport** |
+| reveal, 1440×900 | the closing proposition, identical on every reveal | `לעמדה הבאה` ranks **6th** |
+| reveal, 390×844 | the record-mode notice | **nothing from the reveal's four blocks is in the first viewport** |
+
+> **CORRECTED, and the correction is the substance of the next pass.** Every number in this table
+> re-measured identically. What did not survive is the reading of them as an inversion. Four of
+> these rows turned out to be the product's own hierarchy applied on purpose, and one of them I
+> had described in a way that was simply wrong. See
+> [`PRE_HUMAN_UX_PASS_2.md`](PRE_HUMAN_UX_PASS_2.md) for what each row actually is.
 
 ---
 
@@ -165,6 +171,10 @@ denominator, no protocol rule and no eligibility criterion was touched, and `ACQ
 control is primary on the front door is product intent, and the stylesheet documents a deliberate
 decision that `--blue` means "act" and that the bank entry is a `ghost-control`. Changing that is an
 `OWNER` claim, not a `REPO` one.
+
+> **CORRECTED.** "Inversion" was the wrong word and it was mine. The next pass took each row of the
+> table above apart and four of them are the product working as designed. What remains open is
+> narrower and is stated in [`PRE_HUMAN_UX_PASS_2.md`](PRE_HUMAN_UX_PASS_2.md).
 
 **The reveal's position on a handset.** Nothing from its four blocks is in the first viewport, and
 that is `F-1`. `ACQUISITION_PROTOCOL_V1` §6 says in as many words that this is a field question and
