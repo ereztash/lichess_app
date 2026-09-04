@@ -747,9 +747,33 @@ const ENTRY_GZIP_KB = 215;
  *
  * ONE, NOT TWO. 773.6 rounds up to 774 and leaves 0.4 kB, which is less headroom than any raise
  * before it. The ratchet stays a ratchet.
+ *
+ * ---
+ *
+ * 774 -> 775: F1, THE REGIME WALL ON THE READING SIDE. Measured by building twice, once at
+ * f1315d7 and once with the change and nothing else:
+ *
+ *     entry, raw               684.6 -> 685.0 kB   +0.4
+ *     entry, gzipped           214.5 -> 214.6 kB   +0.1
+ *     initial download, raw    773.7 -> 774.1 kB   +0.4
+ *
+ * ALL OF IT IS ENTRY JAVASCRIPT AND NONE OF IT IS STYLESHEET, which the two figures moving by the
+ * same 0.4 kB is the check for. It is `forDescriptiveHistory` returning strata instead of a flat
+ * set, and `recordReading` choosing one of them and reporting the rest -- a sort, a reduce and a
+ * map. The sentence the player reads when a regime IS set aside costs the entry chunk nothing: it
+ * is in `RecordDashboard.tsx`, which is already a chunk of its own.
+ *
+ * WHY IT CANNOT BE DEFERRED. It is not a screen. It is the rule that decides which decisions may be
+ * averaged together, and `record-service.ts` is on the entry route: a wall that arrives after the
+ * reading it governs has already been computed is a wall that did not exist.
+ *
+ * ONLY THIS CEILING MOVES. The entry raw ceiling measures 685.0 against 685 and did not fire, and
+ * the gzip ceiling measures 214.6 against 215. Raising a ceiling that has not been crossed is
+ * loosening a budget for free -- the rule this file has applied to itself six times. 775 leaves
+ * 0.9 kB.
  */
 
-const INITIAL_RAW_KB = 774;
+const INITIAL_RAW_KB = 775;
 
 interface Asset {
   name: string;

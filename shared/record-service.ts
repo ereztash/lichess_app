@@ -70,6 +70,7 @@ import {
   forAnchorReference,
   forDescriptiveHistory,
   forDiscovery,
+  stratumId,
 } from "./evidence-policy.js";
 import { isAnchorFen } from "./anchor-set.js";
 import { readsAreAsked } from "./confidence-asked.js";
@@ -1974,10 +1975,32 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * heading rather than averaged into this one. The bank population is decisions taken FOR the
    * bank, which is a different question from decisions taken ON a bank position.
    */
-  const described = forDescriptiveHistory(allAtoms, allIds);
+  /*
+   * AND TWO REGIMES ARE NOT ONE POPULATION EITHER, which is the wall this reading did not have.
+   *
+   * `forDescriptiveHistory` now returns STRATA, for the reason `forDiscovery` already did: purpose
+   * is a property of a row and the table can answer it row by row, but protocol, its version,
+   * reveal timing and the engine build that passed the verdict describe an incompatibility BETWEEN
+   * rows. No single decision is pooled; a set is. Asked row by row every `play` decision is
+   * individually fine, and thirty-five taken with the verdict shown after each move plus thirty
+   * taken with it held to the end of the game are not one record of how this player decides.
+   *
+   * The recording had happened -- every decision carries its timing -- and the reading flattened it
+   * back the moment `scoreDecisions` produced a `ScoredDecision`, which carries no provenance at all.
+   */
+  const describedStrata = forDescriptiveHistory(allAtoms, allIds);
   const bank = forAnchorReference(allAtoms, allIds);
-  const atoms = described.atoms;
-  const ids = described.ids;
+  /*
+   * FLATTENED FOR THE PER-DECISION READINGS AND FOR THE COUNTS, AND FOR NOTHING ELSE.
+   *
+   * The branch mix and the counterfactual reading are per-decision tallies that carry their own
+   * denominators -- "which of its four sentences did this record produce", not "how accurate is
+   * this player" -- and the three exclusion counts are sums over a partition, so they are the same
+   * numbers whichever order the strata come in. None of them is a comparison between decisions,
+   * which is the only operation a stratum boundary forbids.
+   */
+  const atoms = describedStrata.flatMap((s) => s.atoms);
+  const ids = describedStrata.flatMap((s) => s.ids);
   /*
    * The branch mix is assembled HERE and not inside `readRecord`, because it needs fields that
    * `ScoredDecision` deliberately does not carry: the moves that were on the board, the chosen
@@ -2003,15 +2026,44 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * DESCRIBED population, the same one the reading is computed over, so a decision the policy
    * files as `separate` is neither waiting nor passed over here: it is in another reading.
    */
-  const describedSummary = scoreDecisions(atoms, ids);
+  const scoredStrata = describedStrata.map((stratum) => ({
+    id: stratumId(stratum.key),
+    summary: scoreDecisions(stratum.atoms, stratum.ids),
+  }));
+  /*
+   * WHICH REGIME THE PAGE READS, AND IT IS THE SAME RULE `discoverySearchPopulation` STATES: the
+   * largest, ties broken by id. Its one virtue is that it ignores the answer -- decided from sizes
+   * alone, before anything is read, so it cannot select the regime that happens to contain a
+   * flattering number -- and on a record with one regime, which is every record written before
+   * reveal timing existed, it changes nothing.
+   *
+   * MEASURED IN SCORED ROWS AND NOT IN ROWS, which is where this consumer differs from discovery's.
+   * An unrevealed decision has no verdict, so nothing yet says which engine will score it and it
+   * sits in the `legacy` build stratum. Ordering by rows would hand this page a stratum that scores
+   * to nothing on any record whose unrevealed backlog outnumbers its revealed decisions -- and this
+   * panel's zero state is the one that has twice told a player they had revealed nothing while
+   * showing them decisions they had just revealed. The scored count is still a count of rows, not
+   * of outcomes, so nothing about the answer enters the choice.
+   */
+  const [chosen, ...rest] = [...scoredStrata].sort(
+    (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
+  );
+  /*
+   * The counts stay over the WHOLE described record, and a sum over a partition is the number it
+   * was before. They answer "why is the rest of what you recorded not in this reading", which is a
+   * question about the record and not about one regime -- and scoping them to the chosen stratum
+   * would make a decision waiting for the engine disappear because it was taken in the other mode.
+   */
+  const total = (of: (s: ScoringSummary) => number) =>
+    scoredStrata.reduce((n, s) => n + of(s.summary), 0);
   return readRecord(
-    describedSummary.scored,
+    chosen?.summary.scored ?? [],
     mix,
     readCounterfactuals(atoms),
     scoreDecisions(bank.atoms, bank.ids).scored,
     {
-      awaitingReveal: describedSummary.awaitingReveal,
-      withoutConfidence: describedSummary.withoutConfidence,
+      awaitingReveal: total((s) => s.awaitingReveal),
+      withoutConfidence: total((s) => s.withoutConfidence),
       /*
        * COUNTED OFF THE ADMISSION, NOT BY SUBTRACTING THE POPULATION FROM THE RECORD.
        *
@@ -2030,5 +2082,18 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
         (atom) => admissionFor("descriptive-history", atom).kind === "separate",
       ).length,
     },
+    /*
+     * The regimes this reading is NOT over, named and counted rather than dropped.
+     *
+     * R1's rule for any denominator that shrank: it has to be able to say what it left out. These
+     * decisions are not waiting, not passed over and not read under another heading -- they are the
+     * player's own free play, in a measurement regime this page is not currently reading, and a
+     * screen that simply showed a smaller `n` would be a number that changed for a reason nobody
+     * could name. Empty on every record with one regime.
+     */
+    rest.filter((s) => s.summary.scored.length > 0).map((s) => ({
+      id: s.id,
+      n: s.summary.scored.length,
+    })),
   );
 }

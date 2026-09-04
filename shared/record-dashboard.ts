@@ -327,6 +327,22 @@ export type RecordReading = {
    */
   readElsewhere: number;
   /**
+   * The measurement regimes this reading is NOT over, each with the decisions it holds.
+   *
+   * NOT A DENOMINATOR AND NOT A WAIT. Every count above is about decisions this reading could not
+   * use; these are decisions it declines to POOL. `shared/evidence-policy.ts` groups the described
+   * population by the conditions that make two decisions comparable -- protocol, its version,
+   * reveal timing, the engine build that passed the verdict -- and this page reads one of them,
+   * for the reason `reveal-timing.ts` gives: a decision taken twenty moves into a coached game was
+   * made by somebody who had been told, twenty times, how their last move scored, and one taken in
+   * a deferred game was not. An average over the two describes nobody.
+   *
+   * EMPTY ON EVERY RECORD WITH ONE REGIME, which is every record written before reveal timing
+   * existed. Carried rather than dropped because a reading whose `n` shrank has to be able to say
+   * what it left out, and "read nowhere" is a different sentence from `readElsewhere`'s.
+   */
+  setAside: readonly { readonly id: string; readonly n: number }[];
+  /**
    * Which of the reveal's four sentences the record actually produced.
    *
    * A reading of the INSTRUMENT, not of the player: `chose-past-it` is the one finding here that
@@ -392,6 +408,16 @@ export function readRecord(
     withoutConfidence: 0,
     readElsewhere: 0,
   },
+  /**
+   * The regimes the caller chose not to read, named and counted. See `RecordReading.setAside`.
+   *
+   * A PARAMETER RATHER THAN A GROUPING DONE HERE, for the reason `anchored` is one: which
+   * decisions are one population is `shared/evidence-policy.ts`'s only question to answer, and a
+   * second grouping rule living in the reader would be a second authority that could drift from it.
+   * `ScoredDecision` deliberately carries only what a bucket may look at, so this reader could not
+   * see a regime boundary even if it wanted to.
+   */
+  setAside: readonly { readonly id: string; readonly n: number }[] = [],
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -521,6 +547,7 @@ export function readRecord(
     awaitingReveal: unscored.awaitingReveal,
     withoutConfidence: unscored.withoutConfidence,
     readElsewhere: unscored.readElsewhere,
+    setAside,
     mix,
   };
 }

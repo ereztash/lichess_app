@@ -167,8 +167,11 @@ describe("a verdict that cannot name its engine", () => {
         atoms,
         atoms.map((_, i) => `d${i}`),
       );
-      expect(history.atoms).toHaveLength(2);
-      expect(history.ids).toEqual(["d0", "d1"]);
+      // One regime, so one stratum: this consumer groups by the conditions that make two decisions
+      // comparable, exactly as discovery does, and these two share every one of them.
+      expect(history).toHaveLength(1);
+      expect(history[0].atoms).toHaveLength(2);
+      expect(history[0].ids).toEqual(["d0", "d1"]);
     });
 
     it("leaves such a decision inside its stratum rather than vanishing it from the population", () => {

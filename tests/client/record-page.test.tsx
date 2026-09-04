@@ -94,6 +94,8 @@ const withRecord = (scored: number): RecordReading => ({
   withoutConfidence: 0,
   /* This fixture is a free-play record: nothing of its player's is read under another heading. */
   readElsewhere: 0,
+  /* And one regime, so there is no second population this reading declined to pool. */
+  setAside: [],
   counterfactual: readCounterfactuals([]),
   profile: { variables: readVariables([]), crossing: crossVariables([]) },
   overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },

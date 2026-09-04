@@ -173,7 +173,12 @@ describe("the two consumers are separate entries in one table", () => {
     // If these ever coincided, one of the two readings would be answering the other's question.
     const all: (DecisionPurpose | null)[] = ["play", "first", "anchor", "drill", "transfer", "import", null];
     const ids = all.map((_, i) => `d${i}`);
-    expect(forDescriptiveHistory(atoms(all), ids).ids).toEqual(["d0", "d1"]);
+    /*
+     * The description now returns STRATA, because purpose is a property of a row and a measurement
+     * regime is an incompatibility between rows. The admission is unchanged: `play` and `first`
+     * and nothing else, here in the single stratum these seven share.
+     */
+    expect(forDescriptiveHistory(atoms(all), ids).flatMap((s) => s.ids)).toEqual(["d0", "d1"]);
     expect(forAnchorReference(atoms(all), ids).ids).toEqual(["d2"]);
   });
 

@@ -105,6 +105,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
     sensitivityReference,
     control,
     stability,
+    setAside,
   } = reading;
 
   if (scored === 0) {
@@ -180,6 +181,25 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         <span>הרשומה שלך</span>
         <span className="data-chip">n={scored}</span>
       </div>
+
+      {/*
+        * WHY `n` IS SMALLER THAN THE PLAYER'S OWN COUNT, when it is.
+        *
+        * `shared/evidence-policy.ts` groups the described record by the conditions that make two
+        * decisions comparable, and this page reads one of them. Without this line the number in the
+        * chip would simply be smaller than the record the player remembers building, for a reason
+        * no surface stated -- the failure R1 exists to prevent, arriving as an absence.
+        *
+        * IT IS NOT `readElsewhere`. These decisions are not counted under another heading; they are
+        * the same free play, measured under conditions this reading may not average with the rest.
+        */}
+      {setAside.length > 0 && (
+        <p className="dash-note" dir="rtl">
+          עוד {setAside.reduce((n, s) => n + s.n, 0)} החלטות מדודות שלכם נרשמו בתנאי מדידה אחרים —
+          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך המספרים כאן. הן אינן ממתינות
+          ואינן נקראות בחלק אחר: הן פשוט אינן אותה אוכלוסייה.
+        </p>
+      )}
 
       <div className="review-stats">
         <div className="review-stat">

@@ -377,7 +377,20 @@ export function forDiscovery(
   atoms: readonly DecisionAtom[],
   ids: readonly string[],
 ): Stratum[] {
-  const admitted = admit("discovery", atoms, ids, (a) => a.kind === "admitted");
+  return stratify(admit("discovery", atoms, ids, (a) => a.kind === "admitted"));
+}
+
+/**
+ * Group an admitted set into the populations that are safe to pool, largest first.
+ *
+ * SHARED BY BOTH READING CONSUMERS RATHER THAN WRITTEN TWICE, and the second consumer is the
+ * reason this is a function at all. `forDescriptiveHistory` returned a flat `EvidenceSet`, so the
+ * record page pooled regimes by doing nothing -- which is the precise failure this module's own
+ * header describes about the shape it replaced: *"the old shape let a caller pool by doing nothing
+ * at all, which is how this defect survived a policy module written specifically to prevent it."*
+ * One grouping means the wall cannot hold on one surface and not on the other.
+ */
+function stratify(admitted: EvidenceSet): Stratum[] {
   const byId = new Map<string, Stratum>();
   admitted.atoms.forEach((atom, index) => {
     const key = stratumKeyOf(atom);
@@ -459,8 +472,8 @@ export function discoverySearchPopulation(strata: readonly Stratum[]): {
 export function forDescriptiveHistory(
   atoms: readonly DecisionAtom[],
   ids: readonly string[],
-): EvidenceSet {
-  return admit("descriptive-history", atoms, ids, (a) => a.kind === "admitted");
+): Stratum[] {
+  return stratify(admit("descriptive-history", atoms, ids, (a) => a.kind === "admitted"));
 }
 
 /**
