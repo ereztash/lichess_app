@@ -491,3 +491,72 @@ region's gain over the baseline (+0.0047) exceeds every one of 200 within-game l
 **Level reached: L2 (predictive candidate) with L1 (cross-context) and the stability half of L3.**
 Still open before L3 is complete: engine-artifact control under the shipped engine; personal-versus-
 population comparison.
+
+## Node I — what is omitted inside R* (DERIVE only, descriptive; `nodeB/omitted_check_tactical.json`)
+
+Inside R* on DERIVE (8,635 decisions): the played move leaves the under-defended piece still
+under-defended in 69% of tactical errors and 78% of hung-material errors, against 45% of accurate
+decisions; the engine's reply captures that very piece in 54% of tactical errors (77% of
+hung-material errors) against 21% of accurate decisions. Conditioning on what the move did with the
+piece (post-move, so descriptive only):
+
+| the move… | n | tactical-error rate |
+| --- | --- | --- |
+| left the piece under-defended (neither moved nor covered it) | 3,887 | **33.4%** |
+| moved it | 3,136 | 18.6% |
+| covered it without moving it (defended, blocked, or answered with a stronger threat) | 1,612 | 15.1% |
+
+Error classes inside R*: hung material 34% of errors (19% outside), quiet errors 49%.
+
+**Permitted wording (Node I).** In decisions where one of your pieces has more attackers than
+defenders and you are not already behind by more than two pawns, your probability of a tactical
+error (most often losing that piece to the reply) is elevated by about 11 points within the same
+games, beyond what position difficulty, time, context and available free material predict, on games
+never used to find the region (VALIDATE) and again on the newest 432 games (TEST). The omitted step
+is specific: the move commits without resolving the under-defended piece. Not permitted: "tunnel
+vision", "you do not see attacks", "you calculate less", any statement about attention or search
+depth, and any claim that the operation below changes anything — that is FIELD.
+
+## Node J — competing interventions
+
+| | I1 (targets the measured distinction) | I2 (generic alternative) | I3 (sham, matched form) |
+| --- | --- | --- | --- |
+| TRIGGER | before committing, whenever one of your pieces has more attackers than defenders (count them) | before every move | before committing, whenever the opponent's last move was a pawn move |
+| OPERATION | name the under-defended piece; make sure your intended move moves it, defends it, or creates a bigger threat; if it does none, pick again | "check for hanging pieces" | note the pawn move; make sure your intended move does not weaken a square it attacks |
+| TARGET | `cls_tactical` inside R*, especially "left the piece under-defended" | all errors | none (attention control) |
+| NON-TARGET | decisions outside R*: rate must not move; quiet errors inside R* need not move | | decisions inside R* |
+| PREDICTION if the mechanism is right | tactical-error rate inside R* falls; the share of moves that leave the piece under-defended falls; outside R* unchanged | small, diffuse change | no change inside R* beyond I2's |
+| REVERSAL | the policy signature rises (fewer moves leave the piece under-defended) but the tactical-error rate inside R* does not fall → the operation targets the wrong distinction; errors fall equally under I3 → attention, not mechanism | | |
+
+I1 is the candidate; I2 and I3 are the controls a field test must carry. The trigger is evaluable at
+the board with no engine: count attackers and defenders (GATE-CUE-PLAYER-OBSERVABLE).
+
+## External resource record (R4)
+
+| question | source | what it resolves | what it cannot resolve | decision impact |
+| --- | --- | --- | --- | --- |
+| is there a measured effect size for a pre-move "blunder check" routine that could set the field test's minimum effect? | one web search (2026-09-05): chess.com, chessworld.net, chessdock.com, chessmind.ai coaching pages | nothing quantitative: coaching pages assert that a checks/captures/threats/loose-pieces scan "takes weeks to install"; no controlled study surfaced | the minimum detectable effect and the timeline | both are set from the owner's own record below, not from literature; no further reading buys a distinction |
+
+## Node L — field protocol for I1 (instantiated from `FIELD_PROTOCOL_TEMPLATE.md`; all numbers from the owner's record)
+
+| item | value |
+| --- | --- |
+| TRIGGER (code) | `own_overloaded_piece_count >= 1 AND material_balance >= -2` on the pre-move board (frozen code: `pipeline/features.py`, verbatim P3 construct), evaluated on every eligible decision, fired or not |
+| PLAYER WORDING | "Before you move: if any piece of yours is attacked more times than it is defended, your move has to move it, defend it, or make a bigger threat. If it does none of these, choose again." |
+| WORDING COVERAGE | the sentence is exactly the code predicate (attackers > defenders on any own non-king piece); the material clause is dropped from the wording because a player already down more than two pawns is not the target and the region without that clause validates too (VALIDATE within-game +8.7 pp, residual z 6.26) |
+| DELIVERY | one written instruction read before a session; nothing in-game; nothing on the product surface (D21) |
+| SHAM (I3) | "Before you move: if the opponent's last move was a pawn move, make sure your move does not weaken a square that pawn now attacks." Same length and form; a non-trigger situation |
+| SCHEDULE | alternating blocks of 10 rated blitz games (3+0, 5+0), instruction ↔ sham, order fixed by a coin recorded before the first block; the owner reads the block's sentence before its first game |
+| EXPOSURE LOGGING | date-time of each reading and each game id, by the owner, in `research/mechanism/field/exposure.jsonl`; a game not preceded by a reading is labelled `none` |
+| PRE-EXPOSURE BASELINE | the 300 most recent admissible blitz games before the first block (rate 24–26% inside R*, 13–14% outside, 6.5–6.8 opportunities per game); reported beside the whole record |
+| PRIMARY OUTCOME | tactical-error rate inside R*, within game, instruction blocks vs sham blocks (game-fixed-effects contrast as in the judge; secondary: vs pre-exposure baseline) |
+| POLICY SIGNATURE (adherence) | share of R* decisions whose move leaves the under-defended piece under-defended (baseline 45% on DERIVE); expected to fall under the instruction and not under the sham |
+| NEGATIVE ENDPOINT | tactical-error rate and think time outside R* must not move more under the instruction than under the sham (overgeneralisation = failure) |
+| DENOMINATOR | eligible R* opportunities per block, identified by the frozen code; games are the clusters |
+| MINIMUM EFFECT | inside R*: 25% → 18% (a 7-point drop, about 60% of the measured excess). Sizing at one-sided α 0.05, power 0.80: 423 opportunities per arm ≈ 64 games per arm ≈ 128 games ≈ 13 blocks; at the owner's recent rate (39 games in the last 4 corpus weeks, 50 in the week before freeze) about 3–5 weeks |
+| STOPPING RULE | stop at 430 instruction-arm opportunities or 60 calendar days, whichever first; no interim look changes anything |
+| CONTAMINATION | the OwnExposure sentence of 2026-09-02 is a prior exposure to the same construct: every game after 2026-09-02T16:16Z is post-exposure and the pre-baseline ends there; games during any other coaching or engine use are labelled and excluded; the label is never changed after a result is read |
+| ANALYSIS | paired within-game contrast of the primary outcome, instruction vs sham, game-level cluster bootstrap 5,000 replicates, seed 20260905; the same for the policy signature and the negative endpoint; engine: Stockfish 18 Lite WASM depth 12 (the shipped instrument), Stockfish 17.1 depth 12 beside it |
+| FALSIFIER | the instruction-minus-sham drop inside R* is smaller than 4 points, or its bootstrap interval includes zero |
+| REVERSAL | policy signature falls but errors do not → wrong distinction; errors fall equally under sham → attention; errors fall outside R* as much as inside → generic slowing |
+| INFRASTRUCTURE READY NOW | scoring, feature extraction, the frozen predicate, the judge and the bootstrap are in `research/mechanism/`; `analysis/field_eval.py` (to be added) reads `exposure.jsonl` and the new games and prints the frozen contrasts |
