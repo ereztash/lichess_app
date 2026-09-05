@@ -306,37 +306,6 @@ export interface OneThing {
 }
 
 /**
- * Why another decision is worth taking, said once and said the same way every time.
- *
- * THE SENTENCE THAT WAS MISSING, AND WHAT WAS STANDING IN FOR IT. The only reason to continue that
- * this product stated anywhere was the measurement floor -- "עוד N החלטות מדודות עד שאפשר לומר
- * משהו" in `loop-position.ts`. That sentence is correct and it belongs to the record: it says what
- * a CLAIM requires before a detector may speak. It says nothing about what the PLAYER gets from
- * the next decision, and read as motivation it is a countdown to a locked thing, which is the
- * mechanic this product refuses.
- *
- * So the two are kept apart on purpose. The floor stays in the record with its denominators. This
- * is the other half: what one more decision adds BEFORE any claim exists, which is a separate
- * observation -- the only thing that can turn "this happened" into "this happens".
- *
- * IT IS A CONSTANT AND THAT IS THE DESIGN. Not a function of the reveal kind, the acquisition
- * angle, how many decisions are on record, or anything the player did. A proposition that got
- * warmer after a `chose-past-it` and cooler after silence would be measuring the player and
- * answering them, and the trial would then be reading its own copy back. Every reveal gets this
- * sentence; a test asserts all five outcomes render it identically.
- *
- * NO NUMBER APPEARS IN IT. A digit here is a countdown whatever the surrounding words say.
- *
- * AND IT SAYS "עמדה אחרת ורגע אחר" RATHER THAN THE WORD FOR IT. The first draft read "תצפית
- * נפרדת", which is exactly right and is method vocabulary; `the-player-sees-chess.test.ts` caught
- * it on the reveal, which is what that test is for. Independence is the whole content of this
- * sentence, so it is said in the two things that actually make a decision independent of this one
- * -- a different position and a different moment -- in words a player already owns.
- */
-export const CONTINUATION_PROPOSITION =
-  "החלטה אחת אומרת מה קרה בה, ולא יותר. החלטה נוספת היא עמדה אחרת ורגע אחר — וזה מה שמאפשר לשאול אם מה שקרה כאן חוזר, או שקרה פעם אחת.";
-
-/**
  * The button, named for the experiment rather than for the movement.
  *
  * "ההחלטה הבאה" describes where the click goes. This describes what taking it is FOR, which is the
@@ -609,6 +578,129 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
     else counts[one.kind] += 1;
   }
   return { n, counts, silent, eligible, withheld };
+}
+
+/**
+ * WHAT THE RECORD HOLDS OF THE SAME KIND AS THE DECISION JUST REVEALED.
+ *
+ * WHAT THIS REPLACED AND WHY. `CONTINUATION_PROPOSITION` said, after every reveal, that another
+ * decision is a different position and a different moment and that this is what lets you ask
+ * whether what happened here repeats. Every word of that is true and it was a constant: identical
+ * after decision one and after decision fifty. The product offered to let a player ask whether
+ * something repeats and then never asked. Measured on the built app after three decisions, one
+ * painted element of fourteen on the reveal said anything about the record -- 60 characters of
+ * 754 -- and it sat inside the block headed "מה ההחלטה הזאת עדיין לא אומרת", where its whole
+ * function was to deny.
+ *
+ * SO THE PROPOSITION'S CLAIM IS NOW ANSWERED RATHER THAN ASSERTED. The branch the player just
+ * read has fired some number of times over the decisions the engine has answered, and that number
+ * is a fact of the record which `oneThingMix` already computes. It is the smallest true statement
+ * that could not be made about one decision alone.
+ *
+ * THE LIMITATION IS INSIDE THE BLOCK, NOT REPLACED BY IT. `lead` says a single decision is not a
+ * pattern; `balance` says what moved anyway. Both, always, in that order. A block that reported
+ * only the count would be the countdown-to-a-locked-thing mechanic this product refuses, wearing a
+ * numerator.
+ *
+ * NOTHING HERE IS A RATE, A GRADE OR A THRESHOLD. A count and its denominator, in the record's own
+ * vocabulary. `MIN_BUCKET_N`, the detector, every bucket and every eligibility rule are untouched
+ * and unread: this function cannot see them.
+ *
+ * `הופיע` AND NOT `נרשם`, WHICH IS NOT A STYLE CHOICE. The limits block eight lines above says
+ * `נרשמו N החלטות` with a different number. `loop-position.ts` documents what happens when two
+ * registers nineteen pixels apart share a bare verb -- "read together they said the record was
+ * broken" -- so the verb here is about the SENTENCE appearing, which is what is actually counted,
+ * and the decisions keep `נרשמו` to themselves.
+ */
+export interface RevealAccumulation {
+  /** The limitation, first and always. One decision is not a pattern. */
+  lead: string;
+  /**
+   * What moved. Null when the record cannot support the sentence yet -- which is the first reveal,
+   * where the engine has answered nothing else, and is a real state rather than a zero.
+   */
+  balance: string | null;
+  /** What the next decision does to the balance. Replaces the proposition's closing clause. */
+  next: string;
+}
+
+export const ACCUMULATION_HEADING = "מה שנצבר עד עכשיו";
+
+/**
+ * THE LEAD IS A CONSTANT AND THAT IS DELIBERATE, carried from `CONTINUATION_PROPOSITION`.
+ *
+ * It does not warm up after a good branch or cool down after silence. A sentence about what one
+ * decision can establish is a fact about arithmetic, not about the player, and one that varied by
+ * outcome would be the product measuring them and answering them at once.
+ */
+export const ACCUMULATION_LEAD =
+  "החלטה אחת אינה דפוס. מה שהיא כן עושה הוא להזיז את מאזן הראיות.";
+
+/**
+ * Said once, the same way, whatever the branch. The reason another decision is worth taking.
+ *
+ * IT SHARES ITS WORDS WITH `CONTINUATION_CTA` ON PURPOSE, carried from the proposition this block
+ * replaced: a button whose words appear nowhere in the sentence above it is a second message, and
+ * the reader has to work out for themselves that they are one offer. `חוזר` is in both.
+ *
+ * AND IT IS A QUESTION. `אם זה חוזר` can come back false. "ההחלטה הבאה תראה לך את הדפוס שלך" would
+ * be a promise no build can keep -- the branches that carry a pattern fire only when the record
+ * happens to hold the evidence, and a player who took ten decisions and got silence on all ten
+ * would have been lied to rather than measured.
+ */
+export const ACCUMULATION_NEXT =
+  "ההחלטה הבאה היא עמדה אחרת ורגע אחר, ולכן היא זו שתראה אם זה חוזר.";
+
+/**
+ * How the branch the player just read is named when it is counted.
+ *
+ * NOT `OneThing.text`, WHICH IS ABOUT THIS POSITION. That sentence carries a move and a centipawn
+ * figure; counting it over the record would read as "this exact thing happened three times", which
+ * is false -- three different positions produced the same KIND of finding. These name the kind.
+ *
+ * SILENCE IS A ROW HERE, for the reason `OneThingMix.silent` is a field: a decision the
+ * measurement supported no sentence about is an outcome, not a gap, and a player who keeps
+ * receiving it is owed the count rather than a blank.
+ */
+export const ACCUMULATION_KIND_LABEL: Record<OneThingKind | "silence", string> = {
+  "chose-past-it": "מהלך שהיה על הלוח ולא נבחר",
+  "confident-and-wrong": "ביטחון גבוה מול מהלך שעלה חומר",
+  outplayed: "מהלך שעלה חומר, בלי שהרשומה מוסיפה עליו",
+  "trusted-it-too-little": "בחירה טובה שהוצהר עליה ביטחון נמוך",
+  silence: "מדידה שלא תמכה באף משפט",
+};
+
+/**
+ * Read the accumulation for one reveal.
+ *
+ * `kind` is the branch this reveal actually rendered, `"silence"` included -- taken from the value
+ * `RevealPanel` renders rather than recomputed, so the count and the sentence above it can never
+ * describe different branches.
+ */
+export function revealAccumulation(
+  kind: OneThingKind | "silence",
+  mix: OneThingMix,
+): RevealAccumulation {
+  const same = kind === "silence" ? mix.silent : mix.counts[kind];
+  /*
+   * BELOW TWO ANSWERED DECISIONS THERE IS NO BALANCE TO REPORT, and saying so is not a countdown.
+   * At n = 1 the only answered decision IS this one, so "appeared in 1 of 1" is this reveal
+   * restating itself with a denominator attached -- the shape of a measurement, carrying none.
+   */
+  if (mix.n < 2) {
+    return {
+      lead: ACCUMULATION_LEAD,
+      balance: null,
+      next: ACCUMULATION_NEXT,
+    };
+  }
+  return {
+    lead: ACCUMULATION_LEAD,
+    balance:
+      `${ACCUMULATION_KIND_LABEL[kind]} — הופיע ב-${same} מתוך ${mix.n} ההחלטות ` +
+      "שהמנוע ענה עליהן עד עכשיו.",
+    next: ACCUMULATION_NEXT,
+  };
 }
 
 /**

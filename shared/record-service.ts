@@ -1962,6 +1962,131 @@ function emptySearchReason(hypothesis: PreregisteredHypothesis | null): string {
  * condition, and this is the whole record laid out. Both read the same scored decisions, so they
  * cannot drift into disagreeing about the same player.
  */
+/**
+ * One answer per bank position, keeping the first, with the repeats counted.
+ *
+ * THE PRECONDITION THIS ENFORCES IS THE READING'S OWN. `forAnchorReference` states it: *"the bank
+ * is the only reading this product claims is comparable BETWEEN players, and the whole of that
+ * claim is that the item difficulty is held fixed."* A player who answered thirty distinct
+ * positions and a player who answered twenty-five plus five repeats have not met the same set, and
+ * a number that compares them says they have. That is true whatever the repeat scored, so this
+ * rule is about the item set and not about the answer.
+ *
+ * THE REPEAT IS ALSO LIKELY TO BE BIASED, which is why the defect is worth this much. It is
+ * reachable by a gesture: take a bank decision, read the reveal, reload `/play`. The board comes
+ * back -- `session-position.ts` persists it so a reload does not lose the game -- and the reveal
+ * does not, because it is component state. The screen keeps the position, drops the only thing that
+ * said it had been decided, re-arms the commitment and accepts a second answer, this time with the
+ * engine's verdict already read. Browser Back, and the brand lockup out and `ללוח` back, arrive at
+ * the same screen. Measured at the service level: five answers over four positions moved the
+ * observed accuracy from 0/4 to 1/5.
+ *
+ * THE FIRST, AND IT IS NOT A PREFERENCE. It is the only answer the record can place before any
+ * verdict on that position existed. The store contract makes that well founded: the database orders
+ * by `createdAt, decisionId`, the in-memory store by Map insertion, the browser store by append,
+ * and `listDecisionIds` promises the same order as `listAtoms` for exactly this class of reason.
+ *
+ * A POSITION WHOSE FIRST ANSWER CANNOT BE SCORED CONTRIBUTES NOTHING, and that is the conservative
+ * reading rather than an oversight: reaching past it to a later answer would be choosing the row by
+ * something that happened after the fact, which is the property `regimeInForceFirst` is careful to
+ * keep out of the regime choice and has no more business here.
+ *
+ * PER STRATUM, NEVER ACROSS THEM. Whether a bank answer taken under a retired protocol should be
+ * re-asked is an open OWNER question -- `docs/PRE_HUMAN_CEILING.md` files it -- and deduplicating
+ * across regimes would answer it by dropping the re-answer. Within one regime there is no such
+ * question: the same position, twice, under the same conditions.
+ */
+function firstAnswerPerPosition(
+  atoms: readonly DecisionAtom[],
+  ids: readonly string[],
+): { atoms: DecisionAtom[]; ids: string[]; repeated: number } {
+  const seen = new Set<string>();
+  const kept: DecisionAtom[] = [];
+  const keptIds: string[] = [];
+  let repeated = 0;
+  atoms.forEach((atom, index) => {
+    /*
+     * `positionKey` AND NOT THE FEN STRING. The halfmove clock and fullmove number record the GAME,
+     * so knights out and back produce a different string for an identical board -- the same hole
+     * `preregisterFreshTransfer` names, which let a position the player had already decided enter a
+     * test as unseen.
+     *
+     * AND ON THIS POPULATION IT IS CURRENTLY INERT, which is worth saying rather than leaving as an
+     * unexamined guard. `isAnchorFen` matches the bank by EXACT FEN, so every `anchor`-purpose row
+     * carries a verbatim bank string, and the sixty bank positions produce sixty distinct keys with
+     * no collisions -- so no record reachable today distinguishes this from comparing the raw FEN.
+     * Reverting it to the raw string leaves every test green. It stays because the day the bank
+     * admits a position reached by a different move order, comparing strings is the defect
+     * `preregisterFreshTransfer` had; it is a rule kept ahead of its population, and it is labelled
+     * as one rather than read as enforcement.
+     */
+    const key = positionKey(atom.entry_state.fen);
+    if (seen.has(key)) {
+      repeated += 1;
+      return;
+    }
+    seen.add(key);
+    kept.push(atom);
+    keptIds.push(ids[index] ?? `decision-${index}`);
+  });
+  return { atoms: kept, ids: keptIds, repeated };
+}
+
+/**
+ * The regime a reading describes: the one in force as soon as it can be read, the largest until then.
+ *
+ * ONE FUNCTION, TWO CONSUMERS, AND THAT IS THE POINT OF IT. This rule was written for the described
+ * reading, copied to the bank reading in the commit whose own message said *"`readRecord` computes
+ * two readings and the first commit walled only one of them"* -- and then, one commit later, the
+ * falsification round replaced it with this and again reached only one of them. The bank went on
+ * sorting by size. A rule that lives in two places gets repaired in one; this is the lowest layer
+ * that can stop that happening a third time.
+ *
+ * "THE LARGEST" ALONE WAS FALSIFIED BY MEASUREMENT. Largest is not latest: a bump to
+ * `CURRENT_PROTOCOL_VERSION` -- already at 4, so three have happened -- starts a stratum at zero
+ * while the retired one holds the player's whole history. Measured at 120 decisions under version 4
+ * against 40 under version 5, the described page reported n=120 at 100% accuracy from a protocol no
+ * longer running, and would have gone on for 81 more decisions. The staleness is automatic, it fires
+ * for every player on every bump, and it lasts in proportion to how much history the player has.
+ *
+ * AND IT IS WORSE ON THE BANK THAN ON THE PAGE IT WAS FIXED FOR. The bank is the only reading this
+ * product claims is comparable BETWEEN players, and its whole argument is that the item difficulty
+ * and the scoring are held fixed -- `docs/ACTION_PLAN.md` B1 measured 13.61% of verdicts flipping
+ * between two engine builds. A stale regime there is not a stale description of one player, it is a
+ * comparison across the exact change the stratification exists to wall off.
+ *
+ * `MIN_BUCKET_N` RATHER THAN A NEW CONSTANT, and it is the floor these readings already answer
+ * nothing below: switching to a regime the page could not read yet would trade a stale number for
+ * silence, which is not the trade. Staleness is bounded by 30 decisions instead of by the length of
+ * the record.
+ *
+ * IT IS ANSWER-BLIND, which is the property that must not be lost. Both terms -- how many rows a
+ * regime has scored, and which regime the record is currently appending to -- are decided before
+ * anything is read, from counts and arrival order. Neither can select the regime that happens to
+ * contain a flattering number. Ties by id, so the same record always yields the same reading rather
+ * than one that depends on write order.
+ */
+export function regimeInForceFirst<T>(
+  strata: readonly T[],
+  idOf: (stratum: T) => string,
+  scoredCount: (stratum: T) => number,
+  currentId: string | null,
+): T[] {
+  /*
+   * MEASURED IN SCORED ROWS AND NOT IN ROWS. An unrevealed decision has no verdict, so nothing yet
+   * says which engine will score it and it sits in the `legacy` build stratum. Ordering by rows
+   * would hand a page a stratum that scores to nothing on any record whose unrevealed backlog
+   * outnumbers its revealed decisions.
+   */
+  const largestFirst = [...strata].sort(
+    (a, b) => scoredCount(b) - scoredCount(a) || idOf(a).localeCompare(idOf(b)),
+  );
+  const current = strata.find((stratum) => idOf(stratum) === currentId);
+  return current && scoredCount(current) >= MIN_BUCKET_N
+    ? [current, ...largestFirst.filter((stratum) => idOf(stratum) !== currentId)]
+    : largestFirst;
+}
+
 export async function recordReading(store: RecordStore): Promise<RecordReading> {
   const allAtoms = await store.listAtoms();
   const allIds = await store.listDecisionIds();
@@ -2008,13 +2133,21 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * and narrowing it to one regime would re-ask a player a position they have already answered
    * because a version moved underneath them.
    */
-  const bankStrata = forAnchorReference(allAtoms, allIds).map((stratum) => ({
-    id: stratumId(stratum.key),
-    scored: scoreDecisions(stratum.atoms, stratum.ids).scored,
-  }));
-  const [bankChosen] = [...bankStrata].sort(
-    (a, b) => b.scored.length - a.scored.length || a.id.localeCompare(b.id),
-  );
+  const bankStrata = forAnchorReference(allAtoms, allIds).map((stratum) => {
+    const once = firstAnswerPerPosition(stratum.atoms, stratum.ids);
+    return {
+      id: stratumId(stratum.key),
+      /*
+       * EVERY BANK ANSWER IN THIS REGIME, for progress through the set and for nothing else.
+       * `anchorAnswered` decides which position the front door serves next, and narrowing it would
+       * re-serve a position the player has already answered -- the defect `comparable` exists to
+       * keep out of the reading, arriving from the other direction.
+       */
+      scored: scoreDecisions(stratum.atoms, stratum.ids).scored,
+      /** One answer per position: the only population the between-player claim holds over. */
+      comparable: scoreDecisions(once.atoms, once.ids).scored,
+    };
+  });
   /*
    * FLATTENED FOR THE PER-DECISION READINGS AND FOR THE COUNTS, AND FOR NOTHING ELSE.
    *
@@ -2032,25 +2165,35 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * move, the engine's move and the centipawn loss. `readRecord` sees only what a bucket may look
    * at, which is the reason the two are separate types in the first place.
    */
-  const mix = oneThingMix(
-    atoms.map((atom) => ({
-      confidence: atom.bounded_action.confidence,
-      // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
-      // a row written before the field existed was written on the five-level scale by definition.
-      confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
-      candidatesConsidered: atom.bounded_action.candidate_moves_considered,
-      chosenMove: atom.decision,
-      cpLoss: atom.result?.cp_loss ?? null,
-      bestMove: atom.result?.engine_best_move ?? null,
-      /*
-       * WHICH REGIME DECIDED WHETHER THE PLAYER SAW IT. `result` says the engine answered and
-       * nothing more; on a deferred game it answers during play and the verdict is held back. The
-       * mix is what four sentences on this page are counted from, and without this field every one
-       * of them was a claim about exposure derived from producer state.
-       */
-      revealTiming: atom.reveal_timing,
-    })),
-  );
+  /*
+   * ONE MAPPING, TWO POPULATIONS. The described atoms answer "what does free play produce"; every
+   * atom answers "what has this instrument produced for this player at all". The reveal needs the
+   * second, because the product's own front door hands over a bank position and those are
+   * `separate` from the first -- so a reveal reading `mix` would report zero to every player who
+   * has only done what they were first offered.
+   */
+  const mixable = (atom: DecisionAtom) => ({
+    confidence: atom.bounded_action.confidence,
+    // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
+    // a row written before the field existed was written on the five-level scale by definition.
+    confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
+    candidatesConsidered: atom.bounded_action.candidate_moves_considered,
+    chosenMove: atom.decision,
+    cpLoss: atom.result?.cp_loss ?? null,
+    bestMove: atom.result?.engine_best_move ?? null,
+    /*
+     * WHICH REGIME DECIDED WHETHER THE PLAYER SAW IT. `result` says the engine answered and
+     * nothing more; on a deferred game it answers during play and the verdict is held back. The
+     * mix is what four sentences on this page are counted from, and without this field every one
+     * of them was a claim about exposure derived from producer state.
+     *
+     * CARRIED BY BOTH POPULATIONS, not only the described one: `mixAll` is read by the reveal, and
+     * a withheld verdict is withheld whichever population the decision is counted in.
+     */
+    revealTiming: atom.reveal_timing,
+  });
+  const mix = oneThingMix(atoms.map(mixable));
+  const mixAll = oneThingMix(allAtoms.map(mixable));
   /*
    * ONE CALL, THREE NUMBERS. `scoreDecisions` was being called for its `scored` array and its two
    * counts thrown away on the same line -- which is how "waiting for the engine" came to be
@@ -2082,9 +2225,7 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * a player they had revealed nothing while showing them decisions they had just revealed. The
    * scored count is still a count of rows, not of outcomes, so nothing about the answer enters it.
    */
-  const largestFirst = [...scoredStrata].sort(
-    (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
-  );
+
   /*
    * THE CURRENT REGIME AS SOON AS IT CAN BE READ, AND THE LARGEST UNTIL THEN.
    *
@@ -2112,11 +2253,55 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * for silence, which is not the trade. So the staleness is bounded by 30 decisions instead of by
    * the length of the record, and `regime.current` says which of the two states the reader is in.
    */
-  const current = scoredStrata.find((s) => s.id === currentId);
-  const [chosen, ...rest] =
-    current && current.summary.scored.length >= MIN_BUCKET_N
-      ? [current, ...largestFirst.filter((s) => s.id !== current.id)]
-      : largestFirst;
+  /*
+   * THE BANK TAKES THE LARGEST, AND `null` IS HOW IT SAYS SO THROUGH THE SHARED RULE.
+   *
+   * THIS WAS "THE REGIME IN FORCE ONCE IT CLEARS `MIN_BUCKET_N`", CARRIED OVER FROM THE DESCRIBED
+   * READING, AND IT WAS FALSIFIED HERE BY MEASUREMENT. That rule's whole claim is that staleness is
+   * bounded by thirty decisions instead of by the length of the record. On the bank there is no such
+   * bound, because the bank is not an open stream of decisions:
+   *
+   *   - `ANCHOR_POSITIONS` is SIXTY items and no more;
+   *   - `anchorAnswered` is deliberately cross-regime, and `nextAnchor` serves the first position
+   *     NOT in it, so a bump does not re-offer positions already answered;
+   *   - so after a bump a player can supply at most `60 - answered` distinct answers in the new
+   *     regime, and any player who had answered 31 or more can NEVER reach `MIN_BUCKET_N` in it.
+   *
+   * Measured: 40 positions answered accurately under one build, a build change, then every remaining
+   * position -- 20 -- answered inaccurately under the next. The reading stayed at `n=40` and 100%
+   * accuracy from a build no longer running, permanently, with the set exhausted. That is the
+   * sentence the in-force rule exists to prevent, reproduced by it.
+   *
+   * AND THE PLAYERS IT DID REACH PAID A CLIFF NOTHING NAMED. On the thirtieth distinct answer in the
+   * new regime the reading fell from `n=40` to `n=30`, and `stability.n` from 20/20 to 15/15 -- a
+   * count this product prints -- while `setAside` and `regime` stayed empty and null, because both
+   * are computed from the DESCRIBED strata. The described reading makes the same trade and renders
+   * those two fields to explain it. The bank made it silently.
+   *
+   * SO THE SELECTION GOES BACK, THROUGH THIS FUNCTION RATHER THAN AROUND IT. `null` says "no regime
+   * is in force for this reading", which is the true statement, and it keeps ONE implementation of
+   * the ordering -- the duplication that let a repair reach one of two callers is still gone.
+   *
+   * WHAT REPLACES IT IS AN OWNER QUESTION AND NOT A RULE: on a finite item set whose progress is
+   * cross-regime, what should a between-player comparison do when the regime in force can never
+   * accumulate enough items? `N-11`. Nothing here answers it.
+   */
+  const [bankChosen] = regimeInForceFirst(
+    bankStrata,
+    (s) => s.id,
+    /*
+     * SIZED BY THE POPULATION THE READING IS OVER. Choosing a regime by a count that includes rows
+     * the reading will then drop would pick a stratum on the strength of its repeats.
+     */
+    (s) => s.comparable.length,
+    null,
+  );
+  const [chosen, ...rest] = regimeInForceFirst(
+    scoredStrata,
+    (s) => s.id,
+    (s) => s.summary.scored.length,
+    currentId,
+  );
   /*
    * The counts stay over the WHOLE described record, and a sum over a partition is the number it
    * was before. They answer "why is the rest of what you recorded not in this reading", which is a
@@ -2130,7 +2315,7 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     mix,
     readCounterfactuals(atoms),
     {
-      measured: bankChosen?.scored ?? [],
+      measured: bankChosen?.comparable ?? [],
       answered: bankStrata.flatMap((s) => s.scored),
     },
     {
@@ -2155,6 +2340,11 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       ).length,
     },
     /*
+     * FROM THE STRATUM THE READING IS OVER, not from the whole record: this number exists to
+     * explain the `n` on the screen, and repeats in a regime nobody is reading explain nothing.
+     */
+    (bankChosen?.scored.length ?? 0) - (bankChosen?.comparable.length ?? 0),
+    /*
      * The regimes this reading is NOT over, named and counted rather than dropped.
      *
      * R1's rule for any denominator that shrank: it has to be able to say what it left out. These
@@ -2168,5 +2358,6 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       n: s.summary.scored.length,
     })),
     chosen ? { id: chosen.id, current: chosen.id === currentId } : null,
+    mixAll,
   );
 }
