@@ -3,7 +3,9 @@ name: Chess.com Cross-Platform Replication
 on:
   pull_request:
     paths:
-      - "research/mechanism/chesscom/**"
+      - "research/mechanism/chesscom/CROSS_PLATFORM_PREREG.md"
+      - "research/mechanism/chesscom/replicate_prelearning.py"
+      - "research/mechanism/chesscom/chess_com_games_2026-09-06.pgn.gz.b64"
       - ".github/workflows/chesscom-cross-platform-replication.yml"
   workflow_dispatch:
 
