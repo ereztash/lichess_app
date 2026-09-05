@@ -1994,7 +1994,27 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * back the moment `scoreDecisions` produced a `ScoredDecision`, which carries no provenance at all.
    */
   const describedStrata = forDescriptiveHistory(allAtoms, allIds);
-  const bank = forAnchorReference(allAtoms, allIds);
+  /*
+   * THE BANK IS STRATIFIED TOO, and it is the reading where a regime boundary matters most.
+   *
+   * `anchor` is the only between-player comparison this product has: two players who answered the
+   * same positions have the same item difficulty, so whatever separates their scores is the thing
+   * being measured. That argument holds only while the answers were produced under one regime --
+   * B1 measured 13.61% of verdicts flipping between two engine builds, and every live decision is
+   * stamped `instrumented-standard` at `CURRENT_PROTOCOL_VERSION`, which will move.
+   *
+   * WHICH POSITIONS HAVE BEEN ANSWERED IS NOT STRATIFIED, and `readRecord` takes the two
+   * separately for that reason: progress through the set decides what the front door serves next,
+   * and narrowing it to one regime would re-ask a player a position they have already answered
+   * because a version moved underneath them.
+   */
+  const bankStrata = forAnchorReference(allAtoms, allIds).map((stratum) => ({
+    id: stratumId(stratum.key),
+    scored: scoreDecisions(stratum.atoms, stratum.ids).scored,
+  }));
+  const [bankChosen] = [...bankStrata].sort(
+    (a, b) => b.scored.length - a.scored.length || a.id.localeCompare(b.id),
+  );
   /*
    * FLATTENED FOR THE PER-DECISION READINGS AND FOR THE COUNTS, AND FOR NOTHING ELSE.
    *
@@ -2072,7 +2092,10 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     chosen?.summary.scored ?? [],
     mix,
     readCounterfactuals(atoms),
-    scoreDecisions(bank.atoms, bank.ids).scored,
+    {
+      measured: bankChosen?.scored ?? [],
+      answered: bankStrata.flatMap((s) => s.scored),
+    },
     {
       awaitingReveal: total((s) => s.awaitingReveal),
       withoutConfidence: total((s) => s.withoutConfidence),

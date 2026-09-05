@@ -488,8 +488,15 @@ export function forDescriptiveHistory(
 export function forAnchorReference(
   atoms: readonly DecisionAtom[],
   ids: readonly string[],
-): EvidenceSet {
-  return admit("anchor-reference", atoms, ids, (a) => a.kind === "admitted");
+): Stratum[] {
+  /*
+   * STRATIFIED FOR THE SAME REASON THE OTHER TWO ARE, and this is the consumer where it matters
+   * most. The bank is the only reading this product claims is comparable BETWEEN players, and the
+   * whole of that claim is that the item difficulty is held fixed. Two answers to the same position
+   * scored by two engine builds do not hold anything fixed -- B1 measured 13.61% of verdicts
+   * flipping across exactly that change -- and a comparison across it is an artefact of the bump.
+   */
+  return stratify(admit("anchor-reference", atoms, ids, (a) => a.kind === "admitted"));
 }
 
 /**

@@ -179,7 +179,7 @@ describe("the two consumers are separate entries in one table", () => {
      * and nothing else, here in the single stratum these seven share.
      */
     expect(forDescriptiveHistory(atoms(all), ids).flatMap((s) => s.ids)).toEqual(["d0", "d1"]);
-    expect(forAnchorReference(atoms(all), ids).ids).toEqual(["d2"]);
+    expect(forAnchorReference(atoms(all), ids).flatMap((s) => s.ids)).toEqual(["d2"]);
   });
 
   it("files the contexts it will not pool as separate rather than as refused", () => {

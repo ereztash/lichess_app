@@ -385,7 +385,31 @@ export function readRecord(
    * nothing, and a caller that forgot to pass the population would get the old behaviour back
    * without a symptom. Empty produces a visibly unreadable anchor section instead.
    */
-  anchored: readonly ScoredDecision[] = [],
+  anchored: {
+    /**
+     * The bank decisions the COMPARABLE reading is computed over: one regime, chosen by the caller.
+     *
+     * SPLIT FROM `answered` BELOW BECAUSE THE TWO ARE DIFFERENT QUESTIONS, and pooling them was the
+     * same defect the described population had. This is the only between-player reading the product
+     * has, so a regime boundary matters here more than anywhere else: `docs/ACTION_PLAN.md` B1
+     * measured 13.61% of decisions flipping verdict between two engine builds, and a bank answer
+     * scored by one build is not comparable to one scored by another. Every live decision is stamped
+     * `instrumented-standard` at `CURRENT_PROTOCOL_VERSION`, so the day that version moves is the
+     * day this pooling would have been silent.
+     */
+    readonly measured: readonly ScoredDecision[];
+    /**
+     * Every bank decision on the record, whatever regime produced it.
+     *
+     * PROGRESS THROUGH THE SET IS A CROSS-REGIME FACT and must not be scoped with the measurement.
+     * `anchorAnswered` decides which position the front door serves next; narrowing it to one regime
+     * would re-serve a position this player has already answered because the protocol version moved
+     * underneath them. Whether a bank answer taken under an older protocol should be re-asked is a
+     * question about what the product measures, and it belongs to whoever owns the product -- it is
+     * deliberately not smuggled in here, the same refusal `discoverySearchPopulation` makes.
+     */
+    readonly answered: readonly ScoredDecision[];
+  } = { measured: [], answered: [] },
   /**
    * What `scoreDecisions` set aside, and why it set each one aside.
    *
@@ -523,15 +547,15 @@ export function readRecord(
     },
     overall,
     calibration: calibrationScore(decisions),
-    anchor: calibrationScore(anchored),
+    anchor: calibrationScore(anchored.measured),
     /*
      * FROM THE BANK POPULATION, not from the whole record. This read `anchorIdsIn(decisions)`, so
      * any decision that happened to sit on a bank FEN -- a drill, a transfer check -- counted as
      * that bank position having been answered, and the front door would serve the next one as
      * though the set had progressed.
      */
-    anchorAnswered: anchorIdsIn(anchored),
-    stability: splitHalfStability(anchored),
+    anchorAnswered: anchorIdsIn(anchored.answered),
+    stability: splitHalfStability(anchored.measured),
     sensitivity,
     /*
      * Only when the reader's own number can be read. A band beside a dash would invite them to

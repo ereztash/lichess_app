@@ -21,6 +21,7 @@ import { MemoryRecordStore } from "../../server/record";
 import * as service from "../../shared/record-service";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { classifyPhase } from "../../shared/phase";
+import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
 import type { RevealTiming } from "../../shared/reveal-timing";
 
 const FREE_PLAY = "r2q1rk1/pp2bppp/2n1bn2/3pp3/3PP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 0 12";
@@ -32,19 +33,26 @@ const nextId = () => `22222222-2222-4222-8222-${String(++seq).padStart(12, "0")}
 /** One free-play decision under one reveal regime. Every other field is held constant. */
 async function record(
   store: MemoryRecordStore,
-  options: { revealTiming: RevealTiming; accurate: boolean },
+  options: {
+    revealTiming: RevealTiming;
+    accurate: boolean;
+    fen?: string;
+    anchor?: boolean;
+    build?: string;
+  },
 ) {
   const id = nextId();
+  const fen = options.fen ?? FREE_PLAY;
   await service.commitDecision(store, {
     decision_id: id,
     entry_state: {
       game_id: "g",
-      fen: FREE_PLAY,
+      fen,
       ply: PLY,
-      phase: classifyPhase(FREE_PLAY, PLY),
+      phase: classifyPhase(fen, PLY),
       clock_ms_remaining: null,
     },
-    purpose: "play",
+    purpose: options.anchor ? "anchor" : "play",
     drill_id: null,
     transfer_id: null,
     known: "המרכז פתוח",
@@ -71,7 +79,7 @@ async function record(
     engine_best_move: "d4d5",
     engine_depth: 18,
     engine_source: "local_sf18",
-    engine_build: "sf18-test-build",
+    engine_build: options.build ?? "sf18-test-build",
     cp_loss: options.accurate ? 0 : 300,
   });
 }
@@ -79,7 +87,7 @@ async function record(
 const fill = (
   store: MemoryRecordStore,
   n: number,
-  options: { revealTiming: RevealTiming; accurate: boolean },
+  options: Parameters<typeof record>[1],
 ) => Array.from({ length: n }, () => options).reduce(
   (chain, o) => chain.then(() => record(store, o)),
   Promise.resolve(),
@@ -142,5 +150,61 @@ describe("the record page reads one population, not a mixture of regimes", () =>
     const reading = await service.recordReading(store);
     expect(reading.scored).toBe(10);
     expect(reading.setAside).toEqual([]);
+  });
+});
+
+describe("the shared bank is the reading a regime boundary matters most in", () => {
+  /**
+   * One bank answer per position, so `anchorAnswered` has something to be wrong about, with the
+   * engine build varied across the two groups and nothing else.
+   */
+  const answerBank = async (store: MemoryRecordStore, from: number, count: number, build: string) => {
+    for (let i = from; i < from + count; i += 1) {
+      await record(store, {
+        revealTiming: "per-decision",
+        accurate: true,
+        anchor: true,
+        fen: ANCHOR_POSITIONS[i % ANCHOR_POSITIONS.length].fen,
+        build,
+      });
+    }
+  };
+
+  it("does not compare a player against everyone using two engines' verdicts at once", async () => {
+    /*
+     * THE ONLY BETWEEN-PLAYER READING THIS PRODUCT HAS, and the whole of its claim is that the item
+     * difficulty is held fixed. `docs/ACTION_PLAN.md` B1 measured 13.61% of decisions flipping
+     * verdict between two builds that would both have written `local_sf18`. Two answers scored by
+     * two builds hold nothing fixed, and `anchor.uncertainty` -- the term that is supposed to be
+     * identical between two players on the same items -- is computed across the mixture.
+     */
+    const store = new MemoryRecordStore();
+    await answerBank(store, 0, 4, "sf18-build-a");
+    await answerBank(store, 4, 2, "sf18-build-b");
+    const reading = await service.recordReading(store);
+    expect(reading.anchor.n, "two engine builds entered one comparable reading").toBe(4);
+  });
+
+  it("still knows every bank position the player has answered, whatever scored it", async () => {
+    /*
+     * THE HALF THAT MUST NOT BE STRATIFIED, and it is why `readRecord` takes the two separately.
+     * `anchorAnswered` decides which position the front door serves next. Scoping it to the read
+     * regime would hand the player a position they have already answered because a build changed
+     * underneath them -- a measurement fix silently making a product decision.
+     */
+    const store = new MemoryRecordStore();
+    await answerBank(store, 0, 4, "sf18-build-a");
+    await answerBank(store, 4, 2, "sf18-build-b");
+    const reading = await service.recordReading(store);
+    expect(reading.anchorAnswered).toHaveLength(6);
+  });
+
+  it("still reads the whole bank when one engine scored all of it", async () => {
+    // The positive control: one build, one population, and the comparable reading is the whole set.
+    const store = new MemoryRecordStore();
+    await answerBank(store, 0, 6, "sf18-build-a");
+    const reading = await service.recordReading(store);
+    expect(reading.anchor.n).toBe(6);
+    expect(reading.anchorAnswered).toHaveLength(6);
   });
 });

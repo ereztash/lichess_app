@@ -79,7 +79,7 @@ const TOO_SHORT = () => record(MIN_STABILITY_HALF, (i) => 4 + (i % 3), (i) => 4 
  * bank population here.
  */
 const screen = (decisions: ScoredDecision[]) =>
-  render(<RecordDashboard reading={readRecord(decisions, undefined, undefined, decisions)} />)
+  render(<RecordDashboard reading={readRecord(decisions, undefined, undefined, { measured: decisions, answered: decisions })} />)
     .container;
 
 /** The block, found by its own heading rather than by position on the page. */
@@ -109,7 +109,7 @@ describe("whether the record said the same thing twice", () => {
     );
     // Each half carries its OWN n, because an odd record splits off by one.
     const twice = SAID_IT_TWICE();
-    const { n } = readRecord(twice, undefined, undefined, twice).stability;
+    const { n } = readRecord(twice, undefined, undefined, { measured: twice, answered: twice }).stability;
     expect(block.textContent).toMatch(new RegExp(`n=${n[0]}`));
     expect(block.textContent).toMatch(new RegExp(`n=${n[1]}`));
   });
@@ -155,7 +155,7 @@ describe("whether the record said the same thing twice", () => {
 
   it("separates a record that repeated itself from one that did not", () => {
     const spread = (decisions: ScoredDecision[]) =>
-      readRecord(decisions, undefined, undefined, decisions).stability.spread ?? Number.NaN;
+      readRecord(decisions, undefined, undefined, { measured: decisions, answered: decisions }).stability.spread ?? Number.NaN;
     // The fixture is only worth rendering if the two records genuinely differ underneath.
     expect(spread(SAID_TWO_THINGS())).toBeGreaterThan(spread(SAID_IT_TWICE()));
     for (const decisions of [SAID_IT_TWICE(), SAID_TWO_THINGS()]) {
