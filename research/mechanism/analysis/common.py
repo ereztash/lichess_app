@@ -46,14 +46,19 @@ def load_decisions(path: str, corpus: str | None = "erez281") -> pd.DataFrame:
     df["own_lost_material"] = (df["material_change_2ply"] < 0).astype(float).where(df["material_change_2ply"].notna())
     df["own_won_material"] = (df["material_change_2ply"] > 0).astype(float).where(df["material_change_2ply"].notna())
     df = df.sort_index()
+    # v1.4 ease indicators for the baseline (engine-free)
+    df["free_capture"] = (df["n_good_captures"] >= 1).astype(float)
+    df["opp_hanging_any"] = (df["opp_hanging_piece_count"] >= 1).astype(float)
+    df["recapture_available"] = df["recapture_available"].fillna(0).astype(float)
     return df
 
 
 def eligible(df: pd.DataFrame) -> pd.DataFrame:
     """The product's eligibility: forced and book positions are not decisions; a decision needs a
-    think time and a clock reading (`import-diagnostic.ts`)."""
+    think time and a clock reading (`import-diagnostic.ts`). History features are then recomputed on
+    the eligible frame (v1.5) so real and null frames are built identically."""
     m = (df["forced"] == 0) & (df["book"] == 0) & df["seconds"].notna() & df["clock_own_ms"].notna()
-    return df[m].copy()
+    return recompute_history(df[m].copy())
 
 
 def game_order(df: pd.DataFrame) -> pd.DataFrame:
@@ -87,12 +92,44 @@ def resample_by_game(df: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame
     return pd.concat(parts, ignore_index=True)
 
 
+OUTCOME_COLS = ["err", "y_wp_loss", "y_accurate", "blunder10", "blunder20", "y_cp_loss"]
+HISTORY_COLS = ["own_decisions_so_far", "own_errors_so_far", "own_error_rate_so_far", "plies_since_own_error", "own_prev_wp_loss"]
+
+
+def recompute_history(df: pd.DataFrame) -> pd.DataFrame:
+    """v1.5: recompute the label-derived history features from the frame's OWN outcome columns, in
+    ply order inside each game. Used identically on the real frame and on every shuffled/planted
+    frame, so a history feature always faces a null in which it is a function of independent outcomes.
+    Only decisions present in the frame count (eligible decisions), for both real and null."""
+    df = df.sort_values(["game_id", "ply"]).copy()
+    thr = _acc_threshold()
+    g = df.groupby("game_id", sort=False)
+    err_prev = g["err"].shift(1)
+    df["own_prev_wp_loss"] = g["y_wp_loss"].shift(1)
+    df["own_decisions_so_far"] = g.cumcount()
+    df["own_errors_so_far"] = g["err"].cumsum() - df["err"]
+    df["own_error_rate_so_far"] = (df["own_errors_so_far"] / df["own_decisions_so_far"]).where(df["own_decisions_so_far"] > 0)
+    # plies since the player's last error (own decisions only; ply difference)
+    last_err_ply = df["ply"].where(df["err"] == 1)
+    last_err_ply = g[last_err_ply.name].transform(lambda s: s.shift(1).ffill()) if False else last_err_ply.groupby(df["game_id"]).transform(lambda s: s.shift(1).ffill())
+    df["plies_since_own_error"] = df["ply"] - last_err_ply
+    return df.sort_index()
+
+
 def shuffle_within_game(df: pd.DataFrame, target: str, rng: np.random.Generator) -> pd.DataFrame:
-    """The shuffle null: permute the target inside each game. Feature/target relations vanish;
-    game composition, sample sizes and the search itself are untouched (GATE-SHUFFLE discipline)."""
+    """The shuffle null: permute the OUTCOME TUPLE inside each game (so error, loss and blunder stay
+    consistent with each other), then recompute the label-derived history features from the shuffled
+    labels. Feature/target relations vanish; game composition, sample sizes and the search itself are
+    untouched (GATE-SHUFFLE discipline)."""
     df = df.copy()
-    df[target] = df.groupby("game_id")[target].transform(lambda s: rng.permutation(s.values))
-    return df
+    cols = [c for c in OUTCOME_COLS if c in df.columns]
+    idx = df.groupby("game_id").indices
+    perm = np.arange(len(df))
+    for gid, rows in idx.items():
+        perm[rows] = rows[rng.permutation(len(rows))]
+    vals = df[cols].values[perm]
+    df[cols] = vals
+    return recompute_history(df)
 
 
 def clustered_rate_se(y: np.ndarray, groups: np.ndarray) -> tuple[float, float]:

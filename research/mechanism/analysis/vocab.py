@@ -98,7 +98,11 @@ VOCAB = {"OBS": VOCAB_OBS, "ENG": VOCAB_ENG, "TIME": VOCAB_TIME,
 # Baseline for the residual target: generic difficulty + time + context, fit on DERIVE only.
 BASELINE_COLS = ["phase", "standing", "speed", "color", "log_seconds", "clock_frac", "clock_under_60s",
                  "rating_diff", "legal_moves", "gap12", "n_near", "ambiguity_entropy", "edge",
-                 "in_check", "non_pawn_material", "ply"]
+                 "in_check", "non_pawn_material", "ply",
+                 # v1.4: engine-free EASE indicators. A region defined by the absence of free material is the
+                 # complement of easy decisions, not a mechanism; "free material to take" is a generic ease
+                 # covariate any player benefits from. Threat indicators (own hanging pieces etc.) are NOT here.
+                 "free_capture", "recapture_available", "opp_hanging_any"]
 BASELINE_CAT = ["phase", "standing", "speed", "color"]
 
 DESIGN = {

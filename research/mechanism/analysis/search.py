@@ -65,9 +65,12 @@ def search(derive: pd.DataFrame, target: str, selectors, depth: int, result_size
         tgt = ps.BinaryTarget(target, 1)
         qf = ps.StandardQF(a=0.5)
     constraints = [ps.MinSupportConstraint(min_size)]
-    task = ps.SubgroupDiscoveryTask(derive, tgt, selectors, result_set_size=result_size * 4, depth=depth,
+    # retrieve many more than needed: the size cap below is applied after retrieval, and the top of the
+    # list is often oversized regions (a single broad selector) that the cap removes
+    rss = max(40, result_size * 20)
+    task = ps.SubgroupDiscoveryTask(derive, tgt, selectors, result_set_size=rss, depth=depth,
                                     qf=qf, constraints=constraints)
-    res = ps.BeamSearch(beam_width=beam).execute(task)
+    res = ps.BeamSearch(beam_width=max(beam, rss)).execute(task)
     rows = []
     for item in res.to_descriptions():
         quality, sg = item[0], item[1]

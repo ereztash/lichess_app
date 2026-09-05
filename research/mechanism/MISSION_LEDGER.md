@@ -272,3 +272,79 @@ between-game contrast cannot tell that from a mechanism inside decisions.
 | judge = game-fixed-effects contrast on VALIDATE: per game d_g = error inside − outside, weight n_in·n_out/(n_in+n_out), games are the independent units; z ≥ 3.5 and n_in ≥ 100 | game composition cancels by construction; the within-game shuffle is then the right null for this judge |
 | between-game contrasts reported beside, never deciding | the product's own reading, kept for continuity |
 | regions that occupy whole games (time control, colour, opponent) are invisible to the judge by design | they are contexts, not decision mechanisms; they remain Node G strata |
+
+## Node E — feature admissibility (executed 2026-09-05 14:50 UTC)
+
+| check | result |
+| --- | --- |
+| played-move swap (B3 `test_leakage` style): every non-`y_` column bit-identical after replacing the played move by another legal move | 0 violations, 120 decisions, 40 games (`analysis/test_leakage.py`) |
+| game-suffix replacement: every non-`y_` column bit-identical after truncating the game right after the decision | 0 violations |
+| shared-evaluation-noise rule (v1.2) | engine-derived pre-move features excluded from the OBS vocabulary |
+| think time (at-commit) excluded from OBS (v1.1) | searched only in `TIME`, diagnostically |
+| ported construct equivalence: `system_state` vs `research/learning-v3/p3_system_invariant.py` | 0 mismatches on 278 positions × 2 actors |
+| canonical counts | 59,419 scored, 52,881 eligible, 325 forced, 6,213 book: identical to `harness-account-full/prereg_report.json` |
+| canonical bucket ordering under the research engine | same order as the shipped-engine reading (endgame highest, middlegame lowest); levels ~5–10 pp lower because Stockfish 17.1 native is stronger than the WASM lite build |
+
+## Design v1.4 (after the first DERIVE freeze under v1.3; VALIDATE still unread)
+
+**What was seen.** The v1.3 residual OBS search froze, at depth 2 (Node C: held-out within-game z
+2.29 / 5.63 / 4.43 for depths 1/2/3), three DERIVE candidates (`nodeB/discovery_v13_derive_only.log`):
+`n_good_captures<1 AND standing=='winning'` (n 7,081, within-game +8.1 pp), `own_errors_so_far<6 AND
+recapture_available==0` (n 11,928, +10.5 pp), `opp_hanging_piece_count<1 AND standing=='winning'`
+(n 8,361, +7.2 pp). Each is the complement of an easy situation (free material to take, a recapture
+to make). Their elevation is at least partly "everything else is harder than taking free material",
+which is a simpler alternative the baseline must absorb. The run was stopped before VALIDATE was
+judged; no VALIDATE or TEST number has been read.
+
+| change | reason |
+| --- | --- |
+| baseline gains three engine-free EASE covariates: `free_capture` (a capture with positive static exchange exists), `recapture_available`, `opp_hanging_any`. Threat indicators (own hanging/overloaded pieces, king-ring attacks) stay out of the baseline | a mechanism must beat "there was free material to take"; it must not be denied the chance to be a threat-response structure |
+| judge: the deciding statistic is the within-game contrast of the baseline residual (z ≥ 3.5, n_in ≥ 100) with the raw within-game contrast required positive | excess error beyond generic difficulty, time, context and ease, inside games |
+| retrieval: the search keeps 40+ candidates before the size cap; beam width ≥ result set | a depth-1 sweep whose best selectors are oversized returned nothing under v1.3 |
+
+## Merge note — 2026-09-05 15:00 UTC
+
+`origin/main` advanced to `f53ade806c567d595fdc0e85da38a1d155277fbb` (PR #88, macro UI audit under
+Neta v0.2: record/reveal/bank repairs, findings N-7..N-11, `docs/neta/PRE_HUMAN_UX_PASS_4/5.md`).
+Merged into this branch as `d7f118d`. None of the definitions this mission ports changed
+(`shared/phase.ts`, `shared/win-probability.ts`, `shared/detector.ts`, `shared/import-diagnostic.ts`,
+`shared/opening-book*.ts`, `shared/pgn-clock.ts`, `client/src/lib/engine-line.ts`: empty diff;
+`MATE_SCORE` still 10000). PR #88 also records that its own nine falsification agents died on a
+session limit and that a green gate is not evidence it discriminates its rule: both are risks this
+mission carries too, and the second is exactly what design v1.3–v1.5 below is about.
+
+## Design v1.5 (null control repaired for label-derived history features; VALIDATE still unread)
+
+**What was seen.** Under v1.4 the depth rule chose depth 3 (held-out within-game z 1.65 / 3.15 /
+4.36) and every frozen DERIVE candidate used `own_errors_so_far ∈ [1,3)`
+(`nodeB/discovery_v14_derive_only.log`; within-game +20 to +22 pp on DERIVE). The run was stopped
+before VALIDATE. The Node B null had shuffled the target inside games but left the label-derived
+history features (`own_errors_so_far`, `plies_since_own_error`, `own_prev_wp_loss`,
+`own_error_rate_so_far`) computed from the REAL labels, so it could not test whether a partition of
+the game by the player's own error events produces elevation under independence. The v1.3 Node B
+partial results are archived as `results/nodeB_v13_stalehistory/` and are valid only for features
+that do not read earlier labels.
+
+| change | reason |
+| --- | --- |
+| the null and every planted world shuffle the outcome tuple (`err`, `y_wp_loss`) within game and then RECOMPUTE the four history features from the shuffled labels before searching | a history feature must face a null in which it is a function of independent outcomes |
+| the same recomputation is applied to bootstrap resamples (labels are real there; features unchanged) | no change needed; recorded for completeness |
+| depth 3 remains diagnostic; a depth-3 candidate must collapse to a 2-term sub-conjunction with Jaccard ≥ 0.60 on DERIVE to be frozen for VALIDATE | v1.1 rule, now operational in code |
+
+## Node B verdict rule (written before the v1.5 harness results are read)
+
+At the depth the Node C rule later chooses (and at depth 2, the product cap):
+
+- **null ceiling**: W5-null validated rate ≤ 0.02 (100 draws) for both search targets;
+- **expressiveness**: W2 (interaction) and W3 (cross-context conjunction) recovered on target
+  (Jaccard ≥ 0.60 on VALIDATE) in ≥ 0.50 of draws at depth 2; W1/W7 (single feature, equivalent
+  descriptions) ≥ 0.80 at depth 1;
+- **misattribution**: W4 (truth outside the vocabulary) validated in ≤ 0.10 of draws; every
+  validation there is a wrong sentence, and this rate is carried into the ledger as the chain's
+  known misattribution risk;
+- **weak effects**: W1w/W3w (+0.08) recovery is reported, not judged.
+
+PASS on all three bullets → the existing search (D04's oracle, widened vocabulary, within-game
+judge) can express a cross-context personal pattern and Node C's depth rule stands. FAIL on the
+expressiveness bullet → Node F (external representation search). FAIL on the null bullet → the
+judge, not the vocabulary, is the defect.

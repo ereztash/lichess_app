@@ -24,12 +24,22 @@ ON_TARGET_J = 0.60
 
 
 def plant(df: pd.DataFrame, mask: np.ndarray, delta: float, rng: np.random.Generator, target="err") -> pd.DataFrame:
+    """Plant a truth: inside `mask`, redraw the outcome with probability base + delta, keep the loss
+    consistent with the new label, then recompute history features (v1.5)."""
+    from common import recompute_history
     df = df.copy()
     base = df[target].mean()
     p = np.clip(base + delta, 0, 1)
-    draw = rng.random(len(df)) < p
-    df.loc[mask, target] = draw[mask].astype(int)
-    return df
+    draw = (rng.random(len(df)) < p).astype(int)
+    m = np.asarray(mask, bool)
+    df.loc[m, target] = draw[m]
+    if "y_wp_loss" in df.columns:
+        # a redrawn error carries a typical error loss; a redrawn non-error a typical accurate loss
+        err_losses = df.loc[df[target] == 1, "y_wp_loss"].values; ok_losses = df.loc[df[target] == 0, "y_wp_loss"].values
+        new = np.where(draw[m] == 1, rng.choice(err_losses, m.sum()), rng.choice(ok_losses, m.sum()))
+        df.loc[m, "y_wp_loss"] = new
+        df["y_accurate"] = 1 - df[target]
+    return recompute_history(df)
 
 
 def worlds(df: pd.DataFrame):

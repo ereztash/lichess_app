@@ -1,0 +1,6 @@
+DERIVE 31851/1297 games, VALIDATE 10626/432 games, base err 0.446
+NODE C depth CV: { 1: 1.65, 2: 3.15, 3: 4.36 } -> depth 3 (126s)
+FROZEN on DERIVE:
+  color=='w' AND material_balance: [-2:0[ AND own_errors_so_far: [1:3[  n=677 err_in=0.657 err_out=0.441 wg_est=+0.2208 wg_z=10.85
+  material_balance>=-2 AND opp_king_ring_enemy_attacks: [1:3[ AND own_errors_so_far: [1:3[  n=1151 err_in=0.590 err_out=0.440 wg_est=+0.2031 wg_z=12.81
+  material_balance>=-2 AND opp_king_ring_enemy_attacks>=1 AND own_errors_so_far: [1:3[  n=1176 err_in=0.585 err_out=0.440 wg_est=+0.2019 wg_z=12.76

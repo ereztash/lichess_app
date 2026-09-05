@@ -89,12 +89,31 @@ def main():
     (dvr, var), stgt, ctgt = prepare(dv, [va], target, design)
     numeric = True
     cands = search(dvr, stgt, sels, depth, design["n_freeze"], numeric, design["min_size"], design["max_size"], beam=design.get("beam", 30))
+    # v1.1/v1.5: a depth-3 candidate must collapse to a 2-term sub-conjunction with Jaccard >= 0.60 on DERIVE
+    import itertools
+    collapsed = []
+    for c in cands:
+        if len(c["sg"].selectors) <= 2:
+            collapsed.append(c); continue
+        full = np.asarray(c["sg"].covers(dvr), bool); best = None
+        for pair in itertools.combinations(c["sg"].selectors, 2):
+            sub = __import__("pysubgroup").Conjunction(list(pair))
+            jv = jaccard(np.asarray(sub.covers(dvr), bool), full)
+            if jv >= 0.60 and (best is None or jv > best[0]):
+                best = (jv, sub)
+        if best is None:
+            print(f"  dropped (no 2-term collapse with J>=0.60): {c['region']}", file=sys.stderr); continue
+        c = dict(c); c["region_depth3"] = c["region"]; c["sg"] = best[1]; c["region"] = str(best[1]); c["collapse_jaccard"] = best[0]
+        c["depth"] = 2; c["n_derive"] = int(np.asarray(best[1].covers(dvr), bool).sum())
+        collapsed.append(c)
+    cands = collapsed
     frozen = []
     for c in cands:
         inside_d = np.asarray(c["sg"].covers(dvr), bool)
         raw_d = region_contrast(dvr, inside_d, target)
         wg_d = within_game_contrast(dvr, inside_d, target)
-        frozen.append({"region": c["region"], "quality": c["quality"], "depth": c["depth"], "n_derive": c["n_derive"],
+        frozen.append({"region": c["region"], "region_depth3": c.get("region_depth3"), "collapse_jaccard": c.get("collapse_jaccard"),
+                       "quality": c["quality"], "depth": c["depth"], "n_derive": c["n_derive"],
                        "derive_err_in": raw_d["p_in"], "derive_err_out": raw_d["p_out"], "derive_wg_est": wg_d["est"], "derive_wg_z": wg_d["z"],
                        "derive_resid_wg_in": float(dvr.loc[inside_d, stgt].mean())})
     print("FROZEN on DERIVE:", file=sys.stderr)
@@ -131,9 +150,12 @@ def main():
         j = judge_region(var, c["sg"], target, design["k"], design["min_n_validate"])
         inside_v = np.asarray(c["sg"].covers(var), bool)
         if design["residual"]:
+            # v1.4: the deciding statistic is the within-game contrast of the baseline RESIDUAL
+            # (excess error beyond generic difficulty, time, context and ease, inside games)
             rw = within_game_contrast(var, inside_v, ctgt)
             j["resid_wg_est"] = rw["est"]; j["resid_wg_z"] = rw["z"]
-            j["pass"] = bool(j["pass"] and np.isfinite(rw["est"]) and rw["est"] > 0)
+            j["pass"] = bool(j["n_in"] >= design["min_n_validate"] and np.isfinite(rw["z"]) and rw["z"] >= design["k"]
+                             and np.isfinite(j["wg_est"]) and j["wg_est"] > 0)
         sec = within_game_contrast(var, inside_v, design["secondary_target"])
         j["secondary_wg"] = {k: sec[k] for k in ("est", "z", "n_games")}
         wl = within_game_contrast(var, inside_v, "y_wp_loss")
