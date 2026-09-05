@@ -38,10 +38,11 @@ fixing, not before declaring.**
 | ☑ | **F4** historical event reconstructed with current semantics | "מה הכלי אמר לכם עד כה" computed by re-running today's branch rules on old rows | [`tests/client/what-the-tool-says-now-is-not-what-it-said-then.test.ts`](../tests/client/what-the-tool-says-now-is-not-what-it-said-then.test.ts) — the page states which of the two readings it is, held there by a source-level assertion | the mix block using the vocabulary of past presentation |
 
 Each carries a counterexample that was **red before the repair and green after**, and a positive
-control that fails if the repair were "stop aggregating anything": two regimes stay apart *and* one
-regime still aggregates; a short level blocks certification *and* thirty at every used level still
-certifies; a deferred verdict is not exposure *and* a coached one still reads as the tool speaking;
-today's classification is not a transcript *and* is still correct under today's rule.
+control that fails if the repair were "stop saying anything": two regimes stay apart *and* one regime
+still aggregates; a thin level's share of the figure is named *and* is exactly zero once every used
+level clears the floor, with the flag never turning off as the record grows; a deferred verdict is
+not exposure *and* a coached one still reads as the tool speaking; today's classification is not a
+transcript *and* is still correct under today's rule.
 
 **Both first repairs were themselves falsified, and that is the most useful row in this section.**
 F2 first shipped `reliable = every used level clears the floor` — the obvious generalisation of
@@ -54,9 +55,37 @@ broken. F1 first shipped "read the largest regime", reused from `discoverySearch
 re-deriving it: largest is not latest, so after a bump to `CURRENT_PROTOCOL_VERSION` a
 120-against-40 record read the **retired** protocol at 100% accuracy for 81 more decisions.
 
-Neither was caught by the tests written for the family it repaired. Both were caught by asking, of
-each repair, what a realistic record does to it — which is the same move that produced F1 through F4
-and is the only reason to keep making it.
+Neither was caught by the tests written for the family it repaired, and that is a fact about what
+those tests can do rather than about how carefully they were written. **A test of a repair asks
+whether the repair does what it intended. It does not ask what the repair does somewhere else.**
+Both were caught by asking, of each repair, what a realistic record does to it.
+
+### Second-order repair failures, named
+
+A **second-order repair failure** is a failure introduced BY a repair, in a place the repair was not
+looking. It is not a bug in the repair's own logic: `every` killed its counterexample outright and
+"the largest" ended the pooling it was written to end. Both were correct about the thing they were
+pointed at and wrong about something they had turned their back on.
+
+The two on this branch have two different shapes, and both shapes are searchable:
+
+| shape | what happened | the question that finds it |
+| --- | --- | --- |
+| **A rule correct on the counterexample and wrong on the record's motion** | `every` was checked against a fixed 59-decision record. The counterexample held the record size still; the product does not. Certification then became non-monotone and, on realistic distributions, unreachable. | For each new predicate: is it monotone in the record? Can more evidence ever make a reading worse, later, or absent? |
+| **A rule imported from a consumer that asks a different question** | "the largest" was taken from `discoverySearchPopulation` without re-deriving it. Discovery chooses a population to SEARCH for a hypothesis; the record page describes a player under conditions that hold. The same rule, two questions, and staleness after every version bump. | For each rule reused from elsewhere: does the consumer it came from ask the same question as the consumer it moved to? |
+
+A third question follows from both, and neither of these two was found without it: **what did the
+counterexample hold fixed?** A counterexample is a single record, and a repair validated against one
+is validated at one point. Record size, protocol version, reveal mode, engine build and level count
+were all constant in the fixtures that proved F1 through F4, and every one of them moves in
+production.
+
+**This is the search the next run should run**, and it is narrower than "look for lost distinctions
+again". The question is not *where is a distinction lost*. It is: **which decision introduced to
+preserve a distinction creates a failure somewhere else?** Its population is the decisions this
+branch added — `stratify`, the regime chooser, `unreadableShare`, `verdictWithheldWhenComputed`, the
+`{measured, answered}` split, `regime.current` — and its yield is unknown, which is what makes it
+worth running rather than reasoning about.
 
 **Two thresholds were considered and neither moved.** `MIN_BUCKET_N` is untouched and F2 is phrased
 with it rather than beside it — the alternative, a rule about what SHARE of an aggregate may come
@@ -200,9 +229,9 @@ which was `BUILD_READY` and was a noun.
 
 What is true, and it is the whole of what the evidence supports: F1 through F4 each carry a
 counterexample that was red before its repair and green after, each carries a positive control that
-would fail if the repair were a refusal to aggregate, all 35 gates pass, all 35 positive controls go
-red under deliberate break, `npm run check`, `build`, `test` (3,073) and `bundle:budget` are green,
-and no threshold, detector semantic, denominator or probe moved.
+would fail if the repair were a refusal to say anything, all 35 gates pass, all 35 positive controls
+go red under deliberate break, `npm run check`, `build`, `test` (3,079) and `bundle:budget` are
+green, and no threshold, detector semantic, denominator or probe moved.
 
 What is not true is that this authorises the sentence the file used to end with. **The 2026-09-03
 declaration was made under the same conditions and was wrong**, and the reason it was wrong is now
@@ -220,8 +249,18 @@ rather than by review. That is not an argument that the work is unsound; it is t
 available argument that a green tree is not evidence of an absent finding, which is the exact
 inference this file made on 2026-09-03 and is being asked not to make again.
 
-**What would authorise a re-declaration.** A discovery run designed to be orthogonal to all four of
-these — one that searches for substituted referents rather than for defects — returning no novelty
-that changes an action. That is a run, not a reading of this file. Until it happens, the four
-`ENVIRONMENT` and `OWNER` items above stand between here and `FULL PRE-HUMAN CEILING REACHED`, and
-every remaining material uncertainty beyond them is `FIELD_REQUIRED`.
+**What would authorise a re-declaration.** A run against **second-order repair failures** —
+defined above, with its two shapes and its third question, over the decisions this branch introduced
+— returning no novelty that changes an action. Not a repeat of the search that found F1 through F4:
+that search is spent on this tree, and the two things it missed were both downstream of its own
+repairs.
+
+**And a run returning nothing is still not the sentence.** It would say a second search stopped
+finding things, which is exactly what three orthogonal runs said on 2026-09-03 before a fourth found
+four. What it would buy is a specific, named class ruled out on a specific tree, and that is worth
+writing down as itself rather than promoting to a ceiling. The declaration needs a reason that is
+not "we looked and did not see", and this file does not yet have one.
+
+Until then the four `ENVIRONMENT` and `OWNER` items above stand between here and
+`FULL PRE-HUMAN CEILING REACHED`, and every remaining material uncertainty beyond them is
+`FIELD_REQUIRED`.
