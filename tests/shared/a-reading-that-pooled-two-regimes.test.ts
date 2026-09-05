@@ -160,6 +160,61 @@ describe("the record page reads one population, not a mixture of regimes", () =>
   });
 });
 
+describe("the regime in force is not the regime of the last row", () => {
+  /*
+   * SECOND-ORDER, on the chooser that replaced "the largest". `regime.current` is the regime of the
+   * LAST ADMITTED DECISION, and reveal timing is chosen per game -- so a player who alternates
+   * modes moves it on every decision. Measured before the repair, on 200 coached decisions all
+   * accurate beside 30 deferred ones none accurate, one further decision at a time:
+   *
+   *     n= 30  accuracy=0.00  end-of-game
+   *     n=201  accuracy=1.00  per-decision
+   *     n= 31  accuracy=0.00  end-of-game
+   *     n=202  accuracy=1.00  per-decision
+   *
+   * Every number on the page swings between two populations forever. Question 1 of the
+   * second-order list asks whether more evidence can make a reading worse; here it makes it
+   * oscillate, which is worse than either answer.
+   *
+   * WHAT THE F1 COUNTEREXAMPLE HELD FIXED: 120 decisions under one protocol followed by 40 under
+   * the next, cleanly, with nothing interleaved. A protocol bump RETIRES the old regime -- no row
+   * lands in it again. A mode switch does not: both stay open, and the record interleaves them.
+   */
+  it("does not flip the whole reading on every decision when a player alternates modes", async () => {
+    const store = new MemoryRecordStore();
+    await fill(store, 200, { revealTiming: "per-decision", accurate: true });
+    await fill(store, 30, { revealTiming: "end-of-game", accurate: false });
+
+    const readings = [] as number[];
+    for (const timing of ["per-decision", "end-of-game", "per-decision", "end-of-game"] as const) {
+      await record(store, { revealTiming: timing, accurate: timing === "per-decision" });
+      readings.push((await service.recordReading(store)).scored);
+    }
+    // Not four different answers, and above all not two of them alternating.
+    const swings = readings.filter((n, i) => i > 0 && Math.abs(n - readings[i - 1]) > MIN_BUCKET_N);
+    expect(swings, `the reading oscillated: ${readings.join(" -> ")}`).toEqual([]);
+  });
+
+  it("still leaves a retired protocol behind when the succession is clean", async () => {
+    /*
+     * THE POSITIVE CONTROL, and it is the F1 case this must not undo. A protocol bump is a CLEAN
+     * SUCCESSION: every decision of the retired regime precedes the first of the new one. That is
+     * the case recency was added for, and it still switches.
+     */
+    const store = new MemoryRecordStore();
+    for (let i = 0; i < 120; i++) {
+      await record(store, { revealTiming: "per-decision", accurate: true, protocolVersion: 4 });
+    }
+    for (let i = 0; i < MIN_BUCKET_N; i++) {
+      await record(store, { revealTiming: "per-decision", accurate: false, protocolVersion: 5 });
+    }
+    const reading = await service.recordReading(store);
+    expect(reading.scored).toBe(MIN_BUCKET_N);
+    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build");
+    expect(reading.regime?.current).toBe(true);
+  });
+});
+
 describe("the shared bank is the reading a regime boundary matters most in", () => {
   /**
    * One bank answer per position, so `anchorAnswered` has something to be wrong about, with the

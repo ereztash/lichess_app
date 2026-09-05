@@ -1,0 +1,181 @@
+{
+  "contract_version": "0.2",
+  "status": "FIELD_STOP",
+  "raw_signal": "Mission brief (owner): identify that two or more of my chess mistakes in materially different contexts are manifestations of the same recurring player-specific decision mechanism, explain the common structure in terms I can act on, and derive one concrete change for the next game whose effect can be prospectively tested.",
+  "candidate_mechanisms": [
+    {
+      "name": "unresolved under-defended piece",
+      "explains": "Across openings, colours, phases, clock states and standings, when one of the owner's pieces has more attackers than defenders (and he is not already behind by more than two pawns), his move loses material to the reply far more often than elsewhere in the same games: tactical errors 25.7% vs 13.8% on games never used to find the region, 24.1% vs 13.6% on the newest 432 games; the excess survives a difficulty, time, context and free-material baseline and the shipped engine's labels. In 69% of those errors the move left the piece under-defended.",
+      "does_not_explain": "It does not establish that the structure is specific to this player: a same-rating population shows the same region at the same size (owner at the 62nd percentile of per-side elevations). It does not establish attention, calculation depth or any cognitive state, and it does not establish that any instruction changes the rate.",
+      "discriminator": "A within-participant alternating-block field test with a matched sham instruction: the tactical-error rate inside the region under the instruction versus under the sham, within game, with the policy signature (share of moves leaving the piece under-defended) and the outside-region rate as negative endpoint."
+    },
+    {
+      "name": "personal residue: losing the under-defended piece when level or slightly ahead",
+      "explains": "Under a population model fit on 34,794 same-rating decisions (holdout AUC 0.77, calibrated on the owner), the owner's hung-material rate in decisions with an own piece having more attackers than defenders while level or up to two pawns ahead exceeds the population's prediction by 6.1 points within game on VALIDATE (z 4.52), stable in 80% of bootstraps, with the i.i.d. null at 0/30 at both depths.",
+      "does_not_explain": "It does not explain the larger, level-typical part of the elevation (+13.5 points raw); it does not name a cognitive cause; the excess is small and one held-out window supports it.",
+      "discriminator": "The same field test: the instruction targets the omitted post-move check; if the owner's rate inside the trigger falls to the population's level under the instruction but not under the sham, the residue was a resolvable habit rather than a level effect."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "type": "REPO_MEASUREMENT",
+      "description": "The owner's frozen 2,209-game window re-scored (Stockfish 17.1 depth 12, MultiPV 3): 59,419 scored and 52,881 eligible decisions, identical counts to research/harness-account-full/prereg_report.json; canonical target definitions ported and tested (research/mechanism/nodeA/describe_personal_corpus.json).",
+      "reality_level": "R3"
+    },
+    {
+      "id": "E2",
+      "type": "REPO_MEASUREMENT",
+      "description": "Node B harness on the real feature table: i.i.d. null validated 0/100 at depths 1 and 2 for both search targets; planted single-feature, cross-context and interaction truths recovered on target (Jaccard >= 0.60) in 100% of draws at the depth that can express them; unrepresentable truth validated in <= 10% (research/mechanism/nodeB/nodeB_OBS_*.json).",
+      "reality_level": "R3"
+    },
+    {
+      "id": "E3",
+      "type": "REPO_MEASUREMENT",
+      "description": "R* = material_balance >= -2 AND own_overloaded_piece_count >= 1, target tactical error class, frozen on DERIVE (2021-04 to 2025-01), judged once on VALIDATE (2025-01 to 2025-11): n_in 2,937, 25.7% vs 13.8%, within-game +11.5 pp (z 11.24), residual within-game z 8.56; invariant in sign across every opening family, colour, phase, speed, standing and clock stratum (research/mechanism/nodeB/discovery_v17_cls_tactical.json, invariance_tactical_validate.json).",
+      "reality_level": "R3"
+    },
+    {
+      "id": "E4",
+      "type": "REPO_MEASUREMENT",
+      "description": "TEST (2025-11 to 2026-08, 432 games, opened once): 24.1% vs 13.6% (z 10.6); observed minus baseline-predicted +4.5 pp inside vs -2.9 pp outside (z 7.78); baseline + R* beats history-only, six-bucket, context and difficulty baselines on held-out log-loss and AUC (0.682 vs 0.664), shuffled-label p = 0.000 (research/mechanism/nodeB/predict_tactical_test.json).",
+      "reality_level": "R3"
+    },
+    {
+      "id": "E5",
+      "type": "REPO_MEASUREMENT",
+      "description": "Stability: 30 game-level bootstraps of DERIVE keep the core term own_overloaded_piece_count >= 1 in every winner (R* itself in 15, siblings in 15); leave-one-context-out re-derivation returns R* exactly for every opening family, colour, phase, rapid and year; halving DERIVE returns a sibling with the same core term (research/mechanism/nodeB/stability_loco_tactical.json).",
+      "reality_level": "R3"
+    },
+    {
+      "id": "E6",
+      "type": "REPO_MEASUREMENT",
+      "description": "Engine-artifact control: VALIDATE re-scored under the shipped Stockfish 18 Lite WASM engine keeps the region's sign and 89% of its size (within-game +10.2 pp, z 10.65) (research/mechanism/nodeB/engine_artifact_tactical_validate.json).",
+      "reality_level": "R3"
+    },
+    {
+      "id": "E7",
+      "type": "RESEARCH_SOURCE",
+      "description": "Population reference: 600 games of 2026-06 Lichess blitz, both sides rated 1450-1850, 1,200 sides, 34,794 eligible decisions, scored by the same pipeline: the same region carries +11.0 pp raw and +6.8 pp residual; per-side elevation mean +5.5 pp, sd 14.4; the owner sits at the 62nd percentile. Under a population model (holdout AUC 0.77, calibrated on the owner) the owner's within-game residual excess is +2.8 pp tactical (z 2.66) and +4.3 pp hung material (z 4.78) (research/mechanism/nodeB/population_tactical_validate.json).",
+      "reality_level": "R1"
+    },
+    {
+      "id": "E8",
+      "type": "OWNER_SIGNAL",
+      "description": "The owner read the repository's OwnExposure sentence (the same construct as R*'s core term) on 2026-09-02 between 16:16 and 16:36 UTC (docs/system-invariant/PRE_EXPOSURE_BASELINE.md). Ten admissible post-exposure games hold 65 region opportunities: 24.6% vs 14.9%, within-game +8.9 pp, unchanged from the pre-exposure baseline; no sham, no adherence measure.",
+      "reality_level": "R5"
+    },
+    {
+      "id": "E9",
+      "type": "ENVIRONMENT_CHECK",
+      "description": "The field protocol is executable with what exists: frozen predicate and code, scorer, feature extractor, judge and bootstrap in research/mechanism/; analysis/field_eval.py reads an exposure log and new games. Required: 128 rated blitz games in alternating blocks of ten (instruction / sham), 423 region opportunities per arm, at the owner's recent rate 3-5 weeks. Nothing on the product surface changes.",
+      "reality_level": "R4"
+    },
+    {
+      "id": "E10",
+      "type": "REPO_MEASUREMENT",
+      "description": "Design v1.8 population-baseline search (blitz only, OBS vocabulary, owner residual against the population model): hung-material class, frozen on DERIVE, judged once on VALIDATE: material_balance in [0,3) AND own_overloaded_piece_count >= 1, n_in 1,199, 19.9% vs 7.1%, within-game +13.5 pp (z 9.69), population-residual within-game +6.1 pp (z 4.52); null 0/30 at depths 1 and 2 (research/mechanism/nodeB/discovery_POP_cls_hung_material.json).",
+      "reality_level": "R3"
+    }
+  ],
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "OBSERVATION",
+      "statement": "On the owner's record, decisions in which one of his pieces has more attackers than defenders (and he is not down more than two pawns) carry a tactical-error rate about 11 points above the rest of the same games, in every opening family, colour, phase, speed, standing and clock state, on games never used to find the region.",
+      "resolution_authority": "REPO",
+      "required_reality": "R3",
+      "observed_reality": "R3",
+      "evidence_refs": [
+        "E1",
+        "E2",
+        "E3",
+        "E5",
+        "E6"
+      ],
+      "state": "SUPPORTED",
+      "requested_use": "DISCRIMINATE",
+      "permission": "ALLOW"
+    },
+    {
+      "id": "C2",
+      "kind": "OBSERVATION",
+      "statement": "The region predicts the owner's future tactical errors beyond history-only, six-bucket, context and difficulty baselines on the newest fifth of his record.",
+      "resolution_authority": "REPO",
+      "required_reality": "R3",
+      "observed_reality": "R3",
+      "evidence_refs": [
+        "E4"
+      ],
+      "state": "SUPPORTED",
+      "requested_use": "DISCRIMINATE",
+      "permission": "ALLOW"
+    },
+    {
+      "id": "C3",
+      "kind": "MECHANISM",
+      "statement": "The recurring structure behind these errors is that the move commits without resolving the under-defended piece; this is a level-typical structure that the owner shows about as often as a median same-rating player, with a small additional excess for losing that piece.",
+      "resolution_authority": "RESEARCH",
+      "required_reality": "R3",
+      "observed_reality": "R3",
+      "evidence_refs": [
+        "E3",
+        "E7"
+      ],
+      "state": "SUPPORTED",
+      "requested_use": "HYPOTHESIZE",
+      "permission": "ALLOW"
+    },
+    {
+      "id": "C4",
+      "kind": "MECHANISM",
+      "statement": "A small part of the structure is specific to this player: when level or up to two pawns ahead with an under-defended piece, he loses that piece about six points more often than a same-rating player is predicted to in the same situation.",
+      "resolution_authority": "RESEARCH",
+      "required_reality": "R3",
+      "observed_reality": "R3",
+      "evidence_refs": [
+        "E7",
+        "E10"
+      ],
+      "state": "SUPPORTED",
+      "requested_use": "HYPOTHESIZE",
+      "permission": "ALLOW"
+    },
+    {
+      "id": "C5",
+      "kind": "INTERVENTION",
+      "statement": "Before committing a move, when any own piece has more attackers than defenders, look at the position after the intended move: no own piece may have more attackers than defenders unless the move wins something bigger or gives check; otherwise choose again. Delivered as one written sentence before a session, never in-game.",
+      "resolution_authority": "OWNER",
+      "required_reality": "R5",
+      "observed_reality": "R3",
+      "evidence_refs": [
+        "E3",
+        "E9"
+      ],
+      "state": "INSUFFICIENT_REALITY",
+      "requested_use": "PROTOTYPE",
+      "permission": "DEFER"
+    },
+    {
+      "id": "C6",
+      "kind": "OUTCOME",
+      "statement": "Under that instruction the owner's tactical-error rate inside the region falls relative to a matched sham instruction, within game, by at least four points.",
+      "resolution_authority": "FIELD",
+      "required_reality": "R6",
+      "observed_reality": "R5",
+      "evidence_refs": [
+        "E8",
+        "E9"
+      ],
+      "state": "INSUFFICIENT_REALITY",
+      "requested_use": "ASSERT_FIELD_OUTCOME",
+      "permission": "DENY"
+    }
+  ],
+  "design_distinction": "A region that predicts a player's errors is not the same as a mechanism specific to that player; the population baseline separates the two, and the field test separates a mechanism from attention.",
+  "must_not_change": "The predicate, the class definition, the engine regime, the judge and the block schedule may not change once the first block is read; intervention and measurement may not change together.",
+  "reversal_condition": "C1-C2 reverse if the region's within-game contrast on new games falls below the baseline's prediction or changes sign under the shipped engine; C4 reverses if a second held-out window or a larger population sample puts the owner's residual inside the population's spread; C5-C6 reverse if the sham instruction lowers the rate as much as the real one, or the policy signature (share of trigger decisions whose resulting position leaves an own under-defended piece, baseline 61.9%) moves without the error rate.",
+  "field_requirement": "128 rated blitz games by the owner in alternating blocks of ten under the instruction and the matched sham, exposure logged before each block, scored by the unchanged pipeline, analysed by analysis/field_eval.py with the frozen contrasts; stop at 430 instruction-arm opportunities or 60 days.",
+  "waiver": null,
+  "next_step": "FIELD_REQUIRED_FOR_LEVEL_6: run the frozen alternating-block protocol (128 rated blitz games, instruction vs matched sham, exposure logged before each block, analysis/field_eval.py); until then the strongest permitted statement is C1-C4."
+}

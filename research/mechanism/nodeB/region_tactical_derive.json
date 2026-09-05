@@ -1,0 +1,301 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "frame": "DERIVE",
+ "n_in": 8635,
+ "n_out": 23216,
+ "games_in": 1259,
+ "err_in": 0.47805442964678635,
+ "err_out": 0.4338387319090283,
+ "blunder10_in": 0.19073537927041112,
+ "blunder10_out": 0.12508614748449345,
+ "wp_loss_in": 0.06223978804635854,
+ "wp_loss_out": 0.04696743465552902,
+ "share_of_frame": 0.2711060877209507,
+ "opportunities_per_game": 6.657671549730146,
+ "context_mix": {
+  "eco_family": {
+   "inside": {
+    "B": 0.517,
+    "C": 0.282,
+    "A": 0.159,
+    "D": 0.042
+   },
+   "frame": {
+    "B": 0.524,
+    "C": 0.276,
+    "A": 0.16,
+    "D": 0.039
+   }
+  },
+  "color": {
+   "inside": {
+    "w": 0.518,
+    "b": 0.482
+   },
+   "frame": {
+    "b": 0.503,
+    "w": 0.497
+   }
+  },
+  "phase": {
+   "inside": {
+    "middlegame": 0.721,
+    "opening": 0.243,
+    "endgame": 0.036
+   },
+   "frame": {
+    "middlegame": 0.636,
+    "opening": 0.312,
+    "endgame": 0.052
+   }
+  },
+  "speed": {
+   "inside": {
+    "blitz": 0.833,
+    "rapid": 0.102,
+    "bullet": 0.063,
+    "ultraBullet": 0.002
+   },
+   "frame": {
+    "blitz": 0.825,
+    "rapid": 0.1,
+    "bullet": 0.074,
+    "ultraBullet": 0.001
+   }
+  },
+  "standing": {
+   "inside": {
+    "winning": 0.49,
+    "level": 0.294,
+    "losing": 0.216
+   },
+   "frame": {
+    "winning": 0.385,
+    "level": 0.336,
+    "losing": 0.279
+   }
+  },
+  "era": {
+   "inside": {
+    "2024": 0.975,
+    "2023": 0.023,
+    "2021": 0.002,
+    "2025": 0.0
+   },
+   "frame": {
+    "2024": 0.972,
+    "2023": 0.025,
+    "2021": 0.003,
+    "2025": 0.0
+   }
+  },
+  "clock_state": {
+   "inside": {
+    ">=60s": 0.869,
+    "30-60s": 0.096,
+    "<30s": 0.035
+   },
+   "frame": {
+    ">=60s": 0.866,
+    "30-60s": 0.097,
+    "<30s": 0.037
+   }
+  },
+  "material": {
+   "inside": {
+    "full": 0.704,
+    "reduced": 0.26,
+    "endgame-material": 0.036
+   },
+   "frame": {
+    "full": 0.721,
+    "reduced": 0.226,
+    "endgame-material": 0.052
+   }
+  },
+  "opp_last": {
+   "inside": {
+    "quiet": 0.776,
+    "after-capture": 0.201,
+    "after-check": 0.023
+   },
+   "frame": {
+    "quiet": 0.724,
+    "after-capture": 0.249,
+    "after-check": 0.027
+   }
+  }
+ },
+ "error_class_inside": {
+  "best=quiet/played=quiet": 0.562,
+  "best=capture/played=quiet": 0.175,
+  "best=quiet/played=capture": 0.083,
+  "best=capture/played=capture": 0.082,
+  "best=check/played=quiet": 0.03,
+  "best=quiet/played=check": 0.029,
+  "best=check/played=check": 0.017,
+  "best=check/played=capture": 0.015,
+  "best=capture/played=check": 0.008
+ },
+ "error_class_outside": {
+  "best=quiet/played=quiet": 0.635,
+  "best=capture/played=quiet": 0.138,
+  "best=capture/played=capture": 0.079,
+  "best=quiet/played=capture": 0.071,
+  "best=quiet/played=check": 0.024,
+  "best=check/played=quiet": 0.022,
+  "best=check/played=check": 0.014,
+  "best=check/played=capture": 0.01,
+  "best=capture/played=check": 0.007
+ },
+ "played_piece_inside_errors": {
+  "N": 0.212,
+  "B": 0.209,
+  "P": 0.195,
+  "Q": 0.188,
+  "R": 0.134,
+  "K": 0.062
+ },
+ "best_piece_inside_errors": {
+  "N": 0.229,
+  "Q": 0.213,
+  "P": 0.199,
+  "B": 0.196,
+  "R": 0.131,
+  "K": 0.032
+ },
+ "played_in_top3_inside": 0.6499131441806602,
+ "played_in_top3_outside": 0.6122070985527223,
+ "seconds_median_inside": 2.48,
+ "seconds_median_outside": 2.08,
+ "examples": [
+  {
+   "game": "https://lichess.org/dIpypajO#32",
+   "color": "w",
+   "eco": "C21",
+   "opening": "Danish Gambit",
+   "phase": "middlegame",
+   "ply": 32,
+   "fen": "rn3k2/pQp2p2/3b3p/7q/8/1BN5/PP3PPP/R1B2RK1 w - - 0 17",
+   "played": "b7a8",
+   "best_pv": null,
+   "wp_loss": 0.956,
+   "seconds": 1.47,
+   "clock_own_s": 128.35,
+   "standing": "winning",
+   "material_balance": 9
+  },
+  {
+   "game": "https://lichess.org/xtPHUQzB#38",
+   "color": "w",
+   "eco": "B00",
+   "opening": "Nimzowitsch Defense: Kennedy Variation",
+   "phase": "middlegame",
+   "ply": 38,
+   "fen": "1r3rk1/pP2qppp/3n1n2/8/Q7/2B5/P4PPP/RN2R1K1 w - - 0 20",
+   "played": "c3f6",
+   "best_pv": null,
+   "wp_loss": 0.907,
+   "seconds": 0.98,
+   "clock_own_s": 34.43,
+   "standing": "winning",
+   "material_balance": 1
+  },
+  {
+   "game": "https://lichess.org/WehbFYLl#69",
+   "color": "b",
+   "eco": "A00",
+   "opening": "Van't Kruijs Opening",
+   "phase": "middlegame",
+   "ply": 69,
+   "fen": "5k1r/p2b3p/2pN1p2/5r2/1PB3QP/P7/6PK/q6R b - - 8 35",
+   "played": "h8g8",
+   "best_pv": null,
+   "wp_loss": 0.827,
+   "seconds": 2.08,
+   "clock_own_s": 32.67,
+   "standing": "winning",
+   "material_balance": 2
+  },
+  {
+   "game": "https://lichess.org/mupMvUCC#14",
+   "color": "w",
+   "eco": "B21",
+   "opening": "Sicilian Defense: McDonnell Attack",
+   "phase": "opening",
+   "ply": 14,
+   "fen": "r2qkbnr/pp1b2p1/2npp2p/2p3N1/2B1P3/8/PPPP2PP/RNBQK2R w KQkq - 0 8",
+   "played": "c4e6",
+   "best_pv": null,
+   "wp_loss": 0.806,
+   "seconds": 1.2,
+   "clock_own_s": 54.03,
+   "standing": "winning",
+   "material_balance": 0
+  },
+  {
+   "game": "https://lichess.org/XGgHVmjY#41",
+   "color": "b",
+   "eco": "B20",
+   "opening": "Sicilian Defense: Bowdler Attack",
+   "phase": "middlegame",
+   "ply": 41,
+   "fen": "r3r1k1/2q2ppp/p2b4/1p1p2B1/6n1/2P3PQ/P1BN1P1P/R5K1 b - - 0 21",
+   "played": "c7c3",
+   "best_pv": null,
+   "wp_loss": 0.739,
+   "seconds": 2.4,
+   "clock_own_s": 243.15,
+   "standing": "winning",
+   "material_balance": 3
+  },
+  {
+   "game": "https://lichess.org/21ESvGWK#27",
+   "color": "b",
+   "eco": "C36",
+   "opening": "King's Gambit Accepted: Abbazia Defense",
+   "phase": "middlegame",
+   "ply": 27,
+   "fen": "r2q1rk1/pp3ppp/1b3nn1/4NbB1/2BP4/2P2Q2/PP4PP/RN3RK1 b - - 8 14",
+   "played": "d8d6",
+   "best_pv": null,
+   "wp_loss": 0.562,
+   "seconds": 10.56,
+   "clock_own_s": 140.59,
+   "standing": "winning",
+   "material_balance": -1
+  },
+  {
+   "game": "https://lichess.org/IFy78hXl#20",
+   "color": "w",
+   "eco": "C21",
+   "opening": "Danish Gambit",
+   "phase": "opening",
+   "ply": 20,
+   "fen": "rnbq1rk1/ppp2pp1/1n1p3p/2b1P1N1/8/1BP5/PPQ2PPP/RNB1K2R w KQ - 0 11",
+   "played": "g5e4",
+   "best_pv": null,
+   "wp_loss": 0.546,
+   "seconds": 1.44,
+   "clock_own_s": 165.63,
+   "standing": "winning",
+   "material_balance": 0
+  },
+  {
+   "game": "https://lichess.org/ejTM70xA#30",
+   "color": "w",
+   "eco": "D00",
+   "opening": "Blackmar-Diemer Gambit: Blackmar Gambit",
+   "phase": "middlegame",
+   "ply": 30,
+   "fen": "r2qk2r/1b1n1ppp/2p1p3/p4nN1/Pp1P4/1B1Q4/1PP1N1PP/R4RK1 w kq - 2 16",
+   "played": "e2f4",
+   "best_pv": null,
+   "wp_loss": 0.543,
+   "seconds": 2.72,
+   "clock_own_s": 90.59,
+   "standing": "winning",
+   "material_balance": -1
+  }
+ ]
+}

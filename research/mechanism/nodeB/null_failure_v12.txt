@@ -1,0 +1,7 @@
+DERIVE 31851 decisions / 1297 games; VALIDATE 10626 / 432 games
+depth 1 W5-null                      validated 0.690 on-target 0.000 medJ nan (44s)
+depth 1 W1-simple                    validated 1.000 on-target 1.000 medJ 1.000 (10s)
+depth 1 W2-interaction               validated 0.700 on-target 0.000 medJ 0.033 (9s)
+depth 1 W3-cross-context             validated 1.000 on-target 1.000 medJ 0.940 (8s)
+depth 1 W4-unrepresentable           validated 0.500 on-target 0.000 medJ 0.115 (10s)
+depth 1 W6-proxy-contains-truth      validated 1.000 on-target 1.000 medJ 1.000 (11s)

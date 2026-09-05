@@ -1,0 +1,65 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "n": 8635,
+ "tactical_errors": {
+  "n": 2124,
+  "moved_overloaded": 0.2744821092278719,
+  "still_overloaded_after": 0.6925612052730696,
+  "played_capture": 0.2669491525423729,
+  "best_moves_overloaded": 0.3093220338983051,
+  "best_capture": 0.3394538606403013,
+  "reply_captures_overloaded": 0.540859707132735,
+  "reply_is_capture": 0.7345299952763344,
+  "max_overloaded_value_mean": 2.468926553672316
+ },
+ "hung_material_errors": {
+  "n": 1406,
+  "moved_overloaded": 0.2283072546230441,
+  "still_overloaded_after": 0.7780938833570412,
+  "played_capture": 0.2887624466571835,
+  "best_moves_overloaded": 0.3200568990042674,
+  "best_capture": 0.26955903271692744,
+  "reply_captures_overloaded": 0.7709815078236131,
+  "reply_is_capture": 1.0,
+  "max_overloaded_value_mean": 2.3897581792318636
+ },
+ "accurate": {
+  "n": 4507,
+  "moved_overloaded": 0.40448191701797204,
+  "still_overloaded_after": 0.45418238295984026,
+  "played_capture": 0.3809629465276237,
+  "best_moves_overloaded": 0.3858442422897715,
+  "best_capture": 0.3625471488795207,
+  "reply_captures_overloaded": 0.20626753975678203,
+  "reply_is_capture": 0.304022450888681,
+  "max_overloaded_value_mean": 2.9463057466163747
+ },
+ "all": {
+  "n": 8635,
+  "moved_overloaded": 0.3631731325998842,
+  "still_overloaded_after": 0.5118702953097858,
+  "played_capture": 0.28465547191661844,
+  "best_moves_overloaded": 0.3551823972206138,
+  "best_capture": 0.3156919513607412,
+  "reply_captures_overloaded": 0.25817617569825735,
+  "reply_is_capture": 0.3740749582239198,
+  "max_overloaded_value_mean": 2.7317892298784017
+ },
+ "tactical_rate_by_action": {
+  "moved_it": 0.18590561224489796,
+  "n_moved": 3136,
+  "left_it_still_overloaded": 0.3336763570877283,
+  "n_left": 3887,
+  "resolved_without_moving": 0.1513647642679901,
+  "n_resolved": 1612
+ },
+ "error_class_inside_region": {
+  "quiet_error": 0.485,
+  "hung_material": 0.341,
+  "missed_material": 0.07,
+  "allowed_check_tactic": 0.053,
+  "missed_check": 0.034,
+  "missed_mate": 0.012,
+  "bad_capture": 0.005
+ }
+}

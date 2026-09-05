@@ -1256,6 +1256,72 @@ button:not(:disabled) {
   grid-template-columns: [task] 330px [board] minmax(480px, 1fr);
 }
 /*
+ * EXPLORE PUTS THE WHOLE RECORD IN A TRACK THAT WAS SIZED FOR A COMMITMENT FORM.
+ *
+ * `[task] 330px` is a track at its minimum and its maximum at the same time, so it cannot receive
+ * surplus at any screen size in any state -- and above the breakpoint below, ALL the surplus goes
+ * to the board. Measured on the shipped build with the record open: at 1440 the reading column was
+ * 330px beside 874px of board; at 1854 it was 330px beside 982px. 414 more pixels of screen bought
+ * the reading nothing, and the eleven sections, the calibration chart and the bucket list were a
+ * strip against the right edge with a thousand pixels of nothing beside them.
+ *
+ * THE JUDGEMENT IS ALREADY IN THIS FILE, one rule down: "330px beside a 420px board is not a
+ * column, it is a squeeze." That is why the stack goes under the board below 1050px. The squeeze
+ * does not stop at 1051px; only the rule did.
+ *
+ * 480px IS THE BOARD'S OWN NUMBER, taken from the `minmax(480px, 1fr)` above rather than picked
+ * here: this file already says that is enough board at every width this rule applies to. So the
+ * board keeps what it declares it needs and the surplus goes to the reading, which is the one
+ * thing on this screen that can use it. In EXPLORE the record is the subject and the board is the
+ * position it is about -- `MODE_CONTRACT` says so, and this is that sentence in track widths.
+ *
+ * `:has()` RATHER THAN A MODIFIER CLASS, for the reason `.workbench-focus` gives for named lines:
+ * the template and the children cannot disagree about which state this is. `exploring` in
+ * `Home.tsx` is not the same proposition as "the explorer is on screen" -- it survives the start
+ * of the next decision, and the explorer does not -- so a class plumbed from it would widen the
+ * column over a board the player is deciding on.
+ */
+@media (min-width: 1051px) {
+  .workbench:has(.record-explorer) {
+    grid-template-columns: [task] minmax(330px, 1fr) [board] 480px [rail] 132px;
+  }
+  .workbench.workbench-focus:has(.record-explorer) {
+    grid-template-columns: [task] minmax(330px, 1fr) [board] 480px;
+  }
+}
+/*
+ * AND THE POSITION STAYS ON SCREEN WHILE THE RECORD ABOUT IT IS READ.
+ *
+ * Widening the reading column does not shorten it. The record is eleven sections, so by the
+ * calibration chart the board has scrolled away and its track is a column of nothing: measured at
+ * 1440x900 with the record open, the board's box sat at top -1731, bottom -1371, and 0 of its 360
+ * pixels were on screen. Every number below that point is a number ABOUT A POSITION, and the
+ * position was gone.
+ *
+ * `align-self: start` IS NOT A TIDINESS PROP, IT IS THE WHOLE MECHANISM. A grid item stretches by
+ * default, so `.board-workspace` measured 3,832px tall -- the height of the reading beside it --
+ * and a sticky box with no room between its own top and its own bottom never moves. Starting it
+ * collapses it to its content, 656px, and the pin has 3,176px to work with.
+ *
+ * THE SAME `:has()` AS THE TRACKS ABOVE, and for a stronger reason than symmetry: outside EXPLORE
+ * the board track is `minmax(480px, 1fr)` and takes everything, so at 1854 the workspace is nearly
+ * 1,200px and a pin would put its bottom permanently out of reach. It is the 480px cap that makes
+ * the box stickable at all, and the cap and the pin are therefore the same condition.
+ *
+ * `min-height: 700px` IS MEASURED, NOT CHOSEN. The workspace is 656px at 1051, at 1440 and at 1854
+ * -- constant, because the board track is fixed in this state -- and the offset is 24px. 680 is
+ * what it needs and 700 is the next round number above it. Under that the pin declines and the
+ * board scrolls with the page, which is the correct answer at a viewport that cannot hold it: a
+ * box pinned taller than the screen has a bottom nobody can scroll to.
+ */
+@media (min-width: 1051px) and (min-height: 700px) {
+  .workbench:has(.record-explorer) .board-workspace {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+  }
+}
+/*
  * THE RAIL IS LAST NOW, so its separator faces the reading start rather than the end -- and it is
  * a LOGICAL side either way, which is what makes the same rule true in both directions. It was
  * `border-left`, correct while the rail was track 1 on a right-to-left page and wrong the moment

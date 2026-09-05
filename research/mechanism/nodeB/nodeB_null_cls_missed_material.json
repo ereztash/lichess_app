@@ -1,0 +1,79 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "residual": true,
+ "target": "cls_missed_material",
+ "sweeps": [
+  {
+   "depth": 1,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 30,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 23.3
+    }
+   ]
+  },
+  {
+   "depth": 2,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 30,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 250.9
+    }
+   ]
+  }
+ ]
+}

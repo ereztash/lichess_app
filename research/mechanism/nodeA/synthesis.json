@@ -1,0 +1,595 @@
+{
+ "node_a_table": [
+  {
+   "claim": "Canonical target: a decision is accurate iff winProbabilityLoss(engineEvalCp, cpLoss) <= ACCURATE_WIN_PROBABILITY_LOSS = winProbabilityLoss(15, 30) = 0.027608582058630926 (k = 0.00368208; ACCURATE_CP_LOSS = 30 kept only as anchor). The product's PRIMARY measure is the calibration gap (confidence \u2212 accurate), which is undefined on imported games.",
+   "evidence": "shared/detector.ts; shared/win-probability.ts; docs/MEASUREMENTS.md 'Two things were called accuracy; one of them is canonical'; gate tests/shared/what-the-documents-still-say.test.ts",
+   "current_status": "SHIPPED / SUPPORTED",
+   "superseded_by": "Supersedes raw cpLoss <= 30 and the non-canonical eval-analysis.ts 0\u2013100 score",
+   "reversal_condition": "Gate fails if a cited constant differs from the build; k fitted on 2300-rated games 'misstates what moves cost' for other populations",
+   "next_open_question": "Whether a 2300-rated logistic is the right cost scale for the owner; whether accuracy (proxy) tracks calibration gap at all \u2014 'nothing has checked that the bucket where accuracy is worst is the bucket where calibration is worst'",
+   "authority": "REPO"
+  },
+  {
+   "claim": "Instrument identity is load-bearing: native Stockfish vs shipped Stockfish 18 Lite WASM at depth 12 flips 216/1,587 (13.61%) accurate verdicts, +4.4\u20134.5 pp one-way; \u0394 13.6 pp > T2 13.0 pp \u2192 STOP-B1; hash clearing alone flips 11.22%; population reference-budget swap flips 5.43% (STOP-D).",
+   "evidence": "docs/research/ENGINE_PARITY_RESULTS.md; research/harness-shipped/harness_report.json (evidenceSha256 d70998ba\u2026); research/blitz/data/analysis_results.json labelStability.flipRate 0.0543",
+   "current_status": "SUPPORTED; consequence executed (every owner corpus re-scored on shipped WASM, hash cleared)",
+   "superseded_by": "research/harness (native, warm hash) superseded by research/harness-shipped (X-12)",
+   "reversal_condition": "'No threshold moves because of this result'; browser behaviour and other depths unmeasured",
+   "next_open_question": "Any owner mechanism must be shown robust to a label that flips 13.6% under an engine swap; root-minus-child cpLoss noise floor at depth 12 MultiPV 1 never measured on the owner",
+   "authority": "REPO"
+  },
+  {
+   "claim": "The owner's whole admissible record exists and is scored: erez281, 3,195 rated games \u2192 2,209 admissible (rejected: Abandoned 124, Time forfeit 724, under-20-plies 134, no-clocks 4); blitz 1,899 / rapid 203 / bullet 103 / ultrabullet 3 / classical 1; 59,419 decisions, forced 325, book 6,213, eligible 52,881; Stockfish 18 Lite WASM depth 12, Threads 1, Hash 16, cleared; repeats=true, orderIndependent=true; fetched 2026-09-01T21:42:06Z.",
+   "evidence": "research/harness-account-full/prereg_report.json + corpus_manifest.json (corpusSha256 30f3d425\u2026, evidenceSha256 497860ad\u2026); verified this session",
+   "current_status": "SUPPORTED (aggregates only); per-decision rows ABSENT from disk (gitignored; find returned nothing)",
+   "superseded_by": "Contains the 1,240- and 48-game windows",
+   "reversal_condition": "A re-score on another build/depth is a different instrument (R-03 refuses pooling)",
+   "next_open_question": "Regenerating the per-decision table (~90.8 min per pass) and with which row schema; scratchpad/account/frozen_2209.ndjson (7.46 MB raw API JSON, 2,209 rows) holds the inputs",
+   "authority": "REPO"
+  },
+  {
+   "claim": "Owner bridge series (worstBucketVerdict at 2 SE): 48 games not-separable (phase-middlegame 0.6025 n=790 vs standing-losing 0.6163; sep 0.01375, bar 0.06985); 1,240 games REGISTERED on phase-middlegame (0.6024 n=19,577 vs standing-level 0.6140; sep 0.011583, bar 0.011450, margin 0.0133 pp); 2,209 games not-separable (0.6035 n=34,905 vs 0.6097 n=20,217; sep 0.0062184, bar 0.0086317). Prediction frozen in FULL_PREREG (registered, margin +0.3004) failed (\u22120.2413).",
+   "evidence": "research/harness-account{,-1240,-full}/prereg_report.json; docs/research/ACCOUNT_BRIDGE_FULL_RESULTS.md \u00a70\u2013\u00a73",
+   "current_status": "SUPPORTED; 'This account cannot register this hypothesis' (needs ~4,256 games; 2,209 exist); 'No fourth window'",
+   "superseded_by": "2,209 result supersedes the 1,240 registration as the last word",
+   "reversal_condition": "Two of three frozen refuters fired; FULL_PREREG \u00a76 forbids a fourth window, threshold moves, dropping games",
+   "next_open_question": "The instrument searches downward while the largest structure is at the top (phase-endgame 0.8042 n=2,590; clock-under-1m 0.6938 n=3,752 vs a 0.60\u20130.64 pack)",
+   "authority": "REPO"
+  },
+  {
+   "claim": "Strongest owner-specific L0 signal: accuracy falls monotonically with think time inside fast-under-45s \u2014 0\u20131 s 71.3% (n=15,421), 2\u20133 s 63.9% (19,881), 4\u20137 s 55.2% (11,376), 8\u201315 s 49.6% (4,647), 16\u201345 s 48.4% (1,389), 46 s+ 42.5% (167): 28.8 pp; replicated at 1,240 (31.3 pp), 48 (25.6 pp) and on the 117-game B2 corpus (76%\u219241%).",
+   "evidence": "ACCOUNT_BRIDGE_FULL_RESULTS.md \u00a75; ACCOUNT_BRIDGE_RESULTS.md \u00a77; research/b2/analysis.json amended.candidates['lichess encoding buckets'].rates. NOTE: per-band tables come from the gitignored evidence file and are NOT in any committed JSON",
+   "current_status": "SUPPORTED as OBSERVATION; explicitly NOT causal (TIME_REPRESENTATION_PREREG \u00a72.2: 'hard positions take longer and are played worse')",
+   "superseded_by": "none",
+   "reversal_condition": "A per-decision difficulty control (candidateGap, legal-move count, |V\u22120.5|) flattening the gradient; never computed for the owner",
+   "next_open_question": "Player-specific vs population-typical: six-player blitz subset shows the same shape (78.1%\u219246.3%); B3 population beta +0.01342 \u2014 no matched baseline for the owner's bands exists",
+   "authority": "REPO"
+  },
+  {
+   "claim": "On the 117-game B2 corpus the think-time separation survives its within-cell random-boundary null in all three middlegame cells (level 13.93 vs 11.69 n=250; losing 11.89 vs 10.45 n=288; winning 12.85 vs 10.57 n=274) and collapses in every opening cell and the endgame cell; stratified permutation survival 16.0% vs ~6% calibrated ('a real part of the separation is composition').",
+   "evidence": "research/b2/analysis.json amended.controls.within_phase_standing; TIME_REPRESENTATION_RESULTS.md \u00a73.3, \u00a77",
+   "current_status": "SUPPORTED on one corpus (1,308 held-out decisions); B2 verdict OBSERVATION; nothing adopted",
+   "superseded_by": "Supersedes the 75-game conclusion '8 of 8 collapse' (corpus missing 42 arena games) and the 'confound grows with data' argument",
+   "reversal_condition": "STOP-B2 rules; \u00a78 'No threshold moves. Not 45, not 120'; a live record with stated confidence required before any cut moves",
+   "next_open_question": "What carries the residual middlegame separation once phase\u00d7standing is fixed \u2014 unmeasured difficulty or a player-specific allocation pattern",
+   "authority": "REPO"
+  },
+  {
+   "claim": "The shipped time cut is structurally dead on this account: slow-over-2m holds 0/0/2/4 decisions across 117/48/1,240/2,209 games; fast-under-45s holds 99.7%; raw seconds separates by 0.00 pp; think times are integer seconds (Lichess sub-second boundaries inert); 'time pressure (clock %)' fails its own null (3.77 vs 3.77) and is a phase ordering wearing a clock.",
+   "evidence": "prereg_report.json bucket arrays; research/b2/analysis.json; TIME_REPRESENTATION_RESULTS.md \u00a71\u2013\u00a72",
+   "current_status": "SUPPORTED (structural fact); product cut frozen by decision",
+   "superseded_by": "none",
+   "reversal_condition": "Only if the account's time controls change",
+   "next_open_question": "Whether thinkFractionOfClockBefore, clockShare or clockBalanceMs (derivable, never written to any evidence row) separate on the owner's real record",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D05 relative-time buckets (fast-relative <1/60, slow-relative >1/15) fix readability outright on simulated blitz (usable 0.2725\u21920.9956; 0.0037\u21921.0000; false-claim 0/1,600) but were REJECTED twice on recovery: 0.0000 vs bar 0.2087 (Q8, test later shown unanswerable) and 0.0475 vs bar 0.2112 (Q9).",
+   "evidence": "docs/decisions/D05-blitz-time.md; research/discovery-oracle/results/q8_relative_time.txt, q9_answerable_plant.txt",
+   "current_status": "REJECTED at these cuts; node DEFER; E1 (simulated only)",
+   "superseded_by": "Q9 supersedes Q8's unanswerable test; D05 supersedes Q6's 'the world is fine, the bucket is not'",
+   "reversal_condition": "(1) a declared choice rule then one run; (2) a real blitz record; (3) vocabulary gains conjunctions (D04); (4) blitz record large enough that 27% usable stops mattering",
+   "next_open_question": "'picking a better constant is worth about five points where the search is worth thirty-three'",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "D00: discovery research runs as a Python PSEUDOCODE_ORACLE (E3); shared/discovery/ holds only contracts; no search algorithm exists in TypeScript; bridge parity 9.7e-17.",
+   "evidence": "docs/decisions/D00-research-oracle-before-product-code.md; scripts/run_discovery_oracle.ts",
+   "current_status": "DECIDED",
+   "superseded_by": "D00's 'pysubgroup imported by nothing' is stale relative to q7/D04 (M0 passed)",
+   "reversal_condition": "Oracle stops reproducing a shipped result; a component reaches E4; bridge costs more than the duplication it prevents",
+   "next_open_question": "Whether pysubgroup earns a port",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D01: a feature is admissible only via a point-in-time read \u2014 featureAsOf filters observed_at <= commit_timestamp (cutoff is the COMMIT, not the reveal); missing is null never default; DeepGameFeatures (shared/game-features.ts) is post-game, has no consumers and must be declared or deleted.",
+   "evidence": "docs/decisions/D01; shared/discovery/feature-contract.ts; tests/discovery/no-feature-from-the-future.test.ts (15 cases)",
+   "current_status": "DECIDED, E2 ('a contract nothing calls prevents nothing' \u2014 no product path reads featureAsOf)",
+   "superseded_by": "Killed the per-column PRE_DECISION/COMMIT/POST_GAME label alternative",
+   "reversal_condition": "DeepGameFeatures wired without a FeatureSpec; a leaked feature reaching a validated claim \u2192 bitemporal rows; event_time unread at first real study \u2192 remove",
+   "next_open_question": "Whether the three timestamps are the right three",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D02: unit of inference is the DECISION; game-clustered sandwich SE REFUTED (worse calibrated in 82/84 cells at 20 games; null fire up to 3.9% vs 1.5%); shipped SE understated 0\u201338% over ICC 0\u20130.058 but absorbed by the two-stage freeze (0/8,000 null false claims); ScoredDecision deliberately carries no game_id; a real player's ICC has never been measured (clustering.ts read by nothing).",
+   "evidence": "docs/decisions/D02; research/discovery-oracle/results/q1_units.json; M0_AUDIT \u00a7Q1",
+   "current_status": "DECIDED (REJECT clustered judge), 'one number open'",
+   "superseded_by": "none",
+   "reversal_condition": "(1) real ICC > 0.05; (2) 'Records reach roughly 50 games'; (3) chain loses its second stage; (4) cluster bootstrap measured and wins. CONDITION (2) IS MET BY THE OWNER CORPUS (2,209 games \u2248 44\u00d7)",
+   "next_open_question": "D02 explicitly 'does not cover' a 200-game player; comparison 'must be re-run before that is assumed either way' \u2014 never done on the owner",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D03: three-layer registry measured \u2192 discovery_eligible \u2192 validation_eligible; searchableFeatures refuses role TARGET, VALIDATION_ONLY (measurement_protocol, time control) and anything undeclared; confidence is 'half the target' and never a selector; vocabulary cuts must be fixed in advance from product thresholds, never from record quantiles.",
+   "evidence": "docs/decisions/D03; shared/discovery/feature-contract.ts; D04 'THE DESIGN'",
+   "current_status": "DECIDED, E2 (no FeatureSpec registry instance exists in product code)",
+   "superseded_by": "none",
+   "reversal_condition": "A feature declared discovery_eligible without a written argument; semantic_confidence unread at first study \u2192 delete; three layers stop being enough",
+   "next_open_question": "Which semantic_confidence class board-derived constructs (OwnExposure, mobility, ambiguity) carry",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D04: fixed-vocabulary pysubgroup beam search (7 selectors over phase/seconds/clock_ms; NumericTarget gap; StandardQFNumeric a=0.5; beam 20; result_set_size 1) on the derivation half, one region frozen, judged on validation at k=3.75/n\u226530: interaction-only correct attribution 0% \u2192 33.5% at depth 2 (median Jaccard 1.000) with false-claim 0.0010 (CI 0.0004\u20130.0026) on 4,000 nulls vs 0.02 ceiling; depth 1 gains only 0.2225; depth 2 loses clean-fast 0.1725\u21920.0650 and clean-middlegame 0.6275\u21920.4000. one-game-only and every-game-first-moves stay 0.0000 (no game/ply selector).",
+   "evidence": "docs/decisions/D04-candidate-search.md; research/discovery-oracle/results/q7_candidate_search.json",
+   "current_status": "MEASURED, NOT REJECTED; E3; depth is an open trade; never run on a real record",
+   "superseded_by": "Killed 'accurate as target with confidence as selector' (region 'confidence < 5')",
+   "reversal_condition": "Real-corpus false-claim > 0.02; a depth unchoosable without seeing the outcome; a port disagreeing with pysubgroup; Jaccard \u2265 0.60 doing the work (per-record distribution NOT stored \u2014 cannot be evaluated without a re-run)",
+   "next_open_question": "'Choosing a depth is choosing which world to be right about'; widening the vocabulary is 'a new multiplicity question, not a free improvement'",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "D06 stability selection, D07, D10, D12, D17 semantic chess features, D18 sequence mining are DEFER with written triggers; none has a file. D06's original trigger fired via D04 and was replaced by 'opens when D04's depth is settled'; D17 opens when 'the statistical mechanism is proven' (undefined); D18 when 'the static model is validated AND its residuals show temporal dependence'. 'none of them may be started to make an earlier one look better.'",
+   "evidence": "docs/decisions/README.md lines 89\u2013101 (verified); consolidation BASELINE \u00a79",
+   "current_status": "DEFER (by decision)",
+   "superseded_by": "X-08 DIFFERENT_SCOPE",
+   "reversal_condition": "Each opens only on its stated trigger",
+   "next_open_question": "The mission's L3 'stable under resampling' IS D06 and is gated on D04 depth; opening/colour/material features live under D17",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "D08 attribution veto: built (ATTRIBUTION_K=2.5, MIN_SPLIT_N=15), measured (worst false veto 5.6%, caught 9.2%; at k=3.0 caught 0.0000 at 20 validation games, 0.2283 at 60, 0.4729 at 140), NOT wired; q10: once a search exists the chain still validates a wrong name on 12.25% of interaction-only records; veto silences 5/61 wrong names; 35/61 nameable by search; veto/search same-cut agreement 0 at depth 1, 5/8 at depth 2.",
+   "evidence": "docs/decisions/D08-attribution.md; shared/discovery/attribution.ts; results/q5_attribution.json, q10_veto_after_search.json",
+   "current_status": "DEFER; RC2 fired, evaluated, closed and replaced by RC5",
+   "superseded_by": "RC2 as written ('misattribution largely stops') refuted by q10",
+   "reversal_condition": "(1) a record reaches 60 validation games \u2014 MET BY THE OWNER CORPUS; (3) real false-veto > 0.10; (4) claims shown without prospective step; (5) a search is ported",
+   "next_open_question": "Whether splitBy should become an INPUT to a search; whether a withheld claim should be replaced by the search's region (needs its own pre-registration)",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "D09: hypothesis_id = SHA256(canonicalJson(manifest)) over canonical predicate (max depth 2), target ('calibration_gap is the only one today'), direction, minimum_meaningful_effect > 0, generator+version, feature_versions, derivation_game_ids_hash, freeze_timestamp, validation_protocol (RE-DERIVED from registry, never believed), stopping_rule in GAMES, error_budget; freeze refuses rather than repairs.",
+   "evidence": "docs/decisions/D09; shared/discovery/hypothesis-manifest.ts; shared/discovery/predicate.ts MAX_PREDICATE_DEPTH = 2",
+   "current_status": "DECIDED, E2 ('nothing has yet been frozen against real evidence')",
+   "superseded_by": "Killed trusting a declared validation_protocol (INV-10 violation caught by review bot)",
+   "reversal_condition": "Two hypotheses sharing an id; legitimate re-derivation producing new ids; shared/ ceasing to be isomorphic",
+   "next_open_question": "An accuracy-only target for the owner does not exist in the manifest vocabulary and must be declared",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D20/#42: a claim about the decision environment (clock/time) cannot be closed by a protocol that removes the environment; protocol = UNION of condition kinds a predicate reads (POSITION\u2192match-position-class, ENVIRONMENT\u2192reproduce-clock-condition, SEQUENCE, MODEL_DERIVED); UNKNOWN \u2192 no-verdict; a clockless drill 'may speak but never close' (ADR-003 option 3).",
+   "evidence": "docs/decisions/D20; shared/discovery/claim-class.ts; docs/blitz/ADR-003",
+   "current_status": "CLOSED (owner PR #42)",
+   "superseded_by": "Fixed classifyKinds precedence bug (conjunction vs priority)",
+   "reversal_condition": "A real subgroup whose class cannot be derived from its features; UNKNOWN firing on obviously testable subgroups",
+   "next_open_question": "Are 12-second drill decisions and 12-second clock decisions the same event \u2014 'That measurement does not exist'",
+   "authority": "OWNER"
+  },
+  {
+   "claim": "D21: within-player feedback exposure has no representation in the record; decisions after 199 reveals and after 0 pool as one population; 'Discovery must not widen on the assumption that exposure is uniform.'",
+   "evidence": "docs/decisions/D21-feedback-exposure.md Finding 3",
+   "current_status": "DEFER (Finding 3); Findings 1\u20132 CLOSED (protocolVersion stratum)",
+   "superseded_by": "none",
+   "reversal_condition": "'a measurement showing the calibration gap differs between early and late decisions within a player, at n >= 30 per half' \u2014 runnable on the owner record by decision order",
+   "next_open_question": "Owner exposure to the OwnExposure cue is bracketed to 2026-09-02T16:16\u201316:35Z (PRE_EXPOSURE_BASELINE \u00a71): all 2,209 games are pre-exposure; the 12 post-freeze admissible blitz games in scratchpad are post-exposure",
+   "authority": "REPO"
+  },
+  {
+   "claim": "D25 verdict CONSTRUCT-UNDERIDENTIFIED (claim_version 2.2.0, 2026-09-01): 'the response predicate, not the observation channel, destroys the distinction'; E1 reached, E5 required; humans measured 0. RC-06's +0.768 separation was a cross-predicate difference (\u22120.048 under one fixed predicate; T\u2212 prescription size .994); C11 screen: MEASURABLE 7 (RC-00,02,03,04,05,13,21), VACANT 8, SATURATED 2; eligible set []; 18 forbidden sentences incl. 'process evidence is the next research object', 'the final move is insufficient in general', 'RC-05 or RC-02 is eligible'.",
+   "evidence": "docs/decisions/D25-evidence-architecture.md (verified head); docs/evidence-architecture/STRONGEST_PERMITTED_CLAIM.json; C11_SCREEN.md; rc06_fixed_predicate.json",
+   "current_status": "DECIDED (current); amended in place 2026-09-01 (reversal conditions 2 and 5 fired)",
+   "superseded_by": "Supersedes D24 NARROW; docs/measurement/STRONGEST_PERMITTED_CLAIM.json 1.3.0 'for the claims it contradicts only'",
+   "reversal_condition": "(1) a fixed predicate giving RC-06 T\u2212 rate materially below 1; (2) RC-05 or RC-02 surviving a full screen with a non-degenerate noise cell; (3) every method-shaped class saturating; (4) chose-past-it base rate materially above a few percent; (6) an observation separating p_neg .05 from .55 when P(B|T\u2212)=1",
+   "next_open_question": "Unresolved 'domain': 'no evidence that any of this is separable from general chess strength'; 'reactivity': untested",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "Identifiability: under a saturated noise cell, correct conditional discrimination (L1) and perform-B-everywhere response bias (L3) are observationally equivalent \u2014 Bayes-optimal C/D accuracy .500 at every observation rung (move; both cells; +time; +timed; +delayed; +generic cue; +candidate set), 20 and 40 items; .983 under a non-saturated cell from move alone.",
+   "evidence": "research/evidence-architecture/results/identifiability_simulation_20.json / _40.json; INCREMENTAL_EVIDENCE_VALUE.md",
+   "current_status": "ESTABLISHED (E0 synthetic learners, E1 chance rates); process evidence REMOVED from the architecture",
+   "superseded_by": "none",
+   "reversal_condition": "An observation collectible in the product whose distribution differs between p_neg .05 and .55 when P(B|T\u2212)=1 \u2014 'an observation that is not the response'",
+   "next_open_question": "Any owner 'same mechanism' claim must have a non-degenerate T\u2212 cell or it cannot beat 'does this everywhere'",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "B3 population regularity (2,331 players, 81,624 decisions, 180+0, SF 17.1 60k nodes): beta (quality_loss on unexpected_time_within_rating) = +0.01342 [+0.01243, +0.01431]; positive in 9/9 bands; blunder-concentrated (capped at 0.05 \u2192 +0.00307); within-player +0.01363, within-game +0.01359 (no intervals); ~1/7 of beta present on engine-best rows. Verdict GENERAL_REGULARITY_ONLY level 3 (repaired); mechanical verdict INVALID_EXPERIMENT (C3 freeze term, repaired by A7). H2 (Time Allocation Efficiency) NULL OF THE INSTRUMENT (voc_regret 59.4% zero mass, partial r 0.0165, budget reliability 0.62).",
+   "evidence": "research/b3_population_expertise/results/verdict_repaired.json, analysis_repaired.json, c9.json, report_diagnostics.json; REPORT.md",
+   "current_status": "SUPPORTED (population); forbidden: 'causes', 'hesitation', 'confusion', 'A2 excluded'; MODEL_CARD \u00a73 forbids judging an individual",
+   "superseded_by": "Gate 3/4 corrections replace earlier readings; 300+0 block NOT EVALUABLE (F11)",
+   "reversal_condition": "VERDICT_RULES \u00a72.1 triggers; r_beta upper < 0.5 (observed 1.0146 [0.9528, 1.0753])",
+   "next_open_question": "Frozen 180+0 nuisance models drift across months and do not extrapolate to 300+0 (the owner's B2 corpus includes 25\u00d7300+0, 8\u00d7300+3); human-perceived difficulty (A2) 'touched by no measurement here'",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "System-invariant OwnExposure (own non-king pieces with more enemy attackers than own defenders; P3 side_piece_metrics): population Test A +0.1014 [+0.0908, +0.1134] on quality_loss (45,296 decisions, 1,333 players); Test B L+Epost 0.5501 vs L 0.4963 (+5.38 pp); 9/9 bands, 3/3 phases, 3/3 clock tertiles, within-player CI excludes 0; C1\u2013C8 PASS; C9 consequence 24.32% [22.95, 25.67] vs frozen 30% \u2192 FAIL; verdict SYSTEM POLICY VALID, ECOLOGICALLY INFEASIBLE; 'no implementation licensed'.",
+   "evidence": "research/system-invariant/results/natural_generalization.json; docs/system-invariant/FINAL_REPORT.md; RESEARCH_QUESTION_FREEZE.md",
+   "current_status": "FROZEN VERDICT (Outcome C); population only; erez281 not in corpus",
+   "superseded_by": "none; universal cue reading killed (A-11/A-12: 95.42% value-free vs 34.54% engine-filtered opportunity)",
+   "reversal_condition": "'a different consequence definition or a different scope \u2026 is a new preregistration'",
+   "next_open_question": "Whether OwnExposure is a player-specific mechanism for the owner at all \u2014 no document tests the owner's decisions against the construct",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "P3-PASS (M0 .5000 / M1 .5779 / M2 .6577; M2\u2212M1 +0.0799 [+0.0534, +0.1049]) and PE-EXPOSURE-ONLY (post_own_overloaded_piece_count +5.76 pp [+3.93, +7.68]; opponent-pressure FAILS C2/C3/C4) on RC-07/08/09 valid actions, population positions, 0 engine searches. P4-N1-PASS: one participant, TARGET 6/8\u21928/8, CONTROL 3/4\u21924/4 ('does not isolate the +25 pp'), Level 2 on presented items. PRE_EXPOSURE_BASELINE identifies the N-of-1 participant with the account whose corpus is harness-account-full, i.e. the owner.",
+   "evidence": "docs/learning-v3/SYSTEM_INVARIANT_P3_RESULT.md, PRESSURE_EXPOSURE_RESULT.md, HUMAN_CUE_N1_RESULT.md; docs/system-invariant/PRE_EXPOSURE_BASELINE.md \u00a71 (verified)",
+   "current_status": "SUPPORTED (population ranking inside B) / P4 DOWNGRADED to non-specific post-intervention evidence; owner has been exposed to the cue",
+   "superseded_by": "AMENDMENT_01 \u00a7A downgrades P4",
+   "reversal_condition": "P4 needs a sham/attention-matched arm 'no repository asset can supply'",
+   "next_open_question": "Post-exposure natural-game test frozen (recent-300 blitz window, policy_consistency endpoint, 100 opportunities or 120 days) but UNLICENSED because C9 failed",
+   "authority": "FIELD"
+  },
+  {
+   "claim": "Learning-v3 rule-class programme: Gate A A-REVISION (A5_beats_incumbent void on xs scale; 17/17 verdicts identical SF16 vs SF17.1); Gate B B-PASS for RC-05 on 378 minimal twins (regret \u22120.1088, advantage +0.1485; DoD vs sham +0.1812) with B-DOMAIN-LIMIT; RC-05 killed by yield arithmetic (0.206% \u00d7 42.5% \u00d7 5.4% \u2248 4.7e-5 decisions worth changing per position; F-E5-c REFUTED); outcome 'PRE-HUMAN GATES PASSED, ENDPOINT NOT REACHABLE'.",
+   "evidence": "research/learning-v3/results/gate_a.json, gate_b.json, sham_control.json, played_cost.json; docs/learning-v3/FINAL_REPORT.md, BARRIER_DECISION.md",
+   "current_status": "CLOSED for RC-05; INTERVENTION_EXPERIMENT and FIELD_PROTOCOL NOT ADMISSIBLE",
+   "superseded_by": "Sham interval criterion (should include zero) was NOT met for advantage_xs [\u22120.0552, \u22120.0001]; B-PASS rests on difference-of-differences \u2014 deviation not visibly logged as an amendment",
+   "reversal_condition": "True per-game opportunity rate scanning every ply (never measured); RC-02 base rate 12.2%",
+   "next_open_question": "C12 over all 17 classes (~4,000 searches); twin banks for RC-02/03/04",
+   "authority": "RESEARCH"
+  },
+  {
+   "claim": "Neta v0.2 contract: three permissions ALLOW/DENY/DEFER; claim kinds OBSERVATION/MECHANISM/INTERVENTION/OUTCOME; states SUPPORTED/UNRESOLVED/REFUTED/INSUFFICIENT_REALITY; authorities OWNER/REPO/ENVIRONMENT/RESEARCH/FIELD; reality R0\u2013R6; laws 1\u20138 executable in validate_finding.py (9/9 positive controls red); prompt frozen at blob 339b9a1b\u2026; keys confidence/certainty/probability forbidden at any depth; max 3 mechanisms.",
+   "evidence": "Product-Perception-Sensemaking-Architect/scripts/validate_finding.py, check_contract.py (verified PASS), docs/REALITY_AUTHORITY_PERMISSION.md",
+   "current_status": "BINDING",
+   "superseded_by": "Supersedes v0.1 shapes (N-1..N-6 all fail the validator: unknown fields authority/check/evidence_state/observations/rejected_explanations)",
+   "reversal_condition": "Enum/schema edits; positive control staying green",
+   "next_open_question": "Validator forces EVERY OUTCOME claim to FIELD/R6 ('third party acted') while the mission's outcomes are the owner's own next games",
+   "authority": "REPO"
+  },
+  {
+   "claim": "Pipeline defects bearing on any time/clock mechanism: (a) admissible() drops all 724 Time-forfeit and 124 Abandoned games (selection on outcome for a clock mechanism); (b) no code handles [WhiteBerserk]/[BlackBerserk] \u2014 279 of 2,209 games have a berserk tag, 146 with the owner berserking, so clockTimes[0]=header base is wrong by half and the first derivable think time is inflated by base/2 (plausibly the 2\u20134 slow-over-2m rows); (c) evidence rows in the 1,240/2,209 runs carry a mislabelled gameId column (by-index pairing; fixed later by keptGameIndexes).",
+   "evidence": "scripts/build_import_corpus.ts admissible(); shared/pgn-clock.ts; scratchpad frozen_2209.ndjson berserk counts (verified: 279/146); ACCOUNT_BRIDGE_FULL_RESULTS.md \u00a76",
+   "current_status": "OPEN DEFECTS (recorded here, not yet in FAILURE_LINEAGE)",
+   "superseded_by": "none",
+   "reversal_condition": "Re-running decisionsFromGame on the 146 owner-berserk games with halved base (no engine needed)",
+   "next_open_question": "Which authority owns the fix: REPO (schema/validator layer) vs a new preregistration (FULL_PREREG \u00a76 forbids dropping games/moving thresholds within that series)",
+   "authority": "REPO"
+  },
+  {
+   "claim": "Neta has been run on this product four times (embodied run 001 at 9d03bbb; pre-human passes 1, 2, 2/3/4, 3); every remaining material uncertainty was assigned to OWNER or FIELD; Pass 4 answered DEFER to a new candidate-move probe because probe.assignment/legal_moves/alternative/candidate_moves_considered already exist and are randomised (encodability gate, FL-005).",
+   "evidence": "docs/neta/NETA_EMBODIED_RUN_001.md; PRE_HUMAN_UX_PASS_2_3_4.md; docs/neta/findings/N-1..N-6.json",
+   "current_status": "RECORDED; none concerns a recurring player-specific decision mechanism",
+   "superseded_by": "N-5 randomised-arm warning corrected in Pass 4",
+   "reversal_condition": "'No further technical work reduces it, which is the authority ceiling'",
+   "next_open_question": "The mission ledger would be the first v0.2-shaped finding in lichess_app",
+   "authority": "OWNER"
+  }
+ ],
+ "coherence_verdict": "PASS",
+ "authority_conflicts": [
+  "OUTCOME-claim authority for the owner's own behaviour: RAP \u00a75 law 2 and CLAUDE.md say OUTCOME claims 'about external people' resolve to FIELD/R6, but validate_finding.py forces EVERY OUTCOME claim to FIELD with required_reality >= R6 ('third party acted'); RAP names no authority for 'owner behaviour inferred from owner data'. Unresolved \u2014 the mission's L5/L6 outcome (owner's next games, n=1) cannot be typed without either a rule amendment or treating the owner-as-player as FIELD.",
+  "Observed-reality level of the historical 59k-decision engine-scored corpus: R1 (static data exists) vs R5 (owner used the real path with real input). RAP gives no rule for retrospective behavioural logs; this decides whether any L2/L3 MECHANISM claim can ever be SUPPORTED without new games. Unresolved.",
+  "Resolution-authority vocabularies differ between the frozen prompt (OWNER/REPO/DESIGN_MECHANISM/FIELD, prompts/SYSTEM.md \u00a711) and the v0.2 contract (OWNER/REPO/ENVIRONMENT/RESEARCH/FIELD). AUTHORITY_MAP names RAP canonical; the prompt cannot be edited; the disagreement is by design but unrecorded as a defect. N-1/N-4 findings carry authority DESIGN_MECHANISM, invalid under v0.2.",
+  "Gate B B-PASS (RC-05) rests on difference-of-differences after the pre-written sham criterion ('intervals should include zero') failed for advantage_xs CI [\u22120.0552, \u22120.0001] and b_valid; no amendment logging the criterion change was found. Population-only, does not change any owner permission, but is a protocol deviation the mission must not copy.",
+  "MEASUREMENTS.md still states 'This product has never been run against a real player's record. Every number \u2026 comes from synthetic data' while its own head and research/harness-account-full record real-player and owner readings; and its instrument spec says 'depth 14, MultiPV 8' where the canonical records were scored at depth 12 MultiPV 1 (root-minus-child). Two instruments under one word 'accurate'; owner-side is depth 12.",
+  "Berserk/time-forfeit handling: REPO (repair at the lowest layer per CLAUDE.md) vs RESEARCH (ACCOUNT_BRIDGE_FULL_PREREG \u00a76 forbids dropping games/moving thresholds within that series). Not decided anywhere.",
+  "Pre-named separability multiplier: MEASUREMENTS \u00a75 and D04 say k = 3.25 (PREREGISTERED_SEPARABILITY_K in detector.ts = 3.25) while MEASUREMENTS 'Pre-registration now buys the bar' table shows 3.00 '<- shipped'. Code wins (3.25); the document row is stale.",
+  "The B3 verdict files carry label_means text that is the definition of EXPERTISE_ADAPTATION_SUPPORTED (level 4), a verdict neither file records (Gate 4 F1); REPORT.md refuses to print it. Resolved by REPORT.md but the JSON is unchanged.",
+  "D06 opening: D04 says 'D06 is now unblocked by exactly this result' while README says 'D06's trigger has fired and D06 stays shut \u2026 opens when D04's depth is settled'. Resolved by README (later, DIFFERENT_SCOPE, X-08) \u2014 the mission's L3 resampling is therefore gated on a depth decision."
+ ],
+ "killed_paths": [
+  {
+   "path": "Cluster-robust (sandwich) SE at the game level as the product judge",
+   "why": "Worse calibrated in 82/84 cells at 20 games; null fire up to 3.9% vs 1.5%. 'Do not reopen by proposing cluster-robust errors again.' (Cluster bootstrap NOT killed \u2014 never measured; D02 RC4.)",
+   "where": "docs/decisions/D02; research/discovery-oracle/results/q1_units.json; MASTER_PRODUCT_DEBT R-14"
+  },
+  {
+   "path": "Fixed effect-size floor MIN_GAP_DIFFERENCE = 0.45",
+   "why": "Power fell to 0 as n grew; replaced by SEPARABILITY_K \u00d7 SE",
+   "where": "shared/detector.ts header; docs/MEASUREMENTS.md"
+  },
+  {
+   "path": "'The detector finds structure in noise and needs restraining'",
+   "why": "0/8,000 null validated claims (upper CI 0.00048); the defect is silence, not noise",
+   "where": "MASTER_PRODUCT_DEBT R-15; M0_AUDIT \u00a7Q4"
+  },
+  {
+   "path": "Lowering the worst-bucket bar to one SE",
+   "why": "False-positive 6.7% vs 0.7%; refused",
+   "where": "docs/MEASUREMENTS.md 'Is your weakest area calibrated?'"
+  },
+  {
+   "path": "Searching `accurate` as the pysubgroup target with confidence as a selector",
+   "why": "Winning region 'confidence < 5' \u2014 a restatement of the target. (Accuracy-only target with NO confidence available is not intrinsically forbidden, but is undeclared in hypothesis-manifest.)",
+   "where": "research/discovery-oracle/q7_candidate_search.py; D04"
+  },
+  {
+   "path": "pysubgroup create_selectors (quantile cuts from the record); top-k candidate lists narrowed on validation",
+   "why": "Makes every candidate a function of the data it is tested on; narrowing on validation is the leak the design exists to avoid",
+   "where": "q7_candidate_search.py selectors()/search_region()"
+  },
+  {
+   "path": "Predicate depth > 2",
+   "why": "'every extra term multiplies the search space and buys a description no player can act on'",
+   "where": "shared/discovery/predicate.ts MAX_PREDICATE_DEPTH"
+  },
+  {
+   "path": "Renaming a validated claim to the narrower region attribution found; tightening SEPARABILITY_K to fix misattribution; reporting the interaction to the player",
+   "why": "Post-hoc region choice on the judged data (R5); K does not touch it ('the bucket really does separate'); asks the player to do the analysis",
+   "where": "docs/decisions/D08 alternatives 1, 3, 5"
+  },
+  {
+   "path": "Wiring the attribution veto at 20 validation games; re-choosing ATTRIBUTION_K=3.0 after the sweep",
+   "why": "'a wash' (7% caught for 6% withheld); choosing from the flattering sweep is the post-hoc move D08 refuses",
+   "where": "docs/decisions/D08 DECISION"
+  },
+  {
+   "path": "Relative-time buckets fast-relative <1/60 / slow-relative >1/15; moving 45 s to 5 s; per-time-control bucket sets; choosing among D05 alternatives by measuring all",
+   "why": "REJECTED twice (0.0000; 0.0475 vs bar 0.2112); post-hoc constant; multiplies search space; four-comparison search with no correction",
+   "where": "docs/decisions/D05-blitz-time.md; results/q8, q9"
+  },
+  {
+   "path": "Raw 45 s / 120 s cut as a representation of blitz think time; Lichess encoding sub-second edges; 'time pressure (clock %)' at 25/50/75",
+   "why": "0.00 pp separation, slow bucket 0/0/2/4; sub-second edges inert on integer seconds; clock % fails its own null and is a phase ordering. Product cut nevertheless frozen ('No threshold moves')",
+   "where": "TIME_REPRESENTATION_RESULTS.md \u00a71\u2013\u00a72; research/b2/analysis.json"
+  },
+  {
+   "path": "'The confound grows with more data' (28.5% vs 17.0%); 75-game '8 of 8 cells collapse'",
+   "why": "117-game stratified survival 16.0%; corpus had dropped 42 rated arena games (Event-header substring bug); 3/7 cells survive",
+   "where": "TIME_REPRESENTATION_RESULTS.md \u00a73.2, \u00a77; research/b2/as-published-75/"
+  },
+  {
+   "path": "Registering phase-middlegame as the owner's bucket; a fourth account window; fromPosition sensitivity check '463 decisions'",
+   "why": "Not-separable at 2,209 (0.622 vs 0.863 pp); 'No fourth window'; the 463 rows were mislabelled standard-game decisions",
+   "where": "ACCOUNT_BRIDGE_FULL_RESULTS.md \u00a70\u2013\u00a77"
+  },
+  {
+   "path": "Native Stockfish / warm-hash runs as the product record; inferring start clock from max eligible clock; speed from the Event tag; `seconds ?? 0` for underivable think time; eval-analysis.ts and game-features.ts phase rules",
+   "why": "STOP-B1 (13.61% flips); understated start by up to 86 s; lost class for 1,104 games; fabricated fast-bucket decisions; post-game leakage / second definitions",
+   "where": "ENGINE_PARITY_RESULTS.md; research/b2/analyse.py; scripts/build_import_corpus.ts; shared/detector.ts; D01"
+  },
+  {
+   "path": "Search-trajectory 'ComputationNeed' construct (rcv, convergenceNodes, moveInstability) and any 'optimal think time' output",
+   "why": "STOP-D: no reference budget 25k\u20131.6M stable at 95%; reference swap flips 5.43% of labels; predictor and outcome share V_deep error; H1/H2 never run",
+   "where": "docs/research/BLITZ_COMPUTATION_RESULTS.md \u00a74\u2013\u00a711"
+  },
+  {
+   "path": "Causal reading 'thinking longer makes this player worse'; naming time residuals confusion/hesitation/indecision; 'A2 (unmeasured difficulty) is bounded/excluded'",
+   "why": "Reverse causation with difficulty (population blunder 1.55%\u21927.92% with think time); forbidden vocabulary; C9 not firing is not evidence against A2",
+   "where": "TIME_REPRESENTATION_PREREG \u00a72.2; B3 PREREGISTRATION \u00a79; POST_FREEZE_AMENDMENTS A5"
+  },
+  {
+   "path": "voc_z / voc_regret as an instrument for 'value of further human computation' (Time Allocation Efficiency); TAE floor as 20% relative; Metric C as independent; shrink-then-regress player estimator; opponent_rating in the rating-free block; both game sides as two observations",
+   "why": "59.4% zero mass, partial r 0.0165, budget reliability 0.62\u20130.64; degenerate floors; transform of Metric B; tau\u00b2 clips to 0; opponent_rating \u2248 rating; coupled clocks",
+   "where": "B3 REPORT.md \u00a75, MODEL_SPEC.md, VERDICT_RULES.md, DATA_PROTOCOL.md \u00a74.3"
+  },
+  {
+   "path": "Frozen 180+0 nuisance models applied to 300+0 as replication",
+   "why": "Extrapolation artefact: predicted log-time to \u22127.35, residual sd 5\u00d7, beta equals its destroyed-outcome null; NOT EVALUABLE (F11)",
+   "where": "B3 REPORT.md \u00a79; FAILURES.md F11"
+  },
+  {
+   "path": "RC-06 answer-the-mate-threat as eligible / Study D on RC-06 / repairing RC-06; RC-11 method-shaped candidate; RC-01 +0.600 as the bar; A5_beats_incumbent; b_valid as safety; chance-correction as substitute for C11; 'process evidence is the next research object'; candidate 16/18; any learner state, mastery %, Q-matrix fitter; FSRS/Anki scheduling",
+   "why": "Branching predicate (\u22120.048 symmetric, T\u2212 .994); RC-11 VACANT; RC-01 VACANT; anchors invert on xs; false alarm/false comfort; subtraction becomes a bonus on saturated cells; C/D .500 at every rung; 'asks the same broken question'; no observation model; content-blind scheduler",
+   "where": "D25; docs/evidence-architecture/STRONGEST_PERMITTED_CLAIM.json forbidden_claims; C11_SCREEN.md; ANCHOR_REBUILD.md; ROADMAP.md"
+  },
+  {
+   "path": "SDT criterion c as a player parameter (H18/H19/H22)",
+   "why": "Move-blind agent scores d\u2032 0.80, c +0.88 on RC-06; RC-09/RC-11 wording shifts c by +0.524 (71% geometry)",
+   "where": "research/learning/criterion_channel.py; docs/learning-v2/CRITERION_CHANNEL.md"
+  },
+  {
+   "path": "Lichess hangingPiece theme as a trigger; puzzle-derived item banks for L3+; unprotected-piece 'B = capture(target)' construct; N3 narrowing under the old name",
+   "why": "Theme computed from the solution (B inside T); is_valid_attack range restriction; prescribed act loses \u2265100 cp on 15.0% of T+; puts SEE inside the trigger",
+   "where": "docs/measurement/FALSIFICATION_REGISTER.md F1\u2013F9; CONSTRUCT_DECISION.md"
+  },
+  {
+   "path": "RC-05 safe-promotion as an intervention/packet ('ONE THING FOR THE NEXT GAME'); opponent-pressure count as second-stage objective; system-health composite of P3 columns; universal reading of the OwnExposure cue; any product surface for OwnExposure",
+   "why": "~4.7e-5 decisions worth changing per position; C2/C3/C4 FAIL with sign inversion; unmeasured parameter set; 'advice to play worse moves 61% of the time' without qualifier; C9 failed so gate did not open",
+   "where": "docs/learning-v3/BARRIER_DECISION.md; PRESSURE_EXPOSURE_RESULT.md; docs/system-invariant/ADVERSARIAL_PASS.md A-11/A-12/A-17; FINAL_REPORT \u00a714"
+  },
+  {
+   "path": "P4 N-of-1 as cue-specific efficacy; naive whole-account pre/post baseline for the owner; reporting in_check\u2227endgame (0.8400, 175 pairs) as a finding",
+   "why": "CONTROL moved +25 pp too; account-bridge prediction failed across windows; 175 < MIN_REGION_PAIRS 200 \u2192 INSUFFICIENT",
+   "where": "docs/system-invariant/AMENDMENT_01.md \u00a7A; PRE_EXPOSURE_BASELINE.md \u00a72; ADVERSARIAL_PASS A-10"
+  },
+  {
+   "path": "Study 0 response-congruency; four-arm cumulative RCT; presentation improvements as a learning lever; in-game coaching; blitz as primary teacher; teaching before content validity; self-explanation prompt as first arm; pre/post improvement as evidence; accurateDecision/engine agreement as 'rule use'",
+   "why": "'well-designed study of the wrong question'; ~446 participants vs 8\u201330; H1/H10/H12/H13 REFUTED; prompt is intervention AND measurement; +0.2 d\u2032 at zero effect; scores engine agreement not rule use (L3)",
+   "where": "docs/decisions/D24; docs/learning/FALSIFICATION_REGISTER.md L2\u2013L7; docs/learning-v2/FALSIFICATION_REGISTER.md"
+  },
+  {
+   "path": "Pre-decision probe 'Which second move were you considering?' (and any new candidate-move probe)",
+   "why": "Encodability bias (FL-005): a cheaper randomised observation already exists (probe.assignment, legal_moves, alternative, candidate_moves_considered); reactivity unmeasured \u2192 DEFER",
+   "where": "Product-Perception-Sensemaking-Architect/docs/FAILURE_LINEAGE.md FL-005; docs/neta/PRE_HUMAN_UX_PASS_2_3_4.md Pass 4"
+  },
+  {
+   "path": "New detector/bucket/threshold change; adaptive copy/coach/LLM layer; adding game_id to ScoredDecision; DeepGameFeatures as a feature source; player-relative percentile fitted on the record being read; pooling protocols/time classes/engine builds into one population",
+   "why": "Standing ACTION_PLAN refusals; 'building for an estimator this decision has just refused'; post-game with no consumers; 'leakage wearing a percentile'; INV-6/7/8 and R-03",
+   "where": "docs/ACTION_PLAN.md \u00a76\u2013\u00a78; D02; D01; shared/blitz-features.ts; docs/blitz/ADR-001/002"
+  },
+  {
+   "path": "Editing prompts/SYSTEM.md, adding Source 29/UI/dashboard/DB/telemetry, retroactively rewriting Wave 1, single scalar confidence, >3 mechanisms",
+   "why": "Neta freeze and contract; CI blob check; 'no numeric confidence theater'; schema maxItems 3",
+   "where": "Product-Perception-Sensemaking-Architect/CLAUDE.md; docs/V0_1_FREEZE.md; scripts/validate_finding.py"
+  }
+ ],
+ "preserved_compute": [
+  {
+   "artifact": "Owner whole-record bridge report + corpus manifest (2,209 games, 59,419 decisions, SF18 Lite WASM depth 12)",
+   "path": "/home/user/lichess_app/research/harness-account-full/prereg_report.json; corpus_manifest.json (gameIds[2209], corpusSha256 30f3d425\u2026, evidenceSha256 497860ad\u2026)",
+   "reusable_for": "Canonical nine-bucket owner rates (phase-endgame 0.8042 n=2,590; clock-under-1m 0.6938 n=3,752; phase-middlegame 0.6035 n=34,905; fast-under-45s 0.6271 n=45,883; slow-over-2m n=4) and the not-separable verdict; the exact admissible game-id list in dateDesc order. NOT reusable per-decision (rows absent; 1,240/full evidence gameId column mislabelled)."
+  },
+  {
+   "artifact": "Owner 1,240- and 48-game bridge reports",
+   "path": "/home/user/lichess_app/research/harness-account-1240/prereg_report.json; research/harness-account/prereg_report.json",
+   "reusable_for": "Window-stability evidence: a bucket separable at 1,240 (registered, margin 0.0133 pp) not separable at 2,209 \u2014 a recorded instance of pattern instability under a larger window"
+  },
+  {
+   "artifact": "Owner raw Lichess API history (session scratchpad, not in repo)",
+   "path": "/tmp/claude-0/-home-user/ee69b5a4-c8fc-5a0f-a62b-0e04fcb5bda2/scratchpad/account/frozen_2209.ndjson (2,209 rows, 7.46 MB); post_freeze.ndjson (50 rows); post_freeze_admissible.ndjson (12 blitz rows, all post-2026-09-02 exposure)",
+   "reusable_for": "Direct input to rebuild corpus.json and to derive fenBefore, move, colour, ECO/opening.ply, ratings, clocks (centiseconds), berserk/arena tags without re-fetching; the only place richer pre-move context exists for the owner"
+  },
+  {
+   "artifact": "B2 corpus manifest + analysis + harness report (117 rated blitz games of the owner, seed 20260830)",
+   "path": "/home/user/lichess_app/research/b2/{corpus_manifest.json, analysis.json, harness_report.json}; research/b2/as-published-75/; research/b3_population_expertise/b2_repro/ (byte-identical sha 2b15ea03\u2026)",
+   "reusable_for": "A frozen by-game derivation/held-out split (recency parity) of the owner's blitz games; held-out per-think-time-bucket accuracy with 1,000-null bars; phase\u00d7standing cell rates; the closest committed thing to a per-decision distribution for the owner"
+  },
+  {
+   "artifact": "Canonical six-player shipped-engine record + native/parity history",
+   "path": "/home/user/lichess_app/research/harness-shipped/harness_report.json; research/harness/{harness_report.json, parity_report.json}; tests/fixtures/real-shape.json (1,572 tuples)",
+   "reusable_for": "Population reference for the identical nine-bucket pipeline; instrument-noise bound (13.61% flips); GATE-SHUFFLE-REAL null resampling"
+  },
+  {
+   "artifact": "Discovery-oracle results (simulated worlds)",
+   "path": "/home/user/lichess_app/research/discovery-oracle/results/{selftest,q1_units,q4_end_to_end,q5_attribution,q6_blitz_time,q7_candidate_search,q8_relative_time,q9_answerable_plant,q10_veto_after_search}.json; oracle/worlds.py; q7_candidate_search.py; environment.lock (python 3.11.15, pysubgroup 0.9.0)",
+   "reusable_for": "Null ceiling / power / attribution / depth-trade numbers; the derive/freeze/judge/shuffle loop (q7.run_record), region_probe answerability, Wilson/Jaccard helpers, generate_record construction pattern; NOTE selftest.json X-16 drift and no per-record Jaccard stored"
+  },
+  {
+   "artifact": "Population baselines",
+   "path": "/home/user/lichess_app/shared/population-baseline.ts (693,130 Lichess moves: fast-under-45s +16.75 pp, slow-over-2m \u221214.20, phase-middlegame \u221212.62, phase-endgame +14.22, clock-under-1m +1.91); shared/phase-difficulty.ts (\u03b7\u00b2 0.0035 over 4,416,361 puzzles); shared/sensitivity-reference.ts",
+   "reusable_for": "Separating population from player-specific effects on the same buckets; 'must never be subtracted' from the owner's rate"
+  },
+  {
+   "artifact": "B3 population expertise study (pseudonymised; per-decision files absent)",
+   "path": "/home/user/lichess_app/research/b3_population_expertise/results/{analysis_repaired.json, verdict_repaired.json, c9.json, report_diagnostics.json, model_manifest.json, tables/01..15}; data/*/manifest.json; src/*.py; tests/test_leakage.py, test_suffix_leakage.py",
+   "reusable_for": "Leakage-tested PRE_MOVE feature formulas and frozen constants (ambiguity_entropy \u03c4 0.02761, cuts, ut_q95 1.057224); band-level beta/TAE priors; control designs (200-permutation nulls, planted C5b/C6, C8 influence, C9 budget, C17 T=0, C19 own pace); the frozen 180+0 models (drift caveat)"
+  },
+  {
+   "artifact": "System-invariant natural corpus + results",
+   "path": "/home/user/lichess_app/research/system-invariant/corpus/scored.jsonl.zst (45,296 rows, MultiPV-8 candidates, SF 17.1 60k nodes, sha 6533ee47\u2026); per_side.jsonl; ingest_manifest.json; results/{natural_generalization, held_out_incremental, value_free_opportunity}.json; features.py; analyze.py",
+   "reusable_for": "Population priors for candidate-level board features (OwnExposure pre/post/delta, 23 sibling counts, ambiguity, edge, gap12); D04-style scope search with MIN_REGION_PAIRS=200 and derivation-only tertile cuts; within-player permutation leak control. Not poolable with the owner's depth-12 corpus."
+  },
+  {
+   "artifact": "Learning-v3 corpus and cache",
+   "path": "/home/user/lichess_app/research/learning-v3/corpus/{engine_evaluations.jsonl.zst (70,595), item_bank.jsonl.zst (9,441), twins/sham/twin_bank.jsonl.zst (378/378/756), MANIFEST.json}; results/*.json; cache.py key_for; research/measurement/rule_classes.py (17 board-only triggers, C1-enforced)",
+   "reusable_for": "Board-only trigger predicates and covariates() as pre-move cue detectors on the owner's positions; minimal-twin + matched-sham design pattern; move-blind SDT floor; C11 grading before any rule-shaped mechanism. Cache useless for depth-12 owner positions except by transposition."
+  },
+  {
+   "artifact": "Evidence-architecture results",
+   "path": "/home/user/lichess_app/research/evidence-architecture/results/{c11_screen, c11_joined, rc06_fixed_predicate, rc06_full_cell, branching_audit, predicate_semantics, anchor_rebuild, identifiability_simulation_20/40, rc06_item_chance_rates}.json; c11_screen.py; identifiability_simulation.py",
+   "reusable_for": "C11 grading (SATURATED \u2265.95 / VACANT \u226595% empty / MEASURABLE); identifiability re-run template with real per-item chance rates; positive-control template"
+  },
+  {
+   "artifact": "Neta contract and templates",
+   "path": "/home/user/Product-Perception-Sensemaking-Architect/fixtures/valid-finding.json; scripts/validate_finding.py; eval/field-outcomes/FIELD_OUTCOME_PROTOCOL_V1.md; docs/system-invariant/PRE_EXPOSURE_BASELINE.md; docs/learning-v3/NATURAL_RETEST_SPEC.md; scripts/learning-v3/verify_freeze.py",
+   "reusable_for": "Skeleton for the mission ledger; pre-field freeze record shape; the only owner-specific frozen pre/post design (recent-300 blitz, opportunity denominator, policy_consistency separate from quality_loss, 100 opportunities or 120 days); freeze-ordering verifier"
+  }
+ ],
+ "admissible_premove_features": [
+  {
+   "name": "phase",
+   "definition": "classifyPhase(fenBefore, ply): endgame if non-pawn material (both sides, N=B=3,R=5,Q=9) <= 13; else opening if ply <= 20; else middlegame",
+   "source": "shared/phase.ts; shipped bucket keys; condition_kind POSITION",
+   "caveats": "Documented heuristic (\u03b7\u00b2 0.0035 vs human difficulty); the 20-pp phase spread is 'almost entirely a property of the rule'; endgame likely inflated by forced-in-all-but-name positions"
+  },
+  {
+   "name": "clockMsRemaining (own clock faced)",
+   "definition": "clockTimes[ply\u22122] \u00d7 1000 \u2014 'the clock as the player FACED it'; null for ply < 2",
+   "source": "shared/pgn-clock.ts; bucket clock-under-1m (< 60,000); condition_kind ENVIRONMENT",
+   "caveats": "Berserk games wrong by half at ply 2/3 (146 owner-berserk games, no handling); time buckets read only the dominant speed; not collectible in the live loop (LIVE_DECISION_CARRIES_CLOCK=false); validation needs TimedHoldout"
+  },
+  {
+   "name": "opponentClockMsRemaining; clockBalanceMs; clockShare",
+   "definition": "clockTimes[ply\u22121] \u00d7 1000; own \u2212 opp; own/(own+opp) (0.5 level)",
+   "source": "shared/pgn-clock.ts; shared/blitz-features.ts (BLITZ_FEATURE_VERSION 1)",
+   "caveats": "Derivable but NEVER written to any evidence row or scored corpus; must be declared under a FeatureSpec first"
+  },
+  {
+   "name": "clockRemainingFraction / clock_pressure",
+   "definition": "clockBefore / initialMs (B2 'time pressure' cut 25/50/75); B3 clock_pressure = \u2212log(clock_frac + 0.01)",
+   "source": "shared/blitz-features.ts; research/b2/analyse.py; B3 clock_features",
+   "caveats": "Denominator must be the PGN TimeControl header (not max eligible clock); B2 cut fails its own null and is a phase ordering; region below 25% 'unmeasured, not ruled out'"
+  },
+  {
+   "name": "timeControl {initialMs, incrementMs}; speed",
+   "definition": "Parsed [TimeControl base+inc]; API `speed` field (blitz/rapid/bullet/\u2026)",
+   "source": "shared/pgn-clock.ts; scripts/build_account_corpus.ts",
+   "caveats": "VALIDATION_ONLY under D03 (decides eligibility, never membership); INV-8: 3+0/3+2/5+0/5+5 are four environments; two 'blitz' definitions coexist (B2 header rule vs API field)"
+  },
+  {
+   "name": "standing",
+   "definition": "Mover-relative eval of the position faced: winning >= +100 cp, losing <= \u2212100 cp, else level",
+   "source": "shared/import-diagnostic.ts CLEAR_EDGE_CP; IMPORT_BUCKETINGS; classified POSITION in claim-class.ts",
+   "caveats": "Engine-derived at depth 12 (72/1,587 rows changed standing between engines); import-only, cannot be registered for the live loop (R3)"
+  },
+  {
+   "name": "evalBeforeCp / wp1 / edge / n_near / gap12 / gap1k / ambiguity_entropy / is_mate_line",
+   "definition": "Pre-move search quantities: wp1 = win probability of best line; edge = |wp1 \u2212 0.5|; gap12 = wp1 \u2212 wp2; n_near = lines within 0.02761 of best; entropy of softmax((wp \u2212 wp1)/0.02761)",
+   "source": "B3 src/position_features.py (MultiPV 4, 60k nodes); system-invariant score_natural.py (MultiPV 8)",
+   "caveats": "Require a MultiPV search \u2014 NOT available from the owner's existing MultiPV-1 depth-12 run; population-only today; engine information the player never sees (never a human-observable cue)"
+  },
+  {
+   "name": "best_move_changes / eval_volatility / pv_instability / final_depth / nodes_to_depth10; voc_switch / voc_regret / voc_drift / voc_rank",
+   "definition": "Engine search-complexity and shallow-vs-deep (D_SHALLOW 8) trajectory features of the pre-move position",
+   "source": "B3 src/position_features.py, value_of_computation.py",
+   "caveats": "'ENGINE search complexity, never human cognitive complexity'; VoC features budget-unstable (0.49\u20130.64) and killed as an allocation instrument; RCV-style features share V_deep error with the outcome (STOP-D)"
+  },
+  {
+   "name": "ply / move_number; game_id; colour (side)",
+   "definition": "Half-move index; Lichess game id; owner's colour",
+   "source": "shared/import-diagnostic.ts; research/b2/build_corpus.py (_colour, internal only)",
+   "caveats": "No game or ply selector exists in the search vocabulary (one-game-only and every-game-first-moves plants at 0.0000); colour never analysed in any owner report; game_id is dropped by scoreDecisions"
+  },
+  {
+   "name": "legal_moves; in_check; non_pawn_material; material_balance; piece_count; n_legal_captures; n_checks_available; n_mate_in_1; n_forcing_moves; halfmove_clock; fullmove_number",
+   "definition": "Board-only counts on fenBefore (predicates.py::position_features; minimal_twins.py::covariates)",
+   "source": "research/measurement/predicates.py; research/learning-v3/minimal_twins.py; scripts/build_blitz_research_dataset.ts DecisionEvent",
+   "caveats": "Not computed in the owner import path (only forced = exactly one legal move); exchangeability covariates with '[NO JUSTIFIED THRESHOLD]' for SMD"
+  },
+  {
+   "name": "book; forced",
+   "definition": "isBook: FNV-1a(positionKey) \u2208 833 keys (positions reached by >= 0.1% of 2026-03 games within 30 plies); forced: exactly one legal move",
+   "source": "shared/opening-book.ts; shared/import-diagnostic.ts onlyLegalMove",
+   "caveats": "Exclusions, not features (owner: book 6,213, forced 325); 'forced-in-all-but-name' recaptures are still counted"
+  },
+  {
+   "name": "ECO / opening name / opening.ply; ratings (own, opponent, rating_diff); berserk flag; arenaTour",
+   "definition": "Game-level context from the API JSON and PGN tags ([ECO], [Opening], [WhiteBerserk]/[BlackBerserk])",
+   "source": "scratchpad/account/frozen_2209.ndjson; client/src/lib/lichess-public.ts (opening name only)",
+   "caveats": "Present in raw data, never reach ImportedDecision or evidence rows; opening/material/colour belong to D17 (DEFER); opponent_rating \u2248 rating (B3 R5) \u2014 use rating_diff"
+  },
+  {
+   "name": "prev_move / prev_was_capture (Context)",
+   "definition": "The opponent's last move, available before the player's turn (C1-admissible)",
+   "source": "research/measurement/rule_classes.py Context",
+   "caveats": "Must be passed as a parameter; RC-02 recapture depends on it"
+  },
+  {
+   "name": "Rule-class trigger_state (RC-00..RC-21, 17 classes) and prescription_size",
+   "definition": "trigger(board, ctx) \u2192 positive|negative|None from the board alone; share of legal moves satisfying B",
+   "source": "research/measurement/rule_classes.py; GATE-CUE-PLAYER-OBSERVABLE (scripts/cue-scan.ts)",
+   "caveats": "Only classes with a MEASURABLE noise cell (RC-00,02,03,04,05,13,21) carry information; RC-06/RC-12 predicates branch on the trigger; T+ and T\u2212 not exchangeable (max |SMD| 0.573)"
+  },
+  {
+   "name": "OwnExposure pre/post/delta and the 24 P3 relational counts (attack_edges, support_edges, hanging_*, overloaded, redundantly_defended, pinned, king_ring_*), L descriptors, mobility, material_post",
+   "definition": "Board-only state before the move and one-ply hypothetical after each candidate move (no engine, no opponent reply)",
+   "source": "research/learning-v3/p3_system_invariant.py side_piece_metrics; research/system-invariant/features.py",
+   "caveats": "Population-licensed direction only for post_own_overloaded_piece_count within valid actions; opponent-pressure count inverts; 'Does not establish that humans naturally perceive these variables'; the OWNER HAS BEEN EXPOSED to this cue (2026-09-02) so post-exposure games cannot test it blind"
+  },
+  {
+   "name": "secondsTaken / log_time / unexpected_time (NOT pre-move \u2014 listed to fix its status)",
+   "definition": "clockTimes[ply\u22122] \u2212 clockTimes[ply] + increment; the decision's own duration; B3 residual against frozen T2R models",
+   "source": "shared/pgn-clock.ts; B3 MODEL_SPEC \u00a72",
+   "caveats": "Known only at commit; admissible as a behavioural covariate/stratifier of what the player DID, never as pre-decision information; difficulty-confounded; berserk inflates first derivable value by base/2; forbidden names confusion/hesitation"
+  },
+  {
+   "name": "stated read / confidence / candidate_moves_considered / probe fields (product record only)",
+   "definition": "Pre-reveal player statements and the randomised post-commit alternative-move probe",
+   "source": "shared/decision-atom.ts; STRONGEST_PERMITTED_CLAIM.json production_record_contents",
+   "caveats": "Absent from all Lichess-imported games (owner has recorded zero live decisions); confidence is 'half the target' and never a selector; a ledger key named 'confidence' is rejected by the Neta validator"
+  }
+ ],
+ "target_definition": "Canonical per-decision outcome for the owner corpus: accurate := winProbabilityLoss(engineEvalCp, cpLoss) <= 0.027608582058630926, where winProbability(cp) = 1/(1+exp(\u22120.00368208\u00b7cp)), winProbabilityLoss(e,l) = max(0, wp(e) \u2212 wp(e\u2212l)), engineEvalCp = mover-relative eval of the position BEFORE the move (evalScores[ply\u22121]), cpLoss = max(0, signed drop in White-relative eval across the move) from two independent Stockfish 18 Lite WASM depth-12 MultiPV-1 root searches with hash cleared per position; mate = \u00b110,000 cp. 'Mistake' for the mission = accurate == false on an ELIGIBLE decision (scored \u2212 forced \u2212 book; time/clock buckets additionally require the dominant speed class). The product's primary measure \u2014 calibration gap = confidence \u2212 (accurate ? 1 : 0) \u2014 is UNDEFINED on this corpus (no stated confidence; decisions_before = 0). B3/system-invariant use the continuous quality_loss = max(0, wp1_before \u2212 (1 \u2212 wp1_after)) at SF 17.1 60k nodes, which is NOT poolable with the owner's depth-12 labels (R-03). Instrument noise on the binary label: 13.61% verdict flips across engine builds, 11.22% across hash clearing, ~7.3% false-inaccurate on the engine's own best move under root-minus-child scoring.",
+ "what_repo_cannot_answer": [
+  "Any per-decision or cross-context (opening \u00d7 colour \u00d7 material \u00d7 clock) fact about the owner: the ~59k per-decision rows are gitignored and absent from disk; what was dumped carried only phase, secondsTaken, clockMsRemaining, cpLoss, accurate, standing, forced, book, speed \u2014 no fenBefore, move, eval, colour, ECO, rating, opponent clock.",
+  "Whether the owner's think-time gradient survives a per-decision difficulty control finer than phase \u00d7 standing; whether it is player-specific beyond the population shape (no matched population baseline for the owner's bands).",
+  "The ICC of the owner's accuracy/gap at the game level (never measured; clustering.ts read by nothing); therefore whether decision-level SEs hold on a 2,209-game record (D02 RC2 fired).",
+  "Which search depth a real record resembles (D04 depth trade) \u2014 'cannot be answered from planted worlds'; the real-corpus false-claim rate of the search (D04 RC1); whether Jaccard \u2265 0.60 is doing the work (per-record distribution not stored).",
+  "Whether accuracy-worst = calibration-worst for this player (bridge assumption never checked); anything about the owner's calibration gap (zero live decisions with confidence).",
+  "Whether any board-derived cue (OwnExposure, rule-class triggers) is a player-specific mechanism for the owner: every such result is population-only, and the owner has already been exposed to the OwnExposure cue.",
+  "Human-perceived difficulty (A2) and reactivity of any pre-move probe \u2014 'touched by no measurement here'; whether an authored cue is focal.",
+  "Whether an operation changes the owner's next game: L5/L6 require games played after a frozen manifest; only 12 post-freeze admissible blitz games exist and they are post-exposure for the OwnExposure cue.",
+  "The true per-game opportunity rate of any trigger scanning every ply (never measured \u2014 'no field protocol can size itself without it').",
+  "Whether any of this is separable from general chess strength (D25 unresolved 'domain').",
+  "Engine comparability across the owner's depth-12 WASM labels, B3's 60k-node SF 17.1, and learning-v3's 200k-node SF 17.1 \u2014 R-03 refuses pooling; no stated bridge exists.",
+  "Whether the 724 time-forfeit games (excluded by admissible()) change any clock-related finding; whether the 4 slow-over-2m rows are berserk artefacts."
+ ],
+ "neta_compliance_requirements": [
+  "The mission ledger must be a contract_version '0.2' finding that passes scripts/validate_finding.py: raw_signal in the owner's words; at most 3 candidate_mechanisms each with explains / does_not_explain / discriminator; evidence[] typed OWNER_SIGNAL / REPO_MEASUREMENT / RESEARCH_SOURCE / ENVIRONMENT_CHECK / FIELD_OBSERVATION with reality_level; claims[] with exactly the ten fields (id, kind, statement, resolution_authority, required_reality, observed_reality, evidence_refs, state, requested_use, permission); reversal_condition; next_step. No other top-level keys.",
+  "No key named confidence, confidence_score, certainty or probability at any depth; held-out AUC / log-loss / stability numbers go into evidence.description text or a separate research artifact referenced by an evidence item.",
+  "Level mapping: L0/L1 = OBSERVATION claims, authority REPO, requested_use HYPOTHESIZE/DISCRIMINATE; L2/L3 = one MECHANISM claim that may be SUPPORTED only if observed_reality >= the floor its statement names, with held-out and resampling artifacts as REPO_MEASUREMENT evidence; L4 = INTERVENTION claim, authority OWNER, requested_use BUILD_REVERSIBLE/PROTOTYPE; BUILD_READY additionally needs intervention, design_distinction, gate.falsifier, gate.positive_control, reversal_condition, must_not_change; L5 = a frozen pre-field record (case_id, exact version, predicted observable outcome, smallest discriminator, population boundary, success criterion, reversal criterion, reactivity risks) with the OUTCOME claim at INSUFFICIENT_REALITY/UNRESOLVED and permission DENY or DEFER; L6 = OUTCOME claim SUPPORTED at observed_reality >= R6 (the validator forces authority FIELD).",
+  "ASSERT_FIELD_OUTCOME may never be ALLOW below R6; a waiver (OWNER only) can accept risk but cannot upgrade evidence/reality/authority; intervention and measurement may not change silently together (must_not_change).",
+  "Population evidence (B3, system-invariant, learning-v3, 2013 corpus, six-player record) is RESEARCH-like: it may inform but never close a player-specific claim (law 8 / CF8 authority laundering). Separate population from owner evidence in the evidence list and never pool depth-12 owner labels with 60k/200k-node population labels (R-03).",
+  "Do not reproduce any of the 18 forbidden sentences in docs/evidence-architecture/STRONGEST_PERMITTED_CLAIM.json; any 'same mechanism' claim must show a non-degenerate T\u2212 cell (C11 MEASURABLE) and escape the response-bias/conditional-discrimination identifiability trap (C/D .500).",
+  "Pre-move features must obey D01 (observed_at <= commit_timestamp; missing = null) and D03 (declared FeatureSpec with role, condition_kind, discovery_eligible with a written argument; TARGET and VALIDATION_ONLY never in a predicate); leakage tests in the B3 style (played-move swap; game-suffix replacement) before a search reads a new feature.",
+  "Any new probe/feature/model must pass the encodability gate in writing (live claim, owning authority, information bought, cheaper admissible observation, contamination, removal condition); 'we can build it' = DEFER (FL-005 is literally the chess second-move probe).",
+  "Historical decisions are history: no retrospective case may be relabeled prospective (DQ1); the prospective test must be frozen (hash, verify_freeze.py-style) before the games it scores are played; success criteria may not be rewritten after results.",
+  "Record new failures in docs/FAILURE_LINEAGE.md before hiding them with a rule (berserk clock defect; time-forfeit exclusion; evidence-row absence); repair at the lowest capable layer.",
+  "Vocabulary hygiene: the mission's L0\u2013L6 collides with tests/LEVELS.md L1\u2013L6 and with E1\u2013E7 and R0\u2013R6; the ledger must name its ladder explicitly and never map levels one-to-one.",
+  "Owner exposure: any test of the OwnExposure cue on games after 2026-09-02T16:16Z is post-exposure; the ledger must state this and the frozen PRE_EXPOSURE_BASELINE design (recent-300 blitz, policy_consistency separate from quality_loss) if that cue is ever a candidate.",
+  "Stop rule: once held-out and resampling (REPO) are exhausted, whether the operation changes the next game belongs to FIELD/OWNER \u2014 route or stop rather than build."
+ ],
+ "recommended_node_b_design": "NODE B question: can the existing discovery search (D04's fixed-vocabulary pysubgroup beam search + D09 freeze + q7 derive/freeze/judge/shuffle loop) EXPRESS a cross-context personal pattern, on planted worlds first and on the owner's real record second? What applies unchanged: (1) the discipline \u2014 derive on a game-boundary half, freeze ONE region (result_set_size=1), judge on unseen games at shipped k=3.75 / n>=30 with same-sign requirement, within-record shuffled-label control, false-claim ceiling 0.02 declared before the run, on-target = Jaccard >= 0.60 on the validation half, region_probe answerability before scoring recall; (2) worlds NULL-1..NULL-10 + BASE and the 9 plants as the regression suite (selftest must still pass; re-generate selftest.json so X-16 holds); (3) D08's attribution veto \u2014 its 60-validation-game trigger is met by the owner corpus, so it may be READ (not wired) on any validated region; (4) D02's ICC estimator (clustering.ts / inference.intraclass_correlation) on the owner's game-labelled rows, because D02 RC2 (~50 games) has fired; (5) predicate.ts depth <= 2, canonicalPredicate, hypothesis-manifest freeze with derivation_game_ids_hash and stopping_rule in GAMES. What must be added, each as its own declared step: (a) TARGET: declare an accuracy-only target (the `accurate` bit, or continuous winProbabilityLoss) in hypothesis-manifest (today 'calibration_gap is the only one'); the q7 tautology (confidence < 5) cannot recur because confidence is absent, but the change is a new target with its own null ceiling; (b) WORLDS: new WorldSpec fields for the mission's contexts \u2014 colour, opening family/ECO band or 'left book at ply', material band (non_pawn_material terciles), clock share vs opponent, time control \u2014 with p depending on them under the null only through composition, plus plants defined over conjunctions of two contexts (e.g. colour==black AND material<=13; clockShare<0.4 AND phase==middlegame); feasibility() must accept them; (c) SELECTORS: fixed cuts from product/own definitions (phase thresholds, 60,000 ms, ENDGAME_MATERIAL_THRESHOLD 13, colour equality, book/opening.ply boundary, clockShare bands at 1/3 and 1/2), never quantiles of the record; re-run the 4,000-null ceiling and 1,800-record shuffled control at depth 1 and depth 2 for the widened vocabulary \u2014 'widening the vocabulary is a new multiplicity question'; (d) DEPTH RULE: declare before the run that depth 2 is chosen because the mission is by definition a conjunction question, and record that this settles D04's depth for this node only (which is D06's opening trigger \u2014 resampling then becomes admissible as the L3 test: game-level cluster bootstrap of the frozen region, the untested D02 RC4 alternative); (e) OWNER DATA: rebuild corpus.json from scratchpad/account/frozen_2209.ndjson, extend decisionsFromGame/ImportedDecision rows with fenBefore, moveUci, colour, evalBeforeCp, opponentClockMsRemaining, timeControl, ECO/opening.ply, ratings, berserk flag, legalMoves, inCheck, nonPawnMaterial (all derivable without a new engine pass), fix the berserk start clock (halve clockTimes[0] for the berserking side or null plies 2\u20133), decide in the preregistration whether time-forfeit games are admitted, re-score once (~91 min, SF18 Lite WASM depth 12, cleared) with reproducibility A=B=C and record the sha256; declare every new column under a FeatureSpec (D03) and run B3-style played-move-swap and suffix leakage tests; (f) SPLIT: derivation/validation by GAME using B2's recency-parity rule or a seeded game split, hashed into the manifest; (g) NODE B VERDICTS, frozen before running: EXPRESSIBLE iff each planted cross-context conjunction is recovered on-target (Jaccard >= 0.60) at >= the rate D04 reached for interaction-only (0.335) with false-claim upper CI <= 0.02 on the widened nulls; then on the owner: FOUND iff exactly one frozen region validates on the unseen half at k=3.75/n>=30 with same sign AND survives the attribution read AND its game-level bootstrap interval excludes zero; SILENT otherwise; MISATTRIBUTED if the veto names a dividing cut. Report the population-baseline rate of the same region (population-baseline.ts / six-player record) beside the owner's so population and player evidence stay separate. Explicit exclusions: no OwnExposure test on post-2026-09-02 games; no new probe; no threshold moves in the product; no LLM layer; no claim of mechanism \u2014 a validated region is an L1/L2 REGION, and the ledger says so.",
+ "strongest_current_claim": "Permitted (OBSERVATION, authority REPO, owner-specific, L0): on erez281's whole admissible record (2,209 games; 52,881 eligible decisions; Stockfish 18 Lite WASM depth 12, hash cleared, reproducible), accuracy falls monotonically with think time inside the single 'fast-under-45s' bucket \u2014 71.3% at 0\u20131 s (n=15,421) to 42.5% at 46 s+ (n=167), 28.8 pp \u2014 replicated at 48, 1,240 and 2,209 games and on the separate 117-game B2 corpus, where the separation survives a phase\u00d7standing random-boundary control in all three middlegame cells and collapses in every opening cell and the endgame cell. It is not causal, not a mechanism, not pre-move information (think time is the decision's own duration), confounded by unmeasured difficulty, at least partly population-typical (the six-player record shows the same shape; B3 beta +0.01342), and measured on a label that flips 13.61% under an engine swap. No cross-context region of the owner's record is separable under the shipped nine-bucket vocabulary (worst phase-middlegame 0.6035 vs runner-up 0.6097, 0.622 pp < 0.863 pp bar), and no mechanism claim of any kind is currently permitted.",
+ "current_bottleneck": "No per-decision owner table with pre-move context exists: every decision_evidence.jsonl (48 / 1,240 / 2,209 / B2) is gitignored and absent from disk, the dumped schema never carried fenBefore, the move, colour, eval, ECO, ratings or the opponent's clock, and the 1,240/2,209 rows that once existed had a mislabelled gameId column \u2014 so not one cross-context pre-move feature can be computed or held out for the owner until the corpus is rebuilt from scratchpad/account/frozen_2209.ndjson with an extended, FeatureSpec-declared row schema (berserk clock fix and a time-forfeit admissibility decision included) and re-scored once under a new preregistration (~91 min at depth 12)."
+}

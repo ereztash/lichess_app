@@ -193,7 +193,7 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
           </p>
           <div className="chart-frame" dir="ltr">
             <ResponsiveContainer width="100%" height={168}>
-              <AreaChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -22 }}>
+              <AreaChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
                 <XAxis dataKey="ply" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
                 <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={38} />
@@ -239,7 +239,7 @@ export function GameReview({ evalScores, playerColor, totalPlies }: Props) {
           </p>
           <div className="chart-frame" dir="ltr">
             <ResponsiveContainer width="100%" height={168}>
-              <BarChart data={losses} margin={{ top: 6, right: 4, bottom: 0, left: -22 }}>
+              <BarChart data={losses} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
                 <XAxis dataKey="moveNumber" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
                 <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={38} />
