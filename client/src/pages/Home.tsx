@@ -969,7 +969,7 @@ export default function Home() {
           // the decision is committed with, so the reveal grades the number the record stores.
           confidenceScale: CONFIDENCE_LEVELS,
           statedUnknown: draft.unknown,
-          decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
+          decisionsOnRecord: await decisionCount.forReveal(), // `N-7`, and the rule is there
           /*
            * From the draft, not from React state. `setCandidatesConsidered([])` runs above, at
            * the start of the reveal, and the state variable is cleared for the NEXT decision --

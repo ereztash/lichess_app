@@ -477,7 +477,34 @@ export function useRetireLearningRule() {
 }
 
 /** Only what the callers read. Exposing the query object would drag in two error types. */
-export type CountView = { data: { decisions: number } | undefined; refetch: () => void };
+export type CountView = {
+  data: { decisions: number } | undefined;
+  refetch: () => void;
+  /**
+   * The count as the record holds it NOW, awaited at the point of use. `null` where it could not
+   * be read.
+   *
+   * WHY THIS EXISTS RATHER THAN `data`. `data` is a cache, and a caller that needs the count of a
+   * record it has just written to cannot use a cache: it does not know whether the value it is
+   * holding was read before or after its own write. `Home.tsx` compensated for that with `+ 1` --
+   * correct exactly while the query was one refetch behind, and wrong the moment anything landed a
+   * refetch in the window. Measured on the built app: four decisions, and the reveal said
+   * `1, 2, 4, 4`.
+   *
+   * `null` IS NOT ZERO AND IS NOT A COUNT. A read that failed is a state the caller has to decide
+   * about; returning `0` would hand it a number the record does not claim.
+   */
+  countNow: () => Promise<number | null>;
+  /**
+   * `countForReveal` bound to this view. The rule is there; this is how a caller reaches it.
+   *
+   * A METHOD RATHER THAN AN IMPORT AT THE CALL SITE, and the reason is a ratchet rather than a
+   * preference: `Home.tsx` is held to a line ceiling that `MASTER_PRODUCT_DEBT.md` R-13 says may
+   * only go down, and an import line is a line. The rule stays a free function so it can be tested
+   * against a literal without rendering anything.
+   */
+  forReveal: () => Promise<number>;
+};
 
 /**
  * Register the bucket an import named, before the live loop records anything (shared/prereg.ts).
@@ -616,6 +643,52 @@ export function useImportReading(): { reading: StoredImportDiagnostic | null; lo
   return { reading: active.data ?? null, loading: active.isLoading };
 }
 
+/**
+ * The number of decisions the reveal may claim are on the record, including the one being revealed.
+ *
+ * WHY THIS IS A FUNCTION AND NOT `data + 1` AT THE CALL SITE. `Home.tsx` built it as
+ * `(decisionCount.data?.decisions ?? 0) + 1` -- the cached count, plus one for the decision being
+ * revealed. `onCommit` awaits the write and returns on failure before the engine is ever asked, so
+ * by the time the reveal is assembled that decision is ALREADY on the record and the number wanted
+ * is simply the number the record holds. `+ 1` produced it only while the query had not caught up.
+ *
+ * AND WHETHER IT HAD CAUGHT UP WAS THE COUNTERFACTUAL PROBE'S ARM, not a race. `useCommitDecision`
+ * above invalidates `LOCAL_KEYS.count` immediately after the write, so:
+ *
+ *   NOT-PROBED  `onCommit` calls `runReveal` inside the closure it was created in. `data` is still
+ *               `k-1` there and `+ 1` lands on `k`. Right, by accident.
+ *   PROBED      `onCommit` returns, the invalidated count refetches, React re-creates `runReveal`
+ *               (`decisionCount` is in its dependency array), and `onAnswerProbe` calls the LATER
+ *               closure, where `data` is already `k`. `+ 1` prints `k+1`.
+ *
+ * MEASURED ON THE BUILT APP BEFORE THIS EXISTED: 8 of 8 probed runs wrong, 18 of 18 not-probed runs
+ * right -- 26 runs, 26/26 agreement with the arm. A probed FIRST decision was told
+ * `נרשמו 2 החלטות`, which is also `זו החלטה אחת שנרשמה` not rendering at all, so at `k=1` the
+ * defect crossed a copy branch and not only a digit. A four-decision walk read `1, 2, 4, 4`.
+ *
+ * THE RACE WAS THE FIRST EXPLANATION AND IT IS FALSIFIED, recorded here so it is not re-derived:
+ * `useDecisionCount` is one of two reads in this file without `refetchOnWindowFocus: false`, which
+ * made a focus refetch look like the cause. It is not. 50-56 synthetic focus events dispatched
+ * across the engine wait produced the CORRECT sentence on 5 of 5 not-probed runs: nothing can reach
+ * a closure that has already been frozen, and on the probed arm the invalidation had already done
+ * the refetching. Adding `refetchOnWindowFocus: false` would have changed nothing.
+ *
+ * THE FALLBACK IS THE OLD ARITHMETIC, AND ONLY WHERE THE COUNT COULD NOT BE READ AT ALL. On that
+ * path `data` is the last value that DID read, which is the count before this decision, so `+ 1` is
+ * the right estimate for exactly the case it was the wrong rule for. It is an estimate from a
+ * stated basis rather than a coincidence, and it degrades honestly: two consecutive failed reads
+ * leave the number low rather than high.
+ *
+ * IT IS AWAITED AT THE CAPTURE AND NOT STARTED EARLIER. On the local path -- which is every
+ * production arrival, because production configures no database -- this is a `localStorage` read.
+ * On the server path it is one small query after a search that took seconds. Starting it before the
+ * search would overlap the two and would cost `Home.tsx` a line of a ceiling that only ever goes
+ * down; if the server path ever makes that trade worth taking, the promise is the thing to hoist.
+ */
+export async function countForReveal(count: CountView): Promise<number> {
+  return (await count.countNow()) ?? (count.data?.decisions ?? 0) + 1;
+}
+
 export function useDecisionCount(): CountView {
   const { local } = useRecordMode();
   const store = useStore();
@@ -626,7 +699,30 @@ export function useDecisionCount(): CountView {
     enabled: local,
   });
   const active = local ? localQuery : server;
-  return { data: active.data, refetch: () => void active.refetch() };
+  const view: CountView = {
+    data: active.data,
+    refetch: () => void active.refetch(),
+    /*
+     * THE RESULT OF THE REFETCH, NOT `active.data` AFTER IT. `data` on this object is the value
+     * captured when the component last rendered; awaiting a refetch does not change it, and a
+     * caller reading it back would get the same stale number it started with. The promise carries
+     * the fresh one.
+     *
+     * IT RESOLVES, ALWAYS, AND THAT IS LOAD-BEARING RATHER THAN DEFENSIVE. This is awaited inside
+     * the block that assembles the reveal, so a rejection would cost the player the verdict they
+     * waited seconds for because a number beside it could not be read. A count that cannot be read
+     * is `null`. It is not an exception, and it is not a reason to lose a reveal.
+     */
+    countNow: async () => {
+      try {
+        return (await active.refetch()).data?.decisions ?? null;
+      } catch {
+        return null;
+      }
+    },
+    forReveal: () => countForReveal(view),
+  };
+  return view;
 }
 
 export type ClaimQueryView = {
