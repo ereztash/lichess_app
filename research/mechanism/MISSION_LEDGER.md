@@ -619,3 +619,29 @@ cleared; `pipeline/rescore_wasm.py`, 10,626 decisions). Label agreement with the
 The region keeps its sign and 89% of its size under the other engine: not an evaluation artifact.
 The rows for "any error" also show why the class target was necessary: pooled over all errors the
 excess beyond the baseline is small; it lives in the tactical class.
+
+## Sub-class refinements (same trigger family; `nodeB/discovery_OBS_cls_*_resid.json`)
+
+| class target | base rate | Node C depth | frozen (top) | VALIDATE in / out | within-game | residual within-game z |
+| --- | --- | --- | --- | --- | --- | --- |
+| `hung_material` (the reply wins material) | 8.6% | 1 | `own_overloaded_piece_count >= 1` | 14.8% / 5.1% | +9.7 pp, z 13.9 | **13.0** |
+| `hung_material` | | | `own_hanging_piece_count >= 1` | 14.2% / 6.4% | +8.0 pp, z 10.5 | 10.1 |
+| `quiet_error` (no capture, check or mate involved) | 27.8% | 3 → 2 | `own_castling == 0 AND own_overloaded_piece_count < 1` | 32.2% / 26.5% | +6.9 pp, z 6.1 | 6.8 |
+| `missed_material` | 3.8% | 3 | (CV z 1.7–2.7; no candidate passed) | | | |
+
+The sharpest statement is the hung-material one: when a piece of the player's has more attackers
+than defenders, the probability that his move loses material to the reply is 14.8% against 5.1%
+elsewhere in the same games, and the whole of that excess survives the baseline (residual z 13).
+The quiet-error region is the complement: with no under-defended piece and castling rights gone,
+quiet errors rise; it is a second structure, not the same one, and it is not pursued further here.
+
+## Design v1.8 — the population as the baseline (declared before its search results are read)
+
+| item | value |
+| --- | --- |
+| population model | gradient-boosted trees (scikit-learn HistGradientBoosting, 200 iterations, single thread) on the 34,794 population decisions, features = every OBS and ENG pre-move feature plus clock, rating difference, ply and board counts; one model per target |
+| sanity | game-grouped holdout AUC on the population: tactical 0.766, hung material 0.765, any error 0.752; applied to the owner's VALIDATE blitz decisions: AUC 0.745 / 0.740 / 0.742 and calibrated (predicted 17.2% vs observed 17.1% tactical; 8.4% vs 8.7% hung material; 45.3% vs 45.9% any error) |
+| search target | owner's residual (target − population prediction), demeaned within game; OBS vocabulary; blitz only; depth by CV; freeze 3; judge on VALIDATE with the residual within-game z ≥ 3.5 and raw within-game > 0 |
+| null | i.i.d. Bernoulli at the game's own rate, 30 draws, depths 1–2 |
+| what R* looks like under this baseline (VALIDATE, blitz) | tactical: residual in R* +1.9 pp vs −0.8 pp outside, within-game +2.8 pp (z 2.66); hung material: +3.2 pp vs −0.7 pp, within-game **+4.3 pp (z 4.78)**; any error: within-game +2.8 pp (z 2.37) |
+| reading | most of R*'s excess is what a same-rating player shows in the same situation; a residue survives for the hung-material class: the owner loses the under-defended piece somewhat more often than the population model predicts for the same pre-move situation |
