@@ -15,6 +15,7 @@
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
 import { normaliseConfidence } from "./confidence.js";
+import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
 
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
@@ -305,37 +306,6 @@ export interface OneThing {
 }
 
 /**
- * Why another decision is worth taking, said once and said the same way every time.
- *
- * THE SENTENCE THAT WAS MISSING, AND WHAT WAS STANDING IN FOR IT. The only reason to continue that
- * this product stated anywhere was the measurement floor -- "עוד N החלטות מדודות עד שאפשר לומר
- * משהו" in `loop-position.ts`. That sentence is correct and it belongs to the record: it says what
- * a CLAIM requires before a detector may speak. It says nothing about what the PLAYER gets from
- * the next decision, and read as motivation it is a countdown to a locked thing, which is the
- * mechanic this product refuses.
- *
- * So the two are kept apart on purpose. The floor stays in the record with its denominators. This
- * is the other half: what one more decision adds BEFORE any claim exists, which is a separate
- * observation -- the only thing that can turn "this happened" into "this happens".
- *
- * IT IS A CONSTANT AND THAT IS THE DESIGN. Not a function of the reveal kind, the acquisition
- * angle, how many decisions are on record, or anything the player did. A proposition that got
- * warmer after a `chose-past-it` and cooler after silence would be measuring the player and
- * answering them, and the trial would then be reading its own copy back. Every reveal gets this
- * sentence; a test asserts all five outcomes render it identically.
- *
- * NO NUMBER APPEARS IN IT. A digit here is a countdown whatever the surrounding words say.
- *
- * AND IT SAYS "עמדה אחרת ורגע אחר" RATHER THAN THE WORD FOR IT. The first draft read "תצפית
- * נפרדת", which is exactly right and is method vocabulary; `the-player-sees-chess.test.ts` caught
- * it on the reveal, which is what that test is for. Independence is the whole content of this
- * sentence, so it is said in the two things that actually make a decision independent of this one
- * -- a different position and a different moment -- in words a player already owns.
- */
-export const CONTINUATION_PROPOSITION =
-  "החלטה אחת אומרת מה קרה בה, ולא יותר. החלטה נוספת היא עמדה אחרת ורגע אחר — וזה מה שמאפשר לשאול אם מה שקרה כאן חוזר, או שקרה פעם אחת.";
-
-/**
  * The button, named for the experiment rather than for the movement.
  *
  * "ההחלטה הבאה" describes where the click goes. This describes what taking it is FOR, which is the
@@ -486,13 +456,33 @@ export function silenceBasis(inputs: RevealInputs): SilenceBasis {
  * its four sentences the record actually produces -- and it is reported with its denominator and
  * below the same floor as everything else here.
  *
+ * AND IT IS A READING TAKEN NOW, NOT A TRANSCRIPT OF WHAT WAS SHOWN THEN. This calls `theOneThing`
+ * on stored rows, deliberately -- copying the four conditions into the loop would drift the first
+ * time a threshold moved, and then the product and the measurement OF the product would disagree.
+ * The cost of that choice is the referent: a threshold HAS moved, and this file records the move
+ * two hundred lines up -- the two confidence cuts "used to be `confidence >= 4` and
+ * `confidence <= 2`, read off the RAW stored level". A decision stated at 5 of 7 cleared the old
+ * cut and does not clear `CONFIDENT_ENOUGH_TO_NAME`, so one unchanged row lands in
+ * `confident-and-wrong` when read then and `outplayed` when read now.
+ *
+ * SO THIS IS "WHAT YOUR STORED DECISIONS COME TO UNDER THE DEFINITION IN FORCE NOW", and a caller
+ * may not render it as "what the tool told you". The only thing in this repository that records
+ * what was actually put on a screen is `reveal_kind_presented` in the acquisition ledger, which is
+ * per-browser trial evidence about a VISIT, is never re-derived, and sits behind an import-graph
+ * wall from `shared/`. Nothing here reaches for it, and a claim of the second kind would need it.
+ *
  * THE DIRECTION OF THE INFERENCE, carried from `candidate_moves_considered`. A move IS in that
  * list only if it was physically put on the board. A player who weighed four moves in their head
  * and touched one leaves a list of length one. So `chose-past-it` is a LOWER bound on "saw it and
  * chose past it", never an estimate, and the same asymmetry it already states per decision.
  */
 export interface OneThingMix {
-  /** Decisions the engine has answered. Nothing here can be computed before a reveal. */
+  /**
+   * Decisions the engine has answered. Nothing here can be computed before a reveal.
+   *
+   * NOT "decisions the player was shown". See `withheld` below: on a deferred game the engine
+   * answers during play and the verdict is held back, so `n` is a producer count throughout.
+   */
   n: number;
   counts: Record<OneThingKind, number>;
   /** Decisions where the measurement supported no sentence. A valid outcome, counted as one. */
@@ -503,6 +493,20 @@ export interface OneThingMix {
    * between it and the branch's own count is the share where the move was NOT on the board.
    */
   eligible: number;
+  /**
+   * Of `n`, how many the product's own rule kept off the screen at the moment it computed them.
+   *
+   * `n` IS A PRODUCER COUNT AND THIS IS WHAT STOPS IT BEING READ AS A CONSUMER ONE. A decision is
+   * in `n` when the engine answered for it; on a deferred game the engine answers during play and
+   * `mayShowVerdictNow` refuses to show the verdict, so the record holds a scored decision the
+   * player was not told about. Every surface counting `n` was calling those "נחשפו".
+   *
+   * A LOWER BOUND ON WHAT WAS NOT SHOWN, NEVER AN ESTIMATE. See
+   * `verdictWithheldWhenComputed`: a row that recorded no timing counts here as zero, and a
+   * withheld verdict may still have been shown when the game ended. What this says is that the
+   * record cannot witness that it was.
+   */
+  withheld: number;
 }
 
 /** The atom fields this reads. Kept structural so the record's own type does not leak in here. */
@@ -521,6 +525,11 @@ export interface MixableDecision {
   chosenMove: string;
   cpLoss: number | null;
   bestMove: string | null;
+  /**
+   * Which reveal regime was in force, straight off `reveal_timing`, or null on a row from before
+   * the field existed. Read for `withheld` above and by no branch of `theOneThing`.
+   */
+  revealTiming: RevealTiming | null;
 }
 
 export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
@@ -533,12 +542,15 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
   let n = 0;
   let silent = 0;
   let eligible = 0;
+  let withheld = 0;
 
   for (const d of decisions) {
     // No reveal, nothing to classify. R3 again: before the engine answers there is no cp loss.
     if (d.cpLoss === null || d.bestMove === null) continue;
     n += 1;
     if (d.cpLoss > ENGINE_NOISE_CP && d.cpLoss >= MATERIAL_LOSS_CP) eligible += 1;
+    // Scored by construction: `cpLoss` and `bestMove` are both non-null on this branch.
+    if (verdictWithheldWhenComputed({ scored: true, timing: d.revealTiming })) withheld += 1;
     /*
      * The real function, not a restatement of its conditions.
      *
@@ -565,7 +577,130 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
     if (one === null) silent += 1;
     else counts[one.kind] += 1;
   }
-  return { n, counts, silent, eligible };
+  return { n, counts, silent, eligible, withheld };
+}
+
+/**
+ * WHAT THE RECORD HOLDS OF THE SAME KIND AS THE DECISION JUST REVEALED.
+ *
+ * WHAT THIS REPLACED AND WHY. `CONTINUATION_PROPOSITION` said, after every reveal, that another
+ * decision is a different position and a different moment and that this is what lets you ask
+ * whether what happened here repeats. Every word of that is true and it was a constant: identical
+ * after decision one and after decision fifty. The product offered to let a player ask whether
+ * something repeats and then never asked. Measured on the built app after three decisions, one
+ * painted element of fourteen on the reveal said anything about the record -- 60 characters of
+ * 754 -- and it sat inside the block headed "מה ההחלטה הזאת עדיין לא אומרת", where its whole
+ * function was to deny.
+ *
+ * SO THE PROPOSITION'S CLAIM IS NOW ANSWERED RATHER THAN ASSERTED. The branch the player just
+ * read has fired some number of times over the decisions the engine has answered, and that number
+ * is a fact of the record which `oneThingMix` already computes. It is the smallest true statement
+ * that could not be made about one decision alone.
+ *
+ * THE LIMITATION IS INSIDE THE BLOCK, NOT REPLACED BY IT. `lead` says a single decision is not a
+ * pattern; `balance` says what moved anyway. Both, always, in that order. A block that reported
+ * only the count would be the countdown-to-a-locked-thing mechanic this product refuses, wearing a
+ * numerator.
+ *
+ * NOTHING HERE IS A RATE, A GRADE OR A THRESHOLD. A count and its denominator, in the record's own
+ * vocabulary. `MIN_BUCKET_N`, the detector, every bucket and every eligibility rule are untouched
+ * and unread: this function cannot see them.
+ *
+ * `הופיע` AND NOT `נרשם`, WHICH IS NOT A STYLE CHOICE. The limits block eight lines above says
+ * `נרשמו N החלטות` with a different number. `loop-position.ts` documents what happens when two
+ * registers nineteen pixels apart share a bare verb -- "read together they said the record was
+ * broken" -- so the verb here is about the SENTENCE appearing, which is what is actually counted,
+ * and the decisions keep `נרשמו` to themselves.
+ */
+export interface RevealAccumulation {
+  /** The limitation, first and always. One decision is not a pattern. */
+  lead: string;
+  /**
+   * What moved. Null when the record cannot support the sentence yet -- which is the first reveal,
+   * where the engine has answered nothing else, and is a real state rather than a zero.
+   */
+  balance: string | null;
+  /** What the next decision does to the balance. Replaces the proposition's closing clause. */
+  next: string;
+}
+
+export const ACCUMULATION_HEADING = "מה שנצבר עד עכשיו";
+
+/**
+ * THE LEAD IS A CONSTANT AND THAT IS DELIBERATE, carried from `CONTINUATION_PROPOSITION`.
+ *
+ * It does not warm up after a good branch or cool down after silence. A sentence about what one
+ * decision can establish is a fact about arithmetic, not about the player, and one that varied by
+ * outcome would be the product measuring them and answering them at once.
+ */
+export const ACCUMULATION_LEAD =
+  "החלטה אחת אינה דפוס. מה שהיא כן עושה הוא להזיז את מאזן הראיות.";
+
+/**
+ * Said once, the same way, whatever the branch. The reason another decision is worth taking.
+ *
+ * IT SHARES ITS WORDS WITH `CONTINUATION_CTA` ON PURPOSE, carried from the proposition this block
+ * replaced: a button whose words appear nowhere in the sentence above it is a second message, and
+ * the reader has to work out for themselves that they are one offer. `חוזר` is in both.
+ *
+ * AND IT IS A QUESTION. `אם זה חוזר` can come back false. "ההחלטה הבאה תראה לך את הדפוס שלך" would
+ * be a promise no build can keep -- the branches that carry a pattern fire only when the record
+ * happens to hold the evidence, and a player who took ten decisions and got silence on all ten
+ * would have been lied to rather than measured.
+ */
+export const ACCUMULATION_NEXT =
+  "ההחלטה הבאה היא עמדה אחרת ורגע אחר, ולכן היא זו שתראה אם זה חוזר.";
+
+/**
+ * How the branch the player just read is named when it is counted.
+ *
+ * NOT `OneThing.text`, WHICH IS ABOUT THIS POSITION. That sentence carries a move and a centipawn
+ * figure; counting it over the record would read as "this exact thing happened three times", which
+ * is false -- three different positions produced the same KIND of finding. These name the kind.
+ *
+ * SILENCE IS A ROW HERE, for the reason `OneThingMix.silent` is a field: a decision the
+ * measurement supported no sentence about is an outcome, not a gap, and a player who keeps
+ * receiving it is owed the count rather than a blank.
+ */
+export const ACCUMULATION_KIND_LABEL: Record<OneThingKind | "silence", string> = {
+  "chose-past-it": "מהלך שהיה על הלוח ולא נבחר",
+  "confident-and-wrong": "ביטחון גבוה מול מהלך שעלה חומר",
+  outplayed: "מהלך שעלה חומר, בלי שהרשומה מוסיפה עליו",
+  "trusted-it-too-little": "בחירה טובה שהוצהר עליה ביטחון נמוך",
+  silence: "מדידה שלא תמכה באף משפט",
+};
+
+/**
+ * Read the accumulation for one reveal.
+ *
+ * `kind` is the branch this reveal actually rendered, `"silence"` included -- taken from the value
+ * `RevealPanel` renders rather than recomputed, so the count and the sentence above it can never
+ * describe different branches.
+ */
+export function revealAccumulation(
+  kind: OneThingKind | "silence",
+  mix: OneThingMix,
+): RevealAccumulation {
+  const same = kind === "silence" ? mix.silent : mix.counts[kind];
+  /*
+   * BELOW TWO ANSWERED DECISIONS THERE IS NO BALANCE TO REPORT, and saying so is not a countdown.
+   * At n = 1 the only answered decision IS this one, so "appeared in 1 of 1" is this reveal
+   * restating itself with a denominator attached -- the shape of a measurement, carrying none.
+   */
+  if (mix.n < 2) {
+    return {
+      lead: ACCUMULATION_LEAD,
+      balance: null,
+      next: ACCUMULATION_NEXT,
+    };
+  }
+  return {
+    lead: ACCUMULATION_LEAD,
+    balance:
+      `${ACCUMULATION_KIND_LABEL[kind]} — הופיע ב-${same} מתוך ${mix.n} ההחלטות ` +
+      "שהמנוע ענה עליהן עד עכשיו.",
+    next: ACCUMULATION_NEXT,
+  };
 }
 
 /**

@@ -969,7 +969,7 @@ export default function Home() {
           // the decision is committed with, so the reveal grades the number the record stores.
           confidenceScale: CONFIDENCE_LEVELS,
           statedUnknown: draft.unknown,
-          decisionsOnRecord: (decisionCount.data?.decisions ?? 0) + 1,
+          decisionsOnRecord: await decisionCount.forReveal(), // `N-7`, and the rule is there
           /*
            * From the draft, not from React state. `setCandidatesConsidered([])` runs above, at
            * the start of the reveal, and the state variable is cleared for the NEXT decision --
@@ -2060,6 +2060,8 @@ export default function Home() {
                   /* Null until the reveal is written: an unrecorded reveal is not a funnel stage,
                      and an id naming no committed decision cannot be joined to one. */
                   decisionId={revealedDecisionId}
+                  /* Same query `RecordExplorer` reads, so the two cannot differ. See the prop. */
+                  mix={recordReading.data?.mixAll ?? null}
                   /* A transfer keeps its own control; and not offered where it cannot be honoured. */
                   onContinue={
                     revealedDecisionId &&
@@ -2175,7 +2177,8 @@ export default function Home() {
                   aria-expanded={exploring}
                   onClick={() => setExploring((open) => !open)}
                 >
-                  {exploring ? "חזרה לתוצאה" : "מה עוד יש כאן"}
+                  {/* Names what opens, not the act of looking: one-heading-a-screen-is-about. */}
+                  {exploring ? "חזרה לתוצאה" : "לרשומה המלאה"}
                 </button>
               )}
               {exploring && !runInProgress && (

@@ -17,7 +17,7 @@ import type { Control } from "@shared/control";
 import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
-import { CounterfactualPanel } from "./CounterfactualPanel";
+import { COUNTERFACTUAL_TITLE, CounterfactualPanel } from "./CounterfactualPanel";
 import { ProfilePanel } from "./ProfilePanel";
 import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
@@ -105,6 +105,8 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
     sensitivityReference,
     control,
     stability,
+    setAside,
+    regime,
   } = reading;
 
   if (scored === 0) {
@@ -123,7 +125,15 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
      */
     const reason =
       reading.withoutConfidence > 0
-        ? `${reading.withoutConfidence} החלטות נחשפו, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
+        ? /*
+           * "המנוע ענה על N" AND NOT "N החלטות נחשפו". `withoutConfidence` counts decisions with a
+           * STORED ENGINE VERDICT and no stated confidence -- a fact about the producer. On a
+           * deferred game the engine answers during play and `mayShowVerdictNow` keeps the verdict
+           * off the screen, so this sentence was telling a player that decisions had been revealed
+           * to them which the product had deliberately not shown. The count is unchanged; the verb
+           * is now the one the record can witness.
+           */
+          `המנוע ענה על ${reading.withoutConfidence} החלטות, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
           "שאלת הביטחון נשאלת תמיד בסט המשותף ובתרגול, ובחלק מההחלטות במשחק חופשי. " +
           "פער כיול נקרא רק מהחלטות שנשאלו."
         : /*
@@ -181,6 +191,76 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         <span className="data-chip">n={scored}</span>
       </div>
 
+      {/*
+        * WHY `n` IS SMALLER THAN THE PLAYER'S OWN COUNT, when it is.
+        *
+        * `shared/evidence-policy.ts` groups the described record by the conditions that make two
+        * decisions comparable, and this page reads one of them. Without this line the number in the
+        * chip would simply be smaller than the record the player remembers building, for a reason
+        * no surface stated -- the failure R1 exists to prevent, arriving as an absence.
+        *
+        * IT IS NOT `readElsewhere`. These decisions are not counted under another heading; they are
+        * the same free play, measured under conditions this reading may not average with the rest.
+        */}
+      {/*
+        * THE READING IS OF A REGIME THAT IS NO LONGER THE ONE BEING WRITTEN.
+        *
+        * WHY THIS NOTE STILL EXISTS AFTER THE RULE CHANGED. It was written when the population rule
+        * was "the largest" -- answer-blind and stable, and silent about recency -- which meant that
+        * after a bump to `CURRENT_PROTOCOL_VERSION` the RETIRED regime stayed largest until the new
+        * one overtook it: measured at 120 decisions under version 4 against 40 under version 5,
+        * this panel reported n=120 at 100% accuracy from a protocol no longer running, and would
+        * have gone on for 81 more decisions.
+        *
+        * `regimeInForceFirst` bounded that at `MIN_BUCKET_N` rather than removing it. The reading
+        * switches to the regime in force as soon as it can be read, and until then it is still the
+        * largest one -- so the stale state is thirty decisions long instead of a whole record, and
+        * `regime.current` is false for exactly that window. This is the sentence for that window.
+        *
+        * The figure is not wrong about its own population. Without this line the reader has no way
+        * to know which population that is, and every number on this screen reads as current.
+        */}
+      {regime !== null && !regime.current && (
+        <p className="dash-note" dir="rtl">
+          המספרים כאן נמדדו בתנאי מדידה שכבר אינם התנאים שאתם משחקים בהם עכשיו. ההחלטות החדשות
+          שלכם נרשמות בנפרד ועדיין לא הצטברו מספיק כדי להיקרא, ולכן זו תמונה של איך החלטתם קודם,
+          לא של איך אתם מחליטים היום.
+        </p>
+      )}
+
+      {/*
+        * WHAT THIS SENTENCE MAY CLAIM, AND WHAT IT CLAIMED.
+        *
+        * It said those decisions are not averaged into `המספרים כאן`. Measured on the built app,
+        * two seeded records, one section: the note at y=1363 above three denominators reading n=30,
+        * and five denominators reading n=65 at y=2741. 65 = 30 + 35. The thirty-five it says are
+        * not averaged in are in five numbers thirteen hundred pixels below it, inside the same
+        * section. The other record showed the same at n=120 against n=140.
+        *
+        * THE ARITHMETIC IS RIGHT AND IS NOT TOUCHED. `record-service.ts` flattens the described
+        * strata for the branch tally and argues it where it does it: a tally carries its own
+        * denominator and is *"not a comparison between decisions, which is the only operation a
+        * stratum boundary forbids"*. So the fix is to the scope of the claim, not to the number.
+        *
+        * PROXIMITY COULD NOT HAVE DISAMBIGUATED IT. The identical phrase is eight lines above, in
+        * the stale-regime note, where it can only mean the whole panel -- that note exists because
+        * otherwise *"every number on this screen reads as current"*. One phrase, two referents.
+        *
+        * AND IT NAMES WHERE THEY DO COUNT, because bounding the claim alone would leave a reader
+        * told a number excludes their decisions, meeting a bigger denominator in the same section,
+        * with nothing connecting the two. `MixBlock`'s own title, so the sentence points at
+        * something the reader can find rather than at a description of it.
+        */}
+      {setAside.length > 0 && (
+        <p className="dash-note" dir="rtl">
+          עוד {setAside.reduce((n, s) => n + s.n, 0)} החלטות מדודות שלכם נרשמו בתנאי מדידה אחרים —
+          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך הקריאה של משטר המדידה שמוצג
+          כאן. הן אינן ממתינות ואינן נקראות תחת כותרת אחרת: הן פשוט אינן אותה אוכלוסייה. שני
+          הבלוקים שבהמשך העמוד, ״{MIX_TITLE}״ ו״{COUNTERFACTUAL_TITLE}״, סופרים את כל משטרי
+          המדידה יחד — ולכן ה-n שלהם גדול מזה שכאן, ולא בטעות.
+        </p>
+      )}
+
       <div className="review-stats">
         <div className="review-stat">
           <Proportion value={overall.meanConfidence} n={scored} label="הביטחון שהצהרת" />
@@ -234,9 +314,48 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
             רק שגיאת הכיול מדברת עליכם. קושי העמדות הוא תכונה של מה שפגשתם — עמדות קשות מגדילות
             את הפער בלי שנעשיתם שופטים גרועים יותר של עצמכם.
           </p>
+          {/*
+            * THE QUALIFICATION, AND IT IS WHY THE PANEL IS ALLOWED TO SHOW THE NUMBER AT ALL.
+            *
+            * `reliable` says some level is big enough to read. It does NOT say the figure above is
+            * made of those levels: `reliability` is a weighted mean, and a level's weight is its
+            * share of the record rather than its eligibility. Measured on the record this exists
+            * for, 30 decisions at 65% beside 29 at 95%, the eligible level carries under a
+            * thousandth and the short one carries over 99%.
+            *
+            * RENDERED THROUGH `Proportion` AND NOT AS A HAND-BUILT PERCENT, so it arrives with the
+            * denominator R1 requires -- how many decisions sit on the levels being discounted.
+            * Absent when every used level clears the floor, because a qualification on a reading
+            * that needs none teaches the reader to discount every reading.
+            */}
+          {calibration.unreadableShare !== null && calibration.unreadableShare > 0 && (
+            <p className="dash-note" dir="rtl">
+              <Proportion
+                value={calibration.unreadableShare}
+                n={calibration.unreadableN}
+                label="מתוך שגיאת הכיול, החלק שנשען על רמות שנאמרו מעט מדי"
+              />{" "}
+              רמת ביטחון שנאמרה פחות מ-{MIN_BUCKET_N} פעמים נמדדת גבוה מדי מעצם היותה קטנה, ולכן
+              ככל שהחלק הזה גדול יותר, כך פחות אפשר לקרוא את המספר שלמעלה כממצא עליכם.
+            </p>
+          )}
         </>
       ) : (
-        <NotMeasured reason="עוד לא נאמרה אף רמת ביטחון מספיק פעמים כדי לפרק את הפער. בגודל כזה הפירוק הוא רעש, לא ממצא." />
+        /*
+         * REACHED WHEN NO LEVEL HAS BEEN STATED ENOUGH TIMES, which under `some` is again exactly
+         * what this sentence says. It names the levels and the decisions they hold rather than only
+         * the floor, because that is what tells a reader how far off they are.
+         */
+        <NotMeasured
+          reason={(() => {
+            const held = calibration.levels.reduce((n, level) => n + level.n, 0);
+            return (
+              `אף רמת ביטחון עוד לא נאמרה ${MIN_BUCKET_N} פעמים, ולכן אין כאן מה לפרק. ` +
+              `${calibration.levels.length} רמות נאמרו עד כה, ${held} החלטות בסך הכול. ` +
+              `בגודל כזה הפירוק הוא רעש הדגימה, לא ממצא עליכם.`
+            );
+          })()}
+        />
       )}
 
       {/*
@@ -655,20 +774,67 @@ const MIX_LABEL: Record<OneThingKind, string> = {
  * the unjustified number this product spends its whole time refusing -- and a mix over nine
  * decisions is noise wearing four percentage signs.
  */
+/**
+ * The two headings the set-aside note POINTS at rather than describes.
+ *
+ * Two copies of a heading is how a sentence that says "counted under X" comes to name a heading that
+ * was renamed last month. One constant, one renderer, one referrer -- and a test that reads the
+ * RENDERED heading rather than a literal, because the first version of that test asserted the note
+ * against a hard-coded string and stayed green when the heading was changed underneath it.
+ */
+const MIX_TITLE = "מה הכלי מוצא בהחלטות שלכם";
+
+
 function MixBlock({ mix }: { mix: OneThingMix }) {
+  /*
+   * THE HEADING NAMES ITS REFERENT, AND IT USED TO NAME THE WRONG ONE. "מה הכלי אמר לכם עד כה" is
+   * a claim about the past: these are the sentences you were shown. Two separate facts make it one
+   * this panel cannot support.
+   *
+   * THE FIRST IS WHO WAS TOLD. `mix.n` counts decisions the ENGINE ANSWERED for, and on a deferred
+   * game `reveal-timing.ts` holds the verdict to the end while the engine runs during play. The
+   * panel distributed those across four sentences the player had never read. `mix.withheld` is
+   * what the record can witness of that, and it is named below.
+   *
+   * THE SECOND IS WHEN IT WAS READ, and it bites even on a coached record where every verdict was
+   * put on the screen. `oneThingMix` recomputes `theOneThing` on stored rows -- deliberately, so
+   * the measurement of the product cannot drift from the product -- with TODAY's branch rules. The
+   * rules have already moved once: `reveal.ts` records that the two confidence cuts "used to be
+   * `confidence >= 4` and `confidence <= 2`, read off the RAW stored level", and a decision stated
+   * at 5 of 7 cleared the old cut and does not clear 65% against `CONFIDENT_ENOUGH_TO_NAME`. Same
+   * row, two classifications, depending only on when it is read.
+   *
+   * SO THE PANEL TAKES OPTION 1 AND SAYS SO. It is the current reading of stored decisions, which
+   * is a real and useful thing; it is not a transcript. The only thing in this repository that
+   * records what was actually put on a screen is `reveal_kind_presented` in the acquisition ledger
+   * -- per-browser, trial-scoped, and behind an import-graph wall from `shared/` -- and it is
+   * evidence about a visit rather than about a record.
+   */
+  const title = MIX_TITLE;
   if (mix.n < MIN_BUCKET_N) {
     return (
       <div className="mix-block">
-        <h4 className="dash-title">מה הכלי אמר לכם עד כה</h4>
+        <h4 className="dash-title">{title}</h4>
         <NotMeasured
-          reason={`נחשפו ${mix.n} החלטות, ונדרשות ${MIN_BUCKET_N} כדי לדווח על ההתפלגות. עד אז כל אחוז כאן היה רעש.`}
+          reason={`המנוע ענה על ${mix.n} החלטות, ונדרשות ${MIN_BUCKET_N} כדי לדווח על ההתפלגות. עד אז כל אחוז כאן היה רעש.`}
         />
       </div>
     );
   }
   return (
     <div className="mix-block">
-      <h4 className="dash-title">מה הכלי אמר לכם עד כה</h4>
+      <h4 className="dash-title">{title}</h4>
+      <p className="dash-note" dir="rtl">
+        זו קריאה של ההחלטות השמורות שלכם <strong>לפי ההגדרות של היום</strong>, ולא תיעוד של המשפטים
+        שהופיעו על המסך אז. כללי החשיפה כבר השתנו פעם אחת, ולכן אותה החלטה יכולה להיספר כאן בשורה
+        אחת ולהיות מוצגת בזמנו בשורה אחרת.
+      </p>
+      {mix.withheld > 0 && (
+        <p className="dash-note" dir="rtl">
+          ובנוסף, ב-{mix.withheld} מתוך {mix.n} ההחלטות הכלי החזיק את המשפט עד סוף המשחק. הרשומה
+          יודעת מתי המנוע ענה. היא לא מתעדת מתי, ואם, קראתם את התשובה.
+        </p>
+      )}
       <ul className="bucket-list">
         {(Object.keys(MIX_LABEL) as OneThingKind[]).map((kind) => (
           <li key={kind}>

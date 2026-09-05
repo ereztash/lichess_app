@@ -114,7 +114,15 @@ describe("it refuses to split a record too small to split", () => {
     expect(calibrationScore(thin).reliable).toBe(false);
     render(<RecordDashboard reading={readRecord(thin)} />);
     expect(screen.queryByText("שגיאת הכיול")).toBeNull();
-    expect(screen.getByText(/בגודל כזה הפירוק הוא רעש, לא ממצא/)).toBeTruthy();
+    /*
+     * The sentence names the levels used and the decisions on them, not only the floor, because
+     * that is what says how far off the reader is. `every` was tried as the rule here and is
+     * falsified -- it never certifies and it is not monotone -- so this state is again exactly
+     * "no level has been stated enough times", which is what it says.
+     */
+    expect(screen.getByText(/הפירוק הוא רעש הדגימה, לא ממצא עליכם/)).toBeTruthy();
+    expect(screen.getByText(/אף רמת ביטחון עוד לא נאמרה 30 פעמים/)).toBeTruthy();
+    expect(screen.getByText(/7 החלטות בסך הכול/)).toBeTruthy();
   });
 
   it("still shows the heading, so the absence is visible rather than silent", () => {

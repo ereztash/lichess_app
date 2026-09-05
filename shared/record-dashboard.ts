@@ -230,6 +230,35 @@ export type RecordReading = {
    */
   anchorAnswered: readonly string[];
   /**
+   * How many bank answers the comparable reading set aside because the position was already
+   * answered in the same regime.
+   *
+   * R1: A COUNT THAT SHRANK HAS TO BE ABLE TO SAY WHAT IT DROPPED, and this is where it says it.
+   * `anchor.n` is smaller than the bank answers on the record whenever this is non-zero, and a
+   * number that changed for a reason nobody can name is the one that gets deleted the next time it
+   * is inconvenient.
+   *
+   * DELIBERATELY NOT RENDERED, and the argument has one hole that is named rather than hidden.
+   * `anchor.n` reaches a reader only through `stability` and `sensitivity`, which are derived
+   * figures rather than counts, and through the `scored + anchor.n > 0` liveness gate on the record
+   * page. An earlier version of this said a repeat cannot move that gate "because the position's
+   * first answer is still there". It can, in one state: `firstAnswerPerPosition` keeps the first
+   * ATOM, before scoring, so a first answer that cannot be scored takes the whole position out of
+   * the reading instead of yielding to a later one that can. A bank answer committed with
+   * `confidence: null` is such a row -- the schema and the service both accept it -- and a record of
+   * one unscorable answer plus one scorable repeat of the same position reads `anchor.n = 0` and
+   * renders the cold-arrival screen. Reality R2: the live client always asks confidence on `anchor`,
+   * so no walk reaches it; the record SHAPE does, and `confidence-asked.ts` records that the ask
+   * rule has already moved once.
+   *
+   * IT IS STILL NOT RENDERED, because a qualification on a reading that needs none teaches a reader
+   * to discount every reading -- the argument `unreadableShare` is rendered conditionally for -- and
+   * because this state cannot be reached from the product as it stands. It is carried so the drop is
+   * legible to a consumer and to a test rather than silent, and the day a surface prints the bank
+   * `n`, or the day the confidence ask moves again, this is the sentence beside it.
+   */
+  anchorRepeated: number;
+  /**
    * Whether the anchor reading said the same thing twice.
    *
    * Over the ANCHOR subset specifically, because that is the only split that compares like with
@@ -327,6 +356,38 @@ export type RecordReading = {
    */
   readElsewhere: number;
   /**
+   * The measurement regimes this reading is NOT over, each with the decisions it holds.
+   *
+   * NOT A DENOMINATOR AND NOT A WAIT. Every count above is about decisions this reading could not
+   * use; these are decisions it declines to POOL. `shared/evidence-policy.ts` groups the described
+   * population by the conditions that make two decisions comparable -- protocol, its version,
+   * reveal timing, the engine build that passed the verdict -- and this page reads one of them,
+   * for the reason `reveal-timing.ts` gives: a decision taken twenty moves into a coached game was
+   * made by somebody who had been told, twenty times, how their last move scored, and one taken in
+   * a deferred game was not. An average over the two describes nobody.
+   *
+   * EMPTY ON EVERY RECORD WITH ONE REGIME, which is every record written before reveal timing
+   * existed. Carried rather than dropped because a reading whose `n` shrank has to be able to say
+   * what it left out, and "read nowhere" is a different sentence from `readElsewhere`'s.
+   */
+  setAside: readonly { readonly id: string; readonly n: number }[];
+  /**
+   * Which regime this reading is of, and whether it is the one the record is still writing into.
+   *
+   * `current: false` IS THE STATE THAT HAS NO HONEST RENDERING WITHOUT THIS FIELD. The population
+   * rule is "the largest", which is answer-blind and stable and says nothing about recency -- so
+   * after a bump to `CURRENT_PROTOCOL_VERSION` the largest regime is the RETIRED one, and it stays
+   * largest until the new one overtakes it. Measured on a 160-decision record, 120 under version 4
+   * and 40 under version 5: the page reported n=120 at 100% accuracy, from a protocol that is no
+   * longer running, while the 40 decisions taken under the protocol that IS running -- none of them
+   * accurate -- sat in `setAside`. It would have gone on saying that for 81 more decisions.
+   *
+   * The figure was not wrong about its own population. It was silent about which population that
+   * was, and a reader has no way to supply that. Whether the page should PREFER the current regime
+   * over the largest is a different question, and it is a decision about what the product measures.
+   */
+  regime: { readonly id: string; readonly current: boolean } | null;
+  /**
    * Which of the reveal's four sentences the record actually produced.
    *
    * A reading of the INSTRUMENT, not of the player: `chose-past-it` is the one finding here that
@@ -335,6 +396,27 @@ export type RecordReading = {
    * because it needs the atoms and `readRecord` only ever sees scored decisions.
    */
   mix: OneThingMix;
+  /**
+   * The same branch mix, over EVERY population rather than the described one.
+   *
+   * WHY BOTH EXIST. `mix` above answers "what does free play produce", which is a reading of the
+   * instrument on the population this dashboard describes, and it must stay that. The reveal asks
+   * a different question -- "how often has the sentence I just showed this player fired, over
+   * everything the engine has answered for them" -- and on the product's own onboarding path the
+   * answer to that from `mix` is permanently zero, because the front door hands over a BANK
+   * position and `evidence-policy.ts` files bank decisions as `separate`. A block that read `mix`
+   * would be blank for every player who has only ever done what the product first offers them.
+   *
+   * POOLING IS CORRECT HERE AND WOULD NOT BE THERE. `oneThingMix` says of itself that it is "a
+   * reading of the INSTRUMENT, not a finding about the player": which of four sentences the record
+   * produces. That question has one population -- everything the instrument ran on. The questions
+   * that must not pool are the ones that compare a player to a bank or describe free play, and
+   * both of those are computed elsewhere, from `mix`, `scored` and `anchor`, untouched by this.
+   *
+   * NO DENOMINATOR MOVES. Nothing reads this to decide eligibility, fill a bucket or grade a
+   * claim. It exists so a count on the reveal can be true.
+   */
+  mixAll: OneThingMix;
 };
 
 /**
@@ -346,7 +428,7 @@ export type RecordReading = {
  */
 export function readRecord(
   decisions: ScoredDecision[],
-  mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0 },
+  mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0, withheld: 0 },
   /**
    * Defaults to an empty reading rather than to `undefined`, so a caller that has not been
    * updated renders "nothing measured yet" instead of crashing on a missing field -- and so the
@@ -369,7 +451,31 @@ export function readRecord(
    * nothing, and a caller that forgot to pass the population would get the old behaviour back
    * without a symptom. Empty produces a visibly unreadable anchor section instead.
    */
-  anchored: readonly ScoredDecision[] = [],
+  anchored: {
+    /**
+     * The bank decisions the COMPARABLE reading is computed over: one regime, chosen by the caller.
+     *
+     * SPLIT FROM `answered` BELOW BECAUSE THE TWO ARE DIFFERENT QUESTIONS, and pooling them was the
+     * same defect the described population had. This is the only between-player reading the product
+     * has, so a regime boundary matters here more than anywhere else: `docs/ACTION_PLAN.md` B1
+     * measured 13.61% of decisions flipping verdict between two engine builds, and a bank answer
+     * scored by one build is not comparable to one scored by another. Every live decision is stamped
+     * `instrumented-standard` at `CURRENT_PROTOCOL_VERSION`, so the day that version moves is the
+     * day this pooling would have been silent.
+     */
+    readonly measured: readonly ScoredDecision[];
+    /**
+     * Every bank decision on the record, whatever regime produced it.
+     *
+     * PROGRESS THROUGH THE SET IS A CROSS-REGIME FACT and must not be scoped with the measurement.
+     * `anchorAnswered` decides which position the front door serves next; narrowing it to one regime
+     * would re-serve a position this player has already answered because the protocol version moved
+     * underneath them. Whether a bank answer taken under an older protocol should be re-asked is a
+     * question about what the product measures, and it belongs to whoever owns the product -- it is
+     * deliberately not smuggled in here, the same refusal `discoverySearchPopulation` makes.
+     */
+    readonly answered: readonly ScoredDecision[];
+  } = { measured: [], answered: [] },
   /**
    * What `scoreDecisions` set aside, and why it set each one aside.
    *
@@ -392,6 +498,29 @@ export function readRecord(
     withoutConfidence: 0,
     readElsewhere: 0,
   },
+  /**
+   * The regimes the caller chose not to read, named and counted. See `RecordReading.setAside`.
+   *
+   * A PARAMETER RATHER THAN A GROUPING DONE HERE, for the reason `anchored` is one: which
+   * decisions are one population is `shared/evidence-policy.ts`'s only question to answer, and a
+   * second grouping rule living in the reader would be a second authority that could drift from it.
+   * `ScoredDecision` deliberately carries only what a bucket may look at, so this reader could not
+   * see a regime boundary even if it wanted to.
+   */
+  /**
+   * The bank answers set aside as repeats of a position already answered. See
+   * `RecordReading.anchorRepeated`; a parameter for the reason `anchored` is one.
+   */
+  anchorRepeated = 0,
+  setAside: readonly { readonly id: string; readonly n: number }[] = [],
+  /** The regime the decisions above came from, and whether it is still being written into. */
+  regime: { readonly id: string; readonly current: boolean } | null = null,
+  /*
+   * DEFAULTS TO `mix`, WHICH IS THE SMALLER CLAIM. A caller that has not been updated says the
+   * whole record produced what the described population produced -- true whenever they are the
+   * same set, and never an invented number. `recordReading` passes the real one.
+   */
+  mixAll: OneThingMix = mix,
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -497,15 +626,15 @@ export function readRecord(
     },
     overall,
     calibration: calibrationScore(decisions),
-    anchor: calibrationScore(anchored),
+    anchor: calibrationScore(anchored.measured),
     /*
      * FROM THE BANK POPULATION, not from the whole record. This read `anchorIdsIn(decisions)`, so
      * any decision that happened to sit on a bank FEN -- a drill, a transfer check -- counted as
      * that bank position having been answered, and the front door would serve the next one as
      * though the set had progressed.
      */
-    anchorAnswered: anchorIdsIn(anchored),
-    stability: splitHalfStability(anchored),
+    anchorAnswered: anchorIdsIn(anchored.answered),
+    stability: splitHalfStability(anchored.measured),
     sensitivity,
     /*
      * Only when the reader's own number can be read. A band beside a dash would invite them to
@@ -521,6 +650,10 @@ export function readRecord(
     awaitingReveal: unscored.awaitingReveal,
     withoutConfidence: unscored.withoutConfidence,
     readElsewhere: unscored.readElsewhere,
+    anchorRepeated,
+    setAside,
+    regime,
     mix,
+    mixAll,
   };
 }

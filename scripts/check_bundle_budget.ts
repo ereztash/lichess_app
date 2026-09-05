@@ -613,10 +613,112 @@ const INDEX = `${ROOT}/index.html`;
  * deliberately. The base was already at 682.6 against 683: main had spent 1.6 of the previous
  * raise's 2.0 kB before this branch started. A ratchet that keeps being loosened by two stops
  * being a ratchet.
+ *
+ * ---
+ *
+ * 685 -> 686: F3, THE VERDICT THE PLAYER WAS NEVER SHOWN. Measured against the tree one commit
+ * back, which is F2 and moved no ceiling at all:
+ *
+ *     entry, raw               685.0 -> 685.1 kB   +0.1
+ *     entry, gzipped           214.6 -> 214.7 kB   +0.1
+ *     initial download, raw    774.1 -> 774.2 kB   +0.1
+ *
+ * A TENTH OF A KILOBYTE, and it is one predicate and one counter: `verdictWithheldWhenComputed` in
+ * `reveal-timing.ts`, a `revealTiming` field on `MixableDecision`, and one `if` in `oneThingMix`.
+ * The sentences the panel says instead cost the entry chunk nothing -- `RecordDashboard.tsx` is
+ * already a chunk of its own, which is why the entry and the initial download moved by the same
+ * amount and the stylesheet did not move at all.
+ *
+ * WHY IT CANNOT BE DEFERRED. `reveal-timing.ts` holds `mayShowVerdictNow`, which the board asks
+ * before it renders anything, and `reveal.ts` is on the entry route because the reveal is. A rule
+ * about what the record may claim, arriving after the claim, is not a rule.
+ *
+ * 686 LEAVES 0.9 kB. The other two ceilings measure 214.7 against 215 and 774.2 against 775 and
+ * did not fire, so they keep their numbers.
+ *
+ * ---
+ *
+ * 685 -> 687, 215 -> 216, 774 -> 776: THE ACCUMULATION BLOCK ON THE REVEAL.
+ *
+ *     entry, raw               684.5 -> 686.0 kB      +1.5
+ *     entry, gzipped           214.5 -> 215.0 kB      +0.5
+ *     initial download, raw    773.7 -> 775.2 kB      +1.5
+ *
+ * WHAT THE BYTES ARE, measured rather than estimated. `CONTINUATION_PROPOSITION` was deleted and
+ * `revealAccumulation` replaced it, so the constants roughly cancel; the growth is the five entries
+ * of `ACCUMULATION_KIND_LABEL`, the block's JSX, `mixAll` through the reading and the service, the
+ * two stylesheet rules, and the `Layers` icon. The icon was measured on its own by removing it and
+ * rebuilding: 0.3 kB of the 1.5. It stays, because the four sibling blocks on that panel each carry
+ * one and a fifth without would be the odd block out for a fifth of a kilobyte.
+ *
+ * WHY IT IS SPENT HERE. Measured on the built app after three decisions: of fourteen painted
+ * elements on the reveal, ONE said anything about the record -- sixty characters of seven hundred
+ * and fifty-four -- and it sat inside the block headed "what this decision still does not say". The
+ * sentence that promised accumulation, `CONTINUATION_PROPOSITION`, was byte-identical after
+ * decision one and decision fifty. The product offered to let a player ask whether something
+ * repeats and never asked. This is the answer, and it is a count over data the record already
+ * holds: no new event, no new probe, no denominator.
+ *
+ * ONE kB OF HEADROOM ON THE ENTRY, 0.8 ON THE DOWNLOAD, which matches the 1.1 and 1.0 the raise
+ * above took and is deliberately less than the two this file warns about. The raise is two on the
+ * entry because the measurement crossed by 1.0, not because the ceiling was rounded up twice.
+ *
+ * ---
+ *
+ * ---
+ *
+ * 687 -> 688, 776 -> 777: THE TWO RAISES ABOVE ARE COMPOSED, AND COMPOSITION IS ADDITION.
+ *
+ * The first attempt at this merge took the HIGHER of the two ceilings, on the reasoning that two
+ * disjoint changes each measured against their own base would overlap. They do not. Four builds,
+ * same node_modules, same vite, each ceiling read by this script rather than estimated:
+ *
+ *                            entry raw    entry gzip   initial raw
+ *     main f1315d7             684.6         214.5        773.7
+ *     + the reveal block       686.0  +1.4   215.0 +0.5   775.2  +1.5
+ *     + the four families      685.7  +1.1   214.9 +0.4   774.8  +1.1
+ *     both, this tree          687.1  +2.5   215.4 +0.9   776.3  +2.6
+ *
+ * +1.4 AND +1.1 ARRIVE AS +2.5, to the tenth. The two changes share `record-service.ts`,
+ * `record-dashboard.ts` and `reveal.ts` and touch none of the same bytes in them: one adds a field
+ * to the mapping and a predicate on the reveal-timing path, the other adds a block, five labels and
+ * a second population. Nothing cancelled and nothing was double-counted, so the ceiling is the sum
+ * and not the maximum. Taking the maximum is what made this file go red on the merge, which is the
+ * correct behaviour -- the ratchet caught a composition that had been reasoned about instead of
+ * measured.
+ *
+ * 688 AND 777 LEAVE 0.9 AND 0.7 kB, the same headroom the two raises above took, and deliberately
+ * not more: the merge spends the two increments it can attribute and buys nothing on top of them.
+ * The gzip ceiling is untouched at 216 against 215.4, because it did not fire.
+ *
+ * ---
+ *
+ * 777 -> 778: EIGHT SERIOUS CONTRAST FAILURES ONE DISCLOSURE PAST THE LAST STATE ANY AXE GATE
+ * REACHED. Measured against the tree immediately before the repair:
+ *
+ *     entry, raw               687.5 -> 687.6 kB   +0.1
+ *     entry, gzipped           215.6 -> 215.6 kB    0.0
+ *     initial download, raw    776.9 -> 777.0 kB   +0.1
+ *
+ * A TENTH OF A KILOBYTE, and it is four token declarations and one scoped rule. `--accent-soft` and
+ * `--muted` were verified against the PAGE and painted inside `.analysis-hero`, which sets
+ * `background: var(--ink)` -- the opposite of the page in whichever theme is running. So the two
+ * roles gain an on-ink pair, and every value in it is the OTHER theme's value for the same role: no
+ * new colour enters the palette, which is why this costs a tenth and not a kilobyte. `.pv-depth`
+ * loses an `opacity` and gains a `color`, which is a wash.
+ *
+ * WHY IT CANNOT BE DEFERRED. `index.css` is one stylesheet on the entry route; there is no chunk to
+ * put a contrast fix in, and a fix that arrives after the paint is not a fix.
+ *
+ * THE ENTRY DID NOT FIRE at 687.6 against 688, so it keeps its number. 778 leaves 1.0 kB, which
+ * matches the 1.1 and 1.0 the raises above took and is deliberately less than the two this file
+ * warns about.
  */
-const ENTRY_RAW_KB = 685;
+
+const ENTRY_RAW_KB = 688;
+
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 215;
+const ENTRY_GZIP_KB = 216;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -747,9 +849,33 @@ const ENTRY_GZIP_KB = 215;
  *
  * ONE, NOT TWO. 773.6 rounds up to 774 and leaves 0.4 kB, which is less headroom than any raise
  * before it. The ratchet stays a ratchet.
+ *
+ * ---
+ *
+ * 774 -> 775: F1, THE REGIME WALL ON THE READING SIDE. Measured by building twice, once at
+ * f1315d7 and once with the change and nothing else:
+ *
+ *     entry, raw               684.6 -> 685.0 kB   +0.4
+ *     entry, gzipped           214.5 -> 214.6 kB   +0.1
+ *     initial download, raw    773.7 -> 774.1 kB   +0.4
+ *
+ * ALL OF IT IS ENTRY JAVASCRIPT AND NONE OF IT IS STYLESHEET, which the two figures moving by the
+ * same 0.4 kB is the check for. It is `forDescriptiveHistory` returning strata instead of a flat
+ * set, and `recordReading` choosing one of them and reporting the rest -- a sort, a reduce and a
+ * map. The sentence the player reads when a regime IS set aside costs the entry chunk nothing: it
+ * is in `RecordDashboard.tsx`, which is already a chunk of its own.
+ *
+ * WHY IT CANNOT BE DEFERRED. It is not a screen. It is the rule that decides which decisions may be
+ * averaged together, and `record-service.ts` is on the entry route: a wall that arrives after the
+ * reading it governs has already been computed is a wall that did not exist.
+ *
+ * ONLY THIS CEILING MOVES. The entry raw ceiling measures 685.0 against 685 and did not fire, and
+ * the gzip ceiling measures 214.6 against 215. Raising a ceiling that has not been crossed is
+ * loosening a budget for free -- the rule this file has applied to itself six times. 775 leaves
+ * 0.9 kB.
  */
 
-const INITIAL_RAW_KB = 774;
+const INITIAL_RAW_KB = 778;
 
 interface Asset {
   name: string;

@@ -37,7 +37,8 @@
  * decisions on it contributes a very noisy term. RELIABILITY is biased UPWARD in small samples for
  * exactly this reason -- with one decision per level it is at its maximum by construction. The
  * per-level counts are returned alongside so a caller can see which terms are carrying weight,
- * and `reliable` says whether any of them can be read at all.
+ * `reliable` says whether ANY of them has reached the size at which it can be read, and
+ * `unreadableShare` says how much of the figure rests on the ones that have not -- see both fields.
  */
 import { MIN_BUCKET_N, type ScoredDecision } from "./detector.js";
 
@@ -85,12 +86,65 @@ export interface CalibrationScore {
   logScore: number;
   levels: LevelOutcome[];
   /**
-   * Whether any level carries enough decisions for its term to mean anything.
+   * Whether ANY level carries enough decisions for its term to mean anything.
    *
    * False does NOT mean the numbers above are wrong -- they are exactly right for the data. It
-   * means RELIABILITY is dominated by small-sample noise and must not be read as a finding.
+   * means nothing here has reached the size at which the decomposition says anything at all.
+   *
+   * WHAT THIS FLAG IS NOT, AND THE FIX FOR THAT IS `unreadableShare` BELOW. On its own `some` is a
+   * statement about ONE level wearing the aggregate's name: `reliability` is a weighted mean over
+   * every level used, and a level's weight is its share of the record, which has nothing to do with
+   * whether it cleared eligibility. Measured: 30 decisions at 65% of which 20 came true, and 29 at
+   * 95% of which none did. The eligible level contributes under a thousandth of the number and the
+   * level one short of the floor carries over 99% of it. That is a real defect and the flag cannot
+   * fix it, because it is not a question with a yes or a no -- it is a quantity, and it is reported.
+   *
+   * `every` WAS TRIED HERE AND IS FALSIFIED. It is the obvious generalisation of
+   * `BucketReading.measurable` from two cells to seven, it needs no new constant, and it kills the
+   * counterexample above. It also fails two ways that matter more:
+   *
+   *   IT NEVER CERTIFIES. Simulated on four confidence distributions, 4,000 records each, the
+   *   share of records that certify:
+   *
+   *       n =              60    100    200    500   1200   2000   4000
+   *       concentrated    0.0%   0.0%   0.0%   0.0%   0.1%   0.0%   2.0%
+   *       cautious        0.0%   0.0%   0.0%   0.0%   1.3%  91.9% 100.0%
+   *
+   *   A player who touches a seventh level occasionally never sees the panel. "Refuse to certify
+   *   anything" passes every negative test there is and deletes the feature.
+   *
+   *   IT IS NOT MONOTONE, WHICH IS THE DISQUALIFYING ONE. Appending a decision can only ever
+   *   destroy readability under `every`, never create it. Measured: 60 decisions across two levels
+   *   certify; the same record plus ONE correct decision stated at 95% does not, and neither does
+   *   the same player at 503 decisions with three of them there. More evidence made the reading
+   *   unreadable, which is the opposite of what an instrument does.
+   *
+   * SO THE FLAG IS MONOTONE AND THE QUALIFICATION IS A NUMBER. `some` only ever turns on, and
+   * `unreadableShare` says how much of the displayed figure a reader may not lean on. Neither
+   * needs a constant this repository has not measured.
    */
   reliable: boolean;
+  /**
+   * Of `reliability`, the share carried by levels the instrument cannot read on their own.
+   *
+   * THE ACCEPTANCE CRITERION F2 WAS WRITTEN AGAINST, in one field: a large contribution to a
+   * displayed aggregate may not come from a population the system itself calls too small to read
+   * WHILE THE AGGREGATE IS CERTIFIED WITHOUT QUALIFICATION. This is the qualification, and it is a
+   * measured quantity rather than a threshold, so no number had to be invented to produce it.
+   *
+   * It moves with the record and it is not a rate of anything else: 0.9997 on the counterexample
+   * above, 0.23 for three decisions at 95% inside a record of 503, and exactly 0 once every used
+   * level clears the floor. Null when `reliability` is 0, because a share of nothing is not 0 --
+   * there is no number to apportion.
+   *
+   * A DENOMINATOR REPORT, NOT A SECOND SCORE. It says which part of one displayed figure rests on
+   * cells too thin to read. Nothing here grades the player, and no caller may turn it into a pass
+   * mark: the whole reason `every` is gone is that a pass mark on this question is either vacuous
+   * or arbitrary.
+   */
+  unreadableShare: number | null;
+  /** How many decisions sit on those levels, so the share above renders with its denominator. */
+  unreadableN: number;
 }
 
 const EMPTY: CalibrationScore = {
@@ -103,6 +157,8 @@ const EMPTY: CalibrationScore = {
   logScore: 0,
   levels: [],
   reliable: false,
+  unreadableShare: null,
+  unreadableN: 0,
 };
 
 /**
@@ -129,11 +185,22 @@ export function calibrationScore(decisions: readonly ScoredDecision[]): Calibrat
 
   let reliability = 0;
   let resolution = 0;
+  /*
+   * ACCUMULATED IN THE SAME PASS THAT BUILDS THE TERM IT DESCRIBES, so the share cannot be a
+   * second apportionment that disagrees with the first. It is the same summand, added twice.
+   */
+  let unreadable = 0;
+  let unreadableN = 0;
   const levels: LevelOutcome[] = [];
   for (const [claimed, group] of [...groups].sort((a, b) => a[0] - b[0])) {
     const observed = group.hits / group.n;
-    reliability += (group.n * (claimed - observed) ** 2) / n;
+    const term = (group.n * (claimed - observed) ** 2) / n;
+    reliability += term;
     resolution += (group.n * (observed - baseRate) ** 2) / n;
+    if (group.n < MIN_BUCKET_N) {
+      unreadable += term;
+      unreadableN += group.n;
+    }
     levels.push({ claimed, observed, n: group.n });
   }
 
@@ -163,5 +230,12 @@ export function calibrationScore(decisions: readonly ScoredDecision[]): Calibrat
     logScore: logarithmic / n,
     levels,
     reliable: levels.some((level) => level.n >= MIN_BUCKET_N),
+    /*
+     * NULL RATHER THAN 0 WHEN THERE IS NOTHING TO APPORTION. A perfectly calibrated record has
+     * `reliability` 0, and "0% of it comes from thin levels" would read as a clean bill of health
+     * on a question that was never asked. The two states render differently or the field lies.
+     */
+    unreadableShare: reliability > 0 ? unreadable / reliability : null,
+    unreadableN,
   };
 }

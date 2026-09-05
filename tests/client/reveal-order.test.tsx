@@ -72,9 +72,18 @@ describe("the reveal order is what section 4.2 says it is", () => {
       "reveal-one-thing",
       "reveal-question",
       "reveal-secondary",
+      /*
+       * THE ACCUMULATION BLOCK IS LAST, AND LAST IS THE ASSERTION. It replaced
+       * `CONTINUATION_PROPOSITION`, which sat in the same place for the same reason: everything
+       * above is derived from this position and this is derived from the record. A block that
+       * reports what has piled up is the one most likely to be promoted by someone who thinks it
+       * is the good news -- and promoting it puts a count above "מה ההחלטה הזאת עדיין לא אומרת",
+       * which is the inversion section 4.2 exists to forbid.
+       */
+      "reveal-accumulation",
     ]);
-    // Four headings render, so no block is reachable without one to introduce it.
-    expect(headings(container)).toHaveLength(4);
+    // Five headings render, so no block is reachable without one to introduce it.
+    expect(headings(container)).toHaveLength(5);
   });
 
   it("keeps the evaluation collapsed, not on the surface", () => {

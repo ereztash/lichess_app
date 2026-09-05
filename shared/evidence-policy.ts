@@ -36,8 +36,18 @@ import { protocolOf, type ProtocolKey } from "./measurement-protocol.js";
  * would produce under another, so "the endgame gap" is not one quantity across a change here.
  * Anything that stores a finding stores this number beside it, and a comparison across two
  * versions has to say it is making one.
+ *
+ * 3 -> 4: THE DESCRIPTIVE READING PREFERS THE REGIME IN FORCE. "The largest" was falsified for that
+ * consumer -- after a bump to `CURRENT_PROTOCOL_VERSION` the largest regime is the retired one, and
+ * a 120-against-40 record read the retired protocol at 100% accuracy for 81 more decisions. The
+ * search population is untouched: `discoverySearchPopulation` still takes the largest, because it
+ * chooses what to form a hypothesis over rather than what to describe.
+ *
+ * NOTHING PERSISTS THIS NUMBER TODAY, so the bump is a marker rather than a migration. It is worth
+ * making anyway: the day a stored finding does carry it, the version has to already mean what it
+ * says, and a version that only moves when someone remembers to move it means nothing.
  */
-export const EVIDENCE_POLICY_VERSION = 3;
+export const EVIDENCE_POLICY_VERSION = 4;
 
 /**
  * The analyses that read observations. One entry per consumer, not per screen: two screens
@@ -377,7 +387,20 @@ export function forDiscovery(
   atoms: readonly DecisionAtom[],
   ids: readonly string[],
 ): Stratum[] {
-  const admitted = admit("discovery", atoms, ids, (a) => a.kind === "admitted");
+  return stratify(admit("discovery", atoms, ids, (a) => a.kind === "admitted"));
+}
+
+/**
+ * Group an admitted set into the populations that are safe to pool, largest first.
+ *
+ * SHARED BY BOTH READING CONSUMERS RATHER THAN WRITTEN TWICE, and the second consumer is the
+ * reason this is a function at all. `forDescriptiveHistory` returned a flat `EvidenceSet`, so the
+ * record page pooled regimes by doing nothing -- which is the precise failure this module's own
+ * header describes about the shape it replaced: *"the old shape let a caller pool by doing nothing
+ * at all, which is how this defect survived a policy module written specifically to prevent it."*
+ * One grouping means the wall cannot hold on one surface and not on the other.
+ */
+function stratify(admitted: EvidenceSet): Stratum[] {
   const byId = new Map<string, Stratum>();
   admitted.atoms.forEach((atom, index) => {
     const key = stratumKeyOf(atom);
@@ -459,8 +482,8 @@ export function discoverySearchPopulation(strata: readonly Stratum[]): {
 export function forDescriptiveHistory(
   atoms: readonly DecisionAtom[],
   ids: readonly string[],
-): EvidenceSet {
-  return admit("descriptive-history", atoms, ids, (a) => a.kind === "admitted");
+): Stratum[] {
+  return stratify(admit("descriptive-history", atoms, ids, (a) => a.kind === "admitted"));
 }
 
 /**
@@ -475,8 +498,15 @@ export function forDescriptiveHistory(
 export function forAnchorReference(
   atoms: readonly DecisionAtom[],
   ids: readonly string[],
-): EvidenceSet {
-  return admit("anchor-reference", atoms, ids, (a) => a.kind === "admitted");
+): Stratum[] {
+  /*
+   * STRATIFIED FOR THE SAME REASON THE OTHER TWO ARE, and this is the consumer where it matters
+   * most. The bank is the only reading this product claims is comparable BETWEEN players, and the
+   * whole of that claim is that the item difficulty is held fixed. Two answers to the same position
+   * scored by two engine builds do not hold anything fixed -- B1 measured 13.61% of verdicts
+   * flipping across exactly that change -- and a comparison across it is an artefact of the bump.
+   */
+  return stratify(admit("anchor-reference", atoms, ids, (a) => a.kind === "admitted"));
 }
 
 /**

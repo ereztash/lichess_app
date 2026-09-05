@@ -445,7 +445,7 @@ export default function Record() {
         <div>
           {measured === 0 ? (
             <>
-              <h1>מה קרה בהחלטה, לפני שהמנוע דיבר</h1>
+              <h1 className="screen-heading">מה קרה בהחלטה, לפני שהמנוע דיבר</h1>
               <p className="record-page-problem">{PROMISE.problem}</p>
               <p className="record-page-mechanism">{PROMISE.mechanism}</p>
               {/*

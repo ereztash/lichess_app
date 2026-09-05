@@ -424,7 +424,7 @@ export function CommitmentScreen({
       <header className="commitment-header">
         <div>
           <p className="commitment-kicker">החלטה</p>
-          <h2>מה העמדה הזו דורשת?</h2>
+          <h2 className="screen-heading">מה העמדה הזו דורשת?</h2>
         </div>
       </header>
 
