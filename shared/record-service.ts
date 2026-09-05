@@ -2211,20 +2211,36 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * about the record rather than a policy.
    */
   const admitted = new Set(ids);
+  const order = new Map(allIds.map((id, index) => [id, index]));
   const latestId = [...allIds].reverse().find((id) => admitted.has(id));
   const currentRegime = describedStrata.find((stratum) => stratum.ids.includes(latestId ?? ""));
   const currentId = currentRegime ? stratumId(currentRegime.key) : null;
   /*
-   * THE FALLBACK ORDER, USED WHILE THE REGIME IN FORCE IS STILL TOO SMALL TO READ. Ties by id, so
-   * the same record always yields the same reading rather than one that depends on write order.
+   * A CLEAN SUCCESSION, WHICH IS NOT THE SAME AS BEING LATEST, and the difference is the whole of
+   * the second repair to this chooser.
    *
-   * MEASURED IN SCORED ROWS AND NOT IN ROWS. An unrevealed decision has no verdict, so nothing yet
-   * says which engine will score it and it sits in the `legacy` build stratum. Ordering by rows
-   * would hand this page a stratum that scores to nothing on any record whose unrevealed backlog
-   * outnumbers its revealed decisions -- and this panel's zero state is the one that has twice told
-   * a player they had revealed nothing while showing them decisions they had just revealed. The
-   * scored count is still a count of rows, not of outcomes, so nothing about the answer enters it.
+   * `current` was the regime of the LAST ADMITTED ROW, and reveal timing is chosen per game -- so a
+   * player who alternates modes moved it on every decision. Measured on 200 coached decisions all
+   * accurate beside 30 deferred ones none accurate, one further decision at a time: n=30 at 0%,
+   * n=201 at 100%, n=31 at 0%, n=202 at 100%. Every number on the page swinging between two
+   * populations, forever, because both were being written into.
+   *
+   * A PROTOCOL BUMP RETIRES THE OLD REGIME and a mode switch does not. That is the fact the record
+   * already holds: after a bump no row lands in the old protocol again, so every one of its
+   * decisions precedes the first of the new one. Two modes in alternating use interleave. Arrival
+   * order is guaranteed -- `listAtoms` and `listDecisionIds` are ordered and append-only -- so this
+   * needs no window, no constant, and nothing about outcomes.
    */
+  const firstOf = (stratum: { ids: string[] }) =>
+    Math.min(...stratum.ids.map((id) => order.get(id) ?? Infinity));
+  const lastOf = (stratum: { ids: string[] }) =>
+    Math.max(...stratum.ids.map((id) => order.get(id) ?? -Infinity));
+  const currentBegan = currentRegime ? firstOf(currentRegime) : Infinity;
+  const succeedsCleanly =
+    currentRegime !== undefined &&
+    describedStrata.every(
+      (stratum) => stratum === currentRegime || lastOf(stratum) < currentBegan,
+    );
 
   /*
    * THE CURRENT REGIME AS SOON AS IT CAN BE READ, AND THE LARGEST UNTIL THEN.
@@ -2252,6 +2268,11 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * nothing below: switching to a regime the page could not read yet would trade a stale number
    * for silence, which is not the trade. So the staleness is bounded by 30 decisions instead of by
    * the length of the record, and `regime.current` says which of the two states the reader is in.
+   *
+   * AND ONLY ON A CLEAN SUCCESSION, per `succeedsCleanly` above. When two regimes are both being
+   * written into, neither is "in force", every choice between them is arbitrary, and choosing by
+   * recency makes the page oscillate. The largest is then the stable answer and the one that does
+   * not depend on which mode the player happened to open last.
    */
   /*
    * THE BANK TAKES THE LARGEST, AND `null` IS HOW IT SAYS SO THROUGH THE SHARED RULE.
@@ -2296,11 +2317,21 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     (s) => s.comparable.length,
     null,
   );
+  /*
+   * `succeedsCleanly ? currentId : null` RATHER THAN `currentId`, which is the S2 repair expressed
+   * through the shared rule instead of beside it.
+   *
+   * `regimeInForceFirst` asks only whether the regime it is handed can be read, and that is the
+   * right division: WHICH regime is in force is a fact about this reading's own arrival order, and
+   * the bank -- whose `null` above says no regime is in force for it -- proves the helper must not
+   * decide it. Passing `null` when two regimes are both being written into says exactly what is
+   * true, and the largest is what comes back.
+   */
   const [chosen, ...rest] = regimeInForceFirst(
     scoredStrata,
     (s) => s.id,
     (s) => s.summary.scored.length,
-    currentId,
+    succeedsCleanly ? currentId : null,
   );
   /*
    * The counts stay over the WHOLE described record, and a sum over a partition is the number it

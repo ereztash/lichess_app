@@ -24,10 +24,30 @@ const home = readFileSync(resolve(root, "client/src/pages/Home.tsx"), "utf8");
 const timelineCode = timeline.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
 
-/** The declarations inside one selector's first block, comments stripped. */
+/**
+ * The declarations inside one selector's first block, comments stripped.
+ *
+ * ANCHORED TO THE START OF A RULE, WHICH `indexOf` IS NOT. `.board-workspace {` is a substring of
+ * `.workbench:has(.record-explorer) .board-workspace {`, so a descendant rule written anywhere
+ * ABOVE the placement rule became what this function returned -- and the caller below, which
+ * exists to check that every child of the grid names its track, read a rule that pins the board and
+ * concluded the board is placed by auto-flow.
+ *
+ * IT FAILS LOUD IN ONE DIRECTION AND SILENT IN THE OTHER, which is why it is worth fixing rather
+ * than working around. A descendant rule that happens to be missing the declaration under test goes
+ * red on a rule that was never the subject; one that happens to carry it goes GREEN while the rule
+ * this file is about says nothing at all. The second is the one that ships.
+ *
+ * A rule starts at the beginning of the file or after a `}` or a newline, so the selector must sit
+ * at one of those. An indented rule inside a media query still qualifies, and should: that is a
+ * rule for this selector.
+ */
 function block(selector: string): string {
-  const start = bare.indexOf(`${selector} {`);
-  if (start < 0) throw new Error(`no ${selector} block in index.css`);
+  const at = new RegExp(
+    `(?:^|[}\\n])\\s*${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{`,
+  ).exec(bare);
+  if (at === null) throw new Error(`no ${selector} block in index.css`);
+  const start = at.index + at[0].length - `${selector} {`.length;
   return bare.slice(start, bare.indexOf("\n}", start));
 }
 function tokens(selector: string): Map<string, string> {

@@ -323,17 +323,21 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
             * for, 30 decisions at 65% beside 29 at 95%, the eligible level carries under a
             * thousandth and the short one carries over 99%.
             *
-            * RENDERED THROUGH `Proportion` AND NOT AS A HAND-BUILT PERCENT, so it arrives with the
-            * denominator R1 requires -- how many decisions sit on the levels being discounted.
-            * Absent when every used level clears the floor, because a qualification on a reading
-            * that needs none teaches the reader to discount every reading.
+            * A SHARE OF THE RECORD AND NOT OF THE ERROR. It used to divide the thin levels' term by
+            * `reliability`, the number it was qualifying, so three decisions out of 403 were
+            * described as anywhere from 2% to 100% depending only on how the OTHER levels landed --
+            * loudest for the best-calibrated reader -- and as nothing at all when a thin level
+            * happened to be right. This counts decisions, depends on nothing else, and arrives
+            * through `Proportion` with the denominator R1 requires. Absent when every used level
+            * clears the floor, because a qualification on a reading that needs none teaches the
+            * reader to discount every reading.
             */}
-          {calibration.unreadableShare !== null && calibration.unreadableShare > 0 && (
+          {calibration.unreadableN > 0 && (
             <p className="dash-note" dir="rtl">
               <Proportion
-                value={calibration.unreadableShare}
-                n={calibration.unreadableN}
-                label="מתוך שגיאת הכיול, החלק שנשען על רמות שנאמרו מעט מדי"
+                value={calibration.unreadableN / calibration.n}
+                n={calibration.n}
+                label="מהרשומה הזו נמדד ברמות ביטחון שנאמרו מעט מדי"
               />{" "}
               רמת ביטחון שנאמרה פחות מ-{MIN_BUCKET_N} פעמים נמדדת גבוה מדי מעצם היותה קטנה, ולכן
               ככל שהחלק הזה גדול יותר, כך פחות אפשר לקרוא את המספר שלמעלה כממצא עליכם.
@@ -550,7 +554,19 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           </p>
           <div className="chart-frame" dir="ltr">
             <ResponsiveContainer width="100%" height={150}>
-              <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -24 }}>
+              {/*
+                * `left: 0`, AND IT IS NOT A GUTTER PREFERENCE. It was -24 against a `width={40}`
+                * axis, which leaves 16 usable pixels for a label recharts right-anchors against
+                * the axis line -- so `18%` (22px) and `100%` (~28px) were drawn starting outside
+                * the SVG and clipped by it. What reached the reader was `%`, five times down the
+                * side of the chart, each one claiming a number had been shown.
+                *
+                * A NEGATIVE LEFT MARGIN IS A SUBTRACTION FROM THE PICTURE, not a tuning value:
+                * there is no width the axis can be given that survives it, because the margin
+                * moves the axis and the width only sizes it. The two charts in `GameReview` had
+                * the same pair (-22 against 38) and the same 16 pixels.
+                */}
+              <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
                 <XAxis dataKey="stated" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
                 <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={40} unit="%" />

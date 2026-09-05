@@ -873,6 +873,35 @@ const ENTRY_GZIP_KB = 216;
  * the gzip ceiling measures 214.6 against 215. Raising a ceiling that has not been crossed is
  * loosening a budget for free -- the rule this file has applied to itself six times. 775 leaves
  * 0.9 kB.
+ *
+ * ---
+ *
+ * NO RAISE: THE READING COLUMN THAT NEVER GREW. This was 775 -> 776 on its own branch and the
+ * raise is withdrawn in the merge, because the ceiling it raised no longer exists: the two entries
+ * above took the initial download to 778 in parallel, and the composed tree measures 777.5 against
+ * it. A ceiling that has not been crossed may not be raised, and that rule does not stop applying
+ * because the crossing happened on a branch. The measurement is kept, because it is what says the
+ * cost of this change is 0.2 kB and where the 0.2 kB is.
+ *
+ * Measured by building twice, once at 9ff415a and once with the change and nothing else:
+ *
+ *     entry, raw               685.8 -> 685.8 kB   +0.0
+ *     entry, gzipped           214.9 -> 214.9 kB   +0.0
+ *     initial download, raw    774.9 -> 775.1 kB   +0.2
+ *
+ * ALL OF IT IS STYLESHEET AND NONE OF IT IS JAVASCRIPT, which is the exact inverse of the F1 entry
+ * above and is read the same way: the entry chunk did not move at all, so the 0.2 kB is the one
+ * `@media` block that gives the record column the surplus the board was taking. The three chart
+ * margins that changed with it are a literal each, and they are why the entry figure is flat to
+ * a tenth rather than merely close.
+ *
+ * WHY IT CANNOT BE DEFERRED. It is a grid template. A layout rule that arrives after first paint
+ * is a layout rule the reader watches happen, and `cumulative-layout-shift.layout.test.ts` is the
+ * standing statement that this product does not do that.
+ *
+ * NOTHING MOVES. Neither entry figure changed at all, and on the merged tree the initial download
+ * measures 777.5 against the 778 already standing. 776 would have left 0.9 kB on the branch; the
+ * number that ships is 778, and it leaves 0.5 kB.
  */
 
 const INITIAL_RAW_KB = 778;
