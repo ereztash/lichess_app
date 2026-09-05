@@ -230,6 +230,25 @@ export type RecordReading = {
    */
   anchorAnswered: readonly string[];
   /**
+   * How many bank answers the comparable reading set aside because the position was already
+   * answered in the same regime.
+   *
+   * R1: A COUNT THAT SHRANK HAS TO BE ABLE TO SAY WHAT IT DROPPED, and this is where it says it.
+   * `anchor.n` is smaller than the bank answers on the record whenever this is non-zero, and a
+   * number that changed for a reason nobody can name is the one that gets deleted the next time it
+   * is inconvenient.
+   *
+   * DELIBERATELY NOT RENDERED, and that is a decision rather than an omission. Nothing a reader
+   * sees is `anchor.n`: it reaches the screen only through `stability` and `sensitivity`, which are
+   * derived figures rather than counts, and through the `scored + anchor.n > 0` liveness gate on
+   * the record page, which a repeat cannot move because the position's first answer is still there.
+   * No visible count moved, and a qualification on a reading that needs none teaches a reader to
+   * discount every reading -- the argument `unreadableShare` is rendered conditionally for. It is
+   * carried so the drop is legible to a consumer and to a test rather than silent, and the day a
+   * surface prints the bank `n`, this is the sentence beside it.
+   */
+  anchorRepeated: number;
+  /**
    * Whether the anchor reading said the same thing twice.
    *
    * Over the ANCHOR subset specifically, because that is the only split that compares like with
@@ -478,6 +497,11 @@ export function readRecord(
    * `ScoredDecision` deliberately carries only what a bucket may look at, so this reader could not
    * see a regime boundary even if it wanted to.
    */
+  /**
+   * The bank answers set aside as repeats of a position already answered. See
+   * `RecordReading.anchorRepeated`; a parameter for the reason `anchored` is one.
+   */
+  anchorRepeated = 0,
   setAside: readonly { readonly id: string; readonly n: number }[] = [],
   /** The regime the decisions above came from, and whether it is still being written into. */
   regime: { readonly id: string; readonly current: boolean } | null = null,
@@ -616,6 +640,7 @@ export function readRecord(
     awaitingReveal: unscored.awaitingReveal,
     withoutConfidence: unscored.withoutConfidence,
     readElsewhere: unscored.readElsewhere,
+    anchorRepeated,
     setAside,
     regime,
     mix,

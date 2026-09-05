@@ -104,6 +104,8 @@ const withRecord = (scored: number): RecordReading => ({
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
   anchorAnswered: [],
+  /* No bank answers at all, so no position could have been answered twice. */
+  anchorRepeated: 0,
   stability: splitHalfStability([]),
   sensitivity: metacognitiveSensitivity([]),
   // No band beside an unreadable number: the literature's median is a persuasive thing to
