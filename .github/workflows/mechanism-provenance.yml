@@ -27,13 +27,13 @@ jobs:
         run: >-
           python -m pip install --disable-pip-version-check
           numpy pandas pyarrow python-chess zstandard scikit-learn pysubgroup
-      - name: Execute R** mechanism decomposition
+      - name: Execute exact-frame R** mechanism decomposition
         run: |
           set -euo pipefail
-          python research/mechanism/analysis/rstarstar_provenance.py \
+          python research/mechanism/analysis/rstarstar_provenance_blitz.py \
             --owner research/mechanism/data/decisions_erez281.parquet \
             --population research/mechanism/data/decisions_population_2026-06.parquet \
             --owner-scored research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst \
             --population-scored research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst \
-            --out /tmp/rstarstar_provenance.json
-          echo "RESULT_FILE=/tmp/rstarstar_provenance.json"
+            --out /tmp/rstarstar_provenance_blitz.json
+          echo "RESULT_FILE=/tmp/rstarstar_provenance_blitz.json"
