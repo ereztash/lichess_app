@@ -1,0 +1,42 @@
+{
+  "status": "OWNER_DEFER",
+  "raw_signal": "(no owner signal -- this came out of an adversarial pass against a repair made in the same run)",
+  "observations": [
+    "The bank is a FINITE set: `ANCHOR_POSITIONS` holds sixty positions and no more.",
+    "`anchorAnswered` is deliberately cross-regime -- that is the `PRE_HUMAN_CEILING` owner item -- and `nextAnchor` serves the first position NOT in it. So a protocol or engine bump does not re-offer positions already answered.",
+    "Therefore after a bump a player can supply at most `60 - answered` distinct answers in the new regime, and any player who had answered 31 or more can NEVER reach `MIN_BUCKET_N` in it.",
+    "MEASURED: 40 positions answered accurately under one engine build, a build change, then every remaining position -- 20 -- answered inaccurately under the next. `anchor.n = 40` at 100% accuracy, from a build no longer running, permanently, with the set exhausted. `setAside` was empty and `regime` was null, because both are computed from the DESCRIBED strata and this record is bank-only.",
+    "The `regime in force once it clears MIN_BUCKET_N` rule was carried to the bank in this run and then falsified by the record above. Its whole claim -- staleness bounded by thirty decisions rather than by the length of the record -- has no bound on this population.",
+    "AND THE PLAYERS IT DID REACH PAID A CLIFF NOTHING NAMED. On the thirtieth distinct answer in the new regime, `anchor.n` fell from 40 to 30 and `stability.n` from 20/20 to 15/15. `stability.n[0] + stability.n[1]` is printed on screen. `setAside` and `regime` stayed empty and null.",
+    "The described reading makes the same trade and renders `setAside` and `regime.current` to explain it. The bank made it silently, because neither field is computed over bank strata."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "The bank should keep reading the largest regime and say that it is stale",
+      "explains": "That the staleness cannot be bounded by accumulation on a finite set, so the honest move is to name it rather than to wait it out.",
+      "does_not_explain": "Nothing measured contradicts it. It needs `setAside` and `regime` computed over bank strata, and a sentence, which is copy.",
+      "discriminator": "OWNER for the sentence; the computation is REPO."
+    },
+    {
+      "name": "The floor should adapt to what the set can still supply",
+      "explains": "Why a rule written for an open stream does not transfer to a fixed sixty.",
+      "does_not_explain": "That reading below `MIN_BUCKET_N` is the thing every reading here refuses to do, so this trades a stale number for one the page says nothing below.",
+      "discriminator": "OWNER. It is a decision about what the comparison is worth at small n."
+    },
+    {
+      "name": "A bump should re-offer the set, which is the `anchorAnswered` question already filed",
+      "explains": "Both this and the existing owner item at once: if answered positions are re-offered after a bump, the new regime can reach the floor and the in-force rule works as written.",
+      "does_not_explain": "That it spends a player's time on positions they have already given, which is exactly why that item was filed rather than decided.",
+      "discriminator": "OWNER, and it is the SAME decision as the open `anchorAnswered` item rather than a second one."
+    }
+  ],
+  "design_distinction": "A rule that bounds staleness by accumulation assumes there is more evidence to accumulate. On a finite set whose progress is deliberately not re-offered, that assumption is false, and the bound silently becomes no bound at all.",
+  "authority": "REPO for the reachability arithmetic, the measured record and the cliff. OWNER for what a between-player comparison should do when the regime in force can never reach the floor.",
+  "evidence_state": "MEASURED",
+  "intervention": "REVERTED. The bank takes the largest regime again, passed through `regimeInForceFirst` as an explicit `null` so there is still one implementation of the ordering. The in-force rule is not applied to a population it cannot bound, and its removal takes the unnamed cliff with it.",
+  "must_not_change": "`anchorAnswered` stays cross-regime until the existing owner item is decided. Narrowing it would re-serve a position the player has answered, and it is also mechanism 3 above -- so changing it here would answer two owner questions by accident.",
+  "perceptual_success_criterion": "A reader of the bank comparison can tell whether it describes conditions that still hold, on a record where they do not.",
+  "check": "`tests/shared/the-bank-reading-reads-the-regime-in-force.test.ts`. Its first case is the reachable record above and asserts the stale reading rather than a fix, so a later pass cannot read the green suite as an absence. A positive control asserts no record can hold more distinct bank answers than the set has positions, which is the premise the whole argument rests on.",
+  "next_step": "One decision, and it is probably the same decision as the `anchorAnswered` item in `PRE_HUMAN_CEILING.md` rather than a new one. Until then the bank reads the largest regime and does not claim a bound it does not have.",
+  "lineage": "Found by an adversarial pass against a repair made earlier in the same run. The repair was correct about the defect -- the bank had copied a rule its sibling had already replaced -- and wrong that the replacement transferred. Both halves are kept."
+}

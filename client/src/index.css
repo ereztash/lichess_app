@@ -298,6 +298,22 @@
      drawn with no warning colour. */
   --raise: #fdfbf4;
   --accent-soft: #2f6072;
+  /*
+   * THE SAME TWO RECESSIVE ROLES, FOR TEXT PAINTED ON THE INVERTED GROUND.
+   *
+   * `.analysis-hero` sets `background: var(--ink)`, which is the OPPOSITE of the page in whichever
+   * theme is running. Every token above was chosen against the page, so a recessive one painted in
+   * there is being asked to recede against a ground nobody measured it on. Measured with axe on the
+   * built app, one disclosure past the reveal: `.analysis-kicker` at `--accent-soft` was 2.36:1 and
+   * a `.value-provenance` at `--muted` was 2.46:1, against the 4.5:1 1.4.3 asks of body text.
+   *
+   * NO NEW COLOUR. Each value here is the OTHER theme's value for the same role, because the hero
+   * is an island of the other theme -- which is exactly what inverting the ground makes it. Light:
+   * 8.75:1 and 6.62:1. Dark: 5.39:1 and 5.17:1. `--edge` was moved once already for the same class
+   * of reason, a control measured on a card and then put on the page.
+   */
+  --accent-soft-on-ink: #a4c3ca;
+  --muted-on-ink: #9aa8a4;
   --warn: #a8412c;
 
   /* ==== THE SEMANTIC LAYER =================================================================
@@ -527,6 +543,9 @@
   --surface-machine: #1e2a2f;
   --action-hover: #d2cec3;
   --accent-soft: #a4c3ca;
+  /* The pair above, the other way round: in this theme `--ink` is the LIGHT one. */
+  --accent-soft-on-ink: #2f6072;
+  --muted-on-ink: #50605c;
   --warn: #e08a7a;
   --last-move: rgba(232, 120, 96, 0.45);
   /* Same two poles re-stepped for the dark surface, validated there too: ΔE 24.1 / 19.8. */
@@ -2156,7 +2175,7 @@ button:not(:disabled) {
 .analysis-kicker {
   display: flex;
   gap: var(--s2);
-  color: var(--accent-soft);
+  color: var(--accent-soft-on-ink);
   font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-row {
@@ -2264,7 +2283,14 @@ button:not(:disabled) {
 .layer-action {
   border: 1px solid var(--edge);
   background: transparent;
-  color: var(--edge);
+  /*
+   * THE BORDER MAY BE `--edge` AND THE LABEL MAY NOT. `--edge` carries a measurement against 1.4.11,
+   * which asks 3:1 of a non-text boundary, and its own note records the move from #7c8b86 for
+   * exactly that. This is 16px bold TEXT, which 1.4.3 asks 4.5:1 of -- large-text relief starts at
+   * 18.66px bold -- and it measured 3.35:1 on `--paper`. `--muted` is the text role and is 5.22:1
+   * light, 7.24:1 dark. The border keeps `--edge`, which is the rule it was measured for.
+   */
+  color: var(--muted);
 }
 .layer-block {
   padding: 11px 0;
@@ -2658,6 +2684,11 @@ button:not(:disabled) {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* Inside the hero the ground is inverted, so the recessive role is too. Scoped rather than global:
+   every other `.value-provenance` on the page is on the page's own ground and measures 4.5:1 there. */
+.analysis-hero .value-triple .value-provenance {
+  color: var(--muted-on-ink);
+}
 .value-triple .value-fraction {
   /* The last size in the file that was not on the scale. `em` slipped the document-level check,
      whose regex names px/rem/pt -- so the check names em now too. */
@@ -2695,7 +2726,14 @@ button:not(:disabled) {
   font-style: normal;
   vertical-align: super;
   margin-inline-start: 2px;
-  opacity: 0.55;
+  /*
+   * `opacity: 0.55` was here, which is the first of the two shapes this file records as the cause
+   * of the twenty-seven, and says was removed. It composites the foreground into whatever is behind
+   * it: measured at 3.36:1 on `--surface-machine`, five nodes, one disclosure past the reveal.
+   * It recedes by rank now -- eleven pixels, superscript, a colour of its own -- at 4.79:1 light
+   * and 6.04:1 dark.
+   */
+  color: var(--muted);
 }
 .pv-note {
   font-size: var(--panel-label);
@@ -3819,21 +3857,58 @@ button:not(:disabled) {
   opacity: 0.66;
 }
 /*
- * The one reason to continue, under everything derived from this position.
+ * THE ONE HEADING A SCREEN IS ABOUT, AND WHY THIS IS A CLASS AND NOT `h1`.
  *
- * QUIETER THAN THE FINDING AND LOUDER THAN THE FOOTNOTES, because that is what it is: not a
- * measurement, not a disclaimer, and not a call to action dressed as one. `--panel-label` with a
- * hairline above puts it in the same register as `.reveal-build-limit`, which is the other thing
- * on this panel that is true of every position rather than of this one.
+ * Measured on the built app before it was written. The front door's primary heading IS its `h1`,
+ * at 28px. On the deciding screen the primary heading is an `h2` at 22px, and the `h1` there is
+ * `11. O-O-O` at 16px -- a move label in `.workspace-meta`, smaller than three of the `h3`s under
+ * it. A rule on the tag would have put the weight on the move label and left both real headings
+ * at 400, which is the opposite of what it was for.
+ *
+ * NOT APPLIED ON THE REVEAL, AND THAT IS A FINDING RATHER THAN AN OMISSION. That screen has no
+ * primary heading: three `h2`s tied at 18px, one per block, and the panel's order is stated as not
+ * negotiable with the limits block first. Promoting one of the three would invert that order;
+ * promoting all three would be restyling `h2` globally. Recorded in the pass rather than resolved
+ * by taste.
+ *
+ * 600 IS ALREADY IN THIS STYLESHEET, thirty times. No new value enters the system here.
  */
-.reveal-continuation {
+.screen-heading {
+  font-weight: 600;
+}
+/*
+ * What the record now holds, under everything derived from this position.
+ *
+ * QUIETER THAN THE FINDING AND LOUDER THAN THE FOOTNOTES, inherited unchanged from
+ * `.reveal-continuation`, which this replaces: not a measurement of this position, not a
+ * disclaimer, and not a call to action dressed as one. `--panel-label` with a hairline above puts
+ * it in the same register as `.reveal-build-limit`, the other thing on this panel that is true of
+ * something other than the position in front of the reader.
+ *
+ * IT IS A `.reveal-block` AND IT IS THE LAST ONE. Its heading takes the same size and weight as
+ * the other section heads by inheriting the block rule -- nothing here promotes it. A foot block
+ * that outranked "מה ההחלטה הזאת עדיין לא אומרת" would invert the order this panel calls not
+ * negotiable, which is the one thing this change must not do.
+ */
+.reveal-accumulation {
   max-inline-size: var(--measure);
   margin: 0.9rem 0 0;
   padding-top: 0.7rem;
   border-top: 1px solid var(--hairline);
+}
+.reveal-accumulation p {
+  margin: 0.45rem 0 0;
   font-size: var(--panel-label);
   line-height: 1.55;
   opacity: 0.86;
+}
+/*
+ * THE COUNT IS THE ONE LINE HERE THAT IS A MEASUREMENT, and the other two are constants. Full
+ * opacity separates them: the reader can see at a glance which line would read differently after
+ * the next decision, without the panel having to say so in words.
+ */
+.reveal-accumulation .accumulation-balance {
+  opacity: 1;
 }
 /*
  * The way to act on the sentence above it, next to the sentence above it.

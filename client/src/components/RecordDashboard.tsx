@@ -17,7 +17,7 @@ import type { Control } from "@shared/control";
 import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
-import { CounterfactualPanel } from "./CounterfactualPanel";
+import { COUNTERFACTUAL_TITLE, CounterfactualPanel } from "./CounterfactualPanel";
 import { ProfilePanel } from "./ProfilePanel";
 import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
@@ -205,11 +205,17 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
       {/*
         * THE READING IS OF A REGIME THAT IS NO LONGER THE ONE BEING WRITTEN.
         *
-        * The population rule is "the largest", which is answer-blind and stable and says nothing
-        * about recency. After a bump to `CURRENT_PROTOCOL_VERSION` the largest regime is the
-        * RETIRED one and stays largest until the new one overtakes it. Measured at 120 decisions
-        * under version 4 against 40 under version 5: this panel reported n=120 at 100% accuracy
-        * from a protocol no longer running, and would have gone on doing so for 81 more decisions.
+        * WHY THIS NOTE STILL EXISTS AFTER THE RULE CHANGED. It was written when the population rule
+        * was "the largest" -- answer-blind and stable, and silent about recency -- which meant that
+        * after a bump to `CURRENT_PROTOCOL_VERSION` the RETIRED regime stayed largest until the new
+        * one overtook it: measured at 120 decisions under version 4 against 40 under version 5,
+        * this panel reported n=120 at 100% accuracy from a protocol no longer running, and would
+        * have gone on for 81 more decisions.
+        *
+        * `regimeInForceFirst` bounded that at `MIN_BUCKET_N` rather than removing it. The reading
+        * switches to the regime in force as soon as it can be read, and until then it is still the
+        * largest one -- so the stale state is thirty decisions long instead of a whole record, and
+        * `regime.current` is false for exactly that window. This is the sentence for that window.
         *
         * The figure is not wrong about its own population. Without this line the reader has no way
         * to know which population that is, and every number on this screen reads as current.
@@ -222,11 +228,36 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         </p>
       )}
 
+      {/*
+        * WHAT THIS SENTENCE MAY CLAIM, AND WHAT IT CLAIMED.
+        *
+        * It said those decisions are not averaged into `המספרים כאן`. Measured on the built app,
+        * two seeded records, one section: the note at y=1363 above three denominators reading n=30,
+        * and five denominators reading n=65 at y=2741. 65 = 30 + 35. The thirty-five it says are
+        * not averaged in are in five numbers thirteen hundred pixels below it, inside the same
+        * section. The other record showed the same at n=120 against n=140.
+        *
+        * THE ARITHMETIC IS RIGHT AND IS NOT TOUCHED. `record-service.ts` flattens the described
+        * strata for the branch tally and argues it where it does it: a tally carries its own
+        * denominator and is *"not a comparison between decisions, which is the only operation a
+        * stratum boundary forbids"*. So the fix is to the scope of the claim, not to the number.
+        *
+        * PROXIMITY COULD NOT HAVE DISAMBIGUATED IT. The identical phrase is eight lines above, in
+        * the stale-regime note, where it can only mean the whole panel -- that note exists because
+        * otherwise *"every number on this screen reads as current"*. One phrase, two referents.
+        *
+        * AND IT NAMES WHERE THEY DO COUNT, because bounding the claim alone would leave a reader
+        * told a number excludes their decisions, meeting a bigger denominator in the same section,
+        * with nothing connecting the two. `MixBlock`'s own title, so the sentence points at
+        * something the reader can find rather than at a description of it.
+        */}
       {setAside.length > 0 && (
         <p className="dash-note" dir="rtl">
           עוד {setAside.reduce((n, s) => n + s.n, 0)} החלטות מדודות שלכם נרשמו בתנאי מדידה אחרים —
-          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך המספרים כאן. הן אינן ממתינות
-          ואינן נקראות בחלק אחר: הן פשוט אינן אותה אוכלוסייה.
+          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך הקריאה של משטר המדידה שמוצג
+          כאן. הן אינן ממתינות ואינן נקראות תחת כותרת אחרת: הן פשוט אינן אותה אוכלוסייה. שני
+          הבלוקים שבהמשך העמוד, ״{MIX_TITLE}״ ו״{COUNTERFACTUAL_TITLE}״, סופרים את כל משטרי
+          המדידה יחד — ולכן ה-n שלהם גדול מזה שכאן, ולא בטעות.
         </p>
       )}
 
@@ -743,6 +774,17 @@ const MIX_LABEL: Record<OneThingKind, string> = {
  * the unjustified number this product spends its whole time refusing -- and a mix over nine
  * decisions is noise wearing four percentage signs.
  */
+/**
+ * The two headings the set-aside note POINTS at rather than describes.
+ *
+ * Two copies of a heading is how a sentence that says "counted under X" comes to name a heading that
+ * was renamed last month. One constant, one renderer, one referrer -- and a test that reads the
+ * RENDERED heading rather than a literal, because the first version of that test asserted the note
+ * against a hard-coded string and stayed green when the heading was changed underneath it.
+ */
+const MIX_TITLE = "מה הכלי מוצא בהחלטות שלכם";
+
+
 function MixBlock({ mix }: { mix: OneThingMix }) {
   /*
    * THE HEADING NAMES ITS REFERENT, AND IT USED TO NAME THE WRONG ONE. "מה הכלי אמר לכם עד כה" is
@@ -768,7 +810,7 @@ function MixBlock({ mix }: { mix: OneThingMix }) {
    * -- per-browser, trial-scoped, and behind an import-graph wall from `shared/` -- and it is
    * evidence about a visit rather than about a record.
    */
-  const title = "מה הכלי מוצא בהחלטות שלכם";
+  const title = MIX_TITLE;
   if (mix.n < MIN_BUCKET_N) {
     return (
       <div className="mix-block">

@@ -1,0 +1,42 @@
+{
+  "status": "OWNER_DEFER",
+  "raw_signal": "(no owner signal -- this came out of a macro pass, not out of a sentence)",
+  "observations": [
+    "At 390x844 and 320x844, at the scroll position the application sets itself, 0 of the board's 370px (300px at 320) is in the viewport during the tension, claim and confidence steps: 12 of 12 stage samples at each width across three decisions.",
+    "At 1440x900 the identical script runs the same steps with 99-100% of the board visible, scrollY 0 throughout.",
+    "The mechanism is `client/src/components/CommitmentScreen.tsx`: on the arrival of a move, if the panel's top is below 0.7 * innerHeight the panel is scrolled with `block: \"start\"`. Measured as an app-driven smooth scroll 0 -> 74 -> 297 -> 580 -> 764 -> 802, sampled at 100ms with every activation performed as an in-page `el.click()` so the harness never scrolls.",
+    "`block: \"end\"` was built and walked: scrollY 790 instead of 802 and the board still 0%, because `.commitment-screen` is 833px on an 844px viewport and aligning THE PANEL any way fills the screen.",
+    "THE SIZE-CONSTRAINT EXPLANATION IS FALSIFIED. Sweeping the whole scroll range with the move placed: board at document y=273 height 370, open step at y=1012 height 342, viewport 844. 133 scroll positions have the open step FULLY visible and some board visible; the best, y=510, shows 133 of 370px -- 36%, three ranks -- with the entire question on screen. The app scrolls to 802.",
+    "`docs/INTERACTION_GEOMETRY.md` states DECIDE's centre is coupled and that the layout serving it is two adjacent regions, explicitly not a single column with the board on top. The phone is one column with the board on top.",
+    "The record carries no viewport class. If co-visibility is a condition, decisions taken under the two conditions are pooled today with nothing distinguishing them."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "Co-visibility is not part of the measurement; the declaration is made from an orientation already formed",
+      "explains": "The scroll, which `CommitmentScreen`'s docblock argues for on the ground that the board has to be visible WHILE THE MOVE IS CHOSEN and that what is wrong is being left below the fold afterwards.",
+      "does_not_explain": "Why the desktop then shows the board at 99-100% during the same steps, which on this reading is the odd one out rather than the correct case.",
+      "discriminator": "OWNER. Nothing in the repository answers it."
+    },
+    {
+      "name": "Co-visibility is part of the measurement, and the phone layout loses it",
+      "explains": "`INTERACTION_GEOMETRY.md`'s coupled centre, and the desktop's behaviour.",
+      "does_not_explain": "Nothing measured contradicts it.",
+      "discriminator": "OWNER, and then FIELD for whether a reading declared with the position off screen differs from one declared with it on screen."
+    },
+    {
+      "name": "The phone has no room and the 0% is arithmetic",
+      "explains": "That both `block: \"start\"` and `block: \"end\"` leave it at 0%.",
+      "does_not_explain": "The 133 scroll positions that have both. The panel is 833px of an 844px viewport, but the OPEN STEP is 342px and the board's lower half is 185px.",
+      "discriminator": "SPENT -- the scroll-range sweep above.",
+      "status": "FALSIFIED"
+    }
+  ],
+  "design_distinction": "Scrolling a panel into view and scrolling a QUESTION into view are different intents, and on a viewport shorter than the panel they have different answers. The 0% is a consequence of the target, not of the height.",
+  "authority": "OWNER for whether co-visibility is part of the measurement. REPO for the geometry and the scroll that produces it, both settled. FIELD for any effect on what is declared.",
+  "evidence_state": "MEASURED",
+  "intervention": null,
+  "must_not_change": "Nothing yet. An alignment change, a scroll-margin or a layout change would alter the conditions under which a declaration is collected, and whether that is a repair or a contamination depends on the answer to the owner question.",
+  "perceptual_success_criterion": "UNDEFINED UNTIL THE OWNER ANSWERS. If co-visibility is a condition, it is that the question and some of the position share a screen on every viewport. If it is not, it is that they do not, on every viewport, and the desktop changes instead.",
+  "check": "`docs/neta/harness/` -- `e4-board-covisibility.mjs` for the 0%, and the scroll-range sweep for the 133 positions.",
+  "next_step": "One sentence from the owner: is the position required to be on screen while the reading is declared? A yes makes the phone layout a defect and probably makes viewport class a recorded condition. A no makes the desktop the odd one out and makes this closed. Until then nothing here is built, and no field is added to the record -- adding one before the answer would be encodability bias, which is exactly what `FL-005` is about."
+}
