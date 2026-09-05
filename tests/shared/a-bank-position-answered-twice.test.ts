@@ -46,7 +46,7 @@ const nextId = () => `33333333-3333-4333-8333-${String(++seq).padStart(12, "0")}
 
 async function decide(
   store: MemoryRecordStore,
-  options: { fen: string; accurate: boolean; purpose?: DecisionPurpose },
+  options: { fen: string; accurate: boolean; purpose?: DecisionPurpose; build?: string },
 ) {
   const id = nextId();
   await service.commitDecision(store, {
@@ -85,7 +85,7 @@ async function decide(
     engine_best_move: "d4d5",
     engine_depth: 18,
     engine_source: "local_sf18",
-    engine_build: "sf18-test-build",
+    engine_build: options.build ?? "sf18-test-build",
     cp_loss: options.accurate ? 0 : 300,
   });
 }
@@ -156,6 +156,73 @@ describe("a bank position answered twice", () => {
 
     const reading = await service.recordReading(store);
     expect(reading.scored, "the described population was deduped by position").toBe(10);
+  });
+
+  it("cannot change which regime the reading describes, however many repeats arrive", async () => {
+    /*
+     * THE FAILURE MODE THIS PAIR OF RULES COULD HAVE HAD, and the one `67bad3c` calls disqualifying:
+     * an instrument that answers differently because it was given more evidence. `regimeInForceFirst`
+     * sizes the strata, so if it sized them by rows a pile of repeats in one regime could win it the
+     * reading. It sizes by the population the reading is over, which repeats are not in.
+     */
+    const build = async (repeats: number) => {
+      const store = new MemoryRecordStore();
+      for (let i = 0; i < 4; i += 1) await decide(store, { fen: ANCHOR_POSITIONS[i].fen, accurate: false });
+      for (let i = 0; i < repeats; i += 1) await decide(store, { fen: ANCHOR_POSITIONS[0].fen, accurate: true });
+      return service.recordReading(store);
+    };
+    const none = await build(0);
+    const many = await build(12);
+    expect(many.anchor.n, "twelve repeats changed the size of the reading").toBe(none.anchor.n);
+    expect(many.anchor.brier, "twelve repeats changed the reading itself").toBe(none.anchor.brier);
+    expect(many.anchorRepeated).toBe(12);
+  });
+
+  it("cannot let a pile of repeats win a regime the contest it would otherwise lose", async () => {
+    /*
+     * WRITTEN BECAUSE THE FIRST VERSION OF THE CASE ABOVE DID NOT DISCRIMINATE. Sizing
+     * `regimeInForceFirst` by rows instead of by the population the reading is over was reverted
+     * into the tree on purpose and every case here stayed green: they all build ONE stratum, and
+     * with one stratum the sizing function never runs.
+     *
+     * Two regimes, neither over `MIN_BUCKET_N`, so the choice falls back to size. The retired one
+     * holds five distinct positions. The running one holds four, and ten repeats of one of them --
+     * fourteen rows. By rows the repeats win it the reading and the answer is 4; by the population
+     * the reading is over, the honest five-position regime wins and the answer is 5.
+     */
+    const store = new MemoryRecordStore();
+    for (let i = 0; i < 5; i += 1) {
+      await decide(store, { fen: ANCHOR_POSITIONS[i].fen, accurate: false, build: "sf18-retired" });
+    }
+    for (let i = 0; i < 4; i += 1) {
+      await decide(store, { fen: ANCHOR_POSITIONS[i].fen, accurate: false, build: "sf19-running" });
+    }
+    for (let i = 0; i < 10; i += 1) {
+      await decide(store, { fen: ANCHOR_POSITIONS[0].fen, accurate: true, build: "sf19-running" });
+    }
+
+    const reading = await service.recordReading(store);
+    expect(
+      reading.anchor.n,
+      "a regime was chosen on the strength of its repeats",
+    ).toBe(5);
+  });
+
+  it("is monotone: a new position only ever adds to the reading", async () => {
+    /*
+     * The other half of the same property. A repeat leaves the number where it was; a position the
+     * player has not answered raises it. Neither ever lowers it, which is what "more evidence" has
+     * to mean for a count.
+     */
+    const store = new MemoryRecordStore();
+    const sizes: number[] = [];
+    for (let i = 0; i < 4; i += 1) {
+      await decide(store, { fen: ANCHOR_POSITIONS[i].fen, accurate: false });
+      sizes.push((await service.recordReading(store)).anchor.n);
+      await decide(store, { fen: ANCHOR_POSITIONS[0].fen, accurate: true });
+      sizes.push((await service.recordReading(store)).anchor.n);
+    }
+    expect(sizes, "the reading shrank as decisions were added").toEqual([1, 1, 2, 2, 3, 3, 4, 4]);
   });
 
   it("POSITIVE CONTROL: progress through the set is not narrowed by the rule", async () => {
