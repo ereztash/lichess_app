@@ -172,6 +172,8 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
   anchorAnswered: [],
+  /* No bank answers at all, so no position could have been answered twice. */
+  anchorRepeated: 0,
   stability: splitHalfStability([]),
   sensitivity: metacognitiveSensitivity([]),
   // No band beside an unreadable number: the literature's median is a persuasive thing to
@@ -182,6 +184,8 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   confidence: [],
   scored: 40,
   mix: emptyMix,
+  /* Same population: this fixture has no bank, drill, transfer or imported decisions. */
+  mixAll: emptyMix,
   ...over,
 });
 

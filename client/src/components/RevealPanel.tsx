@@ -11,26 +11,37 @@
  * thing here, this has been rebuilt into the tool the repo already was.
  */
 import { useEffect } from "react";
-import { AlertTriangle, ChevronDown, HelpCircle, Target } from "lucide-react";
+import { AlertTriangle, ChevronDown, HelpCircle, Layers, Target } from "lucide-react";
 import { formatEvaluation, sanPrincipalVariation } from "@/lib/game-data";
 import {
+  ACCUMULATION_HEADING,
+  ACCUMULATION_LEAD,
+  ACCUMULATION_NEXT,
   BUILD_LIMIT,
   CONTINUATION_CTA,
-  CONTINUATION_PROPOSITION,
   ENGINE_NOISE_CP,
   EVIDENCE_LABEL,
   MATERIAL_LOSS_CP,
   ONE_THING_EVIDENCE,
   inferenceLimits,
   nextQuestion,
+  revealAccumulation,
   silenceBasis,
   theOneThing,
+  type OneThingMix,
   type RevealInputs,
 } from "@shared/reveal";
 import type { EngineLine } from "@/lib/engine-line";
 import { primaryAction } from "@shared/primary-action";
 import { recordTrialEvent, trialEventSeen } from "@/lib/progress-record";
 import { NotMeasured, Value } from "./Value";
+
+/*
+ * The two constants alone, for a panel with no record to read. Not a `revealAccumulation` call
+ * with an empty mix: that would be inventing a reading out of a number nobody measured, and the
+ * whole point of the null is that the count is UNKNOWN here rather than zero.
+ */
+const FALLBACK = { lead: ACCUMULATION_LEAD, balance: null, next: ACCUMULATION_NEXT } as const;
 
 interface RevealPanelProps {
   inputs: RevealInputs;
@@ -68,6 +79,15 @@ interface RevealPanelProps {
    */
   decisionId?: string | null;
   /**
+   * The branch mix over every population, for the accumulation block.
+   *
+   * NULL IS A STATE, NOT A ZERO, and the distinction is the whole reason this is nullable. The
+   * record query can be in flight, can have failed, or the caller can be a test rendering the
+   * panel in isolation; none of those is "the engine has answered nothing". `RecordReading.mixAll`
+   * documents why it is the pooled mix and not `mix`.
+   */
+  mix?: OneThingMix | null;
+  /**
    * Take another decision. Absent wherever there is not one to take.
    *
    * Optional because most callers of this panel are tests rendering it in isolation, and a reveal
@@ -84,6 +104,7 @@ export function RevealPanel({
   boardFen,
   statedKnown,
   decisionId = null,
+  mix = null,
   onContinue,
 }: RevealPanelProps) {
   /*
@@ -96,6 +117,13 @@ export function RevealPanel({
   const limits = inferenceLimits(inputs);
   const oneThing = theOneThing(inputs);
   const question = nextQuestion(inputs);
+  /*
+   * FROM `oneThing`, NOT FROM A SECOND CLASSIFICATION. The kind counted here is the kind rendered
+   * eighty lines above, so the count and the sentence it counts can never describe different
+   * branches -- the same argument `reveal_kind_presented` is emitted from this component for.
+   * `"silence"` is a kind here exactly as it is there: a branch, not an absence.
+   */
+  const accumulation = mix ? revealAccumulation(oneThing?.kind ?? "silence", mix) : null;
   const pv = analysis ? sanPrincipalVariation(fen, analysis.pv) : [];
 
   /*
@@ -270,22 +298,50 @@ export function RevealPanel({
       </details>
 
       {/*
-        * WHY ANOTHER DECISION, and it is deliberately not inside any of the four blocks.
+        * WHY ANOTHER DECISION, ANSWERED RATHER THAN ASSERTED.
         *
-        * The only reason to continue that this product stated anywhere lived in the record: "עוד N
-        * החלטות מדודות עד שאפשר לומר משהו". That sentence is true and it is about what a CLAIM
-        * needs before a detector may speak. Read as motivation it is a countdown to a locked
-        * thing, which is the mechanic this product refuses -- and it never answered the question a
-        * player actually has after a reveal, which is what the NEXT decision gives THEM.
+        * WHAT WAS HERE. `CONTINUATION_PROPOSITION`: "החלטה אחת אומרת מה קרה בה, ולא יותר. החלטה
+        * נוספת היא עמדה אחרת ורגע אחר -- וזה מה שמאפשר לשאול אם מה שקרה כאן חוזר." Every word true,
+        * and a constant: byte-identical after decision one and after decision fifty. The product
+        * offered to let a player ask whether something repeats and then never asked.
         *
-        * OUTSIDE THE BLOCKS BECAUSE IT IS NOT A MEASUREMENT. Everything above is derived from this
-        * position. This is a constant: the same sentence after every one of the five outcomes,
-        * with no digit in it and no variation by reveal kind, by how many decisions are on record,
-        * or by anything the player did. A proposition that warmed up after a good branch would be
-        * measuring the player and answering them, and the trial would be reading its own copy
-        * back.
+        * WHAT THE MEASUREMENT SAID. Walked on the built app after three decisions: of fourteen
+        * painted elements on this panel, ONE said anything about the record -- sixty characters of
+        * seven hundred and fifty-four -- and it sat inside "מה ההחלטה הזאת עדיין לא אומרת", where
+        * its function was to deny. The whole reveal was local, and the one sentence that promised
+        * accumulation was the one that could never deliver it.
+        *
+        * SO IT IS REPLACED, NOT JOINED. A second block beside the proposition would have left the
+        * screen saying the abstract thing and the concrete thing at once, which is two answers to
+        * one question. `ACCUMULATION_LEAD` carries the proposition's limitation forward unchanged
+        * in force -- one decision is not a pattern -- and `ACCUMULATION_NEXT` carries its reason to
+        * continue. What is added between them is the count that makes both of them about this
+        * player's record instead of about arithmetic.
+        *
+        * STILL A BLOCK AT THE FOOT AND STILL NOT ONE OF THE FOUR. Everything above is derived from
+        * this position; this is derived from the record. It is last for the same reason the
+        * proposition was, and its heading is the same weight as the other section heads: the
+        * limits block is first, always, and a foot block that outranked it would inverse the order
+        * this panel's docblock calls not negotiable.
+        *
+        * NULL MIX RENDERS THE CONSTANTS AND NO COUNT. The record query in flight, a failed read, or
+        * a test rendering this panel alone are not "the engine has answered nothing", and a zero
+        * would say they were.
         */}
-      <p className="reveal-continuation">{CONTINUATION_PROPOSITION}</p>
+      <section className="reveal-block reveal-accumulation">
+        <h2>
+          <Layers size={14} /> {ACCUMULATION_HEADING}
+        </h2>
+        <p className="accumulation-lead">{(accumulation ?? FALLBACK).lead}</p>
+        {/*
+          * THE COUNT IS ITS OWN ELEMENT because it is the only line here that is a measurement.
+          * The two around it are constants and say so by never changing; putting all three in one
+          * paragraph would make the reader work out which is which, and `OneThing` splits `text`
+          * from `note` one block above for exactly that reason.
+          */}
+        {accumulation?.balance && <p className="accumulation-balance">{accumulation.balance}</p>}
+        <p className="accumulation-next">{(accumulation ?? FALLBACK).next}</p>
+      </section>
       {/*
         * THE BUTTON GOES WHERE THE REASON IS, and the measurement is why.
         *

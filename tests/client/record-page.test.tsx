@@ -104,6 +104,8 @@ const withRecord = (scored: number): RecordReading => ({
   calibration: calibrationScore([]),
   anchor: calibrationScore([]),
   anchorAnswered: [],
+  /* No bank answers at all, so no position could have been answered twice. */
+  anchorRepeated: 0,
   stability: splitHalfStability([]),
   sensitivity: metacognitiveSensitivity([]),
   // No band beside an unreadable number: the literature's median is a persuasive thing to
@@ -123,6 +125,20 @@ const withRecord = (scored: number): RecordReading => ({
     silent: 0,
     eligible: 0,
     /* No stored verdict, so nothing could have been held back from being shown. */
+    withheld: 0,
+  },
+  /* Same population: this fixture has no bank, drill, transfer or imported decisions. */
+  mixAll: {
+    n: 0,
+    counts: {
+      "chose-past-it": 0,
+      "confident-and-wrong": 0,
+      outplayed: 0,
+      "trusted-it-too-little": 0,
+    },
+    silent: 0,
+    eligible: 0,
+    /* Same reason as `mix` above: no stored verdict, so nothing could have been held back. */
     withheld: 0,
   },
 });
