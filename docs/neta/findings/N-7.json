@@ -1,5 +1,5 @@
 {
-  "status": "DISCRIMINATE_FIRST",
+  "status": "BUILD_READY",
   "raw_signal": "הרשומה סופרת החלטה אחת יותר משעשיתי, אבל לא תמיד.",
   "observations": [
     "The reveal's limits block prints `נרשמו N החלטות` from `RevealInputs.decisionsOnRecord`, which `client/src/pages/Home.tsx:972` builds as `(decisionCount.data?.decisions ?? 0) + 1`.",
@@ -8,26 +8,33 @@
     "`docs/neta/harness/n-the-count-on-the-reveal.mjs` took five decisions in one walk and read the sentence at every reveal: 5 of 5 correct. That probe waits 1500ms after each reveal before reading. It did not reproduce the disagreement.",
     "`decisionCount.refetch()` runs at `Home.tsx:1075`, AFTER `setRevealInputs(inputs)` in the same async function, so the query is one refetch behind at capture time.",
     "`revealInputs` is component state, captured once; the panel does not recompute the count when the query later settles.",
-    "The commit path writes the decision to the store before the engine is asked, so the stored count at the kth reveal is k, not k-1."
+    "The commit path writes the decision to the store before the engine is asked, so the stored count at the kth reveal is k, not k-1.",
+    "RESOLVED IN PASS 5. The arm is the variable, and it is deterministic: 8 of 8 counterfactual-probed runs printed k+1, 18 of 18 not-probed runs printed k, 26 runs with 26/26 agreement between the arm and the sentence.",
+    "`useCommitDecision` invalidates `LOCAL_KEYS.count` immediately after the write. On the not-probed path `onCommit` calls `runReveal` inside the closure it was created in, where `data` is k-1. On the probed path `onCommit` returns, the invalidated count refetches, React re-creates `runReveal` (`decisionCount` is in its dependency array) and `onAnswerProbe` calls the LATER closure, where `data` is already k.",
+    "At k=1 the defect crosses a copy branch and not only a digit: `shared/reveal.ts` renders `זו החלטה אחת שנרשמה` on `=== 1`, so a probed first decision was told `נרשמו 2 החלטות` and the singular sentence did not render at all.",
+    "R4, on the deployed build `2f3c261` (`target=production`), arm pinned with a control beside it: probed printed 2 for a record holding 1; not-probed printed the singular sentence for the same record."
   ],
   "candidate_mechanisms": [
     {
-      "name": "`+1` compensates for a staleness nothing guarantees",
-      "explains": "Both values from one code path: the decision being revealed is already stored, so `data` is k-1 only while the refetch has not landed, and `(k-1)+1 = k` is right by accident. Anything that lands a refetch into the window between the write and the capture makes `data` k, and `k+1` prints.",
-      "does_not_explain": "Nothing observed contradicts it, which is exactly why it must not be assumed.",
-      "discriminator": "AT CAPTURE TIME, read both numbers and compare. Instrument `Home.tsx` in a dev build to log `decisionCount.data?.decisions` and `await service.countDecisions(store)` on the line that builds `inputs`. If stored is k while `data` is k-1 on a correct run and k on a wrong one, this is the mechanism. RUN IT BY FORCING THE RACE rather than waiting for it: fire a window focus event, or call `decisionCount.refetch()` directly, between the commit and the reveal, and the wrong value should become reproducible on demand."
+      "name": "The capture is frozen in a closure, and only a path that re-enters `runReveal` from a LATER render is wrong",
+      "explains": "Every observation. The arm decides which closure runs, and nothing else varies.",
+      "does_not_explain": "Nothing observed contradicts it.",
+      "discriminator": "SPENT. Pin `Math.random` before any page script runs, so `assignProbe`'s 0.35 draw becomes the independent variable, and walk both arms. 26/26 agreement.",
+      "status": "SUPPORTED at R3 and R4"
     },
     {
-      "name": "A second render captures the count after the query settles",
+      "name": "`+1` compensates for a staleness nothing guarantees, and any refetch landing in the window flips it",
+      "explains": "The original 3-vs-4 disagreement, if the window is open to anything.",
+      "does_not_explain": "That 50-56 synthetic focus events across the engine wait produced the CORRECT sentence on 5 of 5 not-probed runs. Nothing can reach a closure that is already frozen.",
+      "discriminator": "SPENT. Dispatch `visibilitychange` and `focus` across the whole search on the control arm.",
+      "status": "FALSIFIED"
+    },
+    {
+      "name": "A second render captures the count after the query settles, countable as `setRevealInputs` calls per decision",
       "explains": "That the value differs between two passes of one run.",
-      "does_not_explain": "That `revealInputs` is set once per decision and the panel reads the captured object rather than the live query.",
-      "discriminator": "Count `setRevealInputs` calls per decision in an instrumented build. More than one per decision is this mechanism; exactly one rules it out."
-    },
-    {
-      "name": "The engine timing changes which of the two the reader sees",
-      "explains": "Why a probe that waits 1500ms reports 5 of 5 correct and a probe that reads immediately does not.",
-      "does_not_explain": "That the captured value is frozen, so a later read of the same reveal cannot change it. If this were the mechanism the settled read would differ from the immediate one on the SAME reveal, which has not been observed.",
-      "discriminator": "Read the same reveal twice, immediately and after 1500ms, and compare. A difference is this mechanism; identity rules it out and leaves the race at capture."
+      "does_not_explain": "The probed path calls `setRevealInputs` once, from a different closure -- so this mechanism's own discriminator returns 'ruled out' while the defect is present.",
+      "discriminator": "SPENT, and it is the wrong instrument for this defect.",
+      "status": "NOT NEEDED"
     }
   ],
   "design_distinction": "A count that is right because a cache has not caught up is not a correct count, it is a coincidence with a good record. The two are indistinguishable on any run that happens to win the race, which is why the discriminator has to force the losing one rather than sample for it.",
@@ -37,9 +44,9 @@
   ],
   "authority": "REPO",
   "evidence_state": "MEASURED",
-  "intervention": null,
-  "must_not_change": "The sentence itself, until the arithmetic is settled. `נרשמו N החלטות` is in the limits block, whose comprehension is what `F-2` is about, and `decisionsOnRecord` is documented as `Recorded decisions so far, including this one`. Changing `+1` without first establishing whether the decision is stored at capture would swap a number that is sometimes wrong for one that is always wrong in the other direction.",
+  "intervention": "`countForReveal` reads the count the record holds instead of inferring it from a cache. A free function so the rule can be tested against a literal; `CountView.forReveal` binds it so `Home.tsx` needs no import line, R-13's ceiling being a ratchet. `countNow` resolves rather than rejects, always: it is awaited inside the block that assembles the reveal, and a rejection would cost the player the verdict they waited seconds for because a number beside it could not be read. The `+ 1` survives only as the failed-read estimate, where `data` is the last value that DID read.",
+  "must_not_change": "The singular branch. A probed first decision losing `זו החלטה אחת שנרשמה` is half of what this finding was, and a positive control holds it.",
   "perceptual_success_criterion": "At the kth reveal of a session, the limits block says k, on every run and every viewport.",
-  "check": "Forced-race probe: commit, force a refetch into the window before the reveal is assembled, read the sentence. The count must still say k.",
-  "next_step": "Deliberately not fixed in the accumulation-block change. The mechanism is read off the code and the disagreement is reproduced, but what is NOT established is which sentence is correct, and that is a question about what `decisionsOnRecord` means rather than about a race. It needs the discriminator above, which is a build with instrumentation and a forced refetch, and that is its own pass."
+  "check": "`tests/layout/a-count-the-record-does-not-hold.layout.test.ts`, both arms pinned. Against the reverted arithmetic the two probed cases go red and both positive controls stay green; against the repaired tree, 4 of 4. `tests/client/the-count-a-reveal-may-claim.test.ts` holds the three states of the rule, including the failed read, which a browser cannot reach cheaply.",
+  "next_step": "None for this finding. The reversal condition is a deployed server record: `countNow` is awaited on the reveal's path, and on the local path -- every production arrival today -- that is a `localStorage` read that cannot hang. The day `DATABASE_URL` is configured in production it becomes a request, and the promise should be hoisted to the top of `runReveal` so it overlaps the engine search."
 }

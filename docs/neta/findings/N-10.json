@@ -1,0 +1,43 @@
+{
+  "status": "OWNER_DEFER",
+  "raw_signal": "(no owner signal -- this came out of a macro pass)",
+  "observations": [
+    "Across a whole commit the application makes exactly ONE network request: `GET /assets/ValueReconstruction-*.js`, at +2417ms.",
+    "Serving that one URL a 404 -- the exact deploy case `lazy-chunk.ts` names -- at 1440x900: +76ms the commitment panel is gone and `aria-busy=1`; +2554ms THE REVEAL RENDERS (body innerText 860 -> 1550); +2610ms `document.body.innerText.length = 0` and `scrollHeight = 0`; +2697ms the app is remounting; +2764ms the DECIDE screen. The reveal is present in one 50ms sample and the document is empty in the next.",
+    "Aborting the same URL instead of 404ing it produces the identical shape. Reproduced 4x across both injection kinds, 8 runs in total.",
+    "It is the product's own path and not the probe's: the app POSTs `/api/client-event` with `{\"code\":\"stale-build-reload\",\"failureClass\":\"stale-build\"}` and writes the `decision-lab.chunk-reload` sessionStorage mark. `lazy-chunk.ts` retries once, then calls `window.location.reload()`.",
+    "WHERE THE RELOAD LANDS. The position committed on and the position put back are the same: h1 `11. O-O-O` and a 64-square occupancy hash of -494095640 on both sides. The commitment panel is reset to `חסרים 4 פרטים. החלטה חלקית לא נרשמת`, the record reads `0 מתוך 1 שנרשמו`, and a second full decision was then committed on that same position with the same move.",
+    "ON REVEAL 1 THE CHUNK PAINTS NOTHING. `ASK_AFTER_REVEALS = 2`, so the component mounts, fetches, and renders nothing until the second reveal -- and still costs the first one.",
+    "THE FIRST FAILURE IS SILENT. The product has a well-written stale-build screen -- `האפליקציה התעדכנה בזמן שהייתם כאן ... החלטות שכבר נרשמו נשמרו` with a reload control -- and it appears only on the SECOND failure.",
+    "The same class at the disclosure: aborting `/assets/RecordExplorer-*.js` at the `.explore-toggle` press empties the document at +110ms and lands the DECIDE screen at +357ms, reveal gone."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "The reload is safe and the reveal is expendable",
+      "explains": "`lazy-chunk.ts`'s own docblock, which argues safety on two legs: the record is written per decision, and `session-position` puts the board back.",
+      "does_not_explain": "That both legs were measured and both hold, and neither of them is the reveal. The docblock does not mention it. The reveal is the one thing the product exists to produce and the only screen this component can mount on.",
+      "discriminator": "OWNER."
+    },
+    {
+      "name": "The placement is harmless because the trigger never fires there",
+      "explains": "Why this has not been seen. The trigger is a deploy replacing a chunk while a page is open.",
+      "does_not_explain": "Nothing measured contradicts it, and `lazy-chunk.ts` calls the trigger 'not hypothetical and not rare'.",
+      "discriminator": "ENVIRONMENT, and it costs nothing: the app already emits the event. Count `stale-build-reload` client-events in the deployed environment and check how many arrive within 500ms of a reveal render. The reveal timestamp is already recorded."
+    },
+    {
+      "name": "The reload is the wrong recovery for a screen holding unpersisted state",
+      "explains": "Everything measured, and why the same shape appears at the disclosure with a different chunk.",
+      "does_not_explain": "Nothing measured contradicts it.",
+      "discriminator": "OWNER for the shape of the repair; the observation needs none."
+    }
+  ],
+  "design_distinction": "A recovery that is safe for the RECORD is not automatically safe for the SCREEN. `lazy-chunk.ts` proved the first and was read as having proved the second, and the difference is exactly the state that is derived rather than stored.",
+  "authority": "REPO for the observation and the mechanism, both measured. ENVIRONMENT for how often the trigger fires. OWNER for whether the reveal must survive the recovery, and for the shape of any repair. FIELD for what losing a reveal costs a player.",
+  "evidence_state": "MEASURED",
+  "intervention": null,
+  "must_not_change": "The reload itself, until the owner has answered. It exists because a stale build serving a missing chunk is a real deploy state, and removing the recovery to protect one screen would trade a rare lost reveal for a permanently broken page.",
+  "perceptual_success_criterion": "A player who has just been shown a verdict is not returned, silently, to the position they took it on.",
+  "check": "The eight runs above, both injection kinds, at 1440x900. The app's own `stale-build-reload` event and its sessionStorage mark are what distinguish the product's reload from the harness's.",
+  "next_step": "Two things, and the cheap one first. (1) ENVIRONMENT: count the deployed `stale-build-reload` events near reveal renders. Zero, and mechanism 2 wins on frequency and this closes. (2) OWNER: if it is not zero, three shapes exist -- move the mount off the reveal, fold those four lines into the entry chunk, or defer the reload until the screen holds nothing a reload destroys -- and which is right is product intent. None is chosen here.",
+  "related": "N-9. This is the third route into a re-armed already-decided position, and the most damaging one, because the player also loses the reveal. The reading half is already protected: the between-player comparison admits one answer per bank position."
+}

@@ -679,11 +679,17 @@ export function useImportReading(): { reading: StoredImportDiagnostic | null; lo
  * stated basis rather than a coincidence, and it degrades honestly: two consecutive failed reads
  * leave the number low rather than high.
  *
- * IT IS AWAITED AT THE CAPTURE AND NOT STARTED EARLIER. On the local path -- which is every
- * production arrival, because production configures no database -- this is a `localStorage` read.
- * On the server path it is one small query after a search that took seconds. Starting it before the
- * search would overlap the two and would cost `Home.tsx` a line of a ceiling that only ever goes
- * down; if the server path ever makes that trade worth taking, the promise is the thing to hoist.
+ * IT IS AWAITED AT THE CAPTURE AND NOT STARTED EARLIER, AND THAT PUTS IT ON THE REVEAL'S PATH.
+ * On the local path this is a `localStorage` read through a disabled-server query: it cannot hang,
+ * and it is every production arrival, because production configures no database. On the server path
+ * it is a request, and a request on the reveal's path is a request that can delay a verdict the
+ * player already waited seconds for. `retry: false` bounds the retries and nothing bounds the wait.
+ *
+ * THE REVERSAL CONDITION IS A DEPLOYED SERVER RECORD. The day `DATABASE_URL` is configured in
+ * production, this await is on a network call and should be hoisted to the top of `runReveal` so it
+ * overlaps the engine search -- one line, and `Home.tsx` will need one freed for it, which
+ * `void decisionCount.refetch()` after the reveal is the candidate for: this function already
+ * refetches, and it does it earlier.
  */
 export async function countForReveal(count: CountView): Promise<number> {
   return (await count.countNow()) ?? (count.data?.decisions ?? 0) + 1;

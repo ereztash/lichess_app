@@ -1,0 +1,34 @@
+{
+  "status": "OWNER_DEFER",
+  "raw_signal": "(no owner signal -- this came out of a macro pass)",
+  "observations": [
+    "After a reveal, a plain reload of `/play` returns the same board -- square-by-square aria-label signature identical -- with `.reveal-panel` absent and `.commitment-submit` reading `חסר: בחרו מהלך על הלוח`. The screen is re-armed for a decision on a position that has already been decided.",
+    "Deciding again is accepted with no error. Measured: `decision-lab.record.v1.decisions` went from 3 rows to 4, two carrying an identical FEN, both `purpose: \"anchor\"`, and the reveal's verdict sentence for the second was byte-identical to the first.",
+    "Two other routes reach the same screen: browser Back from `/`, and the brand lockup out to `/` followed by the `ללוח` control back.",
+    "The cause is a split of state: `session-position.ts` persists the position so a reload does not lose the game, and the reveal is component state, so the reload keeps the position and drops the only thing that said it had been decided.",
+    "The product enforces the opposite rule in three other places. `shared/drill-positions.ts`: a drill is a forward test, keyed by board on both sides so a position already answered cannot enter. `shared/record-service.ts` on the transfer resume: 'a returning player was served a board they had already decided and seen the engine's verdict for ... re-serving a decided position is the thing per-position writes were introduced to prevent'. And `preregisterFreshTransfer`: novelty is a property of the board, not of the FEN string.",
+    "On screen the two numbers disagree and neither is wrong: `הסט המשותף · 3 מתוך 60 עמדות` beside `4 החלטות שלכם נרשמו`. Progress dedupes by position id; the record counts rows."
+  ],
+  "candidate_mechanisms": [
+    {
+      "name": "The reload is a resume and re-arming is correct; the second decision is a real decision",
+      "explains": "Why `session-position.ts` exists at all, and why the board deliberately does not advance after a reveal.",
+      "does_not_explain": "That the player has already been shown the engine's verdict for that position, which is the condition the drill and transfer paths refuse by name.",
+      "discriminator": "OWNER."
+    },
+    {
+      "name": "The re-arm is an omission: the loop never reconciles the persisted position with the decided-ness the record already knows",
+      "explains": "Everything measured, and why the three other consumers enforce the rule and this one does not.",
+      "does_not_explain": "Nothing measured contradicts it.",
+      "discriminator": "OWNER for what the screen should do instead. The reading half is already repaired and does not wait on it."
+    }
+  ],
+  "design_distinction": "A resume restores what you were doing. It is not the same act as re-asking a question you have already been given the answer to, and one screen was doing both because the two halves of its state have different lifetimes.",
+  "authority": "REPO for the reachability, the record rows and the disagreement between the two numbers, all measured. OWNER for what a re-armed board should do.",
+  "evidence_state": "MEASURED",
+  "intervention": "PARTIAL, AND ONLY ON THE READING. The between-player comparison now admits one answer per bank position, keeping the first -- the only one the record can place before any verdict on that position existed. That closes the measurement half without deciding the screen half.",
+  "must_not_change": "`anchorAnswered`. It decides which position the front door serves next, and narrowing it would re-serve a position the player has already answered -- the same defect arriving from the other direction. A positive control holds it.",
+  "perceptual_success_criterion": "A player who reloads after a reveal is not asked for a decision they have already given, or is told that is what they are being asked for.",
+  "check": "`tests/shared/a-bank-position-answered-twice.test.ts` holds the reading half, with the free-play population and the front door's progress both held un-deduped as positive controls.",
+  "next_step": "One decision from the owner: on a reload onto a decided position, does the screen refuse, advance to the next position, or say plainly that this one has been answered and offer both? Each is a different sentence and a different claim about what a resume is."
+}

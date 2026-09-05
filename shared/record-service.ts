@@ -2247,13 +2247,19 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    */
   /*
    * THE BANK'S OWN REGIME IN FORCE, from the last decision IT admitted rather than from the
-   * described reading's. The two populations do not admit the same rows -- a drill on a bank
+   * described reading's.
+   *
+   * ONE MAP RATHER THAN A SCAN INSIDE A SCAN. The first version of this walked the record backwards
+   * asking each stratum whether its id array contained the row, which is quadratic in the length of
+   * a record that lives in one browser and only grows. The membership is a lookup and there is no
+   * reason for it to be a search. The two populations do not admit the same rows -- a drill on a bank
    * position is `anchor`-eligible and not `descriptive-history`-eligible, and the reverse -- so the
    * latest row of one is not the latest row of the other, and reusing `currentId` here would name a
    * regime this reading may hold no decisions in at all.
    */
-  const latestBankId = [...allIds].reverse().find((id) => bankStrata.some((s) => s.ids.includes(id)));
-  const bankCurrentId = bankStrata.find((s) => s.ids.includes(latestBankId ?? ""))?.id ?? null;
+  const bankStratumOf = new Map(bankStrata.flatMap((s) => s.ids.map((id) => [id, s.id] as const)));
+  const latestBankId = [...allIds].reverse().find((id) => bankStratumOf.has(id));
+  const bankCurrentId = bankStratumOf.get(latestBankId ?? "") ?? null;
   const [bankChosen] = regimeInForceFirst(
     bankStrata,
     (s) => s.id,

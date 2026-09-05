@@ -64,6 +64,26 @@ because each one exists because the one before it was not enough.
 `step23` carries its own correction: its first verdict line used `\b` around a Hebrew word, which
 never matches, and reported `STILL COLLIDING` against a fix that had worked.
 
+## Pass 5
+
+The macro audit. Its probes are not kept here: they were written under a scratch directory and are
+named in [`../PRE_HUMAN_UX_PASS_5.md`](../PRE_HUMAN_UX_PASS_5.md) beside the numbers they produced.
+What belongs here is the two biases they exposed, because both are properties of the method.
+
+**A probe that answers the counterfactual is not a probe that controls for it.** Every walk in this
+harness answers `מה כן היית עושה` when it appears, which silently draws a 0.35 arm that changes the
+code path under test -- `onCommit` calls `runReveal` in its own closure on one arm and
+`onAnswerProbe` calls a later one on the other. Three runs disagreed about which reveal printed the
+wrong count, and the disagreement was read as a race for two passes. `assignProbe` takes its `draw`
+as an argument, and `decision-session.ts` defaults it to `Math.random`, so `addInitScript` can pin
+the arm before any page script runs. Pin it.
+
+**A gate that went red before the fix is not yet a gate.** Twice in pass 5 a falsifier was red
+before and green after and still did not discriminate the rule it was written for: one forced the
+losing arm with focus events that do nothing, the other built one stratum where the rule under test
+only runs with two. Both were caught by reverting the rule into the tree and re-running, which costs
+one build and is now the last step of every repair.
+
 ## The pre-human UX pass
 
 Added for [`../PRE_HUMAN_UX_PASS_1.md`](../PRE_HUMAN_UX_PASS_1.md). These serve `dist/public`
