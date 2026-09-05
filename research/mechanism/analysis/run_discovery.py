@@ -20,8 +20,17 @@ from search import build_selectors, search, judge_region, residualize, add_withi
 import vocab
 
 
+POP = {"df": None}
+
+
 def prepare(dv, others, target, design):
-    """Fit the baseline on `dv` (if residual) and attach within-game search targets to every frame."""
+    """Fit the baseline on `dv` (if residual) and attach within-game search targets to every frame.
+    Design v1.8: when a population frame is loaded (POP["df"]), the baseline is the population model."""
+    if POP["df"] is not None:
+        from search import residualize_population
+        (model, auc), frames = residualize_population(POP["df"], [dv] + others, target)
+        design["_pop_auc"] = auc
+        return frames, f"{target}_resid_wg", f"{target}_resid"
     if design["residual"]:
         _, frames = residualize(dv, others, target, design["baseline_cols"], design["baseline_cat"])
         return frames, f"{target}_resid_wg", f"{target}_resid"
@@ -72,11 +81,19 @@ def main():
     ap.add_argument("--boot", type=int, default=50)
     ap.add_argument("--depths", default="1,2,3")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--population", default=None, help="population decisions parquet: use the population model as the baseline (v1.8)")
+    ap.add_argument("--blitz-only", type=int, default=0)
     a = ap.parse_args()
     design = vocab.DESIGN.copy(); design["vocab"] = vocab.VOCAB[a.vocab]; design["residual"] = bool(a.residual)
     target = a.target or design["target"]
     depths = [int(d) for d in a.depths.split(",")]
     df = chronological_split(eligible(load_decisions(a.decisions)), design["derive_frac"], design["validate_frac"])
+    if a.blitz_only:
+        df = df[df.speed == "blitz"]
+    if a.population:
+        pop = eligible(load_decisions(a.population, corpus=None)); pop = pop[pop["corpus"] != "erez281"].reset_index(drop=True)
+        POP["df"] = pop; design["residual"] = True; design["population"] = a.population
+        print(f"POPULATION baseline: {len(pop)} decisions, {pop.game_id.nunique()} games", file=sys.stderr)
     dv = df[df.split == "DERIVE"].reset_index(drop=True); va = df[df.split == "VALIDATE"].reset_index(drop=True)
     print(f"DERIVE {len(dv)}/{dv.game_id.nunique()} games, VALIDATE {len(va)}/{va.game_id.nunique()} games, base err {dv[target].mean():.3f}", file=sys.stderr)
     t0 = time.time()

@@ -64,7 +64,11 @@ def run_world(dv: pd.DataFrame, va: pd.DataFrame, mask_d, mask_v, delta, depth, 
     if mask_d is not None:
         dv = plant(dv, mask_d, delta, rng, target); va = plant(va, mask_v, delta, rng, target)
     sels = build_selectors(dv, design["vocab"])
-    if design["residual"]:
+    if design.get("_pop") is not None:
+        from search import residualize_population
+        _, (dv, va) = residualize_population(design["_pop"], [dv, va], target)
+        stgt = f"{target}_resid_wg"
+    elif design["residual"]:
         _, (dv, va) = residualize(dv, [va], target, design["baseline_cols"], design["baseline_cat"])
         stgt = f"{target}_resid_wg"
     else:
@@ -93,12 +97,18 @@ def main():
     ap.add_argument("--out", default="results/nodeB.json")
     ap.add_argument("--target", default=None, help="target column (default: the frozen design target)")
     ap.add_argument("--worlds", default=None, help="comma-separated world names to run (default: all)")
+    ap.add_argument("--population", default=None)
+    ap.add_argument("--blitz-only", type=int, default=0)
     a = ap.parse_args()
     design = vocab.DESIGN.copy()
     design["vocab"] = vocab.VOCAB[a.vocab]
     design["residual"] = bool(a.residual)
+    if a.population:
+        pop = eligible(load_decisions(a.population, corpus=None)); design["_pop"] = pop[pop["corpus"] != "erez281"].reset_index(drop=True)
     df = load_decisions(a.decisions)
     df = eligible(df)
+    if a.blitz_only:
+        df = df[df.speed == "blitz"]
     df = chronological_split(df, design["derive_frac"], design["validate_frac"])
     dv = df[df.split == "DERIVE"].reset_index(drop=True)
     va = df[df.split == "VALIDATE"].reset_index(drop=True)
@@ -108,7 +118,7 @@ def main():
     if a.worlds:
         keep = set(a.worlds.split(","))
         Wd = {k: v for k, v in Wd.items() if k in keep}; Wv = {k: v for k, v in Wv.items() if k in keep}
-    report = {"design": {k: v for k, v in design.items() if k != "vocab"}, "vocab": a.vocab, "residual": design["residual"], "target": target, "sweeps": []}
+    report = {"design": {k: v for k, v in design.items() if k not in ("vocab", "_pop")}, "vocab": a.vocab, "residual": design["residual"], "target": target, "sweeps": []}
     done = {}
     if os.path.exists(a.out):  # resume: keep finished (depth, world) cells
         try:

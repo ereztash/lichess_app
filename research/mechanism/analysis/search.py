@@ -135,3 +135,73 @@ def add_within_game_targets(frames: list[pd.DataFrame], target: str) -> list[pd.
     for fr in frames:
         fr = fr.copy(); fr[f"{target}_wg"] = within_game_demean(fr, target); out.append(fr)
     return out
+
+
+# ---------------------------------------------------------------------------------------------------
+# Design v1.8: the POPULATION as the baseline. A flexible model of the target is fit on same-rating
+# population decisions (pre-move features only); the owner's residual (target - p_pop) is what the
+# search reads. A region found this way is where the owner errs more than a typical same-rating
+# player would in the same pre-move situation.
+# ---------------------------------------------------------------------------------------------------
+def population_feature_columns():
+    import vocab
+    num = [c for c in vocab.VOCAB["OBS"] if c not in ("phase", "standing", "color", "speed", "prev_game_result")]
+    num += [c for c in vocab.VOCAB["ENG"]]
+    num += ["log_seconds", "clock_frac", "clock_under_60s", "rating_diff", "ply", "free_capture", "opp_hanging_any",
+            "own_hanging_value", "opp_hanging_value", "own_support_edges", "opp_support_edges", "own_attack_edges", "opp_attack_edges",
+            "own_min_defenders_on_attacked", "own_max_defense_dependency", "opp_pinned_count", "own_king_ring_own_defenses",
+            "opp_king_ring_own_defenses", "own_redundantly_defended_count", "opp_redundantly_defended_count", "opp_overloaded_piece_count",
+            "opp_mobility", "piece_count", "own_pawns", "opp_pawns", "own_doubled", "own_isolated", "opp_doubled", "opp_isolated",
+            "max_capture_value", "new_attacks_on_own", "wp1", "gap13", "n_lines"]
+    num = list(dict.fromkeys(num))
+    cat = ["phase", "standing", "color", "ply_bin"]
+    return num, cat
+
+
+def fit_population_model(pop: pd.DataFrame, target: str, seed: int = 20260905):
+    """HistGradientBoosting on the population; returns (pipeline, game-grouped CV AUC)."""
+    from sklearn.ensemble import HistGradientBoostingClassifier
+    from sklearn.preprocessing import OneHotEncoder
+    from sklearn.compose import ColumnTransformer
+    from sklearn.pipeline import Pipeline
+    from sklearn.metrics import roc_auc_score
+    num, cat = population_feature_columns()
+    num = [c for c in num if c in pop.columns and pop[c].nunique(dropna=True) > 1]
+    pop = pop.copy()
+    for c in num:
+        pop[c] = pd.to_numeric(pop[c], errors="coerce").astype(float)
+    pre = ColumnTransformer([("num", "passthrough", num), ("cat", OneHotEncoder(handle_unknown="ignore"), cat)], sparse_threshold=0)
+    model = Pipeline([("pre", pre), ("gb", HistGradientBoostingClassifier(max_iter=400, learning_rate=0.05, max_leaf_nodes=31,
+                                                                          min_samples_leaf=60, l2_regularization=1.0, random_state=seed))])
+    # game-grouped 5-fold CV AUC on the population
+    games = np.array(list(pop.game_id.unique()), dtype=object); rng = np.random.default_rng(seed); rng.shuffle(games)
+    fold = {g: i % 5 for i, g in enumerate(games)}; f = pop.game_id.map(fold).values
+    aucs = []
+    for k in range(5):
+        tr = pop[f != k]; ho = pop[f == k]
+        model.fit(tr[num + cat], tr[target]); aucs.append(roc_auc_score(ho[target], model.predict_proba(ho[num + cat])[:, 1]))
+    model.fit(pop[num + cat], pop[target])
+    return model, float(np.mean(aucs)), num + cat
+
+
+_POP_CACHE = {}
+
+
+def residualize_population(pop: pd.DataFrame, frames: list[pd.DataFrame], target: str):
+    """The population model does not depend on the owner's frames: fit once per (population, target)."""
+    from common import within_game_demean
+    key = (id(pop), target)
+    if key not in _POP_CACHE:
+        _POP_CACHE[key] = fit_population_model(pop, target)
+    model, auc, cols = _POP_CACHE[key]
+    outs = []
+    for fr in frames:
+        fr = fr.copy()
+        X = fr[cols].copy()
+        for c in cols[:-4]:
+            X[c] = pd.to_numeric(X[c], errors="coerce").astype(float)
+        p = model.predict_proba(X)[:, 1]
+        fr[f"{target}_hat"] = p; fr[f"{target}_resid"] = fr[target] - p
+        fr[f"{target}_resid_wg"] = within_game_demean(fr, f"{target}_resid"); fr[f"{target}_wg"] = within_game_demean(fr, target)
+        outs.append(fr)
+    return (model, auc), outs

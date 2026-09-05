@@ -560,3 +560,62 @@ the board with no engine: count attackers and defenders (GATE-CUE-PLAYER-OBSERVA
 | FALSIFIER | the instruction-minus-sham drop inside R* is smaller than 4 points, or its bootstrap interval includes zero |
 | REVERSAL | policy signature falls but errors do not → wrong distinction; errors fall equally under sham → attention; errors fall outside R* as much as inside → generic slowing |
 | INFRASTRUCTURE READY NOW | scoring, feature extraction, the frozen predicate, the judge and the bootstrap are in `research/mechanism/`; `analysis/field_eval.py` (to be added) reads `exposure.jsonl` and the new games and prints the frozen contrasts |
+
+## Node G — PERSONAL: R* against the population (`nodeB/population_tactical_validate.json`)
+
+Population: 600 games of 2026-06 blitz (180+0, 300+0), both sides rated 1450–1850, one game per
+player, scored and featured by the same pipeline: 34,794 eligible decisions, 1,200 sides, tactical
+base rate 14.4%.
+
+| | raw inside / outside R* | within-population baseline residual |
+| --- | --- | --- |
+| population | 22.7% / 11.8% (+11.0 pp, z 18.7) | +6.75 pp (z 12.6) |
+| erez281, VALIDATE, under the POPULATION baseline | 25.7% / 13.8% (+11.8 pp, z 11.6) | +8.75 pp (z 8.5) |
+| per-side elevation, 456 sides with ≥ 8 decisions on each side of R* | mean +5.5 pp, sd 14.4, 5th/50th/95th −14.6 / +5.3 / +28.8 | erez281 at the **62nd percentile** |
+
+**Verdict.** R* is a real, cross-context, predictive region of the owner's decisions, and it is also
+the typical structure of a 1,650-rated blitz player: leaving an under-defended piece unresolved
+costs material for everyone at this level, and the owner does it about as often as the median
+same-rating side. What died: "R* is a player-specific mechanism" in the strong sense. What survived:
+R* as an L2 predictive pattern for this player, actionable and field-testable; the population does
+not remove it from his record, it removes the word *specific*.
+
+**Next branch (mission §NODE G: "if it collapses, return to NODE E").** Make the population the
+baseline. Fit a flexible model of tactical error on the population's pre-move features (OBS + ENG),
+predict it for the owner's decisions, and search the owner's residual — the situations where he
+errs more than a typical same-rating player would in the same situation — within game, on DERIVE,
+frozen, judged on VALIDATE. Blitz only (the population has no bullet or rapid). Design v1.8, declared
+before it is run.
+
+## Node K — existing prospective evidence (natural experiment, underpowered)
+
+The owner read the repository's OwnExposure sentence (the same construct as R*'s core term) inside
+the bracket 2026-09-02T16:16–16:36Z. Games after the bracket are post-exposure:
+
+| window | games | R* opportunities | tactical in / out | within-game |
+| --- | --- | --- | --- | --- |
+| pre-exposure, most recent 300 admissible blitz games of the record | 292 | 1,862 (6.4 per game) | 23.9% / 13.9% | +10.1 pp |
+| post-freeze, pre-bracket (2026-09-02 14:36–14:41) | 2 | see file | | |
+| post-exposure (2026-09-02 16:16Z → 2026-09-05) | 10 | see file | | |
+
+Ten games and about sixty opportunities cannot resolve anything; the read is recorded so that it is
+never re-cut after more games arrive. No sham, no logging of the reading, no adherence measure: it
+is exposure, not a test.
+
+## Node G — engine-evaluation artifact control (`nodeB/engine_artifact_tactical_validate.json`)
+
+VALIDATE re-scored under the shipped instrument (Stockfish 18 Lite WASM, depth 12, MultiPV 1, hash
+cleared; `pipeline/rescore_wasm.py`, 10,626 decisions). Label agreement with the research engine
+80.9%; error rate 37.1% (shipped) vs 45.9% (research), the same direction as `ENGINE_PARITY_RESULTS.md`.
+
+| target | in / out R* | within-game | residual within-game (baseline refit in-sample, control only) |
+| --- | --- | --- | --- |
+| tactical error, research engine | 25.7% / 13.8% | +11.5 pp, z 11.24 | +8.8 pp, z 8.71 |
+| tactical error, **shipped engine** | 21.5% / 10.9% | **+10.2 pp, z 10.65** | +7.8 pp, z 8.34 |
+| any error, research engine | 50.2% / 44.2% | +5.4 pp, z 4.25 | +1.2 pp, z 1.04 |
+| any error, shipped engine | 43.0% / 34.8% | +7.7 pp, z 6.43 | +4.1 pp, z 3.51 |
+| loss ≥ 0.10 win probability | 20.7% / 13.2% | +7.0 pp, z 7.52 | +2.9 pp, z 3.35 |
+
+The region keeps its sign and 89% of its size under the other engine: not an evaluation artifact.
+The rows for "any error" also show why the class target was necessary: pooled over all errors the
+excess beyond the baseline is small; it lives in the tactical class.

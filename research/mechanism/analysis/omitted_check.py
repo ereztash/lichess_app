@@ -74,13 +74,14 @@ def main():
                 }
     R = R.copy(); R["key"] = list(zip(R.game_id, R.ply.astype(int)))
     feats = pd.DataFrame([dict(key=k, **v) for k, v in rows.items()])
-    M = R.merge(feats, on="key")
+    M = R.merge(feats, on="key", suffixes=("", "_oc"))
+    M["best_capture_oc"] = M["best_capture_oc"] if "best_capture_oc" in M.columns else M["best_capture"]
     out = {"region": a.region, "n": int(len(M))}
     for label, sub in (("tactical_errors", M[M.cls_tactical == 1]), ("hung_material_errors", M[M.y_error_class == "hung_material"]), ("accurate", M[M.err == 0]), ("all", M)):
         out[label] = {"n": int(len(sub)),
                       "moved_overloaded": float(sub.moved_overloaded.mean()), "still_overloaded_after": float(sub.still_overloaded_after.mean()),
                       "played_capture": float(sub.played_capture.mean()), "best_moves_overloaded": float(sub.best_moves_overloaded.mean()),
-                      "best_capture": float(sub.best_capture.mean()),
+                      "best_capture": float(sub.best_capture_oc.mean()),
                       "reply_captures_overloaded": float(sub.reply_captures_overloaded.dropna().mean()) if sub.reply_captures_overloaded.notna().any() else None,
                       "reply_is_capture": float(sub.reply_is_capture.dropna().mean()) if sub.reply_is_capture.notna().any() else None,
                       "max_overloaded_value_mean": float(sub.overloaded_values.map(lambda v: max(v) if v else 0).mean())}
