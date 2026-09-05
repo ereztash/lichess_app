@@ -30,6 +30,22 @@
  * making the screen worse: give the reading column its width by collapsing the board, or clear
  * the axis by dropping its labels. The board's own declared minimum and the tick text are
  * asserted alongside, so neither shortcut is green.
+ *
+ * ---
+ *
+ * THE THIRD THING, WHICH THE FIRST REPAIR MADE VISIBLE RATHER THAN CAUSED. Widening the reading
+ * column does not shorten it: the record is eleven sections long, so by the calibration chart the
+ * board has scrolled away and its track is a column of nothing. Measured at 1440x900 with the
+ * record open, at the chart: the board's own box sat at top -1731, bottom -1371, and 0 of its 360
+ * pixels were on screen. The reader is looking at numbers about a position while the position is
+ * gone.
+ *
+ * ITS CONTROL IS THE ONE THAT MATTERS MOST, because `position: sticky` fails in two ways that both
+ * look like success. A pinned box taller than the viewport has a bottom nobody can reach, and a
+ * pinned box that escapes its track covers the thing being read. So the assertion is not "the
+ * board is sticky": it is that WHENEVER the board is pinned it is pinned WHOLE, and that it never
+ * overlaps the reading column. Both hold at a viewport too short to fit it, where the answer is
+ * that it must not be pinned at all.
  */
 import { createReadStream, existsSync } from "node:fs";
 import { createServer, type Server } from "node:http";
@@ -320,4 +336,76 @@ describe("the reading column and the screen it was on", () => {
       }
     }
   });
+
+  it(
+    "keeps the position on screen while the record about it is read",
+    async () => {
+      const atChart = async (width: number, height: number) => {
+        await page.setViewportSize({ width, height });
+        await page.waitForTimeout(400);
+        await page.evaluate(() => {
+          const heading = [...document.querySelectorAll(".dash-title")].find((el) =>
+            /מה שאמרת מול מה שקרה/.test(el.textContent ?? ""),
+          );
+          heading?.scrollIntoView({ block: "center" });
+        });
+        await page.waitForTimeout(600);
+        return page.evaluate(() => {
+          const workspace = document.querySelector(".board-workspace");
+          const board = document.querySelector(".board-grid");
+          const reading = document.querySelector(".record-explorer");
+          if (!workspace || !board || !reading) return null;
+          const b = board.getBoundingClientRect();
+          const r = reading.getBoundingClientRect();
+          return {
+            position: getComputedStyle(workspace).position,
+            height: Math.round(b.height),
+            onScreen: Math.round(
+              Math.max(0, Math.min(b.bottom, window.innerHeight) - Math.max(b.top, 0)),
+            ),
+            overlapsReading: b.right > r.left && b.left < r.right && b.bottom > r.top && b.top < r.bottom,
+          };
+        });
+      };
+
+      const tall = await atChart(1440, 900);
+      expect(tall, "the board, the record or the workspace is not on screen").not.toBeNull();
+
+      /*
+       * THE COUNTEREXAMPLE. Measured before the repair: 0 of 360 pixels, the board's whole box
+       * above the top of the viewport while the reader is at the calibration chart.
+       */
+      expect(
+        tall!.onScreen,
+        `the board is ${tall!.onScreen}px of ${tall!.height}px on screen at the calibration chart`,
+      ).toBeGreaterThan(0);
+
+      /*
+       * POSITIVE CONTROLS, and they are asserted at BOTH viewports because that is what makes them
+       * controls rather than restatements. A pin is only allowed to exist where the whole box fits,
+       * and nowhere may it sit on top of the column being read.
+       *
+       * 640px is under the height the workspace needs -- 656px plus its offset, and 656 is constant
+       * across every width this rule covers because the board track is fixed at 480px in EXPLORE.
+       * So the short viewport is where "sticky" must decline, and this is the line that goes red if
+       * the guard is ever loosened past what fits.
+       */
+      const short = await atChart(1440, 640);
+      for (const [label, at] of [
+        ["1440x900", tall!],
+        ["1440x640", short!],
+      ] as const) {
+        if (at.position === "sticky") {
+          expect(
+            at.onScreen,
+            `at ${label} the board is pinned with only ${at.onScreen}px of ${at.height}px reachable`,
+          ).toBe(at.height);
+        }
+        expect(at.overlapsReading, `at ${label} the board is sitting on top of the record`).toBe(
+          false,
+        );
+      }
+    },
+    300_000,
+  );
 });
