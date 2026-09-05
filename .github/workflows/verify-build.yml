@@ -64,18 +64,6 @@ jobs:
       # installs the lock exactly and fails if the two have drifted apart.
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
-      # WHAT THE BUILD SHIPS, CHECKED AGAINST WHAT IS KNOWN ABOUT IT.
-      #
-      # `--omit=dev` because the question this step asks is about the deployment, not the
-      # workbench: a vulnerability in vitest is not conveyed to anybody. `--audit-level=high`
-      # because a step that fails on every low advisory gets disabled within a month, and one
-      # that never fails is decoration.
-      #
-      # This can go red on a day nothing in this repository changed. That is the step working:
-      # an advisory published against a dependency this build ships is news whether or not
-      # somebody happened to push.
-      - name: Audit the dependencies this build ships
-        run: npm audit --omit=dev --audit-level=high
       # A REAL BROWSER, for the same reason the job runs a real database.
       #
       # `tests/layout/*` measure boxes, and jsdom reports every box as 0x0 -- which is how a
@@ -160,3 +148,83 @@ jobs:
             exit 1
           fi
           echo "control went red, as required"
+      # WHAT THE BUILD SHIPS, CHECKED AGAINST WHAT IS KNOWN ABOUT IT.
+      #
+      # `--omit=dev` because the question this step asks is about the deployment, not the
+      # workbench: a vulnerability in vitest is not conveyed to anybody. `--audit-level=high`
+      # because a step that fails on every low advisory gets disabled within a month, and one
+      # that never fails is decoration.
+      #
+      # This can go red on a day nothing in this repository changed. That is the step working:
+      # an advisory published against a dependency this build ships is news whether or not
+      # somebody happened to push.
+      #
+      # AND IT WENT RED FOUR TIMES IN TWO HOURS WITHOUT ANY ADVISORY EXISTING, which is the step
+      # NOT working. Measured on runs 33845230721, 33854188110, 33855743082 and one before them:
+      #
+      #     npm warn audit 503 Service Unavailable - POST
+      #       https://registry.npmjs.org/-/npm/v1/security/advisories/bulk
+      #     npm error audit endpoint returned an error
+      #     ##[error]Process completed with exit code 1
+      #
+      # WHAT THAT COST, AND WHY THIS STEP IS NOW LAST. It used to run BEFORE the build, the tests,
+      # the gates and the bundle budget, and a job stops at its first failing step. So an outage at
+      # npm did not cost the audit signal -- it cost EVERY signal: nothing in the commit was
+      # verified, and a red `verify` meant "npm was busy" rather than anything about the code. The
+      # two are indistinguishable to anybody reading the check.
+      #
+      # THE RETRY BELOW IS NOT ENOUGH ON ITS OWN, and run 33855743082 is the proof. The loop
+      # behaved exactly as designed -- three attempts at 60s each rather than one at 300s, then a
+      # red job naming the cause -- and it still failed, because the endpoint had been down for
+      # twenty minutes rather than a moment. Four minutes of retries does not survive that, and no
+      # number of retries that is honest would. Ordering is what survives it: with the audit last,
+      # a sustained outage costs the audit and nothing else.
+      #
+      # THE MOVE ON ITS OWN WOULD HAVE WEAKENED IT, and the `if:` below is why it does not. A step
+      # with no status condition is implicitly gated on `success()`, so once this one is last, a red
+      # Typecheck, Build, Test, Gates or Bundle budget SKIPS it. That trades "an outage costs every
+      # signal" for "any failing check costs the security signal" -- a different loss, not a smaller
+      # one, and on the runs where a person most wants to know what the tree ships. `!cancelled()`
+      # is the whole fix: the audit runs after earlier failures while still running last. Not
+      # `always()`, which would also run it on a cancelled job and make a cancel take four minutes
+      # to take effect.
+      #
+      # The audit does not need the build, the tests or the gates to have passed: it reads the
+      # dependency tree that `Install dependencies` put on disk. If THAT is the step that failed
+      # then this one fails too, and the job was red either way.
+      #
+      # SO NOTHING IS WEAKENED. Every step still runs, the job still fails if the audit fails, and
+      # the audit is still as strict as it was. The only cost is that a real advisory is reported at
+      # the end of the job instead of the start, which is ten minutes later on a run that was going
+      # to be read by a person anyway.
+      #
+      # WHY THE FIVE-MINUTE STALL: `npm config get fetch-timeout` is 300000, and each failure took
+      # exactly five minutes. `--fetch-timeout=60000` is why three attempts now cost less wall
+      # clock than one did before.
+      #
+      # THE LOOP RETRIES AN OUTAGE AND NEVER AN ADVISORY, which is the only property that makes it
+      # safe. A real finding exits 1 with a report on stdout and no endpoint error, so the `case`
+      # falls through to `exit 1` on the FIRST attempt -- the step is exactly as strict as it was.
+      # An unreachable endpoint says so in as many words, and only that string is retried.
+      #
+      # IT IS NOT UNFAILABLE. Three failures still end in `::error::` and a red job. What changes
+      # is that a red job now means the endpoint is genuinely gone rather than momentarily busy.
+      - name: Audit the dependencies this build ships
+        if: ${{ !cancelled() }}
+        run: |
+          for attempt in 1 2 3; do
+            if out=$(npm audit --omit=dev --audit-level=high --fetch-timeout=60000 2>&1); then
+              printf '%s\n' "$out"
+              exit 0
+            fi
+            printf '%s\n' "$out"
+            case "$out" in
+              # Only this. Anything else is a finding and is not retried.
+              *"audit endpoint returned an error"*) ;;
+              *) exit 1 ;;
+            esac
+            echo "npm's advisories endpoint is unavailable; attempt $attempt of 3"
+            [ "$attempt" = 3 ] || sleep $((attempt * 20))
+          done
+          echo "::error::npm advisories endpoint unreachable after 3 attempts"
+          exit 1
