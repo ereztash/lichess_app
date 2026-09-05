@@ -39,6 +39,7 @@ async function record(
     fen?: string;
     anchor?: boolean;
     build?: string;
+    protocolVersion?: number;
   },
 ) {
   const id = nextId();
@@ -68,9 +69,9 @@ async function record(
     },
     probe: null,
     reveal_timing: options.revealTiming,
-    measurement_protocol: null,
-    protocol_version: null,
-    analysis_timing: null,
+    measurement_protocol: options.protocolVersion === undefined ? null : "instrumented-standard",
+    protocol_version: options.protocolVersion ?? null,
+    analysis_timing: options.protocolVersion === undefined ? null : "during-play",
     result: null,
     feedback: null,
   });
@@ -206,5 +207,58 @@ describe("the shared bank is the reading a regime boundary matters most in", () 
     const reading = await service.recordReading(store);
     expect(reading.anchor.n).toBe(6);
     expect(reading.anchorAnswered).toHaveLength(6);
+  });
+});
+
+describe("the reading says which regime it is of, and whether that regime is still running", () => {
+  /**
+   * `CURRENT_PROTOCOL_VERSION` is at 4, so three bumps have already happened. Each one starts a
+   * stratum at zero while the retired one holds the player's whole history, and "the largest"
+   * therefore reads the retired protocol until the new one overtakes it.
+   */
+  const underVersion = async (store: MemoryRecordStore, version: number, n: number, accurate: boolean) => {
+    for (let i = 0; i < n; i += 1) {
+      await record(store, { revealTiming: "per-decision", accurate, protocolVersion: version });
+    }
+  };
+
+  it("names the retired protocol as not current when the largest regime is the old one", async () => {
+    /*
+     * MEASURED, NOT REASONED. 120 decisions under version 4, all accurate; 40 under version 5, none
+     * accurate. The page reads n=120 at 100% -- a protocol that is no longer running -- and goes on
+     * saying it for 81 more decisions. The number is right about its own population; nothing on the
+     * screen said which population that was.
+     */
+    const store = new MemoryRecordStore();
+    await underVersion(store, 4, 120, true);
+    await underVersion(store, 5, 40, false);
+
+    const reading = await service.recordReading(store);
+    expect(reading.scored).toBe(120);
+    expect(reading.overall.accuracyRate).toBe(1);
+    expect(reading.regime?.id).toBe("instrumented-standard@4/per-decision/sf18-test-build");
+    expect(reading.regime?.current, "a retired protocol reported as the one in force").toBe(false);
+    expect(reading.setAside).toEqual([
+      { id: "instrumented-standard@5/per-decision/sf18-test-build", n: 40 },
+    ]);
+  });
+
+  it("calls the regime current when the one being read is the one being written", async () => {
+    // The positive control: no bump, so the largest regime is also the latest, and nothing is stale.
+    const store = new MemoryRecordStore();
+    await underVersion(store, 4, 40, true);
+    const reading = await service.recordReading(store);
+    expect(reading.regime?.current).toBe(true);
+    expect(reading.setAside).toEqual([]);
+  });
+
+  it("calls it current once the new protocol overtakes the old one", async () => {
+    // And the state resolves by itself, which is what makes it a wait rather than a defect.
+    const store = new MemoryRecordStore();
+    await underVersion(store, 4, 40, true);
+    await underVersion(store, 5, 41, false);
+    const reading = await service.recordReading(store);
+    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build");
+    expect(reading.regime?.current).toBe(true);
   });
 });

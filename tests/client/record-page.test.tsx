@@ -96,6 +96,8 @@ const withRecord = (scored: number): RecordReading => ({
   readElsewhere: 0,
   /* And one regime, so there is no second population this reading declined to pool. */
   setAside: [],
+  /* The one regime this fixture has is also the one it is still writing into. */
+  regime: { id: "legacy@legacy/legacy/legacy", current: true },
   counterfactual: readCounterfactuals([]),
   profile: { variables: readVariables([]), crossing: crossVariables([]) },
   overall: { n: scored, meanConfidence: 0.6, accuracyRate: 0.5, gap: 0.1, gapVariance: 0.2 },

@@ -14,14 +14,22 @@
  * THE ILLEGAL INFERENCE, in one line: local eligibility of one cell was read as certification of a
  * total that is mostly made of other cells.
  *
- * WHY THE REPAIR IS `every` AND NOT A COVERAGE THRESHOLD. The repository already answers this
- * question, one module away and for the same reason. `BucketReading.measurable` is
- * `inside.n >= MIN_BUCKET_N && outside.n >= MIN_BUCKET_N` -- EVERY cell of the detector's two-cell
- * partition, not one of them -- and `MIN_BUCKET_N`'s own comment calls itself "the smallest bucket,
- * AND THE SMALLEST REMAINDER, this detector will read at all". Generalised from two cells to seven
- * that is `every`, with no new constant, no new score, and no threshold chosen because it felt
- * right. Any rule phrased on the SHARE of mass an ineligible level may carry would need a number
- * this repository has no evidence for.
+ * `every` WAS THE FIRST REPAIR AND IT IS FALSIFIED. It is the obvious generalisation of
+ * `BucketReading.measurable` from two cells to seven, it needs no new constant, and it kills the
+ * counterexample below. It fails two other ways, both measured:
+ *
+ *   IT NEVER CERTIFIES. Four confidence distributions, 4,000 simulated records each: a
+ *   concentrated one certifies on 0.0% of records at every size up to 2,000 and 2.0% at 4,000. A
+ *   player who touches a seventh level occasionally never sees the panel at all.
+ *
+ *   IT IS NOT MONOTONE, which is the disqualifying one and is pinned as a test below. Appending a
+ *   decision can only ever destroy readability under `every`. Sixty decisions across two levels
+ *   certify; the same record plus ONE correct decision stated at 95% does not.
+ *
+ * SO THE FLAG IS MONOTONE AND THE QUALIFICATION IS A QUANTITY. `reliable` is `some` -- it only
+ * turns on -- and `unreadableShare` reports how much of the displayed figure rests on levels too
+ * thin to read. The acceptance criterion is about certification WITHOUT QUALIFICATION, and a
+ * measured share is the qualification, so no number had to be invented to produce one.
  */
 import { describe, expect, it } from "vitest";
 import { CONFIDENCE_LEVELS, normaliseConfidence } from "@shared/confidence";
@@ -85,31 +93,63 @@ describe("a global reliability flag is not earned by one eligible level", () => 
     expect(fromShort / score.reliability).toBeGreaterThan(0.99);
   });
 
-  it("refuses to certify it, because a cell too small to read is carrying it", () => {
-    // The negative test. `some` returned true here, on the strength of the level contributing least.
-    expect(calibrationScore(record).reliable).toBe(false);
+  it("says how much of the displayed number rests on the cell too small to read", () => {
+    /*
+     * THE NEGATIVE TEST, AS A QUANTITY RATHER THAN A REFUSAL. The criterion is that a large
+     * contribution from an ineligible population may not sit under an aggregate certified WITHOUT
+     * QUALIFICATION. This is the qualification, and it is measured rather than chosen.
+     */
+    const score = calibrationScore(record);
+    expect(score.unreadableShare).not.toBeNull();
+    expect(score.unreadableShare!).toBeGreaterThan(0.99);
+    // With its denominator, which is what makes it renderable at all under R1.
+    expect(score.unreadableN).toBe(MIN_BUCKET_N - 1);
   });
 
-  it("still certifies a record where every level the player used cleared the floor", () => {
+  it("reports no share at all once every level the player used cleared the floor", () => {
     /*
-     * THE POSITIVE CONTROL, and it is what stops `reliable: false` from being the answer. A rule
-     * that never certified anything would pass the case above and delete the panel. One more
-     * decision at the short level -- the difference between 29 and 30, nothing else -- and the
-     * same record is readable again.
+     * THE POSITIVE CONTROL. One more decision at the short level -- the difference between 29 and
+     * 30, nothing else -- and there is nothing left to discount.
      */
     const enough = [...eligible, ...many(7, MIN_BUCKET_N, 0, 100)];
     expect(calibrationScore(enough).reliable).toBe(true);
+    expect(calibrationScore(enough).unreadableShare).toBe(0);
+    expect(calibrationScore(enough).unreadableN).toBe(0);
     // And the single-level record the existing suite already certifies is untouched.
     expect(calibrationScore(many(6, MIN_BUCKET_N, 24, 0)).reliable).toBe(true);
   });
 
-  it("does not certify an empty record by vacuous agreement", () => {
+  it("never becomes unreadable because more decisions arrived", () => {
     /*
-     * `every` over nothing is true, which is the one way this rule could have been worse than the
-     * one it replaces. A record with no decisions has no levels and must report nothing.
+     * THE PROPERTY `every` VIOLATED, pinned so it cannot come back. An instrument may not answer a
+     * question and then unanswer it because it was given more evidence.
+     *
+     * Under `every` this exact pair went true -> false on ONE appended decision, and stayed false
+     * at 503 decisions with three of them on the thin level.
      */
-    expect(calibrationScore([]).reliable).toBe(false);
+    const base = [...many(5, MIN_BUCKET_N, 20, 0), ...many(6, MIN_BUCKET_N, 24, 100)];
+    expect(calibrationScore(base).reliable).toBe(true);
+    expect(calibrationScore([...base, ...many(7, 1, 1, 200)]).reliable).toBe(true);
+    expect(calibrationScore([...base, ...many(7, 3, 2, 300)]).reliable).toBe(true);
+
+    // Stated as the general property over the record, one decision at a time.
+    const grown = [...base, ...many(7, 5, 3, 400), ...many(2, 4, 1, 500)];
+    let seen = false;
+    for (let i = 1; i <= grown.length; i += 1) {
+      const readable = calibrationScore(grown.slice(0, i)).reliable;
+      if (readable) seen = true;
+      expect(seen && !readable, `reading became unreadable at n=${i}`).toBe(false);
+    }
+  });
+
+  it("reports nothing to discount when there is no number to apportion", () => {
+    /*
+     * NULL RATHER THAN 0. A perfectly calibrated record has `reliability` 0, and "0% of it rests on
+     * thin levels" reads as a clean bill of health on a question nobody could ask.
+     */
+    expect(calibrationScore([]).unreadableShare).toBeNull();
     expect(calibrationScore([]).levels).toEqual([]);
+    expect(calibrationScore([]).reliable).toBe(false);
   });
 
   it("changes no number, only what may be read as a finding", () => {

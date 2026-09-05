@@ -343,6 +343,22 @@ export type RecordReading = {
    */
   setAside: readonly { readonly id: string; readonly n: number }[];
   /**
+   * Which regime this reading is of, and whether it is the one the record is still writing into.
+   *
+   * `current: false` IS THE STATE THAT HAS NO HONEST RENDERING WITHOUT THIS FIELD. The population
+   * rule is "the largest", which is answer-blind and stable and says nothing about recency -- so
+   * after a bump to `CURRENT_PROTOCOL_VERSION` the largest regime is the RETIRED one, and it stays
+   * largest until the new one overtakes it. Measured on a 160-decision record, 120 under version 4
+   * and 40 under version 5: the page reported n=120 at 100% accuracy, from a protocol that is no
+   * longer running, while the 40 decisions taken under the protocol that IS running -- none of them
+   * accurate -- sat in `setAside`. It would have gone on saying that for 81 more decisions.
+   *
+   * The figure was not wrong about its own population. It was silent about which population that
+   * was, and a reader has no way to supply that. Whether the page should PREFER the current regime
+   * over the largest is a different question, and it is a decision about what the product measures.
+   */
+  regime: { readonly id: string; readonly current: boolean } | null;
+  /**
    * Which of the reveal's four sentences the record actually produced.
    *
    * A reading of the INSTRUMENT, not of the player: `chose-past-it` is the one finding here that
@@ -442,6 +458,8 @@ export function readRecord(
    * see a regime boundary even if it wanted to.
    */
   setAside: readonly { readonly id: string; readonly n: number }[] = [],
+  /** The regime the decisions above came from, and whether it is still being written into. */
+  regime: { readonly id: string; readonly current: boolean } | null = null,
 ): RecordReading {
   // One pass, not one per bucket: whether any decision carries a clock is a property of the
   // record, and it decides which of the two silences the clock bucket reports.
@@ -572,6 +590,7 @@ export function readRecord(
     withoutConfidence: unscored.withoutConfidence,
     readElsewhere: unscored.readElsewhere,
     setAside,
+    regime,
     mix,
   };
 }

@@ -106,6 +106,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
     control,
     stability,
     setAside,
+    regime,
   } = reading;
 
   if (scored === 0) {
@@ -201,6 +202,26 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         * IT IS NOT `readElsewhere`. These decisions are not counted under another heading; they are
         * the same free play, measured under conditions this reading may not average with the rest.
         */}
+      {/*
+        * THE READING IS OF A REGIME THAT IS NO LONGER THE ONE BEING WRITTEN.
+        *
+        * The population rule is "the largest", which is answer-blind and stable and says nothing
+        * about recency. After a bump to `CURRENT_PROTOCOL_VERSION` the largest regime is the
+        * RETIRED one and stays largest until the new one overtakes it. Measured at 120 decisions
+        * under version 4 against 40 under version 5: this panel reported n=120 at 100% accuracy
+        * from a protocol no longer running, and would have gone on doing so for 81 more decisions.
+        *
+        * The figure is not wrong about its own population. Without this line the reader has no way
+        * to know which population that is, and every number on this screen reads as current.
+        */}
+      {regime !== null && !regime.current && (
+        <p className="dash-note" dir="rtl">
+          המספרים כאן נמדדו בתנאי מדידה שכבר אינם התנאים שאתם משחקים בהם עכשיו. ההחלטות החדשות
+          שלכם נרשמות בנפרד ועדיין לא הצטברו מספיק כדי להיקרא, ולכן זו תמונה של איך החלטתם קודם,
+          לא של איך אתם מחליטים היום.
+        </p>
+      )}
+
       {setAside.length > 0 && (
         <p className="dash-note" dir="rtl">
           עוד {setAside.reduce((n, s) => n + s.n, 0)} החלטות מדודות שלכם נרשמו בתנאי מדידה אחרים —
@@ -262,29 +283,45 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
             רק שגיאת הכיול מדברת עליכם. קושי העמדות הוא תכונה של מה שפגשתם — עמדות קשות מגדילות
             את הפער בלי שנעשיתם שופטים גרועים יותר של עצמכם.
           </p>
+          {/*
+            * THE QUALIFICATION, AND IT IS WHY THE PANEL IS ALLOWED TO SHOW THE NUMBER AT ALL.
+            *
+            * `reliable` says some level is big enough to read. It does NOT say the figure above is
+            * made of those levels: `reliability` is a weighted mean, and a level's weight is its
+            * share of the record rather than its eligibility. Measured on the record this exists
+            * for, 30 decisions at 65% beside 29 at 95%, the eligible level carries under a
+            * thousandth and the short one carries over 99%.
+            *
+            * RENDERED THROUGH `Proportion` AND NOT AS A HAND-BUILT PERCENT, so it arrives with the
+            * denominator R1 requires -- how many decisions sit on the levels being discounted.
+            * Absent when every used level clears the floor, because a qualification on a reading
+            * that needs none teaches the reader to discount every reading.
+            */}
+          {calibration.unreadableShare !== null && calibration.unreadableShare > 0 && (
+            <p className="dash-note" dir="rtl">
+              <Proportion
+                value={calibration.unreadableShare}
+                n={calibration.unreadableN}
+                label="מתוך שגיאת הכיול, החלק שנשען על רמות שנאמרו מעט מדי"
+              />{" "}
+              רמת ביטחון שנאמרה פחות מ-{MIN_BUCKET_N} פעמים נמדדת גבוה מדי מעצם היותה קטנה, ולכן
+              ככל שהחלק הזה גדול יותר, כך פחות אפשר לקרוא את המספר שלמעלה כממצא עליכם.
+            </p>
+          )}
         </>
       ) : (
         /*
-         * THE SENTENCE HAD TO CHANGE WITH THE RULE, and this is the only copy the F2 repair forced.
-         *
-         * `reliable` used to be `some`, so "no confidence level has been stated enough times" was
-         * an accurate description of every case that reached here. Under `every` it is not: the
-         * record this fix exists for HAS a level stated thirty times, and telling that player no
-         * level qualifies would be a false sentence produced by the fix.
-         *
-         * It names the levels that are short and how many decisions they hold, from `levels`, which
-         * already carries both. No new field, no percentage, and the count is what the reader can
-         * act on -- a level is short by decisions, and decisions are the thing they make.
+         * REACHED WHEN NO LEVEL HAS BEEN STATED ENOUGH TIMES, which under `some` is again exactly
+         * what this sentence says. It names the levels and the decisions they hold rather than only
+         * the floor, because that is what tells a reader how far off they are.
          */
         <NotMeasured
           reason={(() => {
-            const short = calibration.levels.filter((level) => level.n < MIN_BUCKET_N);
-            const held = short.reduce((n, level) => n + level.n, 0);
+            const held = calibration.levels.reduce((n, level) => n + level.n, 0);
             return (
-              `הפירוק נקרא רק כשכל רמת ביטחון שנאמרה נאמרה לפחות ${MIN_BUCKET_N} פעמים. ` +
-              `כרגע ${short.length} מתוך ${calibration.levels.length} הרמות שנאמרו עדיין מתחת לסף, ` +
-              `והן מחזיקות ${held} מתוך ${calibration.n} ההחלטות — פירוק שכולל אותן הוא בעיקר ` +
-              `רעש הדגימה שלהן, ולא ממצא עליכם.`
+              `אף רמת ביטחון עוד לא נאמרה ${MIN_BUCKET_N} פעמים, ולכן אין כאן מה לפרק. ` +
+              `${calibration.levels.length} רמות נאמרו עד כה, ${held} החלטות בסך הכול. ` +
+              `בגודל כזה הפירוק הוא רעש הדגימה, לא ממצא עליכם.`
             );
           })()}
         />

@@ -2081,6 +2081,21 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
   );
   /*
+   * WHICH REGIME THE RECORD IS STILL WRITING INTO, which is not always the one being read.
+   *
+   * The rule above is "the largest", and largest is not latest: a bump to
+   * `CURRENT_PROTOCOL_VERSION` starts a new stratum at zero while the retired one holds the
+   * player's whole history, so the page reads the retired protocol until the new one overtakes it.
+   * That is a real state -- measured at 120 decisions under version 4 against 40 under version 5 --
+   * and whether the preference should change is a decision about what the product measures. This
+   * only makes the state SAYABLE: `listDecisionIds` is ordered and append-only, so the regime of
+   * the last admitted decision is the one in force, as a fact about the record rather than a policy.
+   */
+  const admitted = new Set(ids);
+  const latestId = [...allIds].reverse().find((id) => admitted.has(id));
+  const currentRegime = describedStrata.find((stratum) => stratum.ids.includes(latestId ?? ""));
+  const currentId = currentRegime ? stratumId(currentRegime.key) : null;
+  /*
    * The counts stay over the WHOLE described record, and a sum over a partition is the number it
    * was before. They answer "why is the rest of what you recorded not in this reading", which is a
    * question about the record and not about one regime -- and scoping them to the chosen stratum
@@ -2130,5 +2145,6 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       id: s.id,
       n: s.summary.scored.length,
     })),
+    chosen ? { id: chosen.id, current: chosen.id === currentId } : null,
   );
 }
