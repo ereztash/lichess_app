@@ -414,3 +414,80 @@ the trigger stays pre-move and observable. One feature pass, no new engine compu
 | null | i.i.d. Bernoulli at the game's own class rate, 30 draws per class at depths 1 and 2 |
 | multiplicity | eight targets × three frozen candidates; the final-candidate rule (highest DERIVE quality among those that pass) applies across classes; family-wise false-claim rate is bounded by the per-class null and by z ≥ 3.5 |
 | why | a single error indicator pools different omitted acts; holding the response predicate constant (D25) is what lets a region name the distinction a player omits, and the operation that restores it |
+
+## HIST diagnostic (engine-scored own history; not a trigger vocabulary) — `nodeB/discovery_v16_HIST_resid.json`
+
+| frozen (depth 1 by CV) | DERIVE within-game | VALIDATE raw within-game | VALIDATE residual within-game z | verdict |
+| --- | --- | --- | --- | --- |
+| `own_errors_so_far ∈ [1,3)` | +7.4 pp, z 8.8 | +6.5 pp, z 4.71 (n_in 1,783) | 2.65 | FAIL the 3.5 bar; stable (20/20 bootstrap winners) |
+| `own_prev_wp_loss ≥ 0.10` (previous decision was a blunder) | +6.6 pp, z 7.7 | +5.5 pp, z 3.72 | 0.41 | the baseline explains it: after a blunder the position itself is different |
+| `own_errors_so_far ∈ [3,6)` | +6.2 pp, z 8.3 | +9.0 pp, z 7.12 | 2.99 | FAIL the bar, narrowly |
+
+**Reading (L1 signal, no permission attached).** The player's errors cluster inside games more
+than independence predicts, replicated on games never used to find it, in both colours and every
+opening family by construction; most of the clustering is what the baseline already predicts from
+the position and the clock, and what remains is below the bar. Not a trigger: the player cannot see
+"errors so far".
+
+## Final-candidate rule for class targets (declared 15:50 UTC, before any sub-class run is read)
+
+Quality values are not comparable across targets with different base rates. The final candidate is
+therefore the passing candidate of the UNION class `tactical` with the highest DERIVE quality;
+sub-class results (`hung_material`, `missed_material`, …) are reported as refinements of the same
+trigger and never replace it. Under this rule the frozen candidate is
+
+    R* = material_balance >= -2 AND own_overloaded_piece_count >= 1      target: cls_tactical
+
+(`nodeB/discovery_v17_cls_tactical.json`). TEST is opened once, for R* only.
+
+## R* — results on VALIDATE and TEST (target `cls_tactical`; files in `nodeB/`)
+
+**Node C.** Depth by CV inside DERIVE: 1: 5.88 · 2: 6.81 · 3: 5.83 → depth 2.
+
+**Frozen on DERIVE** (31,851 decisions, 1,297 games, 2021-04 → 2025-01): R* = `material_balance >= -2
+AND own_overloaded_piece_count >= 1`, n 8,635 (27% of decisions, 6.7 opportunities per game);
+tactical-error rate 24.6% vs 13.9%; within-game +11.2 pp (z 20.0).
+
+**Node D — stability.**
+- 30 game-level bootstraps of DERIVE: winner = R* in 15, its sibling `n_good_captures<1 AND
+  own_overloaded_piece_count>=1` in 10, `material_balance:[0,3) AND own_overloaded…` in 3; every
+  winner carries the core term `own_overloaded_piece_count >= 1`.
+- leave-one-context-out re-derivation (`stability_loco_tactical.json`): dropping any opening
+  family, either colour, the opening or the endgame, rapid, ultrabullet or any year returns R*
+  exactly (Jaccard 1.00); dropping bullet, or halving DERIVE (older half, newer half, random halves)
+  returns a sibling with the same core term and a different qualifier (J 0.45–0.54).
+- verdict: the core term is invariant; the qualifier (not down material / no free capture / small
+  material edge) is not uniquely identified. The mechanism's identity does not depend on one opening,
+  colour, phase or historical slice.
+
+**VALIDATE** (10,626 decisions, 432 games, 2025-01 → 2025-11; opened once for the three frozen candidates):
+
+| region | n_in | tactical error in / out | within-game | residual within-game z | pass |
+| --- | --- | --- | --- | --- | --- |
+| R* | 2,937 | 25.7% / 13.8% | +11.5 pp, z 11.24 | **8.56** | yes |
+| `n_good_captures<1 AND own_overloaded_piece_count>=1` | 2,208 | 22.5% / 15.7% | +5.6 pp, z 5.14 | 6.82 | yes |
+| `material_balance:[0,3) AND own_overloaded_piece_count>=1` | 1,326 | 27.2% / 15.7% | +11.8 pp, z 7.76 | 6.47 | yes |
+
+Neighbouring definitions on VALIDATE (robustness, not selection): `own_overloaded_piece_count>=1`
+alone +8.7 pp (residual z 6.26); `own_hanging_piece_count>=1` (an attacked piece with no defender)
++6.8 pp (z 4.22); `own_attacked_piece_count>=1` (any attacked piece) residual z 2.72. The
+distinction that carries the effect is attackers exceeding defenders, not attack as such.
+
+**Node G — cross-context on VALIDATE** (`invariance_tactical_validate.json`): the raw elevation has
+the same sign in every stratum with enough decisions: opening families A +10.6 / B +11.4 / C +11.7 /
+D +15.1 pp; Black +11.3 / White +12.3; opening +16.7 / middlegame +9.6; blitz +12.1 / rapid +10.4;
+level +15.3 / losing +13.1 / winning +9.0; clock ≥ 60 s +11.7, 30–60 s +12.5, < 30 s +15.3; full
+material +13.1 / reduced +6.6; after an opponent capture +12.9 / after a quiet move +11.7.
+Residual z ≥ 4 in every stratum with n_in ≥ 600. No stratum carries the effect alone.
+
+**Node H — TEST** (10,404 decisions, 432 games, 2025-11 → 2026-08; opened once, for R*):
+`predict_tactical_test.json`. Region n_in 2,812; tactical error 24.1% vs 13.6% (z 10.6). Observed
+minus baseline-predicted rate: +4.5 pp inside vs −2.9 pp outside (z 7.78). Held-out log-loss /
+AUC: history-only 0.4467 / 0.500; six buckets 0.4451 / 0.533; context 0.4454 / 0.538; difficulty
+baseline 0.4237 / 0.664; baseline + R* **0.4190 / 0.682**; context + R* 0.4382 / 0.600. The
+region's gain over the baseline (+0.0047) exceeds every one of 200 within-game label shuffles (max
+−0.0009): shuffled p = 0.000.
+
+**Level reached: L2 (predictive candidate) with L1 (cross-context) and the stability half of L3.**
+Still open before L3 is complete: engine-artifact control under the shipped engine; personal-versus-
+population comparison.

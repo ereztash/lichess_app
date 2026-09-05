@@ -42,14 +42,21 @@ def main():
     eng = chess.engine.SimpleEngine.popen_uci(SF, timeout=180)
     eng.configure({"Threads": 1, "Hash": 64})
     lim = chess.engine.Limit(depth=a.depth)
+    cache = {}
     def stm_cp(board):
+        key = board.fen()
+        if key in cache:
+            return cache[key]
         if board.is_checkmate():
-            return -MATE_SCORE, None
-        if board.is_stalemate() or board.is_insufficient_material():
-            return 0, None
-        info = eng.analyse(board, lim, game=object())
-        s = info["score"].relative
-        return comparable_cp(None if s.is_mate() else s.score(), s.mate() if s.is_mate() else None), info.get("nodes")
+            r = (-MATE_SCORE, None)
+        elif board.is_stalemate() or board.is_insufficient_material():
+            r = (0, None)
+        else:
+            info = eng.analyse(board, lim, game=object())
+            s = info["score"].relative
+            r = (comparable_cp(None if s.is_mate() else s.score(), s.mate() if s.is_mate() else None), info.get("nodes"))
+        cache[key] = r
+        return r
     out = open(a.out, "a"); n = 0; t0 = time.time()
     for f in sorted(glob.glob(os.path.join(a.scored, "*.jsonl"))):
         for line in open(f):
