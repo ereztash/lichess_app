@@ -47,11 +47,10 @@ VOCAB_OBS = {
     "clock_frac": {"kind": "cuts", "cuts": [0.1, 0.25, 0.5]},
     "clock_diff_s": {"kind": "cuts", "cuts": [-30, 0, 30]},
     "own_prev_spent_s": {"kind": "cuts", "cuts": [1, 5, 15]},
-    # in-game history (own earlier decisions only)
-    "own_errors_so_far": {"kind": "cuts", "cuts": [1, 3, 6]},
-    "plies_since_own_error": {"kind": "cuts", "cuts": [2, 6]},
-    "own_prev_wp_loss": {"kind": "cuts", "cuts": [0.0276, 0.10]},
+    # in-game history that the player can SEE (v1.6): material changed since the previous decision.
+    # Engine-scored history (errors so far, plies since an error, previous loss) is in VOCAB_HIST.
     "material_change_2ply": {"kind": "cuts", "cuts": [-1, 1]},
+    "own_lost_material": {"kind": "bool"},
     # context
     "phase": {"kind": "cat"},
     "standing": {"kind": "cat"},
@@ -91,19 +90,28 @@ VOCAB_ENG = {
 # searched only in this separately declared at-commit vocabulary, diagnostically.
 VOCAB_TIME = {"seconds": {"kind": "cuts", "cuts": [1, 3, 8, 20]}}
 
-VOCAB = {"OBS": VOCAB_OBS, "ENG": VOCAB_ENG, "TIME": VOCAB_TIME,
-         "OBS+ENG": {**VOCAB_OBS, **VOCAB_ENG}, "OBS+TIME": {**VOCAB_OBS, **VOCAB_TIME},
-         "ALL": {**VOCAB_OBS, **VOCAB_ENG, **VOCAB_TIME}}
+# Engine-scored history of the player's own earlier decisions in the game (v1.6): diagnostic only.
+# A player cannot evaluate "you just erred" at the board (GATE-CUE-PLAYER-OBSERVABLE), and these
+# features partition the game by its own error events, which needs the i.i.d. null to be read.
+VOCAB_HIST = {
+    "own_errors_so_far": {"kind": "cuts", "cuts": [1, 3, 6]},
+    "plies_since_own_error": {"kind": "cuts", "cuts": [2, 6]},
+    "own_prev_wp_loss": {"kind": "cuts", "cuts": [0.0276, 0.10]},
+}
+
+VOCAB = {"OBS": VOCAB_OBS, "ENG": VOCAB_ENG, "TIME": VOCAB_TIME, "HIST": VOCAB_HIST,
+         "OBS+ENG": {**VOCAB_OBS, **VOCAB_ENG}, "OBS+TIME": {**VOCAB_OBS, **VOCAB_TIME}, "OBS+HIST": {**VOCAB_OBS, **VOCAB_HIST},
+         "ALL": {**VOCAB_OBS, **VOCAB_ENG, **VOCAB_TIME, **VOCAB_HIST}}
 
 # Baseline for the residual target: generic difficulty + time + context, fit on DERIVE only.
 BASELINE_COLS = ["phase", "standing", "speed", "color", "log_seconds", "clock_frac", "clock_under_60s",
                  "rating_diff", "legal_moves", "gap12", "n_near", "ambiguity_entropy", "edge",
-                 "in_check", "non_pawn_material", "ply",
+                 "in_check", "non_pawn_material", "ply", "ply_bin",
                  # v1.4: engine-free EASE indicators. A region defined by the absence of free material is the
                  # complement of easy decisions, not a mechanism; "free material to take" is a generic ease
                  # covariate any player benefits from. Threat indicators (own hanging pieces etc.) are NOT here.
                  "free_capture", "recapture_available", "opp_hanging_any"]
-BASELINE_CAT = ["phase", "standing", "speed", "color"]
+BASELINE_CAT = ["phase", "standing", "speed", "color", "ply_bin"]  # v1.6: time in game as bins, not only linear
 
 DESIGN = {
     "seed": 20260905,

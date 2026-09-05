@@ -91,6 +91,8 @@ def main():
     ap.add_argument("--residual", type=int, default=1)
     ap.add_argument("--vocab", default="OBS")
     ap.add_argument("--out", default="results/nodeB.json")
+    ap.add_argument("--target", default=None, help="target column (default: the frozen design target)")
+    ap.add_argument("--worlds", default=None, help="comma-separated world names to run (default: all)")
     a = ap.parse_args()
     design = vocab.DESIGN.copy()
     design["vocab"] = vocab.VOCAB[a.vocab]
@@ -102,7 +104,11 @@ def main():
     va = df[df.split == "VALIDATE"].reset_index(drop=True)
     print(f"DERIVE {len(dv)} decisions / {dv.game_id.nunique()} games; VALIDATE {len(va)} / {va.game_id.nunique()} games", file=sys.stderr)
     Wd = worlds(dv); Wv = worlds(va)
-    report = {"design": {k: v for k, v in design.items() if k != "vocab"}, "vocab": a.vocab, "residual": design["residual"], "sweeps": []}
+    target = a.target or design["target"]
+    if a.worlds:
+        keep = set(a.worlds.split(","))
+        Wd = {k: v for k, v in Wd.items() if k in keep}; Wv = {k: v for k, v in Wv.items() if k in keep}
+    report = {"design": {k: v for k, v in design.items() if k != "vocab"}, "vocab": a.vocab, "residual": design["residual"], "target": target, "sweeps": []}
     done = {}
     if os.path.exists(a.out):  # resume: keep finished (depth, world) cells
         try:
@@ -123,7 +129,7 @@ def main():
             t0 = time.time(); rows = []
             for r in range(reps):
                 rng = np.random.default_rng(design["seed"] + 1000 * depth + r)
-                res = run_world(dv, va, mask_d, mask_v, delta, depth, design, rng)
+                res = run_world(dv, va, mask_d, mask_v, delta, depth, design, rng, target=target)
                 any_pass = any(x["pass"] for x in res)
                 on_target = any(x["pass"] and x["jaccard"] is not None and x["jaccard"] >= ON_TARGET_J for x in res)
                 best_j = max([x["jaccard"] for x in res if x["jaccard"] is not None], default=None)

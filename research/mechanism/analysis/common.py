@@ -34,6 +34,11 @@ def load_decisions(path: str, corpus: str | None = "erez281") -> pd.DataFrame:
     df["err"] = 1 - df["y_accurate"]
     df["blunder10"] = (df["y_wp_loss"] >= 0.10).astype(int)
     df["blunder20"] = (df["y_wp_loss"] >= 0.20).astype(int)
+    # error-class targets (v1.7): one indicator per omitted act; all zero on accurate decisions
+    if "y_error_class" in df.columns:
+        for cls in ERROR_CLASSES:
+            df[f"cls_{cls}"] = ((df["err"] == 1) & (df["y_error_class"] == cls)).astype(int)
+        df["cls_tactical"] = ((df["err"] == 1) & df["y_error_class"].isin(["hung_material", "missed_material", "missed_mate", "missed_check", "allowed_check_tactic", "bad_capture"])).astype(int)
     # the product clamps think time at zero (Lichess lag compensation can make a clock rise)
     df["seconds"] = df["seconds"].clip(lower=0)
     df["log_seconds"] = np.log1p(df["seconds"].astype(float))
@@ -46,6 +51,7 @@ def load_decisions(path: str, corpus: str | None = "erez281") -> pd.DataFrame:
     df["own_lost_material"] = (df["material_change_2ply"] < 0).astype(float).where(df["material_change_2ply"].notna())
     df["own_won_material"] = (df["material_change_2ply"] > 0).astype(float).where(df["material_change_2ply"].notna())
     df = df.sort_index()
+    df["ply_bin"] = pd.cut(df["ply"], [-1, 20, 40, 60, 80, 1000], labels=["<=20", "21-40", "41-60", "61-80", ">80"]).astype(str)
     # v1.4 ease indicators for the baseline (engine-free)
     df["free_capture"] = (df["n_good_captures"] >= 1).astype(float)
     df["opp_hanging_any"] = (df["opp_hanging_piece_count"] >= 1).astype(float)
@@ -93,6 +99,7 @@ def resample_by_game(df: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame
 
 
 OUTCOME_COLS = ["err", "y_wp_loss", "y_accurate", "blunder10", "blunder20", "y_cp_loss"]
+ERROR_CLASSES = ["hung_material", "missed_material", "missed_mate", "missed_check", "allowed_check_tactic", "bad_capture", "quiet_error"]
 HISTORY_COLS = ["own_decisions_so_far", "own_errors_so_far", "own_error_rate_so_far", "plies_since_own_error", "own_prev_wp_loss"]
 
 
@@ -117,18 +124,30 @@ def recompute_history(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def shuffle_within_game(df: pd.DataFrame, target: str, rng: np.random.Generator) -> pd.DataFrame:
-    """The shuffle null: permute the OUTCOME TUPLE inside each game (so error, loss and blunder stay
-    consistent with each other), then recompute the label-derived history features from the shuffled
-    labels. Feature/target relations vanish; game composition, sample sizes and the search itself are
-    untouched (GATE-SHUFFLE discipline)."""
+    """The null (v1.6): inside each game draw the outcome i.i.d. Bernoulli at the game's OWN error
+    rate (with replacement), give each drawn label a loss sampled from that label class, then
+    recompute the label-derived history features. Game composition and the search are untouched.
+
+    Why not a permutation: permuting labels within a game without replacement makes the remaining
+    "error quota" denser after a run of accurate decisions, so sequence features such as
+    plies_since_own_error validate on pure noise (64/100 under v1.5). Independence is the null a
+    sequence feature must beat."""
     df = df.copy()
-    cols = [c for c in OUTCOME_COLS if c in df.columns]
-    idx = df.groupby("game_id").indices
-    perm = np.arange(len(df))
-    for gid, rows in idx.items():
-        perm[rows] = rows[rng.permutation(len(rows))]
-    vals = df[cols].values[perm]
-    df[cols] = vals
+    p_g = df.groupby("game_id")[target].transform("mean").values
+    new = (rng.random(len(df)) < p_g).astype(int)
+    if target != "err":
+        # a class target: draw the class indicator i.i.d. at the game's class rate; the generic error
+        # column and the history features are left as they are (they are covariates, not the target)
+        df[target] = new
+        return df
+    err_losses = df.loc[df[target] == 1, "y_wp_loss"].values; ok_losses = df.loc[df[target] == 0, "y_wp_loss"].values
+    if len(err_losses) and len(ok_losses):
+        df["y_wp_loss"] = np.where(new == 1, rng.choice(err_losses, len(df)), rng.choice(ok_losses, len(df)))
+    df[target] = new
+    if "y_accurate" in df.columns:
+        df["y_accurate"] = 1 - new
+    if "blunder10" in df.columns:
+        df["blunder10"] = (df["y_wp_loss"] >= 0.10).astype(int)
     return recompute_history(df)
 
 

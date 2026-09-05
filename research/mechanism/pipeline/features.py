@@ -454,6 +454,42 @@ def extract_game(rec, sessions, focal=None):
             # ---- POST-MOVE targets ----
             cl = cp_loss[i]; wl = wp_loss[i]
             mk_played = move_kind(board, mv)
+            # error CLASS (post-move, descriptive): what the position after the move allowed, and what the
+            # engine's best reply does. Engine-free parts use the board after the move; the reply comes from
+            # the next ply's own pre-move lines (already scored), so nothing new is searched.
+            after_b = board.copy(stack=False); after_b.push(mv)
+            opp_caps = [m for m in after_b.legal_moves if after_b.is_capture(m)]
+            y_hang = max([see_capture_gain(after_b, m) for m in opp_caps], default=0)
+            reply = plies[i + 1]["lines"][0] if (i + 1 < n and plies[i + 1]["lines"]) else None
+            reply_mv = chess.Move.from_uci(reply["pv"][0]) if (reply and reply["pv"]) else None
+            rk = move_kind(after_b, reply_mv) if reply_mv is not None else None
+            y_reply_capture = int(rk["capture"]) if rk else None
+            y_reply_check = int(rk["check"]) if rk else None
+            y_reply_mate = int(reply["mate"] is not None and reply["mate"] > 0) if reply else None
+            y_reply_see = see_capture_gain(after_b, reply_mv) if (rk and rk["capture"]) else 0
+            best_see = see_capture_gain(board, best) if (best is not None and board.is_capture(best)) else 0
+            played_see = see_capture_gain(board, mv) if board.is_capture(mv) else 0
+            if wl <= ACCURATE_WIN_PROBABILITY_LOSS:
+                ecls = "ok"
+            elif y_reply_see >= 1 and y_reply_capture:
+                ecls = "hung_material"          # the reply wins material the move left en prise
+            elif best is not None and board.is_capture(best) and best_see >= 1 and mv != best:
+                ecls = "missed_material"        # a winning capture existed and was not played
+            elif best is not None and (lines[0]["mate"] is not None and lines[0]["mate"] > 0) and mv != best:
+                ecls = "missed_mate"
+            elif best is not None and board.gives_check(best) and mv != best and not board.is_capture(best):
+                ecls = "missed_check"
+            elif y_reply_check:
+                ecls = "allowed_check_tactic"   # the reply is a check that costs
+            elif mk_played["capture"] and played_see < 0:
+                ecls = "bad_capture"            # took something that loses the exchange
+            else:
+                ecls = "quiet_error"
+            row.update({
+                "y_hang_after": y_hang, "y_reply_capture": y_reply_capture, "y_reply_check": y_reply_check,
+                "y_reply_mate": y_reply_mate, "y_reply_see": y_reply_see, "y_best_see": best_see, "y_played_see": played_see,
+                "y_error_class": ecls,
+            })
             row.update({
                 "y_cp_loss": cl, "y_wp_loss": wl, "y_accurate": int(wl <= ACCURATE_WIN_PROBABILITY_LOSS),
                 "y_played_uci": p["uci"], "y_played_is_best": int(best is not None and mv == best),

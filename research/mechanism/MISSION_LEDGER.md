@@ -348,3 +348,69 @@ PASS on all three bullets → the existing search (D04's oracle, widened vocabul
 judge) can express a cross-context personal pattern and Node C's depth rule stands. FAIL on the
 expressiveness bullet → Node F (external representation search). FAIL on the null bullet → the
 judge, not the vocabulary, is the defect.
+
+## Design v1.6 (null repaired again; VALIDATE still unread)
+
+**What fired.** Under v1.5 the raw pipeline validated **72 of 100** nulls at depth 1, and 64 of them
+were `plies_since_own_error>=6` (`results/nodeB_v15_hypergeom/`). The v1.5 null permuted labels
+within a game WITHOUT replacement: after a run of accurate decisions the remaining error quota is
+denser, so a sequence feature validates on pure noise (hypergeometric dependence). The v1.5
+discovery run froze three DERIVE candidates, all on `own_errors_so_far`
+(`nodeB/discovery_v15_derive_only.log`); it was stopped before VALIDATE.
+
+| change | reason |
+| --- | --- |
+| null = inside each game, outcomes drawn i.i.d. Bernoulli at the game's own error rate, losses drawn from the label class, history recomputed | independence is the null a sequence feature must beat; a permutation is not independence |
+| engine-scored history (`own_errors_so_far`, `plies_since_own_error`, `own_prev_wp_loss`) moved from OBS to a diagnostic vocabulary `HIST` | a player cannot evaluate "you just erred" at the board; a trigger must be observable. Observable history (material changed since the previous decision, material lost) stays in OBS |
+| baseline: time in game as five ply bins beside the linear term | a within-game non-stationarity must not be read as a sequence mechanism |
+| what the i.i.d. null already shows on the real record: P(error \| ≥ 6 plies since the last error) is 0.347 vs 0.488 elsewhere on the real record and 0.389 vs 0.474 under the null, i.e. accuracy streaks are longer than independence predicts | recorded as an L0 signal about sequential dependence, to be read through the HIST diagnostic search, never as a mechanism |
+
+## Node B — verdict (v1.6 harness, i.i.d. null, OBS vocabulary; raw target complete at depths 1–2, residual at depth 1; remaining cells fill in `nodeB/nodeB_OBS_*.json`)
+
+| bullet | result | verdict |
+| --- | --- | --- |
+| null ceiling | raw: 0/100 at depth 1 and 0/100 at depth 2; residual: 0/100 at depth 1 | PASS |
+| expressiveness | W1 simple 1.00 on target (depth 1); W3 cross-context conjunction 1.00 (J 0.94) at depth 1 (its two terms are individually strong) and 1.00 at depth 2; W2 interaction 0.00 at depth 1, 1.00 at depth 2 (v1.3 harness); W7 equivalent descriptions 1.00 | PASS |
+| misattribution | W4 truth outside the vocabulary: validated 0.00–0.10 across harness versions (never on target) | PASS, risk ≤ 0.10 recorded |
+| weak effects (+0.08) | W1w 0.95–1.00, W3w 1.00 (J 0.94) | high power at 31,851 derivation decisions |
+
+**Node B = PASS.** D04's oracle with the widened vocabulary and the within-game judge can express and
+recover a cross-context conjunction. Node C's depth rule stands.
+
+## Node C/D/H(precursor) — OBS vocabulary, residual target, design v1.6 (`nodeB/discovery_v16_OBS_resid.json`)
+
+| step | result |
+| --- | --- |
+| Node C depth CV (held-out within-game z of the residual contrast) | 1: 1.71 · 2: 2.13 · 3: 2.86 → depth 3, collapsed to 2 terms |
+| frozen | `material_change_2ply>=-1 AND opp_last_capture==1` (n 5,343 on DERIVE; three candidates collapse to the same region) |
+| Node D stability (50 game-level bootstraps) | 22% of bootstrap winners share Jaccard ≥ 0.60 with the frozen region; median J 0.14; winners scattered over eight regions |
+| VALIDATE (opened once, for the frozen region) | n_in 1,734; raw within-game contrast −3.0 pp (z −2.21); residual within-game z +2.66 → **FAIL** (bar 3.5 and positive raw contrast) |
+
+**Result: under the strict observable vocabulary nothing reaches L2.** What died: the idea that a
+depth ≤ 2 conjunction of engine-free, player-observable pre-move features carries an excess-error
+region large and stable enough on this record. What survived: the pipeline (nulls hold, planted
+truths recover), and the derivation-side signals below, which name where the structure is.
+
+**What the derivation half says (DERIVE only, diagnostic, no permission attached).**
+- Sequence: after an own error the next decisions err more than independence and the baseline
+  predict (HIST vocabulary, DERIVE: `own_prev_wp_loss>=0.10` within-game +6.6 pp, z 7.7;
+  `own_errors_so_far in [1,3)` +7.4 pp, z 8.8). Not observable at the board; L0 signal.
+- Engine situation: the v1.1 timing peek found `eval_trend_2ply>=100 AND n_good_captures<1`
+  (the opponent just erred, no free capture); shared-noise contaminated until re-evaluated deeper.
+
+**Next branch (Node E → the target, not the vocabulary).** A single error indicator pools
+different acts. Holding the response predicate constant (D25) means asking, per error class, which
+pre-move condition predicts THAT omission: hung material, missed material, missed mate, missed
+check, allowed a check tactic, bad capture, quiet error. The classes are post-move and descriptive;
+the trigger stays pre-move and observable. One feature pass, no new engine compute.
+
+## Design v1.7 — error-class targets (declared before any class run is read)
+
+| item | frozen value |
+| --- | --- |
+| classes (post-move, descriptive, computed from the position after the move and the next ply's already-scored engine lines) | `hung_material` (the engine's reply wins material with positive static exchange), `missed_material` (a winning capture existed and was not played), `missed_mate`, `missed_check` (the best move was a non-capturing check), `allowed_check_tactic` (the reply is a check and the move cost), `bad_capture` (a capture with negative static exchange), `quiet_error` (none of the above); plus `tactical` = union of the first six |
+| targets | `cls_<class>` = 1 iff the decision is an error of that class; 0 on accurate decisions and on errors of other classes |
+| search / judge / vocabulary | unchanged from v1.6 (OBS, residual within game, z ≥ 3.5, n_in ≥ 100, raw within-game contrast > 0); baseline fit per target |
+| null | i.i.d. Bernoulli at the game's own class rate, 30 draws per class at depths 1 and 2 |
+| multiplicity | eight targets × three frozen candidates; the final-candidate rule (highest DERIVE quality among those that pass) applies across classes; family-wise false-claim rate is bounded by the per-class null and by z ≥ 3.5 |
+| why | a single error indicator pools different omitted acts; holding the response predicate constant (D25) is what lets a region name the distinction a player omits, and the operation that restores it |
