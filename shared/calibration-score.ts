@@ -37,7 +37,8 @@
  * decisions on it contributes a very noisy term. RELIABILITY is biased UPWARD in small samples for
  * exactly this reason -- with one decision per level it is at its maximum by construction. The
  * per-level counts are returned alongside so a caller can see which terms are carrying weight,
- * and `reliable` says whether EVERY term carrying weight can be read at all -- see the field.
+ * `reliable` says whether ANY of them has reached the size at which it can be read, and
+ * `unreadableShare` says how much of the figure rests on the ones that have not -- see both fields.
  */
 import { MIN_BUCKET_N, type ScoredDecision } from "./detector.js";
 

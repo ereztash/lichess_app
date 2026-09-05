@@ -2063,21 +2063,6 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     summary: scoreDecisions(stratum.atoms, stratum.ids),
   }));
   /*
-   * WHICH REGIME THE PAGE READS, AND IT IS THE SAME RULE `discoverySearchPopulation` STATES: the
-   * largest, ties broken by id. Its one virtue is that it ignores the answer -- decided from sizes
-   * alone, before anything is read, so it cannot select the regime that happens to contain a
-   * flattering number -- and on a record with one regime, which is every record written before
-   * reveal timing existed, it changes nothing.
-   *
-   * MEASURED IN SCORED ROWS AND NOT IN ROWS, which is where this consumer differs from discovery's.
-   * An unrevealed decision has no verdict, so nothing yet says which engine will score it and it
-   * sits in the `legacy` build stratum. Ordering by rows would hand this page a stratum that scores
-   * to nothing on any record whose unrevealed backlog outnumbers its revealed decisions -- and this
-   * panel's zero state is the one that has twice told a player they had revealed nothing while
-   * showing them decisions they had just revealed. The scored count is still a count of rows, not
-   * of outcomes, so nothing about the answer enters the choice.
-   */
-  /*
    * WHICH REGIME THE RECORD IS STILL WRITING INTO. `listAtoms` and `listDecisionIds` are ordered
    * and append-only, so the regime of the last admitted decision is the one in force -- a fact
    * about the record rather than a policy.
@@ -2086,6 +2071,17 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
   const latestId = [...allIds].reverse().find((id) => admitted.has(id));
   const currentRegime = describedStrata.find((stratum) => stratum.ids.includes(latestId ?? ""));
   const currentId = currentRegime ? stratumId(currentRegime.key) : null;
+  /*
+   * THE FALLBACK ORDER, USED WHILE THE REGIME IN FORCE IS STILL TOO SMALL TO READ. Ties by id, so
+   * the same record always yields the same reading rather than one that depends on write order.
+   *
+   * MEASURED IN SCORED ROWS AND NOT IN ROWS. An unrevealed decision has no verdict, so nothing yet
+   * says which engine will score it and it sits in the `legacy` build stratum. Ordering by rows
+   * would hand this page a stratum that scores to nothing on any record whose unrevealed backlog
+   * outnumbers its revealed decisions -- and this panel's zero state is the one that has twice told
+   * a player they had revealed nothing while showing them decisions they had just revealed. The
+   * scored count is still a count of rows, not of outcomes, so nothing about the answer enters it.
+   */
   const largestFirst = [...scoredStrata].sort(
     (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
   );
