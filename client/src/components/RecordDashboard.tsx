@@ -523,7 +523,19 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           </p>
           <div className="chart-frame" dir="ltr">
             <ResponsiveContainer width="100%" height={150}>
-              <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: -24 }}>
+              {/*
+                * `left: 0`, AND IT IS NOT A GUTTER PREFERENCE. It was -24 against a `width={40}`
+                * axis, which leaves 16 usable pixels for a label recharts right-anchors against
+                * the axis line -- so `18%` (22px) and `100%` (~28px) were drawn starting outside
+                * the SVG and clipped by it. What reached the reader was `%`, five times down the
+                * side of the chart, each one claiming a number had been shown.
+                *
+                * A NEGATIVE LEFT MARGIN IS A SUBTRACTION FROM THE PICTURE, not a tuning value:
+                * there is no width the axis can be given that survives it, because the margin
+                * moves the axis and the width only sizes it. The two charts in `GameReview` had
+                * the same pair (-22 against 38) and the same 16 pixels.
+                */}
+              <BarChart data={curve} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
                 <CartesianGrid stroke="var(--c-grid)" vertical={false} />
                 <XAxis dataKey="stated" tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" />
                 <YAxis tick={{ fontSize: "var(--panel-fine)" }} stroke="var(--c-axis)" width={40} unit="%" />

@@ -1237,6 +1237,40 @@ button:not(:disabled) {
   grid-template-columns: [task] 330px [board] minmax(480px, 1fr);
 }
 /*
+ * EXPLORE PUTS THE WHOLE RECORD IN A TRACK THAT WAS SIZED FOR A COMMITMENT FORM.
+ *
+ * `[task] 330px` is a track at its minimum and its maximum at the same time, so it cannot receive
+ * surplus at any screen size in any state -- and above the breakpoint below, ALL the surplus goes
+ * to the board. Measured on the shipped build with the record open: at 1440 the reading column was
+ * 330px beside 874px of board; at 1854 it was 330px beside 982px. 414 more pixels of screen bought
+ * the reading nothing, and the eleven sections, the calibration chart and the bucket list were a
+ * strip against the right edge with a thousand pixels of nothing beside them.
+ *
+ * THE JUDGEMENT IS ALREADY IN THIS FILE, one rule down: "330px beside a 420px board is not a
+ * column, it is a squeeze." That is why the stack goes under the board below 1050px. The squeeze
+ * does not stop at 1051px; only the rule did.
+ *
+ * 480px IS THE BOARD'S OWN NUMBER, taken from the `minmax(480px, 1fr)` above rather than picked
+ * here: this file already says that is enough board at every width this rule applies to. So the
+ * board keeps what it declares it needs and the surplus goes to the reading, which is the one
+ * thing on this screen that can use it. In EXPLORE the record is the subject and the board is the
+ * position it is about -- `MODE_CONTRACT` says so, and this is that sentence in track widths.
+ *
+ * `:has()` RATHER THAN A MODIFIER CLASS, for the reason `.workbench-focus` gives for named lines:
+ * the template and the children cannot disagree about which state this is. `exploring` in
+ * `Home.tsx` is not the same proposition as "the explorer is on screen" -- it survives the start
+ * of the next decision, and the explorer does not -- so a class plumbed from it would widen the
+ * column over a board the player is deciding on.
+ */
+@media (min-width: 1051px) {
+  .workbench:has(.record-explorer) {
+    grid-template-columns: [task] minmax(330px, 1fr) [board] 480px [rail] 132px;
+  }
+  .workbench.workbench-focus:has(.record-explorer) {
+    grid-template-columns: [task] minmax(330px, 1fr) [board] 480px;
+  }
+}
+/*
  * THE RAIL IS LAST NOW, so its separator faces the reading start rather than the end -- and it is
  * a LOGICAL side either way, which is what makes the same rule true in both directions. It was
  * `border-left`, correct while the rail was track 1 on a right-to-left page and wrong the moment

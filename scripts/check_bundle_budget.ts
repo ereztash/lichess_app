@@ -794,9 +794,31 @@ const ENTRY_GZIP_KB = 215;
  * the gzip ceiling measures 214.6 against 215. Raising a ceiling that has not been crossed is
  * loosening a budget for free -- the rule this file has applied to itself six times. 775 leaves
  * 0.9 kB.
+ *
+ * ---
+ *
+ * 775 -> 776: THE READING COLUMN THAT NEVER GREW. Measured by building twice, once at 9ff415a and
+ * once with the change and nothing else:
+ *
+ *     entry, raw               685.8 -> 685.8 kB   +0.0
+ *     entry, gzipped           214.9 -> 214.9 kB   +0.0
+ *     initial download, raw    774.9 -> 775.1 kB   +0.2
+ *
+ * ALL OF IT IS STYLESHEET AND NONE OF IT IS JAVASCRIPT, which is the exact inverse of the F1 entry
+ * above and is read the same way: the entry chunk did not move at all, so the 0.2 kB is the one
+ * `@media` block that gives the record column the surplus the board was taking. The three chart
+ * margins that changed with it are a literal each, and they are why the entry figure is flat to
+ * a tenth rather than merely close.
+ *
+ * WHY IT CANNOT BE DEFERRED. It is a grid template. A layout rule that arrives after first paint
+ * is a layout rule the reader watches happen, and `cumulative-layout-shift.layout.test.ts` is the
+ * standing statement that this product does not do that.
+ *
+ * ONLY THIS CEILING MOVES. Neither entry figure changed at all, so neither may be touched. 776
+ * leaves 0.9 kB, the same headroom the raise above left.
  */
 
-const INITIAL_RAW_KB = 775;
+const INITIAL_RAW_KB = 776;
 
 interface Asset {
   name: string;
