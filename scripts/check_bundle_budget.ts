@@ -613,8 +613,31 @@ const INDEX = `${ROOT}/index.html`;
  * deliberately. The base was already at 682.6 against 683: main had spent 1.6 of the previous
  * raise's 2.0 kB before this branch started. A ratchet that keeps being loosened by two stops
  * being a ratchet.
+ *
+ * ---
+ *
+ * 685 -> 686: F3, THE VERDICT THE PLAYER WAS NEVER SHOWN. Measured against the tree one commit
+ * back, which is F2 and moved no ceiling at all:
+ *
+ *     entry, raw               685.0 -> 685.1 kB   +0.1
+ *     entry, gzipped           214.6 -> 214.7 kB   +0.1
+ *     initial download, raw    774.1 -> 774.2 kB   +0.1
+ *
+ * A TENTH OF A KILOBYTE, and it is one predicate and one counter: `verdictWithheldWhenComputed` in
+ * `reveal-timing.ts`, a `revealTiming` field on `MixableDecision`, and one `if` in `oneThingMix`.
+ * The sentences the panel says instead cost the entry chunk nothing -- `RecordDashboard.tsx` is
+ * already a chunk of its own, which is why the entry and the initial download moved by the same
+ * amount and the stylesheet did not move at all.
+ *
+ * WHY IT CANNOT BE DEFERRED. `reveal-timing.ts` holds `mayShowVerdictNow`, which the board asks
+ * before it renders anything, and `reveal.ts` is on the entry route because the reveal is. A rule
+ * about what the record may claim, arriving after the claim, is not a rule.
+ *
+ * 686 LEAVES 0.9 kB. The other two ceilings measure 214.7 against 215 and 774.2 against 775 and
+ * did not fire, so they keep their numbers.
  */
-const ENTRY_RAW_KB = 685;
+
+const ENTRY_RAW_KB = 686;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 215;
 /**

@@ -140,6 +140,9 @@ const emptyMix = {
   counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 },
   silent: 0,
   eligible: 0,
+  /* Nothing was held back from this fixture's player: `withheld` is a count of stored verdicts the
+     reveal rule kept off the screen, and this mix has no stored verdicts at all. */
+  withheld: 0,
 };
 
 /*

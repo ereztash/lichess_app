@@ -120,6 +120,8 @@ const withRecord = (scored: number): RecordReading => ({
     },
     silent: 0,
     eligible: 0,
+    /* No stored verdict, so nothing could have been held back from being shown. */
+    withheld: 0,
   },
 });
 

@@ -606,7 +606,12 @@ export async function feedback(
   input: FeedbackInput,
 ): Promise<{ decision_id: string }> {
   if (!(await store.hasReveal(decisionId))) {
-    throw new RecordError("FORBIDDEN", "אי אפשר לתקן קריאה לפני שראית את התוצאה.");
+    /*
+     * "לפני שהמנוע ענה" AND NOT "לפני שראית את התוצאה", which is what this said. The guard is
+     * `hasReveal` -- a stored engine verdict -- and on a deferred game that verdict exists while
+     * the player has been shown nothing. The rule is unchanged; the sentence now describes it.
+     */
+    throw new RecordError("FORBIDDEN", "אי אפשר לתקן קריאה לפני שהמנוע ענה.");
   }
   await store.recordFeedback(decisionId, input);
   return { decision_id: decisionId };
@@ -2017,6 +2022,13 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       chosenMove: atom.decision,
       cpLoss: atom.result?.cp_loss ?? null,
       bestMove: atom.result?.engine_best_move ?? null,
+      /*
+       * WHICH REGIME DECIDED WHETHER THE PLAYER SAW IT. `result` says the engine answered and
+       * nothing more; on a deferred game it answers during play and the verdict is held back. The
+       * mix is what four sentences on this page are counted from, and without this field every one
+       * of them was a claim about exposure derived from producer state.
+       */
+      revealTiming: atom.reveal_timing,
     })),
   );
   /*

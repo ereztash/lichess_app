@@ -27,6 +27,8 @@ import { CONFIDENCE_LEVELS, EVEN_ODDS_LEVEL } from "@shared/confidence";
 
 /** A revealed decision. Defaults land on "outplayed" so each test moves one thing. */
 const d = (over: Partial<MixableDecision> = {}): MixableDecision => ({
+  /* The coached loop unless a case says otherwise: the verdict was not held back from any of these. */
+  revealTiming: "per-decision",
   /*
    * NAMED LEVELS, NOT INTEGERS, THROUGHOUT THIS FILE. These read `3` for "the middle" and `5` for
    * "the top" when the scale had five buttons. The middle is now `EVEN_ODDS_LEVEL` = 4 of 7 and

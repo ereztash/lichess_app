@@ -48,3 +48,36 @@ export type DecisionContext = "game" | "drill" | "transfer";
 export function effectiveTiming(chosen: RevealTiming, context: DecisionContext): RevealTiming {
   return context === "game" ? chosen : "per-decision";
 }
+
+/**
+ * WHETHER THIS RECORD CAN SAY THE VERDICT WAS KEPT OFF THE SCREEN WHEN IT WAS COMPUTED.
+ *
+ * THE SUBSTITUTION THIS EXISTS TO STOP. `atom.result !== null` was being spent as "the player was
+ * shown this". It says one thing: the engine ran and its verdict was written down. That is a fact
+ * about the PRODUCER, and four surfaces were reading it as a fact about a person -- "נחשפו N
+ * החלטות", "מה הכלי אמר לכם עד כה", "לפני שראית את התוצאה".
+ *
+ * THE TWO COME APART IN A MODE THIS PRODUCT SHIPS. `measurement-protocol.ts` says it plainly about
+ * `analysis_timing`: *"THE ENGINE RUNS IN BOTH MODES; ONLY THE TELLING DIFFERS ... it means
+ * `reveal_timing: "end-of-game"` does NOT say the engine was quiet."* So on a deferred game the
+ * engine answers, the result is stored, and `mayShowVerdictNow` above -- the whole rule, in one
+ * place -- keeps it off the screen. Committed, scored, and not told.
+ *
+ * THE LADDER, and the record holds the first two rungs of it:
+ *
+ *     engine finished -> result stored -> reveal rendered -> human noticed / read
+ *
+ * `reveal_presented` in `client/src/lib/acquisition-evidence.ts` is the third rung, for the
+ * acquisition trial, behind an import-graph wall from `shared/`. Nothing here raises it, and it
+ * would not be the fourth if it did: rendered is not read.
+ *
+ * A LOWER BOUND ON WHAT WAS NOT SHOWN, NEVER AN ESTIMATE -- the same asymmetry `oneThingMix` states
+ * about `chose-past-it`. `null` returns false because a row that recorded no timing is not evidence
+ * that nothing was withheld; it is a row from before the field existed, and counting it either way
+ * would assert a condition nobody wrote down. It also does not say the deferred reveal never ran at
+ * the end of the game. It says the record cannot witness that it did.
+ */
+export const verdictWithheldWhenComputed = (decision: {
+  readonly scored: boolean;
+  readonly timing: RevealTiming | null;
+}): boolean => decision.scored && decision.timing !== null && !mayShowVerdictNow(decision.timing);

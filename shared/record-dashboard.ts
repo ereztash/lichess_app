@@ -362,7 +362,7 @@ export type RecordReading = {
  */
 export function readRecord(
   decisions: ScoredDecision[],
-  mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0 },
+  mix: OneThingMix = { n: 0, counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 }, silent: 0, eligible: 0, withheld: 0 },
   /**
    * Defaults to an empty reading rather than to `undefined`, so a caller that has not been
    * updated renders "nothing measured yet" instead of crashing on a missing field -- and so the

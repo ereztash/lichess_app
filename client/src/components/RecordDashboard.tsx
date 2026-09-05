@@ -124,7 +124,15 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
      */
     const reason =
       reading.withoutConfidence > 0
-        ? `${reading.withoutConfidence} החלטות נחשפו, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
+        ? /*
+           * "המנוע ענה על N" AND NOT "N החלטות נחשפו". `withoutConfidence` counts decisions with a
+           * STORED ENGINE VERDICT and no stated confidence -- a fact about the producer. On a
+           * deferred game the engine answers during play and `mayShowVerdictNow` keeps the verdict
+           * off the screen, so this sentence was telling a player that decisions had been revealed
+           * to them which the product had deliberately not shown. The count is unchanged; the verb
+           * is now the one the record can witness.
+           */
+          `המנוע ענה על ${reading.withoutConfidence} החלטות, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
           "שאלת הביטחון נשאלת תמיד בסט המשותף ובתרגול, ובחלק מההחלטות במשחק חופשי. " +
           "פער כיול נקרא רק מהחלטות שנשאלו."
         : /*
@@ -699,19 +707,41 @@ const MIX_LABEL: Record<OneThingKind, string> = {
  * decisions is noise wearing four percentage signs.
  */
 function MixBlock({ mix }: { mix: OneThingMix }) {
+  /*
+   * THE HEADING DEPENDS ON WHETHER THE TOOL ACTUALLY SPOKE, and until now it did not.
+   *
+   * `mix.n` counts decisions the ENGINE ANSWERED for. "מה הכלי אמר לכם" is a claim about a person
+   * having been told. On a deferred game those are different sets: `reveal-timing.ts` holds the
+   * verdict to the end of the game while the engine runs during play, so the panel distributed
+   * decisions across four sentences the player had never read and headed the list with a claim
+   * that they had.
+   *
+   * THE SECOND HEADING IS NOT AN APOLOGY AND NOT A LESSER RESULT. The measurement is the same
+   * measurement; what changes is whose fact it is. A reading of the instrument -- which of its four
+   * sentences this record produces -- is exactly what `oneThingMix` was built to be.
+   */
+  const spoke = mix.withheld === 0;
+  const title = spoke ? "מה הכלי אמר לכם עד כה" : "מה הכלי מצא בהחלטות שלכם";
   if (mix.n < MIN_BUCKET_N) {
     return (
       <div className="mix-block">
-        <h4 className="dash-title">מה הכלי אמר לכם עד כה</h4>
+        <h4 className="dash-title">{title}</h4>
         <NotMeasured
-          reason={`נחשפו ${mix.n} החלטות, ונדרשות ${MIN_BUCKET_N} כדי לדווח על ההתפלגות. עד אז כל אחוז כאן היה רעש.`}
+          reason={`המנוע ענה על ${mix.n} החלטות, ונדרשות ${MIN_BUCKET_N} כדי לדווח על ההתפלגות. עד אז כל אחוז כאן היה רעש.`}
         />
       </div>
     );
   }
   return (
     <div className="mix-block">
-      <h4 className="dash-title">מה הכלי אמר לכם עד כה</h4>
+      <h4 className="dash-title">{title}</h4>
+      {!spoke && (
+        <p className="dash-note" dir="rtl">
+          הכלי החזיק את המשפטים האלה עד סוף המשחק ב-{mix.withheld} מתוך {mix.n} ההחלטות, ולכן זו
+          רשימה של מה שנמדד ולא של מה שהוצג לכם בזמן אמת. הרשומה יודעת מתי המנוע ענה. היא לא מתעדת
+          מתי, ואם, קראתם את התשובה.
+        </p>
+      )}
       <ul className="bucket-list">
         {(Object.keys(MIX_LABEL) as OneThingKind[]).map((kind) => (
           <li key={kind}>

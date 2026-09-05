@@ -15,6 +15,7 @@
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
 import { normaliseConfidence } from "./confidence.js";
+import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
 
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
@@ -503,6 +504,20 @@ export interface OneThingMix {
    * between it and the branch's own count is the share where the move was NOT on the board.
    */
   eligible: number;
+  /**
+   * Of `n`, how many the product's own rule kept off the screen at the moment it computed them.
+   *
+   * `n` IS A PRODUCER COUNT AND THIS IS WHAT STOPS IT BEING READ AS A CONSUMER ONE. A decision is
+   * in `n` when the engine answered for it; on a deferred game the engine answers during play and
+   * `mayShowVerdictNow` refuses to show the verdict, so the record holds a scored decision the
+   * player was not told about. Every surface counting `n` was calling those "נחשפו".
+   *
+   * A LOWER BOUND ON WHAT WAS NOT SHOWN, NEVER AN ESTIMATE. See
+   * `verdictWithheldWhenComputed`: a row that recorded no timing counts here as zero, and a
+   * withheld verdict may still have been shown when the game ended. What this says is that the
+   * record cannot witness that it was.
+   */
+  withheld: number;
 }
 
 /** The atom fields this reads. Kept structural so the record's own type does not leak in here. */
@@ -521,6 +536,11 @@ export interface MixableDecision {
   chosenMove: string;
   cpLoss: number | null;
   bestMove: string | null;
+  /**
+   * Which reveal regime was in force, straight off `reveal_timing`, or null on a row from before
+   * the field existed. Read for `withheld` above and by no branch of `theOneThing`.
+   */
+  revealTiming: RevealTiming | null;
 }
 
 export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
@@ -533,12 +553,15 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
   let n = 0;
   let silent = 0;
   let eligible = 0;
+  let withheld = 0;
 
   for (const d of decisions) {
     // No reveal, nothing to classify. R3 again: before the engine answers there is no cp loss.
     if (d.cpLoss === null || d.bestMove === null) continue;
     n += 1;
     if (d.cpLoss > ENGINE_NOISE_CP && d.cpLoss >= MATERIAL_LOSS_CP) eligible += 1;
+    // Scored by construction: `cpLoss` and `bestMove` are both non-null on this branch.
+    if (verdictWithheldWhenComputed({ scored: true, timing: d.revealTiming })) withheld += 1;
     /*
      * The real function, not a restatement of its conditions.
      *
@@ -565,7 +588,7 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
     if (one === null) silent += 1;
     else counts[one.kind] += 1;
   }
-  return { n, counts, silent, eligible };
+  return { n, counts, silent, eligible, withheld };
 }
 
 /**
