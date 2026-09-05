@@ -55,6 +55,12 @@ because each one exists because the one before it was not enough.
 | `m-the-door.mjs` | `.explore-toggle` -- where it is, what it promises, and what opens behind it. Where the five contradicting numbers on one screen were caught |
 | `n-the-count-on-the-reveal.mjs` | whether the kth reveal says k. 5 of 5 correct, which did NOT reproduce the 4/3/3 the other probes saw. The open finding in pass 3 §7 |
 
+## Pass 4
+
+| file | what it measured |
+| --- | --- |
+| `p-accumulation.mjs` | the owner-licensed intervention against the criterion stated before it was built: heading weight per screen with a full weight census, the reveal's block sequence, its record-scoped share, and whether the replaced proposition is still in the DOM |
+
 `step23` carries its own correction: its first verdict line used `\b` around a Hebrew word, which
 never matches, and reported `STILL COLLIDING` against a fix that had worked.
 

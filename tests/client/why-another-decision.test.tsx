@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * The reason to take a second decision, which the product had never given.
+ * The reason to take a second decision, which the product gave in the abstract and now answers.
  *
  * WHAT WAS STANDING IN FOR IT. The only continuation reason stated anywhere in this build lived in
  * the record: *"עוד N החלטות מדודות עד שאפשר לומר משהו"*. That sentence is correct, and it is
@@ -20,6 +20,20 @@
  * WHAT THIS FILE ASSERTS, and every one of these is a way the sentence could rot into a mechanic:
  * that it is identical after all five outcomes, that it contains no digit, that it never appears
  * before a decision is committed, and that it has not borrowed the record's denominators.
+ *
+ * WHAT CHANGED, AND WHY EVERY ASSERTION ABOVE SURVIVED IT. `CONTINUATION_PROPOSITION` was a
+ * constant, and being a constant was the point -- but it meant the product offered to let a player
+ * ask whether something repeats and then never asked. Measured on the built app after three
+ * decisions: of fourteen painted elements on the reveal, ONE said anything about the record, sixty
+ * characters of seven hundred and fifty-four, inside the block whose heading is what this decision
+ * does NOT say.
+ *
+ * So the sentence is now a block of three lines: `ACCUMULATION_LEAD` (one decision is not a
+ * pattern), the count, and `ACCUMULATION_NEXT` (what the next one does). The two constants carry
+ * every invariance the proposition carried and this file holds them to it unchanged. The COUNT is
+ * the one line permitted to vary, it is the whole reason the block exists, and the assertions
+ * about it are the ones added here: that it names its denominator, that it never becomes a rate,
+ * and that it is silent rather than zero where the record cannot support it.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -27,11 +41,13 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { RevealPanel } from "@/components/RevealPanel";
 import {
+  ACCUMULATION_LEAD,
+  ACCUMULATION_NEXT,
   CONTINUATION_CTA,
-  CONTINUATION_PROPOSITION,
   ENGINE_NOISE_CP,
   MATERIAL_LOSS_CP,
   theOneThing,
+  type OneThingMix,
   type RevealInputs,
 } from "@shared/reveal";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
@@ -63,8 +79,33 @@ const OUTCOMES: Record<string, RevealInputs> = {
 };
 
 const ANALYSIS: EngineLine = { scoreCp: 180, depth: 20, pv: ["f8c5"], bestMove: "f8c5", fen: FEN };
-const panel = (inputs: RevealInputs) =>
-  render(<RevealPanel inputs={inputs} analysis={ANALYSIS} fen={FEN} boardFen={FEN} statedKnown="" />).container;
+
+/** A record the engine has answered, so the count line is reachable rather than assumed absent. */
+const MIX: OneThingMix = {
+  n: 7,
+  counts: {
+    "chose-past-it": 3,
+    "confident-and-wrong": 1,
+    outplayed: 1,
+    "trusted-it-too-little": 0,
+  },
+  silent: 2,
+  eligible: 5,
+  /*
+   * EVERY ONE OF THE SEVEN WAS SHOWN. This fixture exists to make the count line reachable, and a
+   * withheld verdict is a decision the player was never shown -- which would make the block under
+   * test say something about exposure it has not been given evidence for.
+   */
+  withheld: 0,
+};
+
+const panel = (inputs: RevealInputs, mix: OneThingMix | null = MIX) =>
+  render(
+    <RevealPanel inputs={inputs} analysis={ANALYSIS} fen={FEN} boardFen={FEN} statedKnown="" mix={mix} />,
+  ).container;
+const lead = (c: Element) => c.querySelector(".accumulation-lead")?.textContent;
+const next = (c: Element) => c.querySelector(".accumulation-next")?.textContent;
+const balance = (c: Element) => c.querySelector(".accumulation-balance")?.textContent ?? null;
 
 describe("the same proposition after every outcome", () => {
   it("covers both a finding and a silence, so the invariance below is not trivial", () => {
@@ -73,8 +114,9 @@ describe("the same proposition after every outcome", () => {
   });
 
   it.each(Object.keys(OUTCOMES))("renders it after %s", (outcome) => {
-    const text = panel(OUTCOMES[outcome]).querySelector(".reveal-continuation")?.textContent;
-    expect(text, "an outcome ended with no reason to continue").toBe(CONTINUATION_PROPOSITION);
+    const c = panel(OUTCOMES[outcome]);
+    expect(lead(c), "an outcome ended with no statement of what one decision is").toBe(ACCUMULATION_LEAD);
+    expect(next(c), "an outcome ended with no reason to continue").toBe(ACCUMULATION_NEXT);
   });
 
   it("is a constant and not a function of anything about the player", () => {
@@ -87,25 +129,63 @@ describe("the same proposition after every outcome", () => {
      */
     const said = new Set(
       Object.values(OUTCOMES).flatMap((inputs) =>
-        [1, 2, 30].map(
-          (decisionsOnRecord) =>
-            panel({ ...inputs, decisionsOnRecord }).querySelector(".reveal-continuation")
-              ?.textContent,
-        ),
+        [1, 2, 30].map((decisionsOnRecord) => {
+          const c = panel({ ...inputs, decisionsOnRecord });
+          return `${lead(c)}|${next(c)}`;
+        }),
       ),
     );
-    expect(said.size, "the continuation sentence varies by outcome or by record size").toBe(1);
+    expect(said.size, "a constant line varies by outcome or by record size").toBe(1);
+  });
+
+  /*
+   * AND THE COUNT IS THE ONE LINE THAT MUST VARY, which is the whole reason the block replaced a
+   * sentence. Asserted in the same file as the invariance above so the two cannot drift into
+   * agreeing: if a later change froze the count, this fails; if it thawed a constant, that fails.
+   */
+  it("varies the count by branch, because that is what it is counting", () => {
+    const counted = new Set(
+      Object.values(OUTCOMES).map((inputs) => balance(panel(inputs))),
+    );
+    expect(counted.size, "the count is the same after every outcome, so it counts nothing").toBeGreaterThan(1);
+  });
+
+  it("names its denominator on every branch that reports a count", () => {
+    for (const outcome of Object.keys(OUTCOMES)) {
+      const line = balance(panel(OUTCOMES[outcome]));
+      expect(line, `${outcome} rendered no count against a record of 7`).not.toBeNull();
+      expect(line, `${outcome} printed a numerator with no denominator`).toContain(`מתוך ${MIX.n}`);
+      expect(line, `${outcome} turned a count into a rate`).not.toMatch(/%|אחוז/);
+    }
+  });
+
+  /*
+   * SILENT, NOT ZERO, AND THE TWO ARE DIFFERENT CLAIMS. A panel with no record read renders the
+   * constants and no count -- the query can be in flight or a test can be rendering the panel
+   * alone, and neither is "the engine has answered nothing". At n = 1 the only answered decision
+   * IS this one, so "1 of 1" would be the reveal restating itself with a denominator attached.
+   */
+  it("says nothing rather than zero where the record cannot support a count", () => {
+    expect(balance(panel(OUTCOMES.outplayed, null)), "a missing record rendered as a count").toBeNull();
+    const alone: OneThingMix = { ...MIX, n: 1, counts: { ...MIX.counts, outplayed: 1 }, silent: 0 };
+    expect(balance(panel(OUTCOMES.outplayed, alone)), "the first reveal counted itself").toBeNull();
+    /* And the constants are still there, so the block is never empty. */
+    expect(lead(panel(OUTCOMES.outplayed, null))).toBe(ACCUMULATION_LEAD);
+    expect(next(panel(OUTCOMES.outplayed, alone))).toBe(ACCUMULATION_NEXT);
   });
 });
 
-describe("what the proposition may not become", () => {
+describe("what the two constants may not become", () => {
+  /* Both, together, everywhere below: they are one statement split across the count. */
+  const CONSTANTS = `${ACCUMULATION_LEAD} ${ACCUMULATION_NEXT}`;
+
   it("contains no number, because a number here is a countdown", () => {
     /*
      * "עוד 12 החלטות" is a progress bar written in words. It also answers a different question:
      * how much evidence a CLAIM needs, which belongs to the record and keeps its denominators
      * there.
      */
-    expect(CONTINUATION_PROPOSITION).not.toMatch(/\d/);
+    expect(CONSTANTS).not.toMatch(/\d/);
   });
 
   it("uses no reward, unlock, streak or progress vocabulary", () => {
@@ -117,7 +197,12 @@ describe("what the proposition may not become", () => {
       /פרס|בונוס|נקוד/,
       /התקדמות|מד |אחוז/,
     ]) {
-      expect(CONTINUATION_PROPOSITION, `${word} turns the reason into a mechanic`).not.toMatch(word);
+      expect(CONSTANTS, `${word} turns the reason into a mechanic`).not.toMatch(word);
+      /* The count is held to the same list: a numerator is not a licence for streak language. */
+      expect(
+        balance(panel(OUTCOMES["chose-past-it"])) ?? "",
+        `${word} reached the count line`,
+      ).not.toMatch(word);
     }
   });
 
@@ -127,8 +212,15 @@ describe("what the proposition may not become", () => {
      * for them. "תגלו את הדפוס שלכם" would be a promise no build can keep, and a player who took
      * ten decisions and got silence on all ten would have been lied to rather than measured.
      */
-    expect(CONTINUATION_PROPOSITION).not.toMatch(/תגלו|יתגלה|תראו את הדפוס|הדפוס שלך|בטוח ש/);
-    expect(CONTINUATION_PROPOSITION, "the reason is a question, not a prediction").toMatch(/אם/);
+    expect(CONSTANTS).not.toMatch(/תגלו|יתגלה|תראו את הדפוס|הדפוס שלך|בטוח ש/);
+    expect(ACCUMULATION_NEXT, "the reason is a question, not a prediction").toMatch(/אם/);
+    /*
+     * AND THE LEAD SAYS THE LIMIT OUT LOUD. This is the clause the block had to carry forward from
+     * the proposition it replaced: a count beside a heading reading "what has accumulated" is one
+     * sentence away from being read as a pattern, and this is that sentence.
+     */
+    expect(ACCUMULATION_LEAD, "the block reports an accumulation without denying it is a pattern")
+      .toMatch(/אינה דפוס/);
   });
 
   it("does not borrow the record's measurement floor", () => {
@@ -140,7 +232,9 @@ describe("what the proposition may not become", () => {
      */
     const floor = readFileSync(resolve(root, "client/src/lib/loop-position.ts"), "utf8");
     expect(floor, "the floor sentence moved out of the record").toContain("החלטות מדודות");
-    expect(CONTINUATION_PROPOSITION).not.toMatch(/מדודות|סף|בסוג אחד/);
+    expect(CONSTANTS).not.toMatch(/מדודות|סף|בסוג אחד/);
+    /* The count reports what the ENGINE answered, which is not what a claim requires. */
+    expect(balance(panel(OUTCOMES.outplayed))).not.toMatch(/מדודות|סף|בסוג אחד/);
   });
 });
 
@@ -150,12 +244,14 @@ describe("the button names the experiment rather than the movement", () => {
     expect(CONTINUATION_CTA, "the CTA describes navigation").not.toMatch(/הבא|המשך|קדימה|עוד אחת/);
   });
 
-  it("shares its words with the proposition, so the two read as one idea", () => {
+  it("shares its words with the block above it, so the two read as one idea", () => {
     /*
      * Not decoration. A button whose words appear nowhere in the sentence above it is a second
-     * message; a reader has to work out for themselves that they are the same offer.
+     * message; a reader has to work out for themselves that they are the same offer. Carried
+     * unchanged across the replacement: the proposition shared `חוזר` with the button and
+     * `ACCUMULATION_NEXT` had to as well, which is why it ends the way it does.
      */
-    expect(CONTINUATION_PROPOSITION).toContain("חוזר");
+    expect(ACCUMULATION_NEXT).toContain("חוזר");
     expect(CONTINUATION_CTA).toContain("חוזר");
   });
 
@@ -177,16 +273,17 @@ describe("the button names the experiment rather than the movement", () => {
         fen={FEN}
         boardFen={FEN}
         statedKnown=""
+        mix={MIX}
         onContinue={() => {}}
       />,
     ).container;
     const button = container.querySelector(".reveal-continue");
     expect(button, "the reveal offers no way to take the decision it just argued for").not.toBeNull();
     expect(button?.textContent).toBe(CONTINUATION_CTA);
-    const nodes = [...container.querySelectorAll(".reveal-continuation, .reveal-continue")];
+    const nodes = [...container.querySelectorAll(".reveal-accumulation, .reveal-continue")];
     expect(nodes).toHaveLength(2);
     expect(
-      nodes[0].classList.contains("reveal-continuation"),
+      nodes[0].classList.contains("reveal-accumulation"),
       "the button comes before the reason for it",
     ).toBe(true);
   });
@@ -217,7 +314,7 @@ describe("the button names the experiment rather than the movement", () => {
   });
 });
 
-describe("the proposition is post-commit only", () => {
+describe("the accumulation block is post-commit only", () => {
   it("lives in the reveal panel and nowhere a decision has not been committed", () => {
     /*
      * STANDING CONSTRAINT, AND IT IS NOT ABOUT THIS SENTENCE. Nothing pre-commit may evaluate,
@@ -236,12 +333,28 @@ describe("the proposition is post-commit only", () => {
       readFileSync(resolve(root, "client/src", name), "utf8")
         .replace(/\/\*[\s\S]*?\*\//g, "")
         .replace(/^\s*\/\/.*$/gm, "")
-        .includes("CONTINUATION_PROPOSITION");
+        .includes("ACCUMULATION_HEADING");
     const wearers = readdirSync(resolve(root, "client/src"), { recursive: true, encoding: "utf8" })
       .filter((name) => /\.tsx?$/.test(name))
       .filter(rendered);
-    expect(wearers, "the proposition is rendered somewhere other than the reveal").toEqual([
+    expect(wearers, "the block is rendered somewhere other than the reveal").toEqual([
       "components/RevealPanel.tsx",
     ]);
+  });
+
+  /*
+   * AND THE SENTENCE IT REPLACED IS GONE FROM THE TREE, not merely unrendered. A constant nobody
+   * calls is a second answer to the question this block now answers, waiting to be rendered back
+   * beside it by someone who finds it and assumes it was dropped by mistake. "Replace" is only
+   * true if there is nothing left to re-add.
+   */
+  it("leaves no second answer behind", () => {
+    const reveal = readFileSync(resolve(root, "shared/reveal.ts"), "utf8").replace(
+      /\/\*[\s\S]*?\*\//g,
+      "",
+    );
+    expect(reveal, "the replaced proposition is still exported").not.toMatch(
+      /export const CONTINUATION_PROPOSITION/,
+    );
   });
 });

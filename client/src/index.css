@@ -3819,21 +3819,58 @@ button:not(:disabled) {
   opacity: 0.66;
 }
 /*
- * The one reason to continue, under everything derived from this position.
+ * THE ONE HEADING A SCREEN IS ABOUT, AND WHY THIS IS A CLASS AND NOT `h1`.
  *
- * QUIETER THAN THE FINDING AND LOUDER THAN THE FOOTNOTES, because that is what it is: not a
- * measurement, not a disclaimer, and not a call to action dressed as one. `--panel-label` with a
- * hairline above puts it in the same register as `.reveal-build-limit`, which is the other thing
- * on this panel that is true of every position rather than of this one.
+ * Measured on the built app before it was written. The front door's primary heading IS its `h1`,
+ * at 28px. On the deciding screen the primary heading is an `h2` at 22px, and the `h1` there is
+ * `11. O-O-O` at 16px -- a move label in `.workspace-meta`, smaller than three of the `h3`s under
+ * it. A rule on the tag would have put the weight on the move label and left both real headings
+ * at 400, which is the opposite of what it was for.
+ *
+ * NOT APPLIED ON THE REVEAL, AND THAT IS A FINDING RATHER THAN AN OMISSION. That screen has no
+ * primary heading: three `h2`s tied at 18px, one per block, and the panel's order is stated as not
+ * negotiable with the limits block first. Promoting one of the three would invert that order;
+ * promoting all three would be restyling `h2` globally. Recorded in the pass rather than resolved
+ * by taste.
+ *
+ * 600 IS ALREADY IN THIS STYLESHEET, thirty times. No new value enters the system here.
  */
-.reveal-continuation {
+.screen-heading {
+  font-weight: 600;
+}
+/*
+ * What the record now holds, under everything derived from this position.
+ *
+ * QUIETER THAN THE FINDING AND LOUDER THAN THE FOOTNOTES, inherited unchanged from
+ * `.reveal-continuation`, which this replaces: not a measurement of this position, not a
+ * disclaimer, and not a call to action dressed as one. `--panel-label` with a hairline above puts
+ * it in the same register as `.reveal-build-limit`, the other thing on this panel that is true of
+ * something other than the position in front of the reader.
+ *
+ * IT IS A `.reveal-block` AND IT IS THE LAST ONE. Its heading takes the same size and weight as
+ * the other section heads by inheriting the block rule -- nothing here promotes it. A foot block
+ * that outranked "מה ההחלטה הזאת עדיין לא אומרת" would invert the order this panel calls not
+ * negotiable, which is the one thing this change must not do.
+ */
+.reveal-accumulation {
   max-inline-size: var(--measure);
   margin: 0.9rem 0 0;
   padding-top: 0.7rem;
   border-top: 1px solid var(--hairline);
+}
+.reveal-accumulation p {
+  margin: 0.45rem 0 0;
   font-size: var(--panel-label);
   line-height: 1.55;
   opacity: 0.86;
+}
+/*
+ * THE COUNT IS THE ONE LINE HERE THAT IS A MEASUREMENT, and the other two are constants. Full
+ * opacity separates them: the reader can see at a glance which line would read differently after
+ * the next decision, without the panel having to say so in words.
+ */
+.reveal-accumulation .accumulation-balance {
+  opacity: 1;
 }
 /*
  * The way to act on the sentence above it, next to the sentence above it.

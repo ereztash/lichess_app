@@ -2032,25 +2032,35 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * move, the engine's move and the centipawn loss. `readRecord` sees only what a bucket may look
    * at, which is the reason the two are separate types in the first place.
    */
-  const mix = oneThingMix(
-    atoms.map((atom) => ({
-      confidence: atom.bounded_action.confidence,
-      // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
-      // a row written before the field existed was written on the five-level scale by definition.
-      confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
-      candidatesConsidered: atom.bounded_action.candidate_moves_considered,
-      chosenMove: atom.decision,
-      cpLoss: atom.result?.cp_loss ?? null,
-      bestMove: atom.result?.engine_best_move ?? null,
-      /*
-       * WHICH REGIME DECIDED WHETHER THE PLAYER SAW IT. `result` says the engine answered and
-       * nothing more; on a deferred game it answers during play and the verdict is held back. The
-       * mix is what four sentences on this page are counted from, and without this field every one
-       * of them was a claim about exposure derived from producer state.
-       */
-      revealTiming: atom.reveal_timing,
-    })),
-  );
+  /*
+   * ONE MAPPING, TWO POPULATIONS. The described atoms answer "what does free play produce"; every
+   * atom answers "what has this instrument produced for this player at all". The reveal needs the
+   * second, because the product's own front door hands over a bank position and those are
+   * `separate` from the first -- so a reveal reading `mix` would report zero to every player who
+   * has only done what they were first offered.
+   */
+  const mixable = (atom: DecisionAtom) => ({
+    confidence: atom.bounded_action.confidence,
+    // The scale the level was stated on. `?? LEGACY_CONFIDENCE_LEVELS` matches shared/scoring.ts:
+    // a row written before the field existed was written on the five-level scale by definition.
+    confidenceScale: atom.bounded_action.confidence_scale ?? LEGACY_CONFIDENCE_LEVELS,
+    candidatesConsidered: atom.bounded_action.candidate_moves_considered,
+    chosenMove: atom.decision,
+    cpLoss: atom.result?.cp_loss ?? null,
+    bestMove: atom.result?.engine_best_move ?? null,
+    /*
+     * WHICH REGIME DECIDED WHETHER THE PLAYER SAW IT. `result` says the engine answered and
+     * nothing more; on a deferred game it answers during play and the verdict is held back. The
+     * mix is what four sentences on this page are counted from, and without this field every one
+     * of them was a claim about exposure derived from producer state.
+     *
+     * CARRIED BY BOTH POPULATIONS, not only the described one: `mixAll` is read by the reveal, and
+     * a withheld verdict is withheld whichever population the decision is counted in.
+     */
+    revealTiming: atom.reveal_timing,
+  });
+  const mix = oneThingMix(atoms.map(mixable));
+  const mixAll = oneThingMix(allAtoms.map(mixable));
   /*
    * ONE CALL, THREE NUMBERS. `scoreDecisions` was being called for its `scored` array and its two
    * counts thrown away on the same line -- which is how "waiting for the engine" came to be
@@ -2168,5 +2178,6 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       n: s.summary.scored.length,
     })),
     chosen ? { id: chosen.id, current: chosen.id === currentId } : null,
+    mixAll,
   );
 }
