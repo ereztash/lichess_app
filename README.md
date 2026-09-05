@@ -2,9 +2,7 @@
 
 **Decision Lab studies the player through their decisions — not only the positions they played.**
 
-The application records what a player decided **before the engine speaks**, preserves that evidence across games, and uses it to test whether apparently different mistakes belong to a recurring decision pattern.
-
-The repository now also contains a research pipeline that can compare a player's pattern with same-rating population behavior, isolate a possible personal residual, and turn it into one prospectively testable operation.
+The live application records decision evidence **before the engine speaks** and preserves it across games. Separately, the repository's research layer can test whether structures recur across materially different positions, compare them with same-rating population behavior, isolate a possible personal residual, and turn that residual into a prospectively testable operation.
 
 > The product does **not** currently claim to improve chess, Elo, or future performance.
 
@@ -20,15 +18,14 @@ A normal game review can answer:
 
 > How much did this move cost?
 
-But neither can reconstruct what existed **before the answer was known**:
+But those outputs do not contain the player's **pre-engine record**:
 
-- what the player considered;
-- what they did not consider;
-- how confident they were;
-- which alternative they believed in;
-- whether the same decision structure appears in materially different positions.
+- the read of the position they explicitly recorded;
+- what they explicitly marked as something they could not evaluate;
+- how confident they said they were;
+- which alternative moves they actually placed on the board before reveal.
 
-Decision Lab preserves that missing layer.
+Decision Lab preserves that missing evidence without treating an unrecorded thought or move as evidence that it never existed.
 
 ```text
 POSITION ANALYSIS
@@ -108,7 +105,7 @@ The table below describes what the repository has established **so far**, not wh
 
 The current mechanism mission found a broad recurring region:
 
-**R\*** — when one of the player's pieces has more attackers than defenders, while the player is not already materially behind, tactical errors occur substantially more often.
+**R\*** — when one of the player's pieces has more attackers than defenders, while the player is not already behind by more than two pawns, tactical errors occur substantially more often.
 
 The region:
 
@@ -126,7 +123,7 @@ So R\* is **predictive**, but mostly **level-typical**, not a personal fingerpri
 
 A narrower search against the same-rating population baseline then found:
 
-**R\*\*** — when the owner is level or slightly ahead and has an under-defended piece, material is lost more often than the population model predicts.
+**R\*\*** — when the owner is level or up to two pawns ahead and has an under-defended piece, material is lost more often than the population model predicts.
 
 That residual is currently the strongest candidate for a player-specific pattern.
 
@@ -145,11 +142,11 @@ The repository has reached a boundary that more historical analysis cannot close
 
 > Does changing the player's decision process reduce the error in future games?
 
-One operation has been frozen for prospective testing:
+One instruction has been frozen as an experimental condition for prospective testing:
 
-> Before committing a move when one of your pieces is attacked more times than it is defended, visualize the position after the intended move. Do not leave one of your pieces under-defended unless the move gives check or wins something larger.
+> Before committing a move, when any own piece has more attackers than defenders, look at the position after the intended move: no own piece may have more attackers than defenders unless the move wins something bigger or gives check; otherwise choose again.
 
-This is currently an **intervention hypothesis**, not a recommendation whose effectiveness has been established.
+The protocol delivers that sentence before a session, never in-game. It is currently an **intervention hypothesis**, not a recommendation whose effectiveness has been established.
 
 The frozen field protocol compares that instruction with a matched sham condition over new rated blitz games.
 
@@ -235,7 +232,7 @@ Examples include:
 
 A green test that has never been demonstrated red under the defect it claims to detect is not treated as sufficient evidence of discrimination.
 
-The current build carries **35 repository gates**, each paired with a deliberate positive control.
+The current build carries **35 repository gates**, each paired with a deliberate positive control. The synchronized gate inventory lives in [`docs/GATES.md`](docs/GATES.md); the README intentionally does not duplicate it.
 
 For the full assurance history and measurements, use the documents below rather than this README.
 
@@ -248,6 +245,7 @@ For the full assurance history and measurements, use the documents below rather 
 | Document | Purpose |
 | --- | --- |
 | [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md) | Measurement results, corpora and methods |
+| [`docs/GATES.md`](docs/GATES.md) | Synchronized catalog of repository gates and deliberate controls |
 | [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | Current product-debt register |
 | [`docs/FINDINGS.md`](docs/FINDINGS.md) | Product findings and retained failures |
 | [`docs/INERTIAL_UX_LAWS.md`](docs/INERTIAL_UX_LAWS.md) | Interaction-state laws |
@@ -288,6 +286,8 @@ Requires **Node.js 24.x**.
 npm install
 npm run dev
 ```
+
+`npm run dev` starts the development application, but the Stockfish WASM engine does **not** run correctly in dev: Vite rewrites the asset URL with a query string that the Stockfish loader cannot parse. Use a production build when exercising the engine.
 
 Production build:
 
