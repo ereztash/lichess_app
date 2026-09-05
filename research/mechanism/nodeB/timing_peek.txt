@@ -1,0 +1,4 @@
+Timing run, design v1.1, residual OBS search on DERIVE only (31,851 decisions, 1,297 games), 13:20 UTC 2026-09-05.
+depth 1: eval_trend_2ply>=100 (n=4252, q=3.858); material_balance:[-2:0[ (n=9445, q=2.765); own_prev_wp_loss>=0.10 (n=4372, q=2.323)
+depth 2: eval_trend_2ply>=100 AND n_good_captures<1 (n=2184, q=4.995); n_good_captures<1 AND own_prev_wp_loss>=0.03 (n=9454, q=4.709)
+depth 3: n_good_captures<1 AND own_castling==0 AND plies_since_own_error<6 (n=9502, q=5.769)

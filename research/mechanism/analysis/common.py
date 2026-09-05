@@ -1,0 +1,161 @@
+"""
+Shared analysis utilities. Design-independent pieces only:
+
+  * eligibility (the product's own rule: not forced, not book, seconds and clock present),
+  * chronological game ordering and split assignment by GAME (never by decision),
+  * game-clustered bootstrap,
+  * the shuffle null (permute targets WITHIN game, so game structure is untouched),
+  * the region judge: error-rate contrast inside vs outside a region with a clustered SE.
+
+Every split ratio, threshold and rule that bears on an outcome is passed in explicitly and must be
+frozen in research/mechanism/MISSION_LEDGER.md before the outcome-bearing run.
+"""
+from __future__ import annotations
+import numpy as np
+import pandas as pd
+
+ACCURATE_WIN_PROBABILITY_LOSS = None  # filled from features module at import
+
+
+def _acc_threshold():
+    global ACCURATE_WIN_PROBABILITY_LOSS
+    if ACCURATE_WIN_PROBABILITY_LOSS is None:
+        import math
+        k = 0.00368208
+        wp = lambda cp: 1 / (1 + math.exp(-k * cp))
+        ACCURATE_WIN_PROBABILITY_LOSS = wp(15) - wp(-15)
+    return ACCURATE_WIN_PROBABILITY_LOSS
+
+
+def load_decisions(path: str, corpus: str | None = "erez281") -> pd.DataFrame:
+    df = pd.read_parquet(path)
+    if corpus is not None and "corpus" in df.columns:
+        df = df[df["corpus"] == corpus].copy()
+    df["err"] = 1 - df["y_accurate"]
+    df["blunder10"] = (df["y_wp_loss"] >= 0.10).astype(int)
+    df["blunder20"] = (df["y_wp_loss"] >= 0.20).astype(int)
+    # the product clamps think time at zero (Lichess lag compensation can make a clock rise)
+    df["seconds"] = df["seconds"].clip(lower=0)
+    df["log_seconds"] = np.log1p(df["seconds"].astype(float))
+    df["clock_under_60s"] = (df["clock_own_ms"] < 60000).astype(float)
+    # observable history: material change since the player's previous decision (same game, previous own ply)
+    df = df.sort_values(["game_id", "ply"])
+    prev_mat = df.groupby("game_id")["material_balance"].shift(1)
+    prev_ply = df.groupby("game_id")["ply"].shift(1)
+    df["material_change_2ply"] = np.where(prev_ply == df["ply"] - 2, df["material_balance"] - prev_mat, np.nan)
+    df["own_lost_material"] = (df["material_change_2ply"] < 0).astype(float).where(df["material_change_2ply"].notna())
+    df["own_won_material"] = (df["material_change_2ply"] > 0).astype(float).where(df["material_change_2ply"].notna())
+    df = df.sort_index()
+    return df
+
+
+def eligible(df: pd.DataFrame) -> pd.DataFrame:
+    """The product's eligibility: forced and book positions are not decisions; a decision needs a
+    think time and a clock reading (`import-diagnostic.ts`)."""
+    m = (df["forced"] == 0) & (df["book"] == 0) & df["seconds"].notna() & df["clock_own_ms"].notna()
+    return df[m].copy()
+
+
+def game_order(df: pd.DataFrame) -> pd.DataFrame:
+    """Chronological index per game (0 = oldest)."""
+    g = df.groupby("game_id")["createdAt"].first().sort_values()
+    order = {gid: i for i, gid in enumerate(g.index)}
+    df = df.copy()
+    df["game_order"] = df["game_id"].map(order)
+    df["n_games"] = len(order)
+    return df
+
+
+def chronological_split(df: pd.DataFrame, derive_frac: float, validate_frac: float) -> pd.DataFrame:
+    """Assign DERIVE / VALIDATE / TEST by game order. Frozen fractions must be recorded in the ledger."""
+    df = game_order(df)
+    n = df["n_games"].iloc[0]
+    d_end = int(round(n * derive_frac)); v_end = int(round(n * (derive_frac + validate_frac)))
+    df["split"] = np.where(df["game_order"] < d_end, "DERIVE", np.where(df["game_order"] < v_end, "VALIDATE", "TEST"))
+    return df
+
+
+def game_bootstrap_indices(games: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """Resample games with replacement; return a game-id array."""
+    u = np.unique(games)
+    return rng.choice(u, size=len(u), replace=True)
+
+
+def resample_by_game(df: pd.DataFrame, rng: np.random.Generator) -> pd.DataFrame:
+    picked = game_bootstrap_indices(df["game_id"].values, rng)
+    parts = [df[df["game_id"] == g] for g in picked]
+    return pd.concat(parts, ignore_index=True)
+
+
+def shuffle_within_game(df: pd.DataFrame, target: str, rng: np.random.Generator) -> pd.DataFrame:
+    """The shuffle null: permute the target inside each game. Feature/target relations vanish;
+    game composition, sample sizes and the search itself are untouched (GATE-SHUFFLE discipline)."""
+    df = df.copy()
+    df[target] = df.groupby("game_id")[target].transform(lambda s: rng.permutation(s.values))
+    return df
+
+
+def clustered_rate_se(y: np.ndarray, groups: np.ndarray) -> tuple[float, float]:
+    """Mean and cluster-robust SE of a binary rate with clusters = games."""
+    y = np.asarray(y, float)
+    if len(y) == 0:
+        return np.nan, np.nan
+    p = y.mean()
+    df = pd.DataFrame({"y": y, "g": groups})
+    agg = df.groupby("g")["y"].agg(["sum", "count"])
+    # linearised score: sum over clusters of (sum_i (y_i - p))^2 / n^2
+    resid = agg["sum"] - p * agg["count"]
+    G = len(agg)
+    var = (resid ** 2).sum() / (len(y) ** 2)
+    if G > 1:
+        var *= G / (G - 1)
+    return p, float(np.sqrt(var))
+
+
+def region_contrast(df: pd.DataFrame, mask: np.ndarray, target: str) -> dict:
+    """Error rate inside vs outside `mask`, with game-clustered SEs and a z for the difference."""
+    inside = df[mask]; outside = df[~mask]
+    p_in, se_in = clustered_rate_se(inside[target].values, inside["game_id"].values)
+    p_out, se_out = clustered_rate_se(outside[target].values, outside["game_id"].values)
+    diff = p_in - p_out
+    se = np.sqrt(se_in ** 2 + se_out ** 2)
+    return {"n_in": int(mask.sum()), "n_out": int((~mask).sum()), "p_in": p_in, "p_out": p_out,
+            "diff": diff, "se": se, "z": diff / se if se > 0 else np.nan,
+            "games_in": int(inside["game_id"].nunique())}
+
+
+def within_game_demean(df: pd.DataFrame, col: str) -> pd.Series:
+    """Subtract each game's own mean: what is left is decision-level structure inside games."""
+    return df[col] - df.groupby("game_id")[col].transform("mean")
+
+
+def within_game_contrast(df: pd.DataFrame, mask: np.ndarray, col: str) -> dict:
+    """Game-fixed-effects contrast of `col` inside vs outside `mask`.
+
+    Each game with decisions on both sides contributes d_g = mean_in - mean_out with weight
+    w_g = n_in * n_out / (n_in + n_out); estimate = sum(w d) / sum(w); the SE treats games as the
+    independent units. Game composition (a bad game, a strong opponent, a fast time control) cancels
+    by construction, which is what a decision-level mechanism must survive.
+    """
+    d = pd.DataFrame({"g": df["game_id"].values, "y": df[col].values, "m": np.asarray(mask, bool)})
+    agg = d.groupby(["g", "m"])["y"].agg(["mean", "count"]).unstack("m")
+    if agg.shape[1] < 2 or True not in agg["count"].columns or False not in agg["count"].columns:
+        return {"n_games": 0, "est": np.nan, "se": np.nan, "z": np.nan, "n_in": int(d.m.sum()), "n_out": int((~d.m).sum())}
+    both = agg.dropna(subset=[("count", True), ("count", False)])
+    if len(both) < 2:
+        return {"n_games": int(len(both)), "est": np.nan, "se": np.nan, "z": np.nan, "n_in": int(d.m.sum()), "n_out": int((~d.m).sum())}
+    n_in = both[("count", True)].values; n_out = both[("count", False)].values
+    dg = both[("mean", True)].values - both[("mean", False)].values
+    w = n_in * n_out / (n_in + n_out)
+    est = float((w * dg).sum() / w.sum())
+    G = len(dg)
+    var = float((w ** 2 * (dg - est) ** 2).sum() / (w.sum() ** 2)) * (G / (G - 1))
+    se = float(np.sqrt(var))
+    return {"n_games": int(G), "est": est, "se": se, "z": est / se if se > 0 else np.nan,
+            "n_in": int(d.m.sum()), "n_out": int((~d.m).sum()), "n_in_paired": int(n_in.sum()), "n_out_paired": int(n_out.sum())}
+
+
+def jaccard(a: np.ndarray, b: np.ndarray) -> float:
+    a = np.asarray(a, bool); b = np.asarray(b, bool)
+    u = (a | b).sum()
+    return float((a & b).sum() / u) if u else 1.0
