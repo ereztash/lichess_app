@@ -180,10 +180,23 @@ jobs:
       # number of retries that is honest would. Ordering is what survives it: with the audit last,
       # a sustained outage costs the audit and nothing else.
       #
-      # NOTHING IS WEAKENED BY THE MOVE. Every step still runs, the job still fails if the audit
-      # fails, and the audit is still as strict as it was. The only cost is that a real advisory is
-      # reported at the end of the job instead of the start, which is ten minutes later on a run
-      # that was going to be read by a person anyway.
+      # THE MOVE ON ITS OWN WOULD HAVE WEAKENED IT, and the `if:` below is why it does not. A step
+      # with no status condition is implicitly gated on `success()`, so once this one is last, a red
+      # Typecheck, Build, Test, Gates or Bundle budget SKIPS it. That trades "an outage costs every
+      # signal" for "any failing check costs the security signal" -- a different loss, not a smaller
+      # one, and on the runs where a person most wants to know what the tree ships. `!cancelled()`
+      # is the whole fix: the audit runs after earlier failures while still running last. Not
+      # `always()`, which would also run it on a cancelled job and make a cancel take four minutes
+      # to take effect.
+      #
+      # The audit does not need the build, the tests or the gates to have passed: it reads the
+      # dependency tree that `Install dependencies` put on disk. If THAT is the step that failed
+      # then this one fails too, and the job was red either way.
+      #
+      # SO NOTHING IS WEAKENED. Every step still runs, the job still fails if the audit fails, and
+      # the audit is still as strict as it was. The only cost is that a real advisory is reported at
+      # the end of the job instead of the start, which is ten minutes later on a run that was going
+      # to be read by a person anyway.
       #
       # WHY THE FIVE-MINUTE STALL: `npm config get fetch-timeout` is 300000, and each failure took
       # exactly five minutes. `--fetch-timeout=60000` is why three attempts now cost less wall
@@ -197,6 +210,7 @@ jobs:
       # IT IS NOT UNFAILABLE. Three failures still end in `::error::` and a red job. What changes
       # is that a red job now means the endpoint is genuinely gone rather than momentarily busy.
       - name: Audit the dependencies this build ships
+        if: ${{ !cancelled() }}
         run: |
           for attempt in 1 2 3; do
             if out=$(npm audit --omit=dev --audit-level=high --fetch-timeout=60000 2>&1); then

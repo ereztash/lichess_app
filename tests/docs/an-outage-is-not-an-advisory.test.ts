@@ -14,6 +14,12 @@
  * step is now last and why the assertion below is about the order rather than merely permitting
  * it.
  *
+ * AND WHY LAST IS NOT ENOUGH EITHER. A step with no status condition is implicitly gated on
+ * `success()`, so the move alone would have made a red Typecheck, Build, Test, Gates or Bundle
+ * budget SKIP the audit. That is a different loss rather than a smaller one, and it lands on
+ * exactly the runs where what the tree ships is worth knowing. Caught in review rather than by a
+ * run, so it is pinned below as its own assertion.
+ *
  * WHY THIS FILE EXISTS RATHER THAN TRUST IN THE COMMENT. A retry loop that cannot tell an outage
  * from a vulnerability is strictly worse than no loop: it would swallow the finding the step is
  * for, three times, and then go green on the fourth if the endpoint hiccupped at the right moment.
@@ -39,15 +45,16 @@ import { afterAll, describe, expect, it } from "vitest";
  */
 const source = readFileSync(".github/workflows/verify-build.yml", "utf8");
 
-/** Every `- name:` step, in file order, with its `run: |` block dedented. */
-function stepsOf(yaml: string): { name: string; run: string }[] {
-  const out: { name: string; run: string }[] = [];
+/** Every `- name:` step, in file order, with its `if:` and its `run: |` block dedented. */
+function stepsOf(yaml: string): { name: string; condition?: string; run: string }[] {
+  const out: { name: string; condition?: string; run: string }[] = [];
   const lines = yaml.split("\n");
   for (let i = 0; i < lines.length; i += 1) {
     const named = /^(\s*)- name: (.+)$/.exec(lines[i]);
     if (!named) continue;
     const [, indent, name] = named;
     const body: string[] = [];
+    let condition: string | undefined;
     let j = i + 1;
     let inRun = false;
     let runIndent = "";
@@ -55,6 +62,8 @@ function stepsOf(yaml: string): { name: string; run: string }[] {
       const line = lines[j];
       if (new RegExp(`^${indent}- `).test(line)) break;
       if (!inRun) {
+        const cond = /^\s*if: (.+)$/.exec(line);
+        if (cond) { condition = cond[1].trim(); continue; }
         const oneLine = /^\s*run: (?!\|)(.+)$/.exec(line);
         if (oneLine) { body.push(oneLine[1]); break; }
         if (/^\s*run: \|\s*$/.test(line)) {
@@ -66,7 +75,7 @@ function stepsOf(yaml: string): { name: string; run: string }[] {
       if (line.trim() !== "" && !line.startsWith(runIndent)) break;
       body.push(line.slice(runIndent.length));
     }
-    out.push({ name, run: body.join("\n") });
+    out.push({ name, condition, run: body.join("\n") });
   }
   return out;
 }
@@ -150,6 +159,24 @@ describe("the audit step", () => {
         `the audit runs before ${name} again, so an npm outage costs that signal too`,
       ).toBeGreaterThan(at);
     }
+  });
+
+  /*
+   * THE OTHER HALF OF THE ORDER. Last plus `success()` is a step that never runs on a red commit;
+   * last plus `!cancelled()` is a step that always reports. `always()` is admitted here as the only
+   * other condition that survives a failure, though the workflow prefers `!cancelled()`: `always()`
+   * would keep auditing through a cancelled job and make a cancel take four minutes to land.
+   */
+  it("still runs when an earlier step has already failed", () => {
+    expect(
+      audit!.condition,
+      "the audit step has no `if:`, so Actions gates it on success() and any red step skips it",
+    ).toBeTruthy();
+    const gate = audit!.condition!.replace(/^\$\{\{|\}\}$/g, "").replace(/\s+/g, "");
+    expect(
+      ["!cancelled()", "always()"],
+      `the audit is gated on \`${audit!.condition}\`, which does not survive an earlier failure`,
+    ).toContain(gate);
   });
 
   it("keeps the flags that decide what it asks about", () => {
