@@ -36,4 +36,13 @@ jobs:
             --owner-scored research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst \
             --population-scored research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst \
             --out /tmp/rstarstar_provenance_blitz.json
-          echo "RESULT_FILE=/tmp/rstarstar_provenance_blitz.json"
+      - name: Execute persistent-liability follow-up
+        run: |
+          set -euo pipefail
+          python research/mechanism/analysis/rstarstar_persistent_followup.py \
+            --owner research/mechanism/data/decisions_erez281.parquet \
+            --population research/mechanism/data/decisions_population_2026-06.parquet \
+            --owner-scored research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst \
+            --population-scored research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst \
+            --out /tmp/rstarstar_persistent_followup.json
+          echo "RESULT_FILE=/tmp/rstarstar_persistent_followup.json"
