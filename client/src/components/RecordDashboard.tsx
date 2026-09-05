@@ -708,20 +708,30 @@ const MIX_LABEL: Record<OneThingKind, string> = {
  */
 function MixBlock({ mix }: { mix: OneThingMix }) {
   /*
-   * THE HEADING DEPENDS ON WHETHER THE TOOL ACTUALLY SPOKE, and until now it did not.
+   * THE HEADING NAMES ITS REFERENT, AND IT USED TO NAME THE WRONG ONE. "מה הכלי אמר לכם עד כה" is
+   * a claim about the past: these are the sentences you were shown. Two separate facts make it one
+   * this panel cannot support.
    *
-   * `mix.n` counts decisions the ENGINE ANSWERED for. "מה הכלי אמר לכם" is a claim about a person
-   * having been told. On a deferred game those are different sets: `reveal-timing.ts` holds the
-   * verdict to the end of the game while the engine runs during play, so the panel distributed
-   * decisions across four sentences the player had never read and headed the list with a claim
-   * that they had.
+   * THE FIRST IS WHO WAS TOLD. `mix.n` counts decisions the ENGINE ANSWERED for, and on a deferred
+   * game `reveal-timing.ts` holds the verdict to the end while the engine runs during play. The
+   * panel distributed those across four sentences the player had never read. `mix.withheld` is
+   * what the record can witness of that, and it is named below.
    *
-   * THE SECOND HEADING IS NOT AN APOLOGY AND NOT A LESSER RESULT. The measurement is the same
-   * measurement; what changes is whose fact it is. A reading of the instrument -- which of its four
-   * sentences this record produces -- is exactly what `oneThingMix` was built to be.
+   * THE SECOND IS WHEN IT WAS READ, and it bites even on a coached record where every verdict was
+   * put on the screen. `oneThingMix` recomputes `theOneThing` on stored rows -- deliberately, so
+   * the measurement of the product cannot drift from the product -- with TODAY's branch rules. The
+   * rules have already moved once: `reveal.ts` records that the two confidence cuts "used to be
+   * `confidence >= 4` and `confidence <= 2`, read off the RAW stored level", and a decision stated
+   * at 5 of 7 cleared the old cut and does not clear 65% against `CONFIDENT_ENOUGH_TO_NAME`. Same
+   * row, two classifications, depending only on when it is read.
+   *
+   * SO THE PANEL TAKES OPTION 1 AND SAYS SO. It is the current reading of stored decisions, which
+   * is a real and useful thing; it is not a transcript. The only thing in this repository that
+   * records what was actually put on a screen is `reveal_kind_presented` in the acquisition ledger
+   * -- per-browser, trial-scoped, and behind an import-graph wall from `shared/` -- and it is
+   * evidence about a visit rather than about a record.
    */
-  const spoke = mix.withheld === 0;
-  const title = spoke ? "מה הכלי אמר לכם עד כה" : "מה הכלי מצא בהחלטות שלכם";
+  const title = "מה הכלי מוצא בהחלטות שלכם";
   if (mix.n < MIN_BUCKET_N) {
     return (
       <div className="mix-block">
@@ -735,11 +745,15 @@ function MixBlock({ mix }: { mix: OneThingMix }) {
   return (
     <div className="mix-block">
       <h4 className="dash-title">{title}</h4>
-      {!spoke && (
+      <p className="dash-note" dir="rtl">
+        זו קריאה של ההחלטות השמורות שלכם <strong>לפי ההגדרות של היום</strong>, ולא תיעוד של המשפטים
+        שהופיעו על המסך אז. כללי החשיפה כבר השתנו פעם אחת, ולכן אותה החלטה יכולה להיספר כאן בשורה
+        אחת ולהיות מוצגת בזמנו בשורה אחרת.
+      </p>
+      {mix.withheld > 0 && (
         <p className="dash-note" dir="rtl">
-          הכלי החזיק את המשפטים האלה עד סוף המשחק ב-{mix.withheld} מתוך {mix.n} ההחלטות, ולכן זו
-          רשימה של מה שנמדד ולא של מה שהוצג לכם בזמן אמת. הרשומה יודעת מתי המנוע ענה. היא לא מתעדת
-          מתי, ואם, קראתם את התשובה.
+          ובנוסף, ב-{mix.withheld} מתוך {mix.n} ההחלטות הכלי החזיק את המשפט עד סוף המשחק. הרשומה
+          יודעת מתי המנוע ענה. היא לא מתעדת מתי, ואם, קראתם את התשובה.
         </p>
       )}
       <ul className="bucket-list">

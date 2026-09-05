@@ -487,13 +487,33 @@ export function silenceBasis(inputs: RevealInputs): SilenceBasis {
  * its four sentences the record actually produces -- and it is reported with its denominator and
  * below the same floor as everything else here.
  *
+ * AND IT IS A READING TAKEN NOW, NOT A TRANSCRIPT OF WHAT WAS SHOWN THEN. This calls `theOneThing`
+ * on stored rows, deliberately -- copying the four conditions into the loop would drift the first
+ * time a threshold moved, and then the product and the measurement OF the product would disagree.
+ * The cost of that choice is the referent: a threshold HAS moved, and this file records the move
+ * two hundred lines up -- the two confidence cuts "used to be `confidence >= 4` and
+ * `confidence <= 2`, read off the RAW stored level". A decision stated at 5 of 7 cleared the old
+ * cut and does not clear `CONFIDENT_ENOUGH_TO_NAME`, so one unchanged row lands in
+ * `confident-and-wrong` when read then and `outplayed` when read now.
+ *
+ * SO THIS IS "WHAT YOUR STORED DECISIONS COME TO UNDER THE DEFINITION IN FORCE NOW", and a caller
+ * may not render it as "what the tool told you". The only thing in this repository that records
+ * what was actually put on a screen is `reveal_kind_presented` in the acquisition ledger, which is
+ * per-browser trial evidence about a VISIT, is never re-derived, and sits behind an import-graph
+ * wall from `shared/`. Nothing here reaches for it, and a claim of the second kind would need it.
+ *
  * THE DIRECTION OF THE INFERENCE, carried from `candidate_moves_considered`. A move IS in that
  * list only if it was physically put on the board. A player who weighed four moves in their head
  * and touched one leaves a list of length one. So `chose-past-it` is a LOWER bound on "saw it and
  * chose past it", never an estimate, and the same asymmetry it already states per decision.
  */
 export interface OneThingMix {
-  /** Decisions the engine has answered. Nothing here can be computed before a reveal. */
+  /**
+   * Decisions the engine has answered. Nothing here can be computed before a reveal.
+   *
+   * NOT "decisions the player was shown". See `withheld` below: on a deferred game the engine
+   * answers during play and the verdict is held back, so `n` is a producer count throughout.
+   */
   n: number;
   counts: Record<OneThingKind, number>;
   /** Decisions where the measurement supported no sentence. A valid outcome, counted as one. */

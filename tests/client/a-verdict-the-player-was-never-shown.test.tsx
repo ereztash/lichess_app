@@ -137,11 +137,13 @@ describe("a stored verdict is not a verdict the player was shown", () => {
     expect(reading.mix.withheld).toBe(MIN_BUCKET_N);
 
     render(<RecordDashboard reading={reading} />);
-    expect(
-      screen.queryByText(/מה הכלי אמר לכם עד כה/),
-      "claims the tool spoke to a player it was holding its verdicts from",
-    ).toBeNull();
-    expect(screen.getByText(/הכלי החזיק את המשפטים האלה עד סוף המשחק/)).toBeTruthy();
+    /*
+     * The panel says what the record can witness: the engine answered, and on these decisions the
+     * rule held the sentence back. (The HEADING no longer claims presentation on any record --
+     * that is F4's separate reason, and its own test pins it.)
+     */
+    expect(screen.getByText(/הכלי החזיק את המשפט עד סוף המשחק/)).toBeTruthy();
+    expect(screen.getByText(/היא לא מתעדת מתי, ואם, קראתם את התשובה/)).toBeTruthy();
   });
 
   it("does not call a verdict nobody was shown a decision that was revealed", async () => {
@@ -178,8 +180,9 @@ describe("a stored verdict is not a verdict the player was shown", () => {
     expect(reading.mix.withheld).toBe(0);
 
     render(<RecordDashboard reading={reading} />);
-    expect(screen.getByText(/מה הכלי אמר לכם עד כה/)).toBeTruthy();
-    expect(screen.queryByText(/הכלי החזיק את המשפטים האלה עד סוף המשחק/)).toBeNull();
+    // Nothing was held back, so the sentence that says something was does not appear.
+    expect(screen.queryByText(/הכלי החזיק את המשפט עד סוף המשחק/)).toBeNull();
+    expect(document.querySelector(".mix-block")).not.toBeNull();
   });
 
   it("keeps `result` as scoring completion, which is the reading it can carry", async () => {
