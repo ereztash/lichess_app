@@ -330,6 +330,33 @@
       ]
      ],
      "seconds": 355.8
+    },
+    {
+     "world": "W7-equivalent",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count>=1 AND own_overloaded_piece_count>=1",
+       20
+      ],
+      [
+       "own_attacked_piece_count>=1 AND own_hanging_piece_count>=1",
+       16
+      ],
+      [
+       "own_hanging_piece_count>=1 AND own_prev_spent_s<15",
+       2
+      ]
+     ],
+     "seconds": 3448.4
     }
    ]
   }

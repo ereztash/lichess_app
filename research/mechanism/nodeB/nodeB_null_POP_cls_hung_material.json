@@ -59,6 +59,21 @@
      "seconds": 40.5
     }
    ]
+  },
+  {
+   "depth": 2,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 30,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 247.1
+    }
+   ]
   }
  ]
 }
