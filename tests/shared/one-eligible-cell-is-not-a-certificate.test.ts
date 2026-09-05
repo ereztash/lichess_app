@@ -27,7 +27,7 @@
  *   certify; the same record plus ONE correct decision stated at 95% does not.
  *
  * SO THE FLAG IS MONOTONE AND THE QUALIFICATION IS A QUANTITY. `reliable` is `some` -- it only
- * turns on -- and `unreadableShare` reports how much of the displayed figure rests on levels too
+ * turns on -- and `unreadableN`, against `n`, reports how much of the record rests on levels too
  * thin to read. The acceptance criterion is about certification WITHOUT QUALIFICATION, and a
  * measured share is the qualification, so no number had to be invented to produce one.
  */
@@ -100,10 +100,9 @@ describe("a global reliability flag is not earned by one eligible level", () => 
      * QUALIFICATION. This is the qualification, and it is measured rather than chosen.
      */
     const score = calibrationScore(record);
-    expect(score.unreadableShare).not.toBeNull();
-    expect(score.unreadableShare!).toBeGreaterThan(0.99);
-    // With its denominator, which is what makes it renderable at all under R1.
+    // Half the reading sits on a level one decision short of the floor, and it says so.
     expect(score.unreadableN).toBe(MIN_BUCKET_N - 1);
+    expect(score.unreadableN / score.n).toBeGreaterThan(0.49);
   });
 
   it("reports no share at all once every level the player used cleared the floor", () => {
@@ -113,7 +112,6 @@ describe("a global reliability flag is not earned by one eligible level", () => 
      */
     const enough = [...eligible, ...many(7, MIN_BUCKET_N, 0, 100)];
     expect(calibrationScore(enough).reliable).toBe(true);
-    expect(calibrationScore(enough).unreadableShare).toBe(0);
     expect(calibrationScore(enough).unreadableN).toBe(0);
     // And the single-level record the existing suite already certifies is untouched.
     expect(calibrationScore(many(6, MIN_BUCKET_N, 24, 0)).reliable).toBe(true);
@@ -142,12 +140,8 @@ describe("a global reliability flag is not earned by one eligible level", () => 
     }
   });
 
-  it("reports nothing to discount when there is no number to apportion", () => {
-    /*
-     * NULL RATHER THAN 0. A perfectly calibrated record has `reliability` 0, and "0% of it rests on
-     * thin levels" reads as a clean bill of health on a question nobody could ask.
-     */
-    expect(calibrationScore([]).unreadableShare).toBeNull();
+  it("reports nothing to discount on an empty record", () => {
+    expect(calibrationScore([]).unreadableN).toBe(0);
     expect(calibrationScore([]).levels).toEqual([]);
     expect(calibrationScore([]).reliable).toBe(false);
   });

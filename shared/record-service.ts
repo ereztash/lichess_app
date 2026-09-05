@@ -2068,9 +2068,36 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * about the record rather than a policy.
    */
   const admitted = new Set(ids);
+  const order = new Map(allIds.map((id, index) => [id, index]));
   const latestId = [...allIds].reverse().find((id) => admitted.has(id));
   const currentRegime = describedStrata.find((stratum) => stratum.ids.includes(latestId ?? ""));
   const currentId = currentRegime ? stratumId(currentRegime.key) : null;
+  /*
+   * A CLEAN SUCCESSION, WHICH IS NOT THE SAME AS BEING LATEST, and the difference is the whole of
+   * the second repair to this chooser.
+   *
+   * `current` was the regime of the LAST ADMITTED ROW, and reveal timing is chosen per game -- so a
+   * player who alternates modes moved it on every decision. Measured on 200 coached decisions all
+   * accurate beside 30 deferred ones none accurate, one further decision at a time: n=30 at 0%,
+   * n=201 at 100%, n=31 at 0%, n=202 at 100%. Every number on the page swinging between two
+   * populations, forever, because both were being written into.
+   *
+   * A PROTOCOL BUMP RETIRES THE OLD REGIME and a mode switch does not. That is the fact the record
+   * already holds: after a bump no row lands in the old protocol again, so every one of its
+   * decisions precedes the first of the new one. Two modes in alternating use interleave. Arrival
+   * order is guaranteed -- `listAtoms` and `listDecisionIds` are ordered and append-only -- so this
+   * needs no window, no constant, and nothing about outcomes.
+   */
+  const firstOf = (stratum: { ids: string[] }) =>
+    Math.min(...stratum.ids.map((id) => order.get(id) ?? Infinity));
+  const lastOf = (stratum: { ids: string[] }) =>
+    Math.max(...stratum.ids.map((id) => order.get(id) ?? -Infinity));
+  const currentBegan = currentRegime ? firstOf(currentRegime) : Infinity;
+  const succeedsCleanly =
+    currentRegime !== undefined &&
+    describedStrata.every(
+      (stratum) => stratum === currentRegime || lastOf(stratum) < currentBegan,
+    );
   /*
    * THE FALLBACK ORDER, USED WHILE THE REGIME IN FORCE IS STILL TOO SMALL TO READ. Ties by id, so
    * the same record always yields the same reading rather than one that depends on write order.
@@ -2111,10 +2138,15 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * nothing below: switching to a regime the page could not read yet would trade a stale number
    * for silence, which is not the trade. So the staleness is bounded by 30 decisions instead of by
    * the length of the record, and `regime.current` says which of the two states the reader is in.
+   *
+   * AND ONLY ON A CLEAN SUCCESSION, per `succeedsCleanly` above. When two regimes are both being
+   * written into, neither is "in force", every choice between them is arbitrary, and choosing by
+   * recency makes the page oscillate. The largest is then the stable answer and the one that does
+   * not depend on which mode the player happened to open last.
    */
   const current = scoredStrata.find((s) => s.id === currentId);
   const [chosen, ...rest] =
-    current && current.summary.scored.length >= MIN_BUCKET_N
+    succeedsCleanly && current && current.summary.scored.length >= MIN_BUCKET_N
       ? [current, ...largestFirst.filter((s) => s.id !== current.id)]
       : largestFirst;
   /*

@@ -80,12 +80,19 @@ is validated at one point. Record size, protocol version, reveal mode, engine bu
 were all constant in the fixtures that proved F1 through F4, and every one of them moves in
 production.
 
-**This is the search the next run should run**, and it is narrower than "look for lost distinctions
-again". The question is not *where is a distinction lost*. It is: **which decision introduced to
-preserve a distinction creates a failure somewhere else?** Its population is the decisions this
-branch added — `stratify`, the regime chooser, `unreadableShare`, `verdictWithheldWhenComputed`, the
-`{measured, answered}` split, `regime.current` — and its yield is unknown, which is what makes it
-worth running rather than reasoning about.
+**This search was then run**, on the six decisions the repairs added — `stratify`, the regime
+chooser, `unreadableShare`, `verdictWithheldWhenComputed`, the `{measured, answered}` split,
+`regime.current`. Two of the six failed it, and both are the same shape as the family they closed.
+
+| | second-order failure | measured | closed by |
+| --- | --- | --- | --- |
+| ☑ | **S1** `unreadableShare` was a ratio of squared errors, so it moved with the number it qualified rather than with the cells it described | 3 decisions of 403, unchanged, reported as 100% / 96% / 86% / 60% / 27% / 9% / 2% as the big levels' error grew — loudest for the best-calibrated reader — and as exactly nothing when 28 decisions sat on a thin cell that happened to be right | the count of decisions on unreadable cells against `n`, which depends on nothing else |
+| ☑ | **S2** `regime.current` was the regime of the LAST ROW, and reveal timing is chosen per game | 200 coached decisions beside 30 deferred: n=30 at 0%, n=201 at 100%, n=31 at 0%, n=202 at 100%, one decision at a time, forever | recency decides only on a CLEAN SUCCESSION — every row of the displaced regime preceding the first of the new one, which a protocol bump produces and an alternation does not |
+
+Both were found by question 3. F2's counterexample held the big levels at essentially zero error, so
+the ratio read as intended at that one point and was degenerate everywhere else; F1's held 120 rows
+under one protocol followed cleanly by 40 under the next, so nothing interleaved and recency looked
+like succession. **Neither test was wrong. Both were single points.**
 
 **Two thresholds were considered and neither moved.** `MIN_BUCKET_N` is untouched and F2 is phrased
 with it rather than beside it — the alternative, a rule about what SHARE of an aggregate may come
@@ -230,7 +237,7 @@ which was `BUILD_READY` and was a noun.
 What is true, and it is the whole of what the evidence supports: F1 through F4 each carry a
 counterexample that was red before its repair and green after, each carries a positive control that
 would fail if the repair were a refusal to say anything, all 35 gates pass, all 35 positive controls
-go red under deliberate break, `npm run check`, `build`, `test` (3,079) and `bundle:budget` are
+go red under deliberate break, `npm run check`, `build`, `test` (3,085) and `bundle:budget` are
 green, and no threshold, detector semantic, denominator or probe moved.
 
 What is not true is that this authorises the sentence the file used to end with. **The 2026-09-03
@@ -242,18 +249,20 @@ as a fact about what is there.
 
 So the honest form is narrower and is falsifiable:
 
-`FOUR FAMILIES CLOSED ON f1315d7 — CEILING NOT RE-DECLARED`
+`FOUR FAMILIES CLOSED, TWO SECOND-ORDER FAILURES CLOSED — CEILING NOT RE-DECLARED`
 
-**And the first two repairs for them were falsified in turn**, on the same tree, by measurement
-rather than by review. That is not an argument that the work is unsound; it is the strongest
+**Four repairs for them were falsified in turn** — `every` and "the largest" by review, then
+`unreadableShare` and `regime.current` by the search this file names — on the same tree, by
+measurement rather than by reading. That is not an argument that the work is unsound; it is the strongest
 available argument that a green tree is not evidence of an absent finding, which is the exact
 inference this file made on 2026-09-03 and is being asked not to make again.
 
-**What would authorise a re-declaration.** A run against **second-order repair failures** —
-defined above, with its two shapes and its third question, over the decisions this branch introduced
-— returning no novelty that changes an action. Not a repeat of the search that found F1 through F4:
-that search is spent on this tree, and the two things it missed were both downstream of its own
-repairs.
+**What would authorise a re-declaration.** Not the second-order run: it has been made, it returned
+two findings, and both are closed. What it would take now is that run repeated over the decisions
+S1 and S2 themselves introduced — the record-share count and the clean-succession test — returning
+no novelty that changes an action. **That is the third round, and this file has no evidence about
+it.** The first round found four, the second found two; nothing here says the sequence terminates,
+and "it got smaller" is a reading of a search rather than a fact about the tree.
 
 **And a run returning nothing is still not the sentence.** It would say a second search stopped
 finding things, which is exactly what three orthogonal runs said on 2026-09-03 before a fourth found
