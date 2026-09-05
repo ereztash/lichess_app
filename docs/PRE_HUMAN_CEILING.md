@@ -32,8 +32,8 @@ fixing, not before declaring.**
 
 | | family | the illegal inference | closed by | reversed by |
 | --- | --- | --- | --- | --- |
-| ☑ | **F1** provenance preserved, then lost at aggregation | a set of decisions from two measurement regimes read as one population | [`tests/shared/a-reading-that-pooled-two-regimes.test.ts`](../tests/shared/a-reading-that-pooled-two-regimes.test.ts) — `forDescriptiveHistory` and `forAnchorReference` return strata; `recordReading` reads one and reports the rest | a reading whose `n` spans two `stratumId`s |
-| ☑ | **F2** local eligibility read as global certification | one confidence level over `MIN_BUCKET_N` certifying a decomposition mostly made of levels under it | [`tests/shared/one-eligible-cell-is-not-a-certificate.test.ts`](../tests/shared/one-eligible-cell-is-not-a-certificate.test.ts) — `reliable` is `every`, not `some` | `reliable` true while any used level is under the floor |
+| ☑ | **F1** provenance preserved, then lost at aggregation | a set of decisions from two measurement regimes read as one population | [`tests/shared/a-reading-that-pooled-two-regimes.test.ts`](../tests/shared/a-reading-that-pooled-two-regimes.test.ts) — `forDescriptiveHistory` and `forAnchorReference` return strata; `recordReading` reads the regime in force once it clears `MIN_BUCKET_N`, the largest until then, and reports the rest | a reading whose `n` spans two `stratumId`s |
+| ☑ | **F2** local eligibility read as global certification | one confidence level over `MIN_BUCKET_N` certifying a decomposition mostly made of levels under it | [`tests/shared/one-eligible-cell-is-not-a-certificate.test.ts`](../tests/shared/one-eligible-cell-is-not-a-certificate.test.ts) — `reliable` is `some` and `unreadableShare` reports how much of the figure rests on cells too thin to read | a displayed decomposition with no share beside it |
 | ☑ | **F3** producer completion read as consumer exposure | `atom.result !== null` spent as "the player was shown this" | [`tests/client/a-verdict-the-player-was-never-shown.test.tsx`](../tests/client/a-verdict-the-player-was-never-shown.test.tsx) — `verdictWithheldWhenComputed`, and `OneThingMix.withheld` beside `n` | a record surface counting stored verdicts as things a player saw |
 | ☑ | **F4** historical event reconstructed with current semantics | "מה הכלי אמר לכם עד כה" computed by re-running today's branch rules on old rows | [`tests/client/what-the-tool-says-now-is-not-what-it-said-then.test.ts`](../tests/client/what-the-tool-says-now-is-not-what-it-said-then.test.ts) — the page states which of the two readings it is, held there by a source-level assertion | the mix block using the vocabulary of past presentation |
 
@@ -42,6 +42,21 @@ control that fails if the repair were "stop aggregating anything": two regimes s
 regime still aggregates; a short level blocks certification *and* thirty at every used level still
 certifies; a deferred verdict is not exposure *and* a coached one still reads as the tool speaking;
 today's classification is not a transcript *and* is still correct under today's rule.
+
+**Both first repairs were themselves falsified, and that is the most useful row in this section.**
+F2 first shipped `reliable = every used level clears the floor` — the obvious generalisation of
+`BucketReading.measurable`, needing no new constant, killing its counterexample outright. Simulated
+on four confidence distributions at 4,000 records each, it certified on **0.0%** of concentrated
+records at every size up to 2,000 and 2.0% at 4,000; and it is **not monotone** — 60 decisions
+across two levels certify, the same record plus ONE correct decision stated at 95% does not. An
+instrument that unanswers a question because it was given more evidence is not stricter, it is
+broken. F1 first shipped "read the largest regime", reused from `discoverySearchPopulation` without
+re-deriving it: largest is not latest, so after a bump to `CURRENT_PROTOCOL_VERSION` a
+120-against-40 record read the **retired** protocol at 100% accuracy for 81 more decisions.
+
+Neither was caught by the tests written for the family it repaired. Both were caught by asking, of
+each repair, what a realistic record does to it — which is the same move that produced F1 through F4
+and is the only reason to keep making it.
 
 **Two thresholds were considered and neither moved.** `MIN_BUCKET_N` is untouched and F2 is phrased
 with it rather than beside it — the alternative, a rule about what SHARE of an aggregate may come
@@ -199,6 +214,11 @@ as a fact about what is there.
 So the honest form is narrower and is falsifiable:
 
 `FOUR FAMILIES CLOSED ON f1315d7 — CEILING NOT RE-DECLARED`
+
+**And the first two repairs for them were falsified in turn**, on the same tree, by measurement
+rather than by review. That is not an argument that the work is unsound; it is the strongest
+available argument that a green tree is not evidence of an absent finding, which is the exact
+inference this file made on 2026-09-03 and is being asked not to make again.
 
 **What would authorise a re-declaration.** A discovery run designed to be orthogonal to all four of
 these — one that searches for substituted referents rather than for defects — returning no novelty

@@ -2077,24 +2077,50 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * showing them decisions they had just revealed. The scored count is still a count of rows, not
    * of outcomes, so nothing about the answer enters the choice.
    */
-  const [chosen, ...rest] = [...scoredStrata].sort(
-    (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
-  );
   /*
-   * WHICH REGIME THE RECORD IS STILL WRITING INTO, which is not always the one being read.
-   *
-   * The rule above is "the largest", and largest is not latest: a bump to
-   * `CURRENT_PROTOCOL_VERSION` starts a new stratum at zero while the retired one holds the
-   * player's whole history, so the page reads the retired protocol until the new one overtakes it.
-   * That is a real state -- measured at 120 decisions under version 4 against 40 under version 5 --
-   * and whether the preference should change is a decision about what the product measures. This
-   * only makes the state SAYABLE: `listDecisionIds` is ordered and append-only, so the regime of
-   * the last admitted decision is the one in force, as a fact about the record rather than a policy.
+   * WHICH REGIME THE RECORD IS STILL WRITING INTO. `listAtoms` and `listDecisionIds` are ordered
+   * and append-only, so the regime of the last admitted decision is the one in force -- a fact
+   * about the record rather than a policy.
    */
   const admitted = new Set(ids);
   const latestId = [...allIds].reverse().find((id) => admitted.has(id));
   const currentRegime = describedStrata.find((stratum) => stratum.ids.includes(latestId ?? ""));
   const currentId = currentRegime ? stratumId(currentRegime.key) : null;
+  const largestFirst = [...scoredStrata].sort(
+    (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
+  );
+  /*
+   * THE CURRENT REGIME AS SOON AS IT CAN BE READ, AND THE LARGEST UNTIL THEN.
+   *
+   * "THE LARGEST" ALONE WAS FALSIFIED HERE, and the measurement is the reason this rule differs
+   * from `discoverySearchPopulation`'s. Largest is not latest: a bump to
+   * `CURRENT_PROTOCOL_VERSION` -- already at 4, so three have happened -- starts a stratum at zero
+   * while the retired one holds the player's whole history. Measured at 120 decisions under
+   * version 4 against 40 under version 5, this page reported n=120 at 100% accuracy from a
+   * protocol that was no longer running, and would have gone on for 81 more decisions. The
+   * staleness is automatic, it fires for every player on every bump, and it lasts in proportion to
+   * how much history the player has -- worst for the players with most reason to trust the number.
+   *
+   * WHY THIS CONSUMER DIFFERS FROM DISCOVERY. `discoverySearchPopulation` chooses a population to
+   * SEARCH for a hypothesis, and a contrast found under a retired protocol is still a hypothesis.
+   * This page answers "what does my record say", which is a description of a player under
+   * conditions that hold. A retired protocol is a worse answer than a smaller current one.
+   *
+   * IT IS STILL ANSWER-BLIND, which is the property that must not be lost. Both terms -- how many
+   * rows a regime has scored, and which regime the record is currently appending to -- are decided
+   * before anything is read, from counts and arrival order. Neither can select the regime that
+   * happens to contain a flattering number.
+   *
+   * `MIN_BUCKET_N` RATHER THAN A NEW CONSTANT, and it is the floor this reading already answers
+   * nothing below: switching to a regime the page could not read yet would trade a stale number
+   * for silence, which is not the trade. So the staleness is bounded by 30 decisions instead of by
+   * the length of the record, and `regime.current` says which of the two states the reader is in.
+   */
+  const current = scoredStrata.find((s) => s.id === currentId);
+  const [chosen, ...rest] =
+    current && current.summary.scored.length >= MIN_BUCKET_N
+      ? [current, ...largestFirst.filter((s) => s.id !== current.id)]
+      : largestFirst;
   /*
    * The counts stay over the WHOLE described record, and a sum over a partition is the number it
    * was before. They answer "why is the rest of what you recorded not in this reading", which is a

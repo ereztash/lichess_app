@@ -36,8 +36,18 @@ import { protocolOf, type ProtocolKey } from "./measurement-protocol.js";
  * would produce under another, so "the endgame gap" is not one quantity across a change here.
  * Anything that stores a finding stores this number beside it, and a comparison across two
  * versions has to say it is making one.
+ *
+ * 3 -> 4: THE DESCRIPTIVE READING PREFERS THE REGIME IN FORCE. "The largest" was falsified for that
+ * consumer -- after a bump to `CURRENT_PROTOCOL_VERSION` the largest regime is the retired one, and
+ * a 120-against-40 record read the retired protocol at 100% accuracy for 81 more decisions. The
+ * search population is untouched: `discoverySearchPopulation` still takes the largest, because it
+ * chooses what to form a hypothesis over rather than what to describe.
+ *
+ * NOTHING PERSISTS THIS NUMBER TODAY, so the bump is a marker rather than a migration. It is worth
+ * making anyway: the day a stored finding does carry it, the version has to already mean what it
+ * says, and a version that only moves when someone remembers to move it means nothing.
  */
-export const EVIDENCE_POLICY_VERSION = 3;
+export const EVIDENCE_POLICY_VERSION = 4;
 
 /**
  * The analyses that read observations. One entry per consumer, not per screen: two screens

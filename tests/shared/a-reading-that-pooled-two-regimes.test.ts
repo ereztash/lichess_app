@@ -22,6 +22,7 @@ import * as service from "../../shared/record-service";
 import { CONFIDENCE_LEVELS } from "../../shared/confidence";
 import { classifyPhase } from "../../shared/phase";
 import { ANCHOR_POSITIONS } from "../../shared/anchor-set";
+import { MIN_BUCKET_N } from "../../shared/detector";
 import type { RevealTiming } from "../../shared/reveal-timing";
 
 const FREE_PLAY = "r2q1rk1/pp2bppp/2n1bn2/3pp3/3PP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 0 12";
@@ -114,12 +115,17 @@ describe("the record page reads one population, not a mixture of regimes", () =>
 
     const reading = await service.recordReading(store);
 
-    expect(reading.scored, "both regimes entered one reading").toBe(35);
-    expect(reading.overall.accuracyRate).toBe(1);
-    expect(reading.calibration.n).toBe(35);
+    /*
+     * 30, AND THE 30 IS THE DEFERRED ARM. The wall is that the two do not pool; which of them is
+     * read is the separate rule below -- the regime in force once it clears the floor -- and here
+     * the deferred decisions are the ones the record is still being written into.
+     */
+    expect(reading.scored, "both regimes entered one reading").toBe(30);
+    expect(reading.overall.accuracyRate).toBe(0);
+    expect(reading.calibration.n).toBe(30);
     // Not silently gone: named, counted, and reportable -- R1's rule for any denominator that shrank.
     expect(reading.setAside).toEqual([
-      { id: "legacy@legacy/end-of-game/sf18-test-build", n: 30 },
+      { id: "legacy@legacy/per-decision/sf18-test-build", n: 35 },
     ]);
   });
 
@@ -222,43 +228,85 @@ describe("the reading says which regime it is of, and whether that regime is sti
     }
   };
 
-  it("names the retired protocol as not current when the largest regime is the old one", async () => {
+  it("reads the protocol in force rather than the larger retired one", async () => {
     /*
-     * MEASURED, NOT REASONED. 120 decisions under version 4, all accurate; 40 under version 5, none
-     * accurate. The page reads n=120 at 100% -- a protocol that is no longer running -- and goes on
-     * saying it for 81 more decisions. The number is right about its own population; nothing on the
-     * screen said which population that was.
+     * THE COUNTEREXAMPLE THAT FALSIFIED "THE LARGEST", MEASURED. 120 decisions under version 4, all
+     * accurate; 40 under version 5, none accurate. The page read n=120 at 100% -- a protocol that
+     * is no longer running -- and would have gone on saying it for 81 more decisions, because
+     * largest is not latest and a bump starts the new stratum at zero.
+     *
+     * The staleness is automatic, fires for every player on every bump, and lasts in proportion to
+     * how much history the player has: worst for the players with most reason to trust the number.
      */
     const store = new MemoryRecordStore();
     await underVersion(store, 4, 120, true);
     await underVersion(store, 5, 40, false);
 
     const reading = await service.recordReading(store);
-    expect(reading.scored).toBe(120);
-    expect(reading.overall.accuracyRate).toBe(1);
-    expect(reading.regime?.id).toBe("instrumented-standard@4/per-decision/sf18-test-build");
-    expect(reading.regime?.current, "a retired protocol reported as the one in force").toBe(false);
+    expect(reading.scored, "the retired protocol was read over the one in force").toBe(40);
+    expect(reading.overall.accuracyRate).toBe(0);
+    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build");
+    expect(reading.regime?.current).toBe(true);
+    // The history is not gone. It is named, counted, and not averaged into a regime it is not in.
     expect(reading.setAside).toEqual([
-      { id: "instrumented-standard@5/per-decision/sf18-test-build", n: 40 },
+      { id: "instrumented-standard@4/per-decision/sf18-test-build", n: 120 },
     ]);
   });
 
-  it("calls the regime current when the one being read is the one being written", async () => {
-    // The positive control: no bump, so the largest regime is also the latest, and nothing is stale.
+  it("keeps reading the larger regime while the new one is still too small to read", async () => {
+    /*
+     * THE OTHER HALF OF THE RULE, and the reason it is `MIN_BUCKET_N` rather than "always the
+     * latest". One decision under a new protocol must not replace a readable record with silence:
+     * that trades a stale number for no number, which is not the trade. Until the new regime clears
+     * the floor this reading answers nothing below, the old one is read AND SAID TO BE OLD.
+     */
+    const store = new MemoryRecordStore();
+    await underVersion(store, 4, 120, true);
+    await underVersion(store, 5, MIN_BUCKET_N - 1, false);
+
+    const reading = await service.recordReading(store);
+    expect(reading.scored).toBe(120);
+    expect(reading.regime?.id).toBe("instrumented-standard@4/per-decision/sf18-test-build");
+    expect(reading.regime?.current, "a retired protocol reported as the one in force").toBe(false);
+  });
+
+  it("switches the moment the new regime reaches the floor, not when it overtakes", async () => {
+    // Thirty, not a hundred and twenty-one. The staleness is bounded by the floor rather than by
+    // the length of the record, which is the whole difference the falsification bought.
+    const store = new MemoryRecordStore();
+    await underVersion(store, 4, 120, true);
+    await underVersion(store, 5, MIN_BUCKET_N, false);
+
+    const reading = await service.recordReading(store);
+    expect(reading.scored).toBe(MIN_BUCKET_N);
+    expect(reading.regime?.current).toBe(true);
+  });
+
+  it("calls the regime current when nothing has bumped at all", async () => {
+    // The positive control: one regime, so the latest and the largest are the same population.
     const store = new MemoryRecordStore();
     await underVersion(store, 4, 40, true);
     const reading = await service.recordReading(store);
+    expect(reading.scored).toBe(40);
     expect(reading.regime?.current).toBe(true);
     expect(reading.setAside).toEqual([]);
   });
 
-  it("calls it current once the new protocol overtakes the old one", async () => {
-    // And the state resolves by itself, which is what makes it a wait rather than a defect.
-    const store = new MemoryRecordStore();
-    await underVersion(store, 4, 40, true);
-    await underVersion(store, 5, 41, false);
-    const reading = await service.recordReading(store);
-    expect(reading.regime?.id).toBe("instrumented-standard@5/per-decision/sf18-test-build");
-    expect(reading.regime?.current).toBe(true);
+  it("is decided before anything is read, so it cannot pick the flattering regime", async () => {
+    /*
+     * THE PROPERTY THAT MUST SURVIVE THE CHANGE. Both terms -- how many rows a regime has scored,
+     * and which regime the record is appending to -- are counts and arrival order. Flip every
+     * outcome and the same regime is chosen.
+     */
+    const good = new MemoryRecordStore();
+    await underVersion(good, 4, 120, true);
+    await underVersion(good, 5, 40, true);
+    const bad = new MemoryRecordStore();
+    await underVersion(bad, 4, 120, false);
+    await underVersion(bad, 5, 40, false);
+
+    expect((await service.recordReading(good)).regime?.id).toBe(
+      (await service.recordReading(bad)).regime?.id,
+    );
   });
 });
