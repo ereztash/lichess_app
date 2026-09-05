@@ -298,6 +298,22 @@
      drawn with no warning colour. */
   --raise: #fdfbf4;
   --accent-soft: #2f6072;
+  /*
+   * THE SAME TWO RECESSIVE ROLES, FOR TEXT PAINTED ON THE INVERTED GROUND.
+   *
+   * `.analysis-hero` sets `background: var(--ink)`, which is the OPPOSITE of the page in whichever
+   * theme is running. Every token above was chosen against the page, so a recessive one painted in
+   * there is being asked to recede against a ground nobody measured it on. Measured with axe on the
+   * built app, one disclosure past the reveal: `.analysis-kicker` at `--accent-soft` was 2.36:1 and
+   * a `.value-provenance` at `--muted` was 2.46:1, against the 4.5:1 1.4.3 asks of body text.
+   *
+   * NO NEW COLOUR. Each value here is the OTHER theme's value for the same role, because the hero
+   * is an island of the other theme -- which is exactly what inverting the ground makes it. Light:
+   * 8.75:1 and 6.62:1. Dark: 5.39:1 and 5.17:1. `--edge` was moved once already for the same class
+   * of reason, a control measured on a card and then put on the page.
+   */
+  --accent-soft-on-ink: #a4c3ca;
+  --muted-on-ink: #9aa8a4;
   --warn: #a8412c;
 
   /* ==== THE SEMANTIC LAYER =================================================================
@@ -527,6 +543,9 @@
   --surface-machine: #1e2a2f;
   --action-hover: #d2cec3;
   --accent-soft: #a4c3ca;
+  /* The pair above, the other way round: in this theme `--ink` is the LIGHT one. */
+  --accent-soft-on-ink: #2f6072;
+  --muted-on-ink: #50605c;
   --warn: #e08a7a;
   --last-move: rgba(232, 120, 96, 0.45);
   /* Same two poles re-stepped for the dark surface, validated there too: ΔE 24.1 / 19.8. */
@@ -2156,7 +2175,7 @@ button:not(:disabled) {
 .analysis-kicker {
   display: flex;
   gap: var(--s2);
-  color: var(--accent-soft);
+  color: var(--accent-soft-on-ink);
   font: var(--panel-fine) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
 }
 .score-row {
@@ -2264,7 +2283,14 @@ button:not(:disabled) {
 .layer-action {
   border: 1px solid var(--edge);
   background: transparent;
-  color: var(--edge);
+  /*
+   * THE BORDER MAY BE `--edge` AND THE LABEL MAY NOT. `--edge` carries a measurement against 1.4.11,
+   * which asks 3:1 of a non-text boundary, and its own note records the move from #7c8b86 for
+   * exactly that. This is 16px bold TEXT, which 1.4.3 asks 4.5:1 of -- large-text relief starts at
+   * 18.66px bold -- and it measured 3.35:1 on `--paper`. `--muted` is the text role and is 5.22:1
+   * light, 7.24:1 dark. The border keeps `--edge`, which is the rule it was measured for.
+   */
+  color: var(--muted);
 }
 .layer-block {
   padding: 11px 0;
@@ -2658,6 +2684,11 @@ button:not(:disabled) {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* Inside the hero the ground is inverted, so the recessive role is too. Scoped rather than global:
+   every other `.value-provenance` on the page is on the page's own ground and measures 4.5:1 there. */
+.analysis-hero .value-triple .value-provenance {
+  color: var(--muted-on-ink);
+}
 .value-triple .value-fraction {
   /* The last size in the file that was not on the scale. `em` slipped the document-level check,
      whose regex names px/rem/pt -- so the check names em now too. */
@@ -2695,7 +2726,14 @@ button:not(:disabled) {
   font-style: normal;
   vertical-align: super;
   margin-inline-start: 2px;
-  opacity: 0.55;
+  /*
+   * `opacity: 0.55` was here, which is the first of the two shapes this file records as the cause
+   * of the twenty-seven, and says was removed. It composites the foreground into whatever is behind
+   * it: measured at 3.36:1 on `--surface-machine`, five nodes, one disclosure past the reveal.
+   * It recedes by rank now -- eleven pixels, superscript, a colour of its own -- at 4.79:1 light
+   * and 6.04:1 dark.
+   */
+  color: var(--muted);
 }
 .pv-note {
   font-size: var(--panel-label);

@@ -147,6 +147,50 @@ describe("the states past a commit, audited by the same engine as the routes", (
     await commitOneDecision(page);
     audits.set("REVEAL", await runAxe(page, ".reveal-panel"));
 
+    /*
+     * ONE DISCLOSURE FURTHER, AND THIS FILE'S OWN HEADER IS THE ARGUMENT FOR IT.
+     *
+     * It was written because the route audit *"stopped one click short"* of twenty-eight
+     * violations, and it says in as many words that a suite passing because it never reached the
+     * state *"is the same failure with a longer fuse"*. It then stopped one DISCLOSURE short.
+     *
+     * `.explore-toggle` mounts `RecordExplorer` in place, which is the only render site of
+     * `AnalysisPanel` -- so `.analysis-hero`, `.analysis-kicker` and `.pv-depth` exist in no other
+     * state, and none of the five states audited before this line contained a single node of any of
+     * the three. Measured, not assumed: a class census in every audited state returned 0/0/0.
+     *
+     * The marker is `.analysis-hero` rather than the toggle, because what has to be true is that
+     * the panel MOUNTED, not that the button was pressed.
+     */
+    await page.locator(".explore-toggle").click();
+    await page.locator(".analysis-hero").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(1200);
+    audits.set("EXPLORER", await runAxe(page, ".analysis-hero"));
+
+    /*
+     * AND THE SAME STATE IN THE OTHER THEME, because the fix for it is theme-PAIRED and a rule that
+     * lives in two places gets repaired in one.
+     *
+     * `.analysis-hero` sets `background: var(--ink)`, which is the opposite of the page in whichever
+     * theme is running -- so the recessive tokens painted in there are `--accent-soft-on-ink` and
+     * `--muted-on-ink`, each holding the OTHER theme's value for the same role. A light-only audit
+     * would have covered exactly half of that, which is this file's own complaint about the route
+     * audit that came before it.
+     *
+     * ONLY THIS STATE, deliberately. Whether every audited state should run in both themes is a
+     * bigger claim than this file makes; what is asserted here is that the state whose fix is a
+     * theme pair is measured on both halves of the pair.
+     */
+    await page.evaluate(() => localStorage.setItem("theme", "dark"));
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator("[data-square]").first().waitFor({ timeout: 30_000 });
+    await commitOneDecision(page);
+    await page.locator(".explore-toggle").click();
+    await page.locator(".analysis-hero").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(1200);
+    audits.set("EXPLORER-DARK", await runAxe(page, ".analysis-hero"));
+    await page.evaluate(() => localStorage.setItem("theme", "light"));
+
     /* The record, read back, which is the state that held twenty-seven of the twenty-eight. */
     await page.goto(`${origin}/`, { waitUntil: "networkidle" });
     await page.waitForTimeout(2500);
@@ -164,7 +208,7 @@ describe("the states past a commit, audited by the same engine as the routes", (
       );
   }, 600_000);
 
-  it("actually reached both states, so a green result cannot mean a walk that stopped early", () => {
+  it("actually reached every state, so a green result cannot mean a walk that stopped early", () => {
     /*
      * THE FLOOR, AND IT IS THE WHOLE POINT OF THIS FILE. Every assertion below is vacuous if the
      * commit silently failed: no reveal panel, no finding card, an empty violations array, green.

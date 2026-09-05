@@ -690,6 +690,29 @@ const INDEX = `${ROOT}/index.html`;
  * 688 AND 777 LEAVE 0.9 AND 0.7 kB, the same headroom the two raises above took, and deliberately
  * not more: the merge spends the two increments it can attribute and buys nothing on top of them.
  * The gzip ceiling is untouched at 216 against 215.4, because it did not fire.
+ *
+ * ---
+ *
+ * 777 -> 778: EIGHT SERIOUS CONTRAST FAILURES ONE DISCLOSURE PAST THE LAST STATE ANY AXE GATE
+ * REACHED. Measured against the tree immediately before the repair:
+ *
+ *     entry, raw               687.5 -> 687.6 kB   +0.1
+ *     entry, gzipped           215.6 -> 215.6 kB    0.0
+ *     initial download, raw    776.9 -> 777.0 kB   +0.1
+ *
+ * A TENTH OF A KILOBYTE, and it is four token declarations and one scoped rule. `--accent-soft` and
+ * `--muted` were verified against the PAGE and painted inside `.analysis-hero`, which sets
+ * `background: var(--ink)` -- the opposite of the page in whichever theme is running. So the two
+ * roles gain an on-ink pair, and every value in it is the OTHER theme's value for the same role: no
+ * new colour enters the palette, which is why this costs a tenth and not a kilobyte. `.pv-depth`
+ * loses an `opacity` and gains a `color`, which is a wash.
+ *
+ * WHY IT CANNOT BE DEFERRED. `index.css` is one stylesheet on the entry route; there is no chunk to
+ * put a contrast fix in, and a fix that arrives after the paint is not a fix.
+ *
+ * THE ENTRY DID NOT FIRE at 687.6 against 688, so it keeps its number. 778 leaves 1.0 kB, which
+ * matches the 1.1 and 1.0 the raises above took and is deliberately less than the two this file
+ * warns about.
  */
 
 const ENTRY_RAW_KB = 688;
@@ -852,7 +875,7 @@ const ENTRY_GZIP_KB = 216;
  * 0.9 kB.
  */
 
-const INITIAL_RAW_KB = 777;
+const INITIAL_RAW_KB = 778;
 
 interface Asset {
   name: string;
