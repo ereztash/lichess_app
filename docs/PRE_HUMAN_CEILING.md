@@ -1,19 +1,67 @@
 # Pre-human ceiling
 
-**The stopping condition.** Every material uncertainty the repository, its data, an owner decision
-or the production environment is competent to settle has been settled. What remains is either
-external configuration nobody in the tree can perform, or evidence only a person outside this
-project can supply.
+**The stopping condition, as it was written on 2026-09-03:** *"Every material uncertainty the
+repository, its data, an owner decision or the production environment is competent to settle has
+been settled. What remains is either external configuration nobody in the tree can perform, or
+evidence only a person outside this project can supply."*
 
-Two ceilings, and they are not the same. The first is reached; the second needs three things that
-are not code.
+**That sentence was falsified on 2026-09-04**, and it is kept here rather than rewritten because the
+way it failed is the most useful thing in this file. Four repo-native uncertainties were open on the
+tree it was written about. The next section says what they were, what closed them, and why closing
+them does not license saying it again.
+
+Two ceilings, and they are not the same. The second needs four things that are not code.
 
 ---
 
-## REPO PRE-HUMAN CEILING — **REACHED** 2026-09-03
+## The reopening — 2026-09-04
+
+**A ceiling is a claim, and this one was falsified.** The sentence at the top of this file said that
+every material uncertainty the repository is competent to settle had been settled. Four Neta
+falsification runs against `main@f1315d7` found four that had not been, and every one of them is
+repo-native: no environment, no owner and no field evidence was needed to see them or to close them.
+
+**What the saturation reading actually meant.** Three orthogonal discovery runs in a row had
+produced no novelty that changed an action, and that was read as "nothing is left". It is not the
+same statement. Saturation says a search stopped finding things; it says nothing about what a
+different search would find, and the run that came next found four things in one pass. The reading
+that survives is narrower and is worth keeping: **the fourth run was the last one authorised before
+fixing, not before declaring.**
+
+**The four families, what each one substituted for what, and what closed it.**
+
+| | family | the illegal inference | closed by | reversed by |
+| --- | --- | --- | --- | --- |
+| ☑ | **F1** provenance preserved, then lost at aggregation | a set of decisions from two measurement regimes read as one population | [`tests/shared/a-reading-that-pooled-two-regimes.test.ts`](../tests/shared/a-reading-that-pooled-two-regimes.test.ts) — `forDescriptiveHistory` and `forAnchorReference` return strata; `recordReading` reads one and reports the rest | a reading whose `n` spans two `stratumId`s |
+| ☑ | **F2** local eligibility read as global certification | one confidence level over `MIN_BUCKET_N` certifying a decomposition mostly made of levels under it | [`tests/shared/one-eligible-cell-is-not-a-certificate.test.ts`](../tests/shared/one-eligible-cell-is-not-a-certificate.test.ts) — `reliable` is `every`, not `some` | `reliable` true while any used level is under the floor |
+| ☑ | **F3** producer completion read as consumer exposure | `atom.result !== null` spent as "the player was shown this" | [`tests/client/a-verdict-the-player-was-never-shown.test.tsx`](../tests/client/a-verdict-the-player-was-never-shown.test.tsx) — `verdictWithheldWhenComputed`, and `OneThingMix.withheld` beside `n` | a record surface counting stored verdicts as things a player saw |
+| ☑ | **F4** historical event reconstructed with current semantics | "מה הכלי אמר לכם עד כה" computed by re-running today's branch rules on old rows | [`tests/client/what-the-tool-says-now-is-not-what-it-said-then.test.ts`](../tests/client/what-the-tool-says-now-is-not-what-it-said-then.test.ts) — the page states which of the two readings it is, held there by a source-level assertion | the mix block using the vocabulary of past presentation |
+
+Each carries a counterexample that was **red before the repair and green after**, and a positive
+control that fails if the repair were "stop aggregating anything": two regimes stay apart *and* one
+regime still aggregates; a short level blocks certification *and* thirty at every used level still
+certifies; a deferred verdict is not exposure *and* a coached one still reads as the tool speaking;
+today's classification is not a transcript *and* is still correct under today's rule.
+
+**Two thresholds were considered and neither moved.** `MIN_BUCKET_N` is untouched and F2 is phrased
+with it rather than beside it — the alternative, a rule about what SHARE of an aggregate may come
+from ineligible cells, needs a number nothing here has measured. No detector semantics changed, no
+probe was added, and no `FIELD_REQUIRED` question was answered in code.
+
+**What F1 deliberately did not decide.** Progress through the shared bank (`anchorAnswered`) is not
+stratified: it decides which position the front door serves next, and narrowing it to the read
+regime would re-ask a player a position they have already answered because a protocol version moved
+underneath them. Whether an older answer should be re-asked is a question about what the product
+measures. It is an owner decision, it is listed with the other three below, and it is deliberately
+not smuggled into a measurement fix.
+
+---
+
+## REPO PRE-HUMAN CEILING — declared **REACHED** 2026-09-03, reopened 2026-09-04, re-evaluated below
 
 Everything below is closed, each with the check that proves it and the condition that would reopen
-it.
+it. **The 2026-09-03 declaration stands as history and not as a current claim** — the four rows in
+the section above were open on the tree it was made about.
 
 | | item | closed by | reversed by |
 | --- | --- | --- | --- |
@@ -36,8 +84,9 @@ it.
 
 ## What is left, and none of it is code
 
-Three things. Each is `ENVIRONMENT` or `OWNER`, each is verified, and each fails the test *"could a
-technical failure here be misread as an absence of value?"* in the direction that matters.
+Four things. Each is `ENVIRONMENT` or `OWNER`, and the first three each fail the test *"could a
+technical failure here be misread as an absence of value?"* in the direction that matters. The
+fourth is a measurement question F1 raised and deliberately did not answer.
 
 ### 1. `R-21` — `main` deploys before `verify` has run · **highest**
 
@@ -74,6 +123,22 @@ cause.
 the blindness and say so, so that trial-1 stops of unknown cause are read as unknown rather than as
 disinterest.
 
+### 4. Does a bank answer survive a protocol bump? · **new, 2026-09-04** · `OWNER`
+
+F1 walled the shared bank: the between-player reading is now computed over one measurement regime,
+because two answers scored by two engine builds hold nothing fixed and B1 measured 13.61% of
+verdicts flipping across exactly that change. Progress through the set was deliberately left
+unstratified — `anchorAnswered` decides what the front door serves next, and scoping it would re-ask
+a player a position they had already answered.
+
+**Why it is an owner decision and not a repair.** Both answers are defensible and they are about what
+the product measures, not about what the code can do. Re-asking buys a comparable reading under the
+current protocol at the cost of a player's time on a position they have already given. Not re-asking
+keeps their progress and leaves the comparable reading smaller after every bump.
+
+**What closes it.** A sentence, either way. Until then the split above is the conservative reading:
+the comparison is scoped, the progress is not, and nothing silently changes what a player is served.
+
 ---
 
 ## Deliberately not blockers
@@ -90,7 +155,7 @@ Recorded so they are not rediscovered as new findings.
 
 ---
 
-## After those three
+## After those four
 
 Every material uncertainty left is `FIELD_REQUIRED`. These cannot legitimately be reduced further
 without external humans, and each names what it needs.
@@ -116,7 +181,27 @@ which was `BUILD_READY` and was a noun.
 
 ## The one sentence
 
-`REPO PRE-HUMAN CEILING REACHED`. Three external items — a branch ruleset, one rehearsed alias
-rollback, and an owner decision on monitoring — stand between here and
-`FULL PRE-HUMAN CEILING REACHED`. After those, every remaining material uncertainty is
-`FIELD-REQUIRED` and no further internal work is authorised by the evidence.
+**The four families are closed, and the ceiling is not re-declared.**
+
+What is true, and it is the whole of what the evidence supports: F1 through F4 each carry a
+counterexample that was red before its repair and green after, each carries a positive control that
+would fail if the repair were a refusal to aggregate, all 35 gates pass, all 35 positive controls go
+red under deliberate break, `npm run check`, `build`, `test` (3,073) and `bundle:budget` are green,
+and no threshold, detector semantic, denominator or probe moved.
+
+What is not true is that this authorises the sentence the file used to end with. **The 2026-09-03
+declaration was made under the same conditions and was wrong**, and the reason it was wrong is now
+on the record above: three orthogonal discovery runs finding nothing was read as an absence of
+findings. Repeating the declaration from a fourth green tree would be repeating the inference, not
+the evidence — and F1 and F3 are both the same shape as that mistake, a fact about the producer read
+as a fact about what is there.
+
+So the honest form is narrower and is falsifiable:
+
+`FOUR FAMILIES CLOSED ON f1315d7 — CEILING NOT RE-DECLARED`
+
+**What would authorise a re-declaration.** A discovery run designed to be orthogonal to all four of
+these — one that searches for substituted referents rather than for defects — returning no novelty
+that changes an action. That is a run, not a reading of this file. Until it happens, the four
+`ENVIRONMENT` and `OWNER` items above stand between here and `FULL PRE-HUMAN CEILING REACHED`, and
+every remaining material uncertainty beyond them is `FIELD_REQUIRED`.
