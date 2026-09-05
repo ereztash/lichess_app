@@ -645,3 +645,172 @@ quiet errors rise; it is a second structure, not the same one, and it is not pur
 | null | i.i.d. Bernoulli at the game's own rate, 30 draws, depths 1–2 |
 | what R* looks like under this baseline (VALIDATE, blitz) | tactical: residual in R* +1.9 pp vs −0.8 pp outside, within-game +2.8 pp (z 2.66); hung material: +3.2 pp vs −0.7 pp, within-game **+4.3 pp (z 4.78)**; any error: within-game +2.8 pp (z 2.37) |
 | reading | most of R*'s excess is what a same-rating player shows in the same situation; a residue survives for the hung-material class: the owner loses the under-defended piece somewhat more often than the population model predicts for the same pre-move situation |
+
+## Design v1.8 — results (`nodeB/discovery_POP_cls_tactical.json`, `nodeB/discovery_POP_cls_hung_material.json`, `nodeB/nodeB_null_POP_cls_tactical.json`)
+
+Blitz only: DERIVE 26,268 decisions / 1,068 games; VALIDATE 9,589 / 389 games. Null (i.i.d. at the
+game's rate, population residual, 30 draws): 0/30 at depth 1 and 0/30 at depth 2.
+
+**Tactical class.** Depth 1 by CV (3.34 / 2.52 / 2.41). Frozen: `standing=='level'`,
+`material_balance ∈ [0,3)`, `n_good_captures>=1`. On VALIDATE the first two carry a population-
+residual z of 4.2 and 4.1 but no raw within-game elevation (−0.5 pp and +0.02 pp): they say only that
+in level or slightly-ahead positions the owner's tactical-error rate exceeds the population model's
+expectation by about two points, not that those decisions err more than his own other decisions.
+Read as an L0 signal; no region that a player could act on.
+
+**Hung-material class (the piece is lost to the reply).** Depth 2 by CV (2.86 / 3.07 / 2.86). Frozen and
+judged once on VALIDATE:
+
+| region | n_in | hung material in / out | within-game | population-residual within-game | stability (30 bootstraps, J ≥ 0.60) | pass |
+| --- | --- | --- | --- | --- | --- | --- |
+| **R\*\* = `material_balance ∈ [0,3) AND own_overloaded_piece_count >= 1`** | 1,199 | 19.9% / 7.1% | +13.5 pp, z 9.69 | **+6.1 pp, z 4.52** | 80% | yes |
+| `material_balance ∈ [0,3) AND own_overloaded_piece_count == 1` | 1,011 | 18.9% / 7.5% | +11.6 pp, z 8.16 | +5.5 pp, z 3.91 | 77% | yes |
+| `opp_king_ring_enemy_attacks < 1 AND own_overloaded_piece_count >= 1` | 1,419 | 17.7% / 7.2% | +9.9 pp, z 8.36 | +4.1 pp, z 3.60 | 7% | yes |
+
+**Reading.** R\*\* is the personal residue of R*: when the owner is level or up to two pawns ahead and
+one of his pieces has more attackers than defenders, he loses that piece to the reply about six
+points more often than a same-rating player is predicted to in the same pre-move situation, on
+games never used to find the region, with a stable identity. Small next to the level-typical part
+(+13.5 pp raw), real by the frozen bar, and the same trigger family as R*: the population removed
+the word *specific* from R* and gave it back, narrower, to R\*\*.
+
+**Policy signature (DERIVE, inside R*).** When the move leaves any own piece with more attackers
+than defenders, hung material follows in 25.2% of decisions; when it leaves none, 1.8%. The owner's
+moves inside R* leave such a piece 61.9% of the time. This is the quantity the intervention is
+built to move, and the adherence measure of the field test.
+
+## Node J — intervention wording, refined by Node I and the examples
+
+The pre-move trigger stays: a piece of yours has more attackers than defenders. The operation is
+stated on the position AFTER the intended move, because the examples show both failure shapes:
+leaving the attacked piece where it is (`e2xpAe92` move 40, `SRTWLU2T` move 14) and moving a piece
+onto a square where it is under-defended (`VPfUcpOX` move 9):
+
+> "Before you press: look at the board after your move. No piece of yours may have more attackers
+> than defenders, unless the move wins something bigger or gives check. If one does, choose again."
+
+Policy signature = share of trigger decisions whose resulting position has an own under-defended
+piece (baseline 61.9%). Everything else in §Node L is unchanged.
+
+## Cross-context examples (VALIDATE, hung material inside R*, `nodeB/examples_validate.json`)
+
+| decision | context | under-defended piece | played | engine | reply | loss |
+| --- | --- | --- | --- | --- | --- | --- |
+| [e2xpAe92 move 40](https://lichess.org/e2xpAe92#78) | White, Scandinavian, middlegame, winning, 15 s on the clock, 1.6 s think | queen d8 attacked by the queen on a5, undefended | Bh6 | Qxa5 | Qxd8 | 0.85 |
+| [qSVOcX4O move 28](https://lichess.org/qSVOcX4O#54) | White, Danish Gambit, middlegame, winning, 98 s | pawn e6 attacked, undefended | Qa7 | Qf7+ | Qxe6 | 0.70 |
+| [9SXSSwE1 move 20](https://lichess.org/9SXSSwE1#39) | Black, Sicilian, middlegame, winning, 142 s | pawn b7 attacked by the rook; bishop e6 attacked by the pawn | Qf6 | Qxe3+ | fxe6 | 0.68 |
+| [rPhUZhpS move 29](https://lichess.org/rPhUZhpS#57) | Black, Queen's Pawn, middlegame, winning, 65 s | rook f8 and queen g5 both attacked by the knight (a fork) | Qe7 | Qe3+ | Nxf8 | 0.68 |
+| [SRTWLU2T move 14](https://lichess.org/SRTWLU2T#27) | Black, Englund Gambit, rapid, 8 s on the clock, 0.1 s think | bishop f3 attacked by the queen | Rad8 | Bxd1 | Qxf3 | 0.61 |
+| [VPfUcpOX move 9](https://lichess.org/VPfUcpOX#17) | Black, Gunderam Gambit, opening, 176 s | pawn c6 attacked by the knight | Qd7 (onto a square the knight attacks) | Ne7 | Nxd7 | 0.57 |
+
+Six decisions, both colours, five opening families, opening and middlegame, from eight seconds to
+three minutes on the clock: in each, a piece of the owner's had more attackers than defenders before
+the move, the move did not resolve it (or created a new one), and the reply took it.
+
+---
+
+# FINAL REPORT
+
+## BLUF
+
+One recurring, cross-context, pre-move-defined structure in the owner's record predicts his tactical
+errors on games never used to find it and on the newest fifth of his history: **a piece of his has
+more attackers than defenders, and his move does not resolve it.** It is mostly what a 1,650-rated
+blitz player does; a smaller part of it is his own (losing the piece when level or slightly ahead,
+six points above what a same-rating model predicts). One concrete next-game operation follows, with
+a frozen, sham-controlled protocol that only new games can run.
+
+## FINAL STATUS
+
+`FIELD_REQUIRED_FOR_LEVEL_6`
+
+Levels earned: L1 cross-context pattern, L2 predictive candidate, L3 stable (resampling, history
+windows, leave-one-context-out, neighbouring definitions, shipped-engine labels, i.i.d. nulls,
+population baseline), L4 actionable, L5 prospectively testable intervention frozen. L6 needs the
+owner's new games under the protocol.
+
+## THE MECHANISM (strongest permitted wording)
+
+In decisions where one of your pieces has more attackers than defenders and you are not behind by
+more than two pawns, your probability of a tactical error is about eleven points higher than in the
+rest of the same games, beyond what position difficulty, time, context and available free material
+predict; most of those errors lose that piece to the reply, and in seven of ten the move simply
+left it under-defended. This is the typical structure of your rating band. On top of it, when you are
+level or up to two pawns ahead, you lose the under-defended piece about six points more often than a
+same-rating player would in the same situation. No statement about attention, calculation or
+"seeing" is permitted; no statement that any instruction changes this is permitted.
+
+## THE CROSS-CONTEXT EXAMPLES
+
+Six held-out decisions in §Cross-context examples: White and Black; Scandinavian, Danish Gambit,
+Sicilian, Queen's Pawn, Englund, Gunderam; opening and middlegame; 8 s to 176 s on the clock;
+0.1 s to 5 s of thought. In each, a piece had more attackers than defenders before the move, the move
+did not resolve it or created a new one, and the reply took it.
+
+## WHY THEY ARE THE SAME FAMILY
+
+Evidence, not prose: one frozen predicate covers all six; its within-game elevation has the same
+sign in every opening family, colour, phase, speed, standing and clock stratum on VALIDATE
+(`nodeB/invariance_tactical_validate.json`); dropping any one context from derivation returns the
+same predicate (`nodeB/stability_loco_tactical.json`); the error class is the same act (material
+lost to the reply, 77% of the region's hung-material errors capture the flagged piece).
+
+## WHAT SIMPLE EXPLANATIONS WERE KILLED
+
+| explanation | how it died |
+| --- | --- |
+| an opening / colour / phase / clock / era effect | same sign in every stratum; leave-one-context-out returns the same region |
+| position difficulty, think time, standing, context | logistic baseline with engine difficulty, time, phase, standing, speed, colour, ply bins: residual within-game z 8.6 on VALIDATE |
+| "everything is harder than taking free material" | ease covariates in the baseline (design v1.4) |
+| game composition (bad games, strong opponents) | within-game (game-fixed-effects) judge; the earlier between-game judge validated 69% of shuffled nulls and was replaced (v1.3) |
+| sequence artefacts of label-derived history features | hypergeometric permutation null replaced by an i.i.d. null (v1.6); such features removed from the observable vocabulary |
+| engine-evaluation noise shared by feature and target | the trigger is engine-free; the shipped engine keeps 89% of the effect |
+| multiplicity of the search | derive/freeze/judge on unseen games; i.i.d. nulls 0/100 and 0/30 at every depth; shuffled-label p = 0.000 on TEST |
+| "hard for everyone" | measured, not killed: the population shows the same region; the owner is at the 62nd percentile. What survives is the six-point residue on hung material when level or ahead (v1.8) |
+
+## WHAT THE PLAYER SHOULD DO NEXT GAME
+
+One operation. Trigger: a piece of yours has more attackers than defenders. Operation: before you
+press, look at the board after your move; no piece of yours may have more attackers than defenders
+unless the move wins something bigger or gives check; if one does, choose again. Not for every move,
+and not for positions where nothing of yours is under-defended.
+
+## PROSPECTIVE RESULT
+
+None admissible. The only post-exposure data (ten games after the 2026-09-02 OwnExposure sentence,
+65 opportunities, 24.6% vs 14.9%) is uncontrolled and unchanged from baseline; recorded, not read.
+
+## CLAIM BOUNDARY
+
+Forbidden: "tunnel vision", "you don't see attacks", "you calculate less", "you rush", any cognitive
+noun for the region; "this is your signature weakness" (it is the band's); "the instruction will
+reduce your blunders" (FIELD, R6); any number about the field effect before the protocol runs.
+Permitted: §The mechanism above, and the Neta finding `NETA_FINDING.json` (validates against
+`validate_finding.py`, status `FIELD_STOP`).
+
+## RESEARCH LINEAGE
+
+M0 (the six-bucket detector is silent and misattributes) → D04 (a subgroup search recovers planted
+conjunctions at E3; depth trade open) → account bridge (no bucket separable on the whole record) →
+D25 (hold the response predicate constant) → this mission: the owner's 2,209 games re-scored with
+preserved engine lines → widened, leakage-tested pre-move vocabulary → within-game judge → i.i.d.
+null → error-class targets → R* (tactical, VALIDATE and TEST) → population reference (level-typical)
+→ population-baseline search → R\*\* (personal residue) → intervention and frozen protocol.
+External: Lichess API and 2026-06 database, Stockfish 17.1 and the shipped Stockfish 18 Lite WASM,
+pysubgroup 0.9.0, scikit-learn; one web search that returned no controlled effect size.
+
+## ARTIFACTS
+
+`research/mechanism/`: `MISSION_LEDGER.md` (this file), `NETA_FINDING.json`,
+`FIELD_PROTOCOL_TEMPLATE.md`, `pipeline/` (scorer, features, shipped-engine re-score, deep
+re-evaluation, threat measure, drivers), `analysis/` (search, harness, discovery, invariance,
+prediction, population, stability, region description, omitted-check, field evaluation, leakage
+test), `nodeA/` (reader maps, synthesis, verification, descriptives), `nodeB/` (every run's JSON and
+the archived failed designs), `data/` (decision tables for the owner, the population and the
+post-freeze games; compressed engine lines for all three; the shipped-engine VALIDATE re-score;
+manifests and game lists). Commits on `claude/chess-mistake-patterns-stsf7z`, PR #90.
+
+## NEXT PRODUCT STEP
+
+None until L6. The product does not change: no cue, no threshold, no detector semantics. The field
+protocol is the next step, and it runs on the owner's own games with a sentence read before a block.

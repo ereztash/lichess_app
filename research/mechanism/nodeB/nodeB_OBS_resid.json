@@ -1,0 +1,337 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "residual": true,
+ "sweeps": [
+  {
+   "depth": 1,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 100,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 263.1
+    },
+    {
+     "world": "W1-simple",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "opp_last_capture==1",
+       20
+      ],
+      [
+       "opp_last_captured_value: [1:3[",
+       17
+      ],
+      [
+       "opp_last_captured_value>=3",
+       3
+      ]
+     ],
+     "seconds": 65.0
+    },
+    {
+     "world": "W2-interaction",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.06538115607732428,
+     "top_regions": [],
+     "seconds": 67.9
+    },
+    {
+     "world": "W3-cross-context",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 0.9403131115459883,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count: [1:2[",
+       20
+      ],
+      [
+       "own_overloaded_piece_count>=1",
+       20
+      ]
+     ],
+     "seconds": 67.8
+    },
+    {
+     "world": "W4-unrepresentable",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.11660149306789903,
+     "top_regions": [],
+     "seconds": 68.6
+    },
+    {
+     "world": "W6-proxy-contains-truth",
+     "delta": 0.3,
+     "reps": 20,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.04490725675235926,
+     "top_regions": [],
+     "seconds": 69.3
+    },
+    {
+     "world": "W7-equivalent",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count: [1:2[",
+       20
+      ],
+      [
+       "own_overloaded_piece_count>=1",
+       20
+      ]
+     ],
+     "seconds": 68.5
+    },
+    {
+     "world": "W1w-simple-weak",
+     "delta": 0.08,
+     "reps": 20,
+     "validated_rate": 0.95,
+     "on_target_rate": 0.95,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1",
+       19
+      ],
+      [
+       "opp_last_capture==1",
+       18
+      ],
+      [
+       "opp_last_captured_value: [1:3[",
+       3
+      ],
+      [
+       "opp_last_captured_value>=3",
+       1
+      ]
+     ],
+     "seconds": 77.1
+    },
+    {
+     "world": "W3w-cross-context-weak",
+     "delta": 0.08,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 0.9403131115459883,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count: [1:2[",
+       19
+      ],
+      [
+       "own_overloaded_piece_count>=1",
+       19
+      ]
+     ],
+     "seconds": 73.2
+    }
+   ]
+  },
+  {
+   "depth": 2,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 100,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 1116.7
+    },
+    {
+     "world": "W1-simple",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 0.25,
+     "median_best_jaccard": 0.4290135396518375,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1 AND recapture_available==0",
+       20
+      ],
+      [
+       "opp_last_capture==1 AND recapture_available==0",
+       20
+      ],
+      [
+       "opp_last_captured_value>=3 AND recapture_available==0",
+       4
+      ],
+      [
+       "material_change_2ply>=-1 AND opp_last_captured_value>=1",
+       4
+      ]
+     ],
+     "seconds": 283.2
+    },
+    {
+     "world": "W2-interaction",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "clock_own_ms<60000 AND opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "clock_own_ms<60000 AND opp_last_capture==1",
+       20
+      ],
+      [
+       "clock_own_ms: [30000:60000[ AND opp_last_captured_value>=1",
+       20
+      ]
+     ],
+     "seconds": 335.3
+    },
+    {
+     "world": "W3-cross-context",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_check==0 AND own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "in_check==0 AND own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count>=1",
+       12
+      ],
+      [
+       "opp_last_spent_s<15 AND own_hanging_piece_count>=1",
+       4
+      ]
+     ],
+     "seconds": 389.5
+    },
+    {
+     "world": "W4-unrepresentable",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.09206112525007018,
+     "top_regions": [],
+     "seconds": 402.1
+    },
+    {
+     "world": "W6-proxy-contains-truth",
+     "delta": 0.3,
+     "reps": 20,
+     "validated_rate": 0.1,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.030039189068042982,
+     "top_regions": [
+      [
+       "recapture_available==1 AND standing=='winning'",
+       1
+      ],
+      [
+       "opp_queen==0 AND recapture_available==1",
+       1
+      ]
+     ],
+     "seconds": 355.8
+    }
+   ]
+  }
+ ]
+}

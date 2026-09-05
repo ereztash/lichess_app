@@ -1,0 +1,472 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": false
+ },
+ "vocab": "OBS",
+ "residual": false,
+ "sweeps": [
+  {
+   "depth": 1,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 100,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 93.0
+    },
+    {
+     "world": "W1-simple",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "opp_last_capture==1",
+       20
+      ],
+      [
+       "own_lost_material==1",
+       17
+      ],
+      [
+       "opp_last_captured_value>=3",
+       3
+      ]
+     ],
+     "seconds": 32.0
+    },
+    {
+     "world": "W2-interaction",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 0.05,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.0769825918762089,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1",
+       1
+      ],
+      [
+       "opp_last_capture==1",
+       1
+      ]
+     ],
+     "seconds": 33.9
+    },
+    {
+     "world": "W3-cross-context",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 0.9403131115459883,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count: [1:2[",
+       20
+      ],
+      [
+       "own_overloaded_piece_count>=1",
+       20
+      ]
+     ],
+     "seconds": 34.2
+    },
+    {
+     "world": "W4-unrepresentable",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.12058930473041965,
+     "top_regions": [],
+     "seconds": 36.0
+    },
+    {
+     "world": "W6-proxy-contains-truth",
+     "delta": 0.3,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "recapture_available==1",
+       20
+      ],
+      [
+       "opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "own_lost_material==1",
+       19
+      ],
+      [
+       "opp_last_capture==1",
+       1
+      ]
+     ],
+     "seconds": 32.1
+    },
+    {
+     "world": "W7-equivalent",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count: [1:2[",
+       20
+      ],
+      [
+       "own_overloaded_piece_count>=1",
+       20
+      ]
+     ],
+     "seconds": 32.4
+    },
+    {
+     "world": "W1w-simple-weak",
+     "delta": 0.08,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "opp_last_capture==1",
+       20
+      ],
+      [
+       "opp_last_captured_value>=3",
+       7
+      ],
+      [
+       "own_lost_material==1",
+       4
+      ]
+     ],
+     "seconds": 34.2
+    },
+    {
+     "world": "W3w-cross-context-weak",
+     "delta": 0.08,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 0.9403131115459883,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count: [1:2[",
+       19
+      ],
+      [
+       "own_overloaded_piece_count>=1",
+       19
+      ]
+     ],
+     "seconds": 34.8
+    }
+   ]
+  },
+  {
+   "depth": 2,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 100,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 901.2
+    },
+    {
+     "world": "W1-simple",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "opp_last_capture==1",
+       16
+      ],
+      [
+       "opp_last_capture==1 AND opp_last_captured_value>=1",
+       16
+      ],
+      [
+       "opp_last_captured_value>=1 AND opp_last_spent_s<15",
+       3
+      ]
+     ],
+     "seconds": 218.0
+    },
+    {
+     "world": "W2-interaction",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "clock_own_ms<60000 AND opp_last_captured_value>=1",
+       20
+      ],
+      [
+       "clock_own_ms<60000 AND opp_last_capture==1",
+       20
+      ],
+      [
+       "clock_own_ms: [30000:60000[ AND opp_last_captured_value>=1",
+       20
+      ]
+     ],
+     "seconds": 200.4
+    },
+    {
+     "world": "W3-cross-context",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_check==0 AND own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "in_check==0 AND own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count>=1",
+       14
+      ],
+      [
+       "opp_last_check==0 AND own_hanging_piece_count: [1:2[",
+       4
+      ]
+     ],
+     "seconds": 192.9
+    },
+    {
+     "world": "W4-unrepresentable",
+     "delta": 0.25,
+     "reps": 20,
+     "validated_rate": 0.05,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": 0.10431444440894228,
+     "top_regions": [
+      [
+       "opp_king_ring_enemy_attacks>=1 AND own_passed>=1",
+       1
+      ]
+     ],
+     "seconds": 210.3
+    },
+    {
+     "world": "W6-proxy-contains-truth",
+     "delta": 0.3,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "recapture_available==1",
+       20
+      ],
+      [
+       "opp_last_captured_value>=1 AND recapture_available==1",
+       19
+      ],
+      [
+       "opp_last_capture==1 AND recapture_available==1",
+       14
+      ],
+      [
+       "clock_frac>=0.10 AND recapture_available==1",
+       4
+      ]
+     ],
+     "seconds": 292.0
+    },
+    {
+     "world": "W7-equivalent",
+     "delta": 0.2,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "own_hanging_piece_count>=1",
+       20
+      ],
+      [
+       "own_hanging_piece_count>=1 AND own_overloaded_piece_count>=1",
+       20
+      ],
+      [
+       "own_attacked_piece_count>=1 AND own_hanging_piece_count>=1",
+       18
+      ],
+      [
+       "own_hanging_piece_count>=1 AND own_prev_spent_s<15",
+       1
+      ]
+     ],
+     "seconds": 306.7
+    },
+    {
+     "world": "W1w-simple-weak",
+     "delta": 0.08,
+     "reps": 20,
+     "validated_rate": 1.0,
+     "on_target_rate": 1.0,
+     "median_best_jaccard": 0.9725338491295938,
+     "top_regions": [
+      [
+       "opp_last_captured_value>=1 AND opp_last_spent_s<15",
+       10
+      ],
+      [
+       "opp_last_captured_value>=1 AND standing=='winning'",
+       9
+      ],
+      [
+       "opp_last_capture==1 AND standing=='winning'",
+       9
+      ],
+      [
+       "opp_last_capture==1 AND opp_last_spent_s<15",
+       5
+      ]
+     ],
+     "seconds": 319.4
+    },
+    {
+     "world": "W3w-cross-context-weak",
+     "delta": 0.08,
+     "reps": 20,
+     "validated_rate": 0.9,
+     "on_target_rate": 0.8,
+     "median_best_jaccard": 1.0,
+     "top_regions": [
+      [
+       "opp_last_check==0 AND own_hanging_piece_count>=1",
+       15
+      ],
+      [
+       "in_check==0 AND own_hanging_piece_count>=1",
+       10
+      ],
+      [
+       "own_hanging_piece_count>=1 AND standing=='winning'",
+       9
+      ],
+      [
+       "own_hanging_piece_count>=1 AND own_prev_spent_s<15",
+       3
+      ]
+     ],
+     "seconds": 341.0
+    }
+   ]
+  },
+  {
+   "depth": 3,
+   "worlds": [
+    {
+     "world": "W5-null",
+     "delta": 0.0,
+     "reps": 100,
+     "validated_rate": 0.0,
+     "on_target_rate": 0.0,
+     "median_best_jaccard": null,
+     "top_regions": [],
+     "seconds": 3618.9
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,237 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS+ENG",
+ "target": "err",
+ "cv_depth": {
+  "1": {
+   "mean_z": 7.426604979926482,
+   "zs": [
+    8.858592833241305,
+    7.753115478192049,
+    7.003688251790044,
+    7.57998549263667,
+    5.937642843772343
+   ],
+   "regions": [
+    "opp_last_blunder==1",
+    "opp_last_blunder==1",
+    "opp_last_blunder==1",
+    "opp_last_blunder==1",
+    "opp_last_blunder==1"
+   ]
+  },
+  "2": {
+   "mean_z": 6.4639950758005496,
+   "zs": [
+    6.364827561847114,
+    6.73144053157241,
+    7.763185079587005,
+    5.704914199627164,
+    5.755608006369055
+   ],
+   "regions": [
+    "best_capture==0 AND recapture_available==1",
+    "best_capture==0 AND recapture_available==1",
+    "best_capture==0 AND recapture_available==1",
+    "best_capture==0 AND recapture_available==1",
+    "best_capture==0 AND recapture_available==1"
+   ]
+  },
+  "3": {
+   "mean_z": 7.686409598139093,
+   "zs": [
+    6.521015332948459,
+    7.091612504745668,
+    8.994704450509415,
+    8.416015078846433,
+    7.408700623645484
+   ],
+   "regions": [
+    "best_capture==0 AND own_overloaded_piece_count<2 AND recapture_available==1",
+    "best_is_recapture==0 AND gap12>=0.01 AND opp_last_blunder==1",
+    "best_is_recapture==0 AND gap12>=0.01 AND opp_last_blunder==1",
+    "best_is_recapture==0 AND gap12>=0.01 AND opp_last_blunder==1",
+    "best_is_recapture==0 AND gap12>=0.01 AND opp_last_blunder==1"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [
+  {
+   "region": "gap12>=0.01 AND opp_last_blunder==1",
+   "region_depth3": "best_is_recapture==0 AND gap12>=0.01 AND opp_last_blunder==1",
+   "collapse_jaccard": 0.8427471672000691,
+   "quality": 7.054249004771744,
+   "depth": 2,
+   "n_derive": 11561,
+   "derive_err_in": 0.5844650116771906,
+   "derive_err_out": 0.3668309512074914,
+   "derive_wg_est": 0.19500069526330507,
+   "derive_wg_z": 31.34106813680556,
+   "derive_resid_wg_in": 0.05779945173331148,
+   "stability_share_j60": 0.55,
+   "stability_median_j": 0.6331545752191978,
+   "validate": {
+    "n_in": 3992,
+    "n_out": 6634,
+    "p_in": 0.5886773547094188,
+    "p_out": 0.3804642749472415,
+    "diff": 0.20821307976217734,
+    "se": 0.0121741887832235,
+    "z": 17.102829886218206,
+    "games_in": 430,
+    "wg_est": 0.18811819466163182,
+    "wg_se": 0.01107066540793473,
+    "wg_z": 16.992492115857914,
+    "wg_games": 430,
+    "pass": true,
+    "region": "gap12>=0.01 AND opp_last_blunder==1",
+    "resid_wg_est": 0.09579675539064511,
+    "resid_wg_z": 9.958462557350032,
+    "secondary_wg": {
+     "est": 0.138466858443034,
+     "z": 16.430951224516686,
+     "n_games": 430
+    },
+    "wp_loss_wg": {
+     "est": 0.03619687797394102,
+     "z": 17.185666283385675
+    }
+   }
+  },
+  {
+   "region": "best_capture==0 AND opp_last_blunder==1",
+   "region_depth3": "best_capture==0 AND gap12>=0.01 AND opp_last_blunder==1",
+   "collapse_jaccard": 0.7426507984945581,
+   "quality": 6.832890528539505,
+   "depth": 2,
+   "n_derive": 9831,
+   "derive_err_in": 0.589461906215034,
+   "derive_err_out": 0.38169845594913715,
+   "derive_wg_est": 0.18651529571075345,
+   "derive_wg_z": 28.924246435959567,
+   "derive_resid_wg_in": 0.062368818032637385,
+   "stability_share_j60": 0.15,
+   "stability_median_j": 0.5881600372179576,
+   "validate": {
+    "n_in": 3410,
+    "n_out": 7216,
+    "p_in": 0.5859237536656892,
+    "p_out": 0.3985587583148559,
+    "diff": 0.18736499535083329,
+    "se": 0.012490761471376925,
+    "z": 15.000286073846466,
+    "games_in": 428,
+    "wg_est": 0.16974407894142232,
+    "wg_se": 0.011255741704991034,
+    "wg_z": 15.080665796209077,
+    "wg_games": 428,
+    "pass": true,
+    "region": "best_capture==0 AND opp_last_blunder==1",
+    "resid_wg_est": 0.08294611718394983,
+    "resid_wg_z": 7.842255624350707,
+    "secondary_wg": {
+     "est": 0.07482193713747606,
+     "z": 9.08484145415571,
+     "n_games": 428
+    },
+    "wp_loss_wg": {
+     "est": 0.01987876856842225,
+     "z": 9.553542568224794
+    }
+   }
+  },
+  {
+   "region": "best_capture==0 AND recapture_available==1",
+   "region_depth3": "best_capture==0 AND own_overloaded_piece_count<2 AND recapture_available==1",
+   "collapse_jaccard": 0.925343811394892,
+   "quality": 6.762826835780317,
+   "depth": 2,
+   "n_derive": 1018,
+   "derive_err_in": 0.5550098231827112,
+   "derive_err_out": 0.44222099698375117,
+   "derive_wg_est": 0.10009451975463139,
+   "derive_wg_z": 6.321667761306543,
+   "derive_resid_wg_in": 0.20635342776894564,
+   "stability_share_j60": 0.4,
+   "stability_median_j": 0.03693899311055458,
+   "validate": {
+    "n_in": 374,
+    "n_out": 10252,
+    "p_in": 0.5427807486631016,
+    "p_out": 0.4556184159188451,
+    "diff": 0.08716233274425644,
+    "se": 0.027203863854479596,
+    "z": 3.2040423820127164,
+    "games_in": 251,
+    "wg_est": 0.07302225457222333,
+    "wg_se": 0.02713831116100969,
+    "wg_z": 2.690744244879036,
+    "wg_games": 251,
+    "pass": true,
+    "region": "best_capture==0 AND recapture_available==1",
+    "resid_wg_est": 0.20653005317022707,
+    "resid_wg_z": 7.902270505894758,
+    "secondary_wg": {
+     "est": 0.014619474613596575,
+     "z": 0.7058788079320837,
+     "n_games": 251
+    },
+    "wp_loss_wg": {
+     "est": 0.0033288633919314223,
+     "z": 0.8072464290992059
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "best_is_recapture==0 AND own_overloaded_piece_count<2 AND recapture_available==1": 3,
+  "ambiguity_entropy<1.05 AND best_capture==0 AND recapture_available==1": 3,
+  "best_is_recapture==0 AND gap12>=0.01 AND opp_last_blunder==1": 9,
+  "ambiguity_entropy<1.05 AND best_capture==0 AND opp_last_blunder==1": 1,
+  "best_capture==0 AND ply<60 AND recapture_available==1": 1,
+  "best_capture==0 AND gap12>=0.01 AND opp_last_blunder==1": 2,
+  "best_capture==0 AND own_overloaded_piece_count<2 AND recapture_available==1": 1
+ }
+}
