@@ -15,6 +15,7 @@
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
 import { normaliseConfidence } from "./confidence.js";
+import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
 
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
@@ -486,13 +487,33 @@ export function silenceBasis(inputs: RevealInputs): SilenceBasis {
  * its four sentences the record actually produces -- and it is reported with its denominator and
  * below the same floor as everything else here.
  *
+ * AND IT IS A READING TAKEN NOW, NOT A TRANSCRIPT OF WHAT WAS SHOWN THEN. This calls `theOneThing`
+ * on stored rows, deliberately -- copying the four conditions into the loop would drift the first
+ * time a threshold moved, and then the product and the measurement OF the product would disagree.
+ * The cost of that choice is the referent: a threshold HAS moved, and this file records the move
+ * two hundred lines up -- the two confidence cuts "used to be `confidence >= 4` and
+ * `confidence <= 2`, read off the RAW stored level". A decision stated at 5 of 7 cleared the old
+ * cut and does not clear `CONFIDENT_ENOUGH_TO_NAME`, so one unchanged row lands in
+ * `confident-and-wrong` when read then and `outplayed` when read now.
+ *
+ * SO THIS IS "WHAT YOUR STORED DECISIONS COME TO UNDER THE DEFINITION IN FORCE NOW", and a caller
+ * may not render it as "what the tool told you". The only thing in this repository that records
+ * what was actually put on a screen is `reveal_kind_presented` in the acquisition ledger, which is
+ * per-browser trial evidence about a VISIT, is never re-derived, and sits behind an import-graph
+ * wall from `shared/`. Nothing here reaches for it, and a claim of the second kind would need it.
+ *
  * THE DIRECTION OF THE INFERENCE, carried from `candidate_moves_considered`. A move IS in that
  * list only if it was physically put on the board. A player who weighed four moves in their head
  * and touched one leaves a list of length one. So `chose-past-it` is a LOWER bound on "saw it and
  * chose past it", never an estimate, and the same asymmetry it already states per decision.
  */
 export interface OneThingMix {
-  /** Decisions the engine has answered. Nothing here can be computed before a reveal. */
+  /**
+   * Decisions the engine has answered. Nothing here can be computed before a reveal.
+   *
+   * NOT "decisions the player was shown". See `withheld` below: on a deferred game the engine
+   * answers during play and the verdict is held back, so `n` is a producer count throughout.
+   */
   n: number;
   counts: Record<OneThingKind, number>;
   /** Decisions where the measurement supported no sentence. A valid outcome, counted as one. */
@@ -503,6 +524,20 @@ export interface OneThingMix {
    * between it and the branch's own count is the share where the move was NOT on the board.
    */
   eligible: number;
+  /**
+   * Of `n`, how many the product's own rule kept off the screen at the moment it computed them.
+   *
+   * `n` IS A PRODUCER COUNT AND THIS IS WHAT STOPS IT BEING READ AS A CONSUMER ONE. A decision is
+   * in `n` when the engine answered for it; on a deferred game the engine answers during play and
+   * `mayShowVerdictNow` refuses to show the verdict, so the record holds a scored decision the
+   * player was not told about. Every surface counting `n` was calling those "נחשפו".
+   *
+   * A LOWER BOUND ON WHAT WAS NOT SHOWN, NEVER AN ESTIMATE. See
+   * `verdictWithheldWhenComputed`: a row that recorded no timing counts here as zero, and a
+   * withheld verdict may still have been shown when the game ended. What this says is that the
+   * record cannot witness that it was.
+   */
+  withheld: number;
 }
 
 /** The atom fields this reads. Kept structural so the record's own type does not leak in here. */
@@ -521,6 +556,11 @@ export interface MixableDecision {
   chosenMove: string;
   cpLoss: number | null;
   bestMove: string | null;
+  /**
+   * Which reveal regime was in force, straight off `reveal_timing`, or null on a row from before
+   * the field existed. Read for `withheld` above and by no branch of `theOneThing`.
+   */
+  revealTiming: RevealTiming | null;
 }
 
 export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
@@ -533,12 +573,15 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
   let n = 0;
   let silent = 0;
   let eligible = 0;
+  let withheld = 0;
 
   for (const d of decisions) {
     // No reveal, nothing to classify. R3 again: before the engine answers there is no cp loss.
     if (d.cpLoss === null || d.bestMove === null) continue;
     n += 1;
     if (d.cpLoss > ENGINE_NOISE_CP && d.cpLoss >= MATERIAL_LOSS_CP) eligible += 1;
+    // Scored by construction: `cpLoss` and `bestMove` are both non-null on this branch.
+    if (verdictWithheldWhenComputed({ scored: true, timing: d.revealTiming })) withheld += 1;
     /*
      * The real function, not a restatement of its conditions.
      *
@@ -565,7 +608,7 @@ export function oneThingMix(decisions: MixableDecision[]): OneThingMix {
     if (one === null) silent += 1;
     else counts[one.kind] += 1;
   }
-  return { n, counts, silent, eligible };
+  return { n, counts, silent, eligible, withheld };
 }
 
 /**

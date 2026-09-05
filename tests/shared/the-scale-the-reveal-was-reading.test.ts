@@ -147,6 +147,9 @@ describe("a record written on the old scale is read on the old scale", () => {
       chosenMove: "e2e4",
       cpLoss: MATERIAL_LOSS_CP + 60,
       bestMove: "d2d4",
+      /* Legacy-shaped, like the rest of this fixture: these rows predate the field and claim
+         nothing about when the verdict was told. */
+      revealTiming: null,
     };
     const mix = oneThingMix([
       { ...shared, confidence: 4, confidenceScale: LEGACY_CONFIDENCE_LEVELS },

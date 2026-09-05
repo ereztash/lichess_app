@@ -211,7 +211,15 @@ describe("the anchor reading is the one that is comparable between players", () 
      * borrows the record's.
      */
     const bankAnswers = record.filter((d) => d.decision_id.startsWith("a-"));
-    const reading = readRecord(record, undefined, undefined, bankAnswers);
+    /*
+     * TWO BANK ARGUMENTS NOW, and this fixture is one regime so they are the same set. `measured`
+     * is what the comparable reading is computed over, and `answered` is which POSITIONS have been
+     * answered at all -- a cross-regime fact, because it decides what the front door serves next.
+     */
+    const reading = readRecord(record, undefined, undefined, {
+      measured: bankAnswers,
+      answered: bankAnswers,
+    });
     expect(reading.calibration.n, "the whole record").toBe(55);
     expect(reading.anchor.n, "the anchor subset").toBe(20);
   });
@@ -225,8 +233,8 @@ describe("the anchor reading is the one that is comparable between players", () 
      */
     const bold = Array.from({ length: 30 }, (_, i) => anchored(i, 0.95, i < 21));
     const timid = Array.from({ length: 30 }, (_, i) => anchored(i, 0.5, i < 21));
-    const a = readRecord(bold, undefined, undefined, bold).anchor;
-    const b = readRecord(timid, undefined, undefined, timid).anchor;
+    const a = readRecord(bold, undefined, undefined, { measured: bold, answered: bold }).anchor;
+    const b = readRecord(timid, undefined, undefined, { measured: timid, answered: timid }).anchor;
     expect(a.uncertainty).toBeCloseTo(b.uncertainty, 12);
     expect(a.reliability, "the two judges came out identical").not.toBeCloseTo(b.reliability, 3);
   });

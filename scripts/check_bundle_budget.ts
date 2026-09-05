@@ -613,8 +613,31 @@ const INDEX = `${ROOT}/index.html`;
  * deliberately. The base was already at 682.6 against 683: main had spent 1.6 of the previous
  * raise's 2.0 kB before this branch started. A ratchet that keeps being loosened by two stops
  * being a ratchet.
+ *
+ * ---
+ *
+ * 685 -> 686: F3, THE VERDICT THE PLAYER WAS NEVER SHOWN. Measured against the tree one commit
+ * back, which is F2 and moved no ceiling at all:
+ *
+ *     entry, raw               685.0 -> 685.1 kB   +0.1
+ *     entry, gzipped           214.6 -> 214.7 kB   +0.1
+ *     initial download, raw    774.1 -> 774.2 kB   +0.1
+ *
+ * A TENTH OF A KILOBYTE, and it is one predicate and one counter: `verdictWithheldWhenComputed` in
+ * `reveal-timing.ts`, a `revealTiming` field on `MixableDecision`, and one `if` in `oneThingMix`.
+ * The sentences the panel says instead cost the entry chunk nothing -- `RecordDashboard.tsx` is
+ * already a chunk of its own, which is why the entry and the initial download moved by the same
+ * amount and the stylesheet did not move at all.
+ *
+ * WHY IT CANNOT BE DEFERRED. `reveal-timing.ts` holds `mayShowVerdictNow`, which the board asks
+ * before it renders anything, and `reveal.ts` is on the entry route because the reveal is. A rule
+ * about what the record may claim, arriving after the claim, is not a rule.
+ *
+ * 686 LEAVES 0.9 kB. The other two ceilings measure 214.7 against 215 and 774.2 against 775 and
+ * did not fire, so they keep their numbers.
  */
-const ENTRY_RAW_KB = 685;
+
+const ENTRY_RAW_KB = 686;
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 215;
 /**
@@ -747,9 +770,33 @@ const ENTRY_GZIP_KB = 215;
  *
  * ONE, NOT TWO. 773.6 rounds up to 774 and leaves 0.4 kB, which is less headroom than any raise
  * before it. The ratchet stays a ratchet.
+ *
+ * ---
+ *
+ * 774 -> 775: F1, THE REGIME WALL ON THE READING SIDE. Measured by building twice, once at
+ * f1315d7 and once with the change and nothing else:
+ *
+ *     entry, raw               684.6 -> 685.0 kB   +0.4
+ *     entry, gzipped           214.5 -> 214.6 kB   +0.1
+ *     initial download, raw    773.7 -> 774.1 kB   +0.4
+ *
+ * ALL OF IT IS ENTRY JAVASCRIPT AND NONE OF IT IS STYLESHEET, which the two figures moving by the
+ * same 0.4 kB is the check for. It is `forDescriptiveHistory` returning strata instead of a flat
+ * set, and `recordReading` choosing one of them and reporting the rest -- a sort, a reduce and a
+ * map. The sentence the player reads when a regime IS set aside costs the entry chunk nothing: it
+ * is in `RecordDashboard.tsx`, which is already a chunk of its own.
+ *
+ * WHY IT CANNOT BE DEFERRED. It is not a screen. It is the rule that decides which decisions may be
+ * averaged together, and `record-service.ts` is on the entry route: a wall that arrives after the
+ * reading it governs has already been computed is a wall that did not exist.
+ *
+ * ONLY THIS CEILING MOVES. The entry raw ceiling measures 685.0 against 685 and did not fire, and
+ * the gzip ceiling measures 214.6 against 215. Raising a ceiling that has not been crossed is
+ * loosening a budget for free -- the rule this file has applied to itself six times. 775 leaves
+ * 0.9 kB.
  */
 
-const INITIAL_RAW_KB = 774;
+const INITIAL_RAW_KB = 775;
 
 interface Asset {
   name: string;

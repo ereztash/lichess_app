@@ -70,6 +70,7 @@ import {
   forAnchorReference,
   forDescriptiveHistory,
   forDiscovery,
+  stratumId,
 } from "./evidence-policy.js";
 import { isAnchorFen } from "./anchor-set.js";
 import { readsAreAsked } from "./confidence-asked.js";
@@ -605,7 +606,12 @@ export async function feedback(
   input: FeedbackInput,
 ): Promise<{ decision_id: string }> {
   if (!(await store.hasReveal(decisionId))) {
-    throw new RecordError("FORBIDDEN", "אי אפשר לתקן קריאה לפני שראית את התוצאה.");
+    /*
+     * "לפני שהמנוע ענה" AND NOT "לפני שראית את התוצאה", which is what this said. The guard is
+     * `hasReveal` -- a stored engine verdict -- and on a deferred game that verdict exists while
+     * the player has been shown nothing. The rule is unchanged; the sentence now describes it.
+     */
+    throw new RecordError("FORBIDDEN", "אי אפשר לתקן קריאה לפני שהמנוע ענה.");
   }
   await store.recordFeedback(decisionId, input);
   return { decision_id: decisionId };
@@ -1974,10 +1980,52 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * heading rather than averaged into this one. The bank population is decisions taken FOR the
    * bank, which is a different question from decisions taken ON a bank position.
    */
-  const described = forDescriptiveHistory(allAtoms, allIds);
-  const bank = forAnchorReference(allAtoms, allIds);
-  const atoms = described.atoms;
-  const ids = described.ids;
+  /*
+   * AND TWO REGIMES ARE NOT ONE POPULATION EITHER, which is the wall this reading did not have.
+   *
+   * `forDescriptiveHistory` now returns STRATA, for the reason `forDiscovery` already did: purpose
+   * is a property of a row and the table can answer it row by row, but protocol, its version,
+   * reveal timing and the engine build that passed the verdict describe an incompatibility BETWEEN
+   * rows. No single decision is pooled; a set is. Asked row by row every `play` decision is
+   * individually fine, and thirty-five taken with the verdict shown after each move plus thirty
+   * taken with it held to the end of the game are not one record of how this player decides.
+   *
+   * The recording had happened -- every decision carries its timing -- and the reading flattened it
+   * back the moment `scoreDecisions` produced a `ScoredDecision`, which carries no provenance at all.
+   */
+  const describedStrata = forDescriptiveHistory(allAtoms, allIds);
+  /*
+   * THE BANK IS STRATIFIED TOO, and it is the reading where a regime boundary matters most.
+   *
+   * `anchor` is the only between-player comparison this product has: two players who answered the
+   * same positions have the same item difficulty, so whatever separates their scores is the thing
+   * being measured. That argument holds only while the answers were produced under one regime --
+   * B1 measured 13.61% of verdicts flipping between two engine builds, and every live decision is
+   * stamped `instrumented-standard` at `CURRENT_PROTOCOL_VERSION`, which will move.
+   *
+   * WHICH POSITIONS HAVE BEEN ANSWERED IS NOT STRATIFIED, and `readRecord` takes the two
+   * separately for that reason: progress through the set decides what the front door serves next,
+   * and narrowing it to one regime would re-ask a player a position they have already answered
+   * because a version moved underneath them.
+   */
+  const bankStrata = forAnchorReference(allAtoms, allIds).map((stratum) => ({
+    id: stratumId(stratum.key),
+    scored: scoreDecisions(stratum.atoms, stratum.ids).scored,
+  }));
+  const [bankChosen] = [...bankStrata].sort(
+    (a, b) => b.scored.length - a.scored.length || a.id.localeCompare(b.id),
+  );
+  /*
+   * FLATTENED FOR THE PER-DECISION READINGS AND FOR THE COUNTS, AND FOR NOTHING ELSE.
+   *
+   * The branch mix and the counterfactual reading are per-decision tallies that carry their own
+   * denominators -- "which of its four sentences did this record produce", not "how accurate is
+   * this player" -- and the three exclusion counts are sums over a partition, so they are the same
+   * numbers whichever order the strata come in. None of them is a comparison between decisions,
+   * which is the only operation a stratum boundary forbids.
+   */
+  const atoms = describedStrata.flatMap((s) => s.atoms);
+  const ids = describedStrata.flatMap((s) => s.ids);
   /*
    * The branch mix is assembled HERE and not inside `readRecord`, because it needs fields that
    * `ScoredDecision` deliberately does not carry: the moves that were on the board, the chosen
@@ -1994,6 +2042,13 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
       chosenMove: atom.decision,
       cpLoss: atom.result?.cp_loss ?? null,
       bestMove: atom.result?.engine_best_move ?? null,
+      /*
+       * WHICH REGIME DECIDED WHETHER THE PLAYER SAW IT. `result` says the engine answered and
+       * nothing more; on a deferred game it answers during play and the verdict is held back. The
+       * mix is what four sentences on this page are counted from, and without this field every one
+       * of them was a claim about exposure derived from producer state.
+       */
+      revealTiming: atom.reveal_timing,
     })),
   );
   /*
@@ -2003,15 +2058,84 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * DESCRIBED population, the same one the reading is computed over, so a decision the policy
    * files as `separate` is neither waiting nor passed over here: it is in another reading.
    */
-  const describedSummary = scoreDecisions(atoms, ids);
+  const scoredStrata = describedStrata.map((stratum) => ({
+    id: stratumId(stratum.key),
+    summary: scoreDecisions(stratum.atoms, stratum.ids),
+  }));
+  /*
+   * WHICH REGIME THE RECORD IS STILL WRITING INTO. `listAtoms` and `listDecisionIds` are ordered
+   * and append-only, so the regime of the last admitted decision is the one in force -- a fact
+   * about the record rather than a policy.
+   */
+  const admitted = new Set(ids);
+  const latestId = [...allIds].reverse().find((id) => admitted.has(id));
+  const currentRegime = describedStrata.find((stratum) => stratum.ids.includes(latestId ?? ""));
+  const currentId = currentRegime ? stratumId(currentRegime.key) : null;
+  /*
+   * THE FALLBACK ORDER, USED WHILE THE REGIME IN FORCE IS STILL TOO SMALL TO READ. Ties by id, so
+   * the same record always yields the same reading rather than one that depends on write order.
+   *
+   * MEASURED IN SCORED ROWS AND NOT IN ROWS. An unrevealed decision has no verdict, so nothing yet
+   * says which engine will score it and it sits in the `legacy` build stratum. Ordering by rows
+   * would hand this page a stratum that scores to nothing on any record whose unrevealed backlog
+   * outnumbers its revealed decisions -- and this panel's zero state is the one that has twice told
+   * a player they had revealed nothing while showing them decisions they had just revealed. The
+   * scored count is still a count of rows, not of outcomes, so nothing about the answer enters it.
+   */
+  const largestFirst = [...scoredStrata].sort(
+    (a, b) => b.summary.scored.length - a.summary.scored.length || a.id.localeCompare(b.id),
+  );
+  /*
+   * THE CURRENT REGIME AS SOON AS IT CAN BE READ, AND THE LARGEST UNTIL THEN.
+   *
+   * "THE LARGEST" ALONE WAS FALSIFIED HERE, and the measurement is the reason this rule differs
+   * from `discoverySearchPopulation`'s. Largest is not latest: a bump to
+   * `CURRENT_PROTOCOL_VERSION` -- already at 4, so three have happened -- starts a stratum at zero
+   * while the retired one holds the player's whole history. Measured at 120 decisions under
+   * version 4 against 40 under version 5, this page reported n=120 at 100% accuracy from a
+   * protocol that was no longer running, and would have gone on for 81 more decisions. The
+   * staleness is automatic, it fires for every player on every bump, and it lasts in proportion to
+   * how much history the player has -- worst for the players with most reason to trust the number.
+   *
+   * WHY THIS CONSUMER DIFFERS FROM DISCOVERY. `discoverySearchPopulation` chooses a population to
+   * SEARCH for a hypothesis, and a contrast found under a retired protocol is still a hypothesis.
+   * This page answers "what does my record say", which is a description of a player under
+   * conditions that hold. A retired protocol is a worse answer than a smaller current one.
+   *
+   * IT IS STILL ANSWER-BLIND, which is the property that must not be lost. Both terms -- how many
+   * rows a regime has scored, and which regime the record is currently appending to -- are decided
+   * before anything is read, from counts and arrival order. Neither can select the regime that
+   * happens to contain a flattering number.
+   *
+   * `MIN_BUCKET_N` RATHER THAN A NEW CONSTANT, and it is the floor this reading already answers
+   * nothing below: switching to a regime the page could not read yet would trade a stale number
+   * for silence, which is not the trade. So the staleness is bounded by 30 decisions instead of by
+   * the length of the record, and `regime.current` says which of the two states the reader is in.
+   */
+  const current = scoredStrata.find((s) => s.id === currentId);
+  const [chosen, ...rest] =
+    current && current.summary.scored.length >= MIN_BUCKET_N
+      ? [current, ...largestFirst.filter((s) => s.id !== current.id)]
+      : largestFirst;
+  /*
+   * The counts stay over the WHOLE described record, and a sum over a partition is the number it
+   * was before. They answer "why is the rest of what you recorded not in this reading", which is a
+   * question about the record and not about one regime -- and scoping them to the chosen stratum
+   * would make a decision waiting for the engine disappear because it was taken in the other mode.
+   */
+  const total = (of: (s: ScoringSummary) => number) =>
+    scoredStrata.reduce((n, s) => n + of(s.summary), 0);
   return readRecord(
-    describedSummary.scored,
+    chosen?.summary.scored ?? [],
     mix,
     readCounterfactuals(atoms),
-    scoreDecisions(bank.atoms, bank.ids).scored,
     {
-      awaitingReveal: describedSummary.awaitingReveal,
-      withoutConfidence: describedSummary.withoutConfidence,
+      measured: bankChosen?.scored ?? [],
+      answered: bankStrata.flatMap((s) => s.scored),
+    },
+    {
+      awaitingReveal: total((s) => s.awaitingReveal),
+      withoutConfidence: total((s) => s.withoutConfidence),
       /*
        * COUNTED OFF THE ADMISSION, NOT BY SUBTRACTING THE POPULATION FROM THE RECORD.
        *
@@ -2030,5 +2154,19 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
         (atom) => admissionFor("descriptive-history", atom).kind === "separate",
       ).length,
     },
+    /*
+     * The regimes this reading is NOT over, named and counted rather than dropped.
+     *
+     * R1's rule for any denominator that shrank: it has to be able to say what it left out. These
+     * decisions are not waiting, not passed over and not read under another heading -- they are the
+     * player's own free play, in a measurement regime this page is not currently reading, and a
+     * screen that simply showed a smaller `n` would be a number that changed for a reason nobody
+     * could name. Empty on every record with one regime.
+     */
+    rest.filter((s) => s.summary.scored.length > 0).map((s) => ({
+      id: s.id,
+      n: s.summary.scored.length,
+    })),
+    chosen ? { id: chosen.id, current: chosen.id === currentId } : null,
   );
 }

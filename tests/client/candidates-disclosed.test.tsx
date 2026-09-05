@@ -140,6 +140,9 @@ const emptyMix = {
   counts: { "chose-past-it": 0, "confident-and-wrong": 0, outplayed: 0, "trusted-it-too-little": 0 },
   silent: 0,
   eligible: 0,
+  /* Nothing was held back from this fixture's player: `withheld` is a count of stored verdicts the
+     reveal rule kept off the screen, and this mix has no stored verdicts at all. */
+  withheld: 0,
 };
 
 /*
@@ -160,6 +163,10 @@ const reading = (over: Partial<RecordReading> = {}): RecordReading => ({
   withoutConfidence: 0,
   /* This fixture is a free-play record: nothing of its player's is read under another heading. */
   readElsewhere: 0,
+  /* And one regime, so there is no second population this reading declined to pool. */
+  setAside: [],
+  /* The one regime this fixture has is also the one it is still writing into. */
+  regime: { id: "legacy@legacy/legacy/legacy", current: true },
   counterfactual: readCounterfactuals([]),
   profile: { variables: readVariables([]), crossing: crossVariables([]) },
   calibration: calibrationScore([]),
