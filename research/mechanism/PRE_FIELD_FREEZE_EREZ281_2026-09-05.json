@@ -1,0 +1,136 @@
+{
+  "freeze_id": "EREZ281_PRE_FIELD_2026-09-05T2313+0300",
+  "player": {
+    "platform": "lichess",
+    "username": "Erez281"
+  },
+  "freeze_wall_clock": "2026-09-05T23:13:00+03:00",
+  "analysis_state_commit_before_freeze": "6037bf2528ae63219251d696d16aee625de51e2f",
+  "observed_account_state": {
+    "latest_game_present_in_repo": {
+      "game_id": "llINzBR3",
+      "created_at_utc": "2026-09-05T11:42:44.187Z",
+      "created_at_asia_jerusalem": "2026-09-05T14:42:44.187+03:00",
+      "speed": "blitz",
+      "time_control": "180+0",
+      "rating_before": 1647,
+      "rating_diff": -6,
+      "rating_after_derived": 1641
+    },
+    "observation_boundary": "This is the latest game represented by the repository artifacts, not a claim about the live Lichess profile at freeze wall-clock time."
+  },
+  "corpus_lanes": {
+    "clean_historical": {
+      "games": 2209,
+      "manifest_fetch_utc": "2026-09-01T21:42:06.876Z",
+      "description": "Frozen admissible historical window; kept separate as the clean historical corpus.",
+      "artifact": "research/mechanism/data/frozen_window_manifest.json",
+      "blob_sha": "039c0e8419f803287913eb676c351b5467ae5f8a"
+    },
+    "extra_observational": {
+      "games": 12,
+      "description": "Admissible games after the historical manifest fetch. NETA_FINDING records 10 as post-exposure to the OwnExposure sentence; this lane must not be pooled blindly into a clean pre-exposure baseline.",
+      "artifact": "research/mechanism/data/post_freeze_admissible.ndjson",
+      "blob_sha": "1d2fde600e2306da5ad5f5131c1dce541598de53"
+    },
+    "represented_admissible_total": 2221,
+    "quarantine_gap_rule": "If any game is later discovered with createdAt after the latest repo game but before the freeze wall-clock, keep it in QUARANTINE_GAP: it is neither clean historical baseline nor prospective field data.",
+    "future_field_rule": "Only games created after freeze_wall_clock may enter the new prospective field lane, and only under the frozen exposure/admissibility protocol."
+  },
+  "frozen_data_artifacts": {
+    "decisions_historical": {
+      "path": "research/mechanism/data/decisions_erez281.parquet",
+      "blob_sha": "aa1789fb7bb3b6af5f2fadf8bebf7988f09ade40"
+    },
+    "decisions_extra": {
+      "path": "research/mechanism/data/decisions_post_freeze.parquet",
+      "blob_sha": "ae5aea81a9bb58517f58b252e2b7414d82d5d26b"
+    },
+    "scored_historical": {
+      "path": "research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst",
+      "blob_sha": "c42cbfe4262973deeb5a6f0f0079b459c181bebe"
+    },
+    "scored_extra": {
+      "path": "research/mechanism/data/scored_post_freeze.jsonl.zst",
+      "blob_sha": "528f67a699c9c36cfc62a444ce2ecd14752ee29a"
+    },
+    "population_decisions": {
+      "path": "research/mechanism/data/decisions_population_2026-06.parquet",
+      "blob_sha": "5fcab2b4eb42b790d1358d77dbcde59c099dd99b"
+    },
+    "population_scored": {
+      "path": "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst",
+      "blob_sha": "6d4c402207dbf4609068a1b5c7c78f79e8e99483"
+    }
+  },
+  "frozen_research_state": {
+    "r_star": {
+      "predicate": "material_balance >= -2 AND own_overloaded_piece_count >= 1",
+      "target": "cls_tactical",
+      "status": "SUPPORTED_OBSERVATION",
+      "interpretation": "Broad cross-context risk region; largely level-typical, not primarily player-specific."
+    },
+    "r_star_star": {
+      "predicate": "material_balance in [0,3) AND own_overloaded_piece_count >= 1",
+      "target": "cls_hung_material",
+      "validate_blitz_n": 1199,
+      "population_residual_within_game_pp": 6.144158192483223,
+      "z": 4.5202284169154145,
+      "status": "SUPPORTED_PERSONAL_RESIDUAL"
+    },
+    "mechanism_localization": {
+      "status": "POST_HOC_EXPLANATORY_LOCALIZATION",
+      "permitted_statement": "The personal R** excess is concentrated when an under-defended piece remains a live liability across more than one of the owner's own decision cycles and the next move still does not close it.",
+      "persistent_owner_n": 305,
+      "persistent_owner_hung_material_rate": 0.24918032786885247,
+      "persistent_owner_population_model_residual_pp": 10.41120826861512,
+      "persistent_owner_z": 4.257931835177406,
+      "persistent_unresolved_owner_n": 238,
+      "persistent_unresolved_owner_hung_material_rate": 0.29411764705882354,
+      "persistent_unresolved_population_hung_material_rate": 0.1967821782178218,
+      "excess_unresolved_penalty_vs_population_pp": 5.814294226524744,
+      "artifact": "research/mechanism/RSTARSTAR_MECHANISM_LOCALIZATION.md",
+      "artifact_blob_sha": "2f1805a9a1651fadfe1f2623b2089bf5e8e0ea8a"
+    },
+    "forbidden_cognitive_attributions": [
+      "tunnel vision",
+      "did not see it",
+      "attention failure",
+      "calculation-depth failure",
+      "rushing as a cognitive cause",
+      "motivation state",
+      "valuation state"
+    ]
+  },
+  "field_readiness": {
+    "status": "FIELD_REQUIRED_FOR_LEVEL_6",
+    "supported_claims": "NETA_FINDING C1-C4",
+    "intervention_claim": "INSUFFICIENT_REALITY",
+    "outcome_claim": "INSUFFICIENT_REALITY",
+    "frozen_true_instruction": "Before committing a move, when any own piece has more attackers than defenders, look at the position after the intended move: no own piece may have more attackers than defenders unless the move wins something bigger or gives check; otherwise choose again.",
+    "protocol": {
+      "games_target": 128,
+      "game_type": "rated blitz",
+      "arms": ["instruction", "matched_sham"],
+      "block_schedule": "alternating blocks of ten",
+      "exposure_logging": "before each block",
+      "analysis": "research/mechanism/analysis/field_eval.py",
+      "bootstrap_replicates": 5000,
+      "stopping_rule": "430 instruction-arm trigger opportunities or 60 days",
+      "must_not_change_after_first_field_exposure": [
+        "trigger predicate",
+        "error class definition",
+        "engine regime",
+        "judge",
+        "block schedule"
+      ]
+    },
+    "pre_first_field_block_blocker": "A concrete matched-sham sentence/instantiation must exist and be frozen before the first prospective block if it has not already been deposited elsewhere."
+  },
+  "authority_boundary": {
+    "historical_behavioral_localization": "RESEARCH/REPO",
+    "cognitive_cause": "FIELD_OR_CONTROLLED_INSTRUMENT_REQUIRED",
+    "intervention_effect": "FIELD_REQUIRED"
+  },
+  "freeze_rule": "No historical threshold, detector semantic, region predicate, outcome definition, or intervention wording may be changed in response to post-freeze outcomes without creating a new version and explicitly treating the old freeze as the comparator."
+}
