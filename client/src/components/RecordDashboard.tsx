@@ -17,7 +17,7 @@ import type { Control } from "@shared/control";
 import type { Sensitivity } from "@shared/sensitivity";
 import { ACCURACY_COUPLING, type SensitivityBand } from "@shared/sensitivity-reference";
 import type { RecordReading } from "@shared/record-service";
-import { CounterfactualPanel } from "./CounterfactualPanel";
+import { COUNTERFACTUAL_TITLE, CounterfactualPanel } from "./CounterfactualPanel";
 import { ProfilePanel } from "./ProfilePanel";
 import { NotMeasured, Proportion, SignedProportion, SmallProportion } from "./Value";
 import type { OneThingKind, OneThingMix } from "@shared/reveal";
@@ -254,9 +254,10 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
       {setAside.length > 0 && (
         <p className="dash-note" dir="rtl">
           עוד {setAside.reduce((n, s) => n + s.n, 0)} החלטות מדודות שלכם נרשמו בתנאי מדידה אחרים —
-          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך מדדי הדיוק והכיול שכאן. הן אינן
-          ממתינות ואינן נקראות תחת כותרת אחרת: הן פשוט אינן אותה אוכלוסייה. במניין ״{MIX_TITLE}״ הן
-          כן נספרות, כי מניין אינו השוואה.
+          מועד חשיפה, פרוטוקול או מנוע אחר — ולכן אינן ממוצעות לתוך הקריאה של משטר המדידה שמוצג
+          כאן. הן אינן ממתינות ואינן נקראות תחת כותרת אחרת: הן פשוט אינן אותה אוכלוסייה. שני
+          הבלוקים שבהמשך העמוד, ״{MIX_TITLE}״ ו״{COUNTERFACTUAL_TITLE}״, סופרים את כל משטרי
+          המדידה יחד — ולכן ה-n שלהם גדול מזה שכאן, ולא בטעות.
         </p>
       )}
 
@@ -774,12 +775,15 @@ const MIX_LABEL: Record<OneThingKind, string> = {
  * decisions is noise wearing four percentage signs.
  */
 /**
- * The block's title, hoisted so the set-aside note can POINT at it rather than describe it.
+ * The two headings the set-aside note POINTS at rather than describes.
  *
- * Two copies of a heading is how a sentence that says "counted under X" comes to name a heading
- * that was renamed last month. One constant, one renderer, one referrer.
+ * Two copies of a heading is how a sentence that says "counted under X" comes to name a heading that
+ * was renamed last month. One constant, one renderer, one referrer -- and a test that reads the
+ * RENDERED heading rather than a literal, because the first version of that test asserted the note
+ * against a hard-coded string and stayed green when the heading was changed underneath it.
  */
 const MIX_TITLE = "מה הכלי מוצא בהחלטות שלכם";
+
 
 function MixBlock({ mix }: { mix: OneThingMix }) {
   /*

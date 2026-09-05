@@ -238,14 +238,24 @@ export type RecordReading = {
    * number that changed for a reason nobody can name is the one that gets deleted the next time it
    * is inconvenient.
    *
-   * DELIBERATELY NOT RENDERED, and that is a decision rather than an omission. Nothing a reader
-   * sees is `anchor.n`: it reaches the screen only through `stability` and `sensitivity`, which are
-   * derived figures rather than counts, and through the `scored + anchor.n > 0` liveness gate on
-   * the record page, which a repeat cannot move because the position's first answer is still there.
-   * No visible count moved, and a qualification on a reading that needs none teaches a reader to
-   * discount every reading -- the argument `unreadableShare` is rendered conditionally for. It is
-   * carried so the drop is legible to a consumer and to a test rather than silent, and the day a
-   * surface prints the bank `n`, this is the sentence beside it.
+   * DELIBERATELY NOT RENDERED, and the argument has one hole that is named rather than hidden.
+   * `anchor.n` reaches a reader only through `stability` and `sensitivity`, which are derived
+   * figures rather than counts, and through the `scored + anchor.n > 0` liveness gate on the record
+   * page. An earlier version of this said a repeat cannot move that gate "because the position's
+   * first answer is still there". It can, in one state: `firstAnswerPerPosition` keeps the first
+   * ATOM, before scoring, so a first answer that cannot be scored takes the whole position out of
+   * the reading instead of yielding to a later one that can. A bank answer committed with
+   * `confidence: null` is such a row -- the schema and the service both accept it -- and a record of
+   * one unscorable answer plus one scorable repeat of the same position reads `anchor.n = 0` and
+   * renders the cold-arrival screen. Reality R2: the live client always asks confidence on `anchor`,
+   * so no walk reaches it; the record SHAPE does, and `confidence-asked.ts` records that the ask
+   * rule has already moved once.
+   *
+   * IT IS STILL NOT RENDERED, because a qualification on a reading that needs none teaches a reader
+   * to discount every reading -- the argument `unreadableShare` is rendered conditionally for -- and
+   * because this state cannot be reached from the product as it stands. It is carried so the drop is
+   * legible to a consumer and to a test rather than silent, and the day a surface prints the bank
+   * `n`, or the day the confidence ask moves again, this is the sentence beside it.
    */
   anchorRepeated: number;
   /**

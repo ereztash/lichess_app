@@ -673,11 +673,21 @@ export function useImportReading(): { reading: StoredImportDiagnostic | null; lo
  * a closure that has already been frozen, and on the probed arm the invalidation had already done
  * the refetching. Adding `refetchOnWindowFocus: false` would have changed nothing.
  *
- * THE FALLBACK IS THE OLD ARITHMETIC, AND ONLY WHERE THE COUNT COULD NOT BE READ AT ALL. On that
- * path `data` is the last value that DID read, which is the count before this decision, so `+ 1` is
- * the right estimate for exactly the case it was the wrong rule for. It is an estimate from a
- * stated basis rather than a coincidence, and it degrades honestly: two consecutive failed reads
- * leave the number low rather than high.
+ * THE FALLBACK IS THE OLD ARITHMETIC, AND ITS LIMITS ARE STATED HERE RATHER THAN ASSUMED AWAY.
+ * An earlier version of this paragraph said `data` is "the last value that DID read, which is the
+ * count before this decision". That is true on the NOT-PROBED arm and false on the probed one --
+ * the paragraph above states that on the probed arm `data` is already `k`. So the fallback is
+ * arm-blind, and on the arm every one of the measured failures came from it reproduces the original
+ * defect exactly. It is not a safe estimate. It is the old rule, kept only where nothing better
+ * exists.
+ *
+ * AND IT IS UNREACHABLE ON THE PATH THIS PRODUCT ACTUALLY SERVES. On the local path `countNow` calls
+ * `service.countDecisions(store)`, and `LocalRecordStore.read()` can neither throw nor return
+ * undefined: a `localStorage` that throws, a blob that is not JSON, and a blob from a newer build
+ * all resolve through `refuse()`/`empty()` to a `Persisted` carrying a `decisions` array. The store
+ * collapses the null-versus-zero distinction before `countNow` can see it, and every production
+ * arrival takes the local path because production configures no database. The fallback is dead code
+ * there, and the day it stops being dead is the day the arm-blindness above starts to matter.
  *
  * IT IS AWAITED AT THE CAPTURE AND NOT STARTED EARLIER, AND THAT PUTS IT ON THE REVEAL'S PATH.
  * On the local path this is a `localStorage` read through a disabled-server query: it cannot hang,
@@ -685,11 +695,16 @@ export function useImportReading(): { reading: StoredImportDiagnostic | null; lo
  * it is a request, and a request on the reveal's path is a request that can delay a verdict the
  * player already waited seconds for. `retry: false` bounds the retries and nothing bounds the wait.
  *
- * THE REVERSAL CONDITION IS A DEPLOYED SERVER RECORD. The day `DATABASE_URL` is configured in
- * production, this await is on a network call and should be hoisted to the top of `runReveal` so it
- * overlaps the engine search -- one line, and `Home.tsx` will need one freed for it, which
- * `void decisionCount.refetch()` after the reveal is the candidate for: this function already
- * refetches, and it does it earlier.
+ * THE REVERSAL CONDITION IS A DEPLOYED SERVER RECORD, AND IT IS WORSE THAN A DELAY. `main.tsx`
+ * configures `httpBatchLink` with no timeout and no `AbortSignal`, so a hung `/api/trpc` makes
+ * `refetch()` never settle, `forReveal()` never resolve and the reveal never assemble -- and no
+ * failure branch fires, because nothing threw. Not a slow verdict: a lost one.
+ *
+ * So the day `DATABASE_URL` is configured in production, two things change together and neither is
+ * optional: this await is hoisted to the top of `runReveal` so it overlaps the engine search, and
+ * the read is bounded so a hung request cannot hold the reveal. `Home.tsx` needs one line freed for
+ * the hoist, and `void decisionCount.refetch()` after the reveal is the candidate -- this function
+ * already refetches, and it does it earlier.
  */
 export async function countForReveal(count: CountView): Promise<number> {
   return (await count.countNow()) ?? (count.data?.decisions ?? 0) + 1;

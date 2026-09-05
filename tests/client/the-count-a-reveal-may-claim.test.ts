@@ -16,13 +16,21 @@
  * player who has just committed one would be a screen calling its own record empty, which is the
  * failure `RecordDashboard` already carries a branch for.
  */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { countForReveal, type CountView } from "@/lib/record-api";
 
 /*
  * `forReveal` is the view's own binding to the function under test, so a fixture that supplied one
- * would be asserting against itself. It is filled in from `countForReveal` here, which is also the
- * cheapest available check that the binding on `useDecisionCount` cannot drift from the rule.
+ * would be asserting against itself. It is filled in from `countForReveal` here.
+ *
+ * AND THAT IS ALL IT DOES. An earlier version of this comment called it *"the cheapest available
+ * check that the binding on `useDecisionCount` cannot drift from the rule"*, and it is not: the
+ * fixture builds its own object, so it never touches the hook. Reverting the real binding to the
+ * pre-repair arithmetic left 2,496 unit tests green, this file included. Only the layout gate caught
+ * it, in six seconds -- and a false sentence about a cheap unit check is exactly what makes someone
+ * trim a fifteen-minute browser file later. The last case below closes it for real.
  */
 const view = (over: Partial<Omit<CountView, "forReveal">>): CountView => {
   const built: CountView = {
@@ -78,5 +86,20 @@ describe("the count a reveal may claim", () => {
      */
     const count = view({ data: { decisions: 99 }, countNow: async () => 5 });
     expect(await countForReveal(count)).toBe(5);
+  });
+
+  it("POSITIVE CONTROL: the hook's binding delegates to this rule rather than restating it", () => {
+    /*
+     * A SOURCE ASSERTION, because the alternative is rendering a hook to learn one line. `readRecord`
+     * uses the same shape for the same reason -- some rules are only checkable where they are
+     * written. This is the case that goes red when the binding is reverted; without it the file's
+     * six behavioural cases all pass against a `useDecisionCount` that ignores the rule entirely,
+     * which is the state this suite was actually in when it was written.
+     */
+    const source = readFileSync(resolve(__dirname, "../../client/src/lib/record-api.ts"), "utf8");
+    expect(
+      source,
+      "`useDecisionCount` no longer binds `forReveal` to `countForReveal`, so the rule this file tests is not the rule the app runs",
+    ).toContain("forReveal: () => countForReveal(view)");
   });
 });

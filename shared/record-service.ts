@@ -2010,6 +2010,15 @@ function firstAnswerPerPosition(
      * so knights out and back produce a different string for an identical board -- the same hole
      * `preregisterFreshTransfer` names, which let a position the player had already decided enter a
      * test as unseen.
+     *
+     * AND ON THIS POPULATION IT IS CURRENTLY INERT, which is worth saying rather than leaving as an
+     * unexamined guard. `isAnchorFen` matches the bank by EXACT FEN, so every `anchor`-purpose row
+     * carries a verbatim bank string, and the sixty bank positions produce sixty distinct keys with
+     * no collisions -- so no record reachable today distinguishes this from comparing the raw FEN.
+     * Reverting it to the raw string leaves every test green. It stays because the day the bank
+     * admits a position reached by a different move order, comparing strings is the defect
+     * `preregisterFreshTransfer` had; it is a rule kept ahead of its population, and it is labelled
+     * as one rather than read as enforcement.
      */
     const key = positionKey(atom.entry_state.fen);
     if (seen.has(key)) {
@@ -2128,7 +2137,6 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
     const once = firstAnswerPerPosition(stratum.atoms, stratum.ids);
     return {
       id: stratumId(stratum.key),
-      ids: stratum.ids,
       /*
        * EVERY BANK ANSWER IN THIS REGIME, for progress through the set and for nothing else.
        * `anchorAnswered` decides which position the front door serves next, and narrowing it would
@@ -2246,20 +2254,38 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
    * the length of the record, and `regime.current` says which of the two states the reader is in.
    */
   /*
-   * THE BANK'S OWN REGIME IN FORCE, from the last decision IT admitted rather than from the
-   * described reading's.
+   * THE BANK TAKES THE LARGEST, AND `null` IS HOW IT SAYS SO THROUGH THE SHARED RULE.
    *
-   * ONE MAP RATHER THAN A SCAN INSIDE A SCAN. The first version of this walked the record backwards
-   * asking each stratum whether its id array contained the row, which is quadratic in the length of
-   * a record that lives in one browser and only grows. The membership is a lookup and there is no
-   * reason for it to be a search. The two populations do not admit the same rows -- a drill on a bank
-   * position is `anchor`-eligible and not `descriptive-history`-eligible, and the reverse -- so the
-   * latest row of one is not the latest row of the other, and reusing `currentId` here would name a
-   * regime this reading may hold no decisions in at all.
+   * THIS WAS "THE REGIME IN FORCE ONCE IT CLEARS `MIN_BUCKET_N`", CARRIED OVER FROM THE DESCRIBED
+   * READING, AND IT WAS FALSIFIED HERE BY MEASUREMENT. That rule's whole claim is that staleness is
+   * bounded by thirty decisions instead of by the length of the record. On the bank there is no such
+   * bound, because the bank is not an open stream of decisions:
+   *
+   *   - `ANCHOR_POSITIONS` is SIXTY items and no more;
+   *   - `anchorAnswered` is deliberately cross-regime, and `nextAnchor` serves the first position
+   *     NOT in it, so a bump does not re-offer positions already answered;
+   *   - so after a bump a player can supply at most `60 - answered` distinct answers in the new
+   *     regime, and any player who had answered 31 or more can NEVER reach `MIN_BUCKET_N` in it.
+   *
+   * Measured: 40 positions answered accurately under one build, a build change, then every remaining
+   * position -- 20 -- answered inaccurately under the next. The reading stayed at `n=40` and 100%
+   * accuracy from a build no longer running, permanently, with the set exhausted. That is the
+   * sentence the in-force rule exists to prevent, reproduced by it.
+   *
+   * AND THE PLAYERS IT DID REACH PAID A CLIFF NOTHING NAMED. On the thirtieth distinct answer in the
+   * new regime the reading fell from `n=40` to `n=30`, and `stability.n` from 20/20 to 15/15 -- a
+   * count this product prints -- while `setAside` and `regime` stayed empty and null, because both
+   * are computed from the DESCRIBED strata. The described reading makes the same trade and renders
+   * those two fields to explain it. The bank made it silently.
+   *
+   * SO THE SELECTION GOES BACK, THROUGH THIS FUNCTION RATHER THAN AROUND IT. `null` says "no regime
+   * is in force for this reading", which is the true statement, and it keeps ONE implementation of
+   * the ordering -- the duplication that let a repair reach one of two callers is still gone.
+   *
+   * WHAT REPLACES IT IS AN OWNER QUESTION AND NOT A RULE: on a finite item set whose progress is
+   * cross-regime, what should a between-player comparison do when the regime in force can never
+   * accumulate enough items? `N-11`. Nothing here answers it.
    */
-  const bankStratumOf = new Map(bankStrata.flatMap((s) => s.ids.map((id) => [id, s.id] as const)));
-  const latestBankId = [...allIds].reverse().find((id) => bankStratumOf.has(id));
-  const bankCurrentId = bankStratumOf.get(latestBankId ?? "") ?? null;
   const [bankChosen] = regimeInForceFirst(
     bankStrata,
     (s) => s.id,
@@ -2268,7 +2294,7 @@ export async function recordReading(store: RecordStore): Promise<RecordReading> 
      * the reading will then drop would pick a stratum on the strength of its repeats.
      */
     (s) => s.comparable.length,
-    bankCurrentId,
+    null,
   );
   const [chosen, ...rest] = regimeInForceFirst(
     scoredStrata,

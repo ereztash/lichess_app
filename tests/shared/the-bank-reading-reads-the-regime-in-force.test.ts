@@ -1,30 +1,32 @@
 /**
- * THE ONLY BETWEEN-PLAYER COMPARISON, READING A PROTOCOL THAT IS NO LONGER RUNNING.
+ * WHICH REGIME THE BETWEEN-PLAYER READING IS OVER, AND WHY IT IS NOT THE ONE IN FORCE.
  *
- * THE LINEAGE, because it is the finding. `57f561d` stratified the described reading and picked
- * the LARGEST stratum. `4049c16` carried the wall to the bank reading and copied that sort, under a
- * message that named the very defect it was fixing: *"`readRecord` computes two readings and the
- * first commit walled only one of them."* Then `67bad3c` falsified "the largest" -- largest is not
- * latest -- and replaced it with the regime in force. On one of the two readings. The bank went on
- * sorting by size.
+ * THE LINEAGE, because it is half the finding. `57f561d` stratified the described reading and took
+ * the LARGEST stratum. `4049c16` carried the wall to the bank and copied that sort, under a message
+ * naming the very defect it was fixing: *"`readRecord` computes two readings and the first commit
+ * walled only one of them."* Then `67bad3c` falsified "the largest" -- largest is not latest -- and
+ * replaced it with the regime in force. On one of the two readings. The bank went on sorting by
+ * size, which is what `regimeInForceFirst` exists to stop happening a third time: ONE function, two
+ * callers, and each caller says in its own argument which rule it is asking for.
  *
- * WHAT "LARGEST" COSTS, measured in `67bad3c` on the reading it was fixed for: a bump to
- * `CURRENT_PROTOCOL_VERSION` starts a stratum at zero while the retired one holds the whole
- * history, so 120 decisions under version 4 against 40 under version 5 reported n=120 at 100%
- * accuracy from a protocol no longer running, and would have gone on for 81 more decisions.
+ * AND THE BANK ASKS FOR THE LARGEST, DELIBERATELY. The in-force rule was carried over here and then
+ * falsified by measurement, which is the other half. Its claim is that staleness is bounded by
+ * thirty decisions rather than by the length of the record. The bank is not an open stream:
+ * `ANCHOR_POSITIONS` is sixty items, `anchorAnswered` is cross-regime by design, and `nextAnchor`
+ * serves the first position NOT already answered. So a bump leaves at most `60 - answered` distinct
+ * answers available in the new regime, and a player who had answered 31 or more can never reach the
+ * floor in it. The first case below is that player, and the reading it gets is the stale one the
+ * in-force rule was written to prevent -- permanently, with the set exhausted.
  *
- * IT IS WORSE HERE THAN THERE. The described reading describes one player, and a stale one is a
- * stale description. The bank is the only reading this product claims is comparable BETWEEN
- * players, and its whole argument is that item difficulty and scoring are held fixed --
- * `docs/ACTION_PLAN.md` B1 measured 13.61% of verdicts flipping between two engine builds. A stale
- * regime here is a comparison run across the exact change the stratification exists to wall off.
+ * THE VERSION OF THIS FILE THAT CERTIFIED THE IN-FORCE RULE WAS CHECKED AGAINST A RECORD THE PRODUCT
+ * CANNOT PRODUCE. It built the running regime from positions 0-29, which the retired regime had
+ * already answered -- thirty reload-repeats, which the front door never serves. It went red when the
+ * rule was reverted, so it looked like a gate. It was a gate on an unreachable record. Every case
+ * here now answers DISTINCT positions and asserts the total against the size of the set.
  *
- * THE REPAIR IS ONE FUNCTION WITH TWO CALLERS, not the same rule written twice. A rule that lives
- * in two places gets repaired in one, which is what happened here, twice, one commit apart.
- *
- * THE BANK COMPUTES ITS OWN REGIME IN FORCE and does not borrow the described reading's. The two
- * populations do not admit the same rows, so the latest row of one is not the latest row of the
- * other, and the last case here is what holds that apart.
+ * WHAT IS NOT DECIDED HERE. What a between-player comparison should do when the regime in force can
+ * never accumulate enough items is a question about what the product measures on a finite set.
+ * `N-11`, and it is the owner's.
  */
 import { describe, expect, it } from "vitest";
 import { MemoryRecordStore } from "../../server/record";
@@ -102,52 +104,60 @@ async function run(
   }
 }
 
-describe("the bank reading reads the regime in force", () => {
-  it("does not describe a retired engine build because it holds more rows", async () => {
-    const store = new MemoryRecordStore();
-    /* The retired regime is the larger one, and every one of its answers was accurate. */
-    await run(store, { n: 40, from: 0, build: RETIRED, accurate: true });
-    /* The regime the record is still appending to, over the floor, and every answer inaccurate. */
-    await run(store, { n: MIN_BUCKET_N, from: 0, build: RUNNING, accurate: false });
-
-    const reading = await service.recordReading(store);
-    expect(
-      reading.anchor.n,
-      `the comparable reading is over ${reading.anchor.n} answers; the running regime holds ${MIN_BUCKET_N}`,
-    ).toBe(MIN_BUCKET_N);
-    /* And it is the running regime's answers, not the retired one's flattering ones. */
-    expect(reading.anchor.levels.find((l) => l.n > 0)?.observed).toBe(0);
-  });
-
-  it("POSITIVE CONTROL: falls back to the largest while the regime in force is too small to read", async () => {
+describe("which regime the between-player reading is over", () => {
+  it("cannot reach the regime in force once the set is spent, and this is the record that shows it", async () => {
     /*
-     * Without this the rule would be "always the newest", which trades a stale number for silence
-     * on every bump. `MIN_BUCKET_N` is the floor these readings already answer nothing below.
+     * THE REACHABLE RECORD, and every position distinct: 40 under a retired build, then the whole
+     * remaining set -- 20 -- under the running one. Sixty answers, sixty positions, which is the
+     * most this player can ever give. The running regime is 20, under the floor of 30, and no
+     * further answer exists to lift it.
      */
     const store = new MemoryRecordStore();
     await run(store, { n: 40, from: 0, build: RETIRED, accurate: true });
-    await run(store, { n: MIN_BUCKET_N - 1, from: 0, build: RUNNING, accurate: false });
+    await run(store, { n: ANCHOR_POSITIONS.length - 40, from: 40, build: RUNNING, accurate: false });
 
     const reading = await service.recordReading(store);
+    expect(reading.anchorAnswered.length, "the walk did not answer every bank position").toBe(
+      ANCHOR_POSITIONS.length,
+    );
+    expect(reading.anchorRepeated, "the record was supposed to hold no repeats").toBe(0);
+    /*
+     * THE READING IS THE RETIRED REGIME, AND THIS ASSERTION IS THE FINDING RATHER THAN THE FIX. It
+     * is what the largest-stratum rule gives, and it is also what the in-force rule gave, because
+     * 20 is under the floor and the set is spent. Naming it here is what stops the next pass reading
+     * a green suite as an absence.
+     */
     expect(reading.anchor.n).toBe(40);
+    expect(reading.anchor.levels.find((l) => l.n > 0)?.observed).toBe(1);
+  });
+
+  it("takes the largest regime, and the ordering is the shared rule rather than a second copy", async () => {
+    const store = new MemoryRecordStore();
+    await run(store, { n: 20, from: 0, build: RETIRED, accurate: true });
+    await run(store, { n: 35, from: 20, build: RUNNING, accurate: false });
+
+    const reading = await service.recordReading(store);
+    expect(reading.anchor.n).toBe(35);
+    expect(reading.anchor.levels.find((l) => l.n > 0)?.observed).toBe(0);
   });
 
   it("POSITIVE CONTROL: it is answer-blind -- flipping every outcome chooses the same regime", async () => {
     /*
-     * The disqualifying failure for any population rule. Both terms are counts and arrival order,
-     * so neither can reach for the regime holding the better number.
+     * The disqualifying failure for any population rule, and the property that must survive whatever
+     * the owner decides about `N-11`. Both terms are counts and arrival order, so neither can reach
+     * for the regime holding the better number.
      */
     const sizeOf = async (retiredAccurate: boolean) => {
       const store = new MemoryRecordStore();
-      await run(store, { n: 40, from: 0, build: RETIRED, accurate: retiredAccurate });
-      await run(store, { n: MIN_BUCKET_N, from: 0, build: RUNNING, accurate: !retiredAccurate });
+      await run(store, { n: 20, from: 0, build: RETIRED, accurate: retiredAccurate });
+      await run(store, { n: 35, from: 20, build: RUNNING, accurate: !retiredAccurate });
       return (await service.recordReading(store)).anchor.n;
     };
     expect(await sizeOf(true)).toBe(await sizeOf(false));
   });
 
   it("POSITIVE CONTROL: one regime is still one reading, and nothing is walled off", async () => {
-    /* A rule that shrank every record would pass the first case for the wrong reason. */
+    /* A rule that shrank every record would pass the cases above for the wrong reason. */
     const store = new MemoryRecordStore();
     await run(store, { n: 35, from: 0, build: RUNNING, accurate: true });
 
@@ -155,26 +165,18 @@ describe("the bank reading reads the regime in force", () => {
     expect(reading.anchor.n).toBe(35);
   });
 
-  it("takes its regime from its own latest answer, not from the described reading's", async () => {
+  it("POSITIVE CONTROL: no record can hold more distinct bank answers than the set has positions", async () => {
     /*
-     * The two populations admit different rows. Here the record's last decision is FREE PLAY, which
-     * the bank does not admit at all -- so a bank reading that borrowed `currentId` would name a
-     * regime holding no bank answers and fall back to size for the wrong reason. The bank's own
-     * latest answer is under RUNNING, and that is what it must read.
+     * The premise the first case rests on. If this ever stops being true -- a larger set, or a rule
+     * that re-offers answered positions -- the reachability argument above has to be re-derived
+     * rather than inherited.
      */
     const store = new MemoryRecordStore();
-    await run(store, { n: 40, from: 0, build: RETIRED, accurate: true });
-    await run(store, { n: MIN_BUCKET_N, from: 0, build: RUNNING, accurate: false });
-    for (let i = 0; i < 5; i += 1) {
-      await answer(store, {
-        fen: "r2q1rk1/pp2bppp/2n1bn2/3pp3/3PP3/2N1BN2/PP2BPPP/R2Q1RK1 w - - 0 12",
-        build: "sf20-later-build",
-        accurate: true,
-        purpose: "play",
-      });
-    }
+    await run(store, { n: ANCHOR_POSITIONS.length, from: 0, build: RUNNING, accurate: true });
+    await run(store, { n: 10, from: 0, build: RUNNING, accurate: false });
 
     const reading = await service.recordReading(store);
-    expect(reading.anchor.n).toBe(MIN_BUCKET_N);
+    expect(reading.anchorAnswered.length).toBe(ANCHOR_POSITIONS.length);
+    expect(reading.anchorRepeated).toBe(10);
   });
 });

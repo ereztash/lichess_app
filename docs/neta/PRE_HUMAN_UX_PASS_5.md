@@ -233,6 +233,51 @@ What did not wait on that is the reading. The between-player comparison now admi
 bank position whichever route produced the second one, so the measurement half of all three is
 closed while the product's voice is still the owner's to choose.
 
+## 4c. The adversary against this pass's own repairs, and what it broke
+
+The repairs above were handed to an independent pass whose only instruction was to prove them wrong.
+It did, in four places, and this section is the more useful half of the document.
+
+**The bank's regime rule was reverted, because its stated bound does not exist on that population.**
+The rule claims staleness is bounded by thirty decisions rather than by the length of the record.
+The bank is sixty items, `anchorAnswered` is cross-regime by design, and `nextAnchor` serves the
+first position not already answered -- so after a bump a player can supply at most `60 - answered`
+distinct answers in the new regime, and **any player who had answered 31 or more can never reach the
+floor in it**. Measured: 40 accurate under one build, a build change, every remaining position
+answered inaccurately under the next, and the reading stayed at `n=40` and 100% accuracy from a build
+no longer running, permanently, with the set exhausted. That is the sentence the rule was written to
+prevent, reproduced by it. And the players it *did* reach paid a cliff nothing named: on the
+thirtieth distinct answer `anchor.n` fell 40 → 30 and `stability.n` 20/20 → 15/15 -- a count this
+product prints -- while `setAside` and `regime` stayed empty, because both are computed over the
+described strata. `N-11`, and it is probably the same owner decision as the `anchorAnswered` item
+already filed rather than a second one.
+
+**The narrowed `setAside` sentence was still false, and false about the word it had just chosen.**
+Narrowing `המספרים כאן` to `מדדי הדיוק והכיול שכאן` left a figure literally labelled `דיוק` below
+it -- `accuracyByArm`, computed over every described stratum -- averaging exactly the decisions the
+sentence excludes. It now claims the reading of one measurement regime, which is what it is, and
+names both pooled blocks by their **rendered** headings so a reader can see why their `n` is larger.
+
+**Three tests were green while not discriminating their own rule**, on top of the two already caught
+earlier in this pass:
+
+| test | what it claimed | what it actually checked |
+| --- | --- | --- |
+| `the-count-a-reveal-may-claim` | *"the cheapest available check that the binding cannot drift"* | nothing -- the fixture builds its own `forReveal`; reverting the real binding left 2,496 tests green |
+| `a-sentence-the-numbers-below-it-contradict` | the note names the block where the decisions count | a hard-coded literal; renaming the rendered heading left it green |
+| `firstAnswerPerPosition`'s `positionKey` | novelty is a property of the board | nothing reachable -- the bank matches by exact FEN, so no record distinguishes it from the raw string |
+
+The first two are fixed and now go red in milliseconds. The third is kept and **labelled as a rule
+held ahead of its population** rather than read as enforcement.
+
+**And three claims in this pass's own docblocks were false.** The `countForReveal` fallback is
+arm-blind -- on the probed arm it reproduces the original defect verbatim -- and it is unreachable on
+the local path anyway, because `LocalRecordStore.read()` can neither throw nor return undefined. The
+unbounded wait is worse than "a delay": `httpBatchLink` carries no timeout, so a hung request means
+the reveal never assembles and no failure branch fires. And `anchorRepeated`'s "no visible count
+moved" has one reachable-in-shape exception, now named. All three are corrected where they were
+written.
+
 ## 5. Instrument defects found in this pass, recorded beside the four already in `harness/README.md`
 
 **A probe that answers the counterfactual is not a probe that controls for it.** Every walk in this
@@ -241,8 +286,8 @@ that changes the code path under test. Three separate runs disagreed about which
 and the disagreement was read as a race for two passes. `assignProbe` takes its `draw` as an
 argument for exactly this reason.
 
-**A gate that went red before the fix is not yet a gate.** Twice in this pass a falsifier was red
-before and green after and still did not discriminate the rule it was written for. Both were caught
+**A gate that went red before the fix is not yet a gate.** FIVE times in this pass a falsifier was
+red before and green after and still did not discriminate the rule it was written for. Both were caught
 by reverting the rule into the tree and re-running, which is cheap and is now the last step of every
 repair here.
 

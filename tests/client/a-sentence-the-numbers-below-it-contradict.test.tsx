@@ -94,15 +94,44 @@ describe("a sentence the numbers below it contradict", () => {
     ).not.toContain("לתוך המספרים כאן");
   });
 
-  it("names the block where those decisions ARE counted", () => {
+  it("names the blocks where those decisions ARE counted, by their RENDERED headings", () => {
     /*
      * Bounding the claim is half of it. A reader told a number excludes their decisions, who then
-     * meets a bigger denominator in the same section, has been left to reconcile two true
-     * statements with nothing connecting them.
+     * meets a bigger denominator in the same section, has been left to reconcile two true statements
+     * with nothing connecting them.
+     *
+     * READ OFF THE SCREEN, NOT OFF A LITERAL, and that is this case's whole discrimination. The
+     * first version asserted the note against a hard-coded string; changing `MixBlock`'s rendered
+     * heading to something else left every one of 2,496 tests green while the note went on naming a
+     * heading that was no longer there -- which is precisely what hoisting the constant was supposed
+     * to prevent. An assertion against a literal cannot see a rename; an assertion against the
+     * rendered heading can.
      */
     const { container } = render(<RecordDashboard reading={readingWithSetAside()} />);
-    const note = noteFor(container);
-    expect(note).toContain("מה הכלי מוצא בהחלטות שלכם");
+    const note = noteFor(container) ?? "";
+    const headings = [...container.querySelectorAll(".mix-block .dash-title, .counterfactual-panel__title")]
+      .map((h) => (h.textContent ?? "").trim())
+      .filter(Boolean);
+    expect(headings.length, "neither pooled block rendered a heading to point at").toBeGreaterThan(0);
+    for (const heading of headings) {
+      expect(note, `the note does not name the rendered heading "${heading}"`).toContain(heading);
+    }
+  });
+
+  it("says why the n below is bigger, rather than leaving two denominators unreconciled", () => {
+    /*
+     * The defect this file is named for, in its second form. Narrowing the claim to
+     * `מדדי הדיוק והכיול` was still false: `readCounterfactuals` runs over every described stratum,
+     * and the counterfactual block prints a figure labelled `דיוק` over exactly the decisions the
+     * note says are excluded. The sentence now claims the reading of ONE regime, which is what it
+     * is, and says the pooled blocks are pooled.
+     */
+    const { container } = render(<RecordDashboard reading={readingWithSetAside()} />);
+    const note = noteFor(container) ?? "";
+    expect(note, "the note still claims a category of measures rather than this regime's reading").not.toContain(
+      "מדדי הדיוק והכיול",
+    );
+    expect(note).toContain("משטר המדידה שמוצג");
   });
 
   it("still says the decisions are not waiting and not under another heading", () => {

@@ -33,12 +33,19 @@ const READING_LABEL = {
 /** The order is the interesting one first, not the alphabet. */
 const ORDER = ["reachable", "narrow", "both-good", "neither"] as const;
 
+/**
+ * This panel's heading, exported because `RecordDashboard`'s set-aside note points a reader at it by
+ * name. A sentence that names a heading and a heading that renames itself are how a page comes to
+ * point at something that is not there.
+ */
+export const COUNTERFACTUAL_TITLE = "השאלה על החלופה";
+
 export function CounterfactualPanel({ reading }: { reading: CounterfactualRecordReading }) {
   const { asked, answered, namedNothing, scored, readings, arms, measurable, shortBy } = reading;
 
   return (
     <section className="counterfactual-panel">
-      <h3 className="counterfactual-panel__title">השאלה על החלופה</h3>
+      <h3 className="counterfactual-panel__title">{COUNTERFACTUAL_TITLE}</h3>
       <p className="counterfactual-panel__what">
         אחרי חלק מההחלטות נשאלתם מה הייתם עושים במקום המהלך שרשמתם. השאלה נשאלת אחרי שהמהלך
         ננעל ולפני שהמנוע מדבר, והחלופה נמדדת באותו חיפוש שמדד את המהלך שבחרתם.
