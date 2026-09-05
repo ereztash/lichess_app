@@ -278,6 +278,54 @@ the reveal never assembles and no failure branch fires. And `anchorRepeated`'s "
 moved" has one reachable-in-shape exception, now named. All three are corrected where they were
 written.
 
+## 4d. A fifth instance, found by a review bot on the pull request
+
+`useReveal` and `useCommitDecision` both opened with
+`if (!local) return server.mutateAsync(...)`, which returns before the `invalidateQueries` the local
+branch runs underneath. On a signed-in session a commit and a reveal left `count`, `claim` and
+`reading` holding what they held before the write, and `useRecordReading` passes
+`refetchOnWindowFocus: false`, so nothing brought them back. `RevealPanel` reads `mixAll` from that
+query, so the accumulation block could tell a player the branch they are looking at has appeared
+**`0 מתוך N`** times — a screen displaying a thing and counting it zero, which is `N-7`'s shape
+arriving through a different cache.
+
+**And the rule was written one function below.** `invalidateBlitz`: *"BOTH SIDES ALWAYS, not the
+active one: signing in mid-session leaves the other side's cache in place, and a screen that
+switched back would read a row from before the write."* Argued for the two blitz writes, never
+carried to the two decision writes. Repaired as `invalidateRecord`, one function and both callers.
+
+Production configures no `DATABASE_URL`, so every production arrival takes the local path and this
+was never live. It was real in the code and is fixed there.
+
+## 4e. THE THREE FAMILIES ARE CLUSTERED AND NOT FALSIFIED
+
+Ten orthogonal passes produced 22 candidates. Clustering dropped nine — most of them because this
+pass had already repaired or routed them while the passes were running — and compressed the rest
+into three families:
+
+1. **the qualification that reaches the consumer it was written for and no sibling consumer of the
+   same reading;**
+2. **the assurance boundary drawn by the last walk, and the resulting green spent as evidence;**
+3. **a rule the repo argued for once, at the site where it was learned, and never carried to the
+   sibling site.**
+
+**All nine falsification agents then failed on a session limit.** Not one of the three was attacked.
+They are therefore HYPOTHESES about this codebase, at the reality level their evidence carries, and
+they are not established families. What supports them is not the clustering: it is that five
+instances of the same shape were independently found, measured and repaired in this pass, each one
+red-before and green-after with a deliberate revert —
+
+| # | the rule | argued at | left at |
+| --- | --- | --- | --- |
+| 1 | the regime in force, not the largest | the described reading | the bank reading |
+| 2 | audit the state, not the route | `axe-on-the-built-app` → `axe-past-the-commit` | one disclosure further |
+| 3 | `החלטות` and not `מהלכים` | `loop-position.ts` | `ClaimPanel` |
+| 4 | a count that shrank says what it dropped | `setAside` | the pooled blocks below it |
+| 5 | invalidate both sides | `invalidateBlitz` | both decision writes |
+
+Five instances is evidence that the shape recurs. It is not the adversarial test the families were
+queued for, and the next pass should run that test rather than inherit the conclusion.
+
 ## 5. Instrument defects found in this pass, recorded beside the four already in `harness/README.md`
 
 **A probe that answers the counterfactual is not a probe that controls for it.** Every walk in this
@@ -299,7 +347,12 @@ Three families repaired, gated, and attacked. Two routed to `OWNER` with the REP
 closed by measurement rather than left as an opinion. One reality level raised: `N-7` from R3 to R4
 on the deployed build, with a control.
 
-What remains at the time of writing is the second-order pass over the repairs themselves and the
-lenses still running. Nothing here says the UI has no more problems. It says that these are the ones
-this pass could establish, and that two of them stopped at an authority this repository does not
-hold.
+The second-order pass over this pass's own repairs ran and found four of them wrong; that round is
+§4c and is the most useful part of this document. What did NOT run is the adversarial test of the
+three families, and §4e says so rather than letting a clustering read as a conclusion.
+
+Nothing here says the UI has no more problems. It says these are the ones this pass could establish,
+that four of them stopped at an authority this repository does not hold, and that the one thing the
+whole pass most wants to claim — that this codebase's dominant failure is a rule repaired at the
+site where it was learned and left at its siblings — is supported by five measured instances and has
+not yet been attacked.
