@@ -58,6 +58,8 @@ export const LOCAL_KEYS = {
  * the queue never started. Nothing errored. The game simply stayed pending forever.
  */
 const BLITZ_KEYS = [LOCAL_KEYS.blitzGames, LOCAL_KEYS.blitzDecisions, LOCAL_KEYS.blitzReading];
+/* What a decision write makes stale. Named beside `BLITZ_KEYS` so the two write paths read alike. */
+const RECORD_KEYS = [LOCAL_KEYS.count, LOCAL_KEYS.claim, LOCAL_KEYS.reading];
 
 /**
  * Which backing is in use, whether it can hold anything, and WHY NOT when it cannot.
@@ -255,15 +257,55 @@ export function useStore(): LocalRecordStore {
   return useMemo(() => new LocalRecordStore(), []);
 }
 
+/**
+ * Mark every record reading stale, on whichever side the record lives.
+ *
+ * BOTH SIDES ALWAYS, for the reason `invalidateBlitz` gives below and for one more this function
+ * exists because of. The two decision writes each opened with
+ * `if (!local) return server.mutateAsync(...)`, which returns BEFORE the invalidation the local
+ * branch runs -- so on a signed-in session a commit and a reveal left every record query holding
+ * what it held before the write, and `useRecordReading` passes `refetchOnWindowFocus: false`, so
+ * nothing brought it back.
+ *
+ * WHAT THAT PUT ON THE SCREEN. `RevealPanel` reads `mixAll` from that query. Stale, it does not
+ * contain the decision being revealed, so the accumulation block could tell a player that the
+ * branch they are looking at has appeared `0 מתוך N` times -- a screen displaying a thing and
+ * counting it zero, which is the shape `N-7` was about on the other number.
+ *
+ * ONE FUNCTION AND TWO CALLERS, because the rule was already written one function below for the
+ * blitz writes and was never carried here. A rule that lives in two places gets repaired in one.
+ */
+async function invalidateRecord(
+  queryClient: ReturnType<typeof useQueryClient>,
+  utils: ReturnType<typeof trpc.useUtils>,
+  local: boolean,
+): Promise<void> {
+  await Promise.all([
+    ...RECORD_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+    local
+      ? Promise.resolve()
+      : Promise.all([
+          utils.record.reading.invalidate(),
+          utils.record.count.invalidate(),
+          utils.record.claim.invalidate(),
+        ]),
+  ]);
+}
+
 export function useCommitDecision() {
   const { local } = useRecordMode();
   const { user } = useAuth();
   const store = useStore();
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.commitDecision.useMutation();
   return {
     mutateAsync: async (event: service.CommitEvent) => {
-      if (!local) return server.mutateAsync(event as never);
+      if (!local) {
+        const out = await server.mutateAsync(event as never);
+        await invalidateRecord(queryClient, utils, local);
+        return out;
+      }
       /*
        * SAID BEFORE THE WRITE, so a probe that recovers while this is in flight cannot move the
        * next read to the server ahead of the mark. A decision is the anchor of the record: reveals,
@@ -271,9 +313,7 @@ export function useCommitDecision() {
        */
       markKeptLocally(user?.openId);
       const out = await service.commitDecision(store, event);
-      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.count });
-      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
-      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.reading });
+      await invalidateRecord(queryClient, utils, local);
       return out;
     },
   };
@@ -303,6 +343,7 @@ export function useReveal() {
   const { user } = useAuth();
   const store = useStore();
   const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const server = trpc.record.reveal.useMutation();
   return {
     mutateAsync: async (input: {
@@ -310,7 +351,11 @@ export function useReveal() {
       result: DecisionResult;
       alternative_cp_loss?: number | null;
     }): Promise<DecisionAtom> => {
-      if (!local) return server.mutateAsync(input as never);
+      if (!local) {
+        const atom = await server.mutateAsync(input as never);
+        await invalidateRecord(queryClient, utils, local);
+        return atom;
+      }
       // Marked here as well as on the commit: a session that resumes a game committed earlier can
       // reach a reveal first, and the reveal is what makes a decision countable.
       markKeptLocally(user?.openId);
@@ -320,8 +365,7 @@ export function useReveal() {
         input.result,
         input.alternative_cp_loss,
       );
-      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.claim });
-      await queryClient.invalidateQueries({ queryKey: LOCAL_KEYS.reading });
+      await invalidateRecord(queryClient, utils, local);
       return atom;
     },
   };
