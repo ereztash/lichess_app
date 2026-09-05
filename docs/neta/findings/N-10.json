@@ -9,7 +9,8 @@
     "WHERE THE RELOAD LANDS. The position committed on and the position put back are the same: h1 `11. O-O-O` and a 64-square occupancy hash of -494095640 on both sides. The commitment panel is reset to `חסרים 4 פרטים. החלטה חלקית לא נרשמת`, the record reads `0 מתוך 1 שנרשמו`, and a second full decision was then committed on that same position with the same move.",
     "ON REVEAL 1 THE CHUNK PAINTS NOTHING. `ASK_AFTER_REVEALS = 2`, so the component mounts, fetches, and renders nothing until the second reveal -- and still costs the first one.",
     "THE FIRST FAILURE IS SILENT. The product has a well-written stale-build screen -- `האפליקציה התעדכנה בזמן שהייתם כאן ... החלטות שכבר נרשמו נשמרו` with a reload control -- and it appears only on the SECOND failure.",
-    "The same class at the disclosure: aborting `/assets/RecordExplorer-*.js` at the `.explore-toggle` press empties the document at +110ms and lands the DECIDE screen at +357ms, reveal gone."
+    "The same class at the disclosure: aborting `/assets/RecordExplorer-*.js` at the `.explore-toggle` press empties the document at +110ms and lands the DECIDE screen at +357ms, reveal gone.",
+    "THE ENVIRONMENT DISCRIMINATOR IS NOT AVAILABLE, and that is a finding about the finding. `/api/client-event` calls `emit`, which writes one JSON line through `sink` -- a runtime log. `MASTER_PRODUCT_DEBT`/`PRE_HUMAN_CEILING` item `R-23` records what that means here: Vercel Hobby retains runtime logs for ONE HOUR and sends no alerts, so the event is observable only by an operator who is already looking. Counting `stale-build-reload` events near reveal renders cannot be done retrospectively at all."
   ],
   "candidate_mechanisms": [
     {
@@ -22,7 +23,7 @@
       "name": "The placement is harmless because the trigger never fires there",
       "explains": "Why this has not been seen. The trigger is a deploy replacing a chunk while a page is open.",
       "does_not_explain": "Nothing measured contradicts it, and `lazy-chunk.ts` calls the trigger 'not hypothetical and not rare'.",
-      "discriminator": "ENVIRONMENT, and it costs nothing: the app already emits the event. Count `stale-build-reload` client-events in the deployed environment and check how many arrive within 500ms of a reveal render. The reveal timestamp is already recorded."
+      "discriminator": "ENVIRONMENT, and it is BLOCKED. The app already emits the event, but it emits it into a one-hour log with no alerting (`R-23`), so the count cannot be taken retrospectively. `R-23` is itself an open OWNER decision -- buy retention and alerting, or accept the blindness and say so -- and this question is downstream of it. A trial that runs while nobody is watching cannot answer it either."
     },
     {
       "name": "The reload is the wrong recovery for a screen holding unpersisted state",
@@ -38,6 +39,6 @@
   "must_not_change": "The reload itself, until the owner has answered. It exists because a stale build serving a missing chunk is a real deploy state, and removing the recovery to protect one screen would trade a rare lost reveal for a permanently broken page.",
   "perceptual_success_criterion": "A player who has just been shown a verdict is not returned, silently, to the position they took it on.",
   "check": "The eight runs above, both injection kinds, at 1440x900. The app's own `stale-build-reload` event and its sessionStorage mark are what distinguish the product's reload from the harness's.",
-  "next_step": "Two things, and the cheap one first. (1) ENVIRONMENT: count the deployed `stale-build-reload` events near reveal renders. Zero, and mechanism 2 wins on frequency and this closes. (2) OWNER: if it is not zero, three shapes exist -- move the mount off the reveal, fold those four lines into the entry chunk, or defer the reload until the screen holds nothing a reload destroys -- and which is right is product intent. None is chosen here.",
+  "next_step": "The order of operations changed once the discriminator was checked. (1) `R-23` first: the frequency question is not answerable in a one-hour log with no alerting, so the cheap route is shut until that owner decision is made. (2) Only then, or independently if the owner prefers: if the reveal must survive the recovery, three shapes exist -- move the mount off the reveal, fold those four lines into the entry chunk, or defer the reload until the screen holds nothing a reload destroys -- and which is right is product intent. None is chosen here. Note that folding into the entry would fix one chunk and not the mechanism: the same shape was measured at the disclosure with `RecordExplorer`.",
   "related": "N-9. This is the third route into a re-armed already-decided position, and the most damaging one, because the player also loses the reveal. The reading half is already protected: the between-player comparison admits one answer per bank position."
 }

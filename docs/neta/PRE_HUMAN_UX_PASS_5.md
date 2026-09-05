@@ -205,9 +205,14 @@ reveal, and the docblock does not mention it. **A recovery that is safe for the 
 automatically safe for the screen**, and the difference is exactly the state that is derived rather
 than stored.
 
-Not repaired, and the cheap half of the next step costs nothing: the app already emits the event, so
-counting deployed `stale-build-reload` events that arrive within 500 ms of a reveal render answers
-whether the trigger ever fires there. `N-10`.
+Not repaired. And the half of the next step that looked free is not: `/api/client-event` calls
+`emit`, which writes one line to a runtime log, and `R-23` already records what that means here --
+**Vercel Hobby retains runtime logs for one hour and sends no alerts**. The count cannot be taken
+retrospectively, so the frequency question is downstream of an owner decision that was already open
+before this pass found anything. `N-10`.
+
+That is worth stating on its own, because it is the second time in this pass a discriminator was
+checked before being trusted and turned out not to be the instrument it looked like.
 
 ### What the loop does on a reload
 
