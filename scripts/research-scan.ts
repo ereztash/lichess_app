@@ -199,6 +199,13 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "the corpus a harness read, derived from a dump that is not in the tree",
   },
   {
+    artefact: "research/mechanism/data/frozen_window_manifest.json",
+    keyPath: "corpusSha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "a byte-for-byte copy of research/harness-account-full/corpus_manifest.json, carried by the mechanism study so its data directory names the 2,209-game window it re-scored without a reader following a path. The digest is the harness's, over a corpus that is not in the tree, so it is the same kind of claim as the row above and is checkable in the same place: nowhere here",
+  },
+  {
     artefact: "research/**/*report*.json",
     keyPath: "evidenceSha256",
     kind: "EXTERNAL_ARTEFACT",

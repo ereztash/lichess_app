@@ -1,0 +1,6 @@
+DERIVE 31851/1297 games, VALIDATE 10626/432 games, base err 0.446
+NODE C depth CV: { 1: 2.29, 2: 5.63, 3: 4.43 } -> depth 2 (126s)
+FROZEN on DERIVE:
+  n_good_captures<1 AND standing=='winning'  n=7081 err_in=0.445 err_out=0.446 wg_est=+0.0806 wg_z=8.63
+  own_errors_so_far<6 AND recapture_available==0  n=11928 err_in=0.484 err_out=0.423 wg_est=+0.1048 wg_z=14.66
+  opp_hanging_piece_count<1 AND standing=='winning'  n=8361 err_in=0.437 err_out=0.449 wg_est=+0.0715 wg_z=7.79

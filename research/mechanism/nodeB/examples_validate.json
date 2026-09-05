@@ -1,0 +1,170 @@
+[
+ {
+  "link": "https://lichess.org/e2xpAe92#78",
+  "color": "w",
+  "eco": "B01",
+  "opening": "Scandinavian Defense: Mieses-Kotroc Variation",
+  "phase": "middlegame",
+  "standing": "winning",
+  "move_no": 40,
+  "clock_s": 15,
+  "seconds": 1.6,
+  "material": 1,
+  "overloaded": [
+   [
+    "d8",
+    "Q",
+    1,
+    0
+   ]
+  ],
+  "played": "Bh6",
+  "engine_best": "Qxa5",
+  "reply": "Qxd8",
+  "wp_loss": 0.852,
+  "fen": "3Q1bk1/1p3p1p/p1p1p1p1/q7/2P5/1P2B1NP/5PPK/8 w - - 3 40",
+  "date": "2025-02-14",
+  "speed": "blitz"
+ },
+ {
+  "link": "https://lichess.org/qSVOcX4O#54",
+  "color": "w",
+  "eco": "C21",
+  "opening": "Danish Gambit",
+  "phase": "middlegame",
+  "standing": "winning",
+  "move_no": 28,
+  "clock_s": 98,
+  "seconds": 5.2,
+  "material": -2,
+  "overloaded": [
+   [
+    "e6",
+    "P",
+    1,
+    0
+   ]
+  ],
+  "played": "Qa7",
+  "engine_best": "Qf7+",
+  "reply": "Qxe6",
+  "wp_loss": 0.695,
+  "fen": "4r1k1/2p1q1pp/p1p1P3/3p4/4p3/8/PP3QPP/5RK1 w - - 3 28",
+  "date": "2025-06-08",
+  "speed": "blitz"
+ },
+ {
+  "link": "https://lichess.org/9SXSSwE1#39",
+  "color": "b",
+  "eco": "B40",
+  "opening": "Sicilian Defense: French Variation, Open",
+  "phase": "middlegame",
+  "standing": "winning",
+  "move_no": 20,
+  "clock_s": 142,
+  "seconds": 2.64,
+  "material": 0,
+  "overloaded": [
+   [
+    "b7",
+    "p",
+    1,
+    0
+   ]
+  ],
+  "played": "Qf6",
+  "engine_best": "Qxe3+",
+  "reply": "fxe6",
+  "wp_loss": 0.682,
+  "fen": "r4rk1/pp2bppp/4b2q/5P2/8/1R1BB3/P1P3PP/3Q1RK1 b - - 0 20",
+  "date": "2025-11-27",
+  "speed": "blitz"
+ },
+ {
+  "link": "https://lichess.org/rPhUZhpS#57",
+  "color": "b",
+  "eco": "D02",
+  "opening": "Queen's Pawn Game: Chigorin Variation",
+  "phase": "middlegame",
+  "standing": "winning",
+  "move_no": 29,
+  "clock_s": 65,
+  "seconds": 4.64,
+  "material": -1,
+  "overloaded": [
+   [
+    "f8",
+    "r",
+    1,
+    0
+   ],
+   [
+    "g5",
+    "q",
+    1,
+    0
+   ]
+  ],
+  "played": "Qe7",
+  "engine_best": "Qe3+",
+  "reply": "Nxf8",
+  "wp_loss": 0.679,
+  "fen": "5r1k/p5pp/4N1pn/3p2q1/3P4/5P2/PPQ3PP/2R3K1 b - - 5 29",
+  "date": "2025-11-27",
+  "speed": "blitz"
+ },
+ {
+  "link": "https://lichess.org/SRTWLU2T#27",
+  "color": "b",
+  "eco": "A40",
+  "opening": "Englund Gambit",
+  "phase": "middlegame",
+  "standing": "winning",
+  "move_no": 14,
+  "clock_s": 8,
+  "seconds": 0.12,
+  "material": 2,
+  "overloaded": [
+   [
+    "f3",
+    "b",
+    1,
+    0
+   ]
+  ],
+  "played": "Rad8",
+  "engine_best": "Bxd1",
+  "reply": "Qxf3",
+  "wp_loss": 0.608,
+  "fen": "r4rk1/ppq2ppp/3b1n2/2p5/8/2P1PbPP/PPB2P2/R1BQR1K1 b - - 0 14",
+  "date": "2025-01-21",
+  "speed": "rapid"
+ },
+ {
+  "link": "https://lichess.org/VPfUcpOX#17",
+  "color": "b",
+  "eco": "C40",
+  "opening": "King's Pawn Game: Gunderam Gambit",
+  "phase": "opening",
+  "standing": "winning",
+  "move_no": 9,
+  "clock_s": 176,
+  "seconds": 3.44,
+  "material": 0,
+  "overloaded": [
+   [
+    "c6",
+    "p",
+    1,
+    0
+   ]
+  ],
+  "played": "Qd7",
+  "engine_best": "Ne7",
+  "reply": "Nxd7",
+  "wp_loss": 0.571,
+  "fen": "r1bqk1nr/p4ppp/2pb4/3pN3/3Pp3/8/PPP2PPP/RNBQ1RK1 b kq - 1 9",
+  "date": "2025-11-16",
+  "speed": "blitz"
+ }
+]
