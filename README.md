@@ -1,391 +1,359 @@
 # Decision Lab
 
-כלי שחמט שרושם מה שחקן החליט **לפני** שהמנוע ענה, ומודד את הפער בין הביטחון המוצהר לבין מה שקרה בפועל.
+**Decision Lab studies the player through their decisions — not only the positions they played.**
 
-**הקובץ הזה מיועד למי שקורא את המאגר** — מפתח, מבקר, או אני בעוד חצי שנה. הוא עונה על ארבע שאלות:
-מה המכשיר מודד, איך נאכף הכלל שהוא נשען עליו, מה כבר נבדק ומה עוד לא, ואיך מריצים אותו.
+The live application records decision evidence **before the engine speaks** and preserves it across games. Separately, the repository's research layer can test whether structures recur across materially different positions, compare them with same-rating population behavior, isolate a possible personal residual, and turn that residual into a prospectively testable operation.
 
-**הוא לא מסביר את המוצר לשחקן.** ההבטחה שהמוצר מבטיח חיה ב-[`shared/promise.ts`](shared/promise.ts),
-מיובאת משם לדלת הכניסה ולכרטיס השיתוף, ומוחזקת על ידי `tests/client/the-link-someone-was-sent.test.ts`.
-עותק רביעי כאן, שאף בדיקה לא רואה, הוא בדיוק התקלה שהמודול הזה נכתב כדי למנוע — שתי גרסאות של
-אותה הבטחה, שנפרדות בשקט. מי שרוצה לדעת מה השחקן רואה: הדלת הראשית של האפליקציה, לא הקובץ הזה.
+> The product does **not** currently claim to improve chess, Elo, or future performance.
 
 ---
 
-## מה המכשיר מודד
+## Why this exists
 
-כל כלי ניתוח בשוק מדגמן **עמדות**. מנוע יודע מה העמדה דרשה; אין לו גישה למה שקרה אצל השחקן בדרך
-לבחירה — מה הוא קרא בעמדה, מה לא ידע להעריך, וכמה היה בטוח. זה המשתנה שנרשם כאן, והוא ניתן
-לצפייה בחלון אחד בלבד: אחרי שהמהלך ננעל ולפני שהמנוע פתח את הפה.
+A chess engine can answer:
 
-מזה נגזרת אמירה אחת שהבילד הזה תומך בה: **פער כיול בהחלטות רשומות**, מפוצל לשישה סוגים שהגלאי
-רשאי להסתכל עליהם — תחת 45 שניות, מעל שתי דקות, פתיחה, אמצע משחק, סיום, פחות מדקה על השעון.
+> What did the position require?
 
+A normal game review can answer:
+
+> How much did this move cost?
+
+But those outputs do not contain the player's **pre-engine record**:
+
+- the read of the position they explicitly recorded;
+- what they explicitly marked as something they could not evaluate;
+- how confident they said they were;
+- which alternative moves they actually placed on the board before reveal.
+
+Decision Lab preserves that missing evidence without treating an unrecorded thought or move as evidence that it never existed.
+
+```text
+POSITION ANALYSIS
+
+position
+→ engine evaluation
+→ mistake
+
+
+DECISION LAB
+
+decision before engine
+→ recorded evidence
+→ history across games
+→ recurring structure
+→ population comparison
+→ possible personal residual
+→ one future test
 ```
-רישום החלטות  →  זיהוי דפוס  →  השערה, עם n ועם תנאי הפרכה
-                                        ↓
-        מדורגת, כך או כך  ←  הרצת דריל  ←  דריל מעמדות שלא החלטתם עליהן
+
+The distinction matters because:
+
+> a pattern that predicts your mistakes is not necessarily a pattern specific to you.
+
+The population comparison is what separates the two.
+
+---
+
+## How the system learns
+
+```text
+DECIDE BEFORE ENGINE
+        ↓
+CAPTURE DECISION EVIDENCE
+        ↓
+ACCUMULATE ACROSS GAMES
+        ↓
+TEST RECURRING STRUCTURES
+        ↓
+COMPARE WITH EXPECTED PLAYER-LEVEL BEHAVIOR
+        ↓
+ISOLATE ANY PERSONAL RESIDUAL
+        ↓
+DERIVE ONE TESTABLE OPERATION
+        ↓
+TEST IT ON FUTURE GAMES
 ```
 
-**דריל הוא הדבר היחיד שיכול לשנות דירוג**, כי הוא הראיה היחידה שמאוחרת לטענה. זה נאכף במערכת
-הטיפוסים: הפונקציה שמעלה דירוג מקבלת תוצאת דריל פרוספקטיבית, ואין לה עומס-יתר לשום דבר אחר.
-טענה שהופרכה נשמרת לנצח ולא נבדקת שוב.
+The repository deliberately keeps these stages separate.
 
-התפוקה היא **טענה אחת ודריל אחד** — לא דשבורד. אם שלושה דפוסים מועמדים, מוצג זה עם הכי הרבה תמיכה
-ונאמר ששניים מוסתרים. עמוד שמציג הכול הוא עמוד שאחריו כלום לא משתנה.
+A correlation is not a mechanism.  
+A predictive region is not automatically personal.  
+A personal residual is not automatically causal.  
+A plausible intervention is not an effective intervention until tested prospectively.
 
-## הכלל שהכול נשען עליו
+---
 
-**השחקן מחליט לפני שהמכונה מדברת.** רמת הביטחון ושאלת "אם לא היית עושה את זה, מה כן?" מוגרלות
-אקראית ולא נבחרות — שאלה שאפשר לדלג עליה נענית בידי מי שמתחשק לו, וזה בדיוק המשתנה שנמדד.
+## Current evidence
 
-הכלל נאכף בשלוש דרכים, אף אחת מהן לא משמעת:
+The table below describes what the repository has established **so far**, not what every future user will automatically receive.
 
-1. **מכונת מצבים** שבה המנוע רשאי לרוץ בשלב אחד בדיוק.
-2. **טיפוס** שהופך אירוע מחויבות שנושא הערכה ללא-ניתן-לבנייה.
-3. **ייבוא דינמי** ששומר את המנוע מחוץ לגרף המודולים ההתחלתי, כך שהוא לא יכול להופיע בלשונית
-   הרשת לפני שנרשמה החלטה.
+| Question | Current state |
+| --- | --- |
+| Can the product record decisions before engine feedback? | **Yes** |
+| Is the measurement path guarded against known contamination and representation failures? | **Extensively tested in-repo** |
+| Can recurring decision structure be found across different chess contexts? | **Demonstrated on the owner's historical record** |
+| Does one such structure predict later unseen games? | **Yes, on frozen holdouts** |
+| Was the broad pattern shown to be unique to the owner? | **No — mostly level-typical** |
+| Did a narrower player-specific residual remain after population correction? | **Yes, in one held-out personal analysis** |
+| Has the proposed intervention been shown to reduce the error? | **No — FIELD REQUIRED** |
+| Has this mechanism pipeline been prospectively replicated across many players? | **No** |
+| Does the repository establish Elo improvement? | **No** |
 
-נגזרת פחות ברורה: **שכבת ההתאמה בממשק אסור שתסתכל על מהירות החלטה, שלב משחק או שעון** — אלה
-בדיוק הסוגים שהגלאי מודד, וממשק שמגיב עליהם מכניס את ההתערבות לתוך המדידה. היא נשענת רק על
-המכשיר, על קלט מגע ועל מספר הימים מאז הביקור הקודם, ובדיקה קוראת את קוד המקור כדי לוודא שזה נשאר כך.
+---
 
-## מה הוא לא טוען
+## Strongest current research finding
 
-הוא לא טוען שהוא משפר שחמט. אין מדידה כזו.
+The current mechanism mission found a broad recurring region:
 
-**שכבת המדידה פגשה משחקים אמיתיים; הרשומה החיה לא פגשה שחקן אמיתי — ואלה שני דברים.** מסלול
-הייבוא רץ מקצה לקצה על 48 משחקים של שישה שחקנים אמיתיים, עם **המנוע שהמוצר שולח בפועל**
-([`scripts/run_import_harness.ts`](scripts/run_import_harness.ts)). פער הכיול עצמו — החצי שדורש
-ביטחון שהוצהר לפני שהמנוע דיבר — עדיין לא נמדד על אף אדם.
+**R\*** — when one of the player's pieces has more attackers than defenders, while the player is not already behind by more than two pawns, tactical errors occur substantially more often.
 
-**והדפדפן נמדד גם הוא.** הבילד מוגש ב-HTTP וה-Worker נבנה בדיוק כמו ב-`stockfish.ts`, ב-Chromium
-אמיתי: טעינה **459 ms**, חיפוש עומק-12 בחציון **46 ms**, **636,190 צמתים לשנייה**, וייבוא של 1,587
-עמדות ≈ **1.2 דקות** של זמן מנוע. **מספר לטלפון לא נמדד** — CDP מאט את התהליכון הראשי בזמן שהמנוע
-רץ ב-Worker, אז ה-nps הוא התחליף הישר: מחלקים בו את המכשיר.
+The region:
 
-**ומה ששלושה מבחני דפדפן חדשים מוכיחים:** אדם זר, על אחסון סטטי שמחזיר 503 לכל `/api/*`, מקבל לוח
-עם 32 כלים, בלי מסך קריסה, בלי שגיאה אחת, עם משפט שאומר שהרשומה מקומית — ועם ה-wasm נגיש. **מה
-שחוסם זרים הוא הרישיון והפריסה, לא הקוד.**
+- was discovered on an earlier frozen window;
+- survived a separate validation period;
+- survived a later TEST period opened once;
+- kept the same direction across opening families, colors, phases, clock states and game states;
+- survived a re-score using the Stockfish engine shipped by the product.
 
-**ומה שעדיין לא נמדד: קורא מסך.** axe מוצא את השליש שניתן לבדיקה מכונתית. הוא לא יודע אם תווית
-היא תווית טובה. אף NVDA, JAWS או VoiceOver לא הורץ.
+But the population comparison changed the interpretation.
 
-לעיתים קרובות המוצר יגיד **כלום**, ויאמר זאת במפורש. **מחכים שבועות לפני שהוא יגיד משהו בכלל**:
-דפוס חזק מופיע לראשונה סביב 60–90 החלטות רשומות, וסוג צריך 30 החלטות בתוכו ו-30 מחוצה לו.
+Players at a similar rating show much of the same pattern.
 
-## מה שההרצה על משחקים אמיתיים מצאה
+So R\* is **predictive**, but mostly **level-typical**, not a personal fingerprint.
 
-**הרשומה נמדדת על המנוע שהמוצר שולח.** `Stockfish 18 Lite WASM` (`stockfish-18-lite-single`),
-בעומק 12, עם טבלת הטרנספוזיציות מנוקה לפני כל עמדה — בדיוק מה ש-`StockfishClient` עושה.
-48 משחקים, שישה שחקנים אמיתיים, **1,587 החלטות**.
+A narrower search against the same-rating population baseline then found:
 
-זה לא היה כך. עד לאחרונה כל מספר כאן הופק ממנוע **נייטיב** מלא שהמוצר לא שולח, ואיש לא בדק אם
-השניים מסכימים. הם לא: **13.61% מההחלטות מהפכות פסק**, והמנוע הנשלח מחמיא לשחקן ב-4.4 נקודות
-שיטתית. הפירוק המלא ב-[`docs/research/ENGINE_PARITY_RESULTS.md`](docs/research/ENGINE_PARITY_RESULTS.md).
+**R\*\*** — when the owner is level or up to two pawns ahead and has an under-defended piece, material is lost more often than the population model predicts.
 
-ארבעה דפקטים, כל אחד נמצא בכך שקוד המוצר רץ על נתונים אמיתיים במקום על פיקסצ'רים, וכל אחד מוחזק
-היום על ידי שער:
+That residual is currently the strongest candidate for a player-specific pattern.
 
-| מה נמצא | הגודל | מוחזק על ידי |
-| --- | --- | --- |
-| זמן חשיבה שאיש לא מדד נספר כאפס שניות | כל ייבוא שהצליח תרם לפחות החלטה מומצאת אחת ל"תחת 45 שניות" | `GATE-MEASURE` |
-| הדיוק של שחקן היה תלוי בסדר שבו המשחקים הגיעו | **6.9 נקודות אחוז** על הזוג החם; המוצר מנקה עכשיו, והריצה הקנונית **בלתי-תלויה בסדר, מאומת**. עלות הניקוי ×1.42 | בדיקת סדר בהארנס |
-| הספים לא אומתו מול הצורה של רשומה אמיתית | אף סף לא זז; **4 מתוך 6** סוגים בלבד ניתנים להשוואה ברשומה אמיתית (חציון זמן חשיבה: 2 שניות) | `GATE-SHUFFLE-REAL` |
-| "החולשה הכי גדולה שלכם" לא מעל-מצהירה — והיא כמעט אילמת | 0.0% תוצאות שווא על תוויות מעורבבות; אצל כל ששת השחקנים הבר הוא 12.3–17.8 נק' מול פערים של 0.6–6.3, כלומר **היא לא נורית באף אחד מהם** | `GATE-WORST-BUCKET` |
+It is still **not a demonstrated cognitive cause**.
 
-עמדות שאינן החלטה יוצאות מהמניין ומוצגות כחשבון: מהלך יחיד חוקי (**15**, 0.9%), ו**עמדת ספר** לפי
-ספר שנמדד מ-73,279 משחקים אמיתיים (עמדה היא ספר אם משחק אחד מכל אלף הגיע אליה): **124, 7.8%**.
-המספר הזה **זהה בשני המנועים**, וזו בדיקה שעברה — ספר הוא טענה על העמדה ולא על ההערכה. הדיוק
-בפתיחה זז בין **−9.0 ל-+1.1 נקודות אחוז** לפי שחקן.
+Full research chain:
 
-הדיוק הכולל על הרשומה הוא **71.6%**. על המנוע הנייטיב הוא היה 67.0%.
+- [`research/mechanism/MISSION_LEDGER.md`](research/mechanism/MISSION_LEDGER.md)
+- [`research/mechanism/NETA_FINDING.json`](research/mechanism/NETA_FINDING.json)
 
-"דיוק" נמדד ב**אובדן סיכויי ניצחון**, לא בסנטי-פונים: 30 סנטי-פון בעמדה שקולה הם 2.8 נקודות
-ניצחון, ובעמדה מוכרעת 0.3.
+---
 
-### ובבליץ, החיתוך של המוצר לא חותך כלום
+## The next unresolved question
 
-117 משחקי בליץ מדורגים של חשבון אחד, **3,067 החלטות** על המנוע הנשלח. החיתוך ב-45 ו-120 שניות מכניס
-את **כל 1,308** ההחלטות שנשמרו לצד לדלי **אחד**, ומפריד דיוק ב-**0.00 נקודות**. חציון זמן החשיבה
-2 שניות, 99.7% מתחת ל-45, ו**אפס** מעל 120. `slow-over-2m` הוא לא דל — הוא ריק.
+The repository has reached a boundary that more historical analysis cannot close:
 
-בתוך הדלי היחיד הזה הדיוק נופל מ-**76%** בהחלטות של אפס שניות ל-**41%** בעשר עד ארבע-עשרה שניות.
-הבקרות שנרשמו מראש אומרות שחלק אמיתי מההפרדה הוא **סוג העמדה** — כשמערבבים את התוצאה בתוך שלב ומעמד,
-**16%** מהערבובים עדיין עוברים את הרף מול 6% מכויל — אבל **לא כולה**: משלושה מתוך שבעה תאים ההפרדה
-שורדת, ושלושתם תאי אמצע-משחק. לכן **שום סף לא זז**.
+> Does changing the player's decision process reduce the error in future games?
 
-המחקר הזה טעה פעמיים בפומבי — פעם בניתוח, ופעם בקורפוס. שלוש התוצאות מודפסות זו לצד זו ב-
-[`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md).
+One instruction has been frozen as an experimental condition for prospective testing:
 
-המספרים, הקורפוסים והשיטה: [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md).
+> Before committing a move, when any own piece has more attackers than defenders, look at the position after the intended move: no own piece may have more attackers than defenders unless the move wins something bigger or gives check; otherwise choose again.
 
-### והלוח עצמו היה תשעים ושניים פיקסלים
+The protocol delivers that sentence before a session, never in-game. It is currently an **intervention hypothesis**, not a recommendation whose effectiveness has been established.
 
-דווח כ"הלוח נדחק הצידה". הוא נדחק הצידה מפני שהוא היה **בתוך העמודה של ארגז הכלים**, והוא היה
-92×92.
+The frozen field protocol compares that instruction with a matched sham condition over new rated blitz games.
 
-`.workbench` מכריז שלוש עמודות — כלים, לוח, משימה — ולא נקב בעמודה של אף אחד מהילדים שלו.
-`Home.tsx` **מסיר** את ארגז הכלים מה-DOM בזמן שהשחקן מייצר ראיה (LAW 1, LAW 5): נעדר, לא מוסתר.
-אז בכל מצב `DECIDE` היו שני ילדים ושלושה מסלולים, זרימת הרשת האוטומטית הזיזה את שניהם מסלול אחד
-לכיוון ההתחלה, והלוח נכנס למסלול של 132 פיקסלים. הדף הוא RTL, ולכן מסלול 1 הוא הקצה הימני.
+Until that field test exists:
 
-| מה נמדד ב-Chromium על בילד הייצור | לפני | אחרי |
-| --- | --- | --- |
-| `.board-stage` ב-1920 / 1440 / 1280 | **92×92** | 812 / 632 / 532 |
-| משבצת אחת, מול רצפת המגע של הקובץ עצמו (44px) | **9.8px** | 99.8 / 77.3 / 64.8 |
-| `elementFromPoint` במרכז e2 | **תווית הקואורדינטה**, לא המשבצת | הכלי שעומד עליה |
-| שלוש הרצועות של המעטפת ב-1920 | 1872 / 1872 / **1500** | 1500 / 1500 / 1500 |
-| לוח בטלפון שכוב, 844×390 — הדפקט השני, זה שההפרכה מצאה **אחרי** התיקון הראשון | **122px, משבצת 13.5px** | 366px, משבצת 44.0px |
+```text
+OBSERVATION       supported
+PREDICTION        supported on held-out historical games
+PERSONAL RESIDUAL supported, narrowly
+INTERVENTION      not yet established
+OUTCOME           not established
+```
 
-**הלוח לא היה רק קטן**: הפעולה היחידה שהמצב הזה קיים כדי לאסוף לא הייתה ניתנת לביצוע עם עכבר
-באף רוחב שולחני. בטלפון הכל היה תקין, מפני שמתחת ל-680 פיקסלים המשטח נוטש רשת לטובת `flex`
-ו-`order`, ולשם אין מסלול ריק שאפשר ליפול לתוכו.
+Current research status:
 
-שום בדיקה לא תפסה את זה: שש חבילות בדיקה טוענות את `/play` ואף אחת לא מודדת שם את גאומטריית הלוח,
-בדיקת ה-CLS מודדת **תזוזה** ופריסה שגויה מהציור הראשון אינה זזה (0.00000), ול-jsdom אין פריסה
-בכלל. הפירוק המלא, מסע ההפרכה ומה שנשאר פתוח:
-[`docs/INTERACTION_GEOMETRY.md`](docs/INTERACTION_GEOMETRY.md).
+**`FIELD_REQUIRED_FOR_LEVEL_6`**
 
-## ומה שנמדד על שחמט טבעי, מחוץ למוצר
+---
 
-שתי תוכניות מחקר רצו על משחקי Lichess ציבוריים ולא על הרשומה של המוצר. שתיהן נעצרו לפני שמשהו
-הגיע למוצר, ושתיהן מודפסות במלואן מפני שתוצאה שלילית שנמדדה היטב היא תוצאה.
+## What Decision Lab does not claim
 
-### B3: מה שזמן חשיבה חריג מנבא, ומה שהמכשיר לא הצליח למדוד
+This repository does **not** currently establish that:
 
-**81,624 החלטות בליץ טבעיות, 2,331 שחקנים, דירוגים 801 עד 2595.** החלטה שלקחה זמן חריג *לאותה
-עמדה, לאותו מצב שעון ולאותה רמה* מנבאת מהלך גרוע יותר: `beta` = +0.01342 [+0.01243, +0.01431]
-של סיכויי ניצחון ליחידת `log(1 + שניות)`.
+- Decision Lab improves chess performance;
+- using it increases Elo;
+- R\*\* is the underlying cognitive cause of the owner's mistakes;
+- the proposed operation reduces tactical errors;
+- every player has a stable personal decision mechanism;
+- the mechanism-discovery pipeline already runs automatically as part of the consumer product;
+- one player's result generalizes to other players.
 
-היא מחזיקה ב-9 מתוך 9 רצועות הדירוג בעלות העוצמה הסטטיסטית המספקת, בכל שלב, מעמד ולחץ שעון, בתוך שחקן יחיד ובתוך משחק
-יחיד, ומשוחזרת מחוץ למדגם בשני חודשים מאוחרים יותר. הפירוק מצמצם אותה: כשלושה רבעים ממנה נישאים
-בבלנדרים גמורים, וכשביעית ממנה נוכחת גם בהחלטות שבהן השחקן מצא בדיוק את המהלך של המנוע.
+These are deliberately separate claims.
 
-הטענה שהמחקר נבנה לבדוק לא נתמכה. Time Allocation Efficiency, האם שחקנים חזקים יותר משקיעים את
-השניות הנוספות היכן שחישוב נוסף באמת משנה את המהלך המועדף, נותנת גרדיאנט של +0.00053
-[−0.00034, +0.00151] ל-100 Elo. רווח שיושב על אפס.
+Missing evidence is not converted into a softer-sounding conclusion.
 
-הדוח מסרב לקרוא את זה כעובדה על שחקנים. למכשיר יש 59.4% מסה נקודתית באפס, מתאם חלקי של 0.017 עם
-זמן חשיבה שיורי, אין לו תגובה מדידה לשעון, ותחת אופן בנייתו גרדיאנט חיובי אמיתי היה מייצר בדיוק
-את הקריאה הזו. זהו null של המכשיר, לא ממצא על מיומנות.
+---
 
-ושתי הכרעות מודפסות זו לצד זו ולא אחת במקום השנייה: **`INVALID_EXPERIMENT`** היא ההכרעה המכנית
-כפי שהקוד נשלח, ו-**`GENERAL_REGULARITY_ONLY`** היא ההכרעה אחרי תיקון בקרת C3 שנעוץ ומתועד.
-[`research/b3_population_expertise/REPORT.md`](research/b3_population_expertise/REPORT.md).
+## Product measurement principle
 
-### system-invariant: אינווריאנט אמיתי שנעצר על אקולוגיה
+The core product rule is:
 
-**45,296 החלטות טבעיות, 1,333 שחקנים, 90,592 חיפושי מנוע חדשים.** השאלה נוסחה והוקפאה לפני שקיים
-מספר: האם `OwnExposure`, ספירה לוחית של כלי המזיז שיש להם יותר תוקפים מגינים, מסבירה איכות מהלך
-בשחמט טבעי באופן רחב מספיק, תדיר מספיק ועצמאי מספיק כדי להצדיק התייחסות אליה כמדיניות החלטה.
+> **The player decides before the machine speaks.**
 
-על הצד המדעי היא עוברת. הקשר בין חשיפה לעלות המהלך הוא **+0.1014** [+0.0908, +0.1134]. בדירוג
-מהלכים בתוך אותה עמדה היא מוסיפה **+5.38** נקודות אחוז מעל גאומטריית המהלך, **+5.45** מעל מודל
-חומר ו-**+3.99** מעל ניידות.
+Confidence, alternatives and other decision evidence only have meaning if they were recorded before engine feedback could change them.
 
-הבקרות שנוקבו בשמן מראש עושות את עבודתן: שלוש בקרות שליליות יחסיות נושאות לכל היותר +0.57 נקודות,
-בקרת הדליפה מוטטה את האפקט ל-+0.0080 [−0.0008, +0.0162], ו-29 מתוך 29 תאי ה-scope נתמכים.
+The repository therefore treats measurement contamination as a product defect, not merely a research concern.
 
-ובכל זאת השער נסגר. מתוך תשעה קריטריונים שהוקפאו מראש, שמונה עוברים והתשיעי נופל: **האם הטעות
-עולה משהו**. היא עולה משהו ב-**24.32%** [22.95, 25.67] מההזדמנויות, מול סף שהוקפא על 30% לפני
-שהמספר הזה היה קיים. הסף לא זז.
+The live product and the research layer are related but not interchangeable:
 
-הכשל אינו נדירות ואינו מגבלת מכשיר. ההזדמנות מופיעה ב-34.54% מההחלטות, המרווח לשיפור הוא 36.02%,
-ו-22.95 מופרד מרצפת רעש החיפוש שנמדדה באותו סף, 10.89%. ההכרעה
-**`SYSTEM POLICY VALID, ECOLOGICALLY INFEASIBLE`**: הדפוס אמיתי, והטעות שהוא מונע היא בדרך כלל
-חינם.
+```text
+LIVE PRODUCT
+records decision evidence
+        ↓
+longitudinal record
 
-שתי מגבלות מודפסות באותו דוח ולא בהערת שוליים. הגדרת ההזדמנות מכילה איכות מהלך ולכן מעגלית,
-והפער בין ההגדרה חסרת-הערך (95.42% מההחלטות) לבין העיקרית (34.54%) הוא **61 נקודות אחוז**: זה
-בדיוק מה שהשחקן צריך לספק בעצמו, ואת זה שום רמז לא נותן לו. וצפיפות ההזדמנויות למשחק, כ-10 עד 12
-לפי רצועה, נמדדה על מכנה של החלטות B3 ולא על רצף העמדות המלא. היא סומנה כחסם תחתון ולא תוקנה
-לאחור אחרי שהתוצאות נראו.
+RESEARCH LAYER
+tests what structures that record may support
+        ↓
+bounded claim
+        ↓
+future experiment
+```
 
-**ושום דבר לא נבנה בעקבות זה.** לא רשומת מדיניות, לא ממשק העברה לשחמט טבעי ולא משטח מסירה. הם
-רשומים כ"לא נבנו" עם הסיבה, ולא כ"עתידיים".
-[`docs/system-invariant/FINAL_REPORT.md`](docs/system-invariant/FINAL_REPORT.md), ולצדו
-[`ADVERSARIAL_PASS.md`](docs/system-invariant/ADVERSARIAL_PASS.md) עם שמונה-עשרה מתקפות שנכתבו
-לפני הנתונים: אחת-עשרה נכשלות, ארבע נוחתות, אחת חלקית ושתיים אינן חלות. ארבע הנוחתות מודפסות
-באותה רזולוציה כמו אחת-עשרה הכושלות.
+Research findings do not silently become product behavior.
 
-## הרצה
+---
+
+## Evidence discipline
+
+The repository uses an unusually strict evidence model for a chess application.
+
+Examples include:
+
+- frozen derivation / validation / test windows;
+- destructive and shuffled-label controls;
+- deliberate positive controls for repository gates;
+- population baselines;
+- engine-artifact checks;
+- within-game contrasts;
+- bootstrap stability;
+- explicit reversal conditions;
+- preserved failed designs rather than rewritten history.
+
+A green test that has never been demonstrated red under the defect it claims to detect is not treated as sufficient evidence of discrimination.
+
+The current build carries **35 repository gates**, each paired with a deliberate positive control. The synchronized gate inventory lives in [`docs/GATES.md`](docs/GATES.md); the README intentionally does not duplicate it.
+
+For the full assurance history and measurements, use the documents below rather than this README.
+
+---
+
+## Repository map
+
+### Product and measurement
+
+| Document | Purpose |
+| --- | --- |
+| [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md) | Measurement results, corpora and methods |
+| [`docs/GATES.md`](docs/GATES.md) | Synchronized catalog of repository gates and deliberate controls |
+| [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | Current product-debt register |
+| [`docs/FINDINGS.md`](docs/FINDINGS.md) | Product findings and retained failures |
+| [`docs/INERTIAL_UX_LAWS.md`](docs/INERTIAL_UX_LAWS.md) | Interaction-state laws |
+| [`VERCEL_DEPLOYMENT.md`](VERCEL_DEPLOYMENT.md) | Deployment and runtime notes |
+
+### Mechanism research
+
+| Document | Purpose |
+| --- | --- |
+| [`research/mechanism/README.md`](research/mechanism/README.md) | Map of the mechanism-research package |
+| [`research/mechanism/MISSION_LEDGER.md`](research/mechanism/MISSION_LEDGER.md) | Full discovery chain, failed designs and final report |
+| [`research/mechanism/NETA_FINDING.json`](research/mechanism/NETA_FINDING.json) | Current evidence-bounded finding |
+| [`research/mechanism/FIELD_PROTOCOL_TEMPLATE.md`](research/mechanism/FIELD_PROTOCOL_TEMPLATE.md) | Prospective field-test protocol |
+
+### Research history
+
+The repository also contains earlier research programs that were allowed to fail.
+
+They are retained because a well-measured negative result changes what the system is allowed to build.
+
+Examples include:
+
+- population expertise × decision dynamics;
+- measurement validity studies;
+- system-invariant / OwnExposure work;
+- discovery and attribution experiments;
+- learning and transfer research.
+
+Their conclusions should be read from their own reports, not reconstructed from commit history.
+
+---
+
+## Run locally
+
+Requires **Node.js 24.x**.
 
 ```bash
 npm install
-npm run dev      # SPA + API על פורט אחד
-npm run verify   # typecheck → build → tests → gates → gate controls → bundle budget
+npm run dev
 ```
 
-**המנוע לא רץ ב-dev**: Vite כותב מחדש את כתובת נכס ה-wasm עם מחרוזת שאילתה שהטוען של Stockfish
-לא יודע לפרסר. השתמשו בבילד ייצור כדי להפעיל אותו.
+`npm run dev` starts the development application, but the Stockfish WASM engine does **not** run correctly in dev: Vite rewrites the asset URL with a query string that the Stockfish loader cannot parse. Use a production build when exercising the engine.
 
-## שערים
-
-שלושים וחמישה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל
-לא הוכח כשער. `gates:controls` יוצא עם קוד שגיאה גם אם בקרה נשארת ירוקה וגם אם בקרה מעולם לא רצה.
+Production build:
 
 ```bash
-npm run gates            # חייב להיות ירוק על הקוד האמיתי
-npm run gates:controls   # חייב להיות אדום על פיקסצ'רים שבורים בכוונה
+npm run build
 ```
 
-| שער | כלל | בקרה חיובית |
-| --- | --- | --- |
-| GATE-ISO | 3.1 | אירוע API שהאטום `unknown` הושמט ממנו |
-| GATE-NO-FAKE | R2 | הערכת הפתיחה המומצאת `+0.42 @ depth 14`, מוחזרת |
-| GATE-DENOM | R1 | `rate(1,1)` שמוצג כ-"100%" חשוף |
-| GATE-STALE | 4.3 | לוגיקת ההחלפה שנשלחה, שפתרה בקשה עם מהלך מחיפוש נטוש |
-| GATE-MEASURE | R1 | הפיצול כפי שנשלח: זמן חשיבה חסר שנקרא כאפס |
-| GATE-GRADE | 3.3 | טענה שמוצגת בלי הדירוג שלה או בלי ה-n שלה |
-| GATE-PREREG | R5 | מפעיל דריל בלי בדיקת רישום מוקדם |
-| GATE-EXTERNAL | R4 | מסלול קידום מתירני שמאפשר לראיה חיצונית להעלות דירוג |
-| GATE-COMMIT | R3 | מטען חשיפה שהוגש לפני שההחלטה נרשמה |
-| GATE-SHUFFLE | 6 | ספי הגלאי מהטיוטה הראשונה, שמצאו מבנה ברעש טהור |
-| GATE-SHUFFLE-REAL | 6 | אותם ספים, על רשומות בצורה שיש לרשומה אמיתית |
-| GATE-WORST-BUCKET | 6 | הבר של שגיאת תקן אחת, שמוצא חולשה בתוצאה מעורבבת |
-| GATE-REACHABILITY | 4.6 | דלת כניסה שמייצרת החלטה בלי ביטחון, ולכן בלי מדידה |
-| GATE-KEYBOARD | 4.7 | הלוח כפי שנשלח: `role="grid"` בלי מטפל מקשים, ומודאל בלי מלכודת פוקוס |
-| GATE-NOTICE | L1 | גופן שנמסר בבנייה בלי שאיש כתב עליו הודעת רישוי |
-| GATE-DECISION-FOCUS | LAW 1 | מסך שמראה לשחקן קריאה מהרשומה בזמן שהוא מוסר את ההחלטה |
-| GATE-ONE-BOARD-ONE-STORY | LAW 11 | שני לוחות במסך אחד, כלומר שתי תשובות לשאלה איפה אני |
-| GATE-BOARD-AUTHORITY | LAW 3 | לוח שמקבל מחווה באותו אופן בכל מצב, גם אחרי שההחלטה נרשמה |
-| GATE-CONTINUATION-IS-A-MOVE | O-2 | אירוע ההמשכיות של הניסוי נכתב ביותר ממקום אחד, או מסעיף שנקבע קבוע, או בלי להתייעץ עם ההגדרה |
-| GATE-REUSE-CONFIG | LAW 8 | מסך שמתחיל משחק בלי לקרוא את התשובה שהשחקן כבר נתן |
-| GATE-PENDING-WORK-LIVENESS | LAW 4 | ניתוח שמסך יכול לבטל ביציאה, ושורש שלא יסיים אותו לעולם |
-| GATE-NEXT-ACTION-RESOLVES-BLOCKER | LAW 3 | חסם שנענה בפעולה שמגדילה בדיוק את מה שחוסם |
-| GATE-ONE-PRIMARY-ACTION | LAW 2 | דלת כניסה שמציעה שני מוצרים במשקל אחד |
-| GATE-NO-DUPLICATE-ACTION | LAW 2 | חשיפה שמציעה את אותה פעולה פעמיים |
-| GATE-TOOLBOX-OUTSIDE-FOCUS | LAW 2 | ארגז הכלים נטען לכל נכנס ונפתח בלי שאיש לחץ עליו |
-| GATE-ENGINE-FAILURE-DISTINCT | R-09 | המסך שנשלח: משפט אחד לשישה גורמים שאין להם תיקון משותף |
-| GATE-TWO-HANDS | R3 | פקד שנצבע בצבע של המנוע, והאובייקט הגדול ביותר של המנוע שנצבע בדיו של הדף |
-| GATE-CLAIM-ANCHOR | L2 | שורת P0 שההוכחה שלה היא פונקציה טהורה, ורמת בדיקה שנטענת בלי נימוק |
-| GATE-SAID-ONCE | LAW 2 | שתי רשימות שכל שורה בהן אומרת בדיוק את אותו משפט — מעל התקרה, ולא מתחתיה |
-| GATE-REGISTER-RECONCILED | R-01 | ארבעת הרגיסטרים כפי שהם באמת נסחפו: שער שנטען ולא רץ, ציטוט לקובץ שאינו בעץ, מילת מצב שהומצאה, תקרה שלא ירדה, וטריגר שכבר התקיים ומתויק כאילו לא |
-| GATE-RESEARCH-RECONCILED | R-01 | קורפוס המחקר כפי שהוא באמת נסחף: רשומת הקפאה שמצביעה על גיבוב שהמסמך כבר אינו נושא, פלט מחושב שחולק על המחולל שלידו, החלפה שאינה מצביעה על יורש, וטענת גיבוב שאיש לא סיווג |
-| GATE-AUTHORITY-RESOLVED | R-01 | מפת הסמכות כפי שהיא נרקבת: תשובה שנמחקה, מתחרה שאיבד את הסימון שתחם אותו, ופער יכולת שנסגר בשקט בזמן שהרישום עדיין אומר שהוא פתוח |
-| GATE-FALSIFICATION-INVENTORY | R-01 | מלאי הבדיקות החוסמות מול העבודה שמריצה אותן: שלב חוסם שאיש לא סיווג, ומנגנון הפרכה ששמו נכתב ואינו קיים |
-| GATE-CUE-PLAYER-OBSERVABLE | R-01 | טריגר במרשם מחלקות-הכללים שמחשב ממשהו שאינו הלוח: רמז שהשחקן אינו יכול להעריך בעצמו אינו רמז |
-| GATE-ROLLBACK-EVIDENCE | R-01 | שרשרת הראיות של החזרה לאחור: ה-workflow מקבל SHA, החבילה נקשרת אליו, הקשירה מודגמת נכשלת, והבנייה מתקינה את קובץ הנעילה בדיוק |
+Full repository verification:
 
-שמונה מהם — מ-`GATE-DECISION-FOCUS` ועד `GATE-TOOLBOX-OUTSIDE-FOCUS` — הם **החוקים
-האינרציאליים** ([`docs/INERTIAL_UX_LAWS.md`](docs/INERTIAL_UX_LAWS.md)), והם טענה מסוג אחר
-מהחמישה-עשר שמעליהם: אלה קוראים קוד כדי לבדוק טענה על **מדידה**, ואלה קוראים קוד כדי לבדוק טענה על
-**מצב** — איזה משטחים מותר שיהיו על המסך בזמן שהשחקן נמצא באחד מהם. מתחת לזה זה אותו דבר: ביטחון
-שנמסר מול פאנל שמתאר את הכיול של אותו שחקן אינו מדידה של מה שהוא האמין.
+```bash
+npm run verify
+```
 
-**ושניים אחרונים אינם על מסך אחד ואינם על מדידה אחת.** `GATE-ENGINE-FAILURE-DISTINCT` שומר שאף שני
-גורמים של כשל מנוע לא ייאמרו באותו משפט — R-09 נחסם בדיוק על זה: שישה גורמים, שהתיקון של שניים מהם
-הוא בפריסה, של שניים בדפדפן, של אחד ברשת ושל אחד במשחק, כולם הגיעו למשפט אחד.
+Which runs:
 
-**ואחד חדש קורא את גיליון הסגנונות.** `GATE-TWO-HANDS` הוא R3 במקום שאליו הוא מעולם לא הגיע: הכלל
-נאכף בשלוש דרכים בקוד, ואף אחת מהן לא רואה צבע. נמדד על הבילד שלפני השער: גוון אחד נשא **תשעה
-תפקידים** בו-זמנית, ושניים מהם היו החץ של המנוע והמשבצת שהשחקן מחזיק, על אותו לוח ובאותו מצב. השער
-רץ **בשני הכיוונים** — אין פקד שנצבע בצבע של המנוע, ואין משטח של המנוע שנצבע בדיו של הדף — כי בדיקה
-חד-כיוונית מסתפקת במחיקת הגוון ואינה יכולה להיכשל בכיוון שבו העיצוב באמת נכשל.
+```text
+typecheck
+→ production build
+→ test suite
+→ repository gates
+→ deliberate gate controls
+→ bundle budget
+```
 
-**והאחרון קורא את התיעוד.** כל טענה אחרת כאן מורצת, נמדדת, או נאמרת על ידי בדיקה —
-והרגיסטרים, המקום שאליו קוראת הולכת כדי לדעת מה עוד פתוח, היו החריג. פיוס ידני אחד מצא ארבע סחיפות
-בגל אחד, וביניהן P0 שנמצא, תוקן, נכתב בחוקים — ולא קיבל שורת חוב בכלל. `GATE-REGISTER-RECONCILED`
-הוא מה ששומר על R-01 נכון אחרי היום שבו נכתב.
+Individual commands:
 
-`GATE-EXPOSURE-CONTEXT` נעדר בכוונה. [`D21`](docs/decisions/D21-feedback-exposure.md) מצא שאין
-בשום שדה ברשומה מה שיפריד החלטה שנלקחה אחרי משוב מהחלטה שנלקחה לפניו — ושבחירת סכימה לפני מדידה היא
-בדיוק השינוי העיוור שהביקורת קיימת כדי למנוע. שער מעל סכימה שאיש לא בחר הוא שער מעל כלום.
+```bash
+npm run check
+npm test
+npm run gates
+npm run gates:controls
+npm run bundle:budget
+```
 
-הטבלה הזו הלכה פעם שני שערים אחורה בלי שאיש שם לב.
-`tests/docs/the-table-that-fell-behind.test.ts` מחזיק אותה מול המזהים ב-`scripts/run_gates.ts`,
-בשני הכיוונים, כך שהיא לא יכולה יותר להתיישן בשקט. הוא כבר עשה את העבודה: `GATE-KEYBOARD` נוסף
-והבדיקה נפלה מיד, בשם השער החסר.
+---
 
-## פריסה ותפעול
+## Technology
 
-ראו [`VERCEL_DEPLOYMENT.md`](VERCEL_DEPLOYMENT.md). **דייר יחיד בכוונה**: כל נקודת קצה של ליצ'ס
-חסומה ל-`OWNER_OPEN_ID` אחד, והרשומה מכילה נימוקים של השחקן במילים שלו ולעולם לא עוזבת את הפריסה.
+The current application is built with:
 
-**מחוברים** — ההחלטות הולכות לשרת. **לא מחוברים** — הן נשמרות בדפדפן ולא עוזבות את המחשב. אם
-הדפדפן חוסם אחסון קבוע, הלולאה ממשיכה בזיכרון הכרטיסייה, והמסך אומר מי משלושת המצבים בתוקף.
-שני המסלולים מריצים את אותו קוד ב-[`shared/record-service.ts`](shared/record-service.ts), שם R3,
-R5 ו-append-only נאכפים פעם אחת.
+- React 19
+- TypeScript
+- Vite
+- Stockfish 18 Lite WASM
+- chess.js
+- TanStack Query
+- tRPC
+- Drizzle
+- Recharts
+- Vitest
+- Playwright
 
-**שתי תקלות שנלמדו בדרך הקשה:**
+The project is licensed under **GPL-3.0-or-later**.
 
-- `package.json` מכריז `"type": "module"`, ולכן Vercel מריצה את השרת כ-ESM — וכל ייבוא יחסי
-  ב-`api/`, `server/`, `shared/` ו-`drizzle/` חייב לשאת `.js`. זה הפיל את כל ה-API פעם אחת;
-  `tests/server/serverless-entry.test.ts` בודק את זה מתוך תהליך `node` אמיתי.
-- **בילד חדש מוציא משימוש את ה-chunks של הישן.** כרטיסייה פתוחה מקבלת 404 על chunk ורואה מסך
-  קריסה על בילד בריא לגמרי. `lazyChunk` מנסה פעם אחת, טוען מחדש פעם אחת, ועוצר — והגבול הוא
-  התכנון, כי טעינה מחדש על כל כישלון היא רענון אינסופי.
+---
 
-בכותרת האפליקציה יש **בדיקה עצמית** שמריצה עשר בדיקות בדפדפן ומייצרת דוח להעתקה. בדיקה שלא
-הצליחה לרוץ מסומנת "לא רץ" ולא "עבר". **הריצו אותה על הכתובת הקבועה** — כתובת בצורה
-`lichess-<hash>-...vercel.app` נעולה לפריסה אחת לתמיד.
+## Current boundary
 
-## איפה נמצא מה
+The repository has moved beyond:
 
-| מסמך | מה יש בו | שפה |
-| --- | --- | --- |
-| [`docs/MEASUREMENTS.md`](docs/MEASUREMENTS.md) | כל מדידה, עם הקורפוס והשיטה | אנגלית |
-| [`docs/FINDINGS.md`](docs/FINDINGS.md) | ממצאים, כולל מה שנמדד בדפדפן ולא בבדיקה | אנגלית |
-| [`docs/PRODUCTION_READINESS_LEDGER.md`](docs/PRODUCTION_READINESS_LEDGER.md) | מה מוכן, מה לא, ולמה | אנגלית |
-| [`docs/VERIFIED_LEARNING.md`](docs/VERIFIED_LEARNING.md) | חוזה כללי הפעולה: טריגר, מנגנון, תנאי הפרכה | אנגלית |
-| [`docs/VALUE_CLARITY.md`](docs/VALUE_CLARITY.md) · [`_FIELD_PROTOCOL`](docs/VALUE_CLARITY_FIELD_PROTOCOL.md) | האם שחקן קר מבין מה זה — ציון, ופרוטוקול שדה | אנגלית |
-| [`docs/ACQUISITION_EVIDENCE.md`](docs/ACQUISITION_EVIDENCE.md) · [`_PROTOCOL_V1`](docs/ACQUISITION_PROTOCOL_V1.md) | משפך הרכישה והראיות עליו, והפרוטוקול שהוקפא לפני ניסוי השדה הראשון: מסלול אחרי ה-reveal, הגדרת `next_decision_started`, מכנים והסקות אסורות | אנגלית |
-| [`docs/COMPETITIVE_BENCHMARK.md`](docs/COMPETITIVE_BENCHMARK.md) | מה כלים אחרים עושים, ומה לא | אנגלית |
-| [`docs/RESEARCH_EVIDENCE.md`](docs/RESEARCH_EVIDENCE.md) | הבסיס המחקרי לקונסטרוקט | אנגלית |
-| [`docs/research/BLITZ_COMPUTATION_PREREG.md`](docs/research/BLITZ_COMPUTATION_PREREG.md) · [`_RESULTS`](docs/research/BLITZ_COMPUTATION_RESULTS.md) | מחקר שנרשם מראש ונעצר בשער הראשון | אנגלית |
-| [`docs/research/TIME_REPRESENTATION_PREREG.md`](docs/research/TIME_REPRESENTATION_PREREG.md) · [`_RESULTS`](docs/research/TIME_REPRESENTATION_RESULTS.md) | האם שנייה גולמית היא היחידה הלא נכונה להחלטה בבליץ — נרשם מראש, נמדד, ולא אומץ | אנגלית |
-| [`docs/measurement/`](docs/measurement/README.md) | האם הקונסטרוקט שורד: חיפוש מחלקות-כללים, המסך, וההכרעה **`NARROW`** — מתוקן על ידי [`D25`](docs/decisions/D25-evidence-architecture.md) | אנגלית |
-| [`docs/evidence-architecture/`](docs/evidence-architecture/CURRENT_STATE.md) | ארכיטקטורת הראיות כפי שהיא, משוחזרת מהמאגר ולא מתיאור קודם שלה | אנגלית |
-| [`docs/learning/`](docs/learning/README.md) · [`docs/learning-v2/`](docs/learning-v2/PRE_HUMAN_GATES.md) | השכבה שבין תובנה שהרשומה יכולה להצדיק לבין שינוי במה שהשחקן עושה. לא נמדד על אדם, והשערים שלפני אדם הם הסיבה | אנגלית |
-| [`docs/learning-v3/`](docs/learning-v3/FINAL_REPORT.md) | Gate A ו-Gate B על קורפוס הכללים, הכרעת החסם **`INSUFFICIENT_OPPORTUNITIES`**, P3 ו-P4, ובדיקת לחץ-חשיפה שהעלתה **`PE-EXPOSURE-ONLY`**. אף תוצאה מ-A עד F לא נבחרה, והנימוק לכך בפנים | אנגלית |
-| [`docs/system-invariant/`](docs/system-invariant/FINAL_REPORT.md) | `OwnExposure` בשחמט טבעי: 45,296 החלטות, 1,333 שחקנים, 90,592 חיפושים. **`SYSTEM POLICY VALID, ECOLOGICALLY INFEASIBLE`** — שמונה קריטריונים עוברים, התשיעי נופל על 24.32% מול סף שהוקפא על 30% | אנגלית |
-| [`research/b3_population_expertise/`](research/b3_population_expertise/REPORT.md) | 81,624 החלטות בליץ טבעיות של 2,331 שחקנים: **`GENERAL_REGULARITY_ONLY`** אחרי תיקון בקרת C3, וה-null של המכשיר שהדוח מסרב לקרוא כעובדה על שחקנים | אנגלית |
-| [`docs/consolidation-research/`](docs/consolidation-research/hardening/FINAL_REPORT.md) | חיזוק לפני איחוד. הציונים שם מעריכים את **מחקר השחזור**, לא את האפליקציה | אנגלית |
-| [`docs/blitz/`](docs/blitz/AUDIT.md) | ביקורת אמת-המאגר לפני מדידה ילידת-בליץ, וארבעה ADR שנגזרו ממנה | אנגלית |
-| [`docs/MASTER_PRODUCT_DEBT.md`](docs/MASTER_PRODUCT_DEBT.md) | הרישום היחיד של מה שפתוח: סוג, מצב, חומרה, והבדיקה שסוגרת אותו | אנגלית |
-| [`docs/neta/PRE_HUMAN_UX_PASS_2.md`](docs/neta/PRE_HUMAN_UX_PASS_2.md) | חמישה מועמדים לשינוי UX, וכל אחד מהם התפרק במדידה קרובה יותר לתוך החלטה מתועדת של המוצר. מה שנשאר פתוח הוא אחד, והוא החלטת טעם שלך | אנגלית |
-| [`docs/neta/PRE_HUMAN_UX_PASS_2_3_4.md`](docs/neta/PRE_HUMAN_UX_PASS_2_3_4.md) | עלות מול תמורה בכל שלב, מה הרשומה כבר מחזיקה ומה משטח הצטברות יכול לומר בלי probe חדש, ולמה probe נוסף אינו מוצדק: הוא כבר קיים, כבר מרונדם וכבר נרשם | אנגלית |
-| [`docs/neta/PRE_HUMAN_UX_PASS_3.md`](docs/neta/PRE_HUMAN_UX_PASS_3.md) | מסך אחד אמר על אותו שחקן ארבעה מספרים, והאחרון שבהם היה שלא נחשפה אף החלטה — בזמן שהמסך עצמו היה החשיפה השלישית. מה נמדד, מה תוקן, איזה ממצא של המעבר עצמו נהרג, ומה נשאר פתוח | אנגלית |
-| [`docs/neta/PRE_HUMAN_UX_PASS_4.md`](docs/neta/PRE_HUMAN_UX_PASS_4.md) | ההתערבות המורשית: כותרת ראשית אחת לכל מסך, בלוק הצטברות שמחליף את משפט ההמשך ולא מצטרף אליו, והגילוי שמקבל שם. הקריטריון והתנאי להיפוך נכתבו לפני המימוש | אנגלית |
-| [`docs/neta/PRE_HUMAN_UX_PASS_1.md`](docs/neta/PRE_HUMAN_UX_PASS_1.md) | מעבר UX ראשון לפני חשיפה: חמישה סוגי פקדים נלחצו בדפדפן ואף אחד לא השתנה, והמתנה של 3.2 שניות רצה בלי שדבר על המסך זז. מה תוקן, מה נמדד ולא נגעתי בו, ולמה | אנגלית |
-| [`docs/neta/NETA_EMBODIED_RUN_001.md`](docs/neta/NETA_EMBODIED_RUN_001.md) | המוצר נמדד כחוויה, לא כקוד: הרצה של `Product-Perception-Sensemaking-Architect` מול הדיפלוי החי. אותות גולמיים לפני פרשנות, שישה ממצאים מול הסכימה שלו, וארבעה ממצאים שכמעט נכתבו ונהרגו על ידי דיסקרימינטור | אנגלית, אותות בעברית |
-| [`docs/PRE_HUMAN_CEILING.md`](docs/PRE_HUMAN_CEILING.md) | **`FOUR FAMILIES CLOSED ON f1315d7 — CEILING NOT RE-DECLARED`** — התקרה הוכרזה ב-2026-09-03, נפתחה מחדש ב-2026-09-04 אחרי falsification, וארבע משפחות הכשל נסגרו. מה נסגר, ארבעת הדברים החיצוניים שנשארו, וגבול ה-FIELD עם המכנה וההסקה האסורה של כל שאלה | אנגלית |
-| [`docs/OBSERVABILITY.md`](docs/OBSERVABILITY.md) | לאן הולכות תקלות בייצור, מה הבריאות אומרת, ומה הפלטפורמה לא נותנת ומי צריך להחליט | אנגלית |
-| [`docs/ROLLBACK.md`](docs/ROLLBACK.md) | מתי מחזירים לאחור, איך, ומה סוגר את האירוע: ריצת L6 ירוקה הקשורה ל-SHA שחזרו אליו | אנגלית |
-| [`docs/RETENTION.md`](docs/RETENTION.md) | איפה הנתונים, מה מותר לרשום ומה לעולם לא, איך מוחקים ואיך מורידים | אנגלית |
-| [`docs/DEPENDENCY_POLICY.md`](docs/DEPENDENCY_POLICY.md) | איך תלות מתעדכנת ומה מוכיח שעדכון בטוח | אנגלית |
-| [`docs/customer-readiness/`](docs/customer-readiness/BASELINE.md) | מוכנות ללקוח: קו הבסיס שהוקפא לפני התיקונים, פנקס הפערים, והציון אחרי | אנגלית |
-| [`docs/discovery-v2/M0_AUDIT.md`](docs/discovery-v2/M0_AUDIT.md) | ארבע שאלות על מכשיר המדידה עצמו, לפני שנבנה מנוע discovery חדש — ומה שנמצא הפך את הכיוון | אנגלית |
-| [`docs/decisions/`](docs/decisions/README.md) | פנקס ההכרעות: מה נבחר, מה נדחה, איזה מימוש חיצוני כבר קיים, ומה יהפוך כל הכרעה | אנגלית |
-| [`docs/INTERACTION_GEOMETRY.md`](docs/INTERACTION_GEOMETRY.md) | מה המסך מסודר סביבו בכל מצב, נמדד בדפדפן: הפריסה של `DECIDE`, המעברים, מסע ההפרכה, ומה דורש שדה | אנגלית |
-| [`docs/design-council/`](docs/design-council/05-FINAL-REPORT.md) | האם השפה החזותית עושה את התזה של המוצר נראית: החוקה מהמאגר, קו הבסיס הנמדד, חוזה האמנות, ורישום הביקורת היריבה | אנגלית |
-| [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) | מה כל טוקן אומר ומה מותר לו לצבוע | אנגלית |
-| [`docs/ACTION_PLAN.md`](docs/ACTION_PLAN.md) | מה נעשה הלאה, באיזה סדר, ובאילו תנאי עצירה | אנגלית |
-| [`docs/STATIC_DEPLOYMENT.md`](docs/STATIC_DEPLOYMENT.md) | לפרוס בלי שרת בכלל, ומה נשמר ומה נאבד | אנגלית |
+> “Can we measure something different from ordinary game review?”
 
-המחקר על מסלול חיפוש בתקציבי צמתים הוכרע **`RESEARCH ONLY`**: שום דבר ממנו לא הגיע למוצר, וההשערות
-לא הופרכו — הן לא היו ניתנות לבדיקה עם המכשיר הזה.
+It now has evidence that a recurring structure can be discovered, challenged against population behavior, narrowed to a possible personal residual, and converted into a prospective test.
 
-בנוסף, `tests/client/ux-contract.test.ts` מחזיק את חוזה ה-UX — 37 טענות בחמש-עשרה קבוצות, כל
-אחת נכתבה מרגרסיה שכן נשלחה בבילד שעבר `npm run verify`. הוא **לא** רואה פריסה מחושבת, ניגודיות
-מול מה שנצבע בפועל, או האם מיכל גלילה באמת גולל; המספרים האלה נמדדו בדפדפן ומתועדים ב-`docs/FINDINGS.md`.
+The important unresolved question is now harder:
 
-ומה שהוא לא רואה מוחזק במקום שכן:
-`tests/layout/the-board-in-the-state-that-decides.layout.test.ts` מודד את הלוח ב-Chromium אמיתי,
-במצב שהמוצר קיים כדי לאסוף — **46 טענות** היום. כשהוא נכתב היו 45, ומהן **27 אדומות** מול הגיליון
-שנשלח; ה-18 שנשארו ירוקות באותה הרצה היו רצפות ואינווריאנטים שנשמרו, וזה בדיוק מה שהן בשביל.
-שני המספרים האלה נספרו בהרצה, לא מהקוד: הקובץ בונה מקרים ב-`describe.each`, ולכן ספירת `it(`
-בעורך נותנת אחד-עשר ולא ארבעים ושישה.
+> **Can that knowledge reliably change future behavior?**
 
-## רישיונות
-
-הבנייה **מוסרת** למי שטוען את הדף מנוע GPL-3.0 בגודל 7.3MB ותשעה קובצי גופן תחת OFL 1.1, כל אחד
-מפורט ב-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) עם הגרסה הנמסרת בפועל והמקור המתאים.
-`GATE-NOTICE` בודק את זה מול העץ בכל `npm run verify`.
-
-הפרויקט עצמו הוא **[GPL-3.0-or-later](LICENSE)**, ולא מתוך העדפה: הבנייה **מוסרת** מנוע GPL-3.0,
-והשאלה אם זה הופך את האפליקציה לעבודה שחייבת להיות מוצעת תחת GPL היא שאלה שקריאות סבירות חלוקות
-עליה. רישוי תחת אותם תנאים כמו המנוע **סוגר את השאלה במקום לענות עליה**: לפי כל קריאה, ההפצה הזו
-תקינה. קודם לכן לא היה קובץ רישיון כלל, ומשמעות ברירת המחדל היא שכל הזכויות שמורות — עמדה שישבה
-רע לצד הפצת קוד GPL.
+That question belongs to new games, not another pass over the old ones.
