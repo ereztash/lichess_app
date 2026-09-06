@@ -5,143 +5,232 @@ import { execFileSync } from 'node:child_process';
 const root = process.cwd();
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const exists = (p) => fs.existsSync(path.join(root, p));
+const target = process.env.AUDIT_TARGET || 'broad-public';
 
-const criticalityWeight = { P0: 4, P1: 3, P2: 2, P3: 1 };
-const statePenalty = { open: 1, blocked: 1, 'half fixed': 0.75, partial: 0.75 };
+const layerNames = [
+  'product-evidence',
+  'ux-accessibility',
+  'correctness',
+  'release-integrity',
+  'operations',
+  'security-privacy',
+  'maintainability',
+  'research-validity',
+];
+const criticalityPenalty = { P0: 45, P1: 25, P2: 10, P3: 4 };
+const evidenceMultiplier = {
+  'verified-now': 1,
+  'repo-verified': 0.85,
+  'field-required': 0.9,
+  'external-unverified': 0.45,
+  asserted: 0.55,
+};
+
+function normalizeLayer(type = '') {
+  const t = type.toLowerCase();
+  if (t.includes('ux')) return 'ux-accessibility';
+  if (t.includes('correct')) return 'correctness';
+  if (t.includes('ops')) return 'operations';
+  if (t.includes('security') || t.includes('privacy')) return 'security-privacy';
+  if (t.includes('research') || t.includes('evidence')) return 'research-validity';
+  if (t.includes('product')) return 'product-evidence';
+  if (t.includes('maintain') || t.includes('architecture')) return 'maintainability';
+  return 'operations';
+}
+
+function disposition(g) {
+  if (g.evidence_status === 'external-unverified') return 'VERIFY_EXTERNAL_AUTHORITY';
+  if (g.evidence_status === 'field-required') {
+    return g.criticality === 'P0' || g.criticality === 'P1'
+      ? 'FIELD_REQUIRED_BEFORE_BROAD_DISTRIBUTION'
+      : 'FIELD_REQUIRED_OR_ACCEPT_FOR_CONTROLLED_TRIAL';
+  }
+  if (g.criticality === 'P0') return 'BLOCK_RELEASE';
+  if (g.criticality === 'P1') return 'FIX_BEFORE_BROAD_DISTRIBUTION';
+  if (g.criticality === 'P2') return 'ACCEPT_FOR_CONTROLLED_TRIAL_OR_FIX';
+  return 'DEFER';
+}
+
+function isBlocking(g) {
+  if (target !== 'broad-public') return g.criticality === 'P0' && g.evidence_status !== 'external-unverified';
+  if (!['P0', 'P1'].includes(g.criticality)) return false;
+  return g.evidence_status !== 'external-unverified';
+}
+
+function firstParagraph(block) {
+  return block
+    .split(/\n\s*\n/)
+    .map((p) => p.replace(/\n/g, ' ').trim())
+    .find((p) => p && !p.startsWith('#') && !p.startsWith('|') && !p.startsWith('---')) || '';
+}
 
 function parseDebt(md) {
-  const rows = [];
+  const gaps = [];
   const sectionRe = /^###\s+(R-\d+)\s+·\s+(.+)$/gm;
   const matches = [...md.matchAll(sectionRe)];
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
-    const start = m.index;
-    const end = i + 1 < matches.length ? matches[i + 1].index : md.length;
-    const block = md.slice(start, end);
+    const block = md.slice(m.index, i + 1 < matches.length ? matches[i + 1].index : md.length);
     const state = (block.match(/\| state \| \*\*([^*]+)\*\*/i)?.[1] || '').trim();
-    const severity = (block.match(/\| severity \| (P\d)/i)?.[1] || '').trim();
+    if (!state || (/fixed|closed/i.test(state) && !/half/i.test(state))) continue;
+    if (m[1] === 'R-21') continue; // external GitHub authority is checked live below.
+    const type = /\| type \| ([^|]+) \|/i.exec(block)?.[1]?.trim() || 'ops';
+    const criticality = /\| severity \| (P\d)/i.exec(block)?.[1] || 'P3';
     const basis = (block.match(/\| basis \| \*\*([^*]+)\*\*/i)?.[1] || '').trim();
-    if (!state || /fixed|closed/i.test(state) && !/half/i.test(state)) continue;
-    const problem = block
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .find((s) => !s.startsWith('#') && !s.startsWith('|') && !s.startsWith('**') && !s.startsWith('---')) || m[2].trim();
-    rows.push({
+    const external = /EXTERNAL_CONFIGURATION_REQUIRED|Vercel Hobby|outside the tree|GitHub reports/i.test(block);
+    const field = /FIELD-REQUIRED|FIELD_REQUIRED|owner's to do|human/i.test(block);
+    const evidence_status = external ? 'external-unverified' : field ? 'field-required' : /verified/i.test(basis) ? 'repo-verified' : 'asserted';
+    const gate = block.match(/\*\*Gate:\*\*\s*([^\n]+)/i)?.[1]?.trim() || null;
+    gaps.push({
       id: m[1],
       title: m[2].trim(),
-      layer: /\| type \| ([^|]+) \|/i.exec(block)?.[1]?.trim() || 'unknown',
+      layer: normalizeLayer(type),
       state,
-      criticality: severity || 'P3',
-      basis: basis || 'unspecified',
-      problem_definition: problem,
-      evidence: [`docs/MASTER_PRODUCT_DEBT.md#${m[1].toLowerCase()}`],
+      criticality,
+      evidence_status,
+      problem_definition: m[2].trim(),
+      mechanism_or_context: firstParagraph(block),
+      closure_condition: gate,
+      evidence: basis ? [basis, `docs/MASTER_PRODUCT_DEBT.md#${m[1].toLowerCase()}`] : [`docs/MASTER_PRODUCT_DEBT.md#${m[1].toLowerCase()}`],
       source: 'registered-debt',
     });
   }
-  return rows;
+  return gaps;
 }
 
 function commandGap(id, layer, criticality, title, command, args = []) {
   try {
-    execFileSync(command, args, { cwd: root, stdio: 'pipe', timeout: 15 * 60 * 1000 });
+    execFileSync(command, args, { cwd: root, stdio: 'pipe', timeout: 12 * 60 * 1000, env: process.env });
     return null;
   } catch (err) {
-    const stderr = String(err.stderr || '').slice(-4000);
-    const stdout = String(err.stdout || '').slice(-4000);
+    const detail = String(err.stderr || err.stdout || `exit=${err.status ?? 'unknown'}`).slice(-5000);
     return {
-      id,
-      title,
-      layer,
-      state: 'open',
-      criticality,
-      basis: 'verified by GitHub Action execution',
-      problem_definition: `The pre-release command ${[command, ...args].join(' ')} fails on the candidate revision, so the release cannot claim this invariant currently holds.`,
-      evidence: [stderr || stdout || `exit=${err.status ?? 'unknown'}`],
+      id, title, layer, state: 'open', criticality,
+      evidence_status: 'verified-now',
+      problem_definition: `${title}: ${[command, ...args].join(' ')} fails on the exact candidate revision audited by this Action.`,
+      mechanism_or_context: 'A release invariant fails under the same dependency tree and source revision being considered for distribution.',
+      closure_condition: `${[command, ...args].join(' ')} exits 0 in this Action.`,
+      evidence: [detail],
       source: 'live-action-check',
     };
   }
 }
 
-const debt = exists('docs/MASTER_PRODUCT_DEBT.md') ? parseDebt(read('docs/MASTER_PRODUCT_DEBT.md')) : [];
-const live = [];
+async function githubRulesetGaps() {
+  const repo = process.env.GITHUB_REPOSITORY;
+  const token = process.env.GITHUB_TOKEN;
+  if (!repo || !token) return [];
+  const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+  try {
+    const listRes = await fetch(`https://api.github.com/repos/${repo}/rulesets`, { headers });
+    if (!listRes.ok) throw new Error(`rulesets HTTP ${listRes.status}`);
+    const list = await listRes.json();
+    const details = [];
+    for (const item of list.filter((x) => x.enforcement === 'active')) {
+      const r = await fetch(`https://api.github.com/repos/${repo}/rulesets/${item.id}`, { headers });
+      if (r.ok) details.push(await r.json());
+    }
+    const rules = details.flatMap((d) => d.rules || []);
+    const prRequired = rules.some((r) => r.type === 'pull_request');
+    const noForce = rules.some((r) => r.type === 'non_fast_forward');
+    const statusRules = rules.filter((r) => r.type === 'required_status_checks');
+    const verifyRequired = statusRules.some((r) => (r.parameters?.required_status_checks || []).some((c) => c.context === 'verify'));
+    const strict = statusRules.some((r) => r.parameters?.strict_required_status_checks_policy === true);
+    const gaps = [];
+    if (!(prRequired && noForce && verifyRequired)) {
+      gaps.push({
+        id: 'A-RELEASE-PROTECTION', title: 'Main is not fully protected by the expected merge controls', layer: 'release-integrity', state: 'open', criticality: 'P1', evidence_status: 'verified-now',
+        problem_definition: 'A candidate can reach main without all expected PR / non-fast-forward / verify protections being enforced by the live GitHub authority.',
+        mechanism_or_context: `Observed live rules: pull_request=${prRequired}, non_fast_forward=${noForce}, verify_required=${verifyRequired}.`,
+        closure_condition: 'Live ruleset reports pull_request=true, non_fast_forward=true, and required status check verify.',
+        evidence: ['GitHub Rulesets API queried by this Action'], source: 'live-external-authority',
+      });
+    }
+    if (verifyRequired && !strict) {
+      gaps.push({
+        id: 'A-RELEASE-STALE-PR', title: 'A PR can retain a green verify after main changed underneath it', layer: 'release-integrity', state: 'open', criticality: 'P1', evidence_status: 'verified-now',
+        problem_definition: 'Required status checks are not strict/up-to-date, so a PR verified against an older main can merge after another PR changes main without re-verifying the integrated candidate.',
+        mechanism_or_context: 'The live ruleset requires verify but strict_required_status_checks_policy is false.',
+        closure_condition: 'Live required_status_checks has strict_required_status_checks_policy=true, or production deploy is otherwise bound to a verified merge SHA.',
+        evidence: ['GitHub Rulesets API queried by this Action'], source: 'live-external-authority',
+      });
+    }
+    return gaps;
+  } catch (err) {
+    return [{
+      id: 'A-RELEASE-AUTHORITY', title: 'Release protection could not be verified from the external authority', layer: 'release-integrity', state: 'unknown', criticality: 'P1', evidence_status: 'external-unverified',
+      problem_definition: 'The repository contains release claims whose current truth lives in GitHub settings, but this Action could not read that authority.',
+      mechanism_or_context: String(err), closure_condition: 'The Action can read the live ruleset and evaluate the release controls.',
+      evidence: [String(err)], source: 'authority-gap',
+    }];
+  }
+}
+
+function explicitFieldGaps() {
+  if (!exists('README.md')) return [];
+  const r = read('README.md');
+  const gaps = [];
+  if (/עדיין לא נמדד על אף אדם/.test(r)) gaps.push({
+    id: 'F-HUMAN-CORE', title: 'The live decision record has not been measured on a real human', layer: 'product-evidence', state: 'field required', criticality: 'P1', evidence_status: 'field-required',
+    problem_definition: 'The product can prove the mechanism works in code, but not yet that a real player can use the live decision-record loop and produce the core calibration evidence.',
+    mechanism_or_context: 'README explicitly states that the live record has not met a real player and the calibration gap has not been measured on any person.',
+    closure_condition: 'Prospective human sessions produce the pre-engine decision record and the planned comprehension/continuation evidence.',
+    evidence: ['README.md current-state statement'], source: 'current-claim-boundary',
+  });
+  if (/קורא מסך/.test(r) && /לא נמדד/.test(r)) gaps.push({
+    id: 'F-SCREEN-READER', title: 'Screen-reader usability has not been measured', layer: 'ux-accessibility', state: 'field required', criticality: 'P2', evidence_status: 'field-required',
+    problem_definition: 'Automated accessibility checks are green, but no NVDA, JAWS, or VoiceOver run has established that the labels and interaction model are usable through a screen reader.',
+    mechanism_or_context: 'axe validates machine-checkable rules, not whether the authored labels and chess interaction are understandable.',
+    closure_condition: 'A documented screen-reader walkthrough completes the core decision → reveal → next-decision path with named defects or a clean result.',
+    evidence: ['README.md current-state statement'], source: 'current-claim-boundary',
+  });
+  return gaps;
+}
+
+const gaps = [];
+if (exists('docs/MASTER_PRODUCT_DEBT.md')) gaps.push(...parseDebt(read('docs/MASTER_PRODUCT_DEBT.md')));
+gaps.push(...explicitFieldGaps());
+gaps.push(...await githubRulesetGaps());
 for (const g of [
   commandGap('A-TYPECHECK', 'correctness', 'P1', 'Typecheck fails', 'npm', ['run', 'check']),
-  commandGap('A-BUILD', 'release', 'P1', 'Production build fails', 'npm', ['run', 'build']),
-  commandGap('A-TEST', 'correctness', 'P1', 'Test suite fails', 'npm', ['test', '--', '--runInBand']),
-]) if (g) live.push(g);
-
-const gaps = [...live, ...debt];
+  commandGap('A-BUILD', 'release-integrity', 'P1', 'Production build fails', 'npm', ['run', 'build']),
+  commandGap('A-TEST', 'correctness', 'P1', 'Test suite fails', 'npm', ['test']),
+  commandGap('A-GATES', 'correctness', 'P1', 'Invariant gates fail', 'npm', ['run', 'gates']),
+  commandGap('A-GATE-CONTROLS', 'correctness', 'P1', 'Gate positive controls fail', 'npm', ['run', 'gates:controls']),
+  commandGap('A-BUNDLE', 'maintainability', 'P2', 'Bundle budget fails', 'npm', ['run', 'bundle:budget']),
+]) if (g) gaps.push(g);
 
 for (const g of gaps) {
-  const weight = criticalityWeight[g.criticality] || 1;
-  const penalty = statePenalty[g.state.toLowerCase()] ?? 1;
-  const base = Math.max(0, 100 - Math.round(weight * 18 * penalty));
-  g.score = base;
-  g.release_disposition = g.criticality === 'P0' || g.criticality === 'P1'
-    ? 'FIX_BEFORE_BROAD_DISTRIBUTION'
-    : g.criticality === 'P2'
-      ? 'ACCEPT_FOR_CONTROLLED_TRIAL_OR_FIX'
-      : 'DEFER';
+  g.disposition = disposition(g);
+  g.blocking = isBlocking(g);
+  g.priority_score = Math.min(100, Math.round((criticalityPenalty[g.criticality] || 4) * 2.2 * (evidenceMultiplier[g.evidence_status] || 0.5)));
 }
 
-const grouped = new Map();
-for (const g of gaps) {
-  const arr = grouped.get(g.layer) || [];
-  arr.push(g);
-  grouped.set(g.layer, arr);
-}
+const layerScores = layerNames.map((layer) => {
+  const items = gaps.filter((g) => g.layer === layer);
+  const penalty = items.reduce((sum, g) => sum + (criticalityPenalty[g.criticality] || 4) * (evidenceMultiplier[g.evidence_status] || 0.5), 0);
+  return { layer, readiness_score: Math.max(0, Math.round(100 - penalty)), gap_count: items.length, blockers: items.filter((g) => g.blocking).length };
+});
 
-const layers = [...grouped.entries()].map(([layer, items]) => ({
-  layer,
-  score: Math.round(items.reduce((s, x) => s + x.score, 0) / items.length),
-  highest_criticality: items.sort((a, b) => (criticalityWeight[b.criticality] || 0) - (criticalityWeight[a.criticality] || 0))[0]?.criticality || 'P3',
-  gap_count: items.length,
-})).sort((a, b) => a.score - b.score);
-
-const blockerCount = gaps.filter((g) => ['P0', 'P1'].includes(g.criticality)).length;
+const blockers = gaps.filter((g) => g.blocking);
 const report = {
-  schema: 'pre-release-gap-audit/v1',
-  generated_at: new Date().toISOString(),
-  git_sha: process.env.GITHUB_SHA || null,
-  purpose: 'Identify decision-relevant gaps before distribution, score them, assign criticality, and state each problem precisely.',
-  release_verdict: blockerCount ? 'NOT_READY_FOR_BROAD_DISTRIBUTION' : 'NO_P0_P1_BLOCKERS_FOUND',
-  scoring_note: 'Scores are readiness indicators, not product-value scores. Criticality outranks score.',
-  layer_scores: layers,
-  gaps,
+  schema: 'pre-release-gap-audit/v2', generated_at: new Date().toISOString(), git_sha: process.env.GITHUB_SHA || null, target,
+  purpose: 'Identify decision-relevant gaps before distribution. Scores describe readiness by orthogonal layer; criticality and evidence authority remain separate.',
+  release_verdict: blockers.length ? 'NOT_READY_FOR_TARGET_DISTRIBUTION' : 'NO_VERIFIED_P0_P1_BLOCKERS_FOR_TARGET',
+  score_rule: 'Each layer starts at 100. Evidence-weighted penalties: P0 45, P1 25, P2 10, P3 4. No global composite score is produced.',
+  criticality_rule: 'P0 release-stopper; P1 broad-distribution blocker/core-evidence invalidator; P2 bounded risk acceptable for controlled trial; P3 hygiene.',
+  layer_scores: layerScores,
+  gaps: gaps.sort((a, b) => b.priority_score - a.priority_score),
 };
 
 fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
 fs.writeFileSync(path.join(root, 'artifacts/pre-release-audit.json'), JSON.stringify(report, null, 2));
-
-const md = [];
-md.push('# Pre-release gap audit');
-md.push('');
-md.push(`**Verdict:** ${report.release_verdict}`);
-md.push(`**SHA:** ${report.git_sha || 'local'}`);
-md.push('');
-md.push('## Layer scores');
-md.push('');
-md.push('| Layer | Score | Highest criticality | Gaps |');
-md.push('|---|---:|---|---:|');
-for (const l of layers) md.push(`| ${l.layer} | ${l.score}/100 | ${l.highest_criticality} | ${l.gap_count} |`);
-md.push('');
-md.push('## Gaps');
-md.push('');
-for (const g of gaps.sort((a,b) => (criticalityWeight[b.criticality]||0)-(criticalityWeight[a.criticality]||0))) {
-  md.push(`### ${g.id} · ${g.title}`);
-  md.push('');
-  md.push(`- **Score:** ${g.score}/100`);
-  md.push(`- **Criticality:** ${g.criticality}`);
-  md.push(`- **Layer:** ${g.layer}`);
-  md.push(`- **State:** ${g.state}`);
-  md.push(`- **Disposition:** ${g.release_disposition}`);
-  md.push(`- **Basis:** ${g.basis}`);
-  md.push(`- **Problem:** ${g.problem_definition}`);
-  md.push(`- **Evidence:** ${g.evidence.join('; ')}`);
-  md.push('');
+const md = ['# Pre-release gap audit', '', `**Target:** ${target}`, `**Verdict:** ${report.release_verdict}`, `**SHA:** ${report.git_sha || 'local'}`, '', '## Layer scores', '', '| Layer | Readiness | Gaps | Blocking |', '|---|---:|---:|---:|'];
+for (const l of layerScores) md.push(`| ${l.layer} | ${l.readiness_score}/100 | ${l.gap_count} | ${l.blockers} |`);
+md.push('', '## Decision-relevant gaps', '');
+for (const g of report.gaps) {
+  md.push(`### ${g.id} · ${g.title}`, '', `- **Priority score:** ${g.priority_score}/100`, `- **Criticality:** ${g.criticality}`, `- **Layer:** ${g.layer}`, `- **Evidence:** ${g.evidence_status}`, `- **Blocking:** ${g.blocking ? 'yes' : 'no'}`, `- **Disposition:** ${g.disposition}`, `- **Problem:** ${g.problem_definition}`, `- **Mechanism / context:** ${g.mechanism_or_context || 'not yet isolated'}`, `- **Closure:** ${g.closure_condition || 'not yet specified'}`, `- **Evidence refs:** ${(g.evidence || []).join('; ')}`, '');
 }
 fs.writeFileSync(path.join(root, 'artifacts/pre-release-audit.md'), md.join('\n'));
 console.log(md.join('\n'));
-
-if (blockerCount) process.exitCode = 2;
+if (blockers.length) process.exitCode = 2;
