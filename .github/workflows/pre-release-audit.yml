@@ -1,0 +1,96 @@
+name: Pre-release Gap Audit
+
+on:
+  # PR runs exist to falsify changes to the audit itself. Normal product PRs should not be
+  # permanently red merely because a broad-public field gap is still intentionally open.
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/pre-release-audit.mjs"
+      - ".github/workflows/pre-release-audit.yml"
+      - "docs/PRE_RELEASE_AUDIT.md"
+  # The real pre-distribution use is an explicit run against the revision being considered.
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Distribution target
+        required: false
+        default: broad-public
+        type: choice
+        options:
+          - controlled-trial
+          - broad-public
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pre-release-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: decision_lab
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    env:
+      DATABASE_URL: mysql://root@127.0.0.1:3306/decision_lab
+      GITHUB_TOKEN: ${{ github.token }}
+      AUDIT_TARGET: ${{ github.event.inputs.target || 'broad-public' }}
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium || npx playwright install chromium
+
+      - name: Build database schema
+        run: |
+          set -e
+          for migration in drizzle/migrations/*.sql; do
+            sed 's/--> statement-breakpoint//' "$migration" \
+              | mysql -h 127.0.0.1 -P 3306 -u root decision_lab
+          done
+
+      - name: Run calibrated pre-release audit
+        id: audit
+        continue-on-error: true
+        run: node scripts/pre-release-audit.mjs
+
+      - name: Publish audit summary
+        if: always()
+        run: cat artifacts/pre-release-audit.md >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: pre-release-gap-audit
+          path: |
+            artifacts/pre-release-audit.json
+            artifacts/pre-release-audit.md
+          if-no-files-found: error
+
+      - name: Enforce target-distribution blockers
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo 'The audit found verified blockers for the selected distribution target. See the job summary and artifact.' >&2
+          exit 1
