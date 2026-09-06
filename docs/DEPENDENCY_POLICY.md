@@ -52,5 +52,7 @@ product serves (`GATE-NOTICE`), so a bump is a licence review first. It is taken
 
 ## 7. Node
 
-`engines.node` in `package.json` is the one statement of the runtime. Vercel builds and runs on
-it; both workflows read it through `node-version-file`. A change to the major is a PR of its own.
+`engines.node` in `package.json` is the one statement of the Node runtime. Vercel builds and runs on
+it; every GitHub Actions workflow that actually sets up Node reads it through
+`node-version-file: package.json`. A Python-only workflow does not acquire a Node runtime merely to
+satisfy this policy. A change to the Node major is a PR of its own.

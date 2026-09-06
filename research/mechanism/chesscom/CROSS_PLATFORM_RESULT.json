@@ -1,0 +1,114 @@
+{
+  "status": "BOARD_ONLY_CROSS_PLATFORM_REPLICATION__CLOCK_NOT_OBSERVED",
+  "protocol_frozen_before_outcomes": true,
+  "execution": {
+    "workflow": "Chess.com Cross-Platform Replication",
+    "workflow_run_id": 33992527252,
+    "execution_head_sha": "ad760e5eb0eeaa5565db9f4a5cba1a1d1d542198",
+    "artifact_id": 9977075913
+  },
+  "corpus": {
+    "games_total": 50,
+    "player": "ereztal-shir",
+    "time_controls": {"180": 21, "600": 2, "300": 27},
+    "date_min": "2026.02.21",
+    "date_max": "2026.09.05",
+    "has_clk_annotations": false,
+    "selection_rule": "TimeControl in {180,300}; board-only eligibility excludes forced and opening-book decisions; clock eligibility unavailable",
+    "games_selected_blitz": 48
+  },
+  "engine": {
+    "name": "Stockfish 17.1",
+    "depth": 12,
+    "multipv_pre_move": 3,
+    "hash_reset_per_position": true
+  },
+  "eligibility_deviation": "Original Lichess product eligibility requires think time and clock. Chess.com PGN contains neither. This run preserves not-forced and not-book only; therefore it is an external board-mechanism replication, not an exact R** validation frame.",
+  "counts": {
+    "board_eligible_focal_decisions": 1040,
+    "rstarstar": 142,
+    "scored_positions": 2070,
+    "parse_errors": []
+  },
+  "rstarstar_hung_within_game": {
+    "n_games": 39,
+    "n_in": 142,
+    "n_out": 898,
+    "est": 0.09427424622999099,
+    "se": 0.028873207671828147,
+    "z": 3.2651116322616014
+  },
+  "provenance_counts_rstarstar": {
+    "OPPONENT_CREATED": 82,
+    "PERSISTENT": 30,
+    "MIXED": 16,
+    "SELF_CREATED_PREVIOUS": 14
+  },
+  "mechanism": {
+    "persistent_unresolved_vs_persistent_resolved": {
+      "n_a": 24,
+      "rate_a": 0.3333333333333333,
+      "n_b": 6,
+      "rate_b": 0.16666666666666666,
+      "diff": 0.16666666666666666,
+      "bootstrap_ci95": [-0.19999999999999998, 0.47619047619047616],
+      "bootstrap_positive_share": 0.8525050100200401
+    },
+    "persistent_unresolved_vs_nonpersistent_unresolved": {
+      "n_a": 24,
+      "rate_a": 0.3333333333333333,
+      "n_b": 56,
+      "rate_b": 0.19642857142857142,
+      "diff": 0.1369047619047619,
+      "bootstrap_ci95": [-0.13254065396982861, 0.45001885536823405],
+      "bootstrap_positive_share": 0.8304
+    }
+  },
+  "strata": {
+    "180": {
+      "games": 21,
+      "decisions": 429,
+      "rstarstar": 49,
+      "rstarstar_hung_within_game": {
+        "n_games": 16,
+        "n_in": 49,
+        "n_out": 380,
+        "est": 0.03785954103730084,
+        "se": 0.05054315504296524,
+        "z": 0.7490537740494744
+      },
+      "persistent_unresolved_vs_persistent_resolved": {
+        "n_a": 6,
+        "rate_a": 0.16666666666666666,
+        "n_b": 3,
+        "rate_b": 0.0,
+        "diff": 0.16666666666666666,
+        "bootstrap_ci95": [0.0, 1.0],
+        "bootstrap_positive_share": 0.6699805489518046
+      }
+    },
+    "300": {
+      "games": 27,
+      "decisions": 611,
+      "rstarstar": 93,
+      "rstarstar_hung_within_game": {
+        "n_games": 23,
+        "n_in": 93,
+        "n_out": 518,
+        "est": 0.123709185070275,
+        "se": 0.033129842387401874,
+        "z": 3.734071041560925
+      },
+      "persistent_unresolved_vs_persistent_resolved": {
+        "n_a": 18,
+        "rate_a": 0.3888888888888889,
+        "n_b": 3,
+        "rate_b": 0.3333333333333333,
+        "diff": 0.05555555555555558,
+        "bootstrap_ci95": [-0.7090773809523809, 0.5],
+        "bootstrap_positive_share": 0.6165554628857381
+      }
+    }
+  },
+  "boundary": "This can replicate or fail to replicate the board-level repeated-non-resolution pattern across platform/history. It cannot test time allocation, cognitive cause, or intervention effect because move clocks/exposure are absent."
+}
