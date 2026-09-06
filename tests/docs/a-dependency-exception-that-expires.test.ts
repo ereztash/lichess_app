@@ -3,9 +3,10 @@
  * expiry in the future. The day one expires this fails, which is the whole point of writing the
  * date down.
  *
- * Also holds the two mechanical halves of the policy to what the document says: every GitHub
- * Action in every workflow is pinned to a 40-hex commit, and every `overrides` entry in
- * package.json is explained in the policy document by name.
+ * Also holds the mechanical halves of the dependency policy to what the document says: every
+ * GitHub Action in every workflow is pinned to a 40-hex commit, every `overrides` entry in
+ * package.json is explained in the policy document by name, and every workflow that actually
+ * sets up Node reads the Node major from package.json rather than naming another version.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -51,13 +52,25 @@ describe("the mechanical halves of docs/DEPENDENCY_POLICY.md", () => {
     }
   });
 
-  it("reads the Node major from one place", () => {
+  it("reads the Node major from one place wherever Node is set up", () => {
     const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { engines?: { node?: string } };
     expect(pkg.engines?.node).toMatch(/^\d+\.x$/);
+
     for (const name of readdirSync(".github/workflows")) {
       const text = readFileSync(`.github/workflows/${name}`, "utf8");
+      const setsUpNode = /uses:\s*actions\/setup-node@[0-9a-f]{40}/.test(text);
+
+      if (!setsUpNode) {
+        expect(text, `${name} carries Node version configuration without setting up Node`).not.toMatch(
+          /node-version(?:-file)?:/,
+        );
+        continue;
+      }
+
       expect(text, `${name} names a Node version instead of reading package.json`).not.toMatch(/node-version:\s*\d/);
-      expect(text).toContain("node-version-file: package.json");
+      expect(text, `${name} sets up Node without reading the canonical version from package.json`).toContain(
+        "node-version-file: package.json",
+      );
     }
   });
 });
