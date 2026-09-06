@@ -139,18 +139,35 @@ Four things. Each is `ENVIRONMENT` or `OWNER`, and the first three each fail the
 technical failure here be misread as an absence of value?"* in the direction that matters. The
 fourth is a measurement question F1 raised and deliberately did not answer.
 
-### 1. `R-21` — `main` deploys before `verify` has run · **highest**
+### 1. `R-21` — a pull request can merge on a base it was never verified against · **highest**
 
-`main` reports `protected: false`, `verify-build.yml` runs on `push` **after** the merge, and Vercel
-deploys `main` on push. A red build is already serving players by the time anything reports.
+**The sentence this section used to carry was falsified by live authority on 2026-09-06, and it is
+worth saying how.** It read *"`main` reports `protected: false` … a red build is already serving
+players by the time anything reports"*, and it was written from the repository's own text rather than
+from GitHub. A ruleset was applied afterwards and nothing here re-read it. The first
+`Pre-release Gap Audit` to query the Rulesets API,
+[run 34029146340](https://github.com/ereztash/lichess_app/actions/runs/34029146340), found
+`pull_request`, `non_fast_forward` and required `verify` all in force. Three of the four controls this
+section asked for already exist.
 
-**Why it is a field blocker.** During a trial, a broken deployment is experienced by participants as
-a product that does not work, and recorded as an absence of value. `ROLLBACK.md` makes it cheap to
-undo, which shortens the window and does not close it.
+**This is the same mistake as 2026-09-03, pointing the other way.** That declaration read a search
+that found nothing as an absence of findings. This section read a document that had stopped being
+true as a fact about the world. Both are a statement about the producer taken for a statement about
+what is there, and only an external authority settles either.
 
-**What closes it.** A branch ruleset: require a pull request, require the `verify` check, block
-force-push; and on Vercel, deploy only after the check passes. Repository and project settings,
-about five minutes, owner's hands. `EXTERNAL_CONFIGURATION_REQUIRED`.
+What remains is one flag: `strict_required_status_checks_policy` is false, so a pull request verified
+against an older `main` can merge after another has moved `main`, and the integrated candidate is
+never verified before Vercel deploys it.
+
+**Why it is still a field blocker.** During a trial, a broken deployment is experienced by
+participants as a product that does not work, and recorded as an absence of value. `ROLLBACK.md`
+makes it cheap to undo, which shortens the window and does not close it.
+
+**What closes it.** One checkbox on the existing ruleset: *Require branches to be up to date before
+merging*. Not a redesign of branch protection, which is already in place. Owner's hands,
+`EXTERNAL_CONFIGURATION_REQUIRED`, and then a `Pre-release Gap Audit` run that re-reads the live
+ruleset and emits neither `A-RELEASE-STALE-PR` nor `A-RELEASE-AUTHORITY`. Nothing written in this
+file closes it.
 
 ### 2. `R-26` — the rollback has never been rehearsed on the live alias
 

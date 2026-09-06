@@ -940,25 +940,48 @@ alternatives and the choice rule that has to be declared before the next run.
 
 ---
 
-### R-21 · `main` deploys before `verify` has run, and nothing in the tree can change that
+### R-21 · A pull request can merge on a base it was never verified against
 
 | | |
 | --- | --- |
 | type | ops |
 | state | **blocked** |
 | severity | P1 |
-| basis | **verified** — GitHub reports `main` `protected: false`; `.github/workflows/verify-build.yml` runs on `push: branches: [main]`, after the merge; Vercel deploys `main` on push. Runs 347 and 361 on `main` were red and cancelled while their commits were live. |
+| basis | **verified** — live GitHub Rulesets API, read by `Pre-release Gap Audit` [run 34029146340](https://github.com/ereztash/lichess_app/actions/runs/34029146340) at 2026-09-06T11:10Z: `pull_request` required, `non_fast_forward` blocked and required status check `verify` are all **in force**; `strict_required_status_checks_policy` is **false**. |
 
-`verify` gates a pull request and nothing gates the merge. A red run on `main` is a report about a
-build that is already serving players. The cure is a branch ruleset (require a PR, require the
-`verify` check, block force-push) and, on Vercel, deploying only after the check passes. Both live in
-repository and project settings, not in this tree: **EXTERNAL_CONFIGURATION_REQUIRED**, owner's
-decision. `docs/ROLLBACK.md` is what stands until then.
+**This row was wider than the tree it described, and the correction is the useful part.** It was
+written as *"`main` deploys before `verify` has run, and nothing in the tree can change that"*, on
+the basis that *"GitHub reports `main` `protected: false`"*. A ruleset was applied after that and
+this row was never re-read against it. Three of the four controls it asked for are enforced today.
+**A register row that overstates a gap is the same defect as one that hides it**, and it costs more
+here than elsewhere: it points the owner at designing branch protection when the remaining action is
+one checkbox.
 
-**Gate:** none can exist here. What the tree can hold is the consequence: `docs/ROLLBACK.md` and
-`GATE-ROLLBACK-EVIDENCE` make a red deployment cheap to undo, and `deployed.yml` binds the check to
-the commit. This row closes when a screenshot of the ruleset is not needed because a PR without a
-green `verify` cannot merge.
+What is still open is that one flag. With `strict` false, a pull request that passed `verify` against
+an older `main` can merge after another pull request has changed `main`, and the integrated candidate
+is never verified. Vercel then deploys that unverified merge. Narrower than the original row, and the
+same failure at the end: something reaches players that no green run ever saw. Eight pull requests
+are open against bases behind `main` as this is written, so the hole is not theoretical.
+
+**EXTERNAL_CONFIGURATION_REQUIRED**, owner's hands, and nothing in this tree substitutes for it. The
+smallest intended change, and no other: on the active ruleset targeting `main`, in the *Require status
+checks to pass* rule, enable **Require branches to be up to date before merging**
+(`strict_required_status_checks_policy: false → true`). The pull-request, non-fast-forward and
+`verify` rules are already correct and are not being redesigned. `docs/ROLLBACK.md` is what stands
+until then.
+
+**Gate:** two things, and they answer different questions.
+
+What the tree holds is still the consequence rather than the cause: `docs/ROLLBACK.md` and
+`GATE-ROLLBACK-EVIDENCE` make a bad deployment cheap to undo, and `deployed.yml` binds the check to
+the commit it ran against. That is what stands while the flag is unset, and it is what this row's
+severity is anchored to.
+
+What closes the row is `scripts/pre-release-audit.mjs`, which unlike when this row was written now
+lives in the tree. It reads the live Rulesets API rather than this file, and emits
+`A-RELEASE-STALE-PR` while `strict` is false, or `A-RELEASE-AUTHORITY` when the authority cannot be
+read at all. The row closes when a `Pre-release Gap Audit` run against the candidate emits neither. A
+screenshot, an edit to this row, or a report that the checkbox was clicked does not close it.
 
 ## P2 — real, bounded, and not blocking anything
 
