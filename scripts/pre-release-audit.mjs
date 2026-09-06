@@ -26,7 +26,14 @@ const evidenceMultiplier = {
   asserted: 0.55,
 };
 
-function normalizeLayer(type = '') {
+function normalizeLayer(type = '', id = '') {
+  const overrides = {
+    'R-13': 'maintainability',
+    'R-22': 'release-integrity',
+    'R-25': 'security-privacy',
+    'R-26': 'release-integrity',
+  };
+  if (overrides[id]) return overrides[id];
   const t = type.toLowerCase();
   if (t.includes('ux')) return 'ux-accessibility';
   if (t.includes('correct')) return 'correctness';
@@ -38,10 +45,18 @@ function normalizeLayer(type = '') {
   return 'operations';
 }
 
+function classifyDebtState(state = '') {
+  const s = state.toLowerCase();
+  if (/refuted|fixed|closed/.test(s) && !/half fixed/.test(s)) return 'historical';
+  if (/measured and deferred|\bdeferred\b|deliberately governed/.test(s)) return 'watch';
+  if (/open|blocked|half fixed|partial|field required|field-required/.test(s)) return 'active';
+  return 'watch';
+}
+
 function disposition(g) {
   if (g.evidence_status === 'external-unverified') return 'VERIFY_EXTERNAL_AUTHORITY';
   if (g.evidence_status === 'field-required') {
-    return g.criticality === 'P0' || g.criticality === 'P1'
+    return ['P0', 'P1'].includes(g.criticality)
       ? 'FIELD_REQUIRED_BEFORE_BROAD_DISTRIBUTION'
       : 'FIELD_REQUIRED_OR_ACCEPT_FOR_CONTROLLED_TRIAL';
   }
@@ -64,38 +79,57 @@ function firstParagraph(block) {
     .find((p) => p && !p.startsWith('#') && !p.startsWith('|') && !p.startsWith('---')) || '';
 }
 
+function gateText(block) {
+  const gate = block.match(/\*\*Gate:\*\*\s*([\s\S]*?)(?=\n\s*\n|$)/i)?.[1];
+  return gate ? gate.replace(/\s+/g, ' ').trim() : null;
+}
+
 function parseDebt(md) {
   const gaps = [];
+  const watchItems = [];
+  const excluded = [];
   const sectionRe = /^###\s+(R-\d+)\s+·\s+(.+)$/gm;
   const matches = [...md.matchAll(sectionRe)];
+
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
     const block = md.slice(m.index, i + 1 < matches.length ? matches[i + 1].index : md.length);
     const state = (block.match(/\| state \| \*\*([^*]+)\*\*/i)?.[1] || '').trim();
-    if (!state || (/fixed|closed/i.test(state) && !/half/i.test(state))) continue;
-    if (m[1] === 'R-21') continue; // external GitHub authority is checked live below.
+    if (!state) continue;
+    if (m[1] === 'R-21') continue; // current authority is GitHub Rulesets, checked live below.
+
+    const stateClass = classifyDebtState(state);
     const type = /\| type \| ([^|]+) \|/i.exec(block)?.[1]?.trim() || 'ops';
     const criticality = /\| severity \| (P\d)/i.exec(block)?.[1] || 'P3';
     const basis = (block.match(/\| basis \| \*\*([^*]+)\*\*/i)?.[1] || '').trim();
     const external = /EXTERNAL_CONFIGURATION_REQUIRED|Vercel Hobby|outside the tree|GitHub reports/i.test(block);
     const field = /FIELD-REQUIRED|FIELD_REQUIRED|owner's to do|human/i.test(block);
     const evidence_status = external ? 'external-unverified' : field ? 'field-required' : /verified/i.test(basis) ? 'repo-verified' : 'asserted';
-    const gate = block.match(/\*\*Gate:\*\*\s*([^\n]+)/i)?.[1]?.trim() || null;
-    gaps.push({
+    const item = {
       id: m[1],
       title: m[2].trim(),
-      layer: normalizeLayer(type),
+      layer: normalizeLayer(type, m[1]),
       state,
       criticality,
       evidence_status,
       problem_definition: m[2].trim(),
       mechanism_or_context: firstParagraph(block),
-      closure_condition: gate,
+      closure_condition: gateText(block),
       evidence: basis ? [basis, `docs/MASTER_PRODUCT_DEBT.md#${m[1].toLowerCase()}`] : [`docs/MASTER_PRODUCT_DEBT.md#${m[1].toLowerCase()}`],
       source: 'registered-debt',
-    });
+    };
+
+    if (stateClass === 'historical') {
+      excluded.push({ id: item.id, title: item.title, state: item.state, reason: 'historical/refuted evidence is not a current release gap' });
+      continue;
+    }
+    if (stateClass === 'watch') {
+      watchItems.push({ ...item, score_effect: 0, disposition: 'WATCH_ONLY' });
+      continue;
+    }
+    gaps.push(item);
   }
-  return gaps;
+  return { gaps, watchItems, excluded };
 }
 
 function commandGap(id, layer, criticality, title, command, args = []) {
@@ -137,6 +171,7 @@ async function githubRulesetGaps() {
     const verifyRequired = statusRules.some((r) => (r.parameters?.required_status_checks || []).some((c) => c.context === 'verify'));
     const strict = statusRules.some((r) => r.parameters?.strict_required_status_checks_policy === true);
     const gaps = [];
+
     if (!(prRequired && noForce && verifyRequired)) {
       gaps.push({
         id: 'A-RELEASE-PROTECTION', title: 'Main is not fully protected by the expected merge controls', layer: 'release-integrity', state: 'open', criticality: 'P1', evidence_status: 'verified-now',
@@ -187,10 +222,11 @@ function explicitFieldGaps() {
   return gaps;
 }
 
-const gaps = [];
-if (exists('docs/MASTER_PRODUCT_DEBT.md')) gaps.push(...parseDebt(read('docs/MASTER_PRODUCT_DEBT.md')));
-gaps.push(...explicitFieldGaps());
-gaps.push(...await githubRulesetGaps());
+const parsedDebt = exists('docs/MASTER_PRODUCT_DEBT.md')
+  ? parseDebt(read('docs/MASTER_PRODUCT_DEBT.md'))
+  : { gaps: [], watchItems: [], excluded: [] };
+const gaps = [...parsedDebt.gaps, ...explicitFieldGaps(), ...await githubRulesetGaps()];
+
 for (const g of [
   commandGap('A-TYPECHECK', 'correctness', 'P1', 'Typecheck fails', 'npm', ['run', 'check']),
   commandGap('A-BUILD', 'release-integrity', 'P1', 'Production build fails', 'npm', ['run', 'build']),
@@ -208,28 +244,46 @@ for (const g of gaps) {
 
 const layerScores = layerNames.map((layer) => {
   const items = gaps.filter((g) => g.layer === layer);
-  const penalty = items.reduce((sum, g) => sum + (criticalityPenalty[g.criticality] || 4) * (evidenceMultiplier[g.evidence_status] || 0.5), 0);
-  return { layer, readiness_score: Math.max(0, Math.round(100 - penalty)), gap_count: items.length, blockers: items.filter((g) => g.blocking).length };
+  const pressure = items.reduce((sum, g) => sum + (criticalityPenalty[g.criticality] || 4) * (evidenceMultiplier[g.evidence_status] || 0.5), 0);
+  return {
+    layer,
+    gap_pressure_score: Math.min(100, Math.round(pressure)),
+    known_gap_count: items.length,
+    blockers: items.filter((g) => g.blocking).length,
+    interpretation: items.length ? 'KNOWN_GAPS_PRESENT' : 'NO_GAP_DETECTED_UNDER_CURRENT_EVIDENCE',
+  };
 });
 
 const blockers = gaps.filter((g) => g.blocking);
 const report = {
-  schema: 'pre-release-gap-audit/v2', generated_at: new Date().toISOString(), git_sha: process.env.GITHUB_SHA || null, target,
-  purpose: 'Identify decision-relevant gaps before distribution. Scores describe readiness by orthogonal layer; criticality and evidence authority remain separate.',
+  schema: 'pre-release-gap-audit/v3', generated_at: new Date().toISOString(), git_sha: process.env.GITHUB_SHA || null, target,
+  purpose: 'Identify decision-relevant gaps before distribution. Scores express identified gap pressure; criticality and evidence authority remain separate.',
   release_verdict: blockers.length ? 'NOT_READY_FOR_TARGET_DISTRIBUTION' : 'NO_VERIFIED_P0_P1_BLOCKERS_FOR_TARGET',
-  score_rule: 'Each layer starts at 100. Evidence-weighted penalties: P0 45, P1 25, P2 10, P3 4. No global composite score is produced.',
+  score_rule: 'Layer gap-pressure starts at 0 and rises with evidence-weighted open gaps: P0 45, P1 25, P2 10, P3 4. Zero means no gap was detected under current evidence; it does NOT mean perfect readiness. No global composite is produced.',
   criticality_rule: 'P0 release-stopper; P1 broad-distribution blocker/core-evidence invalidator; P2 bounded risk acceptable for controlled trial; P3 hygiene.',
   layer_scores: layerScores,
   gaps: gaps.sort((a, b) => b.priority_score - a.priority_score),
+  watch_items: parsedDebt.watchItems,
+  historical_excluded: parsedDebt.excluded,
 };
 
 fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
 fs.writeFileSync(path.join(root, 'artifacts/pre-release-audit.json'), JSON.stringify(report, null, 2));
-const md = ['# Pre-release gap audit', '', `**Target:** ${target}`, `**Verdict:** ${report.release_verdict}`, `**SHA:** ${report.git_sha || 'local'}`, '', '## Layer scores', '', '| Layer | Readiness | Gaps | Blocking |', '|---|---:|---:|---:|'];
-for (const l of layerScores) md.push(`| ${l.layer} | ${l.readiness_score}/100 | ${l.gap_count} | ${l.blockers} |`);
+const md = ['# Pre-release gap audit', '', `**Target:** ${target}`, `**Verdict:** ${report.release_verdict}`, `**SHA:** ${report.git_sha || 'local'}`, '', '> Layer score = identified gap pressure (higher is worse). 0 means no gap was detected under current evidence, not perfect readiness.', '', '## Layer gap pressure', '', '| Layer | Gap pressure | Known gaps | Blocking |', '|---|---:|---:|---:|'];
+for (const l of layerScores) md.push(`| ${l.layer} | ${l.gap_pressure_score}/100 | ${l.known_gap_count} | ${l.blockers} |`);
 md.push('', '## Decision-relevant gaps', '');
 for (const g of report.gaps) {
   md.push(`### ${g.id} · ${g.title}`, '', `- **Priority score:** ${g.priority_score}/100`, `- **Criticality:** ${g.criticality}`, `- **Layer:** ${g.layer}`, `- **Evidence:** ${g.evidence_status}`, `- **Blocking:** ${g.blocking ? 'yes' : 'no'}`, `- **Disposition:** ${g.disposition}`, `- **Problem:** ${g.problem_definition}`, `- **Mechanism / context:** ${g.mechanism_or_context || 'not yet isolated'}`, `- **Closure:** ${g.closure_condition || 'not yet specified'}`, `- **Evidence refs:** ${(g.evidence || []).join('; ')}`, '');
+}
+if (report.watch_items.length) {
+  md.push('## Watch items — visible, zero score effect', '');
+  for (const w of report.watch_items) md.push(`- **${w.id} · ${w.title}** — ${w.state} — ${w.layer}`);
+  md.push('');
+}
+if (report.historical_excluded.length) {
+  md.push('## Historical/refuted items excluded from gap scoring', '');
+  for (const h of report.historical_excluded) md.push(`- ${h.id} · ${h.title} — ${h.state}`);
+  md.push('');
 }
 fs.writeFileSync(path.join(root, 'artifacts/pre-release-audit.md'), md.join('\n'));
 console.log(md.join('\n'));
