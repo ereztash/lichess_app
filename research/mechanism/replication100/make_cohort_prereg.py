@@ -204,6 +204,20 @@ def main() -> int:
                 "enforced_by": "acceptance requires a FULL window (admissible >= window), which is "
                                "exactly the condition under which the bound provably changed "
                                "nothing. COHORT_SELECTION.json records window_full per member.",
+                "size_rejections_are_retried_unbounded": {
+                    "_why": "the full-window rule keeps the bound out of every ACCEPTED corpus, but "
+                            "it does not by itself keep the bound out of REJECTIONS. The margin is "
+                            "calibrated to the observed admissible rate, so a player who forfeits "
+                            "on time often, or plays many short games, can fail on size for a "
+                            "property of the client rather than of their history. Measured on the "
+                            "first such case: 4,584 games fetched yielded 2,054 admissible, a 45%% "
+                            "rate against the 77%% the margin assumes.",
+                    "rule": "a candidate whose window does not fill is refetched ONCE with no bound "
+                            "at all, and only then may be rejected on size",
+                    "consequence": "a size rejection is the player's shortage, never ours, so the "
+                                   "cohort does not quietly under-represent players with low "
+                                   "admissible rates",
+                },
                 "_why_it_is_needed": "the frame's median candidate holds 5,355 blitz games and its "
                     "p90 holds 24,345. Downloading a full history to keep 450 games is tens of "
                     "hours of transfer discarded on arrival.",

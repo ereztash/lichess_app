@@ -125,7 +125,12 @@ def try_candidate(username: str, window: int, fetch_max: int, root: str) -> dict
            "--stop-after", "FREEZE"]
     if root:
         cmd += ["--root", root]
-    env = dict(os.environ, REPLICATION_FETCH_MAX_GAMES=str(fetch_max))
+    # fetch_max of 0 means no bound: the full history, which is what a size rejection has to be
+    # decided on so that it is the player's shortage and not the client's.
+    env = dict(os.environ)
+    env.pop("REPLICATION_FETCH_MAX_GAMES", None)
+    if fetch_max:
+        env["REPLICATION_FETCH_MAX_GAMES"] = str(fetch_max)
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800, env=env)
     res_path = os.path.join(d, "report", "RESULT.json")
     if not os.path.exists(res_path):
@@ -234,10 +239,27 @@ def main() -> int:
 
         c = r["corpus"]
         if c["admissible"] < window:
+            # The window did not fill, so the retrieval bound MAY be why rather than the player's
+            # history. The bound's margin is calibrated to the observed admissible rate; a player
+            # who forfeits on time often, or plays many short games, sits below it and would be
+            # rejected for a property of the client. Retry once with no bound at all, so that a
+            # size rejection is always the player's and never ours.
+            shutil.rmtree(r["run_dir"], ignore_errors=True)
+            r = try_candidate(u, window, 0, a.root)
+            if r["accepted"] is False:
+                state["rejected"].append({"u": u, "reason": r["reason"], "corpus": r.get("corpus"),
+                                          "retried_unbounded": True})
+                shutil.rmtree(r["run_dir"], ignore_errors=True)
+                json.dump(state, open(state_path, "w"), indent=1)
+                continue
+            c = r["corpus"]
+            fetch_max = 0
+        if c["admissible"] < window:
             state["rejected"].append({"u": u, "reason": "INSUFFICIENT_ELIGIBLE_GAMES",
                                       "admissible": c["admissible"], "needed": window,
                                       "blitz_admissible": c["speeds"].get("blitz", 0),
                                       "fetch_max": fetch_max, "window_full": False,
+                                      "unbounded": fetch_max == 0,
                                       "seconds": round(time.time() - t0, 1)})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
