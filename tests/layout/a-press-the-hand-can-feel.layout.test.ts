@@ -308,7 +308,6 @@ describe("a press the hand can feel", () => {
         await page.getByRole("button", { name: "עמדה מהסט המשותף" }).click();
         await page.locator('[data-square="e4"]').waitFor({ timeout: 60_000 });
         await page.waitForTimeout(1200);
-        await decide(page);
 
         /*
          * THE WAIT DOES NOT HAPPEN ON EVERY DECISION, AND THAT IS WHY THIS LOOPS.
@@ -319,24 +318,29 @@ describe("a press the hand can feel", () => {
          * restored tree while passing under three of its own deliberate breaks -- a test that was
          * measuring the runner's cache, not the product.
          *
-         * So it polls at 10 ms and takes up to three decisions through the continuation. If the
-         * wait never renders across all three, that is reported as a failure to REACH the state
-         * rather than passed over: a case that quietly succeeds when the thing it checks did not
-         * occur is the failure this repository already shipped once.
+         * SAMPLING WAS STILL THE WRONG INSTRUMENT. A 10 ms poll then failed on CI with "reveal
+         * arrived at +0ms with no wait" on all three decisions, while passing here in 19 s: on a
+         * fast runner the waiting state exists for less than one sample, so the probe reported its
+         * absence rather than measuring it. That is the same mistake as the pseudo-element one
+         * below -- an instrument that cannot see the thing it checks for is not evidence about the
+         * product.
+         *
+         * So it OBSERVES instead of sampling. A MutationObserver installed before each decision
+         * records the first appearance of the waiting state, with the busy and animation counts
+         * taken AT THAT INSTANT, because by the time any poll returns the state is gone. Polling
+         * remains only to wait for the reveal to finish.
+         *
+         * The assertion is unchanged: the state must have existed, and while it existed the page
+         * must have declared itself busy and shown motion. If the wait never renders across all
+         * three decisions that is still reported as a failure to REACH the state rather than
+         * passed over: a case that quietly succeeds when the thing it checks did not occur is the
+         * failure this repository already shipped once.
          */
-        let seen: { busy: number; animating: number } | null = null;
-        const trace: string[] = [];
-        for (let attempt = 0; attempt < 3 && seen === null; attempt += 1) {
-          if (attempt > 0) {
-            const next = page.getByRole("button", { name: "לעמדה הבאה" });
-            if ((await next.count()) === 0) break;
-            await next.click();
-            await page.waitForFunction(() => /DECIDE/.test(document.body.innerText), null, { timeout: 30_000 });
-            await page.waitForTimeout(900);
-            await decide(page);
-          }
-          for (let i = 0; i < 400; i += 1) {
-            const now = await page.evaluate(() => ({
+        const armWaitProbe = () =>
+          page.evaluate(() => {
+            const w = window as unknown as { __waitProbe?: { busy: number; animating: number } | null };
+            w.__waitProbe = null;
+            const sample = () => ({
               busy: document.querySelectorAll("[aria-busy='true']").length,
               /*
                * PSEUDO-ELEMENTS COUNT. The first version of this probe read only
@@ -346,15 +350,49 @@ describe("a press the hand can feel", () => {
                */
               animating: [...document.querySelectorAll("body *")].filter((e) =>
                 [null, "::before", "::after"].some(
-                  (pseudo) => getComputedStyle(e, pseudo).animationName !== "none",
+                  (pseudo) => getComputedStyle(e, pseudo as string | null).animationName !== "none",
                 ),
               ).length,
-              waiting: document.querySelectorAll(".reveal-waiting").length,
+            });
+            const record = () => {
+              if (w.__waitProbe) return true;
+              if (document.querySelectorAll(".reveal-waiting").length === 0) return false;
+              w.__waitProbe = sample();
+              return true;
+            };
+            if (record()) return;
+            const obs = new MutationObserver(() => {
+              if (record()) obs.disconnect();
+            });
+            obs.observe(document.body, { subtree: true, childList: true, attributes: true });
+          });
+        let seen: { busy: number; animating: number } | null = null;
+        const trace: string[] = [];
+        for (let attempt = 0; attempt < 3 && seen === null; attempt += 1) {
+          if (attempt === 0) {
+            await armWaitProbe();
+            await decide(page);
+          } else {
+            const next = page.getByRole("button", { name: "לעמדה הבאה" });
+            if ((await next.count()) === 0) break;
+            await next.click();
+            await page.waitForFunction(() => /DECIDE/.test(document.body.innerText), null, { timeout: 30_000 });
+            await page.waitForTimeout(900);
+            await armWaitProbe();
+            await decide(page);
+          }
+          for (let i = 0; i < 400; i += 1) {
+            const now = await page.evaluate(() => ({
+              observed: (window as unknown as {
+                __waitProbe?: { busy: number; animating: number } | null;
+              }).__waitProbe ?? null,
               done: /עומק \d+|בחרת את|ס״פ|מה כן היית עושה/.test(document.body.innerText),
             }));
-            if (now.waiting > 0) {
-              trace.push(`attempt ${attempt}: +${i * 10}ms busy=${now.busy} anim=${now.animating}`);
-              seen = now;
+            if (now.observed) {
+              trace.push(
+                `attempt ${attempt}: observed by +${i * 10}ms busy=${now.observed.busy} anim=${now.observed.animating}`,
+              );
+              seen = now.observed;
               break;
             }
             if (now.done) { trace.push(`attempt ${attempt}: reveal arrived at +${i * 10}ms with no wait`); break; }
