@@ -17,6 +17,9 @@ This screen looks only at ratings, game counts and account status. It never look
 result. Candidates are screened in the deterministic order declared in PLAYER_B_SELECTION.json and
 the FIRST one that passes is taken, so the choice is mechanical.
 
+There is no cheap pre-filter at all: every candidate gets the exact criterion, in order. A profile
+rating decides nothing, which is the whole lesson of the first attempt.
+
     python select_player_b.py --candidates <json> --limit 12 --out PLAYER_B_SCREEN.json
 """
 from __future__ import annotations
@@ -115,9 +118,6 @@ def main() -> int:
     ap.add_argument("--pages", type=int, default=40)
     ap.add_argument("--workdir", default=None)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--prescreen-rating", nargs=2, type=int, default=[1550, 1800],
-                    help="cheap locator on the profile rating; the exact criterion is the window median")
-    ap.add_argument("--prescreen-games", type=int, default=400)
     a = ap.parse_args()
     workdir = a.workdir or tempfile.mkdtemp(prefix="playerb_screen_")
     cands = json.load(open(a.candidates))

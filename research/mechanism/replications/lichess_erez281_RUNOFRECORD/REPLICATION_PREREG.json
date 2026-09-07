@@ -3,7 +3,7 @@
  "username": "erez281",
  "canonical_player_id": "erez281",
  "corpus": "lichess:erez281",
- "repo_sha": "0505dafb9a909e8958a8903147628dcb6a159235",
+ "repo_sha": "c44c3f788c190adf557d07a094dbb2d1af01ad57",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -175,6 +175,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-07T17:06:18Z",
- "prereg_hash": "fa61186e5c94537d8e7c5f150f711b7e48f28cf96a51ad3f4846194dcb373e38"
+ "written_at": "2026-09-07T17:15:43Z",
+ "prereg_hash": "ecb9cc4bb4f71a08cdfe45e0fa27c292597ca5deece78cae082b9a246d60420d"
 }
