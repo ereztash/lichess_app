@@ -75,6 +75,19 @@ def row_values(r: dict) -> dict:
         "test": test,
         "population_explains": None if not popc else pp((popc.get("population") or {}).get("raw", {}).get("diff")),
         "focal_percentile": per.get("focal_percentile"),
+        "population_search_ran": bool(r["resid_primary"] or r["resid_secondary"]),
+        "residual_targets_run": [x.get("target") for x in (r["resid_primary"], r["resid_secondary"]) if x],
+        "residual_passing": sum(1 for x in (r["resid_primary"], r["resid_secondary"]) if x
+                                for f in x.get("frozen", []) if (f.get("validate") or {}).get("pass")),
+        "residual_best_z": max([float(f["validate"]["resid_wg_z"])
+                                for x in (r["resid_primary"], r["resid_secondary"]) if x
+                                for f in x.get("frozen", []) if f.get("validate")] or [float("nan")]),
+        "broad_best_z": max([float(f["validate"]["resid_wg_z"])
+                             for f in ((r["broad"] or {}).get("frozen") or []) if f.get("validate")]
+                            or [float("nan")]),
+        "class_decided_at": ("the broad stage: no region passed the VALIDATE judge"
+                             if r["broad"] and not broad else
+                             ("the residual stage" if resid or r["resid_primary"] else "corpus sufficiency")),
         "residual_remains": "yes" if resid else ("no" if r["resid_primary"] else "not reached"),
         "residual_region": (resid or {}).get("region"),
         "residual_target": (resid or {}).get("target"),
@@ -108,10 +121,18 @@ def render(rows: list[dict]) -> str:
     line("TEST rate in / out",
          lambda r: f"{pct((r['test'] or {}).get('region_contrast', {}).get('p_in'))} / {pct((r['test'] or {}).get('region_contrast', {}).get('p_out'))}" if r["test"] else "—")
     line("TEST shuffled-label p", lambda r: (r["test"] or {}).get("shuffled_gain_p", "—"))
-    line("explained by population?", lambda r: r["population_explains"] or "—")
+    line("explained by population?", lambda r: r["population_explains"] or "not reached")
     line("focal percentile among peers",
          lambda r: "—" if r["focal_percentile"] is None else f"{100 * r['focal_percentile']:.0f}th")
+    line("population-baseline search run?",
+         lambda r: ("yes, on " + " and ".join(r["residual_targets_run"])) if r["population_search_ran"] else "no")
+    line("residual candidates passing the judge", lambda r: r["residual_passing"])
+    line("best residual z seen (bar 3.5)",
+         lambda r: "—" if r["residual_best_z"] != r["residual_best_z"] else f"{r['residual_best_z']:.2f}")
+    line("best broad residual z seen (bar 3.5)",
+         lambda r: "—" if r["broad_best_z"] != r["broad_best_z"] else f"{r['broad_best_z']:.2f}")
     line("residual remains?", lambda r: r["residual_remains"])
+    line("class decided at", lambda r: r["class_decided_at"])
     line("residual region", lambda r: f"`{r['residual_region']}`" if r["residual_region"] else "—")
     line("residual target", lambda r: r["residual_target"] or "—")
     line("residual VALIDATE z", lambda r: z(r["residual_validate"].get("resid_wg_z")) if r["residual_validate"] else "—")

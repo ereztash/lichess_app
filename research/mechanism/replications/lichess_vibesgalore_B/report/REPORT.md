@@ -1,13 +1,13 @@
 # Replication report — lichess/vibesgalore
 
-**Result:** `FROZEN`
+**Result:** `NO_STABLE_STRUCTURE`
 
-
+no region of the frozen OBS vocabulary passes the VALIDATE judge (residual within-game z >= 3.5, n_in >= 100, raw within-game > 0) on the union class cls_tactical
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `459eaeb6de546424ee8c362d986e20d252eeff1b` |
+| repo SHA | `8366aadcdacfdbe395782fe52dde51c8860230f6` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
 | run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_vibesgalore_B` |
 
@@ -22,7 +22,7 @@
 - fetched: 480
 - admissible under the frozen rule: 358
 - scorable (admissible AND standard variant): 358
-- eligible decisions: None
+- eligible decisions: 11425
 - speeds: {'blitz': 313, 'bullet': 19, 'rapid': 26}
 
 ## ELIGIBILITY
@@ -36,9 +36,9 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 ## SPLITS
 
-- DERIVE None decisions / None games
-- VALIDATE None / None
-- TEST None / None (opened once, for the frozen candidate only)
+- DERIVE 6977 decisions / 215 games
+- VALIDATE 2275 / 71
+- TEST 2173 / 72 (opened once, for the frozen candidate only)
 
 ## BROAD STRUCTURE (R*)
 
@@ -50,8 +50,8 @@ Not opened: no candidate reached it.
 
 ## POPULATION COMPARISON
 
-- band derived from the focal player's own blitz median rating: None (median None)
-- population corpus: `None` — resolution `None`
+- band derived from the focal player's own blitz median rating: [1450, 1850] (median 1626.0)
+- population corpus: `population_2026-06` — resolution `OK`
 
 ## PERSONAL RESIDUAL (R**)
 
@@ -79,8 +79,8 @@ The rungs and their authorities:
 
 ## NEXT TEST
 
-More games, or a population corpus for this band. Neither is a re-tuning:
-both are the same pipeline with the input it needs.
+Nothing to test. The frozen vocabulary found no recurring region on this record.
+That is a result about this player under this vocabulary, not a defect of the run.
 
 ---
 

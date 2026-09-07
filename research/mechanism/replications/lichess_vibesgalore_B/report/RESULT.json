@@ -7,13 +7,13 @@
   "corpus": "lichess:vibesgalore"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "459eaeb6de546424ee8c362d986e20d252eeff1b",
+ "repo_sha": "8366aadcdacfdbe395782fe52dde51c8860230f6",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
   "fetched": 480,
   "admissible": 358,
   "scorable": 358,
-  "eligible_decisions": null,
+  "eligible_decisions": 11425,
   "exclusions": {
    "termination:Time forfeit": 111,
    "under-20-plies": 11
@@ -60,33 +60,39 @@
   "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
   "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
  },
- "status": "FROZEN",
- "eligibility": {
-  "raw_records": 480,
-  "admissible": 358,
-  "scorable": 358,
-  "excluded_by_reason": {
-   "termination:Time forfeit": 111,
-   "under-20-plies": 11
-  },
-  "speeds": {
-   "blitz": 313,
-   "bullet": 19,
-   "rapid": 26
-  },
-  "admissible_path": "/home/user/lichess_app/research/mechanism/replications/lichess_vibesgalore_B/admissible/games.ndjson",
-  "window": 800,
-  "rule": {
-   "game": {
-    "termination": "Normal",
-    "requires_clock_annotations": true,
-    "min_plies_with_clock": 20,
-    "rated_only": true,
-    "variant": "standard"
-   },
-   "berserk": "clock-model",
-   "window_rule": "all-admissible-in-dateDesc-order",
-   "decision": "not forced AND not book AND seconds present AND clock present"
-  }
- }
+ "status": "NO_STABLE_STRUCTURE",
+ "failure_code": null,
+ "splits": {
+  "DERIVE_decisions": 6977,
+  "DERIVE_games": 215,
+  "VALIDATE_decisions": 2275,
+  "VALIDATE_games": 71,
+  "TEST_decisions": 2173,
+  "TEST_games": 72
+ },
+ "blitz_splits": {
+  "DERIVE_decisions": 6109,
+  "DERIVE_games": 191,
+  "VALIDATE_decisions": 2196,
+  "VALIDATE_games": 69,
+  "TEST_decisions": 1653,
+  "TEST_games": 53
+ },
+ "population": {
+  "status": "OK",
+  "focal_blitz_median_rating": 1626.0,
+  "band": [
+   1450,
+   1850
+  ]
+ },
+ "population_id": "population_2026-06",
+ "verdict": {
+  "output_class": "NO_STABLE_STRUCTURE",
+  "failure_code": null,
+  "reason": "no region of the frozen OBS vocabulary passes the VALIDATE judge (residual within-game z >= 3.5, n_in >= 100, raw within-game > 0) on the union class cls_tactical",
+  "broad_candidates_examined": 3
+ },
+ "evidence": {},
+ "finished_at": "2026-09-07T17:39:36Z"
 }
