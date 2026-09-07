@@ -156,9 +156,22 @@ Two structural facts decide the shape, and both are independent of the token:
 
 1. **The residual subset is not a cheap add-on to the broad cohort.** 115 of 149 band-hits also
    clear the residual volume gate, so the subset is 77% of the cohort by count. The cost is not in
-   finding them, it is in the engine: 1,786 blitz games each at ~24.5 decisions is ~44,000 scored
-   positions per player. At the measured 30 positions/s that is roughly **24 minutes per player,
-   about 40 hours for 100** on this machine, before any analysis.
+   finding them, it is in the engine. Measured on the vibesgalore run: 25,487 positions over 358
+   games in 13.3 minutes wall clock on three workers, so 71 positions per game at 32 positions/s
+   aggregate. A residual-powered player at 1,786 blitz games is ~127,000 positions, **~66 minutes
+   each, about 110 hours for 100** on this machine, before any analysis. A broad-powered player at
+   364 games is ~14 minutes each, about 23 hours for 100.
+3. **A broad-only cohort without a token is arguable, and weak.** The power plan says the
+   decision counts are the real minimums and the game counts only approximate them, so the honest
+   eligibility rule is `>= 1,778 VALIDATE decisions in the enumerable window`, not `>= 364 games`.
+   At the 358-game cap that needs more than 24.8 decisions per admissible game. erez281 sits at
+   24.5 and would fail it; vibesgalore at 31.9 passes. Metadata cannot predict which, so every
+   candidate costs a fetch and roughly half are rejected pre-analysis.
+
+   The deeper objection is not cost. Every member of such a cohort sits within a few percent of the
+   bar by construction, so the distribution of outcomes it measures would be dominated by marginal
+   power rather than by structure in the players, which is the opposite of what the cohort is for.
+
 2. **One registered band caps the whole design at 5% of the platform.** Widening the cohort beyond
    that means building population baselines for further bands, which is new research infrastructure
    and a decision that belongs to you, not to me.
