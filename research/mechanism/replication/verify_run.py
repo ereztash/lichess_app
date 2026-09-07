@@ -20,6 +20,28 @@ sys.path.insert(0, HERE)
 import contract  # noqa: E402
 import corpus as corpuslib  # noqa: E402
 
+# A cohort is frozen BEFORE anything is scored (Phase 9), so between the freeze and the run its
+# members legitimately sit at FROZEN, with no population resolution and no report. That is the
+# protocol, not a defect, and the verifier has to be able to say so. It is not a loophole: a run may
+# only be FROZEN if a COHORT_FROZEN.json lists it, so an abandoned run is still a problem.
+COHORT_FROZEN = os.path.join(os.path.dirname(HERE), "replication100", "COHORT_FROZEN.json")
+# What a run at FREEZE cannot have yet, because the stages that write them have not run.
+NOT_YET_AT_FREEZE = ("analysis/population_resolution.json", "report/REPORT.md")
+
+
+def frozen_cohort_members() -> set[str]:
+    if not os.path.exists(COHORT_FROZEN):
+        return set()
+    doc = json.load(open(COHORT_FROZEN))
+    return {os.path.normpath(m["run_dir"]) for m in doc.get("members", [])}
+
+
+def in_frozen_cohort(run_dir: str) -> bool:
+    repo = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+    return os.path.normpath(os.path.relpath(os.path.abspath(run_dir), repo)) \
+        in frozen_cohort_members()
+
+
 REQUIRED = {
     "raw/fetch.json": "the source manifest: mode, url, query, retrieval timestamp, sha256",
     "admissible/exclusions.json": "every excluded game, by reason, by id",
@@ -43,21 +65,27 @@ STAGE_FILES = {
 
 def verify(run_dir: str) -> dict:
     out = {"run_dir": run_dir, "problems": [], "present": {}, "optional_absent": {}}
-    for rel, what in REQUIRED.items():
-        ok = os.path.exists(os.path.join(run_dir, rel))
-        out["present"][rel] = ok
-        if not ok:
-            out["problems"].append(f"missing {rel} ({what})")
-
     result_path = os.path.join(run_dir, "report", "RESULT.json")
     state = json.load(open(result_path)) if os.path.exists(result_path) else {}
     out["status"] = state.get("status")
+    # A member of a frozen, not-yet-scored cohort. Everything the freeze itself produces is still
+    # required; only what the scoring stages write is excused, and only for these runs.
+    awaiting = state.get("status") == "FROZEN" and in_frozen_cohort(run_dir)
+    out["awaiting_cohort_run"] = awaiting
+
+    for rel, what in REQUIRED.items():
+        ok = os.path.exists(os.path.join(run_dir, rel))
+        out["present"][rel] = ok
+        if not ok and not (awaiting and rel in NOT_YET_AT_FREEZE):
+            out["problems"].append(f"missing {rel} ({what})")
+
     terminal = state.get("status") in contract.TERMINAL_STATES
-    if not terminal:
+    if not terminal and not awaiting:
         out["problems"].append(f"status {state.get('status')!r} is not one of the contract's terminal states")
 
     # the analysis stages are required only for a run that reached a class where they are produced
-    needs_stages = state.get("status") in ("LEVEL_TYPICAL_ONLY", "PERSONAL_RESIDUAL_CANDIDATE")
+    needs_stages = (not awaiting
+                    and state.get("status") in ("LEVEL_TYPICAL_ONLY", "PERSONAL_RESIDUAL_CANDIDATE"))
     for name, rel in STAGE_FILES.items():
         ok = os.path.exists(os.path.join(run_dir, rel))
         (out["present"] if needs_stages else out["optional_absent"])[name] = ok

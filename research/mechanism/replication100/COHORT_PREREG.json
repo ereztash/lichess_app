@@ -1,13 +1,13 @@
 {
  "_what": "The 100-player cohort pre-registration, hashed before any username is selected.",
  "_why": "A cohort measures a DISTRIBUTION of outcomes. That measurement is worthless if any rule could have moved after a result was seen, so every rule that could move is fixed here first.",
- "written_at": "2026-09-07T20:27:35Z",
- "repo_sha": "5dcc3cffd2896de37abc0a6f6facea4236bc4a0a",
+ "written_at": "2026-09-07T20:41:26Z",
+ "repo_sha": "2be6b21ae14146b88c7b8df44e6a229906ae24ed",
  "protocol_version": "V1",
  "instrument": {
   "_note": "Not redeclared. Referenced by hash so that a cohort run under a different instrument is detectable rather than arguable.",
-  "instrument_hash": "1c297b474f1047cde63c08da87cdd55b7f3b9f2c8df7182a72935eb235706ece",
-  "pipeline_hash": "77d8d5c495b50759b012c1bc06d2e1909abfc0d64f6c72f9c9beaff439438399",
+  "instrument_hash": "b75d31cc8f07f9453098d7c7f7fcffa037cf8c2aeec3a4478fa19272a03aa677",
+  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
   "protocol_hash": "7d2dcfbfeb1f7bf14822d8478f04e48a5278d8623400569439a3da7a7a0238dc",
   "contract_version": "replication-1.0.0"
  },
@@ -96,13 +96,6 @@
    "admissible_games": 2200,
    "implied_admissible_blitz_games": 1961,
    "margin_over_minimum": 1.1
-  },
-  "fetch_cap": {
-   "rule": "ceil(window / admissible_rate * 1.35) most-recent games",
-   "broad": 792,
-   "residual": 3868,
-   "_why": "operational, not research. The export streams a full history and the corpus is windowed anyway, so fetching 13,000 games to keep 450 is waste. Same most-recent-first order as the window, so the corpus is identical to the one an unbounded fetch would have produced.",
-   "_risk": "a cap set too tight yields a short window and the candidate is rejected on size, which would be a selection artefact. The 1.35x margin is why it is not, and every rejection on size is recorded with its admissible count so the artefact would be visible."
   },
   "why_a_cap": "the export returns a full history, and scoring a 13,000-game history under the frozen engine regime is days of compute per player. The caps are declared here, before any fetch, and are the same for every member of their class."
  },
@@ -207,5 +200,5 @@
   "one_run_per_player": "a player whose result caused a pipeline change becomes development data; replication then requires a different player and a bumped contract version",
   "test_opened": "once, for the frozen candidate only"
  },
- "prereg_hash": "87834f32b18763f36a256e80f1b24963202c24490d7d663136c3acc49020d868"
+ "prereg_hash": "80f42356aec6bae5244be4fd1bf1a3a4da24e16adbbb4624e252f3b3b06116cb"
 }

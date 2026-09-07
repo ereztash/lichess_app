@@ -218,7 +218,7 @@ def stage_evidence(d: str, focal: FocalPlayer, region: str, decisions: str, pop_
 # --------------------------------------------------------------------------------------------------
 def run(platform: str, username: str, *, run_id: str | None, workers: int, engine: str,
         mode: str, ids_file: str | None, window: int | None, root: str | None,
-        stop_after: str | None, max_games: int | None = None) -> dict:
+        stop_after: str | None) -> dict:
     if platform not in contract.SUPPORTED_PLATFORMS:
         return {"status": "PLATFORM_UNSUPPORTED",
                 "detail": f"{platform!r}; supported: {list(contract.SUPPORTED_PLATFORMS)}"}
@@ -238,8 +238,7 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
     else:
         try:
             log(f"INGEST: {platform}/{username}")
-            fetch = ingest_lichess.ingest(username, os.path.join(d, "raw"), mode=mode,
-                                          game_ids=ids, max_games=max_games)
+            fetch = ingest_lichess.ingest(username, os.path.join(d, "raw"), mode=mode, game_ids=ids)
         except ingest_lichess.IngestError as e:
             return finish(d, {"status": e.code, "failure_code": e.code, "detail": e.detail,
                               "run_dir": d, "focal": {"platform": platform, "username": username},
@@ -386,12 +385,6 @@ def main() -> int:
                     help="native is the frozen research regime; wasm is the shipped-engine control")
     ap.add_argument("--ingest-mode", default="auto", choices=["auto", "api-user-export", "api-ids"])
     ap.add_argument("--ids-file", default=None)
-    ap.add_argument("--max-games", type=int, default=None,
-                    help="cap the FETCH at this many most-recent games. Operational, not research: "
-                         "the export streams a full history, and scoring is windowed anyway, so "
-                         "downloading 13,000 games to keep 450 is waste. Must be large enough that "
-                         "--window is still filled after eligibility, or the run is short and is "
-                         "rejected on size. Same most-recent-first order as --window.")
     ap.add_argument("--window", type=int, default=None,
                     help="cap on the most recent admissible games; must be declared before the fetch")
     ap.add_argument("--root", default=None, help="override the replications/ root")
@@ -399,7 +392,7 @@ def main() -> int:
     a = ap.parse_args()
     state = run(a.platform, a.username, run_id=a.run_id, workers=a.workers, engine=a.engine,
                 mode=a.ingest_mode, ids_file=a.ids_file, window=a.window, root=a.root,
-                stop_after=a.stop_after, max_games=a.max_games)
+                stop_after=a.stop_after)
     print(json.dumps({k: state.get(k) for k in ("status", "failure_code", "run_dir")}, indent=1))
     return 0 if state.get("status") in contract.TERMINAL_STATES or state.get("status") == "FROZEN" else 1
 

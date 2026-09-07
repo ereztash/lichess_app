@@ -32,7 +32,6 @@ SELECTION_SEED = 20260907_100     # committed; the order is a seeded shuffle of 
 W_BROAD = 450                     # admissible games, most-recent-first (contract.WINDOW_RULE + cap)
 W_RESID = 2200
 PREFILTER_HALFWIDTH = 200         # current blitz rating within this of a registered band centre
-FETCH_MARGIN = 1.35               # raw games fetched per admissible game wanted
 
 
 def main() -> int:
@@ -184,21 +183,6 @@ def main() -> int:
             "residual_members": {"admissible_games": W_RESID,
                                  "implied_admissible_blitz_games": int(W_RESID * blitz_share),
                                  "margin_over_minimum": round(W_RESID * blitz_share / resid_games, 2)},
-            "fetch_cap": {
-                "rule": "ceil(window / admissible_rate * %.2f) most-recent games" % FETCH_MARGIN,
-                "broad": int(math.ceil(W_BROAD / plan["ingestion_reach"]["admissible_rate"]
-                                       * FETCH_MARGIN)),
-                "residual": int(math.ceil(W_RESID / plan["ingestion_reach"]["admissible_rate"]
-                                          * FETCH_MARGIN)),
-                "_why": "operational, not research. The export streams a full history and the "
-                        "corpus is windowed anyway, so fetching 13,000 games to keep 450 is waste. "
-                        "Same most-recent-first order as the window, so the corpus is identical to "
-                        "the one an unbounded fetch would have produced.",
-                "_risk": "a cap set too tight yields a short window and the candidate is rejected "
-                         "on size, which would be a selection artefact. The %.2fx margin is why it "
-                         "is not, and every rejection on size is recorded with its admissible "
-                         "count so the artefact would be visible." % FETCH_MARGIN,
-            },
             "why_a_cap": "the export returns a full history, and scoring a 13,000-game history "
                          "under the frozen engine regime is days of compute per player. The caps "
                          "are declared here, before any fetch, and are the same for every member "

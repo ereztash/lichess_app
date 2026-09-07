@@ -34,6 +34,39 @@ import contract          # noqa: E402
 import corpus as corpuslib  # noqa: E402
 import populations       # noqa: E402
 
+
+def blitz_median_from_admissible(admissible_ndjson: str, focal_player_id: str) -> float | None:
+    """The band-centre input `populations.focal_blitz_median_rating` reads, taken BEFORE any scoring.
+
+    Selection has to know a candidate's band before committing an engine-hour to them, and the
+    decisions parquet does not exist yet at that point. This reads the admissible games directly and
+    applies the identical rule: the focal side's rating, one per BLITZ game, median.
+
+    It lives HERE, in selection, and not in `populations.py`, because `populations.py` is one of the
+    seventeen files the pipeline hash is taken over. Adding to it would change the identity of the
+    research code and invalidate the erez281 run of record and Player B, which are frozen historical
+    findings this mission puts off-limits. `select_player_b.py` reads the same field the same way for
+    the same reason.
+
+    It is a second implementation of one rule, which is how rules drift. `cohort_run.py` therefore
+    asserts that the band this returns equals the band `populations.resolve` derives from the scored
+    parquet, per member, and records a mismatch as a defect rather than preferring either answer.
+    Verified against the recorded vibesgalore run: 1626.0 from both.
+    """
+    ratings = []
+    want = (focal_player_id or "").lower()
+    with open(admissible_ndjson) as f:
+        for line in f:
+            g = json.loads(line)
+            if g.get("speed") != "blitz":
+                continue
+            for side in ("white", "black"):
+                p = (g.get("players") or {}).get(side) or {}
+                if ((p.get("user") or {}).get("id") or "").lower() == want and p.get("rating"):
+                    ratings.append(int(p["rating"]))
+    return float(statistics.median(ratings)) if ratings else None
+
+
 PY = os.environ.get("REPLICATION_PYTHON", sys.executable)
 POP_GAMES = os.path.join(MECH, "data", "population_games.ndjson")
 RUN_ID = "COHORT"
@@ -57,12 +90,12 @@ def population_members() -> set[str]:
     return ids
 
 
-def try_candidate(username: str, window: int, max_games: int, root: str) -> dict:
+def try_candidate(username: str, window: int, root: str) -> dict:
     """Everything up to the derived band, and not one step further."""
     d = corpuslib.run_dir("lichess", username, RUN_ID, root)
     cmd = [PY, os.path.join(REPL, "run.py"), "--platform", "lichess", "--username", username,
            "--ingest-mode", "api-user-export", "--run-id", RUN_ID, "--window", str(window),
-           "--max-games", str(max_games), "--stop-after", "FREEZE"]
+           "--stop-after", "FREEZE"]
     if root:
         cmd += ["--root", root]
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
@@ -100,7 +133,6 @@ def main() -> int:
     # are computed after scoring, per the prereg; this gate only has to guarantee they CAN be met.
     min_admissible = int(round(0.9 * w_broad))
     pf = pre["selection"]["prefilter"]["measured_recall"]["chosen"]
-    fetch_cap = pre["window"]["fetch_cap"]
     centres = sorted({(b[0] + b[1]) // 2 for b in
                       (tuple(p["band"]) for p in populations.registry())})
 
@@ -154,10 +186,9 @@ def main() -> int:
         wants_residual = (state["residual_slots_filled"] < resid_n
                           and m["blitz_games"] * adm_rate >= resid_games_min)
         window = w_resid if wants_residual else w_broad
-        mx = fetch_cap["residual"] if wants_residual else fetch_cap["broad"]
 
         t0 = time.time()
-        r = try_candidate(u, window, mx, a.root)
+        r = try_candidate(u, window, a.root)
         if r["accepted"] is False:
             state["rejected"].append({"u": u, "reason": r["reason"],
                                       "corpus": r.get("corpus")})
@@ -173,7 +204,7 @@ def main() -> int:
             json.dump(state, open(state_path, "w"), indent=1)
             continue
 
-        med = populations.blitz_median_from_admissible(
+        med = blitz_median_from_admissible(
             os.path.join(r["run_dir"], "admissible", "games.ndjson"), r["player_id"])
         if med is None:
             state["rejected"].append({"u": u, "reason": "NO_BLITZ_GAMES"})

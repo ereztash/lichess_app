@@ -89,6 +89,8 @@ def main() -> int:
         cmd = [PY, os.path.join(REPL, "run.py"), "--platform", "lichess", "--username", u,
                "--ingest-mode", "api-user-export", "--run-id", RUN_ID,
                "--window", str(m["window"]), "--workers", str(a.workers)]
+        # The raw fetch is cached by run.py, so this reuses the corpus the freeze took rather than
+        # refetching one that could differ.
         p = subprocess.run(cmd, capture_output=True, text=True)
         st = status_of(m["run_dir"])
         prog["members"][u] = {"status": st or "RUN_FAILED",
