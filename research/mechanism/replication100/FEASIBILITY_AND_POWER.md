@@ -13,8 +13,10 @@ Artefacts: `INSTRUMENT_FREEZE.json`, `POWER_PLAN.json`, `FEASIBILITY_SCREEN.json
 
 | | |
 |---|---|
+| `instrument_hash` | `caf572562b9500f63dde5f0eb49d02a7fd2a8656612a6cdd467dd5bc2070e5e0` |
 | `pipeline_hash` | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| `protocol_hash` | `87b1083e3a51d392696ad293c129b400a7629669845d616d439e2262621a957b` |
+| `protocol_hash` | `7d2dcfbfeb1f7bf14822d8478f04e48a5278d8623400569439a3da7a7a0238dc` |
+| `repo_sha` | `cb3b469`, tree clean |
 | `GATE-GENERIC-PIPELINE-EQUIVALENCE` | GREEN, 16 checks, 261 artefacts, 0 failing |
 | positive controls | 5/5 turn the gate red |
 | runs on the record | erez281 `PERSONAL_RESIDUAL_CANDIDATE`; vibesgalore `NO_STABLE_STRUCTURE` |

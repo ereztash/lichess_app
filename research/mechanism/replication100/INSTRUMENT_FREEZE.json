@@ -1,7 +1,7 @@
 {
  "_what": "The frozen mechanism-discovery instrument, recorded before the 100-player cohort study selects a single username. Player 1 and Player 100 are judged by this.",
- "frozen_at": "2026-09-07T18:11:23Z",
- "repo_sha": "f36db1d812c58d4dd905c07299a82167dc3143c7",
+ "frozen_at": "2026-09-07T19:51:43Z",
+ "repo_sha": "cb3b4699a84c86e0cad98b4995a50ac7b8b07438",
  "repo_dirty": false,
  "base_branch_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
  "contract_version": "replication-1.0.0",
@@ -23,7 +23,7 @@
   "research/mechanism/replication/populations.py": "713ba1c26e55a6c6a8cc4a4d687daf7ff558b52b523b59dbf822db9509e7a0bd",
   "research/mechanism/replication/readiness.py": "a04600723f3e56a7c0644b338e8b3d8934f1ca42c58d08b9584d614ca7c1266f",
   "research/mechanism/replication/run.py": "a1c4c3fc812d448bfe1bb3a7f6baa1c6ed4aaeb844c2408d852ca963eca3f0a5",
-  "research/mechanism/replication/PROTOCOL.md": "bb8a756c313206d72da8a3c543190b430a6dccc8e5aaa6ce01258b25684be567",
+  "research/mechanism/replication/PROTOCOL.md": "e5bfe1ca55570b98edbfea4e6d1a5eb6a7011f161d0069e70b90d063ad35b017",
   "research/mechanism/replication/registry/populations.json": "ecf3a1c74507b86bb9e33c39bb82409ef4880e9ab8d5ea75b540a2abc08fef9f"
  },
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
@@ -50,7 +50,7 @@
   "research/mechanism/replication/PROTOCOL.md",
   "research/mechanism/replication/contract.py"
  ],
- "protocol_hash": "87b1083e3a51d392696ad293c129b400a7629669845d616d439e2262621a957b",
+ "protocol_hash": "7d2dcfbfeb1f7bf14822d8478f04e48a5278d8623400569439a3da7a7a0238dc",
  "feature_schema": {
   "n_columns": 155,
   "schema_hash": "2b0c7e2cff1e2fc30293488f398215219da65d1b6d9466b41cc962d1c24183cf"
@@ -373,5 +373,5 @@
   "no_tuning_between_players": "after COHORT_PREREG is hashed, none of eligibility, features, thresholds, search space, target order, split rules, population correction, judge, classifier, residual definition or output classes may change because of any player's result",
   "protocol_version": "V1; a change of methodology ends V1 and belongs to a new cohort"
  },
- "instrument_hash": "a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833"
+ "instrument_hash": "caf572562b9500f63dde5f0eb49d02a7fd2a8656612a6cdd467dd5bc2070e5e0"
 }

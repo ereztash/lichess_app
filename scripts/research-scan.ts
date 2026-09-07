@@ -284,6 +284,13 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "the platform's raw response for that run's games, which is gitignored for the reason above. The digest lets a rerun prove it read the same bytes",
   },
   {
+    artefact: "research/mechanism/replication/USERNAME_ONLY_PROOF.json",
+    keyPath: "fetch.sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the bytes lichess returned for the username-only ingest proof. Deliberately not committed, for the same reason no run's raw export is: a third party's game history is not this repository's to carry. The digest exists so a rerun can prove it read the same response, and the proof it belongs to is what withdrew this package's claim that the endpoint needs a token",
+  },
+  {
     artefact: "research/mechanism/replication100/INSTRUMENT_FREEZE.json",
     keyPath: "tree_sha256.<doc>",
     kind: "HASH_OF_TREE_FILE",
