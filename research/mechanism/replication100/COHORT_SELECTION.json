@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-07T21:09:03Z",
- "cursor": 2,
+ "cursor": 3,
  "accepted": [],
  "rejected": [
   {
@@ -25,6 +25,25 @@
    "fetch_max": 4584,
    "window_full": true,
    "seconds": 188.8
+  },
+  {
+   "u": "arafar",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1605.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 135.6
   }
  ],
  "prefiltered": {
