@@ -33,8 +33,13 @@ The optional arguments are operational, not research: `--workers` (cores), `--en
 `--ids-file` (replay a frozen window), and `--window` (a cap on the most recent admissible games,
 which **must be declared before the fetch**).
 
-`LICHESS_API_TOKEN` is environment configuration, not a per-player input: the by-username export
-answers 404 to an unauthenticated request, which the mission ledger already recorded.
+`LICHESS_API_TOKEN` is optional environment configuration, not a per-player input. Rated games are
+public and the by-username export answers **200 without it**; the token only lifts the rate limit.
+An earlier draft of this document said the endpoint answers 404 unauthenticated. That was inherited
+from a stale comment in `scripts/build_import_corpus.ts` which the repository had **already
+corrected** in `docs/research/ACCOUNT_BRIDGE_PREREG.md`, and it is wrong.
+`endpoint_contract.py` now holds both halves: the endpoint answers 200, and no document here may
+reassert otherwise.
 
 ---
 

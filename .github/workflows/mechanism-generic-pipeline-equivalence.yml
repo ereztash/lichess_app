@@ -34,6 +34,12 @@ jobs:
       - name: Install pipeline dependencies
         run: python -m pip install --disable-pip-version-check -r research/mechanism/replication/requirements.txt
 
+      - name: The by-username export contract, and its regression guard
+        # Offline in CI: the text half is the regression guard and is deterministic. The live half
+        # is a network measurement and is run from a workstation, where a red result means the
+        # platform changed rather than that a runner had no egress.
+        run: python research/mechanism/replication/endpoint_contract.py --offline --out /tmp/endpoint.json
+
       - name: Positive controls (each must turn the gate RED)
         run: python research/mechanism/replication/gate_equivalence.py --positive-controls --out /tmp/controls.json
 

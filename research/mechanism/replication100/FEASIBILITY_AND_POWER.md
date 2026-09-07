@@ -1,10 +1,11 @@
 # 100-player replication: power and feasibility, before a single name is chosen
 
-Phases 0, 1, 2 and 5 of the cohort mission. Written before selection so that a later null result
-can be read as evidence about players rather than evidence about the corpus.
+Phases 0, 1, 2 and 5 of the cohort mission. Written before selection so that a later null result can
+be read as evidence about players rather than evidence about the corpus.
 
 Artefacts: `INSTRUMENT_FREEZE.json`, `POWER_PLAN.json`, `FEASIBILITY_SCREEN.json`,
-`SCREENED_FRAME.json`.
+`SCREENED_FRAME.json`, and in the package above, `ENDPOINT_CONTRACT.json` and
+`USERNAME_ONLY_PROOF.json`.
 
 ---
 
@@ -12,16 +13,14 @@ Artefacts: `INSTRUMENT_FREEZE.json`, `POWER_PLAN.json`, `FEASIBILITY_SCREEN.json
 
 | | |
 |---|---|
-| `instrument_hash` | `a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833` |
 | `pipeline_hash` | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
 | `protocol_hash` | `87b1083e3a51d392696ad293c129b400a7629669845d616d439e2262621a957b` |
-| `repo_sha` | `f36db1d`, tree clean |
 | `GATE-GENERIC-PIPELINE-EQUIVALENCE` | GREEN, 16 checks, 261 artefacts, 0 failing |
 | positive controls | 5/5 turn the gate red |
 | runs on the record | erez281 `PERSONAL_RESIDUAL_CANDIDATE`; vibesgalore `NO_STABLE_STRUCTURE` |
 
-Player 1 and Player 100 would be judged by this. Anything not named in `INSTRUMENT_FREEZE.json` is
-not part of the instrument and may not silently become part of it later.
+`INSTRUMENT_FREEZE.json` carries one flat `tree_sha256` map that `GATE-RESEARCH-RECONCILED`
+asserts, so an instrument that drifts mid-cohort reddens a gate rather than passing quietly.
 
 ---
 
@@ -53,9 +52,8 @@ anything to judge. The two runs on the record show this directly, on the same ta
 
 `stability_median_j = 0.13` means the bootstrap resamples never agreed on a region. The judge was
 never reached; the search is what failed. Holding erez281's in-region share fixed, reproducing a
-searchable DERIVE needs **1,786 admissible blitz games**, which is above the judge's 1,173 and close
-to erez281's own 1,876. This is an observation from two runs, not a power curve, and it is recorded
-as such.
+searchable DERIVE needs **1,786 admissible blitz games**, above the judge's 1,173 and close to
+erez281's own 1,876. An observation from two runs, not a power curve, and recorded as such.
 
 **Operative residual minimum: 1,786 admissible blitz games.**
 
@@ -67,8 +65,57 @@ as such.
 - Root-n covers the judge only. The search floor has no power calculation at all.
 - Decisions-per-game differs by 1.3x between the two observed players (24.5 vs 31.9), so game-count
   minimums are approximate. The decision-count minimums are the real ones.
-- These say when the instrument **can** return a candidate. They say nothing about how often it
-  **should**, which is what the cohort is for.
+- These say when the instrument **can** return a candidate, not how often it **should**, which is
+  what the cohort is for.
+
+---
+
+## Phase 1. Determination: `READY`. A previous `PENDING_RESOURCE` is withdrawn
+
+This section previously said the cohort was blocked for want of a `LICHESS_API_TOKEN`. That was
+wrong, and the error was mine.
+
+**What the package believed.** `GET /api/games/user/<name>` answers 404 unauthenticated, so game
+enumeration is capped at the public HTML game list: 40 pages x 12 ids = 480 raw games, ~358
+admissible, ~313 blitz. Against minimums of 364 and 1,786 that put both denominators out of reach,
+and Phase 1 said stop.
+
+**What is actually true.** The endpoint answers **200 without an Authorization header**. Measured
+across three accounts and twelve unauthenticated requests, every one HTTP 200, including 2,000
+games in a single response, four times the supposed cap. Running the full runner on a username
+alone, no token and no supplied id list, returns **1,224 games and 940 admissible** for the same
+account whose frozen corpus holds 358.
+
+**Where the false claim came from.** A comment in `scripts/build_import_corpus.ts` once read *"the
+games-export endpoint answers 404 through this environment's proxy"*. The repository had **already
+corrected it**: `docs/research/ACCOUNT_BRIDGE_PREREG.md` records a measured HTTP 200 and 5,987,271
+bytes, and the source comment now says the claim is stale. The replication package reasserted the
+withdrawn version in four documents and never measured it.
+
+**What believing it cost.** Player B was ingested as `PROVIDED_GAME_IDS` through the 480-game cap
+and holds 358 admissible games where the export gives 940 for the same account. The 100-player
+cohort was stopped for a resource it never needed.
+
+**Defect class (Phase 13): research-semantic, not infrastructure.** The client was never broken.
+An unmeasured assumption was carried into a protocol document and then used to constrain a corpus
+and to stop a study.
+
+**What was repaired, and what was not.**
+
+- `PROTOCOL.md`, `README.md`, `READINESS.md`, `PLAYER_B_READINESS.md` corrected, each naming the
+  withdrawn claim rather than quietly deleting it.
+- `endpoint_contract.py` added. It holds both halves: the live check that the endpoint answers 200
+  unauthenticated and exceeds the 480 cap in one response, and an offline text check that no
+  document in the package may reassert the withdrawn claim. The text check is what would have
+  caught this.
+- `USERNAME_ONLY_PROOF.json` records the runner ingesting from a username alone, end to end.
+- **Player B is not refetched.** Their corpus is frozen and their result stands. Replacing a frozen
+  corpus with a different one is not a repair. What changes is the reading: `NO_STABLE_STRUCTURE`
+  from 358 admissible games is a null under a corpus the client truncated, and
+  `REPLICATION_VERDICT.md` is amended to say so.
+- **No research rule changed.** Eligibility, thresholds, splits, the population contract, the judge,
+  the classifier, the sampling design and every power minimum are untouched. The minimums in
+  `POWER_PLAN.json` are byte-identical before and after this correction; only the reach block moved.
 
 ---
 
@@ -80,7 +127,7 @@ pre-filter**. Filtering the frame by rating would bake the band gate into the de
 the yield circular. Seeded sample of 3,000; 2,879 screenable. Public profile metadata only: no game
 fetched, no position scored, no analysis result read.
 
-### The band gate dominates, and it is not the one that was expected
+### The band gate dominates
 
 The registry holds **one** band, `[1450, 1850]`. A player is reachable only if their **own** derived
 band is that one, so their blitz median must round to 1650: a **50-point window (1625–1675)**, not a
@@ -88,91 +135,53 @@ band is that one, so their blitz median must round to 1650: a **50-point window 
 
 | gate | passing | rate |
 |---|---|---|
-| derived band in registry | 149 / 2,879 | **5.2%** |
-| volume, broad (≥364 admissible games) | 2,632 | 91.4% |
-| volume, residual (≥1,786 admissible blitz) | 1,998 | 69.4% |
-| **band AND broad** | **145** | **5.0%** |
-| **band AND residual** | **115** | **4.0%** |
+| derived band in registry | 146 / 2,879 | **5.1%** |
+| volume, broad (≥364 admissible games) | 2,639 | 91.7% |
+| volume, residual (≥1,786 admissible blitz) | 2,014 | 70.0% |
+| **band AND broad** | **143** | **5.0%** |
+| **band AND residual** | **113** | **3.9%** |
 
-Volume is not the scarce resource. The registry's single band is. Roughly **1,986 screens per 100
-broad-powered players, 2,504 per 100 residual-powered**.
+Volume is not the scarce resource. The registry's single band is. Roughly **2,014 screens per 100
+broad-powered players, 2,548 per 100 residual-powered**.
 
 ### The screen cannot confirm the band, only nominate
 
 The screen reads a current rating; the instrument reads the median over the fetched window. Measured
 against each player's own June games as a second reading:
 
-- median absolute drift **46.5 points**, p90 **119**
-- band disagreement between the two readings: **7.8%** of all screened
-- of the 149 screen hits, **41 (27.5%)** confirm under the second reading
+- median absolute drift **46 points**, p90 **118**
+- band disagreement between the two readings: **7.7%** of all screened
+- of the 146 screen hits, **40 (27.4%)** confirm under the second reading
 
-June is three months stale and the pipeline reads a recent window, so 27.5% is a floor on
-confirmation, not an estimate. What it does establish stands regardless of direction: **drift is the
+June is three months stale and the pipeline reads a recent window, so 27.4% is a floor on
+confirmation, not an estimate. What it establishes stands regardless of direction: **drift is the
 same order as the 50-point bucket the band rule quantises to**, so no single rating reading can
 decide the band. Confirmation costs a fetch per candidate and cannot be bought with metadata. This
 is the failure that rejected `livio68` (rated 1655, window median 1772) at eligibility.
 
-The live API is not reproducible byte-for-byte between runs; `SCREENED_FRAME.json` persists every
-row that was read, with a `frame_hash`, so the analysis above is reproducible from the frame even
-though a re-screen is not.
-
----
-
-## Phase 1. Determination: `PENDING_RESOURCE`
-
-`LICHESS_API_TOKEN` is **absent**. The by-username export returns 404 unauthenticated, so the only
-enumeration path is the public HTML game list, hard-capped at 40 pages x 12 ids = **480 raw games**.
-At the admissible and blitz rates measured on the one player actually ingested this way:
-
-| | ceiling without a token | minimum required | reachable |
-|---|---|---|---|
-| admissible games | 358 | 364 (broad) | **no**, 0.98x |
-| admissible blitz games | 313 | 1,786 (residual) | **no**, 5.7x short |
-
-**The ceiling binds before the player does.** Not merely for the residual question: the cap sits
-just under the broad minimum too. vibesgalore cleared broad only because they average 31.9 decisions
-per game against erez281's 24.5; a player at erez281's rate and at the cap lands at 1,752 VALIDATE
-decisions against a 1,778 requirement.
-
-So a cohort run now would not measure the population. Its nulls would be a property of the 480-game
-cap, and Phase 15's distinction between `NO_STABLE_STRUCTURE` and "no personal residual" would be
-unrecoverable for every member. Phase 1 says stop here, and this stops here.
-
-**Not blocked by this**: the instrument freeze, the power plan, the feasibility screen, and the
-sampling frame are all complete and hold whether or not a token arrives.
+Profile ratings move between runs, so a re-screen is not reproducible. `SCREENED_FRAME.json`
+persists every row that was read, with a `frame_hash`, and `--from-frame` recomputes every gate from
+it deterministically. Phase 6 needs a frame fixed before selection, and that is the frame.
 
 ---
 
 ## The cohort-shape question this was run to answer
 
-The population supports both denominators. The enumeration limit supports neither.
+Both denominators are reachable. The blocker was never the platform.
 
-| | with a token | without |
+| | reachable | cost |
 |---|---|---|
-| 100 BROAD_POWERED | ~1,986 screens, then fetch to confirm the band | not reachable |
-| 100 RESIDUAL_POWERED | ~2,504 screens, ~1,800 blitz games each | not reachable |
+| 100 BROAD_POWERED | yes | ~2,014 screens, then a fetch per candidate to confirm the band |
+| 100 RESIDUAL_POWERED | yes | ~2,548 screens, ~1,800 blitz games each |
 
-Two structural facts decide the shape, and both are independent of the token:
+Two facts decide the shape:
 
-1. **The residual subset is not a cheap add-on to the broad cohort.** 115 of 149 band-hits also
-   clear the residual volume gate, so the subset is 77% of the cohort by count. The cost is not in
-   finding them, it is in the engine. Measured on the vibesgalore run: 25,487 positions over 358
-   games in 13.3 minutes wall clock on three workers, so 71 positions per game at 32 positions/s
-   aggregate. A residual-powered player at 1,786 blitz games is ~127,000 positions, **~66 minutes
-   each, about 110 hours for 100** on this machine, before any analysis. A broad-powered player at
-   364 games is ~14 minutes each, about 23 hours for 100.
-3. **A broad-only cohort without a token is arguable, and weak.** The power plan says the
-   decision counts are the real minimums and the game counts only approximate them, so the honest
-   eligibility rule is `>= 1,778 VALIDATE decisions in the enumerable window`, not `>= 364 games`.
-   At the 358-game cap that needs more than 24.8 decisions per admissible game. erez281 sits at
-   24.5 and would fail it; vibesgalore at 31.9 passes. Metadata cannot predict which, so every
-   candidate costs a fetch and roughly half are rejected pre-analysis.
-
-   The deeper objection is not cost. Every member of such a cohort sits within a few percent of the
-   bar by construction, so the distribution of outcomes it measures would be dominated by marginal
-   power rather than by structure in the players, which is the opposite of what the cohort is for.
-
-2. **One registered band caps the whole design at 5% of the platform.** Widening the cohort beyond
-   that means building population baselines for further bands, which is new research infrastructure
-   and a decision that belongs to you, not to me.
-
+1. **The residual subset is not a small tail.** 113 of 146 band-hits also clear the residual volume
+   gate, so it is 77% of the cohort by count. The cost is engine time. Measured on the vibesgalore
+   run: 25,487 positions over 358 games in 13.3 minutes wall clock on three workers, so 71 positions
+   per game at 32 positions/s. A residual-powered player at 1,786 blitz games is ~127,000 positions,
+   **~66 minutes each, about 110 hours for 100** on this machine, before any analysis. A
+   broad-powered player at 364 games is ~14 minutes each, about 23 hours for 100.
+2. **One registered band caps the whole design at 5% of the platform.** That is independent of
+   ingestion. Widening beyond it means building population baselines for further bands, which is new
+   research infrastructure and a decision that is not mine to take.

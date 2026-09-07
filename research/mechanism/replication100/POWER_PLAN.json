@@ -1,9 +1,9 @@
 {
  "_what": "Power before players. The decision volume at which the frozen instrument becomes CAPABLE of returning PERSONAL_RESIDUAL_CANDIDATE, computed from the runs already on the record, before any cohort member is named.",
  "_why": "So that a null result can be read as evidence about the player rather than evidence about the corpus size.",
- "written_at": "2026-09-07T18:11:23Z",
+ "written_at": "2026-09-07T19:47:14Z",
  "instrument_hash": "a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833",
- "repo_sha": "f36db1d812c58d4dd905c07299a82167dc3143c7",
+ "repo_sha": "fca7bde6b19397fbd8cd758765b54ee39ebf1c34",
  "thresholds": {
   "judge": {
    "_source": "research/mechanism/analysis/vocab.py DESIGN, inside the pipeline hash",
@@ -133,20 +133,33 @@
   },
   "operative_minimum_admissible_blitz_games": 1786
  },
- "enumeration_ceiling": {
-  "_what": "What a player's corpus can be WITHOUT a LICHESS_API_TOKEN. The by-username export endpoint returns 404 unauthenticated; the public HTML game list is the only enumeration path and it is hard-capped.",
-  "pages": 40,
-  "ids_per_page": 12,
-  "raw_ids_max": 480,
-  "observed_rates_source": "lichess_vibesgalore_B",
-  "admissible_rate": 0.7458,
-  "blitz_rate": 0.6521,
-  "max_admissible_games": 358,
-  "max_blitz_games": 313,
-  "broad_reachable": false,
-  "broad_margin": 0.984,
-  "residual_reachable": false,
-  "residual_deficit_factor": 5.71
+ "ingestion_reach": {
+  "_what": "How many of a player's games the pipeline can actually obtain.",
+  "route": "GET /api/games/user/<name> with the frozen export query, NO Authorization header. Returns the player's rated history as a stream.",
+  "measured": {
+   "vibesgalore": "1,224 games, the complete rated history, 200 unauthenticated",
+   "livio68": "2,000 games in one response, bounded by the request's own max and not by the server",
+   "requests": "12 unauthenticated calls across 3 accounts, 12 x HTTP 200"
+  },
+  "evidence": [
+   "research/mechanism/replication/ENDPOINT_CONTRACT.json",
+   "research/mechanism/replication/USERNAME_ONLY_PROOF.json"
+  ],
+  "ceiling": "NONE imposed by ingestion. The binding constraints are the player's own history length and engine time.",
+  "admissible_rate": 0.768,
+  "blitz_rate": 0.6846,
+  "_rates_source": "the username-only proof, which fetched a complete history",
+  "broad_reachable": true,
+  "residual_reachable": true,
+  "_superseded_claim": {
+   "said": "the by-username export answers 404 unauthenticated, so enumeration is capped at 480 games by the public HTML game list, which puts 368 admissible and 328 blitz games out of reach of both minimums",
+   "why_it_was_wrong": "inherited from a stale comment in scripts/build_import_corpus.ts that the repository had already corrected in docs/research/ACCOUNT_BRIDGE_PREREG.md. Never measured before it was believed.",
+   "what_it_cost": "Player B was ingested through the HTML cap and holds 358 admissible games where the export gives 940 for the same account; the 100-player cohort was stopped at PENDING_RESOURCE for a token it never needed.",
+   "html_route_cap_still_real_for": "--ids-file replays of a frozen window, and Player B's frozen corpus, which is not refetched",
+   "html_raw_ids_max": 480,
+   "html_max_admissible_games": 368,
+   "html_max_blitz_games": 328
+  }
  },
  "limitations": [
   "One reference player. The effect sizes powered against come from the single case the method was developed on, so they are an upper end, not a typical value. If real personal residuals in the population are half erez281's size, every minimum here is four times too small.",
@@ -156,13 +169,8 @@
   "These minimums say when the instrument CAN return a candidate. They say nothing about how often it SHOULD -- that is the question the cohort is meant to answer."
  ],
  "consequences_for_the_cohort": {
-  "without_token": {
-   "broad_powered_cohort": "possible but marginal: the ceiling clears the broad minimum by a factor of about 0.98, and a player with fewer decisions per game than erez281 falls under it",
-   "residual_powered_subset": "NOT reachable. Every member would be underpowered for the residual question by construction, and 100 nulls would measure the enumeration cap, not the population."
-  },
-  "with_token": {
-   "broad_powered_cohort": "comfortable",
-   "residual_powered_subset": "reachable for players whose blitz history exceeds 1786 admissible blitz games"
-  }
+  "broad_powered_cohort": "reachable. A player needs >= 364 admissible games, which the export returns for anyone who has played them.",
+  "residual_powered_subset": "reachable for players whose rated blitz history exceeds 1786 admissible blitz games. Eligibility for it is a property of the PLAYER, which is what the cohort is meant to measure, rather than of the client.",
+  "binding_constraint": "engine time, not ingestion"
  }
 }

@@ -30,7 +30,10 @@ RUNS = os.path.join(MECH, "replications")
 REF = "lichess_erez281_RUNOFRECORD"
 NEG = "lichess_vibesgalore_B"
 
-# The public HTML enumeration ceiling, measured -- not assumed. See replication/enumerate_ids_html.py.
+# The HTML enumeration ceiling. It applies only to the public game-list route, which this package
+# used because it believed the by-username export required a token. It does not: see
+# replication/ENDPOINT_CONTRACT.json and replication/USERNAME_ONLY_PROOF.json. Kept here because the
+# cap is real for the route Player B was ingested through, and their corpus is frozen under it.
 HTML_PAGES = 40
 HTML_PER_PAGE = 12
 
@@ -89,10 +92,14 @@ def main() -> int:
     search_blitz_games_min = int(math.ceil(
         search_derive_min / contract.SPLIT["derive_frac"] / dpg_blitz))
 
-    # ---- what the enumeration ceiling actually permits ---------------------------------------
+    # ---- how far ingestion actually reaches ---------------------------------------------------
     raw_cap = HTML_PAGES * HTML_PER_PAGE
-    adm_rate = neg["corpus"]["admissible"] / neg["corpus"]["fetched"]
-    blitz_rate = neg["corpus"]["speeds"]["blitz"] / neg["corpus"]["fetched"]
+    proof = json.load(open(os.path.join(REPL, "USERNAME_ONLY_PROOF.json")))
+    # Rates from the username-only proof, which fetched a complete history, rather than from the
+    # HTML-capped run, whose 480 games are the platform's most recent and need not be typical.
+    pe = proof["eligibility"]
+    adm_rate = pe["admissible"] / pe["fetched"]
+    blitz_rate = pe["speeds"]["blitz"] / pe["fetched"]
     cap_admissible = int(raw_cap * adm_rate)
     cap_blitz = int(raw_cap * blitz_rate)
 
@@ -207,21 +214,41 @@ def main() -> int:
                                                             search_blitz_games_min),
         },
 
-        "enumeration_ceiling": {
-            "_what": "What a player's corpus can be WITHOUT a LICHESS_API_TOKEN. The by-username "
-                     "export endpoint returns 404 unauthenticated; the public HTML game list is the "
-                     "only enumeration path and it is hard-capped.",
-            "pages": HTML_PAGES, "ids_per_page": HTML_PER_PAGE, "raw_ids_max": raw_cap,
-            "observed_rates_source": NEG,
+        "ingestion_reach": {
+            "_what": "How many of a player's games the pipeline can actually obtain.",
+            "route": "GET /api/games/user/<name> with the frozen export query, NO Authorization "
+                     "header. Returns the player's rated history as a stream.",
+            "measured": {"vibesgalore": "1,224 games, the complete rated history, 200 unauthenticated",
+                         "livio68": "2,000 games in one response, bounded by the request's own max "
+                                    "and not by the server",
+                         "requests": "12 unauthenticated calls across 3 accounts, 12 x HTTP 200"},
+            "evidence": ["research/mechanism/replication/ENDPOINT_CONTRACT.json",
+                         "research/mechanism/replication/USERNAME_ONLY_PROOF.json"],
+            "ceiling": "NONE imposed by ingestion. The binding constraints are the player's own "
+                       "history length and engine time.",
             "admissible_rate": round(adm_rate, 4), "blitz_rate": round(blitz_rate, 4),
-            "max_admissible_games": cap_admissible, "max_blitz_games": cap_blitz,
-            "broad_reachable": cap_admissible >= broad_games_min,
-            "broad_margin": round(cap_admissible / broad_games_min, 3),
-            "residual_reachable": cap_blitz >= max(resid_blitz_games_min, search_blitz_games_min),
-            "residual_deficit_factor": round(
-                max(resid_blitz_games_min, search_blitz_games_min) / cap_blitz, 2),
+            "_rates_source": "the username-only proof, which fetched a complete history",
+            "broad_reachable": True, "residual_reachable": True,
+            "_superseded_claim": {
+                "said": "the by-username export answers 404 unauthenticated, so enumeration is "
+                        "capped at %d games by the public HTML game list, which puts %d admissible "
+                        "and %d blitz games out of reach of both minimums" % (
+                            raw_cap, cap_admissible, cap_blitz),
+                "why_it_was_wrong": "inherited from a stale comment in "
+                                    "scripts/build_import_corpus.ts that the repository had already "
+                                    "corrected in docs/research/ACCOUNT_BRIDGE_PREREG.md. Never "
+                                    "measured before it was believed.",
+                "what_it_cost": "Player B was ingested through the HTML cap and holds 358 "
+                                "admissible games where the export gives 940 for the same account; "
+                                "the 100-player cohort was stopped at PENDING_RESOURCE for a token "
+                                "it never needed.",
+                "html_route_cap_still_real_for": "--ids-file replays of a frozen window, and "
+                                                 "Player B's frozen corpus, which is not refetched",
+                "html_raw_ids_max": raw_cap,
+                "html_max_admissible_games": cap_admissible,
+                "html_max_blitz_games": cap_blitz,
+            },
         },
-
         "limitations": [
             "One reference player. The effect sizes powered against come from the single case the "
             "method was developed on, so they are an upper end, not a typical value. If real "
@@ -239,21 +266,15 @@ def main() -> int:
         ],
 
         "consequences_for_the_cohort": {
-            "without_token": {
-                "broad_powered_cohort": "possible but marginal: the ceiling clears the broad "
-                                        "minimum by a factor of about %.2f, and a player with "
-                                        "fewer decisions per game than erez281 falls under it"
-                                        % (cap_admissible / broad_games_min),
-                "residual_powered_subset": "NOT reachable. Every member would be underpowered for "
-                                           "the residual question by construction, and 100 nulls "
-                                           "would measure the enumeration cap, not the population.",
-            },
-            "with_token": {
-                "broad_powered_cohort": "comfortable",
-                "residual_powered_subset": "reachable for players whose blitz history exceeds "
-                                           "%d admissible blitz games"
-                                           % max(resid_blitz_games_min, search_blitz_games_min),
-            },
+            "broad_powered_cohort": "reachable. A player needs >= %d admissible games, which the "
+                                    "export returns for anyone who has played them."
+                                    % broad_games_min,
+            "residual_powered_subset": "reachable for players whose rated blitz history exceeds "
+                                       "%d admissible blitz games. Eligibility for it is a property "
+                                       "of the PLAYER, which is what the cohort is meant to measure, "
+                                       "rather than of the client."
+                                       % max(resid_blitz_games_min, search_blitz_games_min),
+            "binding_constraint": "engine time, not ingestion",
         },
     }
     out = os.path.join(HERE, "POWER_PLAN.json")
@@ -265,11 +286,9 @@ def main() -> int:
         "residual_minimum_validate_blitz_decisions": resid_validate_min,
         "residual_minimum_admissible_blitz_games": resid_blitz_games_min,
         "residual_search_floor_admissible_blitz_games": search_blitz_games_min,
-        "enumeration_ceiling_admissible": cap_admissible,
-        "enumeration_ceiling_blitz": cap_blitz,
-        "broad_reachable_without_token": cap_admissible >= broad_games_min,
-        "residual_reachable_without_token": cap_blitz >= max(resid_blitz_games_min,
-                                                             search_blitz_games_min),
+        "ingestion_ceiling": "NONE (username-only export, unauthenticated)",
+        "superseded_html_cap_admissible": cap_admissible,
+        "superseded_html_cap_blitz": cap_blitz,
     }, indent=1))
     return 0
 

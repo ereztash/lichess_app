@@ -152,11 +152,29 @@ from anyone's result.
 
 ## 7. Next move
 
-**Player C**, under this same frozen protocol, with one operational change that is not a
-methodological one: a `LICHESS_API_TOKEN`. The platform paginates a public game list at 40 pages, so
-480 games is the ceiling without one, and the power table above is what that ceiling costs. A token
-lifts both limits at once — it exercises the username-only ingestion contract this run could not,
-and it allows a corpus large enough for the residual stage to mean something.
+**Player C**, under this same frozen protocol, ingested from a username alone.
+
+**Amendment, and it changes how the verdict above should be read.** This section previously said a
+`LICHESS_API_TOKEN` was needed, because the by-username export was believed to answer 404
+unauthenticated. It does not. Measured across three accounts and twelve unauthenticated requests,
+every one HTTP 200, including 2,000 games in a single response. Running the full runner on
+`vibesgalore` with no token and no id list returns **1,224 games and 940 admissible**, against the
+**358** this run holds. The claim came from a stale comment in `scripts/build_import_corpus.ts`
+that `docs/research/ACCOUNT_BRIDGE_PREREG.md` had already corrected, and it was never measured
+before it was believed. `endpoint_contract.py` now holds the contract and guards the regression.
+
+So the 480-game cap in §2 and the power table in §3 describe a limit **this client imposed on
+itself**, not one the platform imposes. Player B's `NO_STABLE_STRUCTURE` stands as the run's honest
+output and the corpus is not refetched, because replacing a frozen corpus with a different one is
+not a repair. But the null must now be read with the cap named: it is a null over 358 admissible
+games where the same account offered 940, so §3's statement that nothing can be concluded from the
+residual stage on this corpus is not merely a caution about that player, it is a consequence of a
+defect in this package. `METHOD_REPLICATED_ON_PLAYER_B` is unaffected; that verdict is about the
+instrument running end to end on a second player, which it did.
+
+Worth noting for calibration rather than for hope: vibesgalore holds 1,099 rated blitz games in
+total, below the 1,786-game residual floor. Full enumeration would have made them better powered
+for the BROAD question and still not powered for the RESIDUAL one.
 
 Two things are worth deciding before Player C rather than after:
 

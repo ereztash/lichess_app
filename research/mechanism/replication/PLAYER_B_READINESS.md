@@ -141,15 +141,21 @@ platform identity, the retrieval record, the eligibility rules, the expected ban
 entry that serves it, the split contract, every threshold, both residual targets in their frozen
 precedence, the classification order, the output classes, the failure codes and the stopping rules.
 
-**The input mode is recorded rather than glossed.** Lichess answers 404 to the by-username export
-without a token in this environment, which the mission ledger recorded a year ago. The ids came from
-the account's public game list and were then fetched through the canonical `_ids` endpoint, so the
-records in the corpus are the API's own. This run can therefore replicate the METHODOLOGY. It is not
-proof of username-only ingestion, and the two claims are kept apart.
+**The input mode is recorded rather than glossed.** The ids came from the account's public game
+list and were then fetched through the canonical `_ids` endpoint, so the records in the corpus are
+the API's own. This run replicates the METHODOLOGY. It is not proof of username-only ingestion, and
+the two claims are kept apart.
 
-The platform paginates that list at 40 pages, so 480 games is the ceiling without a token. The
-declared window of 800 admissible games is never reached, and the corpus is every admissible game
-among the 480 most recent the platform lists.
+**Why that route was taken, and why the reason was wrong.** This document said the by-username
+export answers 404 without a token. It does not: measured at 200 across three accounts and twelve
+unauthenticated requests, and 2,000 games in one response. The claim was inherited from a stale
+comment in `scripts/build_import_corpus.ts` that `docs/research/ACCOUNT_BRIDGE_PREREG.md` had
+already corrected. The cost is recorded rather than repaired in place: Player B's corpus is the 480
+games the HTML list pages to, not the window the export would have given, so its 358 admissible
+games sit just above the broad power minimum and far below the residual one. That constrains what
+Player B's `NO_STABLE_STRUCTURE` can be read as, and `REPLICATION_VERDICT.md` is amended to say so.
+The run itself is untouched: nothing about the method was decided by this, and re-fetching it now
+would replace a frozen corpus with a different one.
 
 ## 7. Power, stated before the result
 

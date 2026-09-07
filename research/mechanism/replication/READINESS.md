@@ -139,11 +139,15 @@ corpus is **~1.2 hours** of scoring, then ~1.5 min of feature extraction and ~15
 
 ## 7. Remaining blockers — only real ones
 
-1. **Game enumeration needs `LICHESS_API_TOKEN`.** `GET /api/games/user/<name>` answers 404 to an
-   unauthenticated request for every account — the mission ledger recorded the same thing a year
-   ago. Without a token, a run must be given an id list (`--ids-file`), which the `_ids` endpoint
-   then fetches without authentication. This is environment configuration, not a research gap, and
-   the runner fails with `FETCH_FAILED` naming the remedy rather than half-fetching.
+1. ~~**Game enumeration needs `LICHESS_API_TOKEN`.**~~ **WITHDRAWN, and it was never true.**
+   `GET /api/games/user/<name>` answers **200 unauthenticated**: measured across three accounts and
+   twelve requests, including 2,000 games in one response. The claim was inherited from a stale
+   comment in `scripts/build_import_corpus.ts` that the repository had **already corrected** in
+   `docs/research/ACCOUNT_BRIDGE_PREREG.md` before this package was written. Believing it cost
+   something real: Player B was ingested through the 480-game HTML cap as `PROVIDED_GAME_IDS`, and
+   the 100-player cohort was stopped at `PENDING_RESOURCE` for a token it never needed.
+   `endpoint_contract.py` holds the contract and guards the regression. `--ids-file` remains
+   supported for replaying a frozen window, which is what it is for.
 2. **The population registry holds one band.** `population_2026-06` covers 1450–1850 blitz, which
    the rule derives only for blitz medians of 1626–1674. Every other player, including one whose
    rating sits inside 1450–1850, gets `POPULATION_BASELINE_INSUFFICIENT` and **no personal

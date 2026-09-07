@@ -43,7 +43,7 @@ Environment (configuration, not per-player input):
 | --- | --- |
 | `REPLICATION_PYTHON` | a Python with `requirements.txt` installed (else `python3`) |
 | `SF_BIN` | the Stockfish 17.1 avx2 binary the ledger records (else `stockfish` on `PATH`) |
-| `LICHESS_API_TOKEN` | needed for the by-username export; lichess answers 404 to an unauthenticated request, which the mission ledger already recorded. Rated games are public, so the token only lifts the rate limit |
+| `LICHESS_API_TOKEN` | **optional**. Rated games are public and the by-username export answers 200 without it, measured by `endpoint_contract.py`. The token only lifts the rate limit |
 
 Optional arguments are operational, never research: `--workers`, `--engine {native,wasm}`,
 `--run-id`, `--root`, `--ids-file` (replay a frozen window through `POST /api/games/export/_ids`),

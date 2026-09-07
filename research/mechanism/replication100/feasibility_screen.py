@@ -127,6 +127,10 @@ def main() -> int:
     ap.add_argument("--sample", type=int, default=3000)
     ap.add_argument("--seed", type=int, default=20260907)
     ap.add_argument("--cache", default=os.path.join(HERE, ".dump_prefix.zst"))
+    ap.add_argument("--from-frame", default=None,
+                    help="recompute from a persisted SCREENED_FRAME.json instead of the live API. "
+                         "Profile ratings move, so a re-screen is not reproducible; the frame is. "
+                         "Phase 6 needs a frame that is fixed before selection, and this reads it.")
     ap.add_argument("--out", default=os.path.join(HERE, "FEASIBILITY_SCREEN.json"))
     a = ap.parse_args()
 
@@ -141,47 +145,68 @@ def main() -> int:
     def band_ok(rating: float) -> bool:
         return tuple(contract.population_band(rating)) in {tuple(b) for b in bands}
 
+    replay = json.load(open(a.from_frame)) if a.from_frame else None
     fr = frame_from_dump(a.mb, a.cache, blitz_tc)
     frame = fr["players"]
-    names = sorted(frame)
-    rng = random.Random(a.seed)
-    sample = names if len(names) <= a.sample else rng.sample(names, a.sample)
-    sample = sorted(sample)
-
-    profs = profiles(sample)
+    if replay:
+        sample = [r["u"] for r in replay["rows"]]
+        profs = None
+    else:
+        names = sorted(frame)
+        rng = random.Random(a.seed)
+        sample = names if len(names) <= a.sample else rng.sample(names, a.sample)
+        sample = sorted(sample)
+        profs = profiles(sample)
 
     broad_games = plan["broad_minimum"]["admissible_games"]
     resid_games = plan["residual_minimum"]["operative_minimum_admissible_blitz_games"]
     resid_judge_games = plan["residual_minimum"]["admissible_blitz_games"]
-    cap_adm = plan["enumeration_ceiling"]["max_admissible_games"]
-    cap_blitz = plan["enumeration_ceiling"]["max_blitz_games"]
-    # A player's LIFETIME blitz count is an upper bound on what any window can hold. Admissible
-    # rate observed on the one measured player; used as an upper-bound conversion, stated as such.
-    adm_rate = plan["enumeration_ceiling"]["admissible_rate"]
+    reach = plan["ingestion_reach"]
+    # A player's LIFETIME blitz count is what the username-only export returns, so the conversion
+    # below is a rate applied to a real total rather than to a capped window.
+    adm_rate = reach["admissible_rate"]
 
-    rows, drifts = [], []
-    for u in sample:
-        p = profs.get(u)
-        if not p:
-            rows.append({"u": u, "status": "NOT_FOUND"}); continue
-        if p.get("disabled") or p.get("tosViolation"):
-            rows.append({"u": u, "status": "CLOSED_OR_FLAGGED"}); continue
-        b = (p.get("perfs") or {}).get("blitz") or {}
-        rating, ngames = b.get("rating"), b.get("games", 0)
-        if not rating or b.get("prov"):
-            rows.append({"u": u, "status": "NO_RATED_BLITZ"}); continue
-        june = frame[u]
-        drifts.append(abs(rating - statistics.median(june)))
-        rows.append({
-            "u": u, "status": "OK", "blitz_rating": rating, "blitz_games": ngames,
-            "june_median_elo": statistics.median(june), "june_appearances": len(june),
-            "band_now": list(contract.population_band(rating)),
-            "band_registered_now": band_ok(rating),
-            "band_registered_june": band_ok(statistics.median(june)),
-            "vol_broad": ngames * adm_rate >= broad_games,
-            "vol_residual_judge": ngames * adm_rate >= resid_judge_games,
-            "vol_residual": ngames * adm_rate >= resid_games,
-        })
+    if replay:
+        # Every derived field is recomputed from the frame's raw metadata, so a changed gate or a
+        # changed registry is reflected. Only the metadata itself is replayed.
+        rows = []
+        for r in replay["rows"]:
+            if r["status"] != "OK":
+                rows.append(dict(r)); continue
+            rating, ngames = r["blitz_rating"], r["blitz_games"]
+            rows.append({**r,
+                         "band_now": list(contract.population_band(rating)),
+                         "band_registered_now": band_ok(rating),
+                         "band_registered_june": band_ok(r["june_median_elo"]),
+                         "vol_broad": ngames * adm_rate >= broad_games,
+                         "vol_residual_judge": ngames * adm_rate >= resid_judge_games,
+                         "vol_residual": ngames * adm_rate >= resid_games})
+        drifts = [abs(r["blitz_rating"] - r["june_median_elo"]) for r in rows
+                  if r["status"] == "OK"]
+    else:
+      rows, drifts = [], []
+      for u in sample:
+          p = profs.get(u)
+          if not p:
+              rows.append({"u": u, "status": "NOT_FOUND"}); continue
+          if p.get("disabled") or p.get("tosViolation"):
+              rows.append({"u": u, "status": "CLOSED_OR_FLAGGED"}); continue
+          b = (p.get("perfs") or {}).get("blitz") or {}
+          rating, ngames = b.get("rating"), b.get("games", 0)
+          if not rating or b.get("prov"):
+              rows.append({"u": u, "status": "NO_RATED_BLITZ"}); continue
+          june = frame[u]
+          drifts.append(abs(rating - statistics.median(june)))
+          rows.append({
+              "u": u, "status": "OK", "blitz_rating": rating, "blitz_games": ngames,
+              "june_median_elo": statistics.median(june), "june_appearances": len(june),
+              "band_now": list(contract.population_band(rating)),
+              "band_registered_now": band_ok(rating),
+              "band_registered_june": band_ok(statistics.median(june)),
+              "vol_broad": ngames * adm_rate >= broad_games,
+              "vol_residual_judge": ngames * adm_rate >= resid_judge_games,
+              "vol_residual": ngames * adm_rate >= resid_games,
+          })
 
     ok = [r for r in rows if r["status"] == "OK"]
     # Conditional reliability of a screen HIT, which is the number that sets screening cost. The
@@ -313,20 +338,18 @@ def main() -> int:
             "screens_needed_for_100_residual": (math.ceil(100 / rate(b_and_res))
                                                 if b_and_res else None),
         },
-        "enumeration_ceiling_applied": {
-            "_what": "The volume gate above assumes a player's whole blitz history is reachable. "
-                     "Without a LICHESS_API_TOKEN it is not: the public HTML list caps at %d games."
-                     % (plan["enumeration_ceiling"]["raw_ids_max"]),
-            "max_admissible_games": cap_adm,
-            "max_blitz_games": cap_blitz,
+        "ingestion_reach_applied": {
+            "_what": "Whether the pipeline can actually obtain the volume the gates require.",
+            "route": reach["route"],
+            "ceiling": reach["ceiling"],
             "broad_minimum": broad_games,
             "residual_minimum": resid_games,
-            "broad_reachable_without_token": cap_adm >= broad_games,
-            "residual_reachable_without_token": cap_blitz >= resid_games,
-            "consequence_without_token":
-                "The ceiling binds BEFORE the player does. No matter how many players pass the "
-                "screen, none of them can be brought above the minimum, so the cohort's yield "
-                "would measure the enumeration cap and not the population.",
+            "broad_reachable": reach["broad_reachable"],
+            "residual_reachable": reach["residual_reachable"],
+            "consequence": "Volume is a property of the player's own history, not of the client. A "
+                           "null from an eligible member therefore says something about that "
+                           "player, which is the condition the cohort needs to mean anything.",
+            "_superseded": reach["_superseded_claim"],
         },
     }
     json.dump(doc, open(a.out, "w"), indent=1)
