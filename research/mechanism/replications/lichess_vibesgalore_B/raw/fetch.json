@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "vibesgalore",
+ "player_id": "vibesgalore",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 58,
+    "rating": 1645
+   },
+   "blitz": {
+    "games": 1099,
+    "rating": 1626
+   },
+   "rapid": {
+    "games": 67,
+    "rating": 1678
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 2660,
+    "rating": 1801
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1771459146164,
+  "seenAt": 1788723888921
+ },
+ "fetch": {
+  "mode": "api-ids",
+  "url": "https://lichess.org/api/games/export/_ids?clocks=true&opening=true&pgnInJson=true",
+  "query": {
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true"
+  },
+  "fetched_at": "2026-09-07T17:19:46Z",
+  "http_status": 200,
+  "bytes": 1859498,
+  "sha256": "25401eac64018dfc83082e4453ac6fda22a40b81b71861f8ae10a25d44f4901e",
+  "records": 480,
+  "path": "/home/user/lichess_app/research/mechanism/replications/lichess_vibesgalore_B/raw/history.ndjson",
+  "notes": [
+   {
+    "block": 0,
+    "requested": 300,
+    "returned": 300
+   },
+   {
+    "block": 1,
+    "requested": 180,
+    "returned": 180
+   }
+  ]
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
