@@ -89,8 +89,13 @@ def main():
             "speeds_in_window": manifest["speedsInWindow"],
             "game_ids_sha256": hashlib.sha256(",".join(manifest["gameIds"]).encode()).hexdigest(),
             "n_game_ids": len(manifest["gameIds"]),
-            "artifacts": {f: {"git_blob": blob_sha(f), "sha256": sha256(f)} for f in data_files},
+            "artifact_git_blobs": {f: blob_sha(f) for f in data_files},
         },
+        # A FLAT block, deliberately: `scripts/research-scan.ts` classifies hash sites by key path
+        # and checks a `<block>.<tree path>` shape against the tree on every gate run. Nesting these
+        # one level deeper would have made them unassertable, which is the difference between a
+        # frozen corpus that is checked and one that can rot into a different corpus quietly.
+        "data_sha256": {f: sha256(f) for f in data_files},
         "engine_regime": contract.ENGINE,
         "corpus": {
             "scored_games": int(df.game_id.nunique()),

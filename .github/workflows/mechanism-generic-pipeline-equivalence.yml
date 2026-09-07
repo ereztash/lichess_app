@@ -44,6 +44,17 @@ jobs:
           MKL_NUM_THREADS: "1"
         run: python research/mechanism/replication/gate_equivalence.py --rebuild /tmp/generic --out /tmp/gate.json
 
+      - name: Every replication run is complete and names the code in the tree
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          runs=(research/mechanism/replications/*/)
+          if [ ${#runs[@]} -eq 0 ]; then echo "no replication runs in the tree"; exit 0; fi
+          for d in "${runs[@]}"; do
+            echo "== $d"
+            python research/mechanism/replication/verify_run.py --run-dir "$d"
+          done
+
       - name: Summarise
         if: always()
         run: |

@@ -1,6 +1,6 @@
 {
  "_what_this_is": "The original pipeline's inputs and canonical outputs on erez281, frozen before the generalisation refactor. GATE-GENERIC-PIPELINE-EQUIVALENCE compares the generic pipeline against this file.",
- "baseline_repo_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
+ "baseline_repo_sha": "71ef83bf02eec95ddbb8f68c98ff7ee559bee043",
  "baseline_branch": "claude/generalize-research-pipeline-75k53u",
  "mission_origin_sha": "2f3c26139e9bb166e799f2bccf8a75d900f568e1",
  "contract_version": "replication-1.0.0",
@@ -31,36 +31,24 @@
   },
   "game_ids_sha256": "9931239a998b1da3988d003e97d698115842967ab9ebcf8490df1461e4eeda0f",
   "n_game_ids": 2209,
-  "artifacts": {
-   "research/mechanism/data/decisions_erez281.parquet": {
-    "git_blob": "aa1789fb7bb3b6af5f2fadf8bebf7988f09ade40",
-    "sha256": "a8a43f74340daaee35e58589fe3906e1b278ad185d8cce7917c729457727ec67"
-   },
-   "research/mechanism/data/decisions_population_2026-06.parquet": {
-    "git_blob": "5fcab2b4eb42b790d1358d77dbcde59c099dd99b",
-    "sha256": "0ef9a7a69b2355724b4b10add4f0c39615a1425b7ee8d65fa1d5bf3939c9263f"
-   },
-   "research/mechanism/data/decisions_post_freeze.parquet": {
-    "git_blob": "ae5aea81a9bb58517f58b252e2b7414d82d5d26b",
-    "sha256": "10bee61d0846b232e2d585effd8657806018b21184570e7ff5a62352d751d3f7"
-   },
-   "research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst": {
-    "git_blob": "c42cbfe4262973deeb5a6f0f0079b459c181bebe",
-    "sha256": "b4ea250581f93b69abc310f4d9530403f9b1a8de5994a08696efe111bdb3510c"
-   },
-   "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst": {
-    "git_blob": "6d4c402207dbf4609068a1b5c7c78f79e8e99483",
-    "sha256": "c4bc8bf6a4aab58ef5cfa6cf482165908ca5e3cc2179d2593729cda6139f2eb6"
-   },
-   "research/mechanism/data/frozen_window_manifest.json": {
-    "git_blob": "039c0e8419f803287913eb676c351b5467ae5f8a",
-    "sha256": "b4a9d6941ecce98aacbe51e222634ada00e97858c709654fb27ff101f67959fd"
-   },
-   "research/mechanism/data/population_games.ndjson": {
-    "git_blob": "c4cde97fec86eac41bfe4b3b6a7c17e732490b23",
-    "sha256": "c58fb9c7ef8c80c31443e80ca39d6ffc35492631b6c68351f37b21f54c5a0957"
-   }
+  "artifact_git_blobs": {
+   "research/mechanism/data/decisions_erez281.parquet": "aa1789fb7bb3b6af5f2fadf8bebf7988f09ade40",
+   "research/mechanism/data/decisions_population_2026-06.parquet": "5fcab2b4eb42b790d1358d77dbcde59c099dd99b",
+   "research/mechanism/data/decisions_post_freeze.parquet": "ae5aea81a9bb58517f58b252e2b7414d82d5d26b",
+   "research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst": "c42cbfe4262973deeb5a6f0f0079b459c181bebe",
+   "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst": "6d4c402207dbf4609068a1b5c7c78f79e8e99483",
+   "research/mechanism/data/frozen_window_manifest.json": "039c0e8419f803287913eb676c351b5467ae5f8a",
+   "research/mechanism/data/population_games.ndjson": "c4cde97fec86eac41bfe4b3b6a7c17e732490b23"
   }
+ },
+ "data_sha256": {
+  "research/mechanism/data/decisions_erez281.parquet": "a8a43f74340daaee35e58589fe3906e1b278ad185d8cce7917c729457727ec67",
+  "research/mechanism/data/decisions_population_2026-06.parquet": "0ef9a7a69b2355724b4b10add4f0c39615a1425b7ee8d65fa1d5bf3939c9263f",
+  "research/mechanism/data/decisions_post_freeze.parquet": "10bee61d0846b232e2d585effd8657806018b21184570e7ff5a62352d751d3f7",
+  "research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst": "b4ea250581f93b69abc310f4d9530403f9b1a8de5994a08696efe111bdb3510c",
+  "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst": "c4bc8bf6a4aab58ef5cfa6cf482165908ca5e3cc2179d2593729cda6139f2eb6",
+  "research/mechanism/data/frozen_window_manifest.json": "b4a9d6941ecce98aacbe51e222634ada00e97858c709654fb27ff101f67959fd",
+  "research/mechanism/data/population_games.ndjson": "c58fb9c7ef8c80c31443e80ca39d6ffc35492631b6c68351f37b21f54c5a0957"
  },
  "engine_regime": {
   "research": {
