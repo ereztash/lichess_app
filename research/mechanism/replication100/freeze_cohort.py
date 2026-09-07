@@ -55,6 +55,11 @@ def main() -> int:
             shutil.move(d, dest)
         d = dest
         rel = os.path.relpath(d, REPO)
+        # relpath will happily produce "../../.." for a destination outside the tree, and every
+        # later stage would follow it without complaint. A cohort member lives in the repository.
+        if rel.startswith(".."):
+            raise SystemExit("%s resolves outside the repository (%s); a cohort member must live "
+                             "in the tree" % (m["u"], rel))
         res = json.load(open(os.path.join(d, "report", "RESULT.json")))
         if res.get("status") != "FROZEN":
             raise SystemExit("%s is not at FREEZE (status %s): a cohort may not be frozen around a "
