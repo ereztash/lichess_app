@@ -26,14 +26,25 @@ import corpus as corpuslib  # noqa: E402
 # only be FROZEN if a COHORT_FROZEN.json lists it, so an abandoned run is still a problem.
 COHORT_FROZEN = os.path.join(os.path.dirname(HERE), "replication100", "COHORT_FROZEN.json")
 # What a run at FREEZE cannot have yet, because the stages that write them have not run.
-NOT_YET_AT_FREEZE = ("analysis/population_resolution.json", "report/REPORT.md")
+NOT_YET_AT_FREEZE = ("splits.json", "analysis/population_resolution.json", "report/REPORT.md")
+# A member is named by the frozen cohort once it exists, and by the selection walk before that.
+# Either naming is a committed artefact, so an ABANDONED run at FREEZE is still a problem.
+COHORT_SELECTION = os.path.join(os.path.dirname(HERE), "replication100", "COHORT_SELECTION.json")
 
 
 def frozen_cohort_members() -> set[str]:
-    if not os.path.exists(COHORT_FROZEN):
-        return set()
-    doc = json.load(open(COHORT_FROZEN))
-    return {os.path.normpath(m["run_dir"]) for m in doc.get("members", [])}
+    out: set[str] = set()
+    for path, key in ((COHORT_FROZEN, "members"), (COHORT_SELECTION, "accepted")):
+        if not os.path.exists(path):
+            continue
+        try:
+            doc = json.load(open(path))
+        except Exception:  # noqa: BLE001  a walk rewrites its state; a torn read is not a verdict
+            continue
+        for m in doc.get(key, []):
+            if m.get("run_dir"):
+                out.add(os.path.normpath(m["run_dir"]))
+    return out
 
 
 def in_frozen_cohort(run_dir: str) -> bool:

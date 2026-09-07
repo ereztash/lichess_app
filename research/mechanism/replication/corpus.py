@@ -63,6 +63,12 @@ def repo_dirty() -> bool:
     analysis JSON) before it takes its manifest, so a plain `git status` is dirty for every run by
     construction and the flag would certify nothing at all. What the flag is for is the state of the
     CODE, so the replication tree is excluded and everything else counts, untracked files included.
+
+    The cohort's own bookkeeping is excluded for exactly the same reason and no other. A selection
+    walk rewrites COHORT_SELECTION.json after every candidate, so without this every cohort member's
+    manifest would record a dirty tree caused by the walk that produced them. That is the same
+    defect as the one above, in a second place, and it is not a licence to exclude anything else:
+    these two paths are process outputs, and everything that decides research content still counts.
     """
     try:
         out = subprocess.check_output(["git", "-C", REPO_ROOT, "status", "--porcelain"], text=True)
@@ -72,6 +78,8 @@ def repo_dirty() -> bool:
         path = line[3:].strip().strip('"')
         if " -> " in path:                       # a rename: judge the destination
             path = path.split(" -> ", 1)[1].strip().strip('"')
+        if path.startswith("research/mechanism/replication100/COHORT_SELECTION.json"):
+            continue
         if path.startswith("research/mechanism/replications/"):
             continue
         return True
