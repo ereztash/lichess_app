@@ -35,8 +35,9 @@ Both are additions. Neither touches Arms A, B or C as written.
 
 - Do not explain the model, the ordering, the confidence scale, the reads, or why the engine waits.
 - Do not use think-aloud **during the evidence window**. Narrating a decision is itself a
-  metacognitive prompt, it changes `seconds_taken`, and `seconds_taken` is a detector axis. A
-  think-aloud protocol would measure a population that does not exist.
+  metacognitive prompt and it puts a reactivity path straight onto `seconds_taken`, which is a
+  detector axis. Whether it would move the number is unmeasured and beside the point: the arm would
+  no longer be the arm everyone else is in, and nothing in the row would say so.
 - Do not answer a question about what the product does until the observation window is closed. Note
   the question, its timing and its exact words; the question is data.
 - If the participant is stuck and cannot proceed, the session ends and is recorded as an assistance
@@ -62,10 +63,31 @@ Silent observation only. No prompts.
 | D-3 | which on-screen sentence preceded the longest pause? | the sentence, quoted from the screen, plus the pause in seconds |
 | D-4 | time from the position appearing to the first move placed on the board | seconds |
 | D-5 | time from the position appearing to the commit | seconds |
-| D-6 | did they backtrack: change the move after placing one, reopen an answered step, or leave the position? | count each, separately |
-| D-7 | visible confusion, in the observer's words, with the timestamp and what was on screen | free text |
+| D-6 | did they leave the position without committing, or navigate away from the board? | count |
+| D-7a | pauses over 5s: how many, how long, and what was on screen at each | count, seconds, quoted sentence |
+| D-7b | did they re-read: eye or cursor returning to a block already passed, or scrolling back up | count |
+| D-7c | did they reopen a step they had already answered? | count, and which step |
+| D-7d | did they change the move after placing one? | count |
+| D-7e | did they open the help overlay, or the `למה?` disclosure? | yes / no, and at what point in the flow |
+| D-7f | did they attempt an action the state does not offer: pressing a collapsed step, clicking a non-interactive sentence, dragging a piece the board refuses | count, and what they aimed at |
+| D-7g | did they say anything, unprompted? | **verbatim**, never paraphrased |
+| D-7h | did they stop without committing, and at which step was the panel? | yes / no, plus the open step |
 | D-8 | did the architecture of the product have to be explained for them to proceed? | yes / no, and which part |
 | D-9 | which steps did this decision actually ask for? | from the screen: the rendered step legends |
+
+**D-7 used to be one row reading *"visible confusion, in the observer's words"*, and that was an
+interpretation of a person where observables were available.** "Confused" is a state inside somebody
+else's head; an observer who writes it down has already decided what a pause meant, and every later
+reading of that row inherits the decision without being able to see it. The eight rows above are
+what an observer can actually witness, and they are the things the interpretation was standing in
+for.
+
+> **Describe what the interface demanded and what the person did. Do not infer a state when an
+> observable exists.**
+
+An observer note in free text is still welcome and still valuable -- but it is a **note**, not a
+measure, it is coded by nobody, and *"confused"* may not be a primary reading. If the note is the
+only evidence for a finding, the finding is about the observer.
 
 **D-9 is not bookkeeping.** `stepsFor` gives four different screens depending on the purpose and a
 hash of the position. A comprehension result that does not record which screen the participant met

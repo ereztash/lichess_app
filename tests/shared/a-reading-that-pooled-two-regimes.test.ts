@@ -73,6 +73,7 @@ async function record(
     measurement_protocol: options.protocolVersion === undefined ? null : "instrumented-standard",
     protocol_version: options.protocolVersion ?? null,
     analysis_timing: options.protocolVersion === undefined ? null : "during-play",
+    quiet_window_exposure: null,
     result: null,
     feedback: null,
   });

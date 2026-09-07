@@ -23,6 +23,7 @@ import {
   ANALYSIS_TIMINGS,
   MEASUREMENT_PROTOCOLS,
 } from "../shared/measurement-protocol.js";
+import { QUIET_WINDOW_EXPOSURES } from "../shared/quiet-window.js";
 import { LEARNING_RULE_GRADES, MECHANISM_CLASSES } from "../shared/learning-record.js";
 import type { ImportDiagnostic } from "../shared/import-diagnostic.js";
 
@@ -194,6 +195,14 @@ export const decisions = mysqlTable(
      * differs -- so this cannot be derived from the column above it.
      */
     analysisTiming: mysqlEnum("analysis_timing", ANALYSIS_TIMINGS),
+    /**
+     * WHICH ARM OF THE QUIET-WINDOW EXPERIMENT THE SCREEN WAS IN, and the column exists because no
+     * other column can answer it. The arm is a build flag, so two deployments of one commit agree
+     * on `protocol_version` and on `gitSha` and still show two different screens. Nullable, and
+     * null means the row recorded no condition rather than the control one -- the same standing
+     * `protocol_version` above it has. See `shared/quiet-window.ts`.
+     */
+    quietWindowExposure: mysqlEnum("quiet_window_exposure", QUIET_WINDOW_EXPOSURES),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("decisions_game_idx").on(table.gameId)],

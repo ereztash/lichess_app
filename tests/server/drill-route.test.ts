@@ -92,6 +92,7 @@ async function seedPattern(count: number) {
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
     await store.recordReveal(id, {
       engine_eval_cp: 10,
@@ -158,6 +159,7 @@ async function recordDrillDecisions(
         measurementProtocol: null,
         protocolVersion: null,
         analysisTiming: null,
+        quietWindowExposure: null,
     });
     await store.recordReveal(id, {
       engine_eval_cp: 0,

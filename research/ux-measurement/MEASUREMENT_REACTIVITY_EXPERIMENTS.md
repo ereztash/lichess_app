@@ -208,9 +208,18 @@ renders it only at `REVEAL` and `RESUME`, which is what `MODE_CONTRACT` already 
 
 **The flag is built and off:** `QUIET_EVIDENCE_WINDOW_ENABLED` in `client/src/lib/features.ts`,
 read only by `ContextRibbon` through a `producingEvidence` prop. Off, the two states render
-identical markup, asserted in `tests/client/an-arm-that-ships-nothing.test.tsx`. Turning it on
-requires a `CURRENT_PROTOCOL_VERSION` bump, which is deliberately not made: bumping for an arm
-nobody has run would split the record for nothing.
+identical markup, asserted in `tests/client/an-arm-that-ships-nothing.test.tsx`.
+
+**Turning it on no longer needs a protocol bump, and could never have used one.** The arm is a build
+flag, so both arms would carry the same `CURRENT_PROTOCOL_VERSION` and the same `gitSha`. Every
+decision now stamps `quiet_window_exposure` instead, derived from the same expression that decides
+whether the ribbon renders, so the two arms are separable in the record itself. See
+`PROTOCOL_LINEAGE.md` Part 3.
+
+**One property of the treatment the analysis must carry.** Removing the ribbon moves everything
+below it up by 77px, uniformly -- measured on the two built arms, 56 of 61 shared surfaces at
+`DECIDE`. That is not corrected: padding the gap would ship a blank band to one arm to make a
+comparison look tidier. It is part of what the treatment is.
 
 **Measured:** the confidence distribution, `seconds_taken`, abandonment inside `DECIDE`, and
 `backtrack_rate` -- the four metrics `docs/INERTIAL_UX_LAWS.md` already names under *"success is

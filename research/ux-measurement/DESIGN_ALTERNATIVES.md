@@ -279,6 +279,12 @@ measures exactly this and has not been run.
 
 Weights are the mission's, unmodified. Scores are 0-10 per dimension. Weighted total is out of 100.
 
+**One caveat that applies to the whole table, and to one row above all.** *Cognitive quietness*
+scores are **structural exposure proxies, not measured human attention.** They count what is on
+screen and where; they do not measure what anybody looked at, noticed or was slowed by. No weight
+below has been moved, and none should be moved to accommodate that -- the caveat narrows what the
+scores MEAN, not what they are.
+
 | dimension | weight | what a 10 means |
 | --- | ---: | --- |
 | Measurement validity | 25 | nothing on screen during production can move a recorded variable, and every exposure that remains is recorded so it can be stratified out |
@@ -323,10 +329,15 @@ squares, pieces, rank and file labels, the move rail and its cells, and the scre
 | `08 committed`, counterfactual open | 139 | 25 | 4 | **21** |
 
 **The same twenty-one surfaces are on screen in every state of the window**, and at the
-counterfactual stage they outnumber the question being asked five to one: four elements are the
-question, twenty-one are the brand lockup, the four header controls, the ribbon and its disclosure,
-the mode badge, the loop strip's five, the storage notice, the board note, the FEN control and the
+counterfactual stage four of the twenty-five non-board surfaces are the question being asked; the
+other twenty-one are the brand lockup, the four header controls, the ribbon and its disclosure, the
+mode badge, the loop strip's five, the storage notice, the board note, the FEN control and the
 timeline heading.
+
+**A count of painted elements, and not a claim about attention.** `rendered` is not `noticed` and
+`noticed` is not `understood`; both steps are `FIELD`. What the number supports is *candidate
+perceptual competition* -- how many surfaces are available to compete -- which is what the
+Cognitive-quietness dimension below is scored on and all it is scored on.
 
 ## Scores
 

@@ -42,6 +42,7 @@ import {
 import { useLoopPosition, type DrillProgress } from "@/lib/use-loop-position";
 import type { LoopTarget } from "@/lib/loop-position";
 import { QUIET_EVIDENCE_WINDOW_ENABLED } from "@/lib/features";
+import { quietWindowExposure } from "@shared/quiet-window";
 
 export function ContextRibbon({
   drill = null,
@@ -119,10 +120,19 @@ export function ContextRibbon({
    * the two arms differ in their network behaviour as well as their pixels, which is a second
    * difference nobody asked for.
    *
-   * Off, this is `false` and nothing below sees it. `research/ux-measurement/` X-5.
+   * IT IS `quietWindowExposure` AND NOT A BOOLEAN OF ITS OWN, and that is the lineage half rather
+   * than the layout half. The same call decides whether this renders and what
+   * `buildCommitEvent` stamps on the row, so a screen that suppressed while its row said
+   * "visible" is not a bug that could be introduced: there is no second place where the answer is
+   * decided. `GATE-QUIET-WINDOW-LINEAGE` holds both consumers against this function.
+   *
+   * Off, this is `context-ribbon-visible` and nothing below changes. `research/ux-measurement/` X-5.
    */
-  const silenced = QUIET_EVIDENCE_WINDOW_ENABLED && producingEvidence;
-  if (silenced) return null;
+  const exposure = quietWindowExposure({
+    armEnabled: QUIET_EVIDENCE_WINDOW_ENABLED,
+    producingEvidence,
+  });
+  if (exposure === "context-ribbon-suppressed") return null;
   /*
    * The gap line is dismissible and the loop position is not, which is the difference between a
    * notice and standing orientation. "הבנתי" used to close the whole ribbon; closing the one line

@@ -95,19 +95,72 @@ can be re-measured rather than believed, on the model of `docs/neta/harness/`. T
 counterfactual arm and print which one, and their visibility predicate is `checkVisibility()` after
 the first version produced a finding that was an instrument artefact.
 
-## Verified after all seven
+## R8 -- a row that can say which screen produced it
 
-Run on the tree this change produces, Node `v22.22.2` (the container is below `engines.node: 24.x`,
-so a green here is not a green on the declared runtime).
+| | |
+| --- | --- |
+| **Evidence** | `VITE_QUIET_EVIDENCE_WINDOW_ENABLED` is a build flag. Two deployments of one commit put two different screens in front of two players while agreeing on `gitSha`, `CURRENT_PROTOCOL_VERSION` and every other field a row carries. `features.ts` said in a comment that turning the arm on required a protocol bump; a comment is not an invariant, and the mechanism could not have worked -- the constant lives in `shared/`, which may not read a `client/` build value. |
+| **Reason** | The mission's rule: a measurement stimulus may not change without the resulting evidence carrying enough lineage to distinguish the populations. `session-position.ts` records the same failure already happening once, to `reveal_timing`, on a reload. |
+| **Change** | `shared/quiet-window.ts` derives **one** exposure. `ContextRibbon` renders nothing iff it is `context-ribbon-suppressed`; `buildCommitEvent` stamps exactly what it returns, as a **required** parameter with no default. `quiet_window_exposure` on the atom, the wire schema, both stores, the server and the column. |
+| **Measurement impact** | **NONE while the arm is off**, and that is the point: an OFF row and an ON row now differ in exactly one field, measured in `PROTOCOL_LINEAGE.md` §3.4. `null` is a third value meaning *no condition recorded*, and `producedUnderQuietWindow` returns `null` for it rather than `false`. |
+| **Not fixed by** | Deriving the version from the flag (architecturally impossible), or keeping the arm out of the record (lineage would live in deployment state rather than beside the observation). The options and why B won: `PROTOCOL_LINEAGE.md` §3.2. |
+| **Test** | `tests/shared/a-row-that-cannot-say-which-screen-produced-it.test.ts` round-trips both arms through the real wire schema, service and store. |
+| **Control** | Two predicates, each blind to the other's defect. `GATE-QUIET-WINDOW-LINEAGE` red on a second suppression path (2 findings) and on a hard-coded arm at the write (1). The test red when `record-service` stops passing the field through -- **where the gate is green**. |
+| **Found by the repo's own law** | Stamping the exposure made `onCommit` read `stage`, and `a-stale-closure-fabricates-an-observation` went red on the missing dependency. `stage` is now declared. Every evidence stage returns the same exposure, so the value would not have differed -- which is exactly the silent coupling that law exists to refuse. |
+
+## R9 -- the gzip ceiling, and what came out to pay for it
+
+| | |
+| --- | --- |
+| **Evidence** | `npm run bundle:budget` fired on the compressed ceiling for the first time in this file's history: 216.1 kB against 216. Measured by stashing the whole branch and rebuilding on `dcfa580`: entry raw 688.8 -> 689.3 (+0.5), gzipped 216.0 -> 216.1 (+0.1), initial 778.6 -> 779.1 (+0.5). |
+| **Reason** | R6 recorded that the gzip ceiling was at **zero headroom** and wrote the warning into the file for the next reader. This is the next reader. |
+| **Change** | `ENTRY_GZIP_KB` 216 -> 217, with the before/after table and its cause. Raw and initial did not fire and keep their numbers. |
+| **What came out** | `Opponent` moved from `Home.tsx` to `lib/opponent.ts`, where `OpponentDepth` already lived. It had two definitions of one shape -- the component's, and `session-position.ts`'s inline copy in the stored-session parse -- either of which could have drifted while both kept compiling. A JSDoc block documenting `loadLichessGame` was sitting forty lines above it, over `runGameReview`; it now sits over the function it describes. `Home.tsx` is 2,395 lines, below both the 2,400 ceiling and the 2,398 this work found. |
+| **Measurement impact** | **NONE.** |
+
+## The version the repairs cost
+
+`REPO-CERTAIN` answers *"is the build contradicting itself?"*. It does **not** answer *"did the
+conditions of observation change?"*, and R1-R3 turn out to be both.
+
+| Fix | seen while evidence is produced? | action? | field? | salience/timing? | bump? |
+| --- | --- | --- | --- | --- | --- |
+| R1 first decision stops asking for the reads | **yes**, two step heads and the chip menu | **yes** | **yes** | **yes** | **forces it** |
+| R2 the intro names the steps that exist | **yes**, every purpose | no | no | **yes** | **forces it** |
+| R3 the board stops claiming a return | **yes**, `.board-note` | no | no | no | **forces it** |
+| R4 the help screen | no, behind a press | no | no | no | no |
+| R5 the step register clears the submit | **yes**, conditionally, on auto-advance | no | no | **yes** | contributes |
+
+`CURRENT_PROTOCOL_VERSION` **4 → 5**. Three of the five are on the versioning rule's own
+forced-bump list, and the v4 exemption had already expired by its own terms -- production is
+serving a build that stamps 4. Full reasoning, the three claims about v4 kept apart, and the
+health-endpoint evidence: [`PROTOCOL_LINEAGE.md`](PROTOCOL_LINEAGE.md) Parts 1 and 2.
+
+## Verified, on the declared runtime
+
+Run on the tree this change produces, on **Node `v24.20.0`**, which is what `engines.node: "24.x"`
+and the three workflows' `node-version-file: package.json` resolve to. The earlier round of this
+work was verified on `v22.22.2` and said so; that is no longer a caveat here, and the difference was
+not cosmetic -- Node 24 caught an extensionless ESM import in `drizzle/schema.ts` that `tsc` and
+`vite build` both accepted and that would have failed the serverless entry in production.
 
 | command | result |
 | --- | --- |
 | `npm run check` | pass |
 | `npm run build` | pass |
-| `npm test` | **3,172 passed · 0 failed · 36 skipped**, 298 files. The 20 layout files that fail without a build pass with one. Baseline was 2,986 passed |
-| `npm run gates` | **35 of 35 pass** |
-| `npm run gates:controls` | **35 of 35 controls red**, which is the pass |
-| `npm run bundle:budget` | within budget, at the raised ceiling |
+| `npm test` | **3,180 passed · 0 failed · 36 skipped**, 299 files. Baseline before this work was 2,986 |
+| `npm run gates` | **36 of 36 pass** |
+| `npm run gates:controls` | **36 of 36 controls red**, which is the pass |
+| `npm run bundle:budget` | within budget: 689.3/690 raw, 216.1/**217** gzip, 779.1/780 initial |
+
+The four failures Node 24 surfaced that Node 22 did not, all fixed here rather than worked around:
+
+| failure | cause | fix |
+| --- | --- | --- |
+| `serverless-entry` -- `ERR_MODULE_NOT_FOUND` on `shared/quiet-window` | `drizzle/schema.ts` imported it without `.js`, against the convention of the twelve imports around it. Real Node ESM refuses; the bundler did not | the extension, as the file's other imports have |
+| `the-file-that-only-ever-grew` -- 2,402 against 2,400 | R8's one argument at the commit site | R9: `Opponent` moved out, and it was a shape defined twice |
+| `a-stale-closure-fabricates-an-observation` -- `onCommit` holds `stage` | stamping the exposure made the callback read the stage | `stage` declared. See R8's last row: the value would not have differed, which is the point |
+| `the-toll-on-the-opening-move` -- three schema assertions | a fixture predating the new field | `quiet_window_exposure: null`, which is what a row from before the field says |
 
 And the two repairs that are paint facts were re-measured in Chromium on the rebuilt artefact rather
 than inferred from the diff:
@@ -120,11 +173,22 @@ than inferred from the diff:
 The first now names all three steps the anchor purpose asks for, including the confidence question
 the old constant never mentioned in any state. The second no longer tells a stranger they came back.
 
+The quiet-window arm was measured the same way, on two builds of one commit rather than reasoned
+about: `PROTOCOL_LINEAGE.md` Part 4.
+
 ---
 
 # 2. `RESEARCH-GATED` -- prototype only, no production change
 
 Ordered by what unblocks what.
+
+## G0 -- the quiet-window exposure `[X-5 prerequisite]` -- **done**
+
+Not on this list when it was written, and it turned out to be the one row-level exposure that could
+not wait: the arm is a build flag, so it can change the stimulus without changing anything a row
+records. `PROTOCOL_LINEAGE.md` Part 3 has the design, the options that lost, and the two controls.
+It does **not** discharge G1 below -- that is four other surfaces, and their exposure is still
+unrecorded.
 
 ## G1 -- record the conditional exposures `[X-0]`
 
@@ -162,9 +226,11 @@ wrong. An arm that could only confirm would not be worth a flag.
 relocation of `.commitment-tension` to the reveal. Each is a separate stimulus change and the arm
 is only interpretable if one thing moves.
 
-**Requires, when it is turned on:** a `CURRENT_PROTOCOL_VERSION` bump, per
-`measurement-protocol.ts`. Deliberately **not** made here -- bumping now would split the record for
-an arm nobody has run, and the arm test pins the current value so a bump has to be a decision.
+**Lineage, and this replaced a plan that would not have worked.** The original note said turning
+the arm on would require a `CURRENT_PROTOCOL_VERSION` bump. A build flag moves without a commit, so
+both arms would have carried the same version. Every decision now stamps `quiet_window_exposure`,
+derived from the same expression that suppresses the ribbon: see G0 above and
+`PROTOCOL_LINEAGE.md` Part 3.
 
 **Forbidden:** shipping it as the default. `DESIGN_DECISION.md` records `NO WINNER -- FIELD
 REQUIRED` and D leads E by 4 points out of 100 with a 15-point `FIELD REQUIRED` row between them.
@@ -238,16 +304,20 @@ rows**.
 | `client/src/components/WhatThisIs.tsx` | help | ordering promised, question set stated as a draw | `REPO-CERTAIN` | none | same | none |
 | `client/src/index.css` `.commitment-step` | the step register | `scroll-margin-block-end` clears the sticky submit | `REPO-CERTAIN` | none | `a-press-the-hand-can-feel` | none |
 | `tests/layout/a-press-the-hand-can-feel.layout.test.ts` | press feedback | the aim is derived, not a constant | `REPO-CERTAIN` | none, it is the instrument | itself | none |
-| `client/src/lib/features.ts`, `client/src/components/ContextRibbon.tsx` | the quiet-window arm | `QUIET_EVIDENCE_WINDOW_ENABLED`, off by default | `RESEARCH-GATED`, built as an arm | none while off, asserted | `an-arm-that-ships-nothing` | none |
+| `client/src/lib/features.ts`, `client/src/components/ContextRibbon.tsx` | the quiet-window arm | `QUIET_EVIDENCE_WINDOW_ENABLED`, off by default; the guard reads `quietWindowExposure` rather than the flag | `RESEARCH-GATED` as an arm, `REPO-CERTAIN` for its lineage | none while off, asserted; measured on two builds in `PROTOCOL_LINEAGE.md` Part 4 | `an-arm-that-ships-nothing` | `GATE-QUIET-WINDOW-LINEAGE` |
 | `client/src/lib/declared-tensions.ts` | pre-commit tension | **none now.** Arm behind a flag | `RESEARCH-GATED` | **HIGH** | X-1 harness | G5 later |
 | `client/src/components/ContextRibbon.tsx`, `client/src/lib/loop-position.ts` | loop position | **none now.** Grading strings out of `focus`, behind a flag | `RESEARCH-GATED` | **MEDIUM** | X-5 arm | G4 |
 | `client/src/lib/read-options.ts` | the read vocabulary | **none.** Ordering arm only | `RESEARCH-GATED` | **HIGH** | X-3 | none |
 | `shared/confidence-asked.ts` | the sampling rule | **none.** Timing arm only | `RESEARCH-GATED` | **HIGH** | X-2 | LAW 9 |
 | `shared/counterfactual.ts` | the probe | **none** | `RESEARCH-GATED` | UNKNOWN, and the exposure is already stored | -- | LAW 9 |
-| `shared/decision-atom.ts` | the record | **none now.** Exposure field is G1 | `RESEARCH-GATED` | schema change, needs D21 | X-0 | `GATE-EXPOSURE-CONTEXT` |
+| `shared/quiet-window.ts` | **new.** The one expression the ribbon and the write both read | `quietWindowExposure`, `producedUnderQuietWindow` | `REPO-CERTAIN`, lineage | none: the value is derived from the condition on screen | `a-row-that-cannot-say-which-screen-produced-it` | `GATE-QUIET-WINDOW-LINEAGE` |
+| `shared/decision-atom.ts` | the record | `quiet_window_exposure`, nullable. **The four other conditional exposures are still G1** | `REPO-CERTAIN` for this one; the rest `RESEARCH-GATED` | additive and nullable; `null` reads as *no condition recorded*, never as the control | same, plus ~38 fixtures | `GATE-ISO`, `GATE-QUIET-WINDOW-LINEAGE` |
+| `shared/measurement-protocol.ts` | the protocol version | `CURRENT_PROTOCOL_VERSION` 4 -> 5, with the three grounds | `REPO-CERTAIN` | it asserts the populations differ, which is the weaker claim | `prereg`, `said-once` | none |
+| `drizzle/schema.ts`, `drizzle/migrations/0019_*` | durable storage | the column, as a nullable enum | `REPO-CERTAIN` | none, additive | `drizzle-store` | `GATE-ISO` |
+| `client/src/lib/opponent.ts`, `client/src/lib/session-position.ts` | the other side | `Opponent` moves out of `Home.tsx`, where it was one of two copies of one shape | `REPO-CERTAIN` | none | `the-file-that-only-ever-grew` | none |
 | `shared/reveal.ts` | what the reveal may say | **none now.** Transferable distinction is G7 | `RESEARCH-GATED` | none if additive after closure | G7 | `GATE-GRADE` |
 | `scripts/inertia-scan.ts` | the focus gate | **none now.** Widening is G4 | `RESEARCH-GATED` | none | control must go red | `GATE-DECISION-FOCUS` |
-| `scripts/check_bundle_budget.ts` | the entry-chunk ceiling | +2 kB raw, with the measured delta and its cause | `REPO-CERTAIN` | none | `bundle:budget` | itself |
+| `scripts/check_bundle_budget.ts` | the entry-chunk ceiling | +2 kB raw, then +1 kB gzip, each with its measured delta and its cause | `REPO-CERTAIN` | none | `bundle:budget` | itself |
 | `research/ux-measurement/probes/` | measurement | added | `REPO-CERTAIN` | none, outside the build | not in `npm test` | none |
 | `docs/VALUE_CLARITY_FIELD_PROTOCOL.md` | frozen | **none** | frozen | -- | -- | -- |
 

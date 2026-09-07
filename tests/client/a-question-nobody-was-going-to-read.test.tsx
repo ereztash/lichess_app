@@ -210,6 +210,7 @@ describe("a decision is complete without an answer nobody wanted", () => {
       { ...answered(), confidence: 6 },
       12,
       "per-decision",
+      "context-ribbon-visible",
       () => 0.1,
     );
     expect(
@@ -242,6 +243,7 @@ describe("nothing downstream reads a null as a number", () => {
     measurement_protocol: null,
     protocol_version: null,
     analysis_timing: null,
+    quiet_window_exposure: null,
     result: {
       engine_eval_cp: 0,
       engine_best_move: "g8f6",

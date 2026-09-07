@@ -29,9 +29,23 @@ opinion:
 
 `seconds_taken` deserves its own line because it is the field most easily forgotten. It is a
 detector axis -- `fast-under-45s` is a bucket the product's worked example is written about -- and
-**anything that appears on screen, at any point, changes it.** `declared-tensions.ts` records that
-one of its own rules once fired only on drafts under ten seconds old and had to be deleted for
-exactly this reason.
+**anything that appears on screen, at any point, creates a reactivity path to it.**
+
+**That sentence used to read "changes it", and the correction matters more than the wording.** Three
+different claims are available here and only two of them are available *to this repository*:
+
+| claim | who can make it |
+| --- | --- |
+| the surface is on screen while `seconds_taken` is being produced | **REPO** -- measured, and the ledger measures it |
+| such a surface *may* alter processing or time | **RESEARCH** -- a mechanism, argued from outside |
+| it *does* change `seconds_taken` | **FIELD or experiment**, and neither has been run |
+
+Nothing in this tree licenses the third. What the repository can say is that the path exists and is
+unrecorded, which is enough to justify the rule below without asserting an effect nobody measured.
+`declared-tensions.ts` records that one of its own rules once fired only on drafts under ten seconds
+old and had to be deleted: **note that it was deleted for creating the path, not for a measured
+effect** -- the exposure was recorded nowhere, so no effect could have been measured either way.
+That is the standard this document holds itself to.
 
 ---
 

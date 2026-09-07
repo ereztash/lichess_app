@@ -134,6 +134,13 @@
       "when": 1788179827532,
       "tag": "0018_damp_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1788789794367,
+      "tag": "0019_remarkable_argent",
+      "breakpoints": true
     }
   ]
 }

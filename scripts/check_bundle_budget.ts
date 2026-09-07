@@ -744,12 +744,39 @@ const INDEX = `${ROOT}/index.html`;
  * 690 AND 780 LEAVE 1.2 AND 1.4 kB, which is the order the raises above took. 689 would have left
  * 0.2, and a ceiling that a whitespace change can cross teaches people to re-run the check rather
  * than to read it.
+ *
+ * ---
+ *
+ * 216 -> 217: THE GZIP CEILING FIRES, AND IT IS THE FIRST ONE HERE THAT THE ENTRY CEILING DID NOT
+ * SEE FIRST. The raise above ended at 216.0 against 216 and wrote down that it was at zero
+ * headroom. This is the next change, and it crossed. Measured by stashing the whole branch and
+ * rebuilding on `dcfa580`:
+ *
+ *     entry, raw               688.8 -> 689.3 kB   +0.5   (ceiling 690, did not fire)
+ *     entry, gzipped           216.0 -> 216.1 kB   +0.1   (ceiling 216, FIRED)
+ *     initial download, raw    778.6 -> 779.1 kB   +0.5   (ceiling 780, did not fire)
+ *
+ * A TENTH OF A KILOBYTE, AND IT IS A PROVENANCE FIELD. `research/ux-measurement/PROTOCOL_LINEAGE.md`
+ * carries the reasoning. What is new in the entry chunk: `shared/quiet-window.ts`, which is one
+ * expression and two string constants; `exposureNow`; `quiet_window_exposure` in `ATOM_FIELDS` and
+ * in the zod object beside it; the `ContextRibbon` guard reading the shared expression instead of
+ * the flag; and the local record store carrying the field through. Against it, `Opponent` moved out
+ * of `Home.tsx` into `lib/opponent.ts` and stopped being written twice, which is a wash in bytes.
+ *
+ * WHY IT CANNOT BE DEFERRED. The field is stamped by `buildCommitEvent`, which is the commit path,
+ * and the ribbon guard renders on `DECIDE`. Both are the entry route by definition. Deferring the
+ * module would mean a decision could be committed before the code that says which screen produced
+ * it had loaded, which is the failure the field exists to prevent.
+ *
+ * 217 LEAVES 0.9 kB, the same order as every raise above. The standing warning the previous note
+ * left stands unchanged and is now on its second reader: this is the ceiling that runs out first,
+ * and the next change to cross it should ask what came out rather than what goes up.
  */
 
 const ENTRY_RAW_KB = 690;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 216;
+const ENTRY_GZIP_KB = 217;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *

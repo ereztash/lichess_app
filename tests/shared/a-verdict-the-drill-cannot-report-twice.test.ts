@@ -94,6 +94,7 @@ async function record(
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   await store.recordReveal(id, {
     engine_eval_cp: 10,
@@ -200,6 +201,7 @@ describe("a drill grades the positions it registered, or none", () => {
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
 
     const outcome = await service

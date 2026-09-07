@@ -173,6 +173,7 @@ describe("what counts as accurate is one rule", () => {
         measurementProtocol: null,
         protocolVersion: null,
         analysisTiming: null,
+        quietWindowExposure: null,
       });
       await store.recordReveal(id, {
         engine_eval_cp: EVAL_CP,

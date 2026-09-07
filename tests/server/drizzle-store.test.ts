@@ -53,6 +53,7 @@ function decision(index: number, overrides: Partial<CommitDecisionInput> = {}): 
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
     ...overrides,
   };
 }

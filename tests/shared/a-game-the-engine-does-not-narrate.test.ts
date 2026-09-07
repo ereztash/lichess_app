@@ -53,6 +53,7 @@ const event = (timing: RevealTiming | null, id = nextId()): CommitEvent => ({
   measurement_protocol: null,
   protocol_version: null,
   analysis_timing: null,
+  quiet_window_exposure: null,
   result: null,
   feedback: null,
 });

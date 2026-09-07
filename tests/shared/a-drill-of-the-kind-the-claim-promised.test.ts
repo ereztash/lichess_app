@@ -196,6 +196,7 @@ async function decide(
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   await store.recordReveal(id, {
     engine_eval_cp: 10,
@@ -366,6 +367,7 @@ describe("the decisions the drill is graded against are the ones it registered",
         measurementProtocol: null,
         protocolVersion: null,
         analysisTiming: null,
+        quietWindowExposure: null,
       });
       await store.recordReveal(id, {
         engine_eval_cp: 10,

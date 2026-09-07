@@ -34,6 +34,7 @@ import {
   findBoardsWithUncheckedAuthority,
   findPendingWorkLeaks,
   findReadingsOutsideTheirSurface,
+  findQuietWindowLineageGaps,
   findScreensWithTwoBoards,
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
@@ -167,6 +168,9 @@ function runVitestFile(
 /** Where the inertial controls live. Never scanned by a gate's real run. */
 const INERTIA_FIXTURES = "tests/fixtures/inertia";
 
+/** And for the quiet-window arm: a ribbon deciding it twice, and a row asserting the wrong one. */
+const LINEAGE_FIXTURES = "tests/fixtures/lineage";
+
 /** A whole repository in miniature, carrying the drifts the real registers actually had. */
 const REGISTER_FIXTURES = "tests/fixtures/registers";
 
@@ -194,6 +198,12 @@ const readingsOutside = (roots: string[]) =>
   fromFindings(
     findReadingsOutsideTheirSurface(roots),
     "every reading of the record renders from a surface whose mode permits one",
+  );
+
+const quietWindowLineage = (roots: string[]) =>
+  fromFindings(
+    findQuietWindowLineageGaps(roots),
+    "the arm is decided once, and every row says which screen produced it",
   );
 
 const twoBoards = (roots: string[]) =>
@@ -486,6 +496,7 @@ export const GATES: Gate[] = [
         measurementProtocol: "instrumented-standard",
         protocolVersion: 1,
         analysisTiming: "during-play",
+        quietWindowExposure: "context-ribbon-visible",
       });
       const atom = await store.getAtom(id);
       return isoPredicate(
@@ -849,6 +860,14 @@ export const GATES: Gate[] = [
       "A reading of the record renders only from a surface whose mode permits prior evidence.",
     run: () => readingsOutside(["client/src"]),
     positiveControl: () => readingsOutside([INERTIA_FIXTURES]),
+  },
+  {
+    id: "GATE-QUIET-WINDOW-LINEAGE",
+    rule: "LAW 12",
+    description:
+      "The quiet-window arm is decided in one place, and no row asserts an arm nobody observed.",
+    run: () => quietWindowLineage(["client/src"]),
+    positiveControl: () => quietWindowLineage([LINEAGE_FIXTURES]),
   },
   {
     id: "GATE-ONE-BOARD-ONE-STORY",

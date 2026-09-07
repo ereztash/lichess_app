@@ -15,6 +15,8 @@ import type { DecisionAtom, StatedParts } from "@shared/decision-atom";
 import { assignProbe } from "@shared/counterfactual";
 import type { RevealTiming } from "@shared/reveal-timing";
 import { CURRENT_PROTOCOL_VERSION } from "@shared/measurement-protocol";
+import { quietWindowExposure, type QuietWindowExposure } from "@shared/quiet-window";
+import { QUIET_EVIDENCE_WINDOW_ENABLED } from "@/lib/features";
 import { comparableCp, hasEvaluation, type EngineLine } from "@/lib/engine-line";
 import { classifyPhase } from "@shared/phase";
 import { composeStatement } from "./read-options";
@@ -229,6 +231,26 @@ export const engineMayRun = (stage: SessionStage): boolean => stage === "reveale
 export const makingEvidence = (stage: SessionStage): boolean => stage !== "revealed";
 
 /**
+ * The quiet-window arm as it stands for a decision being committed right now.
+ *
+ * IT LIVES HERE RATHER THAN AT THE CALL SITE, and `Home.tsx`'s line ceiling is only the occasion.
+ * The reason is that the two inputs belong to this module: `makingEvidence` is defined three lines
+ * up, and `buildCommitEvent` below is the thing that has to be handed an answer. A caller that
+ * assembled this expression itself would be a second place where the arm is decided, which is the
+ * one property `shared/quiet-window.ts` exists to deny.
+ *
+ * THE FLAG IS READ AND NOT PASSED, and `buildCommitEvent`'s argument is still required. That split
+ * is deliberate: the screen's real arm has exactly one source, and a test can still drive either
+ * arm by calling `buildCommitEvent` directly. A `buildCommitEvent` that read the flag itself could
+ * only ever be tested in whichever arm the build happened to be in.
+ */
+export const exposureNow = (stage: SessionStage): QuietWindowExposure =>
+  quietWindowExposure({
+    armEnabled: QUIET_EVIDENCE_WINDOW_ENABLED,
+    producingEvidence: makingEvidence(stage),
+  });
+
+/**
  * The commit event. Field names are the atom's, unchanged (section 3.1, GATE-ISO).
  *
  * `result` and `feedback` are typed as exactly `null`, not as nullable: at commit time the
@@ -265,6 +287,18 @@ export function buildCommitEvent(
    * that can never be pooled with either mode afterwards.
    */
   revealTiming: RevealTiming,
+  /**
+   * Which arm of the quiet-window experiment the screen was in, as `shared/quiet-window.ts`
+   * derives it.
+   *
+   * REQUIRED, AND BEFORE THE OPTIONAL ARGUMENT ON PURPOSE. `revealTiming` above says why the
+   * client is the only thing that knows; this is the same argument for a condition that
+   * `protocol_version` cannot express at all, because the arm is a build flag and a flag moves
+   * without a commit. A required parameter is the cheapest place to make "a row that cannot say
+   * which screen produced it" unrepresentable: there is no overload, no default and no
+   * `?? null`, so a caller has to have an answer before it can write anything.
+   */
+  quietWindow: QuietWindowExposure,
   draw: () => number = Math.random,
 ): CommitEvent {
   const problems = draftProblems(draft, position);
@@ -393,6 +427,8 @@ export function buildCommitEvent(
     measurement_protocol: "instrumented-standard",
     protocol_version: CURRENT_PROTOCOL_VERSION,
     analysis_timing: "during-play",
+    /* What was on screen, not what the experiment intended. See `shared/quiet-window.ts`. */
+    quiet_window_exposure: quietWindow,
     result: null,
     feedback: null,
   };

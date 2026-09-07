@@ -54,8 +54,12 @@ among them. **The rule is not being evaded. It was written over components and t
 
 Measured, non-board painted or pressable elements: 40 at DECIDE, 38 ready-to-commit, 25 at the
 counterfactual. The instrument accounts for 19, 17 and **4** of them. The remaining **21 are the
-same twenty-one every time** -- so at the counterfactual stage the question being asked is
-outnumbered five to one on its own screen.
+same twenty-one every time**.
+
+This is a count of painted elements: a `REPO` fact about the DOM and its geometry. It is not a claim
+that attention divides in that ratio. `rendered` is not `noticed`, `noticed` is not `understood`,
+and both steps are `FIELD`. What the count supports is that twenty-one surfaces are **available** to
+compete with the question at the moment it is asked.
 
 ### 2.5 One candidate refuted by its own measurement
 
@@ -257,6 +261,7 @@ repository work in place of it. Everything else stays behind the field gate.
 | the four contradiction fixes and their tests | `REPO-CERTAIN` |
 | a step head the sticky submit was covering, and a layout test whose aim is derived rather than a four-pixel coincidence | `REPO-CERTAIN` |
 | `QUIET_EVIDENCE_WINDOW_ENABLED`, **off**: the one arm that can falsify the leading architecture | `RESEARCH-GATED`, as an arm |
+| `CURRENT_PROTOCOL_VERSION` 4 → 5, and `quiet_window_exposure` on every decision | `REPO-CERTAIN` -- lineage, see `PROTOCOL_LINEAGE.md` |
 | a test that pins `stepsFor` to `draftProblems` so screen and validator cannot disagree again | `REPO-CERTAIN` |
 | the probes, the ledger, the boundary, the alternatives, this record | documentation |
 | `FIELD_COMPANION_PROTOCOL.md`, adding arms and rewording none | documentation |

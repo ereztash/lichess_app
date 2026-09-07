@@ -52,6 +52,7 @@ const atom = (over: { probe?: Probe | null; cpLoss?: number; evalCp?: number } =
   measurement_protocol: null,
   protocol_version: null,
   analysis_timing: null,
+  quiet_window_exposure: null,
   result: {
     engine_eval_cp: over.evalCp ?? 15,
     engine_best_move: "e2e4",

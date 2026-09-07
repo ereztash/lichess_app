@@ -53,6 +53,7 @@ function event(over: { knownTyped?: string; unknownTapped?: string[] } = {}) {
     },
     12.4,
     "per-decision",
+    "context-ribbon-visible",
     () => 0.1,
   );
 }

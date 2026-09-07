@@ -31,6 +31,7 @@ import type {
   MeasurementProtocol,
 } from "@shared/measurement-protocol";
 import type { DecisionPurpose } from "@shared/confidence-asked";
+import type { QuietWindowExposure } from "@shared/quiet-window";
 import type {
   LearningRule,
   LearningTransfer,
@@ -869,6 +870,7 @@ function assemble(state: Persisted, row: StoredDecision): DecisionAtom {
     measurement_protocol: row.measurementProtocol ?? null,
     protocol_version: row.protocolVersion ?? null,
     analysis_timing: row.analysisTiming ?? null,
+    quiet_window_exposure: row.quietWindowExposure ?? null,
     result: state.reveals[row.decisionId] ?? null,
     feedback: feedback
       ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }
@@ -920,6 +922,8 @@ type StoredDecision = Omit<
   measurementProtocol?: MeasurementProtocol | null;
   protocolVersion?: number | null;
   analysisTiming?: AnalysisTiming | null;
+  /** Which arm the ribbon was in. Absent on a row stored before the field existed. */
+  quietWindowExposure?: QuietWindowExposure | null;
 };
 
 

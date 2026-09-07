@@ -299,6 +299,7 @@ describe("an incoming decision must say which scale it was stated on", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       result: null,
       feedback: null,
     } satisfies CommitEvent;
@@ -334,6 +335,7 @@ describe("an incoming decision must say which scale it was stated on", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       result: null,
       feedback: null,
     } satisfies CommitEvent);

@@ -23,7 +23,7 @@
 import { ANALYSIS_SOURCES, type AnalysisSource } from "@shared/analysis-source";
 import { STORAGE_KEYS } from "./storage-keys";
 import { REVEAL_TIMINGS, type RevealTiming } from "@shared/reveal-timing";
-import type { OpponentDepth } from "@/lib/opponent";
+import type { Opponent } from "@/lib/opponent";
 
 const KEY = STORAGE_KEYS.position.key;
 
@@ -41,7 +41,7 @@ export interface StoredPosition {
   /** Which way the board was facing. */
   orientation: "w" | "b";
   /** The opponent's configuration for a live game, or null for a loaded one. */
-  opponent: { playerColor: "w" | "b"; depth: OpponentDepth } | null;
+  opponent: Opponent | null;
   /** The id decisions in this game were recorded against, so a resumed game stays one game. */
   gameId: string;
   /**

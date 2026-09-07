@@ -54,11 +54,23 @@ export const EXPERIMENTAL_LEARNING_ENABLED =
  * the surface ledger's row is wrong, and the quiet window is wrong. An arm that can only confirm
  * would not be worth a flag.
  *
- * WHAT IT MAY NOT BECOME. A default. Turning it on changes the stimulus, and
- * `shared/measurement-protocol.ts` is unambiguous that a protocol whose rules change is two
- * populations -- so a build that sets this must also carry a `CURRENT_PROTOCOL_VERSION` bump, in
- * the same way LAW 1's decision focus did. That bump is deliberately NOT made here: making it now
- * would split the record for an arm nobody has run.
+ * HOW A ROW SAYS WHICH ARM IT WAS IN, and this paragraph replaces one that was wrong. It used to
+ * say that a build setting this flag must also carry a `CURRENT_PROTOCOL_VERSION` bump. That was a
+ * comment where an invariant was needed, and it could not have worked anyway: a flag moves without
+ * a commit, so two deployments of one source can differ in stimulus while agreeing on every version
+ * they carry, and the version cannot be derived from the flag either -- the constant lives in
+ * `shared/`, which may not read a `client/` build value.
+ *
+ * The arm carries its own lineage instead. `shared/quiet-window.ts` derives ONE exposure that both
+ * decides whether the ribbon renders and is stamped on the decision, so an ON row and an OFF row
+ * are distinguishable in the record itself whatever the version says. `GATE-QUIET-WINDOW-LINEAGE`
+ * holds the single-source property and
+ * `tests/shared/a-row-that-cannot-say-which-screen-produced-it.test.ts` holds the round trip.
+ *
+ * WHAT IT MAY STILL NOT BECOME. A default. Turning it on is a stimulus change, and one that should
+ * be made deliberately, as an experiment with an analysis attached -- see
+ * `research/ux-measurement/MEASUREMENT_REACTIVITY_EXPERIMENTS.md` X-5. What is no longer true is
+ * that the record would be unable to tell afterwards.
  */
 export const QUIET_EVIDENCE_WINDOW_ENABLED =
   import.meta.env.VITE_QUIET_EVIDENCE_WINDOW_ENABLED === "true";

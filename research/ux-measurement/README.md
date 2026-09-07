@@ -32,6 +32,7 @@ having used it. The product. Target as much as the evidence supports.
 | 6 | [`WORK_PLAN.md`](WORK_PLAN.md) | every task tagged `REPO-CERTAIN` / `RESEARCH-GATED` / `FIELD-GATED`, the change map, the do-not-change list, the stop condition |
 | 7 | [`MEASUREMENT_REACTIVITY_EXPERIMENTS.md`](MEASUREMENT_REACTIVITY_EXPERIMENTS.md) | the six experiments that could change a decision, in dependency order |
 | 8 | [`FIELD_COMPANION_PROTOCOL.md`](FIELD_COMPANION_PROTOCOL.md) | Arms D and E, added beside the frozen protocol, rewording nothing |
+| 9 | [`PROTOCOL_LINEAGE.md`](PROTOCOL_LINEAGE.md) | whether the repairs move `CURRENT_PROTOCOL_VERSION`, and how the quiet-window arm carries its own lineage |
 
 ## What shipped
 
@@ -47,8 +48,17 @@ Plus a step head the sticky submit was covering -- the layout suite was clearing
 -- and one experiment arm, `QUIET_EVIDENCE_WINDOW_ENABLED`, **off by default**, which is the single
 arm that can falsify the leading architecture rather than confirm it.
 
-Nothing else. No instrument changed, no threshold moved, no schema changed, no protocol version
-bumped.
+No instrument changed and no threshold moved.
+
+**Two lineage holes closed after review**, and they are the reason this is not just a copy pass:
+
+- `CURRENT_PROTOCOL_VERSION` **4 → 5**. Three of the repairs are on the versioning rule's own
+  forced-bump list, and the v4 exemption had expired by its own terms: production is serving a
+  build that stamps 4. `REPO-CERTAIN` and `protocol-significant` turn out to be different axes.
+- The quiet-window arm is a **build flag**, so two deployments of one commit could have shown two
+  screens under one version with nothing in the record to tell them apart. Every decision now
+  carries `quiet_window_exposure`, derived from the same expression that decides whether the ribbon
+  renders. A gate and a test each go red under a different half of that.
 
 ## What did not ship, and why
 

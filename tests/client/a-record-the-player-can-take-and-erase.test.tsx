@@ -89,6 +89,7 @@ const decision = {
   measurementProtocol: null,
   protocolVersion: null,
   analysisTiming: null,
+  quietWindowExposure: null,
 };
 
 describe("the record can be taken out and erased", () => {

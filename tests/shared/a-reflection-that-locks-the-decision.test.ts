@@ -78,6 +78,7 @@ async function revealedDecision(store: MemoryRecordStore) {
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   await store.recordReveal(SOURCE, {
     engine_eval_cp: 20,

@@ -129,6 +129,7 @@ describe("through the service, a drill is not built on a board already answered"
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
     // ...and they were told the answer.
     await store.recordReveal("already-decided", {

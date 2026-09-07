@@ -56,6 +56,7 @@ import { classifyPhase } from "./phase.js";
 import { plyFromFen, positionKey, samePosition } from "./position-key.js";
 import { isScoreable, scoreRecall } from "./recall-score.js";
 import type { CommitDecisionInput, FeedbackInput, RecordStore } from "./record-store.js";
+import type { QuietWindowExposure } from "./quiet-window.js";
 import { storedBlitzRecordSchema, type StoredBlitzRecord } from "./blitz-record.js";
 import type { DecisionPurpose } from "./confidence-asked.js";
 import { readRecord, type RecordReading } from "./record-dashboard.js";
@@ -184,6 +185,14 @@ export type CommitEvent = {
   measurement_protocol: MeasurementProtocol | null;
   protocol_version: number | null;
   analysis_timing: AnalysisTiming | null;
+  /**
+   * Which arm of the quiet-window experiment the screen was in. Null from a client that predates
+   * the field, and NOT DEFAULTED, for the reason `measurement_protocol` above states: a server that
+   * filled in the control arm for an unstamped client would manufacture the very fact the field
+   * exists to record, and the manufactured value would be indistinguishable afterwards from one a
+   * client actually reported.
+   */
+  quiet_window_exposure: QuietWindowExposure | null;
   result: null;
   feedback: null;
 };
@@ -470,6 +479,7 @@ export async function commitDecision(
     measurementProtocol: input.measurement_protocol,
     protocolVersion: input.protocol_version,
     analysisTiming: input.analysis_timing,
+    quietWindowExposure: input.quiet_window_exposure,
   };
   await store.commitDecision(row);
   // Deliberately returns no engine field of any kind.

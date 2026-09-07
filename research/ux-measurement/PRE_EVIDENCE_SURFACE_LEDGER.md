@@ -386,8 +386,19 @@ state `09-REVEAL`, and `.rail-button` and `.explore-toggle` with it.
 
 "Instrument" is `.commitment-*`, `.step-*`, `.required-mark`, `.screen-heading`, `.read-*` and
 `.counterfactual-probe__*`. **The same twenty-one non-instrument surfaces are present in every
-state**, so at the counterfactual stage the question being asked is outnumbered five to one on its
-own screen.
+state**, so at the counterfactual stage four of the twenty-five non-board surfaces are the question
+being asked and twenty-one are not.
+
+**That ratio is a count of painted elements and nothing more.** It is a `REPO` fact: geometry,
+presence, and what the DOM contains. It is **not** a claim that attention divides five to one, or
+that a player notices twenty-one things, or that the question receives a fifth of anything. The
+honest reading is *candidate perceptual competition*: twenty-one surfaces are available to compete,
+and whether any of them does is a question about a person.
+
+    rendered  is not  noticed
+    noticed   is not  understood
+
+Both steps are `FIELD`, and neither has been taken.
 
 **Fourteen `TEST` rows is not fourteen experiments.** They collapse into four, in the experiment
 backlog: attentional cueing (C12, C13), elicitation reactivity (C16, C17), record-state exposure

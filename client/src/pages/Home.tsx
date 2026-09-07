@@ -135,6 +135,7 @@ import {
   cpLossFromSearches,
   cpLossOfFinalMove,
   engineMayRun,
+  exposureNow,
   makingEvidence,
   namedTest,
   type DraftDecision,
@@ -166,6 +167,7 @@ import {
   DEFAULT_OPPONENT_DEPTH,
   OPPONENT_DEPTHS,
   OPPONENT_FAILURE_TEXT,
+  type Opponent,
   type OpponentDepth,
 } from "@/lib/opponent";
 import {
@@ -181,15 +183,6 @@ import { startLogin } from "@/const";
 import { CONFIDENCE_LEVELS } from "@shared/confidence";
 
 const INITIAL_STATUS: EngineStatus = { mode: "loading", detail: "המנוע ידלק אחרי ההחלטה" };
-
-/**
- * Who is playing the other side, if anyone.
- *
- * null is the original behaviour and stays the default for an imported or finished game: there
- * the other side's moves are already in the PGN and an opponent would be inventing a different
- * game. It is only a live game that needs someone across the board.
- */
-type Opponent = { playerColor: "w" | "b"; depth: OpponentDepth };
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -1209,6 +1202,7 @@ export default function Home() {
           draft,
           secondsTaken,
           timing,
+          exposureNow(stage),
         );
         await commitDecision.mutateAsync(event);
       } catch (error) {
@@ -1300,9 +1294,10 @@ export default function Home() {
       learningTransferStage,
       revealTiming,
       runReveal,
+      /* Read by `exposureNow`. A stale one would stamp a row with a window it was not taken in. */
+      stage,
     ],
   );
-
 
   /** Ask the server for a drill. The refutation condition is stored there before it returns. */
   const beginDrill = useCallback(
@@ -1626,13 +1621,6 @@ export default function Home() {
   };
 
   /**
-   * Load a game imported from Lichess by username.
-   *
-   * Source is "finished", not "imported": these are known-completed Lichess games, and the
-   * fair-play guard keys off the source. The decision record keeps the real Lichess game id, so
-   * a decision can be traced back to the game it was taken in.
-   */
-  /**
    * Review the whole game with the local engine.
    *
    * Deliberately NOT automatic. Analysing on load would put the engine's verdict on screen before
@@ -1668,6 +1656,13 @@ export default function Home() {
     }
   }, [ensureEngine, history]);
 
+  /**
+   * Load a game imported from Lichess by username.
+   *
+   * Source is "finished", not "imported": these are known-completed Lichess games, and the
+   * fair-play guard keys off the source. The decision record keeps the real Lichess game id, so
+   * a decision can be traced back to the game it was taken in.
+   */
   const loadLichessGame = (game: ImportedGame) => {
     try {
       const loaded = buildHistory(game.pgn);

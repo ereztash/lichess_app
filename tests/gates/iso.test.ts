@@ -31,6 +31,7 @@ async function reportFields(): Promise<string[]> {
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   const atom = await store.getAtom(decisionId);
   return Object.keys(atom!);

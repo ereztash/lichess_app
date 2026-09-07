@@ -4,7 +4,7 @@ This is the canonical human-readable catalog of the gates declared by [`scripts/
 
 The README is the repository's orientation layer; this document owns the detailed gate inventory. The test [`tests/docs/the-table-that-fell-behind.test.ts`](../tests/docs/the-table-that-fell-behind.test.ts) holds this table against the runner in both directions so a documented gate cannot silently disappear and a running gate cannot go undocumented.
 
-שלושים וחמישה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
+שלושים ושישה שערים, כל אחד נשלח עם בקרה חיובית שחייבת להיות מודגמת **אדומה**. שער שמעולם לא נכשל לא הוכח כשער.
 
 ```bash
 npm run gates            # must be green on the real repository
@@ -29,6 +29,7 @@ npm run gates:controls   # must go red on deliberately broken fixtures
 | GATE-KEYBOARD | 4.7 | הלוח כפי שנשלח: `role="grid"` בלי מטפל מקשים, ומודאל בלי מלכודת פוקוס |
 | GATE-NOTICE | L1 | גופן שנמסר בבנייה בלי שאיש כתב עליו הודעת רישוי |
 | GATE-DECISION-FOCUS | LAW 1 | מסך שמראה לשחקן קריאה מהרשומה בזמן שהוא מוסר את ההחלטה |
+| GATE-QUIET-WINDOW-LINEAGE | LAW 12 | מסך שמכריע את הזרוע פעם שנייה מתוך דגל הבנייה, ושורה שמצהירה על זרוע שאיש לא צפה בה |
 | GATE-ONE-BOARD-ONE-STORY | LAW 11 | שני לוחות במסך אחד, כלומר שתי תשובות לשאלה איפה אני |
 | GATE-BOARD-AUTHORITY | LAW 3 | לוח שמקבל מחווה באותו אופן בכל מצב, גם אחרי שההחלטה נרשמה |
 | GATE-CONTINUATION-IS-A-MOVE | O-2 | אירוע ההמשכיות של הניסוי נכתב ביותר ממקום אחד, או מסעיף שנקבע קבוע, או בלי להתייעץ עם ההגדרה |
