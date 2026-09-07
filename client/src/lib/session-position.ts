@@ -23,7 +23,7 @@
 import { ANALYSIS_SOURCES, type AnalysisSource } from "@shared/analysis-source";
 import { STORAGE_KEYS } from "./storage-keys";
 import { REVEAL_TIMINGS, type RevealTiming } from "@shared/reveal-timing";
-import type { OpponentDepth } from "@/lib/opponent";
+import type { Opponent } from "@/lib/opponent";
 
 const KEY = STORAGE_KEYS.position.key;
 
@@ -41,7 +41,7 @@ export interface StoredPosition {
   /** Which way the board was facing. */
   orientation: "w" | "b";
   /** The opponent's configuration for a live game, or null for a loaded one. */
-  opponent: { playerColor: "w" | "b"; depth: OpponentDepth } | null;
+  opponent: Opponent | null;
   /** The id decisions in this game were recorded against, so a resumed game stays one game. */
   gameId: string;
   /**
@@ -67,8 +67,33 @@ export interface StoredPosition {
    * matching by itself the moment the player moves on.
    */
   firstDecisionPly: number | null;
+  /**
+   * WHO PUT THIS POSITION HERE, so the board can say something true about it on restore.
+   *
+   * The board restores from this store on mount and phrased every restore as a return:
+   * "חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים". Both front-door routes hand over through this same
+   * store, so a stranger's very first arrival read as a resumption of a game they had never seen.
+   * Measured in Chromium on a fresh profile: entering through `עמדה מהסט המשותף` produced exactly
+   * that sentence, under the board, in the first state of the evidence window.
+   *
+   * A HANDOFF IS NOT A RETURN, and nothing on the object could tell them apart. `savedAt` cannot:
+   * a handoff written one second ago and a game left one second ago are the same timestamp.
+   * `gameId` cannot either, since a resumed anchor position carries the same id as the handoff
+   * that served it. This is the fact, so it is stored as one.
+   *
+   * NULL IS THE RETURN CASE and is what an older stored position parses to, which is correct:
+   * a position written by a previous build is one the player was on.
+   */
+  handover: PositionHandover | null;
   savedAt: string;
 }
+
+/**
+ * Where a stored position came from. Only the two front-door routes name themselves; the board's
+ * own periodic write leaves it null, because by then the player really was on it.
+ */
+export const POSITION_HANDOVERS = ["first-decision", "anchor"] as const;
+export type PositionHandover = (typeof POSITION_HANDOVERS)[number];
 
 /** Narrow an unknown blob from storage. A stored shape that changed is not a position. */
 function parse(raw: string): StoredPosition | null {
@@ -112,6 +137,12 @@ function parse(raw: string): StoredPosition | null {
     typeof v.firstDecisionPly === "number" && Number.isInteger(v.firstDecisionPly)
       ? v.firstDecisionPly
       : null;
+  /*
+   * Optional for the same reason, and with the same true default: a position with no handover
+   * recorded is one the player was on. An unrecognised value is null rather than a rejection --
+   * the position itself is still restorable and only the sentence under the board is affected.
+   */
+  const handover = POSITION_HANDOVERS.find((known) => known === v.handover) ?? null;
   return {
     sans: v.sans,
     ply: v.ply,
@@ -121,6 +152,7 @@ function parse(raw: string): StoredPosition | null {
     gameId: v.gameId,
     revealTiming,
     firstDecisionPly,
+    handover,
     savedAt: v.savedAt,
   };
 }

@@ -27,6 +27,19 @@ export const OPPONENT_DEPTHS = [1, 4, 8] as const;
 export type OpponentDepth = (typeof OPPONENT_DEPTHS)[number];
 export const DEFAULT_OPPONENT_DEPTH: OpponentDepth = 4;
 
+/**
+ * Who is playing the other side, if anyone.
+ *
+ * null is the original behaviour and stays the default for an imported or finished game: there
+ * the other side's moves are already in the PGN and an opponent would be inventing a different
+ * game. It is only a live game that needs someone across the board.
+ *
+ * IT LIVES HERE RATHER THAN IN `Home.tsx` because it had two definitions and they were the same
+ * shape written twice -- the component's own, and `session-position.ts`'s inline copy in the
+ * stored-session parse. One of them could have drifted while both kept compiling.
+ */
+export type Opponent = { playerColor: "w" | "b"; depth: OpponentDepth };
+
 /** Each refusal names its own cause. "The opponent did not move" would erase all four. */
 export type OpponentFailure = "game-over" | "no-move" | "illegal" | "engine-failed";
 

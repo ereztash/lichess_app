@@ -247,6 +247,7 @@ describe("pre-registration is only pre-registration if it precedes the decisions
         measurementProtocol: null,
         protocolVersion: null,
         analysisTiming: null,
+        quietWindowExposure: null,
       });
     }
     const saved = await registerHypothesis(store, {
@@ -340,6 +341,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
         measurementProtocol: null,
         protocolVersion: null,
         analysisTiming: null,
+        quietWindowExposure: null,
       });
       await store.recordReveal(id, {
         engine_eval_cp: 0,
@@ -397,6 +399,7 @@ describe("the narrowing stops narrowing once the ordinary scan is possible", () 
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
 
     const view = await currentClaim(store, { created_at: "2026-08-24T11:00:00.000Z" });
@@ -502,6 +505,7 @@ describe("the whole bridge, end to end", () => {
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
   }
 });

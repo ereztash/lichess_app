@@ -28,6 +28,7 @@ const atom = (over: Partial<DecisionAtom> = {}): DecisionAtom => ({
   measurement_protocol: null,
   protocol_version: null,
   analysis_timing: null,
+  quiet_window_exposure: null,
   result: {
     engine_eval_cp: 20,
     engine_best_move: "e2e4",

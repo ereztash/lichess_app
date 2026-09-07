@@ -50,6 +50,7 @@ const commit = () =>
     },
     12,
     "per-decision",
+    "context-ribbon-visible",
     () => 0.9,
   );
 

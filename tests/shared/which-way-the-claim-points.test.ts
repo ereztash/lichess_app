@@ -98,6 +98,7 @@ async function record(
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   await store.recordReveal(id, {
     engine_eval_cp: 10,

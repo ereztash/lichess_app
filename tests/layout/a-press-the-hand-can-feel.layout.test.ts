@@ -86,14 +86,46 @@ async function pressChanges(page: Page, selector: string): Promise<string[]> {
   if (!box) throw new Error(`${selector} has no box`);
   const read = () => page.$eval(selector, eval(`(${LOOK})`) as never) as Promise<Record<string, string>>;
   /*
-   * AIMED ABOVE CENTRE, AND THE TARGET IS VERIFIED.
+   * AIMED AT A POINT THE ELEMENT ACTUALLY OWNS, AND THE TARGET IS STILL VERIFIED.
    *
    * `.commitment-submit` is `position: sticky` and sits over the step heads at exactly the
    * coordinate a centre-aimed press lands on. The first run of this file reported the step head
    * as unchanged; it had never been pressed. A wrong target that reads as a negative result is
    * worse than a failure, so the press asserts it actually landed on the element it named.
+   *
+   * THE FIX FOR THAT WAS "TEN PIXELS FROM THE TOP", AND IT WAS PASSING BY FOUR. Measured on the
+   * built app at 1440x900 with the `known` step open: the confidence step head sat at y=833 and
+   * the sticky submit at y=847, so `833 + 10 = 843` cleared the button by four pixels. One extra
+   * wrapped line anywhere above it consumed all four, `elementFromPoint` at the aim returned
+   * `.commitment-submit`, and this file went red for a reason that was not about press feedback.
+   *
+   * So the aim is derived instead of chosen: walk down the element's own box for the first point
+   * hit-testing resolves to it or to something inside it. That is strictly stronger than the
+   * constant -- a control that is covered at EVERY point still finds nothing and still fails,
+   * which is the defect the assertion below is for -- and it does not spend a margin nobody knew
+   * was being spent.
    */
-  await page.mouse.move(box.x + box.width / 2, box.y + Math.min(10, box.height / 3));
+  const aim = await page.$eval(
+    selector,
+    (target) => {
+      const r = target.getBoundingClientRect();
+      const x = r.x + r.width / 2;
+      for (let y = r.y + 2; y < r.bottom - 1; y += 3) {
+        const hit = document.elementFromPoint(x, y);
+        if (hit && (hit === target || target.contains(hit))) return { x, y };
+      }
+      return null;
+    },
+  );
+  if (!aim) {
+    const covering = await page.$eval(selector, (target) => {
+      const r = target.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return hit ? (hit as HTMLElement).outerHTML.slice(0, 100) : "nothing";
+    });
+    throw new Error(`${selector} owns no hit-testable point; covered by: ${covering}`);
+  }
+  await page.mouse.move(aim.x, aim.y);
   await page.waitForTimeout(90);
   const before = await read();
   await page.mouse.down();

@@ -60,6 +60,8 @@ export async function serveNextBankPosition(
     orientation: next.sans.length % 2 === 0 ? "w" : "b",
     opponent: null,
     gameId: `anchor-${next.id}`,
+    /* A served bank position, not a game the player left. See `PositionHandover`. */
+    handover: "anchor",
     savedAt: new Date().toISOString(),
   };
   /*

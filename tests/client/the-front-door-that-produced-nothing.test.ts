@@ -45,6 +45,7 @@ const board: Omit<StoredPosition, "savedAt"> = {
   gameId: "lichess-abc",
   revealTiming: "per-decision",
   firstDecisionPly: 6,
+  handover: null,
 };
 
 describe("the first decision is asked, whatever the coin says", () => {

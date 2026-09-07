@@ -42,6 +42,7 @@ beforeEach(async () => {
     measurement_protocol: null,
     protocol_version: null,
     analysis_timing: null,
+    quiet_window_exposure: null,
     result: null,
     feedback: null,
   });

@@ -130,6 +130,8 @@ function toAtom(
     measurement_protocol: decision.measurementProtocol ?? null,
     protocol_version: decision.protocolVersion ?? null,
     analysis_timing: decision.analysisTiming ?? null,
+    /* Null on a row stored before the arm existed, which is a different fact from the control. */
+    quiet_window_exposure: decision.quietWindowExposure ?? null,
     result: reveal
       ? {
           engine_eval_cp: reveal.engineEvalCp,
@@ -1357,6 +1359,7 @@ export class MemoryRecordStore implements RecordStore {
       measurement_protocol: row.measurementProtocol ?? null,
       protocol_version: row.protocolVersion ?? null,
       analysis_timing: row.analysisTiming ?? null,
+      quiet_window_exposure: row.quietWindowExposure ?? null,
       result,
       feedback: feedback
         ? { revised_read: feedback.revisedRead, would_choose_again: feedback.wouldChooseAgain }

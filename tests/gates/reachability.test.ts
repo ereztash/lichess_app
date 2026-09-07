@@ -146,7 +146,9 @@ const HANDOFF = {
   measurementProtocol: null,
   protocolVersion: null,
   analysisTiming: null,
+  quietWindowExposure: null,
   firstDecisionPly: 6,
+  handover: null,
 };
 
 const FEN = "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4";
@@ -199,6 +201,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       },
       31.2,
       restored!.revealTiming,
+      "context-ribbon-visible",
     );
     expect(event.bounded_action.confidence, "the commit wrote no confidence").toBe(5);
 
@@ -223,6 +226,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       bounded_action: { ...event.bounded_action, confidence_scale: CONFIDENCE_LEVELS },
     } as unknown as DecisionAtom;
 
@@ -330,7 +334,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       { gameId, fen: START, ply: decisionPly, clockMsRemaining: null, purpose },
       { ...emptyDraft(), chosenMove: "e2e4", confidence: 5 },
       12.4,
-      "per-decision",
+      "per-decision", "context-ribbon-visible",
     );
     const atom = {
       ...event,
@@ -349,6 +353,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       bounded_action: { ...event.bounded_action, confidence_scale: CONFIDENCE_LEVELS },
     } as unknown as DecisionAtom;
 
@@ -404,6 +409,7 @@ describe("GATE-REACHABILITY: a new person can reach a measurement", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       result: null,
       feedback: null,
     });

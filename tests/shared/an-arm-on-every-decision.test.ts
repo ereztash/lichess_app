@@ -51,6 +51,7 @@ function event(probe: CommitEvent["probe"], id = nextId()): CommitEvent {
     measurement_protocol: null,
     protocol_version: null,
     analysis_timing: null,
+    quiet_window_exposure: null,
     result: null,
     feedback: null,
   };
@@ -112,6 +113,7 @@ describe("the arm is on the decision, not on the answer", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
     });
     expect((await store.getAtom(id))?.probe?.assignment).toBe("ineligible");
   });
@@ -316,6 +318,7 @@ describe("the service refuses an arm that contradicts itself", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       result: null,
       feedback: null,
     };

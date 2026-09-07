@@ -13,6 +13,7 @@ import {
   ANALYSIS_TIMINGS,
   MEASUREMENT_PROTOCOLS,
 } from "../shared/measurement-protocol.js";
+import { QUIET_WINDOW_EXPOSURES } from "../shared/quiet-window.js";
 import { DECISION_PURPOSES } from "../shared/confidence-asked.js";
 import { statedPartsSchema } from "../shared/decision-atom.js";
 import {
@@ -142,6 +143,14 @@ export const commitEventSchema = z.object({
   measurement_protocol: z.enum(MEASUREMENT_PROTOCOLS).nullable().default(null),
   protocol_version: z.number().int().positive().nullable().default(null),
   analysis_timing: z.enum(ANALYSIS_TIMINGS).nullable().default(null),
+  /*
+   * NULLABLE ON THE WIRE, REQUIRED AT THE WRITE, and the two are not in tension. This boundary has
+   * to accept a row from a client that predates the field -- `.default(null)` is what the four
+   * lines above it are for. What it must never accept is a NEW row that omits it, and that is
+   * enforced where it can be: `buildCommitEvent` takes the exposure as a required argument, so no
+   * client this build ships can produce an event without one. See `shared/quiet-window.ts`.
+   */
+  quiet_window_exposure: z.enum(QUIET_WINDOW_EXPOSURES).nullable().default(null),
   result: z.null(),
   feedback: z.null(),
 });

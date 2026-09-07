@@ -17,6 +17,7 @@ import { z } from "zod";
 import { CONFIDENCE_LEVELS } from "./confidence.js";
 import { DECISION_PURPOSES, readsAreAsked } from "./confidence-asked.js";
 import { REVEAL_TIMINGS } from "./reveal-timing.js";
+import { QUIET_WINDOW_EXPOSURES } from "./quiet-window.js";
 import {
   ANALYSIS_TIMINGS,
   MEASUREMENT_PROTOCOLS,
@@ -61,6 +62,14 @@ export const ATOM_FIELDS = [
   "measurement_protocol",
   "protocol_version",
   "analysis_timing",
+  /*
+   * LAST OF THE FIVE THAT SAY WHAT THE WORLD WAS LIKE, and it is here rather than beside
+   * `reveal_timing` because it is the newest and the group reads in the order the facts were
+   * learned. It answers a question `protocol_version` cannot: the quiet-window arm is a BUILD FLAG,
+   * so two deployments of one commit -- one version, one gitSha -- can show two different screens.
+   * See `shared/quiet-window.ts`.
+   */
+  "quiet_window_exposure",
   "result",
   "feedback",
 ] as const;
@@ -393,6 +402,23 @@ export const decisionAtomSchema = z.object({
    * instrumented blitz game that distinction is the whole measurement.
    */
   analysis_timing: z.enum(ANALYSIS_TIMINGS).nullable(),
+  /**
+   * Which arm of the quiet-window experiment this decision was produced under.
+   *
+   * NULLABLE FOR READ-BACK AND REQUIRED AT THE WRITE, and the asymmetry is the point. A row stored
+   * before this field existed recorded no condition; `null` says that and says nothing else, which
+   * is the standing every field in this group has and the reason `measurement-protocol.ts` refuses
+   * to backfill `legacy` into `instrumented-standard`. What is NOT permitted is a NEW row without
+   * one: `buildCommitEvent` takes the exposure as a required argument, so a decision this build
+   * writes cannot fail to say which screen produced it.
+   *
+   * WHY IT CANNOT BE `protocol_version` INSTEAD. The arm is `VITE_QUIET_EVIDENCE_WINDOW_ENABLED`, a
+   * build flag, and a flag moves without a commit -- so two deployments of one source can differ in
+   * stimulus while agreeing on every version they carry. Deriving the version from the flag is not
+   * available either: this constant lives in `shared/` and the flag is an `import.meta.env` value in
+   * `client/`, which `shared/` may not read.
+   */
+  quiet_window_exposure: z.enum(QUIET_WINDOW_EXPOSURES).nullable(),
   result: resultSchema.nullable(),
   feedback: feedbackSchema.nullable(),
 }).superRefine((atom, ctx) => {

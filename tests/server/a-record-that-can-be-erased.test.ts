@@ -47,6 +47,7 @@ describeDb("the server record is erased by scripts/purge.ts", () => {
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
     await db.execute(
       sql.raw("INSERT INTO `users` (openId, name) VALUES ('purge-owner', 'Owner') ON DUPLICATE KEY UPDATE name = 'Owner'"),

@@ -322,3 +322,86 @@ export function findPendingWorkLeaks(roots: string[], rootFile: string): Finding
   }
   return out;
 }
+
+/**
+ * A DECISION THAT CANNOT SAY WHICH SCREEN PRODUCED IT.
+ *
+ * WHAT THIS IS A GATE OVER, and why a test could not carry it. The quiet-window arm is a BUILD
+ * FLAG. Two deployments of one commit -- same `gitSha`, same `CURRENT_PROTOCOL_VERSION` -- can put
+ * two different screens in front of two players, so the version number cannot separate the
+ * populations and no amount of care in `features.ts` can make it. `shared/quiet-window.ts` closes
+ * that by deriving the render and the stored value from ONE expression. What is left to protect is
+ * the property that makes it work: that there is still only one expression.
+ *
+ * A test asserts the code is right today. This asserts nobody has added a second opinion -- which
+ * is a thing you do by ADDING, anywhere, at any time, and is the same argument the inertial gates
+ * above make for LAW 1.
+ *
+ * THE THREE WAYS IT COULD COME APART, and each is a finding here:
+ *
+ *   1. A SECOND SUPPRESSION PATH. Something other than `quietWindowExposure` decides whether the
+ *      ribbon renders -- `QUIET_EVIDENCE_WINDOW_ENABLED &&` used directly as a render condition.
+ *      Then the screen can be quiet while the row says visible, which is the exact state this
+ *      whole file exists to make unreachable.
+ *   2. A HARD-CODED ARM ON A WRITE PATH. `quiet_window_exposure: "context-ribbon-visible"` written
+ *      as a literal rather than passed through. That is a row asserting a condition nobody
+ *      observed, which is the failure `measurement-protocol.ts` refuses for `legacy` and
+ *      `record-service.ts` refuses for `measurement_protocol`.
+ *   3. THE RIBBON STOPS ASKING. `ContextRibbon` no longer calls `quietWindowExposure` at all, so
+ *      the stored value describes a decision the render never consulted.
+ *
+ * `exposureNow` IN `decision-session.ts` IS THE ONE PLACE THE FLAG MAY BE READ, and it is exempt by
+ * name rather than by pattern, so moving the read somewhere else is a finding rather than a
+ * refactor. Its own doc comment says why it is there.
+ */
+export function findQuietWindowLineageGaps(roots: string[]): Finding[] {
+  const out: Finding[] = [];
+  let ribbonAsked = false;
+  let ribbonSeen = false;
+  for (const root of roots) {
+    for (const file of sourceFiles(root)) {
+      const path = posix(relative(process.cwd(), file));
+      const source = read(file);
+      const lines = source.split("\n");
+
+      /* The one module allowed to turn the build flag into an exposure. */
+      const isDerivation = path.endsWith("/lib/decision-session.ts");
+      const isRibbon = /ContextRibbon\.tsx$/.test(path);
+      if (isRibbon) ribbonSeen = true;
+
+      lines.forEach((line, i) => {
+        if (!isDerivation && /QUIET_EVIDENCE_WINDOW_ENABLED\s*&&/.test(line)) {
+          out.push({
+            file: path,
+            line: i + 1,
+            text: "a second suppression path: the arm is read outside `exposureNow`",
+          });
+        }
+        if (/quiet_window_exposure\s*:\s*["'`]/.test(line)) {
+          out.push({
+            file: path,
+            line: i + 1,
+            text: "a hard-coded arm on a write path: the row would assert a condition nobody observed",
+          });
+        }
+      });
+
+      if (isRibbon && /quietWindowExposure\s*\(/.test(source)) ribbonAsked = true;
+    }
+  }
+  /*
+   * A CONTROL THAT FINDS NOTHING IS NOT A RED CONTROL, and the same hole `GATE-BOARD-AUTHORITY`
+   * and the toolbox gate both had: a root with no ribbon in it reports clean without ever having
+   * looked. The absence is a finding rather than a pass.
+   */
+  if (!ribbonSeen) {
+    out.push({ file: roots.join(", "), line: 1, text: "no ContextRibbon in this root at all" });
+  } else if (!ribbonAsked) {
+    out.push({
+      file: roots.join(", "),
+      line: 1,
+      text: "ContextRibbon never calls quietWindowExposure: the render and the row are two opinions",
+    });
+  }
+  return out;
+}

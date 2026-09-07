@@ -1,0 +1,1 @@
+ALTER TABLE `decisions` ADD `quiet_window_exposure` enum('context-ribbon-visible','context-ribbon-suppressed');

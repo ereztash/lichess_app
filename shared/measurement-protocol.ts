@@ -327,7 +327,112 @@ export type AnalysisTiming = (typeof ANALYSIS_TIMINGS)[number];
  * its sampling, the probe's rate, reveal timing, engine timing, thresholds, eligibility, scoring,
  * the measurement schema, and every control on `DECIDE`.
  */
-export const CURRENT_PROTOCOL_VERSION = 4;
+/*
+ * 4 -> 5: THE EXEMPTION EXPIRED, AND THE SCREEN CHANGED ANYWAY. THREE INDEPENDENT REASONS, EACH
+ * SUFFICIENT ON ITS OWN.
+ *
+ * ---
+ *
+ * REASON 1: THE PREMISE OF THE 4 EXEMPTION IS NOW FALSE, MEASURED RATHER THAN ASSUMED.
+ *
+ * The second-round note above says, in as many words: *"version 4 has never stamped a row ... 4
+ * exists only on an unmerged branch that has not been deployed"*, and then sets its own expiry:
+ * *"THIS EXPIRES THE MOMENT A BUILD STAMPING 4 REACHES A PLAYER. After that the next change to the
+ * same list is 5, whatever else is in flight, and no argument of this shape applies again."*
+ *
+ * It has. `878caf4` set this constant to 4 on 2026-09-01 and is an ancestor of `main`. Production
+ * answered, at the time this note was written:
+ *
+ *     GET https://lichessapp.vercel.app/api/health
+ *     {"ok":true,"build":{"gitSha":"2390b3510f798cd40e5ae5fd21573edb5e965181",
+ *                         "target":"production","protocolVersion":"1.0.0"},
+ *      "checks":{"storage":"not-configured"}}
+ *
+ * `2390b35` carries `CURRENT_PROTOCOL_VERSION = 4`, and so do `07ccd11` and `9d03bbb`, the two
+ * earlier production SHAs on the record. A build stamping 4 is public and has been for days.
+ *
+ * NOTE WHICH `protocolVersion` THAT IS. `build.protocolVersion: "1.0.0"` is the L6 runtime-truth
+ * contract in `docs/consolidation-research/hardening/TARGET_3_L6_RUNTIME_TRUTH.md`, not this
+ * constant. The health endpoint does not expose this one. They are different numbers with the same
+ * name and confusing them would settle this question the wrong way.
+ *
+ * AND THE 4 NOTE UNDERCOUNTED THE WRITERS. It says this constant is *"written in exactly one place,
+ * `shared/blitz-record.ts`"*. There are two, and the other is the one that matters:
+ * `client/src/lib/decision-session.ts` stamps `protocol_version` on EVERY commit event, which is
+ * every ordinary decision. The blitz path is the narrower of the two. That error is corrected here
+ * rather than left standing, because the exemption's arithmetic rested on it.
+ *
+ * ---
+ *
+ * REASON 2: WHETHER A DURABLE v4 ROW EXISTS IS UNKNOWABLE, AND THAT IS ARCHITECTURE RATHER THAN
+ * IGNORANCE.
+ *
+ * Asked properly, as three separate claims:
+ *
+ *     code capable of writing v4      YES, since 878caf4, on main
+ *     a deployment containing v4      YES, production is serving one now
+ *     a durable row stamped v4        NOT DETERMINABLE FROM ANY REACHABLE SOURCE
+ *
+ * The third is not an unanswered question, it is an unanswerable one. Production reports
+ * `checks.storage: "not-configured"`: there is no server record, so a v4 row can only exist in some
+ * visitor's own `localStorage`, which nobody can enumerate, export or query -- and which
+ * `docs/RETENTION.md` says is the point. Seven days of production runtime logs contain exactly one
+ * invocation, `/api/health`, and it is the probe quoted above. No dataset in this tree carries a
+ * row stamped 4.
+ *
+ * So the honest verdict is UNKNOWN, and an UNKNOWN that will still be unknown later. The cheap
+ * reading of that is "probably none, so no bump". The conservative one is that a version number
+ * costs a split and buys the ability to tell two populations apart, and only one of those is
+ * recoverable after the fact: a bump that turns out to have been unnecessary leaves two versions a
+ * later analysis may pool on purpose, while a bump that was needed and skipped leaves one version
+ * holding two stimuli and no way back.
+ *
+ * ---
+ *
+ * REASON 3: THE CHANGE IS ON THIS FILE'S OWN FORCED-BUMP LIST, WHICH IS THE REASON THAT WOULD
+ * STAND EVEN IF THE FIRST TWO DID NOT.
+ *
+ * The 3 -> 3 note names the list so a later reader can check rather than trust: *"any change to a
+ * class that paints on `DECIDE` or `ANSWER_INSTRUMENT` and is part of the instrument -- the board,
+ * the read chips, the confidence row, the step heads, `.commitment-summary`, `.commitment-submit`,
+ * `.board-note`, `.record-mode`, `.context-loop`."*
+ *
+ * Three of the five repairs land on it, and two of them remove or rewrite rather than restyle:
+ *
+ *   R1  On `purpose: "first"` the two READ STEPS are gone: two `.step-head`s, the `.read-chip`
+ *       menu and two `.required-mark`s no longer paint on `DECIDE`, and two fields the row could
+ *       have carried are no longer collectable there. Step heads and read chips are both named on
+ *       the list. This is the largest stimulus change any bump in this file has carried: every
+ *       previous one moved a colour, a size or a position.
+ *   R2  `.commitment-intro` is rewritten on every purpose and is now derived from the steps the
+ *       decision asks for. It is the instruction for the task that `seconds_taken` is measured to.
+ *       The 2 -> 3 bump counted "two sentences became legible" among its reasons, and those were
+ *       `.board-note` and `.record-mode`; this one is the sentence that says what to do.
+ *   R3  `.board-note` is rewritten on first arrival. Named on the list explicitly.
+ *   R5  `.commitment-step` gains `scroll-margin-block-end`. It paints nothing, and it changes where
+ *       this panel's own auto-advance lands a newly-opened step: above the sticky submit instead of
+ *       under it. What is on screen at the moment the next step is answered is different.
+ *
+ *   R4  is the one that does NOT force this, and it is recorded so the scope of the claim is
+ *       checkable. `WhatThisIs` is an overlay behind a press. It is not on screen while an answer
+ *       is given unless the player opens it, which is the same shape as the `.first-decision-note`
+ *       case the 3 -> 3 note declined to bump for. It rides along; it did not cause this.
+ *
+ * ---
+ *
+ * WHAT REMAINED IDENTICAL, stated because a version bump is also a claim about scope: the
+ * confidence scale and its sampling, `ASK_RATE`, the read vocabulary and its ordering, the
+ * counterfactual probe and its rate, `declaredTensions`, the candidate list, reveal timing, engine
+ * timing, thresholds, eligibility, scoring, the measurement schema apart from one nullable
+ * provenance field, and the order the questions are asked in. LAW 9's three friction points are
+ * untouched.
+ *
+ * AND ONE THING THIS BUMP DELIBERATELY DOES NOT COVER. The quiet-window arm ships off, and turning
+ * it on is a further stimulus change that this number cannot express, because a build flag can move
+ * without a commit. That is why the arm carries a per-row exposure field of its own rather than
+ * leaning on this constant -- see `shared/quiet-window.ts`.
+ */
+export const CURRENT_PROTOCOL_VERSION = 5;
 
 /**
  * What analysis timing a protocol is allowed to have.

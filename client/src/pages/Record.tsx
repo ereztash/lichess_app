@@ -178,6 +178,11 @@ function FirstDecision({
         orientation: decision.orientation,
         opponent: null,
         gameId: `${source}-${decision.gameId}`,
+        /*
+         * So the board does not greet a stranger with "חזרתם למשחק שהייתם בו". They have never
+         * seen this position; the handoff put it there a moment ago. See `PositionHandover`.
+         */
+        handover: "first-decision",
       });
       navigate("/play");
     } catch {

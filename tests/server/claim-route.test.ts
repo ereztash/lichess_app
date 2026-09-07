@@ -63,6 +63,7 @@ async function seed(count: number, reveal = true) {
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
     if (reveal) {
       await store.recordReveal(id, {

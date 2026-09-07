@@ -129,6 +129,7 @@ async function record(
     measurement_protocol: null,
     protocol_version: null,
     analysis_timing: null,
+    quiet_window_exposure: null,
     result: null,
     feedback: null,
   };
@@ -350,6 +351,7 @@ describe("a label with nothing behind it is not provenance", () => {
       measurement_protocol: null,
       protocol_version: null,
       analysis_timing: null,
+      quiet_window_exposure: null,
       result: null,
       feedback: null,
     });

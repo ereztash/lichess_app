@@ -53,3 +53,8 @@ research/system-invariant/work/
 # ones that run.
 scratch-*.ts
 scratch-*.tsx
+
+# Pre-evidence surface probe output: full DOM inventories and screenshots, rebuildable from
+# `research/ux-measurement/probes/*.mjs` against a build. The ledger beside them is the summary
+# and is what research/ux-measurement/PRE_EVIDENCE_SURFACE_LEDGER.md quotes.
+research/ux-measurement/probes/out/

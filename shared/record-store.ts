@@ -29,6 +29,7 @@ import type {
 } from "./learning-record.js";
 import type { Phase } from "./phase.js";
 import type { DecisionPurpose } from "./confidence-asked.js";
+import type { QuietWindowExposure } from "./quiet-window.js";
 import type { RevealTiming } from "./reveal-timing.js";
 import type {
   AnalysisTiming,
@@ -109,6 +110,16 @@ export interface CommitDecisionInput {
   protocolVersion: number | null;
   /** When the engine ran, which is not when the player was told. */
   analysisTiming: AnalysisTiming | null;
+  /**
+   * Which arm of the quiet-window experiment the screen was in.
+   *
+   * NULL MEANS "NOT RECORDED", not "control" -- the standing every field in this group has, and
+   * the one `probeAssignment` above spells out for the same reason. A row written before the field
+   * existed was never in the experiment; reading it as the visible arm would enrol it
+   * retrospectively into a group it was never part of, which is the failure
+   * `shared/quiet-window.ts` exists to prevent arriving from the other direction.
+   */
+  quietWindowExposure: QuietWindowExposure | null;
 }
 
 export interface FeedbackInput {

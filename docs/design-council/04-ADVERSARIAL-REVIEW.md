@@ -148,6 +148,18 @@ about them, written before the branch was pushed rather than after somebody else
 | R2-6 | **"It reads as an instrument rather than a form" is exactly the kind of perceptual claim this pass sends to FIELD, and it was not sent** | **conceded and corrected.** It is a `FIELD` question and it is now in the table below. What can be said without a field is narrower and is all that is claimed: the wizard-step badge is gone, the rows are one register, and no word, question, option or requirement changed |
 | R2-7 | **A review bot found a P1 in the first round's own work before any of this pass's measurements did, and it was right.** `.board-assembly` reserves a fixed 28px track; the evaluation instrument was given `min-inline-size: 6.75rem` and a fixed grid track does not grow for an item's minimum size, so the instrument overflowed 80px into the board's column. Measured at reveal: clearance 33px at 1440×900, **3px at 1280×800**, and **−80px at 390×844**, where the board painted over the gauge and the reading spilled out below it | **conceded, fixed, and the diagnosis is the useful part.** Every probe this pass ran measures ONE element — contrast, size, rank, squint mass, measure — and not one of them asks whether two elements are in the same place. That is the same shape as R2-1: a measurement programme is only as good as the questions it can express. The track is `6.75rem` now, reserved in both states so the board still does not move between them; on a phone the assembly is one column and the gauge lies down, which also returns 28px to the board. `tests/layout/the-instrument-and-the-board-it-measures.layout.test.ts` asserts disjointness at six viewports and that the gauge stays a proportion on whichever axis it runs along, demonstrated red on the shipped shape |
 
+
+**R2-4 has since expired and closed, and this row is left standing because that is what the register
+is for.** The answer above set its own trigger -- *"the moment a build stamping 4 reaches a player,
+the next change to the same list is 5"*. Production is serving a build that stamps 4
+(`GET /api/health` -> `gitSha 2390b35`, `target: production`), and the next change to the same list
+arrived: `research/ux-measurement/WORK_PLAN.md` R1-R3 each repaint a class the rule names.
+`CURRENT_PROTOCOL_VERSION` is **5**. The adversary's sentence *"the first exception to a rule is how
+the rule dies"* is the one that decided it: the exemption was not renewed, it was spent.
+`research/ux-measurement/PROTOCOL_LINEAGE.md` Parts 1 and 2 carry the reasoning, including the two
+factual errors in the exemption's own text -- its premise, and its claim that the constant is
+written in exactly one place, which was two.
+
 ---
 
 ## 5. What no pass could settle

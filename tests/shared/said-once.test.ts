@@ -62,6 +62,7 @@ async function commit(store: MemoryRecordStore, id: string, index: number, revea
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   if (reveal) {
     await store.recordReveal(id, {

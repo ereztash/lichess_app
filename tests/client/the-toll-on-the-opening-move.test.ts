@@ -103,7 +103,7 @@ describe("the opening decision does not charge for the words", () => {
 
   it("takes the answer when a first decision does give one", () => {
     const draft = { ...silent(), knownTags: ["המרכז פתוח"], unknown: "לא יודע איך הוא יענה" };
-    const event = buildCommitEvent("11111111-1111-4111-8111-111111111111", at("first"), draft, 9, "per-decision");
+    const event = buildCommitEvent("11111111-1111-4111-8111-111111111111", at("first"), draft, 9, "per-decision", "context-ribbon-visible");
     expect(event.known_parts).toEqual({ tapped: ["המרכז פתוח"], typed: "" });
     expect(event.unknown_parts).toEqual({ tapped: [], typed: "לא יודע איך הוא יענה" });
   });
@@ -111,7 +111,7 @@ describe("the opening decision does not charge for the words", () => {
 
 describe("an unanswered read is a hole, not a zero", () => {
   const event = () =>
-    buildCommitEvent("22222222-2222-4222-8222-222222222222", at("first"), silent(), 9, "per-decision");
+    buildCommitEvent("22222222-2222-4222-8222-222222222222", at("first"), silent(), 9, "per-decision", "context-ribbon-visible");
 
   it("writes null parts rather than an empty pair", () => {
     /*
@@ -132,7 +132,7 @@ describe("an unanswered read is a hole, not a zero", () => {
       at("play"),
       { ...silent(), knownTags: ["המרכז פתוח"], unknownTags: ["לא יודע איך הוא יענה"] },
       9,
-      "per-decision",
+      "per-decision", "context-ribbon-visible",
     );
     const reading = readVocabulary(
       [
@@ -182,6 +182,7 @@ describe("the schema keeps a guard where min(1) used to be", () => {
     measurement_protocol: null,
     protocol_version: null,
     analysis_timing: null,
+    quiet_window_exposure: null,
     result: null,
     feedback: null,
     ...over,

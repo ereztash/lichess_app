@@ -232,7 +232,7 @@ Examples include:
 
 A green test that has never been demonstrated red under the defect it claims to detect is not treated as sufficient evidence of discrimination.
 
-The current build carries **35 repository gates**, each paired with a deliberate positive control. The synchronized gate inventory lives in [`docs/GATES.md`](docs/GATES.md); the README intentionally does not duplicate it.
+The current build carries **36 repository gates**, each paired with a deliberate positive control. The synchronized gate inventory lives in [`docs/GATES.md`](docs/GATES.md); the README intentionally does not duplicate it.
 
 For the full assurance history and measurements, use the documents below rather than this README.
 

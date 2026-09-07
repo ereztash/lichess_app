@@ -85,6 +85,7 @@ async function recordPosition(
     measurementProtocol: null,
     protocolVersion: null,
     analysisTiming: null,
+    quietWindowExposure: null,
   });
   await store.recordReveal(id, result);
 }
@@ -166,6 +167,7 @@ describe("verified learning record", () => {
       measurementProtocol: null,
       protocolVersion: null,
       analysisTiming: null,
+      quietWindowExposure: null,
     });
     await expect(
       service.createLearningRule(
