@@ -34,6 +34,21 @@ import contract          # noqa: E402
 import corpus as corpuslib  # noqa: E402
 import populations       # noqa: E402
 
+REPLICATIONS = os.path.join(MECH, "replications")
+
+
+def promote(run_dir: str) -> str:
+    """Move an accepted probe into the tree and return its repo-relative path."""
+    dest = os.path.join(REPLICATIONS, os.path.basename(run_dir))
+    if os.path.abspath(run_dir) != os.path.abspath(dest):
+        if os.path.exists(dest):
+            raise SystemExit("%s already exists; refusing to overwrite a run directory" % dest)
+        shutil.move(run_dir, dest)
+    rel = os.path.relpath(dest, REPO)
+    if rel.startswith(".."):
+        raise SystemExit("%s resolves outside the repository; a member must live in the tree" % rel)
+    return rel
+
 
 def blitz_median_from_admissible(admissible_ndjson: str, focal_player_id: str) -> float | None:
     """The band-centre input `populations.focal_blitz_median_rating` reads, taken BEFORE any scoring.
@@ -73,7 +88,11 @@ RUN_ID = "COHORT"
 # Candidate probes happen OUTSIDE the repository. Most candidates are rejected on the band and
 # their probe is deleted; a probe is not repository content, and a walk that littered the tree with
 # transient run directories would make every commit during selection a lie about what exists.
-# `freeze_cohort.py` promotes the accepted ones into research/mechanism/replications/.
+#
+# An ACCEPTED probe is different: it is a cohort member from that moment, so it is promoted into the
+# tree immediately rather than at freeze time. That is not tidiness. Selection takes hours and the
+# scratch root does not outlive a session, so a member left in scratch is a member that can vanish
+# between the walk and the freeze, taking the frozen corpus it was accepted on with it.
 DEFAULT_PROBE_ROOT = os.environ.get(
     "COHORT_PROBE_ROOT",
     os.path.join(os.environ.get("TMPDIR", "/tmp"), "cohort_probes"))
@@ -235,7 +254,7 @@ def main() -> int:
         if is_residual:
             state["residual_slots_filled"] += 1
         state["accepted"].append({
-            "u": u, "player_id": r["player_id"], "run_dir": r["run_dir"],
+            "u": u, "player_id": r["player_id"], "run_dir": promote(r["run_dir"]),
             "window": window, "window_class": "RESIDUAL" if is_residual else "BROAD",
             "admissible": c["admissible"], "blitz_admissible": blitz_admissible,
             "speeds": c["speeds"], "blitz_median": med, "derived_band": list(band),

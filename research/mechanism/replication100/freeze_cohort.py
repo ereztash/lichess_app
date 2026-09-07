@@ -44,9 +44,9 @@ def main() -> int:
     dest_root = os.path.join(MECH, "replications")
     members = []
     for m in sel["accepted"]:
-        # Promote the probe into the repository. Selection writes probes outside it because most
-        # are rejected and deleted; the ones that became members are repository content from here
-        # on, and their paths must be the ones every later stage reads.
+        # Selection promotes an accepted probe into the tree the moment it is accepted, so a
+        # member should already be here. Moving one at freeze time is the fallback for a walk that
+        # ran under an older selector, and it is still guarded.
         d = m["run_dir"] if os.path.isabs(m["run_dir"]) else os.path.join(REPO, m["run_dir"])
         dest = os.path.join(dest_root, os.path.basename(d))
         if os.path.abspath(d) != os.path.abspath(dest):
