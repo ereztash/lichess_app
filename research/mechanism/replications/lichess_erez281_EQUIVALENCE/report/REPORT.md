@@ -7,8 +7,8 @@ a region survives a same-rating population model on games never used to find it.
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `06828afbc1405a839dfc983a065bcb10109c5e02` |
-| pipeline hash | `77a639f69f04ac43e6af3448c377472dcffe7d83021afe13ce658dcd9dd9fe5c` |
+| repo SHA | `9c0b99e73fc4467c7362b9df8eeb255b44828d5b` |
+| pipeline hash | `f0d7a3b5f30cb285a50d7374b026f5d1487a160deafdd4a0ff6822dd74b1ee67` |
 | run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_erez281_EQUIVALENCE` |
 
 ## PLAYER
@@ -45,13 +45,13 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 | frozen on DERIVE | n 8635 | rate in/out 24.6% / 13.9% | within-game +11.2 pp (z 19.96) |
 | judged on VALIDATE | n_in 2937 | rate in/out 25.7% / 13.8% | within-game +11.5 pp (z 11.24), residual z 8.56 |
-| stability | 56.7% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 0.8050378567268491) |
+| stability | 56.7% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 0.81) |
 
 ## HOLDOUT RESULT (TEST)
 
 - region on TEST: n_in 2812, rate in/out 24.1% / 13.6% (z 10.60)
-- held-out log-loss / AUC: baseline 0.42366645213680604 / 0.6641595369506429 → baseline + region 0.4189559695097325 / 0.682122955593817
-- within-game label-shuffle p for the region's gain: 0.0
+- held-out log-loss / AUC: baseline 0.4237 / 0.664 → baseline + region 0.4190 / 0.682
+- within-game label-shuffle p for the region's gain: 0.000 (200 draws)
 
 ## POPULATION COMPARISON
 
@@ -59,8 +59,8 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 - population corpus: `population_2026-06` — resolution `OK`
 - the same region in the population: raw +11.0 pp, residual +6.7 pp
 - per-side elevation across 456 population sides: mean +5.5 pp, sd +14.4 pp
-- this player sits at the 62th percentile of that distribution
-- leakage guard: {'population_rows_before': 34794, 'population_rows_after': 34794, 'focal_rows_removed': 0, 'focal_corpus': 'lichess:erez281', 'focal_keys': ['erez281']}
+- this player sits at the 62nd percentile of that distribution
+- leakage guard: 0 of 34794 population rows removed as the focal player's, before any model was fit
 
 ## PERSONAL RESIDUAL (R**)
 
@@ -68,7 +68,7 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 | frozen on DERIVE | n 3270 | rate in/out 19.5% / 7.0% | within-game +12.9 pp (z 17.19) |
 | judged on VALIDATE | n_in 1199 | rate in/out 19.9% / 7.1% | within-game +13.5 pp (z 9.69), residual z 4.52 |
-| stability | 80.0% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 1.0) |
+| stability | 80.0% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 1.00) |
 
 ## CANNOT INFER
 

@@ -1,6 +1,4 @@
 {
- "status": "PERSONAL_RESIDUAL_CANDIDATE",
- "failure_code": null,
  "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_erez281_EQUIVALENCE",
  "focal": {
   "platform": "lichess",
@@ -9,8 +7,8 @@
   "corpus": "lichess:erez281"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
- "pipeline_hash": "77a639f69f04ac43e6af3448c377472dcffe7d83021afe13ce658dcd9dd9fe5c",
+ "repo_sha": "9c0b99e73fc4467c7362b9df8eeb255b44828d5b",
+ "pipeline_hash": "f0d7a3b5f30cb285a50d7374b026f5d1487a160deafdd4a0ff6822dd74b1ee67",
  "corpus": {
   "fetched": 2209,
   "admissible": 2209,
@@ -27,6 +25,44 @@
    "ultraBullet": 3
   }
  },
+ "claim_ladder": [
+  [
+   "OBSERVATION",
+   "REPO",
+   "reachable: the region's contrast on games never used to find it"
+  ],
+  [
+   "PREDICTION",
+   "REPO",
+   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
+  ],
+  [
+   "SPECIFICITY",
+   "RESEARCH",
+   "reachable only through the population baseline; absent it, never"
+  ],
+  [
+   "CAUSALITY",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "INTERVENTION",
+   "OWNER",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "OUTCOME",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ]
+ ],
+ "reversal": {
+  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
+  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
+ },
+ "status": "PERSONAL_RESIDUAL_CANDIDATE",
+ "failure_code": null,
  "splits": {
   "DERIVE_decisions": 31851,
   "DERIVE_games": 1297,
@@ -96,7 +132,8 @@
      "est": 0.01758214770019845,
      "z": 7.235452175863771
     }
-   }
+   },
+   "target": "cls_tactical"
   },
   "personal_residual": {
    "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
@@ -138,7 +175,8 @@
      "est": 0.021801950482510195,
      "z": 5.666963555729401
     }
-   }
+   },
+   "target": "cls_hung_material"
   },
   "all_passing_residual": [
    {
@@ -181,7 +219,8 @@
       "est": 0.021801950482510195,
       "z": 5.666963555729401
      }
-    }
+    },
+    "target": "cls_hung_material"
    },
    {
     "region": "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[",
@@ -223,7 +262,8 @@
       "est": 0.021683867164116792,
       "z": 5.280466318803141
      }
-    }
+    },
+    "target": "cls_hung_material"
    },
    {
     "region": "opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1",
@@ -265,7 +305,51 @@
       "est": 0.0021084641384856405,
       "z": 0.8272879695216632
      }
-    }
+    },
+    "target": "cls_hung_material"
+   },
+   {
+    "region": "material_balance: [0:3[",
+    "region_depth3": null,
+    "collapse_jaccard": null,
+    "quality": 1.5498096010432487,
+    "depth": 1,
+    "n_derive": 10698,
+    "derive_err_in": 0.15844083006169377,
+    "derive_err_out": 0.16955684007707128,
+    "derive_wg_est": 0.0016009697569276382,
+    "derive_wg_z": 0.2529226738311127,
+    "derive_resid_wg_in": 0.014983975360991213,
+    "stability_share_j60": 0.1,
+    "stability_median_j": 0.3452991452991453,
+    "validate": {
+     "n_in": 3837,
+     "n_out": 5752,
+     "p_in": 0.16497263487099295,
+     "p_out": 0.1754172461752434,
+     "diff": -0.01044461130425045,
+     "se": 0.009472625895980356,
+     "z": -1.1026099224168189,
+     "games_in": 342,
+     "wg_est": 0.0001824419247983256,
+     "wg_se": 0.011697412637473129,
+     "wg_z": 0.015596776009582291,
+     "wg_games": 336,
+     "pass": true,
+     "region": "material_balance: [0:3[",
+     "resid_wg_est": 0.04302794729463921,
+     "resid_wg_z": 4.10752211318642,
+     "secondary_wg": {
+      "est": 0.04915932239113271,
+      "z": 4.604502744969579,
+      "n_games": 336
+     },
+     "wp_loss_wg": {
+      "est": 0.013060518643359328,
+      "z": 5.0402575109575185
+     }
+    },
+    "target": "cls_tactical"
    }
   ]
  },
@@ -1013,41 +1097,5 @@
    }
   }
  },
- "claim_ladder": [
-  [
-   "OBSERVATION",
-   "REPO",
-   "reachable: the region's contrast on games never used to find it"
-  ],
-  [
-   "PREDICTION",
-   "REPO",
-   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
-  ],
-  [
-   "SPECIFICITY",
-   "RESEARCH",
-   "reachable only through the population baseline; absent it, never"
-  ],
-  [
-   "CAUSALITY",
-   "FIELD",
-   "NOT reachable by this pipeline under any result"
-  ],
-  [
-   "INTERVENTION",
-   "OWNER",
-   "NOT reachable by this pipeline under any result"
-  ],
-  [
-   "OUTCOME",
-   "FIELD",
-   "NOT reachable by this pipeline under any result"
-  ]
- ],
- "reversal": {
-  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
-  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
- },
- "finished_at": "2026-09-07T16:40:02Z"
+ "finished_at": "2026-09-07T16:44:15Z"
 }

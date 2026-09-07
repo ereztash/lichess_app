@@ -47,10 +47,16 @@ def passing(discovery) -> list[dict]:
         if not run:
             continue
         target = run.get("target")
-        for f in run.get("frozen", []):
-            if (f.get("validate") or {}).get("pass"):
-                out.append({**f, "target": f.get("target", target)})
-    return sorted(out, key=lambda f: -float(f.get("quality") or 0.0))
+        here = [{**f, "target": f.get("target", target)}
+                for f in run.get("frozen", []) if (f.get("validate") or {}).get("pass")]
+        # Inside one target, the frozen final-candidate rule: highest DERIVE quality among those
+        # that pass. ACROSS targets, quality is NOT comparable -- base rates differ, which is why
+        # the mission's own final-candidate rule (declared 15:50 UTC) refuses to compare them. So
+        # the caller's target order is the precedence, and it is the frozen one:
+        # contract.RESIDUAL_TARGETS puts the class R** was found on first, with the others reported
+        # beside it and never replacing it.
+        out.extend(sorted(here, key=lambda f: -float(f.get("quality") or 0.0)))
+    return out
 
 
 def corpus_sufficient(counts: dict) -> tuple[bool, list[str]]:
