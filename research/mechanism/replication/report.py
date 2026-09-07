@@ -31,6 +31,14 @@ def _fmt_z(x) -> str:
     return "n/a" if x is None else f"{float(x):.2f}"
 
 
+def _fmt_n(x, places: int = 4) -> str:
+    return "n/a" if x is None else f"{float(x):.{places}f}"
+
+
+def _ordinal(n: int) -> str:
+    return f"{n}{'th' if 11 <= n % 100 <= 13 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
 def _candidate_block(title: str, cand: dict | None) -> list[str]:
     if not cand:
         return [f"## {title}", "", "None.", ""]
@@ -45,7 +53,7 @@ def _candidate_block(title: str, cand: dict | None) -> list[str]:
         f"{_fmt_pct(v.get('p_out'))} | within-game {_fmt_pp(v.get('wg_est'))} "
         f"(z {_fmt_z(v.get('wg_z'))}), residual z {_fmt_z(v.get('resid_wg_z'))} |",
         f"| stability | {_fmt_pct(cand.get('stability_share_j60'))} of 30 game-level bootstrap "
-        f"winners share Jaccard >= 0.60 with it (median J {cand.get('stability_median_j')}) |",
+        f"winners share Jaccard >= 0.60 with it (median J {_fmt_n(cand.get('stability_median_j'), 2)}) |",
         "",
     ]
 
@@ -97,10 +105,12 @@ def render(state: dict) -> str:
         m = holdout.get("models") or {}
         L += [f"- region on TEST: n_in {rc.get('n_in')}, rate in/out {_fmt_pct(rc.get('p_in'))} / "
               f"{_fmt_pct(rc.get('p_out'))} (z {_fmt_z(rc.get('z'))})",
-              f"- held-out log-loss / AUC: baseline {m.get('M3_baseline', {}).get('logloss')} / "
-              f"{m.get('M3_baseline', {}).get('auc')} → baseline + region "
-              f"{m.get('M4_baseline_region', {}).get('logloss')} / {m.get('M4_baseline_region', {}).get('auc')}",
-              f"- within-game label-shuffle p for the region's gain: {holdout.get('shuffled_gain_p')}", ""]
+              f"- held-out log-loss / AUC: baseline {_fmt_n(m.get('M3_baseline', {}).get('logloss'))} / "
+              f"{_fmt_n(m.get('M3_baseline', {}).get('auc'), 3)} → baseline + region "
+              f"{_fmt_n(m.get('M4_baseline_region', {}).get('logloss'))} / "
+              f"{_fmt_n(m.get('M4_baseline_region', {}).get('auc'), 3)}",
+              f"- within-game label-shuffle p for the region's gain: "
+              f"{_fmt_n(holdout.get('shuffled_gain_p'), 3)} (200 draws)", ""]
     else:
         L += ["Not opened: no candidate reached it.", ""]
 
@@ -116,9 +126,12 @@ def render(state: dict) -> str:
               f"residual {_fmt_pp((pcmp.get('population') or {}).get('resid', {}).get('diff'))}",
               f"- per-side elevation across {per.get('n_sides')} population sides: mean "
               f"{_fmt_pp(per.get('elev_mean'))}, sd {_fmt_pp(per.get('elev_sd'))}",
-              f"- this player sits at the {(100 * per['focal_percentile']):.0f}th percentile of that distribution"
+              f"- this player sits at the {_ordinal(round(100 * per['focal_percentile']))} percentile "
+              f"of that distribution"
               if per.get("focal_percentile") is not None else "",
-              f"- leakage guard: {pcmp.get('leakage_guard')}"]
+              f"- leakage guard: {(pcmp.get('leakage_guard') or {}).get('focal_rows_removed')} of "
+              f"{(pcmp.get('leakage_guard') or {}).get('population_rows_before')} population rows "
+              f"removed as the focal player's, before any model was fit"]
     L += [""]
 
     L += _candidate_block("PERSONAL RESIDUAL (R**)", v.get("personal_residual"))
