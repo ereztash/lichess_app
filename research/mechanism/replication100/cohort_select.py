@@ -236,7 +236,9 @@ def main() -> int:
         if c["admissible"] < window:
             state["rejected"].append({"u": u, "reason": "INSUFFICIENT_ELIGIBLE_GAMES",
                                       "admissible": c["admissible"], "needed": window,
-                                      "window_full": False})
+                                      "blitz_admissible": c["speeds"].get("blitz", 0),
+                                      "fetch_max": fetch_max, "window_full": False,
+                                      "seconds": round(time.time() - t0, 1)})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
             continue
@@ -244,7 +246,9 @@ def main() -> int:
         med = blitz_median_from_admissible(
             os.path.join(r["run_dir"], "admissible", "games.ndjson"), r["player_id"])
         if med is None:
-            state["rejected"].append({"u": u, "reason": "NO_BLITZ_GAMES"})
+            state["rejected"].append({"u": u, "reason": "NO_BLITZ_GAMES",
+                                      "admissible": c["admissible"], "window": window,
+                                      "seconds": round(time.time() - t0, 1)})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
             continue
@@ -252,7 +256,12 @@ def main() -> int:
         if band not in bands:
             state["rejected"].append({"u": u, "reason": "POPULATION_BASELINE_INSUFFICIENT",
                                       "blitz_median": med, "derived_band": list(band),
-                                      "screen_predicted_band": m["band_now"]})
+                                      "screen_predicted_band": m["band_now"],
+                                      "admissible": c["admissible"],
+                                      "blitz_admissible": c["speeds"].get("blitz", 0),
+                                      "window": window, "fetch_max": fetch_max,
+                                      "window_full": c["admissible"] >= window,
+                                      "seconds": round(time.time() - t0, 1)})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
             continue
