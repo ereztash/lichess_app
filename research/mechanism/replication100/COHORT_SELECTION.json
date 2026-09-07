@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-07T21:42:39Z",
- "cursor": 4,
+ "cursor": 5,
  "accepted": [],
  "rejected": [
   {
@@ -63,6 +63,25 @@
    "fetch_max": 4584,
    "window_full": true,
    "seconds": 185.9
+  },
+  {
+   "u": "hhani",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1523.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1300,
+    1700
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2199,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 186.0
   }
  ],
  "prefiltered": {
