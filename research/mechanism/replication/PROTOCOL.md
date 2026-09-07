@@ -116,6 +116,12 @@ run then looks for a **registered** population corpus with that exact band and t
 controls. There is no "near enough" band: a mismatched band would silently redefine what "a
 same-rating player" means.
 
+Readiness is therefore about the **derived band**, not about the rating. A blitz median of 1500 sits
+inside the registered 1450–1850 corpus and still derives 1300–1700, which is not registered, so that
+player is not ready. With `population_2026-06` as the only entry, the admissible window is an
+integer blitz median of 1626–1674 (1625 rounds down to 1600 under banker's rounding). The predicate
+lives in `readiness.py` and the gate checks both cases.
+
 No registered corpus → `POPULATION_BASELINE_INSUFFICIENT`, and **no personal finding**. Peers are
 never selected to maximise a residual: the band is fixed by the player's rating before any search
 result is read, and the registry is a fixed list built before the run. The focal player is removed

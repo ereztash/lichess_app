@@ -419,9 +419,34 @@
      "result": "PASS"
     },
     {
-     "artifact": "columns differing bitwise",
+     "artifact": "columns differing bitwise (identity columns excluded)",
      "old": [],
      "new": [],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "corpus label is constant",
+     "old": 1,
+     "new": 1,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "corpus label is the one the run declared",
+     "old": "lichess:erez281",
+     "new": "lichess:erez281",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "player_key is unchanged",
+     "old": [
+      "erez281"
+     ],
+     "new": [
+      "erez281"
+     ],
      "tolerance": "exact",
      "result": "PASS"
     }
@@ -702,6 +727,924 @@
    ]
   },
   {
+   "check": "invariance",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "region",
+     "old": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "new": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "frame",
+     "old": "VALIDATE",
+     "new": "VALIDATE",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "overall n_in",
+     "old": 2937,
+     "new": 2937,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "overall n_out",
+     "old": 7689,
+     "new": 7689,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "overall p_in",
+     "old": 0.25672454885938034,
+     "new": 0.25672454885938034,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "overall p_out",
+     "old": 0.13837950318637013,
+     "new": 0.13837950318637013,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "overall diff",
+     "old": 0.11834504567301021,
+     "new": 0.11834504567301021,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "overall z",
+     "old": 11.593070031390454,
+     "new": 11.593070031390454,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "strata rows",
+     "old": 26,
+     "new": 26,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "strata keys",
+     "old": [
+      [
+       "clock_state",
+       "30-60s"
+      ],
+      [
+       "clock_state",
+       "<30s"
+      ],
+      [
+       "clock_state",
+       ">=60s"
+      ],
+      [
+       "color",
+       "b"
+      ],
+      [
+       "color",
+       "w"
+      ],
+      [
+       "eco_family",
+       "A"
+      ],
+      [
+       "eco_family",
+       "B"
+      ],
+      [
+       "eco_family",
+       "C"
+      ],
+      [
+       "eco_family",
+       "D"
+      ],
+      [
+       "era",
+       "2025"
+      ],
+      [
+       "material",
+       "endgame-material"
+      ],
+      [
+       "material",
+       "full"
+      ],
+      [
+       "material",
+       "reduced"
+      ],
+      [
+       "opp_last",
+       "after-capture"
+      ],
+      [
+       "opp_last",
+       "after-check"
+      ],
+      [
+       "opp_last",
+       "quiet"
+      ],
+      [
+       "phase",
+       "endgame"
+      ],
+      [
+       "phase",
+       "middlegame"
+      ],
+      [
+       "phase",
+       "opening"
+      ],
+      [
+       "speed",
+       "blitz"
+      ],
+      [
+       "speed",
+       "bullet"
+      ],
+      [
+       "speed",
+       "classical"
+      ],
+      [
+       "speed",
+       "rapid"
+      ],
+      [
+       "standing",
+       "level"
+      ],
+      [
+       "standing",
+       "losing"
+      ],
+      [
+       "standing",
+       "winning"
+      ]
+     ],
+     "new": [
+      [
+       "clock_state",
+       "30-60s"
+      ],
+      [
+       "clock_state",
+       "<30s"
+      ],
+      [
+       "clock_state",
+       ">=60s"
+      ],
+      [
+       "color",
+       "b"
+      ],
+      [
+       "color",
+       "w"
+      ],
+      [
+       "eco_family",
+       "A"
+      ],
+      [
+       "eco_family",
+       "B"
+      ],
+      [
+       "eco_family",
+       "C"
+      ],
+      [
+       "eco_family",
+       "D"
+      ],
+      [
+       "era",
+       "2025"
+      ],
+      [
+       "material",
+       "endgame-material"
+      ],
+      [
+       "material",
+       "full"
+      ],
+      [
+       "material",
+       "reduced"
+      ],
+      [
+       "opp_last",
+       "after-capture"
+      ],
+      [
+       "opp_last",
+       "after-check"
+      ],
+      [
+       "opp_last",
+       "quiet"
+      ],
+      [
+       "phase",
+       "endgame"
+      ],
+      [
+       "phase",
+       "middlegame"
+      ],
+      [
+       "phase",
+       "opening"
+      ],
+      [
+       "speed",
+       "blitz"
+      ],
+      [
+       "speed",
+       "bullet"
+      ],
+      [
+       "speed",
+       "classical"
+      ],
+      [
+       "speed",
+       "rapid"
+      ],
+      [
+       "standing",
+       "level"
+      ],
+      [
+       "standing",
+       "losing"
+      ],
+      [
+       "standing",
+       "winning"
+      ]
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "strata judged",
+     "old": 22,
+     "new": 22,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "strata with a positive raw elevation",
+     "old": 22,
+     "new": 22,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "strata differing in n_in, diff or z",
+     "old": [],
+     "new": [],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "leave-one-context-out rows",
+     "old": [
+      "clock_state=30-60s",
+      "clock_state=<30s",
+      "clock_state=>=60s",
+      "color=b",
+      "color=w",
+      "eco_family=A",
+      "eco_family=B",
+      "eco_family=C",
+      "eco_family=D",
+      "material=endgame-material",
+      "material=full",
+      "material=reduced",
+      "opp_last=after-capture",
+      "opp_last=after-check",
+      "opp_last=quiet",
+      "phase=endgame",
+      "phase=middlegame",
+      "phase=opening",
+      "speed=blitz",
+      "speed=bullet",
+      "speed=classical",
+      "speed=rapid",
+      "standing=level",
+      "standing=losing",
+      "standing=winning"
+     ],
+     "new": [
+      "clock_state=30-60s",
+      "clock_state=<30s",
+      "clock_state=>=60s",
+      "color=b",
+      "color=w",
+      "eco_family=A",
+      "eco_family=B",
+      "eco_family=C",
+      "eco_family=D",
+      "material=endgame-material",
+      "material=full",
+      "material=reduced",
+      "opp_last=after-capture",
+      "opp_last=after-check",
+      "opp_last=quiet",
+      "phase=endgame",
+      "phase=middlegame",
+      "phase=opening",
+      "speed=blitz",
+      "speed=bullet",
+      "speed=classical",
+      "speed=rapid",
+      "standing=level",
+      "standing=losing",
+      "standing=winning"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "leave-one-out rows differing",
+     "old": [],
+     "new": [],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "stability_loco",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "region",
+     "old": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "new": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "target",
+     "old": "cls_tactical",
+     "new": "cls_tactical",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "depth",
+     "old": 2,
+     "new": 2,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "variants",
+     "old": [
+      "drop color=w",
+      "drop eco_family=A",
+      "drop eco_family=C",
+      "drop eco_family=D",
+      "drop era=2021",
+      "drop era=2023",
+      "drop era=2025",
+      "drop phase=endgame",
+      "drop phase=opening",
+      "drop speed=bullet",
+      "drop speed=rapid",
+      "drop speed=ultraBullet",
+      "newer half of DERIVE",
+      "older half of DERIVE",
+      "random half 0",
+      "random half 1",
+      "random half 2"
+     ],
+     "new": [
+      "drop color=w",
+      "drop eco_family=A",
+      "drop eco_family=C",
+      "drop eco_family=D",
+      "drop era=2021",
+      "drop era=2023",
+      "drop era=2025",
+      "drop phase=endgame",
+      "drop phase=opening",
+      "drop speed=bullet",
+      "drop speed=rapid",
+      "drop speed=ultraBullet",
+      "newer half of DERIVE",
+      "older half of DERIVE",
+      "random half 0",
+      "random half 1",
+      "random half 2"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "re-derivations returning R* exactly (J = 1.00)",
+     "old": 12,
+     "new": 12,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "variants differing in winner, n or Jaccard",
+     "old": [],
+     "new": [],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "holdout_test",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "region",
+     "old": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "new": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "fit_on",
+     "old": "derive",
+     "new": "derive",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "n_fit",
+     "old": 31851,
+     "new": 31851,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "frames",
+     "old": [
+      "TEST"
+     ],
+     "new": [
+      "TEST"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] n",
+     "old": 10404,
+     "new": 10404,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] games",
+     "old": 432,
+     "new": 432,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] region n_in",
+     "old": 2812,
+     "new": 2812,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] region p_in",
+     "old": 0.2411095305832148,
+     "new": 0.2411095305832148,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] region p_out",
+     "old": 0.13580084299262382,
+     "new": 0.13580084299262382,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] region z",
+     "old": 10.602870020715017,
+     "new": 10.602870020715017,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] baseline gap gap_in",
+     "old": 0.044776128209251184,
+     "new": 0.04477612820882062,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] baseline gap gap_out",
+     "old": -0.028898820690836442,
+     "new": -0.02889882069064983,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] baseline gap diff",
+     "old": 0.07367494890008763,
+     "new": 0.07367494889947045,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] baseline gap z",
+     "old": 7.784480803030188,
+     "new": 7.784480802960652,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M0_history logloss",
+     "old": 0.44672666274045486,
+     "new": 0.44672666274045486,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M0_history auc",
+     "old": 0.5,
+     "new": 0.5,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M1_six_buckets logloss",
+     "old": 0.4451104562297473,
+     "new": 0.44511045622974726,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M1_six_buckets auc",
+     "old": 0.5332487312206695,
+     "new": 0.5332487312206695,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M2_context logloss",
+     "old": 0.4454236783289646,
+     "new": 0.44542367832896707,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M2_context auc",
+     "old": 0.5378805370613445,
+     "new": 0.5378805370613445,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M3_baseline logloss",
+     "old": 0.4236664521366596,
+     "new": 0.42366645213680604,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M3_baseline auc",
+     "old": 0.6641595369506429,
+     "new": 0.6641595369506429,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M4_baseline_region logloss",
+     "old": 0.41895596950973724,
+     "new": 0.4189559695097325,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M4_baseline_region auc",
+     "old": 0.682122955593817,
+     "new": 0.682122955593817,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M5_context_region logloss",
+     "old": 0.43816042017137424,
+     "new": 0.43816042017137424,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] M5_context_region auc",
+     "old": 0.5996018776891004,
+     "new": 0.5996018776891004,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] region gain over baseline",
+     "old": 0.004710482626922363,
+     "new": 0.00471048262707352,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] shuffled-label p",
+     "old": 0.0,
+     "new": 0.0,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[TEST] max shuffled gain",
+     "old": -0.0009085479501614313,
+     "new": -0.0009085479499039706,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "population_comparison",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "region",
+     "old": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "new": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "frame",
+     "old": "VALIDATE",
+     "new": "VALIDATE",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population n",
+     "old": 34794,
+     "new": 34794,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population games",
+     "old": 600,
+     "new": 600,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population sides",
+     "old": 1200,
+     "new": 1200,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population base_err",
+     "old": 0.14439271138702076,
+     "new": 0.14439271138702076,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population raw n_in",
+     "old": 8454,
+     "new": 8454,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population raw p_in",
+     "old": 0.22734800094629762,
+     "new": 0.22734800094629762,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population raw p_out",
+     "old": 0.11776765375854215,
+     "new": 0.11776765375854215,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population raw diff",
+     "old": 0.10958034718775547,
+     "new": 0.10958034718775547,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population raw z",
+     "old": 18.671604268309167,
+     "new": 18.671604268309167,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population residual resid_in",
+     "old": 0.051105708321177064,
+     "new": 0.05110570832117694,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population residual resid_out",
+     "old": -0.01636233371218543,
+     "new": -0.01636233371218548,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population residual diff",
+     "old": 0.06746804203336249,
+     "new": 0.06746804203336242,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population residual z",
+     "old": 12.555112950591347,
+     "new": 12.555112950591333,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal n",
+     "old": 10626,
+     "new": 10626,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw n_in",
+     "old": 2937,
+     "new": 2937,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw p_in",
+     "old": 0.25672454885938034,
+     "new": 0.25672454885938034,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw p_out",
+     "old": 0.13837950318637013,
+     "new": 0.13837950318637013,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw diff",
+     "old": 0.11834504567301021,
+     "new": 0.11834504567301021,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw z",
+     "old": 11.593070031390454,
+     "new": 11.593070031390454,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal residual under the population baseline resid_in",
+     "old": 0.061791981500925734,
+     "new": 0.06179198150092554,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal residual under the population baseline resid_out",
+     "old": -0.02575409718938607,
+     "new": -0.025754097189386187,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal residual under the population baseline diff",
+     "old": 0.08754607869031181,
+     "new": 0.08754607869031172,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal residual under the population baseline z",
+     "old": 8.450095238356218,
+     "new": 8.450095238356212,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "per-side count",
+     "old": 456,
+     "new": 456,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "per-side elevation mean",
+     "old": 0.05502490467562217,
+     "new": 0.05502490467562212,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "per-side elevation sd",
+     "old": 0.14383240099314593,
+     "new": 0.14383240099314593,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal elevation",
+     "old": 0.08754607869031181,
+     "new": 0.08754607869031172,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal percentile",
+     "old": 0.6162280701754386,
+     "new": 0.6162280701754386,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw elevation",
+     "old": 0.11834504567301021,
+     "new": 0.11834504567301021,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal raw percentile",
+     "old": 0.5855263157894737,
+     "new": 0.5855263157894737,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "leakage guard removed the focal corpus from the population frame",
+     "old": 0,
+     "new": 0,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "leakage guard names the focal corpus",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
    "check": "R_star_star_population_residual",
    "kind": "EQUIVALENCE",
    "result": "PASS",
@@ -934,6 +1877,361 @@
    ]
   },
   {
+   "check": "R_star_star_second_target",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "target",
+     "old": "cls_tactical",
+     "new": "cls_tactical",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "vocabulary",
+     "old": "OBS",
+     "new": "OBS",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "Node C depth",
+     "old": 1,
+     "new": 1,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "CV mean z depth 1",
+     "old": 3.3400504062588907,
+     "new": 3.3400504062588907,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "CV mean z depth 2",
+     "old": 2.51653523184231,
+     "new": 2.51653523184231,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "CV mean z depth 3",
+     "old": 2.4093883035737504,
+     "new": 2.4093883035737504,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population model holdout AUC",
+     "old": 0.7661212764145664,
+     "new": 0.7661212764145664,
+     "tolerance": "rel<=1e-06",
+     "result": "PASS"
+    },
+    {
+     "artifact": "frozen candidates",
+     "old": [
+      "standing=='level'",
+      "material_balance: [0:3[",
+      "n_good_captures>=1"
+     ],
+     "new": [
+      "standing=='level'",
+      "material_balance: [0:3[",
+      "n_good_captures>=1"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] n_derive",
+     "old": 9001,
+     "new": 9001,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] DERIVE within-game",
+     "old": -0.0002825243953970269,
+     "new": -0.0002825243953970269,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] stability share J>=0.60",
+     "old": 0.9,
+     "new": 0.9,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE n_in",
+     "old": 3246,
+     "new": 3246,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE p_in",
+     "old": 0.174060382008626,
+     "new": 0.174060382008626,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE p_out",
+     "old": 0.16979347311997478,
+     "new": 0.16979347311997478,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE wg_est",
+     "old": -0.004658140575938999,
+     "new": -0.004658140575938999,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE wg_z",
+     "old": -0.41308213877421274,
+     "new": -0.41308213877421274,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE resid_wg_z",
+     "old": 4.157328646942329,
+     "new": 4.157328646942329,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[standing=='level'] VALIDATE pass",
+     "old": false,
+     "new": false,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] n_derive",
+     "old": 10698,
+     "new": 10698,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] DERIVE within-game",
+     "old": 0.0016009697569276382,
+     "new": 0.0016009697569276382,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] stability share J>=0.60",
+     "old": 0.1,
+     "new": 0.1,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE n_in",
+     "old": 3837,
+     "new": 3837,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE p_in",
+     "old": 0.16497263487099295,
+     "new": 0.16497263487099295,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE p_out",
+     "old": 0.1754172461752434,
+     "new": 0.1754172461752434,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE wg_est",
+     "old": 0.0001824419247983256,
+     "new": 0.0001824419247983256,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE wg_z",
+     "old": 0.015596776009582291,
+     "new": 0.015596776009582291,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE resid_wg_z",
+     "old": 4.10752211318642,
+     "new": 4.10752211318642,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] n_derive",
+     "old": 8606,
+     "new": 8606,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] DERIVE within-game",
+     "old": 0.09282790352777433,
+     "new": 0.09282790352777433,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] stability share J>=0.60",
+     "old": 0.0,
+     "new": 0.0,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE n_in",
+     "old": 3076,
+     "new": 3076,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE p_in",
+     "old": 0.23862158647594278,
+     "new": 0.23862158647594278,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE p_out",
+     "old": 0.139413480730846,
+     "new": 0.139413480730846,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE wg_est",
+     "old": 0.09951015071385994,
+     "new": 0.09951015071385994,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE wg_z",
+     "old": 10.028061672051503,
+     "new": 10.028061672051503,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE resid_wg_z",
+     "old": 1.5012974133893968,
+     "new": 1.5012974133893968,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures>=1] VALIDATE pass",
+     "old": false,
+     "new": false,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "bootstrap winner table",
+     "old": {
+      "standing=='level'": 27,
+      "material_balance: [0:3[": 3
+     },
+     "new": {
+      "standing=='level'": 27,
+      "material_balance: [0:3[": 3
+     },
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "classifier_verdict",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "output class",
+     "old": "PERSONAL_RESIDUAL_CANDIDATE",
+     "new": "PERSONAL_RESIDUAL_CANDIDATE",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "R* region",
+     "old": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "new": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "R** region",
+     "old": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "new": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "R** target",
+     "old": "cls_hung_material",
+     "new": "cls_hung_material",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "residual targets, in frozen precedence order",
+     "old": [
+      "cls_hung_material",
+      "cls_tactical"
+     ],
+     "new": [
+      "cls_hung_material",
+      "cls_tactical"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "the highest-precedence passing candidate is R**",
+     "old": [
+      "cls_hung_material",
+      "material_balance: [0:3[ AND own_overloaded_piece_count>=1"
+     ],
+     "new": [
+      "cls_hung_material",
+      "material_balance: [0:3[ AND own_overloaded_piece_count>=1"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
    "check": "final_evidence_state",
    "kind": "EQUIVALENCE",
    "result": "PASS",
@@ -1057,6 +2355,173 @@
       1000,
       1400
      ],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "classifier_precedence",
+   "kind": "DISCRIMINATION",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "a lower-quality primary-target candidate still comes first",
+     "old": [
+      "cls_hung_material",
+      "PRIMARY_LOW_QUALITY"
+     ],
+     "new": [
+      "cls_hung_material",
+      "PRIMARY_LOW_QUALITY"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "target order is the frozen precedence, not the quality order",
+     "old": [
+      "cls_hung_material",
+      "cls_tactical"
+     ],
+     "new": [
+      "cls_hung_material",
+      "cls_tactical"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "within one target, quality still orders the candidates",
+     "old": [
+      "PRIMARY_LOW_QUALITY",
+      "PRIMARY_LOWER"
+     ],
+     "new": [
+      "PRIMARY_LOW_QUALITY",
+      "PRIMARY_LOWER"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "every passing candidate is kept, none dropped",
+     "old": 3,
+     "new": 3,
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "readiness_semantics",
+   "kind": "DISCRIMINATION",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "integer medians that derive the registered band",
+     "old": [
+      1626,
+      1674
+     ],
+     "new": [
+      1626,
+      1674
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1500 derives",
+     "old": [
+      1300,
+      1700
+     ],
+     "new": [
+      1300,
+      1700
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1500 is inside the registered band 1450-1850",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1500 is NOT ready",
+     "old": false,
+     "new": false,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "and the blocker names the population baseline",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1654 derives",
+     "old": [
+      1450,
+      1850
+     ],
+     "new": [
+      1450,
+      1850
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1654 IS ready",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1625 derives",
+     "old": [
+      1400,
+      1800
+     ],
+     "new": [
+      1400,
+      1800
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "median 1625.5 derives",
+     "old": [
+      1450,
+      1850
+     ],
+     "new": [
+      1450,
+      1850
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "a red gate blocks readiness",
+     "old": false,
+     "new": false,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "no enumeration blocks readiness",
+     "old": false,
+     "new": false,
      "tolerance": "exact",
      "result": "PASS"
     }

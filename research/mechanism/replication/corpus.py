@@ -81,6 +81,12 @@ def pipeline_version() -> dict:
         "research/mechanism/replication/contract.py",
         "research/mechanism/replication/eligibility.py",
         "research/mechanism/replication/classify.py",
+        # `populations.py` resolves the focal player's band and therefore decides what "a
+        # same-rating player" means; `run.py` holds the frozen stage arguments; `readiness.py`
+        # holds the predicate that says who may be run at all. All three are research content.
+        "research/mechanism/replication/populations.py",
+        "research/mechanism/replication/readiness.py",
+        "research/mechanism/replication/run.py",
     ]
     per_file = {}
     for rel in files:

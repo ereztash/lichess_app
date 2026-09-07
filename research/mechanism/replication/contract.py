@@ -180,7 +180,12 @@ POPULATION_CONTRACT = {
 
 
 def population_band(blitz_median_rating: float) -> tuple[int, int]:
-    """The focal player's same-rating band. erez281 (blitz median 1654) -> (1450, 1850)."""
+    """The focal player's same-rating band. erez281 (blitz median 1654) -> (1450, 1850).
+
+    The band is centred on the PLAYER, so a rating lying inside a registered band does not make that
+    band the player's own: a blitz median of 1500 derives (1300, 1700), not (1450, 1850). Readiness
+    is decided by the derived band, never by containment -- see `readiness.py`.
+    """
     centre = int(round(float(blitz_median_rating) / 50.0) * 50)
     h = POPULATION_CONTRACT["band_halfwidth"]
     return centre - h, centre + h

@@ -110,7 +110,17 @@ committed frozen scored corpus rather than trusting a file on disk.
 
 ## 6. First-new-player readiness
 
-**Yes, for a lichess account whose blitz median rating is 1450–1850, given a game-id source.**
+**Yes, for a lichess account whose *derived population band* is one the registry holds, given a
+game-id source.**
+
+That is not the same as "rating inside 1450–1850", and the difference is not cosmetic. The band is
+centred on the player: `round(median blitz rating / 50) * 50 ± 200`. A player whose blitz median is
+1500 lies comfortably inside 1450–1850 and is nevertheless **not** ready, because their derived band
+is 1300–1700, which no registered corpus covers. With `population_2026-06` the only registered
+corpus, the admissible window is `round(median/50)*50 == 1650`, i.e. an integer blitz median of
+**1626–1674** (1625 rounds down to 1600 under Python's banker's rounding and lands on 1400–1800;
+1625.5 rounds to 1650). The predicate is machine-readable in `readiness.py` and checked by the gate
+(`readiness_semantics`).
 
 What has actually been run, not just written:
 
@@ -134,9 +144,10 @@ corpus is **~1.2 hours** of scoring, then ~1.5 min of feature extraction and ~15
    ago. Without a token, a run must be given an id list (`--ids-file`), which the `_ids` endpoint
    then fetches without authentication. This is environment configuration, not a research gap, and
    the runner fails with `FETCH_FAILED` naming the remedy rather than half-fetching.
-2. **The population registry holds one band.** `population_2026-06` covers 1450–1850 blitz. A player
-   outside it gets `POPULATION_BASELINE_INSUFFICIENT` and **no personal finding** — the correct
-   answer, not a bug. `build_population.py` builds a new band's corpus; its filter is verified (all
+2. **The population registry holds one band.** `population_2026-06` covers 1450–1850 blitz, which
+   the rule derives only for blitz medians of 1626–1674. Every other player, including one whose
+   rating sits inside 1450–1850, gets `POPULATION_BASELINE_INSUFFICIENT` and **no personal
+   finding** — the correct answer, not a bug. `build_population.py` builds a new band's corpus; its filter is verified (all
    600 frozen games satisfy it, drawn from the same 80 MB prefix), but its **sampler is an
    `AMBIGUOUS_BASELINE`**: the ledger records only "hash-sampled with seed string `20260905:<gameId>`",
    and ordering by `sha256("20260905:<gameId>")` recovers 143 of the frozen 600 — far above the ~18

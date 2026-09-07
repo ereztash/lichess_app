@@ -78,6 +78,7 @@ research/mechanism/replications/lichess_<username>_<run-id>/
 | `eligibility.py` | Phase 5. `admissible()` from `scripts/build_import_corpus.ts`, transcribed with the baseline's own reason precedence, then the scorer's `variant == "standard"` filter, counted separately |
 | `corpus.py` | Phase 6. Run directory, manifest, pre-registration, repo SHA, pipeline hash |
 | `populations.py` + `registry/populations.json` | Phase 11. The focal player's band, and the registered corpora that can serve it |
+| `readiness.py` | the machine-readable readiness predicate. Readiness is **the derived band being registered**, never the rating lying inside a registered band |
 | `build_population.py` | builds a population corpus for a new band, so `POPULATION_BASELINE_INSUFFICIENT` is a missing asset and not a dead end. The filter is verified against the frozen corpus; the sampler is a declared `AMBIGUOUS_BASELINE` (see its docstring) |
 | `classify.py` | Phase 13. The four output classes, decided by the already-frozen judge and no new threshold |
 | `report.py` | Phase 17. One fixed report shape, with the claim ladder printed on every run |
@@ -101,6 +102,23 @@ Failure codes: `USER_NOT_FOUND`, `NO_PUBLIC_GAMES`, `INSUFFICIENT_ELIGIBLE_GAMES
 `INSUFFICIENT_CORPUS`, `POPULATION_BASELINE_INSUFFICIENT`, `ENGINE_FAILURE`,
 `PIPELINE_EQUIVALENCE_FAILED`, `PLATFORM_UNSUPPORTED`, `FETCH_FAILED`. A stack trace is never a
 research conclusion.
+
+## Who is ready
+
+```
+PLAYER_READY =
+    platform is supported
+AND the corpus carries blitz games
+AND the corpus is sufficient under contract.MIN_CORPUS
+AND round(median blitz rating / 50) * 50 ± 200  is a band the registry holds
+AND game enumeration is available for the account
+AND GATE-GENERIC-PIPELINE-EQUIVALENCE is GREEN on the head being run
+```
+
+The fourth line is the one that is easy to get wrong. The band is centred on the player, so a blitz
+median of 1500 derives 1300–1700 and is **not** covered by the 1450–1850 corpus, even though 1500
+lies inside it. With today's registry the admissible window is an integer blitz median of
+**1626–1674**. `python readiness.py --window` prints it; the gate checks it.
 
 ## The gate
 
