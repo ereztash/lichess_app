@@ -116,7 +116,7 @@ def population_members() -> set[str]:
     return ids
 
 
-def try_candidate(username: str, window: int, root: str) -> dict:
+def try_candidate(username: str, window: int, fetch_max: int, root: str) -> dict:
     """Everything up to the derived band, and not one step further."""
     d = corpuslib.run_dir("lichess", username, RUN_ID, root)
     cmd = [PY, os.path.join(REPL, "run.py"), "--platform", "lichess", "--username", username,
@@ -124,7 +124,8 @@ def try_candidate(username: str, window: int, root: str) -> dict:
            "--stop-after", "FREEZE"]
     if root:
         cmd += ["--root", root]
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
+    env = dict(os.environ, REPLICATION_FETCH_MAX_GAMES=str(fetch_max))
+    p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800, env=env)
     res_path = os.path.join(d, "report", "RESULT.json")
     if not os.path.exists(res_path):
         return {"accepted": False, "reason": "RUN_FAILED", "run_dir": d,
@@ -159,8 +160,12 @@ def main() -> int:
     adm_rate = plan["ingestion_reach"]["admissible_rate"]
     # Selection gate, in the unit that is knowable before scoring. The decision-count denominators
     # are computed after scoring, per the prereg; this gate only has to guarantee they CAN be met.
-    min_admissible = int(round(0.9 * w_broad))
+    #
+    # The gate is the FULL window, not a fraction of it, and that is what makes the retrieval bound
+    # sound: a full window holds the newest N admissible games, which is what an unbounded fetch
+    # would have given, because an unbounded fetch adds only older games that the window discards.
     pf = pre["selection"]["prefilter"]["measured_recall"]["chosen"]
+    bound = pre["window"]["retrieval_bound"]
     centres = sorted({(b[0] + b[1]) // 2 for b in
                       (tuple(p["band"]) for p in populations.registry())})
 
@@ -215,9 +220,10 @@ def main() -> int:
         wants_residual = (state["residual_slots_filled"] < resid_n
                           and m["blitz_games"] * adm_rate >= resid_games_min)
         window = w_resid if wants_residual else w_broad
+        fetch_max = bound["residual"] if wants_residual else bound["broad"]
 
         t0 = time.time()
-        r = try_candidate(u, window, a.root)
+        r = try_candidate(u, window, fetch_max, a.root)
         if r["accepted"] is False:
             state["rejected"].append({"u": u, "reason": r["reason"],
                                       "corpus": r.get("corpus")})
@@ -226,9 +232,10 @@ def main() -> int:
             continue
 
         c = r["corpus"]
-        if c["admissible"] < min_admissible:
+        if c["admissible"] < window:
             state["rejected"].append({"u": u, "reason": "INSUFFICIENT_ELIGIBLE_GAMES",
-                                      "admissible": c["admissible"], "needed": min_admissible})
+                                      "admissible": c["admissible"], "needed": window,
+                                      "window_full": False})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
             continue
@@ -258,6 +265,7 @@ def main() -> int:
             "window": window, "window_class": "RESIDUAL" if is_residual else "BROAD",
             "admissible": c["admissible"], "blitz_admissible": blitz_admissible,
             "speeds": c["speeds"], "blitz_median": med, "derived_band": list(band),
+            "fetch_max": fetch_max, "window_full": c["admissible"] >= window,
             "screen_predicted_band": m["band_now"],
             "screen_band_agreed": list(band) == m["band_now"],
             "seconds": round(time.time() - t0, 1),

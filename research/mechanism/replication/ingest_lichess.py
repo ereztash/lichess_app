@@ -133,7 +133,27 @@ def _write_raw(out_dir: str, chunks: list[bytes]) -> tuple[str, int, str, int]:
 def fetch_by_username(username: str, out_dir: str, token: str | None,
                       since_ms: int | None = None, until_ms: int | None = None,
                       max_games: int | None = None) -> RawFetch:
-    """The canonical path: the frozen export query, verbatim."""
+    """The canonical path: the frozen export query, verbatim.
+
+    RETRIEVAL BOUND. `REPLICATION_FETCH_MAX_GAMES` caps how many of the player's most recent games
+    are downloaded. This file is deliberately OUTSIDE the seventeen the pipeline hash is taken over,
+    because it decides how bytes arrive and not what the corpus is, and a bound here is legitimate
+    only while that stays true. It stays true under one invariant:
+
+        the export returns games newest-first, and `--window N` keeps the newest N ADMISSIBLE games.
+        So whenever the window FILLS, its games are the newest N admissible either way: an
+        unbounded fetch adds only OLDER games, which the window discards. A bound can only change a
+        corpus whose window did NOT fill.
+
+    `cohort_select.py` therefore accepts a candidate only when their window filled, which is the
+    condition under which this bound provably changed nothing, and records that it did.
+
+    Without the bound the cohort walk would download a median of 5,355 blitz games per candidate to
+    keep 450 of them, which is tens of hours of transfer discarded on arrival.
+    """
+    if max_games is None:
+        env = os.environ.get("REPLICATION_FETCH_MAX_GAMES")
+        max_games = int(env) if env and env.isdigit() else None
     query = dict(contract.LICHESS_EXPORT_QUERY)
     if since_ms is not None:
         query["since"] = str(since_ms)

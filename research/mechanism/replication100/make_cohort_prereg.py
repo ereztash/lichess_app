@@ -32,6 +32,7 @@ SELECTION_SEED = 20260907_100     # committed; the order is a seeded shuffle of 
 W_BROAD = 450                     # admissible games, most-recent-first (contract.WINDOW_RULE + cap)
 W_RESID = 2200
 PREFILTER_HALFWIDTH = 200         # current blitz rating within this of a registered band centre
+FETCH_MARGIN = 1.6                # raw games retrieved per admissible game the window wants
 
 
 def main() -> int:
@@ -183,6 +184,30 @@ def main() -> int:
             "residual_members": {"admissible_games": W_RESID,
                                  "implied_admissible_blitz_games": int(W_RESID * blitz_share),
                                  "margin_over_minimum": round(W_RESID * blitz_share / resid_games, 2)},
+            "retrieval_bound": {
+                "_what": "how many of a player's most recent games are DOWNLOADED, as distinct from "
+                         "which games form the corpus",
+                "rule": "ceil(window / admissible_rate * %.2f) most-recent games, via "
+                        "REPLICATION_FETCH_MAX_GAMES" % FETCH_MARGIN,
+                "broad": int(math.ceil(W_BROAD / plan["ingestion_reach"]["admissible_rate"]
+                                       * FETCH_MARGIN)),
+                "residual": int(math.ceil(W_RESID / plan["ingestion_reach"]["admissible_rate"]
+                                          * FETCH_MARGIN)),
+                "_why_it_is_not_a_research_rule": "it lives in ingest_lichess.py, which is outside "
+                    "the seventeen files the pipeline hash covers, because it decides how bytes "
+                    "arrive and not what the corpus is. That is only legitimate under an invariant, "
+                    "and the invariant is checkable: the export returns games newest-first and the "
+                    "window keeps the newest N admissible, so whenever the window FILLS its games "
+                    "are the newest N admissible either way, an unbounded fetch adding only older "
+                    "games that the window discards. A bound can only change a corpus whose window "
+                    "did not fill.",
+                "enforced_by": "acceptance requires a FULL window (admissible >= window), which is "
+                               "exactly the condition under which the bound provably changed "
+                               "nothing. COHORT_SELECTION.json records window_full per member.",
+                "_why_it_is_needed": "the frame's median candidate holds 5,355 blitz games and its "
+                    "p90 holds 24,345. Downloading a full history to keep 450 games is tens of "
+                    "hours of transfer discarded on arrival.",
+            },
             "why_a_cap": "the export returns a full history, and scoring a 13,000-game history "
                          "under the frozen engine regime is days of compute per player. The caps "
                          "are declared here, before any fetch, and are the same for every member "

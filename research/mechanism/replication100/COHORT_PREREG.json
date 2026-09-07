@@ -1,8 +1,8 @@
 {
  "_what": "The 100-player cohort pre-registration, hashed before any username is selected.",
  "_why": "A cohort measures a DISTRIBUTION of outcomes. That measurement is worthless if any rule could have moved after a result was seen, so every rule that could move is fixed here first.",
- "written_at": "2026-09-07T20:41:26Z",
- "repo_sha": "2be6b21ae14146b88c7b8df44e6a229906ae24ed",
+ "written_at": "2026-09-07T20:51:05Z",
+ "repo_sha": "2e41e86d241af9502dd75bf9506497530eab1d0b",
  "protocol_version": "V1",
  "instrument": {
   "_note": "Not redeclared. Referenced by hash so that a cohort run under a different instrument is detectable rather than arguable.",
@@ -96,6 +96,15 @@
    "admissible_games": 2200,
    "implied_admissible_blitz_games": 1961,
    "margin_over_minimum": 1.1
+  },
+  "retrieval_bound": {
+   "_what": "how many of a player's most recent games are DOWNLOADED, as distinct from which games form the corpus",
+   "rule": "ceil(window / admissible_rate * 1.60) most-recent games, via REPLICATION_FETCH_MAX_GAMES",
+   "broad": 938,
+   "residual": 4584,
+   "_why_it_is_not_a_research_rule": "it lives in ingest_lichess.py, which is outside the seventeen files the pipeline hash covers, because it decides how bytes arrive and not what the corpus is. That is only legitimate under an invariant, and the invariant is checkable: the export returns games newest-first and the window keeps the newest N admissible, so whenever the window FILLS its games are the newest N admissible either way, an unbounded fetch adding only older games that the window discards. A bound can only change a corpus whose window did not fill.",
+   "enforced_by": "acceptance requires a FULL window (admissible >= window), which is exactly the condition under which the bound provably changed nothing. COHORT_SELECTION.json records window_full per member.",
+   "_why_it_is_needed": "the frame's median candidate holds 5,355 blitz games and its p90 holds 24,345. Downloading a full history to keep 450 games is tens of hours of transfer discarded on arrival."
   },
   "why_a_cap": "the export returns a full history, and scoring a 13,000-game history under the frozen engine regime is days of compute per player. The caps are declared here, before any fetch, and are the same for every member of their class."
  },
@@ -200,5 +209,5 @@
   "one_run_per_player": "a player whose result caused a pipeline change becomes development data; replication then requires a different player and a bumped contract version",
   "test_opened": "once, for the frozen candidate only"
  },
- "prereg_hash": "80f42356aec6bae5244be4fd1bf1a3a4da24e16adbbb4624e252f3b3b06116cb"
+ "prereg_hash": "15cd2b86a65226a80ddce024d8ee81ec4b9b7b707ecd04325a18142326a019f4"
 }
