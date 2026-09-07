@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-07T21:42:39Z",
- "cursor": 12,
+ "cursor": 16,
  "accepted": [
   {
    "u": "ecapir",
@@ -127,10 +127,29 @@
    "fetch_max": 4584,
    "window_full": true,
    "seconds": 185.7
+  },
+  {
+   "u": "siangtiger99",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1887.0,
+   "derived_band": [
+    1700,
+    2100
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2199,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 185.8
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 5,
+  "PREFILTER_RATING_FAR_FROM_BAND": 8,
   "PREFILTER_TOO_FEW_GAMES": 1
  },
  "residual_slots_filled": 1
