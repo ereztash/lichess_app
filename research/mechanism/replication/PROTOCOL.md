@@ -129,8 +129,12 @@ SEARCH -> VALIDATION -> TEST -> INVARIANCE -> STABILITY -> POPULATION CORRECTION
 ```
 
 run by `run.py` as subprocesses of the unchanged programs in `research/mechanism/analysis/`, with
-the frozen arguments. No human looks at an intermediate result and changes a rule. Concretely,
-during a run it is forbidden to: change a feature, re-run because nothing interesting came out,
+the frozen arguments. The broad search runs on the union class `cls_tactical` (the final-candidate
+rule of 15:50 UTC); the population-baseline search runs on the design-v1.8 class targets
+`cls_hung_material` (the class R\*\* was found on) and `cls_tactical`, both judged by the same bar.
+
+No human looks at an intermediate result and changes a rule. Concretely, during a run it is
+forbidden to: change a feature, re-run because nothing interesting came out,
 pick a new threshold, swap the subgroup family, or move the population band. Any of those makes the
 player development data, not a replication.
 

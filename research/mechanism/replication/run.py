@@ -68,6 +68,11 @@ def finish(d: str, state: dict) -> dict:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
         json.dump(state, f, indent=1, default=str)
+    try:
+        import report
+        report.write(d, state)
+    except Exception as e:      # a report that will not render must never mask the result
+        log(f"(report not rendered: {type(e).__name__}: {e})")
     log(f"STATUS {state.get('status')} -> {path}")
     return state
 
@@ -235,7 +240,9 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
             log(f"INGEST: {platform}/{username}")
             fetch = ingest_lichess.ingest(username, os.path.join(d, "raw"), mode=mode, game_ids=ids)
         except ingest_lichess.IngestError as e:
-            return finish(d, {"status": e.code, "detail": e.detail, "run_dir": d})
+            return finish(d, {"status": e.code, "failure_code": e.code, "detail": e.detail,
+                              "run_dir": d, "focal": {"platform": platform, "username": username},
+                              "contract_version": contract.CONTRACT_VERSION})
     focal = FocalPlayer(platform=platform, username=username,
                         player_id=fetch["player_id"], corpus=f"{platform}:{fetch['player_id']}")
 
@@ -248,10 +255,21 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
     manifest["focal"] = focal.to_dict()
     manifest["run_dir"] = d
     corpuslib.write_manifest(d, manifest)
+    base_state = {
+        "run_dir": d, "focal": focal.to_dict(),
+        "contract_version": contract.CONTRACT_VERSION,
+        "repo_sha": manifest["repo_sha"],
+        "pipeline_hash": manifest["pipeline_version"]["pipeline_hash"],
+        "corpus": {"fetched": elig["raw_records"], "admissible": elig["admissible"],
+                   "scorable": elig["scorable"], "eligible_decisions": None,
+                   "exclusions": elig["excluded_by_reason"], "speeds": elig["speeds"]},
+        "claim_ladder": [list(x) for x in contract.CLAIM_LADDER],
+        "reversal": contract.REVERSAL,
+    }
     if elig["scorable"] == 0:
-        return finish(d, {"status": "INSUFFICIENT_ELIGIBLE_GAMES", "run_dir": d,
-                          "detail": "no admissible standard-variant game survived the frozen rule",
-                          "exclusions": elig["excluded_by_reason"]})
+        return finish(d, {**base_state, "status": "INSUFFICIENT_ELIGIBLE_GAMES",
+                          "failure_code": "INSUFFICIENT_ELIGIBLE_GAMES",
+                          "detail": "no admissible standard-variant game survived the frozen rule"})
 
     # ---- PRE-REGISTRATION (Phase 15): written before the first outcome-bearing stage --------------
     corpuslib.write_prereg(d, {
@@ -276,18 +294,19 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
         "written_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     })
     if stop_after == "FREEZE":
-        return finish(d, {"status": "FROZEN", "run_dir": d, "eligibility": elig})
+        return finish(d, {**base_state, "status": "FROZEN", "eligibility": elig})
 
     # ---- SCORE + FEATURES (Phases 8, 9) -----------------------------------------------------------
     sc = stage_score(d, focal, workers, engine)
     if sc["status"] != "OK":
-        return finish(d, {**sc, "run_dir": d})
+        return finish(d, {**base_state, **sc, "failure_code": sc["status"]})
     fe = stage_features(d, focal)
     if fe["status"] != "OK":
-        return finish(d, {**fe, "run_dir": d})
+        return finish(d, {**base_state, **fe, "failure_code": fe["status"]})
     gate = schema_gate(d)
     if gate["status"] != "OK":
-        return finish(d, {"status": "PIPELINE_EQUIVALENCE_FAILED", "run_dir": d,
+        return finish(d, {**base_state, "status": "PIPELINE_EQUIVALENCE_FAILED",
+                          "failure_code": "PIPELINE_EQUIVALENCE_FAILED",
                           "detail": "feature schema differs from the baseline schema", "gate": gate})
     decisions = fe["decisions_parquet"]
 
@@ -298,9 +317,11 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
         f"TEST {splits['counts']['TEST_decisions']}/{splits['counts']['TEST_games']}g")
     ok, missing = classify.corpus_sufficient(splits["counts"])
     if not ok:
-        return finish(d, {"status": "INSUFFICIENT_CORPUS", "failure_code": "INSUFFICIENT_CORPUS",
-                          "output_class": "INSUFFICIENT_EVIDENCE", "run_dir": d,
-                          "focal": focal.to_dict(),
+        base_state["corpus"]["eligible_decisions"] = splits["eligible_decisions"]
+        return finish(d, {**base_state, "status": "INSUFFICIENT_CORPUS",
+                          "failure_code": "INSUFFICIENT_CORPUS",
+                          "output_class": "INSUFFICIENT_EVIDENCE",
+                          "splits": splits["counts"], "blitz_splits": splits["blitz_counts"],
                           "have": splits["counts"], "required": contract.MIN_CORPUS,
                           "missing": missing,
                           "detail": "thresholds are never lowered to let a player through"})
@@ -315,11 +336,16 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
     # ---- DISCOVERY (Phase 12) ---------------------------------------------------------------------
     broad = _discovery(d, "discovery_OBS_" + contract.BROAD_TARGET, [], contract.BROAD_TARGET,
                        decisions, focal)
-    residual = None
+    # Design v1.8 ran the population-baseline search over more than one class target; the primary
+    # (the class the frozen R** was found on) goes first, and every one is judged by the same bar.
+    residual = []
     if pop_parquet:
-        residual = _discovery(d, "discovery_POP_" + contract.RESIDUAL_PRIMARY,
-                              ["--population", pop_parquet, "--blitz-only", "1"],
-                              contract.RESIDUAL_PRIMARY, decisions, focal)
+        for target in contract.RESIDUAL_TARGETS:
+            r = _discovery(d, "discovery_POP_" + target,
+                           ["--population", pop_parquet, "--blitz-only", "1"],
+                           target, decisions, focal)
+            if r is not None:
+                residual.append(r)
 
     # ---- CLASSIFY (Phase 13) ----------------------------------------------------------------------
     verdict = classify.classify(counts=splits["counts"], blitz_counts=splits["blitz_counts"],
@@ -329,25 +355,17 @@ def run(platform: str, username: str, *, run_id: str | None, workers: int, engin
     if verdict["output_class"] in ("LEVEL_TYPICAL_ONLY", "PERSONAL_RESIDUAL_CANDIDATE"):
         evidence = stage_evidence(d, focal, verdict["broad_structure"]["region"], decisions, pop_parquet)
 
+    base_state["corpus"]["eligible_decisions"] = splits["eligible_decisions"]
     state = {
+        **base_state,
         "status": verdict["output_class"], "failure_code": verdict.get("failure_code"),
-        "run_dir": d, "focal": focal.to_dict(),
-        "contract_version": contract.CONTRACT_VERSION,
-        "repo_sha": manifest["repo_sha"], "pipeline_hash": manifest["pipeline_version"]["pipeline_hash"],
-        "corpus": {"fetched": elig["raw_records"], "admissible": elig["admissible"],
-                   "scorable": elig["scorable"], "eligible_decisions": splits["eligible_decisions"],
-                   "exclusions": elig["excluded_by_reason"], "speeds": elig["speeds"]},
         "splits": splits["counts"], "blitz_splits": splits["blitz_counts"],
         "population": {k: v for k, v in pop.items() if k != "population"},
         "population_id": (pop.get("population") or {}).get("id"),
         "verdict": verdict, "evidence": evidence,
-        "claim_ladder": [list(x) for x in contract.CLAIM_LADDER],
-        "reversal": contract.REVERSAL,
         "finished_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
     finish(d, state)
-    import report
-    report.write(d, state)
     return state
 
 

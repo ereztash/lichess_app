@@ -33,11 +33,23 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 import contract
 
 
-def passing(discovery: dict | None) -> list[dict]:
-    """The frozen candidates of one discovery run that passed the VALIDATE judge, best DERIVE quality first."""
-    if not discovery:
-        return []
-    out = [f for f in discovery.get("frozen", []) if (f.get("validate") or {}).get("pass")]
+def passing(discovery) -> list[dict]:
+    """The frozen candidates that passed the VALIDATE judge, best DERIVE quality first.
+
+    Accepts one discovery run or several. Design v1.8 ran the population-baseline search over more
+    than one class target, so the residual stage is a list; quality is not comparable across targets
+    with different base rates, so each candidate keeps the target it was found on and the order
+    inside a target is by DERIVE quality (the frozen final-candidate rule).
+    """
+    runs = [] if discovery is None else (discovery if isinstance(discovery, list) else [discovery])
+    out = []
+    for run in runs:
+        if not run:
+            continue
+        target = run.get("target")
+        for f in run.get("frozen", []):
+            if (f.get("validate") or {}).get("pass"):
+                out.append({**f, "target": f.get("target", target)})
     return sorted(out, key=lambda f: -float(f.get("quality") or 0.0))
 
 
@@ -72,7 +84,7 @@ def classify(*, counts: dict, blitz_counts: dict | None, population: dict,
                 "reason": ("no region of the frozen OBS vocabulary passes the VALIDATE judge "
                            f"(residual within-game z >= {_k()}, n_in >= {_min_n()}, raw within-game > 0) "
                            f"on the union class {contract.BROAD_TARGET}"),
-                "broad_candidates_examined": len((discovery_broad or {}).get("frozen", []))}
+                "broad_candidates_examined": _n_frozen(discovery_broad)}
 
     if population.get("status") != "OK":
         return {"output_class": "INSUFFICIENT_EVIDENCE",
@@ -100,13 +112,26 @@ def classify(*, counts: dict, blitz_counts: dict | None, population: dict,
                            "players no region of the same frozen vocabulary passes the judge: what "
                            "was found is the structure of the band, not of the player"),
                 "broad_structure": broad[0],
-                "residual_candidates_examined": len((discovery_residual or {}).get("frozen", []))}
+                "residual_targets_examined": _targets(discovery_residual),
+                "residual_candidates_examined": _n_frozen(discovery_residual)}
 
     return {"output_class": "PERSONAL_RESIDUAL_CANDIDATE", "failure_code": None,
             "reason": ("a region survives a same-rating population model on games never used to find "
                        "it. Candidate only: not a cause, not an intervention, not a field result"),
             "broad_structure": broad[0], "personal_residual": residual[0],
             "all_passing_residual": residual}
+
+
+def _runs(d):
+    return [] if d is None else (d if isinstance(d, list) else [d])
+
+
+def _n_frozen(d):
+    return sum(len((r or {}).get("frozen", [])) for r in _runs(d))
+
+
+def _targets(d):
+    return [r.get("target") for r in _runs(d) if r]
 
 
 def _k():

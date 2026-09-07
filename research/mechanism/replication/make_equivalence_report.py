@@ -40,9 +40,15 @@ def main():
           "| floating-point statistics (rates, contrasts, z, AUC) | **relative 1e-9** | the same code on the same rows; anything larger is a real difference |", ""]
     L += ["## Artifact-by-artifact", ""]
     for c in gate["checks"]:
-        L += [f"### {c['check']} — {c['result']}", "",
-              "| Artifact | Old | Generic | Exact / tolerance | Result |",
-              "| --- | --- | --- | --- | --- |"]
+        eq = c["kind"] == "EQUIVALENCE"
+        L += [f"### {c['check']} — {c['result']}", ""]
+        if not eq:
+            L += ["*This check has no old-pipeline counterpart: it asks whether the generalisation "
+                  "actually generalises. The two columns are what the contract requires and what the "
+                  "code returned.*", ""]
+        head = ("| Artifact | Old | Generic | Exact / tolerance | Result |" if eq else
+                "| Artifact | Required | Observed | Exact / tolerance | Result |")
+        L += [head, "| --- | --- | --- | --- | --- |"]
         for r in c["rows"]:
             L.append(f"| {fmt(r['artifact'], 60)} | `{fmt(r['old'])}` | `{fmt(r['new'])}` | "
                      f"{r['tolerance']} | {r['result']} |")
