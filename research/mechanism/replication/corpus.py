@@ -57,11 +57,25 @@ def repo_sha() -> str:
 
 
 def repo_dirty() -> bool:
+    """Is the SOURCE tree dirty?
+
+    A run writes tracked artifacts of its own (`admissible/exclusions.json`, `splits.json`, every
+    analysis JSON) before it takes its manifest, so a plain `git status` is dirty for every run by
+    construction and the flag would certify nothing at all. What the flag is for is the state of the
+    CODE, so the replication tree is excluded and everything else counts, untracked files included.
+    """
     try:
-        return bool(subprocess.check_output(["git", "-C", REPO_ROOT, "status", "--porcelain"],
-                                            text=True).strip())
+        out = subprocess.check_output(["git", "-C", REPO_ROOT, "status", "--porcelain"], text=True)
     except Exception:
         return False
+    for line in out.splitlines():
+        path = line[3:].strip().strip('"')
+        if " -> " in path:                       # a rename: judge the destination
+            path = path.split(" -> ", 1)[1].strip().strip('"')
+        if path.startswith("research/mechanism/replications/"):
+            continue
+        return True
+    return False
 
 
 def pipeline_version() -> dict:
