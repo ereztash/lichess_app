@@ -70,6 +70,13 @@ def blitz_median_from_admissible(admissible_ndjson: str, focal_player_id: str) -
 PY = os.environ.get("REPLICATION_PYTHON", sys.executable)
 POP_GAMES = os.path.join(MECH, "data", "population_games.ndjson")
 RUN_ID = "COHORT"
+# Candidate probes happen OUTSIDE the repository. Most candidates are rejected on the band and
+# their probe is deleted; a probe is not repository content, and a walk that littered the tree with
+# transient run directories would make every commit during selection a lie about what exists.
+# `freeze_cohort.py` promotes the accepted ones into research/mechanism/replications/.
+DEFAULT_PROBE_ROOT = os.environ.get(
+    "COHORT_PROBE_ROOT",
+    os.path.join(os.environ.get("TMPDIR", "/tmp"), "cohort_probes"))
 
 
 def population_members() -> set[str]:
@@ -114,7 +121,9 @@ def try_candidate(username: str, window: int, root: str) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=None, help="stop after trying this many candidates")
-    ap.add_argument("--root", default=None)
+    ap.add_argument("--root", default=DEFAULT_PROBE_ROOT,
+                    help="where candidate probes are written. Outside the repository by default: "
+                         "a probe is not repository content until freeze_cohort.py promotes it.")
     ap.add_argument("--out", default=os.path.join(HERE, "COHORT_SELECTION.json"))
     a = ap.parse_args()
 
@@ -144,6 +153,7 @@ def main() -> int:
     random.Random(seed).shuffle(order)
     meta = {r["u"]: r for r in ok}
 
+    os.makedirs(a.root, exist_ok=True)
     state_path = a.out
     state = (json.load(open(state_path)) if os.path.exists(state_path) else {
         "_what": "The selection walk. Every candidate tried, in the committed order, with the "
@@ -225,7 +235,7 @@ def main() -> int:
         if is_residual:
             state["residual_slots_filled"] += 1
         state["accepted"].append({
-            "u": u, "player_id": r["player_id"], "run_dir": os.path.relpath(r["run_dir"], REPO),
+            "u": u, "player_id": r["player_id"], "run_dir": r["run_dir"],
             "window": window, "window_class": "RESIDUAL" if is_residual else "BROAD",
             "admissible": c["admissible"], "blitz_admissible": blitz_admissible,
             "speeds": c["speeds"], "blitz_median": med, "derived_band": list(band),

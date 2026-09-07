@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import sys
 import time
 
@@ -40,17 +41,29 @@ def main() -> int:
         raise SystemExit("selection holds %d members, the pre-registration declares %d; refusing "
                          "to freeze a cohort of the wrong size" % (len(sel["accepted"]), want))
 
+    dest_root = os.path.join(MECH, "replications")
     members = []
     for m in sel["accepted"]:
-        d = os.path.join(REPO, m["run_dir"])
+        # Promote the probe into the repository. Selection writes probes outside it because most
+        # are rejected and deleted; the ones that became members are repository content from here
+        # on, and their paths must be the ones every later stage reads.
+        d = m["run_dir"] if os.path.isabs(m["run_dir"]) else os.path.join(REPO, m["run_dir"])
+        dest = os.path.join(dest_root, os.path.basename(d))
+        if os.path.abspath(d) != os.path.abspath(dest):
+            if os.path.exists(dest):
+                raise SystemExit("%s already exists; refusing to overwrite a run directory" % dest)
+            shutil.move(d, dest)
+        d = dest
+        rel = os.path.relpath(d, REPO)
         res = json.load(open(os.path.join(d, "report", "RESULT.json")))
         if res.get("status") != "FROZEN":
             raise SystemExit("%s is not at FREEZE (status %s): a cohort may not be frozen around a "
                              "member that has already been scored" % (m["u"], res.get("status")))
         members.append({
-            **{k: m[k] for k in ("u", "player_id", "run_dir", "window", "window_class",
+            **{k: m[k] for k in ("u", "player_id", "window", "window_class",
                                  "admissible", "blitz_admissible", "speeds", "blitz_median",
                                  "derived_band", "screen_predicted_band", "screen_band_agreed")},
+            "run_dir": rel,
             "raw_sha256": json.load(open(os.path.join(d, "raw", "fetch.json")))["fetch"]["sha256"],
             "manifest_sha256": corpuslib.sha256_file(os.path.join(d, "manifest.json")),
             "prereg_sha256": corpuslib.sha256_file(
