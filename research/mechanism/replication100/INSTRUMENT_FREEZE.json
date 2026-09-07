@@ -1,8 +1,8 @@
 {
  "_what": "The frozen mechanism-discovery instrument, recorded before the 100-player cohort study selects a single username. Player 1 and Player 100 are judged by this.",
- "frozen_at": "2026-09-07T18:10:11Z",
- "repo_sha": "415cb6bead8a00ba0682328bb98b6d0f44f26b90",
- "repo_dirty": true,
+ "frozen_at": "2026-09-07T18:11:23Z",
+ "repo_sha": "f36db1d812c58d4dd905c07299a82167dc3143c7",
+ "repo_dirty": false,
  "base_branch_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
  "contract_version": "replication-1.0.0",
  "tree_sha256": {
@@ -373,5 +373,5 @@
   "no_tuning_between_players": "after COHORT_PREREG is hashed, none of eligibility, features, thresholds, search space, target order, split rules, population correction, judge, classifier, residual definition or output classes may change because of any player's result",
   "protocol_version": "V1; a change of methodology ends V1 and belongs to a new cohort"
  },
- "instrument_hash": "1378cce5d275ea0538003a4e3b0cd224c613db2d93dcf7d4f17a7c679b04c233"
+ "instrument_hash": "a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833"
 }

@@ -1,9 +1,9 @@
 {
  "_what": "Power before players. The decision volume at which the frozen instrument becomes CAPABLE of returning PERSONAL_RESIDUAL_CANDIDATE, computed from the runs already on the record, before any cohort member is named.",
  "_why": "So that a null result can be read as evidence about the player rather than evidence about the corpus size.",
- "written_at": "2026-09-07T18:01:35Z",
- "instrument_hash": "92393a55d5974e215b387085b6d14536834bf73b6d47ef15340da46557469d1f",
- "repo_sha": "415cb6bead8a00ba0682328bb98b6d0f44f26b90",
+ "written_at": "2026-09-07T18:11:23Z",
+ "instrument_hash": "a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833",
+ "repo_sha": "f36db1d812c58d4dd905c07299a82167dc3143c7",
  "thresholds": {
   "judge": {
    "_source": "research/mechanism/analysis/vocab.py DESIGN, inside the pipeline hash",

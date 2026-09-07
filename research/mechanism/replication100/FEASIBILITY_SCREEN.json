@@ -1,9 +1,9 @@
 {
  "_what": "Metadata-only feasibility. How many Lichess players the frozen instrument can reach at all, and how many of those it can reach for the RESIDUAL question.",
  "_method": "Public game headers give an unfiltered frame of blitz players; the public bulk user endpoint gives their profile metadata. No game is fetched, no position is scored, no analysis result is read.",
- "screened_at": "2026-09-07T18:06:30Z",
- "instrument_hash": "92393a55d5974e215b387085b6d14536834bf73b6d47ef15340da46557469d1f",
- "repo_sha": "415cb6bead8a00ba0682328bb98b6d0f44f26b90",
+ "screened_at": "2026-09-07T18:11:47Z",
+ "instrument_hash": "a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833",
+ "repo_sha": "f36db1d812c58d4dd905c07299a82167dc3143c7",
  "seed": 20260907,
  "frame": {
   "source": "https://database.lichess.org/standard/lichess_db_standard_rated_2026-06.pgn.zst",
@@ -77,10 +77,10 @@
   "hits_with_5plus_june_games_confirmed": 8,
   "hit_confirmation_rate_5plus": 0.2105,
   "_confirmation_caveat": "The June reading is itself a median over however many June games the player appears in; for most that is a handful, so part of the disagreement is sampling error in the SECOND reading, not proxy error in the first. The 5+ figure is the less noisy of the two and is still not the pipeline's own median over the fetched window.",
-  "abs_drift_median": 46.0,
-  "abs_drift_p90": 119.0,
+  "abs_drift_median": 46.5,
+  "abs_drift_p90": 119,
   "_direction_of_the_error": "June is three months stale, and the pipeline reads a RECENT window, so the current rating is nearer the pipeline's median than June is. The confirmation rate here is therefore pessimistic: it is a floor on how often a hit survives, not an estimate of it.",
-  "_what_it_does_establish": "Median absolute drift (46.0) is of the same order as the 50-point bucket the band rule quantises to. A rating that moves by a bucket width between two readings cannot decide the band from either reading alone.",
+  "_what_it_does_establish": "Median absolute drift (46.5) is of the same order as the 50-point bucket the band rule quantises to. A rating that moves by a bucket width between two readings cannot decide the band from either reading alone.",
   "consequence": "A screened hit is a CANDIDATE, never a confirmed eligible. The band is authoritative only once the pipeline derives it from the fetched corpus, so eligibility confirmation costs a fetch per candidate and cannot be bought with metadata."
  },
  "reachable_cohort_size": {
@@ -105,6 +105,6 @@
  },
  "screened_frame": {
   "path": "SCREENED_FRAME.json",
-  "frame_hash": "8126253a2d1530d8e84390c2ed3056dc78956327b70ddf86ab2a44aecb9e7f97"
+  "frame_hash": "3247241e350cd0579d056fde85cc91d87d06930a10760411695d2d170c1f7bef"
  }
 }

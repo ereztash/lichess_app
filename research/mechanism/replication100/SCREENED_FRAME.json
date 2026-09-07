@@ -1,9 +1,9 @@
 {
  "_what": "Every player the metadata screen looked at, with the metadata it read. Public profile fields only.",
- "screened_at": "2026-09-07T18:06:30Z",
+ "screened_at": "2026-09-07T18:11:47Z",
  "seed": 20260907,
- "instrument_hash": "92393a55d5974e215b387085b6d14536834bf73b6d47ef15340da46557469d1f",
- "frame_hash": "8126253a2d1530d8e84390c2ed3056dc78956327b70ddf86ab2a44aecb9e7f97",
+ "instrument_hash": "a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833",
+ "frame_hash": "3247241e350cd0579d056fde85cc91d87d06930a10760411695d2d170c1f7bef",
  "rows": [
   {
    "u": "a10768",
@@ -645,8 +645,8 @@
   {
    "u": "abu-iman",
    "status": "OK",
-   "blitz_rating": 1946,
-   "blitz_games": 33700,
+   "blitz_rating": 1942,
+   "blitz_games": 33701,
    "june_median_elo": 1969.0,
    "june_appearances": 14,
    "band_now": [
@@ -798,8 +798,8 @@
   {
    "u": "achiletalon",
    "status": "OK",
-   "blitz_rating": 1410,
-   "blitz_games": 39058,
+   "blitz_rating": 1404,
+   "blitz_games": 39059,
    "june_median_elo": 1431,
    "june_appearances": 3,
    "band_now": [
@@ -2034,8 +2034,8 @@
   {
    "u": "aldonunche",
    "status": "OK",
-   "blitz_rating": 1500,
-   "blitz_games": 15393,
+   "blitz_rating": 1505,
+   "blitz_games": 15394,
    "june_median_elo": 1424.5,
    "june_appearances": 4,
    "band_now": [
@@ -5388,8 +5388,8 @@
   {
    "u": "bambardekar",
    "status": "OK",
-   "blitz_rating": 1869,
-   "blitz_games": 8675,
+   "blitz_rating": 1862,
+   "blitz_games": 8676,
    "june_median_elo": 1894.5,
    "june_appearances": 4,
    "band_now": [
@@ -6480,8 +6480,8 @@
   {
    "u": "bishop_hawkins",
    "status": "OK",
-   "blitz_rating": 1234,
-   "blitz_games": 12984,
+   "blitz_rating": 1226,
+   "blitz_games": 12986,
    "june_median_elo": 1213,
    "june_appearances": 1,
    "band_now": [
@@ -7322,7 +7322,7 @@
    "u": "bramana",
    "status": "OK",
    "blitz_rating": 1615,
-   "blitz_games": 1493,
+   "blitz_games": 1494,
    "june_median_elo": 1596,
    "june_appearances": 3,
    "band_now": [
@@ -8091,7 +8091,7 @@
    "u": "captain-obvious17",
    "status": "OK",
    "blitz_rating": 2016,
-   "blitz_games": 54186,
+   "blitz_games": 54188,
    "june_median_elo": 1998,
    "june_appearances": 11,
    "band_now": [
@@ -8880,8 +8880,8 @@
   {
    "u": "chess_salauddin1980",
    "status": "OK",
-   "blitz_rating": 1965,
-   "blitz_games": 15228,
+   "blitz_rating": 1960,
+   "blitz_games": 15229,
    "june_median_elo": 1910,
    "june_appearances": 3,
    "band_now": [
@@ -10647,8 +10647,8 @@
   {
    "u": "daniboy80",
    "status": "OK",
-   "blitz_rating": 1322,
-   "blitz_games": 6491,
+   "blitz_rating": 1309,
+   "blitz_games": 6493,
    "june_median_elo": 1297,
    "june_appearances": 1,
    "band_now": [
@@ -11335,13 +11335,13 @@
   {
    "u": "denisalex",
    "status": "OK",
-   "blitz_rating": 1827,
-   "blitz_games": 13232,
+   "blitz_rating": 1821,
+   "blitz_games": 13233,
    "june_median_elo": 1901,
    "june_appearances": 1,
    "band_now": [
-    1650,
-    2050
+    1600,
+    2000
    ],
    "band_registered_now": false,
    "band_registered_june": false,
@@ -12240,8 +12240,8 @@
   {
    "u": "doctorzeta",
    "status": "OK",
-   "blitz_rating": 1732,
-   "blitz_games": 32716,
+   "blitz_rating": 1738,
+   "blitz_games": 32717,
    "june_median_elo": 1791.5,
    "june_appearances": 6,
    "band_now": [
@@ -12885,8 +12885,8 @@
   {
    "u": "dsmc706",
    "status": "OK",
-   "blitz_rating": 1218,
-   "blitz_games": 2478,
+   "blitz_rating": 1212,
+   "blitz_games": 2479,
    "june_median_elo": 1066.0,
    "june_appearances": 8,
    "band_now": [
@@ -13216,8 +13216,8 @@
   {
    "u": "edbrasil",
    "status": "OK",
-   "blitz_rating": 1815,
-   "blitz_games": 61694,
+   "blitz_rating": 1811,
+   "blitz_games": 61695,
    "june_median_elo": 1896.0,
    "june_appearances": 22,
    "band_now": [
@@ -13250,8 +13250,8 @@
   {
    "u": "eddydaddy",
    "status": "OK",
-   "blitz_rating": 2381,
-   "blitz_games": 4108,
+   "blitz_rating": 2387,
+   "blitz_games": 4109,
    "june_median_elo": 2319.0,
    "june_appearances": 2,
    "band_now": [
@@ -13522,8 +13522,8 @@
   {
    "u": "efsa65",
    "status": "OK",
-   "blitz_rating": 1294,
-   "blitz_games": 18504,
+   "blitz_rating": 1287,
+   "blitz_games": 18505,
    "june_median_elo": 1340,
    "june_appearances": 1,
    "band_now": [
@@ -14244,8 +14244,8 @@
   {
    "u": "engenheirochess",
    "status": "OK",
-   "blitz_rating": 1739,
-   "blitz_games": 61450,
+   "blitz_rating": 1747,
+   "blitz_games": 61451,
    "june_median_elo": 1773.5,
    "june_appearances": 20,
    "band_now": [
@@ -15315,8 +15315,8 @@
   {
    "u": "faster20",
    "status": "OK",
-   "blitz_rating": 1840,
-   "blitz_games": 9088,
+   "blitz_rating": 1847,
+   "blitz_games": 9089,
    "june_median_elo": 1746,
    "june_appearances": 1,
    "band_now": [
@@ -16534,8 +16534,8 @@
   {
    "u": "fuzzlord666",
    "status": "OK",
-   "blitz_rating": 1189,
-   "blitz_games": 1673,
+   "blitz_rating": 1184,
+   "blitz_games": 1674,
    "june_median_elo": 1103,
    "june_appearances": 1,
    "band_now": [
@@ -17816,8 +17816,8 @@
   {
    "u": "godfathertirelo",
    "status": "OK",
-   "blitz_rating": 2052,
-   "blitz_games": 3373,
+   "blitz_rating": 2048,
+   "blitz_games": 3374,
    "june_median_elo": 2005,
    "june_appearances": 3,
    "band_now": [
@@ -19345,8 +19345,8 @@
   {
    "u": "hitman7787",
    "status": "OK",
-   "blitz_rating": 1515,
-   "blitz_games": 21596,
+   "blitz_rating": 1520,
+   "blitz_games": 21597,
    "june_median_elo": 1527,
    "june_appearances": 1,
    "band_now": [
@@ -19515,8 +19515,8 @@
   {
    "u": "hottechess",
    "status": "OK",
-   "blitz_rating": 1582,
-   "blitz_games": 57054,
+   "blitz_rating": 1578,
+   "blitz_games": 57055,
    "june_median_elo": 1695,
    "june_appearances": 3,
    "band_now": [
@@ -20343,8 +20343,8 @@
   {
    "u": "ingsammora",
    "status": "OK",
-   "blitz_rating": 1264,
-   "blitz_games": 27964,
+   "blitz_rating": 1270,
+   "blitz_games": 27965,
    "june_median_elo": 1292.5,
    "june_appearances": 2,
    "band_now": [
@@ -22930,8 +22930,8 @@
   {
    "u": "jotaeleo",
    "status": "OK",
-   "blitz_rating": 1606,
-   "blitz_games": 13034,
+   "blitz_rating": 1613,
+   "blitz_games": 13035,
    "june_median_elo": 1678.5,
    "june_appearances": 2,
    "band_now": [
@@ -24285,8 +24285,8 @@
   {
    "u": "kishoreachess",
    "status": "OK",
-   "blitz_rating": 1460,
-   "blitz_games": 10974,
+   "blitz_rating": 1455,
+   "blitz_games": 10975,
    "june_median_elo": 1484,
    "june_appearances": 1,
    "band_now": [
@@ -24693,8 +24693,8 @@
   {
    "u": "kosbog1977",
    "status": "OK",
-   "blitz_rating": 1636,
-   "blitz_games": 21032,
+   "blitz_rating": 1631,
+   "blitz_games": 21033,
    "june_median_elo": 1647,
    "june_appearances": 1,
    "band_now": [
@@ -25831,8 +25831,8 @@
   {
    "u": "leones1969",
    "status": "OK",
-   "blitz_rating": 2141,
-   "blitz_games": 46911,
+   "blitz_rating": 2145,
+   "blitz_games": 46912,
    "june_median_elo": 2069.0,
    "june_appearances": 8,
    "band_now": [
@@ -26601,7 +26601,7 @@
    "u": "losingplayer",
    "status": "OK",
    "blitz_rating": 1781,
-   "blitz_games": 4534,
+   "blitz_games": 4535,
    "june_median_elo": 1829,
    "june_appearances": 1,
    "band_now": [
@@ -26651,8 +26651,8 @@
   {
    "u": "loznica73",
    "status": "OK",
-   "blitz_rating": 2069,
-   "blitz_games": 738,
+   "blitz_rating": 2063,
+   "blitz_games": 739,
    "june_median_elo": 2120.0,
    "june_appearances": 2,
    "band_now": [
@@ -28180,8 +28180,8 @@
   {
    "u": "marcelommarques",
    "status": "OK",
-   "blitz_rating": 1101,
-   "blitz_games": 7958,
+   "blitz_rating": 1107,
+   "blitz_games": 7959,
    "june_median_elo": 1163,
    "june_appearances": 1,
    "band_now": [
@@ -28197,8 +28197,8 @@
   {
    "u": "marcioparana",
    "status": "OK",
-   "blitz_rating": 1661,
-   "blitz_games": 7811,
+   "blitz_rating": 1654,
+   "blitz_games": 7812,
    "june_median_elo": 1685.0,
    "june_appearances": 6,
    "band_now": [
@@ -28979,8 +28979,8 @@
   {
    "u": "maximeiaec",
    "status": "OK",
-   "blitz_rating": 1674,
-   "blitz_games": 3229,
+   "blitz_rating": 1669,
+   "blitz_games": 3230,
    "june_median_elo": 1553.0,
    "june_appearances": 4,
    "band_now": [
@@ -30028,8 +30028,8 @@
   {
    "u": "milan2609",
    "status": "OK",
-   "blitz_rating": 1889,
-   "blitz_games": 13499,
+   "blitz_rating": 1884,
+   "blitz_games": 13500,
    "june_median_elo": 1791,
    "june_appearances": 9,
    "band_now": [
@@ -30062,13 +30062,13 @@
   {
    "u": "mildstone",
    "status": "OK",
-   "blitz_rating": 1727,
-   "blitz_games": 10240,
+   "blitz_rating": 1722,
+   "blitz_games": 10241,
    "june_median_elo": 1718,
    "june_appearances": 1,
    "band_now": [
-    1550,
-    1950
+    1500,
+    1900
    ],
    "band_registered_now": false,
    "band_registered_june": false,
@@ -30164,8 +30164,8 @@
   {
    "u": "minombreesnobody",
    "status": "OK",
-   "blitz_rating": 2204,
-   "blitz_games": 3861,
+   "blitz_rating": 2207,
+   "blitz_games": 3862,
    "june_median_elo": 2226,
    "june_appearances": 1,
    "band_now": [
@@ -33359,8 +33359,8 @@
   {
    "u": "nixonlima",
    "status": "OK",
-   "blitz_rating": 1207,
-   "blitz_games": 2580,
+   "blitz_rating": 1201,
+   "blitz_games": 2581,
    "june_median_elo": 1111,
    "june_appearances": 1,
    "band_now": [
@@ -33393,13 +33393,13 @@
   {
    "u": "nkumu22",
    "status": "OK",
-   "blitz_rating": 1523,
-   "blitz_games": 2774,
+   "blitz_rating": 1528,
+   "blitz_games": 2775,
    "june_median_elo": 1415.0,
    "june_appearances": 2,
    "band_now": [
-    1300,
-    1700
+    1350,
+    1750
    ],
    "band_registered_now": false,
    "band_registered_june": false,
@@ -33839,8 +33839,8 @@
   {
    "u": "nuevahonda",
    "status": "OK",
-   "blitz_rating": 1864,
-   "blitz_games": 7506,
+   "blitz_rating": 1858,
+   "blitz_games": 7507,
    "june_median_elo": 1905.0,
    "june_appearances": 8,
    "band_now": [
@@ -39178,13 +39178,13 @@
   {
    "u": "rsmith16384",
    "status": "OK",
-   "blitz_rating": 876,
-   "blitz_games": 6233,
+   "blitz_rating": 870,
+   "blitz_games": 6234,
    "june_median_elo": 919,
    "june_appearances": 5,
    "band_now": [
-    700,
-    1100
+    650,
+    1050
    ],
    "band_registered_now": false,
    "band_registered_june": false,
@@ -40898,8 +40898,8 @@
   {
    "u": "sed_19",
    "status": "OK",
-   "blitz_rating": 1552,
-   "blitz_games": 3700,
+   "blitz_rating": 1557,
+   "blitz_games": 3701,
    "june_median_elo": 1465.5,
    "june_appearances": 2,
    "band_now": [
@@ -41225,8 +41225,8 @@
   {
    "u": "sergudacov",
    "status": "OK",
-   "blitz_rating": 1390,
-   "blitz_games": 20216,
+   "blitz_rating": 1387,
+   "blitz_games": 20217,
    "june_median_elo": 1367.5,
    "june_appearances": 2,
    "band_now": [
@@ -42134,8 +42134,8 @@
   {
    "u": "sionpz",
    "status": "OK",
-   "blitz_rating": 1244,
-   "blitz_games": 581,
+   "blitz_rating": 1239,
+   "blitz_games": 582,
    "june_median_elo": 1225.0,
    "june_appearances": 2,
    "band_now": [
@@ -43420,8 +43420,8 @@
   {
    "u": "streddpeetwwr",
    "status": "OK",
-   "blitz_rating": 1557,
-   "blitz_games": 621,
+   "blitz_rating": 1551,
+   "blitz_games": 622,
    "june_median_elo": 1592.0,
    "june_appearances": 2,
    "band_now": [
@@ -43675,8 +43675,8 @@
   {
    "u": "sushkr",
    "status": "OK",
-   "blitz_rating": 1522,
-   "blitz_games": 13029,
+   "blitz_rating": 1514,
+   "blitz_games": 13030,
    "june_median_elo": 1526,
    "june_appearances": 1,
    "band_now": [
@@ -43828,8 +43828,8 @@
   {
    "u": "swordkills",
    "status": "OK",
-   "blitz_rating": 1842,
-   "blitz_games": 10666,
+   "blitz_rating": 1845,
+   "blitz_games": 10667,
    "june_median_elo": 1848.5,
    "june_appearances": 2,
    "band_now": [
@@ -44618,8 +44618,8 @@
   {
    "u": "theking2017",
    "status": "OK",
-   "blitz_rating": 1682,
-   "blitz_games": 13697,
+   "blitz_rating": 1677,
+   "blitz_games": 13698,
    "june_median_elo": 1671,
    "june_appearances": 5,
    "band_now": [
@@ -46946,13 +46946,13 @@
   {
    "u": "victorhinesh",
    "status": "OK",
-   "blitz_rating": 1532,
-   "blitz_games": 41960,
+   "blitz_rating": 1519,
+   "blitz_games": 41962,
    "june_median_elo": 1515,
    "june_appearances": 7,
    "band_now": [
-    1350,
-    1750
+    1300,
+    1700
    ],
    "band_registered_now": false,
    "band_registered_june": false,
@@ -48148,8 +48148,8 @@
   {
    "u": "xandmann",
    "status": "OK",
-   "blitz_rating": 1627,
-   "blitz_games": 6730,
+   "blitz_rating": 1634,
+   "blitz_games": 6731,
    "june_median_elo": 1624,
    "june_appearances": 9,
    "band_now": [
@@ -48985,8 +48985,8 @@
   {
    "u": "zachchessking",
    "status": "OK",
-   "blitz_rating": 1778,
-   "blitz_games": 14986,
+   "blitz_rating": 1776,
+   "blitz_games": 14987,
    "june_median_elo": 1717.0,
    "june_appearances": 2,
    "band_now": [
@@ -49155,8 +49155,8 @@
   {
    "u": "zenlighted",
    "status": "OK",
-   "blitz_rating": 1353,
-   "blitz_games": 5938,
+   "blitz_rating": 1365,
+   "blitz_games": 5940,
    "june_median_elo": 1348.0,
    "june_appearances": 2,
    "band_now": [

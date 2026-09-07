@@ -12,10 +12,10 @@ Artefacts: `INSTRUMENT_FREEZE.json`, `POWER_PLAN.json`, `FEASIBILITY_SCREEN.json
 
 | | |
 |---|---|
-| `instrument_hash` | `92393a55d5974e215b387085b6d14536834bf73b6d47ef15340da46557469d1f` |
+| `instrument_hash` | `a3bc3fb9b0809fec8792c74efd9f886cb2a2fdb6d830afa91319820d351e5833` |
 | `pipeline_hash` | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
 | `protocol_hash` | `87b1083e3a51d392696ad293c129b400a7629669845d616d439e2262621a957b` |
-| `repo_sha` | `415cb6b`, tree clean |
+| `repo_sha` | `f36db1d`, tree clean |
 | `GATE-GENERIC-PIPELINE-EQUIVALENCE` | GREEN, 16 checks, 261 artefacts, 0 failing |
 | positive controls | 5/5 turn the gate red |
 | runs on the record | erez281 `PERSONAL_RESIDUAL_CANDIDATE`; vibesgalore `NO_STABLE_STRUCTURE` |
@@ -102,7 +102,7 @@ broad-powered players, 2,504 per 100 residual-powered**.
 The screen reads a current rating; the instrument reads the median over the fetched window. Measured
 against each player's own June games as a second reading:
 
-- median absolute drift **46 points**, p90 **119**
+- median absolute drift **46.5 points**, p90 **119**
 - band disagreement between the two readings: **7.8%** of all screened
 - of the 149 screen hits, **41 (27.5%)** confirm under the second reading
 
