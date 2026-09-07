@@ -1,0 +1,34 @@
+{
+ "_what": "The selection walk. Every candidate tried, in the committed order, with the reason each rejected one was rejected.",
+ "prereg_hash": "15cd2b86a65226a80ddce024d8ee81ec4b9b7b707ecd04325a18142326a019f4",
+ "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
+ "seed": 20260907100,
+ "started_at": "2026-09-07T21:09:03Z",
+ "cursor": 2,
+ "accepted": [],
+ "rejected": [
+  {
+   "u": "nouramine",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1606.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2179,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 188.8
+  }
+ ],
+ "prefiltered": {
+  "PREFILTER_RATING_FAR_FROM_BAND": 1
+ },
+ "residual_slots_filled": 0
+}
