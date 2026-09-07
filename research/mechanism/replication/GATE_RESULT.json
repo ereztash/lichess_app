@@ -1,0 +1,1231 @@
+{
+ "gate": "GATE-GENERIC-PIPELINE-EQUIVALENCE",
+ "result": "GREEN",
+ "verdict": "EQUIVALENT",
+ "checks": [
+  {
+   "check": "corpus_and_splits",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "scored decision rows",
+     "old": 59419,
+     "new": 59419,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "eligible decisions",
+     "old": 52881,
+     "new": 52881,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "eligible games",
+     "old": 2161,
+     "new": 2161,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "DERIVE decisions",
+     "old": 31851,
+     "new": 31851,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "DERIVE games",
+     "old": 1297,
+     "new": 1297,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "VALIDATE decisions",
+     "old": 10626,
+     "new": 10626,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "VALIDATE games",
+     "old": 432,
+     "new": 432,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "TEST decisions",
+     "old": 10404,
+     "new": 10404,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "TEST games",
+     "old": 432,
+     "new": 432,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "DERIVE first game id",
+     "old": "BC9CItcx",
+     "new": "BC9CItcx",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "TEST last game id",
+     "old": "945nilfW",
+     "new": "945nilfW",
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "feature_table",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "rows",
+     "old": 59419,
+     "new": 59419,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "columns",
+     "old": [
+      "game_id",
+      "ply",
+      "move_number",
+      "color",
+      "speed",
+      "base_s",
+      "inc_s",
+      "own_berserk",
+      "opp_berserk",
+      "arena",
+      "createdAt",
+      "own_rating",
+      "opp_rating",
+      "rating_diff",
+      "eco",
+      "opening_name",
+      "opening_ply",
+      "eco_family",
+      "session_id",
+      "game_in_session",
+      "prev_game_result",
+      "games_today",
+      "fen",
+      "phase",
+      "seconds",
+      "clock_own_ms",
+      "clock_opp_ms",
+      "clock_frac",
+      "clock_diff_s",
+      "eval_before_cp",
+      "standing",
+      "book",
+      "forced",
+      "legal_moves",
+      "in_check",
+      "non_pawn_material",
+      "material_balance",
+      "piece_count",
+      "own_castling",
+      "opp_castling",
+      "own_queen",
+      "opp_queen",
+      "own_attack_edges",
+      "own_support_edges",
+      "opp_attack_edges",
+      "opp_support_edges",
+      "own_attacked_piece_count",
+      "opp_attacked_piece_count",
+      "own_hanging_piece_count",
+      "opp_hanging_piece_count",
+      "own_hanging_value",
+      "opp_hanging_value",
+      "own_overloaded_piece_count",
+      "opp_overloaded_piece_count",
+      "own_redundantly_defended_count",
+      "opp_redundantly_defended_count",
+      "own_min_defenders_on_attacked",
+      "opp_min_defenders_on_attacked",
+      "own_max_defense_dependency",
+      "opp_max_defense_dependency",
+      "own_pinned_count",
+      "opp_pinned_count",
+      "own_king_ring_enemy_attacks",
+      "opp_king_ring_enemy_attacks",
+      "own_king_ring_own_defenses",
+      "opp_king_ring_own_defenses",
+      "own_pawns",
+      "own_doubled",
+      "own_isolated",
+      "own_passed",
+      "opp_pawns",
+      "opp_doubled",
+      "opp_isolated",
+      "opp_passed",
+      "n_captures",
+      "n_checks",
+      "n_good_captures",
+      "max_capture_value",
+      "opp_mobility",
+      "opp_last_piece",
+      "opp_last_capture",
+      "opp_last_captured_value",
+      "opp_last_check",
+      "opp_last_promotion",
+      "opp_last_castle",
+      "opp_last_pawn",
+      "opp_last_king",
+      "opp_last_to_sq",
+      "opp_last_cp_loss",
+      "opp_last_wp_loss",
+      "opp_last_blunder",
+      "opp_last_spent_s",
+      "new_attacks_on_own",
+      "recapture_available",
+      "eval_swing_last_move",
+      "own_last_piece",
+      "own_last_capture",
+      "own_last_captured_value",
+      "own_last_check",
+      "own_last_promotion",
+      "own_last_castle",
+      "own_last_pawn",
+      "own_last_king",
+      "eval_trend_2ply",
+      "eval_volatility_4",
+      "wp1",
+      "edge",
+      "gap12",
+      "gap13",
+      "n_near",
+      "ambiguity_entropy",
+      "is_mate_line",
+      "n_lines",
+      "best_piece",
+      "best_capture",
+      "best_captured_value",
+      "best_check",
+      "best_promotion",
+      "best_castle",
+      "best_pawn",
+      "best_king",
+      "best_is_recapture",
+      "best_see",
+      "best_sacrifice",
+      "top_all_captures",
+      "top_any_check",
+      "top_all_quiet",
+      "own_decisions_so_far",
+      "own_errors_so_far",
+      "own_error_rate_so_far",
+      "plies_since_own_error",
+      "own_prev_wp_loss",
+      "own_prev_spent_s",
+      "game_elapsed_s",
+      "y_hang_after",
+      "y_reply_capture",
+      "y_reply_check",
+      "y_reply_mate",
+      "y_reply_see",
+      "y_best_see",
+      "y_played_see",
+      "y_error_class",
+      "y_cp_loss",
+      "y_wp_loss",
+      "y_accurate",
+      "y_played_uci",
+      "y_played_is_best",
+      "y_played_in_top3",
+      "y_played_capture",
+      "y_played_check",
+      "y_played_piece",
+      "y_eval_after_cp",
+      "y_game_result",
+      "corpus",
+      "player_key"
+     ],
+     "new": [
+      "game_id",
+      "ply",
+      "move_number",
+      "color",
+      "speed",
+      "base_s",
+      "inc_s",
+      "own_berserk",
+      "opp_berserk",
+      "arena",
+      "createdAt",
+      "own_rating",
+      "opp_rating",
+      "rating_diff",
+      "eco",
+      "opening_name",
+      "opening_ply",
+      "eco_family",
+      "session_id",
+      "game_in_session",
+      "prev_game_result",
+      "games_today",
+      "fen",
+      "phase",
+      "seconds",
+      "clock_own_ms",
+      "clock_opp_ms",
+      "clock_frac",
+      "clock_diff_s",
+      "eval_before_cp",
+      "standing",
+      "book",
+      "forced",
+      "legal_moves",
+      "in_check",
+      "non_pawn_material",
+      "material_balance",
+      "piece_count",
+      "own_castling",
+      "opp_castling",
+      "own_queen",
+      "opp_queen",
+      "own_attack_edges",
+      "own_support_edges",
+      "opp_attack_edges",
+      "opp_support_edges",
+      "own_attacked_piece_count",
+      "opp_attacked_piece_count",
+      "own_hanging_piece_count",
+      "opp_hanging_piece_count",
+      "own_hanging_value",
+      "opp_hanging_value",
+      "own_overloaded_piece_count",
+      "opp_overloaded_piece_count",
+      "own_redundantly_defended_count",
+      "opp_redundantly_defended_count",
+      "own_min_defenders_on_attacked",
+      "opp_min_defenders_on_attacked",
+      "own_max_defense_dependency",
+      "opp_max_defense_dependency",
+      "own_pinned_count",
+      "opp_pinned_count",
+      "own_king_ring_enemy_attacks",
+      "opp_king_ring_enemy_attacks",
+      "own_king_ring_own_defenses",
+      "opp_king_ring_own_defenses",
+      "own_pawns",
+      "own_doubled",
+      "own_isolated",
+      "own_passed",
+      "opp_pawns",
+      "opp_doubled",
+      "opp_isolated",
+      "opp_passed",
+      "n_captures",
+      "n_checks",
+      "n_good_captures",
+      "max_capture_value",
+      "opp_mobility",
+      "opp_last_piece",
+      "opp_last_capture",
+      "opp_last_captured_value",
+      "opp_last_check",
+      "opp_last_promotion",
+      "opp_last_castle",
+      "opp_last_pawn",
+      "opp_last_king",
+      "opp_last_to_sq",
+      "opp_last_cp_loss",
+      "opp_last_wp_loss",
+      "opp_last_blunder",
+      "opp_last_spent_s",
+      "new_attacks_on_own",
+      "recapture_available",
+      "eval_swing_last_move",
+      "own_last_piece",
+      "own_last_capture",
+      "own_last_captured_value",
+      "own_last_check",
+      "own_last_promotion",
+      "own_last_castle",
+      "own_last_pawn",
+      "own_last_king",
+      "eval_trend_2ply",
+      "eval_volatility_4",
+      "wp1",
+      "edge",
+      "gap12",
+      "gap13",
+      "n_near",
+      "ambiguity_entropy",
+      "is_mate_line",
+      "n_lines",
+      "best_piece",
+      "best_capture",
+      "best_captured_value",
+      "best_check",
+      "best_promotion",
+      "best_castle",
+      "best_pawn",
+      "best_king",
+      "best_is_recapture",
+      "best_see",
+      "best_sacrifice",
+      "top_all_captures",
+      "top_any_check",
+      "top_all_quiet",
+      "own_decisions_so_far",
+      "own_errors_so_far",
+      "own_error_rate_so_far",
+      "plies_since_own_error",
+      "own_prev_wp_loss",
+      "own_prev_spent_s",
+      "game_elapsed_s",
+      "y_hang_after",
+      "y_reply_capture",
+      "y_reply_check",
+      "y_reply_mate",
+      "y_reply_see",
+      "y_best_see",
+      "y_played_see",
+      "y_error_class",
+      "y_cp_loss",
+      "y_wp_loss",
+      "y_accurate",
+      "y_played_uci",
+      "y_played_is_best",
+      "y_played_in_top3",
+      "y_played_capture",
+      "y_played_check",
+      "y_played_piece",
+      "y_eval_after_cp",
+      "y_game_result",
+      "corpus",
+      "player_key"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "columns differing bitwise",
+     "old": [],
+     "new": [],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "R_star_discovery",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "target",
+     "old": "cls_tactical",
+     "new": "cls_tactical",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "vocabulary",
+     "old": "OBS",
+     "new": "OBS",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "Node C depth",
+     "old": 2,
+     "new": 2,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "CV mean z depth 1",
+     "old": 5.878027349912502,
+     "new": 5.878027349243981,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "CV mean z depth 2",
+     "old": 6.814127870806959,
+     "new": 6.814127870922404,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "CV mean z depth 3",
+     "old": 5.8277066983741355,
+     "new": 5.827706698961058,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "frozen candidates",
+     "old": [
+      "material_balance>=-2 AND own_overloaded_piece_count>=1",
+      "n_good_captures<1 AND own_overloaded_piece_count>=1",
+      "material_balance: [0:3[ AND own_overloaded_piece_count>=1"
+     ],
+     "new": [
+      "material_balance>=-2 AND own_overloaded_piece_count>=1",
+      "n_good_captures<1 AND own_overloaded_piece_count>=1",
+      "material_balance: [0:3[ AND own_overloaded_piece_count>=1"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] n_derive",
+     "old": 8635,
+     "new": 8635,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] DERIVE within-game",
+     "old": 0.11168259106835,
+     "new": 0.11168259106835,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] stability share J>=0.60",
+     "old": 0.5666666666666667,
+     "new": 0.5666666666666667,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE n_in",
+     "old": 2937,
+     "new": 2937,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE p_in",
+     "old": 0.25672454885938034,
+     "new": 0.25672454885938034,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE p_out",
+     "old": 0.13837950318637013,
+     "new": 0.13837950318637013,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE wg_est",
+     "old": 0.11525987953304158,
+     "new": 0.11525987953304158,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE wg_z",
+     "old": 11.238829867837962,
+     "new": 11.238829867837962,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE resid_wg_z",
+     "old": 8.55646910972384,
+     "new": 8.556469109680593,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance>=-2 AND own_overloaded_piece_count>=1] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] n_derive",
+     "old": 6478,
+     "new": 6478,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] DERIVE within-game",
+     "old": 0.06769070179142435,
+     "new": 0.06769070179142435,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] stability share J>=0.60",
+     "old": 0.4,
+     "new": 0.4,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE n_in",
+     "old": 2208,
+     "new": 2208,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE p_in",
+     "old": 0.2246376811594203,
+     "new": 0.2246376811594203,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE p_out",
+     "old": 0.15704442860536943,
+     "new": 0.15704442860536943,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE wg_est",
+     "old": 0.05631292725563765,
+     "new": 0.05631292725563765,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE wg_z",
+     "old": 5.141135892253059,
+     "new": 5.141135892253059,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE resid_wg_z",
+     "old": 6.820815130453728,
+     "new": 6.820815130414161,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[n_good_captures<1 AND own_overloaded_piece_count>=1] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] n_derive",
+     "old": 3871,
+     "new": 3871,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] DERIVE within-game",
+     "old": 0.12464450487647441,
+     "new": 0.12464450487647441,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] stability share J>=0.60",
+     "old": 0.1,
+     "new": 0.1,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE n_in",
+     "old": 1326,
+     "new": 1326,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE p_in",
+     "old": 0.2722473604826546,
+     "new": 0.2722473604826546,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE p_out",
+     "old": 0.15666666666666668,
+     "new": 0.15666666666666668,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE wg_est",
+     "old": 0.11791809524394613,
+     "new": 0.11791809524394613,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE wg_z",
+     "old": 7.756433584740064,
+     "new": 7.756433584740064,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE resid_wg_z",
+     "old": 6.473664616650669,
+     "new": 6.47366461662096,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "R_star_star_population_residual",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "target",
+     "old": "cls_hung_material",
+     "new": "cls_hung_material",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "Node C depth",
+     "old": 2,
+     "new": 2,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population model holdout AUC",
+     "old": 0.7646499173025916,
+     "new": 0.7646499173025916,
+     "tolerance": "rel<=1e-06",
+     "result": "PASS"
+    },
+    {
+     "artifact": "frozen candidates",
+     "old": [
+      "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+      "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[",
+      "opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1"
+     ],
+     "new": [
+      "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+      "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[",
+      "opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] n_derive",
+     "old": 3270,
+     "new": 3270,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] stability share J>=0.60",
+     "old": 0.8,
+     "new": 0.8,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE n_in",
+     "old": 1199,
+     "new": 1199,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE p_in",
+     "old": 0.1993327773144287,
+     "new": 0.1993327773144287,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE p_out",
+     "old": 0.07127532777115614,
+     "new": 0.07127532777115614,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE wg_est",
+     "old": 0.13461338507091972,
+     "new": 0.13461338507091972,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE wg_z",
+     "old": 9.686616563086384,
+     "new": 9.686616563086384,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE resid_wg_z",
+     "old": 4.5202284169154145,
+     "new": 4.5202284169154145,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count>=1] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] n_derive",
+     "old": 2772,
+     "new": 2772,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] stability share J>=0.60",
+     "old": 0.7666666666666667,
+     "new": 0.7666666666666667,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE n_in",
+     "old": 1011,
+     "new": 1011,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE p_in",
+     "old": 0.18892185954500496,
+     "new": 0.18892185954500496,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE p_out",
+     "old": 0.07530892982047097,
+     "new": 0.07530892982047097,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE wg_est",
+     "old": 0.11634289381459526,
+     "new": 0.11634289381459526,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE wg_z",
+     "old": 8.164940761538688,
+     "new": 8.164940761538688,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE resid_wg_z",
+     "old": 3.91266632731564,
+     "new": 3.91266632731564,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] n_derive",
+     "old": 3542,
+     "new": 3542,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] stability share J>=0.60",
+     "old": 0.06666666666666667,
+     "new": 0.06666666666666667,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE n_in",
+     "old": 1419,
+     "new": 1419,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE p_in",
+     "old": 0.17688513037350245,
+     "new": 0.17688513037350245,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE p_out",
+     "old": 0.07172582619339045,
+     "new": 0.07172582619339045,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE wg_est",
+     "old": 0.0991691084858199,
+     "new": 0.0991691084858199,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE wg_z",
+     "old": 8.3633390092818,
+     "new": 8.3633390092818,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE resid_wg_z",
+     "old": 3.5953050008322696,
+     "new": 3.5953050008322696,
+     "tolerance": "rel<=1e-09",
+     "result": "PASS"
+    },
+    {
+     "artifact": "[opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1] VALIDATE pass",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "final_evidence_state",
+   "kind": "EQUIVALENCE",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "population band",
+     "old": [
+      1450,
+      1850
+     ],
+     "new": [
+      1450,
+      1850
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "population corpus id",
+     "old": "population_2026-06",
+     "new": "population_2026-06",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "output class",
+     "old": "PERSONAL_RESIDUAL_CANDIDATE",
+     "new": "PERSONAL_RESIDUAL_CANDIDATE",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "R* region",
+     "old": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "new": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "R** region",
+     "old": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "new": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "generalisation",
+   "kind": "DISCRIMINATION",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "focal side of a non-erez281 white player",
+     "old": "w",
+     "new": "w",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal side of a non-erez281 black player",
+     "old": "b",
+     "new": "b",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "rows loaded for a non-erez281 corpus, corpus not named",
+     "old": 38580,
+     "new": 38580,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "refuses to guess between two corpora in one file",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "focal rows left inside the population frame",
+     "old": 0,
+     "new": 0,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "band for a 1654-rated player",
+     "old": [
+      1450,
+      1850
+     ],
+     "new": [
+      1450,
+      1850
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "band for a 2010-rated player",
+     "old": [
+      1800,
+      2200
+     ],
+     "new": [
+      1800,
+      2200
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "band for a 1180-rated player",
+     "old": [
+      1000,
+      1400
+     ],
+     "new": [
+      1000,
+      1400
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "failure_modes",
+   "kind": "DISCRIMINATION",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "unknown account",
+     "old": "USER_NOT_FOUND",
+     "new": "USER_NOT_FOUND",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "thin corpus -> INSUFFICIENT_EVIDENCE/INSUFFICIENT_CORPUS",
+     "old": [
+      "INSUFFICIENT_EVIDENCE",
+      "INSUFFICIENT_CORPUS"
+     ],
+     "new": [
+      "INSUFFICIENT_EVIDENCE",
+      "INSUFFICIENT_CORPUS"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "sufficient corpus is not called insufficient",
+     "old": false,
+     "new": false,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "no region passes -> NO_STABLE_STRUCTURE",
+     "old": "NO_STABLE_STRUCTURE",
+     "new": "NO_STABLE_STRUCTURE",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "region found, no population -> POPULATION_BASELINE_INSUFFICIENT",
+     "old": [
+      "INSUFFICIENT_EVIDENCE",
+      "POPULATION_BASELINE_INSUFFICIENT"
+     ],
+     "new": [
+      "INSUFFICIENT_EVIDENCE",
+      "POPULATION_BASELINE_INSUFFICIENT"
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "region survives judge, not population -> LEVEL_TYPICAL_ONLY",
+     "old": "LEVEL_TYPICAL_ONLY",
+     "new": "LEVEL_TYPICAL_ONLY",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "both pass -> PERSONAL_RESIDUAL_CANDIDATE",
+     "old": "PERSONAL_RESIDUAL_CANDIDATE",
+     "new": "PERSONAL_RESIDUAL_CANDIDATE",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "2410-rated player -> POPULATION_BASELINE_INSUFFICIENT",
+     "old": "POPULATION_BASELINE_INSUFFICIENT",
+     "new": "POPULATION_BASELINE_INSUFFICIENT",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "and the band it needed is named",
+     "old": [
+      2200,
+      2600
+     ],
+     "new": [
+      2200,
+      2600
+     ],
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  },
+  {
+   "check": "eligibility_rule",
+   "kind": "DISCRIMINATION",
+   "result": "PASS",
+   "rows": [
+    {
+     "artifact": "a clean game is admissible",
+     "old": null,
+     "new": null,
+     "tolerance": "both absent",
+     "result": "PASS"
+    },
+    {
+     "artifact": "no pgn",
+     "old": "no-pgn",
+     "new": "no-pgn",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "unrated",
+     "old": "unrated",
+     "new": "unrated",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "time forfeit",
+     "old": "termination:Time forfeit",
+     "new": "termination:Time forfeit",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "abandoned",
+     "old": "termination:Abandoned",
+     "new": "termination:Abandoned",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "no clocks",
+     "old": "no-clocks",
+     "new": "no-clocks",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "under 20 clocked plies",
+     "old": "under-20-plies",
+     "new": "under-20-plies",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "termination beats no-clocks (baseline precedence)",
+     "old": "termination:Time forfeit",
+     "new": "termination:Time forfeit",
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "non-standard variant is scorable=False",
+     "old": false,
+     "new": false,
+     "tolerance": "exact",
+     "result": "PASS"
+    },
+    {
+     "artifact": "standard variant is scorable",
+     "old": true,
+     "new": true,
+     "tolerance": "exact",
+     "result": "PASS"
+    }
+   ]
+  }
+ ]
+}

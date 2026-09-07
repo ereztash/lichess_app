@@ -1,0 +1,542 @@
+{
+ "_what_this_is": "The original pipeline's inputs and canonical outputs on erez281, frozen before the generalisation refactor. GATE-GENERIC-PIPELINE-EQUIVALENCE compares the generic pipeline against this file.",
+ "baseline_repo_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
+ "baseline_branch": "claude/generalize-research-pipeline-75k53u",
+ "mission_origin_sha": "2f3c26139e9bb166e799f2bccf8a75d900f568e1",
+ "contract_version": "replication-1.0.0",
+ "focal": {
+  "platform": "lichess",
+  "username": "erez281",
+  "player_id": "erez281",
+  "corpus_label_in_frozen_artifacts": "erez281"
+ },
+ "inputs": {
+  "corpus_source": "https://lichess.org/api/games/user/erez281?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc",
+  "fetched_at": "2026-09-01T21:42:06.876Z",
+  "games_returned": 3195,
+  "games_admissible": 2209,
+  "rejected": {
+   "termination:Abandoned": 124,
+   "termination:Time forfeit": 724,
+   "under-20-plies": 134,
+   "no-clocks": 4
+  },
+  "window_rule": "the N most recent admissible games, in the API's own dateDesc order -- fixed in ACCOUNT_BRIDGE_PREREG.md before anything was scored",
+  "speeds_in_window": {
+   "blitz": 1899,
+   "rapid": 203,
+   "bullet": 103,
+   "ultrabullet": 3,
+   "classical": 1
+  },
+  "game_ids_sha256": "9931239a998b1da3988d003e97d698115842967ab9ebcf8490df1461e4eeda0f",
+  "n_game_ids": 2209,
+  "artifacts": {
+   "research/mechanism/data/decisions_erez281.parquet": {
+    "git_blob": "aa1789fb7bb3b6af5f2fadf8bebf7988f09ade40",
+    "sha256": "a8a43f74340daaee35e58589fe3906e1b278ad185d8cce7917c729457727ec67"
+   },
+   "research/mechanism/data/decisions_population_2026-06.parquet": {
+    "git_blob": "5fcab2b4eb42b790d1358d77dbcde59c099dd99b",
+    "sha256": "0ef9a7a69b2355724b4b10add4f0c39615a1425b7ee8d65fa1d5bf3939c9263f"
+   },
+   "research/mechanism/data/decisions_post_freeze.parquet": {
+    "git_blob": "ae5aea81a9bb58517f58b252e2b7414d82d5d26b",
+    "sha256": "10bee61d0846b232e2d585effd8657806018b21184570e7ff5a62352d751d3f7"
+   },
+   "research/mechanism/data/scored_erez281_sf171_d12_mpv3.jsonl.zst": {
+    "git_blob": "c42cbfe4262973deeb5a6f0f0079b459c181bebe",
+    "sha256": "b4ea250581f93b69abc310f4d9530403f9b1a8de5994a08696efe111bdb3510c"
+   },
+   "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst": {
+    "git_blob": "6d4c402207dbf4609068a1b5c7c78f79e8e99483",
+    "sha256": "c4bc8bf6a4aab58ef5cfa6cf482165908ca5e3cc2179d2593729cda6139f2eb6"
+   },
+   "research/mechanism/data/frozen_window_manifest.json": {
+    "git_blob": "039c0e8419f803287913eb676c351b5467ae5f8a",
+    "sha256": "b4a9d6941ecce98aacbe51e222634ada00e97858c709654fb27ff101f67959fd"
+   },
+   "research/mechanism/data/population_games.ndjson": {
+    "git_blob": "c4cde97fec86eac41bfe4b3b6a7c17e732490b23",
+    "sha256": "c58fb9c7ef8c80c31443e80ca39d6ffc35492631b6c68351f37b21f54c5a0957"
+   }
+  }
+ },
+ "engine_regime": {
+  "research": {
+   "name": "Stockfish 17.1",
+   "build": "ubuntu-x86-64-avx2",
+   "depth": 12,
+   "multipv": 3,
+   "threads": 1,
+   "hash_mb": 16,
+   "hash_cleared_per_position": true
+  },
+  "shipped_parity": {
+   "name": "Stockfish 18 Lite WASM (the product's engine)",
+   "entrypoint": "scripts/sf-wasm.sh",
+   "depth": 12,
+   "multipv": 1,
+   "hash_cleared_per_position": true,
+   "role": "engine-artifact control only; never the primary label"
+  },
+  "hierarchy": "research engine labels every primary statistic; the shipped engine re-scores VALIDATE as a control (Node G). Performance changes are admissible only if proven output-equivalent."
+ },
+ "corpus": {
+  "scored_games": 2161,
+  "scored_decisions": 59419,
+  "eligible_decisions": 52881,
+  "non_standard_dropped": 48,
+  "canonical_cross_check": "research/harness-account-full/prereg_report.json: 59,419 scored / 52,881 eligible"
+ },
+ "splits": {
+  "DERIVE": {
+   "decisions": 31851,
+   "games": 1297,
+   "first_game_id": "BC9CItcx",
+   "last_game_id": "eRGSL44m",
+   "first_created_at": 1617263986985,
+   "last_created_at": 1735713595953,
+   "games_sha256": "f0c95e18e5e8d15f73e36c3a7af1c2c0e7393e7a0d0967897bf51c7906162883"
+  },
+  "VALIDATE": {
+   "decisions": 10626,
+   "games": 432,
+   "first_game_id": "ZIq4atAb",
+   "last_game_id": "LoGrvcUL",
+   "first_created_at": 1735713670050,
+   "last_created_at": 1764454796436,
+   "games_sha256": "0fe09d8236c52890cd98dd03d87a92dae839456457c48cf9f0e8c9e14f3472fe"
+  },
+  "TEST": {
+   "decisions": 10404,
+   "games": 432,
+   "first_game_id": "Q7IsBOmN",
+   "last_game_id": "945nilfW",
+   "first_created_at": 1764543048948,
+   "last_created_at": 1788208398764,
+   "games_sha256": "adad48c399010fea0586d4ff10bf1097958fa8cae866d72ccdf9db09cfff6502"
+  }
+ },
+ "blitz_splits": {
+  "DERIVE": {
+   "decisions": 26268,
+   "games": 1068
+  },
+  "VALIDATE": {
+   "decisions": 9589,
+   "games": 389
+  },
+  "TEST": {
+   "decisions": 10145,
+   "games": 419
+  }
+ },
+ "feature_schema": {
+  "n_columns": 155,
+  "columns": [
+   "ambiguity_entropy",
+   "arena",
+   "base_s",
+   "best_capture",
+   "best_captured_value",
+   "best_castle",
+   "best_check",
+   "best_is_recapture",
+   "best_king",
+   "best_pawn",
+   "best_piece",
+   "best_promotion",
+   "best_sacrifice",
+   "best_see",
+   "book",
+   "clock_diff_s",
+   "clock_frac",
+   "clock_opp_ms",
+   "clock_own_ms",
+   "color",
+   "corpus",
+   "createdAt",
+   "eco",
+   "eco_family",
+   "edge",
+   "eval_before_cp",
+   "eval_swing_last_move",
+   "eval_trend_2ply",
+   "eval_volatility_4",
+   "fen",
+   "forced",
+   "game_elapsed_s",
+   "game_id",
+   "game_in_session",
+   "games_today",
+   "gap12",
+   "gap13",
+   "in_check",
+   "inc_s",
+   "is_mate_line",
+   "legal_moves",
+   "material_balance",
+   "max_capture_value",
+   "move_number",
+   "n_captures",
+   "n_checks",
+   "n_good_captures",
+   "n_lines",
+   "n_near",
+   "new_attacks_on_own",
+   "non_pawn_material",
+   "opening_name",
+   "opening_ply",
+   "opp_attack_edges",
+   "opp_attacked_piece_count",
+   "opp_berserk",
+   "opp_castling",
+   "opp_doubled",
+   "opp_hanging_piece_count",
+   "opp_hanging_value",
+   "opp_isolated",
+   "opp_king_ring_enemy_attacks",
+   "opp_king_ring_own_defenses",
+   "opp_last_blunder",
+   "opp_last_capture",
+   "opp_last_captured_value",
+   "opp_last_castle",
+   "opp_last_check",
+   "opp_last_cp_loss",
+   "opp_last_king",
+   "opp_last_pawn",
+   "opp_last_piece",
+   "opp_last_promotion",
+   "opp_last_spent_s",
+   "opp_last_to_sq",
+   "opp_last_wp_loss",
+   "opp_max_defense_dependency",
+   "opp_min_defenders_on_attacked",
+   "opp_mobility",
+   "opp_overloaded_piece_count",
+   "opp_passed",
+   "opp_pawns",
+   "opp_pinned_count",
+   "opp_queen",
+   "opp_rating",
+   "opp_redundantly_defended_count",
+   "opp_support_edges",
+   "own_attack_edges",
+   "own_attacked_piece_count",
+   "own_berserk",
+   "own_castling",
+   "own_decisions_so_far",
+   "own_doubled",
+   "own_error_rate_so_far",
+   "own_errors_so_far",
+   "own_hanging_piece_count",
+   "own_hanging_value",
+   "own_isolated",
+   "own_king_ring_enemy_attacks",
+   "own_king_ring_own_defenses",
+   "own_last_capture",
+   "own_last_captured_value",
+   "own_last_castle",
+   "own_last_check",
+   "own_last_king",
+   "own_last_pawn",
+   "own_last_piece",
+   "own_last_promotion",
+   "own_max_defense_dependency",
+   "own_min_defenders_on_attacked",
+   "own_overloaded_piece_count",
+   "own_passed",
+   "own_pawns",
+   "own_pinned_count",
+   "own_prev_spent_s",
+   "own_prev_wp_loss",
+   "own_queen",
+   "own_rating",
+   "own_redundantly_defended_count",
+   "own_support_edges",
+   "phase",
+   "piece_count",
+   "player_key",
+   "plies_since_own_error",
+   "ply",
+   "prev_game_result",
+   "rating_diff",
+   "recapture_available",
+   "seconds",
+   "session_id",
+   "speed",
+   "standing",
+   "top_all_captures",
+   "top_all_quiet",
+   "top_any_check",
+   "wp1",
+   "y_accurate",
+   "y_best_see",
+   "y_cp_loss",
+   "y_error_class",
+   "y_eval_after_cp",
+   "y_game_result",
+   "y_hang_after",
+   "y_played_capture",
+   "y_played_check",
+   "y_played_in_top3",
+   "y_played_is_best",
+   "y_played_piece",
+   "y_played_see",
+   "y_played_uci",
+   "y_reply_capture",
+   "y_reply_check",
+   "y_reply_mate",
+   "y_reply_see",
+   "y_wp_loss"
+  ],
+  "schema_hash": "2b0c7e2cff1e2fc30293488f398215219da65d1b6d9466b41cc962d1c24183cf"
+ },
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3
+ },
+ "discovery_broad": {
+  "artifact": "research/mechanism/nodeB/discovery_v17_cls_tactical.json",
+  "target": "cls_tactical",
+  "vocab": "OBS",
+  "depth": 2,
+  "cv_depth": {
+   "1": 5.878027349912502,
+   "2": 6.814127870806959,
+   "3": 5.8277066983741355
+  },
+  "frozen": [
+   {
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "n_derive": 8635,
+    "derive_wg_est": 0.11168259106835,
+    "derive_wg_z": 19.96180873339819,
+    "stability_share_j60": 0.5666666666666667,
+    "validate": {
+     "n_in": 2937,
+     "p_in": 0.25672454885938034,
+     "p_out": 0.13837950318637013,
+     "wg_est": 0.11525987953304158,
+     "wg_z": 11.238829867837962,
+     "resid_wg_z": 8.55646910972384,
+     "pass": true
+    }
+   },
+   {
+    "region": "n_good_captures<1 AND own_overloaded_piece_count>=1",
+    "n_derive": 6478,
+    "derive_wg_est": 0.06769070179142435,
+    "derive_wg_z": 10.84680591895524,
+    "stability_share_j60": 0.4,
+    "validate": {
+     "n_in": 2208,
+     "p_in": 0.2246376811594203,
+     "p_out": 0.15704442860536943,
+     "wg_est": 0.05631292725563765,
+     "wg_z": 5.141135892253059,
+     "resid_wg_z": 6.820815130453728,
+     "pass": true
+    }
+   },
+   {
+    "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "n_derive": 3871,
+    "derive_wg_est": 0.12464450487647441,
+    "derive_wg_z": 15.792118211050049,
+    "stability_share_j60": 0.1,
+    "validate": {
+     "n_in": 1326,
+     "p_in": 0.2722473604826546,
+     "p_out": 0.15666666666666668,
+     "wg_est": 0.11791809524394613,
+     "wg_z": 7.756433584740064,
+     "resid_wg_z": 6.473664616650669,
+     "pass": true
+    }
+   }
+  ]
+ },
+ "r_star": {
+  "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+  "target": "cls_tactical",
+  "definition": "material_balance >= -2 AND own_overloaded_piece_count >= 1, target cls_tactical",
+  "validate": {
+   "n_in": 2937,
+   "p_in": 0.25672454885938034,
+   "p_out": 0.13837950318637013,
+   "wg_est": 0.11525987953304158,
+   "wg_z": 11.238829867837962,
+   "resid_wg_z": 8.55646910972384,
+   "pass": true
+  },
+  "test": {
+   "n_in": 2812,
+   "p_in": 0.2411095305832148,
+   "p_out": 0.13580084299262382,
+   "z": 10.602870020715017,
+   "baseline_gap": {
+    "gap_in": 0.044776128209251184,
+    "gap_out": -0.028898820690836442,
+    "diff": 0.07367494890008763,
+    "z": 7.784480803030188
+   },
+   "models": {
+    "M0_history": {
+     "logloss": 0.44672666274045486,
+     "auc": 0.5
+    },
+    "M1_six_buckets": {
+     "logloss": 0.4451104562297473,
+     "auc": 0.5332487312206695
+    },
+    "M2_context": {
+     "logloss": 0.4454236783289646,
+     "auc": 0.5378805370613445
+    },
+    "M3_baseline": {
+     "logloss": 0.4236664521366596,
+     "auc": 0.6641595369506429
+    },
+    "M4_baseline_region": {
+     "logloss": 0.41895596950973724,
+     "auc": 0.682122955593817
+    },
+    "M5_context_region": {
+     "logloss": 0.43816042017137424,
+     "auc": 0.5996018776891004
+    }
+   },
+   "shuffled_gain_p": 0.0
+  },
+  "invariance_artifact": "research/mechanism/nodeB/invariance_tactical_validate.json",
+  "invariance_strata_with_positive_diff": 22,
+  "invariance_strata_judged": 22,
+  "stability_loco_artifact": "research/mechanism/nodeB/stability_loco_tactical.json",
+  "stability_loco_exact_returns": 12,
+  "stability_loco_variants": 17,
+  "engine_artifact_control": {
+   "artifact": "research/mechanism/nodeB/engine_artifact_tactical_validate.json",
+   "shipped_engine_within_game": null
+  }
+ },
+ "population": {
+  "artifact": "research/mechanism/nodeB/population_tactical_validate.json",
+  "corpus_id": "population_2026-06",
+  "band": [
+   1450,
+   1850
+  ],
+  "band_rule": "median own_rating over the focal player's admissible BLITZ games, rounded to the nearest 50",
+  "focal_blitz_median_rating": 1654.0,
+  "n_decisions": 34794,
+  "sides": 1200,
+  "raw_diff": 0.10958034718775547,
+  "resid_diff": 0.06746804203336249,
+  "focal_percentile": 0.6162280701754386,
+  "focal_elev": 0.08754607869031181,
+  "interpretation": "R* is the typical structure of the band: the focal player sits at the 62nd percentile of per-side elevation. The population removed the word 'specific' from R*."
+ },
+ "discovery_residual": {
+  "artifact": "research/mechanism/nodeB/discovery_POP_cls_hung_material.json",
+  "target": "cls_hung_material",
+  "depth": 2,
+  "population_model_holdout_auc": 0.7646499173025916,
+  "cv_depth": {
+   "1": 2.857844253855719,
+   "2": 3.065002078207945,
+   "3": 2.8631228561775357
+  },
+  "frozen": [
+   {
+    "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+    "n_derive": 3270,
+    "stability_share_j60": 0.8,
+    "validate": {
+     "n_in": 1199,
+     "p_in": 0.1993327773144287,
+     "p_out": 0.07127532777115614,
+     "wg_est": 0.13461338507091972,
+     "wg_z": 9.686616563086384,
+     "resid_wg_z": 4.5202284169154145,
+     "pass": true
+    }
+   },
+   {
+    "region": "material_balance: [0:3[ AND own_overloaded_piece_count: [1:2[",
+    "n_derive": 2772,
+    "stability_share_j60": 0.7666666666666667,
+    "validate": {
+     "n_in": 1011,
+     "p_in": 0.18892185954500496,
+     "p_out": 0.07530892982047097,
+     "wg_est": 0.11634289381459526,
+     "wg_z": 8.164940761538688,
+     "resid_wg_z": 3.91266632731564,
+     "pass": true
+    }
+   },
+   {
+    "region": "opp_king_ring_enemy_attacks<1 AND own_overloaded_piece_count>=1",
+    "n_derive": 3542,
+    "stability_share_j60": 0.06666666666666667,
+    "validate": {
+     "n_in": 1419,
+     "p_in": 0.17688513037350245,
+     "p_out": 0.07172582619339045,
+     "wg_est": 0.0991691084858199,
+     "wg_z": 8.3633390092818,
+     "resid_wg_z": 3.5953050008322696,
+     "pass": true
+    }
+   }
+  ]
+ },
+ "r_star_star": {
+  "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+  "target": "cls_hung_material",
+  "definition": "material_balance in [0,3) AND own_overloaded_piece_count >= 1, target cls_hung_material",
+  "validate": {
+   "n_in": 1199,
+   "p_in": 0.1993327773144287,
+   "p_out": 0.07127532777115614,
+   "wg_est": 0.13461338507091972,
+   "wg_z": 9.686616563086384,
+   "resid_wg_z": 4.5202284169154145,
+   "pass": true
+  },
+  "stability_share_j60": 0.8
+ },
+ "final_evidence_state": {
+  "output_class": "PERSONAL_RESIDUAL_CANDIDATE",
+  "neta_status": "FIELD_STOP",
+  "mission_status": "FIELD_REQUIRED_FOR_LEVEL_6",
+  "levels_earned": [
+   "L1 cross-context",
+   "L2 predictive",
+   "L3 stable",
+   "L4 actionable",
+   "L5 prospectively testable"
+  ],
+  "supported_claims": [
+   "C1",
+   "C2",
+   "C3",
+   "C4"
+  ],
+  "withheld_claims": [
+   "C5 INTERVENTION (INSUFFICIENT_REALITY)",
+   "C6 OUTCOME (DENY)"
+  ],
+  "source": "research/mechanism/NETA_FINDING.json, MISSION_LEDGER.md \u00a7FINAL REPORT"
+ }
+}

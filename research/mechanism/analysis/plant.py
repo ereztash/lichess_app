@@ -18,6 +18,7 @@ import pandas as pd
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from common import load_decisions, eligible, chronological_split, shuffle_within_game, jaccard
 from search import build_selectors, search, judge_region, residualize, add_within_game_targets
+from focal import exclude_focal
 import vocab
 
 ON_TARGET_J = 0.60
@@ -99,13 +100,21 @@ def main():
     ap.add_argument("--worlds", default=None, help="comma-separated world names to run (default: all)")
     ap.add_argument("--population", default=None)
     ap.add_argument("--blitz-only", type=int, default=0)
+    ap.add_argument("--corpus", default=None, help="focal corpus label (default: the file's only corpus)")
+    ap.add_argument("--focal-player-key", default=None)
     a = ap.parse_args()
     design = vocab.DESIGN.copy()
     design["vocab"] = vocab.VOCAB[a.vocab]
     design["residual"] = bool(a.residual)
+    from common import AUTO_CORPUS
+    df = load_decisions(a.decisions, corpus=a.corpus or AUTO_CORPUS)
+    focal_corpus_label = str(df["corpus"].iloc[0]) if "corpus" in df.columns and len(df) else None
+    focal_keys = set(df["player_key"].dropna().unique()) if "player_key" in df.columns else set()
+    if a.focal_player_key:
+        focal_keys.add(a.focal_player_key)
     if a.population:
-        pop = eligible(load_decisions(a.population, corpus=None)); design["_pop"] = pop[pop["corpus"] != "erez281"].reset_index(drop=True)
-    df = load_decisions(a.decisions)
+        pop = eligible(load_decisions(a.population, corpus=None))
+        design["_pop"] = exclude_focal(pop, focal_corpus_label, focal_keys).reset_index(drop=True)
     df = eligible(df)
     if a.blitz_only:
         df = df[df.speed == "blitz"]

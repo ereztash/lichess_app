@@ -1,5 +1,5 @@
 """
-Research-only scorer for the erez281 frozen 2,209-game window.
+Research-only scorer for a frozen game window, for an arbitrary FOCAL PLAYER.
 
 For every position of every standard-variant game (both sides' moves), run Stockfish 17.1 native at
 fixed depth 12, MultiPV 3, Threads 1, Hash 16, hash cleared before every position (ucinewgame),
@@ -10,12 +10,21 @@ This is R3 compute (raw account data) at the research authority level. It is NOT
 canonical engine (Stockfish 18 Lite WASM); the parity risk is recorded in the mission ledger and is
 re-checked on the final candidate.
 
-Usage: python score_games.py --in frozen_2209.ndjson --out parts/ --worker K --workers N
+Usage: python score_games.py --in <corpus>.ndjson --out parts/ --worker K --workers N
+                            [--focal-player-id ID] [--corpus LABEL]
+
+GENERALISED (infrastructure): the scored record used to carry `erez_color`, computed by comparing
+the white player's account id to the literal "erez281", and a corpus label that defaulted to
+"erez281". It now carries `focal_color`, resolved from `--focal-player-id` (or from the record's own
+`focal_player_id` / `focal_colors`), and a corpus label that must be supplied. Nothing about the
+engine regime, the clock model or the record's contents changes.
 """
 import argparse, json, os, sys, time, hashlib, re
 import chess, chess.engine
 
-SF = os.environ.get("SF_BIN", "/tmp/claude-0/-home-user/ee69b5a4-c8fc-5a0f-a62b-0e04fcb5bda2/scratchpad/bin/stockfish/stockfish-ubuntu-x86-64-avx2")
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# The research engine binary. SF_BIN points at the Stockfish 17.1 avx2 build recorded in the ledger.
+SF = os.environ.get("SF_BIN", "stockfish")
 DEPTH = 12
 MULTIPV = 3
 
@@ -28,7 +37,35 @@ def parse_args():
     p.add_argument("--limit", type=int, default=0)
     p.add_argument("--engine", default="native", choices=["native", "wasm"],
                    help="native = Stockfish 17.1 MultiPV 3 (research regime); wasm = the shipped Stockfish 18 Lite WASM, MultiPV 1 (product regime)")
+    p.add_argument("--focal-player-id", default=None,
+                   help="platform account id of the focal player; decides focal_color per game")
+    p.add_argument("--corpus", default=None, help="corpus label written on every scored record")
     return p.parse_args()
+
+
+def resolve_focal(g: dict, focal_player_id: str | None):
+    """(focal_color, focal_colors) for one game record.
+
+    Precedence: an explicit `focal_colors` on the record (a population game names both sides) >
+    the focal player's account id > the record's own `focal_player_id`.
+    """
+    fc = g.get("focal_colors")
+    pid = focal_player_id or g.get("focal_player_id")
+    color = None
+    if pid:
+        pid = pid.lower()
+        players = g.get("players") or {}
+        for side, key in (("white", "w"), ("black", "b")):
+            uid = ((players.get(side) or {}).get("user") or {}).get("id")
+            if uid and uid.lower() == pid:
+                color = key
+                break
+    if fc:
+        return (color or fc[0]), list(fc)
+    if color is None:
+        raise SystemExit(f"game {g.get('id')}: focal player {pid!r} is on neither side; "
+                         "pass --focal-player-id or put focal_colors on the record")
+    return color, [color]
 
 def header(pgn, name):
     m = re.search(r'\[' + name + r' "(.*?)"\]', pgn)
@@ -70,7 +107,7 @@ def main():
 
     global MULTIPV
     if a.engine == "wasm":
-        engine = chess.engine.SimpleEngine.popen_uci(["sh", "/home/user/lichess_app/scripts/sf-wasm.sh"], cwd="/home/user/lichess_app", timeout=180)
+        engine = chess.engine.SimpleEngine.popen_uci(["sh", os.path.join(_REPO_ROOT, "scripts/sf-wasm.sh")], cwd=_REPO_ROOT, timeout=180)
         MULTIPV = 1
     else:
         engine = chess.engine.SimpleEngine.popen_uci(SF, timeout=180)
@@ -137,12 +174,13 @@ def main():
             cp, mate = score_of(info[0]["score"]) if isinstance(info, list) else score_of(info["score"])
             term["cp"] = cp; term["mate"] = mate
             npos += 1
+        focal_color, focal_colors = resolve_focal(g, a.focal_player_id)
         rec = {"id": g["id"], "speed": g.get("speed"), "perf": g.get("perf"), "createdAt": g.get("createdAt"),
                "status": g.get("status"), "winner": g.get("winner"), "source": g.get("source"),
                "clock": g.get("clock"), "opening": g.get("opening"), "players": g.get("players"),
                "white_berserk": wb, "black_berserk": bb, "termination": header(pgn, "Termination"),
-               "erez_color": "w" if g["players"]["white"].get("user", {}).get("id") == "erez281" else "b",
-               "focal_colors": g.get("focal_colors"), "corpus": g.get("corpus", "erez281"),
+               "focal_color": focal_color, "focal_colors": focal_colors,
+               "corpus": g.get("corpus") or a.corpus,
                "plies": plies, "terminal": term}
         out.write(json.dumps(rec) + "\n"); out.flush()
         if (gi + 1) % 5 == 0:

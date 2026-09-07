@@ -1,0 +1,69 @@
+name: Generic pipeline equivalence (research/mechanism)
+
+# GATE-GENERIC-PIPELINE-EQUIVALENCE. The generic harness must reproduce the original erez281
+# pipeline's canonical outputs, and every removed hard-code, put back, must turn the gate red.
+# A green that has never been shown red is not evidence, so the positive controls run too.
+
+on:
+  pull_request:
+    paths:
+      - "research/mechanism/analysis/**"
+      - "research/mechanism/pipeline/**"
+      - "research/mechanism/replication/**"
+      - ".github/workflows/mechanism-generic-pipeline-equivalence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mechanism-equivalence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Install pipeline dependencies
+        run: python -m pip install --disable-pip-version-check -r research/mechanism/replication/requirements.txt
+
+      - name: Positive controls (each must turn the gate RED)
+        run: python research/mechanism/replication/gate_equivalence.py --positive-controls --out /tmp/controls.json
+
+      - name: Rebuild the generic outputs and gate them against the frozen baseline
+        env:
+          OMP_NUM_THREADS: "1"
+          OPENBLAS_NUM_THREADS: "1"
+          MKL_NUM_THREADS: "1"
+        run: python research/mechanism/replication/gate_equivalence.py --rebuild /tmp/generic --out /tmp/gate.json
+
+      - name: Summarise
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          for name, path in (("positive controls", "/tmp/controls.json"), ("gate", "/tmp/gate.json")):
+              if not os.path.exists(path):
+                  print(f"{name}: not produced"); continue
+              r = json.load(open(path))
+              print(f"{name}: {r['result']}")
+              for c in r.get("checks", []):
+                  print(f"  {c['check']:38s} {c['result']}")
+              for c in r.get("positive_controls", []):
+                  print(f"  {c['control']:38s} went_red={c['gate_went_red']}")
+          PY
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: equivalence-gate
+          path: |
+            /tmp/gate.json
+            /tmp/controls.json

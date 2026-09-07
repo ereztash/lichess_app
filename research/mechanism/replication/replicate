@@ -1,0 +1,13 @@
+#!/bin/sh
+# One-command entrypoint. Uses REPLICATION_PYTHON if set (a venv holding requirements.txt),
+# otherwise python3 on PATH. SF_BIN must point at the Stockfish 17.1 avx2 build the ledger records.
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+PY="${REPLICATION_PYTHON:-python3}"
+case "$1" in
+  gate)          shift; exec "$PY" "$HERE/gate_equivalence.py" "$@" ;;
+  gate-controls) shift; exec "$PY" "$HERE/gate_equivalence.py" --positive-controls "$@" ;;
+  population)    shift; exec "$PY" "$HERE/build_population.py" "$@" ;;
+  report)        shift; exec "$PY" "$HERE/report.py" "$@" ;;
+  *)             exec "$PY" "$HERE/run.py" "$@" ;;
+esac

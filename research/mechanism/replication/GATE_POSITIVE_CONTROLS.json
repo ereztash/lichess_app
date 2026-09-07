@@ -1,0 +1,92 @@
+{
+ "positive_controls": [
+  {
+   "control": "focal_color_is_erez281",
+   "reinjected": "score_games.resolve_focal decides the focal side by comparing the white player's id to the literal \"erez281\"",
+   "gate_went_red": true,
+   "result": "PASS",
+   "failing_rows": [
+    {
+     "artifact": "focal side of a non-erez281 white player",
+     "old": "w",
+     "new": "b",
+     "tolerance": "exact",
+     "result": "FAIL"
+    }
+   ]
+  },
+  {
+   "control": "load_decisions_default_erez281",
+   "reinjected": "common.load_decisions defaults to corpus=\"erez281\"",
+   "gate_went_red": true,
+   "result": "PASS",
+   "failing_rows": [
+    {
+     "artifact": "rows loaded for a non-erez281 corpus, corpus not named",
+     "old": 38580,
+     "new": 0,
+     "tolerance": "exact",
+     "result": "FAIL"
+    },
+    {
+     "artifact": "refuses to guess between two corpora in one file",
+     "old": true,
+     "new": false,
+     "tolerance": "exact",
+     "result": "FAIL"
+    }
+   ]
+  },
+  {
+   "control": "population_excludes_only_erez281",
+   "reinjected": "the population guard is `corpus != \"erez281\"`",
+   "gate_went_red": true,
+   "result": "PASS",
+   "failing_rows": [
+    {
+     "artifact": "focal rows left inside the population frame",
+     "old": 0,
+     "new": 200,
+     "tolerance": "exact",
+     "result": "FAIL"
+    }
+   ]
+  },
+  {
+   "control": "population_band_is_1450_1850",
+   "reinjected": "the population band is the constant (1450, 1850)",
+   "gate_went_red": true,
+   "result": "PASS",
+   "failing_rows": [
+    {
+     "artifact": "band for a 2010-rated player",
+     "old": [
+      1800,
+      2200
+     ],
+     "new": [
+      1450,
+      1850
+     ],
+     "tolerance": "exact",
+     "result": "FAIL"
+    },
+    {
+     "artifact": "band for a 1180-rated player",
+     "old": [
+      1000,
+      1400
+     ],
+     "new": [
+      1450,
+      1850
+     ],
+     "tolerance": "exact",
+     "result": "FAIL"
+    }
+   ]
+  }
+ ],
+ "result": "PASS",
+ "meaning": "every removed hard-code, put back, turns this gate red"
+}

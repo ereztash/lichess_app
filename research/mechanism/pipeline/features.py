@@ -1,8 +1,8 @@
 """
-Decision-level feature extraction for the erez281 research corpus.
+Decision-level feature extraction for a research corpus, for an arbitrary FOCAL PLAYER.
 
 INPUT: scored/*.jsonl produced by score_games.py (every position, MultiPV 3, depth 12, SF 17.1).
-OUTPUT: one row per decision of the player (erez281), with
+OUTPUT: one row per decision of the focal side, with
 
   * identifiers and game context,
   * CANONICAL fields defined exactly as the product defines them (phase, seconds, clock, standing,
@@ -42,8 +42,36 @@ ENDGAME_MATERIAL_THRESHOLD = 13
 OPENING_MAX_PLY = 20
 VALUES = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
 PHASE_VALUE = {chess.PAWN: 0, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
-BOOK_KEYS_PATH = "/home/user/lichess_app/research/b3_population_expertise/src/opening_book_keys.json"
-PLAYER = "erez281"
+# Repo-relative so the extractor runs from any checkout (was an absolute path to one machine).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+BOOK_KEYS_PATH = os.environ.get(
+    "BOOK_KEYS_PATH",
+    os.path.join(_REPO_ROOT, "research/b3_population_expertise/src/opening_book_keys.json"),
+)
+
+
+def focal_color_of(rec: dict) -> str:
+    """The side this record is analysed from.
+
+    GENERALISED (infrastructure): the scorer used to stamp `erez_color`, computed by comparing the
+    white player's id to the literal "erez281". A record now carries `focal_color` (one side) or
+    `focal_colors` (a list, e.g. both sides of a population game). `erez_color` is still read so
+    that the frozen erez281 scored artifact keeps loading unchanged.
+    """
+    for key in ("focal_color", "erez_color"):
+        v = rec.get(key)
+        if v in ("w", "b"):
+            return v
+    fc = rec.get("focal_colors") or []
+    if fc:
+        return fc[0]
+    raise KeyError("record carries no focal_color / focal_colors / erez_color")
+
+
+def focal_colors_of(rec: dict) -> list[str]:
+    """Every side to extract from this record (one for a personal corpus, two for a population game)."""
+    fc = rec.get("focal_colors")
+    return list(fc) if fc else [focal_color_of(rec)]
 
 
 def win_probability(cp: float) -> float:
@@ -276,9 +304,8 @@ def see_capture_gain(board, move):
 
 
 def extract_game(rec, sessions, focal=None):
-    """Yield one feature row per decision of the focal side in the game (default: erez281's side)."""
-    focal = focal or rec["erez_color"]
-    rec = dict(rec, erez_color=focal)
+    """Yield one feature row per decision of the focal side in the game."""
+    focal = focal or focal_color_of(rec)
     color = chess.WHITE if focal == "w" else chess.BLACK
     plies = rec["plies"]
     n = len(plies)
@@ -321,7 +348,7 @@ def extract_game(rec, sessions, focal=None):
     me = players["white"] if color == chess.WHITE else players["black"]
     them = players["black"] if color == chess.WHITE else players["white"]
     opening = rec.get("opening") or {}
-    sess = sessions.get(rec["id"], {})
+    sess = sessions.get((rec["id"], focal), sessions.get(rec["id"], {}))
 
     board = chess.Board()
     own_errors_so_far = 0; own_decisions_so_far = 0; last_own_error_ply = None
@@ -338,7 +365,7 @@ def extract_game(rec, sessions, focal=None):
             facing = mover_rel(i, stm_white)
             row = {
                 # identifiers / context
-                "game_id": rec["id"], "ply": i, "move_number": board.fullmove_number, "color": rec["erez_color"],
+                "game_id": rec["id"], "ply": i, "move_number": board.fullmove_number, "color": focal,
                 "speed": rec.get("speed"), "base_s": base_s, "inc_s": inc_s, "own_berserk": int(own_berserk),
                 "opp_berserk": int(opp_berserk), "arena": int(rec.get("source") == "arena"),
                 "createdAt": rec.get("createdAt"), "own_rating": me.get("rating"), "opp_rating": them.get("rating"),
@@ -496,7 +523,7 @@ def extract_game(rec, sessions, focal=None):
                 "y_played_in_top3": int(any(l["pv"] and l["pv"][0] == p["uci"] for l in lines)),
                 "y_played_capture": mk_played["capture"], "y_played_check": mk_played["check"],
                 "y_played_piece": mk_played["piece"], "y_eval_after_cp": mover_rel(i + 1, stm_white),
-                "y_game_result": (1 if rec.get("winner") == rec["erez_color"].replace("w", "white").replace("b", "black") else (0 if rec.get("winner") else 0.5)),
+                "y_game_result": (1 if rec.get("winner") == focal.replace("w", "white").replace("b", "black") else (0 if rec.get("winner") else 0.5)),
             })
             rows.append(row)
             # update own history AFTER recording (so the row never sees its own outcome)
@@ -512,25 +539,52 @@ def extract_game(rec, sessions, focal=None):
     return rows
 
 
+def session_owner(rec, focal: str) -> str:
+    """Whose session chain this (game, side) belongs to: the account playing that side.
+
+    A personal corpus has one owner across both colours, so the chain is the player's whole
+    history, exactly as before. A population corpus has a different owner per side, so each
+    player gets their own chain instead of one arbitrary shared one.
+    """
+    players = rec.get("players") or {}
+    side = "white" if focal == "w" else "black"
+    uid = ((players.get(side) or {}).get("user") or {}).get("id")
+    return (uid or rec.get("corpus") or "focal").lower()
+
+
 def build_sessions(recs):
-    """Session context per game from chronological order of the player's games (earlier games only)."""
+    """Session context per (game, focal side), from chronological order of that OWNER's games.
+
+    GENERALISED (infrastructure): the session chain is keyed by (game_id, focal_color) and carried
+    per session owner, instead of by game_id with the result read off `erez_color`. On a
+    one-owner-per-game personal corpus (every erez281 record) the chain, its counters and its
+    `prev_game_result` are the same sequence and the same values, so the frozen owner features are
+    unchanged. On a two-sided population corpus the old code silently used the black side of every
+    game (white was never erez281); those columns (`prev_game_result`, `game_in_session`,
+    `games_today`, `session_id`) are excluded from the population model by
+    `search.population_feature_columns`, so nothing the population baseline reads changes either.
+    """
     recs_sorted = sorted(recs, key=lambda r: r["createdAt"])
     out = {}
-    session_id = 0; last_end = None; game_in_session = 0; prev_result = None; day = None; games_today = 0
+    state = {}
     for r in recs_sorted:
         start = r["createdAt"]
-        d = start // 86400000
-        if day != d:
-            day = d; games_today = 0
-        if last_end is None or start - last_end > 30 * 60 * 1000:
-            session_id += 1; game_in_session = 0
-        game_in_session += 1; games_today += 1
-        out[r["id"]] = {"session_id": session_id, "game_in_session": game_in_session, "prev_game_result": prev_result, "games_today": games_today}
-        # result from erez's perspective
-        w = r.get("winner")
-        prev_result = 0.5 if not w else (1 if (w == "white") == (r["erez_color"] == "w") else 0)
-        # end time: createdAt + sum of both clocks used is unknown here; use last ply clock as approximation
-        last_end = r.get("lastMoveAt") or start
+        for focal in focal_colors_of(r):
+            st = state.setdefault(session_owner(r, focal), {"session_id": 0, "last_end": None, "game_in_session": 0,
+                                          "prev_result": None, "day": None, "games_today": 0})
+            d = start // 86400000
+            if st["day"] != d:
+                st["day"] = d; st["games_today"] = 0
+            if st["last_end"] is None or start - st["last_end"] > 30 * 60 * 1000:
+                st["session_id"] += 1; st["game_in_session"] = 0
+            st["game_in_session"] += 1; st["games_today"] += 1
+            out[(r["id"], focal)] = {"session_id": st["session_id"], "game_in_session": st["game_in_session"],
+                                     "prev_game_result": st["prev_result"], "games_today": st["games_today"]}
+            # result from the focal side's perspective
+            w = r.get("winner")
+            st["prev_result"] = 0.5 if not w else (1 if (w == "white") == (focal == "w") else 0)
+            # end time: createdAt + sum of both clocks used is unknown here; use last ply clock as approximation
+            st["last_end"] = r.get("lastMoveAt") or start
     return out
 
 
@@ -538,6 +592,9 @@ def main():
     import pandas as pd
     src = sys.argv[1] if len(sys.argv) > 1 else "scored"
     out = sys.argv[2] if len(sys.argv) > 2 else "decisions.parquet"
+    # GENERALISED: the corpus label is an argument (or comes off each record), never the literal
+    # "erez281". `player_key` falls back to the focal side's account id, as before.
+    corpus_arg = sys.argv[3] if len(sys.argv) > 3 else os.environ.get("CORPUS_LABEL")
     recs = []
     for f in sorted(glob.glob(os.path.join(src, "*.jsonl"))):
         for line in open(f):
@@ -547,9 +604,13 @@ def main():
     sessions = build_sessions(recs)
     rows = []
     for k, r in enumerate(recs):
-        for focal in (r.get("focal_colors") or [r["erez_color"]]):
+        for focal in focal_colors_of(r):
             for row in extract_game(r, sessions, focal):
-                row["corpus"] = r.get("corpus", "erez281")
+                label = r.get("corpus") or corpus_arg
+                if label is None:
+                    raise SystemExit("no corpus label: pass it as argv[3] or CORPUS_LABEL, or put "
+                                     "`corpus` on the scored record")
+                row["corpus"] = label
                 row["player_key"] = (r["players"]["white" if focal == "w" else "black"].get("user", {}).get("id")) or f"{r['id']}:{focal}"
                 rows.append(row)
         if (k + 1) % 200 == 0:

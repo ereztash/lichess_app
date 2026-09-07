@@ -24,7 +24,10 @@
     "check:control": "tsc --noEmit -p tests/fixtures/typecheck/tsconfig.json",
     "bundle:budget:control": "BUNDLE_ROOT=tests/fixtures/bundle tsx scripts/check_bundle_budget.ts",
     "falsification": "tsx scripts/falsification-report.ts",
-    "purge": "tsx scripts/purge.ts"
+    "purge": "tsx scripts/purge.ts",
+    "replicate:player": "research/mechanism/replication/replicate",
+    "replicate:gate": "research/mechanism/replication/replicate gate",
+    "replicate:gate:controls": "research/mechanism/replication/replicate gate-controls"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
