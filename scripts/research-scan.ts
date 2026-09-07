@@ -300,10 +300,26 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
   },
   {
     artefact: "research/mechanism/replication100/*.json",
-    keyPath: "instrument_hash|pipeline_hash|protocol_hash|feature_schema.schema_hash|frame_hash|screened_frame.frame_hash",
+    keyPath: "instrument_hash|pipeline_hash|protocol_hash|feature_schema.schema_hash|frame_hash|screened_frame.frame_hash|instrument.instrument_hash|instrument.pipeline_hash|instrument.protocol_hash|prereg_hash|cohort_hash|sampling_frame.frame_hash",
     kind: "INTERNAL_DIGEST",
     status: "CURRENT",
-    why: "digests over blocks the documents already carry. `instrument_hash` is the freeze's hash of itself, repeated by the power plan and the feasibility screen so a reader can tell which instrument each was computed against; `pipeline_hash` and `protocol_hash` are digests over the path-to-hash map that `tree_sha256` asserts above; `frame_hash` is the screen's digest of the rows it read. They name no tree file, and `make_instrument_freeze.py`, `make_power_plan.py` and `feasibility_screen.py` recompute every one of them",
+    why: "digests over blocks the documents already carry. `instrument_hash` is the freeze's hash of itself, repeated by the power plan, the feasibility screen, the cohort pre-registration and the frozen cohort so a reader can tell which instrument each was computed against; `pipeline_hash` and `protocol_hash` are digests over the path-to-hash map that `tree_sha256` asserts above; `frame_hash` is the screen's digest of the rows it read; `prereg_hash` and `cohort_hash` are the cohort pre-registration's and the frozen cohort's hashes of themselves, which is how a rule edited after a result becomes visible. They name no tree file, and each generator recomputes its own, while `cohort_select.py`, `freeze_cohort.py`, `cohort_run.py` and `aggregate_cohort.py` all refuse to proceed when the hash they were started under has moved",
+  },
+  {
+    artefact: "research/mechanism/replication100/COHORT_FROZEN.json",
+    keyPath: "members.manifest_sha256|members.prereg_sha256",
+    kind: "HASH_OF_TREE_FILE",
+    status: "SUPERSEDED",
+    supersededBy: "research/mechanism/replication/verify_run.py, run over every replication directory by the equivalence workflow",
+    subject: (_artefact, leaf) => leaf,
+    why: "each member's manifest and per-player pre-registration AS THEY WERE when the cohort was frozen, before any member was scored. Deliberately not asserted here: a member's manifest is rewritten by the scoring run that follows, so holding these against the tree would redden on the cohort running rather than on a member being tampered with. What they are for is the comparison a reader makes between the frozen cohort and the finished one",
+  },
+  {
+    artefact: "research/mechanism/replication100/COHORT_FROZEN.json",
+    keyPath: "members.raw_sha256",
+    kind: "EXTERNAL_ARTEFACT",
+    status: "CURRENT",
+    why: "the bytes lichess returned for each cohort member's games, gitignored for the reason every other run's raw export is: a third party's game history is not this repository's to carry. The digest lets a rerun prove it read the same response",
   },
   {
     artefact: "research/b3_population_expertise/results/period_*.json",
