@@ -4,8 +4,34 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-07T21:42:39Z",
- "cursor": 5,
- "accepted": [],
+ "cursor": 12,
+ "accepted": [
+  {
+   "u": "ecapir",
+   "player_id": "ecapir",
+   "run_dir": "research/mechanism/replications/lichess_ecapir_COHORT",
+   "window": 2200,
+   "window_class": "RESIDUAL",
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "speeds": {
+    "blitz": 2200
+   },
+   "blitz_median": 1629.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 4584,
+   "window_full": true,
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "screen_band_agreed": false,
+   "seconds": 192.7
+  }
+ ],
  "rejected": [
   {
    "u": "nouramine",
@@ -82,10 +108,30 @@
    "fetch_max": 4584,
    "window_full": true,
    "seconds": 186.0
+  },
+  {
+   "u": "aldor603",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1781.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2198,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 185.7
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 1
+  "PREFILTER_RATING_FAR_FROM_BAND": 5,
+  "PREFILTER_TOO_FEW_GAMES": 1
  },
- "residual_slots_filled": 0
+ "residual_slots_filled": 1
 }
