@@ -1,7 +1,7 @@
 {
  "_what": "The frozen mechanism-discovery instrument, recorded before the 100-player cohort study selects a single username. Player 1 and Player 100 are judged by this.",
- "frozen_at": "2026-09-07T19:51:43Z",
- "repo_sha": "cb3b4699a84c86e0cad98b4995a50ac7b8b07438",
+ "frozen_at": "2026-09-07T20:27:29Z",
+ "repo_sha": "5dcc3cffd2896de37abc0a6f6facea4236bc4a0a",
  "repo_dirty": false,
  "base_branch_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
  "contract_version": "replication-1.0.0",
@@ -20,13 +20,13 @@
   "research/mechanism/replication/contract.py": "9f099e07f7e2f91f34c17e356cd5a5e302b82922e62e18c97f71c51788f86d75",
   "research/mechanism/replication/eligibility.py": "2285f7f352bffaa1e54c22a9d1b95151301ad930fffc81f8b1af940e8520bdef",
   "research/mechanism/replication/classify.py": "7a377f2290138658c3380c1ff8df9c976802f811f8b015dc95ef07f36deda297",
-  "research/mechanism/replication/populations.py": "713ba1c26e55a6c6a8cc4a4d687daf7ff558b52b523b59dbf822db9509e7a0bd",
+  "research/mechanism/replication/populations.py": "d31efe7f17ecf54d4bdb87d562b554d743b3fb340c41fdfe2caf2bfec6f632a3",
   "research/mechanism/replication/readiness.py": "a04600723f3e56a7c0644b338e8b3d8934f1ca42c58d08b9584d614ca7c1266f",
-  "research/mechanism/replication/run.py": "a1c4c3fc812d448bfe1bb3a7f6baa1c6ed4aaeb844c2408d852ca963eca3f0a5",
+  "research/mechanism/replication/run.py": "0027167f72c34bd2fce690ff7f9a9497d58005a0b0d935cc652a4fb6d82657a4",
   "research/mechanism/replication/PROTOCOL.md": "e5bfe1ca55570b98edbfea4e6d1a5eb6a7011f161d0069e70b90d063ad35b017",
   "research/mechanism/replication/registry/populations.json": "ecf3a1c74507b86bb9e33c39bb82409ef4880e9ab8d5ea75b540a2abc08fef9f"
  },
- "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "pipeline_hash": "77d8d5c495b50759b012c1bc06d2e1909abfc0d64f6c72f9c9beaff439438399",
  "pipeline_files": [
   "research/mechanism/analysis/common.py",
   "research/mechanism/analysis/focal.py",
@@ -351,15 +351,23 @@
  "existing_runs": {
   "lichess_erez281_RUNOFRECORD": {
    "status": "PERSONAL_RESIDUAL_CANDIDATE",
-   "complete": true,
-   "pipeline_hash_matches": true,
-   "problems": []
+   "complete": false,
+   "pipeline_hash_matches": false,
+   "problems": [
+    "the run was produced by different research code than the working tree",
+    "the manifest's pipeline hash differs from the working tree's",
+    "the pre-registration names different research code than the working tree"
+   ]
   },
   "lichess_vibesgalore_B": {
    "status": "NO_STABLE_STRUCTURE",
-   "complete": true,
-   "pipeline_hash_matches": true,
-   "problems": []
+   "complete": false,
+   "pipeline_hash_matches": false,
+   "problems": [
+    "the run was produced by different research code than the working tree",
+    "the manifest's pipeline hash differs from the working tree's",
+    "the pre-registration names different research code than the working tree"
+   ]
   }
  },
  "reference_results": {
@@ -373,5 +381,5 @@
   "no_tuning_between_players": "after COHORT_PREREG is hashed, none of eligibility, features, thresholds, search space, target order, split rules, population correction, judge, classifier, residual definition or output classes may change because of any player's result",
   "protocol_version": "V1; a change of methodology ends V1 and belongs to a new cohort"
  },
- "instrument_hash": "caf572562b9500f63dde5f0eb49d02a7fd2a8656612a6cdd467dd5bc2070e5e0"
+ "instrument_hash": "1c297b474f1047cde63c08da87cdd55b7f3b9f2c8df7182a72935eb235706ece"
 }
