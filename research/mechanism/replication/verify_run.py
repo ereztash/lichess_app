@@ -90,8 +90,12 @@ def verify(run_dir: str) -> dict:
         out["prereg_repo_sha"] = p.get("repo_sha")
         if stored != recomputed:
             out["problems"].append("the pre-registration's own hash does not match its contents")
-        if p.get("repo_sha") != out.get("repo_sha_at_run"):
-            out["problems"].append("the pre-registration and the manifest name different commits")
+        # The manifest is rewritten on every invocation and the pre-registration is written once,
+        # so their commits legitimately differ once the run's own artifacts have been committed
+        # between invocations. What must not differ is the research code they name.
+        out["prereg_pipeline_hash"] = p.get("pipeline_version", {}).get("pipeline_hash")
+        if out["prereg_pipeline_hash"] and out["prereg_pipeline_hash"] != here:
+            out["problems"].append("the pre-registration names different research code than the working tree")
 
     out["complete"] = not out["problems"]
     return out
