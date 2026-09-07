@@ -56,6 +56,16 @@ def main() -> int:
                       ["research/mechanism/replication/contract.py",
                        "research/mechanism/replication/PROTOCOL.md"]}
     schema = baseline["feature_schema"]
+    registry_path = "research/mechanism/replication/registry/populations.json"
+    classifier_path = "research/mechanism/replication/classify.py"
+
+    # ONE flat path -> sha256 map, so the freeze is assertable against the tree by
+    # GATE-RESEARCH-RECONCILED rather than merely readable. Every other block below names paths and
+    # never repeats a hash: a hash written twice is a hash that can disagree with itself.
+    tree_sha256 = dict(pv["files"])
+    tree_sha256.update(protocol_files)
+    tree_sha256[registry_path] = sha256_file(registry_path)
+    tree_sha256[classifier_path] = sha256_file(classifier_path)
 
     doc = {
         "_what": "The frozen mechanism-discovery instrument, recorded before the 100-player cohort "
@@ -66,9 +76,10 @@ def main() -> int:
         "base_branch_sha": subprocess.check_output(
             ["git", "-C", REPO, "rev-parse", "origin/main"], text=True).strip(),
         "contract_version": contract.CONTRACT_VERSION,
+        "tree_sha256": tree_sha256,
         "pipeline_hash": pv["pipeline_hash"],
-        "pipeline_files": pv["files"],
-        "protocol_files": protocol_files,
+        "pipeline_files": sorted(pv["files"]),
+        "protocol_files": sorted(protocol_files),
         "protocol_hash": corpuslib.sha256_json(protocol_files),
         "feature_schema": {"n_columns": schema["n_columns"], "schema_hash": schema["schema_hash"]},
         "engine": contract.ENGINE,
@@ -86,15 +97,13 @@ def main() -> int:
                     "residual_in_frozen_precedence": list(contract.RESIDUAL_TARGETS),
                     "residual_primary": contract.RESIDUAL_PRIMARY},
         "population_contract": contract.POPULATION_CONTRACT,
-        "population_registry": {"path": "research/mechanism/replication/registry/populations.json",
-                                "sha256": sha256_file("research/mechanism/replication/registry/populations.json"),
+        "population_registry": {"path": registry_path,
                                 "entries": [{"id": p["id"], "band": p["band"],
                                              "time_controls": p["time_controls"],
                                              "games": p["games"], "sides": p["sides"],
                                              "eligible_decisions": p["eligible_decisions"]}
                                             for p in populations.registry()]},
-        "classifier": {"module": "research/mechanism/replication/classify.py",
-                       "sha256": sha256_file("research/mechanism/replication/classify.py"),
+        "classifier": {"module": classifier_path,
                        "output_classes": contract.OUTPUT_CLASSES,
                        "failure_codes": list(contract.FAILURE_CODES),
                        "precedence": "residual candidates are ordered by target precedence "

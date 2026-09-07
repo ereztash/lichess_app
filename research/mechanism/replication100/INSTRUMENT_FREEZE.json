@@ -1,12 +1,11 @@
 {
  "_what": "The frozen mechanism-discovery instrument, recorded before the 100-player cohort study selects a single username. Player 1 and Player 100 are judged by this.",
- "frozen_at": "2026-09-07T17:55:07Z",
- "repo_sha": "bb521faac4c44ca123c2175a7409d9ac672b8a93",
+ "frozen_at": "2026-09-07T18:10:11Z",
+ "repo_sha": "415cb6bead8a00ba0682328bb98b6d0f44f26b90",
  "repo_dirty": true,
  "base_branch_sha": "06828afbc1405a839dfc983a065bcb10109c5e02",
  "contract_version": "replication-1.0.0",
- "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
- "pipeline_files": {
+ "tree_sha256": {
   "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
   "research/mechanism/analysis/common.py": "424bc61722617423047b4c48a456d12340d2538ab0f0b0867bc372bdfc0a7926",
   "research/mechanism/analysis/search.py": "a91522485f4518128df84a76f79fce4c3acc8580beb4ea35612483eec4b644ce",
@@ -23,12 +22,34 @@
   "research/mechanism/replication/classify.py": "7a377f2290138658c3380c1ff8df9c976802f811f8b015dc95ef07f36deda297",
   "research/mechanism/replication/populations.py": "713ba1c26e55a6c6a8cc4a4d687daf7ff558b52b523b59dbf822db9509e7a0bd",
   "research/mechanism/replication/readiness.py": "a04600723f3e56a7c0644b338e8b3d8934f1ca42c58d08b9584d614ca7c1266f",
-  "research/mechanism/replication/run.py": "a1c4c3fc812d448bfe1bb3a7f6baa1c6ed4aaeb844c2408d852ca963eca3f0a5"
+  "research/mechanism/replication/run.py": "a1c4c3fc812d448bfe1bb3a7f6baa1c6ed4aaeb844c2408d852ca963eca3f0a5",
+  "research/mechanism/replication/PROTOCOL.md": "bb8a756c313206d72da8a3c543190b430a6dccc8e5aaa6ce01258b25684be567",
+  "research/mechanism/replication/registry/populations.json": "ecf3a1c74507b86bb9e33c39bb82409ef4880e9ab8d5ea75b540a2abc08fef9f"
  },
- "protocol_files": {
-  "research/mechanism/replication/contract.py": "9f099e07f7e2f91f34c17e356cd5a5e302b82922e62e18c97f71c51788f86d75",
-  "research/mechanism/replication/PROTOCOL.md": "bb8a756c313206d72da8a3c543190b430a6dccc8e5aaa6ce01258b25684be567"
- },
+ "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "pipeline_files": [
+  "research/mechanism/analysis/common.py",
+  "research/mechanism/analysis/focal.py",
+  "research/mechanism/analysis/invariance.py",
+  "research/mechanism/analysis/population.py",
+  "research/mechanism/analysis/predict.py",
+  "research/mechanism/analysis/run_discovery.py",
+  "research/mechanism/analysis/search.py",
+  "research/mechanism/analysis/stability_loco.py",
+  "research/mechanism/analysis/vocab.py",
+  "research/mechanism/pipeline/features.py",
+  "research/mechanism/pipeline/score_games.py",
+  "research/mechanism/replication/classify.py",
+  "research/mechanism/replication/contract.py",
+  "research/mechanism/replication/eligibility.py",
+  "research/mechanism/replication/populations.py",
+  "research/mechanism/replication/readiness.py",
+  "research/mechanism/replication/run.py"
+ ],
+ "protocol_files": [
+  "research/mechanism/replication/PROTOCOL.md",
+  "research/mechanism/replication/contract.py"
+ ],
  "protocol_hash": "87b1083e3a51d392696ad293c129b400a7629669845d616d439e2262621a957b",
  "feature_schema": {
   "n_columns": 155,
@@ -221,7 +242,6 @@
  },
  "population_registry": {
   "path": "research/mechanism/replication/registry/populations.json",
-  "sha256": "ecf3a1c74507b86bb9e33c39bb82409ef4880e9ab8d5ea75b540a2abc08fef9f",
   "entries": [
    {
     "id": "population_2026-06",
@@ -241,7 +261,6 @@
  },
  "classifier": {
   "module": "research/mechanism/replication/classify.py",
-  "sha256": "7a377f2290138658c3380c1ff8df9c976802f811f8b015dc95ef07f36deda297",
   "output_classes": {
    "NO_STABLE_STRUCTURE": "the frozen OBS residual search returned no region that passes the VALIDATE judge on the union tactical class",
    "LEVEL_TYPICAL_ONLY": "a region passes the judge, and the population-baseline search returns no region that passes it: what was found is what a same-rating player shows",
@@ -354,5 +373,5 @@
   "no_tuning_between_players": "after COHORT_PREREG is hashed, none of eligibility, features, thresholds, search space, target order, split rules, population correction, judge, classifier, residual definition or output classes may change because of any player's result",
   "protocol_version": "V1; a change of methodology ends V1 and belongs to a new cohort"
  },
- "instrument_hash": "5903756f2e9144a9b8a5b8f1d8ed2d9eda43e1a0bc588b6d35b6ceb7cf3bf00b"
+ "instrument_hash": "1378cce5d275ea0538003a4e3b0cd224c613db2d93dcf7d4f17a7c679b04c233"
 }

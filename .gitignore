@@ -68,3 +68,6 @@ research/mechanism/replications/*/admissible/*.ndjson
 research/mechanism/replications/*/scored/
 research/mechanism/replications/*/features/
 research/mechanism/replications/*/analysis/*.log
+
+# 100-player replication: cached public dump prefix (83 MB, refetchable)
+research/mechanism/replication100/.dump_prefix.zst

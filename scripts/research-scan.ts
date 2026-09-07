@@ -284,6 +284,21 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "the platform's raw response for that run's games, which is gitignored for the reason above. The digest lets a rerun prove it read the same bytes",
   },
   {
+    artefact: "research/mechanism/replication100/INSTRUMENT_FREEZE.json",
+    keyPath: "tree_sha256.<doc>",
+    kind: "HASH_OF_TREE_FILE",
+    status: "CURRENT",
+    subject: (_artefact, leaf) => leaf,
+    why: "the whole instrument the 100-player cohort is to be judged by: the 17 research-content files, the protocol text, the classifier and the population registry. Asserted here, unlike a per-run pre-registration, because a cohort's meaning depends on Player 1 and Player 100 being judged by the SAME thing, so an instrument that drifts mid-cohort is precisely the failure this row exists to catch. Reddening on a legitimate pipeline change is intended and the remedy is to re-run `make_instrument_freeze.py`, which puts the change in the freeze's own git history instead of hiding it. The `<doc>` key IS the tree path, hence the identity subject",
+  },
+  {
+    artefact: "research/mechanism/replication100/*.json",
+    keyPath: "instrument_hash|pipeline_hash|protocol_hash|feature_schema.schema_hash|frame_hash|screened_frame.frame_hash",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "digests over blocks the documents already carry. `instrument_hash` is the freeze's hash of itself, repeated by the power plan and the feasibility screen so a reader can tell which instrument each was computed against; `pipeline_hash` and `protocol_hash` are digests over the path-to-hash map that `tree_sha256` asserts above; `frame_hash` is the screen's digest of the rows it read. They name no tree file, and `make_instrument_freeze.py`, `make_power_plan.py` and `feasibility_screen.py` recompute every one of them",
+  },
+  {
     artefact: "research/b3_population_expertise/results/period_*.json",
     keyPath: "_cache_key",
     kind: "INTERNAL_DIGEST",

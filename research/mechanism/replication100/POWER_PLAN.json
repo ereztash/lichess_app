@@ -1,0 +1,168 @@
+{
+ "_what": "Power before players. The decision volume at which the frozen instrument becomes CAPABLE of returning PERSONAL_RESIDUAL_CANDIDATE, computed from the runs already on the record, before any cohort member is named.",
+ "_why": "So that a null result can be read as evidence about the player rather than evidence about the corpus size.",
+ "written_at": "2026-09-07T18:01:35Z",
+ "instrument_hash": "92393a55d5974e215b387085b6d14536834bf73b6d47ef15340da46557469d1f",
+ "repo_sha": "415cb6bead8a00ba0682328bb98b6d0f44f26b90",
+ "thresholds": {
+  "judge": {
+   "_source": "research/mechanism/analysis/vocab.py DESIGN, inside the pipeline hash",
+   "residual_within_game_z": 3.5,
+   "n_in": 100,
+   "raw_within_game": "> 0"
+  },
+  "note": "The bar is the instrument's, not this plan's. This plan only asks at what n an erez281-sized effect would reach it."
+ },
+ "reference_effects": {
+  "_source": "research/mechanism/replications/lichess_erez281_RUNOFRECORD/report/RESULT.json",
+  "_caveat": "One player. These are the only effect sizes this instrument has ever produced at candidate strength, so they are the only ones available to power against. They are almost certainly at the optimistic end: erez281 is the case the method was developed on.",
+  "broad": {
+   "target": "cls_tactical",
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "resid_wg_est": 0.08607563561898278,
+   "resid_wg_z": 8.556469109680593,
+   "n_validate": 10626,
+   "n_in": 2937,
+   "in_region_share": 0.27639751552795033
+  },
+  "residual": {
+   "target": "cls_hung_material",
+   "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "resid_wg_est": 0.06144158192483223,
+   "resid_wg_z": 4.5202284169154145,
+   "n_validate_blitz": 9589,
+   "n_in": 1199,
+   "in_region_share": 0.1250391073104599
+  }
+ },
+ "reference_n": {
+  "erez281": {
+   "scorable_games": 2161,
+   "eligible_decisions": 52881,
+   "blitz_games": 1876,
+   "decisions_per_game": 24.471,
+   "splits": {
+    "DERIVE_decisions": 31851,
+    "DERIVE_games": 1297,
+    "VALIDATE_decisions": 10626,
+    "VALIDATE_games": 432,
+    "TEST_decisions": 10404,
+    "TEST_games": 432
+   },
+   "blitz_splits": {
+    "DERIVE_decisions": 26268,
+    "DERIVE_games": 1068,
+    "VALIDATE_decisions": 9589,
+    "VALIDATE_games": 389,
+    "TEST_decisions": 10145,
+    "TEST_games": 419
+   }
+  },
+  "vibesgalore": {
+   "scorable_games": 358,
+   "eligible_decisions": 11425,
+   "blitz_games": 313,
+   "decisions_per_game": 31.913,
+   "splits": {
+    "DERIVE_decisions": 6977,
+    "DERIVE_games": 215,
+    "VALIDATE_decisions": 2275,
+    "VALIDATE_games": 71,
+    "TEST_decisions": 2173,
+    "TEST_games": 72
+   },
+   "blitz_splits": {
+    "DERIVE_decisions": 6109,
+    "DERIVE_games": 191,
+    "VALIDATE_decisions": 2196,
+    "VALIDATE_games": 69,
+    "TEST_decisions": 1653,
+    "TEST_games": 53
+   }
+  },
+  "decisions_per_game_observed_range": [
+   24.471,
+   31.913
+  ],
+  "decisions_per_blitz_game_reference": 24.521
+ },
+ "calculation": {
+  "judge_formula": "n_min = n_ref * (z_bar / z_ref)^2",
+  "judge_assumes": [
+   "the same residual effect size as erez281",
+   "the same in-region share of decisions",
+   "z grows as sqrt(n), which holds for a fixed contrast with independent games"
+  ],
+  "games_formula": "games_min = ceil(n_min / validate_frac / decisions_per_game)",
+  "games_assumes": [
+   "erez281's decisions-per-game; a player with more moves per game clears the bar on fewer games, and vice versa"
+  ],
+  "search_formula": "derive_min = n_derive_in_region(erez281 R**) / in_region_share",
+  "search_basis": "OBSERVATIONAL, n=2. Not a power curve."
+ },
+ "broad_minimum": {
+  "_definition": "BROAD_POWERED: the corpus is large enough that an erez281-sized BROAD effect (cls_tactical) would reach the judge's bar on VALIDATE.",
+  "validate_decisions": 1778,
+  "eligible_decisions": 8890,
+  "admissible_games": 364,
+  "speeds": "all admissible speeds"
+ },
+ "residual_minimum": {
+  "_definition": "RESIDUAL_POWERED: the corpus is large enough that an erez281-sized PERSONAL RESIDUAL (cls_hung_material, after the population model) would reach the judge's bar on blitz VALIDATE.",
+  "validate_decisions_blitz": 5749,
+  "eligible_decisions_blitz": 28745,
+  "admissible_blitz_games": 1173,
+  "speeds": "blitz only (the population baseline is blitz-only by contract)",
+  "search_floor": {
+   "_definition": "The judge is not the binding stage. Beam search picks the region inside DERIVE, and on a thin DERIVE the bootstrap winners disagree, so the frozen candidate is a noisy draw rather than a structure. A run can be JUDGE-powered and still be unable to FIND anything.",
+   "erez281_R2star": {
+    "n_derive_in_region": 3270,
+    "in_region_share_of_blitz_derive": 0.1245,
+    "stability_share_j60": 0.8,
+    "stability_median_j": 1.0
+   },
+   "vibesgalore_best": {
+    "n_derive_in_region": 303,
+    "stability_share_j60": 0.43333333333333335,
+    "stability_median_j": 0.13174974039460022,
+    "reading": "bootstrap resamples did not agree on a region; the search stage, not the judge, is what failed here"
+   },
+   "blitz_derive_decisions": 26268,
+   "admissible_blitz_games": 1786,
+   "binds_above_judge": true
+  },
+  "operative_minimum_admissible_blitz_games": 1786
+ },
+ "enumeration_ceiling": {
+  "_what": "What a player's corpus can be WITHOUT a LICHESS_API_TOKEN. The by-username export endpoint returns 404 unauthenticated; the public HTML game list is the only enumeration path and it is hard-capped.",
+  "pages": 40,
+  "ids_per_page": 12,
+  "raw_ids_max": 480,
+  "observed_rates_source": "lichess_vibesgalore_B",
+  "admissible_rate": 0.7458,
+  "blitz_rate": 0.6521,
+  "max_admissible_games": 358,
+  "max_blitz_games": 313,
+  "broad_reachable": false,
+  "broad_margin": 0.984,
+  "residual_reachable": false,
+  "residual_deficit_factor": 5.71
+ },
+ "limitations": [
+  "One reference player. The effect sizes powered against come from the single case the method was developed on, so they are an upper end, not a typical value. If real personal residuals in the population are half erez281's size, every minimum here is four times too small.",
+  "Root-n scaling covers the JUDGE only. The SEARCH stage has no power calculation at all; its floor here is an observation from two runs.",
+  "Decisions-per-game varies between the two observed players by a factor of 1.3 (24.5 vs 31.9). Game-count minimums are therefore approximate; the decision-count minimums are the real ones.",
+  "The in-region share is treated as fixed. A player whose region is rarer than erez281's needs proportionally more decisions for the same n_in.",
+  "These minimums say when the instrument CAN return a candidate. They say nothing about how often it SHOULD -- that is the question the cohort is meant to answer."
+ ],
+ "consequences_for_the_cohort": {
+  "without_token": {
+   "broad_powered_cohort": "possible but marginal: the ceiling clears the broad minimum by a factor of about 0.98, and a player with fewer decisions per game than erez281 falls under it",
+   "residual_powered_subset": "NOT reachable. Every member would be underpowered for the residual question by construction, and 100 nulls would measure the enumeration cap, not the population."
+  },
+  "with_token": {
+   "broad_powered_cohort": "comfortable",
+   "residual_powered_subset": "reachable for players whose blitz history exceeds 1786 admissible blitz games"
+  }
+ }
+}
