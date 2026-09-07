@@ -170,7 +170,23 @@ def main() -> int:
         "completeness": {"members": len(frozen["members"]), "finished": len(rows),
                          "unfinished": missing},
         "denominators": {"BROAD_POWERED": len(broad), "RESIDUAL_POWERED": len(resid),
-                         "_note": pre["denominators"]["_why_two"]},
+                         "_note": pre["denominators"]["_why_two"],
+                         "corpus_size_spread": {
+                             "_why": "members do not all carry the same corpus. A candidate tried "
+                                     "for a residual slot is fetched at the residual window, and "
+                                     "if their blitz share falls short they join the cohort as a "
+                                     "broad member holding a corpus several times the broad "
+                                     "window. That makes them MORE powered, not less, so it "
+                                     "invalidates nothing, but the cohort is not uniform in power "
+                                     "and a reader should see that rather than assume it.",
+                             "validate_decisions": {
+                                 "p05": q([r["validate_decisions"] for r in broad], 0.05),
+                                 "p50": q([r["validate_decisions"] for r in broad], 0.50),
+                                 "p95": q([r["validate_decisions"] for r in broad], 0.95)},
+                             "windows": {str(w): sum(1 for m in frozen["members"]
+                                                     if m["window"] == w)
+                                         for w in sorted({m["window"]
+                                                          for m in frozen["members"]})}}},
         "classes": {
             "all_finished": count(lambda r: True),
             "BROAD_POWERED": count(lambda r: r["BROAD_POWERED"]),
