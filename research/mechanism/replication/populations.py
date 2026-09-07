@@ -17,6 +17,7 @@ before any search result is read, and the registry is a fixed list of corpora bu
 from __future__ import annotations
 
 import json
+import statistics
 import os
 import sys
 
@@ -45,6 +46,31 @@ def focal_blitz_median_rating(decisions_parquet: str) -> float | None:
         return None
     per_game = blitz.groupby("game_id")["own_rating"].first().dropna()
     return float(per_game.median()) if len(per_game) else None
+
+
+def blitz_median_from_admissible(admissible_ndjson: str, focal_player_id: str) -> float | None:
+    """The same band-centre input as `focal_blitz_median_rating`, read BEFORE any scoring.
+
+    Selection has to know a candidate's band before committing an engine-hour to them, and the
+    decisions parquet does not exist yet at that point. This reads the admissible games directly and
+    applies the identical rule: the focal side's rating, one per BLITZ game, median.
+
+    It is a second implementation of one rule, which is how rules drift. The cohort runner therefore
+    asserts that the band this returns equals the band `resolve` derives from the scored parquet,
+    and records a mismatch as a defect rather than preferring either answer.
+    """
+    ratings = []
+    want = (focal_player_id or "").lower()
+    with open(admissible_ndjson) as f:
+        for line in f:
+            g = json.loads(line)
+            if g.get("speed") != "blitz":
+                continue
+            for side in ("white", "black"):
+                p = (g.get("players") or {}).get(side) or {}
+                if ((p.get("user") or {}).get("id") or "").lower() == want and p.get("rating"):
+                    ratings.append(int(p["rating"]))
+    return float(statistics.median(ratings)) if ratings else None
 
 
 def resolve(decisions_parquet: str) -> dict:

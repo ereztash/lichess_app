@@ -355,7 +355,12 @@ def main() -> int:
     json.dump(doc, open(a.out, "w"), indent=1)
     # The screened rows are the SAMPLING FRAME the cohort would be drawn from. Persisted so that
     # selection can be shown to be deterministic over a frame that existed before it.
-    frame_out = os.path.splitext(a.out)[0].replace("FEASIBILITY_SCREEN", "SCREENED_FRAME") + ".json"
+    stem = os.path.splitext(a.out)[0]
+    frame_out = (stem.replace("FEASIBILITY_SCREEN", "SCREENED_FRAME") if "FEASIBILITY_SCREEN" in stem
+                 else stem.replace("_SCREEN", "_FRAME") if "_SCREEN" in stem
+                 else stem + "_FRAME") + ".json"
+    if os.path.abspath(frame_out) == os.path.abspath(a.out):
+        raise SystemExit("refusing to write the frame over the screen: %s" % a.out)
     json.dump({"_what": "Every player the metadata screen looked at, with the metadata it read. "
                         "Public profile fields only.",
                "screened_at": doc["screened_at"], "seed": a.seed,

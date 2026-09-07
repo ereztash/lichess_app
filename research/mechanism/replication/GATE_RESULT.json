@@ -434,8 +434,8 @@
     },
     {
      "artifact": "corpus label is the one the run declared",
-     "old": "lichess:erez281",
-     "new": "lichess:erez281",
+     "old": "erez281",
+     "new": "erez281",
      "tolerance": "exact",
      "result": "PASS"
     },
