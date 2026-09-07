@@ -147,6 +147,7 @@ const HANDOFF = {
   protocolVersion: null,
   analysisTiming: null,
   firstDecisionPly: 6,
+  handover: null,
 };
 
 const FEN = "r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4";

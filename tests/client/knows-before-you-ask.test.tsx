@@ -286,6 +286,7 @@ describe("the game survives the tab", () => {
     protocolVersion: null,
     analysisTiming: null,
     firstDecisionPly: null,
+    handover: null,
   };
 
   it("comes back after the store is reconstructed, which is what closing the tab does", () => {

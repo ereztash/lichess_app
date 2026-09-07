@@ -37,11 +37,29 @@ export function WhatThisIs({ onClose }: { onClose: () => void }) {
         שהתפרקו.
       </p>
 
+      {/*
+        * WHAT THIS PARAGRAPH MAY PROMISE, and what it used to.
+        *
+        * It said "קודם אתה בוחר מהלך, מסמן מה אתה קורא בעמדה ומה אתה לא מצליח להעריך, ואומר כמה
+        * אתה בטוח" -- the loop, as though all four steps were on every decision. They are not.
+        * `ASK_RATE` is 0.15, so on roughly six ordinary decisions in seven the only step is the
+        * move, and a first decision is exempt from the two reads by name. A help screen that
+        * describes a loop the build does not run is the same defect class as a verdict wider than
+        * its measurement, one layer further from the board.
+        *
+        * WHAT IS INVARIANT IS THE ORDERING, so that is what this promises now. Which questions get
+        * asked is stated as what it is: a fixed draw per position, and explicitly not the player's
+        * choice -- which is the one property that makes the sample worth anything.
+        */}
       <h4>למה המנוע שותק עד שאתה מחליט</h4>
       <p>
         אם המנוע מדבר ראשון, אין מה למדוד — הביטחון שלך כבר מושפע ממה שראית. לכן הסדר הפוך מכל כלי
-        אחר: קודם אתה בוחר מהלך, מסמן מה אתה קורא בעמדה ומה אתה לא מצליח להעריך, ואומר כמה אתה בטוח.
-        רק אז המנוע עונה. זה לא סגנון — בלי זה אין מדידה.
+        אחר: קודם אתה בוחר מהלך, ורק אז המנוע עונה. זה לא סגנון — בלי זה אין מדידה.
+      </p>
+      <p>
+        לא בכל החלטה נשאלות אותן שאלות. בחלק מהעמדות תישאל גם כמה אתה בטוח, ובחלקן גם מה אתה קורא
+        בעמדה ומה אתה לא מצליח להעריך. מה נשאל נקבע בהגרלה קבועה לפי העמדה — <strong>לא לפיך</strong>,
+        כי שאלה שעונים עליה רק כשבא לך מודדת מי ענה ולא מה קרה.
       </p>
 
       <h4>למה זה לוקח זמן</h4>

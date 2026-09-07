@@ -3192,10 +3192,32 @@ button:not(:disabled) {
  * body is `hidden`, so it leaves the accessible tree with the visual layout rather than being
  * announced from somewhere off screen -- and one tap on the header brings all of it back.
  */
+/*
+ * THE STEPS CLEAR THE STICKY SUBMIT WHEN ANYTHING SCROLLS THEM INTO VIEW, and this was measured
+ * rather than reasoned about.
+ *
+ * `.commitment-submit` is `position: sticky; bottom: 8px`, so once the panel is taller than the
+ * viewport it floats over whatever is behind it. Measured on the built app at 1440x900, with the
+ * `known` step open the way a multi-select leaves it: the confidence step head sat at y=833 and
+ * the submit at y=847, so the head cleared the button by FOUR PIXELS. A copy change that added one
+ * wrapped line to the intro moved the head to y=854 and it was covered outright --
+ * `elementFromPoint` at the head's own coordinate returned `.commitment-submit`, and
+ * `tests/layout/a-press-the-hand-can-feel.layout.test.ts` went red on it. That test's comment
+ * already recorded the same collision at centre-aim and worked around it by aiming ten pixels
+ * from the top, which is what the four pixels were being spent on.
+ *
+ * WHAT THIS FIXES AND WHAT IT DOES NOT. A sticky element cannot be stopped from painting over what
+ * is behind it, and this does not try: it makes every scroll that targets a step land the step
+ * ABOVE the button rather than under it, which is what `scrollIntoViewRespectingMotion` does on
+ * every auto-advance in this panel and what a keyboard walk does on every focus. The floor plus
+ * the sticky offset plus one step of breathing room, so it tracks the control rather than a number
+ * somebody chose.
+ */
 .commitment-step {
   gap: 0;
   border-radius: var(--radius-control);
   border: 1px solid transparent;
+  scroll-margin-block-end: calc(var(--tap-floor) + 8px + var(--s3));
 }
 /*
  * A REGISTER, NOT A STACK OF CARDS -- the second and last of the two surface moves the owner's

@@ -29,3 +29,36 @@
  */
 export const EXPERIMENTAL_LEARNING_ENABLED =
   import.meta.env.VITE_EXPERIMENTAL_LEARNING_ENABLED === "true";
+
+/**
+ * THE QUIET-WINDOW ARM. Off unless a build says otherwise, and it exists to be measured.
+ *
+ * WHAT IT DOES. While the player is producing evidence -- `makingEvidence(stage)`, which is every
+ * stage but the reveal, the counterfactual included -- the context ribbon renders nothing. Off, the
+ * ribbon behaves exactly as it does today, so a deployment that says nothing ships today's product.
+ *
+ * WHY THIS ONE AND NOT THE REST OF THE ARCHITECTURE IT COMES FROM.
+ * `research/ux-measurement/DESIGN_DECISION.md` returns `NO WINNER -- FIELD REQUIRED`: the leading
+ * architecture leads the runner-up by four points out of a hundred, and the one dimension that is
+ * FIELD REQUIRED in every cell carries fifteen. So the architecture is not being shipped. What IS
+ * being built is the single arm that can falsify it, which is a different thing and is the cheapest
+ * useful move available.
+ *
+ * WHAT IT IS AN ARM OF. `MEASUREMENT_REACTIVITY_EXPERIMENTS.md` X-5. Measured on the built app,
+ * `.context-loop` carries the record's state during DECIDE and updates on the player's own commit:
+ * `0 מתוך 0 שנרשמו נספרות בחיפוש הזה` before, `0 מתוך 1` while the counterfactual question is
+ * still open. The question is whether that moves the confidence stated after it.
+ *
+ * THE OUTCOME THAT KILLS THE ARCHITECTURE, and it is why the flag is worth having: if abandonment
+ * inside `DECIDE` RISES with the ribbon absent, the loop position is `ACTION-NECESSARY` after all,
+ * the surface ledger's row is wrong, and the quiet window is wrong. An arm that can only confirm
+ * would not be worth a flag.
+ *
+ * WHAT IT MAY NOT BECOME. A default. Turning it on changes the stimulus, and
+ * `shared/measurement-protocol.ts` is unambiguous that a protocol whose rules change is two
+ * populations -- so a build that sets this must also carry a `CURRENT_PROTOCOL_VERSION` bump, in
+ * the same way LAW 1's decision focus did. That bump is deliberately NOT made here: making it now
+ * would split the record for an arm nobody has run.
+ */
+export const QUIET_EVIDENCE_WINDOW_ENABLED =
+  import.meta.env.VITE_QUIET_EVIDENCE_WINDOW_ENABLED === "true";

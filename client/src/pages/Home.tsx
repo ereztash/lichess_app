@@ -36,7 +36,7 @@ import { RevealNextPosition } from "@/components/RevealNextPosition";
 import { NO_CONTINUATION_IN_THIS_GAME } from "@/lib/bank-handover";
 import { useContinuationEvent } from "@/lib/continuation-event";
 import { ContextRibbon } from "@/components/ContextRibbon";
-import { adoptStoredPosition } from "@/lib/adopt-position";
+import { adoptStoredPosition, restoreNotice } from "@/lib/adopt-position";
 import { readPosition, type StoredPosition, writePosition } from "@/lib/session-position";
 import { LoopStrip } from "@/components/LoopStrip";
 import { LearningQueue } from "@/components/LearningQueue";
@@ -612,11 +612,8 @@ export default function Home() {
       setRestoreSettled(true);
       return;
     }
-    adoptPosition(saved, (loaded) =>
-      loaded.length
-        ? `חזרתם למשחק שהייתם בו — ${loaded.length} חצאי־מהלכים.`
-        : "חזרתם למשחק שהייתם בו.",
-    );
+    /* A handoff is not a return, and this used to say it was. See `restoreNotice`. */
+    adoptPosition(saved, (loaded) => restoreNotice(saved.handover, loaded.length));
     setRestoreSettled(true);
     /* Listed although `restored.current` makes this run once: a reader cannot tell a stable
        `useCallback` from an unstable one at the call site, which is what the guard is for. */
@@ -642,6 +639,8 @@ export default function Home() {
       revealTiming,
       firstDecisionPly,
       gameId: gameId.current,
+      /* Null from here on: once the board has written it back, the player HAS been on it. */
+      handover: null,
     });
   }, [
     history,
@@ -1928,6 +1927,7 @@ export default function Home() {
         */}
       <ContextRibbon
         drill={inDrill ? { completed: drillDecisionIds.length, total: drill!.fens.length } : null}
+        producingEvidence={focus}
         /*
          * The ribbon names a surface; this page is the one that owns both of them, so this is
          * where the name is turned into an address. It OPENS and stops -- no import is run and

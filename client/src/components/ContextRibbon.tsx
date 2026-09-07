@@ -41,12 +41,22 @@ import {
 } from "@/lib/context-engine";
 import { useLoopPosition, type DrillProgress } from "@/lib/use-loop-position";
 import type { LoopTarget } from "@/lib/loop-position";
+import { QUIET_EVIDENCE_WINDOW_ENABLED } from "@/lib/features";
 
 export function ContextRibbon({
   drill = null,
   onGoTo,
+  producingEvidence = false,
 }: {
   drill?: DrillProgress;
+  /**
+   * Is the player producing evidence right now? `makingEvidence(stage)`, passed in.
+   *
+   * READ ONLY BY THE QUIET-WINDOW ARM, and it does nothing while that flag is off -- see
+   * `QUIET_EVIDENCE_WINDOW_ENABLED`. It is a prop rather than a hook because the stage lives in
+   * `Home.tsx` and this component has no business acquiring an opinion about it.
+   */
+  producingEvidence?: boolean;
   /**
    * Open the surface the sentence names, or undefined when the host owns none of them.
    *
@@ -100,6 +110,19 @@ export function ContextRibbon({
   }, [usage, count.data?.decisions, reading.data?.awaitingReveal]);
 
   const loop = useLoopPosition(drill);
+  /*
+   * THE QUIET-WINDOW ARM, and it is deliberately the LAST thing this component decides.
+   *
+   * Every hook above still runs, so the arm changes what is painted and not what is computed or
+   * fetched: `data-input` still reaches the stylesheet, the usage is still persisted, and the two
+   * record queries are still warm for the reveal. An early return before the hooks would have made
+   * the two arms differ in their network behaviour as well as their pixels, which is a second
+   * difference nobody asked for.
+   *
+   * Off, this is `false` and nothing below sees it. `research/ux-measurement/` X-5.
+   */
+  const silenced = QUIET_EVIDENCE_WINDOW_ENABLED && producingEvidence;
+  if (silenced) return null;
   /*
    * The gap line is dismissible and the loop position is not, which is the difference between a
    * notice and standing orientation. "הבנתי" used to close the whole ribbon; closing the one line

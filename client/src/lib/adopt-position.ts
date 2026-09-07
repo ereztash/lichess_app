@@ -18,9 +18,37 @@
  * is the ORDER and the COMPLETENESS of the assignment, and that is exactly what drifted.
  */
 import type { GameSnapshot } from "@/lib/game-data";
-import type { StoredPosition } from "@/lib/session-position";
+import type { PositionHandover, StoredPosition } from "@/lib/session-position";
 import type { RevealTiming } from "@shared/reveal-timing";
 import type { AnalysisSource } from "@shared/analysis-source";
+
+/**
+ * What the board says about the position it just restored.
+ *
+ * IT SAID ONE THING FOR THREE DIFFERENT ARRIVALS, and for two of them it was false. Every restore
+ * was phrased as a return -- "חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים" -- and both front-door
+ * routes hand a position over through the very store this module reads. Measured in Chromium on a
+ * fresh profile, entering through `עמדה מהסט המשותף`: that sentence, under the board, in the first
+ * state of the evidence window, to somebody who had never seen the game. A claim about the
+ * player's history that the same build manufactured a second earlier.
+ *
+ * `StoredPosition.handover` is the fact that separates them, and null is the return -- which is
+ * also what a position stored by an older build parses to, correctly.
+ *
+ * IT LIVES HERE, and the reason is the one at the top of this file. This module exists because the
+ * assignment of a stored position to the board drifted when it had two callers; the sentence that
+ * describes that assignment is part of it, and `Home.tsx` is under a line ceiling with a test
+ * behind it. Pure, exported, and testable without driving the page.
+ *
+ * The half-move count stays on every branch: it is the one fact that says how far into a game the
+ * position sits, and it is true however the position arrived.
+ */
+export function restoreNotice(handover: PositionHandover | null, plies: number): string {
+  const depth = plies ? ` — ${plies} חצאי־מהלכים.` : ".";
+  if (handover === "first-decision") return `עמדה ממשחק ששיחקתם${depth}`;
+  if (handover === "anchor") return `עמדה מהסט המשותף${depth}`;
+  return `חזרתם למשחק שהייתם בו${depth}`;
+}
 
 /** Everything a stored position sets. One object so a new field cannot be added to only one path. */
 export interface BoardSetters {

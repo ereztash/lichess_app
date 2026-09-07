@@ -713,9 +713,40 @@ const INDEX = `${ROOT}/index.html`;
  * THE ENTRY DID NOT FIRE at 687.6 against 688, so it keeps its number. 778 leaves 1.0 kB, which
  * matches the 1.1 and 1.0 the raises above took and is deliberately less than the two this file
  * warns about.
+ *
+ * ---
+ *
+ * 688 -> 690 AND 778 -> 780: FOUR SENTENCES THE BUILD SAID THAT THE BUILD CONTRADICTED. Measured
+ * against the tree immediately before the repair, by stashing exactly the ten changed source files
+ * and rebuilding:
+ *
+ *     entry, raw               687.8 -> 688.8 kB   +1.0
+ *     entry, gzipped           215.7 -> 216.0 kB   +0.3
+ *     initial download, raw    777.6 -> 778.6 kB   +1.0
+ *
+ * ONE KILOBYTE, AND EVERY BYTE OF IT IS A CLAIM BEING MADE TRUE. `research/ux-measurement/`
+ * carries the audit; the four repairs are in `WORK_PLAN.md` §1. What is new in the entry chunk:
+ * `instructionFor`, which builds the commitment intro from the steps the decision actually asks
+ * for instead of naming two that may not be there; `restoreNotice`, three sentences where the board
+ * had one and told a first-time arrival they had come back to a game they had never seen;
+ * `StoredPosition.handover` with its parse; a per-step `stepsFor`; one Hebrew paragraph in
+ * `WhatThisIs` saying that which questions get asked is a draw and not the player's choice; and
+ * `QUIET_EVIDENCE_WINDOW_ENABLED` with the one guard that reads it.
+ *
+ * WHY IT CANNOT BE DEFERRED. All of it is the commitment screen and the board's own restore, which
+ * are the entry route by definition -- there is no chunk to put the first decision in.
+ *
+ * THE GZIP CEILING DID NOT FIRE, at 216.0 against 216, so it keeps its number by this file's own
+ * convention. **It is now at zero headroom**, which the next raise should read as the standing
+ * warning it is: the entry chunk's compressed size is the number a person on a slow link waits
+ * for, and it has run out of room first.
+ *
+ * 690 AND 780 LEAVE 1.2 AND 1.4 kB, which is the order the raises above took. 689 would have left
+ * 0.2, and a ceiling that a whitespace change can cross teaches people to re-run the check rather
+ * than to read it.
  */
 
-const ENTRY_RAW_KB = 688;
+const ENTRY_RAW_KB = 690;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
 const ENTRY_GZIP_KB = 216;
@@ -904,7 +935,7 @@ const ENTRY_GZIP_KB = 216;
  * number that ships is 778, and it leaves 0.5 kB.
  */
 
-const INITIAL_RAW_KB = 778;
+const INITIAL_RAW_KB = 780;
 
 interface Asset {
   name: string;

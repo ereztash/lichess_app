@@ -104,18 +104,48 @@ const ALL_STEPS: StepId[] = ["chosenMove", "known", "unknown", "confidence"];
  * step is ABSENT rather than optional. Absent, because an optional question is answered by
  * whoever feels like answering, which makes the confidence data a sample the player curated on
  * the very variable being measured.
+ *
+ * ONE PREDICATE PER STEP, AND THEY ARE THE VALIDATOR'S OWN. This read
+ *
+ *     confidenceIsAsked(context) ? ALL_STEPS : ALL_STEPS.filter(s => s === "chosenMove" || readsAreAsked(context))
+ *
+ * and it had a hole with a purpose in it. `readsAreAsked` returns false wherever
+ * `confidenceIsAsked` does, so the filter could never keep anything but the move and the call was
+ * dead; the first branch never consulted it at all. The whole thing was
+ * `confidenceIsAsked ? ALL_STEPS : ["chosenMove"]`, which is right for five of the six purposes
+ * and wrong for `first`, the only one where the two predicates disagree.
+ *
+ * WHAT THAT RENDERED, measured on `purpose: "first"` at 2390b35:
+ *
+ *     step 2  מה אתם קוראים בעמדה     חובה   draftProblems: not required
+ *     step 3  מה אתם לא יכולים להעריך  חובה   draftProblems: not required
+ *     submit  רשמו את ההחלטה                 with both still unanswered
+ *
+ * So the screen claimed two fields were mandatory that the same build did not require, on the
+ * front door's own handoff and on the opening decision of every new game -- which is a cold
+ * player's first impression of the instrument. `shared/confidence-asked.ts` states the exemption
+ * and its reason ("a wall of required fields is their whole first impression"); `draftProblems`
+ * and `decisionAtomSchema` both implement it; only the screen did not.
+ *
+ * NOT FIXED BY MARKING THEM OPTIONAL, and the rule that decides it is the one at the top of
+ * `confidence-asked.ts`: whoever skips a field skips it because of how they feel about the
+ * position, so an optional instrument is a sample the player curated on the measured variable.
+ * A visibly-optional read on the first decision would have institutionalised exactly that bias.
+ * The reads are absent there instead, which is what the other three layers already say.
  */
 const stepsFor = (context: DecisionContext): StepId[] =>
-  confidenceIsAsked(context)
-    ? ALL_STEPS
-    : /*
-       * A DECISION IS FULLY INSTRUMENTED OR IT IS A MOVE. When the draw passes a position over,
-       * nothing will read a confidence stated on it and nothing will read the words either -- so
-       * asking for the words anyway charges two of the three steps for nothing. Reported from
-       * actual play as the reason a game is not worth finishing, which is a measurement problem
-       * wearing a complaint: an instrument nobody completes produces no readings.
-       */
-      ALL_STEPS.filter((step) => step === "chosenMove" || readsAreAsked(context));
+  ALL_STEPS.filter((step) => {
+    if (step === "chosenMove") return true;
+    /*
+     * A DECISION IS FULLY INSTRUMENTED OR IT IS A MOVE. When the draw passes a position over,
+     * nothing will read a confidence stated on it and nothing will read the words either -- so
+     * asking for the words anyway charges two of the three steps for nothing. Reported from
+     * actual play as the reason a game is not worth finishing, which is a measurement problem
+     * wearing a complaint: an instrument nobody completes produces no readings.
+     */
+    if (step === "confidence") return confidenceIsAsked(context);
+    return readsAreAsked(context);
+  });
 
 const STEP_LEGEND: Record<StepId, string> = {
   chosenMove: "המהלך שבחרתם",
@@ -131,6 +161,34 @@ const MISSING_LABEL: Record<StepId, string> = {
   unknown: "סמנו מה אי אפשר להעריך",
   confidence: "בחרו רמת ביטחון",
 };
+
+/**
+ * The instruction half of the intro, built from the steps this decision actually asks for.
+ *
+ * IT WAS A CONSTANT, AND THE CONSTANT WAS WRONG IN TWO DIRECTIONS AT ONCE. It read
+ * "בחרו מהלך על הלוח וסמנו את הקריאה שלכם" in every state. On a decision the draw passed over --
+ * `ASK_RATE = 0.15`, so roughly six ordinary decisions in seven -- the only step on screen is the
+ * move, and the sentence told the player to mark a read that is not there. On a fully instrumented
+ * decision it named two of the four steps and left the confidence question, the one thing the
+ * calibration gap is computed from, unmentioned.
+ *
+ * A phrase per step, joined, so the sentence cannot drift from `stepsFor` again. `known` and
+ * `unknown` share one phrase because they are one act to a player: stating a read has two halves
+ * and naming both would describe the accordion rather than the task.
+ *
+ * The REASON half is separate and is a constant in every state -- see the note at the render site.
+ * It is what `tests/client/why-the-engine-waits.test.tsx` holds, and nothing here touches it.
+ */
+export function instructionFor(steps: readonly StepId[]): string {
+  const parts: string[] = [];
+  if (steps.includes("chosenMove")) parts.push("בחרו מהלך על הלוח");
+  if (steps.includes("known") || steps.includes("unknown")) parts.push("סמנו את הקריאה שלכם");
+  if (steps.includes("confidence")) parts.push("אמרו כמה אתם בטוחים");
+  if (parts.length === 0) return "";
+  /* Hebrew joins a list with commas and a "ו" before the last item, which is why this is not `join`. */
+  const last = parts[parts.length - 1];
+  return parts.length === 1 ? `${last}.` : `${parts.slice(0, -1).join(", ")} ו${last}.`;
+}
 
 export function CommitmentScreen({
   position,
@@ -445,8 +503,14 @@ export function CommitmentScreen({
         * for what they thought, saw or considered would be making the exact over-claim the reveal
         * spends its own sentences refusing.
         */}
+      {/*
+        * TWO HALVES WITH DIFFERENT LIFETIMES. The instruction is derived from `STEPS`, because a
+        * sentence naming a step the state does not offer is an instruction nobody can follow. The
+        * reason is a constant, because it is true in every state and it is the whole justification
+        * for the ordering.
+        */}
       <p className="commitment-intro">
-        בחרו מהלך על הלוח וסמנו את הקריאה שלכם. המנוע לא ידבר לפני שההחלטה נרשמה, כי אחרי שהוא
+        {instructionFor(STEPS)} המנוע לא ידבר לפני שההחלטה נרשמה, כי אחרי שהוא
         דיבר כבר אי אפשר להפריד בין מה שרשמתם לבין מה שהוא הוסיף.
       </p>
 
