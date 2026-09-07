@@ -1,0 +1,72 @@
+{
+ "_what": "The selection walk. Every candidate tried, in the committed order, with the reason each rejected one was rejected.",
+ "prereg_hash": "e23a899edbedb9acee55a4d8d133a0dd06d03794c57761cfdf9716eebcd06c65",
+ "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
+ "seed": 20260907100,
+ "started_at": "2026-09-07T22:15:42Z",
+ "cursor": 4,
+ "accepted": [],
+ "rejected": [
+  {
+   "u": "nouramine",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1606.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2179,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 188.4
+  },
+  {
+   "u": "arafar",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1605.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 2200,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 136.6
+  },
+  {
+   "u": "nemesisreal",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1568.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 2200,
+   "blitz_admissible": 572,
+   "window": 2200,
+   "fetch_max": 4584,
+   "window_full": true,
+   "seconds": 185.9
+  }
+ ],
+ "prefiltered": {
+  "PREFILTER_RATING_FAR_FROM_BAND": 1
+ },
+ "residual_slots_filled": 0
+}
