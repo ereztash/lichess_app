@@ -23,12 +23,17 @@ The goal is not less friction. Some of this product's friction *is* the instrume
 
 | what | sha |
 | --- | --- |
-| `main` at the start of this work | `f1315d7bc7b1994006bc7171247ac198b8d64439` |
-| working branch `claude/lichess-interaction-design-xsgtm6`, and the tree every measurement below was taken on | `2390b3510f798cd40e5ae5fd21573edb5e965181` |
+| the tree every measurement below was taken on | `2390b3510f798cd40e5ae5fd21573edb5e965181` |
+| `main`, as `origin/main` read at the start of this session | `f1315d7bc7b1994006bc7171247ac198b8d64439` |
+| `main`, re-read after the work | `2390b3510f798cd40e5ae5fd21573edb5e965181` |
 
-The branch is ten commits ahead of `main` and carries unmerged research and documentation work.
-Every number below is from `2390b35`, not from `main`, and a re-measurement on `main` would not
-necessarily reproduce them.
+**The two `main` readings are both correct and the discrepancy is recorded rather than tidied.** At
+the start of this session `origin/main` read `f1315d7` and the working branch was ten commits ahead
+of it. Re-fetched afterwards, `main` is `2390b35` -- the same commit the measurements were taken on
+-- so those ten commits are `main`'s now and the branch is exactly one commit ahead. Nothing below
+was measured on a different tree because of it: every number is from `2390b35` either way. It is
+here because a freeze record whose baseline moved under it should say so, and because the first
+reading is what this work planned against.
 
 ## Baseline, measured rather than cited
 
