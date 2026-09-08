@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 351,
+ "cursor": 354,
  "accepted": [
   {
    "u": "nouramine",
@@ -421,6 +421,62 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.7
+  },
+  {
+   "u": "cesarau",
+   "player_id": "cesarau",
+   "run_dir": "research/mechanism/replications/lichess_cesarau_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 340,
+   "speeds": {
+    "blitz": 340,
+    "bullet": 110
+   },
+   "blitz_median": 1663.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "williamsrya94",
+   "player_id": "williamsrya94",
+   "run_dir": "research/mechanism/replications/lichess_williamsrya94_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 360,
+   "speeds": {
+    "blitz": 360,
+    "bullet": 90
+   },
+   "blitz_median": 1646.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "seconds": 0.5
   }
  ],
  "rejected": [
@@ -2653,10 +2709,29 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.6
+  },
+  {
+   "u": "antaresaaz",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1701.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 206,
+  "PREFILTER_RATING_FAR_FROM_BAND": 207,
   "PREFILTER_TOO_FEW_GAMES": 5
  },
  "residual_slots_filled": 0,
@@ -2729,9 +2804,7 @@
    "migrated_from_rejected": true
   }
  ],
- "retry_queue": [
-  "cesarau"
- ],
+ "retry_queue": [],
  "requeued_for_defect": [
   {
    "u": "cesarau",

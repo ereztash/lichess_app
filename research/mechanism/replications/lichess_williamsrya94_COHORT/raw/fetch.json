@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "williamsrya94",
+ "player_id": "williamsrya94",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 4,
+    "rating": 1679
+   },
+   "bullet": {
+    "games": 8980,
+    "rating": 1778
+   },
+   "blitz": {
+    "games": 8524,
+    "rating": 1593
+   },
+   "rapid": {
+    "games": 32,
+    "rating": 1521
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 17,
+    "rating": 1628
+   },
+   "chess960": {
+    "games": 4,
+    "rating": 1395
+   },
+   "puzzle": {
+    "games": 1262,
+    "rating": 2251
+   }
+  },
+  "createdAt": 1587683791932,
+  "seenAt": 1788842129681
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/williamsrya94?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:51:30Z",
+  "http_status": 200,
+  "bytes": 3888939,
+  "sha256": "9d450ee5efe2cf60fe56874f2bbc933138b11a19198ec69d954618996015b233",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_williamsrya94_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
