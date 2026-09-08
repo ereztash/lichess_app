@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "gilrivera",
+ "player_id": "gilrivera",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 7157,
+    "rating": 1743
+   },
+   "blitz": {
+    "games": 9624,
+    "rating": 1615
+   },
+   "rapid": {
+    "games": 282,
+    "rating": 1707
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 4747,
+    "rating": 1760
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1654802796740,
+  "seenAt": 1788835232307
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/gilrivera?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:04:00Z",
+  "http_status": 200,
+  "bytes": 3655606,
+  "sha256": "d7271308202916ad558760e543a42658cafaa0a2984467fe8f5ad1a43ce8752d",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_gilrivera_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

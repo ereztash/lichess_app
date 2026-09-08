@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "ingjaldurs",
+ "player_id": "ingjaldurs",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 137,
+    "rating": 1523
+   },
+   "blitz": {
+    "games": 45375,
+    "rating": 1680
+   },
+   "rapid": {
+    "games": 2,
+    "rating": 1517
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 253,
+    "rating": 1834
+   }
+  },
+  "createdAt": 1596488621760,
+  "seenAt": 1788848194444
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/ingjaldurs?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:05:59Z",
+  "http_status": 200,
+  "bytes": 3767565,
+  "sha256": "a7148d96df470a5770c335cbae6a8b5b0bed5c2a7844b985312b982d3ee2af7b",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

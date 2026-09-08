@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 592,
+ "cursor": 638,
  "accepted": [
   {
    "u": "nouramine",
@@ -892,6 +892,62 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.4
+  },
+  {
+   "u": "gilrivera",
+   "player_id": "gilrivera",
+   "run_dir": "research/mechanism/replications/lichess_gilrivera_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 400,
+   "speeds": {
+    "blitz": 400,
+    "bullet": 19,
+    "rapid": 25
+   },
+   "blitz_median": 1657.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "ingjaldurs",
+   "player_id": "ingjaldurs",
+   "run_dir": "research/mechanism/replications/lichess_ingjaldurs_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1665.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.8
   }
  ],
  "rejected": [
@@ -4570,11 +4626,222 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 43.2
+  },
+  {
+   "u": "nekoomehr",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1762.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 208,
+   "window": 450,
+   "fetch_max": 0,
+   "window_full": true,
+   "seconds": 441.8
+  },
+  {
+   "u": "warmwarthoughts",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1620.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.4
+  },
+  {
+   "u": "ariel75",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1547.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "papai_eri",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1687.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "hari3newton",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "jade25",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1532.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "jolly_buddha",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "paulocardoso",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1461.0,
+   "derived_band": [
+    1250,
+    1650
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "takuza",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1742.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "nlautarito",
+   "reason": "INSUFFICIENT_ELIGIBLE_GAMES",
+   "admissible": 422,
+   "needed": 450,
+   "blitz_admissible": 422,
+   "fetch_max": 0,
+   "window_full": false,
+   "unbounded": true,
+   "seconds": 45.3
+  },
+  {
+   "u": "cottbuspower",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1855.0,
+   "derived_band": [
+    1650,
+    2050
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "wolf_ofthe_north",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1782.5,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 176,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 40.0
+  },
+  {
+   "u": "chuzer0",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1585.5,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 444,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 338,
-  "PREFILTER_TOO_FEW_GAMES": 12
+  "PREFILTER_RATING_FAR_FROM_BAND": 368,
+  "PREFILTER_TOO_FEW_GAMES": 13
  },
  "residual_slots_filled": 0,
  "unreachable": [
