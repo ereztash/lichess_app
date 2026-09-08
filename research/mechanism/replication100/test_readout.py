@@ -59,7 +59,8 @@ def member(u: str, run_dir: str, *, window_class="BROAD", blitz_admissible=99999
             "screen_band_agreed": True}
 
 
-def build(tmp: str, members: list, *, unfinished: list | None = None) -> None:
+def build(tmp: str, members: list, *, unfinished: list | None = None,
+          unreachable: list | None = None, retry_queue: list | None = None) -> None:
     """A fixture cohort in `tmp`, shaped so only the thing under test can move the verdict."""
     pre = json.load(open(os.path.join(HERE, "COHORT_PREREG.json")))
     pre["denominators"]["BROAD_POWERED"]["n"] = len(members)
@@ -77,7 +78,9 @@ def build(tmp: str, members: list, *, unfinished: list | None = None) -> None:
               "screen_band_agreement": {"agreed": len(all_members), "of": len(all_members)},
               "members": all_members}
     sel = {"prereg_hash": pre["prereg_hash"], "frame_hash": "fixture", "seed": 0, "cursor": 1,
-           "accepted": members, "rejected": [], "prefiltered": {}}
+           "accepted": members, "rejected": [], "prefiltered": {},
+           "unreachable": [{"u": u, "reason": "FETCH_FAILED"} for u in (unreachable or [])],
+           "retry_queue": list(retry_queue or [])}
     json.dump(pre, open(os.path.join(tmp, "COHORT_PREREG.json"), "w"))
     json.dump(frozen, open(os.path.join(tmp, "COHORT_FROZEN.json"), "w"))
     json.dump(sel, open(os.path.join(tmp, "COHORT_SELECTION.json"), "w"))
@@ -171,7 +174,20 @@ def main() -> int:
               r3["population_safety"]["measured"] is False
               and r3["population_safety"]["members_in_baseline"] is None)
 
-    # ---- 6. the report renders --------------------------------------------------------------------
+    # ---- 6. an unreachable candidate is not a rejection ------------------------------------------
+    with tempfile.TemporaryDirectory() as tmp:
+        build(tmp, [member("a", PRC_RUN), member("b", NULL_RUN)],
+              unreachable=["ogbullz", "ogbullz", "akhiln3"], retry_queue=["akhiln3"])
+        r = read_out(tmp)
+        ir = r["ingest_reachability"]
+        check("unreachable candidates are counted as events and as names",
+              ir["unreachable_events"] == 3 and ir["distinct_usernames"] == 2, json.dumps(ir))
+        check("a candidate still queued at freeze is visible",
+              ir["still_queued_at_freeze"] == 1, json.dumps(ir))
+        check("unreachable candidates stay OUT of the tried denominator",
+              ir["tried_candidates_denominator"] == 2, json.dumps(ir))
+
+    # ---- 7. the report renders --------------------------------------------------------------------
     with tempfile.TemporaryDirectory() as tmp:
         build(tmp, [member("a", PRC_RUN, window_class="RESIDUAL"), member("b", NULL_RUN)])
         read_out(tmp)

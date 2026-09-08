@@ -83,6 +83,12 @@ def blitz_median_from_admissible(admissible_ndjson: str, focal_player_id: str) -
     return float(statistics.median(ratings)) if ratings else None
 
 
+# A transport failure means back off, not press on: the export is one request at a time and a walk
+# that keeps knocking through a rate limit turns a pause into a longer one. Doubling from 30s caps
+# at 8 minutes, which is above lichess's own "wait a full minute" guidance with room to spare.
+FETCH_BACKOFF_BASE = 30
+FETCH_BACKOFF_CAP = 480
+
 PY = os.environ.get("REPLICATION_PYTHON", sys.executable)
 POP_GAMES = os.path.join(MECH, "data", "population_games.ndjson")
 RUN_ID = "COHORT"
@@ -139,8 +145,11 @@ def try_candidate(username: str, window: int, fetch_max: int, root: str,
                 "stderr": (p.stderr or "")[-400:]}
     res = json.load(open(res_path))
     if res.get("status") != "FROZEN":
+        # `detail` is the ingest layer's own message. Without it a FETCH_FAILED is unauditable:
+        # a closed account and a rate limit look identical in the record, and only one of them is
+        # a fact about the candidate.
         return {"accepted": False, "reason": res.get("failure_code") or res.get("status"),
-                "run_dir": d, "corpus": res.get("corpus")}
+                "detail": res.get("detail"), "run_dir": d, "corpus": res.get("corpus")}
     return {"accepted": None, "run_dir": d, "corpus": res["corpus"],
             "player_id": res["focal"]["player_id"]}
 
@@ -197,12 +206,37 @@ def main() -> int:
     if state["prereg_hash"] != pre["prereg_hash"] or state["frame_hash"] != frame["frame_hash"]:
         raise SystemExit("the prereg or the frame changed under a walk in progress; refusing")
 
+    # ONE-TIME MIGRATION. An earlier walk recorded a transport failure as a rejection, which reads
+    # as "the selection judged this candidate and said no" when in fact it never reached them. The
+    # accounts behind all eleven were alive with thousands of games. They go back into the queue at
+    # their committed positions rather than being written off, because a candidate skipped for a
+    # client failure is a candidate the committed order still owes a try.
+    migrated = [r for r in state["rejected"] if r["reason"] == "FETCH_FAILED"]
+    if migrated:
+        state["rejected"] = [r for r in state["rejected"] if r["reason"] != "FETCH_FAILED"]
+        state.setdefault("unreachable", []).extend(
+            {**r, "migrated_from_rejected": True} for r in migrated)
+        state.setdefault("retry_queue", []).extend(r["u"] for r in migrated)
+        print("migrated %d FETCH_FAILED out of rejected and into the retry queue" % len(migrated),
+              flush=True)
+        json.dump(state, open(state_path, "w"), indent=1)
+
     tried_this_call = 0
-    while len(state["accepted"]) < cohort_n and state["cursor"] < len(order):
+    fails = 0
+    while len(state["accepted"]) < cohort_n:
+        # The retry queue is drained FIRST and in committed order, so a candidate the client failed
+        # to reach is tried at the position the seed gave them rather than after everyone else.
+        queue = state.get("retry_queue") or []
+        if queue:
+            u = queue.pop(0)
+            state["retry_queue"] = queue
+        elif state["cursor"] < len(order):
+            u = order[state["cursor"]]
+            state["cursor"] += 1
+        else:
+            break
         if a.limit is not None and tried_this_call >= a.limit:
             break
-        u = order[state["cursor"]]
-        state["cursor"] += 1
         tried_this_call += 1
         m = meta[u]
 
@@ -232,8 +266,31 @@ def main() -> int:
 
         t0 = time.time()
         r = try_candidate(u, window, fetch_max, a.root)
+        if r.get("reason") == "FETCH_FAILED":
+            # NOT a rejection. The walk never reached the rule, so nothing about this candidate was
+            # decided, and recording it among the rejected would put a claim in the frozen record
+            # that the selection made a judgement it never made. It would also inflate the
+            # pre-declared "eligibility rejection rate" flag with the client's own failures.
+            #
+            # Eleven of these arrived in one twenty-fetch stretch and every account behind them was
+            # alive with thousands of games, which is what a rate limit looks like from here. So the
+            # walk now backs off instead of spending the committed order on its own transport, and
+            # the candidate goes back in the queue at its committed position.
+            shutil.rmtree(r["run_dir"], ignore_errors=True)
+            fails += 1
+            state.setdefault("unreachable", []).append(
+                {"u": u, "reason": "FETCH_FAILED", "detail": r.get("detail"),
+                 "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "requeued": True})
+            state.setdefault("retry_queue", []).append(u)
+            json.dump(state, open(state_path, "w"), indent=1)
+            back = min(FETCH_BACKOFF_CAP, FETCH_BACKOFF_BASE * (2 ** (fails - 1)))
+            print("  FETCH_FAILED (%d in a row): %s. requeued, sleeping %ds"
+                  % (fails, str(r.get("detail"))[:120], back), flush=True)
+            time.sleep(back)
+            continue
+        fails = 0
         if r["accepted"] is False:
-            state["rejected"].append({"u": u, "reason": r["reason"],
+            state["rejected"].append({"u": u, "reason": r["reason"], "detail": r.get("detail"),
                                       "corpus": r.get("corpus")})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
@@ -248,9 +305,20 @@ def main() -> int:
             # size rejection is always the player's and never ours.
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             r = try_candidate(u, window, 0, a.root)
+            if r.get("reason") == "FETCH_FAILED":
+                shutil.rmtree(r["run_dir"], ignore_errors=True)
+                fails += 1
+                state.setdefault("unreachable", []).append(
+                    {"u": u, "reason": "FETCH_FAILED", "detail": r.get("detail"),
+                     "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                     "requeued": True, "on_unbounded_retry": True})
+                state.setdefault("retry_queue", []).append(u)
+                json.dump(state, open(state_path, "w"), indent=1)
+                time.sleep(min(FETCH_BACKOFF_CAP, FETCH_BACKOFF_BASE * (2 ** (fails - 1))))
+                continue
             if r["accepted"] is False:
-                state["rejected"].append({"u": u, "reason": r["reason"], "corpus": r.get("corpus"),
-                                          "retried_unbounded": True})
+                state["rejected"].append({"u": u, "reason": r["reason"], "detail": r.get("detail"),
+                                          "corpus": r.get("corpus"), "retried_unbounded": True})
                 shutil.rmtree(r["run_dir"], ignore_errors=True)
                 json.dump(state, open(state_path, "w"), indent=1)
                 continue

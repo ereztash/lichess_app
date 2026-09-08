@@ -268,6 +268,17 @@ def main() -> int:
             "rejected_at_selection": sum(1 for r in sel["rejected"]
                                          if r["reason"] == "IN_POPULATION_BASELINE"),
         },
+        "ingest_reachability": {
+            "_what": "Candidates the walk could not reach, as against candidates it judged. A "
+                     "transport failure is not a rejection: nothing about the candidate was "
+                     "decided. They are counted here and requeued at their committed position, and "
+                     "they are kept OUT of the tried-candidate denominator below, so the "
+                     "eligibility rejection rate is a fact about players and not about the client.",
+            "unreachable_events": len(sel.get("unreachable") or []),
+            "distinct_usernames": len({r["u"] for r in (sel.get("unreachable") or [])}),
+            "still_queued_at_freeze": len(sel.get("retry_queue") or []),
+            "tried_candidates_denominator": fetched,
+        },
         "red_flags": {"any_met": any_flag, "flags": flags},
         "verdict": {"verdict": verdict, "why": why,
                     "_definitions": pre["verdicts"],

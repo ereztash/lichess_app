@@ -102,7 +102,13 @@ def main() -> int:
                            "prefiltered_without_a_fetch": sel.get("prefiltered", {}),
                            "fetched": len(sel["accepted"]) + len(sel["rejected"]),
                            "rejected_after_fetch": len(sel["rejected"]),
-                           "rejection_reasons": _by_reason(sel["rejected"])},
+                           "rejection_reasons": _by_reason(sel["rejected"]),
+                           # Not rejections. A candidate the client could not fetch was never
+                           # judged, so counting them among the rejected would put a decision in
+                           # the frozen record that the selection never took.
+                           "unreachable_events": len(sel.get("unreachable") or []),
+                           "unreachable_usernames": sorted(
+                               {r["u"] for r in (sel.get("unreachable") or [])})},
         "screen_band_agreement": {
             "agreed": sum(1 for m in members if m["screen_band_agreed"]),
             "of": len(members),
