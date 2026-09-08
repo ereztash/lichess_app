@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "pratamaok",
+ "player_id": "pratamaok",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 9091,
+    "rating": 1601
+   },
+   "rapid": {
+    "games": 5630,
+    "rating": 1679
+   },
+   "classical": {
+    "games": 10,
+    "rating": 1521
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "kingOfTheHill": {
+    "games": 3,
+    "rating": 1047
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1258
+   },
+   "horde": {
+    "games": 1,
+    "rating": 1450
+   }
+  },
+  "createdAt": 1629435716023,
+  "seenAt": 1788855153008
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/pratamaok?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:23:05Z",
+  "http_status": 200,
+  "bytes": 3661202,
+  "sha256": "07e0eb6805946a3dc6ac7e10534e2f55d9f0aa2986ebb7d3d166da3b13702ebd",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_pratamaok_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

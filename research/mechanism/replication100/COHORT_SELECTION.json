@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 482,
+ "cursor": 508,
  "accepted": [
   {
    "u": "nouramine",
@@ -642,6 +642,89 @@
    ],
    "screen_band_agreed": false,
    "seconds": 41.0
+  },
+  {
+   "u": "pratamaok",
+   "player_id": "pratamaok",
+   "run_dir": "research/mechanism/replications/lichess_pratamaok_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1630.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.7
+  },
+  {
+   "u": "cavalogigante",
+   "player_id": "cavalogigante",
+   "run_dir": "research/mechanism/replications/lichess_cavalogigante_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 236,
+   "speeds": {
+    "blitz": 236,
+    "rapid": 214
+   },
+   "blitz_median": 1636.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "adrianoricardo-bra",
+   "player_id": "adrianoricardo-bra",
+   "run_dir": "research/mechanism/replications/lichess_adrianoricardo-bra_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "speeds": {
+    "blitz": 449,
+    "bullet": 1
+   },
+   "blitz_median": 1637.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.9
   }
  ],
  "rejected": [
@@ -3635,10 +3718,148 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.9
+  },
+  {
+   "u": "micky1729",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "parsifal8011",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1493.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "dishman42",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1436.0,
+   "derived_band": [
+    1250,
+    1650
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 46.6
+  },
+  {
+   "u": "ch_123",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1558.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 447,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "angervzla",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1543.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "ali64529",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1621.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 432,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "jkino1",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1531.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "rspd",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1713.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 280,
+  "PREFILTER_RATING_FAR_FROM_BAND": 295,
   "PREFILTER_TOO_FEW_GAMES": 8
  },
  "residual_slots_filled": 0,
