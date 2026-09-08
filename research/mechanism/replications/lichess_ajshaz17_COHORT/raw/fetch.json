@@ -9,8 +9,8 @@
     "rating": 1578
    },
    "blitz": {
-    "games": 6025,
-    "rating": 1652
+    "games": 6031,
+    "rating": 1640
    },
    "rapid": {
     "games": 888,
@@ -30,25 +30,25 @@
    }
   },
   "createdAt": 1680848647742,
-  "seenAt": 1788847321357
+  "seenAt": 1788866942146
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/ajshaz17?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/ajshaz17?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T08:05:46Z",
+  "fetched_at": "2026-09-08T17:14:07Z",
   "http_status": 200,
-  "bytes": 3679504,
-  "sha256": "ede3a32de5166cda0a2f837da1ad3db57822742fcd8be39c48cb1e1d719450fd",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_ajshaz17_COHORT/raw/history.ndjson",
+  "bytes": 17776585,
+  "sha256": "5ebc29b3021ddd3ee9654af944d7206364c0f3aad196570fe3937bb0224191a1",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_ajshaz17_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

@@ -42,21 +42,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/williamsrya94?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/williamsrya94?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T07:51:30Z",
+  "fetched_at": "2026-09-08T17:07:35Z",
   "http_status": 200,
-  "bytes": 3888939,
-  "sha256": "9d450ee5efe2cf60fe56874f2bbc933138b11a19198ec69d954618996015b233",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_williamsrya94_COHORT/raw/history.ndjson",
+  "bytes": 18642751,
+  "sha256": "7ffccbca99ea1a9a274a8a177604643cccbcf2d04f140f74cdc77fbe59abd57a",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_williamsrya94_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

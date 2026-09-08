@@ -573,7 +573,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 340,
    "speeds": {
@@ -592,35 +592,59 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.6
+   "seconds": 39.6,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1695,
+    "blitz_median": 1621.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.8
+   }
   },
   {
    "u": "williamsrya94",
    "player_id": "williamsrya94",
    "run_dir": "research/mechanism/replications/lichess_williamsrya94_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 360,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 1971,
    "speeds": {
     "blitz": 360,
     "bullet": 90
    },
-   "blitz_median": 1646.0,
+   "blitz_median": 1632.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1400,
     1800
    ],
    "screen_band_agreed": false,
-   "seconds": 0.5
+   "seconds": 0.5,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1971,
+    "blitz_median": 1632.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 189.2
+   }
   },
   {
    "u": "naa12",
@@ -629,7 +653,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -647,34 +671,58 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.5
+   "seconds": 39.5,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2200,
+    "blitz_median": 1694.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 203.4
+   }
   },
   {
    "u": "ajshaz17",
    "player_id": "ajshaz17",
    "run_dir": "research/mechanism/replications/lichess_ajshaz17_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2137,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1659.0,
+   "blitz_median": 1638.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1450,
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2137,
+    "blitz_median": 1638.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 186.5
+   }
   },
   {
    "u": "christianjessen",
@@ -712,7 +760,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -730,7 +778,19 @@
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 41.1
+   "seconds": 41.1,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2200,
+    "blitz_median": 1683.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.6
+   }
   },
   {
    "u": "sgad",
@@ -14762,7 +14822,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 4,
+ "residual_slots_filled": 6,
  "unreachable": [
   {
    "u": "ogbullz",

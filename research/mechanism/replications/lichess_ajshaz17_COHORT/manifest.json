@@ -6,21 +6,21 @@
  "corpus": "lichess:ajshaz17",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/ajshaz17?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/ajshaz17?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T08:05:46Z",
+  "fetched_at": "2026-09-08T17:14:07Z",
   "http_status": 200,
-  "bytes": 3679504,
-  "sha256": "ede3a32de5166cda0a2f837da1ad3db57822742fcd8be39c48cb1e1d719450fd",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_ajshaz17_COHORT/raw/history.ndjson",
+  "bytes": 17776585,
+  "sha256": "5ebc29b3021ddd3ee9654af944d7206364c0f3aad196570fe3937bb0224191a1",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_ajshaz17_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -30,8 +30,8 @@
     "rating": 1578
    },
    "blitz": {
-    "games": 6025,
-    "rating": 1652
+    "games": 6031,
+    "rating": 1640
    },
    "rapid": {
     "games": 888,
@@ -51,19 +51,23 @@
    }
   },
   "createdAt": 1680848647742,
-  "seenAt": 1788847321357
+  "seenAt": 1788866942146
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2199,
  "exclusions_by_reason": {
-  "outside-window": 250,
+  "non-standard-variant": 1,
+  "outside-window": 1024,
+  "termination:Abandoned": 1,
   "termination:Insufficient material": 1,
-  "termination:Time forfeit": 240,
-  "under-20-plies": 9
+  "termination:Time forfeit": 1334,
+  "under-20-plies": 40
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2137,
+  "bullet": 4,
+  "rapid": 58
  },
  "eligibility_rule": {
   "game": {
@@ -77,7 +81,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "4aad17a0f79ff52f1234b02ee333c7f5ff5bb5a0",
+ "repo_sha": "9d92ed874f714dd73afc06322c4ef5c7d4946cbf",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +170,5 @@
   "player_id": "ajshaz17",
   "corpus": "lichess:ajshaz17"
  },
- "run_dir": "/tmp/cohort_probes/lichess_ajshaz17_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_ajshaz17_COHORTR"
 }

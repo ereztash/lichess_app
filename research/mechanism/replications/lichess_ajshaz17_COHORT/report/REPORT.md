@@ -7,9 +7,9 @@
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `4aad17a0f79ff52f1234b02ee333c7f5ff5bb5a0` |
+| repo SHA | `9d92ed874f714dd73afc06322c4ef5c7d4946cbf` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_ajshaz17_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_ajshaz17_COHORTR` |
 
 ## PLAYER
 
@@ -19,20 +19,22 @@
 
 ## CORPUS
 
-- fetched: 950
-- admissible under the frozen rule: 450
-- scorable (admissible AND standard variant): 450
+- fetched: 4600
+- admissible under the frozen rule: 2200
+- scorable (admissible AND standard variant): 2199
 - eligible decisions: None
-- speeds: {'blitz': 450}
+- speeds: {'blitz': 2137, 'bullet': 4, 'rapid': 58}
 
 ## ELIGIBILITY
 
 Every exclusion, by the baseline's own reason vocabulary:
 
-- `outside-window`: 250
+- `non-standard-variant`: 1
+- `outside-window`: 1024
+- `termination:Abandoned`: 1
 - `termination:Insufficient material`: 1
-- `termination:Time forfeit`: 240
-- `under-20-plies`: 9
+- `termination:Time forfeit`: 1334
+- `under-20-plies`: 40
 
 Ids of every excluded game are in `admissible/exclusions.json`.
 

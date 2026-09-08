@@ -6,21 +6,21 @@
  "corpus": "lichess:williamsrya94",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/williamsrya94?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/williamsrya94?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T07:51:30Z",
+  "fetched_at": "2026-09-08T17:07:35Z",
   "http_status": 200,
-  "bytes": 3888939,
-  "sha256": "9d450ee5efe2cf60fe56874f2bbc933138b11a19198ec69d954618996015b233",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_williamsrya94_COHORT/raw/history.ndjson",
+  "bytes": 18642751,
+  "sha256": "7ffccbca99ea1a9a274a8a177604643cccbcf2d04f140f74cdc77fbe59abd57a",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_williamsrya94_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -61,17 +61,19 @@
   "createdAt": 1587683791932,
   "seenAt": 1788842129681
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2197,
  "exclusions_by_reason": {
-  "outside-window": 238,
-  "termination:Time forfeit": 256,
-  "under-20-plies": 6
+  "non-standard-variant": 3,
+  "outside-window": 1221,
+  "termination:Abandoned": 1,
+  "termination:Time forfeit": 1130,
+  "under-20-plies": 48
  },
  "speeds": {
-  "blitz": 360,
-  "bullet": 90
+  "blitz": 1971,
+  "bullet": 226
  },
  "eligibility_rule": {
   "game": {
@@ -85,7 +87,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "69a04ce8fa32692350d9ab969f266ec1af202f8e",
+ "repo_sha": "9d92ed874f714dd73afc06322c4ef5c7d4946cbf",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -174,5 +176,5 @@
   "player_id": "williamsrya94",
   "corpus": "lichess:williamsrya94"
  },
- "run_dir": "/tmp/cohort_probes/lichess_williamsrya94_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_williamsrya94_COHORTR"
 }
