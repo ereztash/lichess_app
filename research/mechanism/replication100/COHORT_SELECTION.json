@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 580,
+ "cursor": 592,
  "accepted": [
   {
    "u": "nouramine",
@@ -865,6 +865,33 @@
    ],
    "screen_band_agreed": true,
    "seconds": 40.8
+  },
+  {
+   "u": "francinov",
+   "player_id": "francinov",
+   "run_dir": "research/mechanism/replications/lichess_francinov_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": false,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1647.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.4
   }
  ],
  "rejected": [
@@ -4486,11 +4513,68 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.6
+  },
+  {
+   "u": "azesm",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1575.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 40.9
+  },
+  {
+   "u": "matyalamo",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1565.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 40.0
+  },
+  {
+   "u": "rocknrollterrorist",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1757.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 206,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 43.2
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 332,
-  "PREFILTER_TOO_FEW_GAMES": 10
+  "PREFILTER_RATING_FAR_FROM_BAND": 338,
+  "PREFILTER_TOO_FEW_GAMES": 12
  },
  "residual_slots_filled": 0,
  "unreachable": [
