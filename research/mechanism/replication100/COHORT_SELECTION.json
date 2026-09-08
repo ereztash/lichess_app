@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 243,
+ "cursor": 249,
  "accepted": [
   {
    "u": "nouramine",
@@ -2103,10 +2103,29 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.5
+  },
+  {
+   "u": "oldchessmaster",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1807.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 293,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 42.5
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 130,
+  "PREFILTER_RATING_FAR_FROM_BAND": 135,
   "PREFILTER_TOO_FEW_GAMES": 4
  },
  "residual_slots_filled": 0,
