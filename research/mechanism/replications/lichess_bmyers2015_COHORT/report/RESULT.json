@@ -1,0 +1,92 @@
+{
+ "run_dir": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR",
+ "focal": {
+  "platform": "lichess",
+  "username": "bmyers2015",
+  "player_id": "bmyers2015",
+  "corpus": "lichess:bmyers2015"
+ },
+ "contract_version": "replication-1.0.0",
+ "repo_sha": "efccf492b7aaedd386342f0c5bc396b1e911685b",
+ "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "corpus": {
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
+  "eligible_decisions": null,
+  "exclusions": {
+   "outside-window": 901,
+   "termination:Time forfeit": 1399,
+   "under-20-plies": 100
+  },
+  "speeds": {
+   "blitz": 2198,
+   "bullet": 2
+  }
+ },
+ "claim_ladder": [
+  [
+   "OBSERVATION",
+   "REPO",
+   "reachable: the region's contrast on games never used to find it"
+  ],
+  [
+   "PREDICTION",
+   "REPO",
+   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
+  ],
+  [
+   "SPECIFICITY",
+   "RESEARCH",
+   "reachable only through the population baseline; absent it, never"
+  ],
+  [
+   "CAUSALITY",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "INTERVENTION",
+   "OWNER",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "OUTCOME",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ]
+ ],
+ "reversal": {
+  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
+  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
+ },
+ "status": "FROZEN",
+ "eligibility": {
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
+  "excluded_by_reason": {
+   "outside-window": 901,
+   "termination:Time forfeit": 1399,
+   "under-20-plies": 100
+  },
+  "speeds": {
+   "blitz": 2198,
+   "bullet": 2
+  },
+  "admissible_path": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR/admissible/games.ndjson",
+  "window": 2200,
+  "rule": {
+   "game": {
+    "termination": "Normal",
+    "requires_clock_annotations": true,
+    "min_plies_with_clock": 20,
+    "rated_only": true,
+    "variant": "standard"
+   },
+   "berserk": "clock-model",
+   "window_rule": "all-admissible-in-dateDesc-order",
+   "decision": "not forced AND not book AND seconds present AND clock present"
+  }
+ }
+}

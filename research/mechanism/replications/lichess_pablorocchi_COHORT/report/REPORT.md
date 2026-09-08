@@ -1,15 +1,15 @@
 # Replication report — lichess/pablorocchi
 
-**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
+**Result:** `FROZEN`
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
+| repo SHA | `960d573b4248175b8defea62ed7bf5c2ddea2e87` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_pablorocchi_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_pablorocchi_COHORTR` |
 
 ## PLAYER
 

@@ -82,8 +82,8 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "eb6649d1fd657f4944045215056a5118ff920837",
- "repo_dirty": true,
+ "repo_sha": "0b5c4456b5c61fd67eaeafe885ba8c133bcd1cd2",
+ "repo_dirty": false,
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -171,5 +171,5 @@
   "player_id": "bromptonymous",
   "corpus": "lichess:bromptonymous"
  },
- "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_bromptonymous_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_bromptonymous_COHORT"
 }

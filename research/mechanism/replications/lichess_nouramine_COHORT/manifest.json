@@ -88,8 +88,8 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "eb6649d1fd657f4944045215056a5118ff920837",
- "repo_dirty": true,
+ "repo_sha": "9ba2541ca56dcafc7f0b897177701e71e95d5548",
+ "repo_dirty": false,
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -177,5 +177,5 @@
   "player_id": "nouramine",
   "corpus": "lichess:nouramine"
  },
- "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_nouramine_COHORT"
+ "run_dir": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_nouramine_COHORT"
 }

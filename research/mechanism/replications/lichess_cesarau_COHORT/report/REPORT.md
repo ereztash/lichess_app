@@ -1,15 +1,15 @@
 # Replication report — lichess/cesarau
 
-**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
+**Result:** `FROZEN`
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
+| repo SHA | `69a04ce8fa32692350d9ab969f266ec1af202f8e` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_cesarau_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_cesarau_COHORT` |
 
 ## PLAYER
 

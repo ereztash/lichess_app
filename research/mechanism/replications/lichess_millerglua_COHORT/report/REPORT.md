@@ -1,15 +1,15 @@
 # Replication report — lichess/millerglua
 
-**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
+**Result:** `FROZEN`
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
+| repo SHA | `00473ac75922783a9967c63f3f6f7ea01d937d57` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_millerglua_COHORT` |
+| run directory | `/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_millerglua_COHORT` |
 
 ## PLAYER
 

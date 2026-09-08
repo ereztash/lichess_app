@@ -1,0 +1,104 @@
+{
+ "run_dir": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_millerglua_COHORT",
+ "focal": {
+  "platform": "lichess",
+  "username": "millerglua",
+  "player_id": "millerglua",
+  "corpus": "lichess:millerglua"
+ },
+ "contract_version": "replication-1.0.0",
+ "repo_sha": "00473ac75922783a9967c63f3f6f7ea01d937d57",
+ "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
+ "corpus": {
+  "fetched": 950,
+  "admissible": 450,
+  "scorable": 445,
+  "eligible_decisions": null,
+  "exclusions": {
+   "no-clocks": 1,
+   "non-standard-variant": 5,
+   "outside-window": 317,
+   "termination:Abandoned": 10,
+   "termination:Insufficient material": 1,
+   "termination:Time forfeit": 128,
+   "under-20-plies": 43
+  },
+  "speeds": {
+   "blitz": 319,
+   "bullet": 46,
+   "classical": 2,
+   "rapid": 78
+  }
+ },
+ "claim_ladder": [
+  [
+   "OBSERVATION",
+   "REPO",
+   "reachable: the region's contrast on games never used to find it"
+  ],
+  [
+   "PREDICTION",
+   "REPO",
+   "reachable: held-out log-loss/AUC gain over the frozen baselines on TEST"
+  ],
+  [
+   "SPECIFICITY",
+   "RESEARCH",
+   "reachable only through the population baseline; absent it, never"
+  ],
+  [
+   "CAUSALITY",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "INTERVENTION",
+   "OWNER",
+   "NOT reachable by this pipeline under any result"
+  ],
+  [
+   "OUTCOME",
+   "FIELD",
+   "NOT reachable by this pipeline under any result"
+  ]
+ ],
+ "reversal": {
+  "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
+  "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
+ },
+ "status": "FROZEN",
+ "eligibility": {
+  "raw_records": 950,
+  "admissible": 450,
+  "scorable": 445,
+  "excluded_by_reason": {
+   "no-clocks": 1,
+   "non-standard-variant": 5,
+   "outside-window": 317,
+   "termination:Abandoned": 10,
+   "termination:Insufficient material": 1,
+   "termination:Time forfeit": 128,
+   "under-20-plies": 43
+  },
+  "speeds": {
+   "blitz": 319,
+   "bullet": 46,
+   "classical": 2,
+   "rapid": 78
+  },
+  "admissible_path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_millerglua_COHORT/admissible/games.ndjson",
+  "window": 450,
+  "rule": {
+   "game": {
+    "termination": "Normal",
+    "requires_clock_annotations": true,
+    "min_plies_with_clock": 20,
+    "rated_only": true,
+    "variant": "standard"
+   },
+   "berserk": "clock-model",
+   "window_rule": "all-admissible-in-dateDesc-order",
+   "decision": "not forced AND not book AND seconds present AND clock present"
+  }
+ }
+}

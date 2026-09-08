@@ -1,15 +1,15 @@
 # Replication report — lichess/bromptonymous
 
-**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
+**Result:** `FROZEN`
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
+| repo SHA | `0b5c4456b5c61fd67eaeafe885ba8c133bcd1cd2` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_bromptonymous_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_bromptonymous_COHORT` |
 
 ## PLAYER
 
