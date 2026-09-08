@@ -1561,6 +1561,25 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.9
+  },
+  {
+   "u": "fuerzasarmadas",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1515.5,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
   }
  ],
  "prefiltered": {
@@ -1638,7 +1657,6 @@
   }
  ],
  "retry_queue": [
-  "fuerzasarmadas",
   "borodek",
   "cameraguy38",
   "sysolceh",
