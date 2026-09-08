@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "superchango99",
+ "player_id": "superchango99",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 23,
+    "rating": 1339
+   },
+   "blitz": {
+    "games": 24199,
+    "rating": 1544
+   },
+   "rapid": {
+    "games": 130,
+    "rating": 1790
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "crazyhouse": {
+    "games": 2,
+    "rating": 1312
+   },
+   "puzzle": {
+    "games": 143,
+    "rating": 1641
+   }
+  },
+  "createdAt": 1454263467593,
+  "seenAt": 1788840198657
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/superchango99?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:37:33Z",
+  "http_status": 200,
+  "bytes": 3504120,
+  "sha256": "7760f88c5a1d5846c04f27e183d6396c8eeb3162b0c31c15501fa4976d086859",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_superchango99_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
