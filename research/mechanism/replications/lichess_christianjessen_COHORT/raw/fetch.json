@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "christianjessen",
+ "player_id": "christianjessen",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 1052,
+    "rating": 1712
+   },
+   "rapid": {
+    "games": 72,
+    "rating": 1835
+   },
+   "classical": {
+    "games": 3,
+    "rating": 1694
+   },
+   "correspondence": {
+    "games": 1,
+    "rating": 1368
+   },
+   "puzzle": {
+    "games": 409,
+    "rating": 1978
+   }
+  },
+  "createdAt": 1632399834222,
+  "seenAt": 1788813504849
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/christianjessen?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:09:46Z",
+  "http_status": 200,
+  "bytes": 3047244,
+  "sha256": "7417522932a43b840792e8661b6468aac8fa153ab8ec6893b5c470c665f3a6d0",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_christianjessen_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
