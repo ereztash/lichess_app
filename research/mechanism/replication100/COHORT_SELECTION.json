@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 166,
+ "cursor": 172,
  "accepted": [
   {
    "u": "nouramine",
@@ -1361,10 +1361,25 @@
    "u": "enginekiller",
    "reason": "FETCH_FAILED",
    "corpus": null
+  },
+  {
+   "u": "astrangia",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "tegenek",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "virgile23",
+   "reason": "FETCH_FAILED",
+   "corpus": null
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 86,
+  "PREFILTER_RATING_FAR_FROM_BAND": 89,
   "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0
