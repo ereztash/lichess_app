@@ -1599,6 +1599,25 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.6
+  },
+  {
+   "u": "cameraguy38",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1478.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 369,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
   }
  ],
  "prefiltered": {
@@ -1676,7 +1695,6 @@
   }
  ],
  "retry_queue": [
-  "cameraguy38",
   "sysolceh",
   "enginekiller",
   "astrangia",
