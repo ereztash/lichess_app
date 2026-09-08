@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 114,
+ "cursor": 117,
  "accepted": [
   {
    "u": "nouramine",
@@ -171,6 +171,33 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.5
+  },
+  {
+   "u": "bmyers2015",
+   "player_id": "bmyers2015",
+   "run_dir": "research/mechanism/replications/lichess_bmyers2015_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1635.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.7
   }
  ],
  "rejected": [
@@ -970,7 +997,7 @@
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 61,
+  "PREFILTER_RATING_FAR_FROM_BAND": 63,
   "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0
