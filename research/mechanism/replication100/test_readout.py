@@ -60,7 +60,8 @@ def member(u: str, run_dir: str, *, window_class="BROAD", blitz_admissible=99999
 
 
 def build(tmp: str, members: list, *, unfinished: list | None = None,
-          unreachable: list | None = None, retry_queue: list | None = None) -> None:
+          unreachable: list | None = None, retry_queue: list | None = None,
+          rejected: list | None = None) -> None:
     """A fixture cohort in `tmp`, shaped so only the thing under test can move the verdict."""
     pre = json.load(open(os.path.join(HERE, "COHORT_PREREG.json")))
     pre["denominators"]["BROAD_POWERED"]["n"] = len(members)
@@ -78,7 +79,7 @@ def build(tmp: str, members: list, *, unfinished: list | None = None,
               "screen_band_agreement": {"agreed": len(all_members), "of": len(all_members)},
               "members": all_members}
     sel = {"prereg_hash": pre["prereg_hash"], "frame_hash": "fixture", "seed": 0, "cursor": 1,
-           "accepted": members, "rejected": [], "prefiltered": {},
+           "accepted": members, "rejected": list(rejected or []), "prefiltered": {},
            "unreachable": [{"u": u, "reason": "FETCH_FAILED"} for u in (unreachable or [])],
            "retry_queue": list(retry_queue or [])}
     json.dump(pre, open(os.path.join(tmp, "COHORT_PREREG.json"), "w"))
@@ -220,7 +221,75 @@ def main() -> int:
               "1 was still queued" in md,
               next((ln for ln in md.splitlines() if "Separately" in ln), "(absent)"))
 
-    # ---- 9. the runner refuses a moved instrument before it spends forty hours -------------------
+    # ---- 9. the screen-prediction flag measures the screen, over tried candidates ---------------
+    #
+    # THIS FLAG WAS POINTED AT THE WRONG NUMBER and could not fire. It read the SELECTION-versus-
+    # PIPELINE band check over FINISHED MEMBERS -- two derivations of one rule over the same games,
+    # which agree by construction -- while the pre-registration declares "the derived band differs
+    # from THE SCREEN'S PREDICTION for more than 80% of TRIED CANDIDATES". A flag watching a
+    # quantity that is zero by construction reads a clean 0% forever, and the condition it was
+    # declared to catch, that the metadata screen is not a screen, would never be reported.
+    #
+    # So the fixtures below are built the way the flag can actually be tripped: mostly REJECTED
+    # candidates, because rejected candidates are most of what a walk tries and they carry both
+    # bands. A cohort's own members could never supply this denominator.
+    def tried(u, pred, der, reason="POPULATION_BASELINE_INSUFFICIENT"):
+        return {"u": u, "reason": reason, "screen_predicted_band": pred, "derived_band": der}
+
+    with tempfile.TemporaryDirectory() as tmp:
+        # Nine of ten tried candidates were predicted wrong: 90%, over the bar.
+        build(tmp, [member("a", NULL_RUN)],
+              rejected=[tried("r%d" % i, [1450, 1850], [1650, 2050]) for i in range(9)]
+                       + [tried("ok", [1450, 1850], [1450, 1850])])
+        r = read_out(tmp)
+        sv = r["instrument_self_measurement"]["screen_prediction_vs_derived_band"]
+        flag = [f for f in r["red_flags"]["flags"] if "screen's prediction" in f["flag"]][0]
+        check("the screen flag counts rejected candidates, not just members",
+              sv["compared"] == 11, json.dumps(sv)[:200])
+        check("the screen flag fires when the screen mispredicts most tried candidates",
+              flag["met"] and abs(flag["value"] - 9 / 11) < 1e-9, json.dumps(flag)[:200])
+        check("a met screen flag forces UNDETERMINED",
+              r["verdict"]["verdict"] == "UNDETERMINED", r["verdict"]["verdict"])
+
+    with tempfile.TemporaryDirectory() as tmp:
+        # The same nine disagreements, and one member: under the OLD computation this cohort reads
+        # 0% and the flag is silent. The check is that the fixture that fires is not the one whose
+        # MEMBERS disagree, because the members here agree with themselves either way.
+        build(tmp, [member("a", NULL_RUN)],
+              rejected=[tried("r%d" % i, [1450, 1850], [1650, 2050]) for i in range(9)])
+        r = read_out(tmp)
+        flag = [f for f in r["red_flags"]["flags"] if "screen's prediction" in f["flag"]][0]
+        ba = r["instrument_self_measurement"]["band_agreement_selection_vs_pipeline"]
+        check("the two band comparisons are not the same number",
+              flag["value"] == 0.9 and ba["agreed"] == ba["of"],
+              "flag %s, agreement %s" % (flag["value"], json.dumps(ba)))
+
+    with tempfile.TemporaryDirectory() as tmp:
+        # A candidate rejected BEFORE a band exists cannot agree or disagree. Counting it as an
+        # agreement would let a walk that rejects everything early read as a screen that works.
+        build(tmp, [member("a", NULL_RUN)],
+              rejected=[tried("r%d" % i, [1450, 1850], [1650, 2050]) for i in range(4)]
+                       + [{"u": "early", "reason": "IN_POPULATION_BASELINE"},
+                          {"u": "nb", "reason": "NO_BLITZ_GAMES"}])
+        r = read_out(tmp)
+        sv = r["instrument_self_measurement"]["screen_prediction_vs_derived_band"]
+        check("a candidate with no derived band is outside the denominator",
+              sv["compared"] == 5 and sv["not_comparable"] == 2, json.dumps(sv)[:220])
+        check("the reasons a candidate could not be compared are named",
+              sv["not_comparable_by_reason"] == {"IN_POPULATION_BASELINE": 1,
+                                                 "NO_BLITZ_GAMES": 1},
+              json.dumps(sv["not_comparable_by_reason"]))
+        out = os.path.join(tmp, "R.md")
+        sys.argv = ["write_report.py", "--out", out]
+        wr.HERE = tmp
+        with _Quiet():
+            wr.main()
+        text = open(out).read()
+        check("the report says how many candidates had no band to compare",
+              "2 candidates had no band derived" in text,
+              [ln for ln in text.splitlines() if "no band derived" in ln][:1])
+
+    # ---- 10. the runner refuses a moved instrument before it spends forty hours ------------------
     import cohort_run as cr                                                      # noqa: PLC0415
     with tempfile.TemporaryDirectory() as tmp:
         pre = json.load(open(os.path.join(HERE, "COHORT_PREREG.json")))

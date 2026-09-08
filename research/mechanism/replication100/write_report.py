@@ -153,6 +153,21 @@ def main() -> int:
       "derives from scored decisions for %d of %d members. Two implementations of one rule, "
       "measured rather than assumed." % (ba["agreed"], ba["of"]))
     w("")
+    # A DIFFERENT COMPARISON, and the report says which is which because the red flag below is
+    # about this one. The line above holds one rule against itself; this holds the cheap metadata
+    # screen against the fetch that followed it.
+    sv = sm["screen_prediction_vs_derived_band"]
+    w("The metadata screen predicted a band before each fetch. Over **%d tried candidates** for "
+      "which a band was then derived, accepted and rejected alike, the prediction was wrong **%d** "
+      "times (%s). A further %d candidate%s had no band derived at all, so the screen's prediction "
+      "had nothing to be right or wrong about; they are outside that denominator rather than "
+      "counted as agreements%s."
+      % (sv["compared"], sv["disagreed"], pct(sv["disagreed"], sv["compared"]),
+         sv["not_comparable"], "" if sv["not_comparable"] == 1 else "s",
+         "" if not sv["not_comparable_by_reason"]
+         else " (%s)" % ", ".join("%s: %d" % kv
+                                  for kv in sorted(sv["not_comparable_by_reason"].items()))))
+    w("")
 
     w("## Population safety")
     w("")

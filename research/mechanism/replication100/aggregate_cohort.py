@@ -59,6 +59,54 @@ def frozen_candidates(run_dir: str) -> list:
 POP_GAMES = os.path.join(MECH, "data", "population_games.ndjson")
 
 
+def screen_vs_derived(sel: dict) -> dict:
+    """How often the metadata screen's predicted band matched the band the fetch then derived.
+
+    THE DENOMINATOR IS TRIED CANDIDATES, WHICH IS WHAT THE PRE-REGISTRATION SAYS, and it is not the
+    same set as the cohort. Every candidate that was fetched and had a band derived belongs here,
+    whether they were accepted or rejected -- 293 of the walk's first 346 comparable candidates were
+    rejected for `POPULATION_BASELINE_INSUFFICIENT`, which is a band being derived and found to have
+    no baseline, so they are exactly the evidence about whether the screen predicts a band.
+
+    A CANDIDATE WITH NO DERIVED BAND IS NOT A DISAGREEMENT AND NOT AN AGREEMENT. Rejections that
+    happen before a band exists -- `IN_POPULATION_BASELINE` is decided without a fetch at all,
+    `NO_BLITZ_GAMES` and `INSUFFICIENT_ELIGIBLE_GAMES` before the median is taken -- have nothing to
+    compare. They are counted OUT of the denominator and reported by reason, because a rate whose
+    denominator quietly absorbs the cases it could not measure is the shape of finding that this
+    protocol treats as a defect elsewhere in this same file.
+    """
+    compared = disagreed = 0
+    skipped: dict[str, int] = {}
+    for m in sel["accepted"]:
+        # The walk records the comparison at acceptance; recompute it here anyway when both bands
+        # are present, so this does not depend on a boolean written by the code it is checking.
+        pred, der = m.get("screen_predicted_band"), m.get("derived_band")
+        if pred is None or der is None:
+            skipped["ACCEPTED_WITHOUT_A_BAND"] = skipped.get("ACCEPTED_WITHOUT_A_BAND", 0) + 1
+            continue
+        compared += 1
+        disagreed += list(der) != list(pred)
+    for r in sel["rejected"]:
+        pred, der = r.get("screen_predicted_band"), r.get("derived_band")
+        if pred is None or der is None:
+            skipped[r["reason"]] = skipped.get(r["reason"], 0) + 1
+            continue
+        compared += 1
+        disagreed += list(der) != list(pred)
+    return {
+        "_what": "the metadata screen's predicted band against the band the fetched games derived, "
+                 "over tried candidates: accepted and rejected alike.",
+        "compared": compared,
+        "disagreed": disagreed,
+        "disagreed_share": (disagreed / compared) if compared else None,
+        "not_comparable": sum(skipped.values()),
+        "not_comparable_by_reason": skipped,
+        "_not_comparable_means": "no band was derived for these candidates, so the screen's "
+                                 "prediction has nothing to be right or wrong about. They are "
+                                 "outside the denominator rather than counted as agreements.",
+    }
+
+
 def population_contamination(player_ids: list) -> dict:
     """Which frozen members, if any, appear in the population baseline that judges them.
 
@@ -150,6 +198,7 @@ def main() -> int:
     sel = json.load(open(os.path.join(HERE, "COHORT_SELECTION.json")))
     fetched = len(sel["accepted"]) + len(sel["rejected"])
     band_disagree = sum(1 for r in rows if not r["band_agreed_with_selection"])
+    screen_band = screen_vs_derived(sel)
 
     # PHASE 19, measured rather than asserted. This used to be the literal 0, on the strength of
     # the selection guard having run. A safety gate that reports a constant cannot fail, and one
@@ -175,8 +224,17 @@ def main() -> int:
          "met": bool(fetched) and len(sel["rejected"]) / fetched > 0.90},
         {"flag": "the derived band differs from the screen's prediction for more than 80% of "
                  "tried candidates",
-         "value": (band_disagree / len(rows)) if rows else None,
-         "met": bool(rows) and band_disagree / len(rows) > 0.80},
+         # THE DECLARED QUANTITY, not the one next to it. This read
+         # `band_disagree / len(rows)` -- the SELECTION-versus-PIPELINE band check, over FINISHED
+         # MEMBERS. That is a different comparison over a different denominator, and it is the one
+         # quantity in the file that is near zero by construction: both sides derive the band from
+         # the same rule over the same games, so a flag watching it could not fire, and the thing
+         # the flag was declared to catch -- "the metadata screen is not a screen" -- would have
+         # gone unreported while the number beside it read a clean 0%. Measured over the walk's
+         # first 346 comparable candidates the declared quantity was 60.7%, so it is live.
+         "value": screen_band["disagreed_share"],
+         "met": screen_band["disagreed_share"] is not None
+                and screen_band["disagreed_share"] > 0.80},
     ]
     any_flag = any(f["met"] for f in flags)
 
@@ -250,6 +308,7 @@ def main() -> int:
             },
             "band_agreement_selection_vs_pipeline": {
                 "agreed": len(rows) - band_disagree, "of": len(rows)},
+            "screen_prediction_vs_derived_band": screen_band,
         },
         "pattern_diversity": {
             "distinct_regions": len(distinct), "regions": distinct,

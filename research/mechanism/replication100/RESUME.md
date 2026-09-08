@@ -21,7 +21,7 @@ pipeline hash still matches the freeze, and that every run already on the record
 python research/mechanism/replication100/test_readout.py
 ```
 
-23 checks, a few seconds, no network. It exercises `aggregate_cohort.py` and `write_report.py`
+30 checks, a few seconds, no network. It exercises `aggregate_cohort.py` and `write_report.py`
 against fixture cohorts built over the runs already on the record, because those two run once, at
 the end of a cohort that costs days, which is the worst moment to find a defect in them. It includes
 a positive control that must turn the population-safety gate red. Both are run in CI by the
