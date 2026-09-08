@@ -1,15 +1,15 @@
 # Replication report — lichess/superchango99
 
-**Result:** `FROZEN`
+**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `d859ebe42c7560253de606327fec92f9ae2c59fc` |
+| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_superchango99_COHORTR` |
+| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_superchango99_COHORT` |
 
 ## PLAYER
 

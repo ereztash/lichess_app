@@ -1,15 +1,15 @@
 # Replication report — lichess/rdumalig
 
-**Result:** `FROZEN`
+**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `a9a94655336b8284a37bba11dabb9f946ee4ef09` |
+| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_rdumalig_COHORT` |
+| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_rdumalig_COHORT` |
 
 ## PLAYER
 

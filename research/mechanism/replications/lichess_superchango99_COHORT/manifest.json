@@ -81,8 +81,8 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "d859ebe42c7560253de606327fec92f9ae2c59fc",
- "repo_dirty": false,
+ "repo_sha": "eb6649d1fd657f4944045215056a5118ff920837",
+ "repo_dirty": true,
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -170,5 +170,5 @@
   "player_id": "superchango99",
   "corpus": "lichess:superchango99"
  },
- "run_dir": "/tmp/cohort_probes/lichess_superchango99_COHORTR"
+ "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_superchango99_COHORT"
 }

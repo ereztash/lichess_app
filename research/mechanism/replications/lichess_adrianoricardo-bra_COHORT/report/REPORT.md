@@ -1,15 +1,15 @@
 # Replication report — lichess/adrianoricardo-bra
 
-**Result:** `FROZEN`
+**Result:** `ENGINE_FAILURE` (`ENGINE_FAILURE`)
 
 
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `c36206baa6269576f235028f2a756a5498ea03e7` |
+| repo SHA | `eb6649d1fd657f4944045215056a5118ff920837` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_adrianoricardo-bra_COHORT` |
+| run directory | `/home/user/lichess_app/research/mechanism/replications/lichess_adrianoricardo-bra_COHORT` |
 
 ## PLAYER
 
