@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 151,
+ "cursor": 166,
  "accepted": [
   {
    "u": "nouramine",
@@ -1315,10 +1315,56 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.7
+  },
+  {
+   "u": "ogbullz",
+   "reason": "FETCH_FAILED",
+   "corpus": null,
+   "retried_unbounded": true
+  },
+  {
+   "u": "akhiln3",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "malaikat_izroil58",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "fuerzasarmadas",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "borodek",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "cameraguy38",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "m3lwani",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "sysolceh",
+   "reason": "FETCH_FAILED",
+   "corpus": null
+  },
+  {
+   "u": "enginekiller",
+   "reason": "FETCH_FAILED",
+   "corpus": null
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 80,
+  "PREFILTER_RATING_FAR_FROM_BAND": 86,
   "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0
