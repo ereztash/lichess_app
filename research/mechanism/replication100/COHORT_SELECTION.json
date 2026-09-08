@@ -2808,7 +2808,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -2826,89 +2826,137 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 40.3
+   "seconds": 40.3,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2200,
+    "blitz_median": 1678.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.6
+   }
   },
   {
    "u": "egregiouschessplayer",
    "player_id": "egregiouschessplayer",
    "run_dir": "research/mechanism/replications/lichess_egregiouschessplayer_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2192,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1654.0,
+   "blitz_median": 1635.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1550,
     1950
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2192,
+    "blitz_median": 1635.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 186.1
+   }
   },
   {
    "u": "beni_kpknldmi",
    "player_id": "beni_kpknldmi",
    "run_dir": "research/mechanism/replications/lichess_beni_kpknldmi_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2200,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1665.5,
+   "blitz_median": 1660.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1500,
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2200,
+    "blitz_median": 1660.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 186.6
+   }
   },
   {
    "u": "sofiyankhan",
    "player_id": "sofiyankhan",
    "run_dir": "research/mechanism/replications/lichess_sofiyankhan_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 445,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2186,
    "speeds": {
     "blitz": 445,
     "bullet": 5
    },
-   "blitz_median": 1670.0,
+   "blitz_median": 1658.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1450,
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2186,
+    "blitz_median": 1658.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 187.1
+   }
   },
   {
    "u": "fink4241",
@@ -15302,7 +15350,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 21,
+ "residual_slots_filled": 24,
  "unreachable": [
   {
    "u": "ogbullz",

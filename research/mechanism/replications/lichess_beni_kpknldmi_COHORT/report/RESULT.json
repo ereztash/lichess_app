@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "beni_kpknldmi",
@@ -7,20 +7,20 @@
   "corpus": "lichess:beni_kpknldmi"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "b218c616884fd5ce4ce28de1442323d20b280d3b",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "outside-window": 161,
-   "termination:Time forfeit": 330,
-   "under-20-plies": 9
+   "outside-window": 650,
+   "termination:Time forfeit": 1697,
+   "under-20-plies": 53
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2200
   }
  },
  "claim_ladder": [
@@ -61,19 +61,19 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "outside-window": 161,
-   "termination:Time forfeit": 330,
-   "under-20-plies": 9
+   "outside-window": 650,
+   "termination:Time forfeit": 1697,
+   "under-20-plies": 53
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2200
   },
-  "admissible_path": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

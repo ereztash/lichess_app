@@ -34,21 +34,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/egregiouschessplayer?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/egregiouschessplayer?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T14:32:28Z",
+  "fetched_at": "2026-09-08T19:30:53Z",
   "http_status": 200,
-  "bytes": 3525887,
-  "sha256": "034066791c0829bd2e761ed73f1291abbb6abaa69fe4b7f019ab0496a3263b09",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORT/raw/history.ndjson",
+  "bytes": 16861994,
+  "sha256": "3dbe622cad85f489aece9895ed993fbbe11539e85bb62be3493fa50dbd5e7ed1",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

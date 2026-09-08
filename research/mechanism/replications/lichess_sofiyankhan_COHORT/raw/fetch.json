@@ -9,8 +9,8 @@
     "rating": 1501
    },
    "blitz": {
-    "games": 7535,
-    "rating": 1696
+    "games": 7538,
+    "rating": 1691
    },
    "rapid": {
     "games": 10,
@@ -30,25 +30,25 @@
    }
   },
   "createdAt": 1720536550886,
-  "seenAt": 1788864931791
+  "seenAt": 1788892352792
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/sofiyankhan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/sofiyankhan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T14:33:47Z",
+  "fetched_at": "2026-09-08T19:37:07Z",
   "http_status": 200,
-  "bytes": 3787294,
-  "sha256": "7a85db6fd5db22308fd5da10bad818d7332ba9e1ba98398cf24c8206ee88afc5",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_sofiyankhan_COHORT/raw/history.ndjson",
+  "bytes": 17879477,
+  "sha256": "6a31a350384a3abd17a014ea6d07f367dfedf35f6f2332d00feb31b483e42a45",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_sofiyankhan_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

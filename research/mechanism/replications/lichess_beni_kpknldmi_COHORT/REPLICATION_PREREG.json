@@ -3,7 +3,7 @@
  "username": "beni_kpknldmi",
  "canonical_player_id": "beni_kpknldmi",
  "corpus": "lichess:beni_kpknldmi",
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "b218c616884fd5ce4ce28de1442323d20b280d3b",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,11 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 161,
-  "termination:Time forfeit": 330,
-  "under-20-plies": 9
+  "outside-window": 650,
+  "termination:Time forfeit": 1697,
+  "under-20-plies": 53
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +177,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T14:33:46Z",
- "prereg_hash": "e66419600de36e2998f64adcdee2e9acf186de37d843b41e2b3e47092a2730c5"
+ "written_at": "2026-09-08T19:37:05Z",
+ "prereg_hash": "9e35bfba5b067b8bd8509e362cb7576ab1ae692f317a9b53d90c6c159a56a012"
 }

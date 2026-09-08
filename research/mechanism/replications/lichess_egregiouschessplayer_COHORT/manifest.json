@@ -6,21 +6,21 @@
  "corpus": "lichess:egregiouschessplayer",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/egregiouschessplayer?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/egregiouschessplayer?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T14:32:28Z",
+  "fetched_at": "2026-09-08T19:30:53Z",
   "http_status": 200,
-  "bytes": 3525887,
-  "sha256": "034066791c0829bd2e761ed73f1291abbb6abaa69fe4b7f019ab0496a3263b09",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORT/raw/history.ndjson",
+  "bytes": 16861994,
+  "sha256": "3dbe622cad85f489aece9895ed993fbbe11539e85bb62be3493fa50dbd5e7ed1",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -53,16 +53,19 @@
   "createdAt": 1715831714529,
   "seenAt": 1788851641388
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2199,
  "exclusions_by_reason": {
-  "outside-window": 223,
-  "termination:Time forfeit": 229,
-  "under-20-plies": 48
+  "non-standard-variant": 1,
+  "outside-window": 1151,
+  "termination:Abandoned": 3,
+  "termination:Time forfeit": 1008,
+  "under-20-plies": 238
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2192,
+  "rapid": 7
  },
  "eligibility_rule": {
   "game": {
@@ -76,7 +79,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "b218c616884fd5ce4ce28de1442323d20b280d3b",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +168,5 @@
   "player_id": "egregiouschessplayer",
   "corpus": "lichess:egregiouschessplayer"
  },
- "run_dir": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORTR"
 }

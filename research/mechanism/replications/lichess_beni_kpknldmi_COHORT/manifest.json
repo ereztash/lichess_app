@@ -6,21 +6,21 @@
  "corpus": "lichess:beni_kpknldmi",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/beni_kpknldmi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/beni_kpknldmi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T14:33:08Z",
+  "fetched_at": "2026-09-08T19:34:00Z",
   "http_status": 200,
-  "bytes": 3457408,
-  "sha256": "3670b0c536b76d74b37e1863e55b99a6bf3ba366175bbb140dbd1b1728fbf5d2",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORT/raw/history.ndjson",
+  "bytes": 16695961,
+  "sha256": "e74575d91aa550fa8672c3d37673ad5f15190963dba39114ffc8f772d6330409",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -49,16 +49,16 @@
   "createdAt": 1628947105372,
   "seenAt": 1788872693914
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 161,
-  "termination:Time forfeit": 330,
-  "under-20-plies": 9
+  "outside-window": 650,
+  "termination:Time forfeit": 1697,
+  "under-20-plies": 53
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2200
  },
  "eligibility_rule": {
   "game": {
@@ -72,7 +72,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "b218c616884fd5ce4ce28de1442323d20b280d3b",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -161,5 +161,5 @@
   "player_id": "beni_kpknldmi",
   "corpus": "lichess:beni_kpknldmi"
  },
- "run_dir": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORTR"
 }

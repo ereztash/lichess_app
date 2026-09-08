@@ -7,9 +7,9 @@
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `3b35767087fb1aae2650481ff019028a0e5733ae` |
+| repo SHA | `b218c616884fd5ce4ce28de1442323d20b280d3b` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_beni_kpknldmi_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_beni_kpknldmi_COHORTR` |
 
 ## PLAYER
 
@@ -19,19 +19,19 @@
 
 ## CORPUS
 
-- fetched: 950
-- admissible under the frozen rule: 450
-- scorable (admissible AND standard variant): 450
+- fetched: 4600
+- admissible under the frozen rule: 2200
+- scorable (admissible AND standard variant): 2200
 - eligible decisions: None
-- speeds: {'blitz': 450}
+- speeds: {'blitz': 2200}
 
 ## ELIGIBILITY
 
 Every exclusion, by the baseline's own reason vocabulary:
 
-- `outside-window`: 161
-- `termination:Time forfeit`: 330
-- `under-20-plies`: 9
+- `outside-window`: 650
+- `termination:Time forfeit`: 1697
+- `under-20-plies`: 53
 
 Ids of every excluded game are in `admissible/exclusions.json`.
 
