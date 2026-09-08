@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 227,
+ "cursor": 228,
  "accepted": [
   {
    "u": "nouramine",
@@ -1980,6 +1980,25 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 40.9
+  },
+  {
+   "u": "alexandrsviridov",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1482.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
   }
  ],
  "prefiltered": {
