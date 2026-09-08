@@ -406,6 +406,23 @@ def main() -> int:
             mem["residual_attempted"] = True
             t0 = time.time()
             r = try_candidate(mem["u"], w_resid, bound["residual"], a.root, run_id=RUN_ID + "R")
+            if r.get("reason") == "FETCH_FAILED":
+                # Same rule as PHASE A, and it belongs here for the same reason: the walk never
+                # reached the residual window, so nothing about this member's residual capacity was
+                # decided. Marking the attempt done would spend a slot on the client's transport,
+                # and with twenty-five slots that is how the residual subset comes up short for a
+                # reason that has nothing to do with any player.
+                mem["residual_attempted"] = False
+                shutil.rmtree(r["run_dir"], ignore_errors=True)
+                fails += 1
+                state.setdefault("unreachable", []).append(
+                    {"u": mem["u"], "reason": "FETCH_FAILED", "detail": r.get("detail"),
+                     "rate_limited_waits": r.get("rate_limited", 0), "phase": "B",
+                     "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "requeued": True})
+                json.dump(state, open(state_path, "w"), indent=1)
+                time.sleep(min(FETCH_BACKOFF_CAP, FETCH_BACKOFF_BASE * (2 ** (fails - 1))))
+                continue
+            fails = 0
             keep = False
             if r["accepted"] is not False:
                 c = r["corpus"]
@@ -426,13 +443,22 @@ def main() -> int:
                 mem["residual_probe"] = {"reason": r["reason"],
                                          "seconds": round(time.time() - t0, 1)}
             if keep:
-                shutil.rmtree(os.path.join(REPO, mem["run_dir"]), ignore_errors=True)
+                # The old corpus is destroyed LAST. This used to rmtree the member's accepted
+                # broad run and then move the residual one into its place, so a move that failed
+                # between the two left the member with no corpus at all: promoted out of existence.
+                # The comment above promises that a failed promotion leaves the member exactly as
+                # PHASE A accepted them, and only this order keeps that promise.
                 dest = os.path.join(REPLICATIONS, os.path.basename(
                     corpuslib.run_dir("lichess", mem["u"], RUN_ID, None)))
-                shutil.move(r["run_dir"], dest)
                 rel = os.path.relpath(dest, REPO)
                 if rel.startswith(".."):
                     raise SystemExit("%s resolves outside the repository" % rel)
+                staging = dest + ".promoting"
+                shutil.rmtree(staging, ignore_errors=True)
+                shutil.move(r["run_dir"], staging)
+                shutil.rmtree(os.path.join(REPO, mem["run_dir"]), ignore_errors=True)
+                shutil.rmtree(dest, ignore_errors=True)
+                os.rename(staging, dest)
                 mem.update({"run_dir": rel, "window": w_resid, "window_class": "RESIDUAL",
                             "admissible": mem["residual_probe"]["admissible"],
                             "blitz_admissible": mem["residual_probe"]["blitz_admissible"],
@@ -445,6 +471,17 @@ def main() -> int:
             else:
                 shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)
+
+    if (len(state["accepted"]) >= cohort_n
+            and state["residual_slots_filled"] < resid_n
+            and not any(m.get("residual_capable") and not m.get("residual_attempted")
+                        for m in state["accepted"])):
+        # Every capable member has been tried and the subset is still short. That is a finding
+        # about the cohort, not a crash, but it stops the pipeline at freeze_cohort.py, so it is
+        # said here rather than discovered there.
+        print("PHASE B EXHAUSTED: %d of %d residual slots filled, and every residual-capable "
+              "member has been probed. The cohort cannot carry its residual denominator as it "
+              "stands." % (state["residual_slots_filled"], resid_n), flush=True)
 
     state["complete"] = (len(state["accepted"]) >= cohort_n
                          and state["residual_slots_filled"] >= resid_n)

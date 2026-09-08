@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 209,
+ "cursor": 214,
  "accepted": [
   {
    "u": "nouramine",
@@ -338,6 +338,34 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.5
+  },
+  {
+   "u": "cesarau",
+   "player_id": "cesarau",
+   "run_dir": "research/mechanism/replications/lichess_cesarau_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 340,
+   "speeds": {
+    "blitz": 340,
+    "bullet": 110
+   },
+   "blitz_median": 1663.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.6
   }
  ],
  "rejected": [
@@ -1781,10 +1809,48 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.8
+  },
+  {
+   "u": "samat0889",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1610.5,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 416,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "joker00999",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1700.5,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 350,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 112,
+  "PREFILTER_RATING_FAR_FROM_BAND": 114,
   "PREFILTER_TOO_FEW_GAMES": 4
  },
  "residual_slots_filled": 0,
