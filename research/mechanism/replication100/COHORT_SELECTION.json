@@ -1,0 +1,81 @@
+{
+ "_what": "The selection walk. Every candidate tried, in the committed order, with the reason each rejected one was rejected.",
+ "prereg_hash": "3aa7e5335942c860922454939003cb0256817f8b8a92c5414d25a2ae8af31a0d",
+ "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
+ "seed": 20260907100,
+ "started_at": "2026-09-08T05:49:36Z",
+ "cursor": 4,
+ "accepted": [
+  {
+   "u": "nouramine",
+   "player_id": "nouramine",
+   "run_dir": "research/mechanism/replications/lichess_nouramine_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.8
+  }
+ ],
+ "rejected": [
+  {
+   "u": "arafar",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1593.5,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "nemesisreal",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1576.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 56,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  }
+ ],
+ "prefiltered": {
+  "PREFILTER_RATING_FAR_FROM_BAND": 1
+ },
+ "residual_slots_filled": 0
+}
