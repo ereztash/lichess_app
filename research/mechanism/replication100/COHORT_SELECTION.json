@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 569,
+ "cursor": 570,
  "accepted": [
   {
    "u": "nouramine",
@@ -807,6 +807,36 @@
    ],
    "screen_band_agreed": false,
    "seconds": 41.2
+  },
+  {
+   "u": "anil1947",
+   "player_id": "anil1947",
+   "run_dir": "research/mechanism/replications/lichess_anil1947_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 272,
+   "speeds": {
+    "blitz": 272,
+    "bullet": 33,
+    "classical": 2,
+    "rapid": 143
+   },
+   "blitz_median": 1650.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.6
   }
  ],
  "rejected": [
