@@ -2962,30 +2962,42 @@
    "u": "fink4241",
    "player_id": "fink4241",
    "run_dir": "research/mechanism/replications/lichess_fink4241_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 415,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2087,
    "speeds": {
     "blitz": 415,
     "bullet": 24,
     "rapid": 11
    },
-   "blitz_median": 1665.0,
+   "blitz_median": 1664.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1550,
     1950
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2087,
+    "blitz_median": 1664.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 188.5
+   }
   },
   {
    "u": "sha4ever231",
@@ -15350,7 +15362,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 24,
+ "residual_slots_filled": 25,
  "unreachable": [
   {
    "u": "ogbullz",
@@ -15470,5 +15482,8 @@
    "detail": "two untracked audit files were in the tree when this member was ingested, so its manifest records repo_dirty=true and its provenance is not the clean one every other member has. The files are committed now. The member is re-derived rather than excused; nothing had been scored, so this is a pre-analysis replacement.",
    "run_dir": "research/mechanism/replications/lichess_cesarau_COHORT"
   }
- ]
+ ],
+ "complete": true,
+ "frame_exhausted": false,
+ "updated_at": "2026-09-08T19:43:21Z"
 }

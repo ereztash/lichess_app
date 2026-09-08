@@ -3,7 +3,7 @@
  "username": "fink4241",
  "canonical_player_id": "fink4241",
  "corpus": "lichess:fink4241",
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "091c4078b58b1b9490689222243137e1eb30b9a4",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,13 +40,13 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "no-clocks": 1,
-  "outside-window": 328,
-  "termination:Abandoned": 1,
-  "termination:Time forfeit": 163,
-  "under-20-plies": 7
+  "no-clocks": 2,
+  "outside-window": 1576,
+  "termination:Abandoned": 15,
+  "termination:Time forfeit": 745,
+  "under-20-plies": 62
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -179,6 +179,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T14:37:07Z",
- "prereg_hash": "20ea8f95b9fa267f42fd95f63bea45714fc6d8006a2d35131f6070f5472bd576"
+ "written_at": "2026-09-08T19:43:21Z",
+ "prereg_hash": "bfed4f4fc5b848f10f3c11d791aea77358fb068c0c1114aed119f730d8cf6403"
 }

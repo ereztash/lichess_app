@@ -6,21 +6,21 @@
  "corpus": "lichess:fink4241",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/fink4241?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/fink4241?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T14:36:28Z",
+  "fetched_at": "2026-09-08T19:40:14Z",
   "http_status": 200,
-  "bytes": 3388810,
-  "sha256": "1d6565f9f4a90fc98d2405cffb5d6542c6891164100b8a0bcc6513729ca248c3",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_fink4241_COHORT/raw/history.ndjson",
+  "bytes": 16423712,
+  "sha256": "40d6f7586a36715b2143214afe1804ac83e6932594923e2aa555f6dca510397c",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_fink4241_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -53,20 +53,20 @@
   "createdAt": 1510185881174,
   "seenAt": 1788790717216
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "no-clocks": 1,
-  "outside-window": 328,
-  "termination:Abandoned": 1,
-  "termination:Time forfeit": 163,
-  "under-20-plies": 7
+  "no-clocks": 2,
+  "outside-window": 1576,
+  "termination:Abandoned": 15,
+  "termination:Time forfeit": 745,
+  "under-20-plies": 62
  },
  "speeds": {
-  "blitz": 415,
-  "bullet": 24,
-  "rapid": 11
+  "blitz": 2087,
+  "bullet": 87,
+  "rapid": 26
  },
  "eligibility_rule": {
   "game": {
@@ -80,7 +80,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "091c4078b58b1b9490689222243137e1eb30b9a4",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -169,5 +169,5 @@
   "player_id": "fink4241",
   "corpus": "lichess:fink4241"
  },
- "run_dir": "/tmp/cohort_probes/lichess_fink4241_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_fink4241_COHORTR"
 }

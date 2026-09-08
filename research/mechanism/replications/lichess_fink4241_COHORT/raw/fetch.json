@@ -34,21 +34,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/fink4241?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/fink4241?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T14:36:28Z",
+  "fetched_at": "2026-09-08T19:40:14Z",
   "http_status": 200,
-  "bytes": 3388810,
-  "sha256": "1d6565f9f4a90fc98d2405cffb5d6542c6891164100b8a0bcc6513729ca248c3",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_fink4241_COHORT/raw/history.ndjson",
+  "bytes": 16423712,
+  "sha256": "40d6f7586a36715b2143214afe1804ac83e6932594923e2aa555f6dca510397c",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_fink4241_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

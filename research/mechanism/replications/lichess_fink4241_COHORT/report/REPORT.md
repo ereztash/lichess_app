@@ -7,9 +7,9 @@
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `3b35767087fb1aae2650481ff019028a0e5733ae` |
+| repo SHA | `091c4078b58b1b9490689222243137e1eb30b9a4` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_fink4241_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_fink4241_COHORTR` |
 
 ## PLAYER
 
@@ -19,21 +19,21 @@
 
 ## CORPUS
 
-- fetched: 950
-- admissible under the frozen rule: 450
-- scorable (admissible AND standard variant): 450
+- fetched: 4600
+- admissible under the frozen rule: 2200
+- scorable (admissible AND standard variant): 2200
 - eligible decisions: None
-- speeds: {'blitz': 415, 'bullet': 24, 'rapid': 11}
+- speeds: {'blitz': 2087, 'bullet': 87, 'rapid': 26}
 
 ## ELIGIBILITY
 
 Every exclusion, by the baseline's own reason vocabulary:
 
-- `no-clocks`: 1
-- `outside-window`: 328
-- `termination:Abandoned`: 1
-- `termination:Time forfeit`: 163
-- `under-20-plies`: 7
+- `no-clocks`: 2
+- `outside-window`: 1576
+- `termination:Abandoned`: 15
+- `termination:Time forfeit`: 745
+- `under-20-plies`: 62
 
 Ids of every excluded game are in `admissible/exclusions.json`.
 
