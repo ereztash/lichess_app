@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 149,
+ "cursor": 151,
  "accepted": [
   {
    "u": "nouramine",
@@ -252,6 +252,35 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.7
+  },
+  {
+   "u": "naughtrapier",
+   "player_id": "naughtrapier",
+   "run_dir": "research/mechanism/replications/lichess_naughtrapier_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": false,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 446,
+   "speeds": {
+    "blitz": 446,
+    "bullet": 1,
+    "rapid": 3
+   },
+   "blitz_median": 1640.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 27.0
   }
  ],
  "rejected": [
@@ -1289,7 +1318,7 @@
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 79,
+  "PREFILTER_RATING_FAR_FROM_BAND": 80,
   "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0
