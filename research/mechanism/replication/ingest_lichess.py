@@ -10,14 +10,19 @@ silent absence. The raw bytes the platform returned are kept verbatim and hashed
 Two supported modes, both writing the same raw record shape:
 
   api-user-export   GET /api/games/user/<id> with the frozen query (the `source` recorded in
-                    research/mechanism/data/frozen_window_manifest.json). Needs LICHESS_API_TOKEN,
-                    exactly as scripts/build_account_corpus.ts documents ("Rated games are public,
-                    so the token only lifts the rate limit").
+                    research/mechanism/data/frozen_window_manifest.json). A token is OPTIONAL and
+                    only lifts the rate limit, exactly as scripts/build_account_corpus.ts says
+                    ("Rated games are public, so the token only lifts the rate limit"). This file
+                    used to claim the token was required; that was wrong, and `endpoint_contract.py`
+                    now measures the endpoint rather than believing a comment about it.
 
-  api-ids           POST /api/games/export/_ids for an explicit id list. This is the mode the
-                    erez281 mission itself had to use ("the by-username export returns 404 for
-                    every user today", MISSION_LEDGER.md §Environment), and it is how a frozen
-                    window is replayed byte-for-byte.
+  api-ids           POST /api/games/export/_ids for an explicit id list, and how a frozen window is
+                    replayed byte-for-byte. It is the mode the erez281 mission used, on a belief
+                    since WITHDRAWN and never measured before it was believed
+                    ("the by-username export returns 404 for every user today",
+                    MISSION_LEDGER.md §Environment) that the export was unusable without a token.
+                    That belief was never measured and is withdrawn; the mode stays, because
+                    replaying an explicit id list is the only way to reproduce a frozen window.
 """
 from __future__ import annotations
 
@@ -165,11 +170,15 @@ def fetch_by_username(username: str, out_dir: str, token: str | None,
     fetched_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     status, body = _request(url, accept="application/x-ndjson", token=token)
     if status == 404:
+        # 404 here means the ACCOUNT is not there: it does not exist, or it is closed. It is not an
+        # authentication signal. This message used to say the export 404s for every account without
+        # a token; that was wrong, inherited from a stale comment, and USERNAME_ONLY_PROOF.json
+        # records the export answering 200 unauthenticated 12 times out of 12.
         raise IngestError(
             "FETCH_FAILED",
-            "lichess answered 404 for the by-username export. It answers 404 for every account "
-            "when the request is unauthenticated (MISSION_LEDGER.md recorded the same thing). Set "
-            "LICHESS_API_TOKEN, or supply an explicit id list and use mode=api-ids.",
+            f"lichess answered 404 for the by-username export of {username!r}: no such open "
+            "account. A token is NOT the fix; the export answers 200 unauthenticated "
+            "(endpoint_contract.py measures it). Check the username, or use mode=api-ids.",
         )
     if status == 429:
         raise IngestError("FETCH_FAILED", "lichess rate-limited the export (429); retry later")

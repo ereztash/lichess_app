@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 117,
+ "cursor": 143,
  "accepted": [
   {
    "u": "nouramine",
@@ -186,6 +186,33 @@
     "blitz": 450
    },
    "blitz_median": 1635.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.7
+  },
+  {
+   "u": "pablorocchi",
+   "player_id": "pablorocchi",
+   "run_dir": "research/mechanism/replications/lichess_pablorocchi_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1644.0,
    "derived_band": [
     1450,
     1850
@@ -994,10 +1021,186 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.6
+  },
+  {
+   "u": "cash_flexington",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1697.5,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "hossam0058",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1424.0,
+   "derived_band": [
+    1200,
+    1600
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "admissible": 450,
+   "blitz_admissible": 446,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "asemtayseer11",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "alexwalnadi_bkd",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1824.5,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "j_frosty",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1766.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "donkeyjote007",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1421.0,
+   "derived_band": [
+    1200,
+    1600
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "carballoandy51",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1860.0,
+   "derived_band": [
+    1650,
+    2050
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "sonofpencilhead",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1754.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "akatshego",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1724.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "bashka123",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1806.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 70,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 63,
+  "PREFILTER_RATING_FAR_FROM_BAND": 78,
   "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0

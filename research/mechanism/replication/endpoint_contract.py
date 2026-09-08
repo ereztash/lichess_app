@@ -56,7 +56,13 @@ STALE = re.compile(
 # the guard survive its own correction; without this it would fire forever on the fix.
 WITHDRAWN = re.compile(r"(~~|WITHDRAWN|never true|it does not|answers \*\*200|\*\*optional\*\*"
                        r"|That was inherited|was wrong|is wrong)", re.I)
-DOCS = ["PROTOCOL.md", "README.md", "READINESS.md", "PLAYER_B_READINESS.md"]
+DOCS = ["PROTOCOL.md", "README.md", "READINESS.md", "PLAYER_B_READINESS.md",
+        # The claim came back once through a raised error string rather than through prose,
+        # where a guard that read only Markdown could not see it. A wrong cause printed at
+        # the moment of failure is worse than a wrong sentence in a document, because it is
+        # read exactly when someone is deciding what to do about the failure.
+        "ingest_lichess.py", "run.py", "readiness.py", "select_player_b.py",
+        "verify_run.py", "REPLICATION_VERDICT.md"]
 
 
 def check_text() -> dict:
@@ -65,8 +71,14 @@ def check_text() -> dict:
         p = os.path.join(HERE, name)
         if not os.path.exists(p):
             continue
-        for i, line in enumerate(open(p, encoding="utf-8"), 1):
-            if STALE.search(line) and not WITHDRAWN.search(line):
+        lines = open(p, encoding="utf-8").read().splitlines()
+        for i, line in enumerate(lines, 1):
+            # A retraction quotes the claim and then refutes it, and the refutation often lands on
+            # the NEXT line ("...was believed to answer 404\nunauthenticated. It does not."). Reading
+            # one line at a time therefore reports the correction itself as the offence, so the
+            # window is the line and its two neighbours.
+            near = "\n".join(lines[max(0, i - 2):i + 1])
+            if STALE.search(line) and not WITHDRAWN.search(near):
                 findings.append({"file": "research/mechanism/replication/" + name,
                                  "line": i, "text": line.strip()[:160]})
     return {"check": "no document reasserts that the by-username export requires a token",
