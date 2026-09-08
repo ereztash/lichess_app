@@ -220,6 +220,35 @@ def main() -> int:
               "1 was still queued" in md,
               next((ln for ln in md.splitlines() if "Separately" in ln), "(absent)"))
 
+    # ---- 9. the runner refuses a moved instrument before it spends forty hours -------------------
+    import cohort_run as cr                                                      # noqa: PLC0415
+    with tempfile.TemporaryDirectory() as tmp:
+        pre = json.load(open(os.path.join(HERE, "COHORT_PREREG.json")))
+        freeze = json.load(open(os.path.join(HERE, "INSTRUMENT_FREEZE.json")))
+        json.dump(pre, open(os.path.join(tmp, "COHORT_PREREG.json"), "w"))
+        json.dump({"prereg_hash": pre["prereg_hash"], "cohort_hash": "fixture", "members": []},
+                  open(os.path.join(tmp, "COHORT_FROZEN.json"), "w"))
+        json.dump({**freeze, "pipeline_hash": "0" * 64},
+                  open(os.path.join(tmp, "INSTRUMENT_FREEZE.json"), "w"))
+        cr.HERE = tmp
+        sys.argv = ["cohort_run.py", "--out", os.path.join(tmp, "PROGRESS.json")]
+        try:
+            with _Quiet():
+                cr.main()
+            check("the runner refuses a pipeline hash that moved since the freeze", False,
+                  "it started anyway")
+        except SystemExit as e:
+            check("the runner refuses a pipeline hash that moved since the freeze",
+                  "pipeline hash" in str(e), str(e)[:120])
+        json.dump(freeze, open(os.path.join(tmp, "INSTRUMENT_FREEZE.json"), "w"))
+        sys.argv = ["cohort_run.py", "--out", os.path.join(tmp, "PROGRESS.json")]
+        try:
+            with _Quiet():
+                rc = cr.main()
+            check("the runner proceeds under the frozen instrument", rc == 0, "rc %s" % rc)
+        except SystemExit as e:
+            check("the runner proceeds under the frozen instrument", False, str(e)[:120])
+
     print("\n%d checks: %d pass, %d fail" % (len(PASS) + len(FAIL), len(PASS), len(FAIL)))
     return 1 if FAIL else 0
 

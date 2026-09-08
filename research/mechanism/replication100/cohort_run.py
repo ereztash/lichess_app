@@ -25,8 +25,9 @@ MECH = os.path.dirname(HERE)
 REPO = os.path.dirname(os.path.dirname(MECH))
 REPL = os.path.join(MECH, "replication")
 sys.path.insert(0, REPL)
-import contract          # noqa: E402
-import populations       # noqa: E402
+import contract             # noqa: E402
+import corpus as corpuslib  # noqa: E402
+import populations          # noqa: E402
 
 PY = os.environ.get("REPLICATION_PYTHON", sys.executable)
 RUN_ID = "COHORT"
@@ -62,8 +63,22 @@ def main() -> int:
 
     frozen = json.load(open(os.path.join(HERE, "COHORT_FROZEN.json")))
     pre = json.load(open(os.path.join(HERE, "COHORT_PREREG.json")))
+    freeze = json.load(open(os.path.join(HERE, "INSTRUMENT_FREEZE.json")))
     if frozen["prereg_hash"] != pre["prereg_hash"]:
         raise SystemExit("COHORT_FROZEN was taken under a different pre-registration; refusing")
+    # The instrument, checked BEFORE the first position of the first member rather than after the
+    # last. `verify_run.py` catches a moved pipeline hash too, but it catches it per run, which on
+    # a hundred members means finding out forty hours in that every one of them was scored under
+    # code the freeze does not name. RESUME.md states this as a rule for a human to follow; a rule
+    # that costs forty hours when forgotten belongs in the runner.
+    here_hash = corpuslib.pipeline_version()["pipeline_hash"]
+    want_hash = freeze["pipeline_hash"]
+    if here_hash != want_hash:
+        raise SystemExit(
+            "the working tree's pipeline hash is %s; INSTRUMENT_FREEZE.json names %s. The research "
+            "code changed since the freeze, so these runs would not be the instrument the cohort "
+            "was frozen around. Revert the change, or accept that the cohort is void and re-run it "
+            "whole. Do NOT re-freeze around the change and carry on." % (here_hash, want_hash))
 
     members = frozen["members"]
     prog = (json.load(open(a.out)) if os.path.exists(a.out) else {

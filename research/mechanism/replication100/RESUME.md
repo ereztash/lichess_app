@@ -80,6 +80,11 @@ Nothing is scored before this runs. That is the point of it.
 python research/mechanism/replication100/cohort_run.py --workers 4
 ```
 
+Refuses to start at all if the working tree's pipeline hash no longer matches the one
+`INSTRUMENT_FREEZE.json` names. `verify_run.py` catches a moved hash too, but per run, which over a
+hundred members means learning forty hours in that every one was scored under code the freeze does
+not name.
+
 Skips members whose `RESULT.json` already carries a terminal status, so it resumes freely. Resuming
 reads only whether a run FINISHED, never what it found. Around 43 hours at four workers.
 
