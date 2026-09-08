@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "blindfoldpractice4",
+ "player_id": "blindfoldpractice4",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 108,
+    "rating": 1671
+   },
+   "blitz": {
+    "games": 2723,
+    "rating": 1673
+   },
+   "rapid": {
+    "games": 350,
+    "rating": 1579
+   },
+   "classical": {
+    "games": 4,
+    "rating": 1528
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 140,
+    "rating": 1745
+   }
+  },
+  "createdAt": 1700448810227,
+  "seenAt": 1788667587991
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/blindfoldpractice4?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T11:51:18Z",
+  "http_status": 200,
+  "bytes": 3411550,
+  "sha256": "074b01c7e71590bbe7723a9e23bb80fe8007120207a3e8ff693778b4326680eb",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_blindfoldpractice4_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
