@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "omar2137",
+ "player_id": "omar2137",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 4,
+    "rating": 1190
+   },
+   "blitz": {
+    "games": 1268,
+    "rating": 1694
+   },
+   "rapid": {
+    "games": 19,
+    "rating": 1692
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "antichess": {
+    "games": 1,
+    "rating": 1081
+   }
+  },
+  "createdAt": 1756736044916,
+  "seenAt": 1788873203067
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/omar2137?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:56:51Z",
+  "http_status": 200,
+  "bytes": 3851687,
+  "sha256": "f2a18aace62e0ee7f1640896a0aba6526bced909864cb3e5cdd200ae698dd773",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_omar2137_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

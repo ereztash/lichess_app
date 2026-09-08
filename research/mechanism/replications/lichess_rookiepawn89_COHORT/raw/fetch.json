@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "rookiepawn89",
+ "player_id": "rookiepawn89",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 3,
+    "rating": 1326
+   },
+   "blitz": {
+    "games": 2077,
+    "rating": 1534
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1,
+    "rating": 1460
+   }
+  },
+  "createdAt": 1676855579152,
+  "seenAt": 1788866239775
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/rookiepawn89?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:22:14Z",
+  "http_status": 200,
+  "bytes": 3672448,
+  "sha256": "8b341c771a6accc9e268f0ddc8aaf0d751309b5fa863519e914ca09340eaf168",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_rookiepawn89_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

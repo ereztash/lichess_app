@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "leoferrando",
+ "player_id": "leoferrando",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1,
+    "rating": 1212
+   },
+   "blitz": {
+    "games": 1066,
+    "rating": 1646
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1238,
+    "rating": 1662
+   }
+  },
+  "createdAt": 1776089512540,
+  "seenAt": 1788876823748
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/leoferrando?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:08:46Z",
+  "http_status": 200,
+  "bytes": 3337864,
+  "sha256": "b16b009ee2b5e40f34700463ea4fff6c60351325f544cb31730da0211440b3a4",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_leoferrando_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

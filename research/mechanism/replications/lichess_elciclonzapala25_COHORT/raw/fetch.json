@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "elciclonzapala25",
+ "player_id": "elciclonzapala25",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 403,
+    "rating": 1544
+   },
+   "blitz": {
+    "games": 10051,
+    "rating": 1649
+   },
+   "rapid": {
+    "games": 1612,
+    "rating": 1731
+   },
+   "classical": {
+    "games": 22,
+    "rating": 1455
+   },
+   "correspondence": {
+    "games": 89,
+    "rating": 2210
+   },
+   "atomic": {
+    "games": 27,
+    "rating": 1236
+   },
+   "crazyhouse": {
+    "games": 1,
+    "rating": 800
+   },
+   "puzzle": {
+    "games": 55,
+    "rating": 1672
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1743092447272,
+  "seenAt": 1788865839708
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/elciclonzapala25?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:15:54Z",
+  "http_status": 200,
+  "bytes": 3541767,
+  "sha256": "d50717c3832f55ae643ff5b8b268bf421b0400f17cc972ffe4760fd146430861",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_elciclonzapala25_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "sha4ever231",
+ "player_id": "sha4ever231",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 2,
+    "rating": 1258
+   },
+   "blitz": {
+    "games": 9188,
+    "rating": 1626
+   },
+   "rapid": {
+    "games": 9662,
+    "rating": 1800
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 116,
+    "rating": 1846
+   }
+  },
+  "createdAt": 1524501147807,
+  "seenAt": 1788870072665
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/sha4ever231?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T14:47:13Z",
+  "http_status": 200,
+  "bytes": 3289425,
+  "sha256": "b219d53c2c8e8d16e0e1654ecbd20f27b625c8efdd353af1f82da64041bff129",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_sha4ever231_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

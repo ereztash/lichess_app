@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "board_at_work",
+ "player_id": "board_at_work",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 13592,
+    "rating": 1647
+   },
+   "rapid": {
+    "games": 835,
+    "rating": 1648
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1641503402859,
+  "seenAt": 1788813773842
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/board_at_work?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:58:10Z",
+  "http_status": 200,
+  "bytes": 3637849,
+  "sha256": "3cd618d7426e5a417df9bd29d642a83dd12d42ea8468594a6e3590772db18792",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_board_at_work_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

@@ -1,0 +1,68 @@
+{
+ "platform": "lichess",
+ "username": "boycoe",
+ "player_id": "boycoe",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 8,
+    "rating": 1377
+   },
+   "bullet": {
+    "games": 4826,
+    "rating": 1661
+   },
+   "blitz": {
+    "games": 16074,
+    "rating": 1785
+   },
+   "rapid": {
+    "games": 72,
+    "rating": 1745
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1766
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "atomic": {
+    "games": 1,
+    "rating": 1360
+   },
+   "puzzle": {
+    "games": 307,
+    "rating": 1987
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1598080224020,
+  "seenAt": 1788826126581
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/boycoe?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:22:53Z",
+  "http_status": 200,
+  "bytes": 3414565,
+  "sha256": "2a9266215612b650c1fc8f85aa26720848716bcd84b2016b635ba744d90ab075",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_boycoe_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

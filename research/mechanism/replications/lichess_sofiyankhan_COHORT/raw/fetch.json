@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "sofiyankhan",
+ "player_id": "sofiyankhan",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 14,
+    "rating": 1501
+   },
+   "blitz": {
+    "games": 7535,
+    "rating": 1696
+   },
+   "rapid": {
+    "games": 10,
+    "rating": 1463
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 9854,
+    "rating": 1528
+   }
+  },
+  "createdAt": 1720536550886,
+  "seenAt": 1788864931791
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/sofiyankhan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T14:33:47Z",
+  "http_status": 200,
+  "bytes": 3787294,
+  "sha256": "7a85db6fd5db22308fd5da10bad818d7332ba9e1ba98398cf24c8206ee88afc5",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_sofiyankhan_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

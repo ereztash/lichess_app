@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "dm77777",
+ "player_id": "dm77777",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 62,
+    "rating": 1569
+   },
+   "bullet": {
+    "games": 1525,
+    "rating": 2004
+   },
+   "blitz": {
+    "games": 1065,
+    "rating": 1536
+   },
+   "rapid": {
+    "games": 85,
+    "rating": 1640
+   },
+   "classical": {
+    "games": 4,
+    "rating": 1345
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 42,
+    "rating": 1535
+   }
+  },
+  "createdAt": 1756190184472,
+  "seenAt": 1788845567414
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/dm77777?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:50:32Z",
+  "http_status": 200,
+  "bytes": 3817824,
+  "sha256": "2d400d283887221e073a56eb7e7ebaa37f071acb5efd4d8db173055e5786ff1d",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_dm77777_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

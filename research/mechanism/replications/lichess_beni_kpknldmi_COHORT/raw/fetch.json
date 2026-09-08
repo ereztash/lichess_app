@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "beni_kpknldmi",
+ "player_id": "beni_kpknldmi",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 7826,
+    "rating": 1711
+   },
+   "rapid": {
+    "games": 18,
+    "rating": 2239
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1628947105372,
+  "seenAt": 1788872693914
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/beni_kpknldmi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T14:33:08Z",
+  "http_status": 200,
+  "bytes": 3457408,
+  "sha256": "3670b0c536b76d74b37e1863e55b99a6bf3ba366175bbb140dbd1b1728fbf5d2",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "ilpiccolopico",
+ "player_id": "ilpiccolopico",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 595,
+    "rating": 1344
+   },
+   "blitz": {
+    "games": 1838,
+    "rating": 1653
+   },
+   "rapid": {
+    "games": 295,
+    "rating": 1777
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1185
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1558,
+    "rating": 1906
+   },
+   "racer": {
+    "games": null,
+    "rating": null
+   },
+   "streak": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1635972879515,
+  "seenAt": 1787464094618
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/ilpiccolopico?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T12:59:49Z",
+  "http_status": 200,
+  "bytes": 3270276,
+  "sha256": "be0c3eaedf8784bfec0af01f585c565fd4975201441a89da2c44c914247ac960",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_ilpiccolopico_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

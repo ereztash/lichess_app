@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "akkaclaros",
+ "player_id": "akkaclaros",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 1438,
+    "rating": 1739
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 6,
+    "rating": 1859
+   }
+  },
+  "createdAt": 1735905765270,
+  "seenAt": 1788853643882
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/akkaclaros?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:57:30Z",
+  "http_status": 200,
+  "bytes": 3142101,
+  "sha256": "ee70916c671d77c2eacbf99cabb4e4c9b166fbc660ff5cfe53346c4d6d487645",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_akkaclaros_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

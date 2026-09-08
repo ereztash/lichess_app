@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "atheerjalilgalilshb",
+ "player_id": "atheerjalilgalilshb",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 3670,
+    "rating": 1580
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 16,
+    "rating": 1456
+   }
+  },
+  "createdAt": 1753297686237,
+  "seenAt": 1788843996148
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/atheerjalilgalilshb?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:16:05Z",
+  "http_status": 200,
+  "bytes": 3652559,
+  "sha256": "ccccb528d508f971733a668b7edfd71e4ff949574558123609b59d4208e17088",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_atheerjalilgalilshb_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

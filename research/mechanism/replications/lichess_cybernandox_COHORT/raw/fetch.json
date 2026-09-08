@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "cybernandox",
+ "player_id": "cybernandox",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 5,
+    "rating": 1409
+   },
+   "blitz": {
+    "games": 1939,
+    "rating": 1624
+   },
+   "rapid": {
+    "games": 2,
+    "rating": 1166
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 6,
+    "rating": 1678
+   }
+  },
+  "createdAt": 1717990554689,
+  "seenAt": 1788834532565
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/cybernandox?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T13:59:36Z",
+  "http_status": 200,
+  "bytes": 3482992,
+  "sha256": "36874b37df74a5ad359ed25831356eaf91ae6d370e5e18b1a793f45e4859b295",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_cybernandox_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

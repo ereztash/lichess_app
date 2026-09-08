@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "madman1988",
+ "player_id": "madman1988",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 18,
+    "rating": 1549
+   },
+   "blitz": {
+    "games": 10827,
+    "rating": 1575
+   },
+   "rapid": {
+    "games": 7,
+    "rating": 1581
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1743
+   },
+   "correspondence": {
+    "games": 1,
+    "rating": 1337
+   },
+   "puzzle": {
+    "games": 317,
+    "rating": 1789
+   }
+  },
+  "createdAt": 1491580591702,
+  "seenAt": 1788781689259
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/madman1988?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:09:25Z",
+  "http_status": 200,
+  "bytes": 3380890,
+  "sha256": "366e8e399473bda1ad07e5d80c3baafb08499ed9ad38866761494e3abd4f9b1e",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_madman1988_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

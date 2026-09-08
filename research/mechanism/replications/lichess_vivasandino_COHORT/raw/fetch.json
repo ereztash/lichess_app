@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "vivasandino",
+ "player_id": "vivasandino",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 44,
+    "rating": 1639
+   },
+   "blitz": {
+    "games": 9443,
+    "rating": 1657
+   },
+   "rapid": {
+    "games": 342,
+    "rating": 1732
+   },
+   "classical": {
+    "games": 2,
+    "rating": 1172
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 180,
+    "rating": 1720
+   }
+  },
+  "createdAt": 1618098772276,
+  "seenAt": 1788817961369
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/vivasandino?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:05:16Z",
+  "http_status": 200,
+  "bytes": 2989828,
+  "sha256": "3f743806fe739401e5d8a77d181de17d76e4c1cd9508863faad981ffcc586496",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_vivasandino_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

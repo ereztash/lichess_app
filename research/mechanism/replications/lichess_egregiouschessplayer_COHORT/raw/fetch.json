@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "egregiouschessplayer",
+ "player_id": "egregiouschessplayer",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 29102,
+    "rating": 1628
+   },
+   "rapid": {
+    "games": 151,
+    "rating": 1706
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 72,
+    "rating": 1952
+   }
+  },
+  "createdAt": 1715831714529,
+  "seenAt": 1788851641388
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/egregiouschessplayer?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T14:32:28Z",
+  "http_status": 200,
+  "bytes": 3525887,
+  "sha256": "034066791c0829bd2e761ed73f1291abbb6abaa69fe4b7f019ab0496a3263b09",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_egregiouschessplayer_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

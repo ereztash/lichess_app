@@ -1,0 +1,72 @@
+{
+ "platform": "lichess",
+ "username": "vrajik",
+ "player_id": "vrajik",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 24,
+    "rating": 1207
+   },
+   "bullet": {
+    "games": 3044,
+    "rating": 1782
+   },
+   "blitz": {
+    "games": 2417,
+    "rating": 1649
+   },
+   "rapid": {
+    "games": 10,
+    "rating": 1816
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "chess960": {
+    "games": 3,
+    "rating": 1894
+   },
+   "antichess": {
+    "games": 1,
+    "rating": 1252
+   },
+   "racingKings": {
+    "games": 1,
+    "rating": 1388
+   },
+   "puzzle": {
+    "games": 140,
+    "rating": 2054
+   }
+  },
+  "createdAt": 1543664698467,
+  "seenAt": 1788877470856
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/vrajik?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T15:17:53Z",
+  "http_status": 200,
+  "bytes": 3366325,
+  "sha256": "0b8911c99fac453ee89f0876e0afe2dea91c54ef1f772c557c576b17e8437eb5",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_vrajik_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

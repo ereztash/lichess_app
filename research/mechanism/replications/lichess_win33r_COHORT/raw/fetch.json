@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "win33r",
+ "player_id": "win33r",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 15426,
+    "rating": 1988
+   },
+   "blitz": {
+    "games": 3067,
+    "rating": 1560
+   },
+   "rapid": {
+    "games": 200,
+    "rating": 1202
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 3535,
+    "rating": 1883
+   }
+  },
+  "createdAt": 1697504102236,
+  "seenAt": 1788882519999
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/win33r?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:16:45Z",
+  "http_status": 200,
+  "bytes": 3488282,
+  "sha256": "b1677338e52c91f5ee1a13b34666ff9c4ef3ee01b1c577d05594ae2cf47c981d",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_win33r_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

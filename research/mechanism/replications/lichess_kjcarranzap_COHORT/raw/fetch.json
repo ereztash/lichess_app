@@ -1,0 +1,60 @@
+{
+ "platform": "lichess",
+ "username": "kjcarranzap",
+ "player_id": "kjcarranzap",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 1,
+    "rating": 1416
+   },
+   "bullet": {
+    "games": 4,
+    "rating": 1196
+   },
+   "blitz": {
+    "games": 10095,
+    "rating": 1556
+   },
+   "rapid": {
+    "games": 75,
+    "rating": 1372
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1101
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1017,
+    "rating": 1817
+   }
+  },
+  "createdAt": 1492360303158,
+  "seenAt": 1788877061229
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/kjcarranzap?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T16:18:46Z",
+  "http_status": 200,
+  "bytes": 3659736,
+  "sha256": "2bf2f6fea2c87612db151cfe808bf16308a6cb048f8e6dd255cbab7c762ac146",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_kjcarranzap_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
