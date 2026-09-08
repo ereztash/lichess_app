@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 84,
+ "cursor": 88,
  "accepted": [
   {
    "u": "nouramine",
@@ -114,6 +114,33 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.6
+  },
+  {
+   "u": "medkol",
+   "player_id": "medkol",
+   "run_dir": "research/mechanism/replications/lichess_medkol_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1642.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.9
   }
  ],
  "rejected": [
@@ -620,10 +647,48 @@
    "fetch_max": 0,
    "window_full": true,
    "seconds": 442.8
+  },
+  {
+   "u": "soxib_123_1",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1616.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "lozness",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1732.5,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 392,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 49,
+  "PREFILTER_RATING_FAR_FROM_BAND": 50,
   "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0

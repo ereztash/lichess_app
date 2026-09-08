@@ -103,8 +103,9 @@ def main() -> int:
         w("| `%s` | %d (%s) | %d (%s) |"
           % (c, cb.get(c, 0), pct(cb.get(c, 0), nb), cr.get(c, 0), pct(cr.get(c, 0), nr)))
     w("")
-    w("**`NO_STABLE_STRUCTURE` is not 'no personal residual'.** " +
-      pre["null_semantics"]["NO_STABLE_STRUCTURE"].split(". ", 1)[-1])
+    # The definition already contains the caveat sentence, so quote it whole. Splitting it and
+    # prefixing a bold lead printed the same claim twice, which reads as emphasis and is padding.
+    w("**`NO_STABLE_STRUCTURE`**: " + pre["null_semantics"]["NO_STABLE_STRUCTURE"])
     w("")
     w("`LEVEL_TYPICAL_ONLY` is the class that says a structure was found and the same-rating "
       "population explains it. The four counts are never summed into found versus not found.")
