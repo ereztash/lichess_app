@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_maxkart19_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_maxkart19_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "maxkart19",
@@ -7,20 +7,21 @@
   "corpus": "lichess:maxkart19"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "2625867fad32d95741a499ea172d80dbaa47c9aa",
+ "repo_sha": "93ae408d0fcdae964433fe200d184b70fdb43968",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "outside-window": 324,
-   "termination:Time forfeit": 170,
-   "under-20-plies": 6
+   "outside-window": 1562,
+   "termination:Time forfeit": 790,
+   "under-20-plies": 48
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2199,
+   "bullet": 1
   }
  },
  "claim_ladder": [
@@ -61,19 +62,20 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "outside-window": 324,
-   "termination:Time forfeit": 170,
-   "under-20-plies": 6
+   "outside-window": 1562,
+   "termination:Time forfeit": 790,
+   "under-20-plies": 48
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2199,
+   "bullet": 1
   },
-  "admissible_path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_maxkart19_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_maxkart19_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

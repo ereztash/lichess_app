@@ -13,7 +13,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -31,34 +31,58 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2179,
+    "blitz_median": 1607.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 188.3
+   }
   },
   {
    "u": "maxkart19",
    "player_id": "maxkart19",
    "run_dir": "research/mechanism/replications/lichess_maxkart19_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2199,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1665.0,
+   "blitz_median": 1638.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1500,
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.6
+   "seconds": 39.6,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2199,
+    "blitz_median": 1638.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 186.1
+   }
   },
   {
    "u": "original-chess",
@@ -67,7 +91,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 447,
    "speeds": {
@@ -86,7 +110,19 @@
     1950
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2036,
+    "blitz_median": 1623.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 131.0
+   }
   },
   {
    "u": "franckzurita18",
@@ -14618,7 +14654,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 0,
+ "residual_slots_filled": 1,
  "unreachable": [
   {
    "u": "ogbullz",

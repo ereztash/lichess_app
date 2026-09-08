@@ -3,7 +3,7 @@
  "username": "maxkart19",
  "canonical_player_id": "maxkart19",
  "corpus": "lichess:maxkart19",
- "repo_sha": "2625867fad32d95741a499ea172d80dbaa47c9aa",
+ "repo_sha": "93ae408d0fcdae964433fe200d184b70fdb43968",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,11 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 324,
-  "termination:Time forfeit": 170,
-  "under-20-plies": 6
+  "outside-window": 1562,
+  "termination:Time forfeit": 790,
+  "under-20-plies": 48
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +177,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T06:09:21Z",
- "prereg_hash": "c39e17b7cbe5b73e5cc84e43e980ee5b51d06c04dab10ac20f03834ce503a313"
+ "written_at": "2026-09-08T16:35:24Z",
+ "prereg_hash": "30599dfb72cd82dc508ffa728f0d9da489bc6cfea6330e8deb5da412aa72655e"
 }
