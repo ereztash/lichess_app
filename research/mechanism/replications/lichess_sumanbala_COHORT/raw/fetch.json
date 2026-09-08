@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "sumanbala",
+ "player_id": "sumanbala",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1,
+    "rating": 1630
+   },
+   "blitz": {
+    "games": 4668,
+    "rating": 1714
+   },
+   "rapid": {
+    "games": 1,
+    "rating": 939
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 11,
+    "rating": 1322
+   }
+  },
+  "createdAt": 1617792471256,
+  "seenAt": 1788854004748
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/sumanbala?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:11:45Z",
+  "http_status": 200,
+  "bytes": 3751394,
+  "sha256": "2d7bdeb969a1e83fd03231816ca34a3e279083f3c2163daa02d31dd510d240be",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_sumanbala_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
