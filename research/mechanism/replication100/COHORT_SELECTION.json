@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 21,
+ "cursor": 74,
  "accepted": [
   {
    "u": "nouramine",
@@ -32,6 +32,61 @@
    ],
    "screen_band_agreed": true,
    "seconds": 39.8
+  },
+  {
+   "u": "maxkart19",
+   "player_id": "maxkart19",
+   "run_dir": "research/mechanism/replications/lichess_maxkart19_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1665.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.6
+  },
+  {
+   "u": "original-chess",
+   "player_id": "original-chess",
+   "run_dir": "research/mechanism/replications/lichess_original-chess_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 447,
+   "speeds": {
+    "blitz": 447,
+    "bullet": 3
+   },
+   "blitz_median": 1664.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.7
   }
  ],
  "rejected": [
@@ -186,11 +241,344 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.7
+  },
+  {
+   "u": "vittamraju",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1544.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 99,
+   "window": 450,
+   "fetch_max": 0,
+   "window_full": true,
+   "seconds": 454.3
+  },
+  {
+   "u": "ritick1520",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1434.0,
+   "derived_band": [
+    1250,
+    1650
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "admissible": 450,
+   "blitz_admissible": 448,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.9
+  },
+  {
+   "u": "hachingchess",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1507.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 415,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "gandung12",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1810.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1650,
+    2050
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 41.1
+  },
+  {
+   "u": "sephardic",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1480.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1300,
+    1700
+   ],
+   "admissible": 450,
+   "blitz_admissible": 336,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "bekooltrader",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1687.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 41.8
+  },
+  {
+   "u": "kaorkidu",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1589.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "usernameinusealready",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1777.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "tonice86",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1814.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1650,
+    2050
+   ],
+   "admissible": 450,
+   "blitz_admissible": 361,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "drunkgoose",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1880.0,
+   "derived_band": [
+    1700,
+    2100
+   ],
+   "screen_predicted_band": [
+    1650,
+    2050
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "chavmaq",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1730.5,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "tenniser",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "beginnerchesser",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1489.0,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 351,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "mohamed_nazem55",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1563.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "zoksi",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1697.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "zakaolmolkk",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1798.5,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1550,
+    1950
+   ],
+   "admissible": 450,
+   "blitz_admissible": 402,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 24.0
+  },
+  {
+   "u": "mwmn19420",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "cydneejoshua",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1702.0,
+   "derived_band": [
+    1500,
+    1900
+   ],
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "nightshiftzombie",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1547.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 292,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 11,
-  "PREFILTER_TOO_FEW_GAMES": 1
+  "PREFILTER_RATING_FAR_FROM_BAND": 41,
+  "PREFILTER_TOO_FEW_GAMES": 3
  },
  "residual_slots_filled": 0
 }
