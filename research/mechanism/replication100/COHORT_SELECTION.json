@@ -275,28 +275,40 @@
    "u": "pablorocchi",
    "player_id": "pablorocchi",
    "run_dir": "research/mechanism/replications/lichess_pablorocchi_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2197,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1644.0,
+   "blitz_median": 1654.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1500,
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2197,
+    "blitz_median": 1654.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 190.8
+   }
   },
   {
    "u": "yeliangel20",
@@ -305,7 +317,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -323,7 +335,19 @@
     1750
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2199,
+    "blitz_median": 1607.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 190.0
+   }
   },
   {
    "u": "naughtrapier",
@@ -14690,7 +14714,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 2,
+ "residual_slots_filled": 3,
  "unreachable": [
   {
    "u": "ogbullz",

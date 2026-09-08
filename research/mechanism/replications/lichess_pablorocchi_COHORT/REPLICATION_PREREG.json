@@ -3,7 +3,7 @@
  "username": "pablorocchi",
  "canonical_player_id": "pablorocchi",
  "corpus": "lichess:pablorocchi",
- "repo_sha": "cea728abf47c29e9093ab4f258e5b2e5663c1ea1",
+ "repo_sha": "960d573b4248175b8defea62ed7bf5c2ddea2e87",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,12 +40,13 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 322,
+  "outside-window": 1677,
+  "termination:Abandoned": 2,
   "termination:Insufficient material": 1,
-  "termination:Time forfeit": 129,
-  "under-20-plies": 48
+  "termination:Time forfeit": 454,
+  "under-20-plies": 266
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -178,6 +179,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T06:47:05Z",
- "prereg_hash": "e1914dd4d2b62f82900fa6924b392473086b418b9056fda4d38edfd3d0990e37"
+ "written_at": "2026-09-08T16:48:45Z",
+ "prereg_hash": "1313de43d1de5794e1b4b43518226e6134daf5690c4625c74b759ed011646b09"
 }

@@ -6,21 +6,21 @@
  "corpus": "lichess:pablorocchi",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/pablorocchi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/pablorocchi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T06:46:26Z",
+  "fetched_at": "2026-09-08T16:45:35Z",
   "http_status": 200,
-  "bytes": 3059024,
-  "sha256": "12f24845068d3d7251f4f76e7d07f9758c5c3676cadde6af31ed7dac00d51d3a",
-  "records": 950,
-  "path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_pablorocchi_COHORT/raw/history.ndjson",
+  "bytes": 14440245,
+  "sha256": "2ad47ff32017fc117016ae97f79fa7b8f0218dad3cfd9b37560703cfe18c6ce5",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_pablorocchi_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -34,8 +34,8 @@
     "rating": 1367
    },
    "blitz": {
-    "games": 8110,
-    "rating": 1663
+    "games": 8114,
+    "rating": 1664
    },
    "rapid": {
     "games": 402,
@@ -67,19 +67,21 @@
    }
   },
   "createdAt": 1548305703198,
-  "seenAt": 1788834497431
+  "seenAt": 1788881584340
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 322,
+  "outside-window": 1677,
+  "termination:Abandoned": 2,
   "termination:Insufficient material": 1,
-  "termination:Time forfeit": 129,
-  "under-20-plies": 48
+  "termination:Time forfeit": 454,
+  "under-20-plies": 266
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2197,
+  "rapid": 3
  },
  "eligibility_rule": {
   "game": {
@@ -93,7 +95,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "cea728abf47c29e9093ab4f258e5b2e5663c1ea1",
+ "repo_sha": "960d573b4248175b8defea62ed7bf5c2ddea2e87",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -182,5 +184,5 @@
   "player_id": "pablorocchi",
   "corpus": "lichess:pablorocchi"
  },
- "run_dir": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_pablorocchi_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_pablorocchi_COHORTR"
 }

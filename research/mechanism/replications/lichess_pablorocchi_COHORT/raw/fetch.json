@@ -13,8 +13,8 @@
     "rating": 1367
    },
    "blitz": {
-    "games": 8110,
-    "rating": 1663
+    "games": 8114,
+    "rating": 1664
    },
    "rapid": {
     "games": 402,
@@ -46,25 +46,25 @@
    }
   },
   "createdAt": 1548305703198,
-  "seenAt": 1788834497431
+  "seenAt": 1788881584340
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/pablorocchi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/pablorocchi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T06:46:26Z",
+  "fetched_at": "2026-09-08T16:45:35Z",
   "http_status": 200,
-  "bytes": 3059024,
-  "sha256": "12f24845068d3d7251f4f76e7d07f9758c5c3676cadde6af31ed7dac00d51d3a",
-  "records": 950,
-  "path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_pablorocchi_COHORT/raw/history.ndjson",
+  "bytes": 14440245,
+  "sha256": "2ad47ff32017fc117016ae97f79fa7b8f0218dad3cfd9b37560703cfe18c6ce5",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_pablorocchi_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,
