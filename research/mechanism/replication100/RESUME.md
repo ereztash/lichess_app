@@ -11,7 +11,7 @@ pip install -r research/mechanism/replication/requirements.txt
 python research/mechanism/replication100/selfcheck.py
 ```
 
-16 checks, under a second, no network. It holds that every stage imports, that the selector's band
+Under a second, no network. The count grows with the cohort, because one of the checks is "every run already on the record still verifies" and there is one per member. It holds that every stage imports, that the selector's band
 helper still agrees with the pipeline's own derivation on a run whose answer is on the record, that
 the pre-registration names the frozen frame and the frozen instrument, that the working tree's
 pipeline hash still matches the freeze, and that every run already on the record still verifies.
@@ -53,8 +53,14 @@ of about 870.
 python research/mechanism/replication100/freeze_cohort.py
 ```
 
-Refuses unless selection holds exactly the 100 the pre-registration declares, and refuses if any of
-them has already been scored. Writes `COHORT_FROZEN.json` and its `cohort_hash`.
+Refuses unless selection holds exactly the 100 the pre-registration declares AND exactly the 25
+RESIDUAL-class members inside them, and refuses if any of them has already been scored. Writes
+`COHORT_FROZEN.json` and its `cohort_hash`.
+
+The residual count is guarded because a Phase B that dies partway leaves a full hundred and a short
+residual subset, and nothing downstream would notice: the aggregator computes the residual
+denominator from what it is handed, so an interrupted walk would read as a finding about residual
+power.
 
 Nothing is scored before this runs. That is the point of it.
 

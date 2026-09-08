@@ -40,6 +40,19 @@ def main() -> int:
     if len(sel["accepted"]) != want:
         raise SystemExit("selection holds %d members, the pre-registration declares %d; refusing "
                          "to freeze a cohort of the wrong size" % (len(sel["accepted"]), want))
+    # The BROAD size was guarded and the RESIDUAL size was not, which is the asymmetry that costs a
+    # cohort. PHASE A fills the hundred and PHASE B promotes the residual subset out of them, so a
+    # Phase B that dies partway leaves a hundred members and a residual subset too small to carry
+    # its own denominator. Nothing downstream would notice: the aggregator computes the residual
+    # denominator from what it is given, so an under-filled subset reads as a real result about
+    # residual power rather than as an interrupted walk.
+    want_resid = pre["denominators"]["RESIDUAL_POWERED"]["n"]
+    have_resid = sum(1 for m in sel["accepted"] if m.get("window_class") == "RESIDUAL")
+    if have_resid != want_resid:
+        raise SystemExit(
+            "selection holds %d RESIDUAL-class members, the pre-registration declares %d; refusing "
+            "to freeze. PHASE B promotes the residual subset and has not finished (or promoted too "
+            "many). Re-run cohort_select.py: it resumes." % (have_resid, want_resid))
 
     dest_root = os.path.join(MECH, "replications")
     members = []
