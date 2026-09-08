@@ -40,6 +40,15 @@ jobs:
         # platform changed rather than that a runner had no egress.
         run: python research/mechanism/replication/endpoint_contract.py --offline --out /tmp/endpoint.json
 
+      - name: The 100-player cohort chain is importable and consistent with the tree
+        run: python research/mechanism/replication100/selfcheck.py
+
+      - name: The cohort read-out, tested before the cohort needs it
+        # aggregate_cohort.py and write_report.py run once, at the end of a cohort that costs days.
+        # This exercises them against fixtures built over runs already on the record, including a
+        # positive control that must turn the population-safety gate red.
+        run: python research/mechanism/replication100/test_readout.py
+
       - name: Positive controls (each must turn the gate RED)
         run: python research/mechanism/replication/gate_equivalence.py --positive-controls --out /tmp/controls.json
 

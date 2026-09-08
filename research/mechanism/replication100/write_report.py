@@ -135,6 +135,26 @@ def main() -> int:
       "measured rather than assumed." % (ba["agreed"], ba["of"]))
     w("")
 
+    w("## Population safety")
+    w("")
+    ps = r["population_safety"]
+    w("**Rule.** " + ps["rule"])
+    w("")
+    if ps.get("measured"):
+        w("Re-derived here from the baseline corpus over the frozen members, not carried over from "
+          "selection: **%d of %d** members appear among the %d players in the baseline that judges "
+          "them. %d candidates were rejected at selection for exactly this."
+          % (ps["members_in_baseline"], len(r["members"]), ps["baseline_players"],
+             ps["rejected_at_selection"]))
+        if ps["members_in_baseline"]:
+            w("")
+            w("**The gate is red.** Members also in the baseline: `%s`. Their population "
+              "correction is judged partly against their own games, so their results cannot be "
+              "read as this protocol intends." % "`, `".join(ps["who"]))
+    else:
+        w("**NOT MEASURED.** " + ps["_why_not"])
+    w("")
+
     w("## Pattern diversity")
     w("")
     pd = r["pattern_diversity"]

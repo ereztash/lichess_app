@@ -1,7 +1,7 @@
 {
  "_what": "The by-username export contract. The text check is the regression guard; the live check is the measurement that voided the stale claim.",
  "_history": "The package inherited a stale comment saying the endpoint answers 404 unauthenticated, after the repository had already recorded the correction in docs/research/ACCOUNT_BRIDGE_PREREG.md. Player B was ingested through the 480-game HTML cap because of it, and the cohort was stopped at PENDING_RESOURCE for a token it never needed.",
- "checked_at": "2026-09-08T06:48:53Z",
+ "checked_at": "2026-09-08T07:01:17Z",
  "user_agent": "lichess_app-research-replication/1.0 (research/mechanism/replication)",
  "export_query": {
   "rated": "true",

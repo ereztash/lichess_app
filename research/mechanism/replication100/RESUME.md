@@ -16,6 +16,16 @@ helper still agrees with the pipeline's own derivation on a run whose answer is 
 the pre-registration names the frozen frame and the frozen instrument, that the working tree's
 pipeline hash still matches the freeze, and that every run already on the record still verifies.
 
+```bash
+python research/mechanism/replication100/test_readout.py
+```
+
+15 checks, a few seconds, no network. It exercises `aggregate_cohort.py` and `write_report.py`
+against fixture cohorts built over the runs already on the record, because those two run once, at
+the end of a cohort that costs days, which is the worst moment to find a defect in them. It includes
+a positive control that must turn the population-safety gate red. Both are run in CI by the
+equivalence workflow.
+
 **If the pipeline hash no longer matches the freeze, stop.** Something changed the research code.
 Either revert it or accept that the cohort is void and must be re-run whole under a corrected
 instrument, which is what `COHORT_PREREG.json` calls a research-semantic defect. Do not re-freeze

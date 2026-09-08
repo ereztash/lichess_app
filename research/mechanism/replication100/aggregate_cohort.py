@@ -56,6 +56,34 @@ def frozen_candidates(run_dir: str) -> list:
     return out
 
 
+POP_GAMES = os.path.join(MECH, "data", "population_games.ndjson")
+
+
+def population_contamination(player_ids: list) -> dict:
+    """Which frozen members, if any, appear in the population baseline that judges them.
+
+    Reads the baseline's own committed games, exactly as `cohort_select.population_members` does,
+    rather than a maintained list: a list can fall out of step with the corpus and the check would
+    then pass while being false. An absent corpus is reported as NOT MEASURED, never as clean.
+    """
+    if not os.path.exists(POP_GAMES):
+        return {"members_in_baseline": None, "measured": False,
+                "_why_not": "the population baseline corpus is not in the tree at %s, so this "
+                            "check could not run. It is NOT a clean result."
+                            % os.path.relpath(POP_GAMES, REPO)}
+    ids: set[str] = set()
+    with open(POP_GAMES) as f:
+        for line in f:
+            g = json.loads(line)
+            for side in ("white", "black"):
+                u = ((g.get("players") or {}).get(side) or {}).get("user") or {}
+                if u.get("id"):
+                    ids.add(u["id"].lower())
+    hit = sorted(p for p in player_ids if (p or "").lower() in ids)
+    return {"members_in_baseline": len(hit), "measured": True, "who": hit,
+            "baseline_players": len(ids)}
+
+
 def q(xs: list, p: float):
     xs = sorted(x for x in xs if x is not None)
     return None if not xs else xs[min(len(xs) - 1, int(round(p * (len(xs) - 1))))]
@@ -122,6 +150,14 @@ def main() -> int:
     sel = json.load(open(os.path.join(HERE, "COHORT_SELECTION.json")))
     fetched = len(sel["accepted"]) + len(sel["rejected"])
     band_disagree = sum(1 for r in rows if not r["band_agreed_with_selection"])
+
+    # PHASE 19, measured rather than asserted. This used to be the literal 0, on the strength of
+    # the selection guard having run. A safety gate that reports a constant cannot fail, and one
+    # that cannot fail is not a gate: if the guard had ever been skipped, or a member promoted by a
+    # path that bypassed it, this would still have printed a clean zero. It is re-derived here from
+    # the baseline corpus itself, which is also where the selection guard reads it, so the two agree
+    # by construction or the disagreement is visible.
+    contamination = population_contamination([m["player_id"] for m in frozen["members"]])
 
     flags = [
         {"flag": "PERSONAL_RESIDUAL_CANDIDATE rate above 50% of RESIDUAL_POWERED members",
@@ -224,9 +260,11 @@ def main() -> int:
         },
         "population_safety": {
             "rule": pre["population_safety_gate"]["rule"],
-            "members_in_baseline": 0,
+            **contamination,
             "_how": "enforced at selection: a candidate appearing in the baseline corpus is "
-                    "rejected before a fetch. Rejections are counted in COHORT_SELECTION.json.",
+                    "rejected before a fetch. Rejections are counted in COHORT_SELECTION.json. "
+                    "This block re-derives the check from the baseline corpus over the FROZEN "
+                    "members rather than trusting that the selection guard ran.",
             "rejected_at_selection": sum(1 for r in sel["rejected"]
                                          if r["reason"] == "IN_POPULATION_BASELINE"),
         },
