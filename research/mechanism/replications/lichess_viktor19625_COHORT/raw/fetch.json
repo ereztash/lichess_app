@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "viktor19625",
+ "player_id": "viktor19625",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 9996,
+    "rating": 1528
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 8,
+    "rating": 1470
+   }
+  },
+  "createdAt": 1644130908045,
+  "seenAt": 1788843126006
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/viktor19625?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:35:50Z",
+  "http_status": 200,
+  "bytes": 3387810,
+  "sha256": "83e4943c086545ebc84b9f6a1ae49054ff50961f2441f6e4b756f6576d36a8f4",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_viktor19625_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
