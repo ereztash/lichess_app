@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "lichisss",
+ "player_id": "lichisss",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 4755,
+    "rating": 1371
+   },
+   "blitz": {
+    "games": 3080,
+    "rating": 1640
+   },
+   "rapid": {
+    "games": 405,
+    "rating": 1968
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 10901,
+    "rating": 1877
+   }
+  },
+  "createdAt": 1594519513050,
+  "seenAt": 1788829818247
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/lichisss?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:33:51Z",
+  "http_status": 200,
+  "bytes": 3097926,
+  "sha256": "fe140115746cd17f5a4b1f3e6935b98980945dff1a473ff3435489d459e7e6ca",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_lichisss_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
