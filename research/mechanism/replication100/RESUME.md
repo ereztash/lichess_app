@@ -1,8 +1,9 @@
 # Resuming the 100-player cohort
 
-The cohort needs roughly 58 hours of network and engine time, which is more than one session. Every
-stage is resumable and refuses to proceed when the hash it started under has moved. This is the
-order, and what each step will refuse to do.
+The cohort needs roughly 48 hours of network and engine time, which is more than one session. Both
+halves of that are measured below rather than guessed: about 11 hours of selection, about 37 of
+scoring. Every stage is resumable and refuses to proceed when the hash it started under has moved.
+This is the order, and what each step will refuse to do.
 
 ## Before anything
 
@@ -20,7 +21,7 @@ pipeline hash still matches the freeze, and that every run already on the record
 python research/mechanism/replication100/test_readout.py
 ```
 
-15 checks, a few seconds, no network. It exercises `aggregate_cohort.py` and `write_report.py`
+23 checks, a few seconds, no network. It exercises `aggregate_cohort.py` and `write_report.py`
 against fixture cohorts built over the runs already on the record, because those two run once, at
 the end of a cohort that costs days, which is the worst moment to find a defect in them. It includes
 a positive control that must turn the population-safety gate red. Both are run in CI by the
@@ -52,10 +53,11 @@ Probes are written outside the repository because most candidates are rejected a
 accepted probe is promoted into `research/mechanism/replications/` the moment it is accepted, so
 **commit after a walk stops** or the members it found go with the container.
 
-Measured over 165 fetches: 176 s at the residual bound, an implied 36 s at the broad one, and
-roughly one acceptance per eight or nine fetched candidates. Under the one-phase order that was 42
-hours; under two phases it is about 10, because the expensive fetch is paid about 25 times instead
-of about 870.
+Measured over the walk's own first 237 fetches: 38 s mean at the broad bound for a candidate that
+is accepted, 52 s for one that is rejected, 176 s at the residual bound, and one acceptance per
+seven fetched candidates. 34 accepted in 3 h 26 min is 9.9 an hour, so Phase A is about 10 hours and
+Phase B's 25 promotions at 176 s are about 1.2 more. Under the one-phase order this was 42 hours,
+because the expensive fetch would have been paid about 700 times instead of about 25.
 
 ## 2. Freeze (Phase 9)
 
@@ -86,7 +88,20 @@ hundred members means learning forty hours in that every one was scored under co
 not name.
 
 Skips members whose `RESULT.json` already carries a terminal status, so it resumes freely. Resuming
-reads only whether a run FINISHED, never what it found. Around 43 hours at four workers.
+reads only whether a run FINISHED, never what it found.
+
+**About 37 hours at four workers, and the derivation matters more than the number.** `scaling_bench.py`
+measured the frozen scorer at 46.0 searches a second on four workers, on four cores, with output
+identical to the frozen record at every worker count; 6, 8, 16 and 32 workers do not beat it, because
+the cores run out first. `audit_compute_compression.py` measured 490,507 searches over 16 accepted
+members, which is 68.3 searches a game. Seventy-five members hold 450 admissible games and twenty-five
+hold up to 2,200, because Phase B refetches the residual quarter at the wider window: about 6.06
+million searches, about 37 hours.
+
+An earlier note here said 43 hours, and a correction to it said 18.5. Both were wrong in the same
+place: 43 predated the measurement, and 18.5 came from it but priced all hundred members at the broad
+window, which is a quarter of the cohort scored at a fifth of its corpus. The residual window is why
+this number is not a quarter of what it is.
 
 It also checks, per member, that the band derived at selection from admissible games equals the band
 the pipeline derives from scored decisions. Two implementations of one rule; a mismatch is recorded
