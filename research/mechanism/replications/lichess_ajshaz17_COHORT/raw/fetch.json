@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "ajshaz17",
+ "player_id": "ajshaz17",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 701,
+    "rating": 1578
+   },
+   "blitz": {
+    "games": 6025,
+    "rating": 1652
+   },
+   "rapid": {
+    "games": 888,
+    "rating": 1587
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1745
+   },
+   "correspondence": {
+    "games": 2,
+    "rating": 1808
+   },
+   "puzzle": {
+    "games": 42,
+    "rating": 1510
+   }
+  },
+  "createdAt": 1680848647742,
+  "seenAt": 1788847321357
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/ajshaz17?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:05:46Z",
+  "http_status": 200,
+  "bytes": 3679504,
+  "sha256": "ede3a32de5166cda0a2f837da1ad3db57822742fcd8be39c48cb1e1d719450fd",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_ajshaz17_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
