@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 237,
+ "cursor": 240,
  "accepted": [
   {
    "u": "nouramine",
@@ -366,6 +366,34 @@
    ],
    "screen_band_agreed": true,
    "seconds": 39.6
+  },
+  {
+   "u": "rdumalig",
+   "player_id": "rdumalig",
+   "run_dir": "research/mechanism/replications/lichess_rdumalig_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 448,
+   "speeds": {
+    "blitz": 448,
+    "rapid": 2
+   },
+   "blitz_median": 1630.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1500,
+    1900
+   ],
+   "screen_band_agreed": false,
+   "seconds": 39.7
   }
  ],
  "rejected": [
@@ -2040,7 +2068,7 @@
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 127,
+  "PREFILTER_RATING_FAR_FROM_BAND": 129,
   "PREFILTER_TOO_FEW_GAMES": 4
  },
  "residual_slots_filled": 0,
