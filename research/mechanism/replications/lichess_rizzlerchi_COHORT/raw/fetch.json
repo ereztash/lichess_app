@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "rizzlerchi",
+ "player_id": "rizzlerchi",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1,
+    "rating": 1665
+   },
+   "blitz": {
+    "games": 8877,
+    "rating": 1623
+   },
+   "rapid": {
+    "games": 7,
+    "rating": 1501
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 23,
+    "rating": 1320
+   }
+  },
+  "createdAt": 1675163287381,
+  "seenAt": 1787843134886
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/rizzlerchi?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:32:38Z",
+  "http_status": 200,
+  "bytes": 2955356,
+  "sha256": "9e28123dd13085c734b97569bfe43eaa2b90a60ee4f8a8e08da87f2252dbeb2e",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_rizzlerchi_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

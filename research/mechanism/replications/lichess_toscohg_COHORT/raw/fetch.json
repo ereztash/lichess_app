@@ -1,0 +1,72 @@
+{
+ "platform": "lichess",
+ "username": "toscohg",
+ "player_id": "toscohg",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 6,
+    "rating": 994
+   },
+   "bullet": {
+    "games": 4961,
+    "rating": 1450
+   },
+   "blitz": {
+    "games": 7091,
+    "rating": 1495
+   },
+   "rapid": {
+    "games": 1,
+    "rating": 1278
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1258
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "kingOfTheHill": {
+    "games": 14,
+    "rating": 1587
+   },
+   "antichess": {
+    "games": 1,
+    "rating": 1196
+   },
+   "puzzle": {
+    "games": 810,
+    "rating": 1487
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1665374903351,
+  "seenAt": 1787192143244
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/toscohg?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:10:01Z",
+  "http_status": 200,
+  "bytes": 3449877,
+  "sha256": "bd5c28a7f9e7b21ec9245376d75a140457b367e8d4a2cb66e9b57e92845a954d",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_toscohg_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

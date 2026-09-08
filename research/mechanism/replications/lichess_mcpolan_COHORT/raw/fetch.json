@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "mcpolan",
+ "player_id": "mcpolan",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1407,
+    "rating": 1466
+   },
+   "blitz": {
+    "games": 6082,
+    "rating": 1465
+   },
+   "rapid": {
+    "games": 9,
+    "rating": 1743
+   },
+   "classical": {
+    "games": 11,
+    "rating": 1703
+   },
+   "correspondence": {
+    "games": 2,
+    "rating": 1279
+   },
+   "puzzle": {
+    "games": 24,
+    "rating": 1515
+   }
+  },
+  "createdAt": 1597666363160,
+  "seenAt": 1788815386769
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/mcpolan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:59:56Z",
+  "http_status": 200,
+  "bytes": 3004264,
+  "sha256": "2b51a2e9dc1873a7f16841372b50210f2bb8e3df9d9a9799b315ea10556bd78a",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_mcpolan_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

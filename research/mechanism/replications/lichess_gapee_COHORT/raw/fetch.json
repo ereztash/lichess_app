@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "gapee",
+ "player_id": "gapee",
+ "profile": {
+  "perfs": {
+   "ultraBullet": {
+    "games": 2,
+    "rating": 1381
+   },
+   "bullet": {
+    "games": 4,
+    "rating": 1344
+   },
+   "blitz": {
+    "games": 12061,
+    "rating": 1584
+   },
+   "rapid": {
+    "games": 2881,
+    "rating": 1781
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1665
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "atomic": {
+    "games": 2,
+    "rating": 855
+   },
+   "puzzle": {
+    "games": 310,
+    "rating": 1733
+   }
+  },
+  "createdAt": 1687004885909,
+  "seenAt": 1788859512269
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/gapee?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:29:50Z",
+  "http_status": 200,
+  "bytes": 3377738,
+  "sha256": "acb6e7d3b20ae95a4cea20ae62a5ab3e59e37c9e5326743d61a3881cc1e89ce2",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_gapee_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

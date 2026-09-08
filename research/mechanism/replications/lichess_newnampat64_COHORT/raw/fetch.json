@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "newnampat64",
+ "player_id": "newnampat64",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 2,
+    "rating": 1197
+   },
+   "blitz": {
+    "games": 23693,
+    "rating": 1627
+   },
+   "rapid": {
+    "games": 169,
+    "rating": 1835
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 1,
+    "rating": 1338
+   }
+  },
+  "createdAt": 1704361661557,
+  "seenAt": 1788858915881
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/newnampat64?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:38:35Z",
+  "http_status": 200,
+  "bytes": 3297824,
+  "sha256": "e59a196374754e553eff037a3cca68c851b8b54266ecd97f0f0bdcf55b523b3c",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_newnampat64_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

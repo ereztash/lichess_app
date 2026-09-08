@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "xuorig",
+ "player_id": "xuorig",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 268,
+    "rating": 1457
+   },
+   "blitz": {
+    "games": 9514,
+    "rating": 1642
+   },
+   "rapid": {
+    "games": 1431,
+    "rating": 1798
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 77,
+    "rating": 1702
+   }
+  },
+  "createdAt": 1470494163472,
+  "seenAt": 1788809230533
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/xuorig?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:28:31Z",
+  "http_status": 200,
+  "bytes": 3271101,
+  "sha256": "207e0dfaa5e6abb76b496f1a6a6ee144adac21524bd26ea4071bba458ad478e7",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_xuorig_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

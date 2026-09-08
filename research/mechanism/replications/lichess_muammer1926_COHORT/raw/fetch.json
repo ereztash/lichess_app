@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "muammer1926",
+ "player_id": "muammer1926",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 29818,
+    "rating": 1755
+   },
+   "blitz": {
+    "games": 8925,
+    "rating": 1716
+   },
+   "rapid": {
+    "games": 131,
+    "rating": 1698
+   },
+   "classical": {
+    "games": 1,
+    "rating": 1643
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 113,
+    "rating": 1359
+   }
+  },
+  "createdAt": 1559398718878,
+  "seenAt": 1788856291990
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/muammer1926?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:21:20Z",
+  "http_status": 200,
+  "bytes": 3779795,
+  "sha256": "6d0ce17cdc977b6d7ae29697ce8eabdebacec0f3931f28f8572c6a7aa67bafd7",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_muammer1926_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "montifiqe",
+ "player_id": "montifiqe",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 116,
+    "rating": 1493
+   },
+   "blitz": {
+    "games": 14836,
+    "rating": 1659
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1661222826413,
+  "seenAt": 1788860629030
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/montifiqe?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T10:02:35Z",
+  "http_status": 200,
+  "bytes": 3321381,
+  "sha256": "778f42186fe85d288bb218b1b6855b2b081ed0a5ee9f3ef21bd481c4e841ec42",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_montifiqe_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

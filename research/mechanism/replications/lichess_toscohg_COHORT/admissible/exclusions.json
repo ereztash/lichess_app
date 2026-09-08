@@ -1,0 +1,2010 @@
+{
+ "counts": {
+  "outside-window": 166,
+  "termination:Abandoned": 3,
+  "termination:Time forfeit": 301,
+  "under-20-plies": 30
+ },
+ "games": [
+  {
+   "id": "zDij9FTj",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "QDjWq1LY",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "zqFhgwyn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "5Qm59YsM",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Dko3ZhIO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Km4uZLZJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "6DLar5Cn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "dDwiiZr0",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "0vUKgTJ6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Z25jFjc8",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "eSFuMTGs",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "n5RmmfeM",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "9nRODf78",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "0oReSyke",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "RL3U2SlC",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ifPWDSxa",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "aoDlZaE7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "obu89eJs",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Uafq0AGt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LVcCq3DW",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "PoTJ5AqH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "0JVwv7tP",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "zadLdxDJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "uGygSNwD",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "7wpF9ke1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "18Gekddb",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "f5HbuOEO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "r0QH8IQf",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "zicR9NJY",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "nh4J6OT2",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Kxe628aF",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "81vBqsIa",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "B7NanNty",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "4Je8codK",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ca70DBqA",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "IyLhgGYo",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "GvZPhCst",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "L8DbMnMn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "mUc66XL7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "yKDrHGPz",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "FlYJc3N3",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "DAFYI3BD",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "6vciIX7u",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "1UUm3A4O",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "7XtVr2YJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "17qEVX2P",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ae3GfRHA",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LNtztzma",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "rqIjEEHI",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Vn3t4KPw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "1pMl8pJr",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ZSJavbCO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "S5yR8EpK",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "gs7UcogK",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "gGCtApWP",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "3ihBmeEH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "0HJIH0Vo",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "fWczo4Tu",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "BTQ9rXCU",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "wEBQXqq5",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Lp8AjLPj",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ET9IoyET",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "L3oUDzpn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "nkE0m9CO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "FRvLSQcC",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Lrgy23Wy",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "2GMiy4Y9",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "INDq1ovt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "FLFbKCrO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "8SS47tE6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Izr2s3jN",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "KLwRdxIA",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "GMHBwlp6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "EFjVgxNn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "4gYFWnKy",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Fd8WJMS1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LcahNSrs",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "0Ovdphog",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "NShESiEF",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ccE1PVSd",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "cglOqiHV",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "UoEYBNJq",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "48SDtbXJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "hVkLax1e",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "SkZZsdVj",
+   "reason": "termination:Abandoned"
+  },
+  {
+   "id": "xEbB4boT",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Z9xIyvBn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "PhG3iTms",
+   "reason": "termination:Abandoned"
+  },
+  {
+   "id": "rFseXIVF",
+   "reason": "termination:Abandoned"
+  },
+  {
+   "id": "12mdo7N1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "tZDVfpI6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "wmgIZtVC",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "zy97xxNw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "xEPmUuDy",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "PYInWwCV",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "p9msCcdZ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LJYvQMTc",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "UpzafHFi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Q1ev8s9d",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "vXhv7iSL",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "mwfcJJeK",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "NSy7NOsk",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "EdLiVV2u",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "W7ER31EZ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "P6BRM7M4",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "gC8or3wV",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "rmfQvB8J",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "Z8fkzfvv",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "cDZkH4CS",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "gaEM0zoK",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "bg3xb9CG",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "yORxIS0e",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "RI8jjXMW",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "CqQU68aL",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "Ev5RxLvQ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "4QI3piMg",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "WeSYv1ON",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "JRQHlX0p",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "CmvthTbN",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "zyBhXzua",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "JC1QFmCY",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "se1Wh6H9",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "D1cfdXHB",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "erjY8hBa",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "M0i14wrn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "SakxLmsW",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "c8aEL1II",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "rWAgB0Ah",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "DYnb8yZr",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "pYexFeXP",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "dQKFDnNg",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "NfHfNeso",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "KvVhGD3B",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "OtDlFwAF",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "OwhtpU71",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "0fA2B9IM",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "OhYhQzUH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "TaYpvfzB",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "fMs7mBMa",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "1XrgQNJV",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "rHURZSNI",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LghnbxIF",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Jt4u5bAt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ogL1gvJm",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "VWdzSRm7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "wCOHQ1yS",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "UZLGBoIS",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Oj2FWZGa",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "5MkcRK6C",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "aZBVpsPC",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "bsads1qr",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "mjE4U77U",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "SjFSSewM",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "6wD5ol4V",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "yUv1UkZv",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "d9TqiCtc",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "QFubkKIt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "pQB5jGRi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "eb3gQhpX",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "gZLmXQgB",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "exhDTUAy",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "V3I84P7u",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "T8RyPZsO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "t7phGy8q",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "SJaILsrq",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "UIRNGxA3",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "JdwrBeQb",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "sCNbEh4K",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "IZQLBg56",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Fn6ppzbq",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "PEYMN3Vs",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "iSVLeFV1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "VQmrVaG4",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "xwHlNzdg",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "gvU5jpc7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "6p6ZfaaN",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "BNjB9wh9",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Jf6LyClH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "OghuhUwi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "bfNum7uK",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "vtdZalQf",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "TbA0dznc",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "e4Yu0LL5",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "DxYJXgsw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "peDJZbyJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ZzwrLwHA",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "9nrxSReV",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "cxp4t6nR",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "NAPjQwCJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "6UK9DYzn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "AZjd9PIG",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "gf0R2S3D",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "cKQL7zIN",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "hS0Yd9By",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "DdmVhW0K",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "QM2KoKMU",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "qdCeg5tO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "KIrEnVec",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "pIOSK1mG",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "tNeVDVOi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "x3GqRXUb",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "TkdGZCqH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "FmLGYQoC",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ZLbQHpdw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "WUREi5A7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "H0ijkpC7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "EJt9pUMN",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "WzkJwURv",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Zt124gny",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "8Ey5Klc5",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "4uU46NDj",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "vnRg1A2N",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Fw0X72oG",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "dEMwTLUi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "uWziAa1N",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "f4fFa32W",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "CCHSuLlI",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "QwTA88Aj",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "pZmL1W2T",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "2Id0j2BC",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "hKEWyPSd",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Hpr0rBhI",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "C1yW6qKv",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "TgLGHi2l",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "HFREDyBL",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "kA14kfxt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "IMc4Azl6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "79po2WPc",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "fDc4fPJP",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "afHquEzz",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "rJg9923d",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "t7P52u1P",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "23BwU4Il",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "o1PVXqJ0",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "P2dqLHX1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "T9i4jpDq",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "xHcOZoKM",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "YgGg5jUG",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "VGgtI8CS",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "fDUivZVO",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "fsRWTQ6m",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "HC3s086k",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "TisRwqxk",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "4Ug6wxau",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "VKDrr0xo",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "MMpMjekI",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ih8zray8",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "UmWBWHqr",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "D4UwXXhe",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Q5fE78ha",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "SiTTW98w",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "DW8wiE3Z",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "cLrvb8t9",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "pNsNz1tF",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Hbc7VwUT",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "riH0APyT",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "fVASS5nx",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "2BScytaK",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LIdDyXGd",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "eNT4JBaQ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "qbqzrcvp",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "8GhTKSho",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "3sd5dRtt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "VxP3ncal",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ie5ipYJB",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "ZG42KBWg",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "isE7wzAe",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "QyGFvu9G",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "YbeKB3zv",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "lifQbyBd",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "46i3iaPn",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LhwveRr6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "m1ima1E5",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "V8MAv1RR",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Jvy6UGUw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "AGjDp6gf",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "GPYdH6SY",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "oj6Lh9Bi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "qAW878Mb",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "yscrQRGH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "Y5vY4ugp",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "f8KPjQaV",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "7dhbghGo",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "LQDqLKmy",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "RsQHztPY",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "Pk4IKdE8",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "aaBZqdOm",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "r3Q4nYp4",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "PCkR1VKG",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "f0g4SXt5",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "KaPRmAP9",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "oQ4ffhWt",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "NlR5M8MP",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "mEUFWrHw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "xmDh8HsL",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "H7zOgmpJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "CcaT9WFM",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "8riQzIkF",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "V8oDUCm0",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "DPPiHLX6",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "z4y0miJ1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "cvKPU2Fy",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "TOdag1bd",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "q0Cli5LE",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "HaiNo6s2",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "8n1hiY8Z",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "xWUxoSI1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "FCC7dxm8",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "MPGkNgWw",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "zdIZ50Ic",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "XCjxjl9K",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "h1HulWfc",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "S9rvzcc7",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "h6j8Rfhi",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "vZHhZzPZ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "keUfdTCH",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "MvLGPcKe",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "F1VeagLd",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "XtAaFwZC",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "HxFW4v2Q",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "yjOPRfVK",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "ermSoF37",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "AdNOpGj1",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "KD2PXvCz",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "R4s8qf8u",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "xPUM8Kh2",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "BS9xEyds",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "brWOSZNd",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "qJ3BlOBT",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "jRRQC4cJ",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "RATRR453",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "AVpLKXfz",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "GDZM414J",
+   "reason": "under-20-plies"
+  },
+  {
+   "id": "kkhdylJL",
+   "reason": "termination:Time forfeit"
+  },
+  {
+   "id": "COoldRIz",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ihK7dZy5",
+   "reason": "outside-window"
+  },
+  {
+   "id": "IoOXIl29",
+   "reason": "outside-window"
+  },
+  {
+   "id": "TP3cwKDY",
+   "reason": "outside-window"
+  },
+  {
+   "id": "DepAu4Xr",
+   "reason": "outside-window"
+  },
+  {
+   "id": "0wP471dE",
+   "reason": "outside-window"
+  },
+  {
+   "id": "yjqxGaIH",
+   "reason": "outside-window"
+  },
+  {
+   "id": "LernxxPg",
+   "reason": "outside-window"
+  },
+  {
+   "id": "qDku6mqO",
+   "reason": "outside-window"
+  },
+  {
+   "id": "df6fiLK4",
+   "reason": "outside-window"
+  },
+  {
+   "id": "l3lFgK7z",
+   "reason": "outside-window"
+  },
+  {
+   "id": "TWzZ8Bd4",
+   "reason": "outside-window"
+  },
+  {
+   "id": "uCXhhs7j",
+   "reason": "outside-window"
+  },
+  {
+   "id": "HMk6wqKy",
+   "reason": "outside-window"
+  },
+  {
+   "id": "EcdCSL0l",
+   "reason": "outside-window"
+  },
+  {
+   "id": "68j2IhMJ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "wG1fmmOr",
+   "reason": "outside-window"
+  },
+  {
+   "id": "kAdB1gIW",
+   "reason": "outside-window"
+  },
+  {
+   "id": "RGOgctY8",
+   "reason": "outside-window"
+  },
+  {
+   "id": "J6agNL3Q",
+   "reason": "outside-window"
+  },
+  {
+   "id": "5GG8fxQz",
+   "reason": "outside-window"
+  },
+  {
+   "id": "EBdV9Olk",
+   "reason": "outside-window"
+  },
+  {
+   "id": "D4FwSSVX",
+   "reason": "outside-window"
+  },
+  {
+   "id": "cLz5leng",
+   "reason": "outside-window"
+  },
+  {
+   "id": "Fdw81YHH",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ZLKLjXKq",
+   "reason": "outside-window"
+  },
+  {
+   "id": "pMXmIQAq",
+   "reason": "outside-window"
+  },
+  {
+   "id": "AK7wwM31",
+   "reason": "outside-window"
+  },
+  {
+   "id": "Yj8EMb12",
+   "reason": "outside-window"
+  },
+  {
+   "id": "aWCx9UWy",
+   "reason": "outside-window"
+  },
+  {
+   "id": "PTqZGTrE",
+   "reason": "outside-window"
+  },
+  {
+   "id": "NsqHuEGh",
+   "reason": "outside-window"
+  },
+  {
+   "id": "0qGj1hoK",
+   "reason": "outside-window"
+  },
+  {
+   "id": "VRdM1CSm",
+   "reason": "outside-window"
+  },
+  {
+   "id": "uqd5DbnD",
+   "reason": "outside-window"
+  },
+  {
+   "id": "afk3k6KB",
+   "reason": "outside-window"
+  },
+  {
+   "id": "n9NwvNTh",
+   "reason": "outside-window"
+  },
+  {
+   "id": "0O5nPNaT",
+   "reason": "outside-window"
+  },
+  {
+   "id": "IVvP6UeT",
+   "reason": "outside-window"
+  },
+  {
+   "id": "zrvwNj2h",
+   "reason": "outside-window"
+  },
+  {
+   "id": "o6Go9IAE",
+   "reason": "outside-window"
+  },
+  {
+   "id": "vsVOt1bV",
+   "reason": "outside-window"
+  },
+  {
+   "id": "7gpGoH1z",
+   "reason": "outside-window"
+  },
+  {
+   "id": "yupddHGX",
+   "reason": "outside-window"
+  },
+  {
+   "id": "6fGGKGKe",
+   "reason": "outside-window"
+  },
+  {
+   "id": "xHFSsU4w",
+   "reason": "outside-window"
+  },
+  {
+   "id": "9co7xDsg",
+   "reason": "outside-window"
+  },
+  {
+   "id": "wpNUi3KA",
+   "reason": "outside-window"
+  },
+  {
+   "id": "TFxti952",
+   "reason": "outside-window"
+  },
+  {
+   "id": "Fm7mXvq6",
+   "reason": "outside-window"
+  },
+  {
+   "id": "q4QCkGZS",
+   "reason": "outside-window"
+  },
+  {
+   "id": "vBK87zld",
+   "reason": "outside-window"
+  },
+  {
+   "id": "09VVlvIS",
+   "reason": "outside-window"
+  },
+  {
+   "id": "Ce5Y60bL",
+   "reason": "outside-window"
+  },
+  {
+   "id": "c9uYknXY",
+   "reason": "outside-window"
+  },
+  {
+   "id": "N5ns6W4I",
+   "reason": "outside-window"
+  },
+  {
+   "id": "Ly1X7jmo",
+   "reason": "outside-window"
+  },
+  {
+   "id": "UkPKU7S5",
+   "reason": "outside-window"
+  },
+  {
+   "id": "wDOkP9mb",
+   "reason": "outside-window"
+  },
+  {
+   "id": "8cSlkbfs",
+   "reason": "outside-window"
+  },
+  {
+   "id": "OvZTzEfj",
+   "reason": "outside-window"
+  },
+  {
+   "id": "eufXzHlR",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ioGY80Z3",
+   "reason": "outside-window"
+  },
+  {
+   "id": "WV2KRAjr",
+   "reason": "outside-window"
+  },
+  {
+   "id": "7VErPX4R",
+   "reason": "outside-window"
+  },
+  {
+   "id": "3S9Aycgq",
+   "reason": "outside-window"
+  },
+  {
+   "id": "GZsZjPlS",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ETTH6EgM",
+   "reason": "outside-window"
+  },
+  {
+   "id": "3xzSAbc3",
+   "reason": "outside-window"
+  },
+  {
+   "id": "CjWFmRmp",
+   "reason": "outside-window"
+  },
+  {
+   "id": "6fOS5aul",
+   "reason": "outside-window"
+  },
+  {
+   "id": "KwmXuRUy",
+   "reason": "outside-window"
+  },
+  {
+   "id": "PHVObmPG",
+   "reason": "outside-window"
+  },
+  {
+   "id": "lkyBGgN0",
+   "reason": "outside-window"
+  },
+  {
+   "id": "3lho7qZJ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "dKSu4Vcn",
+   "reason": "outside-window"
+  },
+  {
+   "id": "4zSNcaUc",
+   "reason": "outside-window"
+  },
+  {
+   "id": "mId6qf7r",
+   "reason": "outside-window"
+  },
+  {
+   "id": "EWe0MdqI",
+   "reason": "outside-window"
+  },
+  {
+   "id": "3Faytjt7",
+   "reason": "outside-window"
+  },
+  {
+   "id": "A9ouXC5i",
+   "reason": "outside-window"
+  },
+  {
+   "id": "KnQUcSJM",
+   "reason": "outside-window"
+  },
+  {
+   "id": "zIaszalN",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ampB3ygz",
+   "reason": "outside-window"
+  },
+  {
+   "id": "Di4SdXNk",
+   "reason": "outside-window"
+  },
+  {
+   "id": "BvzgA7Pu",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ShXfHA4O",
+   "reason": "outside-window"
+  },
+  {
+   "id": "8EB8ZNdw",
+   "reason": "outside-window"
+  },
+  {
+   "id": "RH0Dnk6j",
+   "reason": "outside-window"
+  },
+  {
+   "id": "anWUI2RT",
+   "reason": "outside-window"
+  },
+  {
+   "id": "c3UYKWML",
+   "reason": "outside-window"
+  },
+  {
+   "id": "H2wTfrVa",
+   "reason": "outside-window"
+  },
+  {
+   "id": "GYz1wU5e",
+   "reason": "outside-window"
+  },
+  {
+   "id": "iMe8gSSy",
+   "reason": "outside-window"
+  },
+  {
+   "id": "aTGrN31r",
+   "reason": "outside-window"
+  },
+  {
+   "id": "zU4POIFe",
+   "reason": "outside-window"
+  },
+  {
+   "id": "OprHNQYw",
+   "reason": "outside-window"
+  },
+  {
+   "id": "vhWy4dgs",
+   "reason": "outside-window"
+  },
+  {
+   "id": "UqgpLGoK",
+   "reason": "outside-window"
+  },
+  {
+   "id": "C4yuBEDz",
+   "reason": "outside-window"
+  },
+  {
+   "id": "csIxVLh6",
+   "reason": "outside-window"
+  },
+  {
+   "id": "xBQJ2XFh",
+   "reason": "outside-window"
+  },
+  {
+   "id": "gpDOq3SX",
+   "reason": "outside-window"
+  },
+  {
+   "id": "WgCkIjqB",
+   "reason": "outside-window"
+  },
+  {
+   "id": "C4WjN1iF",
+   "reason": "outside-window"
+  },
+  {
+   "id": "0fGpPom2",
+   "reason": "outside-window"
+  },
+  {
+   "id": "9O7XnfwZ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "922dUe0P",
+   "reason": "outside-window"
+  },
+  {
+   "id": "3rtivFAW",
+   "reason": "outside-window"
+  },
+  {
+   "id": "8z3Sq7M3",
+   "reason": "outside-window"
+  },
+  {
+   "id": "4P6il8QN",
+   "reason": "outside-window"
+  },
+  {
+   "id": "u4wqZLyy",
+   "reason": "outside-window"
+  },
+  {
+   "id": "uFz8CAmV",
+   "reason": "outside-window"
+  },
+  {
+   "id": "aqxkRmNt",
+   "reason": "outside-window"
+  },
+  {
+   "id": "MRFqUbYK",
+   "reason": "outside-window"
+  },
+  {
+   "id": "9TmRMjsu",
+   "reason": "outside-window"
+  },
+  {
+   "id": "T18W7nB0",
+   "reason": "outside-window"
+  },
+  {
+   "id": "gT1MFBHA",
+   "reason": "outside-window"
+  },
+  {
+   "id": "CBW5UlYr",
+   "reason": "outside-window"
+  },
+  {
+   "id": "abFl7lV5",
+   "reason": "outside-window"
+  },
+  {
+   "id": "kK0in8bi",
+   "reason": "outside-window"
+  },
+  {
+   "id": "c4VRdhHs",
+   "reason": "outside-window"
+  },
+  {
+   "id": "25xdiwqG",
+   "reason": "outside-window"
+  },
+  {
+   "id": "tLSocrg0",
+   "reason": "outside-window"
+  },
+  {
+   "id": "1a9IkpHu",
+   "reason": "outside-window"
+  },
+  {
+   "id": "W7TPWeY9",
+   "reason": "outside-window"
+  },
+  {
+   "id": "9qsUWNsv",
+   "reason": "outside-window"
+  },
+  {
+   "id": "KdCbOw5E",
+   "reason": "outside-window"
+  },
+  {
+   "id": "RQS1smNu",
+   "reason": "outside-window"
+  },
+  {
+   "id": "V8sd76AJ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "q5Jctvas",
+   "reason": "outside-window"
+  },
+  {
+   "id": "MI1eBuGl",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ZuSBdmmQ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "tj80rYz3",
+   "reason": "outside-window"
+  },
+  {
+   "id": "R6uh1VRS",
+   "reason": "outside-window"
+  },
+  {
+   "id": "qhiJ7Ajl",
+   "reason": "outside-window"
+  },
+  {
+   "id": "7MlyhoQ1",
+   "reason": "outside-window"
+  },
+  {
+   "id": "qvN1VuPG",
+   "reason": "outside-window"
+  },
+  {
+   "id": "TB9DJJE1",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ieSkKKGL",
+   "reason": "outside-window"
+  },
+  {
+   "id": "hEpoFmgy",
+   "reason": "outside-window"
+  },
+  {
+   "id": "g9aaSzmp",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ZCLiuaPX",
+   "reason": "outside-window"
+  },
+  {
+   "id": "pgzVhgYZ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "PfPsHjvn",
+   "reason": "outside-window"
+  },
+  {
+   "id": "SwJ2t6yK",
+   "reason": "outside-window"
+  },
+  {
+   "id": "i1gZXfwp",
+   "reason": "outside-window"
+  },
+  {
+   "id": "JtAkkQLG",
+   "reason": "outside-window"
+  },
+  {
+   "id": "2mmvPV4L",
+   "reason": "outside-window"
+  },
+  {
+   "id": "GAXd8aig",
+   "reason": "outside-window"
+  },
+  {
+   "id": "mvQUldZU",
+   "reason": "outside-window"
+  },
+  {
+   "id": "HHCjfeKu",
+   "reason": "outside-window"
+  },
+  {
+   "id": "FYjM7lBr",
+   "reason": "outside-window"
+  },
+  {
+   "id": "QcCnH9Td",
+   "reason": "outside-window"
+  },
+  {
+   "id": "3eUXWcgG",
+   "reason": "outside-window"
+  },
+  {
+   "id": "NA0p1Znd",
+   "reason": "outside-window"
+  },
+  {
+   "id": "8aeElINQ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "yJljes2m",
+   "reason": "outside-window"
+  },
+  {
+   "id": "zckxk0ME",
+   "reason": "outside-window"
+  },
+  {
+   "id": "ABaTG9sj",
+   "reason": "outside-window"
+  },
+  {
+   "id": "yuegCWBp",
+   "reason": "outside-window"
+  },
+  {
+   "id": "XywiBXNR",
+   "reason": "outside-window"
+  },
+  {
+   "id": "EpcAXFFi",
+   "reason": "outside-window"
+  },
+  {
+   "id": "AuUI7XtT",
+   "reason": "outside-window"
+  },
+  {
+   "id": "dchbBqIQ",
+   "reason": "outside-window"
+  },
+  {
+   "id": "NtdNiQgm",
+   "reason": "outside-window"
+  }
+ ]
+}
