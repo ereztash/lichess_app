@@ -20,10 +20,13 @@ sys.path.insert(0, os.path.join(MECH, "replication"))
 sys.path.insert(0, HERE)
 
 REF_RUN = os.path.join(MECH, "replications", "lichess_vibesgalore_B")
+FIXTURES = os.path.join(HERE, "fixtures")
 
 
 def main() -> int:
     checks: list[tuple[str, bool, str]] = []
+
+    skipped: list[str] = []
 
     def check(what: str, ok: bool, detail: str = "") -> None:
         checks.append((what, bool(ok), detail))
@@ -39,18 +42,40 @@ def main() -> int:
         except Exception as e:  # noqa: BLE001
             check("imports: %s" % name, False, repr(e))
 
-    # 2. The band helper agrees with the pipeline's own derivation on a run whose answer is on the
-    #    record. Two implementations of one rule; this is the cheap half of holding them together.
-    if "cohort_select" in mods and os.path.isdir(REF_RUN):
+    # 2a. The band rule, on a tracked fixture. This runs everywhere, including CI, because the
+    #     fixture is seven synthetic games rather than a corpus. Each line is there to be the reason
+    #     one clause of the rule fires: a non-blitz game the focal player is in, a blitz game they
+    #     are not in, the focal player as black, an id that differs by case, an anonymous opponent.
+    if "cohort_select" in mods:
         try:
+            exp = json.load(open(os.path.join(FIXTURES, "band_helper_expected.json")))
             got = mods["cohort_select"].blitz_median_from_admissible(
-                os.path.join(REF_RUN, "admissible", "games.ndjson"), "vibesgalore")
+                os.path.join(FIXTURES, "band_helper_games.ndjson"), exp["focal_player_id"])
+            check("band rule on the tracked fixture", got == exp["expected_blitz_median"],
+                  "got %s, worked by hand %s" % (got, exp["expected_blitz_median"]))
+        except Exception as e:  # noqa: BLE001
+            check("band rule on the tracked fixture", False, repr(e))
+
+    # 2b. And the same helper against the PIPELINE's own derivation on a run whose answer is on the
+    #     record. Two implementations of one rule; this is the cheap half of holding them together.
+    #
+    #     The admissible corpus is gitignored, on purpose: game corpora are not repository content.
+    #     So this half cannot run on a fresh checkout, and it used to FAIL there rather than say so,
+    #     which is how it went red the first time CI ran this file. A check that cannot run reports
+    #     that it did not run. 2a is the half that holds the rule everywhere.
+    ref_games = os.path.join(REF_RUN, "admissible", "games.ndjson")
+    if "cohort_select" in mods and os.path.exists(ref_games):
+        try:
+            got = mods["cohort_select"].blitz_median_from_admissible(ref_games, "vibesgalore")
             want = json.load(open(os.path.join(REF_RUN, "report", "RESULT.json")))
             want = want["population"]["focal_blitz_median_rating"]
             check("band helper matches the pipeline on the recorded run", got == want,
                   "got %s, recorded %s" % (got, want))
         except Exception as e:  # noqa: BLE001
             check("band helper matches the pipeline on the recorded run", False, repr(e))
+    else:
+        skipped.append("band helper against the recorded run: %s is gitignored and absent here"
+                       % os.path.relpath(ref_games, REPO))
 
     # 3. The artefacts a walk reads exist and agree with each other.
     try:
@@ -95,7 +120,10 @@ def main() -> int:
     failed = [c for c in checks if not c[1]]
     for what, ok, detail in checks:
         print("%-4s %s%s" % ("PASS" if ok else "FAIL", what, (" -- " + detail) if detail and not ok else ""))
-    print("\n%d checks: %d pass, %d fail" % (len(checks), len(checks) - len(failed), len(failed)))
+    for why in skipped:
+        print("SKIP %s" % why)
+    print("\n%d checks: %d pass, %d fail, %d skipped"
+          % (len(checks), len(checks) - len(failed), len(failed), len(skipped)))
     return 1 if failed else 0
 
 
