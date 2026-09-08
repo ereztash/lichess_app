@@ -1580,6 +1580,25 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.7
+  },
+  {
+   "u": "borodek",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1511.5,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1300,
+    1700
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
   }
  ],
  "prefiltered": {
@@ -1657,7 +1676,6 @@
   }
  ],
  "retry_queue": [
-  "borodek",
   "cameraguy38",
   "sysolceh",
   "enginekiller",
