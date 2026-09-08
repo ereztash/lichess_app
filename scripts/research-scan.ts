@@ -307,16 +307,15 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
   },
   {
     artefact: "research/mechanism/replication100/COHORT_FROZEN.json",
-    keyPath: "members.manifest_sha256|members.prereg_sha256",
+    keyPath: "members.[].manifest_sha256|members.[].prereg_sha256",
     kind: "HASH_OF_TREE_FILE",
-    status: "SUPERSEDED",
-    supersededBy: "research/mechanism/replication/verify_run.py, run over every replication directory by the equivalence workflow",
-    subject: (_artefact, leaf) => leaf,
-    why: "each member's manifest and per-player pre-registration AS THEY WERE when the cohort was frozen, before any member was scored. Deliberately not asserted here: a member's manifest is rewritten by the scoring run that follows, so holding these against the tree would redden on the cohort running rather than on a member being tampered with. What they are for is the comparison a reader makes between the frozen cohort and the finished one",
+    status: "CURRENT",
+    // No `subject`, deliberately, and that is what says "checked, but not here".
+    why: "each member's manifest and per-player pre-registration AS THEY WERE when the cohort was frozen, before any member was scored. Not asserted here, for the reason the per-run rows above are not: the scoring run rewrites a member's manifest, so pinning these to the tree would redden on the cohort RUNNING rather than on a member being tampered with. `verify_run.py` holds each run against the tree per run, and what these are for is the comparison a reader makes between the frozen cohort and the finished one. THIS ROW WAS PREVIOUSLY UNCHECKABLE IN TWO WAYS AT ONCE: its keyPath said `members.manifest_sha256`, but `members` is a LIST and the scanner emits `members.[].manifest_sha256`, so it matched nothing and all three hundred sites read as unclassified the day the freeze file first existed; and it was marked SUPERSEDED by `verify_run.py`, which is a script and therefore can never be the CURRENT register block that `findOrphanedSupersessions` requires a successor to be. Both were invisible while the artefact did not exist, because every predicate skips an absent file",
   },
   {
     artefact: "research/mechanism/replication100/COHORT_FROZEN.json",
-    keyPath: "members.raw_sha256",
+    keyPath: "members.[].raw_sha256",
     kind: "EXTERNAL_ARTEFACT",
     status: "CURRENT",
     why: "the bytes lichess returned for each cohort member's games, gitignored for the reason every other run's raw export is: a third party's game history is not this repository's to carry. The digest lets a rerun prove it read the same response",
@@ -446,6 +445,12 @@ export function findStaleFrozenHashes(root: string): Finding[] {
   for (const relation of RESEARCH_RELATIONS) {
     if (relation.kind !== "HASH_OF_TREE_FILE" || relation.status !== "CURRENT") continue;
     if (relation.artefact.includes("*") || !has(root, relation.artefact)) continue;
+    // A ROW WITH NO `subject` NAMES NO FILE TO HOLD THE HASH AGAINST, so there is nothing here to
+    // assert and `relation.subject!` below would throw on it. That is not leniency: the row is
+    // still REGISTERED, so `findUnregisteredClaims` is satisfied and its `why` has to say what
+    // checks it instead. The globbed rows above have always relied on exactly this and were only
+    // spared the crash by their glob.
+    if (!relation.subject) continue;
     const raw = read(root, relation.artefact);
     const doc = JSON.parse(raw) as Record<string, unknown>;
     const [head, tail] = relation.keyPath.split(".");
