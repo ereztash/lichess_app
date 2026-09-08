@@ -34,21 +34,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/viktor19625?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/viktor19625?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T10:35:50Z",
+  "fetched_at": "2026-09-08T18:43:02Z",
   "http_status": 200,
-  "bytes": 3387810,
-  "sha256": "83e4943c086545ebc84b9f6a1ae49054ff50961f2441f6e4b756f6576d36a8f4",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_viktor19625_COHORT/raw/history.ndjson",
+  "bytes": 16504197,
+  "sha256": "7e2e2d793b012140e151e56d5198d5a4e9df826e53c2f5213d77a7efa509cb17",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_viktor19625_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

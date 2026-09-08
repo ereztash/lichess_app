@@ -1859,7 +1859,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 377,
    "speeds": {
@@ -1878,7 +1878,19 @@
     1800
    ],
    "screen_band_agreed": false,
-   "seconds": 42.1
+   "seconds": 42.1,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1792,
+    "blitz_median": 1694.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.1
+   }
   },
   {
    "u": "lichisss",
@@ -1887,7 +1899,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 292,
    "speeds": {
@@ -1907,34 +1919,58 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 816,
+    "blitz_median": 1642.5,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 186.7
+   }
   },
   {
    "u": "viktor19625",
    "player_id": "viktor19625",
    "run_dir": "research/mechanism/replications/lichess_viktor19625_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 447,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2197,
    "speeds": {
     "blitz": 447
    },
-   "blitz_median": 1669.0,
+   "blitz_median": 1642.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1300,
     1700
    ],
    "screen_band_agreed": false,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2197,
+    "blitz_median": 1642.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 188.7
+   }
   },
   {
    "u": "skibidisigma12345",
@@ -1973,7 +2009,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -1991,7 +2027,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2160,
+    "blitz_median": 1756.0,
+    "derived_band": [
+     1550,
+     1950
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 168.6
+   }
   },
   {
    "u": "blindfoldpractice4",
@@ -2000,7 +2048,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 334,
    "speeds": {
@@ -2020,7 +2068,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.6
+   "seconds": 39.6,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1859,
+    "blitz_median": 1684.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 132.0
+   }
   },
   {
    "u": "carlos_g83",
@@ -2029,7 +2089,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 10,
    "speeds": {
@@ -2049,7 +2109,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.6
+   "seconds": 39.6,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1658,
+    "blitz_median": 1558.0,
+    "derived_band": [
+     1350,
+     1750
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 188.5
+   }
   },
   {
    "u": "one-trick-wilfred",
@@ -2058,7 +2130,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 444,
    "speeds": {
@@ -2077,7 +2149,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 40.0
+   "seconds": 40.0,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2184,
+    "blitz_median": 1612.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.8
+   }
   },
   {
    "u": "chessterr1883",
@@ -15110,7 +15194,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 18,
+ "residual_slots_filled": 19,
  "unreachable": [
   {
    "u": "ogbullz",

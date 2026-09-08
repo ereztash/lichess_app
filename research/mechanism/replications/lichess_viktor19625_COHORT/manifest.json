@@ -6,21 +6,21 @@
  "corpus": "lichess:viktor19625",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/viktor19625?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/viktor19625?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T10:35:50Z",
+  "fetched_at": "2026-09-08T18:43:02Z",
   "http_status": 200,
-  "bytes": 3387810,
-  "sha256": "83e4943c086545ebc84b9f6a1ae49054ff50961f2441f6e4b756f6576d36a8f4",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_viktor19625_COHORT/raw/history.ndjson",
+  "bytes": 16504197,
+  "sha256": "7e2e2d793b012140e151e56d5198d5a4e9df826e53c2f5213d77a7efa509cb17",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_viktor19625_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -53,19 +53,19 @@
   "createdAt": 1644130908045,
   "seenAt": 1788843126006
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 447,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2197,
  "exclusions_by_reason": {
   "no-clocks": 1,
   "non-standard-variant": 3,
-  "outside-window": 204,
-  "termination:Abandoned": 17,
-  "termination:Time forfeit": 265,
-  "under-20-plies": 13
+  "outside-window": 1049,
+  "termination:Abandoned": 79,
+  "termination:Time forfeit": 1205,
+  "under-20-plies": 66
  },
  "speeds": {
-  "blitz": 447
+  "blitz": 2197
  },
  "eligibility_rule": {
   "game": {
@@ -79,7 +79,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "93d16c7ba4f8afcd366d1fe5ceffd42a24404b30",
+ "repo_sha": "b5cbee60ee8529267650cf1184b71f6337a70033",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -168,5 +168,5 @@
   "player_id": "viktor19625",
   "corpus": "lichess:viktor19625"
  },
- "run_dir": "/tmp/cohort_probes/lichess_viktor19625_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_viktor19625_COHORTR"
 }
