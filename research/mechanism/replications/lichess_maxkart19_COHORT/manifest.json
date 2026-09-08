@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "93ae408d0fcdae964433fe200d184b70fdb43968",
+ "repo_sha": "65b4c1da5befc8183b83e0ea4afdbc523e27fa34",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "maxkart19",
   "corpus": "lichess:maxkart19"
  },
- "run_dir": "/tmp/cohort_probes/lichess_maxkart19_COHORTR"
+ "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_maxkart19_COHORT"
 }
