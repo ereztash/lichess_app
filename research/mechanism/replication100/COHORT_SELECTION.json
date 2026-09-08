@@ -1496,6 +1496,44 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.6
+  },
+  {
+   "u": "ogbullz",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1797.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1650,
+    2050
+   ],
+   "admissible": 450,
+   "blitz_admissible": 47,
+   "window": 450,
+   "fetch_max": 0,
+   "window_full": true,
+   "seconds": 387.9
+  },
+  {
+   "u": "akhiln3",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1599.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.9
   }
  ],
  "prefiltered": {
@@ -1573,8 +1611,6 @@
   }
  ],
  "retry_queue": [
-  "ogbullz",
-  "akhiln3",
   "malaikat_izroil58",
   "fuerzasarmadas",
   "borodek",

@@ -139,19 +139,26 @@ def try_candidate(username: str, window: int, fetch_max: int, root: str,
     if fetch_max:
         env["REPLICATION_FETCH_MAX_GAMES"] = str(fetch_max)
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=1800, env=env)
+    # The ingest layer waits out a 429 inside the request, up to six times at 65s. From out here a
+    # throttled fetch and a slow one look identical, and only one of them means the walk should
+    # ease off. Count the waits it announced, so throttling is a number in the record rather than
+    # something inferred afterwards from the clock. Computed before any exit, because the run that
+    # dies without a RESULT.json is exactly the one whose throttling matters most.
+    rate_limited = (p.stderr or "").count("lichess 429")
     res_path = os.path.join(d, "report", "RESULT.json")
     if not os.path.exists(res_path):
         return {"accepted": False, "reason": "RUN_FAILED", "run_dir": d,
-                "stderr": (p.stderr or "")[-400:]}
+                "stderr": (p.stderr or "")[-400:], "rate_limited": rate_limited}
     res = json.load(open(res_path))
     if res.get("status") != "FROZEN":
         # `detail` is the ingest layer's own message. Without it a FETCH_FAILED is unauditable:
         # a closed account and a rate limit look identical in the record, and only one of them is
         # a fact about the candidate.
         return {"accepted": False, "reason": res.get("failure_code") or res.get("status"),
-                "detail": res.get("detail"), "run_dir": d, "corpus": res.get("corpus")}
+                "detail": res.get("detail"), "run_dir": d, "corpus": res.get("corpus"),
+                "rate_limited": rate_limited}
     return {"accepted": None, "run_dir": d, "corpus": res["corpus"],
-            "player_id": res["focal"]["player_id"]}
+            "player_id": res["focal"]["player_id"], "rate_limited": rate_limited}
 
 
 def main() -> int:
@@ -280,6 +287,7 @@ def main() -> int:
             fails += 1
             state.setdefault("unreachable", []).append(
                 {"u": u, "reason": "FETCH_FAILED", "detail": r.get("detail"),
+                 "rate_limited_waits": r.get("rate_limited", 0),
                  "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "requeued": True})
             state.setdefault("retry_queue", []).append(u)
             json.dump(state, open(state_path, "w"), indent=1)
@@ -291,6 +299,7 @@ def main() -> int:
         fails = 0
         if r["accepted"] is False:
             state["rejected"].append({"u": u, "reason": r["reason"], "detail": r.get("detail"),
+                                      "rate_limited_waits": r.get("rate_limited", 0),
                                       "corpus": r.get("corpus")})
             shutil.rmtree(r["run_dir"], ignore_errors=True)
             json.dump(state, open(state_path, "w"), indent=1)

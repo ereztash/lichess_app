@@ -278,6 +278,13 @@ def main() -> int:
             "distinct_usernames": len({r["u"] for r in (sel.get("unreachable") or [])}),
             "still_queued_at_freeze": len(sel.get("retry_queue") or []),
             "tried_candidates_denominator": fetched,
+            "rate_limit_waits_absorbed": sum(
+                r.get("rate_limited_waits") or 0
+                for r in (sel.get("rejected") or []) + (sel.get("unreachable") or [])),
+            "_rate_limit_note": "each wait is one 429 the ingest layer sat out inside a request. "
+                                "A high count with few failures means the walk was slowed and got "
+                                "its data; a high count alongside unreachable candidates means it "
+                                "was pushing harder than the platform wanted.",
         },
         "red_flags": {"any_met": any_flag, "flags": flags},
         "verdict": {"verdict": verdict, "why": why,
