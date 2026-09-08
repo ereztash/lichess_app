@@ -1,0 +1,64 @@
+{
+ "platform": "lichess",
+ "username": "al3s",
+ "player_id": "al3s",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 957,
+    "rating": 1751
+   },
+   "blitz": {
+    "games": 8646,
+    "rating": 1662
+   },
+   "rapid": {
+    "games": 50,
+    "rating": 1343
+   },
+   "classical": {
+    "games": 2,
+    "rating": 1057
+   },
+   "correspondence": {
+    "games": 5,
+    "rating": 1376
+   },
+   "atomic": {
+    "games": 3,
+    "rating": 1206
+   },
+   "puzzle": {
+    "games": 267,
+    "rating": 1539
+   },
+   "storm": {
+    "games": null,
+    "rating": null
+   }
+  },
+  "createdAt": 1591190324878,
+  "seenAt": 1788838258018
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/al3s?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:22:38Z",
+  "http_status": 200,
+  "bytes": 3240122,
+  "sha256": "e62ddd8d77bf12c55be2c9f033b02c2be8ebb9f0609cff85eaa9cd1357696898",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_al3s_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}

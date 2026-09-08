@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 651,
+ "cursor": 678,
  "accepted": [
   {
    "u": "nouramine",
@@ -948,6 +948,62 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.8
+  },
+  {
+   "u": "archpopov",
+   "player_id": "archpopov",
+   "run_dir": "research/mechanism/replications/lichess_archpopov_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 449,
+   "speeds": {
+    "blitz": 449,
+    "bullet": 1
+   },
+   "blitz_median": 1668.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "al3s",
+   "player_id": "al3s",
+   "run_dir": "research/mechanism/replications/lichess_al3s_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 430,
+   "speeds": {
+    "blitz": 430,
+    "bullet": 20
+   },
+   "blitz_median": 1661.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "screen_band_agreed": true,
+   "seconds": 39.7
   }
  ],
  "rejected": [
@@ -4951,11 +5007,211 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.9
+  },
+  {
+   "u": "hello525",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1575.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "kooroshma",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1792.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1650,
+    2050
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "kebeeshark",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "niguell",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1788.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "bobsamson",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
+  },
+  {
+   "u": "prabir",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1756.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 399,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 40.3
+  },
+  {
+   "u": "thirstrockers1",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1562.5,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 138,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
+  },
+  {
+   "u": "who_ziq998",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1591.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 303,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.4
+  },
+  {
+   "u": "yayo20alberto",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1625.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1450,
+    1850
+   ],
+   "admissible": 450,
+   "blitz_admissible": 337,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 40.0
+  },
+  {
+   "u": "said006",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1471.0,
+   "derived_band": [
+    1250,
+    1650
+   ],
+   "screen_predicted_band": [
+    1250,
+    1650
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "stephen_kinser",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1521.5,
+   "derived_band": [
+    1300,
+    1700
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
+  },
+  {
+   "u": "aguscaki",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1782.5,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 442,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 40.2
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 375,
-  "PREFILTER_TOO_FEW_GAMES": 13
+  "PREFILTER_RATING_FAR_FROM_BAND": 387,
+  "PREFILTER_TOO_FEW_GAMES": 14
  },
  "residual_slots_filled": 0,
  "unreachable": [

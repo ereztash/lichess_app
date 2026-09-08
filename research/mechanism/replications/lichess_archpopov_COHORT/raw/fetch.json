@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "archpopov",
+ "player_id": "archpopov",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 71,
+    "rating": 1833
+   },
+   "blitz": {
+    "games": 10505,
+    "rating": 1644
+   },
+   "rapid": {
+    "games": 0,
+    "rating": 1500
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   },
+   "puzzle": {
+    "games": 1379,
+    "rating": 1799
+   }
+  },
+  "createdAt": 1541096169274,
+  "seenAt": 1788858735217
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/archpopov?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T09:16:40Z",
+  "http_status": 200,
+  "bytes": 3585088,
+  "sha256": "e452dbe002f32d902626c6983a17a96e856b5b75bc50b0a1b97fa4cb96cbd627",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_archpopov_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
