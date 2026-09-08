@@ -1,0 +1,52 @@
+{
+ "platform": "lichess",
+ "username": "malaikat_izroil58",
+ "player_id": "malaikat_izroil58",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 0,
+    "rating": 1500
+   },
+   "blitz": {
+    "games": 5423,
+    "rating": 1659
+   },
+   "rapid": {
+    "games": 2802,
+    "rating": 1724
+   },
+   "classical": {
+    "games": 0,
+    "rating": 1500
+   },
+   "correspondence": {
+    "games": 0,
+    "rating": 1500
+   }
+  },
+  "createdAt": 1755129838506,
+  "seenAt": 1786473200056
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/malaikat_izroil58?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T07:11:27Z",
+  "http_status": 200,
+  "bytes": 3456538,
+  "sha256": "d3ef856be8ee1b6511d54d21a12d28b70fb53a9a1490b324e4b98b07bc0496e7",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_malaikat_izroil58_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
