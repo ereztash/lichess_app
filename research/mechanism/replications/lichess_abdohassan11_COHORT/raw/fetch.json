@@ -38,21 +38,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/abdohassan11?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/abdohassan11?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T13:18:16Z",
+  "fetched_at": "2026-09-08T19:18:11Z",
   "http_status": 200,
-  "bytes": 3272137,
-  "sha256": "9220e3bcd7cfd1fd102dc8c7c76d6896a7ff302a6cf3c7b879bcb17a4f3ed018",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_abdohassan11_COHORT/raw/history.ndjson",
+  "bytes": 15986728,
+  "sha256": "da14789789d04573b254d8c685577b8208af88a5b70ae8f431eca3166d6aec31",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

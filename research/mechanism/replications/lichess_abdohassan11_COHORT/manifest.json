@@ -6,21 +6,21 @@
  "corpus": "lichess:abdohassan11",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/abdohassan11?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/abdohassan11?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T13:18:16Z",
+  "fetched_at": "2026-09-08T19:18:11Z",
   "http_status": 200,
-  "bytes": 3272137,
-  "sha256": "9220e3bcd7cfd1fd102dc8c7c76d6896a7ff302a6cf3c7b879bcb17a4f3ed018",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_abdohassan11_COHORT/raw/history.ndjson",
+  "bytes": 15986728,
+  "sha256": "da14789789d04573b254d8c685577b8208af88a5b70ae8f431eca3166d6aec31",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -57,16 +57,20 @@
   "createdAt": 1590696842761,
   "seenAt": 1788704448477
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 181,
-  "termination:Time forfeit": 307,
-  "under-20-plies": 12
+  "outside-window": 766,
+  "termination:Abandoned": 8,
+  "termination:Time forfeit": 1559,
+  "under-20-plies": 67
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 1992,
+  "bullet": 204,
+  "classical": 2,
+  "rapid": 2
  },
  "eligibility_rule": {
   "game": {
@@ -80,7 +84,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "ad716927d6f9739d349a53e3c08fc6aa6f8f03d8",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -169,5 +173,5 @@
   "player_id": "abdohassan11",
   "corpus": "lichess:abdohassan11"
  },
- "run_dir": "/tmp/cohort_probes/lichess_abdohassan11_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR"
 }

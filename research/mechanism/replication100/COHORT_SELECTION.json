@@ -2541,7 +2541,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 449,
    "speeds": {
@@ -2560,34 +2560,58 @@
     1800
    ],
    "screen_band_agreed": false,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2192,
+    "blitz_median": 1606.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 189.0
+   }
   },
   {
    "u": "abdohassan11",
    "player_id": "abdohassan11",
    "run_dir": "research/mechanism/replications/lichess_abdohassan11_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 1992,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1664.0,
+   "blitz_median": 1672.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1400,
     1800
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1992,
+    "blitz_median": 1672.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 191.9
+   }
   },
   {
    "u": "rookiepawn89",
@@ -2623,7 +2647,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 431,
    "speeds": {
@@ -2642,7 +2666,19 @@
     2000
    ],
    "screen_band_agreed": false,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2094,
+    "blitz_median": 1731.0,
+    "derived_band": [
+     1550,
+     1950
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.4
+   }
   },
   {
    "u": "omar2137",
@@ -2705,7 +2741,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -2723,7 +2759,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 40.0
+   "seconds": 40.0,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1446,
+    "blitz_median": 1669.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 197.5
+   }
   },
   {
    "u": "cybernandox",
@@ -15254,7 +15302,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 20,
+ "residual_slots_filled": 21,
  "unreachable": [
   {
    "u": "ogbullz",
