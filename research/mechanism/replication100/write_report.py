@@ -75,6 +75,21 @@ def main() -> int:
     for k, v in sorted(sw["rejection_reasons"].items()):
         w("| rejected: %s | %d |" % (k, v))
     w("| **accepted** | **%d** |" % frozen["n_members"])
+    ir = r["ingest_reachability"]
+    if ir["unreachable_events"]:
+        w("")
+        n_ev, n_u, n_q = (ir["unreachable_events"], ir["distinct_usernames"],
+                          ir["still_queued_at_freeze"])
+        w("Separately, **%d** fetch%s failed against **%d** candidate%s the walk could not reach. "
+          "Those are NOT rejections and are not in the table above: nothing about them was judged. "
+          "Each was requeued at its committed position%s."
+          % (n_ev, "" if n_ev == 1 else "es", n_u, "" if n_u == 1 else "s",
+             "" if not n_q else ", and %d %s still queued when the cohort froze"
+                                % (n_q, "was" if n_q == 1 else "were")))
+        if ir.get("rate_limit_waits_absorbed"):
+            w("")
+            w("The ingest layer sat out **%d** rate limits inside requests over the walk."
+              % ir["rate_limit_waits_absorbed"])
     w("")
     w("Every rejection is a pre-analysis failure. No candidate was replaced for anything a run "
       "found, and no run that reached a result was discarded.")
@@ -113,7 +128,11 @@ def main() -> int:
 
     w("## The instrument, measured on itself")
     w("")
-    w("A hundred runs make quantities visible that two runs could only hint at.")
+    # The count is rendered, not asserted. This line used to say "a hundred runs" whatever the
+    # cohort actually held, which would have been a false sentence in any report written over an
+    # incomplete cohort, and an incomplete cohort is exactly when nobody is checking prose.
+    w("%d finished runs make quantities visible that two runs could only hint at."
+      % r["completeness"]["finished"])
     w("")
     w("| | p05 | p50 | p95 |")
     w("|---|---|---|---|")

@@ -1618,6 +1618,63 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.6
+  },
+  {
+   "u": "sysolceh",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1732.5,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "enginekiller",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1762.0,
+   "derived_band": [
+    1550,
+    1950
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 279,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.5
+  },
+  {
+   "u": "astrangia",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1558.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 426,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.7
   }
  ],
  "prefiltered": {
@@ -1695,9 +1752,6 @@
   }
  ],
  "retry_queue": [
-  "sysolceh",
-  "enginekiller",
-  "astrangia",
   "tegenek",
   "virgile23"
  ]

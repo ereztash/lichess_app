@@ -199,6 +199,26 @@ def main() -> int:
         check("the report carries the population-safety gate", "## Population safety" in md)
         check("the report does not print a bare None", "None" not in md,
               next((ln for ln in md.splitlines() if "None" in ln), ""))
+        check("the report states the finished count rather than asserting a hundred",
+              "2 finished runs" in md and "A hundred runs" not in md,
+              next((ln for ln in md.splitlines() if "runs make quantities" in ln), ""))
+
+    # ---- 8. the walk's unreachable candidates reach the reader ------------------------------------
+    with tempfile.TemporaryDirectory() as tmp:
+        build(tmp, [member("a", PRC_RUN), member("b", NULL_RUN)],
+              unreachable=["x", "x", "y"], retry_queue=["y"])
+        read_out(tmp)
+        wr.HERE = tmp
+        sys.argv = ["write_report.py", "--out", os.path.join(tmp, "REPORT.md")]
+        wr.main()
+        md = open(os.path.join(tmp, "REPORT.md")).read()
+        check("the report separates unreachable candidates from rejections",
+              "**3** fetches failed against **2** candidates" in md
+              and "NOT rejections" in md,
+              next((ln for ln in md.splitlines() if "Separately" in ln), "(absent)"))
+        check("the report says how many were still queued at the freeze",
+              "1 was still queued" in md,
+              next((ln for ln in md.splitlines() if "Separately" in ln), "(absent)"))
 
     print("\n%d checks: %d pass, %d fail" % (len(PASS) + len(FAIL), len(PASS), len(FAIL)))
     return 1 if FAIL else 0
