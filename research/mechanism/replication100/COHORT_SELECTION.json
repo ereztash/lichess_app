@@ -340,34 +340,6 @@
    "seconds": 39.5
   },
   {
-   "u": "cesarau",
-   "player_id": "cesarau",
-   "run_dir": "research/mechanism/replications/lichess_cesarau_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
-   "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 340,
-   "speeds": {
-    "blitz": 340,
-    "bullet": 110
-   },
-   "blitz_median": 1663.0,
-   "derived_band": [
-    1450,
-    1850
-   ],
-   "fetch_max": 938,
-   "window_full": true,
-   "screen_predicted_band": [
-    1450,
-    1850
-   ],
-   "screen_band_agreed": true,
-   "seconds": 39.6
-  },
-  {
    "u": "rdumalig",
    "player_id": "rdumalig",
    "run_dir": "research/mechanism/replications/lichess_rdumalig_COHORT",
@@ -2757,5 +2729,15 @@
    "migrated_from_rejected": true
   }
  ],
- "retry_queue": []
+ "retry_queue": [
+  "cesarau"
+ ],
+ "requeued_for_defect": [
+  {
+   "u": "cesarau",
+   "reason": "MANIFEST_RECORDED_A_DIRTY_TREE",
+   "detail": "two untracked audit files were in the tree when this member was ingested, so its manifest records repo_dirty=true and its provenance is not the clean one every other member has. The files are committed now. The member is re-derived rather than excused; nothing had been scored, so this is a pre-analysis replacement.",
+   "run_dir": "research/mechanism/replications/lichess_cesarau_COHORT"
+  }
+ ]
 }
