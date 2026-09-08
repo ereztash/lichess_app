@@ -50,21 +50,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/toscohg?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/toscohg?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T10:10:01Z",
+  "fetched_at": "2026-09-08T18:18:06Z",
   "http_status": 200,
-  "bytes": 3449877,
-  "sha256": "bd5c28a7f9e7b21ec9245376d75a140457b367e8d4a2cb66e9b57e92845a954d",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_toscohg_COHORT/raw/history.ndjson",
+  "bytes": 16974316,
+  "sha256": "ceafc2b6dffba2acfe60678f20cb37e52be73bee8c65bb01a612bbfa10058391",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_toscohg_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

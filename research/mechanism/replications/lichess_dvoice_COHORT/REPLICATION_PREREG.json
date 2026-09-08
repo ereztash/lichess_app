@@ -3,7 +3,7 @@
  "username": "dvoice",
  "canonical_player_id": "dvoice",
  "corpus": "lichess:dvoice",
- "repo_sha": "0b5c4456b5c61fd67eaeafe885ba8c133bcd1cd2",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,13 +40,13 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "no-clocks": 1,
-  "outside-window": 35,
-  "termination:Abandoned": 49,
-  "termination:Time forfeit": 410,
-  "under-20-plies": 5
+  "no-clocks": 7,
+  "outside-window": 134,
+  "termination:Abandoned": 251,
+  "termination:Time forfeit": 1969,
+  "under-20-plies": 39
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -179,6 +179,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T08:41:31Z",
- "prereg_hash": "f2c85362adaa06f68b38fe6c64f4f406a145e2f232b0711e332a939f09f54d2e"
+ "written_at": "2026-09-08T17:40:54Z",
+ "prereg_hash": "3bbb809c4dbd3270d5c019a829610ae14e91d78e51e2485ebbb773a3891f7484"
 }

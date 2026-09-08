@@ -6,21 +6,21 @@
  "corpus": "lichess:dvoice",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/dvoice?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/dvoice?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T08:40:53Z",
+  "fetched_at": "2026-09-08T17:37:48Z",
   "http_status": 200,
-  "bytes": 3339191,
-  "sha256": "011318fdf73f1e21a3753c0294bd8e1acce770ea7813f90757f0d3cd9939c367",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_dvoice_COHORT/raw/history.ndjson",
+  "bytes": 15806068,
+  "sha256": "f087e3b1d7ef2a03ab31ddc450c92dc31a1b563a603aab4c6bddf4a2ca9da84f",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_dvoice_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -77,18 +77,19 @@
   "createdAt": 1544611498105,
   "seenAt": 1788821603678
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "no-clocks": 1,
-  "outside-window": 35,
-  "termination:Abandoned": 49,
-  "termination:Time forfeit": 410,
-  "under-20-plies": 5
+  "no-clocks": 7,
+  "outside-window": 134,
+  "termination:Abandoned": 251,
+  "termination:Time forfeit": 1969,
+  "under-20-plies": 39
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2199,
+  "rapid": 1
  },
  "eligibility_rule": {
   "game": {
@@ -102,7 +103,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "0b5c4456b5c61fd67eaeafe885ba8c133bcd1cd2",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -191,5 +192,5 @@
   "player_id": "dvoice",
   "corpus": "lichess:dvoice"
  },
- "run_dir": "/tmp/cohort_probes/lichess_dvoice_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_dvoice_COHORTR"
 }

@@ -3,7 +3,7 @@
  "username": "boligarla",
  "canonical_player_id": "boligarla",
  "corpus": "lichess:boligarla",
- "repo_sha": "9035e00ac8982a9a98e1f034e56186b266866b5f",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,12 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 317,
-  "termination:Time forfeit": 167,
-  "under-20-plies": 16
+  "outside-window": 1516,
+  "termination:Insufficient material": 1,
+  "termination:Time forfeit": 834,
+  "under-20-plies": 49
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +178,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T09:27:16Z",
- "prereg_hash": "be1d16173c731e22bde545956895b5d38e675db6572e9b23b329199ad876126e"
+ "written_at": "2026-09-08T18:05:34Z",
+ "prereg_hash": "f27e7f5a9e23f9d0bdad0c82fce87b92fc1326f6689a51b9641cbe0c569ac926"
 }

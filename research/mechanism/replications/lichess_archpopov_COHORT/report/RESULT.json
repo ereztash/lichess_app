@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_archpopov_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_archpopov_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "archpopov",
@@ -7,21 +7,20 @@
   "corpus": "lichess:archpopov"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "8f594a882caca361d6339a552740f4ab13673f8e",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "duplicate-game-id": 1,
-   "outside-window": 266,
-   "termination:Time forfeit": 212,
-   "under-20-plies": 21
+   "outside-window": 1255,
+   "termination:Time forfeit": 1026,
+   "under-20-plies": 119
   },
   "speeds": {
-   "blitz": 449,
+   "blitz": 2199,
    "bullet": 1
   }
  },
@@ -63,21 +62,20 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "duplicate-game-id": 1,
-   "outside-window": 266,
-   "termination:Time forfeit": 212,
-   "under-20-plies": 21
+   "outside-window": 1255,
+   "termination:Time forfeit": 1026,
+   "under-20-plies": 119
   },
   "speeds": {
-   "blitz": 449,
+   "blitz": 2199,
    "bullet": 1
   },
-  "admissible_path": "/tmp/cohort_probes/lichess_archpopov_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_archpopov_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

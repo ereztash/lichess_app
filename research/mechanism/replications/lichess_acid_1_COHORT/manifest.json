@@ -6,21 +6,21 @@
  "corpus": "lichess:acid_1",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/acid_1?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/acid_1?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T08:52:35Z",
+  "fetched_at": "2026-09-08T17:46:50Z",
   "http_status": 200,
-  "bytes": 3360775,
-  "sha256": "90f85d3f84ea17dc72364d121d27ea2e8cd0bb2cc2035b661b864a707c463820",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_acid_1_COHORT/raw/history.ndjson",
+  "bytes": 15911842,
+  "sha256": "0b68e0a0d3eaae12f034b7e7380f882fb14b01709a930b5a32186edd37464187",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_acid_1_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -57,17 +57,17 @@
   "createdAt": 1623503722834,
   "seenAt": 1788043678312
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 265,
-  "termination:Time forfeit": 208,
-  "under-20-plies": 27
+  "outside-window": 1183,
+  "termination:Time forfeit": 1091,
+  "under-20-plies": 126
  },
  "speeds": {
-  "blitz": 445,
-  "bullet": 5
+  "blitz": 2184,
+  "bullet": 16
  },
  "eligibility_rule": {
   "game": {
@@ -81,7 +81,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "853075a1e89500d45a3fe9d9a6d94e0018fea7ed",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -170,5 +170,5 @@
   "player_id": "acid_1",
   "corpus": "lichess:acid_1"
  },
- "run_dir": "/tmp/cohort_probes/lichess_acid_1_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_acid_1_COHORTR"
 }

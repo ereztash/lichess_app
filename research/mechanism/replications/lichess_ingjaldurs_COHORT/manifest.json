@@ -6,21 +6,21 @@
  "corpus": "lichess:ingjaldurs",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/ingjaldurs?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/ingjaldurs?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T09:05:59Z",
+  "fetched_at": "2026-09-08T17:53:05Z",
   "http_status": 200,
-  "bytes": 3767565,
-  "sha256": "a7148d96df470a5770c335cbae6a8b5b0bed5c2a7844b985312b982d3ee2af7b",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORT/raw/history.ndjson",
+  "bytes": 18441332,
+  "sha256": "bd46f61b950175447fa7c9414b202c56ace217d807a99b608569fa8b3020acfc",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -53,16 +53,16 @@
   "createdAt": 1596488621760,
   "seenAt": 1788848194444
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 257,
-  "termination:Time forfeit": 230,
-  "under-20-plies": 13
+  "outside-window": 1256,
+  "termination:Time forfeit": 1096,
+  "under-20-plies": 48
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2200
  },
  "eligibility_rule": {
   "game": {
@@ -76,7 +76,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "ecf8a822f4ab0a7a842cc253c0b32cd69808c9e8",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +165,5 @@
   "player_id": "ingjaldurs",
   "corpus": "lichess:ingjaldurs"
  },
- "run_dir": "/tmp/cohort_probes/lichess_ingjaldurs_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_ingjaldurs_COHORTR"
 }

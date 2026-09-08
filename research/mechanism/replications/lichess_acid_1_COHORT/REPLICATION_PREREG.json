@@ -3,7 +3,7 @@
  "username": "acid_1",
  "canonical_player_id": "acid_1",
  "corpus": "lichess:acid_1",
- "repo_sha": "853075a1e89500d45a3fe9d9a6d94e0018fea7ed",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,11 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 265,
-  "termination:Time forfeit": 208,
-  "under-20-plies": 27
+  "outside-window": 1183,
+  "termination:Time forfeit": 1091,
+  "under-20-plies": 126
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +177,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T08:53:14Z",
- "prereg_hash": "bbb8d0dddf94c1e3395f5ca6bcac55382501f9041349e34972954bc16dcf7578"
+ "written_at": "2026-09-08T17:49:56Z",
+ "prereg_hash": "ada848f329dd7c1d1deb6e75ce878bb9de81655880cf9d7e2a478785a4c08adf"
 }

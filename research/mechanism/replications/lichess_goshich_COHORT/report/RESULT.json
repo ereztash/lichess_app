@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_goshich_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_goshich_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "goshich",
@@ -7,20 +7,20 @@
   "corpus": "lichess:goshich"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "28c0b1585c1870b410673f36af6660e1bd97e2d9",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "outside-window": 185,
-   "termination:Time forfeit": 289,
-   "under-20-plies": 26
+   "outside-window": 866,
+   "termination:Time forfeit": 1407,
+   "under-20-plies": 127
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2200
   }
  },
  "claim_ladder": [
@@ -61,19 +61,19 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "outside-window": 185,
-   "termination:Time forfeit": 289,
-   "under-20-plies": 26
+   "outside-window": 866,
+   "termination:Time forfeit": 1407,
+   "under-20-plies": 127
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2200
   },
-  "admissible_path": "/tmp/cohort_probes/lichess_goshich_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_goshich_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

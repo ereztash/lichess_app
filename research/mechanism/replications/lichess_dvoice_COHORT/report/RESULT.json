@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_dvoice_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_dvoice_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "dvoice",
@@ -7,22 +7,23 @@
   "corpus": "lichess:dvoice"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "0b5c4456b5c61fd67eaeafe885ba8c133bcd1cd2",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "no-clocks": 1,
-   "outside-window": 35,
-   "termination:Abandoned": 49,
-   "termination:Time forfeit": 410,
-   "under-20-plies": 5
+   "no-clocks": 7,
+   "outside-window": 134,
+   "termination:Abandoned": 251,
+   "termination:Time forfeit": 1969,
+   "under-20-plies": 39
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2199,
+   "rapid": 1
   }
  },
  "claim_ladder": [
@@ -63,21 +64,22 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "no-clocks": 1,
-   "outside-window": 35,
-   "termination:Abandoned": 49,
-   "termination:Time forfeit": 410,
-   "under-20-plies": 5
+   "no-clocks": 7,
+   "outside-window": 134,
+   "termination:Abandoned": 251,
+   "termination:Time forfeit": 1969,
+   "under-20-plies": 39
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2199,
+   "rapid": 1
   },
-  "admissible_path": "/tmp/cohort_probes/lichess_dvoice_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_dvoice_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

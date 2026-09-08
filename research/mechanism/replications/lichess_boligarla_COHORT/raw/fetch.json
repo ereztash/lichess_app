@@ -9,8 +9,8 @@
     "rating": 1199
    },
    "blitz": {
-    "games": 4746,
-    "rating": 1654
+    "games": 4757,
+    "rating": 1660
    },
    "rapid": {
     "games": 224,
@@ -30,25 +30,25 @@
    }
   },
   "createdAt": 1647734992428,
-  "seenAt": 1788838407363
+  "seenAt": 1788881321320
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/boligarla?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/boligarla?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T09:26:37Z",
+  "fetched_at": "2026-09-08T18:02:29Z",
   "http_status": 200,
-  "bytes": 3931649,
-  "sha256": "c4a57edd54ae1792ffa77970ca88bff1e7e9c849563cbfa3a5e9bef041af304a",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_boligarla_COHORT/raw/history.ndjson",
+  "bytes": 19002045,
+  "sha256": "7bddae38109500064ce49e33d590cdb797abef952dd40feaae50c8a9e701a7cd",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_boligarla_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

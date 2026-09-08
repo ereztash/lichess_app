@@ -34,21 +34,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/mcpolan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/mcpolan?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T09:59:56Z",
+  "fetched_at": "2026-09-08T18:11:51Z",
   "http_status": 200,
-  "bytes": 3004264,
-  "sha256": "2b51a2e9dc1873a7f16841372b50210f2bb8e3df9d9a9799b315ea10556bd78a",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_mcpolan_COHORT/raw/history.ndjson",
+  "bytes": 14889133,
+  "sha256": "7c48907f5b83f7cc6abf4e5ef19bd55770d11d9360628739a12c733fa7ba6a61",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_mcpolan_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

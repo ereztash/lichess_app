@@ -3,7 +3,7 @@
  "username": "ingjaldurs",
  "canonical_player_id": "ingjaldurs",
  "corpus": "lichess:ingjaldurs",
- "repo_sha": "ecf8a822f4ab0a7a842cc253c0b32cd69808c9e8",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,11 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 257,
-  "termination:Time forfeit": 230,
-  "under-20-plies": 13
+  "outside-window": 1256,
+  "termination:Time forfeit": 1096,
+  "under-20-plies": 48
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +177,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T09:06:38Z",
- "prereg_hash": "cf3ca4a619fb78fe3b25c57e57696a6f7859003078843f3f4ea76d921cc2583e"
+ "written_at": "2026-09-08T17:56:10Z",
+ "prereg_hash": "cb2014cfbbe7d02dd9222161bd829240fce99a3d3772eaae5071b578d05516ed"
 }

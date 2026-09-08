@@ -58,21 +58,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/dvoice?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/dvoice?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T08:40:53Z",
+  "fetched_at": "2026-09-08T17:37:48Z",
   "http_status": 200,
-  "bytes": 3339191,
-  "sha256": "011318fdf73f1e21a3753c0294bd8e1acce770ea7813f90757f0d3cd9939c367",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_dvoice_COHORT/raw/history.ndjson",
+  "bytes": 15806068,
+  "sha256": "f087e3b1d7ef2a03ab31ddc450c92dc31a1b563a603aab4c6bddf4a2ca9da84f",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_dvoice_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

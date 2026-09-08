@@ -7,9 +7,9 @@
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `ecf8a822f4ab0a7a842cc253c0b32cd69808c9e8` |
+| repo SHA | `3dc4aade3164fd11f2f2e847d39b52dd65af8de6` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_ingjaldurs_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_ingjaldurs_COHORTR` |
 
 ## PLAYER
 
@@ -19,19 +19,19 @@
 
 ## CORPUS
 
-- fetched: 950
-- admissible under the frozen rule: 450
-- scorable (admissible AND standard variant): 450
+- fetched: 4600
+- admissible under the frozen rule: 2200
+- scorable (admissible AND standard variant): 2200
 - eligible decisions: None
-- speeds: {'blitz': 450}
+- speeds: {'blitz': 2200}
 
 ## ELIGIBILITY
 
 Every exclusion, by the baseline's own reason vocabulary:
 
-- `outside-window`: 257
-- `termination:Time forfeit`: 230
-- `under-20-plies`: 13
+- `outside-window`: 1256
+- `termination:Time forfeit`: 1096
+- `under-20-plies`: 48
 
 Ids of every excluded game are in `admissible/exclusions.json`.
 

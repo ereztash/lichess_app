@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_ingjaldurs_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_ingjaldurs_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "ingjaldurs",
@@ -7,20 +7,20 @@
   "corpus": "lichess:ingjaldurs"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "ecf8a822f4ab0a7a842cc253c0b32cd69808c9e8",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "outside-window": 257,
-   "termination:Time forfeit": 230,
-   "under-20-plies": 13
+   "outside-window": 1256,
+   "termination:Time forfeit": 1096,
+   "under-20-plies": 48
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2200
   }
  },
  "claim_ladder": [
@@ -61,19 +61,19 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "outside-window": 257,
-   "termination:Time forfeit": 230,
-   "under-20-plies": 13
+   "outside-window": 1256,
+   "termination:Time forfeit": 1096,
+   "under-20-plies": 48
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2200
   },
-  "admissible_path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

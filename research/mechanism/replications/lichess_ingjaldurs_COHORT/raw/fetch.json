@@ -34,21 +34,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/ingjaldurs?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/ingjaldurs?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T09:05:59Z",
+  "fetched_at": "2026-09-08T17:53:05Z",
   "http_status": 200,
-  "bytes": 3767565,
-  "sha256": "a7148d96df470a5770c335cbae6a8b5b0bed5c2a7844b985312b982d3ee2af7b",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORT/raw/history.ndjson",
+  "bytes": 18441332,
+  "sha256": "bd46f61b950175447fa7c9414b202c56ace217d807a99b608569fa8b3020acfc",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_ingjaldurs_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

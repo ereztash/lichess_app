@@ -30,21 +30,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/montifiqe?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/montifiqe?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T10:02:35Z",
+  "fetched_at": "2026-09-08T18:14:59Z",
   "http_status": 200,
-  "bytes": 3321381,
-  "sha256": "778f42186fe85d288bb218b1b6855b2b081ed0a5ee9f3ef21bd481c4e841ec42",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_montifiqe_COHORT/raw/history.ndjson",
+  "bytes": 15919448,
+  "sha256": "c74583779acb8f55ee35a3feb146d29bdc86cf0ae9af95d1334e637861dc4cc4",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_montifiqe_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

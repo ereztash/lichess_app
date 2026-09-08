@@ -30,25 +30,25 @@
    }
   },
   "createdAt": 1541096169274,
-  "seenAt": 1788858735217
+  "seenAt": 1788881770843
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/archpopov?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/archpopov?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T09:16:40Z",
+  "fetched_at": "2026-09-08T17:56:11Z",
   "http_status": 200,
-  "bytes": 3585088,
-  "sha256": "e452dbe002f32d902626c6983a17a96e856b5b75bc50b0a1b97fa4cb96cbd627",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_archpopov_COHORT/raw/history.ndjson",
+  "bytes": 17477020,
+  "sha256": "286ef39c1eba17f19e46e6633c27c0cdb1c94c3ba509b5a6a5ae5c3e3381460b",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_archpopov_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

@@ -3,7 +3,7 @@
  "username": "al3s",
  "canonical_player_id": "al3s",
  "corpus": "lichess:al3s",
- "repo_sha": "8f594a882caca361d6339a552740f4ab13673f8e",
+ "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,12 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 305,
-  "termination:Time forfeit": 181,
-  "under-20-plies": 14
+  "non-standard-variant": 1,
+  "outside-window": 1353,
+  "termination:Time forfeit": 958,
+  "under-20-plies": 89
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2199,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +178,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T09:23:17Z",
- "prereg_hash": "1daae95ff4e8e5c9d18b55af74438d32beb5248f5bb77d14f8048e0e0495a24b"
+ "written_at": "2026-09-08T18:02:27Z",
+ "prereg_hash": "ce8b837007cb7015124b98d8fb5b65584727b024e4ffbf4ee7ee59685ca75a42"
 }

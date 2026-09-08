@@ -42,21 +42,21 @@
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/al3s?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/al3s?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T09:22:38Z",
+  "fetched_at": "2026-09-08T17:59:22Z",
   "http_status": 200,
-  "bytes": 3240122,
-  "sha256": "e62ddd8d77bf12c55be2c9f033b02c2be8ebb9f0609cff85eaa9cd1357696898",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_al3s_COHORT/raw/history.ndjson",
+  "bytes": 15508341,
+  "sha256": "e5b2e795a28eb0775f5a983c6559b16a7d8f73347377997cfb34d2105f7a72e9",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_al3s_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,
