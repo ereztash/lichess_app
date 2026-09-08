@@ -53,6 +53,15 @@ Probes are written outside the repository because most candidates are rejected a
 accepted probe is promoted into `research/mechanism/replications/` the moment it is accepted, so
 **commit after a walk stops** or the members it found go with the container.
 
+**Do not ask `pgrep -f cohort_select.py` whether the walk is running.** The pattern matches the
+shell that runs the check, so it answers yes with no walk anywhere on the machine. It reported a
+live walk for an hour after that walk had died, and the only reason the death was noticed at all is
+that the cursor had stopped moving. Ask something that cannot answer for itself: the cursor and
+`accepted` in `COHORT_SELECTION.json` advancing, or a recorded pid whose `ps -p <pid> -o cmd=` still
+names `cohort_select.py`. Restarting costs nothing when the walk is in fact alive -- the state file
+is the resume point and a second process would simply re-derive from it -- so a check that cannot
+be trusted is worse than no check.
+
 Measured over the walk's own first 237 fetches: 38 s mean at the broad bound for a candidate that
 is accepted, 52 s for one that is rejected, 176 s at the residual bound, and one acceptance per
 seven fetched candidates. 34 accepted in 3 h 26 min is 9.9 an hour, so Phase A is about 10 hours and
