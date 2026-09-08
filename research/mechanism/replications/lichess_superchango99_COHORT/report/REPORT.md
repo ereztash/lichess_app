@@ -7,9 +7,9 @@
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `f658068b6ddd00564d661d6f35035538eb11367c` |
+| repo SHA | `d859ebe42c7560253de606327fec92f9ae2c59fc` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_superchango99_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_superchango99_COHORTR` |
 
 ## PLAYER
 
@@ -19,19 +19,19 @@
 
 ## CORPUS
 
-- fetched: 950
-- admissible under the frozen rule: 450
-- scorable (admissible AND standard variant): 450
+- fetched: 4600
+- admissible under the frozen rule: 2200
+- scorable (admissible AND standard variant): 2200
 - eligible decisions: None
-- speeds: {'blitz': 448, 'rapid': 2}
+- speeds: {'blitz': 2197, 'rapid': 3}
 
 ## ELIGIBILITY
 
 Every exclusion, by the baseline's own reason vocabulary:
 
-- `outside-window`: 313
-- `termination:Time forfeit`: 159
-- `under-20-plies`: 28
+- `outside-window`: 1584
+- `termination:Time forfeit`: 692
+- `under-20-plies`: 124
 
 Ids of every excluded game are in `admissible/exclusions.json`.
 

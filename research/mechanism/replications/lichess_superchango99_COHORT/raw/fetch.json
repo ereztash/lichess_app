@@ -9,8 +9,8 @@
     "rating": 1339
    },
    "blitz": {
-    "games": 24199,
-    "rating": 1544
+    "games": 24202,
+    "rating": 1542
    },
    "rapid": {
     "games": 130,
@@ -34,25 +34,25 @@
    }
   },
   "createdAt": 1454263467593,
-  "seenAt": 1788840198657
+  "seenAt": 1788876470006
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/superchango99?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/superchango99?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T07:37:33Z",
+  "fetched_at": "2026-09-08T17:01:20Z",
   "http_status": 200,
-  "bytes": 3504120,
-  "sha256": "7760f88c5a1d5846c04f27e183d6396c8eeb3162b0c31c15501fa4976d086859",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_superchango99_COHORT/raw/history.ndjson",
+  "bytes": 16448013,
+  "sha256": "4694430a8564cf117329aa9014da45df51217c460a124ec7d7b58d603a9325c5",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_superchango99_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

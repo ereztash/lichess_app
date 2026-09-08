@@ -494,7 +494,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -512,35 +512,59 @@
     1800
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2101,
+    "blitz_median": 1612.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.1
+   }
   },
   {
    "u": "superchango99",
    "player_id": "superchango99",
    "run_dir": "research/mechanism/replications/lichess_superchango99_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 448,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2197,
    "speeds": {
     "blitz": 448,
     "rapid": 2
    },
-   "blitz_median": 1659.0,
+   "blitz_median": 1650.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1350,
     1750
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2197,
+    "blitz_median": 1650.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 187.4
+   }
   },
   {
    "u": "cesarau",
@@ -14738,7 +14762,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 3,
+ "residual_slots_filled": 4,
  "unreachable": [
   {
    "u": "ogbullz",
