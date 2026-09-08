@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_navaneethav_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_navaneethav_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "navaneethav",
@@ -7,20 +7,21 @@
   "corpus": "lichess:navaneethav"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "617e9e3333345ec6cbb3766487591c908728bd39",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "outside-window": 239,
-   "termination:Time forfeit": 236,
-   "under-20-plies": 25
+   "no-clocks": 1,
+   "outside-window": 1034,
+   "termination:Time forfeit": 1214,
+   "under-20-plies": 151
   },
   "speeds": {
-   "blitz": 447,
+   "blitz": 2197,
    "bullet": 3
   }
  },
@@ -62,20 +63,21 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "outside-window": 239,
-   "termination:Time forfeit": 236,
-   "under-20-plies": 25
+   "no-clocks": 1,
+   "outside-window": 1034,
+   "termination:Time forfeit": 1214,
+   "under-20-plies": 151
   },
   "speeds": {
-   "blitz": 447,
+   "blitz": 2197,
    "bullet": 3
   },
-  "admissible_path": "/tmp/cohort_probes/lichess_navaneethav_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_navaneethav_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

@@ -6,21 +6,21 @@
  "corpus": "lichess:navaneethav",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/navaneethav?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/navaneethav?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T12:59:09Z",
+  "fetched_at": "2026-09-08T19:06:36Z",
   "http_status": 200,
-  "bytes": 2912141,
-  "sha256": "c3e9c2a166eff070c8c86c2282fc9bf84e78a370ae58c802ea71625bad6f1702",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_navaneethav_COHORT/raw/history.ndjson",
+  "bytes": 14198640,
+  "sha256": "d4730aec0ae6d0fa0bf27a2d70b647b56829b9733e39c5f1cfc7bc20b87b486a",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_navaneethav_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -30,8 +30,8 @@
     "rating": 1375
    },
    "blitz": {
-    "games": 12577,
-    "rating": 1674
+    "games": 12582,
+    "rating": 1680
    },
    "rapid": {
     "games": 12,
@@ -55,18 +55,19 @@
    }
   },
   "createdAt": 1520600363515,
-  "seenAt": 1788672820910
+  "seenAt": 1788881390766
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 239,
-  "termination:Time forfeit": 236,
-  "under-20-plies": 25
+  "no-clocks": 1,
+  "outside-window": 1034,
+  "termination:Time forfeit": 1214,
+  "under-20-plies": 151
  },
  "speeds": {
-  "blitz": 447,
+  "blitz": 2197,
   "bullet": 3
  },
  "eligibility_rule": {
@@ -81,7 +82,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "617e9e3333345ec6cbb3766487591c908728bd39",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -170,5 +171,5 @@
   "player_id": "navaneethav",
   "corpus": "lichess:navaneethav"
  },
- "run_dir": "/tmp/cohort_probes/lichess_navaneethav_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_navaneethav_COHORTR"
 }

@@ -3,7 +3,7 @@
  "username": "navaneethav",
  "canonical_player_id": "navaneethav",
  "corpus": "lichess:navaneethav",
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "617e9e3333345ec6cbb3766487591c908728bd39",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,12 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 239,
-  "termination:Time forfeit": 236,
-  "under-20-plies": 25
+  "no-clocks": 1,
+  "outside-window": 1034,
+  "termination:Time forfeit": 1214,
+  "under-20-plies": 151
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +178,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T12:59:48Z",
- "prereg_hash": "c8e5e019f70d40627c588145ad18d86d0a04aaec8b83b2a1af5866da5763526e"
+ "written_at": "2026-09-08T19:09:42Z",
+ "prereg_hash": "3dc049ca9303ec2194c12bff60f9dd78067eedc2e1d43345716a40b67110947f"
 }

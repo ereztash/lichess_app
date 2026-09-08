@@ -2170,7 +2170,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 415,
    "speeds": {
@@ -2189,7 +2189,19 @@
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1872,
+    "blitz_median": 1692.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.2
+   }
   },
   {
    "u": "alexduranr",
@@ -2198,7 +2210,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 429,
    "speeds": {
@@ -2217,7 +2229,19 @@
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.9
+   "seconds": 39.9,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2051,
+    "blitz_median": 1732.0,
+    "derived_band": [
+     1550,
+     1950
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.8
+   }
   },
   {
    "u": "dm77777",
@@ -2256,7 +2280,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 250,
    "speeds": {
@@ -2276,7 +2300,19 @@
     1950
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 1963,
+    "blitz_median": 1622.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 176.8
+   }
   },
   {
    "u": "yurisato123",
@@ -2311,29 +2347,41 @@
    "u": "navaneethav",
    "player_id": "navaneethav",
    "run_dir": "research/mechanism/replications/lichess_navaneethav_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 447,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2197,
    "speeds": {
     "blitz": 447,
     "bullet": 3
    },
-   "blitz_median": 1650.0,
+   "blitz_median": 1674.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1450,
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.8
+   "seconds": 39.8,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2197,
+    "blitz_median": 1674.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 187.7
+   }
   },
   {
    "u": "ilpiccolopico",
@@ -2399,7 +2447,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -2417,7 +2465,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.9
+   "seconds": 39.9,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2200,
+    "blitz_median": 1686.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.9
+   }
   },
   {
    "u": "josephm613",
@@ -15194,7 +15254,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 19,
+ "residual_slots_filled": 20,
  "unreachable": [
   {
    "u": "ogbullz",
@@ -15294,6 +15354,15 @@
    "rate_limited_waits": 0,
    "phase": "B",
    "at": "2026-09-08T17:27:51Z",
+   "requeued": true
+  },
+  {
+   "u": "josephm613",
+   "reason": "FETCH_FAILED",
+   "detail": "IncompleteRead on https://lichess.org/api/games/user/josephm613?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584: IncompleteRead(9101494 bytes read)",
+   "rate_limited_waits": 0,
+   "phase": "B",
+   "at": "2026-09-08T19:14:31Z",
    "requeued": true
   }
  ],

@@ -9,8 +9,8 @@
     "rating": 1375
    },
    "blitz": {
-    "games": 12577,
-    "rating": 1674
+    "games": 12582,
+    "rating": 1680
    },
    "rapid": {
     "games": 12,
@@ -34,25 +34,25 @@
    }
   },
   "createdAt": 1520600363515,
-  "seenAt": 1788672820910
+  "seenAt": 1788881390766
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/navaneethav?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/navaneethav?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T12:59:09Z",
+  "fetched_at": "2026-09-08T19:06:36Z",
   "http_status": 200,
-  "bytes": 2912141,
-  "sha256": "c3e9c2a166eff070c8c86c2282fc9bf84e78a370ae58c802ea71625bad6f1702",
-  "records": 950,
-  "path": "/tmp/cohort_probes/lichess_navaneethav_COHORT/raw/history.ndjson",
+  "bytes": 14198640,
+  "sha256": "d4730aec0ae6d0fa0bf27a2d70b647b56829b9733e39c5f1cfc7bc20b87b486a",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_navaneethav_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,
