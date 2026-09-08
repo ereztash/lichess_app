@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 933,
+ "cursor": 936,
  "accepted": [
   {
    "u": "nouramine",
@@ -7265,10 +7265,29 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 36.2
+  },
+  {
+   "u": "thelibripens",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1805.0,
+   "derived_band": [
+    1600,
+    2000
+   ],
+   "screen_predicted_band": [
+    1600,
+    2000
+   ],
+   "admissible": 450,
+   "blitz_admissible": 438,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 533,
+  "PREFILTER_RATING_FAR_FROM_BAND": 535,
   "PREFILTER_TOO_FEW_GAMES": 15
  },
  "residual_slots_filled": 0,
