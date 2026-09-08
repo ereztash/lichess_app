@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 1876,
+ "cursor": 1879,
  "accepted": [
   {
    "u": "nouramine",
@@ -2667,6 +2667,33 @@
    ],
    "screen_band_agreed": false,
    "seconds": 39.8
+  },
+  {
+   "u": "nerdstomper3",
+   "player_id": "nerdstomper3",
+   "run_dir": "research/mechanism/replications/lichess_nerdstomper3_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1670.0,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "seconds": 40.0
   }
  ],
  "rejected": [
@@ -14316,7 +14343,7 @@
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 1084,
+  "PREFILTER_RATING_FAR_FROM_BAND": 1086,
   "PREFILTER_TOO_FEW_GAMES": 38
  },
  "residual_slots_filled": 0,
