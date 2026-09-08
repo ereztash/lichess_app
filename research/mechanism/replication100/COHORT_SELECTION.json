@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 471,
+ "cursor": 478,
  "accepted": [
   {
    "u": "nouramine",
@@ -615,6 +615,33 @@
    ],
    "screen_band_agreed": true,
    "seconds": 39.8
+  },
+  {
+   "u": "goshich",
+   "player_id": "goshich",
+   "run_dir": "research/mechanism/replications/lichess_goshich_COHORT",
+   "window": 450,
+   "window_class": "BROAD",
+   "residual_capable": true,
+   "residual_attempted": false,
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "speeds": {
+    "blitz": 450
+   },
+   "blitz_median": 1633.5,
+   "derived_band": [
+    1450,
+    1850
+   ],
+   "fetch_max": 938,
+   "window_full": true,
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "screen_band_agreed": false,
+   "seconds": 41.0
   }
  ],
  "rejected": [
@@ -3541,10 +3568,34 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.7
+  },
+  {
+   "u": "haminson",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1603.0,
+   "derived_band": [
+    1400,
+    1800
+   ],
+   "screen_predicted_band": [
+    1400,
+    1800
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.8
+  },
+  {
+   "u": "rovaish",
+   "reason": "IN_POPULATION_BASELINE",
+   "_phase": 19
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 275,
+  "PREFILTER_RATING_FAR_FROM_BAND": 279,
   "PREFILTER_TOO_FEW_GAMES": 8
  },
  "residual_slots_filled": 0,

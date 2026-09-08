@@ -1,0 +1,56 @@
+{
+ "platform": "lichess",
+ "username": "goshich",
+ "player_id": "goshich",
+ "profile": {
+  "perfs": {
+   "bullet": {
+    "games": 1,
+    "rating": 1273
+   },
+   "blitz": {
+    "games": 58118,
+    "rating": 1617
+   },
+   "rapid": {
+    "games": 22,
+    "rating": 2015
+   },
+   "classical": {
+    "games": 2,
+    "rating": 1576
+   },
+   "correspondence": {
+    "games": 1,
+    "rating": 1258
+   },
+   "puzzle": {
+    "games": 15,
+    "rating": 1669
+   }
+  },
+  "createdAt": 1573908335766,
+  "seenAt": 1788793296889
+ },
+ "fetch": {
+  "mode": "api-user-export",
+  "url": "https://lichess.org/api/games/user/goshich?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "query": {
+   "rated": "true",
+   "clocks": "true",
+   "opening": "true",
+   "pgnInJson": "true",
+   "sort": "dateDesc",
+   "max": "938"
+  },
+  "fetched_at": "2026-09-08T08:21:04Z",
+  "http_status": 200,
+  "bytes": 3408802,
+  "sha256": "8c8c251d32c986c1ea4235f119530820761db757080e94cb9a62cec1dc666a42",
+  "records": 950,
+  "path": "/tmp/cohort_probes/lichess_goshich_COHORT/raw/history.ndjson",
+  "notes": []
+ },
+ "token_used": false,
+ "contract_version": "replication-1.0.0"
+}
