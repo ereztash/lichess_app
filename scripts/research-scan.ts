@@ -322,6 +322,13 @@ export const RESEARCH_RELATIONS: HashRelation[] = [
     why: "the bytes lichess returned for each cohort member's games, gitignored for the reason every other run's raw export is: a third party's game history is not this repository's to carry. The digest lets a rerun prove it read the same response",
   },
   {
+    artefact: "research/mechanism/replication100/SCALING_BENCH.json",
+    keyPath: "corpus.frozen_digest|rows.[].digest",
+    kind: "INTERNAL_DIGEST",
+    status: "CURRENT",
+    why: "the compute-scaling benchmark's own equivalence proof, and it can be checked nowhere but in the run that produced it. `frozen_digest` is a sha256 over the canonical reassembly of the ALREADY-SCORED records for a 64-game slice of Player B, read from that run's `scored/*.jsonl`, which is gitignored like every other run's scored output; `rows.[].digest` is the same digest recomputed over what each worker topology produced, into a scratch directory outside the repository that the benchmark deletes. Neither names a tree file, so neither is assertable here. What the artefact claims is the EQUALITY -- one distinct digest across 1, 2, 4 and 8 workers, all equal to the frozen one -- and that was measured at the time rather than argued: sharding changes which part file holds a game and cannot change a digest taken over the reassembled set. The benchmark scored no cohort member and changed no depth, MultiPV, thread count, hash size, eligibility rule or threshold",
+  },
+  {
     artefact: "research/b3_population_expertise/results/period_*.json",
     keyPath: "_cache_key",
     kind: "INTERNAL_DIGEST",
@@ -408,11 +415,17 @@ function globToRegex(glob: string): string {
  * earlier version used `[^.]+` here, which matched nothing at all and reported all five live freeze
  * records as unclassified while `findStaleFrozenHashes` was checking them. `|` stays alive so one
  * row can cover a set of sibling key names.
+ *
+ * `[` AND `]` ARE ESCAPED BECAUSE THE SCANNER ITSELF EMITS THEM. `findUnregisteredClaims` reports a
+ * hash inside an array as `rows.[].digest`, so that is the shape an author has to write here -- and
+ * unescaped it is an empty character class, a regex that matches nothing while looking like it
+ * matches the key. A row written in the shape the scanner printed would have stayed silently
+ * uncovered, which is the one failure this predicate exists to make impossible.
  */
 function keyPathToRegex(keyPath: string): string {
   return keyPath
     .split("|")
-    .map((part) => part.replace(/[.]/g, "\\.").replace("<doc>", ".+"))
+    .map((part) => part.replace(/[.[\]]/g, (c) => `\\${c}`).replace("<doc>", ".+"))
     .join("|");
 }
 
