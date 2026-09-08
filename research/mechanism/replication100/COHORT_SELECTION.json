@@ -4,7 +4,7 @@
  "frame_hash": "fa6b05a4bc9fb392d26a60bdd90dae1643df2f987cbaf6eb365e7dd13ff96d81",
  "seed": 20260907100,
  "started_at": "2026-09-08T05:49:36Z",
- "cursor": 230,
+ "cursor": 237,
  "accepted": [
   {
    "u": "nouramine",
@@ -2018,10 +2018,29 @@
    "fetch_max": 938,
    "window_full": true,
    "seconds": 39.8
+  },
+  {
+   "u": "sayantanbsws7",
+   "reason": "POPULATION_BASELINE_INSUFFICIENT",
+   "blitz_median": 1539.0,
+   "derived_band": [
+    1350,
+    1750
+   ],
+   "screen_predicted_band": [
+    1350,
+    1750
+   ],
+   "admissible": 450,
+   "blitz_admissible": 450,
+   "window": 450,
+   "fetch_max": 938,
+   "window_full": true,
+   "seconds": 39.6
   }
  ],
  "prefiltered": {
-  "PREFILTER_RATING_FAR_FROM_BAND": 121,
+  "PREFILTER_RATING_FAR_FROM_BAND": 127,
   "PREFILTER_TOO_FEW_GAMES": 4
  },
  "residual_slots_filled": 0,
