@@ -385,7 +385,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -403,7 +403,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.5
+   "seconds": 39.5,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2200,
+    "blitz_median": 1616.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 189.0
+   }
   },
   {
    "u": "bbbiney1",
@@ -442,7 +454,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 448,
    "speeds": {
@@ -461,7 +473,19 @@
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2197,
+    "blitz_median": 1680.0,
+    "derived_band": [
+     1500,
+     1900
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 189.5
+   }
   },
   {
    "u": "imfrei",
