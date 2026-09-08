@@ -1,8 +1,8 @@
 {
  "_what": "The 100-player cohort pre-registration, hashed before any username is selected.",
  "_why": "A cohort measures a DISTRIBUTION of outcomes. That measurement is worthless if any rule could have moved after a result was seen, so every rule that could move is fixed here first.",
- "written_at": "2026-09-07T21:41:43Z",
- "repo_sha": "5ab5d781b5b60d9675ab463837777b0500cc6f9f",
+ "written_at": "2026-09-08T05:46:16Z",
+ "repo_sha": "7015472739e1f8941869f29144c15118c3050909",
  "protocol_version": "V1",
  "instrument": {
   "_note": "Not redeclared. Referenced by hash so that a cohort run under a different instrument is detectable rather than arguable.",
@@ -87,6 +87,7 @@
  },
  "window": {
   "rule": "all-admissible-in-dateDesc-order",
+  "_every_member_is_probed_at_the_broad_window_first": true,
   "broad_members": {
    "admissible_games": 450,
    "implied_validate_decisions_at_24.5_dec_per_game": 2202,
@@ -214,5 +215,5 @@
   "one_run_per_player": "a player whose result caused a pipeline change becomes development data; replication then requires a different player and a bumped contract version",
   "test_opened": "once, for the frozen candidate only"
  },
- "prereg_hash": "e23a899edbedb9acee55a4d8d133a0dd06d03794c57761cfdf9716eebcd06c65"
+ "prereg_hash": "3aa7e5335942c860922454939003cb0256817f8b8a92c5414d25a2ae8af31a0d"
 }

@@ -176,6 +176,7 @@ def main() -> int:
         # ---- window: declared before any fetch ------------------------------------------------
         "window": {
             "rule": contract.WINDOW_RULE,
+            "_every_member_is_probed_at_the_broad_window_first": True,
             "broad_members": {"admissible_games": W_BROAD,
                               "implied_validate_decisions_at_%.1f_dec_per_game" % dpg:
                                   int(W_BROAD * contract.SPLIT["validate_frac"] * dpg),

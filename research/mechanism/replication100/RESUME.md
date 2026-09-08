@@ -28,16 +28,24 @@ COHORT_PROBE_ROOT=/tmp/cohort_probes \
   python research/mechanism/replication100/cohort_select.py
 ```
 
+Two phases, one command. **Phase A** probes every candidate at the broad window and takes the first
+100 that pass. **Phase B** walks those 100 in the same committed order and promotes the first 25
+residual-capable ones by refetching them at the residual window; a promotion that fails the wider
+window leaves the member as Phase A accepted them and passes the slot on.
+
 Resumes from `COHORT_SELECTION.json`, which records the cursor into the committed order, every
-accepted member, and every rejection with its reason. It refuses to continue if the pre-registration
-or the frame changed under a walk in progress.
+accepted member with whether their promotion has been attempted, and every rejection with its
+reason. It refuses to continue if the pre-registration or the frame changed under a walk in
+progress.
 
 Probes are written outside the repository because most candidates are rejected and deleted. An
 accepted probe is promoted into `research/mechanism/replications/` the moment it is accepted, so
 **commit after a walk stops** or the members it found go with the container.
 
-Measured: about 165 s per residual-class fetch, about 38 s per broad-class one, roughly one
-acceptance per eight fetched candidates. Expect around 15 hours in total.
+Measured over 165 fetches: 176 s at the residual bound, an implied 36 s at the broad one, and
+roughly one acceptance per eight or nine fetched candidates. Under the one-phase order that was 42
+hours; under two phases it is about 10, because the expensive fetch is paid about 25 times instead
+of about 870.
 
 ## 2. Freeze (Phase 9)
 

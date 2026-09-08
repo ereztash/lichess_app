@@ -117,11 +117,12 @@ def population_members() -> set[str]:
     return ids
 
 
-def try_candidate(username: str, window: int, fetch_max: int, root: str) -> dict:
+def try_candidate(username: str, window: int, fetch_max: int, root: str,
+                  run_id: str = RUN_ID) -> dict:
     """Everything up to the derived band, and not one step further."""
-    d = corpuslib.run_dir("lichess", username, RUN_ID, root)
+    d = corpuslib.run_dir("lichess", username, run_id, root)
     cmd = [PY, os.path.join(REPL, "run.py"), "--platform", "lichess", "--username", username,
-           "--ingest-mode", "api-user-export", "--run-id", RUN_ID, "--window", str(window),
+           "--ingest-mode", "api-user-export", "--run-id", run_id, "--window", str(window),
            "--stop-after", "FREEZE"]
     if root:
         cmd += ["--root", root]
@@ -221,12 +222,13 @@ def main() -> int:
             state["rejected"].append({"u": u, "reason": "IN_POPULATION_BASELINE",
                                       "_phase": 19})
             continue
-        # Residual-slot assignment is made from METADATA, before the fetch, so the window can be
-        # declared before the corpus exists.
-        wants_residual = (state["residual_slots_filled"] < resid_n
-                          and m["blitz_games"] * adm_rate >= resid_games_min)
-        window = w_resid if wants_residual else w_broad
-        fetch_max = bound["residual"] if wants_residual else bound["broad"]
+        # PHASE A probes EVERY candidate at the BROAD window. The residual window is five times
+        # the data and about five times the fetch, and roughly seven in eight candidates are
+        # rejected on the band, so paying the residual price to discover a rejection is the bulk of
+        # the cost: measured over 165 fetches, 176s each at the residual bound against an implied
+        # 36s at the broad one. Residual members are promoted in PHASE B, from the members that
+        # were already accepted, so the expensive fetch is paid about 25 times and not about 870.
+        window, fetch_max = w_broad, bound["broad"]
 
         t0 = time.time()
         r = try_candidate(u, window, fetch_max, a.root)
@@ -289,12 +291,13 @@ def main() -> int:
             continue
 
         blitz_admissible = c["speeds"].get("blitz", 0)
-        is_residual = wants_residual and blitz_admissible >= resid_games_min
-        if is_residual:
-            state["residual_slots_filled"] += 1
         state["accepted"].append({
             "u": u, "player_id": r["player_id"], "run_dir": promote(r["run_dir"]),
-            "window": window, "window_class": "RESIDUAL" if is_residual else "BROAD",
+            "window": window, "window_class": "BROAD",
+            # From metadata, so it is knowable now and does not read anything the run produced.
+            # PHASE B tries these in this same committed order.
+            "residual_capable": m["blitz_games"] * adm_rate >= resid_games_min,
+            "residual_attempted": False,
             "admissible": c["admissible"], "blitz_admissible": blitz_admissible,
             "speeds": c["speeds"], "blitz_median": med, "derived_band": list(band),
             "fetch_max": fetch_max, "window_full": c["admissible"] >= window,
@@ -304,7 +307,70 @@ def main() -> int:
         })
         json.dump(state, open(state_path, "w"), indent=1)
 
-    state["complete"] = len(state["accepted"]) >= cohort_n
+    # ---- PHASE B: promote residual members from the members already accepted -------------------
+    #
+    # A member accepted in PHASE A holds a broad window. Promotion refetches them at the residual
+    # window and keeps that corpus ONLY if the wider window still derives a registered band and
+    # still fills. So a residual member satisfies the band rule on BOTH of their windows, which is
+    # stricter than the one-shot rule it replaces, not looser.
+    #
+    # The refetch goes to a scratch probe first. A promotion that fails the wider window must leave
+    # the member exactly as PHASE A accepted them: they were validly accepted on the broad window
+    # and losing a residual slot is not a reason to lose a member.
+    if len(state["accepted"]) >= cohort_n:
+        for i, mem in enumerate(state["accepted"]):
+            if state["residual_slots_filled"] >= resid_n:
+                break
+            if mem.get("residual_attempted") or not mem.get("residual_capable"):
+                continue
+            if a.limit is not None and tried_this_call >= a.limit:
+                break
+            tried_this_call += 1
+            mem["residual_attempted"] = True
+            t0 = time.time()
+            r = try_candidate(mem["u"], w_resid, bound["residual"], a.root, run_id=RUN_ID + "R")
+            keep = False
+            if r["accepted"] is not False:
+                c = r["corpus"]
+                med = blitz_median_from_admissible(
+                    os.path.join(r["run_dir"], "admissible", "games.ndjson"), r["player_id"])
+                blitz = c["speeds"].get("blitz", 0)
+                band = tuple(contract.population_band(med)) if med is not None else None
+                keep = (c["admissible"] >= w_resid and blitz >= resid_games_min
+                        and band in bands)
+                mem["residual_probe"] = {
+                    "admissible": c["admissible"], "blitz_admissible": blitz,
+                    "blitz_median": med, "derived_band": list(band) if band else None,
+                    "window_full": c["admissible"] >= w_resid,
+                    "band_registered": band in bands,
+                    "seconds": round(time.time() - t0, 1),
+                }
+            else:
+                mem["residual_probe"] = {"reason": r["reason"],
+                                         "seconds": round(time.time() - t0, 1)}
+            if keep:
+                shutil.rmtree(os.path.join(REPO, mem["run_dir"]), ignore_errors=True)
+                dest = os.path.join(REPLICATIONS, os.path.basename(
+                    corpuslib.run_dir("lichess", mem["u"], RUN_ID, None)))
+                shutil.move(r["run_dir"], dest)
+                rel = os.path.relpath(dest, REPO)
+                if rel.startswith(".."):
+                    raise SystemExit("%s resolves outside the repository" % rel)
+                mem.update({"run_dir": rel, "window": w_resid, "window_class": "RESIDUAL",
+                            "admissible": mem["residual_probe"]["admissible"],
+                            "blitz_admissible": mem["residual_probe"]["blitz_admissible"],
+                            "blitz_median": mem["residual_probe"]["blitz_median"],
+                            "derived_band": mem["residual_probe"]["derived_band"],
+                            "fetch_max": bound["residual"], "window_full": True,
+                            "screen_band_agreed":
+                                mem["residual_probe"]["derived_band"] == mem["screen_predicted_band"]})
+                state["residual_slots_filled"] += 1
+            else:
+                shutil.rmtree(r["run_dir"], ignore_errors=True)
+            json.dump(state, open(state_path, "w"), indent=1)
+
+    state["complete"] = (len(state["accepted"]) >= cohort_n
+                         and state["residual_slots_filled"] >= resid_n)
     state["frame_exhausted"] = state["cursor"] >= len(order)
     state["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     json.dump(state, open(state_path, "w"), indent=1)
