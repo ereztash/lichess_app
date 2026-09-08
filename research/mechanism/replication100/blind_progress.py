@@ -18,7 +18,7 @@ EXECUTION = {"ENGINE_FAILURE", "FETCH_FAILED", "PIPELINE_EQUIVALENCE_FAILED", "U
 ELIGIBILITY = {"INSUFFICIENT_CORPUS", "INSUFFICIENT_ELIGIBLE_GAMES", "POPULATION_BASELINE_INSUFFICIENT"}
 
 HERE = "research/mechanism/replication100"
-prog_p = os.path.join(HERE, "COHORT_PROGRESS.json")
+prog_p = os.environ.get("COHORT_PROGRESS", "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/COHORT_PROGRESS.json")
 fz = json.load(open(os.path.join(HERE, "COHORT_FROZEN.json")))
 resid = {m["u"] for m in fz["members"] if m["window_class"] == "RESIDUAL"}
 if not os.path.exists(prog_p):
