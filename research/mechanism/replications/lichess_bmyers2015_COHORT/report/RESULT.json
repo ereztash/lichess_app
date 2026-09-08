@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_bmyers2015_COHORT",
+ "run_dir": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR",
  "focal": {
   "platform": "lichess",
   "username": "bmyers2015",
@@ -7,20 +7,21 @@
   "corpus": "lichess:bmyers2015"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "9e1ac5887b40bc8a4c05fdb046aaf764e4066ab1",
+ "repo_sha": "efccf492b7aaedd386342f0c5bc396b1e911685b",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
-  "fetched": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "fetched": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "eligible_decisions": null,
   "exclusions": {
-   "outside-window": 192,
-   "termination:Time forfeit": 287,
-   "under-20-plies": 21
+   "outside-window": 901,
+   "termination:Time forfeit": 1399,
+   "under-20-plies": 100
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2198,
+   "bullet": 2
   }
  },
  "claim_ladder": [
@@ -61,19 +62,20 @@
  },
  "status": "FROZEN",
  "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 450,
+  "raw_records": 4600,
+  "admissible": 2200,
+  "scorable": 2200,
   "excluded_by_reason": {
-   "outside-window": 192,
-   "termination:Time forfeit": 287,
-   "under-20-plies": 21
+   "outside-window": 901,
+   "termination:Time forfeit": 1399,
+   "under-20-plies": 100
   },
   "speeds": {
-   "blitz": 450
+   "blitz": 2198,
+   "bullet": 2
   },
-  "admissible_path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_bmyers2015_COHORT/admissible/games.ndjson",
-  "window": 450,
+  "admissible_path": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR/admissible/games.ndjson",
+  "window": 2200,
   "rule": {
    "game": {
     "termination": "Normal",

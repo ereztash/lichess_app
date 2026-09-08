@@ -9,8 +9,8 @@
     "rating": 1852
    },
    "blitz": {
-    "games": 8383,
-    "rating": 1675
+    "games": 8386,
+    "rating": 1680
    },
    "rapid": {
     "games": 302,
@@ -30,25 +30,25 @@
    }
   },
   "createdAt": 1617209533823,
-  "seenAt": 1788747381020
+  "seenAt": 1788883422696
  },
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/bmyers2015?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/bmyers2015?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T06:42:28Z",
+  "fetched_at": "2026-09-08T16:42:26Z",
   "http_status": 200,
-  "bytes": 3668785,
-  "sha256": "3563be61baef8a6a3638999d661fd6881624b5553531bf1c33fea3f04d85a9f6",
-  "records": 950,
-  "path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_bmyers2015_COHORT/raw/history.ndjson",
+  "bytes": 17834493,
+  "sha256": "3761d96f162897bb73a467718c04c300f70a32c87f69b98ca8552dfac2dba245",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "token_used": false,

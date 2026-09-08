@@ -131,7 +131,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -149,7 +149,19 @@
     1800
    ],
    "screen_band_agreed": false,
-   "seconds": 39.6
+   "seconds": 39.6,
+   "residual_probe": {
+    "admissible": 1770,
+    "blitz_admissible": 1752,
+    "blitz_median": 1629.5,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": false,
+    "band_registered": true,
+    "seconds": 103.8
+   }
   },
   {
    "u": "medkol",
@@ -158,7 +170,7 @@
    "window": 450,
    "window_class": "BROAD",
    "residual_capable": true,
-   "residual_attempted": false,
+   "residual_attempted": true,
    "admissible": 450,
    "blitz_admissible": 450,
    "speeds": {
@@ -176,7 +188,19 @@
     1850
    ],
    "screen_band_agreed": true,
-   "seconds": 39.9
+   "seconds": 39.9,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2199,
+    "blitz_median": 1593.0,
+    "derived_band": [
+     1400,
+     1800
+    ],
+    "window_full": true,
+    "band_registered": false,
+    "seconds": 186.1
+   }
   },
   {
    "u": "millerglua",
@@ -212,28 +236,40 @@
    "u": "bmyers2015",
    "player_id": "bmyers2015",
    "run_dir": "research/mechanism/replications/lichess_bmyers2015_COHORT",
-   "window": 450,
-   "window_class": "BROAD",
+   "window": 2200,
+   "window_class": "RESIDUAL",
    "residual_capable": true,
-   "residual_attempted": false,
-   "admissible": 450,
-   "blitz_admissible": 450,
+   "residual_attempted": true,
+   "admissible": 2200,
+   "blitz_admissible": 2198,
    "speeds": {
     "blitz": 450
    },
-   "blitz_median": 1635.0,
+   "blitz_median": 1659.0,
    "derived_band": [
     1450,
     1850
    ],
-   "fetch_max": 938,
+   "fetch_max": 4584,
    "window_full": true,
    "screen_predicted_band": [
     1500,
     1900
    ],
    "screen_band_agreed": false,
-   "seconds": 39.7
+   "seconds": 39.7,
+   "residual_probe": {
+    "admissible": 2200,
+    "blitz_admissible": 2198,
+    "blitz_median": 1659.0,
+    "derived_band": [
+     1450,
+     1850
+    ],
+    "window_full": true,
+    "band_registered": true,
+    "seconds": 188.8
+   }
   },
   {
    "u": "pablorocchi",
@@ -14654,7 +14690,7 @@
   "PREFILTER_RATING_FAR_FROM_BAND": 1108,
   "PREFILTER_TOO_FEW_GAMES": 39
  },
- "residual_slots_filled": 1,
+ "residual_slots_filled": 2,
  "unreachable": [
   {
    "u": "ogbullz",

@@ -7,9 +7,9 @@
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `9e1ac5887b40bc8a4c05fdb046aaf764e4066ab1` |
+| repo SHA | `efccf492b7aaedd386342f0c5bc396b1e911685b` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_bmyers2015_COHORT` |
+| run directory | `/tmp/cohort_probes/lichess_bmyers2015_COHORTR` |
 
 ## PLAYER
 
@@ -19,19 +19,19 @@
 
 ## CORPUS
 
-- fetched: 950
-- admissible under the frozen rule: 450
-- scorable (admissible AND standard variant): 450
+- fetched: 4600
+- admissible under the frozen rule: 2200
+- scorable (admissible AND standard variant): 2200
 - eligible decisions: None
-- speeds: {'blitz': 450}
+- speeds: {'blitz': 2198, 'bullet': 2}
 
 ## ELIGIBILITY
 
 Every exclusion, by the baseline's own reason vocabulary:
 
-- `outside-window`: 192
-- `termination:Time forfeit`: 287
-- `under-20-plies`: 21
+- `outside-window`: 901
+- `termination:Time forfeit`: 1399
+- `under-20-plies`: 100
 
 Ids of every excluded game are in `admissible/exclusions.json`.
 

@@ -3,7 +3,7 @@
  "username": "bmyers2015",
  "canonical_player_id": "bmyers2015",
  "corpus": "lichess:bmyers2015",
- "repo_sha": "9e1ac5887b40bc8a4c05fdb046aaf764e4066ab1",
+ "repo_sha": "efccf492b7aaedd386342f0c5bc396b1e911685b",
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -40,11 +40,11 @@
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
  "exclusions_at_prereg": {
-  "outside-window": 192,
-  "termination:Time forfeit": 287,
-  "under-20-plies": 21
+  "outside-window": 901,
+  "termination:Time forfeit": 1399,
+  "under-20-plies": 100
  },
- "n_scorable_at_prereg": 450,
+ "n_scorable_at_prereg": 2200,
  "split": {
   "unit": "game",
   "order": "chronological by game createdAt, oldest first",
@@ -177,6 +177,6 @@
    "NOT reachable by this pipeline under any result"
   ]
  ],
- "written_at": "2026-09-08T06:43:07Z",
- "prereg_hash": "c886f663af38df5ac8f24bcec9ddf9c40ca0420073f2dec410e27fdf66c9a89a"
+ "written_at": "2026-09-08T16:45:34Z",
+ "prereg_hash": "17f6321cb1a59c65bc705b5665e262d37c0f59dab1c322cc3ba77ef921a11859"
 }

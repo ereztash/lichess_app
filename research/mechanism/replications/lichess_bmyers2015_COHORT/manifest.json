@@ -6,21 +6,21 @@
  "corpus": "lichess:bmyers2015",
  "fetch": {
   "mode": "api-user-export",
-  "url": "https://lichess.org/api/games/user/bmyers2015?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=938",
+  "url": "https://lichess.org/api/games/user/bmyers2015?rated=true&clocks=true&opening=true&pgnInJson=true&sort=dateDesc&max=4584",
   "query": {
    "rated": "true",
    "clocks": "true",
    "opening": "true",
    "pgnInJson": "true",
    "sort": "dateDesc",
-   "max": "938"
+   "max": "4584"
   },
-  "fetched_at": "2026-09-08T06:42:28Z",
+  "fetched_at": "2026-09-08T16:42:26Z",
   "http_status": 200,
-  "bytes": 3668785,
-  "sha256": "3563be61baef8a6a3638999d661fd6881624b5553531bf1c33fea3f04d85a9f6",
-  "records": 950,
-  "path": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_bmyers2015_COHORT/raw/history.ndjson",
+  "bytes": 17834493,
+  "sha256": "3761d96f162897bb73a467718c04c300f70a32c87f69b98ca8552dfac2dba245",
+  "records": 4600,
+  "path": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR/raw/history.ndjson",
   "notes": []
  },
  "profile": {
@@ -30,8 +30,8 @@
     "rating": 1852
    },
    "blitz": {
-    "games": 8383,
-    "rating": 1675
+    "games": 8386,
+    "rating": 1680
    },
    "rapid": {
     "games": 302,
@@ -51,18 +51,19 @@
    }
   },
   "createdAt": 1617209533823,
-  "seenAt": 1788747381020
+  "seenAt": 1788883422696
  },
- "number_fetched": 950,
- "number_admissible": 450,
- "number_scorable": 450,
+ "number_fetched": 4600,
+ "number_admissible": 2200,
+ "number_scorable": 2200,
  "exclusions_by_reason": {
-  "outside-window": 192,
-  "termination:Time forfeit": 287,
-  "under-20-plies": 21
+  "outside-window": 901,
+  "termination:Time forfeit": 1399,
+  "under-20-plies": 100
  },
  "speeds": {
-  "blitz": 450
+  "blitz": 2198,
+  "bullet": 2
  },
  "eligibility_rule": {
   "game": {
@@ -76,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "9e1ac5887b40bc8a4c05fdb046aaf764e4066ab1",
+ "repo_sha": "efccf492b7aaedd386342f0c5bc396b1e911685b",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +166,5 @@
   "player_id": "bmyers2015",
   "corpus": "lichess:bmyers2015"
  },
- "run_dir": "/tmp/claude-0/-home-user-lichess-app/c2bb58b4-1eeb-5c9d-8d42-31224b997ab5/scratchpad/probes/lichess_bmyers2015_COHORT"
+ "run_dir": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR"
 }
