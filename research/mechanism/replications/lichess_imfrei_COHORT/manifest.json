@@ -106,7 +106,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "12e6a17db37658f24409902e888e7f256c6fcabb",
+ "repo_sha": "3178a164cdb581c765e1c2f1e4383bba6f2c4244",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -195,5 +195,5 @@
   "player_id": "imfrei",
   "corpus": "lichess:imfrei"
  },
- "run_dir": "/tmp/cohort_probes/lichess_imfrei_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_imfrei_COHORT"
 }

@@ -1,15 +1,15 @@
 # Replication report — lichess/imfrei
 
-**Result:** `FROZEN`
+**Result:** `LEVEL_TYPICAL_ONLY`
 
-
+the region holds up on held-out games, and under a model of same-rating players no region of the same frozen vocabulary passes the judge: what was found is the structure of the band, not of the player
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `12e6a17db37658f24409902e888e7f256c6fcabb` |
+| repo SHA | `3178a164cdb581c765e1c2f1e4383bba6f2c4244` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_imfrei_COHORT` |
+| run directory | `/work/research/mechanism/replications/lichess_imfrei_COHORT` |
 
 ## PLAYER
 
@@ -22,7 +22,7 @@
 - fetched: 950
 - admissible under the frozen rule: 450
 - scorable (admissible AND standard variant): 450
-- eligible decisions: None
+- eligible decisions: 13495
 - speeds: {'blitz': 450}
 
 ## ELIGIBILITY
@@ -39,22 +39,32 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 ## SPLITS
 
-- DERIVE None decisions / None games
-- VALIDATE None / None
-- TEST None / None (opened once, for the frozen candidate only)
+- DERIVE 8089 decisions / 270 games
+- VALIDATE 2652 / 90
+- TEST 2754 / 90 (opened once, for the frozen candidate only)
 
 ## BROAD STRUCTURE (R*)
 
-None.
+    material_change_2ply>=-1 AND own_overloaded_piece_count>=1
+
+| frozen on DERIVE | n 2419 | rate in/out 24.1% / 12.0% | within-game +11.4 pp (z 11.03) |
+| judged on VALIDATE | n_in 786 | rate in/out 21.5% / 11.1% | within-game +9.2 pp (z 6.18), residual z 4.23 |
+| stability | 66.7% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 0.78) |
 
 ## HOLDOUT RESULT (TEST)
 
-Not opened: no candidate reached it.
+- region on TEST: n_in 847, rate in/out 22.0% / 12.5% (z 5.30)
+- held-out log-loss / AUC: baseline 0.4028 / 0.680 → baseline + region 0.4011 / 0.689
+- within-game label-shuffle p for the region's gain: 0.000 (200 draws)
 
 ## POPULATION COMPARISON
 
-- band derived from the focal player's own blitz median rating: None (median None)
-- population corpus: `None` — resolution `None`
+- band derived from the focal player's own blitz median rating: [1450, 1850] (median 1634.0)
+- population corpus: `population_2026-06` — resolution `OK`
+- the same region in the population: raw +nan pp, residual +nan pp
+- per-side elevation across 0 population sides: mean n/a, sd n/a
+
+- leakage guard: 0 of 34794 population rows removed as the focal player's, before any model was fit
 
 ## PERSONAL RESIDUAL (R**)
 
@@ -82,8 +92,8 @@ The rungs and their authorities:
 
 ## NEXT TEST
 
-More games, or a population corpus for this band. Neither is a re-tuning:
-both are the same pipeline with the input it needs.
+Nothing personal to test. The region is real for this player and is what the band
+does; a coaching claim about it would be a claim about the band.
 
 ---
 
