@@ -263,7 +263,7 @@ export default function Home() {
 
   const [source, setSource] = useState<AnalysisSource>("live");
   const [notice, setNotice] = useState(
-    `אתם לבן, ופותחים. היריב הוא Stockfish בעומק ${DEFAULT_OPPONENT_DEPTH}. בחרו מהלך וכתבו את הקריאה שלכם.`,
+    `אתם לבן ופותחים. היריב: Stockfish בעומק ${DEFAULT_OPPONENT_DEPTH}. בחרו מהלך.`,
   );
 
   // --- R3 state machine ------------------------------------------------------------------
@@ -740,7 +740,7 @@ export default function Home() {
           return;
         }
         playMove(move.from, move.to);
-        setNotice("היריב שיחק. תורכם: בחרו מהלך וכתבו את הקריאה שלכם.");
+        setNotice("היריב שיחק. תורכם: בחרו מהלך.");
       } finally {
         if (!cancelled) setOpponentThinking(false);
       }
@@ -796,7 +796,7 @@ export default function Home() {
       }
       setCandidateMove(uci);
       setCandidatesConsidered((prev) => (prev.includes(uci) ? prev : [...prev, uci]));
-      setNotice(`${uci} נבחר. אפשר עדיין לשנות עד לרישום.`);
+      setNotice(`${uci} נבחר. אפשר לשנות עד הרישום.`);
     },
     [activeFen, playMove, probe, stage],
   );
@@ -1390,7 +1390,7 @@ export default function Home() {
     setAnalysis(null);
     setRevealInputs(null);
     setCommittedDraft(null);
-    setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
+    setNotice("בחרו מהלך.");
   };
 
   const beginLearningTransfer = useCallback(
@@ -1510,7 +1510,7 @@ export default function Home() {
     setRevealInputs(null);
     setCommittedDraft(null);
     setRevealedDecisionId(undefined);
-    setNotice("בחרו מהלך וכתבו את הקריאה שלכם.");
+    setNotice("בחרו מהלך.");
   };
 
   /**
@@ -1539,8 +1539,8 @@ export default function Home() {
      started clean. `O-1` keeps the player here, so the reset is performed -- above all the reveal,
      since a stale reveal over a new position is defect 2 of `the-hand-that-may-move-the-board`. */
   const takeBankPosition = (served: StoredPosition) => {
-    adoptPosition(served, () => "עמדה חדשה מהסט המשותף. בחרו מהלך וכתבו את הקריאה שלכם.");
-    resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
+    adoptPosition(served, () => "עמדה חדשה מהסט המשותף. בחרו מהלך.");
+    resetDecision("בחרו מהלך.");
   };
 
   /* ONE DESCRIPTION OF THE BANK ROUTE, read by the reveal and by the failure panel. Two copies
@@ -1577,7 +1577,7 @@ export default function Home() {
     /* A loaded game continues along itself rather than being forked (LAW 4). */
     if (continuation.kind === "advance") {
       setCurrentPly(continuation.ply);
-      resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
+      resetDecision("בחרו מהלך.");
       return;
     }
     // Play the move that was committed, then hand over the next position. If an opponent is
@@ -1587,7 +1587,7 @@ export default function Home() {
       const move = uciToSquares(committedDraft.chosenMove);
       if (move) playMove(move.from, move.to, revealAt); // the position it was taken in
     }
-    resetDecision("בחרו מהלך וכתבו את הקריאה שלכם.");
+    resetDecision("בחרו מהלך.");
   };
 
   const importPgn = (pgn: string) => {
@@ -1744,8 +1744,8 @@ export default function Home() {
     closePositionSource();
     resetDecision(
       playerColor === "w"
-        ? `משחק חדש. אתם משחקים לבן ופותחים. היריב הוא Stockfish בעומק ${depth}.`
-        : `משחק חדש. אתם משחקים שחור; היריב פותח. הוא Stockfish בעומק ${depth}.`,
+        ? `משחק חדש. אתם לבן ופותחים. היריב: Stockfish בעומק ${depth}.`
+        : `משחק חדש. אתם שחור, היריב פותח. Stockfish בעומק ${depth}.`,
     );
   };
 
@@ -2068,7 +2068,7 @@ export default function Home() {
                 />
               ) : revealFailure === null ? (
                 <p className="reveal-waiting" role="status" aria-busy="true">
-                  המנוע מחשב את העמדה שהחלטת עליה…
+                  המנוע מחשב…
                 </p>
               ) : null}
               {/*

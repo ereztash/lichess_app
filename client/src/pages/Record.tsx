@@ -260,8 +260,7 @@ function FirstDecision({
         * where they blundered would stage the result instead of measuring it.
         */}
       <p className="first-decision-note">
-        העמדה נבחרת בלי להסתכל על מה שיצא מהמהלך שלכם — לא רצה עליה מנוע ולא נבדקה שום תוצאה.
-        המשחקים נמשכים מ-{SOURCE_LABEL[source]} ולא נשמרים כאן.
+        העמדה נבחרת בלי להסתכל על מה שיצא מהמהלך שלכם. המשחקים לא נשמרים כאן.
       </p>
 
       {/*
@@ -285,10 +284,7 @@ function FirstDecision({
         * says what it is rather than competing for the same click.
         */}
       <div className="first-decision-alt">
-        <p>
-          אין לכם חשבון באף אחד מהם, או שלא בא לכם למסור שם משתמש? אפשר להתחיל מעמדה מהסט המשותף —
-          אותן עמדות שכולם עונים עליהן.
-        </p>
+        <p>אין חשבון? אפשר להתחיל מעמדה מהסט המשותף, אותן עמדות שכולם עונים עליהן.</p>
         <button
           type="button"
           className="ghost-control"
@@ -321,9 +317,7 @@ function FirstDecision({
         * records `first_position_presented` and `decision_committed`; nothing here guesses.
         */}
       <div className="first-decision-alt">
-        <p>
-          מעדיפים לשחק? משחק בליץ קצר רושם החלטה בכל מהלך, עם השעון רץ, והמנוע שותק עד סוף המשחק.
-        </p>
+        <p>מעדיפים לשחק? בליץ קצר, והמנוע שותק עד סוף המשחק.</p>
         <button
           type="button"
           className="ghost-control"
@@ -373,7 +367,7 @@ function AnchorRunControl({ answered }: { answered: readonly string[] }) {
         <b>הסט המשותף</b>
         <span>
           {answered.length} מתוך {ANCHOR_POSITIONS.length} עמדות. כולם עונים על אותן עמדות, ולכן
-          רק הקריאה הזאת ניתנת להשוואה למישהו אחר — בשאר הרשומה כל אחד פגש עמדות אחרות.
+          רק הקריאה הזאת ניתנת להשוואה למישהו אחר.
         </span>
       </div>
       <button type="button" className="primary-control" onClick={start} disabled={busy}>
@@ -545,10 +539,7 @@ export default function Record() {
         <section className="record-layer" aria-label="החלטות עם ביטחון מוצהר">
           <div className="record-layer-head">
             <h2>נמדד עם ביטחון שהצהרתם מראש</h2>
-            <p>
-              רק כאן אפשר לקרוא פער כיול, מפני שרק כאן יש מה להשוות: מה אמרתם לפני שהמנוע דיבר,
-              מול מה שקרה.
-            </p>
+            <p>רק כאן יש מה להשוות: מה אמרתם לפני שהמנוע דיבר, מול מה שקרה.</p>
           </div>
           {/*
             * OUTCOME FIRST, INSTRUMENTATION SECOND, and the order on the page is the whole change.
@@ -625,8 +616,8 @@ export default function Record() {
           <div className="record-layer-head">
             <h2>נמדד בלי ביטחון מוצהר</h2>
             <p>
-              דיוק מהלכים מול המנוע במשחקים שכבר שיחקתם. זו לא מדידת כיול ולא תהפוך לאחת — באותם
-              משחקים איש לא שאל אתכם כמה אתם בטוחים, ואי אפשר לחזור ולשאול.
+              דיוק מהלכים מול המנוע במשחקים שכבר שיחקתם. זו לא מדידת כיול ולא תהפוך לאחת: אז איש
+              לא שאל כמה אתם בטוחים.
             </p>
           </div>
           <ImportDiagnosticPanel

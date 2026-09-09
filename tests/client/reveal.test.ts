@@ -37,7 +37,7 @@ describe("what cannot be inferred comes first, and is never empty", () => {
 
   it("says so plainly when there is exactly one decision on record", () => {
     const limits = inferenceLimits(from({ decisionsOnRecord: 1 }));
-    expect(limits[0]).toContain("שום דבר כאן אינו דפוס");
+    expect(limits[0]).toContain("לא דפוס");
   });
 
   it("names a shallow search rather than presenting its number as settled", () => {

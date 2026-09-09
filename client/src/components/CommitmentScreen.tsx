@@ -162,33 +162,17 @@ const MISSING_LABEL: Record<StepId, string> = {
   confidence: "בחרו רמת ביטחון",
 };
 
-/**
- * The instruction half of the intro, built from the steps this decision actually asks for.
+/*
+ * THERE IS NO INSTRUCTION SENTENCE ANY MORE, and the history of the one there was is the reason.
  *
- * IT WAS A CONSTANT, AND THE CONSTANT WAS WRONG IN TWO DIRECTIONS AT ONCE. It read
- * "בחרו מהלך על הלוח וסמנו את הקריאה שלכם" in every state. On a decision the draw passed over --
- * `ASK_RATE = 0.15`, so roughly six ordinary decisions in seven -- the only step on screen is the
- * move, and the sentence told the player to mark a read that is not there. On a fully instrumented
- * decision it named two of the four steps and left the confidence question, the one thing the
- * calibration gap is computed from, unmentioned.
- *
- * A phrase per step, joined, so the sentence cannot drift from `stepsFor` again. `known` and
- * `unknown` share one phrase because they are one act to a player: stating a read has two halves
- * and naming both would describe the accordion rather than the task.
- *
- * The REASON half is separate and is a constant in every state -- see the note at the render site.
- * It is what `tests/client/why-the-engine-waits.test.tsx` holds, and nothing here touches it.
+ * `instructionFor(steps)` rendered "בחרו מהלך על הלוח, סמנו את הקריאה שלכם ואמרו כמה אתם בטוחים"
+ * above the accordion. It began as a constant that named steps the screen did not offer, was
+ * rebuilt to derive its phrases from `stepsFor` so it could not drift again -- and at that point it
+ * was a sentence describing, in prose, the numbered steps directly beneath it, each of which already
+ * names itself and opens on a press. A player paid for reading the list twice: once as a sentence,
+ * once as the thing. The steps ARE the instruction. What stays above them is the one sentence the
+ * steps cannot say for themselves, the reason the engine waits.
  */
-export function instructionFor(steps: readonly StepId[]): string {
-  const parts: string[] = [];
-  if (steps.includes("chosenMove")) parts.push("בחרו מהלך על הלוח");
-  if (steps.includes("known") || steps.includes("unknown")) parts.push("סמנו את הקריאה שלכם");
-  if (steps.includes("confidence")) parts.push("אמרו כמה אתם בטוחים");
-  if (parts.length === 0) return "";
-  /* Hebrew joins a list with commas and a "ו" before the last item, which is why this is not `join`. */
-  const last = parts[parts.length - 1];
-  return parts.length === 1 ? `${last}.` : `${parts.slice(0, -1).join(", ")} ו${last}.`;
-}
 
 export function CommitmentScreen({
   position,
@@ -504,14 +488,14 @@ export function CommitmentScreen({
         * spends its own sentences refusing.
         */}
       {/*
-        * TWO HALVES WITH DIFFERENT LIFETIMES. The instruction is derived from `STEPS`, because a
-        * sentence naming a step the state does not offer is an instruction nobody can follow. The
-        * reason is a constant, because it is true in every state and it is the whole justification
-        * for the ordering.
+        * ONE SENTENCE, THE REASON, in every state. The instruction half that used to precede it
+        * restated the steps below; see the note above the component. The reason stays because it is
+        * the one thing the accordion cannot say about itself, and because it is what the field
+        * protocol's "Mechanism" gate asks a player to be able to give back.
         */}
       <p className="commitment-intro">
-        {instructionFor(STEPS)} המנוע לא ידבר לפני שההחלטה נרשמה, כי אחרי שהוא
-        דיבר כבר אי אפשר להפריד בין מה שרשמתם לבין מה שהוא הוסיף.
+        המנוע עונה רק אחרי שההחלטה נרשמה, כי אחר כך אי אפשר להפריד בין מה שרשמתם לבין מה שהוא
+        הוסיף.
       </p>
 
       {step(
@@ -555,7 +539,7 @@ export function CommitmentScreen({
                 ))}
               </ul>
               <p className="candidates-note">
-                נרשמים כחלק מההחלטה. מהלך ששקלתם בראש ולא הנחתם על הלוח <strong>אינו נרשם</strong> —
+                נרשמים עם ההחלטה. מהלך ששקלתם בראש ולא הנחתם על הלוח <strong>אינו נרשם</strong>,
                 ולכן הרשומה יכולה להראות שמהלך היה מולכם, אף פעם לא שהוא לא היה.
               </p>
             </div>
@@ -741,8 +725,8 @@ export function CommitmentScreen({
       {!ready && !pending && (
         <p className="commitment-summary" id="commit-blocked">
           {problems.length === 1
-            ? "חסר פרט אחד. החלטה חלקית לא נרשמת — זה הכלל, לא תקלה."
-            : `חסרים ${problems.length} פרטים. החלטה חלקית לא נרשמת — זה הכלל, לא תקלה.`}
+            ? "חסר פרט אחד. החלטה חלקית לא נרשמת: זה הכלל, לא תקלה."
+            : `חסרים ${problems.length} פרטים. החלטה חלקית לא נרשמת: זה הכלל, לא תקלה.`}
         </p>
       )}
     </section>

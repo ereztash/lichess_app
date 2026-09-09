@@ -102,8 +102,7 @@ export interface RevealInputs {
  * answer. Rejected: it puts a network call carrying the player's position on the reveal path of
  * a product whose whole posture is that the record never leaves the deployment.
  */
-export const BUILD_LIMIT =
-  "הבילד הזה מריץ מנוע מקומי אחד. אין מקור הערכה שני, ולכן אין למנוע במה להיבדק — בשום עמדה.";
+export const BUILD_LIMIT = "מנוע מקומי אחד, בלי מקור הערכה שני לבדוק אותו מולו.";
 
 /**
  * SECTION 4.2 STEP 1: what cannot be inferred here. Rendered before any number, always.
@@ -112,21 +111,30 @@ export const BUILD_LIMIT =
 export function inferenceLimits(inputs: RevealInputs): string[] {
   const limits: string[] = [];
 
+  /*
+   * ONE CLAUSE EACH. These are read on every reveal, before the finding, and a limit that takes a
+   * paragraph to state is a limit the reader skips on the second reveal and never reads again. The
+   * first line is the scope sentence the field protocol names as the compact form
+   * (`docs/VALUE_CLARITY_FIELD_PROTOCOL.md`, "החלטה אחת, לא דפוס"); what changed here is the length
+   * of the block, not its place, which stays first.
+   */
+  /*
+   * `שנרשמה` / `נרשמו N` STAY, and they are not decoration: this line is the one the reveal makes
+   * about the record, and `a-count-the-record-does-not-hold` reads its number against the record in
+   * storage at every reveal (N-7). The count is the sentence's job; what got shorter is everything
+   * around it.
+   */
   limits.push(
     inputs.decisionsOnRecord === 1
-      ? "זו החלטה אחת שנרשמה. שום דבר כאן אינו דפוס, ואי אפשר להסיק ממנה על המשחק שלך."
-      : `נרשמו ${inputs.decisionsOnRecord} החלטות. זה עדיין תיאור של ההחלטות האלה, לא של השחקן.`,
+      ? "זו החלטה אחת שנרשמה. לא דפוס."
+      : `נרשמו ${inputs.decisionsOnRecord} החלטות. תיאור שלהן, לא של השחקן.`,
   );
 
   if (inputs.depth < SHALLOW_DEPTH) {
-    limits.push(
-      `המנוע הגיע לעומק ${inputs.depth} בלבד. הפרשים קטנים מ-${ENGINE_NOISE_CP} ס״פ אינם אומרים כאן כלום.`,
-    );
+    limits.push(`עומק ${inputs.depth} בלבד: הפרשים מתחת ל-${ENGINE_NOISE_CP} ס״פ לא אומרים כאן כלום.`);
   }
   if (inputs.cpLoss <= ENGINE_NOISE_CP && !inputs.chosenWasBest) {
-    limits.push(
-      `המהלך שלך והמהלך של המנוע רחוקים ${inputs.cpLoss} ס״פ — בתוך רעש ההערכה. זו אינה טעות.`,
-    );
+    limits.push(`הפרש של ${inputs.cpLoss} ס״פ מהמנוע הוא בתוך רעש ההערכה. זו אינה טעות.`);
   }
   /*
    * The distinction this build cannot make on one recorded candidate.
@@ -150,12 +158,12 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
    */
   if (inputs.clampedMate) {
     limits.push(
-      `המנוע החזיר כאן מט כפוי, ומט אינו כמות בסנטי-פונים. עלות ההחלטה נמדדה מול תקרה קבועה של ${MATE_SCORE} ס״פ, ולכן המרחק למט — אם המהלך קירב אותו או דחה אותו — לא נמדד כאן כלל.`,
+      `המנוע החזיר מט כפוי. העלות נמדדה מול תקרה של ${MATE_SCORE} ס״פ, והמרחק למט עצמו לא נמדד.`,
     );
   }
   if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
     limits.push(
-      "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת כאן אם לא ראית את המהלך של המנוע או שראית ודחית. " +
+      "רק מהלך אחד נרשם כנשקל, ולכן אי אפשר לדעת אם מהלך המנוע נשקל ונדחה. " +
         "מהלכים שנשקלו בלי להניח אותם על הלוח אינם נרשמים.",
     );
   }
@@ -278,8 +286,8 @@ export const EVIDENCE_LABEL: Record<RevealEvidence, string> = {
    * that they are not the same statement, which is the referent collision this pair was already
    * renamed once to avoid, reappearing as layout instead of as an identifier.
    */
-  process: "המשפט הזה יצא ממה שנרשם ממך לפני שהמנוע דיבר — ניתוח משחק רגיל לא מחזיק את זה.",
-  engine: "המשפט הזה יצא מהשוואה למנוע בלבד — לזה גם ניתוח משחק רגיל היה מגיע.",
+  process: "יצא ממה שנרשם לפני שהמנוע דיבר. ניתוח משחק רגיל לא מחזיק את זה.",
+  engine: "יצא מהשוואה למנוע בלבד. לזה גם ניתוח משחק רגיל היה מגיע.",
 };
 
 export interface OneThing {
@@ -624,7 +632,7 @@ export interface RevealAccumulation {
   next: string;
 }
 
-export const ACCUMULATION_HEADING = "מה שנצבר עד עכשיו";
+export const ACCUMULATION_HEADING = "מה נצבר";
 
 /**
  * THE LEAD IS A CONSTANT AND THAT IS DELIBERATE, carried from `CONTINUATION_PROPOSITION`.
@@ -633,8 +641,7 @@ export const ACCUMULATION_HEADING = "מה שנצבר עד עכשיו";
  * decision can establish is a fact about arithmetic, not about the player, and one that varied by
  * outcome would be the product measuring them and answering them at once.
  */
-export const ACCUMULATION_LEAD =
-  "החלטה אחת אינה דפוס. מה שהיא כן עושה הוא להזיז את מאזן הראיות.";
+export const ACCUMULATION_LEAD = "החלטה אחת אינה דפוס, אבל היא מזיזה את המאזן.";
 
 /**
  * Said once, the same way, whatever the branch. The reason another decision is worth taking.
@@ -648,8 +655,7 @@ export const ACCUMULATION_LEAD =
  * happens to hold the evidence, and a player who took ten decisions and got silence on all ten
  * would have been lied to rather than measured.
  */
-export const ACCUMULATION_NEXT =
-  "ההחלטה הבאה היא עמדה אחרת ורגע אחר, ולכן היא זו שתראה אם זה חוזר.";
+export const ACCUMULATION_NEXT = "ההחלטה הבאה תראה אם זה חוזר.";
 
 /**
  * How the branch the player just read is named when it is counted.
@@ -696,9 +702,7 @@ export function revealAccumulation(
   }
   return {
     lead: ACCUMULATION_LEAD,
-    balance:
-      `${ACCUMULATION_KIND_LABEL[kind]} — הופיע ב-${same} מתוך ${mix.n} ההחלטות ` +
-      "שהמנוע ענה עליהן עד עכשיו.",
+    balance: `${ACCUMULATION_KIND_LABEL[kind]}: הופיע ב-${same} מתוך ${mix.n} ההחלטות שהמנוע ענה עליהן.`,
     next: ACCUMULATION_NEXT,
   };
 }
@@ -710,7 +714,7 @@ export function revealAccumulation(
 export function nextQuestion(inputs: RevealInputs): string {
   const unknown = inputs.statedUnknown.trim();
   if (unknown.length > 0) {
-    return `כתבת שאתה לא יכול להעריך: "${unknown}". האם הקו של המנוע עונה על זה, או שהוא פשוט לא נכנס לשם?`;
+    return `סימנת "${unknown}". האם הקו של המנוע עונה על זה, או שהוא פשוט לא נכנס לשם?`;
   }
   /*
    * THE TWO MOVES HAVE TO BE TWO. Without this branch the sentence came out as "מה היית צריך
@@ -731,7 +735,7 @@ export function nextQuestion(inputs: RevealInputs): string {
    * flipping it to the flag alone and watching nothing fail.
    */
   if (inputs.chosenMove === inputs.bestMove) {
-    return `בחרת את ${inputs.chosenMove}, וזה גם המהלך של המנוע. מה היה הנימוק שלך — והאם הוא היה מחזיק גם אילו המנוע היה בוחר אחרת?`;
+    return `בחרת את ${inputs.chosenMove}, וזה גם מהלך המנוע. מה היה הנימוק, והאם היה מחזיק גם אילו המנוע בחר אחרת?`;
   }
   return `מה היית צריך לדעת כדי לבחור בין ${inputs.chosenMove} ל-${inputs.bestMove}?`;
 }
