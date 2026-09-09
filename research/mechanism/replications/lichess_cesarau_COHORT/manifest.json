@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "69a04ce8fa32692350d9ab969f266ec1af202f8e",
+ "repo_sha": "ba1506531fa0c17b1cc7f5c213c25033d123aed6",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "cesarau",
   "corpus": "lichess:cesarau"
  },
- "run_dir": "/tmp/cohort_probes/lichess_cesarau_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_cesarau_COHORT"
 }
