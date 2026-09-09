@@ -11,10 +11,13 @@ Member 8 of the frozen order is `pablorocchi`, a RESIDUAL member with 2,200 admi
 Seven attempts, the longest an uninterrupted 63 minutes, and it did not reach the third discovery
 output.
 
-Against that, the execution environment has a hard lifetime of roughly 30 to 35 minutes, and
-`run_discovery.py` writes no checkpoint, so every reboot restarts `NODE D` from draw zero. A step
-that needs more than 63 minutes inside a window of 30 cannot complete, and it does not matter how
-often the run is restarted.
+Against that, the execution environment reboots on its own, and `run_discovery.py` writes no
+checkpoint, so every reboot restarts `NODE D` from draw zero. A step that needs more than 63
+minutes inside a window shorter than that cannot complete, and it does not matter how often the
+run is restarted.
+
+How short the window is was originally recorded here as a hard lifetime of 30 to 35 minutes. That
+was wrong, and the correction is in **What this file got wrong** below.
 
 ## The cost curve that locates it
 
@@ -43,8 +46,8 @@ Depth alone is not the wall: `nouramine`, `original-chess` and `medkol` finished
 * **Session activity as the cause of the reboots.** Intervals ran 65, 30, 29, 30, 29 minutes, and
   the single long window coincided with sparser check-ins, which suggested the check-ins themselves
   were provoking the refresh. Tested directly: the session was left completely silent from 04:47 to
-  05:20 and the container rebooted anyway at 35 minutes. The hypothesis is dead and the first
-  65-minute interval was noise.
+  05:20 and the container rebooted anyway at 35 minutes. The hypothesis is dead. The claim made
+  here that the first 65-minute interval was therefore noise did not survive either; see below.
 * **An automatic restart on boot.** PID 1 is `process_api`, there is no cron daemon and no
   `rc.local`. Only a session wake-up can restart the scorer, so every reboot costs the latency to
   the next check-in on top of the lost work.
@@ -66,19 +69,20 @@ mid-flight, and committing it cannot settle it: the committed value is whatever 
 restart ago, and the act of committing moves HEAD again. Three commits went into that loop before
 it was recognised as one.
 
-It now carries `skip-worktree` locally, so `git status` is clean and the churn stops:
-
-    git update-index --skip-worktree research/mechanism/replications/lichess_pablorocchi_COHORT/manifest.json
-
-That flag makes git ignore real changes to the file, which is exactly what is wanted now and
-exactly what would falsify the record later. **Before committing member 8's terminal artifacts,
-clear it first:**
+It briefly carried `skip-worktree` locally, so that `git status` stayed clean and the churn
+stopped. That flag has since been **cleared**, deliberately:
 
     git update-index --no-skip-worktree research/mechanism/replications/lichess_pablorocchi_COHORT/manifest.json
 
-`git ls-files -v <path>` prints `S` while the flag is set and `H` once it is cleared. A member
-committed without its true manifest would be a record of a run that did not happen the way the
-record says, so this is not a tidiness step.
+`git ls-files -v <path>` prints `S` while the flag is set and `H` once cleared; it prints `H`.
+
+The flag traded a visible annoyance for an invisible hazard, and that is the wrong trade in this
+repository. While it was set, git ignored real changes to the file, so a later turn that committed
+member 8's terminal artifacts would have recorded the member with a stale manifest and no warning
+of any kind. A permanently modified file in `git status` is noisy; a member whose committed record
+says the run happened differently than it did is a falsified record. Noise is the cheaper failure,
+so the file is simply left uncommitted while member 8 is mid-flight, and it goes in with the rest
+of that member's artifacts when the member reaches a terminal status.
 
 ## What is intact
 
@@ -88,7 +92,41 @@ equals the frozen value, the engine binary still hashes to the frozen value, no 
 `repo_dirty_at_run`, and the 140 preserved failure-evidence files re-hash clean. Seven members are
 terminal and committed. No research data has been lost at any point; what has been lost is time.
 
+## What this file got wrong
+
+Added 2026-09-09 07:20 UTC.
+
+This file asserted a hard environment lifetime of 30 to 35 minutes and concluded that member 8
+could never finish here. Both are false. The machine ran from 05:40 to 07:10 without interruption,
+ninety minutes, which is more than the sixty-three that `NODE D` needs.
+
+The full series of observed boot intervals, in minutes:
+
+    65, 30, 29, 30, 29, 35, 90, 34
+
+The original claim was built on the run of three consecutive ~30s in the middle of that series and
+stated as a property of the machine. It was a property of three samples. The right reading is that
+the interval is variable and that long windows do occur, so the cohort can finish where it stands;
+it just has to be lucky, and the scorer has to already be running when the luck arrives.
+
+That last clause is the real lesson. The 90-minute window produced nothing, because for its whole
+duration the session was blocked by a safety check and could not restart the scorer. The cost was
+not the machine's.
+
+## Preservation, which changes the stakes
+
+Also 2026-09-09 07:20 UTC. All 100 frozen raw corpora and the scored decisions of the finished
+members are now in a private Hugging Face dataset, `ereztash/lichess-cohort100-frozen-inputs`,
+content-verified 100 of 100: twenty-five against the Hub's own LFS sha256, and the remaining
+seventy-five by recomputing the git blob sha1 locally from a file freshly re-hashed against
+`raw_sha256`, which chains frozen to local to remote without downloading a gigabyte back.
+
+Losing this container therefore no longer voids the cohort. Before this transfer, a full reclaim
+meant refetching from a live endpoint that returns different bytes for an active player, which the
+digests would have caught and nothing could have repaired.
+
 ## The one remaining remedy
 
-An execution environment that stays up for hours rather than half an hour. That is the only change
-that resolves this without altering the study.
+An execution environment that stays up for hours rather than half an hour. That is still the only
+change that resolves this without altering the study. What is different now is that waiting for a
+long window is a viable second-best, and that a new environment is no longer dangerous.
