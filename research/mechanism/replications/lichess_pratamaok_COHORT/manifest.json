@@ -85,7 +85,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "c36206baa6269576f235028f2a756a5498ea03e7",
+ "repo_sha": "a8b94dbc85984e14920e53ccf056ab121a795b84",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -174,5 +174,5 @@
   "player_id": "pratamaok",
   "corpus": "lichess:pratamaok"
  },
- "run_dir": "/tmp/cohort_probes/lichess_pratamaok_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_pratamaok_COHORT"
 }
