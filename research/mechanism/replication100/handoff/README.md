@@ -46,11 +46,11 @@ Then start the cohort:
 
 ## About `--workers 8`
 
-The authorised execution policy said four workers on a four-core node. Twelve logical processors
-is a different node, and the number was tied to the node, so this is a decision rather than a
-transcription. **It is not mine to make: ask Erez before changing it from 4.**
+The authorised execution policy said four workers on a four-core node. Twelve logical processors is
+a different node, and the number was tied to the node, so raising it was a decision rather than a
+transcription. **Erez authorised 8 on 2026-09-09.**
 
-What is known: worker count partitions games across processes and each game is scored identically
+The evidence it rests on: worker count partitions games across processes and each game is scored identically
 whichever partition it lands in, which is why the control digest
 `defa7754eab66b55255becc0ade5458b51344afe638f3a582f6e37074695cfe8` came out identical at one, two
 and four workers. Stockfish itself stays at `Threads 1` per the freeze, so more workers means more
