@@ -72,7 +72,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "81643fb8429e8efa0417010d190dec5465d0f069",
+ "repo_sha": "02469f40890d32f9e4395ec46c1c0308b346c690",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -161,5 +161,5 @@
   "player_id": "naa12",
   "corpus": "lichess:naa12"
  },
- "run_dir": "/tmp/cohort_probes/lichess_naa12_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_naa12_COHORT"
 }
