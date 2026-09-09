@@ -90,7 +90,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "c36206baa6269576f235028f2a756a5498ea03e7",
+ "repo_sha": "d988e08caa1a237e51a4abbed04b4ec313f24bd7",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -179,5 +179,5 @@
   "player_id": "cavalogigante",
   "corpus": "lichess:cavalogigante"
  },
- "run_dir": "/tmp/cohort_probes/lichess_cavalogigante_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_cavalogigante_COHORT"
 }
