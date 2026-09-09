@@ -1,4 +1,7 @@
-# Why the cohort stopped at 7 of 100
+# Why the cohort stopped at 7 of 100, and how it was wrong
+
+**RESOLVED 2026-09-09 08:20 UTC. Member 8 completed; the cohort is at 8 of 100 and
+running. Read the RESOLVED section before trusting anything below it.**
 
 Recorded 2026-09-09 05:25 UTC, after seven container reboots. This is an execution blocker, not a
 research defect: the frozen instrument is behaving exactly as frozen, and nothing here proposes
@@ -7,14 +10,14 @@ changing it.
 ## The collision
 
 Member 8 of the frozen order is `pablorocchi`, a RESIDUAL member with 2,200 admissible games whose
-`NODE C` depth cross-validation selects search depth 3. Its `NODE D` bootstrap has never finished.
-Seven attempts, the longest an uninterrupted 63 minutes, and it did not reach the third discovery
-output.
+`NODE C` depth cross-validation selects search depth 3. It took seven attempts to finish, the
+longest failed one an uninterrupted 63 minutes, and until the eighth it never reached the third
+discovery output. **On the run that finished, that output took 461 seconds. See RESOLVED.**
 
 Against that, the execution environment reboots on its own, and `run_discovery.py` writes no
-checkpoint, so every reboot restarts `NODE D` from draw zero. A step that needs more than 63
-minutes inside a window shorter than that cannot complete, and it does not matter how often the
-run is restarted.
+checkpoint, so every reboot restarts `NODE D` from draw zero. The inference drawn here was that
+the step needs more than 63 minutes and so could never fit. That inference was wrong; the step
+takes 461 seconds.
 
 How short the window is was originally recorded here as a hard lifetime of 30 to 35 minutes. That
 was wrong, and the correction is in **What this file got wrong** below.
@@ -28,12 +31,13 @@ was wrong, and the correction is in **What this file got wrong** below.
       450       2    55-65
       450       3      124
      2200       1    93-99
-     2200       3    >3800, never finished
+     2200       3      461   (measured only after it finally finished; see above)
 
 Depth alone is not the wall: `nouramine`, `original-chess` and `medkol` finished at depth 2, and
 `franckzurita18` finished at depth 3. Corpus size alone is not the wall either: `maxkart19` and
-`bmyers2015` finished at 2,200 games. Only the corner where both are large is unreachable, and
-23 RESIDUAL members remain whose depth is not known until their own discovery runs.
+`bmyers2015` finished at 2,200 games. The corner where both are large was described here as
+unreachable; it was reached. 22 RESIDUAL members remain whose depth is not known until their own
+discovery runs, and nothing here predicts trouble for them.
 
 ## What was ruled out, and how
 
@@ -61,7 +65,7 @@ would have let this member finish, and each would have made the cohort a differe
 one that was pre-registered. `run_discovery.py` was not given a checkpoint for the same reason: it
 is covered by `pipeline_hash`, and editing it moves the hash the freeze names.
 
-## A local git flag that MUST be cleared before member 8 is committed
+## A local git flag, set and then cleared (member 8 is now committed)
 
 `lichess_pablorocchi_COHORT/manifest.json` records `repo_sha`, the commit HEAD pointed at when the
 run started. Every restart rewrites it, so the file is permanently modified while the member is
@@ -92,13 +96,38 @@ equals the frozen value, the engine binary still hashes to the frozen value, no 
 `repo_dirty_at_run`, and the 140 preserved failure-evidence files re-hash clean. Seven members are
 terminal and committed. No research data has been lost at any point; what has been lost is time.
 
+## RESOLVED, and the diagnosis was wrong
+
+Added 2026-09-09 08:20 UTC. Member 8 completed. The cohort is at 8 of 100 and running.
+
+This file's central claim was that `NODE D` needs more than 63 minutes. Its own log, on the run
+that finished, reads:
+
+    NODE D bootstrap winners (30 draws, 461s)
+
+Seven minutes and forty-one seconds. The claim was wrong by a factor of eight, and it was wrong in
+the way that is easiest to be wrong: `NODE D` was the last line the interrupted logs printed, so it
+was read as the step that was hanging. A step that is last in a truncated log is not thereby the
+slow step. Nothing measured its duration until it finished once, and everything asserted about it
+before then was inference from where the output stopped.
+
+What actually consumed those six attempts is not established here. It should not be guessed at a
+second time. The honest state is: member 8 needed more than one short window and less than one
+long one, the cost was somewhere in the member's run and not demonstrably in `NODE D`, and no
+measurement in this file localised it.
+
+The cost curve above stands for every row that was measured to completion. Its last row read
+`>3800, never finished` until this section was written, and that row was never a measurement: it
+was an interrupted run's elapsed time, recorded as though it were a duration.
+
 ## What this file got wrong
 
 Added 2026-09-09 07:20 UTC.
 
 This file asserted a hard environment lifetime of 30 to 35 minutes and concluded that member 8
 could never finish here. Both are false. The machine ran from 05:40 to 07:10 without interruption,
-ninety minutes, which is more than the sixty-three that `NODE D` needs.
+ninety minutes. (The sixty-three minutes this file said `NODE D` needed was itself wrong; see
+RESOLVED above.)
 
 The full series of observed boot intervals, in minutes:
 

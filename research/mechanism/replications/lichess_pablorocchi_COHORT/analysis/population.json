@@ -1,0 +1,71 @@
+{
+ "region": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+ "frame": "VALIDATE",
+ "population": {
+  "n": 34794,
+  "games": 600,
+  "sides": 1200,
+  "base_err": 0.14439271138702076,
+  "raw": {
+   "n_in": 0,
+   "n_out": 34794,
+   "p_in": NaN,
+   "p_out": 0.14439271138702076,
+   "diff": NaN,
+   "se": NaN,
+   "z": NaN,
+   "games_in": 0
+  },
+  "resid": {
+   "resid_in": NaN,
+   "resid_out": 3.05738968864546e-05,
+   "diff": NaN,
+   "z": null,
+   "n_in": 0
+  }
+ },
+ "focal": {
+  "corpus": "lichess:pablorocchi",
+  "player_keys": [
+   "pablorocchi"
+  ],
+  "n": 10503,
+  "raw": {
+   "n_in": 3023,
+   "n_out": 7480,
+   "p_in": 0.2563678465100893,
+   "p_out": 0.1323529411764706,
+   "diff": 0.12401490533361872,
+   "se": 0.010226701935754255,
+   "z": 12.126578648004001,
+   "games_in": 429
+  },
+  "resid_under_population_baseline": {
+   "resid_in": 0.08396051512995503,
+   "resid_out": 0.0018689253362428409,
+   "diff": 0.08209158979371219,
+   "z": 8.35305382436504,
+   "n_in": 3023
+  }
+ },
+ "leakage_guard": {
+  "population_rows_before": 34794,
+  "population_rows_after": 34794,
+  "focal_rows_removed": 0,
+  "focal_corpus": "lichess:pablorocchi",
+  "focal_keys": [
+   "pablorocchi"
+  ]
+ },
+ "per_side": {
+  "n_sides": 0,
+  "elev_mean": null,
+  "elev_sd": null,
+  "elev_q": null,
+  "focal_elev": 0.08209158979371219,
+  "focal_percentile": null,
+  "raw_q": null,
+  "focal_raw_elev": 0.12401490533361872,
+  "focal_raw_percentile": null
+ }
+}
