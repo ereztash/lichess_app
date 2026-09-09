@@ -95,7 +95,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "ba54607ccdb1a98a2731002cf28fd28d59a99f92",
+ "repo_sha": "bc89e119a82205b72defe0dd1145c6e016b368fc",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
