@@ -58,6 +58,28 @@ would have let this member finish, and each would have made the cohort a differe
 one that was pre-registered. `run_discovery.py` was not given a checkpoint for the same reason: it
 is covered by `pipeline_hash`, and editing it moves the hash the freeze names.
 
+## A local git flag that MUST be cleared before member 8 is committed
+
+`lichess_pablorocchi_COHORT/manifest.json` records `repo_sha`, the commit HEAD pointed at when the
+run started. Every restart rewrites it, so the file is permanently modified while the member is
+mid-flight, and committing it cannot settle it: the committed value is whatever HEAD was one
+restart ago, and the act of committing moves HEAD again. Three commits went into that loop before
+it was recognised as one.
+
+It now carries `skip-worktree` locally, so `git status` is clean and the churn stops:
+
+    git update-index --skip-worktree research/mechanism/replications/lichess_pablorocchi_COHORT/manifest.json
+
+That flag makes git ignore real changes to the file, which is exactly what is wanted now and
+exactly what would falsify the record later. **Before committing member 8's terminal artifacts,
+clear it first:**
+
+    git update-index --no-skip-worktree research/mechanism/replications/lichess_pablorocchi_COHORT/manifest.json
+
+`git ls-files -v <path>` prints `S` while the flag is set and `H` once it is cleared. A member
+committed without its true manifest would be a record of a run that did not happen the way the
+record says, so this is not a tidiness step.
+
 ## What is intact
 
 Verified after every one of the seven reboots: all 100 raw corpora re-hash to the `raw_sha256`
