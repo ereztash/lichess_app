@@ -41,7 +41,10 @@ discovery runs, and nothing here predicts trouble for them.
 
 ## What was ruled out, and how
 
-* **Memory.** 16 GB total, 15.5 GB free, no swap, no cgroup limit. Not a constraint.
+* **Memory.** 16 GB total, 15.5 GB free, no swap, no cgroup limit. Not a constraint. That figure
+  describes THIS container and does not transfer: the Windows Docker VM the run later moved to
+  reports 7.2 GB against a 13.8 GB host, so a memory question there is an open one, not a settled
+  one.
 * **Data volume.** `pablorocchi`'s `decisions.parquet` is 7.9 MB, smaller than `bmyers2015`'s
   10 MB, and that member finished `NODE D` in 99 seconds. Size is not what separates them.
 * **More cores.** `run_discovery.py` contains no `multiprocessing`, no `joblib`, no

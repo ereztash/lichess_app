@@ -28,8 +28,14 @@ RUN set -eux; \
     echo "$SF_SHA256  $SF_BIN" | sha256sum -c -; \
     install -m 0755 "$SF_BIN" /usr/local/bin/stockfish; \
     rm -rf /tmp/sf /tmp/sf.tar; \
-    stockfish <<< "uci" | head -1
+    echo uci | stockfish | head -1
 
+# The full set that research/mechanism/replication/requirements.txt names, at the versions the
+# committed members were actually scored under. chess and zstandard are not optional: score_games,
+# features and threat all import python-chess, and an image without it dies with
+# ModuleNotFoundError in every worker, which the runner records as ENGINE_FAILURE. That status is
+# terminal, so resume SKIPS it, and a run left alone would march through all 92 remaining members
+# marking each one permanently failed. This list is read off requirements.txt, not guessed.
 RUN pip install --no-cache-dir \
         "numpy==1.26.4" \
         "pandas==3.0.5" \
@@ -37,8 +43,13 @@ RUN pip install --no-cache-dir \
         "scikit-learn==1.9.0" \
         "scipy==1.17.1" \
         "pysubgroup==0.9.0" \
+        "chess==1.11.2" \
+        "zstandard==0.25.0" \
         "requests==2.33.1" \
         "huggingface_hub==1.30.0"
+
+# Fail the build, not the cohort, if anything the pipeline imports is missing.
+RUN python -c "import numpy, pandas, pyarrow, sklearn, scipy, pysubgroup, chess, zstandard; print('imports ok')"
 
 WORKDIR /work
 CMD ["/bin/bash"]

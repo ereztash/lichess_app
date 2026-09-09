@@ -61,6 +61,29 @@ for the single-threaded downstream steps.
 Only the scoring phase parallelises. `run_discovery.py` is single-threaded, so the speedup applies
 to most of the wall clock and not all of it.
 
+## If restore.py says the pipeline hash moved, on Windows, read this first
+
+A Windows clone with `core.autocrlf=true` — the Windows default — checks the 17 pipeline files out
+with CRLF line endings. `pipeline_hash` is a digest over those files' bytes, so it moves, and
+`restore.py` correctly refuses to run.
+
+What makes this nasty is that `git status` stays clean throughout, because git normalizes back to
+LF when it compares. The working tree looks untouched while the hash says the instrument changed.
+
+It is not a research problem. The research code is byte-identical; only the line endings differ,
+and normalizing them back to LF reproduces the frozen `eb840a439af4439b…` exactly. Confirm that
+before doing anything else:
+
+    git config core.autocrlf        # true is the culprit
+    python -c "import sys; sys.path.insert(0,'research/mechanism/replication'); import corpus; print(corpus.pipeline_version()['pipeline_hash'])"
+
+If renormalizing to LF reproduces the frozen hash, the instrument never moved. If it does not, stop
+and report: that is a different problem and not this one.
+
+The durable fix is a `.gitattributes` forcing LF for these paths. That is deliberately not done
+here, because changing checkout behaviour while a run is in flight can renormalize files underneath
+it. Worth doing between runs.
+
 ## What resume does
 
 Nothing needs to be told where it stopped. `cohort_run.py` reads each member's
