@@ -93,7 +93,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "ccbff5c775dadcd1993cce81a66059c3db16eefa",
+ "repo_sha": "48688e212e2c4f62c56cf7d36670ca0b5539c4be",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -182,5 +182,5 @@
   "player_id": "sgad",
   "corpus": "lichess:sgad"
  },
- "run_dir": "/tmp/cohort_probes/lichess_sgad_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_sgad_COHORT"
 }
