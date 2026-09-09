@@ -1,0 +1,76 @@
+# Moving the cohort to your own machine
+
+Written for a Windows host with Docker Desktop, `AMD64`, 12 logical processors. Everything runs
+inside a `linux/amd64` container, so the frozen engine build is the frozen engine build and nothing
+depends on what happens to be installed on the host.
+
+Nine of these steps are setup. The tenth is the only one that matters: `restore.py` refuses to
+score anything unless all 100 corpora hash to the digests the freeze recorded.
+
+## What you need first
+
+A Hugging Face **read** token. The transfer token was scoped for write and should be revoked; make
+a new one at <https://huggingface.co/settings/tokens>, fine-grained, read access to
+`ereztash/lichess-cohort100-frozen-inputs` and nothing else.
+
+## The steps
+
+In PowerShell, from wherever you keep code:
+
+    git clone https://github.com/ereztash/lichess_app.git
+    cd lichess_app
+    git checkout claude/generalize-research-pipeline-75k53u
+
+Build the image. This downloads Stockfish 17.1 and checks its sha256 against the freeze; a
+mismatch fails the build rather than producing an image that would score under the wrong engine.
+
+    docker build -t cohort100 -f research/mechanism/replication100/handoff/Dockerfile research/mechanism/replication100/handoff
+
+Start the container with the clone mounted. `--shm-size` is raised because twelve concurrent
+engines and a pandas pipeline in one container will otherwise contend for the default 64 MB.
+
+    docker run -it --rm --shm-size=2g -v ${PWD}:/work -w /work cohort100 bash
+
+Everything below runs **inside** the container.
+
+    python research/mechanism/replication100/handoff/restore.py --token hf_YOUR_READ_TOKEN
+
+That downloads the corpora, places them where the runner expects them, and then checks three
+things: every corpus against `raw_sha256`, the engine against the frozen binary digest, and
+`pipeline_hash` against the freeze. It prints `READY` only if all three pass, and exits non-zero
+otherwise without scoring anything.
+
+Then start the cohort:
+
+    python research/mechanism/replication100/cohort_run.py --workers 8 --out /work/COHORT_PROGRESS.json
+
+## About `--workers 8`
+
+The authorised execution policy said four workers on a four-core node. Twelve logical processors
+is a different node, and the number was tied to the node, so this is a decision rather than a
+transcription. **It is not mine to make: ask Erez before changing it from 4.**
+
+What is known: worker count partitions games across processes and each game is scored identically
+whichever partition it lands in, which is why the control digest
+`defa7754eab66b55255becc0ade5458b51344afe638f3a582f6e37074695cfe8` came out identical at one, two
+and four workers. Stockfish itself stays at `Threads 1` per the freeze, so more workers means more
+concurrent single-threaded engines, not a different search. On that evidence the count is an
+execution parameter and not a research-semantic one. Eight leaves headroom on twelve logical cores
+for the single-threaded downstream steps.
+
+Only the scoring phase parallelises. `run_discovery.py` is single-threaded, so the speedup applies
+to most of the wall clock and not all of it.
+
+## What resume does
+
+Nothing needs to be told where it stopped. `cohort_run.py` reads each member's
+`report/RESULT.json`: a terminal status is skipped, `FROZEN` means not yet scored. The progress
+file is a convenience and is rebuilt by scanning run directories, so losing it costs nothing.
+
+The eight finished members are already committed on the branch, so a fresh clone starts at member
+nine.
+
+## Keep the machine awake
+
+The run is on the order of a day. Windows sleeping will pause it. `powercfg /change standby-timeout-ac 0`
+disables sleep on mains power; put it back afterwards.
