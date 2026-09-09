@@ -7,7 +7,7 @@ no region of the frozen OBS vocabulary passes the VALIDATE judge (residual withi
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `44146f295c5abf8eb43f6be8bfe497aff4c75564` |
+| repo SHA | `04b2740121edffc0f509d29e826cbaf57dd83028` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
 | run directory | `/work/research/mechanism/replications/lichess_malaikat_izroil58_COHORT` |
 

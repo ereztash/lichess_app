@@ -7,7 +7,7 @@
   "corpus": "lichess:bbbiney1"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "9d408b27b432cac0a8985be488b9db440b89495d",
+ "repo_sha": "04b2740121edffc0f509d29e826cbaf57dd83028",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
   "fetched": 950,
@@ -143,5 +143,5 @@
   }
  },
  "evidence": {},
- "finished_at": "2026-09-09T11:22:19Z"
+ "finished_at": "2026-09-09T14:06:28Z"
 }
