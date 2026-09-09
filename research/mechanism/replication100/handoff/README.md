@@ -40,9 +40,19 @@ things: every corpus against `raw_sha256`, the engine against the frozen binary 
 `pipeline_hash` against the freeze. It prints `READY` only if all three pass, and exits non-zero
 otherwise without scoring anything.
 
-Then start the cohort:
+Then start the cohort. **The progress file must live OUTSIDE the repository:**
 
-    python research/mechanism/replication100/cohort_run.py --workers 8 --out /work/COHORT_PROGRESS.json
+    mkdir -p /tmp/cohort
+    python research/mechanism/replication100/cohort_run.py --workers 8 --out /tmp/cohort/COHORT_PROGRESS.json
+
+This file said `--out /work/COHORT_PROGRESS.json` until members 11, 12 and 13 were scored under
+it and had to be re-run. `/work` is the repository root, the progress file is untracked, and
+`corpus.repo_dirty()` counts untracked files as dirty, excluding only `COHORT_SELECTION.json` and
+`research/mechanism/replications/` — its docstring says that exclusion is "not a licence to exclude
+anything else". So every member started after the runner's first progress write took its manifest
+under a tree git called dirty, which `verify_run.py`, `audit_selection_validity.py` and
+`selfcheck.py` all consume as a defect rather than a note. Member 10 escaped it only because
+`cohort_run.py` writes that file after a member completes, not before.
 
 ## About `--workers 8`
 
@@ -60,6 +70,27 @@ for the single-threaded downstream steps.
 
 Only the scoring phase parallelises. `run_discovery.py` is single-threaded, so the speedup applies
 to most of the wall clock and not all of it.
+
+### Never change the worker count while a member is part-scored
+
+Not a style preference. Changing it on a member that already has files in `scored/` silently
+duplicates decision rows, two ways at once, with no error anywhere:
+
+* `score_games.py:102` shards as `i % workers`, so the set of games belonging to worker `w`
+  changes when `workers` changes, while the output name `part{w:02d}.jsonl` does not.
+* `score_games.py:116` opens that file with `open(out_path, "a")`. Re-running worker 0 at a new
+  count **appends** its new shard to the old one, inside the same file.
+* `run.py:88-97` resumes by checking only `part00` through `part{workers-1}`. Dropping 8 to 4
+  leaves `part04`-`part07` on disk, inspected by nothing.
+* `features.py:599` then globs every `scored/*.jsonl` and concatenates with no dedup.
+
+The result is a feature table with games counted twice, which no gate is looking for, because
+nothing in the pipeline expects the shard width to move underneath it.
+
+If the count genuinely must change, stop the runner and delete the affected member's entire
+`scored/` directory first, so it re-scores from zero at the new width. Between members with none
+part-scored it is safe. This was written after advising a drop from 8 to 4 under memory pressure
+without checking any of the above; the advice was wrong as given.
 
 ## If restore.py says the pipeline hash moved, on Windows, read this first
 
