@@ -63,6 +63,27 @@ Excluded-game identity is tracked too. `admissible/exclusions.json` lists every 
 with its reason, so admissible membership is raw-minus-exclusions and needs no separate archive,
 given a raw corpus that verifies.
 
+## The reboot that actually happened
+
+2026-09-09, between 23:48 and 01:42 UTC, the machine rebooted under the run. Every process died:
+the scorer, its four engine workers and the watcher, none of which a detached parent saves from a
+kernel that is no longer there. `uptime` read `up 0 min` and nothing of ours was in `ps`.
+
+The disk survived. That is the whole difference between an interruption and a lost cohort, and it
+is not something to assume from the fact that the files appear to be there, so it was measured: all
+100 raw corpora re-hashed against the frozen `raw_sha256`, 100 match, 0 missing, 0 mismatched, 37
+seconds. The inputs are the frozen inputs, byte for byte, and no refetch was needed or made.
+
+Recovery cost one member's tail. Seven members were terminal and were skipped. The eighth had all
+2,200 games scored and two of its three discovery outputs written; the reboot landed between the
+second and the third, so it re-ran from cached scored decisions rather than from the engine. The
+expensive layer is the one that survived.
+
+What the section above got right is that finished members are safe and the progress file does not
+matter. What it did not say, because it had not been tested, is that a member is either terminal or
+FROZEN on disk: there is no half-state for the resume to misread, and the interrupted member simply
+returns to the queue.
+
 ## Regenerable versus expensive
 
     regenerable and cheap    admissible/, features/, analysis/, report/
