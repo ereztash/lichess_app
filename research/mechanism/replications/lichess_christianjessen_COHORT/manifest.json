@@ -79,7 +79,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "e697765e85e7a8c047e622a2e60e607f764417f8",
+ "repo_sha": "36c7ead82c2fead5659844c1d62e7ede1e8d0baa",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -168,5 +168,5 @@
   "player_id": "christianjessen",
   "corpus": "lichess:christianjessen"
  },
- "run_dir": "/tmp/cohort_probes/lichess_christianjessen_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_christianjessen_COHORT"
 }
