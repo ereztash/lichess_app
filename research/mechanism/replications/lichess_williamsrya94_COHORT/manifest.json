@@ -87,7 +87,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "9d92ed874f714dd73afc06322c4ef5c7d4946cbf",
+ "repo_sha": "02469f40890d32f9e4395ec46c1c0308b346c690",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -176,5 +176,5 @@
   "player_id": "williamsrya94",
   "corpus": "lichess:williamsrya94"
  },
- "run_dir": "/tmp/cohort_probes/lichess_williamsrya94_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_williamsrya94_COHORT"
 }
