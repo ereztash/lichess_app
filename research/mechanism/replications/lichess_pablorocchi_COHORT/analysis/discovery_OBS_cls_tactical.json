@@ -1,0 +1,233 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 5.40833617311351,
+   "zs": [
+    5.744513451913416,
+    5.782487262403708,
+    4.992227117794086,
+    4.616459024654022,
+    5.905994008802317
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1"
+   ]
+  },
+  "2": {
+   "mean_z": 5.730832977076062,
+   "zs": [
+    5.851809300264957,
+    5.680367442917808,
+    6.3122889819982495,
+    5.334706610073301,
+    5.4749925501259975
+   ],
+   "regions": [
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_change_2ply>=-1 AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 5.567565652019988,
+   "zs": [
+    5.895207545091745,
+    5.643355466897209,
+    5.717974594459423,
+    5.249259414778649,
+    5.3320312388729185
+   ],
+   "regions": [
+    "material_balance>=-2 AND material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_change_2ply>=-1 AND opp_last_check==0 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_change_2ply>=-1 AND opp_last_check==0 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 2,
+ "frozen": [
+  {
+   "region": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.417322282261131,
+   "depth": 2,
+   "n_derive": 9171,
+   "derive_err_in": 0.25198996837858467,
+   "derive_err_out": 0.1303780964797914,
+   "derive_wg_est": 0.11354564332553217,
+   "derive_wg_z": 20.41821727722335,
+   "derive_resid_wg_in": 0.04612652516478126,
+   "stability_share_j60": 0.9333333333333333,
+   "stability_median_j": 0.8546954314720813,
+   "validate": {
+    "n_in": 3023,
+    "n_out": 7480,
+    "p_in": 0.2563678465100893,
+    "p_out": 0.1323529411764706,
+    "diff": 0.12401490533361872,
+    "se": 0.010226701935754255,
+    "z": 12.126578648004001,
+    "games_in": 429,
+    "wg_est": 0.11111322976589286,
+    "wg_se": 0.00969470330355468,
+    "wg_z": 11.461230559284042,
+    "wg_games": 429,
+    "pass": true,
+    "region": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.06778449786588303,
+    "resid_wg_z": 7.041568748332408,
+    "secondary_wg": {
+     "est": 0.06031721361320169,
+     "z": 7.743174789679705,
+     "n_games": 429
+    },
+    "wp_loss_wg": {
+     "est": 0.01922459896459053,
+     "z": 7.834279972223172
+    }
+   }
+  },
+  {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.375812417521787,
+   "depth": 2,
+   "n_derive": 8612,
+   "derive_err_in": 0.24825824431026475,
+   "derive_err_out": 0.13449211045364892,
+   "derive_wg_est": 0.11210123019505042,
+   "derive_wg_z": 20.037591940092884,
+   "derive_resid_wg_in": 0.04715271302607812,
+   "stability_share_j60": 0.9333333333333333,
+   "stability_median_j": 0.9273477157360406,
+   "validate": {
+    "n_in": 2823,
+    "n_out": 7680,
+    "p_in": 0.25398512221041447,
+    "p_out": 0.13645833333333332,
+    "diff": 0.11752678887708115,
+    "se": 0.01062826984607497,
+    "z": 11.057941751496262,
+    "games_in": 425,
+    "wg_est": 0.1127082077428852,
+    "wg_se": 0.009841106578536088,
+    "wg_z": 11.452798203477144,
+    "wg_games": 425,
+    "pass": true,
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.07188620005953406,
+    "resid_wg_z": 7.340119868625004,
+    "secondary_wg": {
+     "est": 0.0687180675600938,
+     "z": 8.193277101685313,
+     "n_games": 425
+    },
+    "wp_loss_wg": {
+     "est": 0.01971467756697815,
+     "z": 7.777330713696383
+    }
+   }
+  },
+  {
+   "region": "own_lost_material==0 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 4.106531694070251,
+   "depth": 2,
+   "n_derive": 8412,
+   "derive_err_in": 0.2485734664764622,
+   "derive_err_out": 0.13531137919791328,
+   "derive_wg_est": 0.10584115609423746,
+   "derive_wg_z": 18.478879509114964,
+   "derive_resid_wg_in": 0.04477396413418769,
+   "stability_share_j60": 0.9333333333333333,
+   "stability_median_j": 0.7951612903225806,
+   "validate": {
+    "n_in": 2742,
+    "n_out": 7761,
+    "p_in": 0.25346462436177974,
+    "p_out": 0.137868831336168,
+    "diff": 0.11559579302561174,
+    "se": 0.010620020753121632,
+    "z": 10.884705003201965,
+    "games_in": 428,
+    "wg_est": 0.10440351685371552,
+    "wg_se": 0.00987518620052646,
+    "wg_z": 10.572308687014896,
+    "wg_games": 428,
+    "pass": true,
+    "region": "own_lost_material==0 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.06576226556425394,
+    "resid_wg_z": 6.773660761480931,
+    "secondary_wg": {
+     "est": 0.060036379984461784,
+     "z": 7.34089482464433,
+     "n_games": 428
+    },
+    "wp_loss_wg": {
+     "est": 0.019422753341198043,
+     "z": 7.298330991391737
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "material_change_2ply>=-1 AND own_overloaded_piece_count>=1": 13,
+  "material_balance>=-2 AND own_overloaded_piece_count>=1": 15,
+  "material_balance: [0:3[ AND own_overloaded_piece_count>=1": 2
+ }
+}

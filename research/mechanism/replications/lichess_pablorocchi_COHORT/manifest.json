@@ -95,7 +95,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "960d573b4248175b8defea62ed7bf5c2ddea2e87",
+ "repo_sha": "56cb53623eb8fd2cd255c89b7e381c10a08d16fb",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -184,5 +184,5 @@
   "player_id": "pablorocchi",
   "corpus": "lichess:pablorocchi"
  },
- "run_dir": "/tmp/cohort_probes/lichess_pablorocchi_COHORTR"
+ "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_pablorocchi_COHORT"
 }
