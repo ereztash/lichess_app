@@ -103,7 +103,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "180aa6226a50b9fad0e31fa2e1ccc9f4a721d655",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -192,5 +192,5 @@
   "player_id": "dvoice",
   "corpus": "lichess:dvoice"
  },
- "run_dir": "/tmp/cohort_probes/lichess_dvoice_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_dvoice_COHORT"
 }
