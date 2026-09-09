@@ -1,15 +1,15 @@
 # Replication report — lichess/bbbiney1
 
-**Result:** `FROZEN`
+**Result:** `INSUFFICIENT_EVIDENCE` (`POPULATION_BASELINE_INSUFFICIENT`)
 
-
+the population corpus is blitz-only, and this player's blitz frame is below the point at which the frozen judge is defined
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `9e671b6abe4b318f1b892fd753c8a5dd042ea219` |
+| repo SHA | `9d408b27b432cac0a8985be488b9db440b89495d` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_bbbiney1_COHORT` |
+| run directory | `/work/research/mechanism/replications/lichess_bbbiney1_COHORT` |
 
 ## PLAYER
 
@@ -22,7 +22,7 @@
 - fetched: 950
 - admissible under the frozen rule: 450
 - scorable (admissible AND standard variant): 441
-- eligible decisions: None
+- eligible decisions: 13800
 - speeds: {'blitz': 118, 'bullet': 37, 'classical': 14, 'rapid': 272}
 
 ## ELIGIBILITY
@@ -38,13 +38,17 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 ## SPLITS
 
-- DERIVE None decisions / None games
-- VALIDATE None / None
-- TEST None / None (opened once, for the frozen candidate only)
+- DERIVE 8369 decisions / 265 games
+- VALIDATE 2861 / 88
+- TEST 2570 / 88 (opened once, for the frozen candidate only)
 
 ## BROAD STRUCTURE (R*)
 
-None.
+    own_overloaded_piece_count>=1
+
+| frozen on DERIVE | n 2547 | rate in/out 19.6% / 10.3% | within-game +8.9 pp (z 9.64) |
+| judged on VALIDATE | n_in 746 | rate in/out 20.1% / 9.6% | within-game +10.6 pp (z 6.20), residual z 4.17 |
+| stability | 66.7% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 0.79) |
 
 ## HOLDOUT RESULT (TEST)
 
@@ -52,8 +56,8 @@ Not opened: no candidate reached it.
 
 ## POPULATION COMPARISON
 
-- band derived from the focal player's own blitz median rating: None (median None)
-- population corpus: `None` — resolution `None`
+- band derived from the focal player's own blitz median rating: [1450, 1850] (median 1635.0)
+- population corpus: `population_2026-06` — resolution `OK`
 
 ## PERSONAL RESIDUAL (R**)
 

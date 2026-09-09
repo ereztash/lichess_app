@@ -92,8 +92,8 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "9e671b6abe4b318f1b892fd753c8a5dd042ea219",
- "repo_dirty": false,
+ "repo_sha": "9d408b27b432cac0a8985be488b9db440b89495d",
+ "repo_dirty": true,
  "pipeline_version": {
   "files": {
    "research/mechanism/analysis/vocab.py": "16a37dba63fb26b93738276c39c0499e7ac8cce88742076ea2f8e86be9105eb0",
@@ -181,5 +181,5 @@
   "player_id": "bbbiney1",
   "corpus": "lichess:bbbiney1"
  },
- "run_dir": "/tmp/cohort_probes/lichess_bbbiney1_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_bbbiney1_COHORT"
 }
