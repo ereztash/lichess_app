@@ -117,7 +117,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "414164f18a64507ef3f9e561479dc2397ed4d351",
+ "repo_sha": "c3815ad7c78a49511c63cc6ac730278b4cf92d05",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -206,5 +206,5 @@
   "player_id": "anil1947",
   "corpus": "lichess:anil1947"
  },
- "run_dir": "/tmp/cohort_probes/lichess_anil1947_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_anil1947_COHORT"
 }
