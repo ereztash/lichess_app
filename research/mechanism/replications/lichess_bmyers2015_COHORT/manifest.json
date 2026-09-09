@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "efccf492b7aaedd386342f0c5bc396b1e911685b",
+ "repo_sha": "56cb53623eb8fd2cd255c89b7e381c10a08d16fb",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "bmyers2015",
   "corpus": "lichess:bmyers2015"
  },
- "run_dir": "/tmp/cohort_probes/lichess_bmyers2015_COHORTR"
+ "run_dir": "/home/user/lichess_app/research/mechanism/replications/lichess_bmyers2015_COHORT"
 }

@@ -1,0 +1,176 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/home/user/lichess_app/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 0.3554215114882556,
+   "zs": [
+    1.1649968827728845,
+    0.5472194025994261,
+    1.2361206500414355,
+    0.9353841453055202,
+    -2.106613523277988
+   ],
+   "regions": [
+    "phase=='opening'",
+    "phase=='opening'",
+    "phase=='opening'",
+    "phase=='opening'",
+    "material_change_2ply>=1"
+   ]
+  },
+  "2": {
+   "mean_z": -0.216515333809284,
+   "zs": [
+    -1.196845852550185,
+    0.5547242770073872,
+    -0.09435332489358589,
+    0.7948412901077299,
+    -1.1409430587177662
+   ],
+   "regions": [
+    "legal_moves: [28.0:36.0[ AND material_change_2ply>=1",
+    "n_good_captures>=1 AND own_last_capture==1",
+    "n_captures>=3 AND own_overloaded_piece_count>=1",
+    "opp_king_ring_enemy_attacks<1 AND phase=='opening'",
+    "material_change_2ply>=1 AND opp_king_ring_enemy_attacks<1"
+   ]
+  },
+  "3": {
+   "mean_z": 0.7222661674465272,
+   "zs": [
+    1.4582713490129815,
+    0.40871484990461093,
+    0.5125001057977002,
+    0.9376156273135801,
+    0.294228905203763
+   ],
+   "regions": [
+    "n_captures>=3 AND opp_passed<1 AND own_overloaded_piece_count>=1",
+    "n_good_captures>=1 AND own_last_capture==1 AND recapture_available==0",
+    "opp_attacked_piece_count: [1:3[ AND opp_king_ring_enemy_attacks<1 AND phase=='opening'",
+    "opp_attacked_piece_count: [1:3[ AND opp_king_ring_enemy_attacks<1 AND ply<20",
+    "legal_moves>=36.0 AND new_attacks_on_own<1 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [
+  {
+   "region": "n_captures>=3 AND own_overloaded_piece_count>=1",
+   "region_depth3": "n_captures>=3 AND opp_passed<1 AND own_overloaded_piece_count>=1",
+   "collapse_jaccard": 0.7866909753874203,
+   "quality": 1.3864211089156546,
+   "depth": 2,
+   "n_derive": 1097,
+   "derive_err_in": 0.2880583409298086,
+   "derive_err_out": 0.12732997481108313,
+   "derive_wg_est": 0.1575762898995553,
+   "derive_wg_z": 11.286753798206135,
+   "derive_resid_wg_in": 0.029968735366166645,
+   "stability_share_j60": 0.0,
+   "stability_median_j": 0.0905841133118706,
+   "validate": {
+    "n_in": 404,
+    "n_out": 2417,
+    "p_in": 0.24504950495049505,
+    "p_out": 0.13156805957798925,
+    "diff": 0.11348144537250579,
+    "se": 0.0220524223313132,
+    "z": 5.145985491642272,
+    "games_in": 87,
+    "wg_est": 0.11324140228360094,
+    "wg_se": 0.02144053322480699,
+    "wg_z": 5.281650465324206,
+    "wg_games": 87,
+    "pass": false,
+    "region": "n_captures>=3 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": -0.0005079564447476626,
+    "resid_wg_z": -0.02612063033354125,
+    "secondary_wg": {
+     "est": 0.0331106558515923,
+     "z": 1.6510352302461195,
+     "n_games": 87
+    },
+    "wp_loss_wg": {
+     "est": 0.008672828535085074,
+     "z": 1.6809626042361725
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "opp_attacked_piece_count: [1:3[ AND opp_king_ring_enemy_attacks<1 AND phase=='opening'": 1,
+  "opp_attacked_piece_count>=1 AND opp_king_ring_enemy_attacks<1 AND phase=='opening'": 1,
+  "legal_moves>=36.0 AND own_overloaded_piece_count: [1:2[ AND standing=='level'": 1,
+  "material_change_2ply>=1 AND own_overloaded_piece_count>=1 AND own_pinned_count<1": 1,
+  "n_captures>=3 AND n_checks<1 AND own_overloaded_piece_count>=1": 1,
+  "legal_moves>=36.0 AND opp_king_ring_enemy_attacks<1 AND phase=='opening'": 2,
+  "material_balance: [0:3[ AND n_captures>=3 AND own_attacked_piece_count>=3": 1,
+  "legal_moves>=36.0 AND opp_last_captured_value<1 AND own_king_ring_enemy_attacks: [1:3[": 1,
+  "legal_moves>=29.0 AND new_attacks_on_own>=1 AND own_pinned_count>=1": 1,
+  "n_good_captures>=1 AND own_last_capture==1 AND recapture_available==0": 2,
+  "legal_moves>=36.0 AND opp_passed<1 AND own_overloaded_piece_count>=1": 1,
+  "legal_moves>=27.0 AND n_good_captures>=1 AND own_last_capture==1": 1,
+  "legal_moves>=36.0 AND own_hanging_piece_count<1 AND own_overloaded_piece_count>=1": 1,
+  "legal_moves>=36.0 AND opp_last_captured_value<1 AND own_overloaded_piece_count: [1:2[": 1,
+  "clock_own_ms>=60000 AND game_in_session<2 AND opp_king_ring_enemy_attacks>=3": 1,
+  "n_good_captures>=1 AND own_lost_material==0 AND own_prev_spent_s: [5:15[": 1,
+  "color=='w' AND n_captures>=3 AND ply>=20": 1,
+  "color=='w' AND n_captures>=3 AND own_prev_spent_s: [5:15[": 1,
+  "opp_king_ring_enemy_attacks>=1 AND opp_last_spent_s: [5:15[ AND own_hanging_piece_count>=1": 1,
+  "opp_last_pawn==1 AND own_prev_spent_s: [5:15[ AND prev_game_result==0.0": 1,
+  "legal_moves: [27.0:36.0[ AND opp_king_ring_enemy_attacks<1 AND own_hanging_piece_count>=1": 1,
+  "own_hanging_piece_count<1 AND own_overloaded_piece_count>=1 AND own_prev_spent_s<15": 1,
+  "n_good_captures<1 AND opp_last_pawn==1 AND own_overloaded_piece_count: [1:2[": 1,
+  "opp_attacked_piece_count: [1:3[ AND own_hanging_piece_count>=1 AND own_last_capture==1": 1,
+  "opp_attacked_piece_count: [1:3[ AND opp_king_ring_enemy_attacks<1 AND ply<20": 1,
+  "legal_moves>=36.0 AND own_overloaded_piece_count: [1:2[ AND prev_game_result==1.0": 1,
+  "game_in_session: [2:5[ AND opp_king_ring_enemy_attacks: [1:3[ AND opp_last_spent_s: [5:15[": 1,
+  "clock_frac: [0.25:0.50[ AND n_captures>=3 AND opp_last_spent_s<15": 1
+ }
+}

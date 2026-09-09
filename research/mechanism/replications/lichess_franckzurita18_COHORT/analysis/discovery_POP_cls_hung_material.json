@@ -1,0 +1,237 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/home/user/lichess_app/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7646499173025916
+ },
+ "vocab": "OBS",
+ "target": "cls_hung_material",
+ "cv_depth": {
+  "1": {
+   "mean_z": 2.003417464661386,
+   "zs": [
+    2.7564876463176735,
+    1.612562972658908,
+    2.0337355329050326,
+    2.590424457437201,
+    1.0238767139881149
+   ],
+   "regions": [
+    "n_captures>=3",
+    "n_captures>=3",
+    "n_captures>=3",
+    "n_captures>=3",
+    "n_captures>=3"
+   ]
+  },
+  "2": {
+   "mean_z": 1.0866843864959004,
+   "zs": [
+    1.209614614876351,
+    1.1171036139003763,
+    1.3626928779256726,
+    1.0663993990304734,
+    0.677611426746629
+   ],
+   "regions": [
+    "n_captures>=3 AND n_checks<1",
+    "n_captures>=3 AND opp_last_captured_value<1",
+    "n_captures>=3 AND own_overloaded_piece_count>=1",
+    "n_captures>=3 AND n_checks<1",
+    "n_captures>=3 AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 1.5384076654844363,
+   "zs": [
+    2.066629400021722,
+    2.407572230904435,
+    2.3798102514366426,
+    0.642593551412303,
+    0.19543289364707878
+   ],
+   "regions": [
+    "n_captures>=3 AND n_checks<1 AND own_overloaded_piece_count>=1",
+    "n_captures>=3 AND n_checks<1 AND own_overloaded_piece_count: [1:2[",
+    "n_captures>=3 AND n_checks<1 AND own_overloaded_piece_count>=1",
+    "n_captures>=3 AND n_checks<1 AND own_overloaded_piece_count>=1",
+    "legal_moves>=36.0 AND opp_last_captured_value<1 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "n_captures>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.9431703539057329,
+   "depth": 1,
+   "n_derive": 2816,
+   "derive_err_in": 0.12357954545454546,
+   "derive_err_out": 0.06108342710175213,
+   "derive_wg_est": 0.06690155394093877,
+   "derive_wg_z": 8.914942481606097,
+   "derive_resid_wg_in": 0.01777353509825017,
+   "stability_share_j60": 0.7333333333333333,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 973,
+    "n_out": 1848,
+    "p_in": 0.1130524152106886,
+    "p_out": 0.05844155844155844,
+    "diff": 0.054610856769130155,
+    "se": 0.011574030551860851,
+    "z": 4.7183957675271495,
+    "games_in": 90,
+    "wg_est": 0.05908912582311921,
+    "wg_se": 0.011919366571937188,
+    "wg_z": 4.957404864301928,
+    "wg_games": 90,
+    "pass": false,
+    "region": "n_captures>=3",
+    "resid_wg_est": 0.023460101973706227,
+    "resid_wg_z": 1.955168415023961,
+    "secondary_wg": {
+     "est": 0.06005462785322834,
+     "z": 3.9446794705035484,
+     "n_games": 90
+    },
+    "wp_loss_wg": {
+     "est": 0.01520423952212538,
+     "z": 3.9770813492149943
+    }
+   }
+  },
+  {
+   "region": "legal_moves>=36.0",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.6278883184116238,
+   "depth": 1,
+   "n_derive": 3246,
+   "derive_err_in": 0.10258780036968576,
+   "derive_err_out": 0.06820929027801761,
+   "derive_wg_est": 0.04348260502691286,
+   "derive_wg_z": 6.217070410972621,
+   "derive_resid_wg_in": 0.011020673738952463,
+   "stability_share_j60": 0.03333333333333333,
+   "stability_median_j": 0.44297956493078444,
+   "validate": {
+    "n_in": 1216,
+    "n_out": 1605,
+    "p_in": 0.10115131578947369,
+    "p_out": 0.059190031152647975,
+    "diff": 0.04196128463682571,
+    "se": 0.010857073082975222,
+    "z": 3.864880001832578,
+    "games_in": 88,
+    "wg_est": 0.051959206274273424,
+    "wg_se": 0.01253102605077963,
+    "wg_z": 4.146444677691875,
+    "wg_games": 87,
+    "pass": false,
+    "region": "legal_moves>=36.0",
+    "resid_wg_est": 0.03187119711572167,
+    "resid_wg_z": 2.5624155116660825,
+    "secondary_wg": {
+     "est": 0.0654569700678582,
+     "z": 4.472371178597503,
+     "n_games": 87
+    },
+    "wp_loss_wg": {
+     "est": 0.016234964077751362,
+     "z": 4.159115451530804
+    }
+   }
+  },
+  {
+   "region": "standing=='level'",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 0.5534703836112419,
+   "depth": 1,
+   "n_derive": 3285,
+   "derive_err_in": 0.08462709284627093,
+   "derive_err_out": 0.0782336578581363,
+   "derive_wg_est": 0.007282117399194098,
+   "derive_wg_z": 0.9529254271926063,
+   "derive_resid_wg_in": 0.00965665464091022,
+   "stability_share_j60": 0.06666666666666667,
+   "stability_median_j": 0.20795107033639143,
+   "validate": {
+    "n_in": 1002,
+    "n_out": 1819,
+    "p_in": 0.08283433133732535,
+    "p_out": 0.07421660252886202,
+    "diff": 0.008617728808463329,
+    "se": 0.010711251203130061,
+    "z": 0.804549220724563,
+    "games_in": 90,
+    "wg_est": 0.009662509663979609,
+    "wg_se": 0.012841117239444512,
+    "wg_z": 0.7524664313708574,
+    "wg_games": 90,
+    "pass": false,
+    "region": "standing=='level'",
+    "resid_wg_est": 0.026279582528779287,
+    "resid_wg_z": 2.14720601319565,
+    "secondary_wg": {
+     "est": 0.028854304685600886,
+     "z": 1.728216989275407,
+     "n_games": 90
+    },
+    "wp_loss_wg": {
+     "est": 0.0044733635663877355,
+     "z": 1.1905450362505186
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "n_captures>=3": 22,
+  "own_overloaded_piece_count>=2": 4,
+  "standing=='level'": 2,
+  "legal_moves>=36.0": 1,
+  "material_change_2ply>=1": 1
+ }
+}

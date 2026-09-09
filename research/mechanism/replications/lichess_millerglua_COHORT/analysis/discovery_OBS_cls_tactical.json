@@ -1,0 +1,234 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 0.8384152575077171,
+   "zs": [
+    0.7219522245589809,
+    2.3087559659682,
+    0.4265285989540186,
+    0.4150179002555756,
+    0.31982159780180924
+   ],
+   "regions": [
+    "n_captures>=3",
+    "own_attacked_piece_count>=3",
+    "own_overloaded_piece_count>=2",
+    "own_overloaded_piece_count>=2",
+    "own_attacked_piece_count>=3"
+   ]
+  },
+  "2": {
+   "mean_z": 0.20152807494736463,
+   "zs": [
+    1.3496810867842615,
+    2.4134469509941,
+    0.19527482597424323,
+    -2.1833729914449913,
+    -0.76738949757079
+   ],
+   "regions": [
+    "n_captures>=3 AND own_attacked_piece_count>=3",
+    "legal_moves>=29.0 AND own_attacked_piece_count>=3",
+    "own_last_check==0 AND own_overloaded_piece_count>=2",
+    "n_good_captures<1 AND own_overloaded_piece_count>=1",
+    "n_captures>=3 AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 0.20216492058350877,
+   "zs": [
+    1.617695116906243,
+    2.0768468064124486,
+    -0.9629228705624883,
+    -1.2353742967640313,
+    -0.4854201530746285
+   ],
+   "regions": [
+    "clock_own_ms>=60000 AND n_captures>=3 AND own_attacked_piece_count>=3",
+    "n_captures>=3 AND own_overloaded_piece_count>=1 AND own_prev_spent_s>=1",
+    "legal_moves: [29.0:37.0[ AND n_captures>=3 AND opp_king_ring_enemy_attacks<1",
+    "material_balance<3 AND opp_last_captured_value<3 AND own_overloaded_piece_count>=1",
+    "n_captures>=3 AND own_overloaded_piece_count>=1 AND own_prev_spent_s>=1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "own_overloaded_piece_count>=2",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.2972158655871684,
+   "depth": 1,
+   "n_derive": 372,
+   "derive_err_in": 0.25268817204301075,
+   "derive_err_out": 0.12358825427557277,
+   "derive_wg_est": 0.10480058922534788,
+   "derive_wg_z": 4.544265271282468,
+   "derive_resid_wg_in": 0.06725750951259049,
+   "stability_share_j60": 0.4,
+   "stability_median_j": 0.146725781823347,
+   "validate": {
+    "n_in": 135,
+    "n_out": 2418,
+    "p_in": 0.2222222222222222,
+    "p_out": 0.11910669975186104,
+    "diff": 0.10311552247036117,
+    "se": 0.04048786937072983,
+    "z": 2.546825112632555,
+    "games_in": 55,
+    "wg_est": 0.09729826124469593,
+    "wg_se": 0.03877181018893918,
+    "wg_z": 2.5095104089943465,
+    "wg_games": 55,
+    "pass": false,
+    "region": "own_overloaded_piece_count>=2",
+    "resid_wg_est": 0.06120013498580373,
+    "resid_wg_z": 1.6136916079117365,
+    "secondary_wg": {
+     "est": 0.059772010979261894,
+     "z": 1.60149335064536,
+     "n_games": 55
+    },
+    "wp_loss_wg": {
+     "est": 0.025264503547259454,
+     "z": 2.220170426065279
+    }
+   }
+  },
+  {
+   "region": "own_attacked_piece_count>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.2637713437952753,
+   "depth": 1,
+   "n_derive": 1780,
+   "derive_err_in": 0.19382022471910113,
+   "derive_err_out": 0.10751565762004175,
+   "derive_wg_est": 0.08719411868057653,
+   "derive_wg_z": 8.101807066886717,
+   "derive_resid_wg_in": 0.029954253598623134,
+   "stability_share_j60": 0.36666666666666664,
+   "stability_median_j": 0.29180602006688966,
+   "validate": {
+    "n_in": 769,
+    "n_out": 1784,
+    "p_in": 0.17425227568270482,
+    "p_out": 0.1031390134529148,
+    "diff": 0.07111326222979002,
+    "se": 0.01808907671750267,
+    "z": 3.9312820295013777,
+    "games_in": 87,
+    "wg_est": 0.06772356833498622,
+    "wg_se": 0.017838788953869943,
+    "wg_z": 3.796421859696607,
+    "wg_games": 87,
+    "pass": false,
+    "region": "own_attacked_piece_count>=3",
+    "resid_wg_est": 0.024743597438096603,
+    "resid_wg_z": 1.3798667217508196,
+    "secondary_wg": {
+     "est": 0.057168889781090054,
+     "z": 3.6341406949052,
+     "n_games": 87
+    },
+    "wp_loss_wg": {
+     "est": 0.013437066338484032,
+     "z": 3.6455979659221347
+    }
+   }
+  },
+  {
+   "region": "n_captures>=3",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.114954330894517,
+   "depth": 1,
+   "n_derive": 1955,
+   "derive_err_in": 0.18567774936061382,
+   "derive_err_out": 0.1076923076923077,
+   "derive_wg_est": 0.09717206669393369,
+   "derive_wg_z": 8.981262780872703,
+   "derive_resid_wg_in": 0.02521643559329739,
+   "stability_share_j60": 0.13333333333333333,
+   "stability_median_j": 0.26669811706708396,
+   "validate": {
+    "n_in": 776,
+    "n_out": 1777,
+    "p_in": 0.17010309278350516,
+    "p_out": 0.10467079347214406,
+    "diff": 0.0654322993113611,
+    "se": 0.017722432768518995,
+    "z": 3.6920608003428788,
+    "games_in": 87,
+    "wg_est": 0.07966008888975105,
+    "wg_se": 0.017076672025939845,
+    "wg_z": 4.664848558826076,
+    "wg_games": 87,
+    "pass": false,
+    "region": "n_captures>=3",
+    "resid_wg_est": 0.01765233105358087,
+    "resid_wg_z": 1.105897959899365,
+    "secondary_wg": {
+     "est": 0.04850649953178746,
+     "z": 2.7094200951058105,
+     "n_games": 87
+    },
+    "wp_loss_wg": {
+     "est": 0.008971760903883554,
+     "z": 1.9565740441364767
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "own_overloaded_piece_count>=1": 3,
+  "n_captures>=3": 4,
+  "own_overloaded_piece_count>=2": 12,
+  "own_attacked_piece_count>=3": 11
+ }
+}
