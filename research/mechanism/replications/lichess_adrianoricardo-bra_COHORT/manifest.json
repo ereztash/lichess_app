@@ -91,7 +91,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "c36206baa6269576f235028f2a756a5498ea03e7",
+ "repo_sha": "455f23c76075a51a008c42a1ba2d6082b4eeccbc",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -180,5 +180,5 @@
   "player_id": "adrianoricardo-bra",
   "corpus": "lichess:adrianoricardo-bra"
  },
- "run_dir": "/tmp/cohort_probes/lichess_adrianoricardo-bra_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_adrianoricardo-bra_COHORT"
 }
