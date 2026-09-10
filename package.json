@@ -25,7 +25,8 @@
     "check:control": "tsc --noEmit -p tests/fixtures/typecheck/tsconfig.json",
     "bundle:budget:control": "BUNDLE_ROOT=tests/fixtures/bundle tsx scripts/check_bundle_budget.ts",
     "falsification": "tsx scripts/falsification-report.ts",
-    "purge": "tsx scripts/purge.ts"
+    "purge": "tsx scripts/purge.ts",
+    "contact-sheet": "tsx scripts/contact-sheet.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

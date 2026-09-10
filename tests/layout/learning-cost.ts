@@ -44,7 +44,7 @@ const TYPES: Record<string, string> = {
 };
 
 /** The stranger's account and game: the same fixture the other stranger walks use. */
-const USERNAME = "erez281";
+export const USERNAME = "erez281";
 const PGN = `[Event "Rated rapid game"]
 [White "erez281"]
 [Black "other"]
@@ -55,7 +55,7 @@ const PGN = `[Event "Rated rapid game"]
 15. f4 Nc4 16. Qd3 d5 17. f6 g6 18. Bb3 Nd6 19. Qg3 Nf5 20. Qf3 d4 21. Bc2 Ne3
 22. Qg3 Nxc2 23. Qh4 Ne3 24. g4 0-1`;
 
-const LICHESS_BODY = `${JSON.stringify({
+export const LICHESS_BODY = `${JSON.stringify({
   id: "abcd1234",
   status: "resign",
   speed: "rapid",
