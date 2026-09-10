@@ -80,7 +80,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "bef9a63bd000172e8c058df2a39241e9af839f96",
+ "repo_sha": "67f8d9746791484641d0a5dcb991df420cc76884",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -169,5 +169,5 @@
   "player_id": "a_juni",
   "corpus": "lichess:a_juni"
  },
- "run_dir": "/tmp/cohort_probes/lichess_a_juni_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_a_juni_COHORT"
 }
