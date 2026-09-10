@@ -31,7 +31,7 @@ export interface LoopView {
   loading: boolean;
 }
 
-export function useLoopPosition(drill: DrillProgress): LoopView {
+export function useLoopPosition(drill: DrillProgress, canAct = true): LoopView {
   const query = useClaimView();
   const data = query.data;
 
@@ -52,6 +52,7 @@ export function useLoopPosition(drill: DrillProgress): LoopView {
 
   return {
     position: loopPosition({
+      canAct,
       drill,
       recorded: data?.recorded ?? 0,
       scored,

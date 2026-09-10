@@ -53,6 +53,22 @@ export const STEP_LABELS: Record<LoopStep, string> = {
 export type ClaimGrade = "hypothesis" | "replicated" | "refuted";
 
 export interface LoopInputs {
+  /**
+   * Whether the reader can act on an address this sentence names, right now.
+   *
+   * FALSE WHILE A DECISION IS OPEN, and the sentence has to know because it was making an offer
+   * the screen had already withdrawn. `ContextRibbon` suppresses the goto control under `focus`
+   * (LAW 1: the record's readings are not on screen while evidence is being produced), and the
+   * headline went on saying "importing games you have already played can shorten this" beside no
+   * control that could import anything.
+   *
+   * That is exactly what the surface ledger's B1 row flags about this sentence and why it is one
+   * of its fourteen TEST rows: "a suggestion they cannot act on during a decision is a suggestion
+   * competing with the decision". The suggestion is now absent in that state rather than inert,
+   * and `action` goes with it, so the words and the control cannot disagree about whether there
+   * is somewhere to go.
+   */
+  canAct?: boolean;
   /** A drill is running right now, and its progress. */
   drill: { completed: number; total: number } | null;
   /** Decisions on the record, and how many of them this reading is computed over. */
@@ -194,6 +210,7 @@ export function remainingBeforeClaim(input: {
 
 export function loopPosition(inputs: LoopInputs): LoopPosition {
   const {
+    canAct = true,
     drill,
     recorded,
     scored,
@@ -358,18 +375,20 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
      * shorten, if" is what shared/prereg.ts actually does; "will shorten" would be the product
      * promising an outcome it cannot know before the scan runs.
      */
+    /* The shortcut and the control that reaches it, or neither. Never the sentence alone. */
+    const shortcut = canAct
+      ? " ייבוא משחקים שכבר שיחקת יכול לקצר את זה, אם יימצא בהם סוג אחד שנבדל."
+      : "";
     return {
       step: "record",
-      headline:
-        `עוד ${scoredStillNeeded} החלטות מדודות עד שיהיה מה לומר.${waiting}${passed}${unreadable}${elsewhere} ` +
-        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה, אם יימצא בהם סוג אחד שנבדל.`,
+      headline: `עוד ${scoredStillNeeded} החלטות מדודות עד שיהיה מה לומר.${waiting}${passed}${unreadable}${elsewhere}${shortcut}`,
       basis: `${scored} מתוך ${recorded} שנרשמו נספרות בחיפוש הזה`,
       /*
        * The only headline that names a surface out loud, and the reason this field exists: it
        * said an import can shorten the wait while the import sat four controls away in the tool
        * rail with nothing linking the two.
        */
-      action: { target: "import", label: "ייבוא לפי שם משתמש" },
+      action: canAct ? { target: "import", label: "ייבוא לפי שם משתמש" } : null,
     };
   }
 

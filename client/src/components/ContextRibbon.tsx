@@ -110,7 +110,8 @@ export function ContextRibbon({
     );
   }, [usage, count.data?.decisions, reading.data?.awaitingReveal]);
 
-  const loop = useLoopPosition(drill);
+  /* The same fact the goto control is gated on, so the words cannot outlive the button. */
+  const loop = useLoopPosition(drill, !producingEvidence);
   /*
    * THE QUIET-WINDOW ARM, and it is deliberately the LAST thing this component decides.
    *
