@@ -1,0 +1,91 @@
+{
+ "region": "own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 6899,
+   "winner": "own_overloaded_piece_count>=1 AND own_passed<1",
+   "jaccard": 0.779891304347826
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 5520,
+   "winner": "n_good_captures<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.4701086956521739
+  },
+  {
+   "variant": "drop eco_family=C",
+   "n": 8958,
+   "winner": "own_overloaded_piece_count>=1 AND own_passed<1",
+   "jaccard": 0.779891304347826
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 5743,
+   "winner": "opp_passed<1 AND own_overloaded_piece_count: [1:2[",
+   "jaccard": 0.6521739130434783
+  },
+  {
+   "variant": "drop color=w",
+   "n": 5169,
+   "winner": "clock_frac>=0.50 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6440217391304348
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 7164,
+   "winner": "clock_frac>=0.50 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6440217391304348
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 7001,
+   "winner": "own_king_ring_enemy_attacks<1 AND own_overloaded_piece_count: [1:2[",
+   "jaccard": 0.26902173913043476
+  },
+  {
+   "variant": "drop speed=bullet",
+   "n": 8757,
+   "winner": "own_overloaded_piece_count>=1 AND own_passed<1",
+   "jaccard": 0.779891304347826
+  },
+  {
+   "variant": "drop speed=rapid",
+   "n": 8191,
+   "winner": "n_good_captures<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.4701086956521739
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 4631,
+   "winner": "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.8641304347826086
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 4409,
+   "winner": "n_good_captures<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.4701086956521739
+  },
+  {
+   "variant": "random half 0",
+   "n": 4485,
+   "winner": "opp_passed<1 AND own_overloaded_piece_count: [1:2[",
+   "jaccard": 0.6521739130434783
+  },
+  {
+   "variant": "random half 1",
+   "n": 4643,
+   "winner": "n_good_captures<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.4701086956521739
+  },
+  {
+   "variant": "random half 2",
+   "n": 4558,
+   "winner": "n_good_captures<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.4701086956521739
+  }
+ ]
+}

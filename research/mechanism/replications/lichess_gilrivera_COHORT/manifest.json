@@ -92,7 +92,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "ecf8a822f4ab0a7a842cc253c0b32cd69808c9e8",
+ "repo_sha": "4dd4842eed7c67f8a555167e4ee272876ae81eb0",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -181,5 +181,5 @@
   "player_id": "gilrivera",
   "corpus": "lichess:gilrivera"
  },
- "run_dir": "/tmp/cohort_probes/lichess_gilrivera_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_gilrivera_COHORT"
 }
