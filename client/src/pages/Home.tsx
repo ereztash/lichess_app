@@ -2334,9 +2334,6 @@ export default function Home() {
               onMove={handleBoardMove}
             />
           </div>
-
-          <RecordModeNotice {...recordMode} />
-
           {/*
            * The opponent thinking, said out loud. The whole defect this replaces was a board
            * that changed nothing while something was happening, so a silent search would put
@@ -2360,6 +2357,10 @@ export default function Home() {
               <Clipboard size={14} /> העתק FEN
             </button>
           </div>
+          {/* UNDER THE STATUS LINE, NOT ABOVE IT. One element that never unmounts, so the same eleven
+             words sat between the board and the line saying what to do next, on every screen of the
+             loop. It still renders in every state; the state's own line goes first. */}
+          <RecordModeNotice {...recordMode} />
         </section>
 
         {/*
