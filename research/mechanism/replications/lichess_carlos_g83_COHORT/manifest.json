@@ -82,7 +82,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "d3445a93d03a4a1592b63fbbe400c216f3745a91",
+ "repo_sha": "c63cee1cad8b1983ffe1342e44e0be84de14e794",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -171,5 +171,5 @@
   "player_id": "carlos_g83",
   "corpus": "lichess:carlos_g83"
  },
- "run_dir": "/tmp/cohort_probes/lichess_carlos_g83_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_carlos_g83_COHORT"
 }
