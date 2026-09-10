@@ -76,7 +76,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "b17a7a36e3777623e1129795f9539975ce77f43b",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +165,5 @@
   "player_id": "ingjaldurs",
   "corpus": "lichess:ingjaldurs"
  },
- "run_dir": "/tmp/cohort_probes/lichess_ingjaldurs_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_ingjaldurs_COHORT"
 }
