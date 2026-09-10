@@ -89,7 +89,7 @@ export function transferObservation(input: {
 }): LearningTransferObservation {
   if (input.applied_rule === null)
     throw new Error(
-      "לא ניתן לרשום תצפית העברה בלי תשובה על יישום הכלל: היעדר תשובה אינו תשובה שלילית.",
+      "אי אפשר לרשום תצפית העברה בלי תשובה על יישום הכלל: היעדר תשובה אינו תשובה שלילית.",
     );
   return {
     decision_id: input.decision_id,

@@ -35,7 +35,7 @@ import type { StoredPosition } from "@/lib/session-position";
 
 /** Shown only once the bank is exhausted: at that point the record really is the way on. */
 export const NO_FURTHER_POSITION =
-  "עניתם על כל העמדות בסט המשותף. הרשומה שומרת את ההחלטה הזאת, ושם נמצאת הקריאה המלאה.";
+  "עניתם על כל העמדות בסט המשותף. ההיסטוריה שומרת את ההחלטה הזאת, ושם נמצאת הקריאה המלאה.";
 
 /** The invitation on the direct route. It names a position, not a page. */
 export const NEXT_POSITION_CTA = "לעמדה הבאה";
@@ -92,7 +92,7 @@ export function RevealNextPosition({
           {...primaryAction("return-record")}
           onClick={() => navigate("/")}
         >
-          חזרה לרשומה
+          חזרה להיסטוריה
         </button>
       </>
     );

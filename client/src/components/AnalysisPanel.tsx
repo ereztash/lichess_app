@@ -126,7 +126,7 @@ export function AnalysisPanel({
                   {formatEvaluation(analysis.scoreCp, analysis.mate)}
                 </Value>
               ) : (
-                <NotMeasured reason="טרם נותחה עמדה זו" />
+                <NotMeasured reason="המנוע עוד לא ניתח את העמדה הזו" />
               )}
             </strong>
           </div>

@@ -144,7 +144,7 @@ describe("no claim: three different answers, never one", () => {
   it("says the record is unreadable rather than reporting distance zero", () => {
     // R2: a record that could not be READ must not render as a record with nothing in it.
     const at = loopPosition(inputs({ scoredStillNeeded: null }));
-    expect(at.headline).toContain("לא ניתן לקרוא");
+    expect(at.headline).toContain("אי אפשר לקרוא");
     expect(at.headline).not.toMatch(/עוד \d+/);
   });
 });

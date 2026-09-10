@@ -23,7 +23,7 @@ export function BrandLockup({ onNavigate }: BrandLockupProps) {
     <button
       type="button"
       className="brand-lockup"
-      aria-label="DECISION LAB — לרשומה"
+      aria-label="DECISION LAB — להיסטוריה"
       onClick={onNavigate}
     >
       <div className="brand-mark" aria-hidden="true">

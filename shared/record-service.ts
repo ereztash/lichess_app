@@ -301,7 +301,7 @@ export async function commitDecision(
     if (!drill) {
       throw new RecordError(
         "BAD_REQUEST",
-        "ההחלטה נשלחה כהחלטת תרגול, אבל התרגול שהיא מצביעה עליו אינו ברשומה.",
+        "ההחלטה נשלחה כהחלטת תרגול, אבל התרגול שהיא מצביעה עליו אינו בהיסטוריה.",
       );
     }
     if (!drill.spec.fens.includes(input.entry_state.fen)) {
@@ -360,7 +360,7 @@ export async function commitDecision(
     if (!transfer) {
       throw new RecordError(
         "BAD_REQUEST",
-        "ההחלטה נשלחה כבדיקת העברה, אבל הבדיקה שהיא מצביעה עליה אינה ברשומה.",
+        "ההחלטה נשלחה כבדיקת העברה, אבל הבדיקה שהיא מצביעה עליה אינה בהיסטוריה.",
       );
     }
     if (!transfer.fens.some((fen) => samePosition(fen, input.entry_state.fen))) {
@@ -581,7 +581,7 @@ export async function reveal(
       existing.result.engine_build === result.engine_build &&
       existing.result.cp_loss === result.cp_loss;
     if (!sameVerdict) {
-      throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. הרשומה היא append-only.");
+      throw new RecordError("CONFLICT", "ההחלטה כבר נחשפה. ההיסטוריה היא append-only.");
     }
     if (
       alternativeCpLoss !== undefined &&
@@ -593,7 +593,7 @@ export async function reveal(
       await store.scoreCounterfactual(decisionId, alternativeCpLoss);
     }
     const replayed = await store.getAtom(decisionId);
-    if (!replayed) throw new RecordError("INTERNAL_SERVER_ERROR", "רשומה נעלמה.");
+    if (!replayed) throw new RecordError("INTERNAL_SERVER_ERROR", "ההיסטוריה נעלמה.");
     return replayed;
   }
   await store.recordReveal(decisionId, result);
@@ -606,7 +606,7 @@ export async function reveal(
     await store.scoreCounterfactual(decisionId, alternativeCpLoss);
   }
   const atom = await store.getAtom(decisionId);
-  if (!atom) throw new RecordError("INTERNAL_SERVER_ERROR", "רשומה נעלמה.");
+  if (!atom) throw new RecordError("INTERNAL_SERVER_ERROR", "ההיסטוריה נעלמה.");
   return atom;
 }
 

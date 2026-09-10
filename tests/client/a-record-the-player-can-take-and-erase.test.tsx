@@ -145,32 +145,32 @@ describe("the record can be taken out and erased", () => {
     await new LocalRecordStore().commitDecision(decision);
     render(<SelfCheck onClose={() => {}} />);
 
-    const download = screen.getByRole("link", { name: "הורידו את הרשומה" });
+    const download = screen.getByRole("link", { name: "הורידו את ההיסטוריה" });
     expect(download).toHaveAttribute("download", "decision-lab-record.json");
     /* The file is built on the press (jsdom has no createObjectURL, so the data: fallback is taken). */
     download.addEventListener("click", (event) => event.preventDefault());
     fireEvent.click(download);
     expect(decodeURIComponent(download.getAttribute("href") ?? "")).toContain("d-erase-1");
 
-    const erase = screen.getByRole("button", { name: "מחקו את הרשומה מהדפדפן הזה" });
+    const erase = screen.getByRole("button", { name: "מחקו את ההיסטוריה מהדפדפן הזה" });
     fireEvent.click(erase);
     /* One press arms; the record is still there. */
     expect(localStorage.getItem(STORAGE_KEYS.record.key)).toContain("d-erase-1");
     fireEvent.click(screen.getByRole("button", { name: /לחצו שוב כדי למחוק/ }));
-    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("הרשומה נמחקה מהדפדפן הזה"));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("ההיסטוריה נמחקה מהדפדפן הזה"));
     expect(localStorage.getItem(STORAGE_KEYS.record.key)).toBeNull();
   });
 
   it("says so when there is nothing to erase, rather than reporting an erase that erased nothing", () => {
     render(<SelfCheck onClose={() => {}} />);
-    fireEvent.click(screen.getByRole("button", { name: "מחקו את הרשומה מהדפדפן הזה" }));
-    expect(screen.getByRole("status")).toHaveTextContent("אין רשומה בדפדפן הזה");
+    fireEvent.click(screen.getByRole("button", { name: "מחקו את ההיסטוריה מהדפדפן הזה" }));
+    expect(screen.getByRole("status")).toHaveTextContent("אין היסטוריה בדפדפן הזה");
   });
 });
 
 /*
  * THE DOWNLOAD USED TO BE AN ENDING. `exportLocalRecord` has shipped since the retention work and
- * nothing in the product could read what it produced, so "הורידו את הרשומה" handed the player a
+ * nothing in the product could read what it produced, so "הורידו את ההיסטוריה" handed the player a
  * file with nowhere to go -- while the same drawer told them a private window would erase
  * everything on refresh and the board told them the loop "לא תעבור בין מכשירים".
  */
@@ -256,10 +256,10 @@ describe("a downloaded record can come back", () => {
   it("offers it from the drawer, beside the download that produces the file", async () => {
     const json = await takeTheFile();
     render(<SelfCheck onClose={() => {}} />);
-    const take = screen.getByLabelText("העלו רשומה מקובץ");
+    const take = screen.getByLabelText("העלו היסטוריה מקובץ");
     fireEvent.change(take, { target: { files: [new File([json], "record.json", { type: "application/json" })] } });
     await waitFor(() =>
-      expect(screen.getByText(/הרשומה נטענה/), "the drawer said nothing about the file").toBeTruthy(),
+      expect(screen.getByText(/ההיסטוריה נטענה/), "the drawer said nothing about the file").toBeTruthy(),
     );
     expect(await new LocalRecordStore().countDecisions()).toBe(1);
   });
@@ -267,11 +267,11 @@ describe("a downloaded record can come back", () => {
   it("tells the player why a file was not taken, in the words of the cause", async () => {
     await new LocalRecordStore().commitDecision(decision);
     render(<SelfCheck onClose={() => {}} />);
-    fireEvent.change(screen.getByLabelText("העלו רשומה מקובץ"), {
+    fireEvent.change(screen.getByLabelText("העלו היסטוריה מקובץ"), {
       target: { files: [new File(["{}"], "record.json", { type: "application/json" })] },
     });
     // Not "something went wrong": the reason decides what the player does next, and here it is
     // "erase first", which is a different act from "find another file".
-    await waitFor(() => expect(screen.getByText(/כבר יש רשומה/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(/כבר יש היסטוריה/)).toBeTruthy());
   });
 });

@@ -423,7 +423,7 @@ export default function Record() {
         * TWO IDENTITIES, BECAUSE THERE ARE TWO VISITORS, and the page already branches on exactly
         * this distinction one element below.
         *
-        * A returning player IS visiting the record, and "הרשומה" is the right name for the thing
+        * A returning player IS visiting the record, and "ההיסטוריה" is the right name for the thing
         * they came back to. A cold arrival is asking a different question -- what is this -- and
         * the answer "the record" names a database object. The old header answered the returning
         * player's question to everybody, and then reached a research construct ("לא ידעתם שאתם
@@ -458,7 +458,7 @@ export default function Record() {
             </>
           ) : (
             <>
-              <h1>הרשומה</h1>
+              <h1>ההיסטוריה</h1>
               {/*
                 * §13: THE EXPLANATION IS NOT SHOWN AGAIN.
                 *
@@ -529,14 +529,14 @@ export default function Record() {
       )}
 
       {reading.isLoading ? (
-        <p className="record-page-loading">קורא את הרשומה…</p>
+        <p className="record-page-loading">קורא את ההיסטוריה…</p>
       ) : measured === 0 ? (
         <FirstDecision
           knownUsername={importReading.reading?.username}
           deferPrimary={returning}
         />
       ) : (
-        <section className="record-layer" aria-label="החלטות עם ביטחון מוצהר">
+        <section className="record-layer" aria-label="החלטות עם ביטחון שנאמר מראש">
           <div className="record-layer-head">
             <h2>נמדד עם ביטחון שהצהרתם מראש</h2>
             <p>רק כאן יש מה להשוות: מה אמרתם לפני שהמנוע דיבר, מול מה שקרה.</p>
@@ -614,7 +614,7 @@ export default function Record() {
       {importReading.reading && (
         <section className="record-layer secondary" aria-label="משחקים שכבר שוחקו">
           <div className="record-layer-head">
-            <h2>נמדד בלי ביטחון מוצהר</h2>
+            <h2>נמדד בלי ביטחון שנאמר מראש</h2>
             <p>
               דיוק מהלכים מול המנוע במשחקים שכבר שיחקתם. זו לא מדידת כיול ולא תהפוך לאחת: אז איש
               לא שאל כמה אתם בטוחים.
@@ -648,7 +648,7 @@ export default function Record() {
         *
         * Measured on the built app at 390x844: adding this notice took the front door from CLS
         * 0.00015 to 0.07811. It is the last element on the page, so when the record layers finish
-        * loading and replace "קורא את הרשומה…", it is pushed 289 pixels down -- and a shift of
+        * loading and replace "קורא את ההיסטוריה…", it is pushed 289 pixels down -- and a shift of
         * the LAST element is still a shift.
         *
         * Rendering it after the record has answered means it is inserted at its final position

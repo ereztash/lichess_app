@@ -464,7 +464,7 @@ function holdsAnything(state: Persisted): boolean {
  * Put a downloaded record back, into a browser that has none.
  *
  * WHY THIS EXISTS. `exportLocalRecord` has shipped since the retention work and nothing could read
- * what it produced -- so "הורידו את הרשומה" handed the player a file that was an ending. The two
+ * what it produced -- so "הורידו את ההיסטוריה" handed the player a file that was an ending. The two
  * states the product already tells them about make that concrete: `session-only` says a refresh
  * will erase everything, and the record-mode notice says the loop "לא תעבור בין מכשירים". A player
  * who did what the first sentence advised had no way to act on it.

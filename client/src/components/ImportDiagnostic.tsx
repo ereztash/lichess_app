@@ -35,14 +35,14 @@ function Unmeasurable({ reason, n }: { reason: "too-few" | "no-clock-data" | nul
   if (reason === "no-clock-data") {
     return (
       <span className="bucket-short">
-        אין נתוני שעון במשחקים האלה, ולכן לא ניתן למדוד את הסוג הזה. ליצ׳ס מייצא שעונים רק אם
+        אין נתוני שעון במשחקים האלה, ולכן אי אפשר למדוד את הסוג הזה. ליצ׳ס מייצא שעונים רק אם
         ביקשתם אותם בייצוא — ייבוא של עוד משחקים מאותו מקור לא יעזור.
       </span>
     );
   }
   return (
     <span className="bucket-short">
-      לא ניתן למדוד — {n} החלטות מהסוג הזה, נדרשות {MIN_BUCKET_N}
+      אי אפשר למדוד — {n} החלטות מהסוג הזה, נדרשות {MIN_BUCKET_N}
     </span>
   );
 }

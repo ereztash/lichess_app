@@ -101,7 +101,7 @@ export const AUTHORITY: Readonly<Record<EvidenceAuthority, AuthorityVocabulary>>
     mayPrescribe: false,
   },
   recurred: {
-    word: "חוזר ברשומה",
+    word: "חוזר בהיסטוריה",
     mark: "○○",
     means: "זה חוזר במה שכבר נאסף. מצאנו את זה אחרי שראינו את הנתונים, ולכן זה עדיין לא נבדק.",
     settled: false,

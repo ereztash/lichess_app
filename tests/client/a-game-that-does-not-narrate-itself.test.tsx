@@ -61,7 +61,7 @@ describe("once the game is over", () => {
     const onSeeRecord = vi.fn();
     setup({ over: true, onSeeRecord });
     expect(screen.getByText(/המשחק נגמר/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /לרשומה/ }));
+    fireEvent.click(screen.getByRole("button", { name: /להיסטוריה/ }));
     expect(onSeeRecord).toHaveBeenCalled();
   });
 

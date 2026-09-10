@@ -54,8 +54,8 @@ const COPY: Record<RevealFailureKind, { what: string; detail: string }> = {
      * says what is certain and points at the surface that holds the answer.
      */
     detail:
-      "המנוע ענה והחשיפה למעלה תקפה, אבל הכתיבה לרשומה נכשלה — גם בניסיון החוזר. " +
-      "מסך הרשומה יראה אם ההחלטה הזו נספרת בין אלה שנמדדו; אם לא, היא לא תיכנס לחישוב הדפוסים.",
+      "המנוע ענה והחשיפה למעלה תקפה, אבל הכתיבה להיסטוריה נכשלה — גם בניסיון החוזר. " +
+      "מסך ההיסטוריה יראה אם ההחלטה הזו נספרת בין אלה שנמדדו; אם לא, היא לא תיכנס לחישוב הדפוסים.",
   },
 };
 
@@ -114,7 +114,7 @@ export function RevealFailure({
       </p>
       {/* Said before the detail, and before the control: it is the part that is not bad news. */}
       <p className="reveal-failure-safe">
-        ההחלטה עצמה נרשמה. היא נכתבת לרשומה לפני שהמנוע מופעל בכלל, כך שכשל כאן לא מוחק אותה.
+        ההחלטה עצמה נרשמה. היא נכתבת להיסטוריה לפני שהמנוע מופעל בכלל, כך שכשל כאן לא מוחק אותה.
       </p>
       <p className="reveal-failure-detail">{copy.detail}</p>
       {/*

@@ -1315,7 +1315,7 @@ export default function Home() {
           candidate_fens: candidates,
         });
         if (!response.drill) {
-          setDrillError(response.reason ?? "לא ניתן לבנות דריל כרגע.");
+          setDrillError(response.reason ?? "אי אפשר לבנות דריל כרגע.");
           return;
         }
         setDrill(response.drill);
@@ -1373,7 +1373,7 @@ export default function Home() {
       });
       setDrillStage("done");
     } catch (error) {
-      setDrillError(readableFailureText(error, "לא ניתן היה לסגור את הדריל."));
+      setDrillError(readableFailureText(error, "אי אפשר היה לסגור את הדריל."));
       setDrillStage("done");
     }
   }, [completeDrillMutation, drill, drillDecisionIds, drillIndex]);
@@ -1480,7 +1480,7 @@ export default function Home() {
       setLearningTransferStage("done");
     } catch (cause) {
       setLearningTransferError(
-        readableFailureText(cause, "לא ניתן היה למדוד את הבדיקה."),
+        readableFailureText(cause, "אי אפשר היה למדוד את הבדיקה."),
       );
       // Preserve the completed observations so reporting can be retried. A `done` state without
       // a verdict has no valid next action and would strand the workflow.
@@ -1613,7 +1613,7 @@ export default function Home() {
       // No opponent for a loaded game: the other side's moves are already in the PGN.
       setOpponent(null);
       answeredFen.current = null;
-      resetDecision(`נטענו ${loaded.length} חצאי־מהלכים.`);
+      resetDecision(`נטענו ${loaded.length} מהלכים.`);
     } catch {
       setNotice("לא הצלחתי לקרוא את ה־PGN.");
     }
@@ -1676,7 +1676,7 @@ export default function Home() {
       gameId.current = `lichess-${game.id}`;
       setOpponent(null);
       answeredFen.current = null;
-      resetDecision(`נטען ${game.white} מול ${game.black} — ${loaded.length} חצאי־מהלכים.`);
+      resetDecision(`נטען ${game.white} מול ${game.black} — ${loaded.length} מהלכים.`);
     } catch {
       setNotice(`לא הצלחתי לקרוא את ה־PGN של המשחק ${game.id}.`);
     }
@@ -2173,7 +2173,7 @@ export default function Home() {
                   onClick={() => setExploring((open) => !open)}
                 >
                   {/* Names what opens, not the act of looking: one-heading-a-screen-is-about. */}
-                  {exploring ? "חזרה לתוצאה" : "לרשומה המלאה"}
+                  {exploring ? "חזרה לתוצאה" : "להיסטוריה המלאה"}
                 </button>
               )}
               {exploring && !runInProgress && (

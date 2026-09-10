@@ -252,8 +252,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   if (scoredStillNeeded === null) {
     return {
       step: "record",
-      headline: "לא ניתן לקרוא את הרשומה, ולכן לא ידוע מה המרחק לדפוס.",
-      basis: "שכבת הרשומה לא נענתה",
+      headline: "אי אפשר לקרוא את ההיסטוריה, ולכן לא ידוע מה המרחק לדפוס.",
+      basis: "שכבת ההיסטוריה לא נענתה",
       // Sending the player somewhere would imply the destination can fix this. It cannot.
       action: null,
     };
@@ -277,7 +277,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
   if (recorded === 0 && !narrowedTo) {
     return {
       step: "record",
-      headline: "הרשומה עוד ריקה. ההחלטה הראשונה נרשמת על הלוח.",
+      headline: "ההיסטוריה עוד ריקה. ההחלטה הראשונה נרשמת על הלוח.",
       basis: "0 שנרשמו",
       // The board is the address, and it is what the player is looking at.
       action: null,
@@ -309,7 +309,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
      */
     const unreadable =
       withoutInstrument > 0
-        ? ` ${withoutInstrument} נמדדו לפני שהרשומה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן: ` +
+        ? ` ${withoutInstrument} נמדדו לפני שההיסטוריה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן: ` +
           `שני מנועים חולקים על 13.61% מהפסקים. החלטות חדשות שומרות את זה.`
         : "";
     /* Not a loss and not a wait: they are counted, under another heading, with their own
@@ -325,7 +325,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        were measured; the line that reports this search says `נספרות`, which is what it counts.
        Neither number moved and neither denominator moved. */
     const elsewhere =
-      readElsewhere > 0 ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של הרשומה.` : "";
+      readElsewhere > 0 ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של ההיסטוריה.` : "";
 
     if (narrowedTo) {
       /*

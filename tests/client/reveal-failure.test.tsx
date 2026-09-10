@@ -27,7 +27,7 @@ import { NEXT_POSITION_CTA } from "../../client/src/components/RevealNextPositio
 
 /** The three sentences a way out of a failed reveal is allowed to say, named once. */
 const IN_GAME_CTA = "להחלטה הבאה";
-const RECORD_CTA = "חזרה לרשומה";
+const RECORD_CTA = "חזרה להיסטוריה";
 
 /**
  * What the caller has to supply, with the bank route left inert.

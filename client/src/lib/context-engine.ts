@@ -157,8 +157,8 @@ export function derivePresentation(
     // visit from starting at zero, not to summarise the record.
     reorientation =
       record.awaitingReveal > 0
-        ? `חזרת אחרי כ־${gap} ימים. יש ${record.recorded} החלטות ברשומה, מתוכן ${record.awaitingReveal} ממתינות לחשיפה.`
-        : `חזרת אחרי כ־${gap} ימים. יש ${record.recorded} החלטות ברשומה.`;
+        ? `חזרת אחרי כ־${gap} ימים. יש ${record.recorded} החלטות בהיסטוריה, מתוכן ${record.awaitingReveal} ממתינות לחשיפה.`
+        : `חזרת אחרי כ־${gap} ימים. יש ${record.recorded} החלטות בהיסטוריה.`;
   }
 
   return {

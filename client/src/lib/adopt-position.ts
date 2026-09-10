@@ -26,7 +26,7 @@ import type { AnalysisSource } from "@shared/analysis-source";
  * What the board says about the position it just restored.
  *
  * IT SAID ONE THING FOR THREE DIFFERENT ARRIVALS, and for two of them it was false. Every restore
- * was phrased as a return -- "חזרתם למשחק שהייתם בו — 21 חצאי־מהלכים" -- and both front-door
+ * was phrased as a return -- "חזרתם למשחק שהייתם בו — 21 מהלכים" -- and both front-door
  * routes hand a position over through the very store this module reads. Measured in Chromium on a
  * fresh profile, entering through `עמדה מהסט המשותף`: that sentence, under the board, in the first
  * state of the evidence window, to somebody who had never seen the game. A claim about the
@@ -50,7 +50,7 @@ import type { AnalysisSource } from "@shared/analysis-source";
  * board -- measured on a 390x844 phone, it begins at y=810 of 844, under a copy-FEN control at
  * y=680. The instruction was on screen and unreachable; the provenance was reachable and inert.
  *
- * AND IT COUNTS MOVES RATHER THAN HALF-MOVES. "24 חצאי־מהלכים" is a ply count wearing a word
+ * AND IT COUNTS MOVES RATHER THAN HALF-MOVES. "24 מהלכים" is a ply count wearing a word
  * nobody says out loud, and a player who reads it as moves is told the game is twice as long as it
  * is. Halving it makes the number mean what the sentence appears to claim.
  *

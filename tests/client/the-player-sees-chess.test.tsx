@@ -168,7 +168,7 @@ describe("the claim surface stays exactly as strong as its grade", () => {
     const { container } = render(<ClaimCard claim={graded(true)} othersWithheld={0} />);
     expect(container.textContent).toMatch(/החלטות חדשות/);
     expect(container.textContent, "prospective evidence was described as retrospective").not.toMatch(
-      /מההחלטות שכבר|מהרשומה הקיימת/,
+      /מההחלטות שכבר|מההיסטוריה הקיימת/,
     );
   });
 });

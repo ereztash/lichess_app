@@ -320,7 +320,7 @@ export class DrizzleRecordStore implements RecordStore {
       .from(decisions)
       .where(eq(decisions.decisionId, decisionId))
       .limit(1);
-    if (!decision) throw new RecordError("NOT_FOUND", "אין החלטה כזאת ברשומה.");
+    if (!decision) throw new RecordError("NOT_FOUND", "אין החלטה כזאת בהיסטוריה.");
     if (decision.probeAssignment !== "probed") {
       throw new RecordError(
         "BAD_REQUEST",

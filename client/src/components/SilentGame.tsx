@@ -44,7 +44,7 @@ export function SilentGame({
             כל החלטה נמדדה בזמן אמת ונשמרה. עכשיו אפשר לראות את כולן ביחד.
           </p>
           <button type="button" className="primary-control" onClick={onSeeRecord}>
-            לרשומה
+            להיסטוריה
           </button>
         </>
       ) : (

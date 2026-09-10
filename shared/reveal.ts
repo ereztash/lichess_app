@@ -717,7 +717,7 @@ export const ACCUMULATION_NEXT = "ההחלטה הבאה תראה אם זה חו�
 export const ACCUMULATION_KIND_LABEL: Record<OneThingKind | "silence", string> = {
   "chose-past-it": "מהלך שהיה על הלוח ולא נבחר",
   "confident-and-wrong": "ביטחון גבוה מול מהלך שעלה חומר",
-  outplayed: "מהלך שעלה חומר, בלי שהרשומה מוסיפה עליו",
+  outplayed: "מהלך שעלה חומר, בלי שההיסטוריה מוסיפה עליו",
   "trusted-it-too-little": "בחירה טובה שהוצהר עליה ביטחון נמוך",
   silence: "מדידה שלא תמכה באף משפט",
 };

@@ -60,12 +60,12 @@ function readText(file: File): Promise<string> {
 
 /** Why a file was not taken, one sentence per cause. A shared sentence would describe four. */
 const TOOK_NOTHING: Record<Extract<Took, { kind: "refused" }>["because"], string> = {
-  "not-json": "הקובץ הזה אינו JSON תקין, ולכן אין בו רשומה לקרוא.",
-  "not-an-object": "הקובץ נקרא, אבל אין בו רשומה של המוצר הזה.",
+  "not-json": "הקובץ הזה אינו JSON תקין, ולכן אין בו היסטוריה לקרוא.",
+  "not-an-object": "הקובץ נקרא, אבל אין בו היסטוריה של המוצר הזה.",
   "written-by-a-newer-build":
     "הקובץ נכתב בגרסה חדשה יותר של המוצר, והגרסה שרצה כאן לא יודעת לקרוא אותו. לא נגענו בו.",
   "already-holds-a-record":
-    "בדפדפן הזה כבר יש רשומה, ואין מיזוג בין שתיים. כדי לטעון את הקובץ צריך למחוק אותה קודם, בכפתור שלידו.",
+    "בדפדפן הזה כבר יש היסטוריה, ואין מיזוג בין שתיים. כדי לטעון את הקובץ צריך למחוק אותה קודם, בכפתור שלידו.",
   "file-unreadable": "הדפדפן לא הצליח לקרוא את הקובץ שנבחר. נסו לבחור אותו שוב.",
 };
 
@@ -206,9 +206,9 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
         */}
       <div className="self-check-record">
         <p className="self-check-note" dir="rtl">
-          הרשומה שלכם — ההחלטות, הקריאות שכתבתם, משחקי הבליץ — נשמרת בדפדפן הזה. אפשר להוריד אותה
+          ההיסטוריה שלכם — ההחלטות, הקריאות שכתבתם, משחקי הבליץ — נשמרת בדפדפן הזה. אפשר להוריד אותה
           כקובץ, בדיוק כפי שהיא שמורה, או למחוק אותה מהדפדפן הזה. המחיקה לא נוגעת בהעדפות ובמהלך
-          הביקורים, ולא ברשומה של חשבון אחר.
+          הביקורים, ולא בהיסטוריה של חשבון אחר.
         </p>
         {/*
          * SAID BESIDE THE DOWNLOAD, because it is the sentence that decides whether the file is
@@ -217,8 +217,8 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
          * find it, not after.
          */}
         <p className="self-check-note" dir="rtl">
-          קובץ שהורדתם אפשר להעלות בחזרה כאן, לדפדפן אחר או לדפדפן הזה אחרי מחיקה. הרשומה נטענת רק
-          לדפדפן שאין בו רשומה: אין מיזוג בין שתי רשומות, ולכן העלאה לא תדרוס החלטות שכבר נרשמו כאן.
+          קובץ שהורדתם אפשר להעלות בחזרה כאן, לדפדפן אחר או לדפדפן הזה אחרי מחיקה. ההיסטוריה נטענת רק
+          לדפדפן שאין בו היסטוריה: אין מיזוג בין שתי היסטוריות, ולכן העלאה לא תדרוס החלטות שכבר נרשמו כאן.
         </p>
         <div className="self-check-actions">
           <a
@@ -249,7 +249,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
               }
             }}
           >
-            הורידו את הרשומה
+            הורידו את ההיסטוריה
           </a>
           {/*
            * A LABEL WRAPPING A HIDDEN INPUT, not a button that clicks one. The file picker opens
@@ -257,7 +257,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
            * handler is the version of this that works in a test and is refused in a browser.
            */}
           <label className="ghost-control self-check-take">
-            העלו רשומה מקובץ
+            העלו היסטוריה מקובץ
             <input
               type="file"
               accept="application/json,.json"
@@ -286,17 +286,17 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
               void deleteLocalRecord().then(() => setErase("done"));
             }}
           >
-            {erase === "armed" ? "לחצו שוב כדי למחוק את הרשומה מהדפדפן הזה" : "מחקו את הרשומה מהדפדפן הזה"}
+            {erase === "armed" ? "לחצו שוב כדי למחוק את ההיסטוריה מהדפדפן הזה" : "מחקו את ההיסטוריה מהדפדפן הזה"}
           </button>
         </div>
         {erase === "done" && (
           <p className="self-check-note" role="status" dir="rtl">
-            הרשומה נמחקה מהדפדפן הזה. מה שנשמר בשרת, אם התחברתם, לא נמחק כאן — ראו docs/RETENTION.md.
+            ההיסטוריה נמחקה מהדפדפן הזה. מה שנשמר בשרת, אם התחברתם, לא נמחק כאן — ראו docs/RETENTION.md.
           </p>
         )}
         {erase === "nothing" && (
           <p className="self-check-note" role="status" dir="rtl">
-            אין רשומה בדפדפן הזה למחוק או להוריד.
+            אין היסטוריה בדפדפן הזה למחוק או להוריד.
           </p>
         )}
         {/*
@@ -310,7 +310,7 @@ export function SelfCheck({ onClose }: { onClose: () => void }) {
         {taken && (
           <p className="self-check-note" role="status" dir="rtl">
             {taken.kind === "imported"
-              ? `הרשומה נטענה: ${taken.decisions} החלטות. ${
+              ? `ההיסטוריה נטענה: ${taken.decisions} החלטות. ${
                   localRecordDurability() === "persistent"
                     ? "היא שמורה בדפדפן הזה."
                     : "הדפדפן חוסם אחסון קבוע, ולכן היא תישמר לכרטיסייה הזו בלבד."

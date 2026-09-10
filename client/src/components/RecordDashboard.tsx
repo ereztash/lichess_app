@@ -55,7 +55,7 @@ function band(reference: SensitivityBand, p: number): string {
  */
 const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
   ok: "",
-  "too-few": `נדרשות ${MIN_BUCKET_N} החלטות בעמדות העוגן כדי למדוד את הקשר הזה.`,
+  "too-few": `נדרשות ${MIN_BUCKET_N} החלטות בעמדות מהסט המשותף כדי למדוד את הקשר הזה.`,
   "flat-time":
     "לקחתם בערך אותו זמן על כל ההחלטות, ולכן אין מה לקשור לביטחון. עוד החלטות באותו קצב לא ישנו את זה.",
   "flat-confidence":
@@ -66,7 +66,7 @@ const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
    * coefficient appeared 100% of the time and reached 0.30 or more on one record in nine.
    */
   "inside-noise":
-    "נמדד, והקשר יצא קטן ממה שהרשומה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
+    "נמדד, והקשר יצא קטן ממה שההיסטוריה הזו יכולה להבחין בו מאפס. עוד החלטות יחדדו את זה.",
 };
 
 /**
@@ -77,7 +77,7 @@ const CONTROL_SILENCE: Record<NonNullable<Control["reason"]>, string> = {
  */
 const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = {
   ok: "",
-  "too-few-accurate": `נדרשות ${MIN_BUCKET_N} החלטות שיצאו טוב כדי שיהיה מה להפריד מהן. ברשומה הזו יש פחות.`,
+  "too-few-accurate": `נדרשות ${MIN_BUCKET_N} החלטות שיצאו טוב כדי שיהיה מה להפריד מהן. בהיסטוריה הזו יש פחות.`,
   /*
    * Named separately from its mirror because the advice is different and specific: this player
    * needs harder positions, not simply more of them. "Record more decisions" is what they would
@@ -91,7 +91,7 @@ const SENSITIVITY_SILENCE: Record<NonNullable<Sensitivity["reason"]>, string> = 
    * landed a tenth of the scale from chance on 18% of them.
    */
   "inside-noise":
-    "נמדד, והתוצאה יצאה קרובה מדי למקריות מכדי להבדיל אותה ממנה ברשומה בגודל הזה. עוד החלטות יחדדו את זה.",
+    "נמדד, והתוצאה יצאה קרובה מדי למקריות מכדי להבדיל אותה ממנה בהיסטוריה בגודל הזה. עוד החלטות יחדדו את זה.",
 };
 
 export function RecordDashboard({ reading }: { reading: RecordReading }) {
@@ -133,7 +133,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
            * to them which the product had deliberately not shown. The count is unchanged; the verb
            * is now the one the record can witness.
            */
-          `המנוע ענה על ${reading.withoutConfidence} החלטות, אך אף אחת מהן לא נרשמה עם ביטחון מוצהר — ` +
+          `המנוע ענה על ${reading.withoutConfidence} החלטות, אך אף אחת מהן לא נרשמה עם ביטחון שנאמר מראש — ` +
           "שאלת הביטחון נשאלת תמיד בסט המשותף ובתרגול, ובחלק מההחלטות במשחק חופשי. " +
           "פער כיול נקרא רק מהחלטות שנשאלו."
         : /*
@@ -141,7 +141,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
            *
            * Walked in Chromium at 1440x900 and 390x844 from a clean profile: three complete bank
            * decisions, then the explorer opened from the third reveal. One page then carried
-           * `3 נמדדו ונקראות בחלק אחר של הרשומה` at y=108, `נרשמו 4 החלטות` at y=233, and this
+           * `3 נמדדו ונקראות בחלק אחר של ההיסטוריה` at y=108, `נרשמו 4 החלטות` at y=233, and this
            * panel at y=2089 saying no decision had been revealed. Four numbers for one player,
            * the last contradicting the first, on a screen that was itself a reveal.
            *
@@ -162,11 +162,11 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
           reading.readElsewhere > 0
           ? `${decisionsHeldElsewhere(reading.readElsewhere)} — הסט המשותף, תרגול או משחקים שיובאו. ` +
             "כאן נקרא פער כיול ממשחקים ששיחקתם, ועוד אין החלטה כזאת."
-          : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. הרשומה נבנית מהחלטה אחת בכל פעם.";
+          : "עוד לא נחשפה אף החלטה, ולכן אין מה למדוד. ההיסטוריה נבנית מהחלטה אחת בכל פעם.";
     return (
       <section className="analysis-section record-dashboard">
         <div className="section-heading">
-          <span>הרשומה שלך</span>
+          <span>ההיסטוריה שלך</span>
           <Gauge size={14} />
         </div>
         <NotMeasured reason={reason} />
@@ -187,7 +187,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
   return (
     <section className="analysis-section record-dashboard">
       <div className="section-heading">
-        <span>הרשומה שלך</span>
+        <span>ההיסטוריה שלך</span>
         <span className="data-chip">n={scored}</span>
       </div>
 
@@ -337,7 +337,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
               <Proportion
                 value={calibration.unreadableN / calibration.n}
                 n={calibration.n}
-                label="מהרשומה הזו נמדד ברמות ביטחון שנאמרו מעט מדי"
+                label="מההיסטוריה הזו נמדד ברמות ביטחון שנאמרו מעט מדי"
               />{" "}
               רמת ביטחון שנאמרה פחות מ-{MIN_BUCKET_N} פעמים נמדדת גבוה מדי מעצם היותה קטנה, ולכן
               ככל שהחלק הזה גדול יותר, כך פחות אפשר לקרוא את המספר שלמעלה כממצא עליכם.
@@ -491,7 +491,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
         * test-retest reliability it would be a much stronger claim than anything here supports,
         * and the sentence saying so is the reason this block is allowed on screen at all.
         */}
-      <h4 className="dash-title">האם הרשומה אמרה את אותו הדבר פעמיים</h4>
+      <h4 className="dash-title">האם ההיסטוריה אמרה את אותו הדבר פעמיים</h4>
       {stability.readable && stability.spread !== null ? (
         <>
           <dl className="calibration-split">
@@ -524,7 +524,7 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
             </div>
           </dl>
           <p className="dash-note" dir="rtl">
-            הרשומה נחתכה לשתי מחציות לסירוגין — החלטה לכאן, החלטה לשם — ולא לחצי ראשון וחצי שני,
+            ההיסטוריה נחתכה לשתי מחציות לסירוגין — החלטה לכאן, החלטה לשם — ולא לחצי ראשון וחצי שני,
             כדי שעייפות או התחממות לא ייקראו כחוסר יציבות. קטן זה טוב: המספר יצא דומה בשתיהן. אין
             כאן סף ואין מעבר או נכשל, כי הפיכת זה לציון הייתה בדיוק הקריאה שהמדידה הזו נועדה למנוע.
           </p>
@@ -688,12 +688,12 @@ export function RecordDashboard({ reading }: { reading: RecordReading }) {
                * ticked the option -- so the message names the fix that actually exists.
                */
               <span className="bucket-short">
-                לא ניתן למדוד במצב הזה — אין נתוני שעון ברשומה. משחק מקומי מול Stockfish הוא בלי
+                אי אפשר למדוד במצב הזה — אין נתוני שעון בהיסטוריה. משחק מקומי מול Stockfish הוא בלי
                 שעון, וייצוא מליצ׳ס נושא שעונים רק אם ביקשתם אותם בייצוא.
               </span>
             ) : (
               <span className="bucket-short">
-                לא ניתן למדוד — {b.inside.n} החלטות בפנים, נדרשות {MIN_BUCKET_N}
+                אי אפשר למדוד — {b.inside.n} החלטות בפנים, נדרשות {MIN_BUCKET_N}
               </span>
             )}
           </li>
@@ -764,7 +764,7 @@ export function RecordDashboardLoading() {
   return (
     <section className="analysis-section record-dashboard">
       <p className="claim-loading">
-        <Loader2 size={14} /> קורא את הרשומה…
+        <Loader2 size={14} /> קורא את ההיסטוריה…
       </p>
     </section>
   );
@@ -847,7 +847,7 @@ function MixBlock({ mix }: { mix: OneThingMix }) {
       </p>
       {mix.withheld > 0 && (
         <p className="dash-note" dir="rtl">
-          ובנוסף, ב-{mix.withheld} מתוך {mix.n} ההחלטות הכלי החזיק את המשפט עד סוף המשחק. הרשומה
+          ובנוסף, ב-{mix.withheld} מתוך {mix.n} ההחלטות הכלי החזיק את המשפט עד סוף המשחק. ההיסטוריה
           יודעת מתי המנוע ענה. היא לא מתעדת מתי, ואם, קראתם את התשובה.
         </p>
       )}

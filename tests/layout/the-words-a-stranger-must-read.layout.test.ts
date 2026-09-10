@@ -52,7 +52,7 @@ const WORDS: Record<Stage, number> = {
    * separate occasions, and neither could complete a move.
    *
    * The sentence under the board named the position and never the act: "עמדה מהסט המשותף — 21
-   * חצאי־מהלכים." The only text that said "choose a move" was the disabled submit's own label, at
+   * מהלכים." The only text that said "choose a move" was the disabled submit's own label, at
    * the bottom of the panel below the board, which begins at y=810 of an 844px phone under a
    * copy-FEN control at y=680. On screen, and unreachable.
    *
