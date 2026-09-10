@@ -58,3 +58,8 @@ scratch-*.tsx
 # `research/ux-measurement/probes/*.mjs` against a build. The ledger beside them is the summary
 # and is what research/ux-measurement/PRE_EVIDENCE_SURFACE_LEDGER.md quotes.
 research/ux-measurement/probes/out/
+
+# `npm run contact-sheet` writes 21 phone frames and a montage here. They are a way of
+# LOOKING at the build, regenerated from it in a minute, so the repository keeps the script
+# that produces them rather than the megabytes they come to.
+ui-contact-sheet/
