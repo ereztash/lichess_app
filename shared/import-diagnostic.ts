@@ -280,6 +280,35 @@ export interface StoredImportDiagnostic {
   games: number;
   /** When the scan finished. ISO 8601. */
   scanned_at: string;
+  /**
+   * The player's own rating in each scanned game, oldest first, with the site it came from.
+   *
+   * WHY IT IS KEPT AT ALL. Every imported game already carried `whiteRating` and `blackRating`;
+   * both were parsed at the boundary, by both adapters, and read by nothing. The product asked
+   * two chess sites for a number, was given it, and dropped it. That is the cheapest kind of
+   * defect to fix and the easiest to leave forever, because nothing breaks while it is broken.
+   *
+   * WHAT IT DELIBERATELY IS NOT. It is not a goal, a target, or a starting point, and nothing
+   * downstream treats it as one. Which rating a journey should be anchored to -- a site's, FIDE's,
+   * or a measure of this product's own -- is an open question with a real answer on either side,
+   * and this field takes no position on it. It stops the discard so that whichever answer is
+   * chosen later has a series to be computed from, rather than starting from the day it is
+   * chosen.
+   *
+   * A SERIES AND NOT AN AVERAGE. A single number cannot say whether a player is climbing, and
+   * climbing is the only thing anybody wants to know from a rating. Optional on the type, because
+   * a reading stored before this field existed is a reading, not a damaged one.
+   */
+  rating?: RatingReading[];
+}
+
+/** One rating, as one site reported it in one game. */
+export interface RatingReading {
+  /** ISO 8601, from the game's own timestamp rather than from the scan's. */
+  at: string;
+  value: number;
+  /** `lichess` or `chesscom`. Two sites' ratings are two scales and must never be pooled. */
+  source: string;
 }
 
 export interface ImportedGameInput {
