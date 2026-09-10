@@ -73,7 +73,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "2a8d320026797c87f61569cb78b5507745c9d85e",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -162,5 +162,5 @@
   "player_id": "montifiqe",
   "corpus": "lichess:montifiqe"
  },
- "run_dir": "/tmp/cohort_probes/lichess_montifiqe_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_montifiqe_COHORT"
 }
