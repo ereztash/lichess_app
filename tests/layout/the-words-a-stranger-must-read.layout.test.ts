@@ -22,6 +22,10 @@
  * The readings that set them: front door 137, decide 97, commitment 107, reveal 199, the shared
  * set's commitment 172; before the act 63, 58, 68, 163, 131; a phone's first screen 44 and 151.
  *
+ * ONE OF THEM HAS SINCE GONE UP ON PURPOSE, which is what the paragraph below permits and what the
+ * note on `decide` records: the screen where a stranger acts said what the position was and never
+ * what to do, and two of them could not act. Decide reads 104 and its phone screen 51.
+ *
  * NOT A GATE, deliberately. A gate is a source scan with a positive control; this is a walk of the
  * built app in a real browser, like the other layout tests, and a browser is what a word count on a
  * screen needs -- jsdom paints nothing and would count the hidden and the shown alike.
@@ -43,7 +47,22 @@ import {
 /** Visible words per stage, at the desktop viewport the other stranger walks use. */
 const WORDS: Record<Stage, number> = {
   "front-door": 140,
-  decide: 100,
+  /*
+   * 100 -> 105, AND THE FIRST TIME THIS FILE HAS GONE UP. Two people were handed the app cold, on
+   * separate occasions, and neither could complete a move.
+   *
+   * The sentence under the board named the position and never the act: "עמדה מהסט המשותף — 21
+   * חצאי־מהלכים." The only text that said "choose a move" was the disabled submit's own label, at
+   * the bottom of the panel below the board, which begins at y=810 of an 844px phone under a
+   * copy-FEN control at y=680. On screen, and unreachable.
+   *
+   * It now ends with the side and the act, and the reading moved 97 -> 104. THIS IS THE TRADE THIS
+   * FILE EXISTS TO MAKE VISIBLE, and it is the right way round: the rule at the top is that
+   * attention spent on the instrument is attention the position did not get, and a player who
+   * cannot act spent all of it. Seven words is the cheapest repair available; the alternatives
+   * were moving elements or an onboarding screen, and both cost more than seven words.
+   */
+  decide: 105,
   commitment: 110,
   reveal: 205,
   "anchor-commitment": 175,
@@ -63,7 +82,8 @@ const BEFORE_THE_ACT: Record<Stage, number> = {
  * measurement, and the reveal is the deliverable; these are the two a phone must not bury.
  */
 const ABOVE_THE_FOLD_ON_A_PHONE: Partial<Record<Stage, number>> = {
-  decide: 50,
+  /* 50 -> 55 with the total above, for the same seven words and the same reason. Read at 51. */
+  decide: 55,
   /*
    * 155 -> 160, AND THE SENTENCE THAT NEEDED THE ROOM IS ONE THAT GOT SHORTER.
    *

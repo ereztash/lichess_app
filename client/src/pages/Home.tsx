@@ -592,7 +592,7 @@ export default function Home() {
       return;
     }
     /* A handoff is not a return, and this used to say it was. See `restoreNotice`. */
-    adoptPosition(saved, (loaded) => restoreNotice(saved.handover, loaded.length));
+    adoptPosition(saved, (loaded) => restoreNotice(saved.handover, loaded.length, saved.orientation));
     setRestoreSettled(true);
     /* Listed although `restored.current` makes this run once: a reader cannot tell a stable
        `useCallback` from an unstable one at the call site, which is what the guard is for. */
