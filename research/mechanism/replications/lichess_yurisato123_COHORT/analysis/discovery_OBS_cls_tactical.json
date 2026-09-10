@@ -1,0 +1,232 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 3.2774571037388407,
+   "zs": [
+    3.944765348138058,
+    3.4026835469232624,
+    2.9715610099543417,
+    2.158029215532141,
+    3.9102463981463993
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1"
+   ]
+  },
+  "2": {
+   "mean_z": 3.076297322636993,
+   "zs": [
+    2.9902496934667133,
+    2.419937826474621,
+    2.3054750891629743,
+    2.717129572330653,
+    4.948694431750003
+   ],
+   "regions": [
+    "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+    "n_good_captures<1 AND own_overloaded_piece_count>=1",
+    "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+    "n_good_captures<1 AND own_overloaded_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 2.211639053277278,
+   "zs": [
+    2.779833286381965,
+    1.8904708913748918,
+    1.1771718946988523,
+    1.564226536177191,
+    3.6464926577534906
+   ],
+   "regions": [
+    "opp_hanging_piece_count<1 AND own_last_check==0 AND own_overloaded_piece_count>=1",
+    "n_good_captures<1 AND own_last_check==0 AND own_overloaded_piece_count>=1",
+    "legal_moves>=29.0 AND material_balance>=-2 AND own_overloaded_piece_count: [1:2[",
+    "n_captures>=1 AND opp_hanging_piece_count<1 AND own_overloaded_piece_count>=1",
+    "n_good_captures<1 AND opp_last_captured_value<3 AND own_overloaded_piece_count>=1"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.311224639967482,
+   "depth": 1,
+   "n_derive": 2524,
+   "derive_err_in": 0.2305863708399366,
+   "derive_err_out": 0.12057258212516057,
+   "derive_wg_est": 0.1057562205571613,
+   "derive_wg_z": 10.382240227672298,
+   "derive_resid_wg_in": 0.046004200078669934,
+   "stability_share_j60": 1.0,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 909,
+    "n_out": 2076,
+    "p_in": 0.21232123212321233,
+    "p_out": 0.12620423892100194,
+    "diff": 0.08611699320221039,
+    "se": 0.018499786959404733,
+    "z": 4.655026211446781,
+    "games_in": 90,
+    "wg_est": 0.0705614321848357,
+    "wg_se": 0.018648937354474687,
+    "wg_z": 3.7836703959920244,
+    "wg_games": 90,
+    "pass": false,
+    "region": "own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.030167201787856753,
+    "resid_wg_z": 1.6766317110858842,
+    "secondary_wg": {
+     "est": 0.0026647629095622235,
+     "z": 0.1638035394701015,
+     "n_games": 90
+    },
+    "wp_loss_wg": {
+     "est": 0.002843211185745709,
+     "z": 0.6587019235022217
+    }
+   }
+  },
+  {
+   "region": "own_overloaded_piece_count: [1:2[",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.96135107309284,
+   "depth": 1,
+   "n_derive": 2087,
+   "derive_err_in": 0.21897460469573551,
+   "derive_err_out": 0.13285762827047232,
+   "derive_wg_est": 0.08491728424451064,
+   "derive_wg_z": 8.294478054703069,
+   "derive_resid_wg_in": 0.04293328435571832,
+   "stability_share_j60": 1.0,
+   "stability_median_j": 0.8371837183718371,
+   "validate": {
+    "n_in": 761,
+    "n_out": 2224,
+    "p_in": 0.21287779237844942,
+    "p_out": 0.13174460431654678,
+    "diff": 0.08113318806190264,
+    "se": 0.019982207489331966,
+    "z": 4.0602715243157075,
+    "games_in": 89,
+    "wg_est": 0.0685336652992661,
+    "wg_se": 0.019569234988775157,
+    "wg_z": 3.5021126445963153,
+    "wg_games": 89,
+    "pass": false,
+    "region": "own_overloaded_piece_count: [1:2[",
+    "resid_wg_est": 0.03540249912264454,
+    "resid_wg_z": 1.8867809912376654,
+    "secondary_wg": {
+     "est": 0.003780947349811752,
+     "z": 0.2203349733796014,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": 0.004364667285464697,
+     "z": 0.9633793411966595
+    }
+   }
+  },
+  {
+   "region": "own_hanging_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.909811145401342,
+   "depth": 1,
+   "n_derive": 2001,
+   "derive_err_in": 0.2283858070964518,
+   "derive_err_out": 0.13094440723375753,
+   "derive_wg_est": 0.08977633441033384,
+   "derive_wg_z": 7.735662760305514,
+   "derive_resid_wg_in": 0.042694003286074,
+   "stability_share_j60": 1.0,
+   "stability_median_j": 0.7964796479647965,
+   "validate": {
+    "n_in": 724,
+    "n_out": 2261,
+    "p_in": 0.19889502762430938,
+    "p_out": 0.1375497567448032,
+    "diff": 0.0613452708795062,
+    "se": 0.019378317406308684,
+    "z": 3.1656655009446286,
+    "games_in": 89,
+    "wg_est": 0.046358292635060624,
+    "wg_se": 0.019517183365769363,
+    "wg_z": 2.3752552694856126,
+    "wg_games": 89,
+    "pass": false,
+    "region": "own_hanging_piece_count>=1",
+    "resid_wg_est": 0.009420157073508994,
+    "resid_wg_z": 0.5071793456475435,
+    "secondary_wg": {
+     "est": -0.010150148467476009,
+     "z": -0.6256310703287995,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": 0.0008814896623498863,
+     "z": 0.19795479019067755
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "own_overloaded_piece_count>=1": 29,
+  "own_hanging_piece_count>=1": 1
+ }
+}
