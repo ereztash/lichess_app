@@ -72,7 +72,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "3ce7147d782c47b750826d552bc6c2142030a736",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -161,5 +161,5 @@
   "player_id": "newnampat64",
   "corpus": "lichess:newnampat64"
  },
- "run_dir": "/tmp/cohort_probes/lichess_newnampat64_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_newnampat64_COHORT"
 }
