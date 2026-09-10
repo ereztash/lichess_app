@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_skibidisigma12345_COHORT",
+ "run_dir": "/work/research/mechanism/replications/lichess_skibidisigma12345_COHORT",
  "focal": {
   "platform": "lichess",
   "username": "skibidisigma12345",
@@ -7,13 +7,13 @@
   "corpus": "lichess:skibidisigma12345"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "93d16c7ba4f8afcd366d1fe5ceffd42a24404b30",
+ "repo_sha": "511a75741e9a129078958d1756273958a12843c3",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
   "fetched": 950,
   "admissible": 450,
   "scorable": 449,
-  "eligible_decisions": null,
+  "eligible_decisions": 11694,
   "exclusions": {
    "non-standard-variant": 1,
    "outside-window": 128,
@@ -64,37 +64,39 @@
   "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
   "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
  },
- "status": "FROZEN",
- "eligibility": {
-  "raw_records": 950,
-  "admissible": 450,
-  "scorable": 449,
-  "excluded_by_reason": {
-   "non-standard-variant": 1,
-   "outside-window": 128,
-   "termination:Abandoned": 1,
-   "termination:Time forfeit": 333,
-   "under-20-plies": 38
-  },
-  "speeds": {
-   "blitz": 123,
-   "bullet": 266,
-   "classical": 30,
-   "rapid": 30
-  },
-  "admissible_path": "/tmp/cohort_probes/lichess_skibidisigma12345_COHORT/admissible/games.ndjson",
-  "window": 450,
-  "rule": {
-   "game": {
-    "termination": "Normal",
-    "requires_clock_annotations": true,
-    "min_plies_with_clock": 20,
-    "rated_only": true,
-    "variant": "standard"
-   },
-   "berserk": "clock-model",
-   "window_rule": "all-admissible-in-dateDesc-order",
-   "decision": "not forced AND not book AND seconds present AND clock present"
-  }
- }
+ "status": "NO_STABLE_STRUCTURE",
+ "failure_code": null,
+ "splits": {
+  "DERIVE_decisions": 6758,
+  "DERIVE_games": 269,
+  "VALIDATE_decisions": 2389,
+  "VALIDATE_games": 90,
+  "TEST_decisions": 2547,
+  "TEST_games": 90
+ },
+ "blitz_splits": {
+  "DERIVE_decisions": 1995,
+  "DERIVE_games": 70,
+  "VALIDATE_decisions": 511,
+  "VALIDATE_games": 22,
+  "TEST_decisions": 894,
+  "TEST_games": 31
+ },
+ "population": {
+  "status": "OK",
+  "focal_blitz_median_rating": 1638.0,
+  "band": [
+   1450,
+   1850
+  ]
+ },
+ "population_id": "population_2026-06",
+ "verdict": {
+  "output_class": "NO_STABLE_STRUCTURE",
+  "failure_code": null,
+  "reason": "no region of the frozen OBS vocabulary passes the VALIDATE judge (residual within-game z >= 3.5, n_in >= 100, raw within-game > 0) on the union class cls_tactical",
+  "broad_candidates_examined": 3
+ },
+ "evidence": {},
+ "finished_at": "2026-09-10T20:41:18Z"
 }

@@ -109,7 +109,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "93d16c7ba4f8afcd366d1fe5ceffd42a24404b30",
+ "repo_sha": "511a75741e9a129078958d1756273958a12843c3",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -198,5 +198,5 @@
   "player_id": "skibidisigma12345",
   "corpus": "lichess:skibidisigma12345"
  },
- "run_dir": "/tmp/cohort_probes/lichess_skibidisigma12345_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_skibidisigma12345_COHORT"
 }
