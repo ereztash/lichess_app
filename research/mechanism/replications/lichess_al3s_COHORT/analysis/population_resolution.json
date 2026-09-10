@@ -1,0 +1,52 @@
+{
+ "status": "OK",
+ "focal_blitz_median_rating": 1643.0,
+ "band": [
+  1450,
+  1850
+ ],
+ "population": {
+  "id": "population_2026-06",
+  "corpus_label": "population_2026-06",
+  "month": "2026-06",
+  "source": "database.lichess.org lichess_db_standard_rated_2026-06.pgn.zst, first 80 MB",
+  "band": [
+   1450,
+   1850
+  ],
+  "band_centre": 1650,
+  "time_controls": [
+   "180+0",
+   "300+0"
+  ],
+  "games": 600,
+  "games_by_time_control": {
+   "180+0": 420,
+   "300+0": 180
+  },
+  "sides": 1200,
+  "eligible_decisions": 34794,
+  "one_game_per_player": true,
+  "both_sides_focal": true,
+  "no_berserk": true,
+  "min_plies": 20,
+  "termination": "Normal",
+  "sample_hash_seed": "20260905:<gameId>",
+  "engine_regime": "Stockfish 17.1 native, depth 12, MultiPV 3, Threads 1, Hash 16, hash cleared per position",
+  "decisions_parquet": "research/mechanism/data/decisions_population_2026-06.parquet",
+  "games_ndjson": "research/mechanism/data/population_games.ndjson",
+  "scored_zst": "research/mechanism/data/scored_population_sf171_d12_mpv3.jsonl.zst",
+  "base_rates": {
+   "cls_tactical": 0.1444,
+   "cls_hung_material": 0.0747
+  },
+  "holdout_auc": {
+   "cls_tactical": 0.766,
+   "cls_hung_material": 0.765,
+   "err": 0.752
+  },
+  "provenance": "MISSION_LEDGER.md \u00a7Environment (population reference), Node G, design v1.8",
+  "frozen": true,
+  "decisions_parquet_abs": "/work/research/mechanism/data/decisions_population_2026-06.parquet"
+ }
+}

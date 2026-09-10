@@ -88,7 +88,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "a2de57818ac2cc5236810a5bf90f59fc873b3cf4",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -177,5 +177,5 @@
   "player_id": "al3s",
   "corpus": "lichess:al3s"
  },
- "run_dir": "/tmp/cohort_probes/lichess_al3s_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_al3s_COHORT"
 }
