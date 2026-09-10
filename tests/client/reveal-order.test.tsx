@@ -130,6 +130,8 @@ describe("the reveal order is what section 4.2 says it is", () => {
   it("says the record describes decisions, not the player, before any number", () => {
     const { container } = renderPanel();
     const text = container.textContent!;
-    expect(text.indexOf("לא של השחקן")).toBeLessThan(text.indexOf("ס״פ"));
+    /* The unit moved from "ס״פ" to the pawn figure the evaluation bar prints; "1.80" is the
+       first number on the screen either way, which is what the order is about. */
+    expect(text.indexOf("לא של השחקן")).toBeLessThan(text.indexOf("1.80"));
   });
 });

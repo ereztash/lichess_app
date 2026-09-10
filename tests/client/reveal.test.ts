@@ -66,7 +66,7 @@ describe("what cannot be inferred comes first, and is never empty", () => {
     const limits = inferenceLimits(
       from({ cpLoss: ENGINE_NOISE_CP - 5, chosenWasBest: false, bestMove: "f8e7" }),
     );
-    expect(limits.join(" ")).toContain("זו אינה טעות");
+    expect(limits.join(" ")).toContain("זו לא טעות");
   });
 });
 
@@ -87,7 +87,7 @@ describe("the one thing to work on is one thing, or nothing", () => {
   it("talks about the move when confidence was not the signal", () => {
     const one = theOneThing(from({ cpLoss: 180, chosenWasBest: false, confidence: 2 }));
     expect(one?.text).toContain("g8f6");
-    expect(one?.basis).toContain("180 ס״פ");
+    expect(one?.basis).toContain("1.80 רגלים");
   });
 
   it("does not call a within-noise difference a cost", () => {

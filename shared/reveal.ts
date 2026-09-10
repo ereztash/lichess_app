@@ -16,6 +16,7 @@
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
 import { Chess } from "chess.js";
 import { normaliseConfidence } from "./confidence.js";
+import { costInPawns, PAWN_UNIT } from "./pawns.js";
 import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
 
 /**
@@ -170,10 +171,14 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
   );
 
   if (inputs.depth < SHALLOW_DEPTH) {
-    limits.push(`עומק ${inputs.depth} בלבד: הפרשים מתחת ל-${ENGINE_NOISE_CP} ס״פ לא אומרים כאן כלום.`);
+    limits.push(
+      `עומק ${inputs.depth} בלבד: הפרשים מתחת ל-${costInPawns(ENGINE_NOISE_CP)} ${PAWN_UNIT} לא אומרים כאן כלום.`,
+    );
   }
   if (inputs.cpLoss <= ENGINE_NOISE_CP && !inputs.chosenWasBest) {
-    limits.push(`הפרש של ${inputs.cpLoss} ס״פ מהמנוע הוא בתוך רעש ההערכה. זו אינה טעות.`);
+    limits.push(
+      `הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מהמנוע הוא בתוך רעש ההערכה. זו לא טעות.`,
+    );
   }
   /*
    * The distinction this build cannot make on one recorded candidate.
@@ -197,7 +202,7 @@ export function inferenceLimits(inputs: RevealInputs): string[] {
    */
   if (inputs.clampedMate) {
     limits.push(
-      `המנוע החזיר מט כפוי. העלות נמדדה מול תקרה של ${MATE_SCORE} ס״פ, והמרחק למט עצמו לא נמדד.`,
+      "המנוע החזיר מט כפוי. העלות נמדדה מול תקרה קבועה, והמרחק למט עצמו לא נמדד.",
     );
   }
   if (!inputs.chosenWasBest && inputs.candidatesConsidered.length <= 1) {
@@ -410,9 +415,9 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * memory of the position; "you saw it" is a claim about their mind that the record cannot
        * make, and one they may simply know to be false.
        */
-      text: `${best} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${chosen} — הפרש של ${inputs.cpLoss} ס״פ.`,
+      text: `${best} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${chosen} — הפרש של ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
       note: "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר.",
-      basis: `${best} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `${best} נרשם בין ${inputs.candidatesConsidered.length} מהלכים ששקלתם, ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
 
@@ -439,17 +444,17 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   ) {
     return {
       kind: "confident-and-wrong",
-      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${inputs.cpLoss} ס״פ.`,
+      text: `אמרת שאתה בטוח ברמה ${inputs.confidence} מתוך ${inputs.confidenceScale}, והמהלך עלה ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT}.`,
       note: "היית בטוח כאן יותר ממה שהתוצאה הצדיקה. זה על הביטחון, לא על המהלך.",
-      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
     return {
       kind: "outplayed",
-      text: `${chosen} עלה ${inputs.cpLoss} ס״פ מול ${best}.`,
+      text: `${chosen} עלה ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} מול ${best}.`,
       note: `מה ${best} עושה בעמדה הזאת ש-${chosen} לא עושה?`,
-      basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   if (noisy && stated !== null && stated <= UNSURE_ENOUGH_TO_NAME) {
@@ -461,7 +466,7 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * that is a claim the detector needs MIN_BUCKET_N decisions before it will make.
        */
       note: "ייתכן שידעת כאן יותר ממה שסמכת על עצמך.",
-      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `ביטחון ${inputs.confidence}/${inputs.confidenceScale} מול ${costInPawns(inputs.cpLoss)} ${PAWN_UNIT} בעומק ${inputs.depth}`,
     };
   }
   // Nothing measured here supports a sentence. Say nothing rather than fill the space.
