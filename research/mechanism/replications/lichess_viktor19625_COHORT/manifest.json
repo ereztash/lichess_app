@@ -79,7 +79,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "b5cbee60ee8529267650cf1184b71f6337a70033",
+ "repo_sha": "42f9b98ef39d84a630152a0f80d86780eec963c3",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -168,5 +168,5 @@
   "player_id": "viktor19625",
   "corpus": "lichess:viktor19625"
  },
- "run_dir": "/tmp/cohort_probes/lichess_viktor19625_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_viktor19625_COHORT"
 }
