@@ -1,15 +1,15 @@
 # Replication report — lichess/rey-ajedrez2010
 
-**Result:** `FROZEN`
+**Result:** `NO_STABLE_STRUCTURE`
 
-
+no region of the frozen OBS vocabulary passes the VALIDATE judge (residual within-game z >= 3.5, n_in >= 100, raw within-game > 0) on the union class cls_tactical
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `ccff85600ff195f8168a1966e9ade52f3e618b1e` |
+| repo SHA | `0d397f98781466ec5763e51b50a6191b1c253ae7` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_rey-ajedrez2010_COHORT` |
+| run directory | `/work/research/mechanism/replications/lichess_rey-ajedrez2010_COHORT` |
 
 ## PLAYER
 
@@ -22,7 +22,7 @@
 - fetched: 950
 - admissible under the frozen rule: 450
 - scorable (admissible AND standard variant): 450
-- eligible decisions: None
+- eligible decisions: 12110
 - speeds: {'blitz': 450}
 
 ## ELIGIBILITY
@@ -38,9 +38,9 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 ## SPLITS
 
-- DERIVE None decisions / None games
-- VALIDATE None / None
-- TEST None / None (opened once, for the frozen candidate only)
+- DERIVE 7334 decisions / 270 games
+- VALIDATE 2415 / 90
+- TEST 2361 / 90 (opened once, for the frozen candidate only)
 
 ## BROAD STRUCTURE (R*)
 
@@ -52,8 +52,8 @@ Not opened: no candidate reached it.
 
 ## POPULATION COMPARISON
 
-- band derived from the focal player's own blitz median rating: None (median None)
-- population corpus: `None` — resolution `None`
+- band derived from the focal player's own blitz median rating: [1450, 1850] (median 1669.5)
+- population corpus: `population_2026-06` — resolution `OK`
 
 ## PERSONAL RESIDUAL (R**)
 
@@ -81,8 +81,8 @@ The rungs and their authorities:
 
 ## NEXT TEST
 
-More games, or a population corpus for this band. Neither is a re-tuning:
-both are the same pipeline with the input it needs.
+Nothing to test. The frozen vocabulary found no recurring region on this record.
+That is a result about this player under this vocabulary, not a defect of the run.
 
 ---
 
