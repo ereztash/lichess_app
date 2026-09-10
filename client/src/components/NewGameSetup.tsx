@@ -21,9 +21,8 @@ const TIMING_LABEL: Record<RevealTiming, string> = {
 
 const TIMING_NOTE: Record<RevealTiming, string> = {
   "per-decision":
-    "אחרי כל מהלך תראו מה המנוע חשב. זו הלולאה הרגילה, והיא טובה ללמידה — אבל במשחק שלם היא אומרת שכל החלטה מהשנייה והלאה נעשית אחרי שהמנוע כבר תיקן אתכם עשרים פעם.",
-  "end-of-game":
-    "המנוע שותק עד סוף המשחק. כל ההחלטות נרשמות ונמדדות בדיוק כרגיל — פשוט לא רואים כלום עד הסוף, ולכן כל החלטה נעשית על סמך מה שאתם רואים בעמדה.",
+    "אחרי כל החלטה תראו מה המנוע חשב. במשחק שלם, כל החלטה מהשנייה והלאה נעשית אחרי שהמנוע כבר תיקן אתכם.",
+  "end-of-game": "המנוע שותק עד סוף המשחק. הכול נרשם ונמדד כרגיל, רק בלי לראות כלום עד הסוף.",
 };
 
 interface NewGameSetupProps {
@@ -90,10 +89,7 @@ export function NewGameSetup({
          * and R1 does not allow a claim wider than its measurement -- so this says how far the
          * engine looks and stops there.
          */}
-        <p className="setup-note">
-          זהו עומק חיפוש של Stockfish, לא דירוג. אין כאן מדידה שקושרת עומק לרייטינג, ולכן לא
-          נאמר לכם באיזו רמה היריב משחק.
-        </p>
+        <p className="setup-note">עומק חיפוש של Stockfish, לא דירוג.</p>
       </fieldset>
 
       <fieldset className="setup-field">
@@ -115,9 +111,7 @@ export function NewGameSetup({
          * SAID HERE BECAUSE IT IS THE REASON THE CHOICE EXISTS, and because a person deciding
          * between two conditions is entitled to know the record keeps them apart.
          */}
-        <p className="setup-note">
-          מה שתבחרו נרשם על כל החלטה, וההחלטות משתי האפשרויות לא מעורבבות בחישוב אחד.
-        </p>
+        <p className="setup-note">הבחירה נרשמת על כל החלטה, ושתי האפשרויות לא מתערבבות בחישוב.</p>
       </fieldset>
 
       <div className="setup-actions">

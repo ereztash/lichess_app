@@ -34,8 +34,7 @@ const REASON: Record<Exclude<RecordServerStatus, "usable">, string> = {
    * while that is sent would be the product's central honesty claim made false by its own error
    * reporting, so the sentence says exactly what stays and what goes.
    */
-  "signed-out":
-    "ההחלטות נשמרות בדפדפן הזה בלבד — לא נדרשת התחברות, והרשומה לא עוזבת את המחשב שלכם. אם משהו נכשל, נשלח לשרת רק שם התקלה, בלי תוכן.",
+  "signed-out": "ההחלטות נשמרות בדפדפן הזה בלבד. בתקלה נשלח לשרת רק שם התקלה.",
   unknown: "בודקים אם בשרת יש מאגר החלטות זמין. עד שתתקבל תשובה ההחלטות נשמרות בדפדפן הזה.",
   "no-database":
     "אתם מחוברים, אבל בשרת אין מאגר החלטות מוגדר (DATABASE_URL). הרשומה נשמרת בדפדפן הזה במקום — הלולאה עובדת, אבל היא לא תעבור בין מכשירים.",

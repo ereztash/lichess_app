@@ -224,6 +224,34 @@ describe("the rail draws the whole loop", () => {
   });
 });
 
+describe("an empty record is empty, not sixty decisions short", () => {
+  /*
+   * WALKED ON THE BUILT APP FROM A FRESH PROFILE. Above the board, before the first move, the strip
+   * announced the detector's floor and offered the import that shortens it -- a countdown to a
+   * claim, on the one screen where the position is supposed to have the player's whole attention.
+   * The floor is a fact about a claim; a record with nothing in it is not waiting for one.
+   */
+  it("says the record is empty and points at the board, with no distance and no shortcut", () => {
+    const at = loopPosition(inputs({ recorded: 0, scored: 0, scoredStillNeeded: 60 }));
+    expect(at.step).toBe("record");
+    expect(at.headline).not.toMatch(/עוד \d+/);
+    expect(at.headline).not.toContain("ייבוא");
+    expect(at.action).toBeNull();
+    expect(at.basis.trim()).not.toBe("");
+  });
+
+  it("starts counting from the first decision, which is when there is a record to count", () => {
+    const at = loopPosition(inputs({ recorded: 1, scored: 0, readElsewhere: 1, scoredStillNeeded: 60 }));
+    expect(at.headline).toContain("עוד 60 החלטות מדודות");
+  });
+
+  it("still announces a narrowed wait over an empty record, because the import is the player's own act", () => {
+    const at = loopPosition(inputs({ recorded: 0, scored: 0, scoredStillNeeded: 40, narrowedTo: "פתיחה" }));
+    expect(at.headline).toContain("עוד 40");
+    expect(at.headline).toContain("פתיחה");
+  });
+});
+
 describe("the wait names the shortcut that shortens it", () => {
   /*
    * THE FUNNEL BREAK THIS CLOSES.
@@ -247,7 +275,7 @@ describe("the wait names the shortcut that shortens it", () => {
      * sentence promising the outcome would be the product claiming to know what a scan will find
      * before it runs it.
      */
-    const { headline } = loopPosition(inputs({ scoredStillNeeded: 47 }));
+    const { headline } = loopPosition(inputs({ scoredStillNeeded: 47, scored: 13, recorded: 13 }));
     expect(headline).toMatch(/יכול לקצר/);
     expect(headline).toMatch(/אם יימצא/);
     expect(headline).not.toMatch(/יקצר את זה\.|יוריד ל-40/);

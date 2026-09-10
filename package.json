@@ -17,6 +17,7 @@
     "gates": "tsx scripts/run_gates.ts",
     "levels": "tsx scripts/test-level-scan.ts",
     "read:vocabulary": "tsx scripts/read_vocabulary.ts",
+    "learning-cost": "tsx scripts/measure-learning-cost.ts",
     "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
     "verify": "npm run check && npm run build && npm test && npm run gates && npm run gates:controls && npm run bundle:budget",

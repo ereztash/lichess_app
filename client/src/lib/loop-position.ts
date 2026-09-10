@@ -259,6 +259,31 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     };
   }
 
+  /*
+   * AN EMPTY RECORD IS NOT SIXTY DECISIONS SHORT OF ANYTHING. It is empty.
+   *
+   * Walked on the built app from a fresh profile: the first thing above the board, before the
+   * stranger had placed a move, was "עוד 60 החלטות מדודות עד שיהיה מה לומר" and an offer to import
+   * games to shorten the wait -- twenty-nine words about a detector's floor and a shortcut to it,
+   * to a person whose record held nothing and whose whole task was the position in front of them.
+   * That sentence is the countdown this product refuses everywhere else, put on the one screen where
+   * attention is the measurement. It is true, and it is about a claim nobody is waiting for yet.
+   *
+   * So the record that holds no decision says so, and only that. The distance and the shortcut
+   * arrive with the first decision, when there is a record for them to be about. A narrowed search
+   * is the exception on purpose: an import has already produced a reading and registered a
+   * hypothesis, and the wait it announces is the one thing the player did to their record.
+   */
+  if (recorded === 0 && !narrowedTo) {
+    return {
+      step: "record",
+      headline: "הרשומה עוד ריקה. ההחלטה הראשונה נרשמת על הלוח.",
+      basis: "0 שנרשמו",
+      // The board is the address, and it is what the player is looking at.
+      action: null,
+    };
+  }
+
   if (scoredStillNeeded > 0) {
     /*
      * TWO SENTENCES BECAUSE THERE ARE TWO STATES, and folding them was the defect.
@@ -275,7 +300,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     const waiting = awaiting > 0 ? ` ${awaiting} כבר רשומות וממתינות לחשיפה.` : "";
     const passed =
       withoutConfidence > 0
-        ? ` ${withoutConfidence} נרשמו בעמדות שבהן לא נשאלה שאלת הביטחון, ולכן אינן נספרות כאן.`
+        ? ` ${withoutConfidence} נרשמו בעמדות שבהן לא נשאלה שאלת הביטחון.`
         : "";
     /*
      * NOT A WAIT AND NOT A DESIGN, so it gets its own sentence rather than a share of one above.
@@ -284,7 +309,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
      */
     const unreadable =
       withoutInstrument > 0
-        ? ` ${withoutInstrument} נמדדו לפני שהרשומה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן — ` +
+        ? ` ${withoutInstrument} נמדדו לפני שהרשומה שמרה איזה מנוע נתן את הפסק, ולכן אי אפשר לקרוא אותן: ` +
           `שני מנועים חולקים על 13.61% מהפסקים. החלטות חדשות שומרות את זה.`
         : "";
     /* Not a loss and not a wait: they are counted, under another heading, with their own
@@ -300,9 +325,7 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
        were measured; the line that reports this search says `נספרות`, which is what it counts.
        Neither number moved and neither denominator moved. */
     const elsewhere =
-      readElsewhere > 0
-        ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של הרשומה — הסט המשותף, תרגול או משחקים שיובאו.`
-        : "";
+      readElsewhere > 0 ? ` ${readElsewhere} נמדדו ונקראות בחלק אחר של הרשומה.` : "";
 
     if (narrowedTo) {
       /*
@@ -338,8 +361,8 @@ export function loopPosition(inputs: LoopInputs): LoopPosition {
     return {
       step: "record",
       headline:
-        `עוד ${scoredStillNeeded} החלטות מדודות עד שאפשר לומר משהו.${waiting}${passed}${unreadable}${elsewhere} ` +
-        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה — אם יימצא בהם סוג אחד שנבדל מהשאר.`,
+        `עוד ${scoredStillNeeded} החלטות מדודות עד שיהיה מה לומר.${waiting}${passed}${unreadable}${elsewhere} ` +
+        `ייבוא משחקים שכבר שיחקת יכול לקצר את זה, אם יימצא בהם סוג אחד שנבדל.`,
       basis: `${scored} מתוך ${recorded} שנרשמו נספרות בחיפוש הזה`,
       /*
        * The only headline that names a surface out loud, and the reason this field exists: it

@@ -335,10 +335,7 @@ export default function Blitz() {
         {header}
         <div className="blitz-setup">
         <h1>משחק בליץ</h1>
-        <p>
-          המהלך נרשם ראשון, השעון נעצר, ורק אחר כך נשאלת שאלת הביטחון — אם בכלל. המנוע לא רץ עד סוף
-          המשחק.
-        </p>
+        <p>השעון נעצר כששואלים כמה אתם בטוחים, אם בכלל. המנוע שותק עד סוף המשחק.</p>
         {/*
           * THE ONE YOU PLAYED LAST TIME IS THE LOUD ONE (P1.10, LAW 2).
           *

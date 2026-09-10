@@ -108,9 +108,7 @@ export function OutcomeSummary({ statements }: { statements: readonly OutcomeSta
           </li>
         ))}
       </ol>
-      <p className="outcome-summary__note">
-        הפירוט המלא נמצא מתחת. מה שכתוב כאן לא חזק יותר ממה שכתוב שם — זו אותה מדידה, מוצגת קודם.
-      </p>
+      <p className="outcome-summary__note">הפירוט המלא מתחת. אותה מדידה, מוצגת קודם.</p>
     </section>
   );
 }

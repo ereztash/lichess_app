@@ -21,7 +21,7 @@
  */
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { CommitmentScreen, instructionFor } from "@/components/CommitmentScreen";
+import { CommitmentScreen } from "@/components/CommitmentScreen";
 import { WhatThisIs } from "@/components/WhatThisIs";
 import { restoreNotice } from "@/lib/adopt-position";
 import { draftProblems, emptyDraft, type PositionUnderDecision } from "@/lib/decision-session";
@@ -132,28 +132,21 @@ describe("the steps on screen are the steps the record will refuse without", () 
   });
 });
 
-describe("the intro names the steps this decision has, and the reason it always has", () => {
-  it("names only the move where the draw passed the position over", () => {
-    const intro = screenAt("play").querySelector(".commitment-intro")?.textContent ?? "";
-    expect(intro).toContain("בחרו מהלך על הלוח");
-    expect(intro, "instructed a read that is not on the screen").not.toContain("סמנו את הקריאה");
-    expect(intro, "instructed a confidence that is not on the screen").not.toContain(
-      "אמרו כמה אתם בטוחים",
+describe("the intro carries the reason, and the steps carry themselves", () => {
+  /*
+   * THE INSTRUCTION SENTENCE IS GONE, AND THIS HOLDS THE GAP IT LEFT. It used to read the step
+   * list back as prose above the accordion -- first as a constant that named steps the screen did
+   * not offer (defect 2 in the header), then as a sentence derived from `stepsFor` so it could not
+   * drift. Derived or not, it was the list beneath it said twice, and a player paid for both. The
+   * steps are the instruction: each names itself and opens on a press. What may not come back is a
+   * sentence restating them, in any state, because a restated list is the one thing that can drift
+   * from the list again.
+   */
+  it.each(DECISION_PURPOSES)("does not read the step list back as a sentence on %s", (purpose) => {
+    const intro = screenAt(purpose).querySelector(".commitment-intro")?.textContent ?? "";
+    expect(intro, "the accordion is described in prose above itself").not.toMatch(
+      /בחרו מהלך על הלוח|סמנו את הקריאה|אמרו כמה אתם בטוחים/,
     );
-  });
-
-  it("names the move and the confidence on a first decision, and not the reads", () => {
-    const intro = screenAt("first").querySelector(".commitment-intro")?.textContent ?? "";
-    expect(intro).toContain("אמרו כמה אתם בטוחים");
-    expect(intro).not.toContain("סמנו את הקריאה");
-  });
-
-  it("names all three on a fully instrumented decision, the confidence included", () => {
-    const intro = screenAt("anchor").querySelector(".commitment-intro")?.textContent ?? "";
-    expect(intro).toContain("בחרו מהלך על הלוח");
-    expect(intro).toContain("סמנו את הקריאה שלכם");
-    /* The old constant named two of four steps and left this one out of every state. */
-    expect(intro).toContain("אמרו כמה אתם בטוחים");
   });
 
   it("keeps the reason in every state, which is what makes the ordering more than ceremony", () => {
@@ -165,19 +158,6 @@ describe("the intro names the steps this decision has, and the reason it always 
     }
   });
 
-  it("joins the phrases the way Hebrew joins a list", () => {
-    expect(instructionFor(["chosenMove"])).toBe("בחרו מהלך על הלוח.");
-    expect(instructionFor(["chosenMove", "confidence"])).toBe(
-      "בחרו מהלך על הלוח ואמרו כמה אתם בטוחים.",
-    );
-    expect(instructionFor(["chosenMove", "known", "unknown", "confidence"])).toBe(
-      "בחרו מהלך על הלוח, סמנו את הקריאה שלכם ואמרו כמה אתם בטוחים.",
-    );
-    /* The two read steps are one phrase: stating a read is one act with two halves. */
-    expect(instructionFor(["chosenMove", "known"])).toBe(
-      instructionFor(["chosenMove", "known", "unknown"]),
-    );
-  });
 });
 
 describe("the board does not claim a return that did not happen", () => {

@@ -175,12 +175,6 @@ export function RevealPanel({
             <li key={limit}>{limit}</li>
           ))}
         </ul>
-        {/*
-         * Separated from the list above on purpose. Everything in that list is derived from
-         * this position; this one is a property of the build and is true of every position, so
-         * rendering it as a sibling of the others would put a constant among measurements.
-         */}
-        <p className="reveal-build-limit">{BUILD_LIMIT}</p>
       </section>
 
       {/* 2 -- one thing */}
@@ -225,16 +219,11 @@ export function RevealPanel({
            */
           <p className="one-thing-none">
             {silenceBasis(inputs) === "inside-noise" ? (
-              <>
-                אין כאן דבר שהמדידה תומכת באמירתו. בחרת בתוך רעש ההערכה, והביטחון שלך לא היה נמוך
-                ממנו. זו תוצאה תקינה, לא מסך ריק.
-              </>
+              <>אין כאן משפט: בחרת בתוך רעש ההערכה, והביטחון לא היה נמוך ממנו. זו תוצאה תקינה, לא מסך ריק.</>
             ) : (
               <>
-                אין כאן דבר שהמדידה תומכת באמירתו. המהלך עלה {inputs.cpLoss} ס״פ — יותר מרעש
-                ההערכה ({ENGINE_NOISE_CP}) ופחות מהסף שממנו הכלי הזה אומר משהו ({MATERIAL_LOSS_CP}).
-                בטווח הזה החלטה בודדת לא נבדלת מהחלטה מוצלחת, ולכן אין כאן משפט. זו תוצאה תקינה,
-                לא מסך ריק.
+                אין כאן משפט: המהלך עלה {inputs.cpLoss} ס״פ, מעל הרעש ({ENGINE_NOISE_CP}) ומתחת לסף
+                שממנו הכלי אומר משהו ({MATERIAL_LOSS_CP}). זו תוצאה תקינה, לא מסך ריק.
               </>
             )}
           </p>
@@ -247,7 +236,7 @@ export function RevealPanel({
           <HelpCircle size={14} /> מה שווה לבדוק
         </h2>
         <p>{question}</p>
-        {statedKnown.trim() && <p className="reveal-echo">הקריאה שלך הייתה: "{statedKnown}"</p>}
+        {statedKnown.trim() && <p className="reveal-echo">הקריאה שלך: "{statedKnown}"</p>}
       </section>
 
       {/* 4 -- everything else, collapsed */}
@@ -256,6 +245,13 @@ export function RevealPanel({
           <ChevronDown size={14} /> פרטי הניתוח
         </summary>
         <div className="reveal-secondary-body">
+          {/*
+           * A property of the build, true of every position, and read by whoever opens the
+           * numbers it qualifies. It sat under the per-position limits as a constant among
+           * measurements, on every reveal; a sentence that never changes is read once and then
+           * skipped, and it was taking the limits above it down with it.
+           */}
+          <p className="reveal-build-limit">{BUILD_LIMIT}</p>
           <div className="reveal-metric">
             <span>הערכת המנוע</span>
             {analysis ? (
