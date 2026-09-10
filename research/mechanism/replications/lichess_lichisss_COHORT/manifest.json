@@ -78,7 +78,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "414e8c3526bbb1d49c9a7d0ecc1082a9594ddd59",
+ "repo_sha": "caca399954aa0e35354dd26a893f0f6a712c9e07",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -167,5 +167,5 @@
   "player_id": "lichisss",
   "corpus": "lichess:lichisss"
  },
- "run_dir": "/tmp/cohort_probes/lichess_lichisss_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_lichisss_COHORT"
 }
