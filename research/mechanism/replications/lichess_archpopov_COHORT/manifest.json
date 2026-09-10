@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "e8f04e335d305f15c4978ba03715330239a3e5c0",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "archpopov",
   "corpus": "lichess:archpopov"
  },
- "run_dir": "/tmp/cohort_probes/lichess_archpopov_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_archpopov_COHORT"
 }

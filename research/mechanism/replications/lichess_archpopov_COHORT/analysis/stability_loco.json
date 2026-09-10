@@ -1,0 +1,91 @@
+{
+ "region": "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 23756,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.6013745704467354
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 29427,
+   "winner": "material_change_2ply: [-1:1[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6287495130502532
+  },
+  {
+   "variant": "drop eco_family=C",
+   "n": 41810,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.6013745704467354
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 31146,
+   "winner": "material_change_2ply>=-1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.7631205673758865
+  },
+  {
+   "variant": "drop eco_family=E",
+   "n": 41837,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.6013745704467354
+  },
+  {
+   "variant": "drop color=b",
+   "n": 21013,
+   "winner": "material_change_2ply: [-1:1[ AND own_overloaded_piece_count>=1",
+   "jaccard": 0.6287495130502532
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 35729,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.6013745704467354
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 31735,
+   "winner": "n_checks>=1 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.35213604313562835
+  },
+  {
+   "variant": "drop era=2025",
+   "n": 22728,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.6013745704467354
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 21511,
+   "winner": "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+   "jaccard": 0.6013745704467354
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 20483,
+   "winner": "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 0",
+   "n": 20809,
+   "winner": "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 1",
+   "n": 21116,
+   "winner": "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 2",
+   "n": 20666,
+   "winner": "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1",
+   "jaccard": 1.0
+  }
+ ]
+}
