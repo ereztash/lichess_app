@@ -94,7 +94,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3dc4aade3164fd11f2f2e847d39b52dd65af8de6",
+ "repo_sha": "de2afd30e1614eb771de6a81a76c171b07c6a1ad",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -183,5 +183,5 @@
   "player_id": "toscohg",
   "corpus": "lichess:toscohg"
  },
- "run_dir": "/tmp/cohort_probes/lichess_toscohg_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_toscohg_COHORT"
 }
