@@ -5529,6 +5529,25 @@ button:not(:disabled) {
   line-height: 1.55;
   color: var(--muted);
 }
+/*
+ * The second attempt, drawn in the panel's own --warn rather than in --action.
+ *
+ * IT IS NOT THE PRIMARY CONTROL AND MUST NOT LOOK LIKE ONE. `.reveal-failure-next` is the screen's
+ * one declared act; this is an offer beside it, and an engine that has just failed is not a
+ * promise. Outlined in the colour the panel is already outlined in says "part of this failure"
+ * rather than "the thing to press", while still clearing the tap floor below.
+ */
+.reveal-failure-retry {
+  align-self: flex-start;
+  padding-inline: 14px;
+  border: 1px solid var(--warn);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--panel-body);
+  font-weight: 700;
+  cursor: pointer;
+}
 .reveal-failure-next {
   align-self: flex-start;
   padding-inline: 14px;
@@ -5569,6 +5588,7 @@ button:not(:disabled) {
 .not-found-home,
 .boundary-reload,
 .reveal-failure-next,
+.reveal-failure-retry,
 .boundary-trace summary,
 .context-dismiss,
 .context-why summary,

@@ -22,21 +22,25 @@ import { CircleAlert } from "lucide-react";
 
 export type RevealFailureKind = "engine" | "write";
 
+/** Named once, so the test and the control cannot disagree about what the way back says. */
+export const RETRY_CTA = "נסו את המנוע שוב";
+
 const COPY: Record<RevealFailureKind, { what: string; detail: string }> = {
   engine: {
     what: "המנוע לא סיים את החישוב.",
     /*
-     * THE WAY BACK IS NAMED, because there was one and the panel did not say it.
+     * THE WAY BACK IS A CONTROL NOW, NOT AN INSTRUCTION TO REFRESH THE PAGE.
      *
      * A cold player on a mobile connection met this screen and its only control was forward, to the
-     * next position, where the same engine would fail the same way. Reloading re-attempts the load
-     * and costs nothing, because the decision was written before the engine was asked -- the
-     * sentence above already tells the player that, and this one tells them what it is good for.
+     * next position, where the same engine would fail the same way. The first repair was this
+     * sentence, telling them to reload -- which works, and costs them the game on the board and
+     * every position they had navigated to reach it. `RETRY_CTA` below does the part that helps
+     * (a new engine, the same search) without the part that does not.
      */
     detail:
       "אין הערכה לעמדה הזו, ולכן אין מה להציג עליה. זו תקלה במנוע שרץ בדפדפן שלכם — " +
-      "כפתור הבדיקה העצמית בכותרת יגיד אם הוא נטען בכלל. רענון הדף מנסה לטעון אותו מחדש, " +
-      "וההחלטה כבר שמורה.",
+      "כפתור הבדיקה העצמית בכותרת יגיד אם הוא נטען בכלל. הכפתור למטה זורק את המנוע הזה, " +
+      "טוען אחד חדש ומבקש את החישוב שוב. המשחק נשאר על הלוח וההחלטה כבר שמורה.",
   },
   write: {
     what: "תוצאת המנוע לא נשמרה.",
@@ -79,12 +83,22 @@ export function RevealFailure({
   kind,
   continues,
   onContinue,
+  onRetry,
   bank,
 }: {
   kind: RevealFailureKind;
   /** Is there a next decision inside the game on the board, or does the way on come from the bank? */
   continues: boolean;
   onContinue: () => void;
+  /**
+   * Throw the engine away and ask the same question again.
+   *
+   * RENDERED ON THE ENGINE FAILURE ONLY, and the decision is here rather than at the caller for
+   * the reason the labels are: after a failed WRITE the engine has already answered and the reveal
+   * above this panel is valid, so a retry would pay for a search to reach a write that has already
+   * been retried once. A caller that could choose would eventually choose wrong.
+   */
+  onRetry: () => void;
   /** What `RevealNextPosition` needs, passed through untouched. */
   bank: {
     answered: readonly string[];
@@ -103,6 +117,18 @@ export function RevealFailure({
         ההחלטה עצמה נרשמה. היא נכתבת לרשומה לפני שהמנוע מופעל בכלל, כך שכשל כאן לא מוחק אותה.
       </p>
       <p className="reveal-failure-detail">{copy.detail}</p>
+      {/*
+       * NO `data-primary-action`, AND THAT IS DELIBERATE. `PRIMARY_ACTIONS` is a closed vocabulary
+       * shared with `shared/next-action.ts`, and "try that again" is not an act the derivation
+       * routes anyone to -- it is a second attempt at the act they are already in. Naming it there
+       * would put a state into a derivation with nothing to say about it, so the screen's one
+       * primary action stays the way on, and this is offered beside it.
+       */}
+      {kind === "engine" && (
+        <button type="button" className="reveal-failure-retry" onClick={onRetry}>
+          {RETRY_CTA}
+        </button>
+      )}
       {continues ? (
         <button
           type="button"

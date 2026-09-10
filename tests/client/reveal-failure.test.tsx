@@ -22,7 +22,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { RevealFailure } from "../../client/src/components/RevealFailure";
+import { RETRY_CTA, RevealFailure } from "../../client/src/components/RevealFailure";
 import { NEXT_POSITION_CTA } from "../../client/src/components/RevealNextPosition";
 
 /** The three sentences a way out of a failed reveal is allowed to say, named once. */
@@ -39,6 +39,7 @@ const RECORD_CTA = "חזרה לרשומה";
 function props() {
   return {
     onContinue: vi.fn(),
+    onRetry: vi.fn(),
     bank: { answered: [], onServed: vi.fn(), navigate: vi.fn() },
   };
 }
@@ -122,6 +123,52 @@ describe("both failures offer a way out", () => {
   });
 });
 
+
+/*
+ * THE ENGINE FAILURE IS THE ONE A COLD PLAYER ACTUALLY MET, and until this the panel's only
+ * control went forward, to the next position, where the same engine fails the same way. The
+ * sentence telling them to reload the page was true and cost them the game on the board.
+ */
+describe("only the failure a second attempt can fix offers one", () => {
+  it("offers the retry on an engine failure and reaches the handler", () => {
+    const h = props();
+    render(<RevealFailure kind="engine" continues {...h} />);
+    fireEvent.click(screen.getByRole("button", { name: RETRY_CTA }));
+    expect(h.onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers no retry on a failed write", () => {
+    /*
+     * The engine ALREADY ANSWERED and the reveal above this panel is valid. A retry there would
+     * buy a second search to reach a write that `runReveal` has already retried once, and it
+     * would redraw a reveal the player is looking at.
+     */
+    render(<RevealFailure kind="write" continues {...props()} />);
+    expect(screen.queryByRole("button", { name: RETRY_CTA })).toBeNull();
+  });
+
+  it("does not let the retry become the screen's declared act", () => {
+    /*
+     * `PRIMARY_ACTIONS` is a closed vocabulary shared with `shared/next-action.ts` and holds no
+     * kind for "try that again". A second attribute here would either invent one or duplicate
+     * `next-decision`, and GATE-ONE-PRIMARY-ACTION exists to catch exactly that.
+     */
+    const { container } = render(<RevealFailure kind="engine" continues {...props()} />);
+    expect(container.querySelectorAll("[data-primary-action]").length).toBe(1);
+    expect(
+      screen.getByRole("button", { name: RETRY_CTA }).getAttribute("data-primary-action"),
+    ).toBeNull();
+  });
+
+  it("still offers the way on beside it, so the retry is never the only exit", () => {
+    // An engine that has just failed is not a promise. The screen must not depend on it working.
+    const h = props();
+    render(<RevealFailure kind="engine" continues {...h} />);
+    fireEvent.click(screen.getByRole("button", { name: /להחלטה הבאה/ }));
+    expect(h.onContinue).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("Home reaches the panel from both catches", () => {
   const home = readFileSync(resolve(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
   const code = home.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
@@ -141,6 +188,38 @@ describe("Home reaches the panel from both catches", () => {
     // being no failure, or the engine branch still shows a calculation that is not happening.
     expect(code, "the waiting line is not gated on the failure state").toMatch(
       /revealFailure === null \?[\s\S]{0,160}reveal-waiting/,
+    );
+  });
+
+
+  it("hands the retry an engine that is gone, not the one that failed", () => {
+    /*
+     * THE PART THAT MAKES IT NOT A NO-OP. `ensureEngine` returns the cached client whenever one
+     * exists, so a retry that did not drop the dead one would re-run the same failed wasm and
+     * fail identically -- a control that looks like a way out and is not.
+     */
+    expect(code, "retryReveal does not dispose the engine before re-running").toMatch(
+      /retryReveal[\s\S]{0,400}engineRef\.current\?\.dispose\(\)[\s\S]{0,120}engineRef\.current = null/,
+    );
+  });
+
+  it("keeps the run it would retry, and keeps it before the engine is asked", () => {
+    // Written at the top of `runReveal`, so a failure anywhere below it still has something to
+    // re-run. Stored after the search would be stored only on the path that did not fail.
+    expect(code).toMatch(/async \(run: RevealRun\) => \{\s*lastRevealRun\.current = run;/);
+  });
+
+
+  it("counts a drilled position once, however many times its reveal is run", () => {
+    /*
+     * THE COST OF MAKING A RUN REPEATABLE, PAID IN THE ONE PLACE IT LANDS. `drillDecisionIds` is
+     * appended to before the engine is asked, and it is both the progress the player is shown
+     * ("3 של 8") and the `decision_ids` payload `completeDrill` is sent. A retry after an engine
+     * failure would push the same id twice: a drill that reports one more answered position than
+     * the player answered, in the record as well as on screen.
+     */
+    expect(code, "the drill append is not guarded against a repeated run").toMatch(
+      /setDrillDecisionIds\(\(prev\) => \(prev\.includes\(decisionId\) \? prev : \[\.\.\.prev, decisionId\]\)\)/,
     );
   });
 

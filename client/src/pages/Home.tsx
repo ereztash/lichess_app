@@ -4,7 +4,6 @@ import { reportEngineFailure, reportFailure } from "@/lib/error-sink";
 import { Chess } from "chess.js";
 import {
   Activity,
-  Clipboard,
   FlipVertical2,
   HelpCircle,
   Moon,
@@ -15,7 +14,8 @@ import { useLocation } from "wouter";
 import { lazyChunk } from "@/lib/lazy-chunk";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTheme } from "@/contexts/ThemeContext";
-import { RecordModeNotice } from "@/components/RecordModeNotice";
+import { BoardNote } from "@/components/BoardNote";
+import type { RevealRun } from "@/lib/reveal-run";
 import { ChessBoard } from "@/components/ChessBoard";
 import { EvaluationBar } from "@/components/EvaluationBar";
 import { AnalysisPanel } from "@/components/AnalysisPanel";
@@ -127,6 +127,7 @@ import {
   uciToSquares,
   applyMoveAt,
   countMaterial,
+  legalTargetsFrom,
 } from "@/lib/game-data";
 import {
   buildCommitEvent,
@@ -274,18 +275,7 @@ export default function Home() {
    * Held as one object rather than five state variables because they are one fact: a decision is
    * either mid-probe with all of this, or it is not. Five variables can disagree.
    */
-  const [probe, setProbe] = useState<{
-    decisionId: string;
-    draft: DraftDecision;
-    positionFen: string;
-    /** The ply `positionFen` is, carried for the same reason it is. */
-    positionPly: number;
-    isDrillDecision: boolean;
-    /** The transfer run this decision belongs to, frozen at commit. See `runReveal`. */
-    transfer: LearningTransfer | null;
-    /** Frozen with the decision, for the same reason: the setting can change while the probe is up. */
-    timing: RevealTiming;
-  } | null>(null);
+  const [probe, setProbe] = useState<Omit<RevealRun, "alternative"> | null>(null);
   /** What the player has put on the board as the alternative, before they confirm it. */
   const [probeAlternative, setProbeAlternative] = useState<string | null>(null);
   const [probePending, setProbePending] = useState(false);
@@ -488,14 +478,10 @@ export default function Home() {
 
   const material = useMemo(() => countMaterial(board), [board]);
 
-  const legalTargets = useMemo(() => {
-    if (!selectedSquare) return [];
-    try {
-      return activeGame.moves({ square: selectedSquare as never, verbose: true }).map((m) => m.to);
-    } catch {
-      return [];
-    }
-  }, [activeGame, selectedSquare]);
+  const legalTargets = useMemo(
+    () => legalTargetsFrom(activeGame, selectedSquare),
+    [activeGame, selectedSquare],
+  );
 
   /*
    * The record runs on the server when signed in and in this browser when not. Both go through
@@ -804,6 +790,15 @@ export default function Home() {
   );
 
   /**
+   * The last reveal, kept so an engine that failed can be asked the same question again.
+   *
+   * A REF AND NOT STATE: nothing renders it, and `Home` sits at a ceiling that says a fifty-fourth
+   * piece of state belongs elsewhere. Re-running is safe because `runReveal` writes nothing to the
+   * record until the engine answers -- a second attempt repeats a search and no storage.
+   */
+  const lastRevealRun = useRef<RevealRun | null>(null);
+
+  /**
    * Everything after the decision is stored: the engine runs, the reveal renders, the verdict is
    * written back.
    *
@@ -813,28 +808,19 @@ export default function Home() {
    * arguments the four values it used to close over.
    */
   const runReveal = useCallback(
-    async (
-      draft: DraftDecision,
-      decisionId: string,
-      positionFen: string,
-      /** The ply `positionFen` is; passed in for the reason `transfer` above is. */
-      positionPly: number,
-      isDrillDecision: boolean,
-      /**
-       * The transfer run this decision belongs to, or null.
-       *
-       * PASSED IN RATHER THAN READ FROM STATE. It used to be a boolean beside a `learningTransfer`
-       * this function closed over -- which types as possibly-null and, worse, could have MOVED ON
-       * by the time this runs: the counterfactual probe now sits between the commit and here, so
-       * "the transfer that was active when the decision was committed" and "the transfer that is
-       * active now" are no longer the same value by construction.
-       */
-      transfer: LearningTransfer | null,
-      /** The alternative the player named, or null. Scored off the same root search below. */
-      alternative: string | null,
-      /** Which timing was in force. Everything the player is SHOWN below is gated on it. */
-      timing: RevealTiming,
-    ) => {
+    async (run: RevealRun) => {
+      /* Kept before anything else happens, so an engine that fails below can be asked again. */
+      lastRevealRun.current = run;
+      const {
+        draft,
+        decisionId,
+        positionFen,
+        positionPly,
+        isDrillDecision,
+        transfer,
+        alternative,
+        timing,
+      } = run;
       /*
        * THE ENGINE RUNS IN BOTH MODES; ONLY THE TELLING DIFFERS. The record needs the verdict on
        * every decision either way -- a deferred game that stored no evaluations would be forty
@@ -844,7 +830,12 @@ export default function Home() {
       setCandidateMove(null);
       setCandidatesConsidered([]);
       setRevealFailure(null);
-      if (isDrillDecision) setDrillDecisionIds((prev) => [...prev, decisionId]);
+      /* IDEMPOTENT, BECAUSE A RUN CAN NOW HAPPEN TWICE. `retryReveal` re-runs a reveal whose
+         engine failed, and this list is both the drill's progress count on screen and the payload
+         `completeDrill` is sent -- appending on the second attempt would tell the player, and the
+         record, that they answered one position more than they did. */
+      if (isDrillDecision)
+        setDrillDecisionIds((prev) => (prev.includes(decisionId) ? prev : [...prev, decisionId]));
       if (speak) {
         setCommittedDraft(draft);
         setRevealAt({ fen: positionFen, ply: positionPly });
@@ -1109,6 +1100,27 @@ export default function Home() {
   );
 
   /**
+   * Ask the engine again, on a new engine.
+   *
+   * THE OLD ONE IS DISPOSED FIRST, WHICH IS THE WHOLE OF WHY THIS IS NOT A NO-OP. The failure it
+   * answers is a wasm that never loaded or a worker that died, and `ensureEngine` hands back the
+   * cached client whenever one exists -- so a retry against it would re-run the same dead thing
+   * and fail identically. A control that looks like a way out and is not is worse than the
+   * nothing this screen offered before.
+   *
+   * OFFERED ON THE ENGINE FAILURE ONLY, decided in `RevealFailure`: after a failed WRITE the
+   * engine has already answered and the reveal on screen is valid.
+   */
+  const retryReveal = useCallback(() => {
+    const run = lastRevealRun.current;
+    if (!run) return;
+    engineRef.current?.dispose();
+    engineRef.current = null;
+    setEngineStatus({ mode: "loading", detail: "המנוע נטען מחדש." });
+    void runReveal(run);
+  }, [runReveal]);
+
+  /**
    * The answer, stored before the engine runs, and then the engine runs.
    *
    * BOTH ANSWERS GO DOWN THIS PATH. "I had nothing else" sends `null`, which the record stores as
@@ -1141,16 +1153,7 @@ export default function Home() {
       setProbePending(false);
       setProbe(null);
       setProbeAlternative(null);
-      await runReveal(
-        probe.draft,
-        probe.decisionId,
-        probe.positionFen,
-        probe.positionPly,
-        probe.isDrillDecision,
-        probe.transfer,
-        stored,
-        probe.timing,
-      );
+      await runReveal({ ...probe, alternative: stored });
     },
     [probe, recordCounterfactual, runReveal],
   );
@@ -1256,32 +1259,24 @@ export default function Home() {
        * player who closes the tab here leaves an answered=false row in the probed arm: attrition
        * that is visible and countable, rather than a decision that quietly leaves the experiment.
        */
+      const run: Omit<RevealRun, "alternative"> = {
+        decisionId,
+        draft,
+        positionFen,
+        positionPly,
+        isDrillDecision,
+        transfer: isLearningTransferDecision ? learningTransfer : null,
+        timing,
+      };
       if (event.probe?.assignment === "probed") {
-        setProbe({
-          decisionId,
-          draft,
-          positionFen,
-          positionPly,
-          isDrillDecision,
-          transfer: isLearningTransferDecision ? learningTransfer : null,
-          timing,
-        });
+        setProbe(run);
         setProbeAlternative(null);
         setStage(PROBE_STAGE);
         setNotice("ההחלטה נרשמה. שאלה אחת לפני שהמנוע מדבר.");
         return;
       }
 
-      await runReveal(
-        draft,
-        decisionId,
-        positionFen,
-        positionPly,
-        isDrillDecision,
-        isLearningTransferDecision ? learningTransfer : null,
-        null,
-        timing,
-      );
+      await runReveal({ ...run, alternative: null });
     },
     [
       activeFen,
@@ -2116,6 +2111,7 @@ export default function Home() {
                      is handed over whole rather than re-derived here. */
                   continues={canContinue}
                   onContinue={nextDecision}
+                  onRetry={retryReveal}
                   bank={bankWayOn}
                 />
               )}
@@ -2334,33 +2330,13 @@ export default function Home() {
               onMove={handleBoardMove}
             />
           </div>
-          {/*
-           * The opponent thinking, said out loud. The whole defect this replaces was a board
-           * that changed nothing while something was happening, so a silent search would put
-           * it straight back.
-           */}
-          {opponentThinking && (
-            <p className="opponent-thinking" role="status">
-              היריב חושב…
-            </p>
-          )}
-
-          <div className="board-note">
-            <i />
-            {notice}
-            <button
-              onClick={async () => {
-                await navigator.clipboard?.writeText(activeFen);
-                setNotice("FEN הועתק.");
-              }}
-            >
-              <Clipboard size={14} /> העתק FEN
-            </button>
-          </div>
-          {/* UNDER THE STATUS LINE, NOT ABOVE IT. One element that never unmounts, so the same eleven
-             words sat between the board and the line saying what to do next, on every screen of the
-             loop. It still renders in every state; the state's own line goes first. */}
-          <RecordModeNotice {...recordMode} />
+          <BoardNote
+            notice={notice}
+            fen={activeFen}
+            onNotice={setNotice}
+            opponentThinking={opponentThinking}
+            recordMode={recordMode}
+          />
         </section>
 
         {/*
