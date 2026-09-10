@@ -2268,12 +2268,30 @@ button:not(:disabled) {
   color: var(--edge-soft);
   font-size: var(--panel-label);
 }
+/*
+ * THE ONLY THING IN `.analysis-hero` WITH A DECLARED BACKGROUND AND NO DECLARED COLOUR.
+ *
+ * `.analysis-hero` sets `background: var(--ink)` and `color: var(--cream)`, and the docblock above
+ * the audit that measures it says why that matters: it is an island of the other theme, so every
+ * token painted inside it is being asked to work against a ground nobody measured it on.
+ * `.analysis-kicker` and `.value-provenance` were each given the other theme's value for their role
+ * after axe measured them at 2.36:1 and 2.46:1. This button was not, because a `<button>` does not
+ * inherit `color` -- it takes the user agent's `buttontext`, which is not a designed value, differs
+ * by platform, and follows `color-scheme` rather than this stylesheet's theme.
+ *
+ * A cold player photographed this control as an empty box. That reading is not reproduced here, so
+ * the photograph is not proof of this cause. What is certain is that the one element with an
+ * explicit background and no explicit colour was resting on a default nobody chose. `--ink` on
+ * `--cream` is the pair `.board-note button` and `.suggestion-button` already use, and it swaps
+ * with the theme by construction.
+ */
 .analysis-action,
 .layer-action {
   width: 100%;
   padding: 9px;
   border: 0;
   background: var(--cream);
+  color: var(--ink);
   font-weight: 700;
 }
 .analysis-section {
