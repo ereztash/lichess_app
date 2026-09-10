@@ -317,6 +317,44 @@ function parse(stored: Record<string, unknown>, unreadable: string[]): Persisted
 }
 
 /**
+ * A blob read as far as its shape, with no effect on this module's state.
+ *
+ * EXTRACTED SO A FILE THE PLAYER BRINGS IS INTERPRETED BY THE RULES A FILE THIS BROWSER WROTE IS.
+ * `read()` had this inline, and `importLocalRecord` below needs exactly the same three judgements
+ * -- is it JSON, is it one of ours, was it written by a build that knows more than this one -- plus
+ * the same per-key containment. A second, laxer parser for the import path is the shape of defect
+ * that lets a file in through a door the record's own reader would have refused.
+ */
+type Interpreted =
+  | { ok: true; version: number; state: Persisted; unreadableKeys: string[] }
+  | { ok: false; because: Extract<LocalRecordHealth, { kind: "unreadable" }>["because"]; version: number | null };
+
+function interpret(raw: string): Interpreted {
+  let stored: unknown;
+  try {
+    stored = JSON.parse(raw);
+  } catch {
+    return { ok: false, because: "not-json", version: null };
+  }
+  if (!isMap(stored)) return { ok: false, because: "not-an-object", version: null };
+  const blob = stored as Record<string, unknown>;
+  /*
+   * ABSENT MEANS VERSION 0, which is every save written before this field existed, and a `version`
+   * that is not a number means the blob is not one of ours whatever else it looks like.
+   */
+  const stamped = blob.version;
+  const version = stamped === undefined ? 0 : stamped;
+  if (typeof version !== "number" || !Number.isInteger(version) || version < 0) {
+    return { ok: false, because: "not-an-object", version: null };
+  }
+  if (version > LOCAL_RECORD_VERSION) {
+    return { ok: false, because: "written-by-a-newer-build", version };
+  }
+  const unreadableKeys: string[] = [];
+  return { ok: true, version, state: parse(blob, unreadableKeys), unreadableKeys };
+}
+
+/**
  * WHAT AN UNREADABLE BLOB COSTS, AND WHAT IT MUST NOT COST.
  *
  * The record stays on disk untouched: every read and write from here on goes to memory, which is
@@ -344,28 +382,10 @@ function read(): Persisted {
     health = { kind: "absent" };
     return empty();
   }
-  let stored: unknown;
-  try {
-    stored = JSON.parse(raw);
-  } catch {
-    return refuse("not-json", null);
-  }
-  if (!isMap(stored)) return refuse("not-an-object", null);
-  const blob = stored as Record<string, unknown>;
-  /*
-   * ABSENT MEANS VERSION 0, which is every save written before this field existed, and a `version`
-   * that is not a number means the blob is not one of ours whatever else it looks like.
-   */
-  const stamped = blob.version;
-  const version = stamped === undefined ? 0 : stamped;
-  if (typeof version !== "number" || !Number.isInteger(version) || version < 0) {
-    return refuse("not-an-object", null);
-  }
-  if (version > LOCAL_RECORD_VERSION) return refuse("written-by-a-newer-build", version);
-  const unreadable: string[] = [];
-  const state = parse(blob, unreadable);
-  health = { kind: "loaded", version, unreadableKeys: unreadable };
-  return state;
+  const shape = interpret(raw);
+  if (!shape.ok) return refuse(shape.because, shape.version);
+  health = { kind: "loaded", version: shape.version, unreadableKeys: shape.unreadableKeys };
+  return shape.state;
 }
 
 function write(state: Persisted): void {
@@ -418,6 +438,70 @@ export function exportLocalRecord(): { key: string; json: string } | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * What came of asking this browser to take a record it did not write.
+ *
+ * `already-holds-a-record` IS THE ONE THAT IS NOT A COMPLAINT ABOUT THE FILE. It is the refusal
+ * that keeps this a small change: see `importLocalRecord`.
+ */
+export type LocalRecordImport =
+  | { kind: "imported"; decisions: number }
+  | {
+      kind: "refused";
+      because: Extract<LocalRecordHealth, { kind: "unreadable" }>["because"] | "already-holds-a-record";
+    };
+
+/** Is there anything in here at all? Every collection, so a prereg alone still counts as played. */
+function holdsAnything(state: Persisted): boolean {
+  return Object.values(state).some((v) =>
+    Array.isArray(v) ? v.length > 0 : typeof v === "object" && v !== null && Object.keys(v).length > 0,
+  );
+}
+
+/**
+ * Put a downloaded record back, into a browser that has none.
+ *
+ * WHY THIS EXISTS. `exportLocalRecord` has shipped since the retention work and nothing could read
+ * what it produced -- so "הורידו את הרשומה" handed the player a file that was an ending. The two
+ * states the product already tells them about make that concrete: `session-only` says a refresh
+ * will erase everything, and the record-mode notice says the loop "לא תעבור בין מכשירים". A player
+ * who did what the first sentence advised had no way to act on it.
+ *
+ * IT REFUSES TO MERGE, AND THAT IS THE DESIGN RATHER THAN A GAP IN IT. Two append-only records of
+ * the same player, each with its own decision ids, ordering and drill membership, cannot be joined
+ * without deciding what a collision means -- which is a distributed-log question this product has
+ * no second stream to justify asking. Refusing into a non-empty browser is the whole of what makes
+ * this a control and not an architecture: the player can always erase first, deliberately, through
+ * the button beside it, and nothing they have is destroyed by pressing this one by mistake.
+ *
+ * IT REFUSES THE SAME FILES `read()` WOULD REFUSE, through the same `interpret`: a newer build's
+ * save is kept out here for the reason it is kept out there, and every key that cannot be
+ * interpreted costs that key and no more.
+ */
+export async function importLocalRecord(json: string): Promise<LocalRecordImport> {
+  const shape = interpret(json);
+  if (!shape.ok) return { kind: "refused", because: shape.because };
+  return serialised(() => {
+    if (holdsAnything(read())) return { kind: "refused", because: "already-holds-a-record" } as const;
+    /*
+     * WRITTEN THROUGH `write`, so the version stamped on disk is this build's and not the one the
+     * file carried. The state is what `parse` produced under the rules above, so stamping it with
+     * the version that produced it is the true statement; carrying the file's number forward would
+     * claim the shape came from a build that never saw this record.
+     */
+    write(shape.state);
+    /*
+     * NO `session = null` HERE, AND IT WAS THE FIRST THING WRITTEN. `write` leaves `session` null
+     * when localStorage took the record and holds the record itself when it did not, so clearing
+     * it would throw away the import on exactly the browsers that most need one -- the private
+     * window and the full quota, where `localRecordDurability` already says "session-only". The
+     * screen reads that durability back and says which of the two happened.
+     */
+    health = { kind: "loaded", version: LOCAL_RECORD_VERSION, unreadableKeys: shape.unreadableKeys };
+    return { kind: "imported", decisions: shape.state.decisions.length } as const;
+  });
 }
 
 /**

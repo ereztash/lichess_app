@@ -5589,6 +5589,7 @@ button:not(:disabled) {
 .boundary-reload,
 .reveal-failure-next,
 .reveal-failure-retry,
+.self-check-take,
 .boundary-trace summary,
 .context-dismiss,
 .context-why summary,
@@ -5886,6 +5887,30 @@ summary:focus-visible,
   gap: var(--s3);
   align-items: center;
   flex-wrap: wrap;
+}
+/*
+ * The one control here that is a `<label>`, because the thing it opens is a file picker.
+ *
+ * A BUTTON THAT SYNTHETICALLY CLICKS A HIDDEN INPUT IS THE VERSION THAT PASSES A TEST AND IS
+ * REFUSED BY A BROWSER: the picker opens only from a real gesture on the input. So the label wears
+ * the control's chrome and the input sits inside it, out of the layout but still in the tree --
+ * `display: none` would take it out of the accessibility tree and out of the label's reach.
+ *
+ * The centring is here rather than in `.ghost-control` because a label is not blockified by
+ * anything but its flex parent, and its text would otherwise sit at the top of a 44px box.
+ */
+.self-check-take {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.self-check-take input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 .self-check-note {
   font-size: var(--panel-label);

@@ -17,7 +17,9 @@ import {
   LocalRecordStore,
   deleteLocalRecord,
   exportLocalRecord,
+  importLocalRecord,
   localRecordHealth,
+  LOCAL_RECORD_VERSION,
   resetSessionFallbackForTests,
   setLocalRecordIdentity,
 } from "../../client/src/lib/local-record-store";
@@ -163,5 +165,113 @@ describe("the record can be taken out and erased", () => {
     render(<SelfCheck onClose={() => {}} />);
     fireEvent.click(screen.getByRole("button", { name: "מחקו את הרשומה מהדפדפן הזה" }));
     expect(screen.getByRole("status")).toHaveTextContent("אין רשומה בדפדפן הזה");
+  });
+});
+
+/*
+ * THE DOWNLOAD USED TO BE AN ENDING. `exportLocalRecord` has shipped since the retention work and
+ * nothing in the product could read what it produced, so "הורידו את הרשומה" handed the player a
+ * file with nowhere to go -- while the same drawer told them a private window would erase
+ * everything on refresh and the board told them the loop "לא תעבור בין מכשירים".
+ */
+describe("a downloaded record can come back", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    setLocalRecordIdentity(null);
+    resetSessionFallbackForTests();
+  });
+  afterEach(cleanup);
+
+  /** Write a decision, take the file, and leave the browser as empty as a new one. */
+  async function takeTheFile(): Promise<string> {
+    await new LocalRecordStore().commitDecision(decision);
+    const exported = exportLocalRecord();
+    await deleteLocalRecord();
+    return exported!.json;
+  }
+
+  it("puts back exactly what was taken, into a browser that has none", async () => {
+    const json = await takeTheFile();
+    expect(await new LocalRecordStore().countDecisions()).toBe(0);
+
+    expect(await importLocalRecord(json)).toEqual({ kind: "imported", decisions: 1 });
+
+    expect(await new LocalRecordStore().countDecisions()).toBe(1);
+    expect(localStorage.getItem(STORAGE_KEYS.record.key)).toContain("d-erase-1");
+    expect(localStorage.getItem(STORAGE_KEYS.record.key), "the read the player wrote").toContain(
+      "המרכז שלי",
+    );
+    expect(localRecordHealth()).toMatchObject({ kind: "loaded", version: LOCAL_RECORD_VERSION });
+  });
+
+  it("refuses a browser that already holds a record, rather than merging or overwriting", async () => {
+    /*
+     * THE REFUSAL IS THE DESIGN. Two append-only records of the same player, each with its own
+     * decision ids and drill membership, cannot be joined without deciding what a collision means
+     * -- and there is no second stream in this product to justify asking. What must never happen
+     * is the quiet version: a player who presses this with decisions here losing them.
+     */
+    const json = await takeTheFile();
+    await new LocalRecordStore().commitDecision({ ...decision, decisionId: "already-here" });
+
+    expect(await importLocalRecord(json)).toEqual({
+      kind: "refused",
+      because: "already-holds-a-record",
+    });
+    expect(localStorage.getItem(STORAGE_KEYS.record.key)).toContain("already-here");
+    expect(localStorage.getItem(STORAGE_KEYS.record.key), "the file went in anyway").not.toContain(
+      "d-erase-1",
+    );
+    expect(await new LocalRecordStore().countDecisions()).toBe(1);
+  });
+
+  it("refuses the same files the record's own reader refuses, and names which", async () => {
+    expect(await importLocalRecord("{oops")).toEqual({ kind: "refused", because: "not-json" });
+    expect(await importLocalRecord("[]")).toEqual({ kind: "refused", because: "not-an-object" });
+    expect(await importLocalRecord(JSON.stringify({ version: "1" }))).toEqual({
+      kind: "refused",
+      because: "not-an-object",
+    });
+    /* A save from a build that knows more than this one: refused there, refused here. */
+    expect(
+      await importLocalRecord(JSON.stringify({ version: LOCAL_RECORD_VERSION + 1, decisions: [] })),
+    ).toEqual({ kind: "refused", because: "written-by-a-newer-build" });
+    expect(localStorage.getItem(STORAGE_KEYS.record.key), "a refused file still wrote").toBeNull();
+  });
+
+  it("takes a version 0 file, which is every save written before the stamp existed", async () => {
+    /*
+     * `read()` upgrades an unstamped blob by reading it key by key, and the import goes through
+     * the same `interpret`. A player's oldest download is the one most likely to be the only copy
+     * left, so this is the case that would hurt most to refuse.
+     */
+    const legacy = JSON.stringify({ decisions: [{ decision_id: "old-1" }], reveals: {} });
+    expect(await importLocalRecord(legacy)).toEqual({ kind: "imported", decisions: 1 });
+    expect(localStorage.getItem(STORAGE_KEYS.record.key), "restamped as this build's shape").toContain(
+      `"version":${LOCAL_RECORD_VERSION}`,
+    );
+  });
+
+  it("offers it from the drawer, beside the download that produces the file", async () => {
+    const json = await takeTheFile();
+    render(<SelfCheck onClose={() => {}} />);
+    const take = screen.getByLabelText("העלו רשומה מקובץ");
+    fireEvent.change(take, { target: { files: [new File([json], "record.json", { type: "application/json" })] } });
+    await waitFor(() =>
+      expect(screen.getByText(/הרשומה נטענה/), "the drawer said nothing about the file").toBeTruthy(),
+    );
+    expect(await new LocalRecordStore().countDecisions()).toBe(1);
+  });
+
+  it("tells the player why a file was not taken, in the words of the cause", async () => {
+    await new LocalRecordStore().commitDecision(decision);
+    render(<SelfCheck onClose={() => {}} />);
+    fireEvent.change(screen.getByLabelText("העלו רשומה מקובץ"), {
+      target: { files: [new File(["{}"], "record.json", { type: "application/json" })] },
+    });
+    // Not "something went wrong": the reason decides what the player does next, and here it is
+    // "erase first", which is a different act from "find another file".
+    await waitFor(() => expect(screen.getByText(/כבר יש רשומה/)).toBeTruthy());
   });
 });

@@ -771,12 +771,31 @@ const INDEX = `${ROOT}/index.html`;
  * 217 LEAVES 0.9 kB, the same order as every raise above. The standing warning the previous note
  * left stands unchanged and is now on its second reader: this is the ceiling that runs out first,
  * and the next change to cross it should ask what came out rather than what goes up.
+ *
+ * ---
+ *
+ * 690 -> 675, 217 -> 212 AND 780 -> 766: THE SECOND TIME THIS FILE HAS GONE DOWN, AND THE SAME
+ * ARGUMENT AS THE FIRST.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              687.4      215.7       777.6
+ *     + a record the player can put back   690.0      216.5       780.4   OVER on two of three
+ *     SelfCheck behind a lazy chunk        674.1      211.2       764.5   -13.3 / -4.5 / -13.1
+ *
+ * The middle row is the raise this file did NOT take. `importLocalRecord` and the drawer control
+ * that reaches it crossed two ceilings by 0.4 kB, and the honest reading of that was not "the
+ * feature is worth 0.4 kB" -- it was that the self-check drawer had no business being in the entry
+ * chunk at all. It answers "is my install working", it renders only when somebody presses a
+ * control in the header, and it drags `lib/self-check.ts` and `lib/worker-probe.ts` with it. That
+ * is the argument the RecordExplorer note above makes, applied to the surface beside it.
+ *
+ * 675, 212 AND 766 LEAVE 0.9, 0.8 AND 1.5 kB, the headroom every move in this file has taken.
  */
 
-const ENTRY_RAW_KB = 690;
+const ENTRY_RAW_KB = 675;
 
 /** Transferred bytes of the entry chunk, which is what a person on a slow link actually waits for. */
-const ENTRY_GZIP_KB = 217;
+const ENTRY_GZIP_KB = 212;
 /**
  * Everything the browser fetches before the first paint, entry chunk and CSS together.
  *
@@ -962,7 +981,7 @@ const ENTRY_GZIP_KB = 217;
  * number that ships is 778, and it leaves 0.5 kB.
  */
 
-const INITIAL_RAW_KB = 780;
+const INITIAL_RAW_KB = 766;
 
 interface Asset {
   name: string;
