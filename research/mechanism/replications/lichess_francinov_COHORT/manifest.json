@@ -76,7 +76,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "d22503c5262668e52b7d5078f205184f2558aaae",
+ "repo_sha": "716d1e884b759d407ee0658d7a4d0b3384a6df94",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +165,5 @@
   "player_id": "francinov",
   "corpus": "lichess:francinov"
  },
- "run_dir": "/tmp/cohort_probes/lichess_francinov_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_francinov_COHORT"
 }
