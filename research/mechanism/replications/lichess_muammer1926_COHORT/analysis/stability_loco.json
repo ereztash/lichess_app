@@ -1,0 +1,73 @@
+{
+ "region": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+ "target": "cls_tactical",
+ "depth": 2,
+ "rows": [
+  {
+   "variant": "drop eco_family=A",
+   "n": 8500,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=B",
+   "n": 6422,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop eco_family=D",
+   "n": 8313,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop color=b",
+   "n": 4572,
+   "winner": "legal_moves>=26.0 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.4624277456647399
+  },
+  {
+   "variant": "drop phase=endgame",
+   "n": 8273,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "drop phase=opening",
+   "n": 7050,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "older half of DERIVE",
+   "n": 4447,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "newer half of DERIVE",
+   "n": 4670,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  },
+  {
+   "variant": "random half 0",
+   "n": 4596,
+   "winner": "legal_moves>=26.0 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.4624277456647399
+  },
+  {
+   "variant": "random half 1",
+   "n": 4737,
+   "winner": "legal_moves>=25.0 AND own_overloaded_piece_count>=1",
+   "jaccard": 0.4625176803394625
+  },
+  {
+   "variant": "random half 2",
+   "n": 4552,
+   "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+   "jaccard": 1.0
+  }
+ ]
+}
