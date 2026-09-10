@@ -161,7 +161,7 @@ async function main(): Promise<void> {
     await blitz.waitForURL(/\/blitz$/, { timeout: 30_000 });
     await blitz.locator(".blitz-control").first().waitFor({ timeout: 30_000 });
     await blitz.waitForTimeout(500);
-    await shoot(blitz, "20-blitz-setup", "the blitz setup, a whole screen for one question");
+    await shoot(blitz, "20-blitz-setup", "the blitz door: the question and the board it will be answered on");
     await blitz.locator(".blitz-control").first().click();
     await blitz.locator("[data-square]").first().waitFor({ timeout: 30_000 });
     await blitz.waitForTimeout(900);

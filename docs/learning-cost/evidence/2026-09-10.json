@@ -1,0 +1,233 @@
+{
+  "label": "2026-09-10",
+  "measuredAt": "2026-09-10T12:25:42.734Z",
+  "counts": {
+    "words": "visible words in <main>, the board and the move list excluded; a closed disclosure is not read",
+    "before": "words in document order ahead of the stage's one primary control; `none` where the stage declares no primary act",
+    "controls": "visible pressable elements in <main>, the board and the move list excluded",
+    "taps": "presses so far in this walk, a move counting as its two",
+    "screens": "distinct routes reached so far",
+    "secs": "seconds from the front door's first paint",
+    "board": "whether a board is painted on this stage"
+  },
+  "readings": {
+    "1440x900": {
+      "front-door": {
+        "controls": 9,
+        "board": false,
+        "words": 137,
+        "sentences": 25,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 31,
+        "aboveTheFold": 137,
+        "openDisclosures": 0,
+        "taps": 0,
+        "screens": 1,
+        "seconds": 0
+      },
+      "decide": {
+        "controls": 9,
+        "board": true,
+        "words": 97,
+        "sentences": 27,
+        "wordsBeforePrimary": 58,
+        "longestBlock": 19,
+        "aboveTheFold": 84,
+        "openDisclosures": 0,
+        "taps": 1,
+        "screens": 2,
+        "seconds": 0.7
+      },
+      "commitment": {
+        "controls": 16,
+        "board": true,
+        "words": 107,
+        "sentences": 34,
+        "wordsBeforePrimary": 68,
+        "longestBlock": 19,
+        "aboveTheFold": 94,
+        "openDisclosures": 0,
+        "taps": 3,
+        "screens": 2,
+        "seconds": 1.6
+      },
+      "reveal": {
+        "controls": 11,
+        "board": true,
+        "words": 199,
+        "sentences": 44,
+        "wordsBeforePrimary": 163,
+        "longestBlock": 29,
+        "aboveTheFold": 178,
+        "openDisclosures": 0,
+        "taps": 6,
+        "screens": 2,
+        "seconds": 4.4
+      },
+      "anchor-commitment": {
+        "controls": 23,
+        "board": true,
+        "words": 172,
+        "sentences": 43,
+        "wordsBeforePrimary": 131,
+        "longestBlock": 29,
+        "aboveTheFold": 142,
+        "openDisclosures": 0,
+        "taps": 9,
+        "screens": 2,
+        "seconds": 8.9
+      }
+    },
+    "390x844": {
+      "front-door": {
+        "controls": 9,
+        "board": false,
+        "words": 137,
+        "sentences": 25,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 31,
+        "aboveTheFold": 106,
+        "openDisclosures": 0,
+        "taps": 0,
+        "screens": 1,
+        "seconds": 0
+      },
+      "decide": {
+        "controls": 9,
+        "board": true,
+        "words": 92,
+        "sentences": 25,
+        "wordsBeforePrimary": 53,
+        "longestBlock": 19,
+        "aboveTheFold": 44,
+        "openDisclosures": 0,
+        "taps": 1,
+        "screens": 2,
+        "seconds": 0.7
+      },
+      "commitment": {
+        "controls": 16,
+        "board": true,
+        "words": 102,
+        "sentences": 32,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 19,
+        "aboveTheFold": 102,
+        "openDisclosures": 0,
+        "taps": 3,
+        "screens": 2,
+        "seconds": 1.5
+      },
+      "reveal": {
+        "controls": 11,
+        "board": true,
+        "words": 192,
+        "sentences": 41,
+        "wordsBeforePrimary": 158,
+        "longestBlock": 29,
+        "aboveTheFold": 160,
+        "openDisclosures": 0,
+        "taps": 5,
+        "screens": 2,
+        "seconds": 4.3
+      },
+      "anchor-commitment": {
+        "controls": 23,
+        "board": true,
+        "words": 167,
+        "sentences": 41,
+        "wordsBeforePrimary": 126,
+        "longestBlock": 29,
+        "aboveTheFold": 167,
+        "openDisclosures": 0,
+        "taps": 8,
+        "screens": 2,
+        "seconds": 8.8
+      }
+    }
+  },
+  "blitz": {
+    "1440x900": {
+      "front-door": {
+        "controls": 9,
+        "board": false,
+        "words": 137,
+        "sentences": 25,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 31,
+        "aboveTheFold": 137,
+        "openDisclosures": 0,
+        "taps": 0,
+        "screens": 1,
+        "seconds": 0
+      },
+      "blitz-setup": {
+        "controls": 5,
+        "board": true,
+        "words": 40,
+        "sentences": 24,
+        "wordsBeforePrimary": null,
+        "longestBlock": 13,
+        "aboveTheFold": 40,
+        "openDisclosures": 0,
+        "taps": 1,
+        "screens": 2,
+        "seconds": 1.2
+      },
+      "blitz-board": {
+        "controls": 2,
+        "board": true,
+        "words": 22,
+        "sentences": 18,
+        "wordsBeforePrimary": null,
+        "longestBlock": 3,
+        "aboveTheFold": 22,
+        "openDisclosures": 0,
+        "taps": 2,
+        "screens": 2,
+        "seconds": 1.9
+      }
+    },
+    "390x844": {
+      "front-door": {
+        "controls": 9,
+        "board": false,
+        "words": 137,
+        "sentences": 25,
+        "wordsBeforePrimary": 63,
+        "longestBlock": 31,
+        "aboveTheFold": 106,
+        "openDisclosures": 0,
+        "taps": 0,
+        "screens": 1,
+        "seconds": 0
+      },
+      "blitz-setup": {
+        "controls": 5,
+        "board": true,
+        "words": 35,
+        "sentences": 22,
+        "wordsBeforePrimary": null,
+        "longestBlock": 13,
+        "aboveTheFold": 35,
+        "openDisclosures": 0,
+        "taps": 1,
+        "screens": 2,
+        "seconds": 1.2
+      },
+      "blitz-board": {
+        "controls": 2,
+        "board": true,
+        "words": 17,
+        "sentences": 16,
+        "wordsBeforePrimary": null,
+        "longestBlock": 2,
+        "aboveTheFold": 17,
+        "openDisclosures": 0,
+        "taps": 2,
+        "screens": 2,
+        "seconds": 1.9
+      }
+    }
+  }
+}

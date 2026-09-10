@@ -6661,7 +6661,6 @@ summary:focus-visible,
   cursor: pointer;
   padding: 6px 0;
 }
-.blitz-setup,
 /*
  * THE GAME LIVES INSIDE THE PRODUCT'S SHELL NOW, and the column is the column rather than the
  * page. `main` was `.blitz` itself -- a 34rem centred block with nothing above it -- so the route
@@ -6669,11 +6668,19 @@ summary:focus-visible,
  * the brand 34rem wide and centred, which is not what a header is. Same shell as `/play`, same
  * lockup, same way home.
  */
-.blitz,
-.blitz-setup {
+.blitz {
   max-width: 34rem;
   margin: 0 auto;
   padding: 20px 0 40px;
+  display: grid;
+  gap: var(--s4);
+}
+/*
+ * NO LONGER A COLUMN OF ITS OWN. The setup was a second 34rem page beside `.blitz`; it is now a
+ * block inside it, above the board it used to stand in front of, so it inherits the column and
+ * the gap rather than declaring a duplicate of both.
+ */
+.blitz-setup {
   display: grid;
   gap: var(--s4);
 }
