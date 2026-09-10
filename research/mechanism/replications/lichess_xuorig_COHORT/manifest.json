@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "759147c1ea61669473728187c4d65e5c53f2218a",
+ "repo_sha": "4c2cb6cc1b3d86990d337e06c05d27a8b942404f",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "xuorig",
   "corpus": "lichess:xuorig"
  },
- "run_dir": "/tmp/cohort_probes/lichess_xuorig_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_xuorig_COHORT"
 }
