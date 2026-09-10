@@ -177,8 +177,17 @@ async function main(): Promise<void> {
     const sheetHtml = `<!doctype html><meta charset="utf-8"><style>
       body{margin:0;padding:28px;background:#111;font:13px/1.4 system-ui,sans-serif;color:#eee}
       h1{font-size:15px;font-weight:600;margin:0 0 20px;letter-spacing:.02em}
-      .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
-      figure{margin:0}
+      /*
+       * COLUMNS AND NOT A GRID, and the difference is the whole of whether this is readable.
+       *
+       * A grid row is as tall as its tallest cell, and five of these frames are whole-page shots
+       * several screens long. One of them in a row stretched that row to its own height and left
+       * four viewport frames floating in a field of background: the sheet came out 3,600 x 15,724
+       * with the frames as specks. Multi-column flow packs items of unequal height against each
+       * other, which is what a contact sheet is.
+       */
+      .grid{columns:5;column-gap:20px}
+      figure{margin:0 0 20px;break-inside:avoid}
       img{width:100%;display:block;border:1px solid #333;background:#000}
       figcaption{margin-top:7px;color:#9a9a9a;font-size:11px}
     </style><h1>Decision Lab, 390×844, device pixel ratio 2, touch on</h1><div class="grid">${cells}</div>`;

@@ -6749,9 +6749,23 @@ summary:focus-visible,
  * which is the protocol rather than a layout choice -- so the pin points at a column that does not
  * exist, the browser creates an implicit one sized to content, and the board came out 120px wide
  * on a 390px phone with the clocks sitting beside it.
+ *
+ * AND THE ROW PIN IS THE SAME MISTAKE, ONE AXIS OVER, ON A PHONE ONLY. Under `max-width: 680px`
+ * the same element takes `grid-row: 1`, so that `EvaluationBar` -- declared BEFORE `ChessBoard` in
+ * `Home.tsx` -- renders under the board instead of over it. `.blitz` is also a grid, so its board
+ * took row 1 there too and jumped above everything the markup puts before it.
+ *
+ * WHAT THAT COST, PHOTOGRAPHED ON A 390x844 PHONE: in a running game the two clocks are declared
+ * first and were laid out at y=975, a hundred and thirty pixels BELOW the fold. A blitz player
+ * could not see their own clock without scrolling, on the screen whose whole subject is a clock.
+ * The setup's question landed under the board by the same rule.
+ *
+ * Reset rather than re-pinned: with both axes `auto` the markup's order is the order, which is
+ * what this column wanted all along.
  */
 .blitz > .board-stage {
   grid-column: auto;
+  grid-row: auto;
 }
 .blitz-resign {
   justify-self: start;
