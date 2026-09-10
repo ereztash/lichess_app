@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "abf3fbcfa710b932f600e6a60c0d5d3a7f5571ef",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "chessterr1883",
   "corpus": "lichess:chessterr1883"
  },
- "run_dir": "/tmp/cohort_probes/lichess_chessterr1883_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_chessterr1883_COHORT"
 }
