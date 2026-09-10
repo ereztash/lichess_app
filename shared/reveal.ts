@@ -14,8 +14,33 @@
  */
 
 /** Below this depth, differences smaller than ENGINE_NOISE_CP are not meaningful. */
+import { Chess } from "chess.js";
 import { normaliseConfidence } from "./confidence.js";
 import { verdictWithheldWhenComputed, type RevealTiming } from "./reveal-timing.js";
+
+/**
+ * A move as the board names it, or the UCI it came as.
+ *
+ * THE FALLBACK IS NOT A CONVENIENCE, IT IS THE SAFETY PROPERTY. Naming a move wrongly is worse
+ * than naming it in engine notation: a player who reads `Nd4` and finds no knight stops trusting
+ * the panel, while `d2d4` is merely ugly. So every failure path -- no position, a position the
+ * move is not legal in, a malformed FEN, a promotion string chess.js rejects -- returns the input
+ * unchanged rather than a guess.
+ */
+export function moveLabel(uci: string, fen: string | undefined): string {
+  if (!fen) return uci;
+  try {
+    const board = new Chess(fen);
+    const move = board.move({
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci.slice(4, 5) : undefined,
+    });
+    return move?.san ?? uci;
+  } catch {
+    return uci;
+  }
+}
 
 export const SHALLOW_DEPTH = 16;
 /** Centipawn differences at or under this are inside evaluation noise, not a mistake. */
@@ -42,6 +67,20 @@ export interface RevealInputs {
   cpLoss: number;
   chosenMove: string;
   bestMove: string;
+  /**
+   * The position the decision was taken in, so a move can be named the way the board names it.
+   *
+   * WHY IT IS HERE AT ALL. `chosenMove` and `bestMove` are UCI, because that is what the engine
+   * speaks and what the record stores. A cold player was shown the sentence
+   * `g5d8 עלה 484 ס״פ מול f2f4` while the move timeline two centimetres below it read `12.Nd4`:
+   * one product, two notations, and the machine one won the sentence that carries the whole point.
+   * A move is only nameable in a position, so the position is what this field supplies.
+   *
+   * OPTIONAL, AND THE FALLBACK IS THE OLD BEHAVIOUR EXACTLY. A caller that has no FEN, or a FEN the
+   * move is not legal in, gets the UCI it always got. Nothing that reads these sentences has to
+   * change, and a wrong FEN degrades to the previous output rather than to a wrong move name.
+   */
+  fen?: string;
   chosenWasBest: boolean;
   /**
    * The stated level as the player pressed it: 1..confidenceScale, NOT a probability.
@@ -333,6 +372,13 @@ export const CONTINUATION_CTA = "לבדוק אם זה חוזר";
 export function theOneThing(inputs: RevealInputs): OneThing | null {
   const noisy = inputs.cpLoss <= ENGINE_NOISE_CP;
   const rejectedTheBest = inputs.candidatesConsidered.includes(inputs.bestMove);
+  /*
+   * NAMED ONCE, HERE, so every branch below says the move the same way. The comparison on the line
+   * above stays in UCI on purpose: `candidatesConsidered` is stored in UCI and matching a display
+   * label against a stored one is how a rename becomes a wrong answer.
+   */
+  const chosen = moveLabel(inputs.chosenMove, inputs.fen);
+  const best = moveLabel(inputs.bestMove, inputs.fen);
 
   /*
    * The choice rule, and it comes first.
@@ -364,9 +410,9 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
        * memory of the position; "you saw it" is a claim about their mind that the record cannot
        * make, and one they may simply know to be false.
        */
-      text: `${inputs.bestMove} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${inputs.chosenMove} — הפרש של ${inputs.cpLoss} ס״פ.`,
+      text: `${best} כבר היה בין המהלכים שהנחת על הלוח, ובחרת ב-${chosen} — הפרש של ${inputs.cpLoss} ס״פ.`,
       note: "כאן הקושי לא היה למצוא את המהלך, אלא לבחור בינו לבין האחר.",
-      basis: `${inputs.bestMove} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
+      basis: `${best} נרשם בין ${inputs.candidatesConsidered.length} מהלכים שנשקלו, ${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
 
@@ -401,8 +447,8 @@ export function theOneThing(inputs: RevealInputs): OneThing | null {
   if (!noisy && inputs.cpLoss >= MATERIAL_LOSS_CP) {
     return {
       kind: "outplayed",
-      text: `${inputs.chosenMove} עלה ${inputs.cpLoss} ס״פ מול ${inputs.bestMove}.`,
-      note: `מה ${inputs.bestMove} עושה בעמדה הזאת ש-${inputs.chosenMove} לא עושה?`,
+      text: `${chosen} עלה ${inputs.cpLoss} ס״פ מול ${best}.`,
+      note: `מה ${best} עושה בעמדה הזאת ש-${chosen} לא עושה?`,
       basis: `${inputs.cpLoss} ס״פ בעומק ${inputs.depth}`,
     };
   }
@@ -735,7 +781,7 @@ export function nextQuestion(inputs: RevealInputs): string {
    * flipping it to the flag alone and watching nothing fail.
    */
   if (inputs.chosenMove === inputs.bestMove) {
-    return `בחרת את ${inputs.chosenMove}, וזה גם מהלך המנוע. מה היה הנימוק, והאם היה מחזיק גם אילו המנוע בחר אחרת?`;
+    return `בחרת את ${moveLabel(inputs.chosenMove, inputs.fen)}, וזה גם מהלך המנוע. מה היה הנימוק, והאם היה מחזיק גם אילו המנוע בחר אחרת?`;
   }
-  return `מה היית צריך לדעת כדי לבחור בין ${inputs.chosenMove} ל-${inputs.bestMove}?`;
+  return `מה היית צריך לדעת כדי לבחור בין ${moveLabel(inputs.chosenMove, inputs.fen)} ל-${moveLabel(inputs.bestMove, inputs.fen)}?`;
 }

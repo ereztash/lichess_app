@@ -4054,6 +4054,16 @@ button:not(:disabled) {
   line-height: 1.5;
   opacity: 0.8;
 }
+/*
+ * The unit, once, beside the first number that uses it. Quieter than the metric rows it explains,
+ * because it is true of every reveal and is read once rather than each time.
+ */
+.reveal-unit-note {
+  margin: 0.15rem 0 0.55rem;
+  font-size: var(--panel-label);
+  line-height: 1.5;
+  opacity: 0.7;
+}
 /* Section 4.5: an honest nothing is a correct screen, not a failure. */
 /*
  * "NOTHING HERE YET" IS AN ANSWER, AND IT WAS RENDERED AS AN ABSENCE.

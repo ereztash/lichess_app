@@ -27,6 +27,7 @@ import {
   nextQuestion,
   revealAccumulation,
   silenceBasis,
+  moveLabel,
   theOneThing,
   type OneThingMix,
   type RevealInputs,
@@ -275,16 +276,34 @@ export function RevealPanel({
               {inputs.clampedMate ? `${inputs.cpLoss} ס״פ מול תקרת מט` : `${inputs.cpLoss} ס״פ`}
             </Value>
           </div>
+          {/*
+            * THE UNIT, SAID ONCE, WHERE THE NUMBERS ARE.
+            *
+            * `ס״פ` is rendered in eighteen places in this product and was defined in none of them.
+            * The owner asked what it meant. A player reading "27 ס״פ" and "מתחת ל-30 ס״פ" has no
+            * scale to put either on, so the noise floor reads as an arbitrary threshold rather
+            * than as a quarter of a pawn. It sits inside the collapsed numbers, beside the first
+            * one that uses it, rather than on the surface where it would cost every reveal.
+            */}
+          <p className="reveal-unit-note">ס״פ הוא מאית רגלי. מאה ס״פ שווים רגלי שלם.</p>
+          {/*
+            * THE SAME NOTATION THE BOARD SPEAKS, and the line of play underneath is why.
+            *
+            * These two rows rendered UCI while `reveal-pv` three lines below rendered SAN, so one
+            * panel showed `b5b4` and `d8c7` above `b4 Na4 a5 h4`. A cold player photographed it.
+            * `moveLabel` falls back to the UCI when the position cannot name the move, which is
+            * exactly what these rows showed before.
+            */}
           <div className="reveal-metric">
             <span>מהלך המנוע</span>
             <Value provenance={{ kind: "engine", source: "local_sf18", depth: inputs.depth }}>
-              {inputs.bestMove}
+              {moveLabel(inputs.bestMove, inputs.fen)}
             </Value>
           </div>
           <div className="reveal-metric">
             <span>המהלך שלך</span>
             <Value provenance={{ kind: "player", unit: "נרשם לפני החשיפה" }}>
-              {inputs.chosenMove}
+              {moveLabel(inputs.chosenMove, inputs.fen)}
             </Value>
           </div>
           <div className="reveal-pv" dir="ltr">

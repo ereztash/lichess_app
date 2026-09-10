@@ -25,9 +25,18 @@ export type RevealFailureKind = "engine" | "write";
 const COPY: Record<RevealFailureKind, { what: string; detail: string }> = {
   engine: {
     what: "המנוע לא סיים את החישוב.",
+    /*
+     * THE WAY BACK IS NAMED, because there was one and the panel did not say it.
+     *
+     * A cold player on a mobile connection met this screen and its only control was forward, to the
+     * next position, where the same engine would fail the same way. Reloading re-attempts the load
+     * and costs nothing, because the decision was written before the engine was asked -- the
+     * sentence above already tells the player that, and this one tells them what it is good for.
+     */
     detail:
       "אין הערכה לעמדה הזו, ולכן אין מה להציג עליה. זו תקלה במנוע שרץ בדפדפן שלכם — " +
-      "כפתור הבדיקה העצמית בכותרת יגיד אם הוא נטען בכלל.",
+      "כפתור הבדיקה העצמית בכותרת יגיד אם הוא נטען בכלל. רענון הדף מנסה לטעון אותו מחדש, " +
+      "וההחלטה כבר שמורה.",
   },
   write: {
     what: "תוצאת המנוע לא נשמרה.",

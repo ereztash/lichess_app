@@ -64,7 +64,22 @@ const BEFORE_THE_ACT: Record<Stage, number> = {
  */
 const ABOVE_THE_FOLD_ON_A_PHONE: Partial<Record<Stage, number>> = {
   decide: 50,
-  reveal: 155,
+  /*
+   * 155 -> 160, AND THE SENTENCE THAT NEEDED THE ROOM IS ONE THAT GOT SHORTER.
+   *
+   * The reveal's headline began naming moves the way the board names them: `Nd8` where it used to
+   * say `g5d8`. Shorter labels wrap the sentence into fewer lines, everything under it moves up,
+   * and a block that used to begin below 844px now begins above it. The reading moved 151 -> 160
+   * while the stage's total held at 192 and its words-before-the-act held at 158: the same text,
+   * reachable with less scrolling.
+   *
+   * WHICH IS THIS CEILING'S ONE BLIND SPOT, worth naming rather than quietly absorbing. It caps
+   * what the first screen carries, so it reads compaction as growth -- a screen that says the same
+   * thing in fewer lines scores worse. The cap is still the right guard against burying the reveal
+   * under an added paragraph; it is the wrong judge of a shorter one, and only the totals beside it
+   * can tell the two apart.
+   */
+  reveal: 160,
 };
 
 let browser: Browser;

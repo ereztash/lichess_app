@@ -647,14 +647,16 @@ export default function Home() {
     learningTransfer,
   ]);
 
+  /* ON `deciding`, NOT ON A PLACED MOVE: the 5.6MB download leaves the post-commit path for the
+     thinking time. Loading is not asking, so R3 holds. `!candidateMove ||` reverts it. */
   useEffect(() => {
-    if (!candidateMove || stage !== "deciding") return;
+    if (stage !== "deciding") return;
     void ensureEngine()
       .then((engine) => engine.start())
       .catch(() => {
         /* Reported later by the reveal path, which owns engine failure. */
       });
-  }, [candidateMove, stage, ensureEngine]);
+  }, [stage, ensureEngine]);
 
   const runAnalysis = useCallback(async () => {
     if (!engineMayRun(stage)) return;
@@ -955,6 +957,8 @@ export default function Home() {
           cpLoss,
           chosenMove: draft.chosenMove!,
           bestMove,
+          /* The position the moves are named in; `shared/reveal.ts` says why. Same value as `revealAt`. */
+          fen: positionFen,
           chosenWasBest: bestMove === draft.chosenMove,
           confidence: draft.confidence!,
           // The scale this level was pressed on, not a constant read later. It is the same value
