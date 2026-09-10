@@ -78,7 +78,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "827b57a24a1eb6279e9f6ea0e43054b858e147cd",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -167,5 +167,5 @@
   "player_id": "one-trick-wilfred",
   "corpus": "lichess:one-trick-wilfred"
  },
- "run_dir": "/tmp/cohort_probes/lichess_one-trick-wilfred_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_one-trick-wilfred_COHORT"
 }
