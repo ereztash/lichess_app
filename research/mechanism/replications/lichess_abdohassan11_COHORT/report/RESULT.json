@@ -1,5 +1,5 @@
 {
- "run_dir": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR",
+ "run_dir": "/work/research/mechanism/replications/lichess_abdohassan11_COHORT",
  "focal": {
   "platform": "lichess",
   "username": "abdohassan11",
@@ -7,13 +7,13 @@
   "corpus": "lichess:abdohassan11"
  },
  "contract_version": "replication-1.0.0",
- "repo_sha": "ad716927d6f9739d349a53e3c08fc6aa6f8f03d8",
+ "repo_sha": "d605d862e77c55fc207b1003bb185d0423692d59",
  "pipeline_hash": "eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143",
  "corpus": {
   "fetched": 4600,
   "admissible": 2200,
   "scorable": 2200,
-  "eligible_decisions": null,
+  "eligible_decisions": 58208,
   "exclusions": {
    "outside-window": 766,
    "termination:Abandoned": 8,
@@ -63,36 +63,995 @@
   "OBSERVATION": "the region's within-game contrast on new games falls below the baseline's prediction, or changes sign under the shipped engine",
   "SPECIFICITY": "a second held-out window or a larger population sample puts the focal player's residual inside the population's spread"
  },
- "status": "FROZEN",
- "eligibility": {
-  "raw_records": 4600,
-  "admissible": 2200,
-  "scorable": 2200,
-  "excluded_by_reason": {
-   "outside-window": 766,
-   "termination:Abandoned": 8,
-   "termination:Time forfeit": 1559,
-   "under-20-plies": 67
-  },
-  "speeds": {
-   "blitz": 1992,
-   "bullet": 204,
-   "classical": 2,
-   "rapid": 2
-  },
-  "admissible_path": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR/admissible/games.ndjson",
-  "window": 2200,
-  "rule": {
-   "game": {
-    "termination": "Normal",
-    "requires_clock_annotations": true,
-    "min_plies_with_clock": 20,
-    "rated_only": true,
-    "variant": "standard"
+ "status": "PERSONAL_RESIDUAL_CANDIDATE",
+ "failure_code": null,
+ "splits": {
+  "DERIVE_decisions": 34997,
+  "DERIVE_games": 1320,
+  "VALIDATE_decisions": 11636,
+  "VALIDATE_games": 440,
+  "TEST_decisions": 11575,
+  "TEST_games": 440
+ },
+ "blitz_splits": {
+  "DERIVE_decisions": 30284,
+  "DERIVE_games": 1114,
+  "VALIDATE_decisions": 11561,
+  "VALIDATE_games": 438,
+  "TEST_decisions": 11575,
+  "TEST_games": 440
+ },
+ "population": {
+  "status": "OK",
+  "focal_blitz_median_rating": 1672.0,
+  "band": [
+   1450,
+   1850
+  ]
+ },
+ "population_id": "population_2026-06",
+ "verdict": {
+  "output_class": "PERSONAL_RESIDUAL_CANDIDATE",
+  "failure_code": null,
+  "reason": "a region survives a same-rating population model on games never used to find it. Candidate only: not a cause, not an intervention, not a field result",
+  "broad_structure": {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 5.072246297666958,
+   "depth": 2,
+   "n_derive": 8378,
+   "derive_err_in": 0.2619957030317498,
+   "derive_err_out": 0.13332581990307674,
+   "derive_wg_est": 0.1314151660894519,
+   "derive_wg_z": 22.304581215125005,
+   "derive_resid_wg_in": 0.05541535960143223,
+   "stability_share_j60": 0.6666666666666666,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 2771,
+    "n_out": 8865,
+    "p_in": 0.24215084806928908,
+    "p_out": 0.1212633953750705,
+    "diff": 0.12088745269421858,
+    "se": 0.010344221772998501,
+    "z": 11.686471476256514,
+    "games_in": 419,
+    "wg_est": 0.12231380725560201,
+    "wg_se": 0.009658603473081059,
+    "wg_z": 12.66371557715314,
+    "wg_games": 419,
+    "pass": true,
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.06411104348478629,
+    "resid_wg_z": 6.707866064328267,
+    "secondary_wg": {
+     "est": 0.08279308985868428,
+     "z": 9.18622098399142,
+     "n_games": 419
+    },
+    "wp_loss_wg": {
+     "est": 0.023795323165477014,
+     "z": 9.00030041922418
+    }
    },
-   "berserk": "clock-model",
-   "window_rule": "all-admissible-in-dateDesc-order",
-   "decision": "not forced AND not book AND seconds present AND clock present"
+   "target": "cls_tactical"
+  },
+  "personal_residual": {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 2.0627545145946735,
+   "depth": 2,
+   "n_derive": 7450,
+   "derive_err_in": 0.16590604026845637,
+   "derive_err_out": 0.05723920469475344,
+   "derive_wg_est": 0.11457402838013266,
+   "derive_wg_z": 22.454115309304196,
+   "derive_resid_wg_in": 0.023898432139415393,
+   "stability_share_j60": 0.06666666666666667,
+   "stability_median_j": 0.22291884360849878,
+   "validate": {
+    "n_in": 2750,
+    "n_out": 8811,
+    "p_in": 0.14872727272727274,
+    "p_out": 0.05152650096470321,
+    "diff": 0.09720077176256953,
+    "se": 0.00807491412869655,
+    "z": 12.037375285161037,
+    "games_in": 417,
+    "wg_est": 0.10152427677712283,
+    "wg_se": 0.007827131111142327,
+    "wg_z": 12.970815913968499,
+    "wg_games": 417,
+    "pass": true,
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.026852202487535035,
+    "resid_wg_z": 3.588665144575454,
+    "secondary_wg": {
+     "est": 0.08123529396852178,
+     "z": 9.031201905516356,
+     "n_games": 417
+    },
+    "wp_loss_wg": {
+     "est": 0.02324836450074565,
+     "z": 8.82543790816714
+    }
+   },
+   "target": "cls_hung_material"
+  },
+  "all_passing_residual": [
+   {
+    "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+    "region_depth3": null,
+    "collapse_jaccard": null,
+    "quality": 2.0627545145946735,
+    "depth": 2,
+    "n_derive": 7450,
+    "derive_err_in": 0.16590604026845637,
+    "derive_err_out": 0.05723920469475344,
+    "derive_wg_est": 0.11457402838013266,
+    "derive_wg_z": 22.454115309304196,
+    "derive_resid_wg_in": 0.023898432139415393,
+    "stability_share_j60": 0.06666666666666667,
+    "stability_median_j": 0.22291884360849878,
+    "validate": {
+     "n_in": 2750,
+     "n_out": 8811,
+     "p_in": 0.14872727272727274,
+     "p_out": 0.05152650096470321,
+     "diff": 0.09720077176256953,
+     "se": 0.00807491412869655,
+     "z": 12.037375285161037,
+     "games_in": 417,
+     "wg_est": 0.10152427677712283,
+     "wg_se": 0.007827131111142327,
+     "wg_z": 12.970815913968499,
+     "wg_games": 417,
+     "pass": true,
+     "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "resid_wg_est": 0.026852202487535035,
+     "resid_wg_z": 3.588665144575454,
+     "secondary_wg": {
+      "est": 0.08123529396852178,
+      "z": 9.031201905516356,
+      "n_games": 417
+     },
+     "wp_loss_wg": {
+      "est": 0.02324836450074565,
+      "z": 8.82543790816714
+     }
+    },
+    "target": "cls_hung_material"
+   },
+   {
+    "region": "n_good_captures>=1 AND standing=='winning'",
+    "region_depth3": "n_good_captures>=1 AND opp_last_captured_value<1 AND standing=='winning'",
+    "collapse_jaccard": 0.6655815972222222,
+    "quality": 2.3315044641698175,
+    "depth": 2,
+    "n_derive": 4608,
+    "derive_err_in": 0.2306857638888889,
+    "derive_err_out": 0.1490107493379031,
+    "derive_wg_est": 0.11390947201966671,
+    "derive_wg_z": 15.666762680890006,
+    "derive_resid_wg_in": 0.02609176145196061,
+    "stability_share_j60": 0.1,
+    "stability_median_j": 0.042716514474337074,
+    "validate": {
+     "n_in": 2295,
+     "n_out": 9266,
+     "p_in": 0.21830065359477124,
+     "p_out": 0.13317504856464493,
+     "diff": 0.08512560503012631,
+     "se": 0.012167240046601552,
+     "z": 6.996295355732943,
+     "games_in": 356,
+     "wg_est": 0.12453924528927941,
+     "wg_se": 0.011135530633096259,
+     "wg_z": 11.183952466452961,
+     "wg_games": 356,
+     "pass": true,
+     "region": "n_good_captures>=1 AND standing=='winning'",
+     "resid_wg_est": 0.04888212647846908,
+     "resid_wg_z": 4.741818663961677,
+     "secondary_wg": {
+      "est": 0.05821066646484408,
+      "z": 5.370704901010003,
+      "n_games": 356
+     },
+     "wp_loss_wg": {
+      "est": 0.018777236310154505,
+      "z": 5.269108840003498
+     }
+    },
+    "target": "cls_tactical"
+   },
+   {
+    "region": "n_good_captures>=1 AND standing=='winning'",
+    "region_depth3": "n_good_captures>=1 AND opp_last_capture==0 AND standing=='winning'",
+    "collapse_jaccard": 0.6655815972222222,
+    "quality": 2.3315044641698175,
+    "depth": 2,
+    "n_derive": 4608,
+    "derive_err_in": 0.2306857638888889,
+    "derive_err_out": 0.1490107493379031,
+    "derive_wg_est": 0.11390947201966671,
+    "derive_wg_z": 15.666762680890006,
+    "derive_resid_wg_in": 0.02609176145196061,
+    "stability_share_j60": 0.1,
+    "stability_median_j": 0.042716514474337074,
+    "validate": {
+     "n_in": 2295,
+     "n_out": 9266,
+     "p_in": 0.21830065359477124,
+     "p_out": 0.13317504856464493,
+     "diff": 0.08512560503012631,
+     "se": 0.012167240046601552,
+     "z": 6.996295355732943,
+     "games_in": 356,
+     "wg_est": 0.12453924528927941,
+     "wg_se": 0.011135530633096259,
+     "wg_z": 11.183952466452961,
+     "wg_games": 356,
+     "pass": true,
+     "region": "n_good_captures>=1 AND standing=='winning'",
+     "resid_wg_est": 0.04888212647846908,
+     "resid_wg_z": 4.741818663961677,
+     "secondary_wg": {
+      "est": 0.05821066646484408,
+      "z": 5.370704901010003,
+      "n_games": 356
+     },
+     "wp_loss_wg": {
+      "est": 0.018777236310154505,
+      "z": 5.269108840003498
+     }
+    },
+    "target": "cls_tactical"
+   }
+  ]
+ },
+ "evidence": {
+  "invariance": {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "frame": "VALIDATE",
+   "overall": {
+    "n_in": 2771,
+    "n_out": 8865,
+    "p_in": 0.24215084806928908,
+    "p_out": 0.1212633953750705,
+    "diff": 0.12088745269421858,
+    "se": 0.010344221772998501,
+    "z": 11.686471476256514,
+    "games_in": 419
+   },
+   "strata": [
+    {
+     "context": "eco_family",
+     "stratum": "A",
+     "n_in": 999,
+     "n_out": 2857,
+     "p_in": 0.2652652652652653,
+     "p_out": 0.12425621281064053,
+     "diff": 0.14100905245462475,
+     "z": 7.9093645097119945,
+     "resid_diff": 0.07191336606296245,
+     "resid_z": 4.025702145328977
+    },
+    {
+     "context": "eco_family",
+     "stratum": "B",
+     "n_in": 748,
+     "n_out": 2523,
+     "p_in": 0.24331550802139038,
+     "p_out": 0.10939357907253269,
+     "diff": 0.13392192894885768,
+     "z": 7.016678435271073,
+     "resid_diff": 0.07224255618091878,
+     "resid_z": 3.958318502777468
+    },
+    {
+     "context": "eco_family",
+     "stratum": "C",
+     "n_in": 4,
+     "n_out": 14,
+     "diff": null,
+     "z": null,
+     "resid_diff": null
+    },
+    {
+     "context": "eco_family",
+     "stratum": "D",
+     "n_in": 1020,
+     "n_out": 3471,
+     "p_in": 0.21862745098039216,
+     "p_out": 0.12762892538173437,
+     "diff": 0.09099852559865779,
+     "z": 5.413017205922577,
+     "resid_diff": 0.042463281010875126,
+     "resid_z": 2.6352277483100695
+    },
+    {
+     "context": "color",
+     "stratum": "b",
+     "n_in": 1416,
+     "n_out": 4552,
+     "p_in": 0.2570621468926554,
+     "p_out": 0.11401581722319859,
+     "diff": 0.1430463296694568,
+     "z": 9.566597976545603,
+     "resid_diff": 0.08306999013462463,
+     "resid_z": 5.928846989533431
+    },
+    {
+     "context": "color",
+     "stratum": "w",
+     "n_in": 1355,
+     "n_out": 4313,
+     "p_in": 0.22656826568265684,
+     "p_out": 0.1289125898446557,
+     "diff": 0.09765567583800114,
+     "z": 6.883191441368822,
+     "resid_diff": 0.03870874026363595,
+     "resid_z": 2.710621339067
+    },
+    {
+     "context": "phase",
+     "stratum": "endgame",
+     "n_in": 122,
+     "n_out": 519,
+     "p_in": 0.1557377049180328,
+     "p_out": 0.07321772639691715,
+     "diff": 0.08251997852111564,
+     "z": 2.4474502155511426,
+     "resid_diff": 0.06611098321090918,
+     "resid_z": 2.05103015060453
+    },
+    {
+     "context": "phase",
+     "stratum": "middlegame",
+     "n_in": 2307,
+     "n_out": 5346,
+     "p_in": 0.24490680537494583,
+     "p_out": 0.16199027310138422,
+     "diff": 0.0829165322735616,
+     "z": 6.773955854697281,
+     "resid_diff": 0.04430615167155458,
+     "resid_z": 3.784744433782718
+    },
+    {
+     "context": "phase",
+     "stratum": "opening",
+     "n_in": 342,
+     "n_out": 3000,
+     "p_in": 0.2543859649122807,
+     "p_out": 0.057,
+     "diff": 0.19738596491228072,
+     "z": 8.089857985915929,
+     "resid_diff": 0.15256728778733122,
+     "resid_z": 6.214382995643231
+    },
+    {
+     "context": "speed",
+     "stratum": "blitz",
+     "n_in": 2750,
+     "n_out": 8811,
+     "p_in": 0.24072727272727273,
+     "p_out": 0.12177959368970605,
+     "diff": 0.11894767903756669,
+     "z": 11.53408645755889,
+     "resid_diff": 0.060035881239133074,
+     "resid_z": 5.96458531630777
+    },
+    {
+     "context": "speed",
+     "stratum": "rapid",
+     "n_in": 21,
+     "n_out": 54,
+     "diff": null,
+     "z": null,
+     "resid_diff": null
+    },
+    {
+     "context": "standing",
+     "stratum": "level",
+     "n_in": 643,
+     "n_out": 3425,
+     "p_in": 0.25038880248833595,
+     "p_out": 0.07153284671532846,
+     "diff": 0.1788559557730075,
+     "z": 8.590313874090286,
+     "resid_diff": 0.10604313963066958,
+     "resid_z": 5.106499164757857
+    },
+    {
+     "context": "standing",
+     "stratum": "losing",
+     "n_in": 513,
+     "n_out": 2078,
+     "p_in": 0.3001949317738791,
+     "p_out": 0.17228103946102022,
+     "diff": 0.1279138923128589,
+     "z": 5.4402166166519255,
+     "resid_diff": 0.08033101496413174,
+     "resid_z": 3.403489280060774
+    },
+    {
+     "context": "standing",
+     "stratum": "winning",
+     "n_in": 1615,
+     "n_out": 3362,
+     "p_in": 0.22043343653250774,
+     "p_out": 0.1403926234384295,
+     "diff": 0.08004081309407823,
+     "z": 5.727691901374519,
+     "resid_diff": 0.037644275418226535,
+     "resid_z": 2.8365373947423005
+    },
+    {
+     "context": "era",
+     "stratum": "2024",
+     "n_in": 351,
+     "n_out": 1189,
+     "p_in": 0.24786324786324787,
+     "p_out": 0.1152228763666947,
+     "diff": 0.13264037149655317,
+     "z": 4.055705532561436,
+     "resid_diff": 0.07573518548364064,
+     "resid_z": 2.4898089274467847
+    },
+    {
+     "context": "era",
+     "stratum": "2025",
+     "n_in": 20,
+     "n_out": 83,
+     "diff": null,
+     "z": null,
+     "resid_diff": null
+    },
+    {
+     "context": "era",
+     "stratum": "2026",
+     "n_in": 2400,
+     "n_out": 7593,
+     "p_in": 0.24166666666666667,
+     "p_out": 0.12248123271434215,
+     "diff": 0.11918543395232452,
+     "z": 10.878768758005116,
+     "resid_diff": 0.059685379344198264,
+     "resid_z": 5.576683703222143
+    },
+    {
+     "context": "clock_state",
+     "stratum": "30-60s",
+     "n_in": 272,
+     "n_out": 746,
+     "p_in": 0.25735294117647056,
+     "p_out": 0.1554959785522788,
+     "diff": 0.10185696262419175,
+     "z": 3.031333800038967,
+     "resid_diff": 0.049771257263577985,
+     "resid_z": 1.607984874801548
+    },
+    {
+     "context": "clock_state",
+     "stratum": "<30s",
+     "n_in": 156,
+     "n_out": 534,
+     "p_in": 0.1987179487179487,
+     "p_out": 0.15730337078651685,
+     "diff": 0.041414577931431856,
+     "z": 1.1090180928462887,
+     "resid_diff": 0.01094614120108927,
+     "resid_z": 0.3204817777868135
+    },
+    {
+     "context": "clock_state",
+     "stratum": ">=60s",
+     "n_in": 2343,
+     "n_out": 7585,
+     "p_in": 0.24327784891165172,
+     "p_out": 0.11535926170072512,
+     "diff": 0.12791858721092658,
+     "z": 11.446787825104145,
+     "resid_diff": 0.06618405942602468,
+     "resid_z": 5.9955307008442915
+    },
+    {
+     "context": "material",
+     "stratum": "endgame-material",
+     "n_in": 122,
+     "n_out": 519,
+     "p_in": 0.1557377049180328,
+     "p_out": 0.07321772639691715,
+     "diff": 0.08251997852111564,
+     "z": 2.4474502155511426,
+     "resid_diff": 0.06611098321090918,
+     "resid_z": 2.05103015060453
+    },
+    {
+     "context": "material",
+     "stratum": "full",
+     "n_in": 1901,
+     "n_out": 6543,
+     "p_in": 0.25512887953708574,
+     "p_out": 0.11477915329359621,
+     "diff": 0.14034972624348951,
+     "z": 11.307357224991593,
+     "resid_diff": 0.07043530229364738,
+     "resid_z": 5.682668834682473
+    },
+    {
+     "context": "material",
+     "stratum": "reduced",
+     "n_in": 748,
+     "n_out": 1803,
+     "p_in": 0.2232620320855615,
+     "p_out": 0.158624514697726,
+     "diff": 0.06463751738783549,
+     "z": 3.1513010611754413,
+     "resid_diff": 0.0331547680848473,
+     "resid_z": 1.7353601070827533
+    },
+    {
+     "context": "opp_last",
+     "stratum": "after-capture",
+     "n_in": 691,
+     "n_out": 2061,
+     "p_in": 0.25615050651230103,
+     "p_out": 0.1489568170790878,
+     "diff": 0.10719368943321322,
+     "z": 5.599086909668825,
+     "resid_diff": 0.07275220178027395,
+     "resid_z": 3.889119412837868
+    },
+    {
+     "context": "opp_last",
+     "stratum": "after-check",
+     "n_in": 112,
+     "n_out": 256,
+     "p_in": 0.29464285714285715,
+     "p_out": 0.109375,
+     "diff": 0.18526785714285715,
+     "z": 4.028070805109843,
+     "resid_diff": 0.1585779287644333,
+     "resid_z": 3.556069000142243
+    },
+    {
+     "context": "opp_last",
+     "stratum": "quiet",
+     "n_in": 1968,
+     "n_out": 6548,
+     "p_in": 0.2342479674796748,
+     "p_out": 0.11301160659743432,
+     "diff": 0.12123636088224048,
+     "z": 10.456485933764894,
+     "resid_diff": 0.05176577842585958,
+     "resid_z": 4.600600993047103
+    }
+   ],
+   "leave_one_out": [
+    {
+     "dropped": "eco_family=A",
+     "n_in": 1772,
+     "diff": 0.10927942577691746,
+     "z": 8.671344903949462,
+     "resid_z": 4.583181583031464
+    },
+    {
+     "dropped": "eco_family=B",
+     "n_in": 2023,
+     "diff": 0.1157347239636018,
+     "z": 9.405432248411152,
+     "resid_z": 4.770362739495064
+    },
+    {
+     "dropped": "eco_family=C",
+     "n_in": 2767,
+     "diff": 0.12079728004696638,
+     "z": 11.660924085992638,
+     "resid_z": 6.103104564011523
+    },
+    {
+     "dropped": "eco_family=D",
+     "n_in": 1751,
+     "diff": 0.13868657498961873,
+     "z": 10.645892129136348,
+     "resid_z": 5.683964912573042
+    },
+    {
+     "dropped": "color=b",
+     "n_in": 1355,
+     "diff": 0.09765567583800114,
+     "z": 6.883191441368822,
+     "resid_z": 2.710621339067
+    },
+    {
+     "dropped": "color=w",
+     "n_in": 1416,
+     "diff": 0.1430463296694568,
+     "z": 9.566597976545603,
+     "resid_z": 5.928846989533431
+    },
+    {
+     "dropped": "phase=endgame",
+     "n_in": 2649,
+     "diff": 0.12187947705670846,
+     "z": 11.389230540070336,
+     "resid_z": 5.881747529913261
+    },
+    {
+     "dropped": "phase=middlegame",
+     "n_in": 464,
+     "diff": 0.16905640317096354,
+     "z": 8.310322765898363,
+     "resid_z": 6.7311531784053225
+    },
+    {
+     "dropped": "phase=opening",
+     "n_in": 2429,
+     "diff": 0.08629346237931332,
+     "z": 7.320590992387649,
+     "resid_z": 4.036777353621599
+    },
+    {
+     "dropped": "speed=rapid",
+     "n_in": 2750,
+     "diff": 0.11894767903756669,
+     "z": 11.53408645755889,
+     "resid_z": 5.96458531630777
+    },
+    {
+     "dropped": "standing=level",
+     "n_in": 2128,
+     "diff": 0.08708812472357363,
+     "z": 7.181613642070204,
+     "resid_z": 3.950596108114593
+    },
+    {
+     "dropped": "standing=losing",
+     "n_in": 2258,
+     "diff": 0.1233205433771618,
+     "z": 11.04666153072421,
+     "resid_z": 5.297332954530442
+    },
+    {
+     "dropped": "standing=winning",
+     "n_in": 1156,
+     "diff": 0.16291475489619694,
+     "z": 10.378267382628064,
+     "resid_z": 6.228112517099729
+    },
+    {
+     "dropped": "era=2024",
+     "n_in": 2420,
+     "diff": 0.11912325203812249,
+     "z": 10.955034369908883,
+     "resid_z": 5.581733889818196
+    },
+    {
+     "dropped": "era=2025",
+     "n_in": 2751,
+     "diff": 0.12095876855942989,
+     "z": 11.617056958414103,
+     "resid_z": 6.119930445943813
+    },
+    {
+     "dropped": "era=2026",
+     "n_in": 371,
+     "diff": 0.13128930817610063,
+     "z": 4.2224851047212,
+     "resid_z": 2.492977447562386
+    },
+    {
+     "dropped": "clock_state=30-60s",
+     "n_in": 2499,
+     "diff": 0.1223782036524426,
+     "z": 11.410931705971237,
+     "resid_z": 5.940060578067947
+    },
+    {
+     "dropped": "clock_state=<30s",
+     "n_in": 2615,
+     "diff": 0.12578856687903206,
+     "z": 11.766536802427032,
+     "resid_z": 6.19949686026904
+    },
+    {
+     "dropped": "clock_state=>=60s",
+     "n_in": 428,
+     "diff": 0.07973130841121495,
+     "z": 3.0409442398387,
+     "resid_z": 1.3970558182852026
+    },
+    {
+     "dropped": "material=endgame-material",
+     "n_in": 2649,
+     "diff": 0.12187947705670846,
+     "z": 11.389230540070336,
+     "resid_z": 5.881747529913261
+    },
+    {
+     "dropped": "material=full",
+     "n_in": 870,
+     "diff": 0.07425821972734564,
+     "z": 4.005770520724115,
+     "resid_z": 2.253288382366119
+    },
+    {
+     "dropped": "material=reduced",
+     "n_in": 2023,
+     "diff": 0.13741022422262922,
+     "z": 11.68395785053869,
+     "resid_z": 5.964450244468433
+    },
+    {
+     "dropped": "opp_last=after-capture",
+     "n_in": 2080,
+     "diff": 0.12462522045855379,
+     "z": 10.921012162029685,
+     "resid_z": 5.197501758381255
+    },
+    {
+     "dropped": "opp_last=after-check",
+     "n_in": 2659,
+     "diff": 0.11832291446923728,
+     "z": 11.330317460495367,
+     "resid_z": 5.669267003031507
+    },
+    {
+     "dropped": "opp_last=quiet",
+     "n_in": 803,
+     "diff": 0.11693578945161942,
+     "z": 6.463896857474567,
+     "resid_z": 4.742061430519926
+    }
+   ]
+  },
+  "stability_loco": {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "target": "cls_tactical",
+   "depth": 2,
+   "rows": [
+    {
+     "variant": "drop eco_family=A",
+     "n": 22570,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop eco_family=B",
+     "n": 25880,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop eco_family=C",
+     "n": 33441,
+     "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "jaccard": 0.5229159148321906
+    },
+    {
+     "variant": "drop eco_family=D",
+     "n": 23100,
+     "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "jaccard": 0.5229159148321906
+    },
+    {
+     "variant": "drop color=w",
+     "n": 17724,
+     "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "jaccard": 0.5229159148321906
+    },
+    {
+     "variant": "drop phase=endgame",
+     "n": 32797,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop phase=opening",
+     "n": 25110,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop speed=bullet",
+     "n": 30348,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop speed=classical",
+     "n": 34933,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop era=2023",
+     "n": 19654,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "drop era=2024",
+     "n": 34344,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "older half of DERIVE",
+     "n": 17349,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "newer half of DERIVE",
+     "n": 17648,
+     "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "jaccard": 0.5229159148321906
+    },
+    {
+     "variant": "random half 0",
+     "n": 17843,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    },
+    {
+     "variant": "random half 1",
+     "n": 17426,
+     "winner": "material_balance: [0:3[ AND own_overloaded_piece_count>=1",
+     "jaccard": 0.5229159148321906
+    },
+    {
+     "variant": "random half 2",
+     "n": 17838,
+     "winner": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+     "jaccard": 1.0
+    }
+   ]
+  },
+  "holdout_test": {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "fit_on": "derive",
+   "n_fit": 34997,
+   "frames": {
+    "TEST": {
+     "n": 11575,
+     "games": 440,
+     "base_err": 0.1578401727861771,
+     "region_contrast": {
+      "n_in": 2981,
+      "n_out": 8594,
+      "p_in": 0.24823884602482388,
+      "p_out": 0.12648359320456132,
+      "diff": 0.12175525282026256,
+      "se": 0.010711398227145516,
+      "z": 11.366886958950191,
+      "games_in": 418
+     },
+     "baseline_gap_in_region": {
+      "gap_in": 0.036729239697430964,
+      "gap_out": -0.025451790051952174,
+      "diff": 0.06218102974938314,
+      "z": 6.196233600943958
+     },
+     "models": {
+      "M0_history": {
+       "logloss": 0.4362165955891646,
+       "auc": 0.5
+      },
+      "M1_six_buckets": {
+       "logloss": 0.4263461005532803,
+       "auc": 0.5950679341631332
+      },
+      "M2_context": {
+       "logloss": 0.42493345853683345,
+       "auc": 0.6081177809985134
+      },
+      "M3_baseline": {
+       "logloss": 0.3998276053759514,
+       "auc": 0.7079176304729202
+      },
+      "M4_baseline_region": {
+       "logloss": 0.3973294786921213,
+       "auc": 0.7162682410089481
+      },
+      "M5_context_region": {
+       "logloss": 0.41837041200577263,
+       "auc": 0.651161008930242
+      }
+     },
+     "region_logloss_gain_over_baseline": 0.002498126683830093,
+     "shuffled_gain_p": 0.0,
+     "shuffled_gain_max": -0.0015296013348833903
+    }
+   }
+  },
+  "population": {
+   "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+   "frame": "VALIDATE",
+   "population": {
+    "n": 34794,
+    "games": 600,
+    "sides": 1200,
+    "base_err": 0.14439271138702076,
+    "raw": {
+     "n_in": 8454,
+     "n_out": 26340,
+     "p_in": 0.22734800094629762,
+     "p_out": 0.11776765375854215,
+     "diff": 0.10958034718775547,
+     "se": 0.005868823354067298,
+     "z": 18.671604268309167,
+     "games_in": 599
+    },
+    "resid": {
+     "resid_in": 0.05110570832117707,
+     "resid_out": -0.01636233371218544,
+     "diff": 0.06746804203336251,
+     "z": 12.555112950591353,
+     "n_in": 8454
+    }
+   },
+   "focal": {
+    "corpus": "lichess:abdohassan11",
+    "player_keys": [
+     "abdohassan11"
+    ],
+    "n": 11636,
+    "raw": {
+     "n_in": 2771,
+     "n_out": 8865,
+     "p_in": 0.24215084806928908,
+     "p_out": 0.1212633953750705,
+     "diff": 0.12088745269421858,
+     "se": 0.010344221772998501,
+     "z": 11.686471476256514,
+     "games_in": 419
+    },
+    "resid_under_population_baseline": {
+     "resid_in": 0.04254812097975852,
+     "resid_out": -0.021988952200893357,
+     "diff": 0.06453707318065188,
+     "z": 6.476528450627143,
+     "n_in": 2771
+    }
+   },
+   "leakage_guard": {
+    "population_rows_before": 34794,
+    "population_rows_after": 34794,
+    "focal_rows_removed": 0,
+    "focal_corpus": "lichess:abdohassan11",
+    "focal_keys": [
+     "abdohassan11"
+    ]
+   },
+   "per_side": {
+    "n_sides": 456,
+    "elev_mean": 0.05502490467562218,
+    "elev_sd": 0.14383240099314593,
+    "elev_q": {
+     "0.05": -0.14648677933614743,
+     "0.25": -0.036522203501397295,
+     "0.5": 0.05308463052155435,
+     "0.75": 0.14315950244184536,
+     "0.95": 0.2881876092993929
+    },
+    "focal_elev": 0.06453707318065188,
+    "focal_percentile": 0.5307017543859649,
+    "raw_q": {
+     "0.05": -0.10738416988416989,
+     "0.25": 0.0,
+     "0.5": 0.09071316614420064,
+     "0.75": 0.18754807692307693,
+     "0.95": 0.3333333333333333
+    },
+    "focal_raw_elev": 0.12088745269421858,
+    "focal_raw_percentile": 0.5921052631578947
+   }
   }
- }
+ },
+ "finished_at": "2026-09-11T02:38:39Z"
 }

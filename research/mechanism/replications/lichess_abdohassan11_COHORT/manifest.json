@@ -84,7 +84,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "ad716927d6f9739d349a53e3c08fc6aa6f8f03d8",
+ "repo_sha": "d605d862e77c55fc207b1003bb185d0423692d59",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -173,5 +173,5 @@
   "player_id": "abdohassan11",
   "corpus": "lichess:abdohassan11"
  },
- "run_dir": "/tmp/cohort_probes/lichess_abdohassan11_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_abdohassan11_COHORT"
 }
