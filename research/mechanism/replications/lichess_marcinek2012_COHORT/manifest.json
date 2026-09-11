@@ -85,7 +85,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "47cd47be34842ed2ddc8b6b7d8152c42333828ce",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -174,5 +174,5 @@
   "player_id": "marcinek2012",
   "corpus": "lichess:marcinek2012"
  },
- "run_dir": "/tmp/cohort_probes/lichess_marcinek2012_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_marcinek2012_COHORT"
 }
