@@ -80,7 +80,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "d6e893fe4f049a0e32dc8a4b056f773c06e964e5",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -169,5 +169,5 @@
   "player_id": "marcioparana",
   "corpus": "lichess:marcioparana"
  },
- "run_dir": "/tmp/cohort_probes/lichess_marcioparana_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_marcioparana_COHORT"
 }
