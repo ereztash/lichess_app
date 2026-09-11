@@ -72,7 +72,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "b218c616884fd5ce4ce28de1442323d20b280d3b",
+ "repo_sha": "bdf9c210c969bf7a7d035f6e4090919020337e68",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -161,5 +161,5 @@
   "player_id": "beni_kpknldmi",
   "corpus": "lichess:beni_kpknldmi"
  },
- "run_dir": "/tmp/cohort_probes/lichess_beni_kpknldmi_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_beni_kpknldmi_COHORT"
 }
