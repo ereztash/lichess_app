@@ -89,7 +89,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "7cd8a93eca9bb4add69634a8270685a4f964d216",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -178,5 +178,5 @@
   "player_id": "szeka12",
   "corpus": "lichess:szeka12"
  },
- "run_dir": "/tmp/cohort_probes/lichess_szeka12_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_szeka12_COHORT"
 }
