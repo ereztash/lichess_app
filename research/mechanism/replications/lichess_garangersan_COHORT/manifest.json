@@ -73,7 +73,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "554cbda4356edfe6420a3d76f59109295d36524c",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -162,5 +162,5 @@
   "player_id": "garangersan",
   "corpus": "lichess:garangersan"
  },
- "run_dir": "/tmp/cohort_probes/lichess_garangersan_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_garangersan_COHORT"
 }
