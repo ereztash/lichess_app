@@ -1,0 +1,236 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 1.94564885708643,
+   "zs": [
+    0.6359576640394616,
+    0.7620667795989547,
+    2.4815398702050997,
+    3.4210139716562327,
+    2.4276659999324037
+   ],
+   "regions": [
+    "own_overloaded_piece_count>=2",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1",
+    "own_overloaded_piece_count>=1"
+   ]
+  },
+  "2": {
+   "mean_z": 1.4273990989357934,
+   "zs": [
+    0.33147246555638876,
+    1.052818918349307,
+    1.1253942777819919,
+    3.2580866190749176,
+    1.3692232139163623
+   ],
+   "regions": [
+    "opp_last_captured_value<3 AND own_overloaded_piece_count>=2",
+    "own_lost_material==0 AND own_overloaded_piece_count>=1",
+    "opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+    "material_change_2ply>=-1 AND own_overloaded_piece_count>=1",
+    "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1"
+   ]
+  },
+  "3": {
+   "mean_z": 1.4341801403323982,
+   "zs": [
+    0.6072413599751535,
+    1.4175725236225665,
+    0.8831503278063342,
+    2.6357330607531515,
+    1.627203429504786
+   ],
+   "regions": [
+    "opp_last_captured_value<3 AND own_lost_material==0 AND own_overloaded_piece_count>=2",
+    "own_last_check==0 AND own_lost_material==0 AND own_overloaded_piece_count>=1",
+    "material_change_2ply: [-1:1[ AND opp_hanging_piece_count<1 AND own_hanging_piece_count>=1",
+    "material_change_2ply>=-1 AND own_last_check==0 AND own_overloaded_piece_count>=1",
+    "material_change_2ply: [-1:1[ AND own_hanging_piece_count>=1 AND own_last_check==0"
+   ]
+  }
+ },
+ "depth": 1,
+ "frozen": [
+  {
+   "region": "own_overloaded_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.6288174921710532,
+   "depth": 1,
+   "n_derive": 2756,
+   "derive_err_in": 0.20355587808417996,
+   "derive_err_out": 0.11525086934923001,
+   "derive_wg_est": 0.0856582147534989,
+   "derive_wg_z": 9.321759650811678,
+   "derive_resid_wg_in": 0.031026502218487143,
+   "stability_share_j60": 0.6333333333333333,
+   "stability_median_j": 1.0,
+   "validate": {
+    "n_in": 895,
+    "n_out": 1986,
+    "p_in": 0.2,
+    "p_out": 0.09415911379657603,
+    "diff": 0.10584088620342398,
+    "se": 0.015598634586539713,
+    "z": 6.785266083145227,
+    "games_in": 89,
+    "wg_est": 0.10454994225391737,
+    "wg_se": 0.015596056120986737,
+    "wg_z": 6.703614134424047,
+    "wg_games": 89,
+    "pass": true,
+    "region": "own_overloaded_piece_count>=1",
+    "resid_wg_est": 0.06374150123314977,
+    "resid_wg_z": 4.000298568353559,
+    "secondary_wg": {
+     "est": -0.014105182319150603,
+     "z": -1.0719608171054307,
+     "n_games": 89
+    },
+    "wp_loss_wg": {
+     "est": -0.002835264487987909,
+     "z": -0.9563573653081673
+    }
+   }
+  },
+  {
+   "region": "own_hanging_piece_count>=1",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.4179912142473416,
+   "depth": 1,
+   "n_derive": 2101,
+   "derive_err_in": 0.2037125178486435,
+   "derive_err_out": 0.1238422467881685,
+   "derive_wg_est": 0.07559956520600719,
+   "derive_wg_z": 7.196003129046744,
+   "derive_resid_wg_in": 0.030935740338815847,
+   "stability_share_j60": 0.6333333333333333,
+   "stability_median_j": 0.776536312849162,
+   "validate": {
+    "n_in": 695,
+    "n_out": 2186,
+    "p_in": 0.19136690647482013,
+    "p_out": 0.10658737419945105,
+    "diff": 0.08477953227536908,
+    "se": 0.016621718477848633,
+    "z": 5.100527504923918,
+    "games_in": 88,
+    "wg_est": 0.08175202686208771,
+    "wg_se": 0.015488264706574351,
+    "wg_z": 5.278320613114662,
+    "wg_games": 88,
+    "pass": false,
+    "region": "own_hanging_piece_count>=1",
+    "resid_wg_est": 0.050689355276773644,
+    "resid_wg_z": 3.3523721316857964,
+    "secondary_wg": {
+     "est": -0.02141363643006404,
+     "z": -1.6306937015484286,
+     "n_games": 88
+    },
+    "wp_loss_wg": {
+     "est": -0.004590432802622377,
+     "z": -1.4710831727586604
+    }
+   }
+  },
+  {
+   "region": "own_overloaded_piece_count>=2",
+   "region_depth3": null,
+   "collapse_jaccard": null,
+   "quality": 1.388692708028836,
+   "depth": 1,
+   "n_derive": 462,
+   "derive_err_in": 0.25757575757575757,
+   "derive_err_out": 0.13656546261850475,
+   "derive_wg_est": 0.11712936785822585,
+   "derive_wg_z": 5.6939484405677625,
+   "derive_resid_wg_in": 0.06460783189581629,
+   "stability_share_j60": 0.3,
+   "stability_median_j": 0.15754189944134078,
+   "validate": {
+    "n_in": 141,
+    "n_out": 2740,
+    "p_in": 0.2907801418439716,
+    "p_out": 0.11861313868613138,
+    "diff": 0.17216700315784023,
+    "se": 0.03883357558943804,
+    "z": 4.433457402379044,
+    "games_in": 55,
+    "wg_est": 0.16381466083095508,
+    "wg_se": 0.041141806321352524,
+    "wg_z": 3.981708035651696,
+    "wg_games": 55,
+    "pass": false,
+    "region": "own_overloaded_piece_count>=2",
+    "resid_wg_est": 0.11479468399565719,
+    "resid_wg_z": 2.698484855974777,
+    "secondary_wg": {
+     "est": -0.018952295184751115,
+     "z": -0.592746792541939,
+     "n_games": 55
+    },
+    "wp_loss_wg": {
+     "est": 0.0031995876159713575,
+     "z": 0.3501532624449466
+    }
+   }
+  }
+ ],
+ "bootstrap_winners": {
+  "own_overloaded_piece_count>=1": 16,
+  "own_overloaded_piece_count>=2": 9,
+  "own_hanging_piece_count>=1": 2,
+  "opp_last_captured_value: [1:3[": 1,
+  "n_captures>=3": 1,
+  "own_hanging_piece_count: [1:2[": 1
+ }
+}

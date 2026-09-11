@@ -77,7 +77,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "0d8d28bccd41e4a629858fa27b03984cb9491ba6",
+ "repo_sha": "95521ec7a13edddf3285b5955b2f87478c48f601",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -166,5 +166,5 @@
   "player_id": "chahinskandar",
   "corpus": "lichess:chahinskandar"
  },
- "run_dir": "/tmp/cohort_probes/lichess_chahinskandar_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_chahinskandar_COHORT"
 }
