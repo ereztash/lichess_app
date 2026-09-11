@@ -89,7 +89,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "dfd628f371980816fc8bd3dba7158d727b3b6651",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -178,5 +178,5 @@
   "player_id": "boycoe",
   "corpus": "lichess:boycoe"
  },
- "run_dir": "/tmp/cohort_probes/lichess_boycoe_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_boycoe_COHORT"
 }
