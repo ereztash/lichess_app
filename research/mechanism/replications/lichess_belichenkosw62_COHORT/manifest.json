@@ -89,7 +89,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "b90c1a741e161e68fbc0029123aeabdae6dce2b8",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -178,5 +178,5 @@
   "player_id": "belichenkosw62",
   "corpus": "lichess:belichenkosw62"
  },
- "run_dir": "/tmp/cohort_probes/lichess_belichenkosw62_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_belichenkosw62_COHORT"
 }
