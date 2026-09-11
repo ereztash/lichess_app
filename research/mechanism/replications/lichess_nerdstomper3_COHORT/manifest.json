@@ -76,7 +76,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "753160c1461e6b8cb8914249f6cf8b0d67528173",
+ "repo_sha": "7eda430b649d04f213490c526724f3bafdde3794",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +165,5 @@
   "player_id": "nerdstomper3",
   "corpus": "lichess:nerdstomper3"
  },
- "run_dir": "/tmp/cohort_probes/lichess_nerdstomper3_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_nerdstomper3_COHORT"
 }
