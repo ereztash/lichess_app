@@ -1,15 +1,15 @@
 # Replication report — lichess/kosbog1977
 
-**Result:** `FROZEN`
+**Result:** `LEVEL_TYPICAL_ONLY`
 
-
+the region holds up on held-out games, and under a model of same-rating players no region of the same frozen vocabulary passes the judge: what was found is the structure of the band, not of the player
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `3b35767087fb1aae2650481ff019028a0e5733ae` |
+| repo SHA | `fd456d02ac185f899d67c27225a13f7175b223f0` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_kosbog1977_COHORT` |
+| run directory | `/work/research/mechanism/replications/lichess_kosbog1977_COHORT` |
 
 ## PLAYER
 
@@ -22,7 +22,7 @@
 - fetched: 950
 - admissible under the frozen rule: 450
 - scorable (admissible AND standard variant): 450
-- eligible decisions: None
+- eligible decisions: 14221
 - speeds: {'blitz': 450}
 
 ## ELIGIBILITY
@@ -37,22 +37,32 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 ## SPLITS
 
-- DERIVE None decisions / None games
-- VALIDATE None / None
-- TEST None / None (opened once, for the frozen candidate only)
+- DERIVE 8330 decisions / 270 games
+- VALIDATE 2838 / 90
+- TEST 3053 / 90 (opened once, for the frozen candidate only)
 
 ## BROAD STRUCTURE (R*)
 
-None.
+    n_good_captures<1 AND own_overloaded_piece_count>=1
+
+| frozen on DERIVE | n 1587 | rate in/out 19.5% / 12.7% | within-game +5.8 pp (z 5.36) |
+| judged on VALIDATE | n_in 526 | rate in/out 20.2% / 13.5% | within-game +6.6 pp (z 3.41), residual z 4.12 |
+| stability | 16.7% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 0.17) |
 
 ## HOLDOUT RESULT (TEST)
 
-Not opened: no candidate reached it.
+- region on TEST: n_in 618, rate in/out 17.8% / 12.1% (z 3.64)
+- held-out log-loss / AUC: baseline 0.3658 / 0.684 → baseline + region 0.3628 / 0.696
+- within-game label-shuffle p for the region's gain: 0.000 (200 draws)
 
 ## POPULATION COMPARISON
 
-- band derived from the focal player's own blitz median rating: None (median None)
-- population corpus: `None` — resolution `None`
+- band derived from the focal player's own blitz median rating: [1450, 1850] (median 1635.5)
+- population corpus: `population_2026-06` — resolution `OK`
+- the same region in the population: raw +8.1 pp, residual +7.8 pp
+- per-side elevation across 310 population sides: mean +7.2 pp, sd +15.3 pp
+- this player sits at the 53rd percentile of that distribution
+- leakage guard: 0 of 34794 population rows removed as the focal player's, before any model was fit
 
 ## PERSONAL RESIDUAL (R**)
 
@@ -80,8 +90,8 @@ The rungs and their authorities:
 
 ## NEXT TEST
 
-More games, or a population corpus for this band. Neither is a re-tuning:
-both are the same pipeline with the input it needs.
+Nothing personal to test. The region is real for this player and is what the band
+does; a coaching claim about it would be a claim about the band.
 
 ---
 
