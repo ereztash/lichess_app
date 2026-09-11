@@ -93,7 +93,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "26bc09b853adcb54a43b2aa755b594f7283ae814",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -182,5 +182,5 @@
   "player_id": "elciclonzapala25",
   "corpus": "lichess:elciclonzapala25"
  },
- "run_dir": "/tmp/cohort_probes/lichess_elciclonzapala25_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_elciclonzapala25_COHORT"
 }
