@@ -78,7 +78,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "b218c616884fd5ce4ce28de1442323d20b280d3b",
+ "repo_sha": "8c322ea88727a6516516658a32efb5c75d102300",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -167,5 +167,5 @@
   "player_id": "sofiyankhan",
   "corpus": "lichess:sofiyankhan"
  },
- "run_dir": "/tmp/cohort_probes/lichess_sofiyankhan_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_sofiyankhan_COHORT"
 }
