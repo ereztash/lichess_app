@@ -96,7 +96,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "b14358bc45e10c3f1de0e8f31af1394d9b5e39b8",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -185,5 +185,5 @@
   "player_id": "vrajik",
   "corpus": "lichess:vrajik"
  },
- "run_dir": "/tmp/cohort_probes/lichess_vrajik_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_vrajik_COHORT"
 }
