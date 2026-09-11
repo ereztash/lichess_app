@@ -76,7 +76,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "dbbc2d25f0cd28b608c3388adfad88c8cfd0efd3",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -165,5 +165,5 @@
   "player_id": "rookiepawn89",
   "corpus": "lichess:rookiepawn89"
  },
- "run_dir": "/tmp/cohort_probes/lichess_rookiepawn89_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_rookiepawn89_COHORT"
 }
