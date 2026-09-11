@@ -82,7 +82,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "617e9e3333345ec6cbb3766487591c908728bd39",
+ "repo_sha": "20529182609f0c0f0055bf79f29fe6616cccf6af",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -171,5 +171,5 @@
   "player_id": "navaneethav",
   "corpus": "lichess:navaneethav"
  },
- "run_dir": "/tmp/cohort_probes/lichess_navaneethav_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_navaneethav_COHORT"
 }
