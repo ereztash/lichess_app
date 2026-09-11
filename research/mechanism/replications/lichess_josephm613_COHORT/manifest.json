@@ -85,7 +85,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "37484fe450e402425847eb37d9ca705d59dc1424",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -174,5 +174,5 @@
   "player_id": "josephm613",
   "corpus": "lichess:josephm613"
  },
- "run_dir": "/tmp/cohort_probes/lichess_josephm613_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_josephm613_COHORT"
 }

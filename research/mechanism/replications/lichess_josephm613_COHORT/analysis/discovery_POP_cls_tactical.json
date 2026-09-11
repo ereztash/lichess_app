@@ -1,0 +1,131 @@
+{
+ "design": {
+  "seed": 20260905,
+  "derive_frac": 0.6,
+  "validate_frac": 0.2,
+  "target": "err",
+  "secondary_target": "blunder10",
+  "k": 3.5,
+  "min_n_validate": 100,
+  "min_size": 300,
+  "max_size": 12000,
+  "n_freeze": 3,
+  "baseline_cols": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "log_seconds",
+   "clock_frac",
+   "clock_under_60s",
+   "rating_diff",
+   "legal_moves",
+   "gap12",
+   "n_near",
+   "ambiguity_entropy",
+   "edge",
+   "in_check",
+   "non_pawn_material",
+   "ply",
+   "ply_bin",
+   "free_capture",
+   "recapture_available",
+   "opp_hanging_any"
+  ],
+  "baseline_cat": [
+   "phase",
+   "standing",
+   "speed",
+   "color",
+   "ply_bin"
+  ],
+  "residual": true,
+  "population": "/work/research/mechanism/data/decisions_population_2026-06.parquet",
+  "_pop_auc": 0.7661212764145664
+ },
+ "vocab": "OBS",
+ "target": "cls_tactical",
+ "cv_depth": {
+  "1": {
+   "mean_z": 0.2488773115392222,
+   "zs": [
+    -0.20416370379457766,
+    1.436573678724254,
+    -0.6518212038706775,
+    0.44009345145744416,
+    0.22370433517966812
+   ],
+   "regions": [
+    "own_passed>=1",
+    "standing=='winning'",
+    "own_king_ring_enemy_attacks: [1:3[",
+    "standing=='winning'",
+    "opp_attacked_piece_count: [1:3["
+   ]
+  },
+  "2": {
+   "mean_z": -0.24248957353605177,
+   "zs": [
+    -1.522990787358599,
+    0.1884275908209194,
+    -0.29487884711322143,
+    0.14108297802542108,
+    0.27591119794522123
+   ],
+   "regions": [
+    "clock_frac<0.50 AND own_attacked_piece_count: [1:3[",
+    "material_balance>=3 AND own_king_ring_enemy_attacks: [1:3[",
+    "own_king_ring_enemy_attacks: [1:3[ AND own_passed>=1",
+    "opp_king_ring_enemy_attacks>=1 AND standing=='winning'",
+    "own_king_ring_enemy_attacks: [1:3[ AND standing=='winning'"
+   ]
+  },
+  "3": {
+   "mean_z": 0.5586472776902396,
+   "zs": [
+    0.37657624899468795,
+    0.5523542293282704,
+    -0.11004816368736932,
+    1.4248881112440612,
+    0.5494659625715473
+   ],
+   "regions": [
+    "n_captures: [1:3[ AND new_attacks_on_own>=1 AND own_passed>=1",
+    "opp_passed>=1 AND opp_queen==0 AND own_king_ring_enemy_attacks: [1:3[",
+    "opp_passed>=1 AND opp_queen==0 AND own_king_ring_enemy_attacks: [1:3[",
+    "legal_moves: [26.0:36.0[ AND own_king_ring_enemy_attacks: [1:3[ AND standing=='winning'",
+    "legal_moves: [27.0:36.0[ AND own_king_ring_enemy_attacks: [1:3[ AND standing=='winning'"
+   ]
+  }
+ },
+ "depth": 3,
+ "frozen": [],
+ "bootstrap_winners": {
+  "opp_king_ring_enemy_attacks>=1 AND opp_passed>=1 AND own_king_ring_enemy_attacks: [1:3[": 2,
+  "opp_passed>=1 AND opp_queen==0 AND own_king_ring_enemy_attacks: [1:3[": 1,
+  "clock_frac<0.50 AND color=='b' AND new_attacks_on_own>=1": 1,
+  "opp_last_spent_s: [1:5[ AND opp_passed>=1 AND own_king_ring_enemy_attacks: [1:3[": 1,
+  "clock_frac<0.50 AND n_checks>=1 AND new_attacks_on_own>=1": 1,
+  "clock_diff_s<30 AND opp_last_pawn==0 AND own_overloaded_piece_count>=2": 1,
+  "opp_king_ring_enemy_attacks>=1 AND own_overloaded_piece_count<1 AND phase=='opening'": 1,
+  "opp_queen==0 AND own_king_ring_enemy_attacks: [1:3[ AND own_prev_spent_s: [5:15[": 1,
+  "material_change_2ply: [-1:1[ AND opp_attacked_piece_count: [1:3[ AND opp_king_ring_enemy_attacks: [1:3[": 1,
+  "material_change_2ply>=1 AND opp_king_ring_enemy_attacks>=1 AND own_prev_spent_s: [1:5[": 2,
+  "legal_moves: [26.0:36.0[ AND own_king_ring_enemy_attacks>=1 AND standing=='winning'": 1,
+  "clock_frac: [0.25:0.50[ AND opp_last_captured_value<3 AND ply<60": 1,
+  "clock_frac: [0.25:0.50[ AND color=='b' AND own_passed>=1": 1,
+  "n_captures: [1:3[ AND new_attacks_on_own>=1 AND own_passed>=1": 2,
+  "material_balance>=3 AND own_king_ring_enemy_attacks: [1:3[ AND own_prev_spent_s>=1": 1,
+  "legal_moves: [26.0:36.0[ AND own_king_ring_enemy_attacks: [1:3[ AND standing=='winning'": 2,
+  "clock_diff_s: [-30:0[ AND opp_attacked_piece_count: [1:3[ AND own_king_ring_enemy_attacks>=1": 1,
+  "own_king_ring_enemy_attacks: [1:3[ AND phase=='endgame' AND standing=='losing'": 1,
+  "opp_last_captured_value<3 AND own_lost_material==1 AND phase=='middlegame'": 1,
+  "n_captures>=3 AND opp_last_pawn==0 AND standing=='winning'": 1,
+  "own_attacked_piece_count: [1:3[ AND own_king_ring_enemy_attacks: [1:3[ AND own_pinned_count<1": 1,
+  "material_balance: [0:3[ AND opp_king_ring_enemy_attacks>=1 AND own_attacked_piece_count: [1:3[": 1,
+  "opp_attacked_piece_count: [1:3[ AND opp_king_ring_enemy_attacks: [1:3[ AND own_attacked_piece_count>=3": 1,
+  "opp_hanging_piece_count<1 AND opp_king_ring_enemy_attacks: [1:3[ AND standing=='winning'": 1,
+  "n_checks>=1 AND own_prev_spent_s: [5:15[ AND own_queen==0": 1,
+  "legal_moves: [27.0:36.0[ AND own_king_ring_enemy_attacks: [1:3[ AND standing=='winning'": 1
+ }
+}
