@@ -1,0 +1,83 @@
+{
+ "region": "material_balance>=-2 AND own_overloaded_piece_count>=1",
+ "frame": "VALIDATE",
+ "population": {
+  "n": 34794,
+  "games": 600,
+  "sides": 1200,
+  "base_err": 0.14439271138702076,
+  "raw": {
+   "n_in": 8454,
+   "n_out": 26340,
+   "p_in": 0.22734800094629762,
+   "p_out": 0.11776765375854215,
+   "diff": 0.10958034718775547,
+   "se": 0.005868823354067298,
+   "z": 18.671604268309167,
+   "games_in": 599
+  },
+  "resid": {
+   "resid_in": 0.05110570832117707,
+   "resid_out": -0.01636233371218544,
+   "diff": 0.06746804203336251,
+   "z": 12.555112950591353,
+   "n_in": 8454
+  }
+ },
+ "focal": {
+  "corpus": "lichess:egregiouschessplayer",
+  "player_keys": [
+   "egregiouschessplayer"
+  ],
+  "n": 13040,
+  "raw": {
+   "n_in": 3009,
+   "n_out": 10031,
+   "p_in": 0.226321036889332,
+   "p_out": 0.12421493370551291,
+   "diff": 0.10210610318381909,
+   "se": 0.009504712915404629,
+   "z": 10.74268145630491,
+   "games_in": 428
+  },
+  "resid_under_population_baseline": {
+   "resid_in": 0.06569463829916827,
+   "resid_out": 0.003960635192564417,
+   "diff": 0.06173400310660385,
+   "z": 6.641283937555376,
+   "n_in": 3009
+  }
+ },
+ "leakage_guard": {
+  "population_rows_before": 34794,
+  "population_rows_after": 34794,
+  "focal_rows_removed": 0,
+  "focal_corpus": "lichess:egregiouschessplayer",
+  "focal_keys": [
+   "egregiouschessplayer"
+  ]
+ },
+ "per_side": {
+  "n_sides": 456,
+  "elev_mean": 0.05502490467562218,
+  "elev_sd": 0.14383240099314593,
+  "elev_q": {
+   "0.05": -0.14648677933614743,
+   "0.25": -0.036522203501397295,
+   "0.5": 0.05308463052155435,
+   "0.75": 0.14315950244184536,
+   "0.95": 0.2881876092993929
+  },
+  "focal_elev": 0.06173400310660385,
+  "focal_percentile": 0.5263157894736842,
+  "raw_q": {
+   "0.05": -0.10738416988416989,
+   "0.25": 0.0,
+   "0.5": 0.09071316614420064,
+   "0.75": 0.18754807692307693,
+   "0.95": 0.3333333333333333
+  },
+  "focal_raw_elev": 0.10210610318381909,
+  "focal_raw_percentile": 0.5328947368421053
+ }
+}
