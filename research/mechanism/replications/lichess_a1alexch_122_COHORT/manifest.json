@@ -80,7 +80,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "23b6bb7258f242e5dc71bfd5dccf90f0da335520",
+ "repo_sha": "94f9d23eb4f5e3fd78771a248a9bf21342b40e58",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -169,5 +169,5 @@
   "player_id": "a1alexch_122",
   "corpus": "lichess:a1alexch_122"
  },
- "run_dir": "/tmp/cohort_probes/lichess_a1alexch_122_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_a1alexch_122_COHORT"
 }
