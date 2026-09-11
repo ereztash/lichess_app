@@ -3628,6 +3628,28 @@ button:not(:disabled) {
   opacity: 0.62;
   font-weight: 400;
 }
+/*
+ * The readings that cannot report yet, behind one press.
+ *
+ * NOT A STYLE DECISION SO MUCH AS A LENGTH ONE. With a single decision on the record this section
+ * ran 4,128 CSS px on a phone, nearly five screens, and every one of those screens was a heading
+ * over a sentence saying that heading had nothing to say. The sentences stay, each with its own
+ * cause, because two of the causes are not waits and a shared apology would send the wrong reader
+ * back to play more games. What they no longer do is fill the screen before anyone has asked.
+ *
+ * The summary carries the count, so the press is an informed one rather than a shrug.
+ */
+.dash-waiting > summary {
+  cursor: pointer;
+  padding: var(--s3) 0;
+  font: var(--panel-label) "DM Mono", "Noto Sans Hebrew", ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted);
+}
+.dash-waiting[open] > summary {
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: var(--s3);
+}
+
 .dash-note {
   max-inline-size: var(--measure);
   font-size: var(--panel-label);
