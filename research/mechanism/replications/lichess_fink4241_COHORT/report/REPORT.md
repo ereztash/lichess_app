@@ -1,15 +1,15 @@
 # Replication report — lichess/fink4241
 
-**Result:** `FROZEN`
+**Result:** `PERSONAL_RESIDUAL_CANDIDATE`
 
-
+a region survives a same-rating population model on games never used to find it. Candidate only: not a cause, not an intervention, not a field result
 
 | | |
 | --- | --- |
 | contract | `replication-1.0.0` |
-| repo SHA | `091c4078b58b1b9490689222243137e1eb30b9a4` |
+| repo SHA | `62cb29e3cda60b6a7639ebe61f73dc7954ed5d62` |
 | pipeline hash | `eb840a439af4439bd44ed5a8da5ca76569fb8c68d38c34a6ba19eb2961da3143` |
-| run directory | `/tmp/cohort_probes/lichess_fink4241_COHORTR` |
+| run directory | `/work/research/mechanism/replications/lichess_fink4241_COHORT` |
 
 ## PLAYER
 
@@ -22,7 +22,7 @@
 - fetched: 4600
 - admissible under the frozen rule: 2200
 - scorable (admissible AND standard variant): 2200
-- eligible decisions: None
+- eligible decisions: 64210
 - speeds: {'blitz': 2087, 'bullet': 87, 'rapid': 26}
 
 ## ELIGIBILITY
@@ -39,26 +39,40 @@ Ids of every excluded game are in `admissible/exclusions.json`.
 
 ## SPLITS
 
-- DERIVE None decisions / None games
-- VALIDATE None / None
-- TEST None / None (opened once, for the frozen candidate only)
+- DERIVE 38078 decisions / 1320 games
+- VALIDATE 13403 / 440
+- TEST 12729 / 440 (opened once, for the frozen candidate only)
 
 ## BROAD STRUCTURE (R*)
 
-None.
+    material_balance>=-2 AND own_overloaded_piece_count>=1
+
+| frozen on DERIVE | n 9130 | rate in/out 24.4% / 14.0% | within-game +10.9 pp (z 21.17) |
+| judged on VALIDATE | n_in 3126 | rate in/out 24.6% / 14.3% | within-game +11.0 pp (z 12.74), residual z 8.60 |
+| stability | 96.7% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 1.00) |
 
 ## HOLDOUT RESULT (TEST)
 
-Not opened: no candidate reached it.
+- region on TEST: n_in 2799, rate in/out 25.9% / 13.8% (z 12.46)
+- held-out log-loss / AUC: baseline 0.4211 / 0.673 → baseline + region 0.4172 / 0.686
+- within-game label-shuffle p for the region's gain: 0.000 (200 draws)
 
 ## POPULATION COMPARISON
 
-- band derived from the focal player's own blitz median rating: None (median None)
-- population corpus: `None` — resolution `None`
+- band derived from the focal player's own blitz median rating: [1450, 1850] (median 1664.0)
+- population corpus: `population_2026-06` — resolution `OK`
+- the same region in the population: raw +11.0 pp, residual +6.7 pp
+- per-side elevation across 456 population sides: mean +5.5 pp, sd +14.4 pp
+- this player sits at the 54th percentile of that distribution
+- leakage guard: 0 of 34794 population rows removed as the focal player's, before any model was fit
 
 ## PERSONAL RESIDUAL (R**)
 
-None.
+    material_balance: [0:3[ AND own_attacked_piece_count>=3
+
+| frozen on DERIVE | n 4325 | rate in/out 24.2% / 15.5% | within-game +9.9 pp (z 12.61) |
+| judged on VALIDATE | n_in 1364 | rate in/out 23.7% / 15.4% | within-game +9.9 pp (z 7.77), residual z 3.61 |
+| stability | 50.0% of 30 game-level bootstrap winners share Jaccard >= 0.60 with it (median J 0.78) |
 
 ## CANNOT INFER
 
@@ -82,8 +96,10 @@ The rungs and their authorities:
 
 ## NEXT TEST
 
-More games, or a population corpus for this band. Neither is a re-tuning:
-both are the same pipeline with the input it needs.
+A field test is the only thing that can move this past a candidate: the frozen
+alternating-block protocol of `FIELD_PROTOCOL_TEMPLATE.md`, instantiated for this
+region with a matched sham, an exposure log and the policy-signature endpoint.
+A second held-out window, or a larger population sample, is what would reverse it.
 
 ---
 

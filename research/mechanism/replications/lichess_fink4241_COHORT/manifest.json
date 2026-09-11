@@ -80,7 +80,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "091c4078b58b1b9490689222243137e1eb30b9a4",
+ "repo_sha": "62cb29e3cda60b6a7639ebe61f73dc7954ed5d62",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -169,5 +169,5 @@
   "player_id": "fink4241",
   "corpus": "lichess:fink4241"
  },
- "run_dir": "/tmp/cohort_probes/lichess_fink4241_COHORTR"
+ "run_dir": "/work/research/mechanism/replications/lichess_fink4241_COHORT"
 }
