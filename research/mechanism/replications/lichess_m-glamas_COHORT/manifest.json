@@ -84,7 +84,7 @@
   "window_rule": "all-admissible-in-dateDesc-order",
   "decision": "not forced AND not book AND seconds present AND clock present"
  },
- "repo_sha": "3b35767087fb1aae2650481ff019028a0e5733ae",
+ "repo_sha": "2e7fad90d4f47b809d050a076401124c51106aa4",
  "repo_dirty": false,
  "pipeline_version": {
   "files": {
@@ -173,5 +173,5 @@
   "player_id": "m-glamas",
   "corpus": "lichess:m-glamas"
  },
- "run_dir": "/tmp/cohort_probes/lichess_m-glamas_COHORT"
+ "run_dir": "/work/research/mechanism/replications/lichess_m-glamas_COHORT"
 }
