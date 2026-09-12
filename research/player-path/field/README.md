@@ -11,54 +11,43 @@ does not restate it; it operationalises it.
 
 ## The build
 
-Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, deployed from
-[PR #105](https://github.com/ereztash/lichess_app/pull/105). The preview serves the branch head;
-documentation commits do not move the bundle, and the check below is how you know. Do not push
-source to that branch while sessions are running.
+Product source frozen at `4c395637cd274c5faffb29ebb8429bfdac358eb1`, merged to `main` in
+[PR #105](https://github.com/ereztash/lichess_app/pull/105) and now the production deployment at
+`b2d8865`. Do not push product source to `main` while sessions are running: production tracks it.
 
 ## The URL participants get
 
-The frozen build lives on the PR #105 preview, and that preview is behind Vercel Authentication:
-measured 2026-09-12, a signed-out visitor gets `302` to `vercel.com/sso-api`. The open production
-URL is not a substitute, because it serves `main` (`assets/index-D4R4s45s.js`) rather than the
-build under test.
+**`https://lichessapp.vercel.app/`**
 
-**Decided:** a Vercel protection-bypass share link for that one preview deployment. It changes
-nothing about any other deployment, nothing about production, and nothing about the project's
-protection settings, and it is revocable.
-
-**Verified**, not assumed: fetched signed-out through such a link on 2026-09-12, the page returned
+PR #105 merged on 2026-09-12 at 19:53Z, so the frozen build is now the production deployment and
+the access problem this section used to describe is gone. Verified signed-out, not assumed:
 `200`, titled `Decision Lab`, loading `assets/index-D_Il6CdA.js`, with `/build-identity.json`
-reporting `target: preview`. That is the frozen bundle.
+reporting `gitSha: b2d8865`, `target: production`, and `/api/health` answering `200` with
+`storage: "not-configured"`, which is the same storage model every walk was performed against.
 
-### Per session
+The build under test did not move. Between the frozen product source `4c39563` and merged `main`,
+the only change to anything the build reads is a corrected comment in
+`shared/confidence-asked.ts`. Comments do not ship, and the content hash is the proof: the bundle
+is the same `index-D_Il6CdA.js` the pre-registration names.
 
-1. Generate a fresh share link for the preview deployment. A generated link **expires in about 23
-   hours**, so one per session is the working assumption rather than one for the study. The Vercel
-   dashboard makes them on the deployment (⋯ → Share); ask if you would rather one was generated
-   for you.
-2. Open it **in a browser that is not signed in to Vercel**, or a private window. A moderator's own
-   laptop loads the page whatever the protection says, which is exactly how this would have gone
-   unnoticed until participant 1 was sitting there.
-3. Confirm the page loads `assets/index-D_Il6CdA.js`. The build is content-hashed, so that one
-   string is the whole freeze check: documentation commits on the branch do not move it, and
-   anything that does move it has changed the stimulus.
-4. Send the link to the participant, or open it on their phone. Nothing else is said.
+### Before each session
 
-### Never in the repository
+1. Open the URL **in a browser that is not signed in to Vercel**, or a private window.
+2. Confirm the page loads `assets/index-D_Il6CdA.js`. The build is content-hashed, so that one
+   string is the whole freeze check, and anything that moves it has changed the stimulus.
+3. Hand the participant the URL. Nothing else is said.
 
-A share link is a bearer credential: anyone holding it can open the deployment. It does not go in
-this directory, in a commit, in a PR comment, or in a participant file. The participant file
-records **that** a link was used and **which bundle hash** it served, which is the part that
-matters for the record.
+### What this replaced, kept because the reasoning still applies
 
-### The one thing that would remove the expiry
+Before the merge the build lived only on the PR preview, which answered a signed-out visitor with
+`302` to `vercel.com/sso-api`, and participants would have reached it through a protection-bypass
+share link generated fresh per session. That is no longer needed. The rule that produced it stands:
+**check the URL from a signed-out browser and never from the moderator's own**, because a
+moderator's laptop loads the page whatever the protection says, which is exactly how a wall would
+have gone unnoticed until participant 1 was sitting there.
 
-Promoting the frozen build to the project's production URL, which is already open, would give a
-stable link with no regeneration and no settings change. It also changes what the public production
-URL serves, so it is an owner decision rather than a session detail, and it is not assumed here.
-Merging #105 is not on this list at all: the PR was frozen as the stimulus, and merging it to
-unblock a URL is a different decision wearing a convenient hat.
+A share link, if one is ever needed again, is a bearer credential and does not go in this
+directory, a commit, a PR comment or a participant file.
 
 ## Order of use
 
