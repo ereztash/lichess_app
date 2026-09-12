@@ -249,10 +249,22 @@ export interface DecisionContext {
  * Whether the two read fields are asked for on this decision.
  *
  * WHAT THEY COST AND WHAT THEY BOUGHT. `known` and `unknown` were required on every decision
- * except the first of a game, and nothing downstream reads either one: the detector never looks at
- * them, and `vocabulary-reading` reads the PARTS to measure the MENU -- which options get tapped,
- * what gets typed beside them -- rather than the answer. So an ordinary turn cost three steps,
- * and on six decisions out of seven two of those three bought nothing measurable at all.
+ * except the first of a game, and nothing downstream MEASURES either one: the detector never looks
+ * at them, and `vocabulary-reading` reads the PARTS to measure the MENU -- which options get
+ * tapped, what gets typed beside them -- rather than the answer. So an ordinary turn cost three
+ * steps, and on six decisions out of seven two of those three bought nothing measurable at all.
+ *
+ * THE VERB WAS `reads` AND IT WAS FALSE, which is a different defect from the one this paragraph
+ * is about and was found by an audit that believed it. `shared/reveal.ts` `nextQuestion` reads
+ * `unknown` on the very next screen -- `סימנת "X". האם הקו של המנוע עונה על זה?` -- and that file
+ * calls the text *"the one thing on screen the engine did not produce"*. `Home.tsx` feeds it as
+ * `statedUnknown` at the single call site that builds the reveal's inputs.
+ *
+ * THE DISTINCTION IS THE WHOLE POINT, so the correction is a verb rather than a deletion. Nothing
+ * measures these fields, which is why sampling them was right. Something READS one of them, which
+ * is why they are not a pure instrument cost: the player who answers gets their own sentence back
+ * as the question they are asked next. An audit reading the old wording classified the reads as
+ * uncompensated burden, and the code had said otherwise since before the audit started.
  *
  * REPORTED FROM ACTUAL PLAY, which is the only reason this changed. The confidence draw was
  * measured at 14.7% over six thousand simulated decisions and is behaving exactly as designed;
