@@ -38,7 +38,13 @@ import {
   findScreensWithTwoBoards,
   findSurfacesThatAskAgain,
 } from "./inertia-scan";
-import { findGoalBesideACount, findUnnamedConstructs } from "./journey-scan";
+import {
+  findGoalBesideACount,
+  findGoalReadOutsideItsOwner,
+  findStageCountReadOutsideTheLedger,
+  findUnnamedConstructs,
+} from "./journey-scan";
+import { findUnreachedMembers } from "./reachability-scan";
 import { findRegisterDrift } from "./register-scan";
 import { findAuthorityDrift } from "./authority-scan";
 import { findUnobservableCues } from "./cue-scan.js";
@@ -200,6 +206,42 @@ const readingsOutside = (roots: string[]) =>
   fromFindings(
     findReadingsOutsideTheirSurface(roots),
     "every reading of the record renders from a surface whose mode permits one",
+  );
+
+const unreachedMembers = (roots: string[]): GateResult => {
+  const findings = findUnreachedMembers(roots);
+  if (roots.every((r) => r === JOURNEY_FIXTURES)) {
+    /*
+     * THE CONTROL MEASURES DISCRIMINATION, NOT EMPTINESS. Run over a directory with nothing in it
+     * this scan reports every member unreached and goes red -- and it would go red just the same
+     * if the predicate were replaced by a function returning a constant. The fixture therefore
+     * reaches five of the six members and withholds exactly one, `ruleLoad`, which is the member
+     * that actually shipped unreached. Anything other than that one finding means the scan is not
+     * telling reached from unreached, and that is a harness error rather than a red control.
+     */
+    const names = findings.map((f) => f.text.split(" ")[0]).sort();
+    if (names.length !== 1 || names[0] !== "ruleLoad") {
+      return fail(
+        `${HARNESS_ERROR} the control fixture should leave exactly ruleLoad unreached, got [${names.join(", ")}]`,
+      );
+    }
+  }
+  return fromFindings(
+    findings,
+    "every member of the journey family is called or rendered by a product file",
+  );
+};
+
+const goalReadOutsideItsOwner = (roots: string[]) =>
+  fromFindings(
+    findGoalReadOutsideItsOwner(roots),
+    "the goal is read only by the component that owns it",
+  );
+
+const stageCountOutsideTheLedger = (roots: string[]) =>
+  fromFindings(
+    findStageCountReadOutsideTheLedger(roots),
+    "a stage count is read only by the ledger that renders it",
   );
 
 const goalBesideACount = (roots: string[]) =>
@@ -883,6 +925,34 @@ export const GATES: Gate[] = [
    * numbers and a direction in one element, which the reader turns into a progress bar the product
    * never computed. A safeguard that lives in a comment is not a safeguard.
    */
+  {
+    id: "GATE-JOURNEY-REACHABLE",
+    rule: "R2",
+    description:
+      "Every member of the journey family is called or rendered by a product file, not only by a test.",
+    run: () => unreachedMembers(["client/src"]),
+    positiveControl: () => unreachedMembers([JOURNEY_FIXTURES]),
+  },
+  /*
+   * TWO SCANS PER PROPERTY, AND THE SECOND EXISTS BECAUSE THE FIRST WAS PROBED AND ESCAPED.
+   * The adjacency and paragraph scans below are within-file checks on the one file allowed to
+   * render each thing. These are the containment checks that stop a second file from rendering it
+   * at all -- which is how both probes got past the originals without matching a single token.
+   */
+  {
+    id: "GATE-GOAL-CONTAINED",
+    rule: "R1",
+    description: "The player's goal is read only by the component that owns it.",
+    run: () => goalReadOutsideItsOwner(["client/src"]),
+    positiveControl: () => goalReadOutsideItsOwner([JOURNEY_FIXTURES]),
+  },
+  {
+    id: "GATE-CONSTRUCT-CONTAINED",
+    rule: "R1",
+    description: "A journey stage's count is read only by the ledger that renders it.",
+    run: () => stageCountOutsideTheLedger(["client/src"]),
+    positiveControl: () => stageCountOutsideTheLedger([JOURNEY_FIXTURES]),
+  },
   {
     id: "GATE-GOAL-NOT-A-DENOMINATOR",
     rule: "R1",

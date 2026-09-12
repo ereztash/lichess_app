@@ -20,13 +20,16 @@
     "learning-cost": "tsx scripts/measure-learning-cost.ts",
     "db:generate": "drizzle-kit generate",
     "gates:controls": "tsx scripts/run_gates.ts --positive-controls",
-    "verify": "npm run check && npm run build && npm test && npm run gates && npm run gates:controls && npm run bundle:budget",
+    "verify": "npm run check && npm run check:control:inverted && npm run build && npm test && npm run gates && npm run gates:controls && npm run bundle:budget && npm run bundle:budget:control:inverted && npm run verify:scope",
     "bundle:budget": "tsx scripts/check_bundle_budget.ts",
     "check:control": "tsc --noEmit -p tests/fixtures/typecheck/tsconfig.json",
     "bundle:budget:control": "BUNDLE_ROOT=tests/fixtures/bundle tsx scripts/check_bundle_budget.ts",
     "falsification": "tsx scripts/falsification-report.ts",
     "purge": "tsx scripts/purge.ts",
-    "contact-sheet": "tsx scripts/contact-sheet.ts"
+    "contact-sheet": "tsx scripts/contact-sheet.ts",
+    "check:control:inverted": "! npm run check:control --silent",
+    "bundle:budget:control:inverted": "! npm run bundle:budget:control --silent",
+    "verify:scope": "tsx scripts/verify_scope.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",

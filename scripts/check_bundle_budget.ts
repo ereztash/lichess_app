@@ -819,6 +819,28 @@ const INDEX = `${ROOT}/index.html`;
  *
  * 677 AND 769 LEAVE 0.6 kB AND 0.3 kB, which is less headroom than any raise above has taken, and
  * deliberately so: the next thing added here has to pay for itself on the first measurement.
+ *
+ * ---
+ *
+ * 769 -> 770: wiring a branch that was shipped dead. The entry ceilings did not fire and keep
+ * their numbers.
+ *
+ * An assurance pass found `loopPosition`'s `rules` branch unreachable: nine tests proved it handled
+ * a due learning rule, `useLoopPosition` never passed one, and `ruleLoad` was exported and called
+ * by nothing. So the branch's claim -- that a graded claim stops being the end of the loop -- was
+ * true of the module and false of the product.
+ *
+ *                                       entry raw   gzipped   initial raw
+ *     before                              676.5      211.8       768.9
+ *     + ruleLoad from journey-readings     680.5      213.1       773.0   +4.0 / +1.3 / +4.1
+ *     + ruleLoad in its own module         676.7      211.9       769.1   -3.8 / -1.2 /  -3.9
+ *
+ * THE FIRST MEASUREMENT IS THE INTERESTING ONE. `ruleLoad` sat beside the ledger's adapter, which
+ * imports `@shared/learning-journey` and the learning-record zod schemas -- exactly what the last
+ * raise moved OUT of the entry. Importing two integers from there dragged all of it back. The
+ * module now takes a structural type of the two fields a due-count reads and imports nothing.
+ *
+ * 770 LEAVES 0.9 kB. The entry ceilings are untouched at 677 and 212, with 0.3 kB and 0.1 kB.
  */
 
 const ENTRY_RAW_KB = 677;
@@ -1010,7 +1032,7 @@ const ENTRY_GZIP_KB = 212;
  * number that ships is 778, and it leaves 0.5 kB.
  */
 
-const INITIAL_RAW_KB = 769;
+const INITIAL_RAW_KB = 770;
 
 interface Asset {
   name: string;

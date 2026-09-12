@@ -85,11 +85,43 @@ Mastery by progression through a curriculum.
 tell you what to play — he helps you understand what's going on in a position and encourages you to
 look for the right answer".
 
-**Reading.** These are different **coaching surfaces** over the same underlying loop: identify a
-gap, practise it, check it. That supports the plan's invariance hypothesis. It supports nothing
-about nationality, and **no product rule is derived from country here.** A user-selectable coaching
-style is not built: no evidence says it is needed, and geolocating a coaching register would be a
-stereotype dressed as personalisation.
+**Shogi Wars / Kishin Learning (JP).** A subscription bundling videos and learning content, with a
+review quiz to which a review game was added. Identify, practise, review, with the surface led by
+video. `SOURCE_LEDGER.md` S9 records how thin this is: a vendor Q&A and an app-store listing, and no
+independent account of the loop was found.
+
+**Lichess studies and the "Dojo" (FR).** Community-authored studies and a pedagogical section, with
+theory carried by books and videos rather than by the platform. Autonomy plus tooling, and the
+pedagogy supplied by the community rather than imposed. That Lichess imposes none is itself the
+observation.
+
+**Reading.** Four ecosystems, four coaching surfaces, one underlying loop: identify a gap, practise
+it, check it. That supports the plan's invariance hypothesis. It supports nothing about nationality,
+and **no product rule is derived from country here.** A user-selectable coaching style is not built:
+no evidence says it is needed, and geolocating a coaching register would be a stereotype dressed as
+personalisation.
+
+### Amendment, 2026-09-12, written in an assurance pass and not in the frozen plan
+
+**The first version of this section covered Russia and the United States only.** `DR_PLAN_0.md`
+committed E5 to RU/JP/US/FR, and Japan and France were dropped from the execution with no Δ0, no
+stop and no blocker recorded. That is the research-completeness failure this project has a name for:
+a declared branch disappearing from the record rather than being closed in it. It was not caught by
+anything; an audit found it by reading the plan against the evidence.
+
+**The two branches were then run, bounded to the only reading that could still change a decision:**
+does any Japanese or French learning product implement a materially different learning *loop*, as
+opposed to a different surface over the same one? If yes, loop invariance is challenged and the
+architecture moves. If no, the branches are Δ0, because the E5 conclusion was a **refusal to build**
+a coaching-style selector, and a refusal is not weakened by a third or fourth example of the thing
+it refuses to derive a rule from.
+
+**Both returned no.** Both are recorded above with their sources and their thinness. Neither changes
+core loop invariance, the coaching-surface conclusion, the product architecture or the FIELD
+protocol, so neither was pursued past the point where it could.
+
+`DR_PLAN_0.md` is unedited. The plan said what it would do; this says what was done, and that the
+two disagreed until now.
 
 ## E6 — learning science · predicted mostly Δ0 · **the plan was wrong: ΔDistinction, decisive**
 

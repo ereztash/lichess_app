@@ -66,6 +66,13 @@ and had a retrieval test come due was told "more decisions may produce the next 
 knew; the pointer did not read it. The four-step vocabulary is unchanged — a fifth label would be a
 new thing to learn — and `grade` now names the rule work that is waiting.
 
+> **Correction, 2026-09-12.** At `7ee419f` this was **false of the product and true only of the
+> module.** `useLoopPosition` never passed `rules`, and `ruleLoad` was exported and called by
+> nothing, so the shipped pointer still ended at the old sentence. Nine tests proved the branch and
+> no test proved it was reached. Repaired in the assurance pass: `ruleLoad` moved to its own module,
+> wired, and tested, with `GATE-JOURNEY-REACHABLE` refusing the class. See `FALSE_GREEN_AUDIT.md`
+> FG-1.
+
 **"No pattern cleared the threshold" became a statement about the detector.** The shipped six-bucket
 detector returns `not-separable` on the owner's whole 2,209-game record, while the frozen research
 pipeline finds a residual on that same record which survives its own within-game permutation null.
@@ -111,6 +118,13 @@ idea: a record with no decision in it has no journey to summarise.
 
 `npm run verify` on the tip: **3,262 tests pass, 38 gates pass, 38 positive controls red, bundle
 within the raised budget** (entry 676.5/677 kB, gzipped 211.8/212, initial 768.9/769).
+
+> **Correction, 2026-09-12: that sentence claimed more than it measured.** With `DATABASE_URL`
+> unset, **28 tests of the record layer's only persistent store SKIP**, so "3,262 tests pass"
+> contained none of them; and `npm run verify` did not run `check:control` or
+> `bundle:budget:control`, both of which CI runs. The CI Verify verdict on `7ee419f` is the stronger
+> one and it is green. `npm run verify` now runs both controls and prints its own scope. See
+> `FALSE_GREEN_AUDIT.md` FG-8.
 
 Every new invariant was confirmed by breaking it on purpose and watching the assertion that owns it
 go red: collapsing prompted sittings into a score out of three, reading the prompted stage before

@@ -56,16 +56,3 @@ export function ruleReadings(rules: readonly LearningRule[] | undefined): Journe
       }),
     );
 }
-
-/** What the loop pointer needs to know about rules: how many are due, and how many are open. */
-export function ruleLoad(
-  rules: readonly LearningRule[] | undefined,
-  now: Date,
-): { due: number; open: number } {
-  if (!rules?.length) return { due: 0, open: 0 };
-  const live = rules.filter((rule) => rule.grade === "hypothesis" || rule.grade === "replicated");
-  const due = live.filter(
-    (rule) => rule.next_due_at !== null && new Date(rule.next_due_at) <= now,
-  ).length;
-  return { due, open: live.length };
-}
