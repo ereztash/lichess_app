@@ -1,0 +1,24 @@
+candidates with both n_in and z: 835
+Spearman rho(n_in, resid_wg_z) = +nan   p = nan
+Pearson  r(log n_in, resid_wg_z) = +nan   p = nan
+
+by n_in quintile (candidate level):
+n_in range      n cands  med n_in     med z    pass % med z/sqrt(n)
+2-219               167       144      0.97      0.0%       0.0739
+219-442             167       315      1.40      9.0%       0.0782
+442-706             167       591      1.87     16.8%       0.0813
+706-1657            167       874      2.45     20.4%       0.0802
+1675-4382           167      2952      4.74     62.3%       0.0930
+
+members with at least one candidate: 100
+Spearman rho(blitz_validate_decisions, best z) = +0.647   p = 3.68e-13
+
+among members that reached the residual stage:
+  RESIDUAL_POWERED     : 17/25 = 68.0%
+  not RESIDUAL_POWERED : 2/27 = 7.4%
+  median blitz VALIDATE decisions, powered     : 12623
+  median blitz VALIDATE decisions, not powered : 2652
+
+pass rate under the frozen bar, by whether the member is RESIDUAL_POWERED:
+  powered      115/199 candidates pass = 57.8%   median n_in = 2756
+  not powered  66/636 candidates pass = 10.4%   median n_in = 425
